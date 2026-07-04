@@ -44,6 +44,20 @@ public class BatchAddService(IDbContextFactory<AppDbContext> dbFactory)
         foreach (var c in children) Collect(c, result, childMap);
     }
 
+    // Returns the given market group's ID plus every descendant group ID (inclusive).
+    public async Task<HashSet<int>> GetDescendantGroupIdsAsync(
+        int marketGroupId, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        var allGroups = await db.SdeMarketGroups.AsNoTracking().ToListAsync(ct);
+        var childMap  = allGroups.GroupBy(g => g.ParentGroupId ?? 0)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.MarketGroupId).ToList());
+
+        var groupIds = new HashSet<int>();
+        Collect(marketGroupId, groupIds, childMap);
+        return groupIds;
+    }
+
     // ── Blueprint search ──────────────────────────────────────────────────────
 
     public async Task<List<BlueprintSearchResult>> SearchBlueprintsAsync(

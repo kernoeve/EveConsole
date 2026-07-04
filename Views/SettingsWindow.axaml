@@ -947,9 +947,9 @@
               <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
                 <TextBlock Text="Agent Name" FontSize="11" Foreground="#666" />
                 <TextBox Text="{Binding AgentName}"
-                         Watermark="Aura" />
+                         Watermark="{x:Static agent:AgentSettings.DefaultAgentName}" />
                 <TextBlock FontSize="10" Foreground="#444455" TextWrapping="Wrap"
-                           Text="The name shown in the panel header and used when the agent refers to itself. Default: Aura." />
+                           Text="{Binding DefaultAgentNameHelpText}" />
 
                 <TextBlock Text="Response Verbosity" FontSize="11" Foreground="#666" Margin="0 4 0 0" />
                 <ComboBox ItemsSource="{Binding VerbosityOptions}"
@@ -965,12 +965,12 @@
           <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
             <Grid RowDefinitions="Auto,Auto">
               <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
-                <TextBlock Text="Aura Agent" FontWeight="SemiBold" Foreground="#c8a84b" />
+                <TextBlock Text="{Binding HeaderTitleText}" FontWeight="SemiBold" Foreground="#c8a84b" />
               </Border>
               <StackPanel Grid.Row="1" Margin="12 10" Spacing="6">
-                <CheckBox Content="Enable Aura AI companion"
+                <CheckBox Content="{Binding EnableCheckboxText}"
                           IsChecked="{Binding IsEnabled}" />
-                <TextBlock Text="When enabled, the Aura panel is available from the title bar. Requires a configured provider below."
+                <TextBlock Text="{Binding EnableHelpText}"
                            FontSize="11" Foreground="#555566" TextWrapping="Wrap" />
               </StackPanel>
             </Grid>
@@ -1073,7 +1073,7 @@
 
                 <CheckBox Content="Persist conversation history across sessions"
                           IsChecked="{Binding PersistHistory}" />
-                <TextBlock Text="History is saved to disk and reloaded when the application starts. Clear it using the ⌫ button in the Aura panel."
+                <TextBlock Text="{Binding HistoryHelpText}"
                            FontSize="10" Foreground="#444455" TextWrapping="Wrap" />
 
                 <TextBlock Text="Summarization threshold (estimated tokens)" FontSize="11" Foreground="#666" Margin="0 4 0 0" />
@@ -1087,7 +1087,7 @@
                              VerticalAlignment="Center" Margin="8 0 0 0" />
                 </Grid>
                 <TextBlock FontSize="10" Foreground="#444455" TextWrapping="Wrap"
-                           Text="When the estimated conversation length crosses this value, Aura will silently compact older messages into a summary in the background — typically while you are reading her last response. Lower values reduce API cost per message but sacrifice older context. Default: 20,000 (~$0.06/message at that size for Sonnet)." />
+                           Text="{Binding SummarizationHelpText}" />
 
               </StackPanel>
             </Grid>
@@ -1106,7 +1106,7 @@
                 <ComboBox ItemsSource="{Binding TtsProviders}"
                           SelectedItem="{Binding TtsProvider}"
                           HorizontalAlignment="Stretch" />
-                <TextBlock Text="Volume and mute are available directly in the Aura panel while it is open."
+                <TextBlock Text="{Binding TtsVolumeHelpText}"
                            FontSize="10" Foreground="#444455" TextWrapping="Wrap" />
 
                 <!-- OpenAI TTS settings -->
@@ -1267,7 +1267,7 @@
                           SelectedItem="{Binding SpeechInputProvider}"
                           HorizontalAlignment="Stretch" />
                 <TextBlock FontSize="10" Foreground="#444455" TextWrapping="Wrap"
-                           Text="When configured, a mic button appears in the Aura panel. Hold it to record, release to transcribe." />
+                           Text="{Binding MicHelpText}" />
 
                 <!-- Microphone device selection (visible whenever a provider is chosen) -->
                 <StackPanel IsVisible="{Binding ShowMicrophoneSettings}" Spacing="8">
@@ -1294,7 +1294,7 @@
                             SelectedItem="{Binding SelectedPushToTalkKeyName}"
                             HorizontalAlignment="Stretch" />
                   <TextBlock FontSize="10" Foreground="#444455" TextWrapping="Wrap"
-                             Text="Hold this key to record — works even when the game has focus. F13-F20 are rarely captured by games and recommended as PTT keys. The mic button in the Aura panel always works regardless of this setting." />
+                             Text="{Binding PttHelpText}" />
                 </StackPanel>
 
                 <!-- OpenAI Whisper cloud -->

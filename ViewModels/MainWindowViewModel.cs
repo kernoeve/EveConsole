@@ -266,7 +266,7 @@ public class MainWindowViewModel : ReactiveObject
         ExplorerVm           = new EsiExplorerViewModel(connString);
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
         IndustryBrowserVm    = new IndustryBrowserViewModel(connString);
-        TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService);
+        TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
 
         agentService.Initialize(connString);
         TtsService         = ttsService;

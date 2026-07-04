@@ -7,11 +7,14 @@ public enum VerbositySetting   { Concise, Balanced, Detailed }
 
 public sealed class AgentSettings
 {
+    // Single source of truth for the default agent name — change here only.
+    public const string DefaultAgentName = "Eden";
+
     public bool              Enabled       { get; set; } = false;
     public AgentProviderType Provider      { get; set; } = AgentProviderType.Claude;
 
     // Personalisation
-    public string            AgentName     { get; set; } = "Aura";
+    public string            AgentName     { get; set; } = DefaultAgentName;
     public VerbositySetting  Verbosity     { get; set; } = VerbositySetting.Balanced;
 
     public string ClaudeApiKey  { get; set; } = "";

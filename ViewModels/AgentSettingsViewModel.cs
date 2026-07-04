@@ -13,12 +13,45 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     private readonly SpeechInputService? _speech;
 
     // ── personalisation ───────────────────────────────────────────────────────
-    private string _agentName = "Aura";
+    private string _agentName = AgentSettings.DefaultAgentName;
     public string AgentName
     {
         get => _agentName;
-        set => this.RaiseAndSetIfChanged(ref _agentName, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _agentName, value);
+            this.RaisePropertyChanged(nameof(DisplayAgentName));
+            this.RaisePropertyChanged(nameof(HeaderTitleText));
+            this.RaisePropertyChanged(nameof(EnableCheckboxText));
+            this.RaisePropertyChanged(nameof(EnableHelpText));
+            this.RaisePropertyChanged(nameof(HistoryHelpText));
+            this.RaisePropertyChanged(nameof(SummarizationHelpText));
+            this.RaisePropertyChanged(nameof(TtsVolumeHelpText));
+            this.RaisePropertyChanged(nameof(MicHelpText));
+            this.RaisePropertyChanged(nameof(PttHelpText));
+        }
     }
+
+    // Falls back to the default when the field is left blank, so the labels below always
+    // reflect what the agent will actually be called.
+    private string DisplayAgentName =>
+        string.IsNullOrWhiteSpace(_agentName) ? AgentSettings.DefaultAgentName : _agentName.Trim();
+
+    public string DefaultAgentNameHelpText =>
+        $"The name shown in the panel header and used when the agent refers to itself. Default: {AgentSettings.DefaultAgentName}.";
+
+    public string HeaderTitleText     => $"{DisplayAgentName} Agent";
+    public string EnableCheckboxText  => $"Enable {DisplayAgentName} AI companion";
+    public string EnableHelpText      =>
+        $"When enabled, the {DisplayAgentName} panel is available from the title bar. Requires a configured provider below.";
+    public string HistoryHelpText     =>
+        $"History is saved to disk and reloaded when the application starts. Clear it using the ⌫ button in the {DisplayAgentName} panel.";
+    public string SummarizationHelpText =>
+        $"When the estimated conversation length crosses this value, {DisplayAgentName} will silently compact older messages into a summary in the background — typically while you are reading her last response. Lower values reduce API cost per message but sacrifice older context. Default: 20,000 (~$0.06/message at that size for Sonnet).";
+    public string TtsVolumeHelpText   => $"Volume and mute are available directly in the {DisplayAgentName} panel while it is open.";
+    public string MicHelpText         => $"When configured, a mic button appears in the {DisplayAgentName} panel. Hold it to record, release to transcribe.";
+    public string PttHelpText         =>
+        $"Hold this key to record — works even when the game has focus. F13-F20 are rarely captured by games and recommended as PTT keys. The mic button in the {DisplayAgentName} panel always works regardless of this setting.";
 
     public IReadOnlyList<VerbositySetting> VerbosityOptions { get; } =
         Enum.GetValues<VerbositySetting>();
@@ -417,7 +450,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     private void LoadFromService()
     {
         var s = _service.Settings;
-        _agentName              = string.IsNullOrWhiteSpace(s.AgentName) ? "Aura" : s.AgentName;
+        _agentName              = string.IsNullOrWhiteSpace(s.AgentName) ? AgentSettings.DefaultAgentName : s.AgentName;
         _verbosity              = s.Verbosity;
         _isEnabled              = s.Enabled;
         _selectedProvider       = s.Provider;
@@ -455,7 +488,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     {
         var settings = new AgentSettings
         {
-            AgentName  = string.IsNullOrWhiteSpace(_agentName) ? "Aura" : _agentName.Trim(),
+            AgentName  = string.IsNullOrWhiteSpace(_agentName) ? AgentSettings.DefaultAgentName : _agentName.Trim(),
             Verbosity  = _verbosity,
             Enabled       = _isEnabled,
             Provider      = _selectedProvider,
@@ -514,7 +547,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             KokoroVoice       = _kokoroVoiceId,
             PiperVoice        = _piperVoiceKey,
         });
-        _tts.SpeakAsync("Aura voice test. Your AI companion is ready, Capsuleer.");
+        var name = string.IsNullOrWhiteSpace(_agentName) ? AgentSettings.DefaultAgentName : _agentName.Trim();
+        _tts.SpeakAsync($"{name} voice test. Your AI companion is ready, Capsuleer.");
     }
 
     private void DownloadKokoroModel()

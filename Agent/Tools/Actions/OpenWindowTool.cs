@@ -18,8 +18,16 @@ public sealed class OpenWindowTool : IAgentTool
             window = new
             {
                 type = "string",
-                description = "Window to open. One of: assets, industry, characters, items, data.",
-                @enum = new[] { "assets", "industry", "characters", "items", "data" },
+                description =
+                    "Tool to open. One of: overview, characters, assets, items, industry, " +
+                    "indy_parks, prod_calc, market_levels, inv_levels, trade, net_worth, " +
+                    "wallet, corp_activity, killmails, eve_mail, data.",
+                @enum = new[]
+                {
+                    "overview", "characters", "assets", "items", "industry",
+                    "indy_parks", "prod_calc", "market_levels", "inv_levels", "trade",
+                    "net_worth", "wallet", "corp_activity", "killmails", "eve_mail", "data",
+                },
             },
         },
         required = new[] { "window" },

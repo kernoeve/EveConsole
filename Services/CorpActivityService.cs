@@ -1845,7 +1845,7 @@ public class CorpActivityService
                 rows.Add(new StandingProjectGridRow(
                     DbId                : sp.Id,
                     TypeDisplay         : "Deliver Item",
-                    TargetDisplay       : sp.ItemTypeName,
+                    TargetDisplay       : sp.ItemTypeName ?? "",
                     DestDisplay         : sp.StationName,
                     ExpandedSystemId    : null,
                     MatchStatus         : match is not null ? "matched" : "not_active",
