@@ -45,10 +45,10 @@
 
         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
 
-          <Button Content="✦ Betty" FontSize="11"
+          <Button Content="{Binding AgentVm.AgentName, StringFormat='✦ {0}'}" FontSize="11"
                   Background="#0d0d1a" BorderThickness="1" BorderBrush="#2e2e1a"
                   Foreground="#c8a84b" Padding="8 4" VerticalAlignment="Center"
-                  ToolTip.Tip="Toggle Betty AI companion"
+                  ToolTip.Tip="{Binding AgentVm.AgentName, StringFormat='Toggle {0} AI companion'}"
                   IsVisible="{Binding AgentVm.IsAgentEnabled}"
                   Click="OnBettyClick" />
 
