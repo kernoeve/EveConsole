@@ -97,30 +97,6 @@ public class App : Application
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.Database.EnsureCreated();
 
-            // Additive schema migration: add Corporations table to existing DBs.
-            // Replace with proper EF migrations (dotnet ef migrations add) before shipping.
-            // Additive column migrations — try/catch because SQLite has no "ADD COLUMN IF NOT EXISTS".
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Characters" ADD COLUMN "GrantedScopes" TEXT NOT NULL DEFAULT '' """); }
-            catch { /* column already exists */ }
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Characters" ADD COLUMN "AccessTokenExpiresAt" TEXT """); }
-            catch { /* column already exists */ }
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "CategoryId" INTEGER """); }
-            catch { /* column already exists */ }
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiAssets" ADD COLUMN "RootLocationId" INTEGER NOT NULL DEFAULT 0 """); }
-            catch { /* column already exists */ }
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiAssets" ADD COLUMN "RootLocationType" TEXT NOT NULL DEFAULT '' """); }
-            catch { /* column already exists */ }
-            // Seed root location for existing rows that are directly at a known terminal location
-            // (station/solar_system/other). Items inside containers will show 'Unresolved' until
-            // the next asset refresh repopulates them with the full C# chain walk.
-            db.Database.ExecuteSqlRaw("""
-                UPDATE "EsiAssets"
-                SET "RootLocationId"   = "LocationId",
-                    "RootLocationType" = "LocationType"
-                WHERE "LocationType" IN ('station', 'solar_system', 'other')
-                  AND "RootLocationType" = ''
-                """);
-
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "SdeDogmaAttributeCategories" (
                     "CategoryId" INTEGER NOT NULL PRIMARY KEY,
@@ -146,15 +122,10 @@ public class App : Application
                     "RefreshToken"         TEXT    NOT NULL DEFAULT '',
                     "GrantedScopes"        TEXT    NOT NULL DEFAULT '',
                     "AccessTokenExpiresAt" TEXT,
+                    "IsPersonal"           INTEGER NOT NULL DEFAULT 0,
                     "LastUpdated"          TEXT    NOT NULL
                 )
                 """);
-            // Additive migrations for existing Corporations rows.
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "RefreshToken" TEXT NOT NULL DEFAULT '' """); } catch { }
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "GrantedScopes" TEXT NOT NULL DEFAULT '' """); } catch { }
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "AccessTokenExpiresAt" TEXT """); } catch { }
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "IsPersonal" INTEGER NOT NULL DEFAULT 0 """); } catch { }
-
             // Net worth history — one row per owner per UTC day
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "NetWorthSnapshots" (
@@ -219,7 +190,9 @@ public class App : Application
                     "StationId"       INTEGER NOT NULL DEFAULT 0,
                     "StationName"     TEXT    NOT NULL DEFAULT '',
                     "MarketSourceId"  INTEGER,
-                    "MaxPriceOverPct" REAL
+                    "MaxPriceOverPct" REAL,
+                    "CollectionId"    INTEGER,
+                    "Multiplier"      INTEGER NOT NULL DEFAULT 1
                 )
                 """);
 
@@ -243,7 +216,8 @@ public class App : Application
                     "IncludeAssets"          INTEGER NOT NULL DEFAULT 1,
                     "IncludeIndustryJobs"    INTEGER NOT NULL DEFAULT 0,
                     "IncludeMarketBuyOrders" INTEGER NOT NULL DEFAULT 0,
-                    "IncludeContractsBuying" INTEGER NOT NULL DEFAULT 0
+                    "IncludeContractsBuying" INTEGER NOT NULL DEFAULT 0,
+                    "CollectionId"           INTEGER
                 )
                 """);
 
@@ -271,42 +245,8 @@ public class App : Application
                 )
                 """);
 
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MarketLevelGroups" ADD COLUMN "CollectionId" INTEGER"""); }
-            catch { /* column already exists */ }
-
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "InvLevelGroups" ADD COLUMN "CollectionId" INTEGER"""); }
-            catch { /* column already exists */ }
-
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MarketLevelGroups" ADD COLUMN "Multiplier" INTEGER NOT NULL DEFAULT 1"""); }
-            catch { /* column already exists */ }
-
-            // One-time backfill: corps added before the Corp token columns existed have empty
-            // GrantedScopes. Copy from the auth character so they display correctly immediately.
-            db.Database.ExecuteSqlRaw("""
-                UPDATE "Corporations"
-                SET
-                    "GrantedScopes"        = COALESCE((SELECT "GrantedScopes"        FROM "Characters" WHERE "Characters"."Id" = "Corporations"."AuthCharacterId"), ''),
-                    "RefreshToken"         = COALESCE((SELECT "RefreshToken"         FROM "Characters" WHERE "Characters"."Id" = "Corporations"."AuthCharacterId"), ''),
-                    "AccessTokenExpiresAt" =          (SELECT "AccessTokenExpiresAt" FROM "Characters" WHERE "Characters"."Id" = "Corporations"."AuthCharacterId")
-                WHERE "GrantedScopes" = ''
-                """);
-
             p.Report((20, "Building character tables…"));
             // ── Polled-data tables — drop old names, create Esi* names ──────────
-
-            // Drop legacy table names (all safe via IF EXISTS).
-            foreach (var t in new[] {
-                "TypeNames", "ApiCallRecords", "CharacterWalletBalances",
-                "StoredCharacterAttributes", "CharacterCloneStates", "StoredCharacterFatigues",
-                "StoredSkills", "StoredSkillQueue", "StoredJumpClones", "StoredJumpCloneImplants",
-                "StoredImplants", "WalletJournal", "WalletTransactions", "IndustryJobs",
-                "MarketOrders", "Contracts", "CharacterAssets", "CharacterBlueprints",
-                "CharacterMining", "CharacterNotifications", "Contacts", "KillMailRefs",
-                "PlanetaryColonies", "AgentResearch", "LoyaltyPoints", "CharacterMedals",
-                "Standings", "CharacterTitles", "CharacterRoles", "StoredFittings", "FittingItems" })
-#pragma warning disable EF1002
-                db.Database.ExecuteSqlRaw($"""DROP TABLE IF EXISTS "{t}" """);
-#pragma warning restore EF1002
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiCallRecords" (
@@ -563,6 +503,8 @@ public class App : Application
                     "Quantity"        INTEGER NOT NULL DEFAULT 0,
                     "IsSingleton"     INTEGER NOT NULL DEFAULT 0,
                     "IsBlueprintCopy" INTEGER,
+                    "RootLocationId"   INTEGER NOT NULL DEFAULT 0,
+                    "RootLocationType" TEXT    NOT NULL DEFAULT '',
                     PRIMARY KEY ("OwnerId", "OwnerType", "ItemId")
                 )
                 """);
@@ -800,9 +742,6 @@ public class App : Application
                 )
                 """);
 
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCorpStructures" ADD COLUMN "Name" TEXT NOT NULL DEFAULT '' """); }
-            catch { /* column already exists */ }
-
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiStructureNames" (
                     "StructureId"   INTEGER NOT NULL PRIMARY KEY,
@@ -811,9 +750,6 @@ public class App : Application
                     "PulledAt"      TEXT    NOT NULL DEFAULT '2000-01-01T00:00:00+00:00'
                 )
                 """);
-            // Additive migration: existing rows get an old PulledAt so they are refreshed on next resolve.
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiStructureNames" ADD COLUMN "PulledAt" TEXT NOT NULL DEFAULT '2000-01-01T00:00:00+00:00' """); }
-            catch { /* column already exists */ }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiCorpStarbases" (
@@ -896,16 +832,11 @@ public class App : Application
                     "CreatorName"     TEXT    NOT NULL DEFAULT '',
                     "UpdatedAt"       TEXT    NOT NULL DEFAULT '',
                     "IsStatic"        INTEGER NOT NULL DEFAULT 0,
+                    "ConfigType"      TEXT,
+                    "ConfigurationJson" TEXT,
                     PRIMARY KEY ("CorporationId", "ProjectId")
                 )
                 """);
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCorpProjects" ADD COLUMN "IsStatic" INTEGER NOT NULL DEFAULT 0"""); }
-            catch { /* column already exists */ }
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCorpProjects" ADD COLUMN "ConfigType" TEXT"""); }
-            catch { /* column already exists */ }
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCorpProjects" ADD COLUMN "ConfigurationJson" TEXT"""); }
-            catch { /* column already exists */ }
-
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "CorpTop10Excludes" (
                     "EntityId"   INTEGER NOT NULL,
@@ -974,6 +905,7 @@ public class App : Application
                     "SellPrice"  REAL    NOT NULL DEFAULT 0,
                     "Midpoint"   REAL    NOT NULL DEFAULT 0,
                     "FetchedAt"  TEXT    NOT NULL,
+                    "FromMarketData" INTEGER NOT NULL DEFAULT 0,
                     PRIMARY KEY ("ConfigId", "TypeId")
                 )
                 """);
@@ -1002,23 +934,6 @@ public class App : Application
                 CREATE INDEX IF NOT EXISTS "IX_MarketRawOrders_TypeId"
                 ON "MarketRawOrders" ("ConfigId", "TypeId", "IsBuyOrder")
                 """);
-
-            // Migration: add columns that were missing from earlier schema versions
-            foreach (var (col, def) in new[]
-            {
-                ("MinVolume",  "INTEGER NOT NULL DEFAULT 1"),
-                ("LocationId", "INTEGER NOT NULL DEFAULT 0"),
-                ("SystemId",   "INTEGER NOT NULL DEFAULT 0"),
-                ("Range",      "TEXT    NOT NULL DEFAULT ''"),
-                ("Issued",     "TEXT    NOT NULL DEFAULT '2000-01-01T00:00:00+00:00'"),
-                ("Duration",   "INTEGER NOT NULL DEFAULT 0"),
-            })
-            {
-#pragma warning disable EF1002
-                try { db.Database.ExecuteSqlRaw($"ALTER TABLE MarketRawOrders ADD COLUMN \"{col}\" {def}"); }
-#pragma warning restore EF1002
-                catch { /* column already exists */ }
-            }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "MarketDefaultSettings" (
@@ -1051,8 +966,9 @@ public class App : Application
             // ── Indy Parks ───────────────────────────────────────────────────────
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "IndyParks" (
-                    "Id"   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                    "Name" TEXT    NOT NULL DEFAULT 'New Park'
+                    "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "Name"      TEXT    NOT NULL DEFAULT 'New Park',
+                    "IsDefault" INTEGER NOT NULL DEFAULT 0
                 )
                 """);
             db.Database.ExecuteSqlRaw("""
@@ -1062,7 +978,8 @@ public class App : Application
                     "DisplayName"      TEXT    NOT NULL DEFAULT '',
                     "StructureTypeKey" TEXT    NOT NULL DEFAULT 'raitaru',
                     "SystemName"       TEXT    NOT NULL DEFAULT '',
-                    "SecurityClass"    TEXT    NOT NULL DEFAULT 'nullsec'
+                    "SecurityClass"    TEXT    NOT NULL DEFAULT 'nullsec',
+                    "FacilityTax"      REAL    NOT NULL DEFAULT 1.0
                 )
                 """);
             db.Database.ExecuteSqlRaw("""
@@ -1091,9 +1008,6 @@ public class App : Application
                 )
                 """);
 
-            // ── Indy Parks additive column migrations ────────────────────────────
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IndyParks" ADD COLUMN "IsDefault" INTEGER NOT NULL DEFAULT 0 """); } catch { }
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IndyStructures" ADD COLUMN "FacilityTax" REAL NOT NULL DEFAULT 1.0 """); } catch { }
 
             // ── Build cost tables ─────────────────────────────────────────────────
             db.Database.ExecuteSqlRaw("""
@@ -1118,13 +1032,9 @@ public class App : Application
                     "TotalCost"    REAL    NOT NULL DEFAULT 0,
                     "MaterialCost" REAL    NOT NULL DEFAULT 0,
                     "JobCost"      REAL    NOT NULL DEFAULT 0,
-                    "Runs"         INTEGER NOT NULL DEFAULT 1,
                     "UpdatedAt"    TEXT    NOT NULL DEFAULT ''
                 )
                 """);
-
-            try { db.Database.ExecuteSqlRaw("ALTER TABLE BuildCosts DROP COLUMN \"Runs\""); }
-            catch { /* already removed */ }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "ReprocessingValues" (
@@ -1132,15 +1042,6 @@ public class App : Application
                     "Value"  REAL    NOT NULL DEFAULT 0
                 )
                 """);
-
-            try { db.Database.ExecuteSqlRaw("ALTER TABLE MarketPricingConfigs ADD COLUMN StationFilter INTEGER NULL"); } catch { }
-            try { db.Database.ExecuteSqlRaw("ALTER TABLE MarketPricingConfigs ADD COLUMN UsePercentileFilter INTEGER NOT NULL DEFAULT 1"); } catch { }
-            try { db.Database.ExecuteSqlRaw("ALTER TABLE MarketPricingConfigs ADD COLUMN PercentilePercent REAL NOT NULL DEFAULT 5.0"); } catch { }
-            db.Database.ExecuteSqlRaw("UPDATE MarketPricingConfigs SET Method = 'Player Structure' WHERE Method = 'ESI Structure'");
-            db.Database.ExecuteSqlRaw("UPDATE MarketPricingConfigs SET Method = 'Region' WHERE Method = 'ESI Region'");
-            try { db.Database.ExecuteSqlRaw("ALTER TABLE MarketDefaultSettings ADD COLUMN MissingPriceMarkupPct REAL NOT NULL DEFAULT 15.0"); } catch { }
-            try { db.Database.ExecuteSqlRaw("ALTER TABLE MarketDefaultSettings ADD COLUMN FilterLowballBuyOrders INTEGER NOT NULL DEFAULT 1"); } catch { }
-            try { db.Database.ExecuteSqlRaw("ALTER TABLE MarketDefaultSettings ADD COLUMN LowballBuyOrderThresholdPct REAL NOT NULL DEFAULT 25.0"); } catch { }
 
             // Seed default pricing on first run: value assets and manufacturing cost from
             // The Forge Sell prices, 15% markup for items with no sell orders, and treat
@@ -1157,9 +1058,6 @@ public class App : Application
                        15.0, 1, 10.0
                 WHERE NOT EXISTS (SELECT 1 FROM "MarketDefaultSettings")
                 """);
-            // Distinguishes real market-order rows (1) from build-cost gap-fills (0).
-            // Default 0 so existing rows are treated as gap-fills until the next market refresh.
-            try { db.Database.ExecuteSqlRaw("ALTER TABLE \"MarketItemPrices\" ADD COLUMN \"FromMarketData\" INTEGER NOT NULL DEFAULT 0"); } catch { }
 
             p.Report((90, "Finalizing schema…"));
             // ── Application error log ─────────────────────────────────────────────
@@ -1182,16 +1080,13 @@ public class App : Application
                     "SkillQueuePaused"      INTEGER NOT NULL DEFAULT 1,
                     "SkillQueueEmptyInDays" INTEGER NOT NULL DEFAULT 1,
                     "SkillQueueEmptyDays"   INTEGER NOT NULL DEFAULT 30,
-                    "AssetSafety"           INTEGER NOT NULL DEFAULT 1
+                    "AssetSafety"                INTEGER NOT NULL DEFAULT 1,
+                    "InactiveStandingProjects"   INTEGER NOT NULL DEFAULT 1
                 )
                 """);
             db.Database.ExecuteSqlRaw("""
                 INSERT OR IGNORE INTO "AlertSettings" ("Id") VALUES (1)
                 """);
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "AssetSafety" INTEGER NOT NULL DEFAULT 1"""); }
-            catch { /* column already exists */ }
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "InactiveStandingProjects" INTEGER NOT NULL DEFAULT 1"""); }
-            catch { /* column already exists */ }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "TradeOpportunitiesSettings" (
