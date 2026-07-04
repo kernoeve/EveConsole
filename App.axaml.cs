@@ -204,6 +204,13 @@ public class App : Application
                     "RegionName" TEXT    NOT NULL
                 )
                 """);
+            // Seed default price-history regions on first run: The Forge and Domain.
+            db.Database.ExecuteSqlRaw("""
+                INSERT INTO "PriceHistoryRegions" ("RegionId", "RegionName")
+                SELECT 10000002, 'The Forge' WHERE NOT EXISTS (SELECT 1 FROM "PriceHistoryRegions")
+                UNION ALL
+                SELECT 10000043, 'Domain'    WHERE NOT EXISTS (SELECT 1 FROM "PriceHistoryRegions")
+                """);
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "MarketLevelGroups" (
@@ -952,7 +959,10 @@ public class App : Application
                     "IsEnabled"     INTEGER NOT NULL DEFAULT 1,
                     "SortOrder"     INTEGER NOT NULL DEFAULT 0,
                     "LastRefreshed" TEXT,
-                    "LastStatus"    TEXT    NOT NULL DEFAULT ''
+                    "LastStatus"    TEXT    NOT NULL DEFAULT '',
+                    "StationFilter"       INTEGER,
+                    "UsePercentileFilter" INTEGER NOT NULL DEFAULT 1,
+                    "PercentilePercent"   REAL    NOT NULL DEFAULT 5.0
                 )
                 """);
 
@@ -1016,15 +1026,24 @@ public class App : Application
                     "AssetValueConfigId"    INTEGER,
                     "AssetValuePriceType"   TEXT    NOT NULL DEFAULT 'Midpoint',
                     "ManufacturingConfigId" INTEGER,
-                    "ManufacturingPriceType" TEXT   NOT NULL DEFAULT 'Sell'
+                    "ManufacturingPriceType" TEXT   NOT NULL DEFAULT 'Sell',
+                    "MissingPriceMarkupPct"      REAL    NOT NULL DEFAULT 15.0,
+                    "FilterLowballBuyOrders"     INTEGER NOT NULL DEFAULT 1,
+                    "LowballBuyOrderThresholdPct" REAL   NOT NULL DEFAULT 25.0
                 )
                 """);
 
-            // Seed default Jita 4-4 config on first run
+            // Seed default region price sources on first run: The Forge and Domain,
+            // all stations, high/low order filtering at 1%. Both rows evaluate their
+            // NOT EXISTS guard against the pre-insert table state, so they seed together
+            // only on a fresh install and never on an existing one.
             db.Database.ExecuteSqlRaw("""
-                INSERT OR IGNORE INTO "MarketPricingConfigs"
-                    ("Id", "Method", "LocationName", "LocationId", "PriceType", "IsEnabled", "SortOrder", "LastStatus")
-                SELECT 1, 'Fuzzwork', 'Jita 4-4 Caldari Navy Assembly Plant', 60003760, 'Midpoint', 1, 0, ''
+                INSERT INTO "MarketPricingConfigs"
+                    ("Method", "LocationName", "LocationId", "PriceType", "IsEnabled", "SortOrder", "LastStatus", "StationFilter", "UsePercentileFilter", "PercentilePercent")
+                SELECT 'Region', 'The Forge', 10000002, 'Midpoint', 1, 0, '', NULL, 1, 1.0
+                WHERE NOT EXISTS (SELECT 1 FROM "MarketPricingConfigs")
+                UNION ALL
+                SELECT 'Region', 'Domain',    10000043, 'Midpoint', 1, 1, '', NULL, 1, 1.0
                 WHERE NOT EXISTS (SELECT 1 FROM "MarketPricingConfigs")
                 """);
 
@@ -1122,6 +1141,22 @@ public class App : Application
             try { db.Database.ExecuteSqlRaw("ALTER TABLE MarketDefaultSettings ADD COLUMN MissingPriceMarkupPct REAL NOT NULL DEFAULT 15.0"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE MarketDefaultSettings ADD COLUMN FilterLowballBuyOrders INTEGER NOT NULL DEFAULT 1"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE MarketDefaultSettings ADD COLUMN LowballBuyOrderThresholdPct REAL NOT NULL DEFAULT 25.0"); } catch { }
+
+            // Seed default pricing on first run: value assets and manufacturing cost from
+            // The Forge Sell prices, 15% markup for items with no sell orders, and treat
+            // buy orders below 10% of build cost as lowball. Runs only when the singleton
+            // row is absent (fresh install). Resolves the Forge config id by region so it
+            // does not depend on autoincrement ordering.
+            db.Database.ExecuteSqlRaw("""
+                INSERT INTO "MarketDefaultSettings"
+                    ("Id", "AssetValueConfigId", "AssetValuePriceType", "ManufacturingConfigId", "ManufacturingPriceType",
+                     "MissingPriceMarkupPct", "FilterLowballBuyOrders", "LowballBuyOrderThresholdPct")
+                SELECT 1,
+                       (SELECT "Id" FROM "MarketPricingConfigs" WHERE "LocationId" = 10000002 LIMIT 1), 'Sell',
+                       (SELECT "Id" FROM "MarketPricingConfigs" WHERE "LocationId" = 10000002 LIMIT 1), 'Sell',
+                       15.0, 1, 10.0
+                WHERE NOT EXISTS (SELECT 1 FROM "MarketDefaultSettings")
+                """);
             // Distinguishes real market-order rows (1) from build-cost gap-fills (0).
             // Default 0 so existing rows are treated as gap-fills until the next market refresh.
             try { db.Database.ExecuteSqlRaw("ALTER TABLE \"MarketItemPrices\" ADD COLUMN \"FromMarketData\" INTEGER NOT NULL DEFAULT 0"); } catch { }
