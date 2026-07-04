@@ -1,0 +1,31 @@
+name: Develop Build
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Publish (self-contained win-x64)
+        run: >
+          dotnet publish EveCortex.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -o EveCortex
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EveCortex-develop-win-x64
+          path: EveCortex/
+          retention-days: 30
