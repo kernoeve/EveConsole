@@ -36,6 +36,9 @@ public sealed class AgentService : ReactiveObject
     public Action<string?, string?, string?, string?>? FilterIndustryCallback { get; set; }
     public Action<string>?                             SelectCharacterCallback { get; set; }
 
+    // (tab, marketSource, historyRegion) -> status message. Set by MainWindow.
+    public Func<string?, string?, string?, string>?    ConfigureItemBrowserCallback { get; set; }
+
     // Tab screenshot callback: (tabName) → (pngBytes, description). Set by MainWindow.
     public Func<string, Task<(byte[]? image, string description)>>? CaptureTabCallback { get; set; }
 
@@ -116,6 +119,9 @@ public sealed class AgentService : ReactiveObject
             new RefreshDataTool(() => DataRefreshRequested?.Invoke()),
             new NavigateToItemTool(dbConnectionString,
                 (id, name) => NavigateItemCallback?.Invoke(id, name)),
+            new ConfigureItemBrowserTool(
+                (tab, src, reg) => ConfigureItemBrowserCallback?.Invoke(tab, src, reg)
+                                   ?? "Item Browser is not available."),
             new SetAssetFilterTool(
                 (loc, ch, item) => FilterAssetsCallback?.Invoke(loc, ch, item)),
             new SetIndustryFilterTool(

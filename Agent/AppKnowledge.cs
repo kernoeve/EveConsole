@@ -214,4 +214,31 @@ public static class AppKnowledge
         - In the Skills tab, skill names are clickable links that open the Item Browser
           for that skill.
         """;
+
+    /// <summary>
+    /// One-line "what this tab is for" summary, matched against a tab title or tool id.
+    /// Used to give the agent focused context about the view the capsuleer is on so it
+    /// does not have to guess what a screenshot is showing.
+    /// </summary>
+    public static string TabIntent(string tabTitleOrId)
+    {
+        var t = (tabTitleOrId ?? "").ToLowerInvariant();
+        if (t.Contains("overview"))    return "Cross-character dashboard: income/expense charts, EVE news, and clickable alerts.";
+        if (t.Contains("character"))   return "Per-character viewer: skills and training queue, attributes, clones, medals, titles, standings.";
+        if (t.Contains("asset"))       return "Searchable list of all assets across characters and corps, filterable by name/location/owner.";
+        if (t.Contains("item"))        return "Look up any item: description, attributes, requirements, required-for (skills), industry, market orders, price history.";
+        if (t.Contains("industr") && t.Contains("job")) return "All manufacturing/reaction/invention/research jobs, filterable by status/activity/owner.";
+        if (t.Contains("indy") || t.Contains("park"))   return "Define industry parks (structures per item category) that drive build-cost calculations.";
+        if (t.Contains("prod"))        return "Production calculator: build cost, materials, and job breakdown for a chosen blueprint/product.";
+        if (t.Contains("market level"))return "Monitor sell-order stock levels for a defined item list on a chosen market.";
+        if (t.Contains("inv") && t.Contains("level")) return "Monitor your own holdings (assets/in-build/orders) against target levels, jEveAssets-style.";
+        if (t.Contains("trade"))       return "Find profitable hauling between two markets with cargo/ISK/volume constraints and group exclusions.";
+        if (t.Contains("net worth"))   return "Historical chart of net worth over time.";
+        if (t.Contains("wallet"))      return "Wallet transactions and journal for your characters.";
+        if (t.Contains("corp"))        return "Corporation activity and finances: 24h/monthly summaries, taxes, mining, killmails, projects, standing projects, top-10 lists.";
+        if (t.Contains("killmail"))    return "Corp and personal killmails with detailed kill reports.";
+        if (t.Contains("mail"))        return "Read and compose EVE mail.";
+        if (t.Contains("esi") || t.Contains("explorer") || t == "data") return "Raw ESI endpoint browser (advanced/developer use).";
+        return "";
+    }
 }

@@ -142,6 +142,20 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
             });
 
+        agentService.ConfigureItemBrowserCallback = (tab, src, reg) =>
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
+                else vm.OpenTool("items");
+
+                var ib      = vm.ItemBrowserVm;
+                var results = new List<string>();
+                if (!string.IsNullOrWhiteSpace(tab)) results.Add(ib.ShowDetailTab(tab));
+                if (!string.IsNullOrWhiteSpace(src)) results.Add(ib.TrySelectMarketSource(src));
+                if (!string.IsNullOrWhiteSpace(reg)) results.Add(ib.TrySelectHistoryRegion(reg));
+                return results.Count > 0 ? string.Join(" ", results) : "Nothing to configure.";
+            });
+
         vm.TradeOpportunitiesVm.ItemNavigationRequested = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {
@@ -443,7 +457,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         var sb = new StringBuilder();
 
-        sb.AppendLine($"Active tab: {vm.SelectedTab?.Title ?? "None"}");
+        var activeTitle = vm.SelectedTab?.Title ?? "None";
+        sb.AppendLine($"Active tab: {activeTitle}");
+        var activeIntent = EveCortex.Agent.AppKnowledge.TabIntent(activeTitle);
+        if (!string.IsNullOrEmpty(activeIntent))
+            sb.AppendLine($"Active tab purpose: {activeIntent}");
 
         var openTabs = vm.OpenTabs.Select(t => t.Title).ToList();
         if (openTabs.Count > 0)
@@ -500,9 +518,10 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 using var ms = new MemoryStream();
                 bmp.Save(ms);
 
-                var desc = tabName == "current"
-                    ? $"Screenshot of the active tab ({vm?.SelectedTab?.Title ?? ""})"
-                    : $"Screenshot of {tabName}";
+                var title  = tabName == "current" ? (vm?.SelectedTab?.Title ?? "") : tabName;
+                var intent = EveCortex.Agent.AppKnowledge.TabIntent(title);
+                var desc   = $"Screenshot of the {title} tab.";
+                if (!string.IsNullOrEmpty(intent)) desc += $" ({intent})";
 
                 return (ms.ToArray(), desc);
             }
