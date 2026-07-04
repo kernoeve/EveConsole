@@ -51,10 +51,11 @@ public class PriceHistorySettingsViewModel : ReactiveObject
             .Select(r => new SdeRegionOption(r.RegionId, r.Name))
             .ToListAsync();
 
+        // Fallback seed (startup normally does this): The Forge and Domain.
         if (!await _db.PriceHistoryRegions.AnyAsync())
         {
-            _db.PriceHistoryRegions.Add(new PriceHistoryRegion
-                { RegionId = 10000002, RegionName = "The Forge" });
+            _db.PriceHistoryRegions.Add(new PriceHistoryRegion { RegionId = 10000002, RegionName = "The Forge" });
+            _db.PriceHistoryRegions.Add(new PriceHistoryRegion { RegionId = 10000043, RegionName = "Domain" });
             await _db.SaveChangesAsync();
         }
 

@@ -204,6 +204,13 @@ public class App : Application
                     "RegionName" TEXT    NOT NULL
                 )
                 """);
+            // Seed default price-history regions on first run: The Forge and Domain.
+            db.Database.ExecuteSqlRaw("""
+                INSERT INTO "PriceHistoryRegions" ("RegionId", "RegionName")
+                SELECT 10000002, 'The Forge' WHERE NOT EXISTS (SELECT 1 FROM "PriceHistoryRegions")
+                UNION ALL
+                SELECT 10000043, 'Domain'    WHERE NOT EXISTS (SELECT 1 FROM "PriceHistoryRegions")
+                """);
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "MarketLevelGroups" (
@@ -952,7 +959,10 @@ public class App : Application
                     "IsEnabled"     INTEGER NOT NULL DEFAULT 1,
                     "SortOrder"     INTEGER NOT NULL DEFAULT 0,
                     "LastRefreshed" TEXT,
-                    "LastStatus"    TEXT    NOT NULL DEFAULT ''
+                    "LastStatus"    TEXT    NOT NULL DEFAULT '',
+                    "StationFilter"       INTEGER,
+                    "UsePercentileFilter" INTEGER NOT NULL DEFAULT 1,
+                    "PercentilePercent"   REAL    NOT NULL DEFAULT 5.0
                 )
                 """);
 
@@ -1020,11 +1030,17 @@ public class App : Application
                 )
                 """);
 
-            // Seed default Jita 4-4 config on first run
+            // Seed default region price sources on first run: The Forge and Domain,
+            // all stations, high/low order filtering at 1%. Both rows evaluate their
+            // NOT EXISTS guard against the pre-insert table state, so they seed together
+            // only on a fresh install and never on an existing one.
             db.Database.ExecuteSqlRaw("""
-                INSERT OR IGNORE INTO "MarketPricingConfigs"
-                    ("Id", "Method", "LocationName", "LocationId", "PriceType", "IsEnabled", "SortOrder", "LastStatus")
-                SELECT 1, 'Fuzzwork', 'Jita 4-4 Caldari Navy Assembly Plant', 60003760, 'Midpoint', 1, 0, ''
+                INSERT INTO "MarketPricingConfigs"
+                    ("Method", "LocationName", "LocationId", "PriceType", "IsEnabled", "SortOrder", "LastStatus", "StationFilter", "UsePercentileFilter", "PercentilePercent")
+                SELECT 'Region', 'The Forge', 10000002, 'Midpoint', 1, 0, '', NULL, 1, 1.0
+                WHERE NOT EXISTS (SELECT 1 FROM "MarketPricingConfigs")
+                UNION ALL
+                SELECT 'Region', 'Domain',    10000043, 'Midpoint', 1, 1, '', NULL, 1, 1.0
                 WHERE NOT EXISTS (SELECT 1 FROM "MarketPricingConfigs")
                 """);
 
