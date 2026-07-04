@@ -1026,7 +1026,10 @@ public class App : Application
                     "AssetValueConfigId"    INTEGER,
                     "AssetValuePriceType"   TEXT    NOT NULL DEFAULT 'Midpoint',
                     "ManufacturingConfigId" INTEGER,
-                    "ManufacturingPriceType" TEXT   NOT NULL DEFAULT 'Sell'
+                    "ManufacturingPriceType" TEXT   NOT NULL DEFAULT 'Sell',
+                    "MissingPriceMarkupPct"      REAL    NOT NULL DEFAULT 15.0,
+                    "FilterLowballBuyOrders"     INTEGER NOT NULL DEFAULT 1,
+                    "LowballBuyOrderThresholdPct" REAL   NOT NULL DEFAULT 25.0
                 )
                 """);
 
@@ -1138,6 +1141,22 @@ public class App : Application
             try { db.Database.ExecuteSqlRaw("ALTER TABLE MarketDefaultSettings ADD COLUMN MissingPriceMarkupPct REAL NOT NULL DEFAULT 15.0"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE MarketDefaultSettings ADD COLUMN FilterLowballBuyOrders INTEGER NOT NULL DEFAULT 1"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE MarketDefaultSettings ADD COLUMN LowballBuyOrderThresholdPct REAL NOT NULL DEFAULT 25.0"); } catch { }
+
+            // Seed default pricing on first run: value assets and manufacturing cost from
+            // The Forge Sell prices, 15% markup for items with no sell orders, and treat
+            // buy orders below 10% of build cost as lowball. Runs only when the singleton
+            // row is absent (fresh install). Resolves the Forge config id by region so it
+            // does not depend on autoincrement ordering.
+            db.Database.ExecuteSqlRaw("""
+                INSERT INTO "MarketDefaultSettings"
+                    ("Id", "AssetValueConfigId", "AssetValuePriceType", "ManufacturingConfigId", "ManufacturingPriceType",
+                     "MissingPriceMarkupPct", "FilterLowballBuyOrders", "LowballBuyOrderThresholdPct")
+                SELECT 1,
+                       (SELECT "Id" FROM "MarketPricingConfigs" WHERE "LocationId" = 10000002 LIMIT 1), 'Sell',
+                       (SELECT "Id" FROM "MarketPricingConfigs" WHERE "LocationId" = 10000002 LIMIT 1), 'Sell',
+                       15.0, 1, 10.0
+                WHERE NOT EXISTS (SELECT 1 FROM "MarketDefaultSettings")
+                """);
             // Distinguishes real market-order rows (1) from build-cost gap-fills (0).
             // Default 0 so existing rows are treated as gap-fills until the next market refresh.
             try { db.Database.ExecuteSqlRaw("ALTER TABLE \"MarketItemPrices\" ADD COLUMN \"FromMarketData\" INTEGER NOT NULL DEFAULT 0"); } catch { }
