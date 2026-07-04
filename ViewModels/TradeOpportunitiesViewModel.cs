@@ -484,12 +484,18 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
         using var cmd = conn.CreateCommand();
 
-        // Try NPC station first
-        cmd.CommandText = """SELECT "RegionId" FROM "SdeStations" WHERE "StationId" = @id""";
+        // NPC station: resolve via the station's solar system. (SdeStations.RegionId is
+        // not populated by the SDE import — it is 0 for every row — so we must not read
+        // it directly; join through SolarSystemId instead.)
+        cmd.CommandText = """
+            SELECT ss."RegionId"
+            FROM "SdeStations"     s
+            JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = s."SolarSystemId"
+            WHERE s."StationId" = @id AND s."SolarSystemId" != 0
+            """;
         cmd.Parameters.AddWithValue("@id", (int)Math.Min(locationId, int.MaxValue));
-        var result = await cmd.ExecuteScalarAsync();
-        if (result is not DBNull and not null)
-            return Convert.ToInt32(result);
+        var region = ToRegionId(await cmd.ExecuteScalarAsync());
+        if (region.HasValue) return region;
 
         // Player structure path 1: resolved name record already has SolarSystemId
         cmd.CommandText = """
@@ -500,9 +506,8 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             """;
         cmd.Parameters.Clear();
         cmd.Parameters.AddWithValue("@sid", locationId);
-        result = await cmd.ExecuteScalarAsync();
-        if (result is not DBNull and not null)
-            return Convert.ToInt32(result);
+        region = ToRegionId(await cmd.ExecuteScalarAsync());
+        if (region.HasValue) return region;
 
         // Player structure path 2: derive from any cached order at that location
         cmd.CommandText = """
@@ -514,11 +519,18 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             """;
         cmd.Parameters.Clear();
         cmd.Parameters.AddWithValue("@lid", locationId);
-        result = await cmd.ExecuteScalarAsync();
-        if (result is not DBNull and not null)
-            return Convert.ToInt32(result);
+        region = ToRegionId(await cmd.ExecuteScalarAsync());
+        if (region.HasValue) return region;
 
         return null;
+    }
+
+    // Treats NULL/DBNull and a 0 region id as "unresolved" so callers fall through.
+    private static int? ToRegionId(object? scalar)
+    {
+        if (scalar is null or DBNull) return null;
+        var id = Convert.ToInt32(scalar);
+        return id != 0 ? id : null;
     }
 
     // ── Formatting ────────────────────────────────────────────────────────────
