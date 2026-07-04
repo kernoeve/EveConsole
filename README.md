@@ -39,7 +39,7 @@ Keep in mind this application is still very green.  You are free to play around 
 - Alerts - On the overview of the main screen alerts will show for things the tool believes you should look at (definable)
 - Eve Mail - Read and write eve mail... just because
 
-### AI Agent ("Betty")
+### AI Agent ("Edan")
 - Built-in conversational assistant with access to your character/corp data via tool calls
 - Configurable to use external (Claude/OpenAI) or local (i.e., Ollama)
 - Optional text-to-speech (Piper local TTS or ElevenLabs) and speech-to-text (local Whisper or OpenAI) for hands-free interaction

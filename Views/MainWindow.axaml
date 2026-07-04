@@ -50,7 +50,7 @@
                   Foreground="#c8a84b" Padding="8 4" VerticalAlignment="Center"
                   ToolTip.Tip="{Binding AgentVm.AgentName, StringFormat='Toggle {0} AI companion'}"
                   IsVisible="{Binding AgentVm.IsAgentEnabled}"
-                  Click="OnBettyClick" />
+                  Click="OnAgentToggleClick" />
 
           <Button x:Name="GearButton" Content="⚙" FontSize="18"
                   Background="Transparent" BorderThickness="0"
@@ -88,7 +88,7 @@
       </Grid>
     </Border>
 
-    <!-- ── Body: sidebar + content + Betty ─────────────────────────────── -->
+    <!-- ── Body: sidebar + content + agent panel ───────────────────────── -->
     <Grid ColumnDefinitions="190,1,*">
 
       <!-- Left navigation sidebar -->
@@ -149,7 +149,7 @@
       <!-- Sidebar divider -->
       <Rectangle Grid.Column="1" Fill="#1a1a26" />
 
-      <!-- Content area + Betty panel -->
+      <!-- Content area + agent panel -->
       <Grid Grid.Column="2" ColumnDefinitions="*,Auto">
 
         <!-- Main content: tab strip + view -->
@@ -296,7 +296,7 @@
 
         </Grid>
 
-        <!-- Betty panel -->
+        <!-- Agent panel -->
         <Border Grid.Column="1"
                 IsVisible="{Binding AgentVm.IsPanelVisible}"
                 BorderBrush="#1c1c2e" BorderThickness="1 0 0 0">
