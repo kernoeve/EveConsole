@@ -1,0 +1,5 @@
+# Code owners for Eve Cortex.
+# The owner is automatically requested for review on every pull request,
+# and (with branch protection) their approval is required before merge.
+
+* @kernoeve
