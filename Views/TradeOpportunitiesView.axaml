@@ -54,29 +54,37 @@
 
           <TextBlock Text="From" Foreground="#555566" FontSize="11"
                      VerticalAlignment="Center" />
-          <ComboBox ItemsSource="{Binding Stations}"
-                    SelectedItem="{Binding SourceStation}"
-                    Width="220" FontSize="12"
-                    Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd">
-            <ComboBox.ItemTemplate>
+          <AutoCompleteBox ItemsSource="{Binding Stations}"
+                           SelectedItem="{Binding SourceStation}"
+                           ValueMemberBinding="{Binding Name}"
+                           FilterMode="Contains"
+                           MinimumPrefixLength="0"
+                           Watermark="Type to filter…"
+                           Width="220" FontSize="12"
+                           Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd">
+            <AutoCompleteBox.ItemTemplate>
               <DataTemplate DataType="vm:StationOption">
                 <TextBlock Text="{Binding Name}" />
               </DataTemplate>
-            </ComboBox.ItemTemplate>
-          </ComboBox>
+            </AutoCompleteBox.ItemTemplate>
+          </AutoCompleteBox>
 
           <TextBlock Text="To" Foreground="#555566" FontSize="11"
                      VerticalAlignment="Center" />
-          <ComboBox ItemsSource="{Binding Stations}"
-                    SelectedItem="{Binding DestinationStation}"
-                    Width="220" FontSize="12"
-                    Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd">
-            <ComboBox.ItemTemplate>
+          <AutoCompleteBox ItemsSource="{Binding Stations}"
+                           SelectedItem="{Binding DestinationStation}"
+                           ValueMemberBinding="{Binding Name}"
+                           FilterMode="Contains"
+                           MinimumPrefixLength="0"
+                           Watermark="Type to filter…"
+                           Width="220" FontSize="12"
+                           Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd">
+            <AutoCompleteBox.ItemTemplate>
               <DataTemplate DataType="vm:StationOption">
                 <TextBlock Text="{Binding Name}" />
               </DataTemplate>
-            </ComboBox.ItemTemplate>
-          </ComboBox>
+            </AutoCompleteBox.ItemTemplate>
+          </AutoCompleteBox>
 
           <TextBlock Text="Cargo (m³)" Foreground="#555566" FontSize="11"
                      VerticalAlignment="Center" />
