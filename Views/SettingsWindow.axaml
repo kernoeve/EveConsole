@@ -30,8 +30,8 @@
 
   <TabControl Margin="8">
 
-    <!-- ══ API Tokens ══════════════════════════════════════════════════════ -->
-    <TabItem Header="API Tokens">
+    <!-- ══ ESI Tokens ══════════════════════════════════════════════════════ -->
+    <TabItem Header="ESI Tokens">
       <Grid RowDefinitions="*,8,*,Auto" Margin="0 8 0 0">
 
         <!-- Characters row -->
