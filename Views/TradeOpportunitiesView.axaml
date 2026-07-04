@@ -1,0 +1,263 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             x:Class="EveCortex.Views.TradeOpportunitiesView"
+             x:DataType="vm:TradeOpportunitiesViewModel"
+             Background="#0d0d12">
+
+  <DockPanel>
+
+    <!-- ── Controls bar ─────────────────────────────────────────────────────── -->
+    <Border DockPanel.Dock="Top"
+            Background="#0d0d12" Padding="12 10"
+            BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
+      <DockPanel>
+
+        <Button DockPanel.Dock="Right"
+                Content="Calculate"
+                Command="{Binding CalculateCommand}"
+                Padding="18 6"
+                Background="#1e1e28"
+                Foreground="#c8a84b"
+                BorderBrush="#3a3020"
+                BorderThickness="1"
+                FontSize="12" />
+
+        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+
+          <ComboBox ItemsSource="{Binding ModeOptions}"
+                    SelectedItem="{Binding SelectedMode}"
+                    Width="230" FontSize="12"
+                    Background="#131320" BorderBrush="#2a2a3a" Foreground="#c8a84b">
+            <ComboBox.ItemTemplate>
+              <DataTemplate DataType="vm:TradeModeOption">
+                <TextBlock Text="{Binding Label}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+
+          <TextBlock Text="From" Foreground="#555566" FontSize="11"
+                     VerticalAlignment="Center" />
+          <ComboBox ItemsSource="{Binding Stations}"
+                    SelectedItem="{Binding SourceStation}"
+                    Width="220" FontSize="12"
+                    Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd">
+            <ComboBox.ItemTemplate>
+              <DataTemplate DataType="vm:StationOption">
+                <TextBlock Text="{Binding Name}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+
+          <TextBlock Text="To" Foreground="#555566" FontSize="11"
+                     VerticalAlignment="Center" />
+          <ComboBox ItemsSource="{Binding Stations}"
+                    SelectedItem="{Binding DestinationStation}"
+                    Width="220" FontSize="12"
+                    Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd">
+            <ComboBox.ItemTemplate>
+              <DataTemplate DataType="vm:StationOption">
+                <TextBlock Text="{Binding Name}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+
+          <TextBlock Text="Cargo (m³)" Foreground="#555566" FontSize="11"
+                     VerticalAlignment="Center" />
+          <TextBox Text="{Binding CargoM3}" Width="90" FontSize="12"
+                   Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd" />
+
+          <TextBlock Text="ISK Cap" Foreground="#555566" FontSize="11"
+                     VerticalAlignment="Center" />
+          <TextBox Text="{Binding IskCap}" Width="110" FontSize="12"
+                   Watermark="No limit"
+                   Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd" />
+
+          <TextBlock Text="Min 30d ISK Vol" Foreground="#555566" FontSize="11"
+                     VerticalAlignment="Center" />
+          <TextBox Text="{Binding MinIskVolume}" Width="110" FontSize="12"
+                   Watermark="No filter"
+                   Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd" />
+
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- ── Summary footer ───────────────────────────────────────────────────── -->
+    <Border DockPanel.Dock="Bottom"
+            Background="#111117" Padding="12 8"
+            BorderBrush="#1c1c28" BorderThickness="0 1 0 0">
+      <DockPanel>
+        <TextBlock Text="{Binding StatusText}"
+                   Foreground="#555566" FontSize="11"
+                   VerticalAlignment="Center" />
+
+        <StackPanel DockPanel.Dock="Right"
+                    IsVisible="{Binding HasSummary}"
+                    Orientation="Horizontal" Spacing="4">
+
+          <Border Background="#131320" BorderBrush="#252535" BorderThickness="1"
+                  CornerRadius="3" Padding="10 4">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="VOLUME" FontSize="9" Foreground="#555566"
+                         FontWeight="SemiBold" LetterSpacing="1" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding SummaryVolume}" FontSize="12" Foreground="#888899" />
+            </StackPanel>
+          </Border>
+
+          <Border Background="#131320" BorderBrush="#252535" BorderThickness="1"
+                  CornerRadius="3" Padding="10 4">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="COST" FontSize="9" Foreground="#555566"
+                         FontWeight="SemiBold" LetterSpacing="1" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding SummaryCost}" FontSize="12" Foreground="#5b9bd5" />
+            </StackPanel>
+          </Border>
+
+          <Border Background="#131320" BorderBrush="#252535" BorderThickness="1"
+                  CornerRadius="3" Padding="10 4">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="PROFIT" FontSize="9" Foreground="#555566"
+                         FontWeight="SemiBold" LetterSpacing="1" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding SummaryProfit}" FontSize="12" Foreground="#70ad47" />
+            </StackPanel>
+          </Border>
+
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- ── Results area ───────────────────────────────────────────────────────── -->
+    <Grid>
+
+    <DataGrid x:CompileBindings="False"
+              ItemsSource="{Binding Results}"
+              DoubleTapped="OnGridDoubleTapped"
+              AutoGenerateColumns="False"
+              IsReadOnly="True"
+              RowHeight="24"
+              CanUserSortColumns="True"
+              CanUserResizeColumns="True"
+              CanUserReorderColumns="False"
+              ClipboardCopyMode="None">
+
+      <DataGrid.Columns>
+
+        <DataGridTextColumn Header="Item" Binding="{Binding TypeName}" Width="*"
+                            MinWidth="150" />
+
+        <DataGridTemplateColumn Header="Sell Price" Width="110" CanUserSort="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding BestSellDisplay}"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="Dest Price" Width="110" CanUserSort="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding DestPriceDisplay}"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="Profit / Unit" Width="110" CanUserSort="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding ProfitUnitDisplay}"
+                         Foreground="#70ad47"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="Profit / m³" Width="100" CanUserSort="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding ProfitM3Display}"
+                         Foreground="#c8a84b"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="Qty" Width="80" CanUserSort="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding QuantityDisplay}"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="Volume (m³)" Width="100" CanUserSort="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding TotalVolumeDisplay}"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="Total Cost" Width="110" CanUserSort="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding TotalCostDisplay}"
+                         Foreground="#5b9bd5"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="Total Profit" Width="110" CanUserSort="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding TotalProfitDisplay}"
+                         Foreground="#70ad47"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <!-- Calculating overlay — shown while the scan is running -->
+    <Border IsVisible="{Binding IsCalculating}"
+            Background="#a0000000"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            CornerRadius="6"
+            Padding="36 24">
+      <StackPanel HorizontalAlignment="Center" Spacing="14">
+        <ProgressBar IsIndeterminate="True"
+                     Width="240" Height="3"
+                     Foreground="#c8a84b"
+                     Background="#333344" />
+        <TextBlock Text="Scanning for trade opportunities…"
+                   FontSize="14" FontWeight="SemiBold"
+                   Foreground="#c8a84b"
+                   HorizontalAlignment="Center" />
+        <TextBlock Text="{Binding StatusText}"
+                   FontSize="11" Foreground="#888899"
+                   HorizontalAlignment="Center"
+                   MaxWidth="320" TextWrapping="Wrap" TextAlignment="Center" />
+      </StackPanel>
+    </Border>
+
+    </Grid>
+
+  </DockPanel>
+
+</UserControl>

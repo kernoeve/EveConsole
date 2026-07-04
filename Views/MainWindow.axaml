@@ -1,0 +1,312 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:EveCortex.ViewModels"
+        xmlns:views="clr-namespace:EveCortex.Views"
+        x:Class="EveCortex.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Eve Cortex"
+        Icon="avares://EveCortex/Assets/ec.ico"
+        Width="1820" Height="900"
+        MinWidth="1200" MinHeight="640"
+        WindowStartupLocation="Manual"
+        Background="#0d0d12">
+
+  <DockPanel>
+
+    <!-- ── Title bar ───────────────────────────────────────────────────── -->
+    <Border DockPanel.Dock="Top" Background="#161620" Padding="16 8">
+      <Grid ColumnDefinitions="*,Auto,Auto">
+
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+          <Image Source="avares://EveCortex/Assets/logo.png"
+                 Width="30" Height="30"
+                 RenderOptions.BitmapInterpolationMode="HighQuality" />
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="Eve "
+                       FontSize="18" FontWeight="SemiBold"
+                       Foreground="#e8e8ec" />
+            <TextBlock Text="Cortex"
+                       FontSize="18" FontWeight="SemiBold"
+                       Foreground="#c8a84b" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Eve Time clock -->
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                    VerticalAlignment="Center" Margin="0 0 16 0">
+          <TextBlock Text="EVE"
+                     FontSize="10" Foreground="#555566"
+                     VerticalAlignment="Center" />
+          <TextBlock Text="{Binding EveTimeText}"
+                     FontSize="14" FontWeight="SemiBold" FontFamily="Consolas,Courier New,monospace"
+                     Foreground="#7799bb"
+                     VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+
+          <Button Content="✦ Aura" FontSize="11"
+                  Background="#0d0d1a" BorderThickness="1" BorderBrush="#2e2e1a"
+                  Foreground="#c8a84b" Padding="8 4" VerticalAlignment="Center"
+                  ToolTip.Tip="Toggle Aura AI companion"
+                  IsVisible="{Binding AgentVm.IsAgentEnabled}"
+                  Click="OnAuraClick" />
+
+          <Button x:Name="GearButton" Content="⚙" FontSize="18"
+                  Background="Transparent" BorderThickness="0"
+                  Foreground="#888" Padding="8 4" VerticalAlignment="Center"
+                  ToolTip.Tip="Settings"
+                  Click="OnGearClick" />
+
+          <Button Content="ⓘ" FontSize="16"
+                  Background="Transparent" BorderThickness="0"
+                  Foreground="#555566" Padding="8 4" VerticalAlignment="Center"
+                  ToolTip.Tip="About Eve Cortex"
+                  Click="OnAboutClick" />
+
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- ── Status bar ──────────────────────────────────────────────────── -->
+    <Border DockPanel.Dock="Bottom" Background="#0d0d12" Padding="12 4">
+      <Grid ColumnDefinitions="*,Auto,Auto">
+
+        <TextBlock Grid.Column="0"
+                   Text="{Binding CharacterVm.StatusMessage}"
+                   FontSize="12" Foreground="#888" VerticalAlignment="Center" />
+
+        <Button Grid.Column="2"
+                x:Name="PollingStatusButton"
+                Content="{Binding PollingStatusText}"
+                Background="Transparent" BorderThickness="0"
+                Foreground="#5588aa" FontSize="11" Padding="10 2"
+                VerticalAlignment="Center"
+                ToolTip.Tip="Click to open the API activity log"
+                Click="OnPollingStatusClick" />
+
+      </Grid>
+    </Border>
+
+    <!-- ── Body: sidebar + content + Aura ──────────────────────────────── -->
+    <Grid ColumnDefinitions="190,1,*">
+
+      <!-- Left navigation sidebar -->
+      <Border Grid.Column="0" Background="#0a0a10">
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+          <ItemsControl x:CompileBindings="False" ItemsSource="{Binding NavGroups}"
+                        Margin="0 10 0 10">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Margin="0 0 0 14">
+
+                  <!-- Group label -->
+                  <TextBlock Text="{Binding Title}"
+                             FontSize="9" FontWeight="SemiBold"
+                             Foreground="#333348" LetterSpacing="1.5"
+                             Margin="14 0 14 3" />
+
+                  <!-- Tool entries -->
+                  <ItemsControl x:CompileBindings="False" ItemsSource="{Binding Items}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Button x:CompileBindings="False"
+                                Command="{Binding $parent[Window].DataContext.OpenToolCommand}"
+                                CommandParameter="{Binding ToolId}"
+                                Background="Transparent" BorderThickness="0"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Padding="14 5 14 5" Cursor="Hand">
+                          <Button.Styles>
+                            <Style Selector="Button:pointerover /template/ ContentPresenter">
+                              <Setter Property="Background" Value="#14141e" />
+                            </Style>
+                          </Button.Styles>
+                          <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Ellipse Width="5" Height="5" Fill="#c8a84b"
+                                     VerticalAlignment="Center"
+                                     IsVisible="{Binding IsOpen}" />
+                            <Ellipse Width="5" Height="5"
+                                     VerticalAlignment="Center"
+                                     IsVisible="{Binding !IsOpen}" />
+                            <TextBlock Text="{Binding Title}"
+                                       FontSize="12" Foreground="#888899"
+                                       VerticalAlignment="Center" />
+                          </StackPanel>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Border>
+
+      <!-- Sidebar divider -->
+      <Rectangle Grid.Column="1" Fill="#1a1a26" />
+
+      <!-- Content area + Aura panel -->
+      <Grid Grid.Column="2" ColumnDefinitions="*,Auto">
+
+        <!-- Main content: tab strip + view -->
+        <Grid Grid.Column="0" RowDefinitions="Auto,1,*">
+
+          <!-- Tab strip -->
+          <Border Grid.Row="0" Background="#0d0d12">
+            <ListBox x:Name="TabStrip"
+                     ItemsSource="{Binding OpenTabs}"
+                     SelectedItem="{Binding SelectedTab}"
+                     Background="Transparent" BorderThickness="0" Padding="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.VerticalScrollBarVisibility="Disabled">
+              <ListBox.Styles>
+                <!-- Descendant selectors must be outside ControlTheme -->
+                <Style Selector="ListBoxItem:selected TextBlock">
+                  <Setter Property="Foreground" Value="#c8a84b" />
+                </Style>
+                <Style Selector="ListBoxItem:pointerover TextBlock">
+                  <Setter Property="Foreground" Value="#e8d870" />
+                </Style>
+              </ListBox.Styles>
+              <ListBox.ItemContainerTheme>
+                <ControlTheme TargetType="ListBoxItem">
+                  <Setter Property="Padding"         Value="0" />
+                  <Setter Property="Margin"          Value="0" />
+                  <Setter Property="Background"      Value="Transparent" />
+                  <Setter Property="BorderThickness" Value="0 0 0 2" />
+                  <Setter Property="BorderBrush"     Value="Transparent" />
+                  <Setter Property="CornerRadius"    Value="0" />
+                  <Setter Property="Template">
+                    <ControlTemplate>
+                      <Border Background="{TemplateBinding Background}"
+                              BorderBrush="{TemplateBinding BorderBrush}"
+                              BorderThickness="{TemplateBinding BorderThickness}"
+                              CornerRadius="{TemplateBinding CornerRadius}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
+                      </Border>
+                    </ControlTemplate>
+                  </Setter>
+                  <Style Selector="^:selected">
+                    <Setter Property="BorderBrush" Value="#c8a84b" />
+                  </Style>
+                </ControlTheme>
+              </ListBox.ItemContainerTheme>
+              <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+              </ListBox.ItemsPanel>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ToolTab" x:CompileBindings="False">
+                  <StackPanel Orientation="Horizontal" Spacing="0"
+                              PointerPressed="OnTabPointerPressed"
+                              PointerMoved="OnTabPointerMoved"
+                              PointerReleased="OnTabPointerReleased">
+                    <TextBlock Text="{Binding Title}" FontSize="12" Foreground="#666677"
+                               Padding="14 8 4 8" VerticalAlignment="Center" />
+                    <Button IsVisible="{Binding CanClose}"
+                            x:CompileBindings="False"
+                            Command="{Binding $parent[Window].DataContext.CloseTabCommand}"
+                            CommandParameter="{Binding}"
+                            Content="×" FontSize="13"
+                            Background="Transparent" BorderThickness="0"
+                            Foreground="#444455" Padding="2 6 8 6"
+                            VerticalAlignment="Center" Cursor="Hand">
+                      <Button.Styles>
+                        <Style Selector="Button:pointerover /template/ ContentPresenter">
+                          <Setter Property="Background" Value="Transparent" />
+                        </Style>
+                        <Style Selector="Button:pointerover">
+                          <Setter Property="Foreground" Value="#cc6666" />
+                        </Style>
+                      </Button.Styles>
+                    </Button>
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Border>
+
+          <!-- Tab strip / content divider -->
+          <Rectangle Grid.Row="1" Fill="#1a1a26" />
+
+          <!-- Active tool content -->
+          <ContentControl x:Name="MainContent"
+                          Grid.Row="2"
+                          Content="{Binding SelectedTab.ViewModel}">
+            <ContentControl.DataTemplates>
+              <DataTemplate DataType="vm:OverviewViewModel">
+                <views:CharacterView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:CharacterViewModel">
+                <views:CharacterView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:CharacterViewerViewModel">
+                <views:CharacterViewerView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:AssetBrowserViewModel">
+                <views:AssetBrowserView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:ItemBrowserViewModel">
+                <views:ItemBrowserView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:IndustryBrowserViewModel">
+                <views:IndustryBrowserView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:IndyParksViewModel">
+                <views:IndyParksView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:ProductionCalculatorViewModel">
+                <views:ProductionCalculatorView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:MarketLevelViewModel">
+                <views:MarketLevelView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:InvLevelViewModel">
+                <views:InvLevelView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:TradeOpportunitiesViewModel">
+                <views:TradeOpportunitiesView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:NetWorthViewModel">
+                <views:NetWorthView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:WalletViewModel">
+                <views:WalletView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:CorpActivityViewModel">
+                <views:CorpActivityView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:KillmailBrowserViewModel">
+                <views:KillmailBrowserView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:EveMailViewModel">
+                <views:EveMailView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:EsiExplorerViewModel">
+                <views:EsiExplorerView />
+              </DataTemplate>
+            </ContentControl.DataTemplates>
+          </ContentControl>
+
+        </Grid>
+
+        <!-- Aura panel -->
+        <Border Grid.Column="1"
+                IsVisible="{Binding AgentVm.IsPanelVisible}"
+                BorderBrush="#1c1c2e" BorderThickness="1 0 0 0">
+          <views:AgentPanel DataContext="{Binding AgentVm}" />
+        </Border>
+
+      </Grid>
+
+    </Grid>
+
+  </DockPanel>
+
+</Window>

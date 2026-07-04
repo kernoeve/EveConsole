@@ -1,0 +1,183 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             x:Class="EveCortex.Views.EveMailView"
+             x:DataType="vm:EveMailViewModel"
+             Background="#0d0d12">
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- ── Toolbar ────────────────────────────────────────────────────────── -->
+    <Border Grid.Row="0" Background="#0a0a10" Padding="10 6">
+      <Grid ColumnDefinitions="Auto,16,Auto,16,*,Auto">
+
+        <!-- Character selector -->
+        <TextBlock Grid.Column="0" Text="CHARACTER" FontSize="9" FontWeight="SemiBold"
+                   Foreground="#555566" LetterSpacing="1.2" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="2"
+                  ItemsSource="{Binding Characters}"
+                  SelectedItem="{Binding SelectedChar}"
+                  Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                  Foreground="#c8c8d8" FontSize="12"
+                  MinWidth="160" Padding="6 3" />
+
+        <!-- Status -->
+        <TextBlock Grid.Column="4" Text="{Binding StatusText}"
+                   FontSize="11" Foreground="#445566" VerticalAlignment="Center" />
+
+        <!-- Compose -->
+        <Button Grid.Column="5" Content="+ Compose"
+                Command="{Binding ComposeCommand}"
+                Background="#0d1020" Foreground="#c8a84b"
+                BorderBrush="#3a3020" BorderThickness="1"
+                Padding="10 4" FontSize="11" Cursor="Hand" />
+
+      </Grid>
+    </Border>
+
+    <!-- ── Main area: folders | mail list | body ──────────────────────────── -->
+    <Grid Grid.Row="1" ColumnDefinitions="140,1,280,1,*">
+
+      <!-- Folder list -->
+      <Border Grid.Column="0" Background="#0a0a10" Padding="0 6 0 0">
+        <ListBox ItemsSource="{Binding Folders}"
+                 SelectedItem="{Binding SelectedFolder}"
+                 Background="Transparent" BorderThickness="0" Padding="0">
+          <ListBox.Styles>
+            <Style Selector="ListBoxItem">
+              <Setter Property="Padding" Value="12 5" />
+              <Setter Property="Background" Value="Transparent" />
+            </Style>
+            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+              <Setter Property="Background" Value="#14141e" />
+            </Style>
+            <Style Selector="ListBoxItem:selected TextBlock">
+              <Setter Property="Foreground" Value="#c8a84b" />
+            </Style>
+          </ListBox.Styles>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:EveMailFolderVm">
+              <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#888899" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Border>
+
+      <Rectangle Grid.Column="1" Fill="#1a1a26" />
+
+      <!-- Mail list -->
+      <Border Grid.Column="2" Background="#0d0d12">
+        <ListBox ItemsSource="{Binding Mails}"
+                 SelectedItem="{Binding SelectedMail}"
+                 Background="Transparent" BorderThickness="0" Padding="0">
+          <ListBox.Styles>
+            <Style Selector="ListBoxItem">
+              <Setter Property="Padding" Value="0" />
+              <Setter Property="Background" Value="Transparent" />
+            </Style>
+            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+              <Setter Property="Background" Value="#14141e" />
+            </Style>
+          </ListBox.Styles>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:EveMailRowVm">
+              <Border BorderBrush="#1a1a26" BorderThickness="0 0 0 1" Padding="8 7">
+                <Grid ColumnDefinitions="38,*">
+
+                  <!-- Portrait -->
+                  <Border Grid.Column="0"
+                          Width="32" Height="32" CornerRadius="4" ClipToBounds="True"
+                          Background="#1a1a28" VerticalAlignment="Top" Margin="0 1 6 0">
+                    <Image Source="{Binding Portrait}" Stretch="UniformToFill" />
+                  </Border>
+
+                  <!-- From / time / subject -->
+                  <Grid Grid.Column="1" RowDefinitions="Auto,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                      <TextBlock Grid.Column="0"
+                                 Text="{Binding FromText}"
+                                 FontSize="12" FontWeight="SemiBold"
+                                 Foreground="{Binding FromColor}" />
+                      <TextBlock Grid.Column="1"
+                                 Text="{Binding TimeText}"
+                                 FontSize="10" Foreground="#445566"
+                                 VerticalAlignment="Center" />
+                    </Grid>
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding Subject}"
+                               FontSize="11"
+                               Foreground="{Binding SubjectColor}"
+                               Margin="0 2 0 0" TextTrimming="CharacterEllipsis" />
+                  </Grid>
+
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Border>
+
+      <Rectangle Grid.Column="3" Fill="#1a1a26" />
+
+      <!-- Mail body -->
+      <Grid Grid.Column="4" RowDefinitions="Auto,1,*">
+
+        <!-- Selected mail header -->
+        <Border Grid.Row="0" Background="#0a0a10" Padding="14 10"
+                IsVisible="{Binding SelectedMail, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <Grid ColumnDefinitions="54,*">
+
+            <!-- Sender portrait (48×48) -->
+            <Border Grid.Column="0"
+                    Width="48" Height="48" CornerRadius="4" ClipToBounds="True"
+                    Background="#1a1a28" VerticalAlignment="Top">
+              <Image Source="{Binding SelectedFromPortrait}" Stretch="UniformToFill" />
+            </Border>
+
+            <!-- Subject / From / To / Date -->
+            <StackPanel Grid.Column="1" Spacing="3">
+              <TextBlock Text="{Binding SelectedMail.Subject}"
+                         FontSize="15" FontWeight="SemiBold" Foreground="#e8e8f0"
+                         TextTrimming="CharacterEllipsis" />
+              <Grid ColumnDefinitions="36,*">
+                <TextBlock Grid.Column="0" Text="From:" FontSize="11" Foreground="#555566" />
+                <TextBlock Grid.Column="1" Text="{Binding SelectedMail.FromText}"
+                           FontSize="11" Foreground="#888899" />
+              </Grid>
+              <Grid ColumnDefinitions="36,*">
+                <TextBlock Grid.Column="0" Text="To:" FontSize="11" Foreground="#555566" />
+                <TextBlock Grid.Column="1" Text="{Binding SelectedMail.ToText}"
+                           FontSize="11" Foreground="#888899" TextTrimming="CharacterEllipsis" />
+              </Grid>
+              <Grid ColumnDefinitions="36,*">
+                <TextBlock Grid.Column="0" Text="Date:" FontSize="11" Foreground="#555566" />
+                <TextBlock Grid.Column="1" Text="{Binding SelectedMail.TimeText}"
+                           FontSize="11" Foreground="#888899" />
+              </Grid>
+            </StackPanel>
+
+          </Grid>
+        </Border>
+
+        <!-- Placeholder when nothing selected -->
+        <TextBlock Grid.Row="0"
+                   IsVisible="{Binding SelectedMail, Converter={x:Static ObjectConverters.IsNull}}"
+                   Text="Select a message to read it."
+                   FontSize="13" Foreground="#333348"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Margin="0 24 0 0" />
+
+        <Rectangle Grid.Row="1" Fill="#1a1a26" />
+
+        <!-- Body -->
+        <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled">
+          <TextBlock Text="{Binding BodyText}"
+                     FontSize="12" Foreground="#c8c8d8"
+                     TextWrapping="Wrap" Padding="14 12"
+                     LineHeight="20" />
+        </ScrollViewer>
+      </Grid>
+
+    </Grid>
+  </Grid>
+</UserControl>

@@ -1,0 +1,79 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveCortex.Views.SplashWindow"
+        Width="900" Height="360"
+        Icon="avares://EveCortex/Assets/ec.ico"
+        SystemDecorations="None"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        Background="#0d0d10">
+
+  <Grid>
+
+    <!-- Background art -->
+    <Image Source="avares://EveCortex/Assets/splash_background.png"
+           Stretch="UniformToFill"
+           HorizontalAlignment="Center"
+           VerticalAlignment="Center" />
+
+    <!-- Bottom gradient so text stays legible over the artwork -->
+    <Rectangle VerticalAlignment="Bottom" Height="200">
+      <Rectangle.Fill>
+        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+          <GradientStop Offset="0.0" Color="#00000000" />
+          <GradientStop Offset="0.6" Color="#CC0d0d10" />
+          <GradientStop Offset="1.0" Color="#FF0d0d10" />
+        </LinearGradientBrush>
+      </Rectangle.Fill>
+    </Rectangle>
+
+    <!-- Content overlay -->
+    <DockPanel Margin="48 0 48 28">
+
+      <!-- Progress section pinned to bottom -->
+      <StackPanel DockPanel.Dock="Bottom" Spacing="6">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock x:Name="StatusText"
+                     Grid.Column="0"
+                     Text="Initializing…"
+                     FontSize="11" Foreground="#555566"
+                     VerticalAlignment="Center" />
+          <TextBlock x:Name="VersionText"
+                     Grid.Column="1"
+                     Text=""
+                     FontSize="11" Foreground="#3a3a4a"
+                     VerticalAlignment="Center" />
+        </Grid>
+        <!-- Progress track -->
+        <Grid Height="2" Background="#1a1a24">
+          <Rectangle x:Name="ProgressFill"
+                     HorizontalAlignment="Left"
+                     Fill="#c8a84b"
+                     Height="2"
+                     Width="0" />
+        </Grid>
+      </StackPanel>
+
+      <!-- App name just above the progress section -->
+      <StackPanel DockPanel.Dock="Bottom" Spacing="3" Margin="0 0 0 18">
+        <!-- Two-tone name: Eve in white, Cortex in amber -->
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="Eve "
+                     FontSize="34" FontWeight="Bold"
+                     Foreground="#e8e8ec"
+                     LetterSpacing="10" />
+          <TextBlock Text="Cortex"
+                     FontSize="34" FontWeight="Bold"
+                     Foreground="#c8a84b"
+                     LetterSpacing="10" />
+        </StackPanel>
+        <TextBlock x:Name="SubVersionText"
+                   Text=""
+                   FontSize="11" Foreground="#555566"
+                   HorizontalAlignment="Left" />
+      </StackPanel>
+
+    </DockPanel>
+  </Grid>
+
+</Window>

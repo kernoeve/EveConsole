@@ -1,0 +1,12 @@
+using Avalonia.ReactiveUI;
+using EveCortex.ViewModels;
+
+namespace EveCortex.Views;
+
+public partial class CharacterViewerView : ReactiveUserControl<CharacterViewerViewModel>
+{
+    public CharacterViewerView()
+    {
+        InitializeComponent();
+    }
+}

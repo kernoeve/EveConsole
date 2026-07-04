@@ -1,0 +1,1638 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:EveCortex.ViewModels"
+        xmlns:models="clr-namespace:EveCortex.Models"
+        xmlns:agent="clr-namespace:EveCortex.Agent"
+        x:Class="EveCortex.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Title="Settings"
+        Width="940" Height="820"
+        MinWidth="700" MinHeight="600"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <Window.Styles>
+    <!-- Make the "Find Location" Expander header match the other form controls -->
+    <Style Selector="Expander /template/ ToggleButton#PART_toggle">
+      <Setter Property="FontSize"        Value="12" />
+      <Setter Property="Foreground"      Value="#ccccdd" />
+      <Setter Property="Padding"         Value="8 5" />
+      <Setter Property="MinHeight"       Value="0" />
+      <Setter Property="Background"      Value="#1a1a28" />
+      <Setter Property="BorderBrush"     Value="#2a2a3a" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius"    Value="3" />
+    </Style>
+    <Style Selector="Expander /template/ ToggleButton#PART_toggle:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#1e1e30" />
+    </Style>
+  </Window.Styles>
+
+  <TabControl Margin="8">
+
+    <!-- ══ API Tokens ══════════════════════════════════════════════════════ -->
+    <TabItem Header="API Tokens">
+      <Grid RowDefinitions="*,8,*,Auto" Margin="0 8 0 0">
+
+        <!-- Characters row -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,8,280">
+
+          <!-- Left: list + buttons -->
+          <Border Grid.Column="0"
+                  BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <Grid RowDefinitions="Auto,*,Auto">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Characters" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <ListBox Grid.Row="1"
+                       ItemsSource="{Binding CharacterVm.CharacterListItems}"
+                       SelectedItem="{Binding CharacterVm.SelectedCharacterListItem}"
+                       Background="Transparent" BorderThickness="0">
+                <ListBox.ItemTemplate>
+                  <DataTemplate DataType="vm:CharacterListItem">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <TextBlock Grid.Column="0" Text="{Binding Character.Name}"
+                                 Foreground="#ccc" Padding="4 2" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Text="{Binding StatusLabel}"
+                                 Foreground="{Binding StatusBrush}"
+                                 FontSize="11" VerticalAlignment="Center" Margin="8 0 4 0" />
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+
+              <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6" Margin="8 6">
+                <Button Content="Add"    Command="{Binding CharacterVm.AddCharacterCommand}"    Padding="14 4" />
+                <Button Content="Update" Command="{Binding CharacterVm.UpdateCharacterCommand}" Padding="14 4" />
+                <Button Content="Remove" Command="{Binding CharacterVm.RemoveCharacterCommand}" Padding="14 4" />
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- Right: character details (visible when one is selected) -->
+          <Border Grid.Column="2"
+                  BorderBrush="#252530" BorderThickness="1" CornerRadius="4"
+                  IsVisible="{Binding CharacterVm.SelectedCharacterInSettings,
+                              Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Grid RowDefinitions="Auto,Auto,Auto,*">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{Binding CharacterVm.SelectedCharacterInSettings.Name}"
+                           FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Grid.Row="1" Margin="10 6 10 0" Spacing="2">
+                <TextBlock Text="{Binding CharacterVm.SelectedCharacterInSettings.LastUpdated,
+                                          StringFormat='Last authenticated: {0:g}'}"
+                           FontSize="11" Foreground="#666" />
+                <TextBlock Text="{Binding CharacterVm.SelectedCharacterScopeSummary}"
+                           FontSize="11" Foreground="#888" />
+              </StackPanel>
+
+              <TextBlock Grid.Row="2" Text="Granted Scopes:"
+                         FontSize="11" FontWeight="SemiBold" Foreground="#999"
+                         Margin="10 6 10 2" />
+
+              <ScrollViewer Grid.Row="3" Margin="10 0 10 8">
+                <ItemsControl ItemsSource="{Binding CharacterVm.SelectedCharacterScopeGroups}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ScopeDisplayGroup">
+                      <StackPanel Margin="0 0 0 6">
+                        <TextBlock Text="{Binding Category}"
+                                   FontSize="10" FontWeight="SemiBold"
+                                   Foreground="#c8a84b" Margin="0 0 0 1" />
+                        <ItemsControl ItemsSource="{Binding Items}" Margin="8 0 0 0">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ScopeDisplayItem">
+                              <CheckBox IsChecked="{Binding IsGranted}"
+                                        IsEnabled="False"
+                                        Content="{Binding FriendlyName}"
+                                        FontSize="11"
+                                        Padding="4 1" />
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </Grid>
+          </Border>
+        </Grid>
+
+        <!-- Corporations row -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,8,280">
+
+          <!-- Left: list + buttons -->
+          <Border Grid.Column="0"
+                  BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <Grid RowDefinitions="Auto,*,Auto">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Corporations" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <ListBox Grid.Row="1"
+                       ItemsSource="{Binding CharacterVm.CorpListItems}"
+                       SelectedItem="{Binding CharacterVm.SelectedCorpListItem}"
+                       Background="Transparent" BorderThickness="0">
+                <ListBox.ItemTemplate>
+                  <DataTemplate DataType="vm:CorpListItem">
+                    <Grid ColumnDefinitions="14,Auto,*,Auto">
+                      <!-- Personal corp indicator dot -->
+                      <Ellipse Grid.Column="0" Width="6" Height="6"
+                               Fill="#c8a84b" VerticalAlignment="Center"
+                               IsVisible="{Binding Corp.IsPersonal}"
+                               ToolTip.Tip="Personal Corporation" />
+                      <TextBlock Grid.Column="1" Text="{Binding Corp.Ticker}"
+                                 Foreground="#777" Padding="0 2" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="2" Text="{Binding Corp.Name}"
+                                 Foreground="#ccc" Padding="4 2" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="3" Text="{Binding StatusLabel}"
+                                 Foreground="{Binding StatusBrush}"
+                                 FontSize="11" VerticalAlignment="Center" Margin="8 0 4 0" />
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+
+              <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6" Margin="8 6">
+                <Button Content="Add"    Command="{Binding CharacterVm.AddCorporationCommand}"     Padding="14 4" />
+                <Button Content="Update" Command="{Binding CharacterVm.UpdateCorporationCommand}" Padding="14 4" />
+                <Button Content="Remove" Command="{Binding CharacterVm.RemoveCorporationCommand}" Padding="14 4" />
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- Right: corp details (visible when one is selected) -->
+          <Border Grid.Column="2"
+                  BorderBrush="#252530" BorderThickness="1" CornerRadius="4"
+                  IsVisible="{Binding CharacterVm.SelectedCorp,
+                              Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{Binding CharacterVm.SelectedCorp.Name}"
+                           FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Grid.Row="1" Margin="10 6 10 0" Spacing="2">
+                <TextBlock Text="{Binding CharacterVm.SelectedCorp.LastUpdated,
+                                          StringFormat='Last authenticated: {0:g}'}"
+                           FontSize="11" Foreground="#666" />
+                <TextBlock Text="{Binding CharacterVm.SelectedCorpScopeSummary}"
+                           FontSize="11" Foreground="#888" />
+              </StackPanel>
+
+              <CheckBox Grid.Row="2"
+                        Margin="10 6 10 4"
+                        IsChecked="{Binding CharacterVm.SelectedCorpIsPersonal}"
+                        Content="Personal Corporation"
+                        FontSize="12" Foreground="#ccccdd"
+                        ToolTip.Tip="Personal corps count toward your individual net worth. Alliance or employer corps are treated as separate entities." />
+
+              <TextBlock Grid.Row="3" Text="Auth Character Scopes:"
+                         FontSize="11" FontWeight="SemiBold" Foreground="#999"
+                         Margin="10 6 10 2" />
+
+              <ScrollViewer Grid.Row="4" Margin="10 0 10 8">
+                <ItemsControl ItemsSource="{Binding CharacterVm.SelectedCorpScopeGroups}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ScopeDisplayGroup">
+                      <StackPanel Margin="0 0 0 6">
+                        <TextBlock Text="{Binding Category}"
+                                   FontSize="10" FontWeight="SemiBold"
+                                   Foreground="#c8a84b" Margin="0 0 0 1" />
+                        <ItemsControl ItemsSource="{Binding Items}" Margin="8 0 0 0">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ScopeDisplayItem">
+                              <CheckBox IsChecked="{Binding IsGranted}"
+                                        IsEnabled="False"
+                                        Content="{Binding FriendlyName}"
+                                        FontSize="11"
+                                        Padding="4 1" />
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </Grid>
+          </Border>
+        </Grid>
+
+        <!-- Auth busy strip -->
+        <Border Grid.Row="3"
+                Background="#161620" CornerRadius="4" Padding="10 6" Margin="0 4 0 0"
+                IsVisible="{Binding CharacterVm.IsAuthBusy}">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="4">
+              <ProgressBar IsIndeterminate="True" Height="3" />
+              <TextBlock Text="{Binding CharacterVm.StatusMessage}" FontSize="11" Foreground="#aaa" />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    Content="Cancel"
+                    Command="{Binding CharacterVm.CancelAddCommand}"
+                    Padding="12 4" VerticalAlignment="Center" Margin="10 0 0 0" />
+          </Grid>
+        </Border>
+
+      </Grid>
+    </TabItem>
+
+    <!-- ══ SDE ══════════════════════════════════════════════════════════════ -->
+    <TabItem Header="SDE">
+      <ScrollViewer>
+        <StackPanel Margin="0 12 0 0" Spacing="14">
+
+          <!-- Eve Static Data -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <Grid RowDefinitions="Auto,Auto,Auto">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Eve Static Data" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <Grid Grid.Row="1" ColumnDefinitions="80,*" RowDefinitions="Auto,Auto" Margin="12 10">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Loaded:" Foreground="#666" VerticalAlignment="Center" Margin="0 0 0 6" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SdeVm.LoadedBuild}" Foreground="#aaa" VerticalAlignment="Center" Margin="0 0 0 6" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Latest:" Foreground="#666" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SdeVm.LatestBuild}" Foreground="#e8a030" VerticalAlignment="Center" />
+              </Grid>
+
+              <StackPanel Grid.Row="2" Margin="12 0 12 10" Spacing="6">
+                <ProgressBar Value="{Binding SdeVm.Fraction}" Minimum="0" Maximum="1" Height="6" IsVisible="{Binding SdeVm.IsBusy}" />
+                <TextBlock Text="{Binding SdeVm.StatusText}" FontSize="11" Foreground="#888" TextWrapping="Wrap" />
+                <Button Content="Update SDE" Command="{Binding SdeVm.RefreshSdeCommand}" Padding="14 4" HorizontalAlignment="Left"
+                        ToolTip.Tip="Download and import the latest Eve static data. Can be run even if already up to date." />
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- Hoboleaks -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <Grid RowDefinitions="Auto,Auto,Auto">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Hoboleaks Complement" FontWeight="SemiBold" Foreground="#5588aa" />
+              </Border>
+
+              <StackPanel Grid.Row="1" Margin="12 10 12 0" Spacing="4">
+                <TextBlock FontSize="11" Foreground="#555566" TextWrapping="Wrap"
+                           Text="Blueprints, reprocessing, compression, and repackaged volumes — updated shortly after each TQ patch, often ahead of the official SDE." />
+                <Grid ColumnDefinitions="80,*" Margin="0 6 0 0">
+                  <TextBlock Grid.Column="0" Text="Status:" Foreground="#666" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Text="{Binding SdeVm.HoboImportedAt}" Foreground="#888" VerticalAlignment="Center" />
+                </Grid>
+              </StackPanel>
+
+              <StackPanel Grid.Row="2" Margin="12 6 12 10" Spacing="6">
+                <ProgressBar Value="{Binding SdeVm.HoboFraction}" Minimum="0" Maximum="1" Height="6"
+                             IsVisible="{Binding SdeVm.HoboIsBusy}" />
+                <TextBlock Text="{Binding SdeVm.HoboStatusText}" FontSize="11" Foreground="#888"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding SdeVm.HoboIsBusy}" />
+                <Button Content="Import from Hoboleaks"
+                        Command="{Binding SdeVm.RefreshHoboCommand}"
+                        IsEnabled="{Binding !SdeVm.HoboIsBusy}"
+                        Padding="14 4" HorizontalAlignment="Left"
+                        ToolTip.Tip="Download blueprint, reprocessing, compression, and repackaged-volume data from sde.hoboleaks.space." />
+              </StackPanel>
+            </Grid>
+          </Border>
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <!-- ══ Market ════════════════════════════════════════════════════════════ -->
+    <TabItem Header="Market">
+      <Grid RowDefinitions="*,Auto,Auto" Margin="0 8 0 0">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,8,300">
+
+          <!-- Left: config list -->
+          <Border Grid.Column="0" BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <Grid RowDefinitions="Auto,*,Auto">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Price Sources" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <ListBox Grid.Row="1"
+                       ItemsSource="{Binding MarketVm.Configs}"
+                       SelectedItem="{Binding MarketVm.Selected}"
+                       Background="Transparent" BorderThickness="0">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:MarketPricingConfigVm">
+                    <Grid ColumnDefinitions="*,Auto" Margin="2 3">
+                      <TextBlock Grid.Column="0" Text="{Binding LocationName}"
+                                 Foreground="#ccc" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Text="{Binding Method}"
+                                 FontSize="10" Foreground="#555566"
+                                 VerticalAlignment="Center" Margin="6 0 2 0" />
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+
+              <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6" Margin="8 6">
+                <Button Content="Add"    Command="{Binding MarketVm.AddCommand}"    Padding="14 4" />
+                <Button Content="Remove" Command="{Binding MarketVm.RemoveCommand}" Padding="14 4"
+                        IsEnabled="{Binding MarketVm.HasSelected}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- Right: edit panel -->
+          <Border Grid.Column="2" BorderBrush="#252530" BorderThickness="1" CornerRadius="4"
+                  IsVisible="{Binding MarketVm.HasSelected}">
+            <ScrollViewer>
+              <StackPanel Margin="12 10" Spacing="6">
+
+                <TextBlock Text="Method" FontSize="11" Foreground="#666" />
+                <ComboBox ItemsSource="{Binding MarketVm.Methods}"
+                          SelectedItem="{Binding MarketVm.Selected.Method}"
+                          HorizontalAlignment="Stretch" />
+
+                <!-- Per-method guidance -->
+                <Border Background="#111120" BorderBrush="#2a2a3a" BorderThickness="1"
+                        CornerRadius="3" Padding="8 6" Margin="0 2 0 0"
+                        IsVisible="{Binding MarketVm.Selected.IsFuzzwork}">
+                  <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#888"
+                             Text="Fuzzwork: fetches pre-computed percentile prices from fuzzwork.co.uk. Fast, requires no auth, and stores very little data locally (one price row per item). Does not store individual orders — the Market Orders tab in the Item Browser requires ESI Region or ESI Structure." />
+                </Border>
+                <Border Background="#111120" BorderBrush="#2a2a3a" BorderThickness="1"
+                        CornerRadius="3" Padding="8 6" Margin="0 2 0 0"
+                        IsVisible="{Binding MarketVm.Selected.IsEsiRegion}">
+                  <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#888"
+                             Text="ESI Region: fetches all public orders for an entire region from ESI. Use this for NPC trade hubs (e.g. Jita → The Forge). Note: orders posted inside player-owned structures are not included — only regional buy orders placed in structures appear." />
+                </Border>
+                <Border Background="#111120" BorderBrush="#2a2a3a" BorderThickness="1"
+                        CornerRadius="3" Padding="8 6" Margin="0 2 0 0"
+                        IsVisible="{Binding MarketVm.Selected.IsPlayerStructure}">
+                  <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#888"
+                             Text="Player Structure: fetches all orders within a specific player-owned structure (citadel, engineering complex, etc.). Requires an auth character with docking access. Use this for null-sec staging keeps and other private markets." />
+                </Border>
+
+                <TextBlock Text="Location Name" FontSize="11" Foreground="#666" Margin="0 6 0 0" />
+                <TextBox Text="{Binding MarketVm.Selected.LocationName}"
+                         Watermark="e.g. Jita 4-4" />
+
+                <!-- Region dropdown — ESI Region method only -->
+                <TextBlock Text="Region" FontSize="11" Foreground="#666" Margin="0 6 0 0"
+                           IsVisible="{Binding MarketVm.Selected.IsEsiRegion}" />
+                <ComboBox ItemsSource="{Binding MarketVm.RegionOptions}"
+                          SelectedItem="{Binding MarketVm.Selected.SelectedRegion}"
+                          HorizontalAlignment="Stretch"
+                          IsVisible="{Binding MarketVm.Selected.IsEsiRegion}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SdeRegionOption">
+                      <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <!-- Location ID — hidden when using ESI Region (replaced by region dropdown) -->
+                <TextBlock Text="Location ID" FontSize="11" Foreground="#666" Margin="0 6 0 0"
+                           IsVisible="{Binding !MarketVm.Selected.IsEsiRegion}" />
+                <TextBox Text="{Binding MarketVm.Selected.LocationIdText}"
+                         Watermark="Station or Structure ID"
+                         IsVisible="{Binding !MarketVm.Selected.IsEsiRegion}" />
+                <!-- Resolved name updates automatically after you stop typing -->
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="2 3 0 4"
+                            IsVisible="{Binding MarketVm.Selected.ResolvedLocationName,
+                                        Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  <ProgressBar IsIndeterminate="True" Width="10" Height="10"
+                               IsVisible="{Binding MarketVm.Selected.IsResolvingLocation}" />
+                  <TextBlock Text="{Binding MarketVm.Selected.ResolvedLocationName}"
+                             FontSize="11" Foreground="#aaa" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <Expander Header="Find Location by Name…" Margin="0 6 0 0"
+                          FontSize="12" Foreground="#ccccdd"
+                          Background="#1a1a28"
+                          IsVisible="{Binding !MarketVm.Selected.IsEsiRegion}">
+                  <StackPanel Spacing="6" Margin="0 8 0 0">
+                    <TextBlock FontSize="11" Foreground="#666"
+                               Text="Search for a station or structure by name. Results populate the Location ID above."
+                               TextWrapping="Wrap" />
+                    <Grid ColumnDefinitions="*,6,Auto">
+                      <TextBox Grid.Column="0"
+                               Text="{Binding MarketVm.LocationSearch}"
+                               Watermark="Station or structure name…" />
+                      <Button Grid.Column="2" Content="Search"
+                              Command="{Binding MarketVm.SearchLocationsCommand}"
+                              Padding="10 4" />
+                    </Grid>
+
+                    <ListBox ItemsSource="{Binding MarketVm.LocationResults}"
+                             SelectedItem="{Binding MarketVm.SelectedLocationResult}"
+                             MaxHeight="140" Background="Transparent" BorderThickness="0">
+                      <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:LocationResult">
+                          <Grid ColumnDefinitions="52,*" Margin="2 2">
+                            <TextBlock Grid.Column="0" Text="{Binding Category}"
+                                       FontSize="10" Foreground="#555566"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="{Binding Name}"
+                                       Foreground="#ccc" VerticalAlignment="Center" />
+                          </Grid>
+                        </DataTemplate>
+                      </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <Button Content="Use Selected"
+                              Command="{Binding MarketVm.UseSelectedLocationCommand}"
+                              IsEnabled="{Binding MarketVm.HasLocationResult}"
+                              Padding="12 4" />
+                      <TextBlock Text="{Binding MarketVm.SearchStatus}"
+                                 FontSize="11" Foreground="#888"
+                                 VerticalAlignment="Center" />
+                    </StackPanel>
+                  </StackPanel>
+                </Expander>
+
+                <!-- Station filter — only for ESI Region (populated from raw orders after first refresh) -->
+                <TextBlock Text="Station Filter" FontSize="11" Foreground="#666" Margin="0 6 0 0"
+                           IsVisible="{Binding MarketVm.Selected.IsEsiRegion}" />
+                <ComboBox ItemsSource="{Binding MarketVm.StationFilterOptions}"
+                          SelectedItem="{Binding MarketVm.SelectedStationFilter}"
+                          HorizontalAlignment="Stretch"
+                          IsVisible="{Binding MarketVm.Selected.IsEsiRegion}" />
+                <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                           Text="Restrict prices to a single station (e.g. Jita 4-4). Refresh the source first to populate the list."
+                           IsVisible="{Binding MarketVm.Selected.IsEsiRegion}"
+                           Margin="0 2 0 0" />
+
+                <TextBlock Text="Auth Character"
+                           FontSize="11" Foreground="#666" Margin="0 6 0 0"
+                           IsVisible="{Binding MarketVm.Selected.IsPlayerStructure}" />
+                <ComboBox ItemsSource="{Binding MarketVm.CharacterOptions}"
+                          SelectedItem="{Binding MarketVm.Selected.SelectedAuthChar}"
+                          HorizontalAlignment="Stretch"
+                          IsVisible="{Binding MarketVm.Selected.IsPlayerStructure}" />
+
+                <!-- Percentile filter -->
+                <Separator Margin="0 8 0 4" />
+                <CheckBox Content="Filter High/Low Orders"
+                          IsChecked="{Binding MarketVm.Selected.UsePercentileFilter}"
+                          Margin="0 0 0 2" />
+                <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                           Text="Removes anomalies caused by small-volume orders at the extremes of the order book. Sell = Nth-percentile cheapest; Buy = (100-N)th-percentile highest." />
+                <Grid ColumnDefinitions="*,8,120"
+                      IsVisible="{Binding MarketVm.Selected.UsePercentileFilter}"
+                      Margin="0 4 0 0">
+                  <TextBlock Grid.Column="0" Text="Filter %" FontSize="11" Foreground="#ccc"
+                             VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Column="2"
+                                 Value="{Binding MarketVm.Selected.PercentilePercent}"
+                                 Minimum="0.1" Maximum="25" Increment="0.5"
+                                 FormatString="0.0" />
+                </Grid>
+
+                <CheckBox Content="Enabled"
+                          IsChecked="{Binding MarketVm.Selected.IsEnabled}"
+                          Margin="0 6 0 0" />
+
+                <Separator Margin="0 8" />
+
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" Margin="0 0 0 4">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Text="Last refresh:"
+                             FontSize="11" Foreground="#555566" Margin="0 0 8 3" />
+                  <TextBlock Grid.Row="0" Grid.Column="1"
+                             Text="{Binding MarketVm.Selected.LastRefreshedText}"
+                             FontSize="11" Foreground="#aaa" />
+                  <TextBlock Grid.Row="1" Grid.Column="0" Text="Status:"
+                             FontSize="11" Foreground="#555566" Margin="0 0 8 0" />
+                  <TextBlock Grid.Row="1" Grid.Column="1"
+                             Text="{Binding MarketVm.Selected.LastStatus}"
+                             FontSize="11" Foreground="#aaa" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0 8 0 0">
+                  <Button Content="Save"
+                          Command="{Binding MarketVm.SaveCommand}"
+                          Padding="14 4" />
+                  <Button Content="Refresh This"
+                          Command="{Binding MarketVm.RefreshSelectedCommand}"
+                          Padding="14 4" />
+                </StackPanel>
+
+              </StackPanel>
+            </ScrollViewer>
+          </Border>
+
+        </Grid>
+
+        <!-- Default Pricing -->
+        <Border Grid.Row="1" Background="#161620" BorderBrush="#252530" BorderThickness="1"
+                CornerRadius="4" Padding="12 10" Margin="0 8 0 0">
+          <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Text="Default Pricing" FontWeight="SemiBold"
+                       Foreground="#c8a84b" FontSize="12" Margin="0 0 0 8" />
+
+            <!-- Asset Value -->
+            <Grid Grid.Row="1" ColumnDefinitions="160,*,8,140" Margin="0 0 0 6">
+              <TextBlock Grid.Column="0" Text="Asset Value:"
+                         FontSize="12" Foreground="#ccc" VerticalAlignment="Center" />
+              <ComboBox Grid.Column="1"
+                        ItemsSource="{Binding MarketVm.Configs}"
+                        SelectedItem="{Binding MarketVm.SelectedAssetConfig}"
+                        HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:MarketPricingConfigVm">
+                    <TextBlock Text="{Binding LocationName}" FontSize="12" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <ComboBox Grid.Column="3"
+                        ItemsSource="{Binding MarketVm.PriceTypes}"
+                        SelectedItem="{Binding MarketVm.AssetValuePriceType}"
+                        HorizontalAlignment="Stretch" />
+            </Grid>
+
+            <!-- Manufacturing Cost -->
+            <Grid Grid.Row="2" ColumnDefinitions="160,*,8,140" Margin="0 0 0 8">
+              <TextBlock Grid.Column="0" Text="Manufacturing Cost:"
+                         FontSize="12" Foreground="#ccc" VerticalAlignment="Center" />
+              <ComboBox Grid.Column="1"
+                        ItemsSource="{Binding MarketVm.Configs}"
+                        SelectedItem="{Binding MarketVm.SelectedManufacturingConfig}"
+                        HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:MarketPricingConfigVm">
+                    <TextBlock Text="{Binding LocationName}" FontSize="12" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <ComboBox Grid.Column="3"
+                        ItemsSource="{Binding MarketVm.PriceTypes}"
+                        SelectedItem="{Binding MarketVm.ManufacturingPriceType}"
+                        HorizontalAlignment="Stretch" />
+            </Grid>
+
+            <!-- Missing Price Markup -->
+            <Grid Grid.Row="3" ColumnDefinitions="160,120,Auto,*" Margin="0 0 0 8">
+              <TextBlock Grid.Column="0" Text="Missing Price Markup:"
+                         FontSize="12" Foreground="#ccc" VerticalAlignment="Center" />
+              <NumericUpDown Grid.Column="1"
+                             Value="{Binding MarketVm.MissingPriceMarkupPct}"
+                             Minimum="0" Maximum="500" Increment="1"
+                             FormatString="0" FontSize="12"
+                             HorizontalAlignment="Stretch" />
+              <TextBlock Grid.Column="2" Text="%" FontSize="12" Foreground="#aaa"
+                         VerticalAlignment="Center" Margin="5 0 12 0" />
+              <TextBlock Grid.Column="3"
+                         Text="Applied when the market has no sell orders for an item. Price = build cost × (1 + markup%). If no buy orders, buy defaults to sell."
+                         FontSize="11" Foreground="#666" VerticalAlignment="Center"
+                         TextWrapping="Wrap" />
+            </Grid>
+
+            <!-- Lowball Buy Order Filter -->
+            <Grid Grid.Row="4" ColumnDefinitions="Auto,120,Auto,*" Margin="0 0 0 8">
+              <CheckBox Grid.Column="0"
+                        IsChecked="{Binding MarketVm.FilterLowballBuyOrders}"
+                        Content="Filter lowball buy orders below"
+                        FontSize="12" Foreground="#ccc" VerticalAlignment="Center"
+                        Margin="0 0 6 0" />
+              <NumericUpDown Grid.Column="1"
+                             Value="{Binding MarketVm.LowballBuyOrderThresholdPct}"
+                             Minimum="1" Maximum="100" Increment="5"
+                             FormatString="0" FontSize="12"
+                             IsEnabled="{Binding MarketVm.FilterLowballBuyOrders}"
+                             HorizontalAlignment="Stretch" />
+              <TextBlock Grid.Column="2" Text="% of build cost"
+                         FontSize="12" Foreground="#aaa"
+                         VerticalAlignment="Center" Margin="5 0 12 0" />
+              <TextBlock Grid.Column="3"
+                         Text="Applies to ESI region / structure markets only. Orders visible in the market UI but excluded from buy price calculation."
+                         FontSize="11" Foreground="#666" VerticalAlignment="Center"
+                         TextWrapping="Wrap" />
+            </Grid>
+
+            <!-- Build Costs recalculate -->
+            <Grid Grid.Row="5" ColumnDefinitions="160,Auto,*" Margin="0 0 0 8">
+              <TextBlock Grid.Column="0" Text="Build Costs:"
+                         FontSize="12" Foreground="#ccc" VerticalAlignment="Center" />
+              <Button Grid.Column="1"
+                      Content="Recalculate"
+                      Command="{Binding MarketVm.RecalculateBuildCostsCommand}"
+                      Background="#1a1a28" Foreground="#c8a84b"
+                      BorderBrush="#3a3020" BorderThickness="1"
+                      Padding="12 4" FontSize="11" />
+              <TextBlock Grid.Column="2"
+                         Text="{Binding MarketVm.BuildCostStatus}"
+                         FontSize="11" Foreground="#888"
+                         VerticalAlignment="Center" Margin="10 0 0 0"
+                         TextWrapping="Wrap" />
+            </Grid>
+
+            <!-- Save row -->
+            <StackPanel Grid.Row="6" Orientation="Horizontal" Spacing="10">
+              <Button Content="Save Defaults" Command="{Binding MarketVm.SaveDefaultsCommand}" Padding="14 4" />
+              <TextBlock Text="{Binding MarketVm.DefaultsStatus}"
+                         FontSize="11" Foreground="#888" VerticalAlignment="Center" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <!-- Bottom status bar -->
+        <Border Grid.Row="2" Background="#161620" CornerRadius="4" Padding="10 6" Margin="0 8 0 0">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="3">
+              <ProgressBar IsIndeterminate="True" Height="3"
+                           IsVisible="{Binding MarketVm.IsBusy}" />
+              <TextBlock Text="{Binding MarketVm.Status}"
+                         FontSize="11" Foreground="#888" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Refresh All"
+                    Command="{Binding MarketVm.RefreshAllCommand}"
+                    Padding="14 4" VerticalAlignment="Center" Margin="8 0 0 0" />
+          </Grid>
+        </Border>
+
+      </Grid>
+    </TabItem>
+
+    <!-- ══ Timers ════════════════════════════════════════════════════════════ -->
+    <TabItem Header="Timers">
+      <Grid RowDefinitions="*,Auto" Margin="0 8 0 0">
+
+        <ScrollViewer Grid.Row="0">
+          <StackPanel Spacing="16" Margin="0 0 12 0">
+
+            <TextBlock Text="Adjust how often each endpoint is polled. Changes take effect on the next poll cycle."
+                       FontSize="11" Foreground="#888" Margin="0 0 0 4" TextWrapping="Wrap" />
+
+            <!-- Character endpoints -->
+            <StackPanel Spacing="2">
+              <Border Background="#161620" CornerRadius="3" Padding="8 5" Margin="0 0 0 4">
+                <TextBlock Text="Character Endpoints" FontWeight="SemiBold" Foreground="#c8a84b" FontSize="12" />
+              </Border>
+              <ItemsControl ItemsSource="{Binding TimerVm.CharRows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:TimerRowVm">
+                    <Grid ColumnDefinitions="200,70,Auto,Auto,*" Margin="4 3">
+                      <TextBlock Grid.Column="0" Text="{Binding DisplayName}"
+                                 FontSize="12" Foreground="#ccc"
+                                 VerticalAlignment="Center" />
+                      <TextBox Grid.Column="1"
+                               Text="{ReflectionBinding IntervalMinutes, Mode=TwoWay}"
+                               FontSize="12" Padding="4 3"
+                               HorizontalContentAlignment="Right"
+                               VerticalContentAlignment="Center" />
+                      <TextBlock Grid.Column="2" Text=" min"
+                                 FontSize="12" Foreground="#888"
+                                 VerticalAlignment="Center" Margin="4 0 12 0" />
+                      <Button Grid.Column="3"
+                              Content="Force Now"
+                              Command="{Binding ForceNowCommand}"
+                              FontSize="11" Padding="8 2" Margin="0 0 10 0"
+                              VerticalAlignment="Center"
+                              ToolTip.Tip="Reset the in-memory timer so this endpoint fires on the next poll cycle (within ~10 seconds)." />
+                      <TextBlock Grid.Column="4"
+                                 Text="{Binding MinMinutes, StringFormat='(min: {0} min)'}"
+                                 FontSize="11" Foreground="#555"
+                                 VerticalAlignment="Center" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <!-- Corp endpoints -->
+            <StackPanel Spacing="2">
+              <Border Background="#161620" CornerRadius="3" Padding="8 5" Margin="0 0 0 4">
+                <TextBlock Text="Corporation Endpoints" FontWeight="SemiBold" Foreground="#c8a84b" FontSize="12" />
+              </Border>
+              <ItemsControl ItemsSource="{Binding TimerVm.CorpRows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:TimerRowVm">
+                    <Grid ColumnDefinitions="200,70,Auto,Auto,*" Margin="4 3">
+                      <TextBlock Grid.Column="0" Text="{Binding DisplayName}"
+                                 FontSize="12" Foreground="#ccc"
+                                 VerticalAlignment="Center" />
+                      <TextBox Grid.Column="1"
+                               Text="{ReflectionBinding IntervalMinutes, Mode=TwoWay}"
+                               FontSize="12" Padding="4 3"
+                               HorizontalContentAlignment="Right"
+                               VerticalContentAlignment="Center" />
+                      <TextBlock Grid.Column="2" Text=" min"
+                                 FontSize="12" Foreground="#888"
+                                 VerticalAlignment="Center" Margin="4 0 12 0" />
+                      <Button Grid.Column="3"
+                              Content="Force Now"
+                              Command="{Binding ForceNowCommand}"
+                              FontSize="11" Padding="8 2" Margin="0 0 10 0"
+                              VerticalAlignment="Center"
+                              ToolTip.Tip="Reset the in-memory timer so this endpoint fires on the next poll cycle (within ~10 seconds)." />
+                      <TextBlock Grid.Column="4"
+                                 Text="{Binding MinMinutes, StringFormat='(min: {0} min)'}"
+                                 FontSize="11" Foreground="#555"
+                                 VerticalAlignment="Center" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <!-- Other -->
+            <StackPanel Spacing="2">
+              <Border Background="#161620" CornerRadius="3" Padding="8 5" Margin="0 0 0 4">
+                <TextBlock Text="Other" FontWeight="SemiBold" Foreground="#c8a84b" FontSize="12" />
+              </Border>
+              <ItemsControl ItemsSource="{Binding TimerVm.OtherRows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:TimerRowVm">
+                    <Grid ColumnDefinitions="200,70,Auto,Auto,*" Margin="4 3">
+                      <TextBlock Grid.Column="0" Text="{Binding DisplayName}"
+                                 FontSize="12" Foreground="#ccc"
+                                 VerticalAlignment="Center" />
+                      <TextBox Grid.Column="1"
+                               Text="{ReflectionBinding IntervalMinutes, Mode=TwoWay}"
+                               FontSize="12" Padding="4 3"
+                               HorizontalContentAlignment="Right"
+                               VerticalContentAlignment="Center" />
+                      <TextBlock Grid.Column="2" Text=" min"
+                                 FontSize="12" Foreground="#888"
+                                 VerticalAlignment="Center" Margin="4 0 12 0" />
+                      <Button Grid.Column="3"
+                              Content="Force Now"
+                              Command="{Binding ForceNowCommand}"
+                              FontSize="11" Padding="8 2" Margin="0 0 10 0"
+                              VerticalAlignment="Center"
+                              ToolTip.Tip="Reset the in-memory timer so this endpoint fires on the next poll cycle (within ~10 seconds)." />
+                      <TextBlock Grid.Column="4"
+                                 Text="{Binding MinMinutes, StringFormat='(min: {0} min)'}"
+                                 FontSize="11" Foreground="#555"
+                                 VerticalAlignment="Center" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+          </StackPanel>
+        </ScrollViewer>
+
+        <!-- Save bar -->
+        <Border Grid.Row="1" Background="#161620" CornerRadius="4" Padding="10 8" Margin="0 8 0 0">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0"
+                       Text="{Binding TimerVm.SaveStatus}"
+                       FontSize="11" Foreground="#4caf81"
+                       VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="Save Timers"
+                    Command="{Binding TimerVm.SaveCommand}"
+                    Padding="14 4" />
+          </Grid>
+        </Border>
+
+      </Grid>
+    </TabItem>
+
+    <!-- ══ Polling ══════════════════════════════════════════════════════════════ -->
+    <TabItem Header="Polling">
+      <ScrollViewer Margin="0 8 0 0">
+        <StackPanel Spacing="14">
+
+          <!-- Structure Name Resolution -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Structure Name Resolution" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="When resolving unknown structure names, Eve Cortex tries each authenticated character in turn until one succeeds. If most structures deny access to your characters, choosing a single character here prevents unnecessary failed calls and avoids burning your ESI error budget." />
+
+                <Grid ColumnDefinitions="Auto,*" Margin="0 4 0 0">
+                  <TextBlock Grid.Column="0" Text="Character:" Foreground="#ccc"
+                             FontSize="12" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <ComboBox Grid.Column="1"
+                            ItemsSource="{Binding PollingVm.StructureNameChars}"
+                            SelectedItem="{Binding PollingVm.SelectedStructureNameChar}"
+                            HorizontalAlignment="Stretch"
+                            MaxDropDownHeight="200" />
+                </Grid>
+
+                <TextBlock FontSize="11" Foreground="#666" TextWrapping="Wrap"
+                           Text="Select '(none — try all)' to fall back to the original behaviour of trying every character. The choice takes effect immediately — no restart required." />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <!-- ══ Corp Top 10 ════════════════════════════════════════════════════════ -->
+    <TabItem Header="Corp Top 10">
+      <Grid RowDefinitions="*,Auto" Margin="0 8 0 0">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,8,*">
+
+          <!-- Left: Search + Results -->
+          <Border Grid.Column="0" BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <Grid RowDefinitions="Auto,Auto,*">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Add to Exclude List" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Grid.Row="1" Margin="10 8 10 6" Spacing="6"
+                          DataContext="{Binding CorpTop10Vm}">
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="Excluded members/corps will not appear in any Top 10 list. They still appear in all other Corp Activity views." />
+
+                <Grid ColumnDefinitions="*,8,Auto" Margin="0 4 0 0">
+                  <TextBox Grid.Column="0"
+                           Text="{Binding SearchText}"
+                           Watermark="Name to search…"
+                           FontSize="11" />
+                  <ComboBox Grid.Column="2"
+                            ItemsSource="{Binding EntityTypes}"
+                            SelectedItem="{Binding EntityType}"
+                            MinWidth="120" FontSize="11"
+                            Background="#1a1a28" Foreground="#c8c8d8"
+                            BorderBrush="#2a2a3a" />
+                </Grid>
+
+                <Button Content="Search"
+                        Command="{Binding SearchCommand}"
+                        HorizontalAlignment="Left"
+                        Background="#1a1a28" Foreground="#5599aa"
+                        BorderBrush="#2a3a44" BorderThickness="1"
+                        Padding="14 4" FontSize="11" />
+
+                <TextBlock Text="{Binding StatusText}"
+                           FontSize="11" Foreground="#c8a84b"
+                           IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              </StackPanel>
+
+              <!-- Search results list -->
+              <Border Grid.Row="2" Margin="10 0 10 10"
+                      BorderBrush="#252530" BorderThickness="1" CornerRadius="3">
+                <ListBox ItemsSource="{Binding CorpTop10Vm.SearchResults}"
+                         Background="Transparent"
+                         SelectionMode="Single">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CorpTop10ExcludeRowVm">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding Display}"
+                                   FontSize="11" Foreground="#c8c8d8"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="1" Content="+ Add"
+                                Command="{Binding $parent[ListBox].((vm:SettingsViewModel)DataContext).CorpTop10Vm.AddCommand}"
+                                CommandParameter="{Binding}"
+                                FontSize="10" Padding="8 2"
+                                Background="#1a2a1a" Foreground="#6aaa88"
+                                BorderBrush="#2a3a2a" BorderThickness="1" />
+                      </Grid>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </Border>
+            </Grid>
+          </Border>
+
+          <!-- Right: Current Excludes -->
+          <Border Grid.Column="2" BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <Grid RowDefinitions="Auto,*">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Current Exclude List" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <ListBox Grid.Row="1"
+                       ItemsSource="{Binding CorpTop10Vm.Excludes}"
+                       Background="Transparent"
+                       SelectionMode="Single"
+                       Margin="4 4 4 4">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:CorpTop10ExcludeRowVm">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <TextBlock Grid.Column="0" Text="{Binding Display}"
+                                 FontSize="11" Foreground="#c8c8d8"
+                                 VerticalAlignment="Center" />
+                      <Button Grid.Column="1" Content="Remove"
+                              Command="{Binding $parent[ListBox].((vm:SettingsViewModel)DataContext).CorpTop10Vm.RemoveCommand}"
+                              CommandParameter="{Binding}"
+                              FontSize="10" Padding="8 2"
+                              Background="#2a1a1a" Foreground="#cc7766"
+                              BorderBrush="#3a2a2a" BorderThickness="1" />
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </Grid>
+          </Border>
+
+        </Grid>
+
+      </Grid>
+    </TabItem>
+
+    <!-- ══ Agent ═══════════════════════════════════════════════════════════════ -->
+    <TabItem Header="AI Agent">
+      <ScrollViewer Margin="0 8 0 0">
+        <StackPanel Spacing="12" x:DataType="vm:AgentSettingsViewModel"
+                    DataContext="{Binding AgentVm}">
+
+          <!-- Personalisation -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <Grid RowDefinitions="Auto,Auto">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Personalisation" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+              <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+                <TextBlock Text="Agent Name" FontSize="11" Foreground="#666" />
+                <TextBox Text="{Binding AgentName}"
+                         Watermark="Aura" />
+                <TextBlock FontSize="10" Foreground="#444455" TextWrapping="Wrap"
+                           Text="The name shown in the panel header and used when the agent refers to itself. Default: Aura." />
+
+                <TextBlock Text="Response Verbosity" FontSize="11" Foreground="#666" Margin="0 4 0 0" />
+                <ComboBox ItemsSource="{Binding VerbosityOptions}"
+                          SelectedItem="{Binding Verbosity}"
+                          HorizontalAlignment="Stretch" />
+                <TextBlock FontSize="10" Foreground="#444455" TextWrapping="Wrap"
+                           Text="Concise: short, direct answers (1-3 sentences). Balanced: complete but not padded. Detailed: thorough with context and reasoning. This is injected into the system prompt every time you send a message." />
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- Master enable -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <Grid RowDefinitions="Auto,Auto">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Aura Agent" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+              <StackPanel Grid.Row="1" Margin="12 10" Spacing="6">
+                <CheckBox Content="Enable Aura AI companion"
+                          IsChecked="{Binding IsEnabled}" />
+                <TextBlock Text="When enabled, the Aura panel is available from the title bar. Requires a configured provider below."
+                           FontSize="11" Foreground="#555566" TextWrapping="Wrap" />
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- Provider selection -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <Grid RowDefinitions="Auto,Auto">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Provider" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+              <Grid Grid.Row="1" ColumnDefinitions="120,*" Margin="12 10">
+                <TextBlock Grid.Column="0" Text="LLM Provider:"
+                           FontSize="12" Foreground="#ccc" VerticalAlignment="Center" />
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding Providers}"
+                          SelectedItem="{Binding SelectedProvider}"
+                          HorizontalAlignment="Stretch" />
+              </Grid>
+            </Grid>
+          </Border>
+
+          <!-- Claude settings -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4"
+                  IsVisible="{Binding ShowClaude}">
+            <Grid RowDefinitions="Auto,Auto">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Claude (Anthropic)" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+              <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+                <TextBlock Text="API Key" FontSize="11" Foreground="#666" />
+                <TextBox Text="{Binding ClaudeApiKey}"
+                         Watermark="sk-ant-…"
+                         PasswordChar="•" />
+                <HyperlinkButton Content="Get your Anthropic API key at console.anthropic.com"
+                                 NavigateUri="https://console.anthropic.com/settings/keys"
+                                 FontSize="10"
+                                 Padding="0"
+                                 HorizontalAlignment="Left" />
+                <TextBlock Text="Model" FontSize="11" Foreground="#666" />
+                <TextBox Text="{Binding ClaudeModel}"
+                         Watermark="claude-sonnet-4-6" />
+                <TextBlock Text="Available models: claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5-20251001"
+                           FontSize="10" Foreground="#444455" TextWrapping="Wrap" />
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- OpenAI settings -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4"
+                  IsVisible="{Binding ShowOpenAi}">
+            <Grid RowDefinitions="Auto,Auto">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="OpenAI" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+              <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+                <TextBlock Text="API Key" FontSize="11" Foreground="#666" />
+                <TextBox Text="{Binding OpenAiApiKey}"
+                         Watermark="sk-…"
+                         PasswordChar="•" />
+                <HyperlinkButton Content="Get your OpenAI API key at platform.openai.com"
+                                 NavigateUri="https://platform.openai.com/api-keys"
+                                 FontSize="10"
+                                 Padding="0"
+                                 HorizontalAlignment="Left" />
+                <TextBlock Text="Model" FontSize="11" Foreground="#666" />
+                <TextBox Text="{Binding OpenAiModel}"
+                         Watermark="gpt-4o" />
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- Local LLM settings -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4"
+                  IsVisible="{Binding ShowLocal}">
+            <Grid RowDefinitions="Auto,Auto">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Local LLM (Ollama / LM Studio)" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+              <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+                <TextBlock Text="API Endpoint" FontSize="11" Foreground="#666" />
+                <TextBox Text="{Binding LocalEndpoint}"
+                         Watermark="http://localhost:11434" />
+                <TextBlock Text="Model Name" FontSize="11" Foreground="#666" />
+                <TextBox Text="{Binding LocalModel}"
+                         Watermark="llama3.1" />
+                <TextBlock Text="Must expose an OpenAI-compatible /v1/chat/completions endpoint (Ollama, LM Studio, and most local runners do by default)."
+                           FontSize="10" Foreground="#444455" TextWrapping="Wrap" />
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- Context management -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <Grid RowDefinitions="Auto,Auto">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Context Management" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+              <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+
+                <CheckBox Content="Persist conversation history across sessions"
+                          IsChecked="{Binding PersistHistory}" />
+                <TextBlock Text="History is saved to disk and reloaded when the application starts. Clear it using the ⌫ button in the Aura panel."
+                           FontSize="10" Foreground="#444455" TextWrapping="Wrap" />
+
+                <TextBlock Text="Summarization threshold (estimated tokens)" FontSize="11" Foreground="#666" Margin="0 4 0 0" />
+                <Grid ColumnDefinitions="120,*">
+                  <TextBox Grid.Column="0"
+                           Text="{Binding SummarizationThreshold}"
+                           Watermark="50000" />
+                  <TextBlock Grid.Column="1"
+                             Text="tokens"
+                             FontSize="11" Foreground="#555566"
+                             VerticalAlignment="Center" Margin="8 0 0 0" />
+                </Grid>
+                <TextBlock FontSize="10" Foreground="#444455" TextWrapping="Wrap"
+                           Text="When the estimated conversation length crosses this value, Aura will silently compact older messages into a summary in the background — typically while you are reading her last response. Lower values reduce API cost per message but sacrifice older context. Default: 20,000 (~$0.06/message at that size for Sonnet)." />
+
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- Voice (TTS) -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <Grid RowDefinitions="Auto,Auto">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Voice (TTS)" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+
+                <TextBlock Text="Provider" FontSize="11" Foreground="#666" />
+                <ComboBox ItemsSource="{Binding TtsProviders}"
+                          SelectedItem="{Binding TtsProvider}"
+                          HorizontalAlignment="Stretch" />
+                <TextBlock Text="Volume and mute are available directly in the Aura panel while it is open."
+                           FontSize="10" Foreground="#444455" TextWrapping="Wrap" />
+
+                <!-- OpenAI TTS settings -->
+                <StackPanel IsVisible="{Binding ShowOpenAiTtsSettings}" Spacing="8">
+                  <TextBlock Text="API Key" FontSize="11" Foreground="#666" />
+                  <TextBlock Text="Shared with the OpenAI LLM provider setting above."
+                             FontSize="10" Foreground="#444455" />
+                  <TextBox Text="{Binding OpenAiApiKey}"
+                           Watermark="sk-…" PasswordChar="•" />
+                  <HyperlinkButton Content="Get your OpenAI API key at platform.openai.com"
+                                   NavigateUri="https://platform.openai.com/api-keys"
+                                   FontSize="10"
+                                   Padding="0"
+                                   HorizontalAlignment="Left" />
+                  <TextBlock Text="Voice" FontSize="11" Foreground="#666" />
+                  <ComboBox ItemsSource="{Binding OpenAiTtsVoices}"
+                            SelectedItem="{Binding OpenAiTtsVoice}"
+                            HorizontalAlignment="Stretch" />
+                  <TextBlock Text="Model" FontSize="11" Foreground="#666" />
+                  <ComboBox ItemsSource="{Binding OpenAiTtsModels}"
+                            SelectedItem="{Binding OpenAiTtsModel}"
+                            HorizontalAlignment="Stretch" />
+                  <TextBlock Text="Speed" FontSize="11" Foreground="#666" />
+                  <Grid ColumnDefinitions="*,52">
+                    <Slider Grid.Column="0"
+                            Minimum="0.25" Maximum="4.0"
+                            Value="{Binding OpenAiTtsSpeed}"
+                            TickFrequency="0.25" IsSnapToTickEnabled="True" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding OpenAiTtsSpeed, StringFormat='{}{0:F2}x'}"
+                               FontSize="12" Foreground="#aaa"
+                               VerticalAlignment="Center" HorizontalAlignment="Center" />
+                  </Grid>
+                  <Button Content="Test Voice"
+                          Command="{Binding TestVoiceCommand}"
+                          Padding="12 4" HorizontalAlignment="Left" />
+                </StackPanel>
+
+                <!-- ElevenLabs TTS settings -->
+                <StackPanel IsVisible="{Binding ShowElevenLabsTtsSettings}" Spacing="8">
+                  <TextBlock Text="API Key" FontSize="11" Foreground="#666" />
+                  <TextBox Text="{Binding ElevenLabsApiKey}"
+                           Watermark="Your ElevenLabs API key" PasswordChar="•" />
+                  <HyperlinkButton Content="Get your ElevenLabs API key at elevenlabs.io"
+                                   NavigateUri="https://elevenlabs.io/app/settings/api-keys"
+                                   FontSize="10"
+                                   Padding="0"
+                                   HorizontalAlignment="Left" />
+                  <TextBlock Text="Voice ID" FontSize="11" Foreground="#666" />
+                  <TextBox Text="{Binding ElevenLabsVoiceId}"
+                           Watermark="21m00Tcm4TlvDq8ikWAM (Rachel)" />
+                  <TextBlock FontSize="10" Foreground="#444455"
+                             Text="Find voice IDs in your ElevenLabs account under My Voices or the Voice Library." />
+                  <TextBlock Text="Model" FontSize="11" Foreground="#666" />
+                  <ComboBox ItemsSource="{Binding ElevenLabsModels}"
+                            SelectedItem="{Binding ElevenLabsModel}"
+                            HorizontalAlignment="Stretch" />
+                  <Button Content="Test Voice"
+                          Command="{Binding TestVoiceCommand}"
+                          Padding="12 4" HorizontalAlignment="Left" />
+                </StackPanel>
+
+                <!-- Kokoro local TTS settings -->
+                <StackPanel IsVisible="{Binding ShowKokoroTtsSettings}" Spacing="8">
+                  <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="#444455"
+                             Text="Kokoro 82M is a high-quality neural TTS model that runs fully offline. On first use, the ONNX model weight file (~320 MB) is downloaded and cached automatically — no executable code is downloaded, only the neural network weights. Voice embeddings are bundled with the application." />
+
+                  <TextBlock Text="Voice" FontSize="11" Foreground="#666" />
+                  <ComboBox ItemsSource="{Binding KokoroVoiceLabels}"
+                            SelectedItem="{Binding SelectedKokoroVoiceLabel}"
+                            HorizontalAlignment="Stretch" />
+
+                  <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 4 0 0">
+                    <Button Content="Load Model (downloads ~320 MB on first use)"
+                            Command="{Binding DownloadKokoroModelCommand}"
+                            IsEnabled="{Binding !IsDownloadingKokoroModel}"
+                            Padding="12 4" />
+                    <TextBlock Text="✔ Model loaded" FontSize="11" Foreground="#4caf81"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding IsKokoroModelDownloaded}" />
+                  </StackPanel>
+
+                  <ProgressBar IsIndeterminate="True"
+                               Height="4"
+                               IsVisible="{Binding IsDownloadingKokoroModel}" />
+                  <TextBlock Text="{Binding KokoroModelStatus}"
+                             FontSize="10" Foreground="#888"
+                             IsVisible="{Binding KokoroModelStatus,
+                                         Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                  <Button Content="Test Voice"
+                          Command="{Binding TestVoiceCommand}"
+                          IsEnabled="{Binding IsKokoroModelDownloaded}"
+                          Padding="12 4" HorizontalAlignment="Left" />
+                </StackPanel>
+
+                <!-- Piper local TTS settings -->
+                <StackPanel IsVisible="{Binding ShowPiperTtsSettings}" Spacing="8">
+                  <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="#444455"
+                             Text="Piper is a fast offline neural TTS engine. The Piper runtime is bundled with the application — no executable downloads. Only the voice model (a data file) is downloaded on demand." />
+
+                  <!-- Binary status -->
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Runtime:" FontSize="11" Foreground="#666" VerticalAlignment="Center" />
+                    <TextBlock Text="✔ Bundled" FontSize="11" Foreground="#4caf81"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding IsPiperBinaryAvailable}" />
+                    <TextBlock Text="⚠ Not found in app directory" FontSize="11" Foreground="#cc8844"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding !IsPiperBinaryAvailable}" />
+                  </StackPanel>
+
+                  <TextBlock Text="Voice" FontSize="11" Foreground="#666" />
+                  <ComboBox ItemsSource="{Binding PiperVoiceLabels}"
+                            SelectedItem="{Binding SelectedPiperVoiceLabel}"
+                            HorizontalAlignment="Stretch" />
+
+                  <!-- Piper voice download -->
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Download Voice Model"
+                            Command="{Binding DownloadPiperVoiceCommand}"
+                            IsEnabled="{Binding !IsDownloadingPiper}"
+                            Padding="12 4" />
+                    <TextBlock Text="✔ Voice ready" FontSize="11" Foreground="#4caf81"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding IsPiperVoiceDownloaded}" />
+                  </StackPanel>
+
+                  <ProgressBar IsIndeterminate="{Binding IsDownloadingPiper}"
+                               Height="4"
+                               IsVisible="{Binding IsDownloadingPiper}" />
+                  <TextBlock Text="{Binding PiperDownloadStatus}"
+                             FontSize="10" Foreground="#888"
+                             IsVisible="{Binding PiperDownloadStatus,
+                                         Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                  <Button Content="Test Voice"
+                          Command="{Binding TestVoiceCommand}"
+                          IsEnabled="{Binding IsPiperVoiceDownloaded}"
+                          Padding="12 4" HorizontalAlignment="Left" />
+                </StackPanel>
+
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- Speech Input (push-to-talk) -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <Grid RowDefinitions="Auto,Auto">
+              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Speech Input (Push-to-Talk)" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+
+                <TextBlock Text="Provider" FontSize="11" Foreground="#666" />
+                <ComboBox ItemsSource="{Binding SpeechInputProviders}"
+                          SelectedItem="{Binding SpeechInputProvider}"
+                          HorizontalAlignment="Stretch" />
+                <TextBlock FontSize="10" Foreground="#444455" TextWrapping="Wrap"
+                           Text="When configured, a mic button appears in the Aura panel. Hold it to record, release to transcribe." />
+
+                <!-- Microphone device selection (visible whenever a provider is chosen) -->
+                <StackPanel IsVisible="{Binding ShowMicrophoneSettings}" Spacing="8">
+                  <TextBlock Text="Microphone Device" FontSize="11" Foreground="#666" />
+                  <Grid ColumnDefinitions="*,Auto">
+                    <ComboBox Grid.Column="0"
+                              ItemsSource="{Binding MicrophoneDevices}"
+                              SelectedItem="{Binding SelectedMicrophoneDevice}"
+                              HorizontalAlignment="Stretch"
+                              PlaceholderText="(system default)" />
+                    <Button Grid.Column="1" Content="↺"
+                            Command="{Binding RefreshMicDevicesCommand}"
+                            Padding="8 4" Margin="6 0 0 0"
+                            ToolTip.Tip="Refresh the list of input devices" />
+                  </Grid>
+                  <TextBlock FontSize="10" Foreground="#444455"
+                             Text="Works on both Windows and Linux (PortAudio). If the list is empty, click ↺ to refresh after your audio driver initialises." />
+                </StackPanel>
+
+                <!-- Global push-to-talk key -->
+                <StackPanel IsVisible="{Binding ShowMicrophoneSettings}" Spacing="8">
+                  <TextBlock Text="Global Push-to-Talk Key" FontSize="11" Foreground="#666" />
+                  <ComboBox ItemsSource="{Binding PushToTalkKeyNames}"
+                            SelectedItem="{Binding SelectedPushToTalkKeyName}"
+                            HorizontalAlignment="Stretch" />
+                  <TextBlock FontSize="10" Foreground="#444455" TextWrapping="Wrap"
+                             Text="Hold this key to record — works even when the game has focus. F13-F20 are rarely captured by games and recommended as PTT keys. The mic button in the Aura panel always works regardless of this setting." />
+                </StackPanel>
+
+                <!-- OpenAI Whisper cloud -->
+                <StackPanel IsVisible="{Binding ShowCloudWhisperSettings}" Spacing="8">
+                  <TextBlock Text="API Key" FontSize="11" Foreground="#666" />
+                  <TextBlock Text="Shared with the OpenAI LLM provider setting above."
+                             FontSize="10" Foreground="#444455" />
+                  <TextBox Text="{Binding OpenAiApiKey}"
+                           Watermark="sk-…" PasswordChar="•" />
+                  <TextBlock FontSize="10" Foreground="#444455" TextWrapping="Wrap"
+                             Text="Uses OpenAI Whisper API. Works on Windows and Linux." />
+                </StackPanel>
+
+                <!-- Local Whisper (Windows only) -->
+                <StackPanel IsVisible="{Binding ShowLocalWhisperSettings}" Spacing="8">
+                  <TextBlock FontSize="10" Foreground="#444455" TextWrapping="Wrap"
+                             Text="Runs Whisper.net locally on this machine (Windows only). No API key required. A model file must be downloaded before first use." />
+
+                  <TextBlock Text="Model" FontSize="11" Foreground="#666" />
+                  <ComboBox ItemsSource="{Binding LocalWhisperModelLabels}"
+                            SelectedItem="{Binding SelectedWhisperModelLabel}"
+                            HorizontalAlignment="Stretch" />
+
+                  <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 4 0 0">
+                    <Button Content="Download Model"
+                            Command="{Binding DownloadModelCommand}"
+                            IsEnabled="{Binding !IsDownloadingModel}"
+                            Padding="12 4" />
+                    <TextBlock Text="✔ Downloaded" FontSize="11" Foreground="#4caf81"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding IsSelectedModelDownloaded}" />
+                  </StackPanel>
+
+                  <ProgressBar Value="{Binding ModelDownloadProgress}"
+                               IsIndeterminate="{Binding IsDownloadingModel}"
+                               Height="4"
+                               IsVisible="{Binding IsDownloadingModel}" />
+                  <TextBlock Text="{Binding ModelDownloadStatus}"
+                             FontSize="10" Foreground="#888"
+                             IsVisible="{Binding ModelDownloadStatus,
+                                         Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- Save bar -->
+          <Border Background="#161620" CornerRadius="4" Padding="10 8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Grid.Column="0"
+                         Text="{Binding SaveStatus}"
+                         FontSize="11" Foreground="#4caf81"
+                         VerticalAlignment="Center" />
+              <Button Grid.Column="1" Content="Save Agent Settings"
+                      Command="{Binding SaveCommand}"
+                      Padding="14 4" />
+            </Grid>
+          </Border>
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+  <!-- ── Alerts ────────────────────────────────────────────────────────── -->
+  <TabItem Header="Alerts">
+    <ScrollViewer>
+      <StackPanel Spacing="20" Margin="24 16">
+
+        <TextBlock Text="Alert Rules"
+                   FontSize="14" FontWeight="SemiBold" Foreground="#c8a84b" />
+        <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
+                   Text="Configure which conditions trigger alerts on the Overview tab. Alerts are re-evaluated each time the Overview is refreshed." />
+
+        <!-- Skill Queue alerts -->
+        <Border Background="#161620" BorderBrush="#252530" BorderThickness="1"
+                CornerRadius="4" Padding="14 12">
+          <StackPanel Spacing="10">
+            <TextBlock Text="Skill Queue" FontWeight="SemiBold"
+                       Foreground="#c8a84b" FontSize="12" Margin="0 0 0 4" />
+
+            <CheckBox Content="Character skill queue is empty"
+                      IsChecked="{Binding AlertsVm.SkillQueueEmpty}"
+                      FontSize="12" Foreground="#ccccdd" />
+
+            <CheckBox Content="Character skill queue is paused (has entries but nothing training)"
+                      IsChecked="{Binding AlertsVm.SkillQueuePaused}"
+                      FontSize="12" Foreground="#ccccdd" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <CheckBox Content="Skill queue will be empty within"
+                        IsChecked="{Binding AlertsVm.SkillQueueEmptyInDays}"
+                        FontSize="12" Foreground="#ccccdd"
+                        VerticalAlignment="Center" />
+              <NumericUpDown Value="{Binding AlertsVm.SkillQueueEmptyDays}"
+                             IsEnabled="{Binding AlertsVm.SkillQueueEmptyInDays}"
+                             Minimum="1" Maximum="365" Increment="1"
+                             FormatString="0" FontSize="12"
+                             Width="120" VerticalAlignment="Center" />
+              <TextBlock Text="days"
+                         FontSize="12" Foreground="#aaa"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0 6 0 0">
+              <Button Content="Save Alerts"
+                      Command="{Binding AlertsVm.SaveCommand}"
+                      Padding="14 4" />
+              <TextBlock Text="{Binding AlertsVm.Status}"
+                         FontSize="11" Foreground="#888"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Asset Safety alerts -->
+        <Border Background="#161620" BorderBrush="#252530" BorderThickness="1"
+                CornerRadius="4" Padding="14 12">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Asset Safety" FontWeight="SemiBold"
+                       Foreground="#c8a84b" FontSize="12" Margin="0 0 0 4" />
+
+            <CheckBox Content="Alert when items are moved into Asset Safety"
+                      IsChecked="{Binding AlertsVm.AssetSafety}"
+                      FontSize="12" Foreground="#ccccdd" />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#888899"
+                       Text="Triggers when a StructureItemsMovedIntoSafety notification is received for any authenticated character. The alert persists until you manually dismiss it." />
+          </StackPanel>
+        </Border>
+
+        <!-- Standing Projects alerts -->
+        <Border Background="#161620" BorderBrush="#252530" BorderThickness="1"
+                CornerRadius="4" Padding="14 12">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Standing Projects" FontWeight="SemiBold"
+                       Foreground="#c8a84b" FontSize="12" Margin="0 0 0 4" />
+
+            <CheckBox Content="Alert when standing projects are not currently active"
+                      IsChecked="{Binding AlertsVm.InactiveStandingProjects}"
+                      FontSize="12" Foreground="#ccccdd" />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#888899"
+                       Text="Triggers when one or more standing projects (Corp Activity → Projects → Standing Projects) have no matching active ESI corp project. Re-evaluated each time the Overview refreshes." />
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+    </ScrollViewer>
+  </TabItem>
+
+  <!-- ── Price History ──────────────────────────────────────────────────── -->
+  <TabItem Header="Price History">
+    <ScrollViewer>
+      <StackPanel Spacing="16" Margin="24 16">
+
+        <TextBlock Text="Price History Regions"
+                   FontSize="14" FontWeight="SemiBold" Foreground="#c8a84b" />
+
+        <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
+                   Text="Regions listed here will have market price history fetched on-demand when viewing item details or calculating trade opportunities. History is cached for 24 hours per item." />
+
+        <!-- Configured regions grid -->
+        <DataGrid ItemsSource="{Binding PriceHistoryVm.ConfiguredRegions}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserSortColumns="False"
+                  CanUserResizeColumns="True"
+                  MaxHeight="200">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Region ID"   Binding="{ReflectionBinding RegionId}"   Width="100" />
+            <DataGridTextColumn Header="Region Name" Binding="{ReflectionBinding RegionName}" Width="*" />
+            <DataGridTemplateColumn Header="" Width="80">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="models:PriceHistoryRegion">
+                  <Button Content="Remove"
+                          Command="{Binding $parent[Window].DataContext.PriceHistoryVm.RemoveCommand}"
+                          CommandParameter="{Binding}"
+                          Padding="6 2" FontSize="11"
+                          Background="#2a1010" Foreground="#cc4444"
+                          BorderBrush="#3a1515" BorderThickness="1" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Add region row -->
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <ComboBox ItemsSource="{Binding PriceHistoryVm.AllRegions}"
+                    SelectedItem="{Binding PriceHistoryVm.SelectedNewRegion}"
+                    Width="260" PlaceholderText="Select a region to add…">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:SdeRegionOption">
+                <TextBlock Text="{Binding Name}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <Button Content="Add Region"
+                  Command="{Binding PriceHistoryVm.AddCommand}"
+                  Padding="12 6" FontSize="12"
+                  Background="#1a2a1a" Foreground="#70ad47"
+                  BorderBrush="#253525" BorderThickness="1" />
+        </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+  </TabItem>
+
+    <!-- ══ Database ════════════════════════════════════════════════════════════ -->
+    <TabItem Header="Database">
+      <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="12" DataContext="{Binding DatabaseVm}">
+
+          <!-- DB type -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Database Type" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Grid.Column="0" Text="Type:" Foreground="#ccc" FontSize="12"
+                             VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <ComboBox Grid.Column="1"
+                            ItemsSource="{Binding DbTypes}"
+                            SelectedItem="{Binding SelectedDbType}"
+                            HorizontalAlignment="Left" MinWidth="160" />
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- SQLite section (shown when SQLite selected) -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4"
+                  IsVisible="{Binding IsSqlite}">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="SQLite Database" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="10">
+
+                <!-- Path + size -->
+                <StackPanel Spacing="2">
+                  <Grid ColumnDefinitions="Auto,*">
+                    <TextBlock Grid.Column="0" Text="Path:" Foreground="#ccc"
+                               FontSize="12" VerticalAlignment="Top" Margin="0 0 10 0" />
+                    <TextBlock Grid.Column="1" Text="{Binding DbPath}"
+                               Foreground="#aaa" FontSize="11" TextWrapping="Wrap" />
+                  </Grid>
+                  <Grid ColumnDefinitions="Auto,*">
+                    <TextBlock Grid.Column="0" Text="Size:" Foreground="#ccc"
+                               FontSize="12" VerticalAlignment="Center" Margin="0 0 10 0" />
+                    <TextBlock Grid.Column="1" Text="{Binding DbFileSizeText}"
+                               Foreground="#888" FontSize="11" VerticalAlignment="Center" />
+                  </Grid>
+                </StackPanel>
+
+                <!-- Move / Rename / Repoint buttons -->
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Move Database…"
+                          IsEnabled="{Binding !IsBusy}"
+                          Click="OnMoveDatabaseClick"
+                          Padding="12 5" FontSize="12"
+                          Background="#1a1a28" Foreground="#aac8ff"
+                          BorderBrush="#2a2a48" BorderThickness="1" />
+                  <Button Content="Rename Database…"
+                          IsEnabled="{Binding !IsBusy}"
+                          Click="OnRenameDatabaseClick"
+                          Padding="12 5" FontSize="12"
+                          Background="#1a1a28" Foreground="#aac8ff"
+                          BorderBrush="#2a2a48" BorderThickness="1" />
+                  <Button Content="Point to Existing DB…"
+                          IsEnabled="{Binding !IsBusy}"
+                          Click="OnPointToDbClick"
+                          Padding="12 5" FontSize="12"
+                          Background="#1a1a28" Foreground="#aac8ff"
+                          BorderBrush="#2a2a48" BorderThickness="1" />
+                </StackPanel>
+
+                <TextBlock Text="These operations copy or move the database file and restart the application."
+                           FontSize="11" Foreground="#666" TextWrapping="Wrap" />
+
+                <Separator Background="#252530" Height="1" Margin="0 4 0 4" />
+
+                <!-- Backup settings -->
+                <CheckBox Content="Automatically back up database"
+                          IsChecked="{Binding BackupEnabled}"
+                          Foreground="#ccc" FontSize="12" />
+
+                <Grid ColumnDefinitions="Auto,Auto,24,Auto,Auto" Margin="16 0 0 0">
+                  <TextBlock Grid.Column="0" Text="Interval:" Foreground="#ccc"
+                             FontSize="12" VerticalAlignment="Center" Margin="0 0 10 0"
+                             IsEnabled="{Binding BackupEnabled}" />
+                  <ComboBox Grid.Column="1"
+                            ItemsSource="{Binding BackupIntervals}"
+                            SelectedItem="{Binding SelectedInterval}"
+                            MinWidth="120"
+                            IsEnabled="{Binding BackupEnabled}" />
+
+                  <TextBlock Grid.Column="3" Text="Keep:" Foreground="#ccc"
+                             FontSize="12" VerticalAlignment="Center" Margin="0 0 10 0"
+                             IsEnabled="{Binding BackupEnabled}" />
+                  <NumericUpDown Grid.Column="4"
+                                 Value="{Binding BackupsToKeep}"
+                                 Minimum="1" Maximum="365"
+                                 Width="120" FontSize="12"
+                                 IsEnabled="{Binding BackupEnabled}" />
+                </Grid>
+
+                <!-- Last backup + manual backup button -->
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="0 4 0 0">
+                  <TextBlock Grid.Column="0" Text="Last backup:" Foreground="#ccc"
+                             FontSize="12" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <TextBlock Grid.Column="1" Text="{Binding LastBackupText}"
+                             Foreground="#aaa" FontSize="12" VerticalAlignment="Center" />
+                  <Button Grid.Column="2" Content="Back Up Now"
+                          IsEnabled="{Binding !IsBusy}"
+                          Click="OnBackupNowClick"
+                          Padding="12 5" FontSize="12"
+                          Background="#1a2a1a" Foreground="#70ad47"
+                          BorderBrush="#253525" BorderThickness="1" />
+                </Grid>
+
+                <!-- Status -->
+                <TextBlock Text="{Binding StatusText}"
+                           Foreground="#70ad47" FontSize="11"
+                           IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                           TextWrapping="Wrap" />
+
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+  </TabControl>
+</Window>

@@ -1,0 +1,86 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:EveCortex.ViewModels"
+        x:Class="EveCortex.Views.ScopeSelectionDialog"
+        x:DataType="vm:CharacterViewModel"
+        Width="520" Height="580"
+        MinWidth="400" MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+    <!-- Header -->
+    <Border Grid.Row="0" Background="#161620" Padding="18 14">
+      <StackPanel Spacing="6">
+        <TextBlock x:Name="DialogTitle"
+                   FontSize="14" FontWeight="SemiBold"
+                   Foreground="#c8a84b" />
+        <TextBlock Text="A browser tab will open for you to log in and authorize access. Review the scopes below and uncheck any you do not want to grant. These choices apply to this authentication only."
+                   FontSize="11" Foreground="#888"
+                   TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+
+    <!-- Select All / None + warning -->
+    <StackPanel Grid.Row="1" Spacing="6" Margin="16 10 16 4">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Content="Select All"
+                Command="{Binding SelectAllScopesCommand}"
+                Padding="10 3" FontSize="11" />
+        <Button Content="Clear All"
+                Command="{Binding ClearAllScopesCommand}"
+                Padding="10 3" FontSize="11" />
+      </StackPanel>
+      <TextBlock Text="Removing scopes will disable related features in this application. They can be re-granted at any time by running Update."
+                 FontSize="11" Foreground="#c8a84b"
+                 TextWrapping="Wrap" />
+    </StackPanel>
+
+    <!-- Grouped scope checklist -->
+    <ScrollViewer Grid.Row="2" Margin="16 0">
+      <ItemsControl ItemsSource="{Binding DialogScopeGroups}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:ScopeGroup">
+            <StackPanel Margin="0 0 0 10">
+
+              <!-- Group header — label only, not a scope itself -->
+              <TextBlock Text="{Binding Category}"
+                         FontWeight="SemiBold"
+                         Foreground="#c8a84b"
+                         Margin="0 0 0 2" />
+
+              <!-- Individual scope checkboxes -->
+              <ItemsControl ItemsSource="{Binding Items}" Margin="8 0 0 0">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ScopeItem">
+                    <CheckBox IsChecked="{Binding IsSelected}"
+                              Content="{Binding FriendlyName}"
+                              Foreground="#bbb"
+                              Margin="0 1" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <!-- Action buttons -->
+    <Border Grid.Row="3" Background="#0d0d12" Padding="16 12">
+      <StackPanel Orientation="Horizontal"
+                  HorizontalAlignment="Right"
+                  Spacing="10">
+        <Button Content="Cancel"
+                Click="OnCancel"
+                Padding="16 5" />
+        <Button Content="Continue to Browser"
+                Click="OnContinue"
+                Padding="16 5" />
+      </StackPanel>
+    </Border>
+
+  </Grid>
+</Window>

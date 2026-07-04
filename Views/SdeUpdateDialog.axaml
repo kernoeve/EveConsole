@@ -1,0 +1,105 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:EveCortex.ViewModels"
+        x:Class="EveCortex.Views.SdeUpdateDialog"
+        x:DataType="vm:SdeViewModel"
+        Title="Eve Static Data Update"
+        Width="480" Height="370"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <StackPanel Margin="24" Spacing="14">
+
+    <!-- ── Phase 1: Prompt (hidden once import starts) ── -->
+    <StackPanel x:Name="PromptPanel" Spacing="14">
+
+      <TextBlock Text="A newer Eve static data build is available."
+                 FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
+
+      <Grid ColumnDefinitions="70,*" RowDefinitions="Auto,Auto">
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Loaded:"
+                   Foreground="#666" VerticalAlignment="Center" Margin="0 0 0 4" />
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding LoadedBuild}"
+                   Foreground="#aaa" VerticalAlignment="Center" Margin="0 0 0 4" />
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Latest:"
+                   Foreground="#666" VerticalAlignment="Center" />
+        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LatestBuild}"
+                   Foreground="#e8a030" VerticalAlignment="Center" />
+      </Grid>
+
+      <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+        <Button Content="Update Now" Click="OnUpdateNow" Padding="16 5" />
+        <Button Content="Later"      Click="OnLater"     Padding="16 5" />
+      </StackPanel>
+
+    </StackPanel>
+
+    <!-- ── Phase 2: Running (shown while IsBusy) ── -->
+    <StackPanel x:Name="ProgressPanel" IsVisible="False" Spacing="10">
+
+      <TextBlock Text="Updating Eve static data…"
+                 FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
+
+      <ProgressBar Value="{Binding Fraction}"
+                   Minimum="0" Maximum="1"
+                   Height="8" />
+
+      <TextBlock Text="{Binding StatusText}"
+                 FontSize="11" Foreground="#888"
+                 TextWrapping="Wrap" />
+
+    </StackPanel>
+
+    <!-- ── Phase 3: Done ── -->
+    <StackPanel x:Name="DonePanel" IsVisible="False" Spacing="10">
+
+      <TextBlock Text="SDE update complete."
+                 FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
+
+      <TextBlock Text="{Binding StatusText}"
+                 FontSize="11" Foreground="#888" />
+
+      <Button Content="Close" Click="OnClose"
+              HorizontalAlignment="Right" Padding="16 5" />
+
+    </StackPanel>
+
+    <!-- ── Divider ── -->
+    <Rectangle Height="1" Fill="#1a1a26" Margin="0 4" />
+
+    <!-- ── Hoboleaks section ── -->
+    <StackPanel Spacing="10">
+
+      <TextBlock Text="Hoboleaks Complement"
+                 FontSize="12" FontWeight="SemiBold" Foreground="#5588aa" />
+
+      <TextBlock FontSize="11" Foreground="#555566" TextWrapping="Wrap"
+                 Text="Blueprints, reprocessing, compression, and repackaged volumes updated shortly after each TQ patch — often ahead of the official SDE." />
+
+      <Grid ColumnDefinitions="70,*" RowDefinitions="Auto">
+        <TextBlock Grid.Column="0" Text="Status:"
+                   Foreground="#666" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="1" Text="{Binding HoboImportedAt}"
+                   Foreground="#888" VerticalAlignment="Center" />
+      </Grid>
+
+      <!-- Hobo progress (visible while running) -->
+      <StackPanel x:Name="HoboProgressPanel" IsVisible="False" Spacing="6">
+        <ProgressBar Value="{Binding HoboFraction}" Minimum="0" Maximum="1" Height="6" />
+        <TextBlock Text="{Binding HoboStatusText}"
+                   FontSize="11" Foreground="#888" TextWrapping="Wrap" />
+      </StackPanel>
+
+      <Button x:Name="HoboImportButton"
+              Content="Import from Hoboleaks"
+              Click="OnHoboImport"
+              IsEnabled="{Binding !HoboIsBusy}"
+              HorizontalAlignment="Left"
+              Padding="14 5"
+              FontSize="11" />
+
+    </StackPanel>
+
+  </StackPanel>
+</Window>

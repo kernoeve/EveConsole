@@ -1,0 +1,406 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             xmlns:m="clr-namespace:EveCortex.Models"
+             x:Class="EveCortex.Views.KillmailBrowserView"
+             x:DataType="vm:KillmailBrowserViewModel"
+             Background="#0d0d12">
+
+  <Grid ColumnDefinitions="560,4,*">
+
+    <!-- ── Left pane: filters + list ──────────────────────────────── -->
+    <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto">
+
+      <!-- Filter bar -->
+      <Border Grid.Row="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
+              Padding="8 6">
+        <StackPanel Spacing="5">
+          <!-- Corp selector + Refresh -->
+          <Grid ColumnDefinitions="Auto,*,8,Auto">
+            <TextBlock Grid.Column="0" Text="Corp:" FontSize="11" Foreground="#555566"
+                       VerticalAlignment="Center" Margin="0 0 4 0" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding CorpsWithAll}"
+                      SelectedItem="{Binding SelectedCorp, Mode=TwoWay}"
+                      FontSize="11" Height="22"
+                      Background="#0d0d12" Foreground="#c8c8d8"
+                      BorderBrush="#2a2a3a">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="m:Corporation">
+                  <TextBlock Text="{Binding Name}" FontSize="11" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Grid.Column="3"
+                    Content="Refresh" Command="{Binding RefreshCommand}"
+                    FontSize="10" Padding="8 2" Height="22"
+                    Background="#1a1a2a" Foreground="#6aaa88"
+                    BorderBrush="#2a2a3a" BorderThickness="1"
+                    VerticalAlignment="Center" />
+          </Grid>
+
+          <!-- Date range -->
+          <Grid ColumnDefinitions="Auto,*,8,Auto,*">
+            <TextBlock Grid.Column="0" Text="From:" FontSize="11" Foreground="#555566"
+                       VerticalAlignment="Center" Margin="0 0 4 0" />
+            <CalendarDatePicker Grid.Column="1"
+                                SelectedDate="{Binding FilterFrom, Mode=TwoWay}"
+                                FontSize="11" Height="22" />
+            <TextBlock Grid.Column="3" Text="Thru:" FontSize="11" Foreground="#555566"
+                       VerticalAlignment="Center" Margin="0 0 4 0" />
+            <CalendarDatePicker Grid.Column="4"
+                                SelectedDate="{Binding FilterThru, Mode=TwoWay}"
+                                FontSize="11" Height="22" />
+          </Grid>
+
+          <!-- Text filters + clear -->
+          <Grid ColumnDefinitions="*,4,*,4,*,4,Auto">
+            <TextBox Grid.Column="0"
+                     Text="{Binding FilterChar, Mode=TwoWay}"
+                     Watermark="Character…" FontSize="11" Height="22"
+                     Background="#0d0d12" Foreground="#c8c8d8"
+                     BorderBrush="#2a2a3a" Padding="5 2" />
+            <TextBox Grid.Column="2"
+                     Text="{Binding FilterShip, Mode=TwoWay}"
+                     Watermark="Ship…" FontSize="11" Height="22"
+                     Background="#0d0d12" Foreground="#c8c8d8"
+                     BorderBrush="#2a2a3a" Padding="5 2" />
+            <TextBox Grid.Column="4"
+                     Text="{Binding FilterSystem, Mode=TwoWay}"
+                     Watermark="System/Region…" FontSize="11" Height="22"
+                     Background="#0d0d12" Foreground="#c8c8d8"
+                     BorderBrush="#2a2a3a" Padding="5 2" />
+            <Button Grid.Column="6"
+                    Content="Clear" Command="{Binding ClearFiltersCommand}"
+                    FontSize="10" Padding="8 2" Height="22"
+                    Background="#1a1a2a" Foreground="#888899"
+                    BorderBrush="#2a2a3a" BorderThickness="1"
+                    VerticalAlignment="Center" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <!-- Kill list (zkillboard style) -->
+      <ListBox Grid.Row="1"
+               ItemsSource="{Binding KillmailRows}"
+               SelectedItem="{Binding SelectedKillmail, Mode=TwoWay}"
+               Background="#0d0d12"
+               BorderThickness="0"
+               ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem">
+            <Setter Property="Padding"     Value="0" />
+            <Setter Property="Background"  Value="Transparent" />
+            <Setter Property="Cursor"      Value="Hand" />
+          </Style>
+          <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1a1a30" />
+          </Style>
+          <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#141420" />
+          </Style>
+        </ListBox.Styles>
+        <ListBox.ItemTemplate>
+          <DataTemplate DataType="vm:KillmailListRowVm">
+            <Border BorderBrush="#1a1a26" BorderThickness="0 0 0 1">
+              <Grid ColumnDefinitions="70,50,*,160,160" Margin="4 4 4 4">
+
+                  <!-- Date / Time / ISK -->
+                  <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
+                    <TextBlock Text="{Binding DateText}"
+                               FontSize="10" Foreground="#888899" />
+                    <TextBlock Text="{Binding TimeText}"
+                               FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding TotalIskText}"
+                               FontSize="10" Foreground="#c8a84b"
+                               IsVisible="{Binding TotalIskText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                  </StackPanel>
+
+                  <!-- Ship render -->
+                  <Image Grid.Column="1"
+                         Source="{Binding ShipRender}"
+                         Width="48" Height="48"
+                         Stretch="Uniform"
+                         VerticalAlignment="Center"
+                         ToolTip.Tip="{Binding ShipName}"
+                         Margin="0 0 6 0" />
+
+                  <!-- System / Constellation / Region -->
+                  <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
+                    <StackPanel Orientation="Horizontal" Spacing="3">
+                      <TextBlock Text="{Binding SecurityText}"
+                                 FontSize="10" FontWeight="SemiBold"
+                                 Foreground="{Binding SecurityColor}" />
+                      <TextBlock Text="{Binding SystemName}"
+                                 FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                 TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding ConstellationName}"
+                               FontSize="9" Foreground="#888899"
+                               TextTrimming="CharacterEllipsis"
+                               IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <TextBlock Text="{Binding RegionName}"
+                               FontSize="9" Foreground="#666677"
+                               TextTrimming="CharacterEllipsis"
+                               IsVisible="{Binding RegionName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                  </StackPanel>
+
+                  <!-- Victim: logo + name/corp/alliance -->
+                  <Grid Grid.Column="3" ColumnDefinitions="32,*" Margin="0 0 4 0">
+                    <Image Grid.Column="0"
+                           Source="{Binding VictimLogo}"
+                           Width="32" Height="32"
+                           Stretch="Uniform"
+                           VerticalAlignment="Center"
+                           ToolTip.Tip="{Binding VictimAlliance}"
+                           Margin="0 0 4 0" />
+                    <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding VictimName}"
+                                 FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding VictimCorp}"
+                                 FontSize="9" Foreground="#888899"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding VictimAlliance}"
+                                 FontSize="9" Foreground="#666677"
+                                 TextTrimming="CharacterEllipsis"
+                                 IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+                  </Grid>
+
+                  <!-- Final blow: logo + name/corp/alliance -->
+                  <Grid Grid.Column="4" ColumnDefinitions="32,*">
+                    <Image Grid.Column="0"
+                           Source="{Binding FbLogo}"
+                           Width="32" Height="32"
+                           Stretch="Uniform"
+                           VerticalAlignment="Center"
+                           ToolTip.Tip="{Binding FbAlliance}"
+                           Margin="0 0 4 0" />
+                    <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding FbName}"
+                                 FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding FbCorp}"
+                                 FontSize="9" Foreground="#888899"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding FbAlliance}"
+                                 FontSize="9" Foreground="#666677"
+                                 TextTrimming="CharacterEllipsis"
+                                 IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+                  </Grid>
+
+                </Grid>
+            </Border>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <!-- Status bar -->
+      <Border Grid.Row="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 1 0 0"
+              Padding="8 4">
+        <TextBlock Text="{Binding StatusText}" FontSize="10" Foreground="{Binding StatusColor}" />
+      </Border>
+
+    </Grid>
+
+    <!-- ── Splitter ───────────────────────────────────────────────── -->
+    <GridSplitter Grid.Column="1" Background="#1e1e2a"
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+
+    <!-- ── Right pane: killmail detail ───────────────────────────── -->
+    <Grid Grid.Column="2">
+
+      <!-- Empty state -->
+      <TextBlock IsVisible="{Binding Detail, Converter={x:Static ObjectConverters.IsNull}}"
+                 Text="Select a killmail to view details."
+                 FontSize="12" Foreground="#333344"
+                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+      <!-- Detail panel -->
+      <Grid IsVisible="{Binding Detail, Converter={x:Static ObjectConverters.IsNotNull}}"
+            RowDefinitions="Auto,*">
+
+        <!-- ── Header (full width) ──────────────────────────── -->
+        <Border Grid.Row="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
+                Padding="12 10">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="2">
+              <TextBlock Text="{Binding Detail.ShipName}"
+                         FontSize="15" FontWeight="SemiBold" Foreground="#c8c8d8" />
+              <TextBlock Text="{Binding Detail.VictimName}"
+                         FontSize="11" Foreground="#aaaacc" />
+              <TextBlock Text="{Binding Detail.VictimCorp}"
+                         FontSize="10" Foreground="#666677" />
+              <TextBlock Text="{Binding Detail.VictimAlliance}"
+                         FontSize="10" Foreground="#555566" />
+              <TextBlock FontSize="10" Foreground="#444455" Margin="0 2 0 0">
+                <Run Text="{Binding Detail.TimeText}" />
+                <Run Text="  ·  " />
+                <Run Text="{Binding Detail.SystemText}" />
+              </TextBlock>
+            </StackPanel>
+            <!-- ISK summary -->
+            <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Margin="16 0 0 0">
+              <StackPanel Spacing="1" HorizontalAlignment="Right">
+                <TextBlock Text="DESTROYED" FontSize="9" Foreground="#555566" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                <TextBlock Text="{Binding Detail.DestroyedText}" FontSize="12" Foreground="#cc6655" FontWeight="SemiBold" />
+              </StackPanel>
+              <StackPanel Spacing="1" HorizontalAlignment="Right">
+                <TextBlock Text="DROPPED" FontSize="9" Foreground="#555566" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                <TextBlock Text="{Binding Detail.DroppedText}" FontSize="12" Foreground="#6aaa88" FontWeight="SemiBold" />
+              </StackPanel>
+              <StackPanel Spacing="1" HorizontalAlignment="Right">
+                <TextBlock Text="TOTAL" FontSize="9" Foreground="#555566" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                <TextBlock Text="{Binding Detail.TotalIskText}" FontSize="12" Foreground="#c8a84b" FontWeight="SemiBold" />
+              </StackPanel>
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <!-- ── Body: items left, attackers right ────────────── -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,1,220">
+
+          <!-- Items (scrollable) -->
+          <ScrollViewer Grid.Column="0"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Detail.SlotGroups}" Margin="8 8 8 16">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:KillmailSlotGroupVm">
+                  <Border BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="3"
+                          Margin="0 0 0 4">
+                    <StackPanel>
+                      <Border Background="#12121a" Padding="8 3">
+                        <TextBlock Text="{Binding GroupName}"
+                                   FontSize="10" FontWeight="SemiBold" Foreground="#8899bb" />
+                      </Border>
+                      <ItemsControl ItemsSource="{Binding Items}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate DataType="vm:KillmailItemVm">
+                            <Grid ColumnDefinitions="20,*,72,72,90" Margin="8 2 8 2" MinHeight="20">
+                              <Image Grid.Column="0"
+                                     Source="{Binding Icon}"
+                                     Width="18" Height="18"
+                                     Stretch="Uniform"
+                                     VerticalAlignment="Center"
+                                     Margin="0 0 2 0" />
+                              <TextBlock Grid.Column="1" Text="{Binding TypeName}"
+                                         FontSize="10" Foreground="#c8c8d8"
+                                         VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis" />
+                              <TextBlock Grid.Column="2" Text="{Binding QtyDestroyed}"
+                                         FontSize="10" Foreground="#cc6655"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Right" />
+                              <TextBlock Grid.Column="3" Text="{Binding QtyDropped}"
+                                         FontSize="10" Foreground="#6aaa88"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Right" />
+                              <TextBlock Grid.Column="4" Text="{Binding EstValueText}"
+                                         FontSize="10" Foreground="#888899"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Right" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+
+          <!-- Vertical divider -->
+          <Border Grid.Column="1" Background="#1e1e2a" />
+
+          <!-- Attackers (scrollable) -->
+          <Grid Grid.Column="2" RowDefinitions="Auto,*">
+            <Border Grid.Row="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
+                    Padding="8 4">
+              <TextBlock Text="ATTACKERS" FontSize="10" FontWeight="SemiBold" Foreground="#8899bb" />
+            </Border>
+            <ScrollViewer Grid.Row="1"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+              <ItemsControl ItemsSource="{Binding Detail.Attackers}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:KillmailAttackerVm">
+                    <Border BorderBrush="#1a1a26" BorderThickness="0 0 0 1" Padding="4 4">
+                      <Grid ColumnDefinitions="40,24,*,Auto">
+
+                        <!-- Portrait (full row height) -->
+                        <Image Grid.Column="0"
+                               Source="{Binding Portrait}"
+                               Width="40" Height="48"
+                               Stretch="UniformToFill"
+                               VerticalAlignment="Top"
+                               ToolTip.Tip="{Binding CharName}"
+                               Margin="0 0 4 0" />
+
+                        <!-- Ship icon (top) + Weapon/drone icon (bottom) -->
+                        <Grid Grid.Column="1" RowDefinitions="24,24" Margin="0 0 4 0"
+                              VerticalAlignment="Top">
+                          <Image Grid.Row="0" Source="{Binding ShipIcon}"
+                                 Width="24" Height="24" Stretch="Uniform"
+                                 ToolTip.Tip="{Binding ShipName}" />
+                          <Image Grid.Row="1" Source="{Binding WeaponIcon}"
+                                 Width="24" Height="24" Stretch="Uniform"
+                                 ToolTip.Tip="{Binding WeaponName}" />
+                        </Grid>
+
+                        <!-- Name / Corp / Alliance / Ship -->
+                        <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Top">
+                          <TextBlock Text="{Binding CharName}"
+                                     FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                     TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding CorpName}"
+                                     FontSize="9" Foreground="#888899"
+                                     TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding AllianceName}"
+                                     FontSize="9" Foreground="#666677"
+                                     TextTrimming="CharacterEllipsis"
+                                     IsVisible="{Binding AllianceName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          <TextBlock Text="{Binding ShipName}"
+                                     FontSize="9" Foreground="#4a5570" FontStyle="Italic"
+                                     TextTrimming="CharacterEllipsis"
+                                     IsVisible="{Binding ShipName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+
+                        <!-- Role label + damage -->
+                        <StackPanel Grid.Column="3" Spacing="2" HorizontalAlignment="Right"
+                                    VerticalAlignment="Top" Margin="4 0 0 0">
+                          <TextBlock Text="{Binding RoleLabel}"
+                                     FontSize="9" FontWeight="SemiBold"
+                                     Foreground="{Binding RoleColor}"
+                                     HorizontalAlignment="Right"
+                                     IsVisible="{Binding RoleLabel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          <TextBlock Text="{Binding DamageText}"
+                                     FontSize="10" Foreground="#888899"
+                                     HorizontalAlignment="Right" />
+                        </StackPanel>
+
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </Grid>
+
+        </Grid>
+      </Grid>
+
+      <!-- Loading overlay -->
+      <Border IsVisible="{Binding IsLoading}"
+              Background="#99000000">
+        <TextBlock Text="Loading…" FontSize="13" Foreground="#aaaacc"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </Border>
+
+    </Grid>
+  </Grid>
+</UserControl>

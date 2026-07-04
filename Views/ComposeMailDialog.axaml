@@ -1,0 +1,102 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveCortex.Views.ComposeMailDialog"
+        Title="Compose Mail"
+        Width="620" Height="540"
+        MinWidth="480" MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <Grid RowDefinitions="Auto,*,Auto" Margin="16 12">
+
+    <!-- Header fields -->
+    <StackPanel Grid.Row="0" Spacing="8">
+
+      <TextBlock Text="FROM" FontSize="9" FontWeight="SemiBold"
+                 Foreground="#555566" LetterSpacing="1.2" />
+      <ComboBox x:Name="FromCombo"
+                Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                Foreground="#c8c8d8" FontSize="12"
+                HorizontalAlignment="Stretch" Padding="6 3" Margin="0 0 0 4"
+                SelectionChanged="OnFromCharacterChanged" />
+
+      <TextBlock Text="TO  (search name, press Enter to add)" FontSize="9" FontWeight="SemiBold"
+                 Foreground="#555566" LetterSpacing="1.2" />
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBox Grid.Column="0" x:Name="RecipientSearchBox"
+                 Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                 CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                 FontSize="12" Padding="8 4"
+                 Watermark="Character name…"
+                 KeyDown="OnRecipientKeyDown" />
+        <Button Grid.Column="1" Content="Add"
+                Background="#0d1020" Foreground="#8888cc"
+                BorderBrush="#2a2a4a" BorderThickness="1"
+                Padding="10 4" Margin="6 0 0 0" FontSize="11"
+                Click="OnAddRecipientClick" />
+      </Grid>
+      <TextBlock x:Name="RecipientSearchStatus"
+                 FontSize="10" Foreground="#aa4444" IsVisible="False" />
+
+      <!-- Recipient chips -->
+      <ItemsControl x:Name="RecipientList">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Background="#1a1a2a" BorderBrush="#2a2a4a" BorderThickness="1"
+                    CornerRadius="3" Padding="6 2" Margin="0 2 4 2">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock x:CompileBindings="False" Text="{Binding Name}"
+                           FontSize="11" Foreground="#aaaacc" VerticalAlignment="Center" />
+                <Button x:CompileBindings="False" Tag="{Binding}"
+                        Content="×" FontSize="12"
+                        Background="Transparent" BorderThickness="0"
+                        Foreground="#555566" Padding="0" Cursor="Hand"
+                        Click="OnRemoveRecipientClick" />
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <TextBlock Text="SUBJECT" FontSize="9" FontWeight="SemiBold"
+                 Foreground="#555566" LetterSpacing="1.2" Margin="0 4 0 0" />
+      <TextBox x:Name="SubjectBox"
+               Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+               CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+               FontSize="12" Padding="8 4" />
+    </StackPanel>
+
+    <!-- Body -->
+    <Grid Grid.Row="1" RowDefinitions="Auto,*" Margin="0 10 0 0">
+      <TextBlock Grid.Row="0" Text="BODY" FontSize="9" FontWeight="SemiBold"
+                 Foreground="#555566" LetterSpacing="1.2" Margin="0 0 0 4" />
+      <TextBox Grid.Row="1" x:Name="BodyBox"
+               AcceptsReturn="True" TextWrapping="Wrap"
+               Background="#141420" BorderBrush="#2a2a3a" BorderThickness="1"
+               CornerRadius="3" Foreground="#c8c8d8" CaretBrush="#c8a84b"
+               FontSize="12" Padding="8" />
+    </Grid>
+
+    <!-- Footer -->
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Margin="0 10 0 0">
+      <TextBlock Grid.Column="0" x:Name="StatusLabel"
+                 FontSize="11" Foreground="#445566" VerticalAlignment="Center" />
+      <Button Grid.Column="1" Content="Cancel"
+              Background="#1a1a28" Foreground="#888899"
+              BorderBrush="#2a2a3a" BorderThickness="1"
+              Padding="14 6" Margin="0 0 8 0"
+              Click="OnCancelClick" />
+      <Button Grid.Column="2" Content="Send"
+              Background="#1a2030" Foreground="#c8a84b"
+              BorderBrush="#3a3020" BorderThickness="1"
+              Padding="14 6"
+              Click="OnSendClick" />
+    </Grid>
+
+  </Grid>
+</Window>

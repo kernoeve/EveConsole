@@ -1,0 +1,331 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             x:Class="EveCortex.Views.IndyParksView"
+             x:DataType="vm:IndyParksViewModel"
+             Background="#0d0d12">
+
+  <Grid ColumnDefinitions="220,1,*">
+
+    <!-- ── Left: park list ──────────────────────────────────────────────── -->
+    <Grid Grid.Column="0" RowDefinitions="Auto,*" Background="#0d0d12">
+
+      <!-- Toolbar -->
+      <Border Grid.Row="0" Background="#12121a" Padding="10 8" BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+        <StackPanel Spacing="6">
+          <TextBlock Text="INDY PARKS" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" Margin="2 0 0 4" />
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Button Command="{Binding AddParkCommand}"
+                    Content="+ New Park"
+                    Background="#1a1a28" Foreground="#c8a84b"
+                    BorderBrush="#3a3020" BorderThickness="1"
+                    Padding="10 4" FontSize="11" />
+            <Button Click="OnImportClick"
+                    Content="Import"
+                    Background="#1a1a28" Foreground="#5588aa"
+                    BorderBrush="#20303a" BorderThickness="1"
+                    Padding="10 4" FontSize="11" />
+            <Button Command="{Binding DeleteParkCommand}"
+                    Content="Delete"
+                    Background="#1a1a28" Foreground="#aa4444"
+                    BorderBrush="#3a2020" BorderThickness="1"
+                    Padding="10 4" FontSize="11" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- Park list -->
+      <ListBox Grid.Row="1"
+               ItemsSource="{Binding Parks}"
+               SelectedItem="{Binding SelectedPark}"
+               Background="Transparent"
+               BorderThickness="0"
+               ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="12 8" />
+          </Style>
+          <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1a2030" />
+          </Style>
+        </ListBox.Styles>
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:IndyParkListItem">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="★" FontSize="11" Foreground="#c8a84b"
+                         IsVisible="{Binding IsDefault}" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding Name}" FontSize="13" Foreground="#c8c8d8"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Grid>
+
+    <!-- Divider -->
+    <Rectangle Grid.Column="1" Fill="#1e1e2a" />
+
+    <!-- ── Right: park detail ────────────────────────────────────────────── -->
+    <Grid Grid.Column="2">
+
+      <!-- No park selected -->
+      <TextBlock IsVisible="{Binding SelectedPark, Converter={x:Static ObjectConverters.IsNull}}"
+                 Text="Create or select an Indy Park from the list."
+                 Foreground="#333344" FontSize="13"
+                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+      <!-- Park detail -->
+      <ScrollViewer IsVisible="{Binding SelectedPark, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="24 20" Spacing="28">
+
+          <!-- Park name + export -->
+          <StackPanel Spacing="6">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Grid.Column="0" Text="PARK NAME" FontSize="10" FontWeight="SemiBold"
+                         Foreground="#555566" LetterSpacing="1" VerticalAlignment="Center" />
+              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                <Button Command="{Binding SetDefaultParkCommand}"
+                        Content="★ Set Default"
+                        Background="#1a1a28" Foreground="#c8a84b"
+                        BorderBrush="#3a3020" BorderThickness="1"
+                        Padding="10 4" FontSize="11" />
+                <Button Click="OnExportClick"
+                        Content="Export Park"
+                        Background="#1a1a28" Foreground="#5588aa"
+                        BorderBrush="#20303a" BorderThickness="1"
+                        Padding="10 4" FontSize="11" />
+              </StackPanel>
+            </Grid>
+            <TextBox Text="{Binding ParkName}"
+                     Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                     CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                     FontSize="14" Padding="10 6" MaxWidth="400"
+                     HorizontalAlignment="Left" />
+          </StackPanel>
+
+          <!-- Structures section -->
+          <StackPanel Spacing="10">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Grid.Column="0" Text="STRUCTURES" FontSize="10" FontWeight="SemiBold"
+                         Foreground="#555566" LetterSpacing="1" VerticalAlignment="Center" />
+              <Button Grid.Column="1" Command="{Binding AddStructureCommand}"
+                      Content="+ Add Structure"
+                      Background="#1a1a28" Foreground="#c8a84b"
+                      BorderBrush="#3a3020" BorderThickness="1"
+                      Padding="10 4" FontSize="11" />
+            </Grid>
+
+            <ItemsControl x:CompileBindings="False" ItemsSource="{Binding Structures}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:StructureVm">
+                  <Border Background="#12121a" CornerRadius="4" Padding="14 12"
+                          Margin="0 0 0 8" BorderBrush="#1e1e2a" BorderThickness="1">
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+
+                      <!-- Row 0: Name + Type + Remove button -->
+                      <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0 0 0 10">
+                        <TextBox Grid.Column="0" Text="{Binding DisplayName}"
+                                 Watermark="Structure name…"
+                                 Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                                 CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                                 FontSize="13" FontWeight="SemiBold" Padding="8 4" />
+                        <ComboBox Grid.Column="1"
+                                  SelectedItem="{Binding StructureTypeLabel}"
+                                  ItemsSource="{x:Static vm:IndyParksViewModel.StructureTypeLabels}"
+                                  MinWidth="120" Margin="8 0 0 0" FontSize="12"
+                                  Background="#131320" BorderBrush="#2a2a3a" Foreground="#c8c8d8" />
+                        <Button Grid.Column="2" x:CompileBindings="False"
+                                Command="{Binding $parent[UserControl].DataContext.RemoveStructureCommand}"
+                                CommandParameter="{Binding}"
+                                Content="✕" Background="#2a1010" Foreground="#aa4444"
+                                BorderBrush="#3a2020" BorderThickness="1"
+                                Padding="6 4" Margin="8 0 0 0" FontSize="11" />
+                      </Grid>
+
+                      <!-- Row 1: System + Security -->
+                      <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0 0 0 10">
+                        <TextBox Grid.Column="0" Text="{Binding SystemName}"
+                                 Watermark="Solar system…"
+                                 Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                                 CornerRadius="3" Foreground="#ccccdd" CaretBrush="#c8a84b"
+                                 FontSize="12" Padding="8 4" />
+                        <ComboBox Grid.Column="1"
+                                  SelectedItem="{Binding SecurityLabel}"
+                                  ItemsSource="{x:Static vm:IndyParksViewModel.SecurityLabels}"
+                                  MinWidth="110" Margin="8 0 0 0" FontSize="12"
+                                  Background="#131320" BorderBrush="#2a2a3a" Foreground="#c8c8d8" />
+                      </Grid>
+
+                      <!-- Row 2: Tax percentage -->
+                      <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6"
+                                  Margin="0 0 0 10" VerticalAlignment="Center">
+                        <TextBlock Text="Tax Percentage:" FontSize="12" Foreground="#666677"
+                                   VerticalAlignment="Center" />
+                        <NumericUpDown x:CompileBindings="False"
+                                       Value="{Binding FacilityTax}"
+                                       Minimum="0" Maximum="100" Increment="0.1"
+                                       FormatString="{}{0:0.##}"
+                                       MinWidth="80" FontSize="12"
+                                       Background="#131320" BorderBrush="#2a2a3a"
+                                       Foreground="#c8c8d8" />
+                        <TextBlock Text="%" FontSize="12" Foreground="#666677"
+                                   VerticalAlignment="Center" />
+                      </StackPanel>
+
+                      <!-- Row 3: Rig slots -->
+                      <StackPanel Grid.Row="3" Spacing="6">
+                        <TextBlock Text="RIGS" FontSize="10" FontWeight="SemiBold"
+                                   Foreground="#444455" LetterSpacing="1" />
+                        <ItemsControl ItemsSource="{Binding RigSlots}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:RigSlotVm">
+                              <Grid ColumnDefinitions="Auto,*" Margin="0 3">
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding SlotIndex, StringFormat='Slot {0}:'}"
+                                           FontSize="11" Foreground="#444455"
+                                           VerticalAlignment="Center" MinWidth="48" />
+                                <ComboBox Grid.Column="1"
+                                          ItemsSource="{Binding AvailableRigs}"
+                                          SelectedItem="{Binding Selected}"
+                                          PlaceholderText="— empty —"
+                                          FontSize="11"
+                                          Background="#131320" BorderBrush="#2a2a3a" Foreground="#aaaabc">
+                                  <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:SdeRigOption">
+                                      <TextBlock Text="{Binding Name}" FontSize="11" />
+                                    </DataTemplate>
+                                  </ComboBox.ItemTemplate>
+                                </ComboBox>
+                              </Grid>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <!-- Production assignments section -->
+          <StackPanel Spacing="10">
+            <TextBlock Text="PRODUCTION ASSIGNMENTS" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" />
+            <TextBlock Text="Assign which structure handles each production category."
+                       FontSize="11" Foreground="#444455" />
+
+            <Border Background="#12121a" CornerRadius="4" Padding="0" BorderBrush="#1e1e2a" BorderThickness="1">
+              <ItemsControl x:CompileBindings="False" ItemsSource="{Binding Assignments}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:CompileBindings="False" x:DataType="vm:CategoryAssignmentVm">
+                    <Border BorderBrush="#1e1e2a" BorderThickness="0 0 0 1" Padding="14 8">
+                      <Grid ColumnDefinitions="220,*">
+                        <TextBlock Grid.Column="0" Text="{Binding CategoryLabel}"
+                                   FontSize="12" Foreground="#888899" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding StructureOptions}"
+                                  SelectedItem="{Binding Selected}"
+                                  PlaceholderText="— not assigned —"
+                                  FontSize="12"
+                                  Background="#131320" BorderBrush="#1e1e2a" Foreground="#c8c8d8">
+                          <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                              <TextBlock x:CompileBindings="False"
+                                         Text="{Binding DisplayHeader, FallbackValue='— not assigned —'}"
+                                         FontSize="12" />
+                            </DataTemplate>
+                          </ComboBox.ItemTemplate>
+                        </ComboBox>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Border>
+          </StackPanel>
+
+          <!-- Item exceptions section -->
+          <StackPanel Spacing="10">
+            <TextBlock Text="ITEM EXCEPTIONS" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" />
+            <TextBlock Text="Override the category assignment for a specific item."
+                       FontSize="11" Foreground="#444455" />
+
+            <!-- Search box -->
+            <TextBox Text="{Binding ItemSearchText}"
+                     Watermark="Search for an item to add exception…"
+                     Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                     CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                     FontSize="12" Padding="8 5" />
+
+            <!-- Search results dropdown -->
+            <Border IsVisible="{Binding ItemSearchResults.Count}"
+                    Background="#12121a" CornerRadius="4" BorderBrush="#2a2a3a" BorderThickness="1"
+                    MaxHeight="200">
+              <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl x:CompileBindings="False" ItemsSource="{Binding ItemSearchResults}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:CompileBindings="False">
+                      <Button x:CompileBindings="False"
+                              Command="{Binding $parent[UserControl].DataContext.AddItemExceptionCommand}"
+                              CommandParameter="{Binding}"
+                              Background="Transparent" BorderThickness="0"
+                              HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                              Padding="12 6" Cursor="Hand">
+                        <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#c8c8d8" />
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </Border>
+
+            <!-- Exceptions list -->
+            <Border IsVisible="{Binding ItemExceptions.Count}"
+                    Background="#12121a" CornerRadius="4" Padding="0" BorderBrush="#1e1e2a" BorderThickness="1">
+              <ItemsControl x:CompileBindings="False" ItemsSource="{Binding ItemExceptions}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:CompileBindings="False" x:DataType="vm:ItemExceptionVm">
+                    <Border BorderBrush="#1e1e2a" BorderThickness="0 0 0 1" Padding="14 8">
+                      <Grid ColumnDefinitions="220,*,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding TypeName}"
+                                   FontSize="12" Foreground="#888899" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding StructureOptions}"
+                                  SelectedItem="{Binding Selected}"
+                                  PlaceholderText="— not assigned —"
+                                  FontSize="12"
+                                  Background="#131320" BorderBrush="#1e1e2a" Foreground="#c8c8d8">
+                          <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                              <TextBlock x:CompileBindings="False"
+                                         Text="{Binding DisplayHeader, FallbackValue='— not assigned —'}"
+                                         FontSize="12" />
+                            </DataTemplate>
+                          </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <Button Grid.Column="2" x:CompileBindings="False"
+                                Command="{Binding $parent[UserControl].DataContext.RemoveItemExceptionCommand}"
+                                CommandParameter="{Binding}"
+                                Content="✕" Background="#2a1010" Foreground="#aa4444"
+                                BorderBrush="#3a2020" BorderThickness="1"
+                                Padding="6 4" Margin="8 0 0 0" FontSize="11" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Border>
+          </StackPanel>
+
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+
+  </Grid>
+</UserControl>

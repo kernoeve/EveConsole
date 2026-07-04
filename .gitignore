@@ -1,0 +1,16 @@
+# Build artifacts
+bin/
+obj/
+
+# IDE
+.idea/
+.vs/
+*.user
+
+# Claude Code local tool config (personal machine paths, not project source)
+.claude/
+CLAUDE.md
+
+# OS
+Thumbs.db
+.DS_Store

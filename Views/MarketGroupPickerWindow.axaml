@@ -1,0 +1,79 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:EveCortex.ViewModels"
+        x:Class="EveCortex.Views.MarketGroupPickerWindow"
+        x:DataType="vm:MarketGroupPickerViewModel"
+        Title="Add Items From Market Group"
+        Width="480" Height="620"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12"
+        CanResize="True">
+
+  <Grid RowDefinitions="Auto,*,Auto,Auto" Margin="12">
+
+    <!-- Status -->
+    <TextBlock Grid.Row="0"
+               Text="{Binding StatusText}"
+               FontSize="11" Foreground="#888899"
+               Margin="0 0 0 8" />
+
+    <!-- Tree -->
+    <Border Grid.Row="1"
+            Background="#0a0a10" BorderBrush="#2a2a3a" BorderThickness="1"
+            CornerRadius="3" Padding="4">
+      <TreeView ItemsSource="{Binding RootNodes}"
+                SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
+                Background="Transparent">
+        <TreeView.ItemTemplate>
+          <TreeDataTemplate ItemsSource="{Binding Children}">
+            <TextBlock Text="{Binding Name}"
+                       FontSize="12" Foreground="#c8c8d8"
+                       Padding="2 2" />
+          </TreeDataTemplate>
+        </TreeView.ItemTemplate>
+        <TreeView.Styles>
+          <Style Selector="TreeViewItem">
+            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+            <Setter Property="Padding"    Value="2 1" />
+          </Style>
+          <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
+            <Setter Property="Background" Value="#1a2030" />
+          </Style>
+          <Style Selector="TreeViewItem:pointerover /template/ Border#PART_LayoutRoot">
+            <Setter Property="Background" Value="#14141e" />
+          </Style>
+        </TreeView.Styles>
+      </TreeView>
+    </Border>
+
+    <!-- Target qty -->
+    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10"
+                Margin="0 10 0 0" VerticalAlignment="Center">
+      <TextBlock Text="TARGET QTY PER ITEM"
+                 FontSize="10" Foreground="#888899"
+                 VerticalAlignment="Center" />
+      <NumericUpDown Value="{Binding TargetQty}"
+                     Minimum="1" Maximum="999999"
+                     Increment="1"
+                     Width="120"
+                     Background="#0a0a10" Foreground="#c8c8d8"
+                     BorderBrush="#2a2a3a" />
+    </StackPanel>
+
+    <!-- OK / Cancel -->
+    <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8"
+                HorizontalAlignment="Right" Margin="0 10 0 0">
+      <Button x:Name="OkButton" Content="ADD ITEMS"
+              IsEnabled="{Binding CanConfirm}"
+              Background="#c8a84b" Foreground="#0d0d12"
+              FontWeight="SemiBold" FontSize="12"
+              Padding="14 6" Click="OnOkClick" />
+      <Button x:Name="CancelButton" Content="CANCEL"
+              Background="#1a1a26" Foreground="#888899"
+              FontSize="12" Padding="14 6"
+              Click="OnCancelClick" />
+    </StackPanel>
+
+  </Grid>
+
+</Window>

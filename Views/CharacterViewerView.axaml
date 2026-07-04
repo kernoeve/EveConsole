@@ -1,0 +1,518 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             xmlns:local="clr-namespace:EveCortex.Views"
+             x:Class="EveCortex.Views.CharacterViewerView"
+             x:DataType="vm:CharacterViewerViewModel"
+             Background="#0d0d12">
+
+  <UserControl.Styles>
+    <Style Selector="Button.skilllink">
+      <Setter Property="Background"      Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding"         Value="0" />
+      <Setter Property="Cursor"          Value="Hand" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+    </Style>
+    <Style Selector="Button.skilllink:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.skilllink:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel>
+
+    <!-- ── Top: selector bar ──────────────────────────────────────────────── -->
+    <Border DockPanel.Dock="Top" Background="#161620" Padding="14 8">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <TextBlock Grid.Column="0" Text="Character:"
+                   Foreground="#666677" FontSize="12"
+                   VerticalAlignment="Center" Margin="0 0 10 0" />
+        <ComboBox Grid.Column="1"
+                  ItemsSource="{Binding Characters}"
+                  SelectedItem="{Binding SelectedCharacter}"
+                  MinWidth="180" MaxWidth="280">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Name}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <Button Grid.Column="2" Content="Refresh"
+                Command="{Binding RefreshCommand}"
+                IsEnabled="{Binding !IsBusy}"
+                Margin="10 0 0 0" Padding="12 4" />
+      </Grid>
+    </Border>
+
+    <!-- ── Character info bar (portrait + stats) ──────────────────────────── -->
+    <Border DockPanel.Dock="Top" Background="#111117" Padding="14 12">
+      <Grid ColumnDefinitions="Auto,*">
+
+        <!-- Portrait -->
+        <Border Grid.Column="0"
+                Width="96" Height="96"
+                CornerRadius="4"
+                Background="#252530"
+                ClipToBounds="True"
+                Margin="0 0 16 0">
+          <Image Source="{Binding Portrait}"
+                 Stretch="UniformToFill" />
+        </Border>
+
+        <!-- Stats -->
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+
+          <!-- Name + corp -->
+          <TextBlock Text="{Binding SelectedCharacter.Name}"
+                     FontSize="18" FontWeight="SemiBold"
+                     Foreground="#c8a84b" />
+          <TextBlock Text="{Binding CorpName}"
+                     FontSize="11" Foreground="#777788" />
+
+          <!-- SP + sec status row -->
+          <StackPanel Orientation="Horizontal" Spacing="0" Margin="0 4 0 0">
+            <TextBlock Text="Total SP: " Foreground="#555566" FontSize="11" />
+            <TextBlock Text="{Binding SelectedCharacter.TotalSp, StringFormat=\{0:N0\}}"
+                       Foreground="#b0b0c0" FontSize="11" Margin="0 0 20 0" />
+            <TextBlock Text="Unallocated: " Foreground="#555566" FontSize="11" />
+            <TextBlock Text="{Binding SelectedCharacter.UnallocatedSp, StringFormat=\{0:N0\}}"
+                       Foreground="#b0b0c0" FontSize="11" Margin="0 0 20 0" />
+            <TextBlock Text="Sec Status: " Foreground="#555566" FontSize="11" />
+            <TextBlock Text="{Binding SelectedCharacter.SecurityStatus, StringFormat=\{0:F1\}}"
+                       Foreground="{Binding SelectedCharacter.SecurityStatus, Converter={x:Static local:SecurityStatusBrushConverter.Instance}}"
+                       FontSize="11" />
+          </StackPanel>
+
+          <!-- Last updated -->
+          <TextBlock Text="{Binding SelectedCharacter.LastUpdated, StringFormat='Updated: \{0:dd MMM yyyy HH:mm\}'}"
+                     Foreground="#444455" FontSize="10" />
+
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- ── Bottom: status bar ─────────────────────────────────────────────── -->
+    <Border DockPanel.Dock="Bottom" Background="#0d0d12" Padding="12 5">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0"
+                   Text="{Binding StatusText}"
+                   Foreground="#555566" FontSize="11"
+                   VerticalAlignment="Center" />
+        <ProgressBar Grid.Column="1"
+                     IsVisible="{Binding IsBusy}"
+                     IsIndeterminate="True"
+                     Width="100" Height="3" />
+      </Grid>
+    </Border>
+
+    <!-- ── TabControl (fills remaining space) ─────────────────────────────── -->
+    <TabControl Margin="0" Padding="0" SelectedIndex="{Binding SelectedTabIndex}">
+
+      <!-- ──── Tab 1: Skills + Queue ─────────────────────────────────────── -->
+      <TabItem Header="Skills">
+        <Grid ColumnDefinitions="190,1,*,1,500">
+
+          <!-- Skill group list (left panel) -->
+          <Grid Grid.Column="0" RowDefinitions="Auto,*" Background="#111117">
+            <Border Grid.Row="0" Background="#161620" Padding="10 7">
+              <TextBlock Text="Skill Groups"
+                         FontSize="11" FontWeight="SemiBold"
+                         Foreground="#888899" />
+            </Border>
+            <ListBox Grid.Row="1"
+                     ItemsSource="{Binding SkillGroups}"
+                     SelectedItem="{Binding SelectedSkillGroup}"
+                     Background="Transparent"
+                     Padding="0">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:SkillGroupVm">
+                  <Grid ColumnDefinitions="*,Auto" Margin="2 1">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding Name}"
+                               FontSize="11"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding SpText}"
+                               FontSize="10"
+                               Foreground="#555566"
+                               Margin="4 0 2 0" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+
+          <!-- Divider -->
+          <Border Grid.Column="1" Background="#252530" />
+
+          <!-- Skill display (center) -->
+          <ScrollViewer Grid.Column="2"
+                        VerticalScrollBarVisibility="Auto"
+                        HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding SkillDisplayItems}" Padding="10 6">
+              <ItemsControl.DataTemplates>
+
+                <DataTemplate DataType="{x:Type vm:SkillGroupHeader}">
+                  <Border Background="#161620"
+                          Padding="8 5" Margin="0 10 0 3"
+                          CornerRadius="2">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <TextBlock Grid.Column="0"
+                                 Text="{Binding Name}"
+                                 FontSize="11" FontWeight="SemiBold"
+                                 Foreground="#9090a8" />
+                      <TextBlock Grid.Column="1"
+                                 Text="{Binding SpText}"
+                                 FontSize="10"
+                                 Foreground="#444455" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+
+                <DataTemplate DataType="{x:Type vm:SkillItem}">
+                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="4 2">
+                    <Button Grid.Column="0"
+                            Classes="skilllink"
+                            Command="{Binding $parent[UserControl].DataContext.OpenInItemBrowserCommand}"
+                            CommandParameter="{Binding TypeId}"
+                            ToolTip.Tip="Open in Item Browser">
+                      <TextBlock Text="{Binding Name}"
+                                 FontSize="11" Foreground="#c8c8d8"
+                                 TextDecorations="Underline"
+                                 VerticalAlignment="Center"
+                                 TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="3"
+                                VerticalAlignment="Center"
+                                Margin="10 0 0 0">
+                      <Ellipse Width="7" Height="7" Fill="{Binding D1, Converter={x:Static local:SkillDotBrushConverter.Instance}}" />
+                      <Ellipse Width="7" Height="7" Fill="{Binding D2, Converter={x:Static local:SkillDotBrushConverter.Instance}}" />
+                      <Ellipse Width="7" Height="7" Fill="{Binding D3, Converter={x:Static local:SkillDotBrushConverter.Instance}}" />
+                      <Ellipse Width="7" Height="7" Fill="{Binding D4, Converter={x:Static local:SkillDotBrushConverter.Instance}}" />
+                      <Ellipse Width="7" Height="7" Fill="{Binding D5, Converter={x:Static local:SkillDotBrushConverter.Instance}}" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding SpText}"
+                               FontSize="10"
+                               Foreground="#555566"
+                               VerticalAlignment="Center"
+                               Width="68"
+                               TextAlignment="Right"
+                               Margin="8 0 0 0" />
+                  </Grid>
+                </DataTemplate>
+
+              </ItemsControl.DataTemplates>
+            </ItemsControl>
+          </ScrollViewer>
+
+          <!-- Divider -->
+          <Border Grid.Column="3" Background="#252530" />
+
+          <!-- Training queue (right panel) -->
+          <Grid Grid.Column="4" RowDefinitions="Auto,*,Auto" Background="#111117">
+            <Border Grid.Row="0" Background="#161620" Padding="10 7">
+              <Grid ColumnDefinitions="Auto,*">
+                <TextBlock Grid.Column="0" Text="Training Queue"
+                           FontSize="11" FontWeight="SemiBold"
+                           Foreground="#888899" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{Binding QueueEtaText}"
+                           FontSize="11" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center"
+                           HorizontalAlignment="Right" />
+              </Grid>
+            </Border>
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+              <ItemsControl ItemsSource="{Binding Queue}" Padding="8 6">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:QueueItemVm">
+                    <StackPanel Spacing="1" Margin="0 5">
+                      <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding DisplayPos, StringFormat=\{0\}.}"
+                                   Width="22" FontSize="10"
+                                   Foreground="#444455"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="1"
+                                x:CompileBindings="False"
+                                Classes="skilllink"
+                                Command="{Binding $parent[UserControl].DataContext.OpenInItemBrowserCommand}"
+                                CommandParameter="{Binding TypeId}"
+                                ToolTip.Tip="Open in Item Browser">
+                          <TextBlock Text="{Binding SkillName}"
+                                     FontSize="11" Foreground="#c8c8d8"
+                                     TextDecorations="Underline"
+                                     TextTrimming="CharacterEllipsis"
+                                     VerticalAlignment="Center" />
+                        </Button>
+                        <TextBlock Grid.Column="2"
+                                   Text="{Binding TargetLevel, StringFormat='→ L\{0\}'}"
+                                   FontSize="10"
+                                   Foreground="#c8a84b"
+                                   VerticalAlignment="Center"
+                                   Margin="4 0 0 0" />
+                        <TextBlock Grid.Column="3"
+                                   Text="{Binding DurationText}"
+                                   FontSize="10"
+                                   Foreground="#6688aa"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Right"
+                                   Width="120"
+                                   Margin="8 0 0 0" />
+                      </Grid>
+                      <ProgressBar IsVisible="{Binding IsTraining}"
+                                   Value="{Binding Progress}"
+                                   Minimum="0" Maximum="1"
+                                   Height="2"
+                                   Margin="22 2 0 0" />
+                      <TextBlock Text="{Binding EtaText}"
+                                 FontSize="10"
+                                 Foreground="#555566"
+                                 Margin="22 0 0 0" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+            <Border Grid.Row="2" Background="#0d0d12" Padding="8 6">
+              <TextBlock Text="{Binding QueueText}"
+                         FontSize="10"
+                         Foreground="#444455"
+                         TextWrapping="Wrap" />
+            </Border>
+          </Grid>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ──── Tab 2: Attributes ─────────────────────────────────────────── -->
+      <TabItem Header="Attributes">
+        <ScrollViewer Padding="20">
+          <StackPanel Spacing="20" MaxWidth="500">
+
+            <TextBlock Text="Character Attributes"
+                       FontSize="14" FontWeight="SemiBold"
+                       Foreground="#c8a84b" />
+
+            <Grid ColumnDefinitions="140,80" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                  IsVisible="{Binding Attributes, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="Intelligence" Foreground="#888899" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Attributes.Intelligence}" Foreground="#c8c8cc" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="Memory"       Foreground="#888899" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Attributes.Memory}"       Foreground="#c8c8cc" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
+              <TextBlock Grid.Row="2" Grid.Column="0" Text="Charisma"     Foreground="#888899" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Attributes.Charisma}"     Foreground="#c8c8cc" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
+              <TextBlock Grid.Row="3" Grid.Column="0" Text="Perception"   Foreground="#888899" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Attributes.Perception}"   Foreground="#c8c8cc" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
+              <TextBlock Grid.Row="4" Grid.Column="0" Text="Willpower"    Foreground="#888899" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Attributes.Willpower}"    Foreground="#c8c8cc" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
+            </Grid>
+
+            <TextBlock IsVisible="{Binding Attributes, Converter={x:Static ObjectConverters.IsNull}}"
+                       Text="No attribute data available. Character attributes are loaded during ESI polling."
+                       Foreground="#555566" FontSize="12" TextWrapping="Wrap" />
+
+            <Border IsVisible="{Binding Attributes, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    Background="#161620" CornerRadius="4" Padding="12 10">
+              <StackPanel Spacing="6">
+                <TextBlock Text="Neural Remapping" FontSize="11" FontWeight="SemiBold" Foreground="#888899" />
+                <TextBlock Text="{Binding RemapInfo}" FontSize="11" Foreground="#c8a84b" TextWrapping="Wrap" />
+                <Grid ColumnDefinitions="140,*"
+                      IsVisible="{Binding Attributes.LastRemapDate, Converter={x:Static ObjectConverters.IsNotNull}}">
+                  <TextBlock Grid.Column="0" Text="Last Remap:" Foreground="#555566" FontSize="11" />
+                  <TextBlock Grid.Column="1"
+                             Text="{Binding Attributes.LastRemapDate, StringFormat=\{0:dd MMM yyyy\}}"
+                             Foreground="#888899" FontSize="11" />
+                </Grid>
+              </StackPanel>
+            </Border>
+
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- ──── Tab 3: Clones ─────────────────────────────────────────────── -->
+      <TabItem Header="Clones">
+        <ScrollViewer Padding="20">
+          <StackPanel Spacing="20">
+
+            <!-- Active pod implants -->
+            <StackPanel Spacing="8">
+              <TextBlock Text="Active Clone Implants"
+                         FontSize="13" FontWeight="SemiBold"
+                         Foreground="#c8a84b" />
+              <TextBlock IsVisible="{Binding NoActiveImplants}"
+                         Text="No implants fitted in active clone."
+                         Foreground="#555566" FontSize="11" />
+              <ItemsControl ItemsSource="{Binding ActiveImplants}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ActiveImplantVm">
+                    <TextBlock Text="{Binding Name}" FontSize="11" Foreground="#b0b0c0" Margin="0 2" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <Border Height="1" Background="#252530" />
+
+            <!-- Jump clones -->
+            <StackPanel Spacing="8">
+              <TextBlock Text="Jump Clones"
+                         FontSize="13" FontWeight="SemiBold"
+                         Foreground="#c8a84b" />
+              <TextBlock IsVisible="{Binding NoJumpClones}"
+                         Text="No jump clones."
+                         Foreground="#555566" FontSize="11" />
+              <ItemsControl ItemsSource="{Binding JumpClones}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:JumpCloneVm">
+                    <Border Background="#161620" CornerRadius="3" Padding="10 8" Margin="0 4">
+                      <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                          <TextBlock Text="{Binding CloneName}"
+                                     FontSize="11" FontWeight="SemiBold" Foreground="#c8a84b"
+                                     IsVisible="{Binding CloneName, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                          <TextBlock Text="{Binding Location}"
+                                     FontSize="11" Foreground="#777788" />
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding ImplantNames}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                              <TextBlock Text="{Binding}" FontSize="10" Foreground="#888899" Margin="0 1" />
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- ──── Tab 4: Medals ─────────────────────────────────────────────── -->
+      <TabItem Header="Medals">
+        <Grid RowDefinitions="Auto,*">
+
+          <!-- Empty state -->
+          <Border Grid.Row="0"
+                  IsVisible="{Binding NoMedals}"
+                  Padding="20 16">
+            <TextBlock Text="{Binding MedalCountText}"
+                       Foreground="#555566" FontSize="12" />
+          </Border>
+
+          <!-- Medal list -->
+          <ScrollViewer Grid.Row="1"
+                        IsVisible="{Binding !NoMedals}"
+                        Padding="16 10">
+            <ItemsControl ItemsSource="{Binding Medals}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:MedalDisplayVm">
+                  <Border Background="#161620" CornerRadius="3"
+                          Padding="12 8" Margin="0 4">
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
+                      <TextBlock Grid.Row="0" Grid.Column="0"
+                                 Text="{Binding Title}"
+                                 FontSize="12" FontWeight="SemiBold"
+                                 Foreground="#c8a84b" />
+                      <TextBlock Grid.Row="0" Grid.Column="1"
+                                 Text="{Binding Date, StringFormat=\{0:dd MMM yyyy\}}"
+                                 FontSize="10" Foreground="#555566"
+                                 VerticalAlignment="Center" />
+                      <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                 Text="{Binding Reason}"
+                                 FontSize="11" Foreground="#888899"
+                                 TextWrapping="Wrap" Margin="0 3 0 0"
+                                 IsVisible="{Binding Reason, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                      <TextBlock Grid.Row="2" Grid.Column="0"
+                                 Text="{Binding Status}"
+                                 FontSize="10" Foreground="#555566"
+                                 Margin="0 3 0 0" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ──── Tab 5: Titles ────────────────────────────────────────────── -->
+      <TabItem Header="Titles">
+        <Grid RowDefinitions="Auto,*">
+          <Border Grid.Row="0"
+                  IsVisible="{Binding NoTitles}"
+                  Padding="20 16">
+            <TextBlock Text="No titles held by this character."
+                       Foreground="#555566" FontSize="12" />
+          </Border>
+          <ScrollViewer Grid.Row="1"
+                        IsVisible="{Binding !NoTitles}"
+                        Padding="16 10">
+            <ItemsControl ItemsSource="{Binding Titles}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:TitleVm">
+                  <Border Background="#161620" CornerRadius="3"
+                          Padding="12 8" Margin="0 4">
+                    <local:ColorTagTextBlock TaggedText="{Binding Name}"
+                                            FontSize="12" Foreground="#c8a84b" />
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Grid>
+      </TabItem>
+
+      <!-- ──── Tab 6: Standings ─────────────────────────────────────────── -->
+      <TabItem Header="Standings">
+        <Grid RowDefinitions="Auto,*">
+          <Border Grid.Row="0"
+                  IsVisible="{Binding NoStandings}"
+                  Padding="20 16">
+            <TextBlock Text="No standings data available."
+                       Foreground="#555566" FontSize="12" />
+          </Border>
+          <ScrollViewer Grid.Row="1"
+                        IsVisible="{Binding !NoStandings}"
+                        Padding="8 6">
+            <ItemsControl ItemsSource="{Binding Standings}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:StandingVm">
+                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="8 3">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding EntityName}"
+                                 FontSize="12" TextTrimming="CharacterEllipsis" />
+                      <Border Background="#1e1e2a" CornerRadius="2" Padding="5 1">
+                        <TextBlock Text="{Binding TypeLabel}"
+                                   FontSize="10" Foreground="#666677" />
+                      </Border>
+                    </StackPanel>
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding StandingText}"
+                               FontSize="13" FontWeight="SemiBold"
+                               Foreground="{Binding Standing, Converter={x:Static local:SecurityStatusBrushConverter.Instance}}"
+                               VerticalAlignment="Center"
+                               Width="44" TextAlignment="Right" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Grid>
+      </TabItem>
+
+    </TabControl>
+  </DockPanel>
+
+</UserControl>

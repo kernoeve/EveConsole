@@ -1,0 +1,453 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             xmlns:conv="clr-namespace:EveCortex.Views"
+             x:Class="EveCortex.Views.MarketLevelView"
+             x:DataType="vm:MarketLevelViewModel"
+             Background="#0d0d12">
+
+  <UserControl.Resources>
+    <conv:NullableDecimalToPositiveIntConverter x:Key="IntConv" />
+  </UserControl.Resources>
+
+  <Grid RowDefinitions="Auto,1,*">
+
+    <!-- ── Toolbar ──────────────────────────────────────────────────── -->
+    <Border Grid.Row="0" Background="#12121a" Padding="12 8"
+            BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+      <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+
+        <Button Grid.Column="0"
+                Command="{Binding AddGroupCommand}"
+                Content="+ Add Group"
+                Background="#1a1a28" Foreground="#c8a84b"
+                BorderBrush="#3a3020" BorderThickness="1"
+                Padding="12 4" FontSize="11" />
+
+        <Button Grid.Column="1"
+                Command="{Binding AddCollectionCommand}"
+                Content="+ Collection"
+                Background="#1a1a28" Foreground="#8888cc"
+                BorderBrush="#2a2a4a" BorderThickness="1"
+                Padding="12 4" FontSize="11" Margin="8 0 0 0" />
+
+        <TextBlock Grid.Column="2"
+                   Text="{Binding StatusText}"
+                   FontSize="11" Foreground="#666677"
+                   VerticalAlignment="Center" Margin="16 0 0 0" />
+
+        <TextBlock Grid.Column="3"
+                   Text="{Binding LastRefreshed}"
+                   FontSize="10" Foreground="#444455"
+                   VerticalAlignment="Center" />
+      </Grid>
+    </Border>
+
+    <Rectangle Grid.Row="1" Fill="#1e1e2a" />
+
+    <!-- ── Data grid ─────────────────────────────────────────────────── -->
+    <DataGrid Grid.Row="2"
+              x:Name="MainGrid"
+              ItemsSource="{Binding GridRows}"
+              SelectedItem="{Binding SelectedRow}"
+              AutoGenerateColumns="False"
+              CanUserReorderColumns="True"
+              CanUserResizeColumns="True"
+              CanUserSortColumns="True"
+              IsReadOnly="False"
+              Background="#0d0d12"
+              RowBackground="#0d0d12"
+              GridLinesVisibility="Horizontal"
+              HorizontalGridLinesBrush="#1a1a26"
+              HeadersVisibility="Column"
+              FontSize="11"
+              RowHeight="25"
+              BorderThickness="0"
+              KeyDown="OnGridKeyDown"
+              Sorting="OnGridSorting">
+
+      <DataGrid.ContextMenu>
+        <ContextMenu>
+          <MenuItem Header="Open in Item Browser"
+                    Command="{Binding OpenInItemBrowserCommand}"
+                    IsEnabled="{Binding IsItemRowSelected}" />
+          <Separator />
+          <MenuItem Header="Add Items From Fit"
+                    Command="{Binding AddFromFitCommand}"
+                    IsEnabled="{Binding HasAnyGroup}" />
+          <MenuItem Header="Add Items From Market Group"
+                    Command="{Binding AddFromMarketGroupCommand}" />
+          <MenuItem Header="Add Items From Blueprint"
+                    Command="{Binding AddFromBlueprintCommand}" />
+          <Separator />
+          <MenuItem Header="Delete Item"
+                    Command="{Binding DeleteSelectedItemCommand}"
+                    IsEnabled="{Binding IsItemRowSelected}" />
+        </ContextMenu>
+      </DataGrid.ContextMenu>
+
+      <DataGrid.Styles>
+        <Style Selector="DataGridColumnHeader">
+          <Setter Property="Background"                Value="#12121a" />
+          <Setter Property="Foreground"                Value="#555566" />
+          <Setter Property="FontSize"                  Value="10" />
+          <Setter Property="FontWeight"                Value="SemiBold" />
+          <Setter Property="Padding"                   Value="6 6 2 6" />
+          <Setter Property="HorizontalContentAlignment" Value="Left" />
+          <Setter Property="BorderBrush"               Value="#1e1e2a" />
+          <Setter Property="BorderThickness"           Value="0 0 1 1" />
+        </Style>
+        <Style Selector="DataGridCell">
+          <Setter Property="Padding"         Value="0" />
+          <Setter Property="BorderThickness" Value="0" />
+          <Setter Property="ClipToBounds"    Value="False" />
+          <Setter Property="FontSize"        Value="11" />
+          <Setter Property="MinHeight"       Value="0" />
+        </Style>
+        <Style Selector="DataGridRow">
+          <Setter Property="MinHeight" Value="25" />
+        </Style>
+      </DataGrid.Styles>
+
+      <DataGrid.Columns>
+
+        <!-- GROUP / ITEM -->
+        <DataGridTemplateColumn Header="GROUP / ITEM" Width="*" MinWidth="400"
+                                Tag="TypeName" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Canvas x:CompileBindings="False" ClipToBounds="False" Height="25">
+
+                <!-- Collection row -->
+                <StackPanel IsVisible="{Binding IsCollection}" Orientation="Horizontal" Spacing="6"
+                            Canvas.Left="4" Canvas.Top="2">
+                  <Button Command="{Binding ToggleCommand}"
+                          Content="{Binding ExpanderIcon}"
+                          Background="Transparent" BorderThickness="0"
+                          Foreground="#8888cc" Padding="2 0" FontSize="11"
+                          VerticalAlignment="Center" Cursor="Hand" />
+                  <TextBlock Text="{Binding CollectionName}"
+                             FontSize="12" FontWeight="SemiBold"
+                             Foreground="#8888cc" VerticalAlignment="Center" />
+                  <Button Command="{Binding ExpandAllCommand}"
+                          Content="+"
+                          ToolTip.Tip="Expand all groups"
+                          Background="#0d1020" Foreground="#8888cc"
+                          BorderBrush="#2a2a4a" BorderThickness="1"
+                          Padding="6 2" FontSize="11" VerticalAlignment="Center" Cursor="Hand" Margin="6 0 0 0" />
+                  <Button Command="{Binding CollapseAllCommand}"
+                          Content="−"
+                          ToolTip.Tip="Collapse all groups"
+                          Background="#0d1020" Foreground="#8888cc"
+                          BorderBrush="#2a2a4a" BorderThickness="1"
+                          Padding="6 2" FontSize="11" VerticalAlignment="Center" Cursor="Hand" />
+                  <Button Command="{Binding RenameCommand}"
+                          Content="Rename"
+                          IsVisible="{Binding !IsSynthetic}"
+                          Background="#1a1a28" Foreground="#888899"
+                          BorderBrush="#2a2a3a" BorderThickness="1"
+                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
+                  <Button Command="{Binding DeleteCommand}"
+                          Content="Delete"
+                          IsVisible="{Binding !IsSynthetic}"
+                          Background="#2a1010" Foreground="#aa4444"
+                          BorderBrush="#3a2020" BorderThickness="1"
+                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
+                </StackPanel>
+
+                <!-- Group row -->
+                <StackPanel IsVisible="{Binding IsGroup}" Orientation="Horizontal" Spacing="6"
+                            Canvas.Left="20" Canvas.Top="2">
+                  <Button Command="{Binding ToggleCommand}"
+                          Content="{Binding ExpanderIcon}"
+                          Background="Transparent" BorderThickness="0"
+                          Foreground="#888899" Padding="2 0" FontSize="11"
+                          VerticalAlignment="Center" Cursor="Hand" />
+                  <TextBlock Text="{Binding GroupName}"
+                             FontSize="12" FontWeight="SemiBold"
+                             Foreground="#c8a84b" VerticalAlignment="Center" />
+                  <TextBlock Text="×" FontSize="10" Foreground="#555566"
+                             VerticalAlignment="Center" Margin="6 0 0 0" />
+                  <NumericUpDown x:CompileBindings="False"
+                                 Value="{Binding Multiplier, Converter={StaticResource IntConv}}"
+                                 Minimum="1" Maximum="9999"
+                                 ShowButtonSpinner="False"
+                                 Width="52" Height="20" MinHeight="0" FontSize="11"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 VerticalAlignment="Center"
+                                 Foreground="#aaaacc" />
+                  <Button Command="{Binding AddItemCommand}"
+                          Content="+ Item"
+                          Background="#0d1a12" Foreground="#4a8a5a"
+                          BorderBrush="#1e3a28" BorderThickness="1"
+                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" Margin="4 0 0 0" />
+                  <Button Command="{Binding EditCommand}"
+                          Content="Edit"
+                          Background="#1a1a28" Foreground="#888899"
+                          BorderBrush="#2a2a3a" BorderThickness="1"
+                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
+                  <Button Command="{Binding DeleteCommand}"
+                          Content="Delete"
+                          Background="#2a1010" Foreground="#aa4444"
+                          BorderBrush="#3a2020" BorderThickness="1"
+                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
+                </StackPanel>
+
+                <!-- Item row -->
+                <TextBlock IsVisible="{Binding IsItem}"
+                           Text="{Binding TypeName}"
+                           FontSize="11" Foreground="#c8c8d8"
+                           Canvas.Left="32" Canvas.Top="5" />
+              </Canvas>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- TARGET -->
+        <DataGridTemplateColumn Header="TARGET" Width="90" MinWidth="90" Tag="TargetQty" IsReadOnly="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <NumericUpDown x:CompileBindings="False"
+                             IsVisible="{Binding IsItem}"
+                             Value="{Binding TargetQty, Converter={StaticResource IntConv}}"
+                             Minimum="1" Maximum="999999"
+                             ShowButtonSpinner="False"
+                             FontSize="11"
+                             Background="Transparent" BorderThickness="0"
+                             Foreground="#c8c8d8"
+                             HorizontalAlignment="Stretch" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- TGT TOTAL (read-only: target × multiplier) -->
+        <DataGridTemplateColumn Header="TGT TOTAL" Width="90" MinWidth="90" Tag="TargetTotal" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding TargetTotalText}"
+                         Foreground="#888899"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- AVAIL -->
+        <DataGridTemplateColumn Header="AVAIL" Width="80" MinWidth="80" Tag="Available" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding AvailableText}"
+                         Foreground="#c8c8d8"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- DIFF (vs target) -->
+        <DataGridTemplateColumn Header="DIFF" Width="75" MinWidth="75" Tag="Diff" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding DiffText}"
+                         Foreground="{Binding DiffColor}"
+                         FontWeight="SemiBold"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- % (vs target) -->
+        <DataGridTemplateColumn Header="%" Width="82" MinWidth="82" Tag="DiffPct" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding DiffPctText}"
+                         Foreground="{Binding DiffColor}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- MKT PRICE -->
+        <DataGridTemplateColumn Header="MKT PRICE" Width="90" MinWidth="90" Tag="MarketPrice" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding MktPriceText}"
+                         Foreground="#888899"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- ST MIN -->
+        <DataGridTemplateColumn Header="ST MIN" Width="85" MinWidth="85" Tag="StationMin" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding StMinText}"
+                         Foreground="#c8c8d8"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- DIFF (min vs mkt) -->
+        <DataGridTemplateColumn Header="DIFF" Width="82" MinWidth="82" Tag="MinDelta" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding MinDeltaText}"
+                         Foreground="{Binding MinDeltaColor}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- % (min vs mkt) -->
+        <DataGridTemplateColumn Header="%" Width="82" MinWidth="82" Tag="MinDeltaPct" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding MinDeltaPctText}"
+                         Foreground="{Binding MinDeltaColor}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- ST AVG -->
+        <DataGridTemplateColumn Header="ST AVG" Width="85" MinWidth="85" Tag="StationAvg" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding StAvgText}"
+                         Foreground="#c8c8d8"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- DIFF (avg vs mkt) -->
+        <DataGridTemplateColumn Header="DIFF" Width="82" MinWidth="82" Tag="AvgDelta" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding AvgDeltaText}"
+                         Foreground="{Binding AvgDeltaColor}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- % (avg vs mkt) -->
+        <DataGridTemplateColumn Header="%" Width="82" MinWidth="82" Tag="AvgDeltaPct" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding AvgDeltaPctText}"
+                         Foreground="{Binding AvgDeltaColor}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- ST MAX -->
+        <DataGridTemplateColumn Header="ST MAX" Width="85" MinWidth="85" Tag="StationMax" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding StMaxText}"
+                         Foreground="#c8c8d8"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- DIFF (max vs mkt) -->
+        <DataGridTemplateColumn Header="DIFF" Width="82" MinWidth="82" Tag="MaxDelta" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding MaxDeltaText}"
+                         Foreground="{Binding MaxDeltaColor}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- % (max vs mkt) -->
+        <DataGridTemplateColumn Header="%" Width="82" MinWidth="82" Tag="MaxDeltaPct" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding MaxDeltaPctText}"
+                         Foreground="{Binding MaxDeltaColor}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- BUILD PRICE (material cost per unit from BuildCosts cache) -->
+        <DataGridTemplateColumn Header="BUILD PRICE" Width="100" MinWidth="100" Tag="BuildPrice" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding BuildPriceText}"
+                         Foreground="#88bbaa"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- VOLUME -->
+        <DataGridTemplateColumn Header="VOLUME (m³)" Width="90" MinWidth="90" Tag="Volume" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding VolumeText}"
+                         Foreground="#888899"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+      </DataGrid.Columns>
+    </DataGrid>
+
+  </Grid>
+</UserControl>

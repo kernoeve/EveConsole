@@ -1,0 +1,87 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>EveCortex</RootNamespace>
+    <AssemblyName>EveCortex</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>$(NoWarn);AVLN3001</NoWarn>
+    <ApplicationIcon>Assets\ec.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Avalonia UI -->
+    <PackageReference Include="Avalonia" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.3" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.3" />
+    <PackageReference Include="KokoroSharp.CPU" Version="0.6.7" />
+    <PackageReference Include="PiperSharp" Version="1.0.6" />
+
+    <!-- MVVM / Reactive -->
+    <PackageReference Include="ReactiveUI" Version="20.1.1" />
+
+    <!-- HTTP / JSON -->
+    <PackageReference Include="System.Net.Http.Json" Version="9.0.0" />
+
+    <!-- SQLite / EF Core -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <!-- YAML (SDE parsing) -->
+    <PackageReference Include="YamlDotNet" Version="15.1.2" />
+
+    <!-- Dependency Injection -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
+
+    <!-- Cross-platform audio playback for TTS (add VideoLAN.LibVLC.Linux for Linux builds) -->
+    <PackageReference Include="LibVLCSharp" Version="3.9.1" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
+
+    <!-- Cross-platform microphone recording (includes win-x64, linux-x64, osx runtimes) -->
+    <PackageReference Include="PortAudioSharp2" Version="1.0.6" />
+
+    <!-- Local Whisper STT (add Whisper.net.Runtime.Linux for Linux builds) -->
+    <PackageReference Include="Whisper.net" Version="1.9.1" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
+
+    <!-- Charting -->
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <!-- ═══ Piper TTS binary — bundled at build time ══════════════════════════
+       Downloads the Piper C++ binary from GitHub at developer build time.
+       End users receive it as part of the normal application distribution
+       and never download executable code at runtime.
+       Only runs when piper.exe is not already present in the source tree.
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <ItemGroup Condition="$([MSBuild]::IsOsPlatform('Windows'))">
+    <Content Include="$(ProjectDir)Resources\piper\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>piper\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="DownloadPiperBinaryWindows" BeforeTargets="Build" Condition="$([MSBuild]::IsOsPlatform('Windows')) And !Exists('$(ProjectDir)Resources\piper\piper.exe')">
+    <Message Text="[EveCortex] Downloading Piper TTS binary for Windows x64..." Importance="high" />
+    <MakeDir Directories="$(ProjectDir)Resources\" />
+    <Exec Command="powershell -NonInteractive -Command &quot;Invoke-WebRequest -Uri 'https://github.com/rhasspy/piper/releases/latest/download/piper_windows_amd64.zip' -OutFile '$(ProjectDir)Resources\piper_win_tmp.zip'&quot;" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
+    <Exec Command="powershell -NonInteractive -Command &quot;if (Test-Path '$(ProjectDir)Resources\piper_win_tmp.zip') { Expand-Archive -Path '$(ProjectDir)Resources\piper_win_tmp.zip' -DestinationPath '$(ProjectDir)Resources\' -Force; Remove-Item '$(ProjectDir)Resources\piper_win_tmp.zip' }&quot;" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
+    <Message Text="[EveCortex] Piper binary download complete." Importance="high" />
+  </Target>
+
+</Project>

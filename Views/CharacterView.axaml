@@ -1,0 +1,366 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="EveCortex.Views.CharacterView"
+             x:DataType="vm:OverviewViewModel"
+             Background="#0d0d12">
+
+  <UserControl.Styles>
+    <Style Selector="Button.newslink">
+      <Setter Property="Background"      Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding"         Value="0" />
+      <Setter Property="Cursor"          Value="Hand" />
+    </Style>
+    <Style Selector="Button.newslink:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.newslink:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto">
+
+    <!-- ── Toolbar ──────────────────────────────────────────────────────── -->
+    <Border Grid.Row="0" Background="#12121a" Padding="14 10"
+            BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+      <Grid ColumnDefinitions="Auto,Auto,*">
+
+        <TextBlock Grid.Column="0" Text="Period:" FontSize="12"
+                   Foreground="#888899" VerticalAlignment="Center"
+                   Margin="0 0 8 0" />
+
+        <ComboBox Grid.Column="1"
+                  ItemsSource="{Binding Periods}"
+                  SelectedItem="{Binding SelectedPeriod}"
+                  MinWidth="160" FontSize="12"
+                  VerticalAlignment="Center" />
+
+        <!-- status / step feedback — shows current step during load, result or error after -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
+                    VerticalAlignment="Center" Margin="14 0 0 0">
+          <TextBlock Text="{Binding LoadStatus}"
+                     IsVisible="{Binding !HasLoadError}"
+                     FontSize="11" Foreground="#888899" />
+          <TextBlock Text="{Binding LoadStatus}"
+                     IsVisible="{Binding HasLoadError}"
+                     FontSize="11" Foreground="#e07070" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- ── Main scroll area ─────────────────────────────────────────────── -->
+    <ScrollViewer Grid.Row="1">
+      <StackPanel Spacing="12" Margin="14 12">
+
+        <!-- ════ Activity Summary ════════════════════════════════════════ -->
+        <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                CornerRadius="4" Padding="14 12">
+          <StackPanel Spacing="12">
+
+            <TextBlock Text="Activity Summary" FontSize="13" FontWeight="SemiBold"
+                       Foreground="#c8a84b" />
+
+            <!-- Two-column metric grid -->
+            <Grid ColumnDefinitions="*,24,*">
+
+              <!-- Left column: period-based metrics -->
+              <Border Grid.Column="0" Background="#0d0d12" CornerRadius="3"
+                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
+                <StackPanel Spacing="0">
+
+                  <!-- Header row -->
+                  <Grid ColumnDefinitions="*,60,80" Margin="0 0 0 6">
+                    <TextBlock Grid.Column="0" Text="In Period" FontSize="11"
+                               FontWeight="SemiBold" Foreground="#555566" />
+                    <TextBlock Grid.Column="1" Text="Count" FontSize="11"
+                               FontWeight="SemiBold" Foreground="#555566"
+                               HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="ISK" FontSize="11"
+                               FontWeight="SemiBold" Foreground="#555566"
+                               HorizontalAlignment="Right" />
+                  </Grid>
+
+                  <!-- Rows -->
+                  <Grid ColumnDefinitions="*,60,80" Margin="0 3">
+                    <TextBlock Grid.Column="0" Text="Market Sales"       FontSize="12" Foreground="#aaaacc" />
+                    <TextBlock Grid.Column="1" Text="{Binding MktSellCount}" FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="{Binding MktSellIsk}"   FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,60,80" Margin="0 3">
+                    <TextBlock Grid.Column="0" Text="Market Purchases"   FontSize="12" Foreground="#aaaacc" />
+                    <TextBlock Grid.Column="1" Text="{Binding MktBuyCount}"  FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="{Binding MktBuyIsk}"    FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,60,80" Margin="0 3">
+                    <TextBlock Grid.Column="0" Text="Completed Jobs"     FontSize="12" Foreground="#aaaacc" />
+                    <TextBlock Grid.Column="1" Text="{Binding CompletedJobCount}" FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text=""                    FontSize="12" Foreground="#aaaacc" HorizontalAlignment="Right" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,60,80" Margin="0 3">
+                    <TextBlock Grid.Column="0" Text="Player Ship Kills"  FontSize="12" Foreground="#aaaacc"
+                               ToolTip.Tip="Requires full kill mail fetch to distinguish kills from losses" />
+                    <TextBlock Grid.Column="1" Text="{Binding ShipKillCount}" FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text=""                    FontSize="12" Foreground="#aaaacc" HorizontalAlignment="Right" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,60,80" Margin="0 3">
+                    <TextBlock Grid.Column="0" Text="Ships Lost"         FontSize="12" Foreground="#aaaacc"
+                               ToolTip.Tip="Requires full kill mail fetch to distinguish kills from losses" />
+                    <TextBlock Grid.Column="1" Text="{Binding ShipLossCount}" FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text=""                    FontSize="12" Foreground="#aaaacc" HorizontalAlignment="Right" />
+                  </Grid>
+
+                </StackPanel>
+              </Border>
+
+              <!-- Right column: current-state metrics -->
+              <Border Grid.Column="2" Background="#0d0d12" CornerRadius="3"
+                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
+                <StackPanel Spacing="0">
+
+                  <Grid ColumnDefinitions="*,60,80" Margin="0 0 0 6">
+                    <TextBlock Grid.Column="0" Text="Current State" FontSize="11"
+                               FontWeight="SemiBold" Foreground="#555566" />
+                    <TextBlock Grid.Column="1" Text="Count" FontSize="11"
+                               FontWeight="SemiBold" Foreground="#555566"
+                               HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="Value" FontSize="11"
+                               FontWeight="SemiBold" Foreground="#555566"
+                               HorizontalAlignment="Right" />
+                  </Grid>
+
+                  <Grid ColumnDefinitions="*,60,80" Margin="0 3">
+                    <TextBlock Grid.Column="0" Text="Outstanding Sell Orders" FontSize="12" Foreground="#aaaacc" />
+                    <TextBlock Grid.Column="1" Text="{Binding SellOrderCount}" FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="{Binding SellOrderIsk}"   FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,60,80" Margin="0 3">
+                    <TextBlock Grid.Column="0" Text="Outstanding Buy Orders"  FontSize="12" Foreground="#aaaacc" />
+                    <TextBlock Grid.Column="1" Text="{Binding BuyOrderCount}"  FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="{Binding BuyOrderIsk}"    FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,60,80" Margin="0 3">
+                    <TextBlock Grid.Column="0" Text="Outstanding Contracts"   FontSize="12" Foreground="#aaaacc" />
+                    <TextBlock Grid.Column="1" Text="{Binding CtrActiveCount}" FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text=""                         FontSize="12" Foreground="#aaaacc" HorizontalAlignment="Right" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,60,80" Margin="0 3">
+                    <TextBlock Grid.Column="0" Text="Active Indy Jobs"        FontSize="12" Foreground="#aaaacc" />
+                    <TextBlock Grid.Column="1" Text="{Binding ActiveJobCount}" FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text=""                         FontSize="12" Foreground="#aaaacc" HorizontalAlignment="Right" />
+                  </Grid>
+
+                </StackPanel>
+              </Border>
+
+            </Grid>
+
+            <!-- Pie charts row -->
+            <Grid ColumnDefinitions="*,16,*" Margin="0 8 0 0">
+
+              <!-- Income pie -->
+              <Border Grid.Column="0" Background="#0d0d12" CornerRadius="3"
+                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
+                <StackPanel Spacing="6">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Income" FontSize="11" FontWeight="SemiBold"
+                               Foreground="#555566" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding IncomeTotalText}"
+                               FontSize="11" FontWeight="SemiBold"
+                               Foreground="#c8a84b" VerticalAlignment="Center" />
+                  </Grid>
+                  <lvc:PieChart x:Name="IncomeChart"
+                                IsVisible="{Binding HasIncomeData}"
+                                Series="{Binding IncomeSeries}"
+                                Height="200"
+                                LegendPosition="Right"
+                                LegendTextSize="10"
+                                Background="Transparent" />
+                  <TextBlock IsVisible="{Binding !HasIncomeData}"
+                             Text="No income data for this period."
+                             FontSize="11" Foreground="#444455"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             Margin="0 60" />
+                </StackPanel>
+              </Border>
+
+              <!-- Expenses pie -->
+              <Border Grid.Column="2" Background="#0d0d12" CornerRadius="3"
+                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
+                <StackPanel Spacing="6">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Expenses" FontSize="11" FontWeight="SemiBold"
+                               Foreground="#555566" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding ExpenseTotalText}"
+                               FontSize="11" FontWeight="SemiBold"
+                               Foreground="#c8a84b" VerticalAlignment="Center" />
+                  </Grid>
+                  <lvc:PieChart x:Name="ExpenseChart"
+                                IsVisible="{Binding HasExpenseData}"
+                                Series="{Binding ExpenseSeries}"
+                                Height="200"
+                                LegendPosition="Right"
+                                LegendTextSize="10"
+                                Background="Transparent" />
+                  <TextBlock IsVisible="{Binding !HasExpenseData}"
+                             Text="No expense data for this period."
+                             FontSize="11" Foreground="#444455"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             Margin="0 60" />
+                </StackPanel>
+              </Border>
+
+            </Grid>
+
+          </StackPanel>
+        </Border>
+
+        <!-- ════ Alerts + Eve News ══════════════════════════════════════ -->
+        <Grid ColumnDefinitions="*,12,*">
+
+          <!-- Alerts -->
+          <Border Grid.Column="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="14 12">
+            <StackPanel Spacing="8">
+
+              <TextBlock Text="Alerts" FontSize="13" FontWeight="SemiBold"
+                         Foreground="#c8a84b" />
+
+              <TextBlock IsVisible="{Binding NoAlerts}"
+                         Text="No active alerts."
+                         FontSize="12" Foreground="#444455"
+                         FontStyle="Italic" />
+
+              <ItemsControl IsVisible="{Binding HasAlerts}"
+                            ItemsSource="{Binding Alerts}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:AlertRowVm">
+                    <Border Background="#1a1208" BorderBrush="#3a2c10"
+                            BorderThickness="1" CornerRadius="3"
+                            Padding="10 6" Margin="0 2">
+                      <Grid ColumnDefinitions="Auto,*,Auto">
+                        <TextBlock Grid.Column="0" Text="⚠" FontSize="13" Foreground="#c8a84b"
+                                   VerticalAlignment="Center" Margin="0 0 8 0" />
+                        <TextBlock Grid.Column="1" Text="{Binding Message}"
+                                   IsVisible="{Binding !IsClickable}"
+                                   FontSize="12" Foreground="#ddccaa"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="Wrap" />
+                        <Button Grid.Column="1"
+                                IsVisible="{Binding IsClickable}"
+                                Classes="newslink"
+                                Command="{Binding NavigateCommand}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left">
+                          <TextBlock Text="{Binding Message}"
+                                     FontSize="12" Foreground="#ddccaa"
+                                     TextDecorations="Underline"
+                                     VerticalAlignment="Center"
+                                     TextWrapping="Wrap" />
+                        </Button>
+                        <Button Grid.Column="2"
+                                IsVisible="{Binding IsDismissible}"
+                                Command="{Binding DismissCommand}"
+                                Content="Dismiss"
+                                FontSize="10" Padding="8 2" Margin="8 0 0 0"
+                                Background="#2a1a10" Foreground="#c8a84b"
+                                BorderBrush="#3a2c10" BorderThickness="1" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+            </StackPanel>
+          </Border>
+
+          <!-- Eve News Feed -->
+          <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="14 12">
+            <StackPanel Spacing="8">
+
+              <TextBlock Text="Eve Online News" FontSize="13" FontWeight="SemiBold"
+                         Foreground="#c8a84b" />
+
+              <TextBlock IsVisible="{Binding NoNews}"
+                         Text="News unavailable — will retry next refresh."
+                         FontSize="12" Foreground="#444455"
+                         FontStyle="Italic" />
+
+              <ItemsControl IsVisible="{Binding HasNews}"
+                            ItemsSource="{Binding NewsItems}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:NewsItemVm">
+                    <Border BorderBrush="#1e1e2a" BorderThickness="0 0 0 1" Padding="0 8">
+                      <StackPanel Spacing="4">
+
+                        <!-- Title row: clickable link + date -->
+                        <Grid ColumnDefinitions="*,Auto">
+                          <Button Grid.Column="0"
+                                  Classes="newslink"
+                                  Command="{Binding OpenCommand}"
+                                  HorizontalAlignment="Stretch"
+                                  HorizontalContentAlignment="Left">
+                            <TextBlock Text="{Binding Title}"
+                                       FontSize="12" Foreground="#5599dd"
+                                       TextDecorations="Underline"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Grid.Column="1"
+                                     Text="{Binding PubDateText}"
+                                     FontSize="10" Foreground="#555566"
+                                     Margin="12 0 0 0"
+                                     VerticalAlignment="Center" />
+                        </Grid>
+
+                        <!-- Collapsed preview -->
+                        <TextBlock IsVisible="{Binding IsCollapsed}"
+                                   Text="{Binding PreviewText}"
+                                   FontSize="11" Foreground="#667788"
+                                   TextWrapping="Wrap" />
+
+                        <!-- Full body -->
+                        <TextBlock IsVisible="{Binding IsExpanded}"
+                                   Text="{Binding FullText}"
+                                   FontSize="11" Foreground="#8899aa"
+                                   TextWrapping="Wrap" />
+
+                        <!-- Expand/collapse toggle -->
+                        <Button IsVisible="{Binding CanExpand}"
+                                Classes="newslink"
+                                Command="{Binding ToggleCommand}"
+                                HorizontalAlignment="Left">
+                          <TextBlock Text="{Binding ExpandLabel}"
+                                     FontSize="10" Foreground="#445566" />
+                        </Button>
+
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+            </StackPanel>
+          </Border>
+
+        </Grid>
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- ── Status bar ───────────────────────────────────────────────────── -->
+    <Border Grid.Row="2" Background="#0d0d12" Padding="14 4"
+            BorderThickness="0 1 0 0" BorderBrush="#1e1e2a">
+      <TextBlock Text="Overview data reflects characters and personal corporations only."
+                 FontSize="11" Foreground="#444455" />
+    </Border>
+
+  </Grid>
+</UserControl>

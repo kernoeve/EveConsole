@@ -1,0 +1,239 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:EveCortex.ViewModels"
+        xmlns:svc="clr-namespace:EveCortex.Services"
+        x:Class="EveCortex.Views.ApiActivityWindow"
+        x:DataType="vm:ApiActivityViewModel"
+        Title="API Activity Log"
+        Width="900" Height="560"
+        MinWidth="640" MinHeight="340"
+        Background="#0d0d12">
+
+  <TabControl Margin="6">
+
+    <!-- ══ Tab 1: Activity Log ══════════════════════════════════════════════ -->
+    <TabItem Header="Activity Log">
+      <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- In-flight calls -->
+        <Border Grid.Row="0" Background="#10101a" BorderBrush="#252530"
+                BorderThickness="0 0 0 1" Padding="8 6">
+          <StackPanel>
+            <TextBlock Text="In Progress" FontSize="11" FontWeight="SemiBold"
+                       Foreground="#c8a84b" Margin="0 0 0 4" />
+            <ItemsControl ItemsSource="{Binding InFlight}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="svc:InFlightCall">
+                  <Grid ColumnDefinitions="100,130,*" Margin="0 1">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding StartedAt, StringFormat=\{0:HH:mm:ss\}}"
+                               FontSize="11" Foreground="#555"
+                               VerticalAlignment="Center" Margin="0 0 8 0" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding OwnerName}"
+                               FontSize="11" Foreground="#999"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" Margin="0 0 8 0" />
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding Endpoint}"
+                               FontSize="11" Foreground="#6688cc"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+            </ItemsControl>
+            <TextBlock Text="No calls in progress."
+                       FontSize="11" Foreground="#444" FontStyle="Italic"
+                       IsVisible="{Binding HasNoInFlight}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Historical log -->
+        <Border Grid.Row="1">
+          <Grid RowDefinitions="Auto,*">
+            <Grid Grid.Row="0" ColumnDefinitions="165,130,200,55,*"
+                  Background="#14141c" Margin="0">
+              <TextBlock Grid.Column="0" Text="Timestamp"  FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="8 4" />
+              <TextBlock Grid.Column="1" Text="Character"  FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+              <TextBlock Grid.Column="2" Text="Endpoint"   FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+              <TextBlock Grid.Column="3" Text="HTTP"       FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" HorizontalAlignment="Center" />
+              <TextBlock Grid.Column="4" Text="Result"     FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+            </Grid>
+
+            <ListBox Grid.Row="1"
+                     ItemsSource="{Binding Entries}"
+                     Background="#0d0d12"
+                     BorderThickness="0"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+
+              <ListBox.ItemContainerTheme>
+                <ControlTheme TargetType="ListBoxItem">
+                  <Setter Property="Padding"         Value="0" />
+                  <Setter Property="Background"      Value="Transparent" />
+                  <Setter Property="BorderThickness" Value="0" />
+                </ControlTheme>
+              </ListBox.ItemContainerTheme>
+
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="svc:ActivityEntry">
+                  <Grid ColumnDefinitions="165,130,200,55,*" Margin="0 1">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding Timestamp, StringFormat=\{0:yyyy-MM-dd HH:mm:ss\}}"
+                               FontSize="11" Foreground="#555"
+                               VerticalAlignment="Center" Margin="8 2" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding OwnerName}"
+                               FontSize="11" Foreground="#999"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" Margin="4 2" />
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding Endpoint}"
+                               FontSize="11" Foreground="#6688cc"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" Margin="4 2" />
+                    <TextBlock Grid.Column="3"
+                               Text="{Binding StatusCodeText}"
+                               FontSize="11" Foreground="#777"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="4"
+                               Text="{Binding StatusDisplay}"
+                               Foreground="{Binding StatusColor}"
+                               FontSize="11"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" Margin="4 2" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+
+            </ListBox>
+          </Grid>
+        </Border>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" Background="#0d0d12" Padding="12 6">
+          <TextBlock x:Name="CountLabel" FontSize="11" Foreground="#555" />
+        </Border>
+
+      </Grid>
+    </TabItem>
+
+    <!-- ══ Tab 2: Call Schedule ══════════════════════════════════════════════ -->
+    <TabItem Header="Call Schedule">
+      <TabControl x:Name="ScheduleTabControl" Margin="0 4 0 0"
+                  TabStripPlacement="Top">
+
+        <!-- ── Subtab A: Character / Corporation ─────────────────────────── -->
+        <TabItem Header="Character / Corporation">
+          <Grid RowDefinitions="Auto,Auto,*" Margin="0 8 0 0">
+
+            <!-- Token selector -->
+            <Border Grid.Row="0" Padding="0 0 0 8">
+              <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <TextBlock Text="Token:" FontSize="12" Foreground="#999" VerticalAlignment="Center" />
+                <ComboBox ItemsSource="{Binding TokenOptions}"
+                          SelectedItem="{Binding SelectedToken}"
+                          MinWidth="220">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TokenOption">
+                      <TextBlock Text="{Binding DisplayName}" FontSize="12" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock Text="Select a token to see its polling schedule."
+                           FontSize="11" Foreground="#555" VerticalAlignment="Center"
+                           IsVisible="{Binding SelectedToken,
+                                       Converter={x:Static ObjectConverters.IsNull}}" />
+              </StackPanel>
+            </Border>
+
+            <!-- Column headers -->
+            <Grid Grid.Row="1" ColumnDefinitions="220,165,165,110"
+                  Background="#14141c">
+              <TextBlock Grid.Column="0" Text="Endpoint"    FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="8 4" />
+              <TextBlock Grid.Column="1" Text="Last Called" FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+              <TextBlock Grid.Column="2" Text="Next Call"   FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+              <TextBlock Grid.Column="3" Text="Time Until"  FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+            </Grid>
+
+            <!-- Schedule rows -->
+            <ListBox Grid.Row="2"
+                     ItemsSource="{Binding Schedule}"
+                     Background="#0d0d12"
+                     BorderThickness="0"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+              <ListBox.ItemContainerTheme>
+                <ControlTheme TargetType="ListBoxItem">
+                  <Setter Property="Padding"         Value="0" />
+                  <Setter Property="Background"      Value="Transparent" />
+                  <Setter Property="BorderThickness" Value="0" />
+                </ControlTheme>
+              </ListBox.ItemContainerTheme>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ScheduleRowVm">
+                  <Grid ColumnDefinitions="220,165,165,110" Margin="0 1">
+                    <TextBlock Grid.Column="0" Text="{Binding DisplayName}"  FontSize="11" Foreground="#aab" VerticalAlignment="Center" Margin="8 2" />
+                    <TextBlock Grid.Column="1" Text="{Binding LastCalledText}" FontSize="11" Foreground="#777" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="2" Text="{Binding NextCallText}"  FontSize="11" Foreground="#999" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="3" Text="{Binding TimeUntilText}" FontSize="11" Foreground="#6688cc" VerticalAlignment="Center" Margin="4 2" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+          </Grid>
+        </TabItem>
+
+        <!-- ── Subtab B: Market Refresh ───────────────────────────────────── -->
+        <TabItem Header="Market Refresh">
+          <Grid RowDefinitions="Auto,*" Margin="0 8 0 0">
+
+            <!-- Column headers -->
+            <Grid Grid.Row="0" ColumnDefinitions="220,165,165,110"
+                  Background="#14141c">
+              <TextBlock Grid.Column="0" Text="Market Source"  FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="8 4" />
+              <TextBlock Grid.Column="1" Text="Last Refresh"   FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+              <TextBlock Grid.Column="2" Text="Next Refresh"   FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+              <TextBlock Grid.Column="3" Text="Time Until"     FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+            </Grid>
+
+            <!-- Market refresh rows -->
+            <ListBox Grid.Row="1"
+                     ItemsSource="{Binding MarketSchedule}"
+                     Background="#0d0d12"
+                     BorderThickness="0"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+              <ListBox.ItemContainerTheme>
+                <ControlTheme TargetType="ListBoxItem">
+                  <Setter Property="Padding"         Value="0" />
+                  <Setter Property="Background"      Value="Transparent" />
+                  <Setter Property="BorderThickness" Value="0" />
+                </ControlTheme>
+              </ListBox.ItemContainerTheme>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ScheduleRowVm">
+                  <Grid ColumnDefinitions="220,165,165,110" Margin="0 1">
+                    <TextBlock Grid.Column="0" Text="{Binding DisplayName}"  FontSize="11" Foreground="#aab" VerticalAlignment="Center" Margin="8 2" />
+                    <TextBlock Grid.Column="1" Text="{Binding LastCalledText}" FontSize="11" Foreground="#777" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="2" Text="{Binding NextCallText}"  FontSize="11" Foreground="#999" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="3" Text="{Binding TimeUntilText}" FontSize="11" Foreground="#6688cc" VerticalAlignment="Center" Margin="4 2" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+          </Grid>
+        </TabItem>
+
+      </TabControl>
+    </TabItem>
+
+  </TabControl>
+
+</Window>

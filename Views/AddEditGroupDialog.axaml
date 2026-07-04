@@ -1,0 +1,113 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:EveCortex.ViewModels"
+        xmlns:svc="clr-namespace:EveCortex.Services"
+        x:Class="EveCortex.Views.AddEditGroupDialog"
+        Title="Group"
+        Width="440" Height="450"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <Grid RowDefinitions="*,Auto" Margin="20">
+
+    <StackPanel Grid.Row="0" Spacing="16">
+
+      <StackPanel Spacing="5">
+        <TextBlock Text="GROUP NAME" FontSize="10" FontWeight="SemiBold"
+                   Foreground="#555566" LetterSpacing="1" />
+        <TextBox x:Name="NameBox"
+                 Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                 CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                 FontSize="13" Padding="8 5" />
+      </StackPanel>
+
+      <StackPanel Spacing="5">
+        <TextBlock Text="COLLECTION" FontSize="10" FontWeight="SemiBold"
+                   Foreground="#555566" LetterSpacing="1" />
+        <ComboBox x:Name="CollectionBox"
+                  Background="#131320" BorderBrush="#2a2a3a" Foreground="#c8c8d8"
+                  FontSize="12" HorizontalAlignment="Stretch" />
+      </StackPanel>
+
+      <StackPanel Spacing="5">
+        <TextBlock Text="STATION" FontSize="10" FontWeight="SemiBold"
+                   Foreground="#555566" LetterSpacing="1" />
+        <ComboBox x:Name="StationBox"
+                  Background="#131320" BorderBrush="#2a2a3a" Foreground="#c8c8d8"
+                  FontSize="12" HorizontalAlignment="Stretch">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="svc:MarketLevelStation">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#c8c8d8" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding Kind}" FontSize="10" Foreground="#445566" VerticalAlignment="Center" />
+              </StackPanel>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <TextBlock Text="Only stations with cached sell orders appear here."
+                   FontSize="10" Foreground="#333344" />
+      </StackPanel>
+
+      <StackPanel Spacing="5">
+        <TextBlock Text="MARKET PRICE SOURCE" FontSize="10" FontWeight="SemiBold"
+                   Foreground="#555566" LetterSpacing="1" />
+        <ComboBox x:Name="SourceBox"
+                  Background="#131320" BorderBrush="#2a2a3a" Foreground="#c8c8d8"
+                  FontSize="12" HorizontalAlignment="Stretch">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:MarketSourceOptionVm">
+              <TextBlock Text="{Binding Label}" FontSize="12" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </StackPanel>
+
+      <StackPanel Spacing="5">
+        <TextBlock Text="MAX PRICE OVER SOURCE (%)" FontSize="10" FontWeight="SemiBold"
+                   Foreground="#555566" LetterSpacing="1" />
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <TextBox x:Name="MaxPctBox"
+                   Watermark="e.g. 100 — leave blank to disable"
+                   Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                   CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                   FontSize="12" Padding="8 5" Width="200" />
+          <TextBlock Text="%" FontSize="12" Foreground="#555566" VerticalAlignment="Center" />
+        </StackPanel>
+      </StackPanel>
+
+      <StackPanel Spacing="5">
+        <TextBlock Text="MULTIPLIER" FontSize="10" FontWeight="SemiBold"
+                   Foreground="#555566" LetterSpacing="1" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <NumericUpDown x:Name="MultiplierBox"
+                         Value="1" Minimum="1" Maximum="9999"
+                         Increment="1" ShowButtonSpinner="True"
+                         Width="120" FontSize="12"
+                         Background="#131320" BorderBrush="#2a2a3a"
+                         Foreground="#c8c8d8" />
+          <TextBlock Text="× target quantities for all items in this group"
+                     FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+        </StackPanel>
+      </StackPanel>
+
+    </StackPanel>
+
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0 16 0 0">
+      <TextBlock Grid.Column="0" x:Name="ErrorText"
+                 Foreground="#aa4444" FontSize="11"
+                 VerticalAlignment="Center" />
+      <Button Grid.Column="1" Content="Cancel"
+              Background="#1a1a28" Foreground="#888899"
+              BorderBrush="#2a2a3a" BorderThickness="1"
+              Padding="14 6" Margin="0 0 8 0"
+              Click="OnCancelClick" />
+      <Button Grid.Column="2" Content="OK"
+              Background="#1a2030" Foreground="#c8a84b"
+              BorderBrush="#3a3020" BorderThickness="1"
+              Padding="14 6"
+              Click="OnOkClick" />
+    </Grid>
+
+  </Grid>
+</Window>

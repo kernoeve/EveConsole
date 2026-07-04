@@ -1,0 +1,297 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveCortex.Views.StandingProjectDialog"
+        Title="Standing Project"
+        Width="480" Height="520"
+        MinWidth="480" MinHeight="420"
+        CanResize="True"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <Grid RowDefinitions="*,Auto" Margin="20">
+
+    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="14">
+
+        <!-- Project Type -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="PROJECT TYPE" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <ComboBox x:Name="TypeCombo"
+                    Background="#1a1a28" Foreground="#c8c8d8"
+                    BorderBrush="#2a2a3a" BorderThickness="1"
+                    FontSize="12" HorizontalAlignment="Stretch"
+                    SelectionChanged="OnTypeChanged">
+            <ComboBoxItem Content="Deliver Item" Tag="deliver_item" />
+            <ComboBoxItem Content="Destroy NPC"  Tag="destroy_npc" />
+          </ComboBox>
+        </StackPanel>
+
+        <!-- ── Deliver Item panel ───────────────────────────────── -->
+        <StackPanel x:Name="DeliverPanel" Spacing="12">
+
+          <StackPanel Spacing="5">
+            <TextBlock Text="ITEM TYPE" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" />
+            <TextBox x:Name="ItemSearchBox"
+                     Watermark="Search for item type…"
+                     Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                     CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                     FontSize="12" Padding="8 5"
+                     TextChanged="OnItemSearchChanged" />
+            <Border x:Name="ItemResultsBorder"
+                    Background="#12121a" CornerRadius="3"
+                    BorderBrush="#1e1e2a" BorderThickness="1"
+                    IsVisible="False" MaxHeight="160">
+              <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ListBox x:Name="ItemResultsList"
+                         Background="Transparent" BorderThickness="0"
+                         SelectionChanged="OnItemSelected">
+                  <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                      <Setter Property="Padding" Value="10 5" />
+                    </Style>
+                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                      <Setter Property="Background" Value="#1a2030" />
+                    </Style>
+                  </ListBox.Styles>
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Name}" FontSize="11" Foreground="#c8c8d8" />
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </ScrollViewer>
+            </Border>
+            <TextBlock x:Name="ItemSelectedLabel"
+                       FontSize="11" Foreground="#6aaa88" IsVisible="False" />
+          </StackPanel>
+
+          <StackPanel Spacing="5">
+            <TextBlock Text="DESTINATION STATION / STRUCTURE" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" />
+            <TextBox x:Name="StationSearchBox"
+                     Watermark="Search for station or structure…"
+                     Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                     CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                     FontSize="12" Padding="8 5"
+                     TextChanged="OnStationSearchChanged" />
+            <Border x:Name="StationResultsBorder"
+                    Background="#12121a" CornerRadius="3"
+                    BorderBrush="#1e1e2a" BorderThickness="1"
+                    IsVisible="False" MaxHeight="160">
+              <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ListBox x:Name="StationResultsList"
+                         Background="Transparent" BorderThickness="0"
+                         SelectionChanged="OnStationSelected">
+                  <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                      <Setter Property="Padding" Value="10 5" />
+                    </Style>
+                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                      <Setter Property="Background" Value="#1a2030" />
+                    </Style>
+                  </ListBox.Styles>
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Name}" FontSize="11" Foreground="#c8c8d8" />
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </ScrollViewer>
+            </Border>
+            <TextBlock x:Name="StationSelectedLabel"
+                       FontSize="11" Foreground="#6aaa88" IsVisible="False" />
+          </StackPanel>
+
+        </StackPanel>
+
+        <!-- ── Destroy NPC panel ──────────────────────────────── -->
+        <StackPanel x:Name="DestroyPanel" Spacing="12" IsVisible="False">
+
+          <!-- Scope selector -->
+          <StackPanel Spacing="5">
+            <TextBlock Text="SCOPE" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" />
+            <StackPanel Spacing="4">
+              <RadioButton x:Name="ScopeSystem" Content="Specific System"
+                           GroupName="Scope" IsChecked="True"
+                           Foreground="#c8c8d8" FontSize="12"
+                           Checked="OnScopeChanged" />
+              <RadioButton x:Name="ScopeRegionAdm" Content="All systems in a Region below min ADM"
+                           GroupName="Scope"
+                           Foreground="#c8c8d8" FontSize="12"
+                           Checked="OnScopeChanged" />
+              <RadioButton x:Name="ScopeConstAdm" Content="All systems in a Constellation below min ADM"
+                           GroupName="Scope"
+                           Foreground="#c8c8d8" FontSize="12"
+                           Checked="OnScopeChanged" />
+            </StackPanel>
+          </StackPanel>
+
+          <!-- Specific System -->
+          <StackPanel x:Name="SystemPanel" Spacing="5">
+            <TextBlock Text="SOLAR SYSTEM" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" />
+            <TextBox x:Name="SystemSearchBox"
+                     Watermark="Search for solar system…"
+                     Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                     CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                     FontSize="12" Padding="8 5"
+                     TextChanged="OnSystemSearchChanged" />
+            <Border x:Name="SystemResultsBorder"
+                    Background="#12121a" CornerRadius="3"
+                    BorderBrush="#1e1e2a" BorderThickness="1"
+                    IsVisible="False" MaxHeight="130">
+              <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ListBox x:Name="SystemResultsList"
+                         Background="Transparent" BorderThickness="0"
+                         SelectionChanged="OnSystemSelected">
+                  <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                      <Setter Property="Padding" Value="10 5" />
+                    </Style>
+                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                      <Setter Property="Background" Value="#1a2030" />
+                    </Style>
+                  </ListBox.Styles>
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Name}" FontSize="11" Foreground="#c8c8d8" />
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </ScrollViewer>
+            </Border>
+            <TextBlock x:Name="SystemSelectedLabel"
+                       FontSize="11" Foreground="#6aaa88" IsVisible="False" />
+          </StackPanel>
+
+          <!-- Region ADM -->
+          <StackPanel x:Name="RegionPanel" Spacing="5" IsVisible="False">
+            <TextBlock Text="REGION" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" />
+            <TextBox x:Name="RegionSearchBox"
+                     Watermark="Search for region…"
+                     Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                     CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                     FontSize="12" Padding="8 5"
+                     TextChanged="OnRegionSearchChanged" />
+            <Border x:Name="RegionResultsBorder"
+                    Background="#12121a" CornerRadius="3"
+                    BorderBrush="#1e1e2a" BorderThickness="1"
+                    IsVisible="False" MaxHeight="130">
+              <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ListBox x:Name="RegionResultsList"
+                         Background="Transparent" BorderThickness="0"
+                         SelectionChanged="OnRegionSelected">
+                  <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                      <Setter Property="Padding" Value="10 5" />
+                    </Style>
+                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                      <Setter Property="Background" Value="#1a2030" />
+                    </Style>
+                  </ListBox.Styles>
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Name}" FontSize="11" Foreground="#c8c8d8" />
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </ScrollViewer>
+            </Border>
+            <TextBlock x:Name="RegionSelectedLabel"
+                       FontSize="11" Foreground="#6aaa88" IsVisible="False" />
+            <Grid ColumnDefinitions="Auto,*" Margin="0 4 0 0">
+              <TextBlock Grid.Column="0" Text="MIN ADM:" FontSize="11" Foreground="#888899"
+                         VerticalAlignment="Center" Margin="0 0 10 0" />
+              <NumericUpDown x:Name="RegionAdmBox"
+                             Grid.Column="1"
+                             Value="4.0" Minimum="0" Maximum="6" Increment="0.5"
+                             FormatString="F1"
+                             ShowButtonSpinner="True"
+                             FontSize="12"
+                             Background="#131320" BorderBrush="#2a2a3a"
+                             Foreground="#c8c8d8" />
+            </Grid>
+          </StackPanel>
+
+          <!-- Constellation ADM -->
+          <StackPanel x:Name="ConstPanel" Spacing="5" IsVisible="False">
+            <TextBlock Text="CONSTELLATION" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" />
+            <TextBox x:Name="ConstSearchBox"
+                     Watermark="Search for constellation…"
+                     Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                     CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                     FontSize="12" Padding="8 5"
+                     TextChanged="OnConstSearchChanged" />
+            <Border x:Name="ConstResultsBorder"
+                    Background="#12121a" CornerRadius="3"
+                    BorderBrush="#1e1e2a" BorderThickness="1"
+                    IsVisible="False" MaxHeight="130">
+              <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ListBox x:Name="ConstResultsList"
+                         Background="Transparent" BorderThickness="0"
+                         SelectionChanged="OnConstSelected">
+                  <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                      <Setter Property="Padding" Value="10 5" />
+                    </Style>
+                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                      <Setter Property="Background" Value="#1a2030" />
+                    </Style>
+                  </ListBox.Styles>
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Name}" FontSize="11" Foreground="#c8c8d8" />
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </ScrollViewer>
+            </Border>
+            <TextBlock x:Name="ConstSelectedLabel"
+                       FontSize="11" Foreground="#6aaa88" IsVisible="False" />
+            <Grid ColumnDefinitions="Auto,*" Margin="0 4 0 0">
+              <TextBlock Grid.Column="0" Text="MIN ADM:" FontSize="11" Foreground="#888899"
+                         VerticalAlignment="Center" Margin="0 0 10 0" />
+              <NumericUpDown x:Name="ConstAdmBox"
+                             Grid.Column="1"
+                             Value="4.0" Minimum="0" Maximum="6" Increment="0.5"
+                             FormatString="F1"
+                             ShowButtonSpinner="True"
+                             FontSize="12"
+                             Background="#131320" BorderBrush="#2a2a3a"
+                             Foreground="#c8c8d8" />
+            </Grid>
+          </StackPanel>
+
+        </StackPanel>
+
+        <!-- Validation hint -->
+        <TextBlock x:Name="ValidationHint"
+                   FontSize="11" Foreground="#aa4444"
+                   IsVisible="False" />
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Buttons -->
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,8,Auto" Margin="0 16 0 0">
+      <Button Grid.Column="1" x:Name="CancelButton"
+              Content="Cancel"
+              Background="#1a1a28" Foreground="#888899"
+              BorderBrush="#2a2a3a" BorderThickness="1"
+              Padding="18 6" FontSize="12"
+              Click="OnCancelClick" />
+      <Button Grid.Column="3" x:Name="SaveButton"
+              Content="Save"
+              Background="#1a2a1a" Foreground="#6aaa88"
+              BorderBrush="#2a3a2a" BorderThickness="1"
+              Padding="18 6" FontSize="12"
+              Click="OnSaveClick" />
+    </Grid>
+
+  </Grid>
+</Window>

@@ -1,0 +1,128 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveCortex.Views.AddEditInvGroupDialog"
+        Title="Group"
+        Width="460" Height="580"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <Grid RowDefinitions="*,Auto" Margin="20">
+
+    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="16">
+
+        <!-- Group Name -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="GROUP NAME" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <TextBox x:Name="NameBox"
+                   Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                   CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                   FontSize="13" Padding="8 5" />
+        </StackPanel>
+
+        <!-- Collection -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="COLLECTION" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <ComboBox x:Name="CollectionBox"
+                    Background="#1a1a28" BorderBrush="#2a2a3a" Foreground="#c8c8d8"
+                    FontSize="12" HorizontalAlignment="Stretch" />
+        </StackPanel>
+
+        <!-- Scope -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="SCOPE" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <WrapPanel>
+            <RadioButton x:Name="ScopeStation"    Content="Station"    GroupName="Scope"
+                         Foreground="#c8c8d8" FontSize="12" Margin="0 0 16 4" />
+            <RadioButton x:Name="ScopeSystem"     Content="System"     GroupName="Scope"
+                         Foreground="#c8c8d8" FontSize="12" Margin="0 0 16 4" />
+            <RadioButton x:Name="ScopeRegion"     Content="Region"     GroupName="Scope"
+                         Foreground="#c8c8d8" FontSize="12" Margin="0 0 16 4" />
+            <RadioButton x:Name="ScopeEverywhere" Content="Everywhere" GroupName="Scope"
+                         Foreground="#c8c8d8" FontSize="12" IsChecked="True" />
+          </WrapPanel>
+        </StackPanel>
+
+        <!-- Location picker (hidden for Everywhere) -->
+        <StackPanel x:Name="LocationPanel" Spacing="5" IsVisible="False">
+          <TextBlock x:Name="LocationLabel"
+                     Text="LOCATION" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <TextBox x:Name="LocationSearchBox"
+                   Watermark="Type to search…"
+                   Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                   CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                   FontSize="12" Padding="8 5" />
+          <Border x:Name="LocationResultsBorder"
+                  Background="#131320" BorderBrush="#2a2a3a" BorderThickness="1"
+                  CornerRadius="3" MaxHeight="120" IsVisible="False">
+            <ListBox x:Name="LocationListBox"
+                     Background="Transparent" BorderThickness="0"
+                     FontSize="12" Foreground="#c8c8d8" />
+          </Border>
+          <TextBlock x:Name="SelectedLocationText"
+                     FontSize="11" Foreground="#888899" />
+        </StackPanel>
+
+        <!-- Include -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="INCLUDE" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <CheckBox x:Name="IncludeAssetsBox"
+                    Content="Assets" IsChecked="True"
+                    Foreground="#c8c8d8" FontSize="12" />
+          <CheckBox x:Name="IncludeJobsBox"
+                    Content="Industry Jobs (products)"
+                    IsChecked="True"
+                    Foreground="#c8c8d8" FontSize="12" />
+          <CheckBox x:Name="IncludeBuyOrdersBox"
+                    Content="Market Buy Orders"
+                    IsChecked="True"
+                    Foreground="#c8c8d8" FontSize="12" />
+          <CheckBox x:Name="IncludeContractsBox"
+                    Content="Contracts Buying (coming soon)"
+                    Foreground="#666677" FontSize="12" IsEnabled="False" />
+        </StackPanel>
+
+        <!-- Multiplier -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="MULTIPLIER" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <NumericUpDown x:Name="MultiplierBox"
+                           Value="1" Minimum="1" Maximum="9999"
+                           Increment="1" ShowButtonSpinner="True"
+                           Width="120" FontSize="12"
+                           Background="#131320" BorderBrush="#2a2a3a"
+                           Foreground="#c8c8d8" />
+            <TextBlock Text="× target quantities for all items"
+                       FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+          </StackPanel>
+        </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Buttons -->
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0 16 0 0">
+      <TextBlock Grid.Column="0" x:Name="ErrorText"
+                 Foreground="#aa4444" FontSize="11"
+                 VerticalAlignment="Center" />
+      <Button Grid.Column="1" Content="Cancel"
+              Background="#1a1a28" Foreground="#888899"
+              BorderBrush="#2a2a3a" BorderThickness="1"
+              Padding="14 6" Margin="0 0 8 0"
+              Click="OnCancelClick" />
+      <Button Grid.Column="2" Content="OK"
+              Background="#1a2030" Foreground="#c8a84b"
+              BorderBrush="#3a3020" BorderThickness="1"
+              Padding="14 6"
+              Click="OnOkClick" />
+    </Grid>
+
+  </Grid>
+</Window>

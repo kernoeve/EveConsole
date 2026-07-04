@@ -1,0 +1,548 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EveCortex.ViewModels"
+             xmlns:views="using:EveCortex.Views"
+             xmlns:models="using:EveCortex.Models"
+             x:Class="EveCortex.Views.ProductionCalculatorView"
+             x:DataType="vm:ProductionCalculatorViewModel">
+
+  <UserControl.Styles>
+    <!-- DataGrid cell TextBlocks (text columns / DataGridTextColumn) use 10pt to match surrounding UI -->
+    <Style Selector="DataGridCell TextBlock">
+      <Setter Property="FontSize" Value="10"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="320,8,*" Background="#0d0d14">
+
+    <!-- ══ Left: Input Panel ══════════════════════════════════════════════ -->
+    <Border Grid.Column="0" BorderBrush="#252530" BorderThickness="0 0 1 0" Padding="12">
+      <DockPanel>
+
+        <TextBlock DockPanel.Dock="Top" Text="Production Queue"
+                   FontWeight="SemiBold" FontSize="13" Foreground="#c8a84b" Margin="0 0 0 10"/>
+
+        <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0 0 0 8">
+          <TextBlock Text="Indy Park" FontSize="11" Foreground="#666"/>
+          <ComboBox ItemsSource="{Binding Parks}" SelectedItem="{Binding SelectedPark}"
+                    HorizontalAlignment="Stretch"/>
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Top" Spacing="0" Margin="0 0 0 4">
+          <TextBlock Text="Add Item" FontSize="11" Foreground="#666" Margin="0 0 0 4"/>
+          <TextBox Text="{Binding SearchText}" Watermark="Type to search items..."
+                   HorizontalAlignment="Stretch"/>
+          <Border IsVisible="{Binding ShowResults}"
+                  Background="#1a1a28" BorderBrush="#252530" BorderThickness="1"
+                  MaxHeight="200" CornerRadius="0 0 4 4">
+            <ListBox ItemsSource="{Binding SearchResults}"
+                     SelectedItem="{Binding SelectedSearchResult}"
+                     Background="Transparent" BorderThickness="0" SelectionMode="Single">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ProdTypeSearchResult">
+                  <TextBlock Text="{Binding TypeName}" Foreground="#ccc" Padding="8 4" FontSize="12"/>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Border>
+        </StackPanel>
+
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,8,*" Margin="0 4 0 6">
+          <StackPanel Grid.Column="0" Spacing="3">
+            <TextBlock Text="Quantity" FontSize="11" Foreground="#666"/>
+            <NumericUpDown Value="{Binding NewQuantity}" Minimum="1" Maximum="9999999"
+                           FormatString="N0" HorizontalAlignment="Stretch"/>
+          </StackPanel>
+          <StackPanel Grid.Column="2" Spacing="3">
+            <TextBlock Text="ME Level" FontSize="11" Foreground="#666"/>
+            <NumericUpDown Value="{Binding NewMeLevel}" Minimum="0" Maximum="10"
+                           Increment="1" FormatString="0" HorizontalAlignment="Stretch"/>
+          </StackPanel>
+        </Grid>
+
+        <Button DockPanel.Dock="Top" Content="Add to Queue"
+                Command="{Binding AddToQueueCommand}"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                Margin="0 0 0 10" Padding="0 6"/>
+
+        <Separator DockPanel.Dock="Top" Margin="0 2 0 8" Background="#252530"/>
+
+        <StackPanel DockPanel.Dock="Bottom" Spacing="6" Margin="0 8 0 0">
+          <Separator Background="#252530"/>
+          <Button Content="Calculate" Command="{Binding CalculateCommand}"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                  Padding="0 8" FontSize="13" FontWeight="SemiBold"/>
+          <ProgressBar IsIndeterminate="True" Height="3" IsVisible="{Binding IsBusy}"/>
+          <TextBlock Text="{Binding Status}" FontSize="11" Foreground="#888" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <!-- Queue list — compiled bindings via NavigateCommand + RemoveCommand on each VM -->
+        <ScrollViewer>
+          <ItemsControl ItemsSource="{Binding Queue}" Margin="0 0 0 8">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:ProductionQueueVm">
+                <Border BorderBrush="#252530" BorderThickness="0 0 0 1" Padding="4 6">
+                  <Grid ColumnDefinitions="36,8,*,Auto,Auto">
+                    <Image Grid.Column="0" Source="{Binding Icon}" Width="32" Height="32" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
+                      <Button Content="{Binding TypeName}"
+                              Command="{Binding NavigateCommand}"
+                              CommandParameter="{Binding TypeId}"
+                              Background="Transparent" BorderThickness="0" Padding="0"
+                              FontSize="12" Foreground="#c8a84b" Cursor="Hand"
+                              HorizontalContentAlignment="Left"
+                              ToolTip.Tip="Open in Item Browser"/>
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="{Binding QtyDisplay}" FontSize="11" Foreground="#888"/>
+                        <TextBlock Text="{Binding MeBadge}"    FontSize="11" Foreground="#c8a84b"/>
+                      </StackPanel>
+                    </StackPanel>
+                    <Button Grid.Column="4" Content="x"
+                            Command="{Binding RemoveCommand}"
+                            Padding="5 2" FontSize="11" Foreground="#888"
+                            Background="Transparent" BorderThickness="0"/>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+
+      </DockPanel>
+    </Border>
+
+    <!-- ══ Right: Results ═════════════════════════════════════════════════ -->
+    <Grid Grid.Column="2">
+      <TextBlock IsVisible="{Binding !HasResults}"
+                 Text="Add items to the queue and click Calculate to see results."
+                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Foreground="#555566" FontSize="14"/>
+
+      <TabControl IsVisible="{Binding HasResults}" Padding="0">
+
+        <!-- ── Summary ────────────────────────────────────────────────────── -->
+        <TabItem Header="Summary">
+          <ScrollViewer Padding="16">
+            <StackPanel Spacing="12" Margin="0 0 0 16">
+              <TextBlock Text="Cost Summary" FontWeight="SemiBold" Foreground="#c8a84b" FontSize="13"/>
+              <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Raw Materials:"  Foreground="#888" FontSize="12"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Foreground="#ccc" FontSize="12"
+                           Text="{Binding Plan.TotalRawMaterialCost, StringFormat='{}{0:N0} ISK'}"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Job Costs:"      Foreground="#888" FontSize="12"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Foreground="#ccc" FontSize="12"
+                           Text="{Binding Plan.TotalJobCost, StringFormat='{}{0:N0} ISK'}"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Leftover Value:" Foreground="#888" FontSize="12"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" Foreground="#4caf50" FontSize="12"
+                           Text="{Binding Plan.TotalLeftoverValue, StringFormat='{}{0:N0} ISK'}"/>
+                <Separator Grid.Row="3" Grid.ColumnSpan="2" Margin="0 4" Background="#252530"/>
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Net Cost:" Foreground="#c8a84b" FontWeight="SemiBold" FontSize="13"/>
+                <TextBlock Grid.Row="4" Grid.Column="1" Foreground="#c8a84b" FontWeight="SemiBold" FontSize="13"
+                           Text="{Binding Plan.NetCost, StringFormat='{}{0:N0} ISK'}"/>
+              </Grid>
+
+              <TextBlock Text="Final Products" FontWeight="SemiBold" Foreground="#c8a84b" FontSize="13" Margin="0 8 0 0"/>
+              <!-- No x:DataType — reflection binding needed for parent navigate command -->
+              <ItemsControl ItemsSource="{Binding Plan.FinalProducts}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Background="#161620" BorderBrush="#252530" BorderThickness="1"
+                            CornerRadius="4" Padding="10 8" Margin="0 3">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                          <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Content="{Binding TypeName}"
+                                    Command="{Binding $parent[UserControl].DataContext.OpenInItemBrowserCommand}"
+                                    CommandParameter="{Binding TypeId}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="0" FontSize="13" FontWeight="SemiBold"
+                                    Foreground="#c8a84b" Cursor="Hand"
+                                    ToolTip.Tip="Open in Item Browser"/>
+                            <TextBlock Text="{Binding MeLevel, StringFormat='ME{0}'}" FontSize="11" Foreground="#888" VerticalAlignment="Center"/>
+                          </StackPanel>
+                          <StackPanel Orientation="Horizontal" Spacing="12">
+                            <TextBlock Text="{Binding QuantityRequested, StringFormat='Requested: {0:N0}'}" FontSize="11" Foreground="#888"/>
+                            <TextBlock Text="{Binding QuantityProduced,  StringFormat='Produced: {0:N0}'}"  FontSize="11" Foreground="#888"/>
+                          </StackPanel>
+                          <StackPanel Orientation="Horizontal" Spacing="12">
+                            <TextBlock Text="{Binding TotalMaterialCost, StringFormat='Mat: {0:N0} ISK'}"   FontSize="11" Foreground="#aaa"/>
+                            <TextBlock Text="{Binding TotalJobCost,      StringFormat='Jobs: {0:N0} ISK'}"  FontSize="11" Foreground="#aaa"/>
+                            <TextBlock Text="{Binding UnitCost,          StringFormat='Unit cost: {0:N2} ISK'}" FontSize="11" Foreground="#ccc"/>
+                          </StackPanel>
+                          <StackPanel Orientation="Horizontal" Spacing="12">
+                            <TextBlock Text="{Binding MarketUnitPrice,  StringFormat='Market: {0:N2}/unit'}" FontSize="11" Foreground="#888"/>
+                            <TextBlock Text="{Binding Profit,           StringFormat='Profit: {0:N0} ISK'}"  FontSize="11"
+                                       Foreground="{Binding Profit, Converter={x:Static views:ProfitColorConverter.Instance}}"/>
+                            <TextBlock Text="{Binding ProfitMargin,     StringFormat='Margin: {0:F1}%'}"     FontSize="11"
+                                       Foreground="{Binding Profit, Converter={x:Static views:ProfitColorConverter.Instance}}"/>
+                          </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12 0 0 0" Spacing="2">
+                          <TextBlock Text="{Binding TotalCost,        StringFormat='{}{0:N0} ISK'}"
+                                     FontSize="13" FontWeight="SemiBold" Foreground="#ccc" HorizontalAlignment="Right"/>
+                          <TextBlock Text="{Binding MarketTotalValue, StringFormat='{}{0:N0} ISK'}"
+                                     FontSize="12" Foreground="#4caf50" HorizontalAlignment="Right"/>
+                          <TextBlock Text="build / market" FontSize="10" Foreground="#444" HorizontalAlignment="Right"/>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+        <!-- ── Raw Materials ──────────────────────────────────────────────── -->
+        <TabItem Header="Raw Materials">
+          <Grid RowDefinitions="Auto,*" Margin="8">
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 4">
+              <TextBlock Grid.Column="0" FontSize="11" Foreground="#555566" VerticalAlignment="Center"
+                         Text="{Binding Plan.RawMaterials.Count, StringFormat='{}{0} items to purchase — double-click row to open in Item Browser'}"/>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                <Button Content="Shopping List" Click="OnShoppingListClick"
+                        Padding="8 3" FontSize="11"
+                        ToolTip.Tip="Copy item name and quantity (tab-separated) to clipboard"/>
+                <DropDownButton Content="Export" Padding="8 3" FontSize="11"
+                                ToolTip.Tip="Export all columns to clipboard or file">
+                  <DropDownButton.Flyout>
+                    <MenuFlyout>
+                      <MenuItem Header="Copy to Clipboard" Click="OnExportClipboardClick"/>
+                      <MenuItem Header="Export as CSV"     Click="OnExportCsvClick"/>
+                      <MenuItem Header="Tab-delimited"     Click="OnExportTabClick"/>
+                    </MenuFlyout>
+                  </DropDownButton.Flyout>
+                </DropDownButton>
+              </StackPanel>
+            </Grid>
+            <DataGrid Grid.Row="1" x:Name="RawMaterialsGrid"
+                      ItemsSource="{Binding Plan.RawMaterials}"
+                      IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                      Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                      DoubleTapped="OnDataGridDoubleTapped">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Material" Binding="{Binding TypeName}" Width="*"/>
+                <DataGridTemplateColumn Header="Quantity" Width="90" SortMemberPath="Quantity">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanRawMaterial">
+                      <TextBlock Text="{Binding Quantity, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Unit Price" Width="100" SortMemberPath="UnitPrice">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanRawMaterial">
+                      <TextBlock Text="{Binding UnitPrice, StringFormat=N2}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Total Cost" Width="110" SortMemberPath="TotalCost">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanRawMaterial">
+                      <TextBlock Text="{Binding TotalCost, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+          </Grid>
+        </TabItem>
+
+        <!-- ── Final Products ─────────────────────────────────────────────── -->
+        <TabItem Header="Final Products">
+          <Grid RowDefinitions="Auto,*" Margin="8">
+            <TextBlock Grid.Row="0" FontSize="11" Foreground="#555566" Margin="0 0 0 4"
+                       Text="Double-click row to open in Item Browser"/>
+            <DataGrid Grid.Row="1" x:Name="FinalProductsGrid"
+                      ItemsSource="{Binding Plan.FinalProducts}"
+                      IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                      Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                      DoubleTapped="OnDataGridDoubleTapped">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Item" Binding="{Binding TypeName}" Width="*"/>
+                <DataGridTemplateColumn Header="Req" Width="70" SortMemberPath="QuantityRequested">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanFinalProduct">
+                      <TextBlock Text="{Binding QuantityRequested, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Produced" Width="70" SortMemberPath="QuantityProduced">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanFinalProduct">
+                      <TextBlock Text="{Binding QuantityProduced, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="ME" Width="36" SortMemberPath="MeLevel">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanFinalProduct">
+                      <TextBlock Text="{Binding MeLevel}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Mat Cost" Width="100" SortMemberPath="TotalMaterialCost">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanFinalProduct">
+                      <TextBlock Text="{Binding TotalMaterialCost, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Job Cost" Width="90" SortMemberPath="TotalJobCost">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanFinalProduct">
+                      <TextBlock Text="{Binding TotalJobCost, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Unit Cost" Width="100" SortMemberPath="UnitCost">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanFinalProduct">
+                      <TextBlock Text="{Binding UnitCost, StringFormat=N2}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Total Cost" Width="100" SortMemberPath="TotalCost">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanFinalProduct">
+                      <TextBlock Text="{Binding TotalCost, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Market/Unit" Width="100" SortMemberPath="MarketUnitPrice">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanFinalProduct">
+                      <TextBlock Text="{Binding MarketUnitPrice, StringFormat=N2}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Profit" Width="90" SortMemberPath="Profit">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanFinalProduct">
+                      <TextBlock Text="{Binding Profit, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Margin" Width="70" SortMemberPath="ProfitMargin">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanFinalProduct">
+                      <TextBlock Text="{Binding ProfitMargin, StringFormat='{}{0:F1}%'}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+          </Grid>
+        </TabItem>
+
+        <!-- ── Intermediates ──────────────────────────────────────────────── -->
+        <TabItem Header="Intermediates">
+          <Grid RowDefinitions="Auto,*" Margin="8">
+            <TextBlock Grid.Row="0" FontSize="11" Foreground="#555566" Margin="0 0 0 4"
+                       Text="Double-click row to open in Item Browser"/>
+            <DataGrid Grid.Row="1" x:Name="IntermediatesGrid"
+                      ItemsSource="{Binding Plan.Intermediates}"
+                      IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                      Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                      DoubleTapped="OnDataGridDoubleTapped">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Item" Binding="{Binding TypeName}" Width="*"/>
+                <DataGridTemplateColumn Header="Needed" Width="80" SortMemberPath="QuantityNeeded">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanIntermediate">
+                      <TextBlock Text="{Binding QuantityNeeded, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Produced" Width="80" SortMemberPath="QuantityProduced">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanIntermediate">
+                      <TextBlock Text="{Binding QuantityProduced, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Leftover" Width="80" SortMemberPath="Leftover">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanIntermediate">
+                      <TextBlock Text="{Binding Leftover, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Build Value" Width="90" SortMemberPath="MarketUnitPrice">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanIntermediate">
+                      <TextBlock Text="{Binding MarketUnitPrice, StringFormat=N2}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Leftover Value" Width="110" SortMemberPath="LeftoverValue">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanIntermediate">
+                      <TextBlock Text="{Binding LeftoverValue, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+          </Grid>
+        </TabItem>
+
+        <!-- ── Leftovers ──────────────────────────────────────────────────── -->
+        <TabItem Header="Leftovers">
+          <Grid RowDefinitions="Auto,*" Margin="8">
+            <TextBlock Grid.Row="0" FontSize="11" Foreground="#555566" Margin="0 0 0 4"
+                       Text="{Binding Plan.Leftovers.Count, StringFormat='{}{0} leftover items valued at build cost — double-click to open in Item Browser'}"/>
+            <DataGrid Grid.Row="1" x:Name="LeftoversGrid"
+                      ItemsSource="{Binding Plan.Leftovers}"
+                      IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                      Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                      DoubleTapped="OnDataGridDoubleTapped">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Item"   Binding="{Binding TypeName}" Width="*"/>
+                <DataGridTextColumn Header="Source" Binding="{Binding Source}"   Width="110"/>
+                <DataGridTemplateColumn Header="Quantity" Width="80" SortMemberPath="Quantity">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanLeftoverItem">
+                      <TextBlock Text="{Binding Quantity, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Build Value" Width="100" SortMemberPath="UnitPrice">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanLeftoverItem">
+                      <TextBlock Text="{Binding UnitPrice, StringFormat=N2}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Total Value" Width="100" SortMemberPath="TotalValue">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanLeftoverItem">
+                      <TextBlock Text="{Binding TotalValue, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+          </Grid>
+        </TabItem>
+
+        <!-- ── Jobs (Tree) ────────────────────────────────────────────────── -->
+        <TabItem Header="Jobs">
+          <ScrollViewer Padding="8 8 8 8">
+            <TreeView ItemsSource="{Binding JobTreeRoots}" Margin="0 0 0 16">
+              <TreeView.ItemTemplate>
+                <TreeDataTemplate x:DataType="vm:JobTreeNode" ItemsSource="{Binding Children}">
+                  <Border Background="#161620" BorderBrush="#252530" BorderThickness="1"
+                          CornerRadius="3" Margin="2 2 2 0">
+                    <StackPanel>
+                      <Grid ColumnDefinitions="*,Auto" Margin="8 6 8 4">
+                        <StackPanel Grid.Column="0" Spacing="3">
+                          <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Content="{Binding Job.OutputTypeName}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="{Binding Job.OutputTypeId}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="0" FontSize="12" FontWeight="SemiBold"
+                                    Foreground="#c8a84b" Cursor="Hand"
+                                    HorizontalContentAlignment="Left"
+                                    ToolTip.Tip="Open in Item Browser"/>
+                            <TextBlock Text="{Binding Job.MeLevel, StringFormat='ME{0}'}" FontSize="11" Foreground="#c8a84b" VerticalAlignment="Center"/>
+                          </StackPanel>
+                          <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="{Binding Job.Runs,            StringFormat='Runs: {0}'}"         FontSize="11" Foreground="#888"/>
+                            <TextBlock Text="{Binding Job.QuantityProduced, StringFormat='Out: {0:N0}'}"      FontSize="11" Foreground="#888"/>
+                            <TextBlock Text="{Binding Job.Leftover,         StringFormat='Leftover: {0:N0}'}" FontSize="11" Foreground="#4caf50"/>
+                          </StackPanel>
+                          <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="{Binding Job.MaterialCost, StringFormat='Mat: {0:N0} ISK'}" FontSize="11" Foreground="#aaa"/>
+                            <TextBlock Text="{Binding Job.JobCost,      StringFormat='Job: {0:N0} ISK'}" FontSize="11" Foreground="#c8a84b"/>
+                            <TextBlock Text="{Binding Job.StructureDisplay}" FontSize="11" Foreground="#555566"/>
+                          </StackPanel>
+                        </StackPanel>
+                        <ToggleButton Grid.Column="1"
+                                      IsChecked="{Binding ShowMaterials}"
+                                      Content="Materials"
+                                      VerticalAlignment="Top"
+                                      Padding="6 3" FontSize="11" Margin="8 0 0 0"/>
+                      </Grid>
+
+                      <!-- Expandable materials section -->
+                      <Border IsVisible="{Binding ShowMaterials}"
+                              Background="#0d0d14" BorderBrush="#252530"
+                              BorderThickness="0 1 0 0" Padding="8 6">
+                        <StackPanel Spacing="3">
+                          <TextBlock Text="{Binding Job.ModifierDisplay}"
+                                     FontSize="10" Foreground="#888" Margin="0 0 0 4"
+                                     FontStyle="Italic"/>
+                          <Grid ColumnDefinitions="*,70,60,70,90,60,*">
+                            <TextBlock Grid.Column="0" Text="Material"   FontSize="10" Foreground="#555566"/>
+                            <TextBlock Grid.Column="1" Text="Base/Run"   FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="2" Text="Eff/Run"    FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="3" Text="Total"      FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="4" Text="Cost"       FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="5" Text="Source"     FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="6" Text="Formula (SDE base → result)" FontSize="10" Foreground="#555566" Margin="8 0 0 0"/>
+                          </Grid>
+                          <ItemsControl ItemsSource="{Binding Job.Materials}">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                <Grid ColumnDefinitions="*,70,60,70,90,60,*" Margin="0 1">
+                                  <Button Grid.Column="0" Content="{Binding TypeName}"
+                                          Command="{Binding $parent[UserControl].DataContext.OpenInItemBrowserCommand}"
+                                          CommandParameter="{Binding MaterialTypeId}"
+                                          Background="Transparent" BorderThickness="0" Padding="0"
+                                          FontSize="11" Foreground="#c8a84b" Cursor="Hand"
+                                          HorizontalContentAlignment="Left"
+                                          ToolTip.Tip="Open in Item Browser"/>
+                                  <TextBlock Grid.Column="1" Text="{Binding BaseQtyPerRun, StringFormat=N0}" FontSize="11" Foreground="#888" HorizontalAlignment="Right"/>
+                                  <TextBlock Grid.Column="2" Text="{Binding EffQtyPerRun,  StringFormat=N0}" FontSize="11" Foreground="#ccc"  HorizontalAlignment="Right"/>
+                                  <TextBlock Grid.Column="3" Text="{Binding TotalQty,      StringFormat=N0}" FontSize="11" Foreground="#ccc"  HorizontalAlignment="Right"/>
+                                  <TextBlock Grid.Column="4" Text="{Binding TotalCost,     StringFormat=N0}" FontSize="11" Foreground="#c8a84b" HorizontalAlignment="Right"/>
+                                  <TextBlock Grid.Column="5" Text="{Binding Source}"       FontSize="11" Foreground="#555566" HorizontalAlignment="Right"/>
+                                  <TextBlock Grid.Column="6" Text="{Binding FormulaDisplay}" FontSize="10" Foreground="#444" Margin="8 0 0 0" VerticalAlignment="Center"/>
+                                </Grid>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                        </StackPanel>
+                      </Border>
+                    </StackPanel>
+                  </Border>
+                </TreeDataTemplate>
+              </TreeView.ItemTemplate>
+            </TreeView>
+          </ScrollViewer>
+        </TabItem>
+
+        <!-- ── Flow ───────────────────────────────────────────────────────── -->
+        <TabItem Header="Flow">
+          <TextBlock Text="Flow visualization coming soon."
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     Foreground="#555566" FontSize="14"/>
+        </TabItem>
+
+      </TabControl>
+    </Grid>
+  </Grid>
+</UserControl>

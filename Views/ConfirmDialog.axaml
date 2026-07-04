@@ -1,0 +1,30 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveCortex.Views.ConfirmDialog"
+        Width="420"
+        MinWidth="340"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12"
+        CanResize="False"
+        SizeToContent="Height">
+
+  <Grid RowDefinitions="*,Auto">
+
+    <TextBlock Grid.Row="0"
+               x:Name="MessageText"
+               TextWrapping="Wrap"
+               Foreground="#ccc"
+               FontSize="13"
+               Margin="20 20 20 16" />
+
+    <Border Grid.Row="1" Background="#0d0d12" Padding="16 12">
+      <StackPanel Orientation="Horizontal"
+                  HorizontalAlignment="Right"
+                  Spacing="10">
+        <Button Content="No"  Click="OnNo"  Padding="20 5" />
+        <Button Content="Yes" Click="OnYes" Padding="20 5" />
+      </StackPanel>
+    </Border>
+
+  </Grid>
+</Window>

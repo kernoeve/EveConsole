@@ -1,0 +1,231 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             xmlns:agent="clr-namespace:EveCortex.Agent"
+             xmlns:views="clr-namespace:EveCortex.Views"
+             x:Class="EveCortex.Views.AgentPanel"
+             x:DataType="vm:AgentPanelViewModel"
+             Width="360"
+             Background="#08080f">
+
+  <UserControl.Resources>
+    <views:MessageRoleAlignmentConverter  x:Key="RoleAlignment"/>
+    <views:MessageRoleBackgroundConverter x:Key="RoleBg"/>
+    <views:IsSummaryBorderConverter       x:Key="SummaryBorder"/>
+    <views:IsSummaryForegroundConverter   x:Key="SummaryFg"/>
+  </UserControl.Resources>
+
+  <Grid RowDefinitions="Auto,*,Auto,Auto">
+
+    <!-- ── Header ──────────────────────────────────────────────────────────── -->
+    <Border Grid.Row="0"
+            Background="#0d0d18"
+            BorderBrush="#1c1c2e"
+            BorderThickness="0 0 0 1"
+            Padding="14 9">
+      <Grid ColumnDefinitions="*,Auto">
+
+        <StackPanel Orientation="Vertical" Spacing="2" VerticalAlignment="Center">
+          <TextBlock Text="{Binding AgentNameUpper}"
+                     Foreground="#c8a84b"
+                     FontSize="14"
+                     FontWeight="Bold"
+                     LetterSpacing="4"/>
+          <TextBlock Text="AI Companion"
+                     Foreground="#3a4a5a"
+                     FontSize="9"/>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+
+          <!-- TTS mute + volume — visible only when a TTS provider is configured -->
+          <StackPanel Orientation="Horizontal" Spacing="4"
+                      IsVisible="{Binding HasTts}"
+                      VerticalAlignment="Center">
+            <!-- Mute toggle: filled gold diamond = active, hollow gray = muted -->
+            <Button Background="Transparent"
+                    BorderThickness="0"
+                    FontSize="11"
+                    Padding="5 2"
+                    ToolTip.Tip="Mute / unmute Aura voice"
+                    Click="OnMuteClick">
+              <Panel>
+                <TextBlock Text="♦" Foreground="#c8a84b" IsVisible="{Binding !IsMuted}" />
+                <TextBlock Text="◇" Foreground="#334455" IsVisible="{Binding IsMuted}"  />
+              </Panel>
+            </Button>
+            <Slider Value="{Binding Volume}"
+                    Minimum="0" Maximum="1"
+                    Width="64"
+                    VerticalAlignment="Center"
+                    ToolTip.Tip="Voice volume (independent of system volume)" />
+          </StackPanel>
+
+          <Button Content="⌫"
+                  ToolTip.Tip="Clear conversation"
+                  Background="Transparent"
+                  Foreground="#334455"
+                  BorderThickness="0"
+                  FontSize="13"
+                  Padding="6 2"
+                  Click="OnClearClick"/>
+          <Button Content="✕"
+                  ToolTip.Tip="Close panel"
+                  Background="Transparent"
+                  Foreground="#334455"
+                  BorderThickness="0"
+                  FontSize="13"
+                  Padding="6 2"
+                  Click="OnCloseClick"/>
+        </StackPanel>
+
+      </Grid>
+    </Border>
+
+    <!-- ── Message list ─────────────────────────────────────────────────────── -->
+    <ScrollViewer Grid.Row="1"
+                  x:Name="MessageScroller"
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+      <StackPanel x:Name="MessageStack" Margin="0 6 0 6">
+
+        <ItemsControl ItemsSource="{Binding Messages}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="agent:AgentMessage">
+              <StackPanel>
+
+                <!-- Summary separator label -->
+                <TextBlock IsVisible="{Binding IsSummary}"
+                           Text="— earlier context summarized —"
+                           Foreground="#2a3a2a"
+                           FontSize="9"
+                           FontStyle="Italic"
+                           HorizontalAlignment="Center"
+                           Margin="0 6 0 2"/>
+
+                <Border Margin="10 3"
+                        Padding="10 7"
+                        CornerRadius="8"
+                        MaxWidth="290"
+                        HorizontalAlignment="{Binding Role, Converter={StaticResource RoleAlignment}}"
+                        Background="{Binding Role, Converter={StaticResource RoleBg}}"
+                        BorderBrush="{Binding IsSummary, Converter={StaticResource SummaryBorder}}"
+                        BorderThickness="1">
+                  <TextBlock Text="{Binding Content}"
+                             TextWrapping="Wrap"
+                             Foreground="{Binding IsSummary, Converter={StaticResource SummaryFg}}"
+                             FontSize="11"
+                             LineHeight="17"/>
+                </Border>
+
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- In-progress streaming bubble -->
+        <Border IsVisible="{Binding StreamingText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                Margin="10 3"
+                Padding="10 7"
+                CornerRadius="8"
+                MaxWidth="290"
+                HorizontalAlignment="Left"
+                Background="#111117">
+          <TextBlock Text="{Binding StreamingText}"
+                     TextWrapping="Wrap"
+                     Foreground="#c0c0cc"
+                     FontSize="11"
+                     LineHeight="17"/>
+        </Border>
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- ── Status / error banners ──────────────────────────────────────────── -->
+    <StackPanel Grid.Row="2">
+
+      <Border IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+              Background="#0d1a0d"
+              BorderBrush="#1a3a1a"
+              BorderThickness="0 1 0 0"
+              Padding="10 5">
+        <TextBlock Text="{Binding StatusText}"
+                   Foreground="#4caf81"
+                   FontSize="10"
+                   FontStyle="Italic"/>
+      </Border>
+
+      <Border IsVisible="{Binding ErrorText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+              Background="#2a0a0a"
+              BorderBrush="#552222"
+              BorderThickness="0 1 0 0"
+              Padding="10 6">
+        <TextBlock Text="{Binding ErrorText}"
+                   Foreground="#cc6666"
+                   FontSize="10"
+                   TextWrapping="Wrap"/>
+      </Border>
+
+    </StackPanel>
+
+    <!-- ── Input area ───────────────────────────────────────────────────────── -->
+    <Border Grid.Row="3"
+            Background="#0d0d18"
+            BorderBrush="#1c1c2e"
+            BorderThickness="0 1 0 0"
+            Padding="8">
+      <Grid ColumnDefinitions="*,Auto,Auto">
+
+        <TextBox x:Name="InputBox"
+                 Grid.Column="0"
+                 Text="{Binding Input}"
+                 Watermark="{Binding AskWatermark}"
+                 AcceptsReturn="False"
+                 Background="#111117"
+                 Foreground="#c0c0cc"
+                 BorderBrush="#252535"
+                 BorderThickness="1"
+                 CornerRadius="6"
+                 FontSize="11"
+                 Padding="8 6"
+                 IsEnabled="{Binding !IsBusy}"
+                 KeyDown="OnInputKeyDown"/>
+
+        <!-- Mic button — click to start recording, click again to stop + transcribe -->
+        <Button x:Name="MicButton"
+                Grid.Column="1"
+                Margin="6 0 0 0"
+                Background="#1a1a2e"
+                BorderBrush="#2e2e1a"
+                BorderThickness="1"
+                CornerRadius="6"
+                FontSize="13"
+                Padding="8 5"
+                IsEnabled="{Binding !IsBusy}"
+                IsVisible="{Binding HasSpeechInput}"
+                Click="OnMicClick"
+                ToolTip.Tip="Click to start recording; click again to transcribe. Or hold the global hotkey.">
+          <Panel>
+            <TextBlock Text="🎙" IsVisible="{Binding !IsRecording}" />
+            <TextBlock Text="⏹" Foreground="#cc4444" IsVisible="{Binding IsRecording}" />
+          </Panel>
+        </Button>
+
+        <Button Grid.Column="2"
+                Content="▶"
+                Margin="6 0 0 0"
+                Background="#1a1a2e"
+                Foreground="#c8a84b"
+                BorderBrush="#2e2e1a"
+                BorderThickness="1"
+                CornerRadius="6"
+                FontSize="14"
+                Padding="10 5"
+                IsEnabled="{Binding !IsBusy}"
+                Click="OnSendClick"/>
+
+      </Grid>
+    </Border>
+
+  </Grid>
+</UserControl>

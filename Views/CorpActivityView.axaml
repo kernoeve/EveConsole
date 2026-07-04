@@ -1,0 +1,1608 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             xmlns:m="clr-namespace:EveCortex.Models"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="EveCortex.Views.CorpActivityView"
+             x:DataType="vm:CorpActivityViewModel"
+             Background="#0d0d12">
+
+  <UserControl.Styles>
+    <Style Selector="DataGridCell TextBlock">
+      <Setter Property="FontSize" Value="10" />
+    </Style>
+    <Style Selector="DataGrid">
+      <Setter Property="RowHeight" Value="22" />
+    </Style>
+    <Style Selector="DataGridCell">
+      <Setter Property="Padding" Value="4 0 4 0" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,1,*">
+
+    <!-- ── Toolbar ──────────────────────────────────────────────────── -->
+    <Border Grid.Row="0" Background="#12121a" Padding="12 8"
+            BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+      <Grid ColumnDefinitions="Auto,12,Auto,*,Auto">
+
+        <TextBlock Grid.Column="0" Text="Corporation:" FontSize="11"
+                   Foreground="#888899" VerticalAlignment="Center" />
+
+        <ComboBox Grid.Column="2"
+                  ItemsSource="{Binding Corps}"
+                  SelectedItem="{Binding SelectedCorp}"
+                  Width="220" FontSize="11"
+                  Background="#1a1a28" Foreground="#c8c8d8"
+                  BorderBrush="#2a2a3a" BorderThickness="1">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="m:Corporation">
+              <TextBlock Text="{Binding Name}" FontSize="11" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <TextBlock Grid.Column="3"
+                   Text="{Binding Status}"
+                   FontSize="11" Foreground="#666677"
+                   VerticalAlignment="Center" Margin="16 0 0 0" />
+
+        <Button Grid.Column="4"
+                Command="{Binding RefreshCommand}"
+                Content="Refresh"
+                Background="#1a1a28" Foreground="#5599aa"
+                BorderBrush="#2a3a44" BorderThickness="1"
+                Padding="12 4" FontSize="11" />
+
+      </Grid>
+    </Border>
+
+    <Rectangle Grid.Row="1" Fill="#1e1e2a" />
+
+    <!-- ── Content ──────────────────────────────────────────────────── -->
+    <TabControl Grid.Row="2"
+                SelectedIndex="{Binding SelectedOuterTabIndex}"
+                Background="#0d0d12"
+                BorderThickness="0">
+
+      <TabControl.Styles>
+        <Style Selector="TabItem">
+          <Setter Property="FontSize"    Value="11" />
+          <Setter Property="Foreground"  Value="#888899" />
+          <Setter Property="Background"  Value="Transparent" />
+          <Setter Property="Padding"     Value="14 6" />
+        </Style>
+        <Style Selector="TabItem:selected">
+          <Setter Property="Foreground" Value="#c8a84b" />
+        </Style>
+      </TabControl.Styles>
+
+      <!-- ══ Activity 24h ═══════════════════════════════════════════ -->
+      <TabItem Header="ACTIVITY (24H)">
+        <Grid RowDefinitions="Auto,Auto,Auto,*">
+
+          <!-- Summary bar -->
+          <Border Grid.Row="0" Background="#12121a" Padding="10 8 10 6"
+                  BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+            <StackPanel Orientation="Horizontal" Spacing="24">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="PLAYERS ACTIVE:" FontSize="10" FontWeight="SemiBold" Foreground="#555566" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Activity24hPlayerCountText}" FontSize="11" Foreground="#c8c8d8" VerticalAlignment="Center"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="INCOME:" FontSize="10" FontWeight="SemiBold" Foreground="#555566" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Activity24hIncomeText}" FontSize="11" Foreground="#6aaa88" VerticalAlignment="Center"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="EXPENSES:" FontSize="10" FontWeight="SemiBold" Foreground="#555566" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Activity24hExpenseText}" FontSize="11" Foreground="#cc7766" VerticalAlignment="Center"/>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Three activity grids side by side -->
+          <Grid Grid.Row="1" ColumnDefinitions="*,1,*,1,*" Height="275">
+
+            <!-- Ratting -->
+            <Grid Grid.Column="0" RowDefinitions="Auto,*">
+              <Border Grid.Row="0" Background="#12121a" Padding="8 5 8 4"
+                      BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+                <TextBlock Text="RATTING" FontSize="10" FontWeight="SemiBold" Foreground="#6aaa88"/>
+              </Border>
+              <DataGrid Grid.Row="1" ItemsSource="{Binding Activity24hRatters}"
+                        AutoGenerateColumns="False" IsReadOnly="True"
+                        Background="#0d0d12" RowBackground="#0d0d12"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                        HeadersVisibility="Column" FontSize="10" BorderThickness="0">
+                <DataGrid.Styles>
+                  <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Background"  Value="#12121a" />
+                    <Setter Property="Foreground"  Value="#555566" />
+                    <Setter Property="FontSize"    Value="10" />
+                    <Setter Property="FontWeight"  Value="SemiBold" />
+                    <Setter Property="Padding"     Value="4 3 2 3" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="CHARACTER" Binding="{Binding Name}"      Width="*"   />
+                  <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" Width="90"  />
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+
+            <Border Grid.Column="1" Background="#1e1e2a"/>
+
+            <!-- Industry -->
+            <Grid Grid.Column="2" RowDefinitions="Auto,*">
+              <Border Grid.Row="0" Background="#12121a" Padding="8 5 8 4"
+                      BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+                <TextBlock Text="INDUSTRY" FontSize="10" FontWeight="SemiBold" Foreground="#c8a84b"/>
+              </Border>
+              <DataGrid Grid.Row="1" ItemsSource="{Binding Activity24hIndustry}"
+                        AutoGenerateColumns="False" IsReadOnly="True"
+                        Background="#0d0d12" RowBackground="#0d0d12"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                        HeadersVisibility="Column" FontSize="10" BorderThickness="0">
+                <DataGrid.Styles>
+                  <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Background"  Value="#12121a" />
+                    <Setter Property="Foreground"  Value="#555566" />
+                    <Setter Property="FontSize"    Value="10" />
+                    <Setter Property="FontWeight"  Value="SemiBold" />
+                    <Setter Property="Padding"     Value="4 3 2 3" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="CHARACTER" Binding="{Binding Name}"      Width="*"   />
+                  <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" Width="90"  />
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+
+            <Border Grid.Column="3" Background="#1e1e2a"/>
+
+            <!-- Mining -->
+            <Grid Grid.Column="4" RowDefinitions="Auto,*">
+              <Border Grid.Row="0" Background="#12121a" Padding="8 5 8 4"
+                      BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+                <TextBlock Text="MINING" FontSize="10" FontWeight="SemiBold" Foreground="#6688cc"/>
+              </Border>
+              <DataGrid Grid.Row="1" ItemsSource="{Binding Activity24hMiners}"
+                        AutoGenerateColumns="False" IsReadOnly="True"
+                        Background="#0d0d12" RowBackground="#0d0d12"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                        HeadersVisibility="Column" FontSize="10" BorderThickness="0">
+                <DataGrid.Styles>
+                  <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Background"  Value="#12121a" />
+                    <Setter Property="Foreground"  Value="#555566" />
+                    <Setter Property="FontSize"    Value="10" />
+                    <Setter Property="FontWeight"  Value="SemiBold" />
+                    <Setter Property="Padding"     Value="4 3 2 3" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="CHARACTER" Binding="{Binding Name}"      Width="*"   />
+                  <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" Width="90"  />
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+
+          </Grid>
+
+          <!-- Kills/Losses header -->
+          <Border Grid.Row="2" Background="#12121a" Padding="10 6 10 4"
+                  BorderBrush="#1e1e2a" BorderThickness="0 1 0 1">
+            <TextBlock Text="RECENT KILLS &amp; LOSSES" FontSize="10" FontWeight="SemiBold" Foreground="#cc7766"/>
+          </Border>
+
+          <!-- Killmail list (zkillboard style) -->
+          <ListBox Grid.Row="3" Name="Kill24hList"
+                   ItemsSource="{Binding Activity24hKills}"
+                   Background="#0d0d12" BorderThickness="0"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.Styles>
+              <Style Selector="ListBoxItem">
+                <Setter Property="Padding"    Value="0" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Cursor"     Value="Hand" />
+              </Style>
+              <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                <Setter Property="Background" Value="#1a1a30" />
+              </Style>
+              <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                <Setter Property="Background" Value="#141420" />
+              </Style>
+            </ListBox.Styles>
+            <ListBox.ItemTemplate>
+              <DataTemplate DataType="vm:Activity24hKillRowVm">
+                <Border BorderBrush="#1a1a26" BorderThickness="0 0 0 1">
+                  <Grid ColumnDefinitions="70,50,*,160,160" Margin="4 4 4 4">
+
+                    <!-- Date / Time / ISK -->
+                    <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
+                      <TextBlock Text="{Binding DateText}"
+                                 FontSize="10" Foreground="#888899" />
+                      <TextBlock Text="{Binding TimeText}"
+                                 FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding TotalIskText}"
+                                 FontSize="10" Foreground="#c8a84b"
+                                 IsVisible="{Binding TotalIskText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+
+                    <!-- Ship render -->
+                    <Image Grid.Column="1"
+                           Source="{Binding ShipRender}"
+                           Width="48" Height="48"
+                           Stretch="Uniform"
+                           VerticalAlignment="Center"
+                           ToolTip.Tip="{Binding ShipName}"
+                           Margin="0 0 6 0" />
+
+                    <!-- System / Constellation / Region -->
+                    <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
+                      <StackPanel Orientation="Horizontal" Spacing="3">
+                        <TextBlock Text="{Binding SecurityText}"
+                                   FontSize="10" FontWeight="SemiBold"
+                                   Foreground="{Binding SecurityColor}" />
+                        <TextBlock Text="{Binding SystemName}"
+                                   FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                   TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                      <TextBlock Text="{Binding ConstellationName}"
+                                 FontSize="9" Foreground="#888899"
+                                 TextTrimming="CharacterEllipsis"
+                                 IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                      <TextBlock Text="{Binding RegionName}"
+                                 FontSize="9" Foreground="#666677"
+                                 TextTrimming="CharacterEllipsis"
+                                 IsVisible="{Binding RegionName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+
+                    <!-- Victim: logo + name/corp/alliance -->
+                    <Grid Grid.Column="3" ColumnDefinitions="32,*" Margin="0 0 4 0">
+                      <Image Grid.Column="0"
+                             Source="{Binding VictimLogo}"
+                             Width="32" Height="32"
+                             Stretch="Uniform"
+                             VerticalAlignment="Center"
+                             ToolTip.Tip="{Binding VictimAlliance}"
+                             Margin="0 0 4 0" />
+                      <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding VictimName}"
+                                   FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding VictimCorp}"
+                                   FontSize="9" Foreground="#888899"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding VictimAlliance}"
+                                   FontSize="9" Foreground="#666677"
+                                   TextTrimming="CharacterEllipsis"
+                                   IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                      </StackPanel>
+                    </Grid>
+
+                    <!-- Final blow: logo + name/corp/alliance -->
+                    <Grid Grid.Column="4" ColumnDefinitions="32,*">
+                      <Image Grid.Column="0"
+                             Source="{Binding FbLogo}"
+                             Width="32" Height="32"
+                             Stretch="Uniform"
+                             VerticalAlignment="Center"
+                             ToolTip.Tip="{Binding FbAlliance}"
+                             Margin="0 0 4 0" />
+                      <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding FbName}"
+                                   FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding FbCorp}"
+                                   FontSize="9" Foreground="#888899"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding FbAlliance}"
+                                   FontSize="9" Foreground="#666677"
+                                   TextTrimming="CharacterEllipsis"
+                                   IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                      </StackPanel>
+                    </Grid>
+
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ══ Monthly Activity ═══════════════════════════════════════ -->
+      <TabItem Header="MONTHLY ACTIVITY">
+        <Grid RowDefinitions="*,Auto,240,Auto,240" Margin="0">
+
+          <!-- Activity grid -->
+          <DataGrid Grid.Row="0"
+                    ItemsSource="{Binding MonthlyActivityRows}"
+                    AutoGenerateColumns="False"
+                    IsReadOnly="True"
+                    Background="#0d0d12"
+                    RowBackground="#0d0d12"
+                    GridLinesVisibility="Horizontal"
+                    HorizontalGridLinesBrush="#1a1a26"
+                    HeadersVisibility="Column"
+                    FontSize="10"
+                    CanUserSortColumns="True"
+                    BorderThickness="0">
+            <DataGrid.Styles>
+              <Style Selector="DataGridColumnHeader">
+                <Setter Property="Background"  Value="#12121a" />
+                <Setter Property="Foreground"  Value="#555566" />
+                <Setter Property="FontSize"    Value="10" />
+                <Setter Property="FontWeight"  Value="SemiBold" />
+                <Setter Property="Padding"     Value="4 3 2 3" />
+              </Style>
+            </DataGrid.Styles>
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="MONTH"         Binding="{Binding Month}"            Width="90"  />
+              <DataGridTextColumn Header="TOTAL INCOME"  Binding="{Binding TotalIncomeText}"  SortMemberPath="TotalIncomeRaw"   Width="110" />
+              <DataGridTextColumn Header="TOTAL EXPENSE" Binding="{Binding TotalExpenseText}" SortMemberPath="TotalExpenseRaw"  Width="120" />
+              <DataGridTextColumn Header="RATTING TAX"   Binding="{Binding RattingTaxText}"   SortMemberPath="RattingTaxRaw"    Width="105" />
+              <DataGridTextColumn Header="INDUSTRY TAX"  Binding="{Binding IndustryTaxText}"  SortMemberPath="IndustryTaxRaw"   Width="105" />
+              <DataGridTextColumn Header="PROJ PAYOUTS"  Binding="{Binding ProjPayoutsText}"  SortMemberPath="ProjPayoutsRaw"   Width="110" />
+              <DataGridTextColumn Header="UNITS MINED"   Binding="{Binding UnitsMinedText}"   SortMemberPath="UnitsMinedRaw"    Width="100" />
+              <DataGridTextColumn Header="KILLS"          Binding="{Binding KillsText}"         SortMemberPath="KillsRaw"         Width="65"  />
+              <DataGridTextColumn Header="LOSSES"         Binding="{Binding LossesText}"        SortMemberPath="LossesRaw"        Width="65"  />
+              <DataGridTextColumn Header="PLAYERS ACTIVE" Binding="{Binding PlayersActiveText}" SortMemberPath="PlayersActiveRaw" Width="110" />
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <!-- ISK trends header -->
+          <Border Grid.Row="1" Background="#12121a" Padding="10 6 10 4"
+                  BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
+            <TextBlock Text="ISK TRENDS (billions)"
+                       FontSize="10" FontWeight="SemiBold" Foreground="#6aaa88" />
+          </Border>
+
+          <!-- ISK line chart -->
+          <lvc:CartesianChart Grid.Row="2"
+                              Series="{Binding MonthlyIskSeries}"
+                              XAxes="{Binding MonthlyXAxes}"
+                              YAxes="{Binding MonthlyIskYAxes}"
+                              LegendPosition="Top"
+                              TooltipPosition="Top"
+                              EasingFunction="{x:Null}"
+                              Background="Transparent"
+                              Margin="4 0 4 4" />
+
+          <!-- Count trends header -->
+          <Border Grid.Row="3" Background="#12121a" Padding="10 6 10 4"
+                  BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
+            <TextBlock Text="ACTIVITY TRENDS (kills/losses — left axis; units mined — right axis)"
+                       FontSize="10" FontWeight="SemiBold" Foreground="#c8a84b" />
+          </Border>
+
+          <!-- Activity count line chart (YAxes[0]=kills/losses, YAxes[1]=units mined) -->
+          <lvc:CartesianChart Grid.Row="4"
+                              Series="{Binding MonthlyCountSeries}"
+                              XAxes="{Binding MonthlyXAxes}"
+                              YAxes="{Binding MonthlyCountAndMineYAxes}"
+                              LegendPosition="Top"
+                              TooltipPosition="Top"
+                              EasingFunction="{x:Null}"
+                              Background="Transparent"
+                              Margin="4 0 4 4" />
+
+        </Grid>
+      </TabItem>
+
+      <!-- ══ Income ══════════════════════════════════════════════════ -->
+      <TabItem Header="INCOME">
+        <Grid RowDefinitions="Auto,*">
+
+          <!-- Period picker (shared) -->
+          <Border Grid.Row="0" Background="#12121a" Padding="10 6 10 4"
+                  BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+            <Grid ColumnDefinitions="*,Auto,8,Auto">
+              <TextBlock Grid.Column="0" Text="INCOME BY TYPE"
+                         FontSize="10" FontWeight="SemiBold" Foreground="#6aaa88"
+                         VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="Period:" FontSize="10" Foreground="#555566"
+                         VerticalAlignment="Center" />
+              <ComboBox Grid.Column="3"
+                        ItemsSource="{Binding TaxPeriods}"
+                        SelectedItem="{Binding SelectedIncomePeriod}"
+                        MinWidth="120" FontSize="11"
+                        Background="#1a1a28" Foreground="#c8c8d8"
+                        BorderBrush="#2a2a3a" BorderThickness="1" />
+            </Grid>
+          </Border>
+
+          <!-- Inner Summary / Detail tabs -->
+          <TabControl Grid.Row="1">
+            <TabControl.Styles>
+              <Style Selector="TabItem">
+                <Setter Property="FontSize"   Value="10" />
+                <Setter Property="Foreground" Value="#666677" />
+                <Setter Property="Padding"    Value="12 5" />
+              </Style>
+              <Style Selector="TabItem:selected">
+                <Setter Property="Foreground" Value="#8899cc" />
+              </Style>
+            </TabControl.Styles>
+
+            <TabItem Header="SUMMARY">
+              <Grid RowDefinitions="*,Auto,300">
+                <DataGrid Grid.Row="0"
+                          ItemsSource="{Binding IncomeTypeRows}"
+                          AutoGenerateColumns="False" IsReadOnly="True"
+                          Background="#0d0d12" RowBackground="#0d0d12"
+                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                          HeadersVisibility="Column" FontSize="10"
+                          CanUserSortColumns="True" BorderThickness="0">
+                  <DataGrid.Styles>
+                    <Style Selector="DataGridColumnHeader">
+                      <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                      <Setter Property="FontSize"   Value="10" /><Setter Property="FontWeight"  Value="SemiBold" />
+                      <Setter Property="Padding"    Value="4 3 2 3" />
+                    </Style>
+                  </DataGrid.Styles>
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="*" />
+                    <DataGridTextColumn Header="COUNT"  Binding="{Binding CountText}"  Width="75" />
+                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="120" />
+                  </DataGrid.Columns>
+                </DataGrid>
+                <Border Grid.Row="1" Background="#12121a" Padding="10 6 10 4"
+                        BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
+                  <TextBlock Text="INCOME BY TYPE" FontSize="10" FontWeight="SemiBold" Foreground="#6aaa88" />
+                </Border>
+                <lvc:CartesianChart Grid.Row="2"
+                                    Series="{Binding IncomeSeries}" XAxes="{Binding IncomeXAxes}" YAxes="{Binding IncomeYAxes}"
+                                    TooltipPosition="Top" EasingFunction="{x:Null}" Background="Transparent" Margin="4 0 4 4" />
+              </Grid>
+            </TabItem>
+
+            <TabItem Header="DETAIL">
+              <DataGrid ItemsSource="{Binding IncomeDetailRows}"
+                        AutoGenerateColumns="False" IsReadOnly="True"
+                        Background="#0d0d12" RowBackground="#0d0d12"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                        HeadersVisibility="Column" FontSize="10"
+                        CanUserSortColumns="True" BorderThickness="0">
+                <DataGrid.Styles>
+                  <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                    <Setter Property="FontSize"   Value="10" /><Setter Property="FontWeight"  Value="SemiBold" />
+                    <Setter Property="Padding"    Value="4 3 2 3" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="DATE"   Binding="{Binding DateText}"   Width="90"  />
+                  <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
+                  <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
+                  <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"       Width="*"   />
+                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" Width="110" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </TabItem>
+          </TabControl>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ══ Expense ══════════════════════════════════════════════════ -->
+      <TabItem Header="EXPENSE">
+        <Grid RowDefinitions="Auto,*" Margin="0">
+
+          <!-- Period picker (shared) -->
+          <Border Grid.Row="0" Background="#12121a" Padding="10 6 10 4"
+                  BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+            <Grid ColumnDefinitions="*,Auto,8,Auto">
+              <TextBlock Grid.Column="0" Text="EXPENSES BY TYPE"
+                         FontSize="10" FontWeight="SemiBold" Foreground="#cc7766"
+                         VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="Period:" FontSize="10" Foreground="#555566"
+                         VerticalAlignment="Center" />
+              <ComboBox Grid.Column="3"
+                        ItemsSource="{Binding TaxPeriods}"
+                        SelectedItem="{Binding SelectedExpensePeriod}"
+                        MinWidth="120" FontSize="11"
+                        Background="#1a1a28" Foreground="#c8c8d8"
+                        BorderBrush="#2a2a3a" BorderThickness="1" />
+            </Grid>
+          </Border>
+
+          <!-- Inner Summary / Detail tabs -->
+          <TabControl Grid.Row="1">
+            <TabControl.Styles>
+              <Style Selector="TabItem">
+                <Setter Property="FontSize"   Value="10" />
+                <Setter Property="Foreground" Value="#666677" />
+                <Setter Property="Padding"    Value="12 5" />
+              </Style>
+              <Style Selector="TabItem:selected">
+                <Setter Property="Foreground" Value="#8899cc" />
+              </Style>
+            </TabControl.Styles>
+
+            <TabItem Header="SUMMARY">
+              <Grid RowDefinitions="*,Auto,300">
+                <DataGrid Grid.Row="0"
+                          ItemsSource="{Binding ExpenseTypeRows}"
+                          AutoGenerateColumns="False" IsReadOnly="True"
+                          Background="#0d0d12" RowBackground="#0d0d12"
+                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                          HeadersVisibility="Column" FontSize="10"
+                          CanUserSortColumns="True" BorderThickness="0">
+                  <DataGrid.Styles>
+                    <Style Selector="DataGridColumnHeader">
+                      <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                      <Setter Property="FontSize"   Value="10" /><Setter Property="FontWeight"  Value="SemiBold" />
+                      <Setter Property="Padding"    Value="4 3 2 3" />
+                    </Style>
+                  </DataGrid.Styles>
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="*" />
+                    <DataGridTextColumn Header="COUNT"  Binding="{Binding CountText}"  Width="75" />
+                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="120" />
+                  </DataGrid.Columns>
+                </DataGrid>
+                <Border Grid.Row="1" Background="#12121a" Padding="10 6 10 4"
+                        BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
+                  <TextBlock Text="EXPENSES BY TYPE" FontSize="10" FontWeight="SemiBold" Foreground="#cc7766" />
+                </Border>
+                <lvc:CartesianChart Grid.Row="2"
+                                    Series="{Binding ExpenseSeries}" XAxes="{Binding ExpenseXAxes}" YAxes="{Binding ExpenseYAxes}"
+                                    TooltipPosition="Top" EasingFunction="{x:Null}" Background="Transparent" Margin="4 0 4 4" />
+              </Grid>
+            </TabItem>
+
+            <TabItem Header="DETAIL">
+              <DataGrid ItemsSource="{Binding ExpenseDetailRows}"
+                        AutoGenerateColumns="False" IsReadOnly="True"
+                        Background="#0d0d12" RowBackground="#0d0d12"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                        HeadersVisibility="Column" FontSize="10"
+                        CanUserSortColumns="True" BorderThickness="0">
+                <DataGrid.Styles>
+                  <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                    <Setter Property="FontSize"   Value="10" /><Setter Property="FontWeight"  Value="SemiBold" />
+                    <Setter Property="Padding"    Value="4 3 2 3" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="DATE"   Binding="{Binding DateText}"   Width="90"  />
+                  <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
+                  <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
+                  <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"       Width="*"   />
+                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" Width="110" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </TabItem>
+          </TabControl>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ══ Ratting Taxes ════════════════════════════════════════════ -->
+      <TabItem Header="RATTING TAXES">
+        <Grid RowDefinitions="Auto,*" Margin="0">
+
+          <!-- Period picker (shared) -->
+          <Border Grid.Row="0" Background="#12121a" Padding="10 6 10 4"
+                  BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+            <Grid ColumnDefinitions="*,Auto,8,Auto">
+              <TextBlock Grid.Column="0" Text="RATTING TAX"
+                         FontSize="10" FontWeight="SemiBold" Foreground="#6aaa88"
+                         VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="Period:" FontSize="10" Foreground="#555566"
+                         VerticalAlignment="Center" />
+              <ComboBox Grid.Column="3"
+                        ItemsSource="{Binding TaxPeriods}"
+                        SelectedItem="{Binding SelectedRattingPeriod}"
+                        MinWidth="120" FontSize="11"
+                        Background="#1a1a28" Foreground="#c8c8d8"
+                        BorderBrush="#2a2a3a" BorderThickness="1" />
+            </Grid>
+          </Border>
+
+          <!-- Inner Summary / Detail tabs -->
+          <TabControl Grid.Row="1">
+            <TabControl.Styles>
+              <Style Selector="TabItem">
+                <Setter Property="FontSize"   Value="10" />
+                <Setter Property="Foreground" Value="#666677" />
+                <Setter Property="Padding"    Value="12 5" />
+              </Style>
+              <Style Selector="TabItem:selected">
+                <Setter Property="Foreground" Value="#8899cc" />
+              </Style>
+            </TabControl.Styles>
+
+            <TabItem Header="SUMMARY">
+              <Grid RowDefinitions="*,Auto,230">
+                <DataGrid Grid.Row="0"
+                          ItemsSource="{Binding RattingTaxRows}"
+                          AutoGenerateColumns="False" IsReadOnly="True"
+                          Background="#0d0d12" RowBackground="#0d0d12"
+                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                          HeadersVisibility="Column" FontSize="10" BorderThickness="0">
+                  <DataGrid.Styles>
+                    <Style Selector="DataGridColumnHeader">
+                      <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                      <Setter Property="FontSize"   Value="10" /><Setter Property="FontWeight"  Value="SemiBold" />
+                      <Setter Property="Padding"    Value="4 3 2 3" />
+                    </Style>
+                  </DataGrid.Styles>
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="#"      Binding="{Binding Rank}"   Width="40"  />
+                    <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"   Width="*"   />
+                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount}" Width="110" />
+                  </DataGrid.Columns>
+                </DataGrid>
+                <Border Grid.Row="1" Background="#12121a" Padding="10 6 10 4"
+                        BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
+                  <TextBlock Text="DAILY RATTING TAX" FontSize="10" FontWeight="SemiBold" Foreground="#6aaa88" />
+                </Border>
+                <lvc:CartesianChart Grid.Row="2"
+                                    Series="{Binding RattingDailySeries}" XAxes="{Binding RattingDailyXAxes}" YAxes="{Binding RattingDailyYAxes}"
+                                    LegendPosition="Top" TooltipPosition="Top" EasingFunction="{x:Null}" Background="Transparent" Margin="4 0 4 4" />
+              </Grid>
+            </TabItem>
+
+            <TabItem Header="DETAIL">
+              <DataGrid ItemsSource="{Binding RattingDetailRows}"
+                        AutoGenerateColumns="False" IsReadOnly="True"
+                        Background="#0d0d12" RowBackground="#0d0d12"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                        HeadersVisibility="Column" FontSize="10"
+                        CanUserSortColumns="True" BorderThickness="0">
+                <DataGrid.Styles>
+                  <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                    <Setter Property="FontSize"   Value="10" /><Setter Property="FontWeight"  Value="SemiBold" />
+                    <Setter Property="Padding"    Value="4 3 2 3" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="DATE"   Binding="{Binding DateText}"   Width="90"  />
+                  <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
+                  <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
+                  <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"       Width="*"   />
+                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" Width="110" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </TabItem>
+          </TabControl>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ══ Industry Taxes ════════════════════════════════════════════ -->
+      <TabItem Header="INDUSTRY TAXES">
+        <Grid RowDefinitions="Auto,*" Margin="0">
+
+          <!-- Period picker (shared) -->
+          <Border Grid.Row="0" Background="#12121a" Padding="10 6 10 4"
+                  BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+            <Grid ColumnDefinitions="*,Auto,8,Auto">
+              <TextBlock Grid.Column="0" Text="INDUSTRY TAX"
+                         FontSize="10" FontWeight="SemiBold" Foreground="#c8a84b"
+                         VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="Period:" FontSize="10" Foreground="#555566"
+                         VerticalAlignment="Center" />
+              <ComboBox Grid.Column="3"
+                        ItemsSource="{Binding TaxPeriods}"
+                        SelectedItem="{Binding SelectedIndustryPeriod}"
+                        MinWidth="120" FontSize="11"
+                        Background="#1a1a28" Foreground="#c8c8d8"
+                        BorderBrush="#2a2a3a" BorderThickness="1" />
+            </Grid>
+          </Border>
+
+          <!-- Inner Summary / Detail tabs -->
+          <TabControl Grid.Row="1">
+            <TabControl.Styles>
+              <Style Selector="TabItem">
+                <Setter Property="FontSize"   Value="10" />
+                <Setter Property="Foreground" Value="#666677" />
+                <Setter Property="Padding"    Value="12 5" />
+              </Style>
+              <Style Selector="TabItem:selected">
+                <Setter Property="Foreground" Value="#8899cc" />
+              </Style>
+            </TabControl.Styles>
+
+            <TabItem Header="SUMMARY">
+              <Grid RowDefinitions="*,Auto,230">
+                <DataGrid Grid.Row="0"
+                          ItemsSource="{Binding IndustryTaxRows}"
+                          AutoGenerateColumns="False" IsReadOnly="True"
+                          Background="#0d0d12" RowBackground="#0d0d12"
+                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                          HeadersVisibility="Column" FontSize="10" BorderThickness="0">
+                  <DataGrid.Styles>
+                    <Style Selector="DataGridColumnHeader">
+                      <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                      <Setter Property="FontSize"   Value="10" /><Setter Property="FontWeight"  Value="SemiBold" />
+                      <Setter Property="Padding"    Value="4 3 2 3" />
+                    </Style>
+                  </DataGrid.Styles>
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="#"      Binding="{Binding Rank}"   Width="40"  />
+                    <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"   Width="*"   />
+                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount}" Width="110" />
+                  </DataGrid.Columns>
+                </DataGrid>
+                <Border Grid.Row="1" Background="#12121a" Padding="10 6 10 4"
+                        BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
+                  <TextBlock Text="DAILY INDUSTRY TAX" FontSize="10" FontWeight="SemiBold" Foreground="#c8a84b" />
+                </Border>
+                <lvc:CartesianChart Grid.Row="2"
+                                    Series="{Binding IndustryDailySeries}" XAxes="{Binding IndustryDailyXAxes}" YAxes="{Binding IndustryDailyYAxes}"
+                                    LegendPosition="Top" TooltipPosition="Top" EasingFunction="{x:Null}" Background="Transparent" Margin="4 0 4 4" />
+              </Grid>
+            </TabItem>
+
+            <TabItem Header="DETAIL">
+              <DataGrid ItemsSource="{Binding IndustryDetailRows}"
+                        AutoGenerateColumns="False" IsReadOnly="True"
+                        Background="#0d0d12" RowBackground="#0d0d12"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                        HeadersVisibility="Column" FontSize="10"
+                        CanUserSortColumns="True" BorderThickness="0">
+                <DataGrid.Styles>
+                  <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                    <Setter Property="FontSize"   Value="10" /><Setter Property="FontWeight"  Value="SemiBold" />
+                    <Setter Property="Padding"    Value="4 3 2 3" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="DATE"   Binding="{Binding DateText}"   Width="90"  />
+                  <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
+                  <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
+                  <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"       Width="*"   />
+                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" Width="110" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </TabItem>
+          </TabControl>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ══ Donations ══════════════════════════════════════════════════ -->
+      <TabItem Header="DONATIONS">
+        <Grid RowDefinitions="Auto,*" Margin="0">
+
+          <!-- Period picker (shared) -->
+          <Border Grid.Row="0" Background="#12121a" Padding="10 6 10 4"
+                  BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+            <Grid ColumnDefinitions="*,Auto,8,Auto">
+              <TextBlock Grid.Column="0" Text="DONATIONS"
+                         FontSize="10" FontWeight="SemiBold" Foreground="#6688cc"
+                         VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="Period:" FontSize="10" Foreground="#555566"
+                         VerticalAlignment="Center" />
+              <ComboBox Grid.Column="3"
+                        ItemsSource="{Binding TaxPeriods}"
+                        SelectedItem="{Binding SelectedDonationPeriod}"
+                        MinWidth="120" FontSize="11"
+                        Background="#1a1a28" Foreground="#c8c8d8"
+                        BorderBrush="#2a2a3a" BorderThickness="1" />
+            </Grid>
+          </Border>
+
+          <!-- Inner Summary / Detail tabs -->
+          <TabControl Grid.Row="1">
+            <TabControl.Styles>
+              <Style Selector="TabItem">
+                <Setter Property="FontSize"   Value="10" />
+                <Setter Property="Foreground" Value="#666677" />
+                <Setter Property="Padding"    Value="12 5" />
+              </Style>
+              <Style Selector="TabItem:selected">
+                <Setter Property="Foreground" Value="#8899cc" />
+              </Style>
+            </TabControl.Styles>
+
+            <TabItem Header="SUMMARY">
+              <Grid RowDefinitions="*,Auto,230">
+                <DataGrid Grid.Row="0"
+                          ItemsSource="{Binding DonationRows}"
+                          AutoGenerateColumns="False" IsReadOnly="True"
+                          Background="#0d0d12" RowBackground="#0d0d12"
+                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                          HeadersVisibility="Column" FontSize="10" BorderThickness="0">
+                  <DataGrid.Styles>
+                    <Style Selector="DataGridColumnHeader">
+                      <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                      <Setter Property="FontSize"   Value="10" /><Setter Property="FontWeight"  Value="SemiBold" />
+                      <Setter Property="Padding"    Value="4 3 2 3" />
+                    </Style>
+                  </DataGrid.Styles>
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="#"       Binding="{Binding Rank}"   Width="40"  />
+                    <DataGridTextColumn Header="NAME"    Binding="{Binding Name}"   Width="*"   />
+                    <DataGridTextColumn Header="DONATED" Binding="{Binding Amount}" Width="110" />
+                  </DataGrid.Columns>
+                </DataGrid>
+                <Border Grid.Row="1" Background="#12121a" Padding="10 6 10 4"
+                        BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
+                  <TextBlock Text="DAILY DONATIONS" FontSize="10" FontWeight="SemiBold" Foreground="#6688cc" />
+                </Border>
+                <lvc:CartesianChart Grid.Row="2"
+                                    Series="{Binding DonationDailySeries}" XAxes="{Binding DonationDailyXAxes}" YAxes="{Binding DonationDailyYAxes}"
+                                    LegendPosition="Top" TooltipPosition="Top" EasingFunction="{x:Null}" Background="Transparent" Margin="4 0 4 4" />
+              </Grid>
+            </TabItem>
+
+            <TabItem Header="DETAIL">
+              <DataGrid ItemsSource="{Binding DonationDetailRows}"
+                        AutoGenerateColumns="False" IsReadOnly="True"
+                        Background="#0d0d12" RowBackground="#0d0d12"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                        HeadersVisibility="Column" FontSize="10"
+                        CanUserSortColumns="True" BorderThickness="0">
+                <DataGrid.Styles>
+                  <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                    <Setter Property="FontSize"   Value="10" /><Setter Property="FontWeight"  Value="SemiBold" />
+                    <Setter Property="Padding"    Value="4 3 2 3" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="DATE"    Binding="{Binding DateText}"   Width="90"  />
+                  <DataGridTextColumn Header="TIME"    Binding="{Binding TimeText}"   Width="60"  />
+                  <DataGridTextColumn Header="TYPE"    Binding="{Binding TypeName}"   Width="120" />
+                  <DataGridTextColumn Header="DONOR"   Binding="{Binding Name}"       Width="160" />
+                  <DataGridTextColumn Header="AMOUNT"  Binding="{Binding AmountText}" Width="110" />
+                  <DataGridTextColumn Header="REASON"  Binding="{Binding ReasonText}" Width="*"   />
+                </DataGrid.Columns>
+              </DataGrid>
+            </TabItem>
+          </TabControl>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ══ Mining ══════════════════════════════════════════════════ -->
+      <TabItem Header="MINING">
+        <Grid RowDefinitions="Auto,*">
+
+          <!-- Period picker (shared) -->
+          <Border Grid.Row="0" Background="#12121a" Padding="10 6 10 4"
+                  BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+            <Grid ColumnDefinitions="*,Auto,8,Auto">
+              <TextBlock Grid.Column="0" Text="MINING LEDGER"
+                         FontSize="10" FontWeight="SemiBold" Foreground="#6aaa88"
+                         VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="Period:" FontSize="10" Foreground="#555566"
+                         VerticalAlignment="Center" />
+              <ComboBox Grid.Column="3"
+                        ItemsSource="{Binding TaxPeriods}"
+                        SelectedItem="{Binding SelectedMiningPeriod}"
+                        MinWidth="120" FontSize="11"
+                        Background="#1a1a28" Foreground="#c8c8d8"
+                        BorderBrush="#2a2a3a" BorderThickness="1" />
+            </Grid>
+          </Border>
+
+          <!-- Inner Summary / Detail tabs -->
+          <TabControl Grid.Row="1">
+            <TabControl.Styles>
+              <Style Selector="TabItem">
+                <Setter Property="FontSize"   Value="10" />
+                <Setter Property="Foreground" Value="#666677" />
+                <Setter Property="Padding"    Value="12 5" />
+              </Style>
+              <Style Selector="TabItem:selected">
+                <Setter Property="Foreground" Value="#8899cc" />
+              </Style>
+            </TabControl.Styles>
+
+            <TabItem Header="SUMMARY">
+              <Grid>
+                <TextBlock Text="No mining data — ensure Corp Mining Observers polling is enabled."
+                           FontSize="11" Foreground="#444455" FontStyle="Italic"
+                           IsVisible="{Binding !HasMiningData}"
+                           VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <DataGrid ItemsSource="{Binding MiningLedgerRows}"
+                          AutoGenerateColumns="False" IsReadOnly="True"
+                          Background="#0d0d12" RowBackground="#0d0d12"
+                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                          HeadersVisibility="Column" FontSize="10" BorderThickness="0"
+                          IsVisible="{Binding HasMiningData}">
+                  <DataGrid.Styles>
+                    <Style Selector="DataGridColumnHeader">
+                      <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                      <Setter Property="FontSize"   Value="10" /><Setter Property="FontWeight"  Value="SemiBold" />
+                      <Setter Property="Padding"    Value="4 4 2 4" />
+                    </Style>
+                  </DataGrid.Styles>
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="DATE"               Binding="{Binding Date}"                  Width="90"  />
+                    <DataGridTextColumn Header="CHARACTER"          Binding="{Binding CharacterName}"         Width="140" />
+                    <DataGridTextColumn Header="ORE TYPE"           Binding="{Binding TypeName}"              Width="*"   />
+                    <DataGridTextColumn Header="QUANTITY"           Binding="{Binding QuantityText}"          Width="100" SortMemberPath="Quantity" />
+                    <DataGridTextColumn Header="REPROCESSED VALUE"  Binding="{Binding ReprocessedValueText}"  Width="130" SortMemberPath="ReprocessedValue" />
+                  </DataGrid.Columns>
+                </DataGrid>
+              </Grid>
+            </TabItem>
+
+            <TabItem Header="DETAIL">
+              <DataGrid ItemsSource="{Binding MiningDetailRows}"
+                        AutoGenerateColumns="False" IsReadOnly="True"
+                        Background="#0d0d12" RowBackground="#0d0d12"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                        HeadersVisibility="Column" FontSize="10"
+                        CanUserSortColumns="True" BorderThickness="0">
+                <DataGrid.Styles>
+                  <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                    <Setter Property="FontSize"   Value="10" /><Setter Property="FontWeight"  Value="SemiBold" />
+                    <Setter Property="Padding"    Value="4 4 2 4" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="DATE"               Binding="{Binding Date}"                  Width="90"  />
+                  <DataGridTextColumn Header="CHARACTER"          Binding="{Binding CharacterName}"         Width="140" />
+                  <DataGridTextColumn Header="ORE TYPE"           Binding="{Binding TypeName}"              Width="*"   />
+                  <DataGridTextColumn Header="QUANTITY"           Binding="{Binding QuantityText}"          Width="100" SortMemberPath="Quantity" />
+                  <DataGridTextColumn Header="REPROCESSED VALUE"  Binding="{Binding ReprocessedValueText}"  Width="130" SortMemberPath="ReprocessedValue" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </TabItem>
+          </TabControl>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ══ Killmails ═══════════════════════════════════════════════ -->
+      <TabItem Header="KILLMAILS">
+        <Grid RowDefinitions="Auto,*" Margin="0">
+
+          <!-- Period picker (shared) -->
+          <Border Grid.Row="0" Background="#12121a" Padding="10 6 10 4"
+                  BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+            <Grid ColumnDefinitions="*,Auto,8,Auto">
+              <TextBlock Grid.Column="0" Text="KILLMAILS"
+                         FontSize="10" FontWeight="SemiBold" Foreground="#cc7766"
+                         VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="Period:" FontSize="10" Foreground="#555566"
+                         VerticalAlignment="Center" />
+              <ComboBox Grid.Column="3"
+                        ItemsSource="{Binding TaxPeriods}"
+                        SelectedItem="{Binding SelectedKillGridPeriod}"
+                        MinWidth="120" FontSize="11"
+                        Background="#1a1a28" Foreground="#c8c8d8"
+                        BorderBrush="#2a2a3a" BorderThickness="1" />
+            </Grid>
+          </Border>
+
+          <!-- Inner Summary / Detail tabs -->
+          <TabControl Grid.Row="1">
+            <TabControl.Styles>
+              <Style Selector="TabItem">
+                <Setter Property="FontSize"   Value="10" />
+                <Setter Property="Foreground" Value="#666677" />
+                <Setter Property="Padding"    Value="12 5" />
+              </Style>
+              <Style Selector="TabItem:selected">
+                <Setter Property="Foreground" Value="#8899cc" />
+              </Style>
+            </TabControl.Styles>
+
+            <TabItem Header="SUMMARY">
+              <Grid RowDefinitions="*,Auto,230">
+                <DataGrid Grid.Row="0"
+                          ItemsSource="{Binding KillCharRows}"
+                          AutoGenerateColumns="False" IsReadOnly="True"
+                          Background="#0d0d12" RowBackground="#0d0d12"
+                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
+                          HeadersVisibility="Column" FontSize="10"
+                          CanUserSortColumns="True" BorderThickness="0">
+                  <DataGrid.Styles>
+                    <Style Selector="DataGridColumnHeader">
+                      <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                      <Setter Property="FontSize"   Value="10" /><Setter Property="FontWeight"  Value="SemiBold" />
+                      <Setter Property="Padding"    Value="4 3 2 3" />
+                    </Style>
+                  </DataGrid.Styles>
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="CHARACTER" Binding="{Binding CharacterName}" Width="*" />
+                    <DataGridTextColumn Header="KILLS"     Binding="{Binding KillsText}"     SortMemberPath="KillsRaw"  Width="80" />
+                    <DataGridTextColumn Header="LOSSES"    Binding="{Binding LossesText}"    SortMemberPath="LossesRaw" Width="80" />
+                  </DataGrid.Columns>
+                </DataGrid>
+                <Border Grid.Row="1" Background="#12121a" Padding="10 6 10 4"
+                        BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
+                  <TextBlock Text="DAILY KILLS / LOSSES" FontSize="10" FontWeight="SemiBold" Foreground="#cc7766" />
+                </Border>
+                <lvc:CartesianChart Grid.Row="2"
+                                    Series="{Binding KillDailySeries}" XAxes="{Binding KillDailyXAxes}" YAxes="{Binding KillDailyYAxes}"
+                                    LegendPosition="Top" TooltipPosition="Top" EasingFunction="{x:Null}" Background="Transparent" Margin="4 0 4 4" />
+              </Grid>
+            </TabItem>
+
+            <TabItem Header="DETAIL">
+              <ListBox ItemsSource="{Binding KillDetailRows}"
+                       Background="#0d0d12" BorderThickness="0"
+                       ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.Styles>
+                  <Style Selector="ListBoxItem">
+                    <Setter Property="Padding"    Value="0" />
+                    <Setter Property="Background" Value="Transparent" />
+                  </Style>
+                  <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                    <Setter Property="Background" Value="#1a1a30" />
+                  </Style>
+                  <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                    <Setter Property="Background" Value="#141420" />
+                  </Style>
+                </ListBox.Styles>
+                <ListBox.ItemTemplate>
+                  <DataTemplate DataType="vm:Activity24hKillRowVm">
+                    <Border BorderBrush="#1a1a26" BorderThickness="0 0 0 1">
+                      <Grid ColumnDefinitions="70,50,*,160,160" Margin="4 4 4 4">
+                        <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
+                          <TextBlock Text="{Binding DateText}" FontSize="10" Foreground="#888899" />
+                          <TextBlock Text="{Binding TimeText}" FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" />
+                          <TextBlock Text="{Binding TotalIskText}" FontSize="10" Foreground="#c8a84b"
+                                     IsVisible="{Binding TotalIskText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+                        <Image Grid.Column="1" Source="{Binding ShipRender}" Width="48" Height="48"
+                               Stretch="Uniform" VerticalAlignment="Center" ToolTip.Tip="{Binding ShipName}" Margin="0 0 6 0" />
+                        <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
+                          <StackPanel Orientation="Horizontal" Spacing="3">
+                            <TextBlock Text="{Binding SecurityText}" FontSize="10" FontWeight="SemiBold" Foreground="{Binding SecurityColor}" />
+                            <TextBlock Text="{Binding SystemName}"   FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                          </StackPanel>
+                          <TextBlock Text="{Binding ConstellationName}" FontSize="9" Foreground="#888899" TextTrimming="CharacterEllipsis"
+                                     IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          <TextBlock Text="{Binding RegionName}" FontSize="9" Foreground="#666677" TextTrimming="CharacterEllipsis"
+                                     IsVisible="{Binding RegionName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+                        <Grid Grid.Column="3" ColumnDefinitions="32,*" Margin="0 0 4 0">
+                          <Image Grid.Column="0" Source="{Binding VictimLogo}" Width="32" Height="32"
+                                 Stretch="Uniform" VerticalAlignment="Center" ToolTip.Tip="{Binding VictimAlliance}" Margin="0 0 4 0" />
+                          <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding VictimName}"     FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding VictimCorp}"     FontSize="9"  Foreground="#888899" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding VictimAlliance}" FontSize="9"  Foreground="#666677" TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          </StackPanel>
+                        </Grid>
+                        <Grid Grid.Column="4" ColumnDefinitions="32,*">
+                          <Image Grid.Column="0" Source="{Binding FbLogo}" Width="32" Height="32"
+                                 Stretch="Uniform" VerticalAlignment="Center" ToolTip.Tip="{Binding FbAlliance}" Margin="0 0 4 0" />
+                          <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding FbName}"     FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding FbCorp}"     FontSize="9"  Foreground="#888899" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding FbAlliance}" FontSize="9"  Foreground="#666677" TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          </StackPanel>
+                        </Grid>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </TabItem>
+          </TabControl>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ══ Corp Projects ═══════════════════════════════════════════ -->
+      <TabItem Header="PROJECTS">
+        <Grid x:Name="ProjectsOuterGrid" RowDefinitions="*,4,*">
+
+          <!-- ── Top 50%: Active / History / Maintain grids ──────── -->
+          <TabControl Grid.Row="0" Background="#0d0d12" BorderThickness="0" Margin="0"
+                      SelectedIndex="{Binding ProjectsInnerTabIndex}">
+
+            <TabControl.Styles>
+              <Style Selector="TabItem">
+                <Setter Property="FontSize"   Value="10" />
+                <Setter Property="Foreground" Value="#666677" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Padding"    Value="12 5" />
+              </Style>
+              <Style Selector="TabItem:selected">
+                <Setter Property="Foreground" Value="#8899cc" />
+              </Style>
+            </TabControl.Styles>
+
+            <!-- Active -->
+            <TabItem Header="ACTIVE">
+              <Grid RowDefinitions="Auto,*" Margin="8 4 8 0">
+
+                <!-- Reward summary bar -->
+                <Border Grid.Row="0"
+                        IsVisible="{Binding HasProjectData}"
+                        Background="#12121a" Padding="8 4"
+                        BorderBrush="#1e1e2a" BorderThickness="0 0 0 1" Margin="0 0 0 4">
+                  <StackPanel Orientation="Horizontal" Spacing="24">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <TextBlock Text="Total Reward:" FontSize="10" Foreground="#555566" VerticalAlignment="Center" />
+                      <TextBlock Text="{Binding ActiveTotalRewardText}" FontSize="10" FontWeight="SemiBold" Foreground="#c8a84b" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <TextBlock Text="Remaining:" FontSize="10" Foreground="#555566" VerticalAlignment="Center" />
+                      <TextBlock Text="{Binding ActiveRemainingRewardText}" FontSize="10" FontWeight="SemiBold" Foreground="#6aaa88" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </StackPanel>
+                </Border>
+
+                <TextBlock Grid.Row="1" IsVisible="{Binding !HasProjectData}"
+                           Text="No active corp projects."
+                           FontSize="11" Foreground="#444455" FontStyle="Italic"
+                           VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <DataGrid Grid.Row="1" ItemsSource="{Binding ActiveProjects}"
+                          SelectedItem="{Binding SelectedActiveProject}"
+                          SelectionMode="Single"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          Background="#0d0d12" RowBackground="#0d0d12"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="#1a1a26"
+                          HeadersVisibility="Column"
+                          FontSize="10" BorderThickness="0">
+                  <DataGrid.Styles>
+                    <Style Selector="DataGridColumnHeader">
+                      <Setter Property="Background"  Value="#12121a" />
+                      <Setter Property="Foreground"  Value="#555566" />
+                      <Setter Property="FontSize"    Value="10" />
+                      <Setter Property="FontWeight"  Value="SemiBold" />
+                      <Setter Property="Padding"     Value="6 5 2 5" />
+                    </Style>
+                  </DataGrid.Styles>
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="TYPE"     Binding="{Binding ConfigType}"   Width="130" />
+                    <DataGridTextColumn Header="NAME"     Binding="{Binding Name}"         Width="*"   />
+                    <DataGridTextColumn Header="CAREER"   Binding="{Binding Career}"       Width="100" />
+                    <DataGridTextColumn Header="PROGRESS" Binding="{Binding ProgressText}" Width="170" />
+                    <DataGridTextColumn Header="REM. REWARD" Binding="{Binding RemainingRewardText}" Width="95" />
+                    <DataGridTextColumn Header="CREATOR"    Binding="{Binding CreatorText}"        Width="120" />
+                    <DataGridTextColumn Header="CREATED"  Binding="{Binding CreatedText}"  Width="90"  />
+                  </DataGrid.Columns>
+                </DataGrid>
+              </Grid>
+            </TabItem>
+
+            <!-- History -->
+            <TabItem Header="HISTORY">
+              <Grid Margin="8 4 8 0">
+                <TextBlock IsVisible="{Binding !HasProjectData}"
+                           Text="No project history available."
+                           FontSize="11" Foreground="#444455" FontStyle="Italic"
+                           VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <DataGrid ItemsSource="{Binding HistoryProjects}"
+                          SelectedItem="{Binding SelectedHistoryProject}"
+                          SelectionMode="Single"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          Background="#0d0d12" RowBackground="#0d0d12"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="#1a1a26"
+                          HeadersVisibility="Column"
+                          FontSize="10" BorderThickness="0">
+                  <DataGrid.Styles>
+                    <Style Selector="DataGridColumnHeader">
+                      <Setter Property="Background"  Value="#12121a" />
+                      <Setter Property="Foreground"  Value="#555566" />
+                      <Setter Property="FontSize"    Value="10" />
+                      <Setter Property="FontWeight"  Value="SemiBold" />
+                      <Setter Property="Padding"     Value="6 5 2 5" />
+                    </Style>
+                  </DataGrid.Styles>
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="TYPE"      Binding="{Binding ConfigType}"    Width="130" />
+                    <DataGridTextColumn Header="NAME"      Binding="{Binding Name}"          Width="*"   />
+                    <DataGridTextColumn Header="STATE"     Binding="{Binding State}"         Width="80"  />
+                    <DataGridTextColumn Header="CAREER"    Binding="{Binding Career}"        Width="100" />
+                    <DataGridTextColumn Header="CREATED"   Binding="{Binding CreatedText}"   Width="90"  />
+                    <DataGridTextColumn Header="COMPLETED" Binding="{Binding CompletedText}" Width="90"  />
+                    <DataGridTextColumn Header="REM. REWARD" Binding="{Binding RemainingRewardText}" Width="95" />
+                  </DataGrid.Columns>
+                </DataGrid>
+              </Grid>
+            </TabItem>
+
+            <!-- Maintain -->
+            <TabItem Header="STANDING PROJECTS">
+              <Grid RowDefinitions="Auto,*" Margin="0">
+
+                <!-- Toolbar -->
+                <Border Grid.Row="0" Background="#12121a" Padding="8 5"
+                        BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="+ Add Project"
+                            Command="{Binding AddStandingProjectCommand}"
+                            Background="#1a1a28" Foreground="#c8a84b"
+                            BorderBrush="#3a3020" BorderThickness="1"
+                            Padding="12 4" FontSize="11" />
+                    <Button Content="Refresh"
+                            Command="{Binding RefreshMaintainCommand}"
+                            Background="#1a1a28" Foreground="#5599aa"
+                            BorderBrush="#2a3a44" BorderThickness="1"
+                            Padding="10 4" FontSize="11" />
+                    <TextBlock IsVisible="{Binding IsLoadingMaintain}"
+                               Text="Loading…" FontSize="10" Foreground="#666677"
+                               VerticalAlignment="Center" Margin="8 0 0 0" />
+                  </StackPanel>
+                </Border>
+
+                <!-- Grid -->
+                <DataGrid Grid.Row="1"
+                          ItemsSource="{Binding StandingProjectRows}"
+                          SelectedItem="{Binding SelectedMaintainRow, Mode=TwoWay}"
+                          IsVisible="{Binding !HasNoStandingProjects}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          Background="#0d0d12" RowBackground="#0d0d12"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="#1a1a26"
+                          HeadersVisibility="Column"
+                          FontSize="10" BorderThickness="0"
+                          Margin="0">
+                  <DataGrid.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="Clone item"
+                                Command="{Binding CloneStandingProjectCommand}" />
+                      <MenuItem Header="Open Item in Item Browser"
+                                Command="{Binding OpenMaintainItemInBrowserCommand}"
+                                IsVisible="{Binding SelectedMaintainRow.IsDeliverItem}" />
+                    </ContextMenu>
+                  </DataGrid.ContextMenu>
+                  <DataGrid.Styles>
+                    <Style Selector="DataGridColumnHeader">
+                      <Setter Property="Background"  Value="#12121a" />
+                      <Setter Property="Foreground"  Value="#555566" />
+                      <Setter Property="FontSize"    Value="10" />
+                      <Setter Property="FontWeight"  Value="SemiBold" />
+                      <Setter Property="Padding"     Value="6 5 2 5" />
+                    </Style>
+                  </DataGrid.Styles>
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="TYPE"        Binding="{Binding TypeDisplay}"    Width="95" />
+                    <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding DescriptionText}" Width="*" />
+                    <DataGridTextColumn Header="LOCATION"    Binding="{Binding LocationText}"   Width="130" />
+                    <DataGridTemplateColumn Header="PROJECT STATUS" Width="200">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                          <TextBlock Text="{Binding ProjectStatusText}"
+                                     Foreground="{Binding ProjectStatusColor}"
+                                     FontSize="10" VerticalAlignment="Center"
+                                     Padding="6 0" />
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="REMAINING"   Binding="{Binding RemainingText}"       Width="90" />
+                    <DataGridTextColumn Header="PAYOUT"      Binding="{Binding RemainingPayoutText}" Width="110" />
+                    <DataGridTemplateColumn Header="" Width="120" IsReadOnly="True">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                          <StackPanel Orientation="Horizontal" Spacing="6"
+                                      VerticalAlignment="Center" Margin="4 0">
+                            <Button Content="Edit"
+                                    Command="{Binding EditCommand}"
+                                    Background="#1a1a28" Foreground="#888899"
+                                    BorderBrush="#2a2a3a" BorderThickness="1"
+                                    Padding="8 2" FontSize="10" />
+                            <Button Content="Delete"
+                                    Command="{Binding DeleteCommand}"
+                                    Background="#2a1010" Foreground="#aa4444"
+                                    BorderBrush="#3a2020" BorderThickness="1"
+                                    Padding="8 2" FontSize="10" />
+                          </StackPanel>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                  </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Empty state -->
+                <TextBlock Grid.Row="1"
+                           IsVisible="{Binding HasNoStandingProjects}"
+                           Text="No standing projects defined. Click '+ Add Project' to create one."
+                           FontSize="11" Foreground="#444455" FontStyle="Italic"
+                           VerticalAlignment="Center" HorizontalAlignment="Center" />
+
+              </Grid>
+            </TabItem>
+
+          </TabControl>
+
+          <!-- Divider -->
+          <Border Grid.Row="1" Background="#1e1e2a"
+                  IsVisible="{Binding ShowProjectDetailPanel}" />
+
+          <!-- ── Bottom 50%: Project detail panel ─────────────────── -->
+          <Grid Grid.Row="2" IsVisible="{Binding ShowProjectDetailPanel}">
+
+            <!-- Placeholder -->
+            <TextBlock IsVisible="{Binding !HasSelectedProject}"
+                       Text="Select a project above to view details."
+                       FontSize="11" Foreground="#444455" FontStyle="Italic"
+                       VerticalAlignment="Center" HorizontalAlignment="Center" />
+
+            <!-- Detail tabs -->
+            <TabControl IsVisible="{Binding HasSelectedProject}"
+                        Background="#0d0d12" BorderThickness="0" Margin="0">
+              <TabControl.Styles>
+                <Style Selector="TabItem">
+                  <Setter Property="FontSize"   Value="10" />
+                  <Setter Property="Foreground" Value="#666677" />
+                  <Setter Property="Background" Value="Transparent" />
+                  <Setter Property="Padding"    Value="12 5" />
+                </Style>
+                <Style Selector="TabItem:selected">
+                  <Setter Property="Foreground" Value="#8899cc" />
+                </Style>
+              </TabControl.Styles>
+
+              <!-- Tab 1: Details -->
+              <TabItem Header="DETAILS">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Auto"
+                              Margin="8 4">
+                  <StackPanel Spacing="0">
+
+                    <!-- Common info fields -->
+                    <ItemsControl ItemsSource="{Binding ProjectInfoFields}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ProjectFieldVm">
+                          <Grid ColumnDefinitions="140,*" Margin="0 1">
+                            <TextBlock Grid.Column="0" Text="{Binding Label}"
+                                       FontSize="10" Foreground="#555566"
+                                       VerticalAlignment="Top" />
+                            <TextBlock Grid.Column="1" Text="{Binding Value}"
+                                       FontSize="10" Foreground="#c8c8d8"
+                                       TextWrapping="Wrap" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Configuration section (type-specific) -->
+                    <Border IsVisible="{Binding HasProjectConfig}"
+                            Background="#12121a" CornerRadius="3"
+                            BorderBrush="#1e1e2a" BorderThickness="1"
+                            Padding="8 6" Margin="0 8 0 0">
+                      <StackPanel Spacing="0">
+                        <TextBlock Text="CONFIGURATION"
+                                   FontSize="10" FontWeight="SemiBold" Foreground="#8899cc"
+                                   Margin="0 0 0 4" />
+                        <ItemsControl ItemsSource="{Binding ProjectConfigFields}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ProjectFieldVm">
+                              <Grid ColumnDefinitions="140,*" Margin="0 1">
+                                <TextBlock Grid.Column="0" Text="{Binding Label}"
+                                           FontSize="10" Foreground="#555566"
+                                           VerticalAlignment="Top" />
+                                <TextBlock Grid.Column="1" Text="{Binding Value}"
+                                           FontSize="10" Foreground="#c8c8d8"
+                                           TextWrapping="Wrap" />
+                              </Grid>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+                    </Border>
+
+                  </StackPanel>
+                </ScrollViewer>
+              </TabItem>
+
+              <!-- Tab 2: Contributors -->
+              <TabItem Header="CONTRIBUTORS">
+                <DataGrid ItemsSource="{Binding ProjectContributors}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          Background="#0d0d12" RowBackground="#0d0d12"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="#1a1a26"
+                          HeadersVisibility="Column"
+                          FontSize="10" BorderThickness="0"
+                          Margin="8 4 8 0">
+                  <DataGrid.Styles>
+                    <Style Selector="DataGridColumnHeader">
+                      <Setter Property="Background"  Value="#12121a" />
+                      <Setter Property="Foreground"  Value="#555566" />
+                      <Setter Property="FontSize"    Value="10" />
+                      <Setter Property="FontWeight"  Value="SemiBold" />
+                      <Setter Property="Padding"     Value="6 5 2 5" />
+                    </Style>
+                  </DataGrid.Styles>
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="#"           Binding="{Binding Rank}"          Width="36"  />
+                    <DataGridTextColumn Header="NAME"        Binding="{Binding CharacterName}" Width="*"   />
+                    <DataGridTextColumn Header="CONTRIBUTED" Binding="{Binding Contributed}"   Width="100" />
+                    <DataGridTextColumn Header="% OF TARGET" Binding="{Binding PercentText}"   Width="80"  />
+                    <DataGridTextColumn Header="PAYOUT"      Binding="{Binding PayoutText}"    Width="110" />
+                  </DataGrid.Columns>
+                </DataGrid>
+              </TabItem>
+
+            </TabControl>
+          </Grid>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ══ Top 10 Lists ═══════════════════════════════════════════ -->
+      <TabItem Header="TOP 10 LISTS">
+        <Grid RowDefinitions="Auto,*">
+
+          <!-- Period selector row -->
+          <Border Grid.Row="0" Background="#12121a" Padding="10 6 10 4"
+                  BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+            <Grid ColumnDefinitions="*,Auto,8,Auto,16,Auto,8,Auto,16,Auto,8,Auto">
+              <TextBlock Grid.Column="0" Text="TOP 10 BY MONTH"
+                         FontSize="10" FontWeight="SemiBold" Foreground="#6aaa88"
+                         VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="Month:" FontSize="10" Foreground="#555566"
+                         VerticalAlignment="Center" />
+              <ComboBox Grid.Column="3"
+                        ItemsSource="{Binding Top10Months}"
+                        SelectedItem="{Binding SelectedTop10Month}"
+                        IsEnabled="{Binding !IsTop10Loading}"
+                        FontSize="10" MinWidth="100"
+                        Background="#1a1a28" Foreground="#c8c8d8"
+                        BorderBrush="#2a2a3a" BorderThickness="1" />
+              <TextBlock Grid.Column="5" Text="Year:" FontSize="10" Foreground="#555566"
+                         VerticalAlignment="Center" />
+              <ComboBox Grid.Column="7"
+                        ItemsSource="{Binding Top10Years}"
+                        SelectedItem="{Binding SelectedTop10Year}"
+                        IsEnabled="{Binding !IsTop10Loading}"
+                        FontSize="10" MinWidth="60"
+                        Background="#1a1a28" Foreground="#c8c8d8"
+                        BorderBrush="#2a2a3a" BorderThickness="1" />
+              <TextBlock Grid.Column="9" Text="Loading..."
+                         IsVisible="{Binding IsTop10Loading}"
+                         FontSize="10" Foreground="#6aaa88" FontStyle="Italic"
+                         VerticalAlignment="Center" />
+              <Button Grid.Column="11" x:Name="ExportTop10Button"
+                      Content="Export to Clipboard"
+                      IsEnabled="{Binding !IsTop10Loading}"
+                      FontSize="10" Padding="8 3"
+                      Background="#1a2a1a" Foreground="#6aaa88"
+                      BorderBrush="#2a3a2a" BorderThickness="1" />
+            </Grid>
+          </Border>
+
+          <ScrollViewer Grid.Row="1"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto">
+            <WrapPanel Orientation="Horizontal" Margin="8 4 8 8">
+
+              <!-- Ratting Tax -->
+              <Border Width="300" Margin="0 0 8 8" Background="#12121a" CornerRadius="3"
+                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="8 6">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="RATTING TAX"
+                             FontSize="10" FontWeight="SemiBold" Foreground="#c8a84b" />
+                  <ItemsControl ItemsSource="{Binding TopRatters}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:CorpTopPlayerRowVm">
+                        <Grid ColumnDefinitions="26,*,Auto" Margin="0 1">
+                          <TextBlock Grid.Column="0" Text="{Binding Rank}"
+                                     FontSize="10" Foreground="#555566" />
+                          <TextBlock Grid.Column="1" Text="{Binding CharacterName}"
+                                     FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Grid.Column="2" Text="{Binding AmountText}"
+                                     FontSize="11" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+
+              <!-- Miners -->
+              <Border Width="300" Margin="0 0 8 8" Background="#12121a" CornerRadius="3"
+                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="8 6">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="MINING — UNITS MINED"
+                             FontSize="10" FontWeight="SemiBold" Foreground="#6aaa88" />
+                  <ItemsControl ItemsSource="{Binding TopMiners}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:CorpTopPlayerRowVm">
+                        <Grid ColumnDefinitions="26,*,Auto" Margin="0 1">
+                          <TextBlock Grid.Column="0" Text="{Binding Rank}"
+                                     FontSize="10" Foreground="#555566" />
+                          <TextBlock Grid.Column="1" Text="{Binding CharacterName}"
+                                     FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Grid.Column="2" Text="{Binding AmountText}"
+                                     FontSize="11" Foreground="#6aaa88" HorizontalAlignment="Right" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <!-- Killers -->
+              <Border Width="300" Margin="0 0 8 8" Background="#12121a" CornerRadius="3"
+                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="8 6">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="KILLS"
+                             FontSize="10" FontWeight="SemiBold" Foreground="#aa6644" />
+                  <ItemsControl ItemsSource="{Binding TopKillers}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:CorpTopPlayerRowVm">
+                        <Grid ColumnDefinitions="26,*,Auto" Margin="0 1">
+                          <TextBlock Grid.Column="0" Text="{Binding Rank}"
+                                     FontSize="10" Foreground="#555566" />
+                          <TextBlock Grid.Column="1" Text="{Binding CharacterName}"
+                                     FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Grid.Column="2" Text="{Binding AmountText}"
+                                     FontSize="11" Foreground="#aa6644" HorizontalAlignment="Right" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <!-- Project Contributors -->
+              <Border Width="300" Margin="0 0 8 8" Background="#12121a" CornerRadius="3"
+                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="8 6">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="PROJECT CONTRIBUTORS"
+                             FontSize="10" FontWeight="SemiBold" Foreground="#8899cc" />
+                  <ItemsControl ItemsSource="{Binding TopContributors}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:CorpTopPlayerRowVm">
+                        <Grid ColumnDefinitions="26,*,Auto" Margin="0 1">
+                          <TextBlock Grid.Column="0" Text="{Binding Rank}"
+                                     FontSize="10" Foreground="#555566" />
+                          <TextBlock Grid.Column="1" Text="{Binding CharacterName}"
+                                     FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Grid.Column="2" Text="{Binding AmountText}"
+                                     FontSize="11" Foreground="#8899cc" HorizontalAlignment="Right" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <!-- Industry Tax -->
+              <Border Width="300" Margin="0 0 8 8" Background="#12121a" CornerRadius="3"
+                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="8 6">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="INDUSTRY TAX"
+                             FontSize="10" FontWeight="SemiBold" Foreground="#c87c3c" />
+                  <ItemsControl ItemsSource="{Binding TopIndustry}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:CorpTopPlayerRowVm">
+                        <Grid ColumnDefinitions="26,*,Auto" Margin="0 1">
+                          <TextBlock Grid.Column="0" Text="{Binding Rank}"
+                                     FontSize="10" Foreground="#555566" />
+                          <TextBlock Grid.Column="1" Text="{Binding CharacterName}"
+                                     FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Grid.Column="2" Text="{Binding AmountText}"
+                                     FontSize="11" Foreground="#c87c3c" HorizontalAlignment="Right" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+            </WrapPanel>
+          </ScrollViewer>
+
+        </Grid>
+      </TabItem>
+
+    </TabControl>
+
+  </Grid>
+</UserControl>

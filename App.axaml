@@ -1,0 +1,185 @@
+﻿<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="EveCortex.App"
+             RequestedThemeVariant="Dark">
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <!-- Eve amber replaces Fluent blue everywhere: tab underlines, focus rings,
+           checkbox fills, progress bar fill, selection highlights -->
+      <Color x:Key="SystemAccentColor">#c8a84b</Color>
+      <Color x:Key="SystemAccentColorDark1">#b8942e</Color>
+      <Color x:Key="SystemAccentColorDark2">#a07e1e</Color>
+      <Color x:Key="SystemAccentColorDark3">#886810</Color>
+      <Color x:Key="SystemAccentColorLight1">#d4b865</Color>
+      <Color x:Key="SystemAccentColorLight2">#dfc87a</Color>
+      <Color x:Key="SystemAccentColorLight3">#e8d898</Color>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme />
+    <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+
+    <Styles>
+
+      <!-- ── Window ──────────────────────────────────────────────────────── -->
+      <Style Selector="Window">
+        <Setter Property="Background" Value="#0d0d12" />
+      </Style>
+
+      <!-- ── Button: outlined dark, amber border on hover ────────────────── -->
+      <Style Selector="Button">
+        <Setter Property="Background"       Value="Transparent" />
+        <Setter Property="Foreground"       Value="#9090a0" />
+        <Setter Property="BorderBrush"      Value="#2a2a38" />
+        <Setter Property="BorderThickness"  Value="1" />
+        <Setter Property="CornerRadius"     Value="2" />
+        <Setter Property="Padding"          Value="14 4" />
+        <Setter Property="FontSize"         Value="12" />
+        <Setter Property="Cursor"           Value="Hand" />
+      </Style>
+      <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background"  Value="#1a1a26" />
+        <Setter Property="BorderBrush" Value="#c8a84b" />
+      </Style>
+      <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#22222e" />
+      </Style>
+      <Style Selector="Button:disabled">
+        <Setter Property="Opacity" Value="0.4" />
+      </Style>
+
+      <!-- ── TabControl: transparent host ────────────────────────────────── -->
+      <Style Selector="TabControl">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding"    Value="0" />
+      </Style>
+
+      <!-- ── TabItem: underline-only, amber when active ───────────────────── -->
+      <Style Selector="TabItem">
+        <Setter Property="Background"      Value="Transparent" />
+        <Setter Property="Foreground"      Value="#666677" />
+        <Setter Property="FontSize"        Value="12" />
+        <Setter Property="Padding"         Value="14 8" />
+        <Setter Property="Margin"          Value="0" />
+      </Style>
+      <Style Selector="TabItem:selected">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#c8a84b" />
+      </Style>
+      <Style Selector="TabItem:pointerover:not(:selected)">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#b0b0be" />
+      </Style>
+
+      <!-- ── ComboBox: dark neutral ───────────────────────────────────────── -->
+      <Style Selector="ComboBox">
+        <Setter Property="Background"      Value="#111117" />
+        <Setter Property="BorderBrush"     Value="#2a2a38" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground"      Value="#c8c8cc" />
+        <Setter Property="FontSize"        Value="12" />
+        <Setter Property="CornerRadius"    Value="2" />
+        <Setter Property="MinHeight"       Value="26" />
+      </Style>
+      <Style Selector="ComboBoxItem">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#c8c8cc" />
+        <Setter Property="FontSize"   Value="12" />
+        <Setter Property="Padding"    Value="8 4" />
+      </Style>
+      <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#1a1a26" />
+      </Style>
+      <Style Selector="ComboBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="#1e2030" />
+      </Style>
+
+      <!-- ── TextBox: dark neutral, amber caret and focus border ──────────── -->
+      <Style Selector="TextBox">
+        <Setter Property="Background"      Value="#111117" />
+        <Setter Property="BorderBrush"     Value="#2a2a38" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground"      Value="#c8c8cc" />
+        <Setter Property="FontSize"        Value="12" />
+        <Setter Property="CornerRadius"    Value="2" />
+        <Setter Property="CaretBrush"      Value="#c8a84b" />
+        <Setter Property="SelectionBrush"  Value="#3a3010" />
+        <Setter Property="MinHeight"       Value="26" />
+      </Style>
+
+      <!-- ── ListBox / ListBoxItem ────────────────────────────────────────── -->
+      <Style Selector="ListBox">
+        <Setter Property="Background"      Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding"         Value="0" />
+      </Style>
+      <Style Selector="ListBoxItem">
+        <Setter Property="Padding"    Value="8 5" />
+        <Setter Property="Foreground" Value="#a0a0b0" />
+        <Setter Property="FontSize"   Value="12" />
+        <Setter Property="Background" Value="Transparent" />
+      </Style>
+      <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="#1c1c2a" />
+      </Style>
+      <Style Selector="ListBoxItem:selected">
+        <Setter Property="Foreground" Value="#c8a84b" />
+      </Style>
+      <Style Selector="ListBoxItem:pointerover:not(:selected) /template/ ContentPresenter">
+        <Setter Property="Background" Value="#16161e" />
+      </Style>
+
+      <!-- ── ProgressBar: dark track (amber fill comes from accent override) ─ -->
+      <Style Selector="ProgressBar">
+        <Setter Property="Background"   Value="#1e1e28" />
+        <Setter Property="CornerRadius" Value="1" />
+        <Setter Property="Height"       Value="4" />
+      </Style>
+
+      <!-- ── DataGrid ─────────────────────────────────────────────────────── -->
+      <Style Selector="DataGrid">
+        <Setter Property="Background"               Value="#0d0d12" />
+        <Setter Property="GridLinesVisibility"      Value="None" />
+        <Setter Property="BorderThickness"          Value="0" />
+        <Setter Property="FontSize"                 Value="11" />
+        <Setter Property="Foreground"               Value="#c8c8cc" />
+        <Setter Property="RowBackground"            Value="Transparent" />
+        <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+        <Setter Property="VerticalScrollBarVisibility"   Value="Auto" />
+      </Style>
+      <Style Selector="DataGridColumnHeader">
+        <Setter Property="Background"     Value="#111117" />
+        <Setter Property="Foreground"     Value="#55556a" />
+        <Setter Property="FontSize"       Value="11" />
+        <Setter Property="FontWeight"     Value="Normal" />
+        <Setter Property="Padding"        Value="6 5" />
+        <Setter Property="SeparatorBrush" Value="#1e1e28" />
+      </Style>
+      <Style Selector="DataGridRow">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#c8c8cc" />
+      </Style>
+      <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+        <Setter Property="Fill"    Value="#16161e" />
+        <Setter Property="Opacity" Value="1" />
+      </Style>
+      <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+        <Setter Property="Fill"    Value="#1c2030" />
+        <Setter Property="Opacity" Value="1" />
+      </Style>
+      <Style Selector="DataGridCell">
+        <Setter Property="Padding" Value="6 0" />
+      </Style>
+
+      <!-- ── CheckBox ─────────────────────────────────────────────────────── -->
+      <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="#a0a0b0" />
+        <Setter Property="FontSize"   Value="12" />
+      </Style>
+
+    </Styles>
+  </Application.Styles>
+
+</Application>

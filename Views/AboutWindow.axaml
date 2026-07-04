@@ -1,0 +1,72 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveCortex.Views.AboutWindow"
+        Title="About Eve Cortex"
+        Icon="avares://EveCortex/Assets/ec.ico"
+        Width="400"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <StackPanel Margin="36 32 36 28" Spacing="0">
+
+    <!-- Logo -->
+    <Image Source="avares://EveCortex/Assets/logo.png"
+           Width="160" Height="160"
+           HorizontalAlignment="Center"
+           RenderOptions.BitmapInterpolationMode="HighQuality"
+           Margin="0 0 0 16" />
+
+    <!-- Two-tone app name -->
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 0 0 4">
+      <TextBlock Text="Eve "
+                 FontSize="26" FontWeight="Bold"
+                 Foreground="#e8e8ec"
+                 LetterSpacing="4" />
+      <TextBlock Text="Cortex"
+                 FontSize="26" FontWeight="Bold"
+                 Foreground="#c8a84b"
+                 LetterSpacing="4" />
+    </StackPanel>
+
+    <!-- Version -->
+    <TextBlock x:Name="VersionText"
+               Text=""
+               FontSize="12" Foreground="#555566"
+               HorizontalAlignment="Center"
+               Margin="0 0 0 24" />
+
+    <!-- Divider -->
+    <Rectangle Height="1" Fill="#1e1e28" Margin="0 0 0 20" />
+
+    <!-- Description -->
+    <TextBlock Text="An EVE Online industrial companion for production planning, asset tracking, market pricing, and character management."
+               FontSize="12" Foreground="#aaaabc"
+               TextWrapping="Wrap"
+               TextAlignment="Center"
+               LineHeight="20"
+               Margin="0 0 0 24" />
+
+    <!-- Divider -->
+    <Rectangle Height="1" Fill="#1e1e28" Margin="0 0 0 16" />
+
+    <!-- CCP trademark notice -->
+    <TextBlock FontSize="11" Foreground="#3a3a4a"
+               TextWrapping="Wrap"
+               TextAlignment="Center"
+               LineHeight="17">
+      EVE Online and the EVE logo are the registered trademarks of CCP hf.
+      Eve Cortex is not affiliated with or endorsed by CCP hf.
+    </TextBlock>
+
+    <!-- Close button -->
+    <Button Content="Close"
+            HorizontalAlignment="Center"
+            Padding="28 6"
+            Margin="0 24 0 0"
+            Click="OnCloseClick" />
+
+  </StackPanel>
+
+</Window>

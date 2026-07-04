@@ -1,0 +1,800 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="EveCortex.Views.ItemBrowserView"
+             x:DataType="vm:ItemBrowserViewModel"
+             Background="#0d0d12">
+
+  <!-- Root Grid: row 0 = main content, row 1 = status bar (guaranteed no overlap) -->
+  <Grid RowDefinitions="*,Auto">
+
+    <!-- Status bar -->
+    <Border Grid.Row="1" Background="#0d0d12" Padding="12 4" BorderThickness="0 1 0 0" BorderBrush="#1e1e2a">
+      <TextBlock Text="{Binding Status}" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+    </Border>
+
+    <!-- Main content: left tree + right detail -->
+    <Grid Grid.Row="0" ColumnDefinitions="280,1,*">
+
+      <!-- ── Left: nav toolbar + search + tree/results ───────────────────── -->
+      <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,*" Background="#0d0d12">
+
+        <!-- Back / Forward toolbar -->
+        <Border Grid.Row="0" Background="#10101a" Padding="6 5"
+                BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+          <StackPanel Orientation="Horizontal" Spacing="4">
+            <Button Command="{Binding GoBackCommand}"
+                    ToolTip.Tip="Go back"
+                    Width="26" Height="22" Padding="2 0"
+                    FontSize="14" FontWeight="SemiBold"
+                    Background="#1a1a28" Foreground="#aaaacc"
+                    BorderBrush="#2a2a3a" BorderThickness="1"
+                    CornerRadius="3"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    Content="&#x2190;" />
+            <Button Command="{Binding GoForwardCommand}"
+                    ToolTip.Tip="Go forward"
+                    Width="26" Height="22" Padding="2 0"
+                    FontSize="14" FontWeight="SemiBold"
+                    Background="#1a1a28" Foreground="#aaaacc"
+                    BorderBrush="#2a2a3a" BorderThickness="1"
+                    CornerRadius="3"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    Content="&#x2192;" />
+          </StackPanel>
+        </Border>
+
+        <!-- Search box -->
+        <Border Grid.Row="1" Background="#12121a" Padding="10 8" BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+          <TextBox Text="{Binding SearchText}"
+                   Watermark="Search items…"
+                   Background="#1a1a28"
+                   BorderBrush="#2a2a3a"
+                   BorderThickness="1"
+                   CornerRadius="3"
+                   FontSize="12"
+                   Foreground="#ccccdd"
+                   CaretBrush="#c8a84b"
+                   Padding="8 5" />
+        </Border>
+
+        <!-- Loading indicator -->
+        <TextBlock Grid.Row="2"
+                   IsVisible="{Binding IsLoading}"
+                   Text="Loading categories…"
+                   FontSize="11" Foreground="#555566"
+                   Margin="12 8" />
+
+        <!-- Fill area: tree OR search results, both fill row 3 -->
+        <Grid Grid.Row="3">
+
+          <TreeView x:Name="ItemTree"
+                    IsVisible="{Binding IsBrowsing}"
+                    ItemsSource="{Binding RootGroups}"
+                    SelectedItem="{Binding SelectedNode}"
+                    Background="Transparent"
+                    BorderThickness="0">
+            <TreeView.Styles>
+              <Style Selector="TreeViewItem">
+                <!-- Binds IsExpanded so code can expand ancestor nodes programmatically -->
+                <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+                <Setter Property="Padding"    Value="2 2" />
+                <Setter Property="FontSize"   Value="12" />
+              </Style>
+              <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
+                <Setter Property="Background" Value="#1e2a1e" />
+              </Style>
+            </TreeView.Styles>
+          </TreeView>
+
+          <ListBox IsVisible="{Binding IsSearching}"
+                   ItemsSource="{Binding SearchResults}"
+                   SelectedItem="{Binding SelectedResult}"
+                   Background="Transparent"
+                   BorderThickness="0"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.Styles>
+              <Style Selector="ListBoxItem">
+                <Setter Property="Padding" Value="10 5" />
+              </Style>
+            </ListBox.Styles>
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:TypeSearchResult">
+                <StackPanel Spacing="1">
+                  <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#c8a84b" FontWeight="SemiBold" />
+                  <TextBlock Text="{Binding GroupPath}" FontSize="10" Foreground="#555566"
+                             TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+        </Grid>
+
+      </Grid>
+
+      <!-- Vertical divider -->
+      <Rectangle Grid.Column="1" Fill="#1e1e2a" />
+
+      <!-- ── Right: item info ───────────────────────────────────────────── -->
+      <Grid Grid.Column="2">
+
+        <!-- Empty state -->
+        <TextBlock IsVisible="{Binding NoItem}"
+                   Text="Select an item from the tree or search to view its details."
+                   Foreground="#333344" FontSize="13"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   TextWrapping="Wrap" Margin="40" />
+
+        <!-- Item info -->
+        <Grid IsVisible="{Binding HasItem}" RowDefinitions="Auto,*">
+
+          <!-- Header -->
+          <Border Grid.Row="0" Background="#12121a" Padding="16 12"
+                  BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+            <Grid ColumnDefinitions="72,*" DataContext="{Binding SelectedItem}">
+
+              <!-- Icon -->
+              <Border Grid.Column="0" Width="64" Height="64" CornerRadius="4"
+                      Background="#1a1a28" ClipToBounds="True" Margin="0 0 14 0">
+                <Image Source="{Binding Icon}" Stretch="UniformToFill" />
+              </Border>
+
+              <!-- Name + path + stats -->
+              <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="Bold" Foreground="#e8e8f0" />
+                <TextBlock Text="{Binding GroupPath}" FontSize="11" Foreground="#555566" />
+                <StackPanel Orientation="Horizontal" Spacing="16" Margin="0 4 0 0">
+                  <StackPanel Orientation="Horizontal" Spacing="4"
+                              IsVisible="{Binding VolumeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="Volume:" FontSize="12" Foreground="#666677" />
+                    <TextBlock Text="{Binding VolumeText}" FontSize="12" Foreground="#c8a84b" />
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="4"
+                              IsVisible="{Binding MarketValueText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="{Binding MarketValueLabel}" FontSize="12" Foreground="#666677" />
+                    <TextBlock Text="{Binding MarketValueText}"  FontSize="12" Foreground="#c8a84b" />
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="4"
+                              IsVisible="{Binding HasBuildCost}">
+                    <TextBlock Text="Build Cost:" FontSize="12" Foreground="#666677" />
+                    <TextBlock Text="{Binding BuildCostText}"
+                               FontSize="12" Foreground="#c8a84b"
+                               IsVisible="{Binding BuildCostText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <TextBlock Text="—" FontSize="12" Foreground="#444455"
+                               IsVisible="{Binding BuildCostText, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="4"
+                              IsVisible="{Binding ReprocessedValueText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="Reproc Value:" FontSize="12" Foreground="#666677" />
+                    <TextBlock Text="{Binding ReprocessedValueText}" FontSize="12" Foreground="#c8a84b" />
+                  </StackPanel>
+                </StackPanel>
+              </StackPanel>
+
+            </Grid>
+          </Border>
+
+          <!-- Tabs -->
+          <TabControl Grid.Row="1"
+                      x:Name="ItemDetailTabs"
+                      Background="Transparent"
+                      SelectionChanged="OnDetailTabChanged">
+            <TabControl.Styles>
+              <Style Selector="TabItem">
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="Foreground" Value="#666677" />
+                <Setter Property="Padding" Value="12 8" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0 0 0 2" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="Margin" Value="0" />
+              </Style>
+              <Style Selector="TabItem:selected">
+                <Setter Property="Foreground" Value="#c8a84b" />
+                <Setter Property="BorderBrush" Value="#c8a84b" />
+              </Style>
+              <Style Selector="TabItem:pointerover">
+                <Setter Property="Foreground" Value="#e8d870" />
+              </Style>
+            </TabControl.Styles>
+
+            <!-- Description tab -->
+            <TabItem Header="Description">
+              <ScrollViewer Padding="20 16">
+                <TextBlock Text="{Binding SelectedItem.Description}"
+                           FontSize="13" Foreground="#aaaabc"
+                           TextWrapping="Wrap"
+                           LineHeight="20" />
+              </ScrollViewer>
+            </TabItem>
+
+            <!-- Attributes tab -->
+            <TabItem Header="Attributes">
+              <ScrollViewer Padding="16 12">
+                <StackPanel Spacing="12">
+
+                  <ItemsControl ItemsSource="{Binding SelectedItem.TypeStats}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:AttrDisplayVm">
+                        <Grid ColumnDefinitions="*,Auto" Margin="4 3">
+                          <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                     FontSize="12" Foreground="#888899" />
+                          <TextBlock Grid.Column="1" Text="{Binding ValueText}"
+                                     FontSize="12" Foreground="#c8a84b"
+                                     HorizontalAlignment="Right" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+
+                  <Rectangle IsVisible="{Binding SelectedItem.HasDogmaAttrs}" Height="1" Fill="#1e1e2a" Margin="4 6" />
+                  <ItemsControl IsVisible="{Binding SelectedItem.HasDogmaAttrs}" ItemsSource="{Binding SelectedItem.DogmaAttrs}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:AttrGroupVm">
+                        <StackPanel Margin="0 6 0 0">
+                          <TextBlock
+                            IsVisible="{Binding CategoryName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                            Text="{Binding CategoryName}"
+                            FontSize="10" FontWeight="SemiBold" Foreground="#555566"
+                            Margin="4 0 0 2" />
+                          <ItemsControl ItemsSource="{Binding Attrs}">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="vm:AttrDisplayVm">
+                                <Grid ColumnDefinitions="*,Auto" Margin="4 2">
+                                  <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                             FontSize="12" Foreground="#888899" />
+                                  <TextBlock Grid.Column="1" Text="{Binding ValueText}"
+                                             FontSize="12" Foreground="#c8a84b"
+                                             HorizontalAlignment="Right" />
+                                </Grid>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+
+                </StackPanel>
+              </ScrollViewer>
+            </TabItem>
+
+            <!-- Requirements tab: skills needed to use/build this item -->
+            <TabItem Header="Requirements">
+              <ScrollViewer Padding="16 12">
+                <StackPanel Spacing="6">
+                  <ItemsControl ItemsSource="{Binding SelectedItem.Requirements}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:BpSkillVm">
+                        <Grid ColumnDefinitions="*,Auto" Margin="4 3">
+                          <Button Grid.Column="0" x:CompileBindings="False"
+                                  Command="{Binding $parent[UserControl].DataContext.NavigateToItemCommand}"
+                                  CommandParameter="{Binding SkillTypeId}"
+                                  Background="Transparent" BorderThickness="0"
+                                  Padding="0" Cursor="Hand" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding SkillName}"
+                                       FontSize="13" Foreground="#aaaabc" TextDecorations="Underline" />
+                          </Button>
+                          <TextBlock Grid.Column="1" Text="{Binding LevelRoman}"
+                                     FontSize="13" Foreground="#c8a84b" FontWeight="SemiBold"
+                                     HorizontalAlignment="Right" MinWidth="20" TextAlignment="Right" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+
+                  <TextBlock IsVisible="{Binding !SelectedItem.HasRequirements}"
+                             Text="No skill requirements."
+                             FontSize="12" Foreground="#555566" FontStyle="Italic" />
+                </StackPanel>
+              </ScrollViewer>
+            </TabItem>
+
+            <!-- Required For tab: only relevant when this item is itself a skill -->
+            <TabItem Header="Required For" IsVisible="{Binding SelectedItem.IsSkill}">
+              <Grid RowDefinitions="Auto,*">
+
+                <!-- Level selector (I - V) -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4"
+                            Margin="16 12 16 8">
+                  <StackPanel.Styles>
+                    <Style Selector="Button.levelbtn">
+                      <Setter Property="Width" Value="34" />
+                      <Setter Property="Padding" Value="0 6" />
+                      <Setter Property="Background" Value="#1a1a28" />
+                      <Setter Property="Foreground" Value="#555560" />
+                      <Setter Property="BorderBrush" Value="#2a2a3a" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="HorizontalContentAlignment" Value="Center" />
+                    </Style>
+                    <Style Selector="Button.levelbtn.haveitems">
+                      <Setter Property="Foreground" Value="#c8c8d8" />
+                      <Setter Property="BorderBrush" Value="#3a3a50" />
+                    </Style>
+                    <Style Selector="Button.levelbtn.active">
+                      <Setter Property="Background" Value="#2a2440" />
+                      <Setter Property="Foreground" Value="#c8a84b" />
+                      <Setter Property="BorderBrush" Value="#c8a84b" />
+                    </Style>
+                  </StackPanel.Styles>
+                  <Button Classes="levelbtn" Classes.haveitems="{Binding HasItemsAtLevel1}" Classes.active="{Binding IsRequiredForLevel1}"
+                          Content="I"   Command="{Binding SetRequiredForLevelCommand}" CommandParameter="1" />
+                  <Button Classes="levelbtn" Classes.haveitems="{Binding HasItemsAtLevel2}" Classes.active="{Binding IsRequiredForLevel2}"
+                          Content="II"  Command="{Binding SetRequiredForLevelCommand}" CommandParameter="2" />
+                  <Button Classes="levelbtn" Classes.haveitems="{Binding HasItemsAtLevel3}" Classes.active="{Binding IsRequiredForLevel3}"
+                          Content="III" Command="{Binding SetRequiredForLevelCommand}" CommandParameter="3" />
+                  <Button Classes="levelbtn" Classes.haveitems="{Binding HasItemsAtLevel4}" Classes.active="{Binding IsRequiredForLevel4}"
+                          Content="IV"  Command="{Binding SetRequiredForLevelCommand}" CommandParameter="4" />
+                  <Button Classes="levelbtn" Classes.haveitems="{Binding HasItemsAtLevel5}" Classes.active="{Binding IsRequiredForLevel5}"
+                          Content="V"   Command="{Binding SetRequiredForLevelCommand}" CommandParameter="5" />
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1" Padding="16 0 16 12">
+                  <StackPanel Spacing="10">
+                    <ItemsControl ItemsSource="{Binding RequiredForGroups}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:RequiredForGroupVm">
+                          <StackPanel Spacing="2" Margin="0 0 0 10">
+                            <TextBlock Text="{Binding CategoryName}"
+                                       FontSize="10" FontWeight="SemiBold"
+                                       Foreground="#555566" LetterSpacing="1" Margin="4 0 0 2" />
+                            <ItemsControl ItemsSource="{Binding Items}">
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:RequiredForItemVm">
+                                  <Button x:CompileBindings="False"
+                                          Command="{Binding $parent[UserControl].DataContext.NavigateToItemCommand}"
+                                          CommandParameter="{Binding TypeId}"
+                                          Background="Transparent" BorderThickness="0"
+                                          Padding="4 3" Cursor="Hand" HorizontalContentAlignment="Left"
+                                          HorizontalAlignment="Stretch">
+                                    <TextBlock Text="{Binding ItemName}"
+                                               FontSize="13" Foreground="#aaaabc" TextDecorations="Underline" />
+                                  </Button>
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                          </StackPanel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock IsVisible="{Binding !HasRequiredForGroups}"
+                               Text="Nothing requires this skill at this level."
+                               FontSize="12" Foreground="#555566" FontStyle="Italic" />
+                  </StackPanel>
+                </ScrollViewer>
+              </Grid>
+            </TabItem>
+
+            <!-- Industry tab -->
+            <TabItem Header="Industry">
+              <ScrollViewer Padding="16 12">
+                <StackPanel Spacing="0">
+
+                  <!-- ══ BLUEPRINT / REACTION FORMULA view ════════════════════ -->
+                  <StackPanel IsVisible="{Binding SelectedItem.IsBlueprint}" Spacing="0">
+
+                    <!-- Activity selector tabs -->
+                    <ListBox x:CompileBindings="False"
+                             ItemsSource="{Binding SelectedItem.BlueprintDetail.Activities}"
+                             SelectedItem="{Binding SelectedBpActivity}"
+                             IsVisible="{Binding SelectedItem.BlueprintDetail.HasMultipleActivities}"
+                             SelectionMode="Single"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Margin="0 0 0 2">
+                      <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                          <Setter Property="Padding"         Value="14 8" />
+                          <Setter Property="Foreground"      Value="#555566" />
+                          <Setter Property="FontSize"        Value="12" />
+                          <Setter Property="Background"      Value="Transparent" />
+                          <Setter Property="BorderThickness" Value="0 0 0 2" />
+                          <Setter Property="BorderBrush"     Value="Transparent" />
+                        </Style>
+                        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                          <Setter Property="Background" Value="Transparent" />
+                        </Style>
+                        <Style Selector="ListBoxItem:selected">
+                          <Setter Property="Foreground"  Value="#c8a84b" />
+                          <Setter Property="BorderBrush" Value="#c8a84b" />
+                        </Style>
+                        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                          <Setter Property="Background" Value="Transparent" />
+                        </Style>
+                        <Style Selector="ListBoxItem:pointerover">
+                          <Setter Property="Foreground" Value="#e8d870" />
+                        </Style>
+                      </ListBox.Styles>
+                      <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                      </ListBox.ItemsPanel>
+                      <ListBox.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock Text="{Binding ActivityLabel}" />
+                        </DataTemplate>
+                      </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <Rectangle Height="1" Fill="#1c1c28" Margin="0 0 0 16" />
+
+                    <!-- Outcome / Products -->
+                    <StackPanel x:CompileBindings="False"
+                                IsVisible="{Binding SelectedBpActivity.HasProducts}"
+                                Spacing="6" Margin="0 0 0 20">
+                      <TextBlock Text="OUTCOME" FontSize="10" FontWeight="SemiBold"
+                                 Foreground="#555566" LetterSpacing="1" Margin="0 0 0 2" />
+                      <ItemsControl ItemsSource="{Binding SelectedBpActivity.Products}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:BpProductVm">
+                            <Grid ColumnDefinitions="*,Auto,Auto" Margin="4 3">
+                              <Button Grid.Column="0"
+                                      x:CompileBindings="False"
+                                      Command="{Binding $parent[UserControl].DataContext.NavigateToItemCommand}"
+                                      CommandParameter="{Binding ProductTypeId}"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="0" Cursor="Hand"
+                                      HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding ProductName}"
+                                           FontSize="12" Foreground="#c8a84b"
+                                           TextDecorations="Underline" />
+                              </Button>
+                              <TextBlock Grid.Column="1"
+                                         Text="{Binding QuantityText, StringFormat=×{0}}"
+                                         FontSize="12" Foreground="#aaaabc"
+                                         VerticalAlignment="Center" Margin="10 0 0 0" />
+                              <TextBlock Grid.Column="2"
+                                         IsVisible="{Binding HasProbability}"
+                                         Text="{Binding ProbabilityText}"
+                                         FontSize="11" Foreground="#888855"
+                                         VerticalAlignment="Center" Margin="8 0 0 0" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Required Skills -->
+                    <StackPanel x:CompileBindings="False"
+                                IsVisible="{Binding SelectedBpActivity.HasSkills}"
+                                Spacing="6" Margin="0 0 0 20">
+                      <TextBlock Text="REQUIRED SKILLS" FontSize="10" FontWeight="SemiBold"
+                                 Foreground="#555566" LetterSpacing="1" Margin="0 0 0 2" />
+                      <ItemsControl ItemsSource="{Binding SelectedBpActivity.Skills}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:BpSkillVm">
+                            <Grid ColumnDefinitions="*,Auto" Margin="4 3">
+                              <Button Grid.Column="0" x:CompileBindings="False"
+                                      Command="{Binding $parent[UserControl].DataContext.NavigateToItemCommand}"
+                                      CommandParameter="{Binding SkillTypeId}"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="0" Cursor="Hand" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding SkillName}"
+                                           FontSize="12" Foreground="#aaaabc" TextDecorations="Underline" />
+                              </Button>
+                              <TextBlock Grid.Column="1" Text="{Binding LevelRoman}"
+                                         FontSize="12" Foreground="#c8a84b" FontWeight="SemiBold"
+                                         HorizontalAlignment="Right" MinWidth="20" TextAlignment="Right" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Input Materials -->
+                    <StackPanel x:CompileBindings="False"
+                                IsVisible="{Binding SelectedBpActivity.HasMaterials}"
+                                Spacing="6">
+                      <TextBlock Text="INPUT MATERIALS" FontSize="10" FontWeight="SemiBold"
+                                 Foreground="#555566" LetterSpacing="1" Margin="0 0 0 2" />
+                      <ItemsControl ItemsSource="{Binding SelectedBpActivity.Materials}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:BlueprintMatVm">
+                            <Grid ColumnDefinitions="*,Auto" Margin="4 3">
+                              <Button Grid.Column="0" x:CompileBindings="False"
+                                      Command="{Binding $parent[UserControl].DataContext.NavigateToItemCommand}"
+                                      CommandParameter="{Binding MaterialTypeId}"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="0" Cursor="Hand" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding MaterialName}"
+                                           FontSize="12" Foreground="#aaaabc" TextDecorations="Underline" />
+                              </Button>
+                              <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat=×{0:N0}}"
+                                         FontSize="12" Foreground="#888899" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+
+                  </StackPanel>
+
+                  <!-- ══ REGULAR ITEM view ════════════════════════════════════ -->
+                  <StackPanel IsVisible="{Binding SelectedItem.IsNotBlueprint}" Spacing="20">
+
+                    <TextBlock IsVisible="{Binding !SelectedItem.HasIndustry}"
+                               Text="No blueprint data available for this item."
+                               FontSize="12" Foreground="#555566"
+                               Margin="4 8" />
+
+                    <!-- Produced By -->
+                    <StackPanel IsVisible="{Binding SelectedItem.HasProducedBy}" Spacing="8">
+                      <TextBlock Text="PRODUCED BY" FontSize="10" FontWeight="SemiBold"
+                                 Foreground="#666677" LetterSpacing="1" />
+                      <ItemsControl ItemsSource="{Binding SelectedItem.ProducedBy}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:BlueprintVm">
+                            <Border Background="#12121a" CornerRadius="4" Padding="12 10" Margin="0 4">
+                              <StackPanel Spacing="8">
+                                <!-- Blueprint name — click to navigate to the blueprint item -->
+                                <Button x:CompileBindings="False"
+                                        Command="{Binding $parent[UserControl].DataContext.NavigateToItemCommand}"
+                                        CommandParameter="{Binding BlueprintTypeId}"
+                                        Background="Transparent" BorderThickness="0"
+                                        Padding="0" Cursor="Hand" HorizontalAlignment="Left">
+                                  <TextBlock Text="{Binding BlueprintName}"
+                                             FontSize="13" FontWeight="SemiBold"
+                                             Foreground="#c8a84b" TextDecorations="Underline" />
+                                </Button>
+                                <TextBlock Text="Required Materials:" FontSize="11" Foreground="#555566" />
+                                <ItemsControl ItemsSource="{Binding Materials}">
+                                  <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:BlueprintMatVm">
+                                      <Grid ColumnDefinitions="*,Auto" Margin="8 2">
+                                        <Button Grid.Column="0" x:CompileBindings="False"
+                                                Command="{Binding $parent[UserControl].DataContext.NavigateToItemCommand}"
+                                                CommandParameter="{Binding MaterialTypeId}"
+                                                Background="Transparent" BorderThickness="0"
+                                                Padding="0" Cursor="Hand" HorizontalAlignment="Left">
+                                          <TextBlock Text="{Binding MaterialName}"
+                                                     FontSize="12" Foreground="#aaaabc" TextDecorations="Underline" />
+                                        </Button>
+                                        <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat=×{0:N0}}"
+                                                   FontSize="12" Foreground="#888899" />
+                                      </Grid>
+                                    </DataTemplate>
+                                  </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                              </StackPanel>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Used In -->
+                    <StackPanel IsVisible="{Binding SelectedItem.HasUsedIn}" Spacing="8">
+                      <TextBlock Text="USED IN MANUFACTURING" FontSize="10" FontWeight="SemiBold"
+                                 Foreground="#666677" LetterSpacing="1" />
+                      <ItemsControl ItemsSource="{Binding SelectedItem.UsedIn}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:MaterialUseVm">
+                            <Grid ColumnDefinitions="*,Auto" Margin="4 3">
+                              <Button Grid.Column="0"
+                                      x:CompileBindings="False"
+                                      Command="{Binding $parent[UserControl].DataContext.NavigateToItemCommand}"
+                                      CommandParameter="{Binding BlueprintTypeId}"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="0" Cursor="Hand" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding BlueprintName}"
+                                           FontSize="12" Foreground="#aaaabc"
+                                           TextDecorations="Underline" />
+                              </Button>
+                              <TextBlock Grid.Column="1" Text="{Binding ProductName}"
+                                         FontSize="12" Foreground="#555566"
+                                         VerticalAlignment="Center" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+
+                  </StackPanel>
+
+                </StackPanel>
+              </ScrollViewer>
+            </TabItem>
+
+            <!-- Market Orders tab -->
+            <TabItem Header="Market Orders">
+              <Grid RowDefinitions="Auto,8,*,8,*" Margin="16 12">
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
+                  <TextBlock Text="Source:" FontSize="12" Foreground="#666677"
+                             VerticalAlignment="Center" />
+                  <ComboBox ItemsSource="{Binding MarketConfigs}"
+                            SelectedItem="{Binding SelectedMarketConfig}"
+                            MinWidth="200" />
+                  <ProgressBar IsIndeterminate="True" Width="60" Height="3"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding IsLoadingOrders}" />
+                </StackPanel>
+
+                <TextBlock Grid.Row="0" Grid.RowSpan="5"
+                           IsVisible="{Binding !HasMarketConfigs}"
+                           Text="No ESI market sources configured. Add an ESI Region or ESI Structure source in Settings → Market."
+                           FontSize="12" Foreground="#555566"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           TextWrapping="Wrap" TextAlignment="Center" Margin="32" />
+
+                <Grid Grid.Row="2" RowDefinitions="Auto,*" IsVisible="{Binding HasMarketConfigs}">
+                  <TextBlock Grid.Row="0" Text="SELL ORDERS" FontSize="11" FontWeight="SemiBold"
+                             Foreground="#cc4444" LetterSpacing="1" Margin="0 0 0 4" />
+                  <DataGrid Grid.Row="1"
+                            ItemsSource="{Binding SellOrders}"
+                            CanUserSortColumns="True"
+                            CanUserResizeColumns="True"
+                            IsReadOnly="True"
+                            AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                      <DataGridTextColumn Header="Qty"
+                                          Binding="{ReflectionBinding VolumeRemainText}"
+                                          SortMemberPath="VolumeRemain"
+                                          Width="80" />
+                      <DataGridTextColumn Header="Price (ISK)"
+                                          Binding="{ReflectionBinding PriceText}"
+                                          SortMemberPath="Price"
+                                          Width="130" />
+                      <DataGridTextColumn Header="Location"
+                                          Binding="{ReflectionBinding LocationName}"
+                                          SortMemberPath="LocationName"
+                                          Width="*" />
+                      <DataGridTextColumn Header="Expires"
+                                          Binding="{ReflectionBinding ExpiresText}"
+                                          SortMemberPath="Expires"
+                                          Width="90" />
+                    </DataGrid.Columns>
+                  </DataGrid>
+                </Grid>
+
+                <Grid Grid.Row="4" RowDefinitions="Auto,*" IsVisible="{Binding HasMarketConfigs}">
+                  <TextBlock Grid.Row="0" Text="BUY ORDERS" FontSize="11" FontWeight="SemiBold"
+                             Foreground="#44aa44" LetterSpacing="1" Margin="0 0 0 4" />
+                  <DataGrid Grid.Row="1"
+                            ItemsSource="{Binding BuyOrders}"
+                            CanUserSortColumns="True"
+                            CanUserResizeColumns="True"
+                            IsReadOnly="True"
+                            AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                      <DataGridTextColumn Header="Qty"
+                                          Binding="{ReflectionBinding VolumeRemainText}"
+                                          SortMemberPath="VolumeRemain"
+                                          Width="80" />
+                      <DataGridTextColumn Header="Price (ISK)"
+                                          Binding="{ReflectionBinding PriceText}"
+                                          SortMemberPath="Price"
+                                          Width="130" />
+                      <DataGridTextColumn Header="Range"
+                                          Binding="{ReflectionBinding RangeDisplay}"
+                                          SortMemberPath="Range"
+                                          Width="90" />
+                      <DataGridTextColumn Header="Min Qty"
+                                          Binding="{ReflectionBinding MinVolumeText}"
+                                          SortMemberPath="MinVolume"
+                                          Width="75" />
+                      <DataGridTextColumn Header="Location"
+                                          Binding="{ReflectionBinding LocationName}"
+                                          SortMemberPath="LocationName"
+                                          Width="*" />
+                      <DataGridTextColumn Header="Expires"
+                                          Binding="{ReflectionBinding ExpiresText}"
+                                          SortMemberPath="Expires"
+                                          Width="90" />
+                    </DataGrid.Columns>
+                  </DataGrid>
+                </Grid>
+
+              </Grid>
+            </TabItem>
+
+            <!-- Price History tab -->
+            <TabItem Header="Price History"
+                     IsVisible="{Binding HasPriceHistoryRegions}">
+              <Grid RowDefinitions="Auto,8,*" Margin="16 12">
+
+                <!-- Header row: region picker + period picker + loading indicator -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
+                  <TextBlock Text="Region:" FontSize="12" Foreground="#666677"
+                             VerticalAlignment="Center" />
+                  <ComboBox x:CompileBindings="False"
+                            ItemsSource="{Binding HistoryRegions}"
+                            SelectedItem="{Binding SelectedHistoryRegion}"
+                            MinWidth="180">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding RegionName}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <TextBlock Text="Period:" FontSize="12" Foreground="#666677"
+                             VerticalAlignment="Center" />
+                  <ComboBox x:CompileBindings="False"
+                            ItemsSource="{Binding PeriodOptions}"
+                            SelectedItem="{Binding SelectedPeriod}"
+                            MinWidth="130">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Label}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <ProgressBar IsIndeterminate="True" Width="60" Height="3"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding IsLoadingHistory}" />
+                </StackPanel>
+
+                <!-- Empty state -->
+                <TextBlock Grid.Row="2"
+                           IsVisible="{Binding HistoryIsEmpty}"
+                           Text="No price history available for this item in the selected region."
+                           FontSize="12" Foreground="#555566"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           TextWrapping="Wrap" TextAlignment="Center" Margin="32" />
+
+                <!-- Chart / Grid tabs -->
+                <TabControl Grid.Row="2"
+                            IsVisible="{Binding !HistoryIsEmpty}"
+                            Background="Transparent">
+                  <TabControl.Styles>
+                    <Style Selector="TabItem">
+                      <Setter Property="FontSize" Value="12" />
+                      <Setter Property="Foreground" Value="#555566" />
+                      <Setter Property="Padding" Value="10 6" />
+                      <Setter Property="Background" Value="Transparent" />
+                      <Setter Property="BorderThickness" Value="0 0 0 2" />
+                      <Setter Property="BorderBrush" Value="Transparent" />
+                    </Style>
+                    <Style Selector="TabItem:selected">
+                      <Setter Property="Foreground" Value="#c8a84b" />
+                      <Setter Property="BorderBrush" Value="#c8a84b" />
+                    </Style>
+                  </TabControl.Styles>
+
+                  <TabItem Header="Chart">
+                    <lvc:CartesianChart Series="{Binding HistorySeries}"
+                                        XAxes="{Binding HistoryXAxes}"
+                                        YAxes="{Binding HistoryYAxes}"
+                                        LegendPosition="Top"
+                                        TooltipPosition="Top"
+                                        EasingFunction="{x:Null}"
+                                        Background="Transparent" />
+                  </TabItem>
+
+                  <TabItem Header="Grid">
+                    <DataGrid x:CompileBindings="False"
+                              ItemsSource="{Binding HistoryRows}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserSortColumns="True"
+                              CanUserResizeColumns="True">
+                      <DataGrid.Columns>
+                        <DataGridTextColumn Header="Date"       Binding="{ReflectionBinding Date}"                                    Width="115" />
+                        <DataGridTextColumn Header="Volume"     Binding="{ReflectionBinding Volume,    StringFormat=N0}"              Width="120" SortMemberPath="Volume" />
+                        <DataGridTextColumn Header="Avg Price"  Binding="{ReflectionBinding Average,   StringFormat=N2}"              Width="140" SortMemberPath="Average" />
+                        <DataGridTextColumn Header="High"       Binding="{ReflectionBinding Highest,   StringFormat=N2}"              Width="140" SortMemberPath="Highest" />
+                        <DataGridTextColumn Header="Low"        Binding="{ReflectionBinding Lowest,    StringFormat=N2}"              Width="140" SortMemberPath="Lowest" />
+                        <DataGridTextColumn Header="Orders"     Binding="{ReflectionBinding OrderCount}"                              Width="95"  SortMemberPath="OrderCount" />
+                      </DataGrid.Columns>
+                    </DataGrid>
+                  </TabItem>
+
+                </TabControl>
+
+              </Grid>
+            </TabItem>
+
+          </TabControl>
+        </Grid>
+      </Grid>
+
+    </Grid>
+  </Grid>
+
+</UserControl>

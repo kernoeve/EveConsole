@@ -1,0 +1,191 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="EveCortex.Views.NetWorthView"
+             x:DataType="vm:NetWorthViewModel"
+             Background="#0d0d12">
+
+  <DockPanel>
+
+    <!-- ── Top bar: owner + timeframe + options ─────────────────────────────── -->
+    <Border DockPanel.Dock="Top"
+            Background="#0d0d12" Padding="12 8"
+            BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
+      <DockPanel>
+
+        <!-- Right side: options + date -->
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="16"
+                    VerticalAlignment="Center">
+          <CheckBox IsChecked="{Binding AutoRange}" Content="Auto Range"
+                    Foreground="#888899" FontSize="11" />
+          <CheckBox IsChecked="{Binding IsLogScale}" Content="Log Scale"
+                    Foreground="#888899" FontSize="11" />
+          <TextBlock Text="{Binding CurrentDate}"
+                     Foreground="#555566" FontSize="11"
+                     VerticalAlignment="Center" Margin="8 0 0 0" />
+        </StackPanel>
+
+        <!-- Left side: owner + timeframe -->
+        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <ComboBox ItemsSource="{Binding OwnerOptions}"
+                    SelectedItem="{Binding SelectedOwner}"
+                    Width="180" FontSize="12"
+                    Background="#131320" BorderBrush="#2a2a3a"
+                    Foreground="#ccccdd">
+            <ComboBox.ItemTemplate>
+              <DataTemplate DataType="vm:NetWorthOwnerOption">
+                <TextBlock Text="{Binding DisplayName}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+
+          <ComboBox ItemsSource="{Binding TimeframeOptions}"
+                    SelectedItem="{Binding SelectedTimeframe}"
+                    Width="140" FontSize="12"
+                    Background="#131320" BorderBrush="#2a2a3a"
+                    Foreground="#ccccdd">
+            <ComboBox.ItemTemplate>
+              <DataTemplate DataType="vm:TimeframeOption">
+                <TextBlock Text="{Binding Label}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </StackPanel>
+
+      </DockPanel>
+    </Border>
+
+    <!-- ── Custom date range row — only shown when Custom Range is selected ── -->
+    <Border DockPanel.Dock="Top"
+            IsVisible="{Binding IsCustomRange}"
+            Background="#0d0d12" Padding="12 6"
+            BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
+      <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <TextBlock Text="From" Foreground="#555566" FontSize="11"
+                   VerticalAlignment="Center" />
+        <TextBox Text="{Binding CustomFromText}"
+                 Watermark="yyyy-MM-dd" Width="110" FontSize="11"
+                 Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd" />
+        <TextBlock Text="To" Foreground="#555566" FontSize="11"
+                   VerticalAlignment="Center" Margin="8 0 0 0" />
+        <TextBox Text="{Binding CustomToText}"
+                 Watermark="yyyy-MM-dd" Width="110" FontSize="11"
+                 Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd" />
+      </StackPanel>
+    </Border>
+
+    <!-- ── KPI strip ──────────────────────────────────────────────────────── -->
+    <Border DockPanel.Dock="Top"
+            Background="#0d0d12" Padding="8 6"
+            BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
+      <WrapPanel Orientation="Horizontal">
+
+        <Border Background="#131320" BorderBrush="#c8a84b" BorderThickness="1"
+                CornerRadius="4" Padding="14 7" Margin="4 2">
+          <StackPanel>
+            <TextBlock Text="NET WORTH" FontSize="9" Foreground="#888899"
+                       FontWeight="SemiBold" LetterSpacing="1" />
+            <TextBlock Text="{Binding CurrentTotal}" FontSize="18"
+                       Foreground="#c8a84b" FontWeight="Bold" />
+          </StackPanel>
+        </Border>
+
+        <Border Background="#131320" BorderBrush="#252535" BorderThickness="1"
+                CornerRadius="4" Padding="12 7" Margin="4 2">
+          <StackPanel>
+            <TextBlock Text="ASSETS" FontSize="9" Foreground="#888899"
+                       FontWeight="SemiBold" LetterSpacing="1" />
+            <TextBlock Text="{Binding CurrentAssets}" FontSize="15"
+                       Foreground="#5b9bd5" />
+          </StackPanel>
+        </Border>
+
+        <Border Background="#131320" BorderBrush="#252535" BorderThickness="1"
+                CornerRadius="4" Padding="12 7" Margin="4 2">
+          <StackPanel>
+            <TextBlock Text="WALLET" FontSize="9" Foreground="#888899"
+                       FontWeight="SemiBold" LetterSpacing="1" />
+            <TextBlock Text="{Binding CurrentWallet}" FontSize="15"
+                       Foreground="#70ad47" />
+          </StackPanel>
+        </Border>
+
+        <Border Background="#131320" BorderBrush="#252535" BorderThickness="1"
+                CornerRadius="4" Padding="12 7" Margin="4 2">
+          <StackPanel>
+            <TextBlock Text="INDUSTRY" FontSize="9" Foreground="#888899"
+                       FontWeight="SemiBold" LetterSpacing="1" />
+            <TextBlock Text="{Binding CurrentIndustry}" FontSize="15"
+                       Foreground="#ed7d31" />
+          </StackPanel>
+        </Border>
+
+        <Border Background="#131320" BorderBrush="#252535" BorderThickness="1"
+                CornerRadius="4" Padding="12 7" Margin="4 2">
+          <StackPanel>
+            <TextBlock Text="SELL ORDERS" FontSize="9" Foreground="#888899"
+                       FontWeight="SemiBold" LetterSpacing="1" />
+            <TextBlock Text="{Binding CurrentSellOrders}" FontSize="15"
+                       Foreground="#a879d8" />
+          </StackPanel>
+        </Border>
+
+        <Border Background="#131320" BorderBrush="#252535" BorderThickness="1"
+                CornerRadius="4" Padding="12 7" Margin="4 2">
+          <StackPanel>
+            <TextBlock Text="BUY ESCROW" FontSize="9" Foreground="#888899"
+                       FontWeight="SemiBold" LetterSpacing="1" />
+            <TextBlock Text="{Binding CurrentBuyEscrow}" FontSize="15"
+                       Foreground="#17becf" />
+          </StackPanel>
+        </Border>
+
+        <Border Background="#131320" BorderBrush="#252535" BorderThickness="1"
+                CornerRadius="4" Padding="12 7" Margin="4 2">
+          <StackPanel>
+            <TextBlock Text="CONTRACT COLLAT." FontSize="9" Foreground="#888899"
+                       FontWeight="SemiBold" LetterSpacing="1" />
+            <TextBlock Text="{Binding CurrentCollateral}" FontSize="15"
+                       Foreground="#e74c3c" />
+          </StackPanel>
+        </Border>
+
+        <Border Background="#131320" BorderBrush="#252535" BorderThickness="1"
+                CornerRadius="4" Padding="12 7" Margin="4 2">
+          <StackPanel>
+            <TextBlock Text="CONTRACT VALUE" FontSize="9" Foreground="#888899"
+                       FontWeight="SemiBold" LetterSpacing="1" />
+            <TextBlock Text="{Binding CurrentContracts}" FontSize="15"
+                       Foreground="#f1c40f" />
+          </StackPanel>
+        </Border>
+
+      </WrapPanel>
+    </Border>
+
+    <!-- ── Chart + empty-state overlay ───────────────────────────────────── -->
+    <Grid>
+      <lvc:CartesianChart
+          Series="{Binding Series}"
+          XAxes="{Binding XAxes}"
+          YAxes="{Binding YAxes}"
+          LegendPosition="Hidden"
+          TooltipPosition="Top"
+          EasingFunction="{x:Null}"
+          Margin="4 4 4 0"
+          Background="Transparent" />
+
+      <StackPanel IsVisible="{Binding IsEmpty}"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  Spacing="8">
+        <TextBlock Text="No net worth data for this period."
+                   Foreground="#555566" FontSize="16" HorizontalAlignment="Center" />
+        <TextBlock Text="Data is recorded automatically each time ESI polling refreshes assets, wallet, orders, or contracts."
+                   Foreground="#444455" FontSize="12" HorizontalAlignment="Center" TextWrapping="Wrap" />
+      </StackPanel>
+    </Grid>
+
+  </DockPanel>
+
+</UserControl>
