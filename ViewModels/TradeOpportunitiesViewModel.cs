@@ -321,7 +321,8 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             }
 
             var list = await BuildShoppingListAsync(candidates, cargoM3, iskCap, destRegionId, minIskVol);
-            foreach (var r in list) Results.Add(r);
+            // Default display order — highest total profit first. Column headers allow re-sorting.
+            foreach (var r in list.OrderByDescending(r => r.TotalProfit)) Results.Add(r);
 
             var totalVol    = list.Sum(r => r.TotalVolume);
             var totalCost   = list.Sum(r => r.TotalCost);

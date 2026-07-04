@@ -202,7 +202,7 @@
         <DataGridTextColumn Header="Item" Binding="{Binding TypeName}" Width="*"
                             MinWidth="150" />
 
-        <DataGridTemplateColumn Header="Sell Price" Width="110" CanUserSort="False">
+        <DataGridTemplateColumn Header="Sell Price" Width="110" SortMemberPath="BestSell">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding BestSellDisplay}"
@@ -212,7 +212,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Dest Price" Width="110" CanUserSort="False">
+        <DataGridTemplateColumn Header="Dest Price" Width="110" SortMemberPath="DestPrice">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding DestPriceDisplay}"
@@ -222,7 +222,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Profit / Unit" Width="110" CanUserSort="False">
+        <DataGridTemplateColumn Header="Profit / Unit" Width="110" SortMemberPath="ProfitPerUnit">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding ProfitUnitDisplay}"
@@ -233,7 +233,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Profit / m³" Width="100" CanUserSort="False">
+        <DataGridTemplateColumn Header="Profit / m³" Width="100" SortMemberPath="ProfitPerM3">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding ProfitM3Display}"
@@ -244,7 +244,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Qty" Width="80" CanUserSort="False">
+        <DataGridTemplateColumn Header="Qty" Width="80" SortMemberPath="Quantity">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding QuantityDisplay}"
@@ -254,7 +254,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Volume (m³)" Width="100" CanUserSort="False">
+        <DataGridTemplateColumn Header="Volume (m³)" Width="100" SortMemberPath="TotalVolume">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding TotalVolumeDisplay}"
@@ -264,7 +264,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Total Cost" Width="110" CanUserSort="False">
+        <DataGridTemplateColumn Header="Total Cost" Width="110" SortMemberPath="TotalCost">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding TotalCostDisplay}"
@@ -275,7 +275,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Total Profit" Width="110" CanUserSort="False">
+        <DataGridTemplateColumn Header="Total Profit" Width="110" SortMemberPath="TotalProfit">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding TotalProfitDisplay}"
