@@ -1164,9 +1164,10 @@ public class App : Application
                     "ExcludedMarketGroupIds" TEXT    NOT NULL DEFAULT ''
                 )
                 """);
-            // Defaults for new/upgrading installs: Blueprints & Reactions (2), Ship SKINs (1954).
+            // Defaults for new installs: Blueprints & Reactions (2), Ship SKINs (1954),
+            // Special Edition Assets (1659), Apparel (1396).
             db.Database.ExecuteSqlRaw("""
-                INSERT OR IGNORE INTO "TradeOpportunitiesSettings" ("Id", "ExcludedMarketGroupIds") VALUES (1, '2,1954')
+                INSERT OR IGNORE INTO "TradeOpportunitiesSettings" ("Id", "ExcludedMarketGroupIds") VALUES (1, '2,1954,1659,1396')
                 """);
 
             db.Database.ExecuteSqlRaw("""
