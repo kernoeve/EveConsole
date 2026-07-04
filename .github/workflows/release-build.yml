@@ -36,11 +36,23 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Restore
-        run: dotnet restore EveCortex.csproj
+      - name: Publish (self-contained win-x64)
+        run: >
+          dotnet publish EveCortex.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:Version=${{ steps.version.outputs.version }}
+          -o EveCortex
 
-      - name: Build
-        run: dotnet build EveCortex.csproj -c Release --no-restore -p:Version=${{ steps.version.outputs.version }}
+      - name: Package zip
+        id: package
+        shell: pwsh
+        run: |
+          $zip = "EveCortex-v${{ steps.version.outputs.version }}-win-x64.zip"
+          Compress-Archive -Path "EveCortex" -DestinationPath $zip -Force
+          Write-Output "Created $zip"
+          echo "zip=$zip" >> $env:GITHUB_OUTPUT
 
       - name: Tag release
         shell: pwsh
@@ -49,3 +61,13 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag "v${{ steps.version.outputs.version }}"
           git push origin "v${{ steps.version.outputs.version }}"
+
+      - name: Create GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "v${{ steps.version.outputs.version }}"
+          "${{ steps.package.outputs.zip }}"
+          --title "Eve Cortex v${{ steps.version.outputs.version }}"
+          --generate-notes
