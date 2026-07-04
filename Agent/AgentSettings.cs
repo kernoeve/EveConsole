@@ -8,7 +8,7 @@ public enum VerbositySetting   { Concise, Balanced, Detailed }
 public sealed class AgentSettings
 {
     // Single source of truth for the default agent name — change here only.
-    public const string DefaultAgentName = "Edan";
+    public const string DefaultAgentName = "Eden";
 
     public bool              Enabled       { get; set; } = false;
     public AgentProviderType Provider      { get; set; } = AgentProviderType.Claude;

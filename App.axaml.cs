@@ -1217,9 +1217,14 @@ public class App : Application
             {
                 try
                 {
+                    // oldTbl/newTbl come from the fixed array above, not external input — table
+                    // identifiers can't be parameterized via ExecuteSql anyway, so ExecuteSqlRaw
+                    // is the correct tool here despite the analyzer's generic warning.
+#pragma warning disable EF1002
                     db.Database.ExecuteSqlRaw(
                         $"INSERT OR IGNORE INTO \"{newTbl}\" SELECT * FROM \"{oldTbl}\"");
                     db.Database.ExecuteSqlRaw($"DROP TABLE \"{oldTbl}\"");
+#pragma warning restore EF1002
                 }
                 catch { /* table already gone — migration already ran */ }
             }
