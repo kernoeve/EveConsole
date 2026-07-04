@@ -182,6 +182,7 @@
           <TabControl Grid.Row="1"
                       x:Name="ItemDetailTabs"
                       Background="Transparent"
+                      SelectedIndex="{Binding SelectedDetailTabIndex}"
                       SelectionChanged="OnDetailTabChanged">
             <TabControl.Styles>
               <Style Selector="TabItem">

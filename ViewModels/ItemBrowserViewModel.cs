@@ -254,6 +254,67 @@ public class ItemBrowserViewModel : ReactiveObject
     public bool HasItem    => _selectedItem != null;
     public bool NoItem     => _selectedItem == null;
 
+    // ── Detail tab selection ──────────────────────────────────────────────────
+    // Index into the ItemDetailTabs TabControl. Conditionally-hidden tabs keep their
+    // slot in the Items collection, so these indices are stable regardless of which
+    // tabs are currently visible.
+    private int _selectedDetailTabIndex;
+    public int SelectedDetailTabIndex
+    {
+        get => _selectedDetailTabIndex;
+        set => this.RaiseAndSetIfChanged(ref _selectedDetailTabIndex, value);
+    }
+
+    // Switches the Item Browser to a named detail tab. Returns a status message.
+    public string ShowDetailTab(string tabKey)
+    {
+        var key = tabKey.Trim().ToLowerInvariant().Replace(" ", "_");
+        int? idx = key switch
+        {
+            "description"                    => 0,
+            "attributes"                     => 1,
+            "requirements"                   => 2,
+            "required_for"                   => 3,
+            "industry"                       => 4,
+            "market_orders" or "market" or "orders" => 5,
+            "price_history" or "history" or "price" => 6,
+            _ => null,
+        };
+        if (idx is null) return $"Unknown Item Browser tab '{tabKey}'.";
+        if (idx == 3 && SelectedItem?.IsSkill != true)
+            return "The Required For tab is only available when the loaded item is a skill.";
+        if (idx == 6 && !HasPriceHistoryRegions)
+            return "The Price History tab has no regions configured (add one in Settings > Price History).";
+        SelectedDetailTabIndex = idx.Value;
+        return $"Showing the {key.Replace('_', ' ')} tab.";
+    }
+
+    // Selects a market-orders source by (partial) name. Returns a status message.
+    public string TrySelectMarketSource(string name)
+    {
+        if (MarketConfigs.Count == 0)
+            return "No ESI market sources are configured (add one in Settings > Market).";
+        var match = MarketConfigs.FirstOrDefault(c => c.LocationName.Contains(name, StringComparison.OrdinalIgnoreCase))
+                 ?? MarketConfigs.FirstOrDefault(c => name.Contains(c.LocationName, StringComparison.OrdinalIgnoreCase));
+        if (match is null)
+            return $"No market source matching '{name}'. Available: {string.Join(", ", MarketConfigs.Select(c => c.LocationName))}.";
+        SelectedMarketConfig = match;
+        return $"Market source set to {match.LocationName}.";
+    }
+
+    // Selects a price-history region by (partial) name. Returns a status message.
+    public string TrySelectHistoryRegion(string name)
+    {
+        if (HistoryRegions.Count == 0)
+            return "No price-history regions are configured (add one in Settings > Price History).";
+        var match = HistoryRegions.FirstOrDefault(r => r.RegionName.Contains(name, StringComparison.OrdinalIgnoreCase))
+                 ?? HistoryRegions.FirstOrDefault(r => name.Contains(r.RegionName, StringComparison.OrdinalIgnoreCase));
+        if (match is null)
+            return $"No price-history region matching '{name}'. Available: {string.Join(", ", HistoryRegions.Select(r => r.RegionName))}.";
+        SelectedHistoryRegion = match;
+        return $"Price-history region set to {match.RegionName}.";
+    }
+
     // ── Market Orders tab ─────────────────────────────────────────────────────
     public ObservableCollection<MarketConfigOption> MarketConfigs { get; } = [];
     public bool HasMarketConfigs => MarketConfigs.Count > 0;

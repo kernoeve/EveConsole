@@ -142,6 +142,20 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
             });
 
+        agentService.ConfigureItemBrowserCallback = (tab, src, reg) =>
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
+                else vm.OpenTool("items");
+
+                var ib      = vm.ItemBrowserVm;
+                var results = new List<string>();
+                if (!string.IsNullOrWhiteSpace(tab)) results.Add(ib.ShowDetailTab(tab));
+                if (!string.IsNullOrWhiteSpace(src)) results.Add(ib.TrySelectMarketSource(src));
+                if (!string.IsNullOrWhiteSpace(reg)) results.Add(ib.TrySelectHistoryRegion(reg));
+                return results.Count > 0 ? string.Join(" ", results) : "Nothing to configure.";
+            });
+
         vm.TradeOpportunitiesVm.ItemNavigationRequested = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {
@@ -236,12 +250,23 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         var toolId = name.ToLowerInvariant() switch
         {
-            "assets"     => "assets",
-            "industry"   => "industry",
-            "characters" => "characters",
-            "items"      => "items",
-            "data"       => "data",
-            _            => null
+            "overview"       => "overview",
+            "characters"     => "characters",
+            "assets"         => "assets",
+            "items"          => "items",
+            "industry"       => "industry",
+            "indy_parks"     => "indy_parks",
+            "prod_calc"      => "prod_calc",
+            "market_levels"  => "market_levels",
+            "inv_levels"     => "inv_levels",
+            "trade"          => "trade",
+            "net_worth"      => "net_worth",
+            "wallet"         => "wallet",
+            "corp_activity"  => "corp_activity",
+            "killmails"      => "killmails",
+            "eve_mail"       => "eve_mail",
+            "data"           => "data",
+            _                => null
         };
         if (toolId is null) return;
 
@@ -432,7 +457,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         var sb = new StringBuilder();
 
-        sb.AppendLine($"Active tab: {vm.SelectedTab?.Title ?? "None"}");
+        var activeTitle = vm.SelectedTab?.Title ?? "None";
+        sb.AppendLine($"Active tab: {activeTitle}");
+        var activeIntent = EveCortex.Agent.AppKnowledge.TabIntent(activeTitle);
+        if (!string.IsNullOrEmpty(activeIntent))
+            sb.AppendLine($"Active tab purpose: {activeIntent}");
 
         var openTabs = vm.OpenTabs.Select(t => t.Title).ToList();
         if (openTabs.Count > 0)
@@ -448,7 +477,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (detached.Count > 0)
             sb.AppendLine($"Detached windows: {string.Join(", ", detached)}");
 
-        sb.AppendLine("Use capture_tab to screenshot the active view. Available tool IDs: overview, characters, assets, industry, items, indy_parks, trade, net_worth, data");
+        sb.AppendLine("You know what each tool does (see your Tool Reference) — explain and guide from that knowledge; only use capture_tab to read specific on-screen values you cannot get from the data tools.");
+        sb.AppendLine("Available tool IDs for open_window: overview, characters, assets, items, industry, indy_parks, prod_calc, market_levels, inv_levels, trade, net_worth, wallet, corp_activity, killmails, eve_mail, data");
 
         if (vm.CharacterViewerVm.SelectedCharacter is { } ch)
             sb.AppendLine($"Selected character: {ch.Name} (ID: {ch.Id})");
@@ -488,9 +518,10 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 using var ms = new MemoryStream();
                 bmp.Save(ms);
 
-                var desc = tabName == "current"
-                    ? $"Screenshot of the active tab ({vm?.SelectedTab?.Title ?? ""})"
-                    : $"Screenshot of {tabName}";
+                var title  = tabName == "current" ? (vm?.SelectedTab?.Title ?? "") : tabName;
+                var intent = EveCortex.Agent.AppKnowledge.TabIntent(title);
+                var desc   = $"Screenshot of the {title} tab.";
+                if (!string.IsNullOrEmpty(intent)) desc += $" ({intent})";
 
                 return (ms.ToArray(), desc);
             }
