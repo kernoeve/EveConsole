@@ -4,11 +4,32 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute version
+        id: version
+        shell: pwsh
+        run: |
+          $majorMinor = (Get-Content VERSION -Raw).Trim()
+          $tags = git tag -l "v$majorMinor.*"
+          if ($tags) {
+            $patches = $tags | ForEach-Object { [int]($_ -replace "^v$([regex]::Escape($majorMinor))\.", "") }
+            $nextPatch = ($patches | Measure-Object -Maximum).Maximum + 1
+          } else {
+            $nextPatch = 0
+          }
+          $version = "$majorMinor.$nextPatch"
+          Write-Output "Computed version: $version"
+          echo "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
@@ -19,4 +40,12 @@ jobs:
         run: dotnet restore EveCortex.csproj
 
       - name: Build
-        run: dotnet build EveCortex.csproj -c Release --no-restore
+        run: dotnet build EveCortex.csproj -c Release --no-restore -p:Version=${{ steps.version.outputs.version }}
+
+      - name: Tag release
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "v${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}"

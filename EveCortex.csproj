@@ -11,6 +11,7 @@
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
     <ApplicationIcon>Assets\ec.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>0.9.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
