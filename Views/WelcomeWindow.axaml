@@ -31,7 +31,7 @@
     <!-- ESI setup notice -->
     <TextBlock FontSize="13" Foreground="#aaaabc" TextWrapping="Wrap" LineHeight="20"
                Margin="0 0 0 4"
-               Text="To pull in your own characters and corporation data, add your ESI character tokens. The Settings window will open on the API Tokens tab next — click Add Character there to log in through EVE's SSO." />
+               Text="To pull in your own characters and corporation data, add your ESI character tokens. The Settings window will open on the ESI Tokens tab next — click Add Character there to log in through EVE's SSO." />
 
     <Rectangle Height="1" Fill="#1e1e28" Margin="0 22 0 18" />
 

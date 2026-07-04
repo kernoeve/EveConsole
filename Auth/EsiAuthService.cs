@@ -198,8 +198,8 @@ public class EsiAuthService
         if (state != expectedState)
             throw new InvalidOperationException("State mismatch — possible CSRF.");
 
-        var html = "<html><body><h2>Login successful. You can close this tab.</h2></body></html>"u8.ToArray();
-        context.Response.ContentType     = "text/html";
+        var html = Encoding.UTF8.GetBytes(LoginSuccessHtml);
+        context.Response.ContentType     = "text/html; charset=utf-8";
         context.Response.ContentLength64 = html.Length;
         await context.Response.OutputStream.WriteAsync(html, ct);
         context.Response.Close();
@@ -207,6 +207,66 @@ public class EsiAuthService
         listener.Stop();
         return code;
     }
+
+    // App-themed page shown in the browser after a successful ESI SSO callback.
+    private const string LoginSuccessHtml = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>Eve Cortex — Login Successful</title>
+          <style>
+            :root { color-scheme: dark; }
+            * { box-sizing: border-box; }
+            html, body { height: 100%; margin: 0; }
+            body {
+              display: flex; align-items: center; justify-content: center;
+              background: radial-gradient(1200px 600px at 50% -10%, #16161f 0%, #0d0d12 60%);
+              font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+              color: #aaaabc;
+            }
+            .card {
+              width: 440px; max-width: 90vw;
+              background: #12121a;
+              border: 1px solid #1e1e28;
+              border-radius: 10px;
+              padding: 40px 44px 36px;
+              text-align: center;
+              box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            }
+            .brand { font-size: 24px; font-weight: 700; letter-spacing: 2px; margin-bottom: 22px; }
+            .brand .eve { color: #e8e8ec; }
+            .brand .cortex { color: #c8a84b; }
+            .check {
+              width: 66px; height: 66px; margin: 6px auto 20px;
+              border-radius: 50%;
+              background: rgba(112, 173, 71, 0.12);
+              border: 2px solid #70ad47;
+              display: flex; align-items: center; justify-content: center;
+            }
+            .check svg { width: 34px; height: 34px; stroke: #70ad47; stroke-width: 3;
+              fill: none; stroke-linecap: round; stroke-linejoin: round; }
+            h1 { color: #e8e8ec; font-size: 20px; font-weight: 600; margin: 0 0 10px; }
+            p { font-size: 14px; line-height: 21px; margin: 0; }
+            .hint { color: #555566; font-size: 12px; margin-top: 22px; }
+            .divider { height: 1px; background: #1e1e28; margin: 22px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <div class="brand"><span class="eve">EVE </span><span class="cortex">CORTEX</span></div>
+            <div class="check">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h1>Login Successful</h1>
+            <p>Your character has been authenticated with EVE Online.</p>
+            <div class="divider"></div>
+            <p class="hint">You can close this tab and return to Eve Cortex.</p>
+          </div>
+        </body>
+        </html>
+        """;
 
     private async Task<TokenSet> ExchangeCodeAsync(string code, string verifier, CancellationToken ct)
     {

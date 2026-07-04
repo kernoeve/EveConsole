@@ -152,7 +152,7 @@ public static class AppKnowledge
         directly.
 
         ## Settings (gear icon)
-        Tabs: API Tokens (add/manage ESI-authenticated characters via OAuth), SDE
+        Tabs: ESI Tokens (add/manage ESI-authenticated characters via OAuth), SDE
         (import/update the EVE Static Data Export — required before item and market
         lookups work), Market (define price sources and the default asset-value and
         manufacturing-cost pricing), Timers and Polling (ESI poll intervals), Corp Top 10
