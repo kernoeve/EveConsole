@@ -1157,6 +1157,19 @@ public class App : Application
             catch { /* column already exists */ }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "InactiveStandingProjects" INTEGER NOT NULL DEFAULT 1"""); }
             catch { /* column already exists */ }
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "TradeOpportunitiesSettings" (
+                    "Id"                     INTEGER NOT NULL PRIMARY KEY,
+                    "ExcludedMarketGroupIds" TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            // Defaults for new installs: Blueprints & Reactions (2), Ship SKINs (1954),
+            // Special Edition Assets (1659), Apparel (1396), Skills (150), Trade Goods (19).
+            db.Database.ExecuteSqlRaw("""
+                INSERT OR IGNORE INTO "TradeOpportunitiesSettings" ("Id", "ExcludedMarketGroupIds") VALUES (1, '2,1954,1659,1396,150,19')
+                """);
+
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "DismissedAlerts" (
                     "CharacterId"    INTEGER NOT NULL,

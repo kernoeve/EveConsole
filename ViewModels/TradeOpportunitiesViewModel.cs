@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Reactive;
 using EveCortex.Services;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
@@ -9,6 +10,8 @@ public record StationOption(long LocationId, string Name);
 
 public enum TradeMode { SellToBuyOrder, UndercutSellOrder }
 public record TradeModeOption(string Label, TradeMode Kind);
+
+public record ExcludedMarketGroupVm(int MarketGroupId, string Name);
 
 public class TradeRow
 {
@@ -46,6 +49,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 {
     private readonly string               _connString;
     private readonly MarketHistoryService _historyService;
+    private readonly BatchAddService      _batchSvc;
 
     // ── Mode ──────────────────────────────────────────────────────────────────
 
@@ -102,6 +106,88 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _minIskVolume, value);
     }
 
+    private string _minUnitVolume = "";
+    public string MinUnitVolume
+    {
+        get => _minUnitVolume;
+        set => this.RaiseAndSetIfChanged(ref _minUnitVolume, value);
+    }
+
+    // ── Excluded market groups (and everything nested under them) ────────────
+
+    public ObservableCollection<ExcludedMarketGroupVm> ExcludedMarketGroups { get; } = [];
+
+    public Func<Task<MarketGroupPickerResult?>>? ShowMarketGroupPickerDialog { get; set; }
+
+    public BatchAddService GetBatchAddService() => _batchSvc;
+
+    public ReactiveCommand<Unit, Unit>                     AddExcludedGroupCommand    { get; }
+    public ReactiveCommand<ExcludedMarketGroupVm, Unit>    RemoveExcludedGroupCommand { get; }
+
+    private async Task AddExcludedGroupAsync()
+    {
+        if (ShowMarketGroupPickerDialog is null) return;
+        var pick = await ShowMarketGroupPickerDialog();
+        if (pick is null) return;
+        if (ExcludedMarketGroups.Any(g => g.MarketGroupId == pick.MarketGroupId)) return;
+
+        ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(pick.MarketGroupId, pick.GroupName));
+        await SaveExcludedGroupsAsync();
+    }
+
+    private async Task RemoveExcludedGroupAsync(ExcludedMarketGroupVm group)
+    {
+        ExcludedMarketGroups.Remove(group);
+        await SaveExcludedGroupsAsync();
+    }
+
+    private async Task LoadExcludedGroupsAsync()
+    {
+        using var conn = new SqliteConnection(_connString);
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = """SELECT "ExcludedMarketGroupIds" FROM "TradeOpportunitiesSettings" WHERE "Id" = 1""";
+        var raw = (await cmd.ExecuteScalarAsync()) as string ?? "";
+
+        var ids = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(s => int.TryParse(s, out var id) ? id : (int?)null)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .ToList();
+        if (ids.Count == 0) return;
+
+        using var nameCmd = conn.CreateCommand();
+        nameCmd.CommandText = $"""SELECT "MarketGroupId", "Name" FROM "SdeMarketGroups" WHERE "MarketGroupId" IN ({string.Join(",", ids)})""";
+        var names = new Dictionary<int, string>();
+        using (var reader = await nameCmd.ExecuteReaderAsync())
+            while (await reader.ReadAsync())
+                names[reader.GetInt32(0)] = reader.GetString(1);
+
+        ExcludedMarketGroups.Clear();
+        foreach (var id in ids)
+            if (names.TryGetValue(id, out var name))
+                ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(id, name));
+    }
+
+    private async Task SaveExcludedGroupsAsync()
+    {
+        var csv = string.Join(",", ExcludedMarketGroups.Select(g => g.MarketGroupId));
+        using var conn = new SqliteConnection(_connString);
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = """UPDATE "TradeOpportunitiesSettings" SET "ExcludedMarketGroupIds" = @ids WHERE "Id" = 1""";
+        cmd.Parameters.AddWithValue("@ids", csv);
+        await cmd.ExecuteNonQueryAsync();
+    }
+
+    private async Task<HashSet<int>> GetExcludedGroupIdsRecursiveAsync()
+    {
+        var result = new HashSet<int>();
+        foreach (var g in ExcludedMarketGroups)
+            result.UnionWith(await _batchSvc.GetDescendantGroupIdsAsync(g.MarketGroupId));
+        return result;
+    }
+
     // ── Item navigation callback (set by MainWindow) ──────────────────────────
 
     public Action<int, string>? ItemNavigationRequested { get; set; }
@@ -140,17 +226,21 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     // ── Construction ──────────────────────────────────────────────────────────
 
-    public TradeOpportunitiesViewModel(string connString, MarketHistoryService historyService)
+    public TradeOpportunitiesViewModel(string connString, MarketHistoryService historyService, BatchAddService batchSvc)
     {
         _connString     = connString;
         _historyService = historyService;
+        _batchSvc       = batchSvc;
         _selectedMode   = ModeOptions[0];
-        CalculateCommand = ReactiveCommand.CreateFromTask(CalculateAsync);
+        CalculateCommand           = ReactiveCommand.CreateFromTask(CalculateAsync);
+        AddExcludedGroupCommand    = ReactiveCommand.CreateFromTask(AddExcludedGroupAsync);
+        RemoveExcludedGroupCommand = ReactiveCommand.CreateFromTask<ExcludedMarketGroupVm>(RemoveExcludedGroupAsync);
     }
 
     public async Task InitializeAsync()
     {
         await LoadStationsAsync();
+        await LoadExcludedGroupsAsync();
     }
 
     // ── Station loading ───────────────────────────────────────────────────────
@@ -215,6 +305,17 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             minIskVol = mv;
         }
 
+        double? minUnitVol = null;
+        if (!string.IsNullOrWhiteSpace(MinUnitVolume))
+        {
+            if (!double.TryParse(MinUnitVolume, out var uv) || uv < 0)
+            {
+                StatusText = "Please enter a valid minimum unit volume (or leave blank for no filter).";
+                return;
+            }
+            minUnitVol = uv;
+        }
+
         Results.Clear();
         HasSummary = false;
         SummaryVolume = SummaryCost = SummaryProfit = "";
@@ -226,19 +327,21 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             var candidates = await FetchCandidatesAsync(
                 SourceStation.LocationId, DestinationStation.LocationId);
 
-            int? destRegionId = minIskVol.HasValue
+            bool needsVolume  = minIskVol.HasValue || minUnitVol.HasValue;
+            int? destRegionId = needsVolume
                 ? await GetRegionIdAsync(DestinationStation.LocationId)
                 : null;
 
-            if (minIskVol.HasValue && !destRegionId.HasValue)
+            if (needsVolume && !destRegionId.HasValue)
             {
                 StatusText = "Could not resolve the destination station's region — " +
                              "ensure market data has been loaded for that location so the volume filter can work.";
                 return;
             }
 
-            var list = await BuildShoppingListAsync(candidates, cargoM3, iskCap, destRegionId, minIskVol);
-            foreach (var r in list) Results.Add(r);
+            var list = await BuildShoppingListAsync(candidates, cargoM3, iskCap, destRegionId, minIskVol, minUnitVol);
+            // Default display order — highest total profit first. Column headers allow re-sorting.
+            foreach (var r in list.OrderByDescending(r => r.TotalProfit)) Results.Add(r);
 
             var totalVol    = list.Sum(r => r.TotalVolume);
             var totalCost   = list.Sum(r => r.TotalCost);
@@ -277,12 +380,17 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task<List<Candidate>> FetchCandidatesAsync(long sourceId, long destId)
     {
+        var excludedGroupIds = await GetExcludedGroupIdsRecursiveAsync();
+        var exclusionClause  = excludedGroupIds.Count > 0
+            ? $"""AND (t."MarketGroupId" IS NULL OR t."MarketGroupId" NOT IN ({string.Join(",", excludedGroupIds)})) """
+            : "";
+
         using var conn = new SqliteConnection(_connString);
         await conn.OpenAsync();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = SelectedMode.Kind == TradeMode.UndercutSellOrder
-            ? UndercutSql : CandidateSql;
+        cmd.CommandText = (SelectedMode.Kind == TradeMode.UndercutSellOrder
+            ? UndercutSql : CandidateSql).Replace("/*EXCLUSION*/", exclusionClause);
         cmd.Parameters.AddWithValue("@sourceId", sourceId);
         cmd.Parameters.AddWithValue("@destId",   destId);
 
@@ -305,7 +413,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task<List<TradeRow>> BuildShoppingListAsync(
         List<Candidate> candidates, double cargoM3, double? iskCap,
-        int? destRegionId, double? minIskVol30d)
+        int? destRegionId, double? minIskVol30d, double? minUnitVol30d)
     {
         var result    = new List<TradeRow>();
         var remainM3  = cargoM3;
@@ -317,13 +425,23 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             if (remainM3 < c.M3PerUnit) continue;
             if (remainIsk < c.BestSell) break; // can't afford even 1 unit — done
 
-            // On-demand 30-day ISK volume filter — only fetch what we actually need.
-            if (minIskVol30d.HasValue && destRegionId.HasValue)
+            // On-demand 30-day volume filters — only fetch what we actually need,
+            // and fetch once per candidate even when both filters are active.
+            if ((minIskVol30d.HasValue || minUnitVol30d.HasValue) && destRegionId.HasValue)
             {
                 StatusText = $"Checking volume data… ({++fetched} fetched)";
                 await _historyService.EnsureFreshAsync(destRegionId.Value, c.TypeId);
-                var iskVol = await _historyService.Get30DayIskVolumeAsync(destRegionId.Value, c.TypeId);
-                if (iskVol < minIskVol30d.Value) continue;
+
+                if (minIskVol30d.HasValue)
+                {
+                    var iskVol = await _historyService.Get30DayIskVolumeAsync(destRegionId.Value, c.TypeId);
+                    if (iskVol < minIskVol30d.Value) continue;
+                }
+                if (minUnitVol30d.HasValue)
+                {
+                    var unitVol = await _historyService.Get30DayUnitVolumeAsync(destRegionId.Value, c.TypeId);
+                    if (unitVol < minUnitVol30d.Value) continue;
+                }
             }
 
             var maxByM3  = (long)Math.Floor(remainM3  / c.M3PerUnit);
@@ -366,12 +484,18 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
         using var cmd = conn.CreateCommand();
 
-        // Try NPC station first
-        cmd.CommandText = """SELECT "RegionId" FROM "SdeStations" WHERE "StationId" = @id""";
+        // NPC station: resolve via the station's solar system. (SdeStations.RegionId is
+        // not populated by the SDE import — it is 0 for every row — so we must not read
+        // it directly; join through SolarSystemId instead.)
+        cmd.CommandText = """
+            SELECT ss."RegionId"
+            FROM "SdeStations"     s
+            JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = s."SolarSystemId"
+            WHERE s."StationId" = @id AND s."SolarSystemId" != 0
+            """;
         cmd.Parameters.AddWithValue("@id", (int)Math.Min(locationId, int.MaxValue));
-        var result = await cmd.ExecuteScalarAsync();
-        if (result is not DBNull and not null)
-            return Convert.ToInt32(result);
+        var region = ToRegionId(await cmd.ExecuteScalarAsync());
+        if (region.HasValue) return region;
 
         // Player structure path 1: resolved name record already has SolarSystemId
         cmd.CommandText = """
@@ -382,9 +506,8 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             """;
         cmd.Parameters.Clear();
         cmd.Parameters.AddWithValue("@sid", locationId);
-        result = await cmd.ExecuteScalarAsync();
-        if (result is not DBNull and not null)
-            return Convert.ToInt32(result);
+        region = ToRegionId(await cmd.ExecuteScalarAsync());
+        if (region.HasValue) return region;
 
         // Player structure path 2: derive from any cached order at that location
         cmd.CommandText = """
@@ -396,11 +519,18 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             """;
         cmd.Parameters.Clear();
         cmd.Parameters.AddWithValue("@lid", locationId);
-        result = await cmd.ExecuteScalarAsync();
-        if (result is not DBNull and not null)
-            return Convert.ToInt32(result);
+        region = ToRegionId(await cmd.ExecuteScalarAsync());
+        if (region.HasValue) return region;
 
         return null;
+    }
+
+    // Treats NULL/DBNull and a 0 region id as "unresolved" so callers fall through.
+    private static int? ToRegionId(object? scalar)
+    {
+        if (scalar is null or DBNull) return null;
+        var id = Convert.ToInt32(scalar);
+        return id != 0 ? id : null;
     }
 
     // ── Formatting ────────────────────────────────────────────────────────────
@@ -460,6 +590,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         JOIN dst d ON d.TypeId = s.TypeId
         JOIN "SdeTypes" t ON t."TypeId" = s.TypeId
         WHERE t."Volume" > 0
+        /*EXCLUSION*/
         ORDER BY ProfitPerM3 DESC
         """;
 
@@ -493,6 +624,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         JOIN "SdeTypes" t ON t."TypeId" = s.TypeId
         WHERE d.DestSell > s.BestSell
           AND t."Volume" > 0
+        /*EXCLUSION*/
         ORDER BY ProfitPerM3 DESC
         """;
 }
