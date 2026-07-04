@@ -1165,9 +1165,9 @@ public class App : Application
                 )
                 """);
             // Defaults for new installs: Blueprints & Reactions (2), Ship SKINs (1954),
-            // Special Edition Assets (1659), Apparel (1396).
+            // Special Edition Assets (1659), Apparel (1396), Skills (150), Trade Goods (19).
             db.Database.ExecuteSqlRaw("""
-                INSERT OR IGNORE INTO "TradeOpportunitiesSettings" ("Id", "ExcludedMarketGroupIds") VALUES (1, '2,1954,1659,1396')
+                INSERT OR IGNORE INTO "TradeOpportunitiesSettings" ("Id", "ExcludedMarketGroupIds") VALUES (1, '2,1954,1659,1396,150,19')
                 """);
 
             db.Database.ExecuteSqlRaw("""
