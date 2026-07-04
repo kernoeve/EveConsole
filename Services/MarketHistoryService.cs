@@ -71,18 +71,38 @@ public class MarketHistoryService(
     }
 
     /// <summary>
-    /// Returns the sum of Volume * Average for the last 30 calendar days.
+    /// Returns the sum of Volume * Average over the most recent 30 history rows
+    /// (i.e. the last 30 traded days). Anchored to the newest available data rather
+    /// than the wall clock, so it stays correct even when ESI history lags a few days.
     /// Assumes EnsureFreshAsync has already been called.
     /// </summary>
     public async Task<double> Get30DayIskVolumeAsync(int regionId, int typeId)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
-        var cutoff = DateTime.UtcNow.AddDays(-30).ToString("yyyy-MM-dd");
+        var recent = await db.MarketTypeHistories
+            .Where(h => h.RegionId == regionId && h.TypeId == typeId)
+            .OrderByDescending(h => h.Date)
+            .Take(30)
+            .Select(h => new { h.Volume, h.Average })
+            .ToListAsync();
+        return recent.Sum(h => (double)h.Volume * h.Average);
+    }
 
-        return await db.MarketTypeHistories
-            .Where(h => h.RegionId == regionId && h.TypeId == typeId
-                     && string.Compare(h.Date, cutoff) >= 0)
-            .SumAsync(h => (double)h.Volume * h.Average);
+    /// <summary>
+    /// Returns the total units traded over the most recent 30 history rows
+    /// (i.e. the last 30 traded days). See <see cref="Get30DayIskVolumeAsync"/>.
+    /// Assumes EnsureFreshAsync has already been called.
+    /// </summary>
+    public async Task<double> Get30DayUnitVolumeAsync(int regionId, int typeId)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync();
+        var recent = await db.MarketTypeHistories
+            .Where(h => h.RegionId == regionId && h.TypeId == typeId)
+            .OrderByDescending(h => h.Date)
+            .Take(30)
+            .Select(h => h.Volume)
+            .ToListAsync();
+        return recent.Sum(v => (double)v);
     }
 
     /// <summary>

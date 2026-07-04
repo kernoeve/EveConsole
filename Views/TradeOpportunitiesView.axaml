@@ -95,6 +95,12 @@
                    Watermark="No filter"
                    Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd" />
 
+          <TextBlock Text="Min 30d Unit Vol" Foreground="#555566" FontSize="11"
+                     VerticalAlignment="Center" />
+          <TextBox Text="{Binding MinUnitVolume}" Width="110" FontSize="12"
+                   Watermark="No filter"
+                   Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd" />
+
         </StackPanel>
       </DockPanel>
 

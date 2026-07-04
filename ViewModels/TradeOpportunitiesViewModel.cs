@@ -106,6 +106,13 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _minIskVolume, value);
     }
 
+    private string _minUnitVolume = "";
+    public string MinUnitVolume
+    {
+        get => _minUnitVolume;
+        set => this.RaiseAndSetIfChanged(ref _minUnitVolume, value);
+    }
+
     // ── Excluded market groups (and everything nested under them) ────────────
 
     public ObservableCollection<ExcludedMarketGroupVm> ExcludedMarketGroups { get; } = [];
@@ -298,6 +305,17 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             minIskVol = mv;
         }
 
+        double? minUnitVol = null;
+        if (!string.IsNullOrWhiteSpace(MinUnitVolume))
+        {
+            if (!double.TryParse(MinUnitVolume, out var uv) || uv < 0)
+            {
+                StatusText = "Please enter a valid minimum unit volume (or leave blank for no filter).";
+                return;
+            }
+            minUnitVol = uv;
+        }
+
         Results.Clear();
         HasSummary = false;
         SummaryVolume = SummaryCost = SummaryProfit = "";
@@ -309,18 +327,19 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             var candidates = await FetchCandidatesAsync(
                 SourceStation.LocationId, DestinationStation.LocationId);
 
-            int? destRegionId = minIskVol.HasValue
+            bool needsVolume  = minIskVol.HasValue || minUnitVol.HasValue;
+            int? destRegionId = needsVolume
                 ? await GetRegionIdAsync(DestinationStation.LocationId)
                 : null;
 
-            if (minIskVol.HasValue && !destRegionId.HasValue)
+            if (needsVolume && !destRegionId.HasValue)
             {
                 StatusText = "Could not resolve the destination station's region — " +
                              "ensure market data has been loaded for that location so the volume filter can work.";
                 return;
             }
 
-            var list = await BuildShoppingListAsync(candidates, cargoM3, iskCap, destRegionId, minIskVol);
+            var list = await BuildShoppingListAsync(candidates, cargoM3, iskCap, destRegionId, minIskVol, minUnitVol);
             // Default display order — highest total profit first. Column headers allow re-sorting.
             foreach (var r in list.OrderByDescending(r => r.TotalProfit)) Results.Add(r);
 
@@ -394,7 +413,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task<List<TradeRow>> BuildShoppingListAsync(
         List<Candidate> candidates, double cargoM3, double? iskCap,
-        int? destRegionId, double? minIskVol30d)
+        int? destRegionId, double? minIskVol30d, double? minUnitVol30d)
     {
         var result    = new List<TradeRow>();
         var remainM3  = cargoM3;
@@ -406,13 +425,23 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             if (remainM3 < c.M3PerUnit) continue;
             if (remainIsk < c.BestSell) break; // can't afford even 1 unit — done
 
-            // On-demand 30-day ISK volume filter — only fetch what we actually need.
-            if (minIskVol30d.HasValue && destRegionId.HasValue)
+            // On-demand 30-day volume filters — only fetch what we actually need,
+            // and fetch once per candidate even when both filters are active.
+            if ((minIskVol30d.HasValue || minUnitVol30d.HasValue) && destRegionId.HasValue)
             {
                 StatusText = $"Checking volume data… ({++fetched} fetched)";
                 await _historyService.EnsureFreshAsync(destRegionId.Value, c.TypeId);
-                var iskVol = await _historyService.Get30DayIskVolumeAsync(destRegionId.Value, c.TypeId);
-                if (iskVol < minIskVol30d.Value) continue;
+
+                if (minIskVol30d.HasValue)
+                {
+                    var iskVol = await _historyService.Get30DayIskVolumeAsync(destRegionId.Value, c.TypeId);
+                    if (iskVol < minIskVol30d.Value) continue;
+                }
+                if (minUnitVol30d.HasValue)
+                {
+                    var unitVol = await _historyService.Get30DayUnitVolumeAsync(destRegionId.Value, c.TypeId);
+                    if (unitVol < minUnitVol30d.Value) continue;
+                }
             }
 
             var maxByM3  = (long)Math.Floor(remainM3  / c.M3PerUnit);
