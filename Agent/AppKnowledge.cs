@@ -160,5 +160,58 @@ public static class AppKnowledge
         provider, model, API key, voice/TTS, push-to-talk), Alerts (toggle Overview
         alerts), Price History (regions tracked for history), and Database (path, backups,
         move/rename/repoint).
+
+        ## Interactions & hidden functions (right-click menus, buttons, shortcuts)
+        Many actions live in right-click context menus or row buttons that are not
+        obvious from a screenshot. When the capsuleer asks "how do I…", cite the exact
+        control below.
+
+        ### Inventory Levels & Market Levels (same interaction model)
+        Structure: Collections contain Groups; Groups contain Items. Items have a target
+        level; each Group has a quantity multiplier, and Groups can be organized under
+        Collections.
+        - Toolbar: "+ Add Group" and "+ Collection" create the containers; "Refresh"
+          re-pulls the underlying data.
+        - Collection row buttons: expand/collapse arrows, "+"/"−" to expand/collapse all
+          groups, "Rename", "Delete".
+        - Group row: a toggle arrow, an editable quantity multiplier (×N), "+ Item",
+          "Edit" (group scope/locality settings), and "Delete".
+        - RIGHT-CLICK a row for the context menu: "Open in Item Browser" (on an item
+          row), and — the main bulk-add options — "Add Items From Fit" (paste/select an
+          EVE fitting to add all its modules/items), "Add Items From Market Group" (pick a
+          market group from a tree to add every item in that group and its sub-groups),
+          and "Add Items From Blueprint" (add a blueprint's materials). Also "Delete Item".
+        - Items within a group are listed alphabetically.
+
+        ### Item Browser
+        - Left tree: browse the market-group hierarchy, or use the search box to find an
+          item by name.
+        - Clickable skill links (in Requirements, Required For, and in the character
+          Skills tab) navigate the Item Browser to that skill.
+
+        ### Trade Opportunities
+        - DOUBLE-CLICK any result row to open that item in the Item Browser.
+        - "+ Add Group" (next to the Exclude Groups chips) opens the market-group tree to
+          add an exclusion; click the ✕ on a chip to remove one.
+
+        ### Production Calculator
+        - DOUBLE-CLICK a material/product row to open that item in the Item Browser.
+        - Right-click the results for export options: "Copy to Clipboard", "Export as
+          CSV", "Tab-delimited".
+
+        ### Corp Activity — Standing Projects
+        - "+ Add Project" opens a dialog to define a standing project (deliver-item or
+          destroy-NPC, with scope/ADM settings). Each row has "Edit" and "Delete".
+        - RIGHT-CLICK a standing-project row: "Clone item" (duplicate the project as a
+          starting point) and, for deliver-item projects, "Open Item in Item Browser".
+
+        ### Overview
+        - Alert messages are clickable — clicking one navigates to the relevant tool
+          (e.g. a skill-queue alert opens that character's Skills; a standing-project
+          alert opens Corp Activity > Standing Projects).
+
+        ### Characters
+        - In the Skills tab, skill names are clickable links that open the Item Browser
+          for that skill.
         """;
 }
