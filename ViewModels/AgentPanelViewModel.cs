@@ -101,7 +101,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
     public AgentService Service => _service;
 
     public string AgentName      => string.IsNullOrWhiteSpace(_service.Settings.AgentName)
-        ? "Aura" : _service.Settings.AgentName.Trim();
+        ? "Betty" : _service.Settings.AgentName.Trim();
     public string AgentNameUpper => AgentName.ToUpperInvariant();
     public string AskWatermark   => $"Ask {AgentName}…";
 

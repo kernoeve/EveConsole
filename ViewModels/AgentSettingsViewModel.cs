@@ -13,7 +13,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     private readonly SpeechInputService? _speech;
 
     // ── personalisation ───────────────────────────────────────────────────────
-    private string _agentName = "Aura";
+    private string _agentName = "Betty";
     public string AgentName
     {
         get => _agentName;
@@ -417,7 +417,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     private void LoadFromService()
     {
         var s = _service.Settings;
-        _agentName              = string.IsNullOrWhiteSpace(s.AgentName) ? "Aura" : s.AgentName;
+        _agentName              = string.IsNullOrWhiteSpace(s.AgentName) ? "Betty" : s.AgentName;
         _verbosity              = s.Verbosity;
         _isEnabled              = s.Enabled;
         _selectedProvider       = s.Provider;
@@ -455,7 +455,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     {
         var settings = new AgentSettings
         {
-            AgentName  = string.IsNullOrWhiteSpace(_agentName) ? "Aura" : _agentName.Trim(),
+            AgentName  = string.IsNullOrWhiteSpace(_agentName) ? "Betty" : _agentName.Trim(),
             Verbosity  = _verbosity,
             Enabled       = _isEnabled,
             Provider      = _selectedProvider,
@@ -514,7 +514,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             KokoroVoice       = _kokoroVoiceId,
             PiperVoice        = _piperVoiceKey,
         });
-        _tts.SpeakAsync("Aura voice test. Your AI companion is ready, Capsuleer.");
+        _tts.SpeakAsync("Betty voice test. Your AI companion is ready, Capsuleer.");
     }
 
     private void DownloadKokoroModel()

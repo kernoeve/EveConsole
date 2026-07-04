@@ -44,7 +44,7 @@ public sealed class AgentService : ReactiveObject
 
     public static string BuildSystemPrompt(AgentSettings settings)
     {
-        var name = string.IsNullOrWhiteSpace(settings.AgentName) ? "Aura" : settings.AgentName.Trim();
+        var name = string.IsNullOrWhiteSpace(settings.AgentName) ? "Betty" : settings.AgentName.Trim();
 
         var verbosityInstruction = settings.Verbosity switch
         {

@@ -11,7 +11,7 @@ public sealed class AgentSettings
     public AgentProviderType Provider      { get; set; } = AgentProviderType.Claude;
 
     // Personalisation
-    public string            AgentName     { get; set; } = "Aura";
+    public string            AgentName     { get; set; } = "Betty";
     public VerbositySetting  Verbosity     { get; set; } = VerbositySetting.Balanced;
 
     public string ClaudeApiKey  { get; set; } = "";

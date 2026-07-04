@@ -47,7 +47,7 @@
                     BorderThickness="0"
                     FontSize="11"
                     Padding="5 2"
-                    ToolTip.Tip="Mute / unmute Aura voice"
+                    ToolTip.Tip="Mute / unmute Betty voice"
                     Click="OnMuteClick">
               <Panel>
                 <TextBlock Text="♦" Foreground="#c8a84b" IsVisible="{Binding !IsMuted}" />

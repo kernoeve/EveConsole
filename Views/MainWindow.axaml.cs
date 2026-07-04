@@ -272,7 +272,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     // ── Title bar actions ─────────────────────────────────────────────────────
 
-    private void OnAuraClick(object? sender, RoutedEventArgs e)
+    private void OnBettyClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm)
             vm.AgentVm.ToggleOpen();
