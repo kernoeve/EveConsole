@@ -16,10 +16,20 @@ public partial class TradeOpportunitiesView : UserControl
             if (!_initialized && DataContext is TradeOpportunitiesViewModel vm)
             {
                 _initialized = true;
+
+                vm.ShowMarketGroupPickerDialog = async () =>
+                {
+                    var pickerVm = new MarketGroupPickerViewModel(vm.GetBatchAddService());
+                    var win      = new MarketGroupPickerWindow(pickerVm);
+                    return await win.ShowDialog<MarketGroupPickerResult?>(GetWindow());
+                };
+
                 await vm.InitializeAsync();
             }
         };
     }
+
+    private Window GetWindow() => (TopLevel.GetTopLevel(this) as Window)!;
 
     private void OnGridDoubleTapped(object? sender, TappedEventArgs e)
     {

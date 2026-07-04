@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Reactive;
 using EveCortex.Services;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
@@ -9,6 +10,8 @@ public record StationOption(long LocationId, string Name);
 
 public enum TradeMode { SellToBuyOrder, UndercutSellOrder }
 public record TradeModeOption(string Label, TradeMode Kind);
+
+public record ExcludedMarketGroupVm(int MarketGroupId, string Name);
 
 public class TradeRow
 {
@@ -46,6 +49,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 {
     private readonly string               _connString;
     private readonly MarketHistoryService _historyService;
+    private readonly BatchAddService      _batchSvc;
 
     // ── Mode ──────────────────────────────────────────────────────────────────
 
@@ -102,6 +106,81 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _minIskVolume, value);
     }
 
+    // ── Excluded market groups (and everything nested under them) ────────────
+
+    public ObservableCollection<ExcludedMarketGroupVm> ExcludedMarketGroups { get; } = [];
+
+    public Func<Task<MarketGroupPickerResult?>>? ShowMarketGroupPickerDialog { get; set; }
+
+    public BatchAddService GetBatchAddService() => _batchSvc;
+
+    public ReactiveCommand<Unit, Unit>                     AddExcludedGroupCommand    { get; }
+    public ReactiveCommand<ExcludedMarketGroupVm, Unit>    RemoveExcludedGroupCommand { get; }
+
+    private async Task AddExcludedGroupAsync()
+    {
+        if (ShowMarketGroupPickerDialog is null) return;
+        var pick = await ShowMarketGroupPickerDialog();
+        if (pick is null) return;
+        if (ExcludedMarketGroups.Any(g => g.MarketGroupId == pick.MarketGroupId)) return;
+
+        ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(pick.MarketGroupId, pick.GroupName));
+        await SaveExcludedGroupsAsync();
+    }
+
+    private async Task RemoveExcludedGroupAsync(ExcludedMarketGroupVm group)
+    {
+        ExcludedMarketGroups.Remove(group);
+        await SaveExcludedGroupsAsync();
+    }
+
+    private async Task LoadExcludedGroupsAsync()
+    {
+        using var conn = new SqliteConnection(_connString);
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = """SELECT "ExcludedMarketGroupIds" FROM "TradeOpportunitiesSettings" WHERE "Id" = 1""";
+        var raw = (await cmd.ExecuteScalarAsync()) as string ?? "";
+
+        var ids = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(s => int.TryParse(s, out var id) ? id : (int?)null)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .ToList();
+        if (ids.Count == 0) return;
+
+        using var nameCmd = conn.CreateCommand();
+        nameCmd.CommandText = $"""SELECT "MarketGroupId", "Name" FROM "SdeMarketGroups" WHERE "MarketGroupId" IN ({string.Join(",", ids)})""";
+        var names = new Dictionary<int, string>();
+        using (var reader = await nameCmd.ExecuteReaderAsync())
+            while (await reader.ReadAsync())
+                names[reader.GetInt32(0)] = reader.GetString(1);
+
+        ExcludedMarketGroups.Clear();
+        foreach (var id in ids)
+            if (names.TryGetValue(id, out var name))
+                ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(id, name));
+    }
+
+    private async Task SaveExcludedGroupsAsync()
+    {
+        var csv = string.Join(",", ExcludedMarketGroups.Select(g => g.MarketGroupId));
+        using var conn = new SqliteConnection(_connString);
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = """UPDATE "TradeOpportunitiesSettings" SET "ExcludedMarketGroupIds" = @ids WHERE "Id" = 1""";
+        cmd.Parameters.AddWithValue("@ids", csv);
+        await cmd.ExecuteNonQueryAsync();
+    }
+
+    private async Task<HashSet<int>> GetExcludedGroupIdsRecursiveAsync()
+    {
+        var result = new HashSet<int>();
+        foreach (var g in ExcludedMarketGroups)
+            result.UnionWith(await _batchSvc.GetDescendantGroupIdsAsync(g.MarketGroupId));
+        return result;
+    }
+
     // ── Item navigation callback (set by MainWindow) ──────────────────────────
 
     public Action<int, string>? ItemNavigationRequested { get; set; }
@@ -140,17 +219,21 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     // ── Construction ──────────────────────────────────────────────────────────
 
-    public TradeOpportunitiesViewModel(string connString, MarketHistoryService historyService)
+    public TradeOpportunitiesViewModel(string connString, MarketHistoryService historyService, BatchAddService batchSvc)
     {
         _connString     = connString;
         _historyService = historyService;
+        _batchSvc       = batchSvc;
         _selectedMode   = ModeOptions[0];
-        CalculateCommand = ReactiveCommand.CreateFromTask(CalculateAsync);
+        CalculateCommand           = ReactiveCommand.CreateFromTask(CalculateAsync);
+        AddExcludedGroupCommand    = ReactiveCommand.CreateFromTask(AddExcludedGroupAsync);
+        RemoveExcludedGroupCommand = ReactiveCommand.CreateFromTask<ExcludedMarketGroupVm>(RemoveExcludedGroupAsync);
     }
 
     public async Task InitializeAsync()
     {
         await LoadStationsAsync();
+        await LoadExcludedGroupsAsync();
     }
 
     // ── Station loading ───────────────────────────────────────────────────────
@@ -277,12 +360,17 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task<List<Candidate>> FetchCandidatesAsync(long sourceId, long destId)
     {
+        var excludedGroupIds = await GetExcludedGroupIdsRecursiveAsync();
+        var exclusionClause  = excludedGroupIds.Count > 0
+            ? $"""AND (t."MarketGroupId" IS NULL OR t."MarketGroupId" NOT IN ({string.Join(",", excludedGroupIds)})) """
+            : "";
+
         using var conn = new SqliteConnection(_connString);
         await conn.OpenAsync();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = SelectedMode.Kind == TradeMode.UndercutSellOrder
-            ? UndercutSql : CandidateSql;
+        cmd.CommandText = (SelectedMode.Kind == TradeMode.UndercutSellOrder
+            ? UndercutSql : CandidateSql).Replace("/*EXCLUSION*/", exclusionClause);
         cmd.Parameters.AddWithValue("@sourceId", sourceId);
         cmd.Parameters.AddWithValue("@destId",   destId);
 
@@ -460,6 +548,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         JOIN dst d ON d.TypeId = s.TypeId
         JOIN "SdeTypes" t ON t."TypeId" = s.TypeId
         WHERE t."Volume" > 0
+        /*EXCLUSION*/
         ORDER BY ProfitPerM3 DESC
         """;
 
@@ -493,6 +582,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         JOIN "SdeTypes" t ON t."TypeId" = s.TypeId
         WHERE d.DestSell > s.BestSell
           AND t."Volume" > 0
+        /*EXCLUSION*/
         ORDER BY ProfitPerM3 DESC
         """;
 }
