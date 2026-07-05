@@ -293,21 +293,46 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             foreach (var t in totals) assets[t.TypeId] = t.Total;
         }
 
-        // Industry Jobs — active manufacturing (ActivityId = 1)
+        // Industry Jobs — active manufacturing (1) and reactions (9, plus legacy 11).
+        // Count the UNITS that will be produced = Runs × output-per-run, so the total is
+        // consistent with asset quantities. Reactions and multi-output blueprints (e.g.
+        // capital components, ammo) produce many units per run, so counting runs alone
+        // undercounts — and reactions were previously excluded entirely.
         if (group.IncludeIndustryJobs)
         {
             var q = db.EsiIndustryJobs
-                .Where(j => j.ActivityId == 1
+                .Where(j => (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11)
                          && j.Status == "active"
                          && j.ProductTypeId.HasValue
                          && typeIds.Contains(j.ProductTypeId!.Value));
             if (stationFilter != null)
                 q = q.Where(j => stationFilter.Contains(j.OutputLocationId));
 
-            var totals = await q.GroupBy(j => j.ProductTypeId!.Value)
-                .Select(g => new { TypeId = g.Key, Total = g.Sum(j => (long)j.Runs) })
+            var activeJobs = await q
+                .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value, j.Runs })
                 .ToListAsync(ct);
-            foreach (var t in totals) jobs[t.TypeId] = t.Total;
+
+            if (activeJobs.Count > 0)
+            {
+                // Output units per run, keyed by (blueprint, product). Use the job's own
+                // blueprint so the count matches exactly what that job will deliver.
+                var bpIds = activeJobs.Select(j => j.BlueprintTypeId).Distinct().ToList();
+                var qtyMap = (await db.SdeBlueprintProducts.AsNoTracking()
+                        .Where(p => bpIds.Contains(p.TypeId)
+                                 && (p.Activity == "manufacturing" || p.Activity == "reaction"))
+                        .Select(p => new { p.TypeId, p.ProductTypeId, p.Quantity })
+                        .ToListAsync(ct))
+                    .GroupBy(p => (p.TypeId, p.ProductTypeId))
+                    .ToDictionary(g => g.Key, g => g.First().Quantity);
+
+                foreach (var j in activeJobs)
+                {
+                    long perRun = qtyMap.TryGetValue((j.BlueprintTypeId, j.ProductTypeId), out var qy)
+                        ? Math.Max(1, qy) : 1;
+                    long units = (long)j.Runs * perRun;
+                    jobs[j.ProductTypeId] = jobs.TryGetValue(j.ProductTypeId, out var cur) ? cur + units : units;
+                }
+            }
         }
 
         // Market Buy Orders — active, not historical
