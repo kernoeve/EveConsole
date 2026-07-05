@@ -1500,30 +1500,8 @@
                   BorderBrush="#253525" BorderThickness="1" />
         </StackPanel>
 
-        <!-- ── Sweep monitor (live) ─────────────────────────────────────────── -->
-        <TextBlock Text="Sweep Status" Margin="0 8 0 0"
-                   FontSize="14" FontWeight="SemiBold" Foreground="#c8a84b" />
-        <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
-                   Text="Live per-region progress. 'Refreshed' = types with history newer than 24h; 'Queued' = types still awaiting a refresh. Updates as the sweep runs." />
-
-        <ItemsControl ItemsSource="{Binding PriceHistoryVm.RegionStatuses}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="vm:RegionStatusRowVm">
-              <Border Background="#131320" BorderBrush="#252535" BorderThickness="1"
-                      CornerRadius="4" Padding="10 6" Margin="0 0 0 6">
-                <DockPanel>
-                  <TextBlock Text="{Binding RegionName}" FontSize="12" FontWeight="SemiBold"
-                             Foreground="#ccccdd" Width="160" DockPanel.Dock="Left" />
-                  <TextBlock Text="{Binding Summary}" FontSize="12" Foreground="#888899"
-                             DockPanel.Dock="Right" HorizontalAlignment="Right" />
-                  <ProgressBar Minimum="0" Maximum="{Binding Total}" Value="{Binding Refreshed}"
-                               Height="6" Margin="12 0" VerticalAlignment="Center"
-                               Foreground="#70ad47" Background="#2a2a3a" />
-                </DockPanel>
-              </Border>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <TextBlock TextWrapping="Wrap" Foreground="#666677" FontSize="11" Margin="0 4 0 0"
+                   Text="Tip: watch live per-region sweep progress (refreshed vs queued, and whether it's running) on the API Activity Log → Call Schedule → Price History tab." />
 
       </StackPanel>
     </ScrollViewer>

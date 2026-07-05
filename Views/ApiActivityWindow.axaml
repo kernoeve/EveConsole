@@ -231,6 +231,54 @@
           </Grid>
         </TabItem>
 
+        <!-- ── Subtab C: Price History Sweep ──────────────────────────────── -->
+        <TabItem Header="Price History">
+          <Grid RowDefinitions="Auto,Auto,*" Margin="0 8 0 0">
+
+            <!-- Running indicator -->
+            <Border Grid.Row="0" Padding="0 0 0 8">
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="{Binding HistoryState}" FontSize="12"
+                           FontWeight="SemiBold" Foreground="#c8a84b" VerticalAlignment="Center" />
+              </StackPanel>
+            </Border>
+
+            <!-- Column headers -->
+            <Grid Grid.Row="1" ColumnDefinitions="240,160,120,*" Background="#14141c">
+              <TextBlock Grid.Column="0" Text="Region"         FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="8 4" />
+              <TextBlock Grid.Column="1" Text="Refreshed / Total (24h)" FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+              <TextBlock Grid.Column="2" Text="Queued"         FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+              <TextBlock Grid.Column="3" Text="Status"         FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+            </Grid>
+
+            <!-- Region rows -->
+            <ListBox Grid.Row="2"
+                     ItemsSource="{Binding HistoryRegions}"
+                     Background="#0d0d12"
+                     BorderThickness="0"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+              <ListBox.ItemContainerTheme>
+                <ControlTheme TargetType="ListBoxItem">
+                  <Setter Property="Padding"         Value="0" />
+                  <Setter Property="Background"      Value="Transparent" />
+                  <Setter Property="BorderThickness" Value="0" />
+                </ControlTheme>
+              </ListBox.ItemContainerTheme>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:HistoryRegionRowVm">
+                  <Grid ColumnDefinitions="240,160,120,*" Margin="0 1">
+                    <TextBlock Grid.Column="0" Text="{Binding RegionName}" FontSize="11" Foreground="#aab" VerticalAlignment="Center" Margin="8 2" />
+                    <TextBlock Grid.Column="1" Text="{Binding CountsText}" FontSize="11" Foreground="#999" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="2" Text="{Binding Queue}"      FontSize="11" Foreground="#6688cc" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="3" Text="{Binding StatusText}" Foreground="{Binding StatusColor}" FontSize="11" VerticalAlignment="Center" Margin="4 2" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+          </Grid>
+        </TabItem>
+
       </TabControl>
     </TabItem>
 

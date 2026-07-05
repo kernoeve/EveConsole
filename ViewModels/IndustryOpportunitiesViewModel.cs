@@ -118,7 +118,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     }
 
     // Faction items (MetaGroupId = 4) are ME0 BPCs that are often not worth building.
-    private bool _skipFactionItems;
+    private bool _skipFactionItems = true;
     public bool SkipFactionItems
     {
         get => _skipFactionItems;
@@ -128,7 +128,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     // Only items whose blueprint is a buyable BPO, or is invented from one (T2 from a T1
     // BPO). Excludes only items built from BPCs with no obtainable BPO — faction and
     // limited-run items — whose blueprint/contract cost we can't account for.
-    private bool _bpoOnly;
+    private bool _bpoOnly = true;
     public bool BpoOnly
     {
         get => _bpoOnly;

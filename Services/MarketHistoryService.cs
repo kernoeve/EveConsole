@@ -29,6 +29,13 @@ public class MarketHistoryService : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _statusText, value);
     }
 
+    private bool _isSweeping;
+    public bool IsSweeping
+    {
+        get => _isSweeping;
+        private set => this.RaiseAndSetIfChanged(ref _isSweeping, value);
+    }
+
     // ── Per-region sweep progress (for the Price History monitor) ───────────────
 
     public record RegionSweepStatus(int RegionId, string RegionName, int Refreshed, int Queue)
@@ -135,6 +142,13 @@ public class MarketHistoryService : ReactiveObject
     /// This is what lets the opportunity tools read history straight from the DB.
     /// </summary>
     public async Task SweepAsync(CancellationToken ct = default)
+    {
+        IsSweeping = true;
+        try { await SweepCoreAsync(ct); }
+        finally { IsSweeping = false; }
+    }
+
+    private async Task SweepCoreAsync(CancellationToken ct)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
 

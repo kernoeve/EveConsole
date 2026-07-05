@@ -83,7 +83,7 @@
                     VerticalAlignment="Center" />
 
           <CheckBox IsChecked="{Binding BpoOnly}"
-                    Content="BPO only"
+                    Content="Skip Non BPO traceable Items"
                     Foreground="#ccccdd" FontSize="11"
                     VerticalAlignment="Center"
                     ToolTip.Tip="Only items whose blueprint is a buyable BPO, or is invented from one (e.g. T2 from a T1 BPO). Excludes faction/limited-run BPC items with no obtainable BPO, and 'Limited Time' event items whose BPO can no longer be bought in game." />
