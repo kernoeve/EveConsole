@@ -78,9 +78,7 @@ public class MarketHistoryService : ReactiveObject
                 ? new List<int>()
                 : await db.MarketRawOrders.AsNoTracking()
                     .Where(o => cfgIds.Contains(o.ConfigId)).Select(o => o.TypeId).Distinct().ToListAsync(ct);
-            var freshSet = await db.MarketHistoryFetches.AsNoTracking()
-                .Where(f => f.RegionId == region.RegionId && f.FetchedAt >= cutoff)
-                .Select(f => f.TypeId).ToHashSetAsync(ct);
+            var freshSet = await GetFreshTypeIdsAsync(db, region.RegionId, cutoff, ct);
             int refreshed = typeIds.Count(t => freshSet.Contains(t));
             SetStatus(region.RegionId, region.RegionName, refreshed, typeIds.Count - refreshed);
         }
@@ -186,9 +184,7 @@ public class MarketHistoryService : ReactiveObject
                     .Where(o => cfgIds.Contains(o.ConfigId))
                     .Select(o => o.TypeId).Distinct().ToListAsync(ct);
 
-            var freshTypes = await db.MarketHistoryFetches.AsNoTracking()
-                .Where(f => f.RegionId == region.RegionId && f.FetchedAt >= cutoff)
-                .Select(f => f.TypeId).ToHashSetAsync(ct);
+            var freshTypes = await GetFreshTypeIdsAsync(db, region.RegionId, cutoff, ct);
 
             var rw = new RegionWork(region.RegionId, region.RegionName, typeIds,
                 new Queue<int>(typeIds.Where(t => !freshTypes.Contains(t))));
@@ -230,9 +226,7 @@ public class MarketHistoryService : ReactiveObject
         // Accurate final counts from the DB (failed fetches stay queued for the next run).
         foreach (var rw in work)
         {
-            var freshNow = await db.MarketHistoryFetches.AsNoTracking()
-                .Where(f => f.RegionId == rw.RegionId && f.FetchedAt >= cutoff)
-                .Select(f => f.TypeId).ToHashSetAsync(ct);
+            var freshNow = await GetFreshTypeIdsAsync(db, rw.RegionId, cutoff, ct);
             int refreshedNow = rw.TypeIds.Count(t => freshNow.Contains(t));
             SetStatus(rw.RegionId, rw.Name, refreshedNow, rw.TypeIds.Count - refreshedNow);
         }
@@ -248,6 +242,19 @@ public class MarketHistoryService : ReactiveObject
         public List<int>  TypeIds  => typeIds;
         public Queue<int> Stale    => stale;
         public int        Total    => typeIds.Count;
+    }
+
+    // Type IDs whose history was fetched within the freshness window for a region.
+    // EF Core's SQLite provider cannot translate a DateTimeOffset comparison in a Where,
+    // so pull the region's fetch timestamps and apply the cutoff in memory.
+    private static async Task<HashSet<int>> GetFreshTypeIdsAsync(
+        AppDbContext db, int regionId, DateTimeOffset cutoff, CancellationToken ct)
+    {
+        var rows = await db.MarketHistoryFetches.AsNoTracking()
+            .Where(f => f.RegionId == regionId)
+            .Select(f => new { f.TypeId, f.FetchedAt })
+            .ToListAsync(ct);
+        return rows.Where(f => f.FetchedAt >= cutoff).Select(f => f.TypeId).ToHashSet();
     }
 
     // Resolves each enabled market pricing config to a region id.
