@@ -66,8 +66,22 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >
-          gh release create "v${{ steps.version.outputs.version }}"
-          "${{ steps.package.outputs.zip }}"
-          --title "Eve Cortex v${{ steps.version.outputs.version }}"
-          --generate-notes
+        run: |
+          $tag = "v${{ steps.version.outputs.version }}"
+          gh release create $tag "${{ steps.package.outputs.zip }}" --title "Eve Cortex $tag" --generate-notes
+          $auto = gh release view $tag --json body -q .body
+          $header = @(
+            '## Installing',
+            '',
+            'Download the win-x64 zip below and extract it anywhere, then run `EveCortex.exe`. No .NET install is required (the runtime is bundled).',
+            '',
+            '### First launch (Windows SmartScreen)',
+            'Eve Cortex is not code-signed yet, so Windows may show a "Windows protected your PC" warning the first time you run it. This is expected for a new indie app.',
+            '',
+            '- If the warning appears, click **More info**, then **Run anyway**.',
+            '- Optional: before extracting the zip, right-click it -> **Properties** -> tick **Unblock** -> **OK**. This clears the download flag from every file inside.',
+            '',
+            '---',
+            ''
+          ) -join "`n"
+          gh release edit $tag --notes ($header + "`n" + $auto)
