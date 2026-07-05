@@ -236,6 +236,10 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             int sysId = (int)group.LocationId.Value;
             var ids = new HashSet<long>();
 
+            // The system id itself — items floating in space (or in a ship's cargo in
+            // space) root to the solar system, not a station/structure.
+            ids.Add(sysId);
+
             ids.UnionWith(await db.SdeStations
                 .Where(s => s.SolarSystemId == sysId)
                 .Select(s => (long)s.StationId)
@@ -260,6 +264,11 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 .ToListAsync(ct);
 
             var ids = new HashSet<long>();
+
+            // The systems themselves — items in space (or in ships in space) root to the
+            // solar system rather than a station/structure.
+            ids.UnionWith(sysIds.Select(s => (long)s));
+
             ids.UnionWith(await db.SdeStations
                 .Where(s => sysIds.Contains(s.SolarSystemId))
                 .Select(s => (long)s.StationId)
