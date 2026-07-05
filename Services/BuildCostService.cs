@@ -360,12 +360,16 @@ public class BuildCostService
             }
         }
 
-        // Load all blueprint products (manufacturing + reaction only).
+        // Load all blueprint products (manufacturing + reaction only). Only PUBLISHED
+        // blueprints — a handful of products (e.g. Tungsten Carbide) also have an
+        // unpublished "Test Reaction Blueprint" with a tiny output quantity that would
+        // otherwise be picked and inflate the per-unit cost ~500x.
         var allProducts = await db.SdeBlueprintProducts.AsNoTracking()
-            .Where(p => p.Activity == "manufacturing" || p.Activity == "reaction")
+            .Where(p => (p.Activity == "manufacturing" || p.Activity == "reaction")
+                     && db.SdeTypes.Any(t => t.TypeId == p.TypeId && t.Published))
             .ToListAsync(ct);
 
-        // productMap: productTypeId → first SdeBlueprintProduct record
+        // productMap: productTypeId → the (single, published) SdeBlueprintProduct record
         var productMap = allProducts
             .GroupBy(p => p.ProductTypeId)
             .ToDictionary(g => g.Key, g => g.First());
