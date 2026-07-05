@@ -383,20 +383,52 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             .Select(t => new { t.TypeId, t.Name, t.Volume })
             .ToListAsync(ct);
 
-        var prices = await db.EsiAdjustedPrices
-            .Where(p => ids.Contains(p.TypeId))
-            .ToDictionaryAsync(p => p.TypeId, p => p.AveragePrice, ct);
-
         var buildCosts = await db.BuildCosts
             .Where(b => ids.Contains(b.TypeId))
             .ToDictionaryAsync(b => b.TypeId, b => (double)b.TotalCost, ct);
+
+        // Market value follows the configured Default Pricing (Asset Value) source, which
+        // already gap-fills missing prices with build cost × markup. Fall back to that same
+        // build-cost markup in code, then to the ESI average, so the column is never blank
+        // just because ESI has no average price for an item (e.g. low-volume faction hulls).
+        var defaults    = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(ct);
+        int?   cfgId    = defaults?.AssetValueConfigId;
+        string priceKind = defaults?.AssetValuePriceType ?? MarketPriceType.Sell;
+        double markup   = 1.0 + (double)(defaults?.MissingPriceMarkupPct ?? 0) / 100.0;
+
+        var configPrices = new Dictionary<int, double>();
+        if (cfgId.HasValue)
+        {
+            var rows = await db.MarketItemPrices.AsNoTracking()
+                .Where(p => ids.Contains(p.TypeId) && p.ConfigId == cfgId.Value)
+                .ToListAsync(ct);
+            foreach (var p in rows)
+                configPrices[p.TypeId] = priceKind switch
+                {
+                    MarketPriceType.Buy      => p.BuyPrice,
+                    MarketPriceType.Midpoint => p.Midpoint,
+                    _                        => p.SellPrice,
+                };
+        }
+
+        var avgPrices = await db.EsiAdjustedPrices
+            .Where(p => ids.Contains(p.TypeId))
+            .ToDictionaryAsync(p => p.TypeId, p => p.AveragePrice, ct);
+
+        double? MarketValue(int typeId)
+        {
+            if (configPrices.TryGetValue(typeId, out var cp) && cp > 0) return cp;
+            if (buildCosts.TryGetValue(typeId, out var bc) && bc > 0)   return bc * markup;
+            if (avgPrices.TryGetValue(typeId, out var ap) && ap > 0)    return ap;
+            return null;
+        }
 
         return types.ToDictionary(
             t => t.TypeId,
             t => new InvTypeMeta(
                 t.Name,
                 t.Volume,
-                prices.TryGetValue(t.TypeId, out var p) && p > 0 ? p : null,
+                MarketValue(t.TypeId),
                 buildCosts.TryGetValue(t.TypeId, out var bc) && bc > 0 ? bc : null));
     }
 
