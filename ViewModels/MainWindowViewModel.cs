@@ -307,8 +307,9 @@ public class MainWindowViewModel : ReactiveObject
             ]),
             new("Assets",
             [
-                new NavItem("assets", "Assets"),
-                new NavItem("items",  "Item Browser"),
+                new NavItem("assets",     "Assets"),
+                new NavItem("items",      "Item Browser"),
+                new NavItem("inv_levels", "Inventory Levels"),
             ]),
             new("Industry",
             [
@@ -320,7 +321,6 @@ public class MainWindowViewModel : ReactiveObject
             new("Market / Trade",
             [
                 new NavItem("market_levels", "Market Levels"),
-                new NavItem("inv_levels",    "Inventory Levels"),
                 new NavItem("trade",         "Trade Opportunities"),
             ]),
             new("Finance",
