@@ -113,6 +113,14 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _minUnitVolume, value);
     }
 
+    // Faction items (MetaGroupId = 4) are ME0 BPCs that are often not worth building.
+    private bool _skipFactionItems;
+    public bool SkipFactionItems
+    {
+        get => _skipFactionItems;
+        set => this.RaiseAndSetIfChanged(ref _skipFactionItems, value);
+    }
+
     // ── Excluded market groups (and everything nested under them) ────────────
 
     public ObservableCollection<ExcludedMarketGroupVm> ExcludedMarketGroups { get; } = [];
@@ -350,11 +358,18 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             ? $"""AND (t."MarketGroupId" IS NULL OR t."MarketGroupId" NOT IN ({string.Join(",", excludedGroupIds)})) """
             : "";
 
+        // Faction items are MetaGroupId 4.
+        var factionClause = SkipFactionItems
+            ? """AND (t."MetaGroupId" IS NULL OR t."MetaGroupId" != 4) """
+            : "";
+
         using var conn = new SqliteConnection(_connString);
         await conn.OpenAsync();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = CandidateSql.Replace("/*EXCLUSION*/", exclusionClause);
+        cmd.CommandText = CandidateSql
+            .Replace("/*EXCLUSION*/", exclusionClause)
+            .Replace("/*FACTION*/", factionClause);
         cmd.Parameters.AddWithValue("@configId", configId);
 
         var list = new List<Candidate>();
@@ -559,5 +574,6 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         JOIN "SdeTypes" t ON t."TypeId" = bc."TypeId"
         WHERE bc."TotalCost" > 0 AND bc."BuildSeconds" > 0
         /*EXCLUSION*/
+        /*FACTION*/
         """;
 }

@@ -77,6 +77,11 @@
                    Watermark="No filter"
                    Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd" />
 
+          <CheckBox IsChecked="{Binding SkipFactionItems}"
+                    Content="Skip faction"
+                    Foreground="#ccccdd" FontSize="11"
+                    VerticalAlignment="Center" />
+
         </StackPanel>
       </DockPanel>
 
