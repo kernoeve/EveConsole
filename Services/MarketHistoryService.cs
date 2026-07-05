@@ -100,19 +100,27 @@ public class MarketHistoryService : ReactiveObject
         int fetched = 0, fresh = 0;
         var cutoff = DateTimeOffset.UtcNow - CacheAge;
 
+        // Map each enabled pricing config to its region. Region configs store the region in
+        // LocationId; player-structure configs resolve through the structure's solar system.
+        // We must NOT derive region from each raw order's SystemId: structure-config orders
+        // have SystemId = 0, so that join finds no types for player-structure regions.
+        var configRegion = await BuildConfigRegionMapAsync(db, ct);
+
         foreach (var region in regions)
         {
             if (ct.IsCancellationRequested) break;
 
-            // Types that actually trade in this region (i.e. have orders) — the only ones
-            // worth history. Region is derived from each order's solar system.
-            var typeIds = await db.MarketRawOrders.AsNoTracking()
-                .Join(db.SdeSolarSystems.AsNoTracking(),
-                      o => o.SystemId, s => s.SolarSystemId, (o, s) => new { o.TypeId, s.RegionId })
-                .Where(x => x.RegionId == region.RegionId)
-                .Select(x => x.TypeId)
-                .Distinct()
-                .ToListAsync(ct);
+            // Types that actually trade in this region = all types with orders under any
+            // config mapped to this region.
+            var cfgIds = configRegion.Where(kv => kv.Value == region.RegionId)
+                                     .Select(kv => kv.Key).ToList();
+            var typeIds = cfgIds.Count == 0
+                ? new List<int>()
+                : await db.MarketRawOrders.AsNoTracking()
+                    .Where(o => cfgIds.Contains(o.ConfigId))
+                    .Select(o => o.TypeId)
+                    .Distinct()
+                    .ToListAsync(ct);
 
             // Skip types already fresh — one query rather than a per-type context.
             var freshTypes = await db.MarketHistoryFetches.AsNoTracking()
@@ -136,6 +144,39 @@ public class MarketHistoryService : ReactiveObject
         }
 
         StatusText = $"Price history: {fetched:N0} updated, {fresh:N0} already fresh — {DateTimeOffset.Now:t}";
+    }
+
+    // Resolves each enabled market pricing config to a region id.
+    private static async Task<Dictionary<int, int>> BuildConfigRegionMapAsync(AppDbContext db, CancellationToken ct)
+    {
+        var configs = await db.MarketPricingConfigs.AsNoTracking()
+            .Where(c => c.IsEnabled)
+            .Select(c => new { c.Id, c.Method, c.LocationId })
+            .ToListAsync(ct);
+
+        var map = new Dictionary<int, int>();
+        foreach (var c in configs)
+        {
+            int? region = c.Method == MarketMethod.EsiRegion ? (int)c.LocationId : null;
+
+            if (region is null)
+            {
+                // Player structure: resolve through its solar system.
+                region = await db.EsiStructureNames.AsNoTracking()
+                    .Where(sn => sn.StructureId == c.LocationId && sn.SolarSystemId != 0)
+                    .Join(db.SdeSolarSystems.AsNoTracking(),
+                          sn => sn.SolarSystemId, ss => ss.SolarSystemId, (sn, ss) => (int?)ss.RegionId)
+                    .FirstOrDefaultAsync(ct);
+
+                // Fallback: LocationId is itself a region id (e.g. Fuzzwork region configs).
+                if ((region is null or 0) &&
+                    await db.SdeRegions.AsNoTracking().AnyAsync(r => r.RegionId == c.LocationId, ct))
+                    region = (int)c.LocationId;
+            }
+
+            if (region is > 0) map[c.Id] = region.Value;
+        }
+        return map;
     }
 
     /// <summary>
@@ -196,50 +237,54 @@ public class MarketHistoryService : ReactiveObject
         return true;
     }
 
+    // Cutoff (ISO yyyy-MM-dd) for the trailing 30-CALENDAR-day window. Dates are stored as
+    // ISO strings, so lexicographic comparison is a valid date comparison. Using a calendar
+    // window — not the 30 most recent rows — matters for illiquid items: an item that trades
+    // a couple of times a month would otherwise sum ~30 *trading days* spanning a year and
+    // hugely overcount its "30-day" volume.
+    private static string ThirtyDayCutoff() => DateTime.UtcNow.AddDays(-30).ToString("yyyy-MM-dd");
+
     /// <summary>
-    /// Returns the sum of Volume * Average over the most recent 30 history rows
-    /// (i.e. the last 30 traded days). Anchored to the newest available data rather
-    /// than the wall clock, so it stays correct even when ESI history lags a few days.
-    /// Reads whatever the background sweep has already cached.
+    /// ISK value traded over the last 30 calendar days. Reads the background-swept cache.
     /// </summary>
     public async Task<double> Get30DayIskVolumeAsync(int regionId, int typeId)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
+        var cutoff = ThirtyDayCutoff();
         var recent = await db.MarketTypeHistories
-            .Where(h => h.RegionId == regionId && h.TypeId == typeId)
-            .OrderByDescending(h => h.Date)
-            .Take(30)
+            .Where(h => h.RegionId == regionId && h.TypeId == typeId
+                     && string.Compare(h.Date, cutoff) >= 0)
             .Select(h => new { h.Volume, h.Average })
             .ToListAsync();
         return recent.Sum(h => (double)h.Volume * h.Average);
     }
 
     /// <summary>
-    /// Returns the total units traded over the most recent 30 history rows.
+    /// Total units traded over the last 30 calendar days.
     /// </summary>
     public async Task<double> Get30DayUnitVolumeAsync(int regionId, int typeId)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
+        var cutoff = ThirtyDayCutoff();
         var recent = await db.MarketTypeHistories
-            .Where(h => h.RegionId == regionId && h.TypeId == typeId)
-            .OrderByDescending(h => h.Date)
-            .Take(30)
+            .Where(h => h.RegionId == regionId && h.TypeId == typeId
+                     && string.Compare(h.Date, cutoff) >= 0)
             .Select(h => h.Volume)
             .ToListAsync();
         return recent.Sum(v => (double)v);
     }
 
     /// <summary>
-    /// Volume-weighted average trade price over the most recent 30 history rows, or 0 if
-    /// there is no history. Used to price items that have no current sell orders.
+    /// Volume-weighted average trade price over the last 30 calendar days, or 0 if there is
+    /// no recent history. Used to price items that have no current sell orders.
     /// </summary>
     public async Task<double> Get30DayAveragePriceAsync(int regionId, int typeId)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
+        var cutoff = ThirtyDayCutoff();
         var recent = await db.MarketTypeHistories
-            .Where(h => h.RegionId == regionId && h.TypeId == typeId)
-            .OrderByDescending(h => h.Date)
-            .Take(30)
+            .Where(h => h.RegionId == regionId && h.TypeId == typeId
+                     && string.Compare(h.Date, cutoff) >= 0)
             .Select(h => new { h.Volume, h.Average })
             .ToListAsync();
         long totalVol = recent.Sum(h => (long)h.Volume);
