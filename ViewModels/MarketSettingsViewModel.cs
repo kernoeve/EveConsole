@@ -377,6 +377,10 @@ public class MarketSettingsViewModel : ReactiveObject
         _ = LoadAsync();
     }
 
+    // Re-runs the initial load. Used to recover from the first-run case where this VM
+    // loaded before the SDE finished importing, leaving region dropdowns unresolved.
+    public Task ReloadAsync() => LoadAsync();
+
     private async Task LoadAsync()
     {
         RegionOptions = await _db.SdeRegions.AsNoTracking()
