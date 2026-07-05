@@ -121,9 +121,9 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _skipFactionItems, value);
     }
 
-    // Only items whose blueprint is a buyable BPO (sold on the market). Excludes items
-    // built from BPCs you can't buy an original for — T2 (invented), faction, and
-    // limited-run BPC items — whose blueprint/contract cost we can't account for.
+    // Only items whose blueprint is a buyable BPO, or is invented from one (T2 from a T1
+    // BPO). Excludes only items built from BPCs with no obtainable BPO — faction and
+    // limited-run items — whose blueprint/contract cost we can't account for.
     private bool _bpoOnly;
     public bool BpoOnly
     {
@@ -376,9 +376,11 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             ? """AND (t."MetaGroupId" IS NULL OR t."MetaGroupId" != 4) """
             : "";
 
-        // BPO-only: keep items whose (published) manufacturing/reaction blueprint is sold on
-        // the market — i.e. a buyable Blueprint Original exists. Excludes T2/faction/limited
-        // items built from BPCs with an unaccounted contract cost.
+        // BPO-only: keep items whose (published) manufacturing/reaction blueprint either is
+        // sold on the market (a buyable BPO) OR is invented from a source blueprint that is
+        // sold on the market (e.g. a T2 BPC invented from a T1 BPO). Excludes only items
+        // whose BPC has no BPO and cannot be derived from one (faction/limited-run BPCs) —
+        // those carry a contract cost the build-cost engine can't account for.
         var bpoClause = BpoOnly
             ? """
               AND EXISTS (
@@ -387,7 +389,15 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 WHERE bp."ProductTypeId" = bc."TypeId"
                   AND bp."Activity" IN ('manufacturing','reaction')
                   AND bpt."Published" = 1
-                  AND bpt."MarketGroupId" IS NOT NULL)
+                  AND (
+                    bpt."MarketGroupId" IS NOT NULL
+                    OR EXISTS (
+                      SELECT 1 FROM "SdeBlueprintProducts" inv
+                      JOIN "SdeTypes" src ON src."TypeId" = inv."TypeId"
+                      WHERE inv."Activity" = 'invention'
+                        AND inv."ProductTypeId" = bp."TypeId"
+                        AND src."MarketGroupId" IS NOT NULL)
+                  ))
               """
             : "";
 

@@ -86,7 +86,7 @@
                     Content="BPO only"
                     Foreground="#ccccdd" FontSize="11"
                     VerticalAlignment="Center"
-                    ToolTip.Tip="Only items with a buyable Blueprint Original (sold on the market). Excludes T2, faction, and limited-run items built from BPCs whose contract cost we can't account for." />
+                    ToolTip.Tip="Only items whose blueprint is a buyable BPO, or is invented from one (e.g. T2 from a T1 BPO). Excludes faction/limited-run items built from BPCs with no obtainable BPO, whose contract cost we can't account for." />
 
         </StackPanel>
       </DockPanel>
