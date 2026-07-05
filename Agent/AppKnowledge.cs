@@ -96,8 +96,10 @@ public static class AppKnowledge
         each item it lists Profit/Unit, Margin, the time to build one unit (Build Time /
         Slot Days), and — the headline metric — Profit per Slot Day (unit profit divided by
         the days a single unit occupies the slot), defaulting to that column descending.
-        Build cost uses the default Indy Park; build time assumes a researched blueprint
-        (TE20) and maxed industry skills and does not model structure/rig time bonuses.
+        Both build cost and build time use the default Indy Park; build time assumes a
+        researched blueprint (TE20) and maxed industry skills and applies that park's
+        structure role and rig time bonuses (per item category), so Slot Days reflect the
+        capsuleer's actual manufacturing setup.
         Optional "Min 30d ISK Vol" / "Min 30d Unit Vol" liquidity filters check the config
         region's market history, and whole market groups can be excluded (none by default).
         No ESI calls unless a volume filter is active.

@@ -1032,9 +1032,14 @@ public class App : Application
                     "TotalCost"    REAL    NOT NULL DEFAULT 0,
                     "MaterialCost" REAL    NOT NULL DEFAULT 0,
                     "JobCost"      REAL    NOT NULL DEFAULT 0,
+                    "BuildSeconds" REAL    NOT NULL DEFAULT 0,
                     "UpdatedAt"    TEXT    NOT NULL DEFAULT ''
                 )
                 """);
+            // BuildSeconds added after the schema squash — backfill it on existing DBs.
+            // ALTER throws if the column already exists, so swallow that one case.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "BuildCosts" ADD COLUMN "BuildSeconds" REAL NOT NULL DEFAULT 0"""); }
+            catch { /* column already present */ }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "ReprocessingValues" (

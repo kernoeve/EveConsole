@@ -64,16 +64,10 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     private readonly MarketHistoryService _historyService;
     private readonly BatchAddService      _batchSvc;
 
-    // ── Build-time model ────────────────────────────────────────────────────────
-    // We assume a fully researched blueprint and maxed industry skills — the same
-    // "ideal setup" spirit as the build-cost side (which assumes ME-researched prints).
-    // Structure/rig time bonuses are NOT modelled here: they scale roughly uniformly
-    // across a park, so they barely shift the *ranking* by profit-per-slot-day even
-    // though they lower absolute slot-days somewhat.
-    private const double MfgTimeEfficiency = 0.80; // TE20 researched blueprint (−20% time)
-    private const double MfgSkillFactor    = 0.68; // Industry V (0.80) × Advanced Industry V (0.85)
-    private const double RxnSkillFactor    = 0.85; // reactions: Advanced Industry V only; no TE research
-    private const double SecondsPerDay     = 86_400.0;
+    // Per-unit build time is computed and cached in BuildCosts.BuildSeconds by
+    // BuildCostService (using the default park's blueprint TE, skills, and structure
+    // role/rig time bonuses) — we just read it here and convert to slot-days.
+    private const double SecondsPerDay = 86_400.0;
 
     // ── Mode ──────────────────────────────────────────────────────────────────
 
@@ -340,7 +334,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     private record Candidate(
         int TypeId, string TypeName,
         double BuildCost, double SellOrderPrice, double BuyOrderPrice,
-        double SecPerRun, int OutQty, bool IsReaction);
+        double BuildSeconds);
 
     private async Task<List<Candidate>> FetchCandidatesAsync(int configId)
     {
@@ -357,22 +351,16 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         cmd.Parameters.AddWithValue("@configId", configId);
 
         var list = new List<Candidate>();
-        var seen = new HashSet<int>();
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
-            int typeId = reader.GetInt32(0);
-            if (!seen.Add(typeId)) continue; // dedupe: some products have >1 blueprint row
-
             list.Add(new Candidate(
-                typeId,
+                reader.GetInt32(0),
                 reader.GetString(1),
                 reader.GetDouble(2),
                 reader.GetDouble(3),
                 reader.GetDouble(4),
-                reader.GetDouble(5),
-                Math.Max(1, reader.GetInt32(6)),
-                reader.GetString(7) == "reaction"));
+                reader.GetDouble(5)));
         }
         return list;
     }
@@ -412,11 +400,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 }
             }
 
-            // Time to build ONE unit = base run time × TE × skills ÷ units produced per run.
-            double teFactor    = c.IsReaction ? 1.0 : MfgTimeEfficiency;
-            double skillFactor = c.IsReaction ? RxnSkillFactor : MfgSkillFactor;
-            double secPerUnit  = c.SecPerRun * teFactor * skillFactor / c.OutQty;
-            double slotDays    = secPerUnit / SecondsPerDay;
+            double slotDays = c.BuildSeconds / SecondsPerDay;
 
             result.Add(new IndustryRow
             {
@@ -426,7 +410,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 SellPrice        = sellInto,
                 ProfitPerUnit    = profit,
                 Margin           = profit / c.BuildCost,
-                BuildSeconds     = secPerUnit,
+                BuildSeconds     = c.BuildSeconds,
                 SlotDays         = slotDays,
                 ProfitPerSlotDay = slotDays > 0 ? profit / slotDays : 0,
             });
@@ -500,29 +484,21 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
     // ── SQL ───────────────────────────────────────────────────────────────────
 
-    // Joins cached build cost, market prices for the chosen config, and the base
-    // blueprint activity time. Reactions and manufacturing are both included; the
-    // Activity column lets the caller apply the right time model.
+    // Joins cached build cost + build time (from BuildCostService) with market prices
+    // for the chosen config. One BuildCosts row per item (TypeId is PK), so no dedupe.
     private const string CandidateSql = """
         SELECT
             bc."TypeId",
             bc."TypeName",
-            CAST(bc."TotalCost"  AS REAL)     AS BuildCost,
-            CAST(mip."SellPrice" AS REAL)     AS SellPrice,
-            CAST(mip."BuyPrice"  AS REAL)     AS BuyPrice,
-            CAST(ba."Time"       AS REAL)     AS SecPerRun,
-            bp."Quantity"                     AS OutQty,
-            bp."Activity"                     AS Activity
+            CAST(bc."TotalCost"    AS REAL)   AS BuildCost,
+            CAST(mip."SellPrice"   AS REAL)   AS SellPrice,
+            CAST(mip."BuyPrice"    AS REAL)   AS BuyPrice,
+            CAST(bc."BuildSeconds" AS REAL)   AS BuildSeconds
         FROM "BuildCosts" bc
         JOIN "MarketItemPrices" mip
               ON mip."TypeId" = bc."TypeId" AND mip."ConfigId" = @configId
         JOIN "SdeTypes" t ON t."TypeId" = bc."TypeId"
-        JOIN "SdeBlueprintProducts" bp
-              ON bp."ProductTypeId" = bc."TypeId"
-             AND bp."Activity" IN ('manufacturing','reaction')
-        JOIN "HoboBlueprintActivities" ba
-              ON ba."TypeId" = bp."TypeId" AND ba."Activity" = bp."Activity"
-        WHERE bc."TotalCost" > 0
+        WHERE bc."TotalCost" > 0 AND bc."BuildSeconds" > 0
         /*EXCLUSION*/
         """;
 }

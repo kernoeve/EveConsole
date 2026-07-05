@@ -21,6 +21,9 @@ public class BuildCost
     public decimal  TotalCost    { get; set; }
     public decimal  MaterialCost { get; set; }
     public decimal  JobCost      { get; set; }
+    // Seconds to manufacture ONE unit in the default park (blueprint TE + skills +
+    // structure role/rig time bonuses applied). 0 if the item is not manufacturable.
+    public double   BuildSeconds { get; set; }
     public DateTime UpdatedAt    { get; set; }
 }
 
