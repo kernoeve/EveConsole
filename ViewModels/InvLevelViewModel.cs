@@ -754,7 +754,10 @@ public class InvLevelViewModel : ReactiveObject
         await _svc.UpdateGroupAsync(row.GroupId, result);
         row.GroupName    = result.Name;
         row.CollectionId = result.CollectionId;
-        row.Multiplier   = result.Multiplier;
+        // Apply scope/location/includes to the row BEFORE touching Multiplier: the
+        // Multiplier setter re-saves the whole group from the row's current state, so if
+        // the row still held the old scope it would clobber the just-saved new scope in
+        // the DB (the bug where scope changes reverted after restart).
         row.ApplyGroupData(new InvLevelGroup
         {
             Scope                  = result.Scope,
@@ -765,6 +768,7 @@ public class InvLevelViewModel : ReactiveObject
             IncludeMarketBuyOrders = result.IncludeMarketBuyOrders,
             IncludeContractsBuying = result.IncludeContractsBuying,
         });
+        row.Multiplier   = result.Multiplier;
 
         // Ensure/remove synthetic Default row based on whether any group is uncollected
         if (_allGroups.Any(g => g.CollectionId == null) && _defaultCollRow == null)
