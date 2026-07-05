@@ -341,6 +341,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private async Task OpenSettingsAsync(MainWindowViewModel vm)
     {
+        // If the Market VM loaded before the SDE finished importing (first run), its
+        // region dropdowns are unresolved — reload now that the SDE data is available.
+        if (vm.MarketVm.RegionOptions.Count == 0)
+            await vm.MarketVm.ReloadAsync();
+
         await vm.PollingSettingsVm.LoadAsync(vm.CharacterVm.Characters);
         vm.CorpTop10SettingsVm.Load();
         var dbVm = new DatabaseSettingsViewModel(vm.AppPrefs, vm.DbBackup);
