@@ -165,7 +165,7 @@ public class MarketHistoryService : ReactiveObject
             return;
         }
 
-        int fetched = 0, fresh = 0;
+        int fetched = 0;
         var cutoff = DateTimeOffset.UtcNow - CacheAge;
 
         // Map each enabled pricing config to its region. Region configs store the region in
@@ -174,56 +174,80 @@ public class MarketHistoryService : ReactiveObject
         // have SystemId = 0, so that join finds no types for player-structure regions.
         var configRegion = await BuildConfigRegionMapAsync(db, ct);
 
+        // Build a per-region work list of stale types (those not fetched in the last 24h).
+        var work = new List<RegionWork>();
         foreach (var region in regions)
         {
-            if (ct.IsCancellationRequested) break;
-
-            // Types that actually trade in this region = all types with orders under any
-            // config mapped to this region.
             var cfgIds = configRegion.Where(kv => kv.Value == region.RegionId)
                                      .Select(kv => kv.Key).ToList();
             var typeIds = cfgIds.Count == 0
                 ? new List<int>()
                 : await db.MarketRawOrders.AsNoTracking()
                     .Where(o => cfgIds.Contains(o.ConfigId))
-                    .Select(o => o.TypeId)
-                    .Distinct()
-                    .ToListAsync(ct);
+                    .Select(o => o.TypeId).Distinct().ToListAsync(ct);
 
-            // Skip types already fresh — one query rather than a per-type context.
             var freshTypes = await db.MarketHistoryFetches.AsNoTracking()
                 .Where(f => f.RegionId == region.RegionId && f.FetchedAt >= cutoff)
-                .Select(f => f.TypeId)
-                .ToHashSetAsync(ct);
+                .Select(f => f.TypeId).ToHashSetAsync(ct);
 
-            var stale = typeIds.Where(t => !freshTypes.Contains(t)).ToList();
-            int alreadyFresh = typeIds.Count - stale.Count;
-            fresh += alreadyFresh;
-            SetStatus(region.RegionId, region.RegionName, alreadyFresh, stale.Count);
+            var rw = new RegionWork(region.RegionId, region.RegionName, typeIds,
+                new Queue<int>(typeIds.Where(t => !freshTypes.Contains(t))));
+            work.Add(rw);
+            SetStatus(rw.RegionId, rw.Name, typeIds.Count - rw.Stale.Count, rw.Stale.Count);
+        }
 
-            for (int i = 0; i < stale.Count; i++)
+        // Round-robin across regions — one item per region per cycle — so no region starves.
+        // (Sequential per-region processing let the first/one region consume the whole
+        // session, leaving others like The Forge with almost no history.)
+        int sinceStatus = 0;
+        while (!ct.IsCancellationRequested && work.Any(w => w.Stale.Count > 0))
+        {
+            foreach (var rw in work)
             {
                 if (ct.IsCancellationRequested) break;
-                if (await EnsureFreshAsync(region.RegionId, stale[i], ct)) fetched++;
+                if (rw.Stale.Count == 0) continue;
 
-                if ((i & 63) == 0)
+                // Pause rather than burn through the queue while ESI is error-limited.
+                while (_esi.IsErrorLimitBlocked && !ct.IsCancellationRequested)
                 {
-                    StatusText = $"Price history: {region.RegionName} {i + 1}/{stale.Count}…";
-                    SetStatus(region.RegionId, region.RegionName, alreadyFresh + i + 1, stale.Count - (i + 1));
+                    StatusText = "Price history: paused — ESI error limit";
+                    try { await Task.Delay(3000, ct); } catch (OperationCanceledException) { break; }
                 }
+                if (ct.IsCancellationRequested) break;
+
+                int typeId = rw.Stale.Dequeue();
+                if (await EnsureFreshAsync(rw.RegionId, typeId, ct)) fetched++;
+                SetStatus(rw.RegionId, rw.Name, rw.Total - rw.Stale.Count, rw.Stale.Count);
+
+                if ((++sinceStatus & 31) == 0)
+                    StatusText = $"Price history: {fetched:N0} fetched, {work.Sum(w => w.Stale.Count):N0} queued…";
+
                 try { await Task.Delay(SweepFetchDelayMs, ct); }
                 catch (OperationCanceledException) { break; }
             }
-
-            // Accurate end-of-region counts — failed fetches stay queued for the next run.
-            var freshNow = await db.MarketHistoryFetches.AsNoTracking()
-                .Where(f => f.RegionId == region.RegionId && f.FetchedAt >= cutoff)
-                .Select(f => f.TypeId).ToHashSetAsync(ct);
-            int refreshedNow = typeIds.Count(t => freshNow.Contains(t));
-            SetStatus(region.RegionId, region.RegionName, refreshedNow, typeIds.Count - refreshedNow);
         }
 
-        StatusText = $"Price history: {fetched:N0} updated, {fresh:N0} already fresh — {DateTimeOffset.Now:t}";
+        // Accurate final counts from the DB (failed fetches stay queued for the next run).
+        foreach (var rw in work)
+        {
+            var freshNow = await db.MarketHistoryFetches.AsNoTracking()
+                .Where(f => f.RegionId == rw.RegionId && f.FetchedAt >= cutoff)
+                .Select(f => f.TypeId).ToHashSetAsync(ct);
+            int refreshedNow = rw.TypeIds.Count(t => freshNow.Contains(t));
+            SetStatus(rw.RegionId, rw.Name, refreshedNow, rw.TypeIds.Count - refreshedNow);
+        }
+
+        StatusText = $"Price history: {fetched:N0} fetched — {DateTimeOffset.Now:t}";
+    }
+
+    // Per-region stale queue used to round-robin the sweep.
+    private sealed class RegionWork(int regionId, string name, List<int> typeIds, Queue<int> stale)
+    {
+        public int        RegionId => regionId;
+        public string     Name     => name;
+        public List<int>  TypeIds  => typeIds;
+        public Queue<int> Stale    => stale;
+        public int        Total    => typeIds.Count;
     }
 
     // Resolves each enabled market pricing config to a region id.
