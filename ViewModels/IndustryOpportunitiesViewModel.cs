@@ -121,6 +121,16 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _skipFactionItems, value);
     }
 
+    // Only items whose blueprint is a buyable BPO (sold on the market). Excludes items
+    // built from BPCs you can't buy an original for — T2 (invented), faction, and
+    // limited-run BPC items — whose blueprint/contract cost we can't account for.
+    private bool _bpoOnly;
+    public bool BpoOnly
+    {
+        get => _bpoOnly;
+        set => this.RaiseAndSetIfChanged(ref _bpoOnly, value);
+    }
+
     // ── Excluded market groups (and everything nested under them) ────────────
 
     public ObservableCollection<ExcludedMarketGroupVm> ExcludedMarketGroups { get; } = [];
@@ -366,13 +376,29 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             ? """AND (t."MetaGroupId" IS NULL OR t."MetaGroupId" != 4) """
             : "";
 
+        // BPO-only: keep items whose (published) manufacturing/reaction blueprint is sold on
+        // the market — i.e. a buyable Blueprint Original exists. Excludes T2/faction/limited
+        // items built from BPCs with an unaccounted contract cost.
+        var bpoClause = BpoOnly
+            ? """
+              AND EXISTS (
+                SELECT 1 FROM "SdeBlueprintProducts" bp
+                JOIN "SdeTypes" bpt ON bpt."TypeId" = bp."TypeId"
+                WHERE bp."ProductTypeId" = bc."TypeId"
+                  AND bp."Activity" IN ('manufacturing','reaction')
+                  AND bpt."Published" = 1
+                  AND bpt."MarketGroupId" IS NOT NULL)
+              """
+            : "";
+
         using var conn = new SqliteConnection(_connString);
         await conn.OpenAsync();
 
         using var cmd = conn.CreateCommand();
         cmd.CommandText = CandidateSql
             .Replace("/*EXCLUSION*/", exclusionClause)
-            .Replace("/*FACTION*/", factionClause);
+            .Replace("/*FACTION*/", factionClause)
+            .Replace("/*BPO*/", bpoClause);
         cmd.Parameters.AddWithValue("@configId", configId);
 
         var list = new List<Candidate>();
@@ -588,5 +614,6 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         WHERE bc."TotalCost" > 0 AND bc."BuildSeconds" > 0
         /*EXCLUSION*/
         /*FACTION*/
+        /*BPO*/
         """;
 }

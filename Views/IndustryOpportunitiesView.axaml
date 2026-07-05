@@ -82,6 +82,12 @@
                     Foreground="#ccccdd" FontSize="11"
                     VerticalAlignment="Center" />
 
+          <CheckBox IsChecked="{Binding BpoOnly}"
+                    Content="BPO only"
+                    Foreground="#ccccdd" FontSize="11"
+                    VerticalAlignment="Center"
+                    ToolTip.Tip="Only items with a buyable Blueprint Original (sold on the market). Excludes T2, faction, and limited-run items built from BPCs whose contract cost we can't account for." />
+
         </StackPanel>
       </DockPanel>
 
