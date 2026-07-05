@@ -311,7 +311,8 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
             // Region is needed for the volume filters AND to price items that have no
             // sell orders off their 30-day history average. Resolve it best-effort.
-            int? regionId    = await ResolveRegionAsync(SelectedConfig);
+            int?   regionId   = await ResolveRegionAsync(SelectedConfig);
+            string regionName = regionId.HasValue ? await GetRegionNameAsync(regionId.Value) : "unresolved";
             bool needsVolume = minIskVol.HasValue || minUnitVol.HasValue;
             if (needsVolume && !regionId.HasValue)
             {
@@ -330,8 +331,10 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
             int noSell = rows.Count(r => !r.HasSellOrders);
             var note   = noSell > 0 ? $"  ·  * {noSell} priced from 30-day avg (no sell orders)" : "";
+            // Show the volume region so it's clear the 30-day filters use the Price At region.
+            var volNote = needsVolume ? $" · 30d volume region: {regionName}" : "";
             StatusText = rows.Count > 0
-                ? $"{rows.Count} profitable item{(rows.Count == 1 ? "" : "s")} · priced at {SelectedConfig.Name}{note}"
+                ? $"{rows.Count} profitable item{(rows.Count == 1 ? "" : "s")} · priced at {SelectedConfig.Name}{volNote}{note}"
                 : "No profitable build opportunities found for this market config.";
         }
         catch (Exception ex)
@@ -491,6 +494,16 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         }
 
         return result;
+    }
+
+    private async Task<string> GetRegionNameAsync(int regionId)
+    {
+        using var conn = new SqliteConnection(_connString);
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = """SELECT "Name" FROM "SdeRegions" WHERE "RegionId" = @id""";
+        cmd.Parameters.AddWithValue("@id", regionId);
+        return (await cmd.ExecuteScalarAsync()) as string ?? $"Region {regionId}";
     }
 
     // Resolves the region id used for the 30-day volume lookups from a market config.
