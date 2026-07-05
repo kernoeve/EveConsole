@@ -1455,7 +1455,7 @@
                    FontSize="14" FontWeight="SemiBold" Foreground="#c8a84b" />
 
         <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
-                   Text="Regions listed here will have market price history fetched on-demand when viewing item details or calculating trade opportunities. History is cached for 24 hours per item." />
+                   Text="A background job refreshes 30-day market history for every traded item in these regions, once per 24 hours per item, so the opportunity tools and item details read it straight from the DB. It paces itself against ESI's error limit, so it will never push the app over. Large regions (e.g. The Forge) fill in gradually across sessions." />
 
         <!-- Configured regions grid -->
         <DataGrid ItemsSource="{Binding PriceHistoryVm.ConfiguredRegions}"
@@ -1499,6 +1499,31 @@
                   Background="#1a2a1a" Foreground="#70ad47"
                   BorderBrush="#253525" BorderThickness="1" />
         </StackPanel>
+
+        <!-- ── Sweep monitor (live) ─────────────────────────────────────────── -->
+        <TextBlock Text="Sweep Status" Margin="0 8 0 0"
+                   FontSize="14" FontWeight="SemiBold" Foreground="#c8a84b" />
+        <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
+                   Text="Live per-region progress. 'Refreshed' = types with history newer than 24h; 'Queued' = types still awaiting a refresh. Updates as the sweep runs." />
+
+        <ItemsControl ItemsSource="{Binding PriceHistoryVm.RegionStatuses}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:RegionStatusRowVm">
+              <Border Background="#131320" BorderBrush="#252535" BorderThickness="1"
+                      CornerRadius="4" Padding="10 6" Margin="0 0 0 6">
+                <DockPanel>
+                  <TextBlock Text="{Binding RegionName}" FontSize="12" FontWeight="SemiBold"
+                             Foreground="#ccccdd" Width="160" DockPanel.Dock="Left" />
+                  <TextBlock Text="{Binding Summary}" FontSize="12" Foreground="#888899"
+                             DockPanel.Dock="Right" HorizontalAlignment="Right" />
+                  <ProgressBar Minimum="0" Maximum="{Binding Total}" Value="{Binding Refreshed}"
+                               Height="6" Margin="12 0" VerticalAlignment="Center"
+                               Foreground="#70ad47" Background="#2a2a3a" />
+                </DockPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
       </StackPanel>
     </ScrollViewer>

@@ -3,16 +3,47 @@ using System.Reactive.Linq;
 using Avalonia.Threading;
 using EveCortex.Data;
 using EveCortex.Models;
+using EveCortex.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
 namespace EveCortex.ViewModels;
 
+// Live per-region row for the price-history sweep monitor.
+public class RegionStatusRowVm : ReactiveObject
+{
+    public int    RegionId   { get; }
+    public string RegionName { get; }
+
+    public RegionStatusRowVm(int regionId, string name) { RegionId = regionId; RegionName = name; }
+
+    private int _refreshed;
+    public int Refreshed
+    {
+        get => _refreshed;
+        set { this.RaiseAndSetIfChanged(ref _refreshed, value); this.RaisePropertyChanged(nameof(Summary)); }
+    }
+
+    private int _queue;
+    public int Queue
+    {
+        get => _queue;
+        set { this.RaiseAndSetIfChanged(ref _queue, value); this.RaisePropertyChanged(nameof(Summary)); }
+    }
+
+    public int Total => Refreshed + Queue;
+    public string Summary => $"{Refreshed:N0} / {Total:N0} refreshed (24h)  ·  {Queue:N0} queued";
+}
+
 public class PriceHistorySettingsViewModel : ReactiveObject
 {
-    private readonly AppDbContext _db;
+    private readonly AppDbContext         _db;
+    private readonly MarketHistoryService _history;
+    private readonly DispatcherTimer      _statusTimer;
+    private int _statusTick;
 
     public ObservableCollection<PriceHistoryRegion> ConfiguredRegions { get; } = [];
+    public ObservableCollection<RegionStatusRowVm>  RegionStatuses    { get; } = [];
 
     private IReadOnlyList<SdeRegionOption> _allRegions = [];
     public IReadOnlyList<SdeRegionOption> AllRegions
@@ -31,9 +62,10 @@ public class PriceHistorySettingsViewModel : ReactiveObject
     public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> AddCommand    { get; }
     public ReactiveCommand<PriceHistoryRegion, System.Reactive.Unit>   RemoveCommand { get; }
 
-    public PriceHistorySettingsViewModel(AppDbContext db)
+    public PriceHistorySettingsViewModel(AppDbContext db, MarketHistoryService history)
     {
-        _db = db;
+        _db      = db;
+        _history = history;
 
         var canAdd = this.WhenAnyValue(x => x.SelectedNewRegion)
                          .Select(r => r is not null);
@@ -41,6 +73,45 @@ public class PriceHistorySettingsViewModel : ReactiveObject
         RemoveCommand = ReactiveCommand.CreateFromTask<PriceHistoryRegion>(RemoveRegionAsync);
 
         _ = LoadAsync();
+
+        // Live sweep monitor: copy the service's in-memory per-region counts every 2s
+        // (cheap), and recompute the accurate counts from the DB every ~10s.
+        _ = RefreshAndSyncAsync();
+        _statusTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+        _statusTimer.Tick += async (_, _) =>
+        {
+            try
+            {
+                if (++_statusTick % 5 == 0) await _history.RefreshStatusesAsync();
+                SyncStatuses();
+            }
+            catch { /* best-effort monitor; never crash the UI timer */ }
+        };
+        _statusTimer.Start();
+    }
+
+    private async Task RefreshAndSyncAsync()
+    {
+        try { await _history.RefreshStatusesAsync(); } catch { /* best-effort monitor */ }
+        SyncStatuses();
+    }
+
+    private void SyncStatuses()
+    {
+        var snap = _history.SweepStatuses;
+        foreach (var s in snap)
+        {
+            var row = RegionStatuses.FirstOrDefault(r => r.RegionId == s.RegionId);
+            if (row is null)
+            {
+                row = new RegionStatusRowVm(s.RegionId, s.RegionName);
+                RegionStatuses.Add(row);
+            }
+            row.Refreshed = s.Refreshed;
+            row.Queue     = s.Queue;
+        }
+        foreach (var row in RegionStatuses.Where(r => snap.All(s => s.RegionId != r.RegionId)).ToList())
+            RegionStatuses.Remove(row);
     }
 
     private async Task LoadAsync()

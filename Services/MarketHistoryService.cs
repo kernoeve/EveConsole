@@ -29,6 +29,56 @@ public class MarketHistoryService : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _statusText, value);
     }
 
+    // ── Per-region sweep progress (for the Price History monitor) ───────────────
+
+    public record RegionSweepStatus(int RegionId, string RegionName, int Refreshed, int Queue)
+    {
+        public int Total => Refreshed + Queue; // types that trade in the region
+    }
+
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<int, RegionSweepStatus> _statusMap = new();
+
+    private volatile IReadOnlyList<RegionSweepStatus> _sweepStatuses = [];
+    /// <summary>Live per-region counts: how many types are refreshed (&lt;24h) vs queued.</summary>
+    public IReadOnlyList<RegionSweepStatus> SweepStatuses => _sweepStatuses;
+
+    private void SetStatus(int regionId, string name, int refreshed, int queue)
+    {
+        _statusMap[regionId] = new RegionSweepStatus(regionId, name, refreshed, Math.Max(0, queue));
+        _sweepStatuses = _statusMap.Values.OrderBy(s => s.RegionName).ToList();
+    }
+
+    /// <summary>
+    /// Recomputes the per-region refreshed/queue counts from the DB without any ESI calls.
+    /// Cheap — used to populate the monitor when the settings panel opens or on a timer.
+    /// </summary>
+    public async Task RefreshStatusesAsync(CancellationToken ct = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var regions = await db.PriceHistoryRegions.AsNoTracking()
+            .Select(r => new { r.RegionId, r.RegionName }).ToListAsync(ct);
+        var configRegion = await BuildConfigRegionMapAsync(db, ct);
+        var cutoff = DateTimeOffset.UtcNow - CacheAge;
+
+        // Drop regions no longer configured.
+        foreach (var id in _statusMap.Keys.Where(k => regions.All(r => r.RegionId != k)).ToList())
+            _statusMap.TryRemove(id, out _);
+
+        foreach (var region in regions)
+        {
+            var cfgIds = configRegion.Where(kv => kv.Value == region.RegionId).Select(kv => kv.Key).ToList();
+            var typeIds = cfgIds.Count == 0
+                ? new List<int>()
+                : await db.MarketRawOrders.AsNoTracking()
+                    .Where(o => cfgIds.Contains(o.ConfigId)).Select(o => o.TypeId).Distinct().ToListAsync(ct);
+            var freshSet = await db.MarketHistoryFetches.AsNoTracking()
+                .Where(f => f.RegionId == region.RegionId && f.FetchedAt >= cutoff)
+                .Select(f => f.TypeId).ToHashSetAsync(ct);
+            int refreshed = typeIds.Count(t => freshSet.Contains(t));
+            SetStatus(region.RegionId, region.RegionName, refreshed, typeIds.Count - refreshed);
+        }
+    }
+
     public MarketHistoryService(
         IDbContextFactory<AppDbContext> dbFactory,
         EsiClient                       esi,
@@ -129,7 +179,9 @@ public class MarketHistoryService : ReactiveObject
                 .ToHashSetAsync(ct);
 
             var stale = typeIds.Where(t => !freshTypes.Contains(t)).ToList();
-            fresh += typeIds.Count - stale.Count;
+            int alreadyFresh = typeIds.Count - stale.Count;
+            fresh += alreadyFresh;
+            SetStatus(region.RegionId, region.RegionName, alreadyFresh, stale.Count);
 
             for (int i = 0; i < stale.Count; i++)
             {
@@ -137,10 +189,20 @@ public class MarketHistoryService : ReactiveObject
                 if (await EnsureFreshAsync(region.RegionId, stale[i], ct)) fetched++;
 
                 if ((i & 63) == 0)
+                {
                     StatusText = $"Price history: {region.RegionName} {i + 1}/{stale.Count}…";
+                    SetStatus(region.RegionId, region.RegionName, alreadyFresh + i + 1, stale.Count - (i + 1));
+                }
                 try { await Task.Delay(SweepFetchDelayMs, ct); }
                 catch (OperationCanceledException) { break; }
             }
+
+            // Accurate end-of-region counts — failed fetches stay queued for the next run.
+            var freshNow = await db.MarketHistoryFetches.AsNoTracking()
+                .Where(f => f.RegionId == region.RegionId && f.FetchedAt >= cutoff)
+                .Select(f => f.TypeId).ToHashSetAsync(ct);
+            int refreshedNow = typeIds.Count(t => freshNow.Contains(t));
+            SetStatus(region.RegionId, region.RegionName, refreshedNow, typeIds.Count - refreshedNow);
         }
 
         StatusText = $"Price history: {fetched:N0} updated, {fresh:N0} already fresh — {DateTimeOffset.Now:t}";

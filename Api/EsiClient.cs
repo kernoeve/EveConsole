@@ -242,6 +242,15 @@ public class EsiClient
         try { response = await _http.GetAsync($"markets/{regionId}/history/?type_id={typeId}", ct); }
         finally { _httpGate.Release(); }
 
+        // Feed the shared error-limit tracker so the background history sweep self-throttles
+        // and can never push us over ESI's error limit — even when it runs on its own.
+        var headers = response.Headers;
+        int? remain = headers.TryGetValues("X-Esi-Error-Limit-Remain", out var rv)
+                      && int.TryParse(rv.FirstOrDefault(), out var r) ? r : null;
+        int? reset  = headers.TryGetValues("X-Esi-Error-Limit-Reset", out var sv)
+                      && int.TryParse(sv.FirstOrDefault(), out var s) ? s : null;
+        UpdateErrorLimitState((int)response.StatusCode, remain, reset);
+
         if (!response.IsSuccessStatusCode) return null;
         return await response.Content.ReadFromJsonAsync<List<EsiMarketHistoryEntry>>(JsonOptions, ct) ?? [];
     }

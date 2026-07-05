@@ -245,7 +245,7 @@ public class MainWindowViewModel : ReactiveObject
         _pollingService   = pollingService;
         _buildCostService = buildCostService;
 
-        PriceHistorySettingsVm = new PriceHistorySettingsViewModel(dbFactory.CreateDbContext());
+        PriceHistorySettingsVm = new PriceHistorySettingsViewModel(dbFactory.CreateDbContext(), historyService);
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
         CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);
         ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService);
