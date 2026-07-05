@@ -26,6 +26,8 @@ public class IndustryRow
     public double BuildSeconds     { get; init; }   // to build ONE unit (ties up the slot this long)
     public double SlotDays         { get; init; }   // BuildSeconds / 86400
     public double ProfitPerSlotDay { get; init; }
+    public double UnitVol30d       { get; init; }   // units traded in the config region, last 30d
+    public double IskVol30d        { get; init; }   // ISK traded in the config region, last 30d
 
     public string BuildCostDisplay     => FormatIsk(BuildCost);
     // "*" marks a sell price derived from 30-day history because there are no sell orders.
@@ -35,6 +37,8 @@ public class IndustryRow
     public string BuildTimeDisplay      => FormatDuration(BuildSeconds);
     public string SlotDaysDisplay       => $"{SlotDays:N2}";
     public string ProfitPerSlotDayDisplay => FormatIsk(ProfitPerSlotDay);
+    public string UnitVol30dDisplay     => $"{UnitVol30d:N0}";
+    public string IskVol30dDisplay      => FormatIsk(IskVol30d);
 
     private static string FormatDuration(double seconds)
     {
@@ -499,19 +503,15 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             double profit = sellInto - c.BuildCost;
             if (profit <= 0) continue; // only surface opportunities
 
-            // 30-day volume filters read history cached by the background sweep — no ESI here.
-            if ((minIskVol30d.HasValue || minUnitVol30d.HasValue) && regionId.HasValue)
+            // 30-day volumes (config region), from history cached by the background sweep —
+            // no ESI here. Always read them for the columns; also apply them as filters.
+            double unitVol = 0, iskVol = 0;
+            if (regionId.HasValue)
             {
-                if (minIskVol30d.HasValue)
-                {
-                    var iskVol = await _historyService.Get30DayIskVolumeAsync(regionId.Value, c.TypeId);
-                    if (iskVol < minIskVol30d.Value) continue;
-                }
-                if (minUnitVol30d.HasValue)
-                {
-                    var unitVol = await _historyService.Get30DayUnitVolumeAsync(regionId.Value, c.TypeId);
-                    if (unitVol < minUnitVol30d.Value) continue;
-                }
+                unitVol = await _historyService.Get30DayUnitVolumeAsync(regionId.Value, c.TypeId);
+                iskVol  = await _historyService.Get30DayIskVolumeAsync(regionId.Value, c.TypeId);
+                if (minUnitVol30d.HasValue && unitVol < minUnitVol30d.Value) continue;
+                if (minIskVol30d.HasValue  && iskVol  < minIskVol30d.Value)  continue;
             }
 
             double slotDays = c.BuildSeconds / SecondsPerDay;
@@ -528,6 +528,8 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 BuildSeconds     = c.BuildSeconds,
                 SlotDays         = slotDays,
                 ProfitPerSlotDay = slotDays > 0 ? profit / slotDays : 0,
+                UnitVol30d       = unitVol,
+                IskVol30d        = iskVol,
             });
         }
 

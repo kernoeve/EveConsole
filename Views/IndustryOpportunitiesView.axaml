@@ -234,6 +234,28 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
+        <DataGridTemplateColumn Header="Units Sold 30d" Width="105" SortMemberPath="UnitVol30d">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding UnitVol30dDisplay}"
+                         Foreground="#888899"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="ISK Sold 30d" Width="110" SortMemberPath="IskVol30d">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding IskVol30dDisplay}"
+                         Foreground="#888899"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
       </DataGrid.Columns>
     </DataGrid>
 
