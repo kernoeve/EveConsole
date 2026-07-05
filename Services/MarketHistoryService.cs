@@ -282,13 +282,20 @@ public class MarketHistoryService : ReactiveObject
             return true;
         }
 
-        // Replace all history rows for this type+region
-        await db.MarketTypeHistories
-            .Where(h => h.RegionId == regionId && h.TypeId == typeId)
-            .ExecuteDeleteAsync(ct);
-
+        // Accumulate history rather than replace it. ESI only returns a rolling window
+        // (~13 months); older rows we've previously stored would be lost on a full replace.
+        // Instead, refresh only the window ESI actually returned (delete + reinsert from its
+        // oldest returned date forward — settled past days are immutable, only the newest
+        // day changes) and KEEP everything older that we've accumulated over time.
         if (entries.Count > 0)
         {
+            var minDate = entries.Min(e => e.Date); // oldest date in ESI's current window
+
+            await db.MarketTypeHistories
+                .Where(h => h.RegionId == regionId && h.TypeId == typeId
+                         && string.Compare(h.Date, minDate) >= 0)
+                .ExecuteDeleteAsync(ct);
+
             db.MarketTypeHistories.AddRange(entries.Select(e => new MarketTypeHistory
             {
                 RegionId   = regionId,
@@ -301,6 +308,7 @@ public class MarketHistoryService : ReactiveObject
                 OrderCount = e.OrderCount,
             }));
         }
+        // entries.Count == 0 → ESI has no history right now; leave any accumulated rows intact.
 
         if (fetch is null)
         {
