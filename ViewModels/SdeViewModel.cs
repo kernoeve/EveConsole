@@ -108,6 +108,20 @@ public class SdeViewModel : ReactiveObject
         HoboStatusText = HoboImportedAt;
     }
 
+    // ── First-run automatic import ────────────────────────────────────────
+
+    // True once the SDE has been imported at least once.
+    public async Task<bool> IsSdeImportedAsync()
+        => await _db.SdeBuildInfos.FindAsync(1) is not null;
+
+    // Runs the SDE import followed by the Hoboleaks import, back to back. Used to
+    // populate game data automatically the first time the application is launched.
+    public async Task RunFirstTimeImportAsync()
+    {
+        await RunImportAsync();
+        await RunHoboImportAsync();
+    }
+
     // ── SDE import ────────────────────────────────────────────────────────
 
     private async Task RunImportAsync()

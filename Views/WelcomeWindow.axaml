@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveCortex.Views.WelcomeWindow"
+        Title="Welcome to Eve Cortex"
+        Icon="avares://EveCortex/Assets/ec.ico"
+        Width="460"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <StackPanel Margin="36 30 36 26" Spacing="0">
+
+    <!-- Two-tone app name -->
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 0 0 6">
+      <TextBlock Text="Welcome to Eve "
+                 FontSize="22" FontWeight="Bold"
+                 Foreground="#e8e8ec" />
+      <TextBlock Text="Cortex"
+                 FontSize="22" FontWeight="Bold"
+                 Foreground="#c8a84b" />
+    </StackPanel>
+
+    <Rectangle Height="1" Fill="#1e1e28" Margin="0 18 0 20" />
+
+    <!-- Data download notice -->
+    <TextBlock FontSize="13" Foreground="#aaaabc" TextWrapping="Wrap" LineHeight="20"
+               Margin="0 0 0 16"
+               Text="Eve Cortex is downloading the EVE game data it needs (the Static Data Export and Hoboleaks data) in the background. This can take a few minutes — item lookups, market pricing, and industry tools will fill in as it completes. You can watch progress on the SDE tab in Settings." />
+
+    <!-- ESI setup notice -->
+    <TextBlock FontSize="13" Foreground="#aaaabc" TextWrapping="Wrap" LineHeight="20"
+               Margin="0 0 0 4"
+               Text="To pull in your own characters and corporation data, add your ESI character tokens. The Settings window will open on the ESI Tokens tab next — click Add Character there to log in through EVE's SSO." />
+
+    <Rectangle Height="1" Fill="#1e1e28" Margin="0 22 0 18" />
+
+    <Button x:Name="OkButton"
+            Content="Get Started"
+            HorizontalAlignment="Center"
+            Background="#c8a84b" Foreground="#0d0d12"
+            FontWeight="SemiBold" FontSize="13"
+            Padding="22 8"
+            Click="OnOkClick" />
+
+  </StackPanel>
+
+</Window>

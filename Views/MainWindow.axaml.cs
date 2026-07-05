@@ -231,15 +231,40 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         agentService.CaptureTabCallback = tabName => CaptureTabAsync(tabName);
 
-        vm.SdeVm.WhenAnyValue(x => x.UpdateAvailable)
-            .Where(available => available)
-            .Take(1)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(async _ =>
-            {
-                var dialog = new SdeUpdateDialog { DataContext = vm.SdeVm };
-                await dialog.ShowDialog(this);
-            });
+        _ = HandleStartupFlowAsync(vm);
+    }
+
+    // First-run experience vs. normal startup. On the very first launch (no SDE imported
+    // and the welcome has never been shown) we auto-download the game data, greet the
+    // capsuleer, and open Settings so they can add their ESI characters. Otherwise we
+    // fall back to offering an SDE update when a newer build is available.
+    private async Task HandleStartupFlowAsync(MainWindowViewModel vm)
+    {
+        var welcomeShown = vm.AppPrefs.Get("app.welcome_shown") == "true";
+        var sdeImported  = await vm.SdeVm.IsSdeImportedAsync();
+
+        if (!welcomeShown && !sdeImported)
+        {
+            await vm.AppPrefs.SetAsync("app.welcome_shown", "true");
+
+            // Start the SDE + Hoboleaks download in the background — no prompt.
+            _ = vm.SdeVm.RunFirstTimeImportAsync();
+
+            await new WelcomeWindow().ShowDialog(this);
+            await OpenSettingsAsync(vm);
+        }
+        else
+        {
+            vm.SdeVm.WhenAnyValue(x => x.UpdateAvailable)
+                .Where(available => available)
+                .Take(1)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(async _ =>
+                {
+                    var dialog = new SdeUpdateDialog { DataContext = vm.SdeVm };
+                    await dialog.ShowDialog(this);
+                });
+        }
 
         _ = vm.OverviewVm.LoadAsync();
     }
@@ -310,7 +335,17 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private async void OnGearClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not MainWindowViewModel vm) return;
+        if (DataContext is MainWindowViewModel vm)
+            await OpenSettingsAsync(vm);
+    }
+
+    private async Task OpenSettingsAsync(MainWindowViewModel vm)
+    {
+        // If the Market VM loaded before the SDE finished importing (first run), its
+        // region dropdowns are unresolved — reload now that the SDE data is available.
+        if (vm.MarketVm.RegionOptions.Count == 0)
+            await vm.MarketVm.ReloadAsync();
+
         await vm.PollingSettingsVm.LoadAsync(vm.CharacterVm.Characters);
         vm.CorpTop10SettingsVm.Load();
         var dbVm = new DatabaseSettingsViewModel(vm.AppPrefs, vm.DbBackup);
