@@ -418,20 +418,16 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         var result    = new List<TradeRow>();
         var remainM3  = cargoM3;
         var remainIsk = iskCap ?? double.MaxValue;
-        int fetched   = 0;
 
         foreach (var c in candidates)
         {
             if (remainM3 < c.M3PerUnit) continue;
             if (remainIsk < c.BestSell) break; // can't afford even 1 unit — done
 
-            // On-demand 30-day volume filters — only fetch what we actually need,
-            // and fetch once per candidate even when both filters are active.
+            // 30-day volume filters read history cached by the background sweep
+            // (MarketHistoryService) — no ESI calls here.
             if ((minIskVol30d.HasValue || minUnitVol30d.HasValue) && destRegionId.HasValue)
             {
-                StatusText = $"Checking volume data… ({++fetched} fetched)";
-                await _historyService.EnsureFreshAsync(destRegionId.Value, c.TypeId);
-
                 if (minIskVol30d.HasValue)
                 {
                     var iskVol = await _historyService.Get30DayIskVolumeAsync(destRegionId.Value, c.TypeId);

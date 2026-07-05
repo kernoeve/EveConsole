@@ -47,6 +47,7 @@ public class App : Application
 
         EsiPollingService?    polling       = null;
         MarketPricingService? marketPricing = null;
+        MarketHistoryService? marketHistory = null;
         MainWindow?           mainWindow    = null;
         SplashWindow?         splash        = null;
 
@@ -58,6 +59,7 @@ public class App : Application
 
             polling       = Services.GetRequiredService<EsiPollingService>();
             marketPricing = Services.GetRequiredService<MarketPricingService>();
+            marketHistory = Services.GetRequiredService<MarketHistoryService>();
 
             var buildCostService = Services.GetRequiredService<BuildCostService>();
             var reprService      = Services.GetRequiredService<ReprocessingValueService>();
@@ -71,6 +73,7 @@ public class App : Application
                 var tasks = new List<Task>();
                 if (polling       is not null) tasks.Add(polling.StopAsync());
                 if (marketPricing is not null) tasks.Add(marketPricing.StopAsync());
+                if (marketHistory is not null) tasks.Add(marketHistory.StopAsync());
                 await Task.WhenAll(tasks);
                 desktop.Shutdown();
             };
@@ -1260,6 +1263,7 @@ public class App : Application
         // Start background services
         polling?.Start();
         marketPricing?.Start();
+        marketHistory?.Start();
         Services.GetRequiredService<DatabaseBackupService>().Start();
     }
 
@@ -1325,6 +1329,7 @@ public class App : Application
         services.AddSingleton<EsiPollingService>();
         services.AddSingleton<NetWorthService>();
         services.AddSingleton<MarketPricingService>();
+        services.AddSingleton<MarketHistoryService>();
         services.AddSingleton<BuildCostService>();
         services.AddSingleton<ReprocessingValueService>();
         services.AddSingleton<ProductionCalculatorService>();

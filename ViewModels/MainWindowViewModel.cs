@@ -201,7 +201,8 @@ public class MainWindowViewModel : ReactiveObject
         NewsService                     newsService,
         AppPreferencesService           appPrefs,
         DatabaseBackupService           dbBackup,
-        CorpTop10ExcludeService         corpTop10Exclude)
+        CorpTop10ExcludeService         corpTop10Exclude,
+        MarketHistoryService            historyService)
     {
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService);
@@ -244,7 +245,6 @@ public class MainWindowViewModel : ReactiveObject
         _pollingService   = pollingService;
         _buildCostService = buildCostService;
 
-        var historyService     = new MarketHistoryService(dbFactory, esi, errorLogger);
         PriceHistorySettingsVm = new PriceHistorySettingsViewModel(dbFactory.CreateDbContext());
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
         CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);

@@ -20,6 +20,7 @@ public class IndustryRow
     public string TypeName         { get; init; } = "";
     public double BuildCost        { get; init; }
     public double SellPrice        { get; init; }   // market number we sell into (sell or buy order)
+    public bool   HasSellOrders    { get; init; } = true; // false → priced from 30-day history avg
     public double ProfitPerUnit    { get; init; }
     public double Margin           { get; init; }   // profit / build cost
     public double BuildSeconds     { get; init; }   // to build ONE unit (ties up the slot this long)
@@ -27,7 +28,8 @@ public class IndustryRow
     public double ProfitPerSlotDay { get; init; }
 
     public string BuildCostDisplay     => FormatIsk(BuildCost);
-    public string SellPriceDisplay     => FormatIsk(SellPrice);
+    // "*" marks a sell price derived from 30-day history because there are no sell orders.
+    public string SellPriceDisplay     => HasSellOrders ? FormatIsk(SellPrice) : FormatIsk(SellPrice) + " *";
     public string ProfitUnitDisplay    => FormatIsk(ProfitPerUnit);
     public string MarginDisplay        => $"{Margin * 100:N1}%";
     public string BuildTimeDisplay      => FormatDuration(BuildSeconds);
@@ -299,11 +301,10 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         {
             var candidates = await FetchCandidatesAsync(SelectedConfig.ConfigId);
 
-            bool needsVolume  = minIskVol.HasValue || minUnitVol.HasValue;
-            int? regionId = needsVolume
-                ? await ResolveRegionAsync(SelectedConfig)
-                : null;
-
+            // Region is needed for the volume filters AND to price items that have no
+            // sell orders off their 30-day history average. Resolve it best-effort.
+            int? regionId    = await ResolveRegionAsync(SelectedConfig);
+            bool needsVolume = minIskVol.HasValue || minUnitVol.HasValue;
             if (needsVolume && !regionId.HasValue)
             {
                 StatusText = "Could not resolve this market config's region — " +
@@ -311,12 +312,18 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 return;
             }
 
-            var rows = await BuildRowsAsync(candidates, regionId, minIskVol, minUnitVol);
+            var (typesWithSell, typesWithBuy, configHasRawOrders) =
+                await LoadOrderPresenceAsync(SelectedConfig.ConfigId);
+
+            var rows = await BuildRowsAsync(candidates, regionId, minIskVol, minUnitVol,
+                                            typesWithSell, typesWithBuy, configHasRawOrders);
             // Default display order — best profit-per-slot-day first. Headers allow re-sorting.
             foreach (var r in rows.OrderByDescending(r => r.ProfitPerSlotDay)) Results.Add(r);
 
+            int noSell = rows.Count(r => !r.HasSellOrders);
+            var note   = noSell > 0 ? $"  ·  * {noSell} priced from 30-day avg (no sell orders)" : "";
             StatusText = rows.Count > 0
-                ? $"{rows.Count} profitable item{(rows.Count == 1 ? "" : "s")} · priced at {SelectedConfig.Name}"
+                ? $"{rows.Count} profitable item{(rows.Count == 1 ? "" : "s")} · priced at {SelectedConfig.Name}{note}"
                 : "No profitable build opportunities found for this market config.";
         }
         catch (Exception ex)
@@ -365,29 +372,80 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         return list;
     }
 
-    private async Task<List<IndustryRow>> BuildRowsAsync(
-        List<Candidate> candidates, int? regionId, double? minIskVol30d, double? minUnitVol30d)
+    // Which types have live buy/sell orders for this config (from the raw order snapshot),
+    // and whether the config has any raw orders at all (Fuzzwork configs have none — for
+    // those we trust the stored prices and treat every item as having sell orders).
+    private async Task<(HashSet<int> WithSell, HashSet<int> WithBuy, bool HasRawOrders)>
+        LoadOrderPresenceAsync(int configId)
     {
-        var result  = new List<IndustryRow>();
-        int fetched = 0;
+        var withSell = new HashSet<int>();
+        var withBuy  = new HashSet<int>();
+
+        using var conn = new SqliteConnection(_connString);
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = """
+            SELECT DISTINCT "TypeId", "IsBuyOrder"
+            FROM "MarketRawOrders"
+            WHERE "ConfigId" = @configId
+            """;
+        cmd.Parameters.AddWithValue("@configId", configId);
+        using var reader = await cmd.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            int typeId = reader.GetInt32(0);
+            if (reader.GetBoolean(1)) withBuy.Add(typeId);
+            else                      withSell.Add(typeId);
+        }
+        return (withSell, withBuy, withSell.Count > 0 || withBuy.Count > 0);
+    }
+
+    private async Task<List<IndustryRow>> BuildRowsAsync(
+        List<Candidate> candidates, int? regionId, double? minIskVol30d, double? minUnitVol30d,
+        HashSet<int> typesWithSell, HashSet<int> typesWithBuy, bool configHasRawOrders)
+    {
+        var result = new List<IndustryRow>();
 
         foreach (var c in candidates)
         {
-            double sellInto = SelectedMode.Kind == IndustryMode.BuildAndSellToBuyOrder
-                ? c.BuyOrderPrice
-                : c.SellOrderPrice;
+            if (c.BuildCost <= 0) continue;
 
-            if (sellInto <= 0 || c.BuildCost <= 0) continue;
+            double sellInto;
+            bool   hasSellOrders = true;
+
+            if (SelectedMode.Kind == IndustryMode.BuildAndSellToBuyOrder)
+            {
+                // No buy orders for this item → nobody to sell to → skip.
+                if (configHasRawOrders && !typesWithBuy.Contains(c.TypeId)) continue;
+                sellInto = c.BuyOrderPrice;
+            }
+            else
+            {
+                bool sellOrders = !configHasRawOrders || typesWithSell.Contains(c.TypeId);
+                if (sellOrders)
+                {
+                    sellInto = c.SellOrderPrice; // real lowest sell
+                }
+                else
+                {
+                    // No sell orders — these are often the most lucrative if in demand.
+                    // Price them off the 30-day history average (what they actually trade
+                    // at) rather than the build-cost gap-fill, and flag them with a "*".
+                    sellInto = regionId.HasValue
+                        ? await _historyService.Get30DayAveragePriceAsync(regionId.Value, c.TypeId)
+                        : 0;
+                    hasSellOrders = false;
+                }
+            }
+
+            if (sellInto <= 0) continue;
 
             double profit = sellInto - c.BuildCost;
             if (profit <= 0) continue; // only surface opportunities
 
-            // On-demand 30-day volume filters — only fetch history when a filter is active.
+            // 30-day volume filters read history cached by the background sweep — no ESI here.
             if ((minIskVol30d.HasValue || minUnitVol30d.HasValue) && regionId.HasValue)
             {
-                StatusText = $"Checking volume data… ({++fetched} fetched)";
-                await _historyService.EnsureFreshAsync(regionId.Value, c.TypeId);
-
                 if (minIskVol30d.HasValue)
                 {
                     var iskVol = await _historyService.Get30DayIskVolumeAsync(regionId.Value, c.TypeId);
@@ -408,6 +466,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 TypeName         = c.TypeName,
                 BuildCost        = c.BuildCost,
                 SellPrice        = sellInto,
+                HasSellOrders    = hasSellOrders,
                 ProfitPerUnit    = profit,
                 Margin           = profit / c.BuildCost,
                 BuildSeconds     = c.BuildSeconds,

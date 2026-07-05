@@ -100,9 +100,12 @@ public static class AppKnowledge
         researched blueprint (TE20) and maxed industry skills and applies that park's
         structure role and rig time bonuses (per item category), so Slot Days reflect the
         capsuleer's actual manufacturing setup.
-        Optional "Min 30d ISK Vol" / "Min 30d Unit Vol" liquidity filters check the config
-        region's market history, and whole market groups can be excluded (none by default).
-        No ESI calls unless a volume filter is active.
+        Items with no current sell orders are still shown (they are often the most lucrative
+        when in demand): their sell side is priced from the 30-day history average and the
+        Sell Price is flagged with a "*". Optional "Min 30d ISK Vol" / "Min 30d Unit Vol"
+        liquidity filters and market-group exclusions (none by default) also apply. The tool
+        makes no ESI calls — it reads build cost, prices, and market history already in the
+        DB (history is kept current by the background Price History Sweep).
 
         ## Market / Trade tools
 
@@ -126,8 +129,9 @@ public static class AppKnowledge
         "Undercut Sell Order" (buy from source, relist cheaper than the destination's
         current lowest sell). Constrain by cargo size (m³) and optional ISK cap. Optional
         liquidity filters — "Min 30d ISK Vol" and "Min 30d Unit Vol" — check the
-        destination region's last-30-days market history so you avoid items that don't
-        actually move. You can also exclude whole market groups (and everything nested
+        destination region's last-30-days market history (kept current in the DB by the
+        background Price History Sweep, so no ESI calls are made here) to avoid items that
+        don't actually move. You can also exclude whole market groups (and everything nested
         under them) from the scan; a set of low-value/noise groups is excluded by default
         (Blueprints & Reactions, Ship SKINs, Special Edition Assets, Apparel, Skills,
         Trade Goods). Results are a shopping list within cargo/ISK limits, sortable by any
@@ -175,7 +179,10 @@ public static class AppKnowledge
         manufacturing-cost pricing), Timers and Polling (ESI poll intervals), Corp Top 10
         (exclude list for corp top-10 lists), AI Agent (configure this assistant —
         provider, model, API key, voice/TTS, push-to-talk), Alerts (toggle Overview
-        alerts), Price History (regions tracked for history), and Database (path, backups,
+        alerts), Price History (regions whose market history is swept in the background —
+        every type that trades in those regions is refreshed on the "Price History Sweep"
+        interval in Timers, default 24h, so the opportunity tools read it from the DB),
+        and Database (path, backups,
         move/rename/repoint).
 
         ## Interactions & hidden functions (right-click menus, buttons, shortcuts)
