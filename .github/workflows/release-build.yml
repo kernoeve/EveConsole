@@ -79,7 +79,7 @@ jobs:
             'Eve Cortex is not code-signed yet, so Windows may show a "Windows protected your PC" warning the first time you run it. This is expected for a new indie app.',
             '',
             '- If the warning appears, click **More info**, then **Run anyway**.',
-            '- Optional: before extracting the zip, right-click it -> **Properties** -> tick **Unblock** -> **OK**. This clears the download flag from every file inside.',
+            '- To avoid it entirely: **before extracting**, right-click the zip -> **Properties** -> tick **Unblock** -> **OK** (this clears the download flag from every file inside). If you have already extracted, do the same on **EveCortex.exe**.',
             '',
             '---',
             ''
