@@ -87,6 +87,21 @@ public static class AppKnowledge
         breakdown of build cost, materials required (optionally down the full build
         chain), and job details, using your Indy Parks setup and current market prices.
 
+        ### Industry Opportunities
+        Compares each buildable item's cached build cost against a market price to rank
+        what is worth manufacturing — weighing profit against how long a build ties up a
+        job slot. Pick a market config to price against (the same Market Sources configs)
+        and one of two modes: "Build & Sell Order" (build cost vs the market's lowest sell
+        price) and "Build & Sell to Buy Order" (build cost vs the highest buy order). For
+        each item it lists Profit/Unit, Margin, the time to build one unit (Build Time /
+        Slot Days), and — the headline metric — Profit per Slot Day (unit profit divided by
+        the days a single unit occupies the slot), defaulting to that column descending.
+        Build cost uses the default Indy Park; build time assumes a researched blueprint
+        (TE20) and maxed industry skills and does not model structure/rig time bonuses.
+        Optional "Min 30d ISK Vol" / "Min 30d Unit Vol" liquidity filters check the config
+        region's market history, and whole market groups can be excluded (none by default).
+        No ESI calls unless a volume filter is active.
+
         ## Market / Trade tools
 
         ### Market Levels
@@ -194,6 +209,11 @@ public static class AppKnowledge
         - "+ Add Group" (next to the Exclude Groups chips) opens the market-group tree to
           add an exclusion; click the ✕ on a chip to remove one.
 
+        ### Industry Opportunities
+        - DOUBLE-CLICK any result row to open that item in the Item Browser.
+        - "+ Add Group" (next to the Exclude Groups chips) opens the market-group tree to
+          add an exclusion; click the ✕ on a chip to remove one.
+
         ### Production Calculator
         - DOUBLE-CLICK a material/product row to open that item in the Item Browser.
         - Right-click the results for export options: "Copy to Clipboard", "Export as
@@ -230,6 +250,7 @@ public static class AppKnowledge
         if (t.Contains("industr") && t.Contains("job")) return "All manufacturing/reaction/invention/research jobs, filterable by status/activity/owner.";
         if (t.Contains("indy") || t.Contains("park"))   return "Define industry parks (structures per item category) that drive build-cost calculations.";
         if (t.Contains("prod"))        return "Production calculator: build cost, materials, and job breakdown for a chosen blueprint/product.";
+        if (t.Contains("industry_opp") || (t.Contains("industry") && t.Contains("opp"))) return "Rank buildable items by profit vs slot time: build cost vs market sell/buy price, with Profit per Slot Day.";
         if (t.Contains("market level"))return "Monitor sell-order stock levels for a defined item list on a chosen market.";
         if (t.Contains("inv") && t.Contains("level")) return "Monitor your own holdings (assets/in-build/orders) against target levels, jEveAssets-style.";
         if (t.Contains("trade"))       return "Find profitable hauling between two markets with cargo/ISK/volume constraints and group exclusions.";

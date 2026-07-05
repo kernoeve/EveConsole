@@ -1,0 +1,528 @@
+using System.Collections.ObjectModel;
+using System.Reactive;
+using EveCortex.Models;
+using EveCortex.Services;
+using Microsoft.Data.Sqlite;
+using ReactiveUI;
+
+namespace EveCortex.ViewModels;
+
+// Which market number to compare the build cost against.
+public enum IndustryMode { BuildAndSellOrder, BuildAndSellToBuyOrder }
+public record IndustryModeOption(string Label, IndustryMode Kind);
+
+// A market pricing config the user can price against (reuses the Market Sources configs).
+public record IndustryMarketConfig(int ConfigId, string Name, string Method, long LocationId);
+
+public class IndustryRow
+{
+    public int    TypeId           { get; init; }
+    public string TypeName         { get; init; } = "";
+    public double BuildCost        { get; init; }
+    public double SellPrice        { get; init; }   // market number we sell into (sell or buy order)
+    public double ProfitPerUnit    { get; init; }
+    public double Margin           { get; init; }   // profit / build cost
+    public double BuildSeconds     { get; init; }   // to build ONE unit (ties up the slot this long)
+    public double SlotDays         { get; init; }   // BuildSeconds / 86400
+    public double ProfitPerSlotDay { get; init; }
+
+    public string BuildCostDisplay     => FormatIsk(BuildCost);
+    public string SellPriceDisplay     => FormatIsk(SellPrice);
+    public string ProfitUnitDisplay    => FormatIsk(ProfitPerUnit);
+    public string MarginDisplay        => $"{Margin * 100:N1}%";
+    public string BuildTimeDisplay      => FormatDuration(BuildSeconds);
+    public string SlotDaysDisplay       => $"{SlotDays:N2}";
+    public string ProfitPerSlotDayDisplay => FormatIsk(ProfitPerSlotDay);
+
+    private static string FormatDuration(double seconds)
+    {
+        if (seconds <= 0) return "–";
+        var ts = TimeSpan.FromSeconds(seconds);
+        if (ts.TotalDays  >= 1) return $"{(int)ts.TotalDays}d {ts.Hours}h";
+        if (ts.TotalHours >= 1) return $"{(int)ts.TotalHours}h {ts.Minutes}m";
+        if (ts.TotalMinutes >= 1) return $"{(int)ts.TotalMinutes}m";
+        return $"{(int)ts.TotalSeconds}s";
+    }
+
+    private static string FormatIsk(double v)
+    {
+        var abs = Math.Abs(v);
+        var sign = v < 0 ? "-" : "";
+        return abs switch
+        {
+            >= 1_000_000_000_000 => $"{sign}{abs / 1_000_000_000_000:N2}T",
+            >= 1_000_000_000     => $"{sign}{abs / 1_000_000_000:N2}B",
+            >= 1_000_000         => $"{sign}{abs / 1_000_000:N2}M",
+            _                    => $"{sign}{abs:N2}",
+        };
+    }
+}
+
+public class IndustryOpportunitiesViewModel : ReactiveObject
+{
+    private readonly string               _connString;
+    private readonly MarketHistoryService _historyService;
+    private readonly BatchAddService      _batchSvc;
+
+    // ── Build-time model ────────────────────────────────────────────────────────
+    // We assume a fully researched blueprint and maxed industry skills — the same
+    // "ideal setup" spirit as the build-cost side (which assumes ME-researched prints).
+    // Structure/rig time bonuses are NOT modelled here: they scale roughly uniformly
+    // across a park, so they barely shift the *ranking* by profit-per-slot-day even
+    // though they lower absolute slot-days somewhat.
+    private const double MfgTimeEfficiency = 0.80; // TE20 researched blueprint (−20% time)
+    private const double MfgSkillFactor    = 0.68; // Industry V (0.80) × Advanced Industry V (0.85)
+    private const double RxnSkillFactor    = 0.85; // reactions: Advanced Industry V only; no TE research
+    private const double SecondsPerDay     = 86_400.0;
+
+    // ── Mode ──────────────────────────────────────────────────────────────────
+
+    public List<IndustryModeOption> ModeOptions { get; } =
+    [
+        new("Build & Sell Order",         IndustryMode.BuildAndSellOrder),
+        new("Build & Sell to Buy Order",  IndustryMode.BuildAndSellToBuyOrder),
+    ];
+
+    private IndustryModeOption _selectedMode;
+    public IndustryModeOption SelectedMode
+    {
+        get => _selectedMode;
+        set => this.RaiseAndSetIfChanged(ref _selectedMode, value);
+    }
+
+    // ── Market config (pricing source) ────────────────────────────────────────
+
+    public ObservableCollection<IndustryMarketConfig> MarketConfigs { get; } = [];
+
+    private IndustryMarketConfig? _selectedConfig;
+    public IndustryMarketConfig? SelectedConfig
+    {
+        get => _selectedConfig;
+        set => this.RaiseAndSetIfChanged(ref _selectedConfig, value);
+    }
+
+    // ── Filters ────────────────────────────────────────────────────────────────
+
+    private string _minIskVolume = "";
+    public string MinIskVolume
+    {
+        get => _minIskVolume;
+        set => this.RaiseAndSetIfChanged(ref _minIskVolume, value);
+    }
+
+    private string _minUnitVolume = "";
+    public string MinUnitVolume
+    {
+        get => _minUnitVolume;
+        set => this.RaiseAndSetIfChanged(ref _minUnitVolume, value);
+    }
+
+    // ── Excluded market groups (and everything nested under them) ────────────
+
+    public ObservableCollection<ExcludedMarketGroupVm> ExcludedMarketGroups { get; } = [];
+
+    public Func<Task<MarketGroupPickerResult?>>? ShowMarketGroupPickerDialog { get; set; }
+
+    public BatchAddService GetBatchAddService() => _batchSvc;
+
+    public ReactiveCommand<Unit, Unit>                  AddExcludedGroupCommand    { get; }
+    public ReactiveCommand<ExcludedMarketGroupVm, Unit> RemoveExcludedGroupCommand { get; }
+
+    private async Task AddExcludedGroupAsync()
+    {
+        if (ShowMarketGroupPickerDialog is null) return;
+        var pick = await ShowMarketGroupPickerDialog();
+        if (pick is null) return;
+        if (ExcludedMarketGroups.Any(g => g.MarketGroupId == pick.MarketGroupId)) return;
+
+        ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(pick.MarketGroupId, pick.GroupName));
+        await SaveExcludedGroupsAsync();
+    }
+
+    private async Task RemoveExcludedGroupAsync(ExcludedMarketGroupVm group)
+    {
+        ExcludedMarketGroups.Remove(group);
+        await SaveExcludedGroupsAsync();
+    }
+
+    private async Task LoadExcludedGroupsAsync()
+    {
+        using var conn = new SqliteConnection(_connString);
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = """SELECT "ExcludedMarketGroupIds" FROM "IndustryOpportunitiesSettings" WHERE "Id" = 1""";
+        var raw = (await cmd.ExecuteScalarAsync()) as string ?? "";
+
+        var ids = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(s => int.TryParse(s, out var id) ? id : (int?)null)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .ToList();
+        if (ids.Count == 0) return;
+
+        using var nameCmd = conn.CreateCommand();
+        nameCmd.CommandText = $"""SELECT "MarketGroupId", "Name" FROM "SdeMarketGroups" WHERE "MarketGroupId" IN ({string.Join(",", ids)})""";
+        var names = new Dictionary<int, string>();
+        using (var reader = await nameCmd.ExecuteReaderAsync())
+            while (await reader.ReadAsync())
+                names[reader.GetInt32(0)] = reader.GetString(1);
+
+        ExcludedMarketGroups.Clear();
+        foreach (var id in ids)
+            if (names.TryGetValue(id, out var name))
+                ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(id, name));
+    }
+
+    private async Task SaveExcludedGroupsAsync()
+    {
+        var csv = string.Join(",", ExcludedMarketGroups.Select(g => g.MarketGroupId));
+        using var conn = new SqliteConnection(_connString);
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = """UPDATE "IndustryOpportunitiesSettings" SET "ExcludedMarketGroupIds" = @ids WHERE "Id" = 1""";
+        cmd.Parameters.AddWithValue("@ids", csv);
+        await cmd.ExecuteNonQueryAsync();
+    }
+
+    private async Task<HashSet<int>> GetExcludedGroupIdsRecursiveAsync()
+    {
+        var result = new HashSet<int>();
+        foreach (var g in ExcludedMarketGroups)
+            result.UnionWith(await _batchSvc.GetDescendantGroupIdsAsync(g.MarketGroupId));
+        return result;
+    }
+
+    // ── Item navigation callback (set by MainWindow) ──────────────────────────
+
+    public Action<int, string>? ItemNavigationRequested { get; set; }
+
+    public void RequestItemNavigation(int typeId, string typeName)
+        => ItemNavigationRequested?.Invoke(typeId, typeName);
+
+    // ── Results ───────────────────────────────────────────────────────────────
+
+    public ObservableCollection<IndustryRow> Results { get; } = [];
+
+    private string _statusText = "Select a market config, then click Calculate.";
+    public string StatusText
+    {
+        get => _statusText;
+        private set => this.RaiseAndSetIfChanged(ref _statusText, value);
+    }
+
+    private bool _isCalculating;
+    public bool IsCalculating { get => _isCalculating; private set => this.RaiseAndSetIfChanged(ref _isCalculating, value); }
+
+    // ── Command ───────────────────────────────────────────────────────────────
+
+    public ReactiveCommand<Unit, Unit> CalculateCommand { get; }
+
+    // ── Construction ──────────────────────────────────────────────────────────
+
+    public IndustryOpportunitiesViewModel(string connString, MarketHistoryService historyService, BatchAddService batchSvc)
+    {
+        _connString     = connString;
+        _historyService = historyService;
+        _batchSvc       = batchSvc;
+        _selectedMode   = ModeOptions[0];
+        CalculateCommand           = ReactiveCommand.CreateFromTask(CalculateAsync);
+        AddExcludedGroupCommand    = ReactiveCommand.CreateFromTask(AddExcludedGroupAsync);
+        RemoveExcludedGroupCommand = ReactiveCommand.CreateFromTask<ExcludedMarketGroupVm>(RemoveExcludedGroupAsync);
+    }
+
+    public async Task InitializeAsync()
+    {
+        await LoadMarketConfigsAsync();
+        await LoadExcludedGroupsAsync();
+    }
+
+    // ── Market config loading ─────────────────────────────────────────────────
+
+    private async Task LoadMarketConfigsAsync()
+    {
+        using var conn = new SqliteConnection(_connString);
+        await conn.OpenAsync();
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = """
+            SELECT "Id", "LocationName", "Method", "LocationId"
+            FROM "MarketPricingConfigs"
+            WHERE "IsEnabled" = 1
+            ORDER BY "SortOrder"
+            """;
+
+        MarketConfigs.Clear();
+        using var reader = await cmd.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            MarketConfigs.Add(new IndustryMarketConfig(
+                reader.GetInt32(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetInt64(3)));
+        }
+        _selectedConfig ??= MarketConfigs.FirstOrDefault();
+        this.RaisePropertyChanged(nameof(SelectedConfig));
+    }
+
+    // ── Calculate ─────────────────────────────────────────────────────────────
+
+    private async Task CalculateAsync()
+    {
+        if (SelectedConfig is null)
+        {
+            StatusText = "Please select a market config for pricing.";
+            return;
+        }
+
+        double? minIskVol = null;
+        if (!string.IsNullOrWhiteSpace(MinIskVolume))
+        {
+            if (!double.TryParse(MinIskVolume, out var mv) || mv < 0)
+            {
+                StatusText = "Please enter a valid minimum ISK volume (or leave blank for no filter).";
+                return;
+            }
+            minIskVol = mv;
+        }
+
+        double? minUnitVol = null;
+        if (!string.IsNullOrWhiteSpace(MinUnitVolume))
+        {
+            if (!double.TryParse(MinUnitVolume, out var uv) || uv < 0)
+            {
+                StatusText = "Please enter a valid minimum unit volume (or leave blank for no filter).";
+                return;
+            }
+            minUnitVol = uv;
+        }
+
+        Results.Clear();
+        StatusText = "Calculating…";
+        IsCalculating = true;
+
+        try
+        {
+            var candidates = await FetchCandidatesAsync(SelectedConfig.ConfigId);
+
+            bool needsVolume  = minIskVol.HasValue || minUnitVol.HasValue;
+            int? regionId = needsVolume
+                ? await ResolveRegionAsync(SelectedConfig)
+                : null;
+
+            if (needsVolume && !regionId.HasValue)
+            {
+                StatusText = "Could not resolve this market config's region — " +
+                             "the 30-day volume filters need a region to look up market history.";
+                return;
+            }
+
+            var rows = await BuildRowsAsync(candidates, regionId, minIskVol, minUnitVol);
+            // Default display order — best profit-per-slot-day first. Headers allow re-sorting.
+            foreach (var r in rows.OrderByDescending(r => r.ProfitPerSlotDay)) Results.Add(r);
+
+            StatusText = rows.Count > 0
+                ? $"{rows.Count} profitable item{(rows.Count == 1 ? "" : "s")} · priced at {SelectedConfig.Name}"
+                : "No profitable build opportunities found for this market config.";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            IsCalculating = false;
+        }
+    }
+
+    // ── Core algorithm ────────────────────────────────────────────────────────
+
+    private record Candidate(
+        int TypeId, string TypeName,
+        double BuildCost, double SellOrderPrice, double BuyOrderPrice,
+        double SecPerRun, int OutQty, bool IsReaction);
+
+    private async Task<List<Candidate>> FetchCandidatesAsync(int configId)
+    {
+        var excludedGroupIds = await GetExcludedGroupIdsRecursiveAsync();
+        var exclusionClause  = excludedGroupIds.Count > 0
+            ? $"""AND (t."MarketGroupId" IS NULL OR t."MarketGroupId" NOT IN ({string.Join(",", excludedGroupIds)})) """
+            : "";
+
+        using var conn = new SqliteConnection(_connString);
+        await conn.OpenAsync();
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = CandidateSql.Replace("/*EXCLUSION*/", exclusionClause);
+        cmd.Parameters.AddWithValue("@configId", configId);
+
+        var list = new List<Candidate>();
+        var seen = new HashSet<int>();
+        using var reader = await cmd.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            int typeId = reader.GetInt32(0);
+            if (!seen.Add(typeId)) continue; // dedupe: some products have >1 blueprint row
+
+            list.Add(new Candidate(
+                typeId,
+                reader.GetString(1),
+                reader.GetDouble(2),
+                reader.GetDouble(3),
+                reader.GetDouble(4),
+                reader.GetDouble(5),
+                Math.Max(1, reader.GetInt32(6)),
+                reader.GetString(7) == "reaction"));
+        }
+        return list;
+    }
+
+    private async Task<List<IndustryRow>> BuildRowsAsync(
+        List<Candidate> candidates, int? regionId, double? minIskVol30d, double? minUnitVol30d)
+    {
+        var result  = new List<IndustryRow>();
+        int fetched = 0;
+
+        foreach (var c in candidates)
+        {
+            double sellInto = SelectedMode.Kind == IndustryMode.BuildAndSellToBuyOrder
+                ? c.BuyOrderPrice
+                : c.SellOrderPrice;
+
+            if (sellInto <= 0 || c.BuildCost <= 0) continue;
+
+            double profit = sellInto - c.BuildCost;
+            if (profit <= 0) continue; // only surface opportunities
+
+            // On-demand 30-day volume filters — only fetch history when a filter is active.
+            if ((minIskVol30d.HasValue || minUnitVol30d.HasValue) && regionId.HasValue)
+            {
+                StatusText = $"Checking volume data… ({++fetched} fetched)";
+                await _historyService.EnsureFreshAsync(regionId.Value, c.TypeId);
+
+                if (minIskVol30d.HasValue)
+                {
+                    var iskVol = await _historyService.Get30DayIskVolumeAsync(regionId.Value, c.TypeId);
+                    if (iskVol < minIskVol30d.Value) continue;
+                }
+                if (minUnitVol30d.HasValue)
+                {
+                    var unitVol = await _historyService.Get30DayUnitVolumeAsync(regionId.Value, c.TypeId);
+                    if (unitVol < minUnitVol30d.Value) continue;
+                }
+            }
+
+            // Time to build ONE unit = base run time × TE × skills ÷ units produced per run.
+            double teFactor    = c.IsReaction ? 1.0 : MfgTimeEfficiency;
+            double skillFactor = c.IsReaction ? RxnSkillFactor : MfgSkillFactor;
+            double secPerUnit  = c.SecPerRun * teFactor * skillFactor / c.OutQty;
+            double slotDays    = secPerUnit / SecondsPerDay;
+
+            result.Add(new IndustryRow
+            {
+                TypeId           = c.TypeId,
+                TypeName         = c.TypeName,
+                BuildCost        = c.BuildCost,
+                SellPrice        = sellInto,
+                ProfitPerUnit    = profit,
+                Margin           = profit / c.BuildCost,
+                BuildSeconds     = secPerUnit,
+                SlotDays         = slotDays,
+                ProfitPerSlotDay = slotDays > 0 ? profit / slotDays : 0,
+            });
+        }
+
+        return result;
+    }
+
+    // Resolves the region id used for the 30-day volume lookups from a market config.
+    private async Task<int?> ResolveRegionAsync(IndustryMarketConfig cfg)
+    {
+        // ESI Region configs store the region id directly in LocationId.
+        if (cfg.Method == MarketMethod.EsiRegion) return (int)cfg.LocationId;
+
+        using var conn = new SqliteConnection(_connString);
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+
+        // Maybe LocationId is already a region id (Fuzzwork region configs).
+        cmd.CommandText = """SELECT "RegionId" FROM "SdeRegions" WHERE "RegionId" = @loc""";
+        cmd.Parameters.AddWithValue("@loc", cfg.LocationId);
+        var region = ToRegionId(await cmd.ExecuteScalarAsync());
+        if (region.HasValue) return region;
+
+        // NPC station: resolve via its solar system. (SdeStations.RegionId is not
+        // populated by the SDE import — join through SolarSystemId instead.)
+        cmd.CommandText = """
+            SELECT ss."RegionId"
+            FROM "SdeStations"     s
+            JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = s."SolarSystemId"
+            WHERE s."StationId" = @sid AND s."SolarSystemId" != 0
+            """;
+        cmd.Parameters.Clear();
+        cmd.Parameters.AddWithValue("@sid", (int)Math.Min(cfg.LocationId, int.MaxValue));
+        region = ToRegionId(await cmd.ExecuteScalarAsync());
+        if (region.HasValue) return region;
+
+        // Player structure: resolved name record already has SolarSystemId.
+        cmd.CommandText = """
+            SELECT ss."RegionId"
+            FROM "EsiStructureNames" sn
+            JOIN "SdeSolarSystems"   ss ON ss."SolarSystemId" = sn."SolarSystemId"
+            WHERE sn."StructureId" = @lid AND sn."SolarSystemId" != 0
+            """;
+        cmd.Parameters.Clear();
+        cmd.Parameters.AddWithValue("@lid", cfg.LocationId);
+        region = ToRegionId(await cmd.ExecuteScalarAsync());
+        if (region.HasValue) return region;
+
+        // Fallback: derive from any cached order at that location.
+        cmd.CommandText = """
+            SELECT ss."RegionId"
+            FROM "MarketRawOrders" o
+            JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = o."SystemId"
+            WHERE o."LocationId" = @lid AND o."SystemId" != 0
+            LIMIT 1
+            """;
+        cmd.Parameters.Clear();
+        cmd.Parameters.AddWithValue("@lid", cfg.LocationId);
+        region = ToRegionId(await cmd.ExecuteScalarAsync());
+        return region;
+    }
+
+    // Treats NULL/DBNull and a 0 region id as "unresolved" so callers fall through.
+    private static int? ToRegionId(object? scalar)
+    {
+        if (scalar is null or DBNull) return null;
+        var id = Convert.ToInt32(scalar);
+        return id != 0 ? id : null;
+    }
+
+    // ── SQL ───────────────────────────────────────────────────────────────────
+
+    // Joins cached build cost, market prices for the chosen config, and the base
+    // blueprint activity time. Reactions and manufacturing are both included; the
+    // Activity column lets the caller apply the right time model.
+    private const string CandidateSql = """
+        SELECT
+            bc."TypeId",
+            bc."TypeName",
+            CAST(bc."TotalCost"  AS REAL)     AS BuildCost,
+            CAST(mip."SellPrice" AS REAL)     AS SellPrice,
+            CAST(mip."BuyPrice"  AS REAL)     AS BuyPrice,
+            CAST(ba."Time"       AS REAL)     AS SecPerRun,
+            bp."Quantity"                     AS OutQty,
+            bp."Activity"                     AS Activity
+        FROM "BuildCosts" bc
+        JOIN "MarketItemPrices" mip
+              ON mip."TypeId" = bc."TypeId" AND mip."ConfigId" = @configId
+        JOIN "SdeTypes" t ON t."TypeId" = bc."TypeId"
+        JOIN "SdeBlueprintProducts" bp
+              ON bp."ProductTypeId" = bc."TypeId"
+             AND bp."Activity" IN ('manufacturing','reaction')
+        JOIN "HoboBlueprintActivities" ba
+              ON ba."TypeId" = bp."TypeId" AND ba."Activity" = bp."Activity"
+        WHERE bc."TotalCost" > 0
+        /*EXCLUSION*/
+        """;
+}

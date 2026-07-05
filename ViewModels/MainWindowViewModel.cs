@@ -26,6 +26,7 @@ public class MainWindowViewModel : ReactiveObject
     public ItemBrowserViewModel           ItemBrowserVm          { get; }
     public NetWorthViewModel              NetWorthVm             { get; }
     public TradeOpportunitiesViewModel    TradeOpportunitiesVm   { get; }
+    public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
     public WalletViewModel                WalletVm               { get; }
@@ -114,6 +115,7 @@ public class MainWindowViewModel : ReactiveObject
             "indy_parks" => ("Indy Parks",      IndyParksVm,              true),
             "prod_calc"  => ("Production Calc", ProductionCalcVm,         true),
             "trade"           => ("Trade",           TradeOpportunitiesVm,     true),
+            "industry_opps"   => ("Industry Opps",   IndustryOpportunitiesVm,  true),
             "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
             "inv_levels"      => ("Inv. Levels",     InvLevelVm,               true),
             "net_worth"  => ("Net Worth",       NetWorthVm,               true),
@@ -267,6 +269,7 @@ public class MainWindowViewModel : ReactiveObject
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
         IndustryBrowserVm    = new IndustryBrowserViewModel(connString);
         TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
+        IndustryOpportunitiesVm = new IndustryOpportunitiesViewModel(connString, historyService, batchAddService);
 
         agentService.Initialize(connString);
         TtsService         = ttsService;
@@ -309,9 +312,10 @@ public class MainWindowViewModel : ReactiveObject
             ]),
             new("Industry",
             [
-                new NavItem("industry",   "Industry Jobs"),
-                new NavItem("indy_parks", "Indy Parks"),
-                new NavItem("prod_calc",  "Production Calc"),
+                new NavItem("industry",      "Industry Jobs"),
+                new NavItem("indy_parks",    "Indy Parks"),
+                new NavItem("prod_calc",     "Production Calc"),
+                new NavItem("industry_opps", "Industry Opportunities"),
             ]),
             new("Market / Trade",
             [

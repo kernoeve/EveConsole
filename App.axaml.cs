@@ -1101,6 +1101,17 @@ public class App : Application
                 """);
 
             db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "IndustryOpportunitiesSettings" (
+                    "Id"                     INTEGER NOT NULL PRIMARY KEY,
+                    "ExcludedMarketGroupIds" TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            // No default exclusions for Industry Opportunities.
+            db.Database.ExecuteSqlRaw("""
+                INSERT OR IGNORE INTO "IndustryOpportunitiesSettings" ("Id", "ExcludedMarketGroupIds") VALUES (1, '')
+                """);
+
+            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "DismissedAlerts" (
                     "CharacterId"    INTEGER NOT NULL,
                     "NotificationId" INTEGER NOT NULL,

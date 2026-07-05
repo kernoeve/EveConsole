@@ -33,6 +33,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private InvLevelWindow?              _invLevelWindow;
     private MarketLevelWindow?           _marketLevelWindow;
     private TradeOpportunitiesWindow?    _tradeOpportunitiesWindow;
+    private IndustryOpportunitiesWindow? _industryOpportunitiesWindow;
     private IndyParksWindow?             _indyParksWindow;
     private ProductionCalculatorWindow?  _productionCalculatorWindow;
 
@@ -164,6 +165,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
             });
 
+        vm.IndustryOpportunitiesVm.ItemNavigationRequested = (typeId, name) =>
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
+                else vm.OpenTool("items");
+                _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
+            });
+
         vm.MarketLevelVm.OpenInItemBrowser = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {
@@ -285,6 +294,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             "market_levels"  => "market_levels",
             "inv_levels"     => "inv_levels",
             "trade"          => "trade",
+            "industry_opps"  => "industry_opps",
             "net_worth"      => "net_worth",
             "wallet"         => "wallet",
             "corp_activity"  => "corp_activity",
@@ -311,6 +321,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             "inv_levels"     => _invLevelWindow?.IsVisible            == true ? _invLevelWindow            : null,
             "market_levels"  => _marketLevelWindow?.IsVisible         == true ? _marketLevelWindow         : null,
             "trade"          => _tradeOpportunitiesWindow?.IsVisible  == true ? _tradeOpportunitiesWindow  : null,
+            "industry_opps"  => _industryOpportunitiesWindow?.IsVisible == true ? _industryOpportunitiesWindow : null,
             "indy_parks"     => _indyParksWindow?.IsVisible           == true ? _indyParksWindow           : null,
             "prod_calc"      => _productionCalculatorWindow?.IsVisible == true ? _productionCalculatorWindow : null,
             _                => null
@@ -450,6 +461,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             "inv_levels"     => _invLevelWindow            = new InvLevelWindow            { DataContext = vm.InvLevelVm },
             "market_levels"  => _marketLevelWindow         = new MarketLevelWindow         { DataContext = vm.MarketLevelVm },
             "trade"          => _tradeOpportunitiesWindow  = new TradeOpportunitiesWindow  { DataContext = vm.TradeOpportunitiesVm },
+            "industry_opps"  => _industryOpportunitiesWindow = new IndustryOpportunitiesWindow { DataContext = vm.IndustryOpportunitiesVm },
             "indy_parks"     => _indyParksWindow           = new IndyParksWindow           { DataContext = vm.IndyParksVm },
             "prod_calc"      => _productionCalculatorWindow = new ProductionCalculatorWindow { DataContext = vm.ProductionCalcVm },
             _                => null
@@ -476,6 +488,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 case "inv_levels":     _invLevelWindow            = null; break;
                 case "market_levels":  _marketLevelWindow         = null; break;
                 case "trade":          _tradeOpportunitiesWindow  = null; break;
+                case "industry_opps":  _industryOpportunitiesWindow = null; break;
                 case "indy_parks":     _indyParksWindow           = null; break;
                 case "prod_calc":      _productionCalculatorWindow = null; break;
             }

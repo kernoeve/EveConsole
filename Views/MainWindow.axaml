@@ -273,6 +273,9 @@
               <DataTemplate DataType="vm:TradeOpportunitiesViewModel">
                 <views:TradeOpportunitiesView />
               </DataTemplate>
+              <DataTemplate DataType="vm:IndustryOpportunitiesViewModel">
+                <views:IndustryOpportunitiesView />
+              </DataTemplate>
               <DataTemplate DataType="vm:NetWorthViewModel">
                 <views:NetWorthView />
               </DataTemplate>
