@@ -1501,7 +1501,7 @@
         </StackPanel>
 
         <TextBlock TextWrapping="Wrap" Foreground="#666677" FontSize="11" Margin="0 4 0 0"
-                   Text="Tip: watch live per-region sweep progress (refreshed vs queued, and whether it's running) on the API Activity Log → Call Schedule → Price History tab." />
+                   Text="Tip: watch live per-region sweep progress (refreshed vs queued, and whether it's running) on the API Activity Log → Price History tab." />
 
       </StackPanel>
     </ScrollViewer>

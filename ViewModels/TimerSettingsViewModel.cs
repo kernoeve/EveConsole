@@ -67,7 +67,7 @@ public class TimerSettingsViewModel : ReactiveObject
             timerSettings, pollingService));
 
         OtherRows.Add(new TimerRowVm(
-            new EndpointInfo("market.history", "Price History Sweep", 3600, 86400),
+            new EndpointInfo("market.history", "Price History Check", 120, 600),
             timerSettings, pollingService));
 
         SaveCommand = ReactiveCommand.CreateFromTask(SaveAllAsync);
