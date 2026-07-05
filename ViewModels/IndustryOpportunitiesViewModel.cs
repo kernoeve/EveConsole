@@ -378,11 +378,13 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
         // BPO-only: keep items whose (published) manufacturing/reaction blueprint either is
         // sold on the market (a buyable BPO) OR is invented from a source blueprint that is
-        // sold on the market (e.g. a T2 BPC invented from a T1 BPO). Excludes only items
-        // whose BPC has no BPO and cannot be derived from one (faction/limited-run BPCs) —
-        // those carry a contract cost the build-cost engine can't account for.
+        // sold on the market (e.g. a T2 BPC invented from a T1 BPO). Excludes items whose BPC
+        // has no BPO and cannot be derived from one (faction/limited-run BPCs), plus
+        // "Limited Time" items (MetaGroupId 19) — event blueprints that have a market group
+        // in the SDE but can no longer be bought in game.
         var bpoClause = BpoOnly
             ? """
+              AND (t."MetaGroupId" IS NULL OR t."MetaGroupId" != 19)
               AND EXISTS (
                 SELECT 1 FROM "SdeBlueprintProducts" bp
                 JOIN "SdeTypes" bpt ON bpt."TypeId" = bp."TypeId"
