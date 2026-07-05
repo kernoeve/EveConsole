@@ -305,8 +305,11 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                          && j.Status == "active"
                          && j.ProductTypeId.HasValue
                          && typeIds.Contains(j.ProductTypeId!.Value));
+            // Scope by FacilityId (the structure the job runs in), NOT OutputLocationId —
+            // the latter is the delivery hangar/container sub-location, which does not
+            // resolve to a structure and would drop every job from location-scoped groups.
             if (stationFilter != null)
-                q = q.Where(j => stationFilter.Contains(j.OutputLocationId));
+                q = q.Where(j => stationFilter.Contains(j.FacilityId));
 
             var activeJobs = await q
                 .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value, j.Runs })
