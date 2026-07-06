@@ -210,7 +210,7 @@ public class MainWindowViewModel : ReactiveObject
         ContractsService                contractsService)
     {
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
-        OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService);
+        OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService);

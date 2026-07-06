@@ -352,6 +352,53 @@
 
         </Grid>
 
+        <!-- ════ Recent Notifications ═════════════════════════════════════ -->
+        <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                CornerRadius="4" Padding="14 12" Margin="0 4 0 0">
+          <StackPanel Spacing="8">
+
+            <TextBlock Text="Recent Notifications" FontSize="13" FontWeight="SemiBold"
+                       Foreground="#c8a84b" />
+
+            <TextBlock IsVisible="{Binding NoNotifications}"
+                       Text="No recent notifications."
+                       FontSize="12" Foreground="#444455" FontStyle="Italic" />
+
+            <ItemsControl IsVisible="{Binding HasNotifications}"
+                          ItemsSource="{Binding RecentNotifications}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:NotificationBoxVm">
+                  <Border Background="#0e0e16" BorderBrush="#1e1e2a" BorderThickness="1"
+                          CornerRadius="3" Padding="10 8" Margin="0 3">
+                    <StackPanel Spacing="4">
+                      <Grid ColumnDefinitions="Auto,*,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding UnreadDot}" Foreground="#c8a84b"
+                                   FontSize="12" Margin="0 0 6 0" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding TypeLabel}" FontSize="12"
+                                   FontWeight="SemiBold" Foreground="#dfe4ee" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="2" Text="{Binding DateText}" FontSize="10"
+                                   Foreground="#556" VerticalAlignment="Center" />
+                      </Grid>
+                      <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="To:" FontSize="10" Foreground="#556" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Characters}" FontSize="10" Foreground="#8899aa"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="· From:" FontSize="10" Foreground="#556"
+                                   Margin="6 0 0 0" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Sender}" FontSize="10" Foreground="#8899aa"
+                                   VerticalAlignment="Center" />
+                      </StackPanel>
+                      <SelectableTextBlock Text="{Binding Body}" FontSize="11" Foreground="#8899aa"
+                                           FontFamily="Consolas, Menlo, monospace" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+          </StackPanel>
+        </Border>
+
       </StackPanel>
     </ScrollViewer>
 
