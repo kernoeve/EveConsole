@@ -248,6 +248,20 @@ public class ContractItem
     public int?   Runs               { get; set; }
 }
 
+// Derived per-type pricing from single-item-type "sell" contracts (item_exchange offering one
+// item type for an ISK price, nothing requested back). Rebuilt periodically from EsiContracts +
+// EsiContractItems; the table is fully replaced each run. Prices are per unit (contract price ÷
+// number of units of the single type). One row per TypeId.
+public class ContractPrice
+{
+    public int      TypeId      { get; set; }   // key
+    public decimal? BestPrice   { get; set; }   // lowest per-unit ask among currently-active sells
+    public decimal? Avg30Best   { get; set; }   // 30-day average of the daily-best per-unit price
+    public int      ActiveCount { get; set; }   // # currently-active qualifying sell contracts
+    public int      SampleDays  { get; set; }   // days in the last 30 that had ≥1 active contract
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
 // ── Assets & blueprints ───────────────────────────────────────────────────────
 
 public class CharacterAsset

@@ -78,6 +78,10 @@ public class TimerSettingsViewModel : ReactiveObject
             new EndpointInfo("contract.items", "Contract Items Pull", 120, 600),
             timerSettings, pollingService));
 
+        OtherRows.Add(new TimerRowVm(
+            new EndpointInfo("contract.pricing", "Contract Pricing Rebuild", 300, 1800),
+            timerSettings, pollingService));
+
         SaveCommand = ReactiveCommand.CreateFromTask(SaveAllAsync);
     }
 

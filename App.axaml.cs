@@ -524,6 +524,18 @@ public class App : Application
                 """);
 
             db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "ContractPrices" (
+                    "TypeId"      INTEGER NOT NULL,
+                    "BestPrice"   TEXT,
+                    "Avg30Best"   TEXT,
+                    "ActiveCount" INTEGER NOT NULL DEFAULT 0,
+                    "SampleDays"  INTEGER NOT NULL DEFAULT 0,
+                    "UpdatedAt"   TEXT    NOT NULL DEFAULT '',
+                    PRIMARY KEY ("TypeId")
+                )
+                """);
+
+            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiAssets" (
                     "OwnerId"         INTEGER NOT NULL,
                     "OwnerType"       TEXT    NOT NULL,

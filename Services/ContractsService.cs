@@ -21,6 +21,7 @@ public class ContractsService : ReactiveObject
     private readonly CancellationTokenSource _cts = new();
     private Task? _publicLoop;
     private Task? _itemsLoop;
+    private Task? _pricingLoop;
 
     // Pace between successive public-list region calls.
     private const int CallDelayMs = 100;
@@ -104,14 +105,15 @@ public class ContractsService : ReactiveObject
 
     public void Start()
     {
-        _publicLoop = Task.Run(() => RunLoopAsync("contract.public", 3600, SweepPublicContractsAsync, _cts.Token));
-        _itemsLoop  = Task.Run(() => RunLoopAsync("contract.items",   600, SweepContractItemsAsync,   _cts.Token));
+        _publicLoop  = Task.Run(() => RunLoopAsync("contract.public",  3600, SweepPublicContractsAsync, _cts.Token));
+        _itemsLoop   = Task.Run(() => RunLoopAsync("contract.items",    600, SweepContractItemsAsync,   _cts.Token));
+        _pricingLoop = Task.Run(() => RunLoopAsync("contract.pricing", 1800, RecomputePricingAsync,     _cts.Token));
     }
 
     public async Task StopAsync()
     {
         await _cts.CancelAsync();
-        foreach (var t in new[] { _publicLoop, _itemsLoop })
+        foreach (var t in new[] { _publicLoop, _itemsLoop, _pricingLoop })
             if (t is not null) try { await t; } catch (OperationCanceledException) { }
     }
 
@@ -347,5 +349,112 @@ public class ContractsService : ReactiveObject
         if (items.Count > 0) db.EsiContractItems.AddRange(items);
         await db.SaveChangesAsync(ct);
         return true;
+    }
+
+    // ── Contract pricing (single-item-type sells) ───────────────────────────────
+
+    // Rebuilds the ContractPrices table. A qualifying "sell" is an item_exchange contract that
+    // offers exactly ONE item type for an ISK price and requests nothing back. The per-unit price
+    // is the contract price divided by the total number of units of that type. For each such type
+    // we record the current best (lowest) per-unit price among active contracts and the 30-day
+    // average of the daily-best per-unit price (reconstructed from each contract's issued→ended
+    // window). The table is fully replaced each run.
+    public async Task RecomputePricingAsync(CancellationToken ct)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+        // Per-contract item aggregate. MinType==MaxType ⇒ a single distinct type; Requested==0 ⇒
+        // nothing is asked for in return (a pure item-for-ISK sell); Qty = total units offered.
+        var itemAgg = await db.EsiContractItems
+            .GroupBy(i => i.ContractId)
+            .Select(g => new
+            {
+                ContractId = g.Key,
+                MinType    = g.Min(x => x.TypeId),
+                MaxType    = g.Max(x => x.TypeId),
+                Requested  = g.Sum(x => x.IsIncluded ? 0 : 1),
+                Qty        = g.Sum(x => x.IsIncluded ? x.Quantity : 0L),
+            })
+            .Where(a => a.MinType == a.MaxType && a.Requested == 0 && a.Qty > 0)
+            .ToDictionaryAsync(a => a.ContractId, ct);
+
+        // Sell contracts: item_exchange with an ISK price and no reward. (Dates are only projected,
+        // never compared in SQL — EF Core + SQLite can't translate DateTimeOffset comparisons.)
+        var contractRows = (await db.EsiContracts.AsNoTracking()
+                .Where(c => c.Type == "item_exchange" && c.Price > 0m && c.Reward == 0m && c.ItemsPulled)
+                .Select(c => new
+                {
+                    c.ContractId, c.Price, c.Status,
+                    c.DateIssued, c.DateExpired, c.DateAccepted, c.DateCompleted,
+                })
+                .ToListAsync(ct))
+            .GroupBy(c => c.ContractId)          // one contract can appear under several owners
+            .Select(g => g.First())
+            .ToList();
+
+        var now      = DateTimeOffset.UtcNow;
+        var todayUtc = now.UtcDateTime.Date;
+
+        // TypeId → per-contract (per-unit price, active window, whether currently active).
+        var byType = new Dictionary<int, List<(decimal PerUnit, DateTime Start, DateTime End, bool ActiveNow)>>();
+
+        foreach (var c in contractRows)
+        {
+            if (!itemAgg.TryGetValue(c.ContractId, out var agg) || agg.Qty <= 0) continue;
+
+            decimal perUnit = c.Price / agg.Qty;
+            var start = c.DateIssued.UtcDateTime;
+            var end   = (c.DateAccepted ?? c.DateCompleted ?? c.DateExpired ?? now).UtcDateTime;
+            bool activeNow = c.Status == "outstanding" && (c.DateExpired is null || c.DateExpired > now);
+
+            if (!byType.TryGetValue(agg.MinType, out var list))
+                byType[agg.MinType] = list = new();
+            list.Add((perUnit, start, end, activeNow));
+        }
+
+        var results = new List<ContractPrice>(byType.Count);
+        foreach (var (typeId, list) in byType)
+        {
+            // Current best = lowest per-unit among contracts active right now.
+            decimal? best = null;
+            int activeCount = 0;
+            foreach (var e in list)
+                if (e.ActiveNow) { activeCount++; if (best is null || e.PerUnit < best) best = e.PerUnit; }
+
+            // 30-day average of the daily-best: for each of the last 30 days, the lowest per-unit
+            // among contracts whose active window overlapped that day; averaged over days with data.
+            decimal daySum = 0m;
+            int sampleDays = 0;
+            for (int k = 0; k < 30; k++)
+            {
+                var dayStart = todayUtc.AddDays(-k);
+                var dayEnd   = dayStart.AddDays(1);
+                decimal? dayBest = null;
+                foreach (var e in list)
+                    if (e.Start < dayEnd && e.End >= dayStart && (dayBest is null || e.PerUnit < dayBest))
+                        dayBest = e.PerUnit;
+                if (dayBest is not null) { daySum += dayBest.Value; sampleDays++; }
+            }
+
+            decimal? avg30 = sampleDays > 0 ? daySum / sampleDays : null;
+            if (best is null && avg30 is null) continue;   // nothing active and nothing in 30 days
+
+            results.Add(new ContractPrice
+            {
+                TypeId      = typeId,
+                BestPrice   = best,
+                Avg30Best   = avg30,
+                ActiveCount = activeCount,
+                SampleDays  = sampleDays,
+                UpdatedAt   = now,
+            });
+        }
+
+        // Full replace — the table is a small per-type summary.
+        await db.ContractPrices.ExecuteDeleteAsync(ct);
+        if (results.Count > 0) db.ContractPrices.AddRange(results);
+        await db.SaveChangesAsync(ct);
+
+        StatusText = $"Contracts: priced {results.Count:N0} types — {DateTimeOffset.Now:t}";
     }
 }
