@@ -38,6 +38,18 @@ internal static class ContractFmt
         string.Join(" ", status.Split('_')
             .Select(w => w.Length > 0 ? char.ToUpperInvariant(w[0]) + w[1..] : w));
 
+    // A stored status only reflects the last time we saw the contract. Public listings and
+    // owned contracts that age off ESI are retained as "outstanding" forever; if their expiry
+    // has passed they're really gone, so present them as Expired.
+    public static bool IsExpired(string status, DateTimeOffset? expired) =>
+        status == "outstanding" && expired is { } e && e < DateTimeOffset.UtcNow;
+
+    public static string EffectiveStatusLabel(string status, DateTimeOffset? expired) =>
+        IsExpired(status, expired) ? "Expired" : StatusLabel(status);
+
+    public static string EffectiveStatusColor(string status, DateTimeOffset? expired) =>
+        IsExpired(status, expired) ? "#a06a45" : StatusColor(status);
+
     public static string StatusColor(string status) => status switch
     {
         "outstanding"  => "#5b9bd5",
@@ -130,8 +142,8 @@ public class ContractDetailVm
         ContractId  = c.ContractId;
         Title       = string.IsNullOrWhiteSpace(c.Title) ? "(no title)" : c.Title!;
         TypeLabel   = ContractFmt.TypeLabel(c.Type);
-        Status      = ContractFmt.StatusLabel(c.Status);
-        StatusColor = ContractFmt.StatusColor(c.Status);
+        Status      = ContractFmt.EffectiveStatusLabel(c.Status, c.DateExpired);
+        StatusColor = ContractFmt.EffectiveStatusColor(c.Status, c.DateExpired);
         Availability = c.Availability switch
         {
             "public"   => "Public",
@@ -219,8 +231,8 @@ public class ContractRowVm
         Record        = c;
         ContractId    = c.ContractId;
         TypeLabel     = ContractFmt.TypeLabel(c.Type);
-        Status        = ContractFmt.StatusLabel(c.Status);
-        StatusColor   = ContractFmt.StatusColor(c.Status);
+        Status        = ContractFmt.EffectiveStatusLabel(c.Status, c.DateExpired);
+        StatusColor   = ContractFmt.EffectiveStatusColor(c.Status, c.DateExpired);
         Region        = region;
         Categories    = categories;
 
