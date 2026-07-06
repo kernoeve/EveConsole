@@ -327,16 +327,26 @@ public class MarketHistoryService : ReactiveObject
             DateTimeOffset.UtcNow - fetch.FetchedAt < (fetch.HadData ? CacheAge : EmptyCacheAge))
             return false; // already fresh
 
-        var entries = await _esi.GetMarketHistoryAsync(regionId, typeId, ct);
+        var (entries, status) = await _esi.GetMarketHistoryAsync(regionId, typeId, ct);
 
         if (entries is null)
         {
-            // ESI returned a non-success status — log and do NOT record the attempt
-            // so it will be retried on the next sweep.
-            _errorLogger.Log(
-                "MarketHistoryService",
-                $"region={regionId} type={typeId}",
-                "ESI market history fetch failed (non-success HTTP status). Will retry next sweep.");
+            // Terminal 4xx (not rate-limit): ESI has no market history for this (region, type) —
+            // e.g. a non-market type. Record the attempt as "no data" so the longer EmptyCacheAge
+            // backoff applies instead of re-requesting (and erroring on) it every single sweep.
+            if (status is >= 400 and < 500 and not (420 or 429))
+            {
+                if (fetch is null)
+                {
+                    fetch = new MarketHistoryFetch { RegionId = regionId, TypeId = typeId };
+                    db.MarketHistoryFetches.Add(fetch);
+                }
+                fetch.FetchedAt = DateTimeOffset.UtcNow;
+                fetch.HadData   = false;
+                await db.SaveChangesAsync(ct);
+                return true;
+            }
+            // Transient (error-limit blocked / 420 / 429 / 5xx) — don't record, retry next sweep.
             return true;
         }
 

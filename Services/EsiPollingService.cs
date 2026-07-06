@@ -2532,8 +2532,10 @@ public class EsiPollingService : ReactiveObject
                 row.UpdatedAt       = DateTimeOffset.UtcNow;
 
                 // Static = terminal-state project whose detail + contributors were fully fetched.
-                // No data can change on a completed project; skip the expensive per-project calls.
-                if (row.IsStatic)
+                // DetailUnavailable = listed but its detail endpoint 404s (not visible to us).
+                // Either way the per-project detail/contributor calls are pointless — skip them
+                // (cheap list fields above are still kept current).
+                if (row.IsStatic || row.DetailUnavailable)
                     continue;
             }
 
@@ -2554,6 +2556,35 @@ public class EsiPollingService : ReactiveObject
             if (!detailResult.IsSuccess)
             {
                 if (detailResult.StatusCode is 420 or 429) break; // rate-limited — stop cleanly
+
+                // 404 = the detail endpoint doesn't serve this project (not visible to us). It's
+                // listed but perpetually 404s, so mark it DetailUnavailable and stop retrying —
+                // otherwise it fires a 404 every cycle and eats into ESI's error limit. Store the
+                // list data we do have so the row exists. Other statuses are transient: retry.
+                if (detailResult.StatusCode == 404)
+                {
+                    if (row is null)
+                    {
+                        row = new CorpProject
+                        {
+                            CorporationId   = corpId,
+                            ProjectId       = project.Id,
+                            Name            = project.Name,
+                            State           = project.State,
+                            LastModified    = project.LastModified,
+                            ProgressCurrent = project.Progress?.Current ?? 0,
+                            ProgressDesired = project.Progress?.Desired ?? 0,
+                            RewardInitial   = project.Reward?.Initial ?? 0,
+                            RewardRemaining = project.Reward?.Remaining ?? 0,
+                            UpdatedAt       = DateTimeOffset.UtcNow,
+                        };
+                        db.EsiCorpProjects.Add(row);
+                        existingProjects[project.Id] = row;
+                    }
+                    row.DetailUnavailable = true;
+                    continue;
+                }
+
                 _errorLogger.Log("EsiPollingService", $"corp.projects.detail:{corpId}",
                     $"HTTP {detailResult.StatusCode} project={project.Id}", detailResult.Error);
                 continue; // non-fatal — try the next project

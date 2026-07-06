@@ -243,10 +243,13 @@ public class EsiClient
     /// Returns null on HTTP error (caller should not cache the result).
     /// Returns an empty list when ESI responds 200 with no data (item has no history in region).
     /// </summary>
-    public async Task<List<EsiMarketHistoryEntry>?> GetMarketHistoryAsync(
+    // Returns (data, statusCode). data is null on any non-success; statusCode is 0 when the call
+    // was skipped because we're error-limit blocked. Callers use the status to tell a terminal 4xx
+    // (this type simply has no market history here) from a transient failure worth retrying.
+    public async Task<(List<EsiMarketHistoryEntry>? Data, int Status)> GetMarketHistoryAsync(
         int regionId, int typeId, CancellationToken ct = default)
     {
-        if (IsErrorLimitBlocked) return null;
+        if (IsErrorLimitBlocked) return (null, 0);
 
         await _httpGate.WaitAsync(ct);
         HttpResponseMessage response;
@@ -262,8 +265,9 @@ public class EsiClient
                       && int.TryParse(sv.FirstOrDefault(), out var s) ? s : null;
         UpdateErrorLimitState((int)response.StatusCode, remain, reset);
 
-        if (!response.IsSuccessStatusCode) return null;
-        return await response.Content.ReadFromJsonAsync<List<EsiMarketHistoryEntry>>(JsonOptions, ct) ?? [];
+        if (!response.IsSuccessStatusCode) return (null, (int)response.StatusCode);
+        var data = await response.Content.ReadFromJsonAsync<List<EsiMarketHistoryEntry>>(JsonOptions, ct) ?? [];
+        return (data, (int)response.StatusCode);
     }
 
     // -----------------------------------------------------------------------

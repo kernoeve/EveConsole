@@ -895,11 +895,13 @@ public class App : Application
                     "CreatorName"     TEXT    NOT NULL DEFAULT '',
                     "UpdatedAt"       TEXT    NOT NULL DEFAULT '',
                     "IsStatic"        INTEGER NOT NULL DEFAULT 0,
+                    "DetailUnavailable" INTEGER NOT NULL DEFAULT 0,
                     "ConfigType"      TEXT,
                     "ConfigurationJson" TEXT,
                     PRIMARY KEY ("CorporationId", "ProjectId")
                 )
                 """);
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCorpProjects" ADD COLUMN "DetailUnavailable" INTEGER NOT NULL DEFAULT 0"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "CorpTop10Excludes" (
                     "EntityId"   INTEGER NOT NULL,

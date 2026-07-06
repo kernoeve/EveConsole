@@ -35,13 +35,19 @@ public sealed record EveMailResolvedRecipient(
 public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient esi, AppErrorLogger errorLogger)
 {
     // Uses raw ADO.NET so table creation is completely independent of EF's connection lifecycle.
-    // Idempotent: CREATE TABLE IF NOT EXISTS is safe to call on every startup.
+    // Idempotent (CREATE TABLE IF NOT EXISTS) but only worth running once per process — the tables
+    // don't disappear between polls, so every FetchHeaders/query would otherwise re-run the DDL.
+    private static bool _tablesEnsured;
+    private static readonly SemaphoreSlim _ensureGate = new(1, 1);
+
     private async Task EnsureTablesAsync(AppDbContext db)
     {
-        var connStr = db.Database.GetConnectionString() ?? "(null)";
-        errorLogger.Log("EveMailService", "EnsureTablesAsync", $"Attempting table creation. connStr={connStr}");
+        if (_tablesEnsured) return;
+        await _ensureGate.WaitAsync();
         try
         {
+        if (_tablesEnsured) return;
+        var connStr = db.Database.GetConnectionString() ?? "(null)";
         using var conn = new SqliteConnection(connStr);
         await conn.OpenAsync();
 
@@ -94,13 +100,14 @@ public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient
             cmd.CommandText = sql;
             await cmd.ExecuteNonQueryAsync();
         }
-        errorLogger.Log("EveMailService", "EnsureTablesAsync", "All 4 mail tables created/verified OK.");
+        _tablesEnsured = true;
         }
         catch (Exception ex)
         {
             errorLogger.Log("EveMailService", "EnsureTablesAsync", ex);
             throw;
         }
+        finally { _ensureGate.Release(); }
     }
 
     // ── Header & label polling (called by EsiPollingService) ─────────────────

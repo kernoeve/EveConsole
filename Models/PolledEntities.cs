@@ -629,6 +629,9 @@ public class CorpProject
     // True once a terminal-state project has had both detail + all contributors successfully fetched.
     // Static projects are never re-fetched for detail/contributors — only list-level fields update.
     public bool    IsStatic          { get; set; }
+    // True when the project appears in the list but its detail endpoint returns 404 (detail not
+    // available to us). We keep updating cheap list fields but stop retrying the detail call.
+    public bool    DetailUnavailable { get; set; }
     public string? ConfigType        { get; set; }  // e.g. "deliver_item"
     public string? ConfigurationJson { get; set; }
 }
