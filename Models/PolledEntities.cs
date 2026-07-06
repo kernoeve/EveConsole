@@ -248,6 +248,19 @@ public class ContractItem
     public int?   Runs               { get; set; }
 }
 
+// Per-(owner, wallet division, kind) marker: true once a full page-through of the ESI wallet
+// window has completed without interruption. While false (first run, or after a poll that was cut
+// short) the fetch re-pages the entire window to fill any hole a partial poll may have left, rather
+// than stopping at the first already-stored page. Division 0 = character single wallet.
+public class WalletBackfillState
+{
+    public long   OwnerId   { get; set; }
+    public string OwnerType { get; set; } = "";
+    public string Kind      { get; set; } = "";   // "journal" | "transactions"
+    public int    Division  { get; set; }
+    public bool   Complete  { get; set; }
+}
+
 // Derived per-type pricing from single-item-type "sell" contracts (item_exchange offering one
 // item type for an ISK price, nothing requested back). Rebuilt periodically from EsiContracts +
 // EsiContractItems; the table is fully replaced each run. Prices are per unit (contract price ÷

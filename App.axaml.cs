@@ -535,6 +535,17 @@ public class App : Application
                 """);
 
             db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WalletBackfillState" (
+                    "OwnerId"   INTEGER NOT NULL,
+                    "OwnerType" TEXT    NOT NULL,
+                    "Kind"      TEXT    NOT NULL,
+                    "Division"  INTEGER NOT NULL,
+                    "Complete"  INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("OwnerId", "OwnerType", "Kind", "Division")
+                )
+                """);
+
+            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "ContractPrices" (
                     "TypeId"      INTEGER NOT NULL,
                     "BestPrice"   TEXT,

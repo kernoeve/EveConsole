@@ -492,14 +492,46 @@ public class EsiPollingService : ReactiveObject
         return FromResult(r);
     }
 
+    // ── Wallet backfill state (interruption hardening) ──────────────────────────
+    // The fast "stop at the first already-stored page" catch-up assumes our stored history is
+    // contiguous. A poll interrupted mid-way (error / rate-limit / shutdown) can break that
+    // assumption and leave a hole that a later fast catch-up would skip forever. These markers make
+    // the fetch re-page the whole ESI window until one full pass completes cleanly.
+
+    private static async Task<bool> IsBackfillCompleteAsync(
+        AppDbContext db, long ownerId, string ownerType, string kind, int division, CancellationToken ct)
+        => await db.WalletBackfillStates.AsNoTracking().AnyAsync(
+            s => s.OwnerId == ownerId && s.OwnerType == ownerType && s.Kind == kind
+              && s.Division == division && s.Complete, ct);
+
+    private static async Task SetBackfillCompleteAsync(
+        AppDbContext db, long ownerId, string ownerType, string kind, int division, bool complete, CancellationToken ct)
+    {
+        var row = await db.WalletBackfillStates.FirstOrDefaultAsync(
+            s => s.OwnerId == ownerId && s.OwnerType == ownerType && s.Kind == kind && s.Division == division, ct);
+        if (row is null)
+            db.WalletBackfillStates.Add(new WalletBackfillState
+            {
+                OwnerId = ownerId, OwnerType = ownerType, Kind = kind, Division = division, Complete = complete,
+            });
+        else
+            row.Complete = complete;
+        await db.SaveChangesAsync(ct);
+        db.ChangeTracker.Clear();
+    }
+
     private async Task<PollingResult> FetchWalletJournalAsync(long charId, AppDbContext db, CancellationToken ct)
     {
-        // Fetch page-by-page; stop as soon as a page is all-duplicates (we've caught up).
+        // Fetch page-by-page. Once a clean full pass is confirmed we stop at the first all-stored
+        // page (fast catch-up); until then (first run / after an interruption) we page the whole
+        // window so any hole left by a partial poll is filled.
         var existingIds = await db.EsiWalletJournal
             .Where(w => w.OwnerId == charId && w.OwnerType == "character")
             .Select(w => w.EsiId)
             .ToHashSetAsync(ct);
 
+        bool fullScan   = !await IsBackfillCompleteAsync(db, charId, "character", "journal", 0, ct);
+        bool interrupted = false, reachedEnd = false;
         PollingResult? lastResult = null;
 
         for (int page = 1; ; page++)
@@ -508,7 +540,8 @@ public class EsiPollingService : ReactiveObject
             var r = await _esi.ExecuteAuthAsync<List<EsiWalletJournalEntry>>(
                 charId, $"characters/{charId}/wallet/journal/", ct, page: page);
             lastResult = FromResult(r);
-            if (!r.IsSuccess || r.Data is null || r.Data.Count == 0) break;
+            if (!r.IsSuccess || r.Data is null) { interrupted = true; break; }
+            if (r.Data.Count == 0) { reachedEnd = true; break; }
 
             var newEntries = r.Data
                 .Where(e => !existingIds.Contains(e.Id))
@@ -540,12 +573,18 @@ public class EsiPollingService : ReactiveObject
                 foreach (var e in newEntries) existingIds.Add(e.EsiId);
             }
 
-            // All entries on this page already stored — we have everything older too
-            if (newEntries.Count == 0) break;
+            // Fast catch-up (only once fully backfilled): all entries on this page already stored,
+            // so everything older is stored too.
+            if (!fullScan && newEntries.Count == 0) { reachedEnd = true; break; }
 
-            // Reached the last page ESI has
-            if (page >= r.TotalPages) break;
+            // Reached the last page ESI has.
+            if (page >= r.TotalPages) { reachedEnd = true; break; }
         }
+
+        if (interrupted)
+            await SetBackfillCompleteAsync(db, charId, "character", "journal", 0, false, ct);
+        else if (reachedEnd && fullScan)
+            await SetBackfillCompleteAsync(db, charId, "character", "journal", 0, true, ct);
 
         return lastResult ?? new PollingResult(true, 200);
     }
@@ -560,6 +599,8 @@ public class EsiPollingService : ReactiveObject
             .Select(w => w.TransactionId)
             .ToHashSetAsync(ct);
 
+        bool fullScan   = !await IsBackfillCompleteAsync(db, charId, "character", "transactions", 0, ct);
+        bool interrupted = false, reachedEnd = false;
         PollingResult? lastResult = null;
         long? fromId = null;
 
@@ -572,7 +613,8 @@ public class EsiPollingService : ReactiveObject
 
             var r = await _esi.ExecuteAuthAsync<List<EsiWalletTransaction>>(charId, path, ct);
             lastResult = FromResult(r);
-            if (!r.IsSuccess || r.Data is null || r.Data.Count == 0) break;
+            if (!r.IsSuccess || r.Data is null) { interrupted = true; break; }
+            if (r.Data.Count == 0) { reachedEnd = true; break; }
 
             var newEntries = r.Data
                 .Where(t => !existingIds.Contains(t.TransactionId))
@@ -601,11 +643,18 @@ public class EsiPollingService : ReactiveObject
                 foreach (var e in newEntries) existingIds.Add(e.TransactionId);
             }
 
-            // < 2500 means end of history; 0 new means we've caught up with stored data
-            if (r.Data.Count < 2500 || newEntries.Count == 0) break;
+            // < 2500 means we've reached the end of ESI's window — a natural stop for any pass.
+            if (r.Data.Count < 2500) { reachedEnd = true; break; }
+            // Fast catch-up (only once fully backfilled): caught up with stored data.
+            if (!fullScan && newEntries.Count == 0) { reachedEnd = true; break; }
 
             fromId = r.Data.Min(t => t.TransactionId);
         }
+
+        if (interrupted)
+            await SetBackfillCompleteAsync(db, charId, "character", "transactions", 0, false, ct);
+        else if (reachedEnd && fullScan)
+            await SetBackfillCompleteAsync(db, charId, "character", "transactions", 0, true, ct);
 
         return lastResult ?? new PollingResult(true, 200);
     }
@@ -1567,13 +1616,17 @@ public class EsiPollingService : ReactiveObject
 
         for (int division = 1; division <= 7; division++)
         {
+            bool fullScan   = !await IsBackfillCompleteAsync(db, corpId, "corporation", "journal", division, ct);
+            bool interrupted = false, reachedEnd = false;
+
             for (int page = 1; ; page++)
             {
                 ct.ThrowIfCancellationRequested();
                 var r = await _esi.ExecuteCorpAuthAsync<List<EsiWalletJournalEntry>>(
                     corpId, $"corporations/{corpId}/wallets/{division}/journal/", ct, page: page);
                 lastResult = FromResult(r);
-                if (!r.IsSuccess || r.Data is null || r.Data.Count == 0) break;
+                if (!r.IsSuccess || r.Data is null) { interrupted = true; break; }
+                if (r.Data.Count == 0) { reachedEnd = true; break; }
 
                 var newEntries = r.Data
                     .DistinctBy(e => e.Id)
@@ -1607,9 +1660,14 @@ public class EsiPollingService : ReactiveObject
                     foreach (var e in newEntries) existingIds.Add(e.EsiId);
                 }
 
-                if (newEntries.Count == 0) break;
-                if (page >= r.TotalPages) break;
+                if (!fullScan && newEntries.Count == 0) { reachedEnd = true; break; }
+                if (page >= r.TotalPages) { reachedEnd = true; break; }
             }
+
+            if (interrupted)
+                await SetBackfillCompleteAsync(db, corpId, "corporation", "journal", division, false, ct);
+            else if (reachedEnd && fullScan)
+                await SetBackfillCompleteAsync(db, corpId, "corporation", "journal", division, true, ct);
         }
 
         return lastResult ?? new PollingResult(true, 200);
@@ -1627,6 +1685,8 @@ public class EsiPollingService : ReactiveObject
 
         for (int division = 1; division <= 7; division++)
         {
+            bool fullScan   = !await IsBackfillCompleteAsync(db, corpId, "corporation", "transactions", division, ct);
+            bool interrupted = false, reachedEnd = false;
             long? fromId = null;
 
             while (true)
@@ -1638,7 +1698,8 @@ public class EsiPollingService : ReactiveObject
 
                 var r = await _esi.ExecuteCorpAuthAsync<List<EsiWalletTransaction>>(corpId, path, ct);
                 lastResult = FromResult(r);
-                if (!r.IsSuccess || r.Data is null || r.Data.Count == 0) break;
+                if (!r.IsSuccess || r.Data is null) { interrupted = true; break; }
+                if (r.Data.Count == 0) { reachedEnd = true; break; }
 
                 var newEntries = r.Data
                     .DistinctBy(t => t.TransactionId)
@@ -1669,10 +1730,16 @@ public class EsiPollingService : ReactiveObject
                     foreach (var e in newEntries) existingIds.Add(e.TransactionId);
                 }
 
-                if (r.Data.Count < 2500 || newEntries.Count == 0) break;
+                if (r.Data.Count < 2500) { reachedEnd = true; break; }
+                if (!fullScan && newEntries.Count == 0) { reachedEnd = true; break; }
 
                 fromId = r.Data.Min(t => t.TransactionId);
             }
+
+            if (interrupted)
+                await SetBackfillCompleteAsync(db, corpId, "corporation", "transactions", division, false, ct);
+            else if (reachedEnd && fullScan)
+                await SetBackfillCompleteAsync(db, corpId, "corporation", "transactions", division, true, ct);
         }
 
         return lastResult ?? new PollingResult(true, 200);
