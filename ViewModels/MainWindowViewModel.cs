@@ -31,6 +31,7 @@ public class MainWindowViewModel : ReactiveObject
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
     public WalletViewModel                WalletVm               { get; }
     public ContractsViewModel             ContractsVm            { get; }
+    public NotificationsViewModel         NotificationsVm        { get; }
     public MarketSettingsViewModel        MarketVm               { get; }
     public TimerSettingsViewModel         TimerVm                { get; }
     public AgentPanelViewModel            AgentVm                { get; }
@@ -125,6 +126,7 @@ public class MainWindowViewModel : ReactiveObject
             "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
             "killmails"      => ("Killmails",      KillmailBrowserVm, true),
             "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
+            "notifications"  => ("Notifications",  NotificationsVm,   true),
             "data"           => ("ESI Explorer",   ExplorerVm,        true),
             _                => throw new ArgumentException($"Unknown tool: {toolId}")
         };
@@ -255,6 +257,7 @@ public class MainWindowViewModel : ReactiveObject
         IndyParksVm            = new IndyParksViewModel(dbFactory);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
+        NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
@@ -338,6 +341,7 @@ public class MainWindowViewModel : ReactiveObject
             new("Communication",
             [
                 new NavItem("eve_mail", "Eve Mail"),
+                new NavItem("notifications", "Notifications"),
             ]),
             new("Tools",
             [
