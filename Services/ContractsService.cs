@@ -188,36 +188,26 @@ public class ContractsService : ReactiveObject
         // contract seen by several owners is fetched once.
         var pending = (await db.EsiContracts.AsNoTracking()
                 .Where(c => !c.ItemsPulled)
-                .Select(c => new { c.ContractId, c.OwnerId, c.OwnerType, c.Type, c.IssuerCorporationId, c.Status })
+                .Select(c => new { c.ContractId, c.OwnerId, c.OwnerType, c.Type })
                 .ToListAsync(ct))
             .Where(c => ItemBearingTypes.Contains(c.Type))
             .GroupBy(c => c.ContractId)
             .ToList();
 
-        int done = 0, skipped = 0;
+        int done = 0;
         foreach (var group in pending)
         {
             if (ct.IsCancellationRequested) break;
 
-            // Choose a source we can actually read items from, preferring the public endpoint
-            // (no token-bucket limit, and public items are always visible). Corp contract items
-            // are only served for contracts the corp ISSUED (or finished ones) — a contract
-            // merely assigned to us by another corp has its items walled off until accepted, so
-            // calling just 404s and burns the error limit.
+            // Prefer the public endpoint (no token bucket, items always visible), then a
+            // character token, then corp. Every contract here is one we're a party to (the
+            // list endpoints only return issuer/acceptor/assignee contracts), so we attempt
+            // them all. ESI still 404s the items for some — empirically, private contracts
+            // assigned to us by another corp — and FetchAndStoreItemsAsync flags those so they
+            // are not retried. (The items endpoint's exact access rule is not documented.)
             var src = group.FirstOrDefault(c => c.OwnerType == "public")
                    ?? group.FirstOrDefault(c => c.OwnerType == "character")
-                   ?? group.FirstOrDefault(c => c.OwnerType == "corporation" &&
-                        (c.IssuerCorporationId == (int)c.OwnerId || c.Status.StartsWith("finished")));
-
-            if (src is null)
-            {
-                // Private contract assigned to us by another corp — items not retrievable. Mark
-                // done so we don't reconsider it (and don't 404) every sweep.
-                await db.EsiContracts.Where(x => x.ContractId == group.Key && !x.ItemsPulled)
-                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.ItemsPulled, true), ct);
-                skipped++;
-                continue;
-            }
+                   ?? group.First();
 
             while (_esi.IsErrorLimitBlocked && !ct.IsCancellationRequested)
             { try { await Task.Delay(3000, ct); } catch (OperationCanceledException) { break; } }
@@ -231,14 +221,14 @@ public class ContractsService : ReactiveObject
                 done++;
             }
 
-            if (((done + skipped) & 63) == 0)
-                StatusText = $"Contracts: items {done:N0} pulled, {skipped:N0} skipped…";
+            if ((done & 63) == 0)
+                StatusText = $"Contracts: resolved items for {done:N0} contracts…";
 
             // Authed items share a 600/15min token bucket; public items don't.
             try { await Task.Delay(isPublic ? PublicItemDelayMs : AuthedItemDelayMs, ct); }
             catch (OperationCanceledException) { break; }
         }
-        StatusText = $"Contracts: item pass done ({done:N0} pulled, {skipped:N0} skipped) — {DateTimeOffset.Now:t}";
+        StatusText = $"Contracts: item pass done ({done:N0} contracts) — {DateTimeOffset.Now:t}";
     }
 
     // Fetches a contract's items via the right endpoint and stores them (dedup by RecordId).
