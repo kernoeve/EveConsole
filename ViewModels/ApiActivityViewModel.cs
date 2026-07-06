@@ -90,6 +90,7 @@ public class ApiActivityViewModel : ReactiveObject
     private readonly EsiPollingService    _polling;
     private readonly TimerSettingsService _timerSettings;
     private readonly MarketHistoryService _history;
+    private readonly ContractsService     _contracts;
 
     public ObservableCollection<ActivityEntry>       Entries        { get; }
     public ObservableCollection<InFlightCall>        InFlight       { get; }
@@ -104,6 +105,19 @@ public class ApiActivityViewModel : ReactiveObject
         get => _historyState;
         private set => this.RaiseAndSetIfChanged(ref _historyState, value);
     }
+
+    // ── Contract-items monitor ──────────────────────────────────────────────────
+    private string _contractsState = "";
+    public string ContractsState { get => _contractsState; private set => this.RaiseAndSetIfChanged(ref _contractsState, value); }
+
+    private string _contractsPublicText = "—";
+    public string ContractsPublicText { get => _contractsPublicText; private set => this.RaiseAndSetIfChanged(ref _contractsPublicText, value); }
+
+    private string _contractsOwnedText = "—";
+    public string ContractsOwnedText { get => _contractsOwnedText; private set => this.RaiseAndSetIfChanged(ref _contractsOwnedText, value); }
+
+    private string _contractsDeferredText = "—";
+    public string ContractsDeferredText { get => _contractsDeferredText; private set => this.RaiseAndSetIfChanged(ref _contractsDeferredText, value); }
 
     private bool _hasNoInFlight = true;
     public bool HasNoInFlight
@@ -129,7 +143,8 @@ public class ApiActivityViewModel : ReactiveObject
         IServiceScopeFactory scopeFactory,
         EsiPollingService    polling,
         TimerSettingsService timerSettings,
-        MarketHistoryService history)
+        MarketHistoryService history,
+        ContractsService     contracts)
     {
         Entries        = log.Entries;
         InFlight       = log.InFlightCalls;
@@ -137,8 +152,30 @@ public class ApiActivityViewModel : ReactiveObject
         _polling       = polling;
         _timerSettings = timerSettings;
         _history       = history;
+        _contracts     = contracts;
 
         InFlight.CollectionChanged += (_, _) => HasNoInFlight = InFlight.Count == 0;
+    }
+
+    // ── Contract-items monitor ──────────────────────────────────────────────────
+
+    public async Task RefreshContractsAsync()
+    {
+        ContractsService.ContractItemsStatus s;
+        try { s = await _contracts.GetItemsStatusAsync(); }
+        catch { return; /* best-effort monitor */ }
+
+        int pubQueue   = s.PublicTotal - s.PublicPulled;
+        int ownedQueue = s.OwnedTotal  - s.OwnedPulled;
+
+        ContractsPublicText   = $"{s.PublicPulled:N0} / {s.PublicTotal:N0} pulled · {pubQueue:N0} queued";
+        ContractsOwnedText    = $"{s.OwnedPulled:N0} / {s.OwnedTotal:N0} pulled · {ownedQueue:N0} queued";
+        ContractsDeferredText = $"{s.Deferred:N0} deferred (corp contracts issued by another corp — not pulled)";
+        ContractsState = s.Running
+            ? $"● Running — {pubQueue + ownedQueue:N0} contracts queued for items"
+            : (pubQueue + ownedQueue) > 0
+                ? $"○ Idle — {pubQueue + ownedQueue:N0} contracts queued for items"
+                : "○ Idle — all item pulls complete";
     }
 
     // ── Price-history sweep monitor ─────────────────────────────────────────────

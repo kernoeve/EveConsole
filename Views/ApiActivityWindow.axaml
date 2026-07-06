@@ -170,7 +170,37 @@
       </Grid>
     </TabItem>
 
-    <!-- ══ Tab 3: Call Schedule ══════════════════════════════════════════════ -->
+    <!-- ══ Tab 3: Contract Items ═════════════════════════════════════════════ -->
+    <TabItem Header="Contract Items">
+      <Grid RowDefinitions="Auto,Auto" Margin="10 12 10 0">
+
+        <!-- Running indicator -->
+        <TextBlock Grid.Row="0" Text="{Binding ContractsState}" FontSize="12"
+                   FontWeight="SemiBold" Foreground="#c8a84b" Margin="0 0 0 12" />
+
+        <!-- Progress rows -->
+        <Grid Grid.Row="1" ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto"
+              RowSpacing="8">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Public contracts"
+                     FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Center" />
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ContractsPublicText}"
+                     FontSize="12" Foreground="#aab" VerticalAlignment="Center" />
+
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="Character / corp contracts"
+                     FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Center" />
+          <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ContractsOwnedText}"
+                     FontSize="12" Foreground="#aab" VerticalAlignment="Center" />
+
+          <TextBlock Grid.Row="2" Grid.Column="0" Text="Deferred"
+                     FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Center" />
+          <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ContractsDeferredText}"
+                     FontSize="12" Foreground="#886" VerticalAlignment="Center" TextWrapping="Wrap" />
+        </Grid>
+
+      </Grid>
+    </TabItem>
+
+    <!-- ══ Tab 4: Call Schedule ══════════════════════════════════════════════ -->
     <TabItem Header="Call Schedule">
       <TabControl x:Name="ScheduleTabControl" Margin="0 4 0 0"
                   TabStripPlacement="Top">

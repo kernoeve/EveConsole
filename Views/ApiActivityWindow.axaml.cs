@@ -36,12 +36,13 @@ public partial class ApiActivityWindow : Window
         // Live price-history sweep monitor — recompute counts from the DB every ~10s and
         // copy the service's live counts every 2s. Runs on the UI thread only while open.
         _ = vm.RefreshHistorySweepAsync();
+        _ = vm.RefreshContractsAsync();
         _historyTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         _historyTimer.Tick += async (_, _) =>
         {
             try
             {
-                if (++_historyTick % 5 == 0) await vm.RefreshHistorySweepAsync();
+                if (++_historyTick % 5 == 0) { await vm.RefreshHistorySweepAsync(); await vm.RefreshContractsAsync(); }
                 else                          vm.SyncHistorySweep();
             }
             catch { /* best-effort monitor */ }
