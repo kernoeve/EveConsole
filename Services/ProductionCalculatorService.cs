@@ -355,11 +355,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                             existingMat.TotalQty += effPerRun * extraRuns;
                         ExpandItem(mat.MaterialTypeId, effPerRun * extraRuns, false);
                     }
-                    // Non-BPO: one bought BPC per run — bump its input quantity too.
+                    // Non-BPO: one bought BPC per run — bump its input quantity too, and add to the
+                    // raw-material pool so it shows in the Raw Materials breakdown.
                     if (!isReaction && !BlueprintIsBpoSourced(bpProd.TypeId))
                     {
                         var bpcMat = existing.Materials.FirstOrDefault(m => m.MaterialTypeId == bpProd.TypeId);
                         if (bpcMat is not null) bpcMat.TotalQty += extraRuns;
+                        ExpandItem(bpProd.TypeId, extraRuns, false);
                     }
                 }
             }
@@ -401,7 +403,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     ExpandItem(mat.MaterialTypeId, effPerRun * runs, false);
                 }
                 // Non-BPO items: add the blueprint copy as a bought input material (one per run),
-                // valued at its contract-derived market value. A BPC is bought, never expanded.
+                // valued at its contract-derived market value. It's bought (never expanded into
+                // sub-materials), and also added to the raw-material pool so it appears in the Raw
+                // Materials breakdown alongside every other purchased input.
                 if (!isReaction && !BlueprintIsBpoSourced(bpProd.TypeId))
                 {
                     job.Materials.Add(new PlanJobMaterial
@@ -414,6 +418,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                         IsBought       = true,
                         FormulaDisplay = "1 BPC per run (contract price)",
                     });
+                    ExpandItem(bpProd.TypeId, runs, false);
                 }
                 jobPool[typeId] = job;
             }

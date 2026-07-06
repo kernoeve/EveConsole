@@ -464,8 +464,8 @@ public class ContractsService : ReactiveObject
             results.Add(new ContractPrice
             {
                 TypeId      = typeId,
-                BestPrice   = best,
-                Avg30Best   = avg30,
+                BestPrice   = best  is { } b ? Math.Round(b, 2, MidpointRounding.AwayFromZero) : null,
+                Avg30Best   = avg30 is { } a ? Math.Round(a, 2, MidpointRounding.AwayFromZero) : null,
                 ActiveCount = activeCount,
                 SampleDays  = sampleDays,
                 UpdatedAt   = now,
