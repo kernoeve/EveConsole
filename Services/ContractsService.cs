@@ -249,7 +249,7 @@ public class ContractsService : ReactiveObject
             .GroupBy(c => c.ContractId)
             .ToList();
 
-        int done = 0, deferred = 0;
+        int done = 0, deferred = 0, skipped = 0;
         foreach (var group in pending)
         {
             if (ct.IsCancellationRequested) break;
@@ -266,6 +266,26 @@ public class ContractsService : ReactiveObject
                         (long)c.IssuerCorporationId == c.OwnerId);
 
             if (src is null) { deferred++; continue; }
+
+            // The PUBLIC items endpoint serves item_exchange / auction only — couriers return
+            // HTTP 400. There's no way to read a public courier's cargo, and left unmarked they
+            // were re-tried every sweep, firing a burst of hundreds of 400s that trips ESI's
+            // global error limit. Prefer an owned source (the authed endpoint does return courier
+            // cargo); if the only source is public, mark done without calling.
+            if (src.OwnerType == "public" && src.Type == "courier")
+            {
+                var owned = group.FirstOrDefault(c => c.OwnerType == "character")
+                         ?? group.FirstOrDefault(c => c.OwnerType == "corporation" &&
+                              (long)c.IssuerCorporationId == c.OwnerId);
+                if (owned is null)
+                {
+                    await db.EsiContracts.Where(x => x.ContractId == group.Key && !x.ItemsPulled)
+                        .ExecuteUpdateAsync(s => s.SetProperty(x => x.ItemsPulled, true), ct);
+                    skipped++;
+                    continue;
+                }
+                src = owned;
+            }
 
             while (_esi.IsErrorLimitBlocked && !ct.IsCancellationRequested)
             { try { await Task.Delay(3000, ct); } catch (OperationCanceledException) { break; } }
@@ -286,7 +306,8 @@ public class ContractsService : ReactiveObject
             try { await Task.Delay(isPublic ? PublicItemDelayMs : AuthedItemDelayMs, ct); }
             catch (OperationCanceledException) { break; }
         }
-        StatusText = $"Contracts: item pass done ({done:N0} pulled, {deferred:N0} deferred) — {DateTimeOffset.Now:t}";
+        StatusText = $"Contracts: item pass done ({done:N0} pulled, {deferred:N0} deferred, "
+                   + $"{skipped:N0} skipped) — {DateTimeOffset.Now:t}";
     }
 
     // Fetches a contract's items via the right endpoint and stores them (dedup by RecordId).
@@ -338,12 +359,13 @@ public class ContractsService : ReactiveObject
 
         if (items is null)
         {
-            // 403/404 (gone / no access) → treat as "handled" so we stop retrying it.
-            // Other failures → log and retry next sweep.
-            if (status is not (403 or 404))
+            // 400 (wrong contract type for this endpoint), 403/404 (gone / no access) are terminal:
+            // mark handled so we stop retrying and don't keep feeding ESI's global error limit.
+            // Anything else is transient — log and retry next sweep.
+            if (status is not (400 or 403 or 404))
                 _errorLogger.Log("ContractsService",
                     $"items contract={contractId} owner={ownerType}", $"HTTP {status}: {error}");
-            return status is 403 or 404;
+            return status is 400 or 403 or 404;
         }
 
         if (items.Count > 0) db.EsiContractItems.AddRange(items);
