@@ -668,25 +668,28 @@ public class OwnedContractsViewModel : ReactiveObject
 
 // ── Tab 2: public contracts ─────────────────────────────────────────────────────
 
+// Server-side paged view: filtering, sorting and paging all run against the whole table in the DB,
+// so only one page (PageSize rows) is materialised, and issuer names are resolved for just that page.
 public class PublicContractsViewModel : ReactiveObject
 {
+    private const int PageSize = 200;
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AppErrorLogger                  _errorLogger;
     private readonly ContractNameResolver            _names;
     private bool _initialized;
 
-    private List<ContractRowVm> _all = [];
     private IReadOnlyDictionary<int, List<ContractItem>> _itemsByContract = new Dictionary<int, List<ContractItem>>();
     private IReadOnlyDictionary<int, string> _typeNames = new Dictionary<int, string>();
     private IReadOnlyDictionary<long, string> _partyNames = new Dictionary<long, string>();
     private IReadOnlyDictionary<long, string> _locations = new Dictionary<long, string>();
 
-    // Market-group tree (child → parent) and names, for root-category resolution.
-    private Dictionary<int, int?>  _parentOf = new();
-    private Dictionary<int, string> _mgName  = new();
+    // Market-group tree, for root-category resolution and category-filter descendant sets.
+    private Dictionary<int, int?>   _parentOf   = new();
+    private Dictionary<int, string> _mgName     = new();
+    private Dictionary<int, List<int>> _childrenOf = new();
+    private Dictionary<string, int> _categoryRootId = new(StringComparer.OrdinalIgnoreCase);
 
-    // Reassigned wholesale on each filter/load — a single notification instead of one per row,
-    // which is what makes tens of thousands of public contracts bind without stalling the UI.
     private IReadOnlyList<ContractRowVm> _rows = [];
     public IReadOnlyList<ContractRowVm> Rows
     {
@@ -698,32 +701,52 @@ public class PublicContractsViewModel : ReactiveObject
     public ObservableCollection<string>               Categories { get; } = new();
     public IReadOnlyList<string>                       StatusOptions { get; } = ["Active", "Historical", "All"];
 
+    // Sort is server-side (whole table), driven by this combo — the grid's own column sort would
+    // only reorder the current page, which is the confusing behaviour we're replacing.
+    public IReadOnlyList<ContractSortOption> SortOptions { get; } =
+    [
+        new("Newest first",       "c.ContractId DESC"),
+        new("Oldest first",       "c.ContractId ASC"),
+        new("Price: low → high",  "CAST(c.Price AS REAL) ASC, c.ContractId DESC"),
+        new("Price: high → low",  "CAST(c.Price AS REAL) DESC, c.ContractId DESC"),
+        new("Reward: high → low", "CAST(c.Reward AS REAL) DESC, c.ContractId DESC"),
+        new("Volume: high → low", "CAST(c.Volume AS REAL) DESC, c.ContractId DESC"),
+        new("Type (A → Z)",       "c.Type ASC, c.ContractId DESC"),
+    ];
+
+    private ContractSortOption _selectedSort;
+    public ContractSortOption SelectedSort
+    {
+        get => _selectedSort;
+        set { this.RaiseAndSetIfChanged(ref _selectedSort, value ?? SortOptions[0]); ResetToFirstPageAndReload(); }
+    }
+
     private string _selectedStatus = "Active";
     public string SelectedStatus
     {
         get => _selectedStatus;
-        set { this.RaiseAndSetIfChanged(ref _selectedStatus, value ?? "Active"); ApplyFilter(); }
+        set { this.RaiseAndSetIfChanged(ref _selectedStatus, value ?? "Active"); ResetToFirstPageAndReload(); }
     }
 
     private ContractRegionOption? _selectedRegion;
     public ContractRegionOption? SelectedRegion
     {
         get => _selectedRegion;
-        set { this.RaiseAndSetIfChanged(ref _selectedRegion, value); if (_initialized) _ = LoadAsync(); }
+        set { this.RaiseAndSetIfChanged(ref _selectedRegion, value); ResetToFirstPageAndReload(); }
     }
 
     private string _selectedCategory = "All categories";
     public string SelectedCategory
     {
         get => _selectedCategory;
-        set { this.RaiseAndSetIfChanged(ref _selectedCategory, value ?? "All categories"); ApplyFilter(); }
+        set { this.RaiseAndSetIfChanged(ref _selectedCategory, value ?? "All categories"); ResetToFirstPageAndReload(); }
     }
 
     private string _typeFilter = "";
     public string TypeFilter
     {
         get => _typeFilter;
-        set { this.RaiseAndSetIfChanged(ref _typeFilter, value); ApplyFilter(); }
+        set { this.RaiseAndSetIfChanged(ref _typeFilter, value); DebounceReload(); }
     }
 
     private ContractRowVm? _selectedRow;
@@ -740,14 +763,48 @@ public class PublicContractsViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _detail, value);
     }
 
+    // ── Paging ──────────────────────────────────────────────────────────────────
+    private int _currentPage = 1;
+    public int CurrentPage
+    {
+        get => _currentPage;
+        private set { this.RaiseAndSetIfChanged(ref _currentPage, value); RaisePaging(); }
+    }
+
+    private int _totalCount;
+    public int TotalCount
+    {
+        get => _totalCount;
+        private set { this.RaiseAndSetIfChanged(ref _totalCount, value); RaisePaging(); }
+    }
+
+    public int TotalPages => Math.Max(1, (int)Math.Ceiling(TotalCount / (double)PageSize));
+    public bool CanPrev => CurrentPage > 1;
+    public bool CanNext => CurrentPage < TotalPages;
+    public string PageInfo => TotalCount == 0
+        ? "No results"
+        : $"Page {CurrentPage:N0} of {TotalPages:N0}  ·  {TotalCount:N0} contracts";
+
+    private void RaisePaging()
+    {
+        this.RaisePropertyChanged(nameof(TotalPages));
+        this.RaisePropertyChanged(nameof(CanPrev));
+        this.RaisePropertyChanged(nameof(CanNext));
+        this.RaisePropertyChanged(nameof(PageInfo));
+    }
+
     private bool _isLoading;
     public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
 
     private string _statusText = "";
     public string StatusText { get => _statusText; private set => this.RaiseAndSetIfChanged(ref _statusText, value); }
 
-    public ReactiveCommand<Unit, Unit> RefreshCommand    { get; }
+    public ReactiveCommand<Unit, Unit> RefreshCommand      { get; }
     public ReactiveCommand<Unit, Unit> ClearFiltersCommand { get; }
+    public ReactiveCommand<Unit, Unit> FirstPageCommand    { get; }
+    public ReactiveCommand<Unit, Unit> PrevPageCommand     { get; }
+    public ReactiveCommand<Unit, Unit> NextPageCommand     { get; }
+    public ReactiveCommand<Unit, Unit> LastPageCommand     { get; }
 
     public PublicContractsViewModel(
         IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger, ContractNameResolver names)
@@ -755,14 +812,46 @@ public class PublicContractsViewModel : ReactiveObject
         _dbFactory   = dbFactory;
         _errorLogger = errorLogger;
         _names       = names;
-        RefreshCommand      = ReactiveCommand.CreateFromTask(LoadAsync);
+        _selectedSort = SortOptions[0];
+
+        RefreshCommand      = ReactiveCommand.CreateFromTask(ReloadPageAsync);
         ClearFiltersCommand = ReactiveCommand.Create(() =>
         {
             _typeFilter = ""; this.RaisePropertyChanged(nameof(TypeFilter));
             _selectedCategory = "All categories"; this.RaisePropertyChanged(nameof(SelectedCategory));
-            ApplyFilter();
+            ResetToFirstPageAndReload();
         });
+        FirstPageCommand = ReactiveCommand.Create(() => GoToPage(1));
+        PrevPageCommand  = ReactiveCommand.Create(() => GoToPage(CurrentPage - 1));
+        NextPageCommand  = ReactiveCommand.Create(() => GoToPage(CurrentPage + 1));
+        LastPageCommand  = ReactiveCommand.Create(() => GoToPage(TotalPages));
+
         _ = InitAsync();
+    }
+
+    private void GoToPage(int page)
+    {
+        int target = Math.Clamp(page, 1, TotalPages);
+        if (target == CurrentPage || !_initialized) return;
+        CurrentPage = target;
+        _ = ReloadPageAsync();
+    }
+
+    private void ResetToFirstPageAndReload()
+    {
+        if (!_initialized) return;
+        _currentPage = 1; this.RaisePropertyChanged(nameof(CurrentPage)); RaisePaging();
+        _ = ReloadPageAsync();
+    }
+
+    // Coalesce rapid typing into a single reload.
+    private int _filterGen;
+    private async void DebounceReload()
+    {
+        if (!_initialized) return;
+        int gen = ++_filterGen;
+        try { await Task.Delay(350); } catch { return; }
+        if (gen == _filterGen) ResetToFirstPageAndReload();
     }
 
     private async Task InitAsync()
@@ -771,18 +860,23 @@ public class PublicContractsViewModel : ReactiveObject
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
 
-            // Market-group tree for root-category resolution + top-level category list.
             var mgs = await db.SdeMarketGroups.AsNoTracking().ToListAsync();
             _parentOf = mgs.ToDictionary(g => g.MarketGroupId, g => g.ParentGroupId);
             _mgName   = mgs.ToDictionary(g => g.MarketGroupId, g => g.Name);
+            _childrenOf = mgs.Where(g => g.ParentGroupId is not null)
+                .GroupBy(g => g.ParentGroupId!.Value)
+                .ToDictionary(gr => gr.Key, gr => gr.Select(g => g.MarketGroupId).ToList());
 
             Categories.Clear();
             Categories.Add("All categories");
-            foreach (var name in mgs.Where(g => g.ParentGroupId == null).Select(g => g.Name)
-                         .OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
-                Categories.Add(name);
+            _categoryRootId.Clear();
+            foreach (var g in mgs.Where(g => g.ParentGroupId == null)
+                         .OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase))
+            {
+                Categories.Add(g.Name);
+                _categoryRootId[g.Name] = g.MarketGroupId;
+            }
 
-            // Regions that currently have public contracts.
             var regionIds = await db.EsiContracts.Where(c => c.OwnerType == "public")
                 .Select(c => c.RegionId).Distinct().ToListAsync();
             var regionNames = await db.SdeRegions.Where(r => regionIds.Contains(r.RegionId))
@@ -796,7 +890,7 @@ public class PublicContractsViewModel : ReactiveObject
             _selectedRegion = Regions.FirstOrDefault();
             this.RaisePropertyChanged(nameof(SelectedRegion));
             _initialized = true;
-            await LoadAsync();
+            await ReloadPageAsync();
         }
         catch (Exception ex)
         {
@@ -805,70 +899,145 @@ public class PublicContractsViewModel : ReactiveObject
         }
     }
 
-    private async Task LoadAsync()
+    // Builds the WHERE clause + positional parameters ({0},{1}…) from the current filters. Item-based
+    // filters (type name, category) use EXISTS against the item table; the category set is a bounded
+    // list of the selected root's descendant market-group ids, inlined as safe integer literals.
+    private (string Where, object[] Parameters) BuildFilter()
     {
-        if (IsLoading) return;
+        var parts = new List<string> { "c.OwnerType = 'public'" };
+        var ps    = new List<object>();
+
+        if (_selectedRegion?.RegionId is int rid)
+        {
+            parts.Add($"c.RegionId = {{{ps.Count}}}");
+            ps.Add(rid);
+        }
+
+        var now = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFFzzz",
+                                                 System.Globalization.CultureInfo.InvariantCulture);
+        if (_selectedStatus == "Active")
+        {
+            parts.Add($"c.Status = 'outstanding' AND (c.DateExpired IS NULL OR c.DateExpired > {{{ps.Count}}})");
+            ps.Add(now);
+        }
+        else if (_selectedStatus == "Historical")
+        {
+            parts.Add($"NOT (c.Status = 'outstanding' AND (c.DateExpired IS NULL OR c.DateExpired > {{{ps.Count}}}))");
+            ps.Add(now);
+        }
+
+        var typeF = _typeFilter.Trim();
+        if (typeF.Length > 0)
+        {
+            parts.Add($"EXISTS (SELECT 1 FROM EsiContractItems i JOIN SdeTypes t ON t.TypeId = i.TypeId "
+                    + $"WHERE i.ContractId = c.ContractId AND t.Name LIKE {{{ps.Count}}})");
+            ps.Add($"%{typeF}%");
+        }
+
+        if (_selectedCategory is { Length: > 0 } cat && cat != "All categories"
+            && _categoryRootId.TryGetValue(cat, out var rootId))
+        {
+            var ids = DescendantGroupIds(rootId);
+            if (ids.Count > 0)
+                parts.Add($"EXISTS (SELECT 1 FROM EsiContractItems i JOIN SdeTypes t ON t.TypeId = i.TypeId "
+                        + $"WHERE i.ContractId = c.ContractId AND t.MarketGroupId IN ({string.Join(",", ids)}))");
+        }
+
+        return (string.Join(" AND ", parts), ps.ToArray());
+    }
+
+    private List<int> DescendantGroupIds(int rootId)
+    {
+        var result = new List<int>();
+        var stack  = new Stack<int>();
+        stack.Push(rootId);
+        while (stack.Count > 0)
+        {
+            var id = stack.Pop();
+            result.Add(id);
+            if (_childrenOf.TryGetValue(id, out var kids))
+                foreach (var k in kids) stack.Push(k);
+        }
+        return result;
+    }
+
+    private async Task ReloadPageAsync()
+    {
+        if (!_initialized || IsLoading) return;
         IsLoading = true;
-        StatusText = "Loading public contracts…";
+        StatusText = "Loading…";
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
 
-            var query = db.EsiContracts.AsNoTracking().Where(c => c.OwnerType == "public");
-            if (SelectedRegion?.RegionId is { } rid)
-                query = query.Where(c => c.RegionId == rid);
+            var (where, ps) = BuildFilter();
 
-            // Order by ContractId (ascending IDs ≈ chronological) to avoid a DateTimeOffset sort,
-            // newest first. No row cap — names come from the persistent UniverseNames cache and the
-            // grid binds the whole set in one assignment, so a full region (or all regions) loads.
-            var contracts = await query.OrderByDescending(c => c.ContractId).ToListAsync();
+            // Filter values (type name, region) are passed as parameters via `ps`; only the
+            // placeholder string, the fixed sort expression and computed integers are interpolated,
+            // so this is not an injection vector despite EF1002.
+#pragma warning disable EF1002
+            // Count of the WHOLE filtered set (no ORDER BY/LIMIT so EF can wrap it in COUNT).
+            int total = await db.EsiContracts
+                .FromSqlRaw($"SELECT * FROM EsiContracts AS c WHERE {where}", ps)
+                .AsNoTracking().CountAsync();
+            TotalCount = total;
+
+            int pages = Math.Max(1, (int)Math.Ceiling(total / (double)PageSize));
+            if (_currentPage > pages) { _currentPage = pages; this.RaisePropertyChanged(nameof(CurrentPage)); RaisePaging(); }
+            int offset = (_currentPage - 1) * PageSize;
+
+            // One page, sorted DB-side.
+            var contracts = total == 0
+                ? new List<ContractRecord>()
+                : await db.EsiContracts.FromSqlRaw(
+                        $"SELECT * FROM EsiContracts AS c WHERE {where} " +
+                        $"ORDER BY {_selectedSort.Sql} LIMIT {PageSize} OFFSET {offset}", ps)
+                    .AsNoTracking().ToListAsync();
+#pragma warning restore EF1002
 
             var cids = contracts.Select(c => c.ContractId).Distinct().ToList();
-            var items = await db.EsiContractItems.AsNoTracking()
-                .Where(i => cids.Contains(i.ContractId))
-                .ToListAsync();
+            var items = cids.Count == 0 ? new List<ContractItem>()
+                : await db.EsiContractItems.AsNoTracking().Where(i => cids.Contains(i.ContractId)).ToListAsync();
             _itemsByContract = items.GroupBy(i => i.ContractId).ToDictionary(g => g.Key, g => g.ToList());
 
             var typeIds = items.Select(i => i.TypeId).Distinct().ToList();
             var types = await db.SdeTypes.Where(t => typeIds.Contains(t.TypeId))
-                .Select(t => new { t.TypeId, t.Name, t.MarketGroupId })
-                .ToListAsync();
+                .Select(t => new { t.TypeId, t.Name, t.MarketGroupId }).ToListAsync();
             _typeNames = types.ToDictionary(t => t.TypeId, t => t.Name);
             var typeCategory = types.ToDictionary(t => t.TypeId, t => RootCategory(t.MarketGroupId));
 
-            var loadedRegionIds = contracts.Select(c => c.RegionId).Distinct().ToList();
-            var regionNames = await db.SdeRegions
-                .Where(r => loadedRegionIds.Contains(r.RegionId))
+            var regionIds = contracts.Select(c => c.RegionId).Distinct().ToList();
+            var regionNames = await db.SdeRegions.Where(r => regionIds.Contains(r.RegionId))
                 .ToDictionaryAsync(r => r.RegionId, r => r.Name);
 
-            var partyIds = contracts.SelectMany(c => new[] { c.IssuerId, (long)c.IssuerCorporationId });
-            _partyNames = await _names.ResolveAsync(partyIds);
+            // Names only for this page's issuers — cheap, and cached across pages/sessions.
+            _partyNames = await _names.ResolveAsync(
+                contracts.SelectMany(c => new[] { c.IssuerId, (long)c.IssuerCorporationId }));
             _locations  = await _names.ResolveLocationsAsync(
                 contracts.SelectMany(c => new[] { c.StartLocationId ?? 0, c.EndLocationId ?? 0 }));
 
-            _all = contracts.Select(c =>
+            var rows = contracts.Select(c =>
             {
                 var its = _itemsByContract.TryGetValue(c.ContractId, out var list) ? list : new List<ContractItem>();
-                var cats = its.Select(i => typeCategory.TryGetValue(i.TypeId, out var cat) ? cat : "")
+                var cats = its.Select(i => typeCategory.TryGetValue(i.TypeId, out var cc) ? cc : "")
                               .Where(s => s.Length > 0).ToHashSet(StringComparer.OrdinalIgnoreCase);
                 var region = regionNames.TryGetValue(c.RegionId, out var rn) ? rn : "";
                 return new ContractRowVm(c, its, _typeNames, _partyNames, region, cats);
             }).ToList();
 
-            ApplyFilter();
-            StatusText = _all.Count == 0
-                ? "No public contracts stored for this selection."
-                : $"{_all.Count:N0} contracts";
+            Rows = rows;
+            SelectedRow = rows.FirstOrDefault();
+            StatusText = "";
         }
         catch (Exception ex)
         {
-            _errorLogger.Log("PublicContractsViewModel", "LoadAsync", ex);
+            _errorLogger.Log("PublicContractsViewModel", "ReloadPageAsync", ex);
             StatusText = "Error loading public contracts.";
         }
         finally { IsLoading = false; }
     }
 
-    // Walks the market-group tree to the top-level ancestor's name.
+    // Walks the market-group tree to the top-level ancestor's name (for a row's category tags).
     private string RootCategory(int? marketGroupId)
     {
         if (marketGroupId is not { } id) return "";
@@ -876,30 +1045,6 @@ public class PublicContractsViewModel : ReactiveObject
         while (_parentOf.TryGetValue(id, out var parent) && parent is { } p && guard++ < 32)
             id = p;
         return _mgName.TryGetValue(id, out var name) ? name : "";
-    }
-
-    private void ApplyFilter()
-    {
-        if (!_initialized) return;
-
-        var typeF = _typeFilter.Trim();
-        var catF  = _selectedCategory;
-        bool catAll = string.IsNullOrEmpty(catF) || catF == "All categories";
-        var statusF = _selectedStatus;
-
-        var rows = _all.Where(r =>
-        {
-            if (statusF == "Active"     && !r.IsActive) return false;
-            if (statusF == "Historical" &&  r.IsActive) return false;
-            if (typeF.Length > 0 && !r.SearchText.Contains(typeF, StringComparison.OrdinalIgnoreCase)) return false;
-            if (!catAll && !r.Categories.Contains(catF)) return false;
-            return true;
-        }).ToList();
-
-        Rows = rows;
-
-        if (SelectedRow is null || !rows.Contains(SelectedRow))
-            SelectedRow = rows.FirstOrDefault();
     }
 
     private void BuildDetail()
@@ -916,5 +1061,13 @@ public class ContractRegionOption
     public string Label    { get; }
     public int?   RegionId { get; }
     public ContractRegionOption(string label, int? regionId) { Label = label; RegionId = regionId; }
+    public override string ToString() => Label;
+}
+
+public class ContractSortOption
+{
+    public string Label { get; }
+    public string Sql   { get; }   // ORDER BY expression (trusted, not user input)
+    public ContractSortOption(string label, string sql) { Label = label; Sql = sql; }
     public override string ToString() => Label;
 }

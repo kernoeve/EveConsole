@@ -108,7 +108,7 @@
     <!-- ══ Tab 2: Public ═══════════════════════════════════════════════════════ -->
     <TabItem Header="Public">
       <Grid DataContext="{Binding Public}" x:DataType="vm:PublicContractsViewModel"
-            RowDefinitions="Auto,*">
+            RowDefinitions="Auto,*,Auto">
 
         <!-- Filter bar -->
         <Border Grid.Row="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
@@ -132,6 +132,9 @@
                     FontSize="10" Padding="8 2" Height="24"
                     Background="#1a1a2a" Foreground="#888899" BorderBrush="#2a2a3a" BorderThickness="1"
                     VerticalAlignment="Center" />
+            <TextBlock Classes="flabel" Text="Sort:" />
+            <ComboBox ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSort}"
+                      MinWidth="150" FontSize="11" VerticalAlignment="Center" />
             <Button Command="{Binding RefreshCommand}" Content="↻ Refresh"
                     FontSize="11" VerticalAlignment="Center" />
             <TextBlock Text="{Binding StatusText}" Classes="flabel" Foreground="#888899" />
@@ -144,12 +147,12 @@
                     ItemsSource="{Binding Rows}"
                     SelectedItem="{Binding SelectedRow}"
                     AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
-                    CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                    CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="False"
                     Background="#0d0d12">
             <DataGrid.Columns>
               <DataGridTextColumn Header="#"        Binding="{Binding ContractId}" Width="80" />
               <DataGridTextColumn Header="Type"     Binding="{Binding TypeLabel}"  Width="110" />
-              <DataGridTemplateColumn Header="Status" Width="90" SortMemberPath="Status">
+              <DataGridTemplateColumn Header="Status" Width="90">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
@@ -188,6 +191,25 @@
         <Border Grid.Row="1" IsVisible="{Binding IsLoading}" Background="#99000000">
           <TextBlock Text="{Binding StatusText}" FontSize="13" Foreground="#aaaacc"
                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+
+        <!-- Pager -->
+        <Border Grid.Row="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 1 0 0"
+                Padding="12 6">
+          <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center"
+                      VerticalAlignment="Center">
+            <Button Command="{Binding FirstPageCommand}" IsEnabled="{Binding CanPrev}"
+                    Content="⏮ First" FontSize="11" Padding="8 2" />
+            <Button Command="{Binding PrevPageCommand}"  IsEnabled="{Binding CanPrev}"
+                    Content="◀ Prev"  FontSize="11" Padding="8 2" />
+            <TextBlock Text="{Binding PageInfo}" FontSize="11" Foreground="#aab"
+                       VerticalAlignment="Center" Margin="12 0" MinWidth="220"
+                       TextAlignment="Center" />
+            <Button Command="{Binding NextPageCommand}"  IsEnabled="{Binding CanNext}"
+                    Content="Next ▶"  FontSize="11" Padding="8 2" />
+            <Button Command="{Binding LastPageCommand}"  IsEnabled="{Binding CanNext}"
+                    Content="Last ⏭"  FontSize="11" Padding="8 2" />
+          </StackPanel>
         </Border>
       </Grid>
     </TabItem>
