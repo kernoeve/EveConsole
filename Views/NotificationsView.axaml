@@ -46,9 +46,13 @@
         <TextBlock Classes="flabel" Text="Sort:" />
         <ComboBox ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSort}"
                   MinWidth="150" FontSize="11" VerticalAlignment="Center" />
+        <CheckBox IsChecked="{Binding ShowUnreadOnly}" Content="Unread only"
+                  FontSize="11" Foreground="#aab" VerticalAlignment="Center" />
         <Button Command="{Binding ClearFiltersCommand}" Content="Clear" FontSize="10" Padding="8 2" Height="24"
                 Background="#1a1a2a" Foreground="#888899" BorderBrush="#2a2a3a" BorderThickness="1"
                 VerticalAlignment="Center" />
+        <TextBlock Text="{Binding UnreadText}" FontSize="11" FontWeight="SemiBold" Foreground="#c8a84b"
+                   VerticalAlignment="Center" />
         <TextBlock Text="{Binding StatusText}" Classes="flabel" Foreground="#888899" />
       </StackPanel>
     </Border>

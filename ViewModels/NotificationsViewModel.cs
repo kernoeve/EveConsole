@@ -123,6 +123,22 @@ public class NotificationsViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _thruDate, value); ResetAndReload(); }
     }
 
+    private bool _showUnreadOnly;
+    public bool ShowUnreadOnly
+    {
+        get => _showUnreadOnly;
+        set { this.RaiseAndSetIfChanged(ref _showUnreadOnly, value); ResetAndReload(); }
+    }
+
+    private int _unreadCount;
+    public int UnreadCount
+    {
+        get => _unreadCount;
+        private set { this.RaiseAndSetIfChanged(ref _unreadCount, value); this.RaisePropertyChanged(nameof(UnreadText)); }
+    }
+    // Unread among the current character/type/sender/date filters (ignores the unread-only toggle).
+    public string UnreadText => $"{UnreadCount:N0} unread";
+
     private NotificationRowVm? _selectedRow;
     public NotificationRowVm? SelectedRow
     {
@@ -163,6 +179,7 @@ public class NotificationsViewModel : ReactiveObject
             _selectedSenderType = "All senders";  this.RaisePropertyChanged(nameof(SelectedSenderType));
             _fromDate           = DateTime.Today.AddDays(-30); this.RaisePropertyChanged(nameof(FromDate));
             _thruDate           = null; this.RaisePropertyChanged(nameof(ThruDate));
+            _showUnreadOnly     = false; this.RaisePropertyChanged(nameof(ShowUnreadOnly));
             ResetAndReload();
         });
         _ = InitAsync();
@@ -226,12 +243,17 @@ public class NotificationsViewModel : ReactiveObject
         { parts.Add($"SenderType = {{{ps.Count}}}"); ps.Add(senderType); }
 
         if (_fromDate is DateTime fd)
-        { parts.Add($"Timestamp >= {{{ps.Count}}}"); ps.Add(new DateTimeOffset(fd.Date, TimeSpan.Zero)); }
+        { parts.Add($"Timestamp >= {{{ps.Count}}}"); ps.Add(UtcMidnight(fd)); }
         if (_thruDate is DateTime td)
-        { parts.Add($"Timestamp < {{{ps.Count}}}"); ps.Add(new DateTimeOffset(td.Date.AddDays(1), TimeSpan.Zero)); }
+        { parts.Add($"Timestamp < {{{ps.Count}}}"); ps.Add(UtcMidnight(td.AddDays(1))); }
 
         return (string.Join(" AND ", parts), ps.ToArray());
     }
+
+    // Treats a picked calendar date as UTC midnight. Building a DateTimeOffset with a zero offset
+    // directly from a Local-kind DateTime (what the date picker returns) throws, so use components.
+    private static DateTimeOffset UtcMidnight(DateTime d) =>
+        new(d.Year, d.Month, d.Day, 0, 0, 0, TimeSpan.Zero);
 
     private async Task ReloadPageAsync()
     {
@@ -241,9 +263,15 @@ public class NotificationsViewModel : ReactiveObject
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
-            var (where, ps) = BuildFilter();
+            var (baseWhere, ps) = BuildFilter();
+            string where = baseWhere + (_showUnreadOnly ? " AND IsRead = 0" : "");
 
 #pragma warning disable EF1002
+            // Unread count for the current filters (ignoring the unread-only toggle itself).
+            UnreadCount = await db.EsiNotifications
+                .FromSqlRaw($"SELECT * FROM EsiNotifications WHERE {baseWhere} AND IsRead = 0", ps)
+                .AsNoTracking().CountAsync();
+
             Pager.TotalCount = await db.EsiNotifications
                 .FromSqlRaw($"SELECT * FROM EsiNotifications WHERE {where}", ps)
                 .AsNoTracking().CountAsync();
