@@ -701,17 +701,24 @@ public class PublicContractsViewModel : ReactiveObject
     public ObservableCollection<string>               Categories { get; } = new();
     public IReadOnlyList<string>                       StatusOptions { get; } = ["Active", "Historical", "All"];
 
+    // Matches the Contents column: the title if any, else the first item's type name (included
+    // items first, then by record). The subquery is a PK-indexed seek per row, so it's cheap.
+    private const string ContentsSortExpr =
+        "COALESCE(NULLIF(TRIM(c.Title), ''), " +
+        "(SELECT t.Name FROM EsiContractItems i JOIN SdeTypes t ON t.TypeId = i.TypeId " +
+        "WHERE i.ContractId = c.ContractId ORDER BY i.IsIncluded DESC, i.RecordId LIMIT 1), '')";
+
     // Sort is server-side (whole table), driven by this combo — the grid's own column sort would
     // only reorder the current page, which is the confusing behaviour we're replacing.
     public IReadOnlyList<ContractSortOption> SortOptions { get; } =
     [
-        new("Newest first",       "c.ContractId DESC"),
-        new("Oldest first",       "c.ContractId ASC"),
         new("Price: low → high",  "CAST(c.Price AS REAL) ASC, c.ContractId DESC"),
         new("Price: high → low",  "CAST(c.Price AS REAL) DESC, c.ContractId DESC"),
+        new("Newest first",       "c.DateIssued DESC"),
+        new("Oldest first",       "c.DateIssued ASC"),
         new("Reward: high → low", "CAST(c.Reward AS REAL) DESC, c.ContractId DESC"),
         new("Volume: high → low", "CAST(c.Volume AS REAL) DESC, c.ContractId DESC"),
-        new("Type (A → Z)",       "c.Type ASC, c.ContractId DESC"),
+        new("Contents (A → Z)",   ContentsSortExpr + " ASC, c.ContractId DESC"),
     ];
 
     private ContractSortOption _selectedSort;
@@ -726,6 +733,16 @@ public class PublicContractsViewModel : ReactiveObject
     {
         get => _selectedStatus;
         set { this.RaiseAndSetIfChanged(ref _selectedStatus, value ?? "Active"); ResetToFirstPageAndReload(); }
+    }
+
+    public IReadOnlyList<string> ContractTypeOptions { get; } =
+        ["All types", "Item Exchange", "Auction", "Courier"];
+
+    private string _selectedContractType = "All types";
+    public string SelectedContractType
+    {
+        get => _selectedContractType;
+        set { this.RaiseAndSetIfChanged(ref _selectedContractType, value ?? "All types"); ResetToFirstPageAndReload(); }
     }
 
     private ContractRegionOption? _selectedRegion;
@@ -911,6 +928,19 @@ public class PublicContractsViewModel : ReactiveObject
         {
             parts.Add($"c.RegionId = {{{ps.Count}}}");
             ps.Add(rid);
+        }
+
+        var contractType = _selectedContractType switch
+        {
+            "Item Exchange" => "item_exchange",
+            "Auction"       => "auction",
+            "Courier"       => "courier",
+            _               => null,
+        };
+        if (contractType is not null)
+        {
+            parts.Add($"c.Type = {{{ps.Count}}}");
+            ps.Add(contractType);
         }
 
         var now = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFFzzz",

@@ -117,6 +117,9 @@
             <TextBlock Classes="flabel" Text="Show:" />
             <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus}"
                       MinWidth="100" FontSize="11" VerticalAlignment="Center" />
+            <TextBlock Classes="flabel" Text="Contract:" />
+            <ComboBox ItemsSource="{Binding ContractTypeOptions}" SelectedItem="{Binding SelectedContractType}"
+                      MinWidth="120" FontSize="11" VerticalAlignment="Center" />
             <TextBlock Classes="flabel" Text="Region:" />
             <ComboBox ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}"
                       MinWidth="180" FontSize="11" VerticalAlignment="Center" />
