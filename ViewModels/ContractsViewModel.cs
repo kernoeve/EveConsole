@@ -310,7 +310,9 @@ public class ContractNameResolver
         _errorLogger = errorLogger;
     }
 
-    // Resolves character / corp / alliance IDs to names: local tables first, then ESI (best effort).
+    // Resolves character / corp / alliance IDs to names. Order: in-memory cache → persistent
+    // UniverseNames table → local Characters/Corporations → ESI. Names are immutable, so anything
+    // fetched from ESI is written to UniverseNames and never fetched again (this session or future).
     public async Task<IReadOnlyDictionary<long, string>> ResolveAsync(IEnumerable<long> ids)
     {
         var need = ids.Where(id => id > 0 && !_names.ContainsKey(id)).Distinct().ToList();
@@ -318,28 +320,62 @@ public class ContractNameResolver
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
 
-            foreach (var kv in await db.Characters.Where(c => need.Contains(c.Id))
-                         .ToDictionaryAsync(c => c.Id, c => c.Name))
+            // 1. Persistent name cache — populated across sessions.
+            foreach (var kv in await db.UniverseNames.AsNoTracking()
+                         .Where(u => need.Contains(u.EntityId))
+                         .ToDictionaryAsync(u => u.EntityId, u => u.Name))
                 _names[kv.Key] = kv.Value;
 
-            var intNeed = need.Where(id => id <= int.MaxValue).Select(id => (int)id).ToList();
-            foreach (var kv in await db.Corporations.Where(c => intNeed.Contains(c.Id))
-                         .ToDictionaryAsync(c => (long)c.Id, c => c.Name))
-                _names[kv.Key] = kv.Value;
-
-            // Anything still unknown → resolve via ESI in batches of 1000 (best effort; a single
-            // invalid id fails its whole batch, so we just leave those as "ID n").
-            var missing = need.Where(id => id <= int.MaxValue && !_names.ContainsKey(id))
-                              .Select(id => (int)id).Distinct().ToList();
-            for (int i = 0; i < missing.Count; i += 1000)
+            // 2. Local (authoritative) tables for anything the cache missed.
+            var miss = need.Where(id => !_names.ContainsKey(id)).ToList();
+            if (miss.Count > 0)
             {
-                var batch = missing.Skip(i).Take(1000).ToList();
+                foreach (var kv in await db.Characters.Where(c => miss.Contains(c.Id))
+                             .ToDictionaryAsync(c => c.Id, c => c.Name))
+                    _names[kv.Key] = kv.Value;
+
+                var intMiss = miss.Where(id => id <= int.MaxValue).Select(id => (int)id).ToList();
+                foreach (var kv in await db.Corporations.Where(c => intMiss.Contains(c.Id))
+                             .ToDictionaryAsync(c => (long)c.Id, c => c.Name))
+                    _names[kv.Key] = kv.Value;
+            }
+
+            // 3. ESI for the remainder (int64-capable), in batches of 1000. A single invalid id
+            // fails its whole batch, so those are simply left as "ID n" and retried next time.
+            var fetch = need.Where(id => !_names.ContainsKey(id)).Distinct().ToList();
+            var resolved = new List<UniverseName>();
+            for (int i = 0; i < fetch.Count; i += 1000)
+            {
+                var batch = fetch.Skip(i).Take(1000).ToList();
                 try
                 {
                     foreach (var n in await _esi.GetNamesAsync(batch))
+                    {
                         _names[n.Id] = n.Name;
+                        resolved.Add(new UniverseName { EntityId = n.Id, Name = n.Name, Category = n.Category });
+                    }
                 }
                 catch (Exception ex) { _errorLogger.Log("ContractNameResolver", "GetNames", ex); }
+            }
+
+            // Persist newly-resolved names so future sessions skip the ESI round-trip.
+            if (resolved.Count > 0)
+            {
+                try
+                {
+                    var have = (await db.UniverseNames.AsNoTracking()
+                            .Where(u => resolved.Select(r => r.EntityId).Contains(u.EntityId))
+                            .Select(u => u.EntityId).ToListAsync())
+                        .ToHashSet();
+                    var fresh = resolved.Where(r => !have.Contains(r.EntityId))
+                        .GroupBy(r => r.EntityId).Select(g => g.First()).ToList();
+                    if (fresh.Count > 0)
+                    {
+                        db.UniverseNames.AddRange(fresh);
+                        await db.SaveChangesAsync();
+                    }
+                }
+                catch (Exception ex) { _errorLogger.Log("ContractNameResolver", "PersistNames", ex); }
             }
         }
 

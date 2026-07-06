@@ -523,6 +523,17 @@ public class App : Application
                 )
                 """);
 
+            // Persistent id→name cache, shared with the Industry Browser (which also creates it
+            // on demand). Names are immutable so rows are kept across sessions.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "UniverseNames" (
+                    "EntityId" INTEGER NOT NULL,
+                    "Name"     TEXT    NOT NULL DEFAULT '',
+                    "Category" TEXT    NOT NULL DEFAULT '',
+                    PRIMARY KEY ("EntityId")
+                )
+                """);
+
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "ContractPrices" (
                     "TypeId"      INTEGER NOT NULL,

@@ -32,6 +32,7 @@ public class AppDbContext : DbContext
     public DbSet<ContractRecord>             EsiContracts            => Set<ContractRecord>();
     public DbSet<ContractItem>               EsiContractItems        => Set<ContractItem>();
     public DbSet<ContractPrice>              ContractPrices          => Set<ContractPrice>();
+    public DbSet<UniverseName>               UniverseNames           => Set<UniverseName>();
     public DbSet<CharacterAsset>             EsiAssets               => Set<CharacterAsset>();
     public DbSet<CharacterBlueprint>         EsiBlueprints           => Set<CharacterBlueprint>();
     public DbSet<CharacterMiningEntry>       EsiMining               => Set<CharacterMiningEntry>();
@@ -514,6 +515,11 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.TypeId);
             e.Property(x => x.TypeId).ValueGeneratedNever();
             e.ToTable("ContractPrices"); });
+
+        mb.Entity<UniverseName>(e => {
+            e.HasKey(x => x.EntityId);
+            e.Property(x => x.EntityId).ValueGeneratedNever();
+            e.ToTable("UniverseNames"); });
 
         mb.Entity<CharacterAsset>(e => {
             e.HasKey(x => new { x.OwnerId, x.OwnerType, x.ItemId });

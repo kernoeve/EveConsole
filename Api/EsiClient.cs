@@ -118,6 +118,17 @@ public class EsiClient
         return await response.Content.ReadFromJsonAsync<List<EsiUniverseName>>(JsonOptions, ct) ?? [];
     }
 
+    /// <summary>
+    /// Resolves up to 1000 int64 IDs to names — handles character IDs above int.MaxValue.
+    /// </summary>
+    public async Task<List<EsiUniverseNameLong>> GetNamesAsync(IReadOnlyList<long> ids, CancellationToken ct = default)
+    {
+        if (ids.Count == 0) return [];
+        var response = await _http.PostAsJsonAsync("universe/names/", ids, ct);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<List<EsiUniverseNameLong>>(JsonOptions, ct) ?? [];
+    }
+
     private sealed record EsiSearchResult(
         [property: JsonPropertyName("character")] List<int>? Character);
 

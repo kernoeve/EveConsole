@@ -47,6 +47,25 @@ public class EsiUniverseName
     [JsonPropertyName("category")] public string Category { get; init; } = "";
 }
 
+// Same payload but with an int64 id, so it can hold character IDs above int.MaxValue
+// (modern EVE character IDs exceed 2.1 billion).
+public class EsiUniverseNameLong
+{
+    [JsonPropertyName("id")]       public long   Id       { get; init; }
+    [JsonPropertyName("name")]     public string Name     { get; init; } = "";
+    [JsonPropertyName("category")] public string Category { get; init; } = "";
+}
+
+// Persistent id → name cache (characters, corporations, alliances, structures, types).
+// EVE entity names are immutable, so a resolved row is kept across sessions and never re-fetched.
+// Shared with the Industry Browser, which originally created the UniverseNames table.
+public class UniverseName
+{
+    public long   EntityId { get; set; }
+    public string Name     { get; set; } = "";
+    public string Category { get; set; } = "";
+}
+
 public class EsiSkillQueueItem
 {
     [JsonPropertyName("skill_id")]          public int             SkillId         { get; init; }
