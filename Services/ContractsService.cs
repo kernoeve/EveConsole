@@ -165,7 +165,7 @@ public class ContractsService : ReactiveObject
 
             if (r.IsSuccess && r.Data is not null)
             {
-                await UpsertPublicContractsAsync(db, region.RegionId, r.Data, ct);
+                await UpsertPublicContractsAsync(db, region.RegionId, r.Data, r.Complete, ct);
                 total += r.Data.Count;
                 StatusText = $"Contracts: public {i + 1}/{regions.Count} regions · {total:N0} listed";
             }
@@ -175,20 +175,30 @@ public class ContractsService : ReactiveObject
         StatusText = $"Contracts: public list updated ({total:N0}) — {DateTimeOffset.Now:t}";
     }
 
-    // Upsert a region's public contracts; existing rows are updated, missing ones inserted,
-    // and rows no longer returned are retained (public listings churn constantly).
+    // Upsert a region's public contracts. Existing rows are updated and missing ones inserted;
+    // rows are never deleted. The public list only contains CURRENTLY-ACTIVE contracts, so a row
+    // we previously stored that isn't in a COMPLETE fresh pull has dropped off (accepted / expired /
+    // deleted — we can't tell which) and is marked "closed" with the drop-off time, letting the UI
+    // and pricing separate active from historical. A partial pull (complete == false) skips the
+    // reconciliation so a dropped page can't mass-close active contracts.
     private static async Task UpsertPublicContractsAsync(
-        AppDbContext db, int regionId, List<EsiPublicContract> data, CancellationToken ct)
+        AppDbContext db, int regionId, List<EsiPublicContract> data, bool complete, CancellationToken ct)
     {
+        var now = DateTimeOffset.UtcNow;
         var existing = (await db.EsiContracts
                 .Where(c => c.OwnerType == "public" && c.OwnerId == regionId)
                 .ToListAsync(ct))
             .ToDictionary(c => c.ContractId);
 
+        var returnedIds = new HashSet<int>(data.Count);
         foreach (var c in data)
         {
+            returnedIds.Add(c.ContractId);
             if (existing.TryGetValue(c.ContractId, out var row))
             {
+                // Still listed → active. Reactivate if a prior (possibly partial) pull closed it.
+                row.Status        = "outstanding";
+                row.DateCompleted = null;
                 row.DateExpired = c.DateExpired;
                 row.Price       = (decimal)c.Price;
                 row.Reward      = (decimal)c.Reward;
@@ -223,6 +233,20 @@ public class ContractsService : ReactiveObject
                 });
             }
         }
+
+        // Reconcile: rows we still hold that the (complete) pull no longer returned have dropped off.
+        if (complete)
+        {
+            foreach (var row in existing.Values)
+            {
+                if (row.Status == "outstanding" && !returnedIds.Contains(row.ContractId))
+                {
+                    row.Status        = "closed";
+                    row.DateCompleted = now;   // last time it was known active (bounds pricing window)
+                }
+            }
+        }
+
         await db.SaveChangesAsync(ct);
     }
 

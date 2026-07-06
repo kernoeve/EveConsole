@@ -380,12 +380,15 @@ public class EsiClient
         }
 
         var allItems = new List<T>(firstPage.Data ?? []);
+        bool complete = true;
         for (int p = 2; p <= firstPage.TotalPages; p++)
         {
             ct.ThrowIfCancellationRequested();
             var page = await ExecutePublicAsync<List<T>>(path, ct, page: p);
             if (page.IsSuccess && page.Data is not null)
                 allItems.AddRange(page.Data);
+            else
+                complete = false;   // a page dropped — Data is now an incomplete set
         }
 
         return new EsiCallResult<List<T>>
@@ -393,6 +396,7 @@ public class EsiClient
             Data       = allItems,
             StatusCode = firstPage.StatusCode,
             TotalPages = firstPage.TotalPages,
+            Complete   = complete,
         };
     }
 

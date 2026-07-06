@@ -12,6 +12,10 @@ public class EsiCallResult<T>
     public int?   ErrorLimitReset     { get; init; }
     public int?   RetryAfterSeconds   { get; init; }
     public string? Error              { get; init; }
+    // For paged fetches: false when one or more pages after the first failed, so the returned
+    // Data is incomplete. Callers that reconcile "rows no longer returned" must not act on a
+    // partial set. Always true for single-page / non-paged calls.
+    public bool   Complete            { get; init; } = true;
 
     public bool IsSuccess     => StatusCode is >= 200 and < 300;
     public bool IsRateLimited => StatusCode == 429;

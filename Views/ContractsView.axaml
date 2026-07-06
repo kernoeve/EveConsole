@@ -114,6 +114,9 @@
         <Border Grid.Row="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
                 Padding="12 8">
           <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Classes="flabel" Text="Show:" />
+            <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus}"
+                      MinWidth="100" FontSize="11" VerticalAlignment="Center" />
             <TextBlock Classes="flabel" Text="Region:" />
             <ComboBox ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}"
                       MinWidth="180" FontSize="11" VerticalAlignment="Center" />
@@ -146,6 +149,14 @@
             <DataGrid.Columns>
               <DataGridTextColumn Header="#"        Binding="{Binding ContractId}" Width="80" />
               <DataGridTextColumn Header="Type"     Binding="{Binding TypeLabel}"  Width="110" />
+              <DataGridTemplateColumn Header="Status" Width="90" SortMemberPath="Status">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:ContractRowVm">
+                    <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
+                               FontSize="11" Margin="6 0" VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTextColumn Header="Contents" Binding="{Binding Contents}"   Width="*" />
               <DataGridTextColumn Header="Region"   Binding="{Binding Region}"     Width="140" />
               <DataGridTextColumn Header="Issuer"   Binding="{Binding Issuer}"     Width="150" />

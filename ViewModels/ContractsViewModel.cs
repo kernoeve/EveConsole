@@ -55,6 +55,7 @@ internal static class ContractFmt
         "outstanding"  => "#5b9bd5",
         "in_progress"  => "#c8a84b",
         "finished"     => "#5cb85c",
+        "closed"       => "#7c7c8a",
         "cancelled"    => "#888899",
         "rejected"     => "#d9534f",
         "failed"       => "#d9534f",
@@ -219,6 +220,9 @@ public class ContractRowVm
     public long? AcceptorId { get; }
     public string SearchText { get; }
     public IReadOnlyCollection<string> Categories { get; }
+    // Truly active right now = outstanding and not past expiry. "closed" rows (dropped off the
+    // public list) and past-expiry rows are historical.
+    public bool IsActive { get; }
 
     public ContractRowVm(
         ContractRecord c,
@@ -230,6 +234,7 @@ public class ContractRowVm
     {
         Record        = c;
         ContractId    = c.ContractId;
+        IsActive      = c.Status == "outstanding" && (c.DateExpired is null || c.DateExpired > DateTimeOffset.UtcNow);
         TypeLabel     = ContractFmt.TypeLabel(c.Type);
         Status        = ContractFmt.EffectiveStatusLabel(c.Status, c.DateExpired);
         StatusColor   = ContractFmt.EffectiveStatusColor(c.Status, c.DateExpired);
@@ -682,6 +687,14 @@ public class PublicContractsViewModel : ReactiveObject
 
     public ObservableCollection<ContractRegionOption> Regions    { get; } = new();
     public ObservableCollection<string>               Categories { get; } = new();
+    public IReadOnlyList<string>                       StatusOptions { get; } = ["Active", "Historical", "All"];
+
+    private string _selectedStatus = "Active";
+    public string SelectedStatus
+    {
+        get => _selectedStatus;
+        set { this.RaiseAndSetIfChanged(ref _selectedStatus, value ?? "Active"); ApplyFilter(); }
+    }
 
     private ContractRegionOption? _selectedRegion;
     public ContractRegionOption? SelectedRegion
@@ -863,9 +876,12 @@ public class PublicContractsViewModel : ReactiveObject
         var typeF = _typeFilter.Trim();
         var catF  = _selectedCategory;
         bool catAll = string.IsNullOrEmpty(catF) || catF == "All categories";
+        var statusF = _selectedStatus;
 
         var rows = _all.Where(r =>
         {
+            if (statusF == "Active"     && !r.IsActive) return false;
+            if (statusF == "Historical" &&  r.IsActive) return false;
             if (typeF.Length > 0 && !r.SearchText.Contains(typeF, StringComparison.OrdinalIgnoreCase)) return false;
             if (!catAll && !r.Categories.Contains(catF)) return false;
             return true;
