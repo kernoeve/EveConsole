@@ -441,7 +441,14 @@ public class OwnedContractsViewModel : ReactiveObject
     private IReadOnlyDictionary<long, string> _partyNames = new Dictionary<long, string>();
     private IReadOnlyDictionary<long, string> _locations = new Dictionary<long, string>();
 
-    public ObservableCollection<ContractRowVm> Rows { get; } = new();
+    // Reassigned wholesale on each filter/load — a single notification instead of one per row,
+    // which is what makes tens of thousands of public contracts bind without stalling the UI.
+    private IReadOnlyList<ContractRowVm> _rows = [];
+    public IReadOnlyList<ContractRowVm> Rows
+    {
+        get => _rows;
+        private set => this.RaiseAndSetIfChanged(ref _rows, value);
+    }
 
     public ObservableCollection<ContractOwnerOption> Owners     { get; } = new();
     public ObservableCollection<ContractPartyOption> Assignees  { get; } = new();
@@ -603,11 +610,10 @@ public class OwnedContractsViewModel : ReactiveObject
 
         var rows = q.OrderByDescending(r => r.DateIssuedRaw).ToList();
 
-        Rows.Clear();
-        foreach (var r in rows) Rows.Add(r);
+        Rows = rows;
 
-        if (SelectedRow is null || !Rows.Contains(SelectedRow))
-            SelectedRow = Rows.FirstOrDefault();
+        if (SelectedRow is null || !rows.Contains(SelectedRow))
+            SelectedRow = rows.FirstOrDefault();
     }
 
     private void BuildDetail()
@@ -623,8 +629,6 @@ public class OwnedContractsViewModel : ReactiveObject
 
 public class PublicContractsViewModel : ReactiveObject
 {
-    private const int LoadCap = 2000;
-
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AppErrorLogger                  _errorLogger;
     private readonly ContractNameResolver            _names;
@@ -640,7 +644,14 @@ public class PublicContractsViewModel : ReactiveObject
     private Dictionary<int, int?>  _parentOf = new();
     private Dictionary<int, string> _mgName  = new();
 
-    public ObservableCollection<ContractRowVm> Rows { get; } = new();
+    // Reassigned wholesale on each filter/load — a single notification instead of one per row,
+    // which is what makes tens of thousands of public contracts bind without stalling the UI.
+    private IReadOnlyList<ContractRowVm> _rows = [];
+    public IReadOnlyList<ContractRowVm> Rows
+    {
+        get => _rows;
+        private set => this.RaiseAndSetIfChanged(ref _rows, value);
+    }
 
     public ObservableCollection<ContractRegionOption> Regions    { get; } = new();
     public ObservableCollection<string>               Categories { get; } = new();
@@ -759,8 +770,9 @@ public class PublicContractsViewModel : ReactiveObject
                 query = query.Where(c => c.RegionId == rid);
 
             // Order by ContractId (ascending IDs ≈ chronological) to avoid a DateTimeOffset sort,
-            // newest first, capped for responsiveness.
-            var contracts = await query.OrderByDescending(c => c.ContractId).Take(LoadCap).ToListAsync();
+            // newest first. No row cap — names come from the persistent UniverseNames cache and the
+            // grid binds the whole set in one assignment, so a full region (or all regions) loads.
+            var contracts = await query.OrderByDescending(c => c.ContractId).ToListAsync();
 
             var cids = contracts.Select(c => c.ContractId).Distinct().ToList();
             var items = await db.EsiContractItems.AsNoTracking()
@@ -795,9 +807,9 @@ public class PublicContractsViewModel : ReactiveObject
             }).ToList();
 
             ApplyFilter();
-            StatusText = contracts.Count >= LoadCap
-                ? $"Showing newest {LoadCap:N0} — narrow by region to see more."
-                : _all.Count == 0 ? "No public contracts stored for this selection." : "";
+            StatusText = _all.Count == 0
+                ? "No public contracts stored for this selection."
+                : $"{_all.Count:N0} contracts";
         }
         catch (Exception ex)
         {
@@ -832,11 +844,10 @@ public class PublicContractsViewModel : ReactiveObject
             return true;
         }).ToList();
 
-        Rows.Clear();
-        foreach (var r in rows) Rows.Add(r);
+        Rows = rows;
 
-        if (SelectedRow is null || !Rows.Contains(SelectedRow))
-            SelectedRow = Rows.FirstOrDefault();
+        if (SelectedRow is null || !rows.Contains(SelectedRow))
+            SelectedRow = rows.FirstOrDefault();
     }
 
     private void BuildDetail()
