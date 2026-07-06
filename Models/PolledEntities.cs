@@ -506,6 +506,15 @@ public class StructureName
     public DateTimeOffset PulledAt     { get; set; }
 }
 
+// Structures whose name could not be resolved (no docking rights = 403, or gone = 404).
+// Used to stop re-polling them every cycle; retried only after a backoff period.
+public class StructureNameFailure
+{
+    public long           StructureId { get; set; }
+    public DateTimeOffset FailedAt    { get; set; }
+    public int            StatusCode  { get; set; }
+}
+
 public class CorpStarbase
 {
     public long   CorporationId   { get; set; }

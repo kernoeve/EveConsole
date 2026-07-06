@@ -2002,7 +2002,22 @@ public class EsiPollingService : ReactiveObject
             .Select(s => s.StructureId)
             .ToHashSet();
 
-        var toResolve = candidateIds.Where(id => !fresh.Contains(id)).Distinct().ToList();
+        // Also skip structures we recently failed to resolve (no docking rights / gone), so
+        // we don't re-poll them every cycle. Retried only after a 30-day backoff, in case
+        // access is later granted. (DateTimeOffset filter done in memory — SQLite can't
+        // translate it.)
+        var failBackoff = DateTimeOffset.UtcNow.AddDays(-30);
+        var recentlyFailed = (await db.EsiStructureNameFailures
+            .Where(f => candidateIds.Contains(f.StructureId))
+            .Select(f => new { f.StructureId, f.FailedAt })
+            .ToListAsync(ct))
+            .Where(f => f.FailedAt > failBackoff)
+            .Select(f => f.StructureId)
+            .ToHashSet();
+
+        var toResolve = candidateIds
+            .Where(id => !fresh.Contains(id) && !recentlyFailed.Contains(id))
+            .Distinct().ToList();
         if (toResolve.Count == 0) return;
 
         // If a preferred structure-name character is configured, use only that character.
@@ -2054,9 +2069,23 @@ public class EsiPollingService : ReactiveObject
                 var sc = lastResult?.StatusCode ?? 0;
                 handle.Complete(false, sc, $"all {charIds.Count} character(s) failed");
 
-                // 403/404/502 are expected ESI responses (no access or structure gone) — not app errors.
-                bool isExpectedDenial = sc is 403 or 404 or 502;
-                if (!isExpectedDenial && sc is not (420 or 429))
+                // 403 (no docking rights) and 404 (structure gone) are persistent — flag the
+                // structure so we stop re-polling it until the backoff expires. 502 is a
+                // transient ESI error, so don't flag it.
+                if (sc is 403 or 404)
+                {
+                    var fail = await db.EsiStructureNameFailures.FindAsync([structId], ct);
+                    if (fail is null)
+                    {
+                        fail = new StructureNameFailure { StructureId = structId };
+                        db.EsiStructureNameFailures.Add(fail);
+                    }
+                    fail.FailedAt   = DateTimeOffset.UtcNow;
+                    fail.StatusCode = sc;
+                    await db.SaveChangesAsync(ct);
+                }
+                // 403/404/502 are expected ESI responses — not app errors.
+                else if (sc is not (420 or 429))
                     _errorLogger.Log(
                         "GetStructureAsync",
                         $"StructureId={structId}",
@@ -2084,6 +2113,11 @@ public class EsiPollingService : ReactiveObject
                     entry.SolarSystemId = detail.SolarSystemId;
                     entry.PulledAt      = DateTimeOffset.UtcNow;
                 }
+
+                // Access regained — clear any prior failure flag.
+                var oldFail = await db.EsiStructureNameFailures.FindAsync([structId], ct);
+                if (oldFail is not null) db.EsiStructureNameFailures.Remove(oldFail);
+
                 await db.SaveChangesAsync(ct);
             }
 

@@ -755,6 +755,14 @@ public class App : Application
                 """);
 
             db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "EsiStructureNameFailures" (
+                    "StructureId" INTEGER NOT NULL PRIMARY KEY,
+                    "FailedAt"    TEXT    NOT NULL DEFAULT '2000-01-01T00:00:00+00:00',
+                    "StatusCode"  INTEGER NOT NULL DEFAULT 0
+                )
+                """);
+
+            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiCorpStarbases" (
                     "CorporationId"   INTEGER NOT NULL,
                     "StarbaseId"      INTEGER NOT NULL,

@@ -58,6 +58,7 @@ public class AppDbContext : DbContext
     public DbSet<CorpMedal>             EsiCorpMedals            => Set<CorpMedal>();
     public DbSet<CorpStructure>         EsiCorpStructures        => Set<CorpStructure>();
     public DbSet<StructureName>         EsiStructureNames        => Set<StructureName>();
+    public DbSet<StructureNameFailure>  EsiStructureNameFailures => Set<StructureNameFailure>();
     public DbSet<CorpStarbase>          EsiCorpStarbases         => Set<CorpStarbase>();
     public DbSet<CorpFacility>          EsiCorpFacilities        => Set<CorpFacility>();
     public DbSet<CorpMiningExtraction>  EsiCorpMiningExtractions => Set<CorpMiningExtraction>();
@@ -641,6 +642,11 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.StructureId);
             e.Property(x => x.StructureId).ValueGeneratedNever();
             e.ToTable("EsiStructureNames"); });
+
+        mb.Entity<StructureNameFailure>(e => {
+            e.HasKey(x => x.StructureId);
+            e.Property(x => x.StructureId).ValueGeneratedNever();
+            e.ToTable("EsiStructureNameFailures"); });
 
         mb.Entity<CorpStarbase>(e => {
             e.HasKey(x => new { x.CorporationId, x.StarbaseId });
