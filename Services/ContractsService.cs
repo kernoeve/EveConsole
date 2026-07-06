@@ -22,8 +22,15 @@ public class ContractsService : ReactiveObject
     private Task? _publicLoop;
     private Task? _itemsLoop;
 
-    // Pace between successive per-region / per-contract calls.
+    // Pace between successive public-list region calls.
     private const int CallDelayMs = 100;
+
+    // Public contract items have no token-bucket limit — pace only to be polite (~6/sec).
+    private const int PublicItemDelayMs = 150;
+
+    // Character/corp contract items are limited to 600 requests / 15 minutes (a shared token
+    // bucket). 1700 ms ≈ 35/min ≈ 529 per 15 min — comfortably under the cap.
+    private const int AuthedItemDelayMs = 1700;
 
     // Contract types that carry an item list. "loan" has none.
     private static readonly HashSet<string> ItemBearingTypes = ["item_exchange", "auction", "courier"];
@@ -177,10 +184,10 @@ public class ContractsService : ReactiveObject
     {
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
-        // Character & corp contracts still needing items (item-bearing types). Public contract
-        // items are NOT auto-pulled — there are tens of thousands; those are fetched on demand.
+        // All contracts still needing items (item-bearing types), grouped by ContractId so a
+        // contract seen by several owners is fetched once.
         var pending = (await db.EsiContracts.AsNoTracking()
-                .Where(c => !c.ItemsPulled && c.OwnerType != "public")
+                .Where(c => !c.ItemsPulled)
                 .Select(c => new { c.ContractId, c.OwnerId, c.OwnerType, c.Type, c.IssuerCorporationId, c.Status })
                 .ToListAsync(ct))
             .Where(c => ItemBearingTypes.Contains(c.Type))
@@ -192,17 +199,19 @@ public class ContractsService : ReactiveObject
         {
             if (ct.IsCancellationRequested) break;
 
-            // Pick an owner row we can actually fetch items from. ESI only serves corp contract
-            // items for contracts the corp ISSUED (or finished ones) — calling for contracts
-            // issued by another corp just 404s and burns the ESI error limit.
-            var src = group.FirstOrDefault(c =>
-                c.OwnerType == "character" ||
-                (c.OwnerType == "corporation" &&
-                 (c.IssuerCorporationId == (int)c.OwnerId || c.Status.StartsWith("finished"))));
+            // Choose a source we can actually read items from, preferring the public endpoint
+            // (no token-bucket limit, and public items are always visible). Corp contract items
+            // are only served for contracts the corp ISSUED (or finished ones) — a contract
+            // merely assigned to us by another corp has its items walled off until accepted, so
+            // calling just 404s and burns the error limit.
+            var src = group.FirstOrDefault(c => c.OwnerType == "public")
+                   ?? group.FirstOrDefault(c => c.OwnerType == "character")
+                   ?? group.FirstOrDefault(c => c.OwnerType == "corporation" &&
+                        (c.IssuerCorporationId == (int)c.OwnerId || c.Status.StartsWith("finished")));
 
             if (src is null)
             {
-                // Not fetchable via any owner (e.g. outstanding, issued by another corp) — mark
+                // Private contract assigned to us by another corp — items not retrievable. Mark
                 // done so we don't reconsider it (and don't 404) every sweep.
                 await db.EsiContracts.Where(x => x.ContractId == group.Key && !x.ItemsPulled)
                     .ExecuteUpdateAsync(s => s.SetProperty(x => x.ItemsPulled, true), ct);
@@ -214,17 +223,20 @@ public class ContractsService : ReactiveObject
             { try { await Task.Delay(3000, ct); } catch (OperationCanceledException) { break; } }
             if (ct.IsCancellationRequested) break;
 
+            bool isPublic = src.OwnerType == "public";
             if (await FetchAndStoreItemsAsync(db, group.Key, src.OwnerId, src.OwnerType, ct))
             {
-                // Mark every owner row for this contract as pulled.
                 await db.EsiContracts.Where(x => x.ContractId == group.Key && !x.ItemsPulled)
                     .ExecuteUpdateAsync(s => s.SetProperty(x => x.ItemsPulled, true), ct);
                 done++;
             }
 
-            if (((done + skipped) & 31) == 0)
+            if (((done + skipped) & 63) == 0)
                 StatusText = $"Contracts: items {done:N0} pulled, {skipped:N0} skipped…";
-            try { await Task.Delay(CallDelayMs, ct); } catch (OperationCanceledException) { break; }
+
+            // Authed items share a 600/15min token bucket; public items don't.
+            try { await Task.Delay(isPublic ? PublicItemDelayMs : AuthedItemDelayMs, ct); }
+            catch (OperationCanceledException) { break; }
         }
         StatusText = $"Contracts: item pass done ({done:N0} pulled, {skipped:N0} skipped) — {DateTimeOffset.Now:t}";
     }
