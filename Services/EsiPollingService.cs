@@ -125,6 +125,8 @@ public class EsiPollingService : ReactiveObject
         ["corp.mining.observers"]   = "Mining Observers & Ledger",
         ["market.refresh"]        = "Market Price Refresh",
         ["build.costs"]           = "Build Cost Calculation",
+        ["contract.public"]       = "Public Contracts",
+        ["contract.items"]        = "Contract Items",
     };
 
     public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService)
@@ -815,42 +817,54 @@ public class EsiPollingService : ReactiveObject
             $"characters/{charId}/contracts/", ct);
         if (!r.IsSuccess) return FromResult(r);
 
-        var existingIds = await db.EsiContracts
-            .Where(c => c.OwnerId == charId && c.OwnerType == "character")
-            .Select(c => c.ContractId)
-            .ToHashSetAsync(ct);
+        // Upsert: update existing rows (status/acceptance can change) and insert new ones.
+        // Contracts no longer returned by ESI are retained.
+        var existing = (await db.EsiContracts
+                .Where(c => c.OwnerId == charId && c.OwnerType == "character")
+                .ToListAsync(ct))
+            .ToDictionary(c => c.ContractId);
 
-        var newContracts = r.Data!
-            .Where(c => !existingIds.Contains(c.ContractId))
-            .Select(c => new ContractRecord
+        foreach (var c in r.Data!)
+        {
+            if (existing.TryGetValue(c.ContractId, out var row))
             {
-                ContractId          = c.ContractId,
-                OwnerId             = charId,
-                OwnerType           = "character",
-                IssuerId            = c.IssuerId,
-                IssuerCorporationId = c.IssuerCorporationId,
-                AssigneeId          = c.AssigneeId,
-                AcceptorId          = c.AcceptorId,
-                StartLocationId     = c.StartLocationId,
-                EndLocationId       = c.EndLocationId,
-                Type                = c.Type,
-                Status              = c.Status,
-                Title               = c.Title,
-                ForCorporation      = c.ForCorporation,
-                Availability        = c.Availability,
-                DateIssued          = c.DateIssued,
-                DateExpired         = c.DateExpired,
-                DateAccepted        = c.DateAccepted,
-                DateCompleted       = c.DateCompleted,
-                DaysToComplete      = c.DaysToComplete,
-                Price               = (decimal)c.Price,
-                Reward              = (decimal)c.Reward,
-                Collateral          = (decimal)c.Collateral,
-                Buyout              = (decimal)c.Buyout,
-                Volume              = (decimal)c.Volume,
-            });
-
-        db.EsiContracts.AddRange(newContracts);
+                row.Status        = c.Status;
+                row.AcceptorId    = c.AcceptorId;
+                row.DateAccepted  = c.DateAccepted;
+                row.DateCompleted = c.DateCompleted;
+                row.DateExpired   = c.DateExpired;
+            }
+            else
+            {
+                db.EsiContracts.Add(new ContractRecord
+                {
+                    ContractId          = c.ContractId,
+                    OwnerId             = charId,
+                    OwnerType           = "character",
+                    IssuerId            = c.IssuerId,
+                    IssuerCorporationId = c.IssuerCorporationId,
+                    AssigneeId          = c.AssigneeId,
+                    AcceptorId          = c.AcceptorId,
+                    StartLocationId     = c.StartLocationId,
+                    EndLocationId       = c.EndLocationId,
+                    Type                = c.Type,
+                    Status              = c.Status,
+                    Title               = c.Title,
+                    ForCorporation      = c.ForCorporation,
+                    Availability        = c.Availability,
+                    DateIssued          = c.DateIssued,
+                    DateExpired         = c.DateExpired,
+                    DateAccepted        = c.DateAccepted,
+                    DateCompleted       = c.DateCompleted,
+                    DaysToComplete      = c.DaysToComplete,
+                    Price               = (decimal)c.Price,
+                    Reward              = (decimal)c.Reward,
+                    Collateral          = (decimal)c.Collateral,
+                    Buyout              = (decimal)c.Buyout,
+                    Volume              = (decimal)c.Volume,
+                });
+            }
+        }
         await db.SaveChangesAsync(ct);
         return FromResult(r);
     }
@@ -1875,40 +1889,53 @@ public class EsiPollingService : ReactiveObject
             corpId, $"corporations/{corpId}/contracts/", ct);
         if (!r.IsSuccess) return FromResult(r);
 
-        var existingIds = await db.EsiContracts
-            .Where(c => c.OwnerId == corpId && c.OwnerType == "corporation")
-            .Select(c => c.ContractId)
-            .ToHashSetAsync(ct);
+        // Upsert: update existing rows, insert new ones, retain contracts no longer returned.
+        var existing = (await db.EsiContracts
+                .Where(c => c.OwnerId == corpId && c.OwnerType == "corporation")
+                .ToListAsync(ct))
+            .ToDictionary(c => c.ContractId);
 
-        db.EsiContracts.AddRange(r.Data!
-            .Where(c => !existingIds.Contains(c.ContractId))
-            .Select(c => new ContractRecord
+        foreach (var c in r.Data!)
+        {
+            if (existing.TryGetValue(c.ContractId, out var row))
             {
-                ContractId          = c.ContractId,
-                OwnerId             = corpId,
-                OwnerType           = "corporation",
-                IssuerId            = c.IssuerId,
-                IssuerCorporationId = c.IssuerCorporationId,
-                AssigneeId          = c.AssigneeId,
-                AcceptorId          = c.AcceptorId,
-                StartLocationId     = c.StartLocationId,
-                EndLocationId       = c.EndLocationId,
-                Type                = c.Type,
-                Status              = c.Status,
-                Title               = c.Title,
-                ForCorporation      = c.ForCorporation,
-                Availability        = c.Availability,
-                DateIssued          = c.DateIssued,
-                DateExpired         = c.DateExpired,
-                DateAccepted        = c.DateAccepted,
-                DateCompleted       = c.DateCompleted,
-                DaysToComplete      = c.DaysToComplete,
-                Price               = (decimal)c.Price,
-                Reward              = (decimal)c.Reward,
-                Collateral          = (decimal)c.Collateral,
-                Buyout              = (decimal)c.Buyout,
-                Volume              = (decimal)c.Volume,
-            }));
+                row.Status        = c.Status;
+                row.AcceptorId    = c.AcceptorId;
+                row.DateAccepted  = c.DateAccepted;
+                row.DateCompleted = c.DateCompleted;
+                row.DateExpired   = c.DateExpired;
+            }
+            else
+            {
+                db.EsiContracts.Add(new ContractRecord
+                {
+                    ContractId          = c.ContractId,
+                    OwnerId             = corpId,
+                    OwnerType           = "corporation",
+                    IssuerId            = c.IssuerId,
+                    IssuerCorporationId = c.IssuerCorporationId,
+                    AssigneeId          = c.AssigneeId,
+                    AcceptorId          = c.AcceptorId,
+                    StartLocationId     = c.StartLocationId,
+                    EndLocationId       = c.EndLocationId,
+                    Type                = c.Type,
+                    Status              = c.Status,
+                    Title               = c.Title,
+                    ForCorporation      = c.ForCorporation,
+                    Availability        = c.Availability,
+                    DateIssued          = c.DateIssued,
+                    DateExpired         = c.DateExpired,
+                    DateAccepted        = c.DateAccepted,
+                    DateCompleted       = c.DateCompleted,
+                    DaysToComplete      = c.DaysToComplete,
+                    Price               = (decimal)c.Price,
+                    Reward              = (decimal)c.Reward,
+                    Collateral          = (decimal)c.Collateral,
+                    Buyout              = (decimal)c.Buyout,
+                    Volume              = (decimal)c.Volume,
+                });
+            }
+        }
         await db.SaveChangesAsync(ct);
         return FromResult(r);
     }

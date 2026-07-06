@@ -48,6 +48,7 @@ public class App : Application
         EsiPollingService?    polling       = null;
         MarketPricingService? marketPricing = null;
         MarketHistoryService? marketHistory = null;
+        ContractsService?     contracts     = null;
         MainWindow?           mainWindow    = null;
         SplashWindow?         splash        = null;
 
@@ -60,6 +61,7 @@ public class App : Application
             polling       = Services.GetRequiredService<EsiPollingService>();
             marketPricing = Services.GetRequiredService<MarketPricingService>();
             marketHistory = Services.GetRequiredService<MarketHistoryService>();
+            contracts     = Services.GetRequiredService<ContractsService>();
 
             var buildCostService = Services.GetRequiredService<BuildCostService>();
             var reprService      = Services.GetRequiredService<ReprocessingValueService>();
@@ -74,6 +76,7 @@ public class App : Application
                 if (polling       is not null) tasks.Add(polling.StopAsync());
                 if (marketPricing is not null) tasks.Add(marketPricing.StopAsync());
                 if (marketHistory is not null) tasks.Add(marketHistory.StopAsync());
+                if (contracts     is not null) tasks.Add(contracts.StopAsync());
                 await Task.WhenAll(tasks);
                 desktop.Shutdown();
             };
@@ -494,7 +497,29 @@ public class App : Application
                     "Collateral"          TEXT    NOT NULL DEFAULT '0',
                     "Buyout"              TEXT    NOT NULL DEFAULT '0',
                     "Volume"              TEXT    NOT NULL DEFAULT '0',
+                    "RegionId"            INTEGER NOT NULL DEFAULT 0,
+                    "ItemsPulled"         INTEGER NOT NULL DEFAULT 0,
                     PRIMARY KEY ("OwnerId", "OwnerType", "ContractId")
+                )
+                """);
+            // Columns added for the contracts feature — backfill on existing DBs.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "RegionId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "ItemsPulled" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "EsiContractItems" (
+                    "ContractId"         INTEGER NOT NULL,
+                    "RecordId"           INTEGER NOT NULL,
+                    "TypeId"             INTEGER NOT NULL DEFAULT 0,
+                    "Quantity"           INTEGER NOT NULL DEFAULT 0,
+                    "IsIncluded"         INTEGER NOT NULL DEFAULT 0,
+                    "IsSingleton"        INTEGER NOT NULL DEFAULT 0,
+                    "RawQuantity"        INTEGER,
+                    "IsBlueprintCopy"    INTEGER,
+                    "MaterialEfficiency" INTEGER,
+                    "TimeEfficiency"     INTEGER,
+                    "Runs"               INTEGER,
+                    PRIMARY KEY ("ContractId", "RecordId")
                 )
                 """);
 
@@ -1276,6 +1301,7 @@ public class App : Application
         polling?.Start();
         marketPricing?.Start();
         marketHistory?.Start();
+        contracts?.Start();
         Services.GetRequiredService<DatabaseBackupService>().Start();
     }
 
@@ -1342,6 +1368,7 @@ public class App : Application
         services.AddSingleton<NetWorthService>();
         services.AddSingleton<MarketPricingService>();
         services.AddSingleton<MarketHistoryService>();
+        services.AddSingleton<ContractsService>();
         services.AddSingleton<BuildCostService>();
         services.AddSingleton<ReprocessingValueService>();
         services.AddSingleton<ProductionCalculatorService>();

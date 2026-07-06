@@ -223,6 +223,29 @@ public class ContractRecord
     public decimal Collateral         { get; set; }
     public decimal Buyout             { get; set; }
     public decimal Volume             { get; set; }
+
+    // Region a public contract was listed in (0 for character/corp contracts).
+    public int    RegionId            { get; set; }
+    // True once the contract's item list has been fetched (item_exchange/auction/courier
+    // contracts have items; we pull them once per contract and never call again).
+    public bool   ItemsPulled         { get; set; }
+}
+
+// One line item on a contract (offered or requested). Shared across owner rows by ContractId.
+public class ContractItem
+{
+    public int    ContractId       { get; set; }
+    public long   RecordId         { get; set; }   // unique per item within the contract
+    public int    TypeId           { get; set; }
+    public long   Quantity         { get; set; }
+    public bool   IsIncluded       { get; set; }   // true = offered by issuer, false = requested
+    public bool   IsSingleton      { get; set; }
+    public int?   RawQuantity      { get; set; }   // negative encodes BPC etc.
+    // Public-contract extras (blueprint details); null for personal/corp items.
+    public bool?  IsBlueprintCopy    { get; set; }
+    public int?   MaterialEfficiency { get; set; }
+    public int?   TimeEfficiency     { get; set; }
+    public int?   Runs               { get; set; }
 }
 
 // ── Assets & blueprints ───────────────────────────────────────────────────────
