@@ -20,20 +20,22 @@ public class NotificationRowVm
     public string SenderType { get; }
     public string ReadText   { get; }
 
+    // characters = the (comma-joined) names of every character the notification arrived under.
     public NotificationRowVm(
-        CharacterNotification n,
+        CharacterNotification n, string characters,
         IReadOnlyDictionary<long, string> names)
     {
         Record         = n;
         NotificationId = n.NotificationId;
         DateText       = n.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
         TypeLabel      = NotificationFormatter.Humanize(n.Type);
-        Character      = names.TryGetValue(n.CharacterId, out var cn) && cn.Length > 0 ? cn : $"ID {n.CharacterId}";
+        Character      = characters.Length > 0 ? characters : $"ID {n.CharacterId}";
         Sender         = n.SenderId > 0
             ? (names.TryGetValue(n.SenderId, out var sn) && sn.Length > 0 ? sn : $"ID {n.SenderId}")
             : "—";
         SenderType     = n.SenderType.Length > 0
             ? char.ToUpperInvariant(n.SenderType[0]) + n.SenderType[1..] : "";
+        // n.IsRead here is MIN(IsRead) across recipients → Unread if any recipient hasn't read it.
         ReadText       = n.IsRead ? "Read" : "Unread";
     }
 }
@@ -266,30 +268,58 @@ public class NotificationsViewModel : ReactiveObject
             var (baseWhere, ps) = BuildFilter();
             string where = baseWhere + (_showUnreadOnly ? " AND IsRead = 0" : "");
 
+            // The same notification is delivered to multiple characters; the grid shows one row per
+            // NotificationId, so counts and paging are over DISTINCT NotificationId.
 #pragma warning disable EF1002
-            // Unread count for the current filters (ignoring the unread-only toggle itself).
+            // Unread count = distinct notifications with any unread recipient (ignores the toggle).
             UnreadCount = await db.EsiNotifications
                 .FromSqlRaw($"SELECT * FROM EsiNotifications WHERE {baseWhere} AND IsRead = 0", ps)
-                .AsNoTracking().CountAsync();
+                .AsNoTracking().Select(n => n.NotificationId).Distinct().CountAsync();
 
             Pager.TotalCount = await db.EsiNotifications
                 .FromSqlRaw($"SELECT * FROM EsiNotifications WHERE {where}", ps)
-                .AsNoTracking().CountAsync();
+                .AsNoTracking().Select(n => n.NotificationId).Distinct().CountAsync();
             Pager.ClampToRange();
 
+            // One representative row per NotificationId (shared fields are identical across
+            // recipients); IsRead is MIN so the group reads as unread if any recipient is unread.
             var rows = Pager.TotalCount == 0
                 ? new List<CharacterNotification>()
                 : await db.EsiNotifications.FromSqlRaw(
-                        $"SELECT * FROM EsiNotifications WHERE {where} " +
+                        "SELECT MIN(CharacterId) AS CharacterId, NotificationId, Type, SenderId, " +
+                        "SenderType, Timestamp, MIN(IsRead) AS IsRead, Text FROM EsiNotifications " +
+                        $"WHERE {where} GROUP BY NotificationId " +
                         $"ORDER BY {_selectedSort.Sql} LIMIT {GridPager.PageSize} OFFSET {Pager.Offset}", ps)
                     .AsNoTracking().ToListAsync();
+
+            // All characters each page notification arrived under (respecting the character/date/etc.
+            // filters, but not the unread toggle — we want every recipient's name).
+            var pageIds = rows.Select(r => r.NotificationId).Distinct().ToList();
+            var recipients = pageIds.Count == 0
+                ? new List<(long NotificationId, long CharacterId)>()
+                : (await db.EsiNotifications.FromSqlRaw(
+                        $"SELECT * FROM EsiNotifications WHERE {baseWhere} " +
+                        $"AND NotificationId IN ({string.Join(",", pageIds)})", ps)
+                    .AsNoTracking().Select(n => new { n.NotificationId, n.CharacterId }).ToListAsync())
+                  .Select(x => (x.NotificationId, x.CharacterId)).ToList();
 #pragma warning restore EF1002
 
+            var recipientsByNotif = recipients
+                .GroupBy(x => x.NotificationId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.CharacterId).Distinct().ToList());
+
             var names = await _names.ResolveAsync(
-                rows.SelectMany(r => new[] { r.CharacterId, r.SenderId }));
+                rows.Select(r => r.SenderId).Concat(recipients.Select(x => x.CharacterId)));
 
             Rows.Clear();
-            foreach (var r in rows) Rows.Add(new NotificationRowVm(r, names));
+            foreach (var r in rows)
+            {
+                var chars = recipientsByNotif.TryGetValue(r.NotificationId, out var ids)
+                    ? string.Join(", ", ids.Select(id => names.TryGetValue(id, out var cn) && cn.Length > 0 ? cn : $"ID {id}")
+                                            .OrderBy(s => s))
+                    : "";
+                Rows.Add(new NotificationRowVm(r, chars, names));
+            }
             SelectedRow = Rows.FirstOrDefault();
             StatusText = Pager.TotalCount == 0 ? "No notifications match these filters." : "";
         }

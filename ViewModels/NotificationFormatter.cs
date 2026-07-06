@@ -30,10 +30,12 @@ public static class NotificationFormatter
         var type   = new HashSet<int>();
         var station = new HashSet<int>();
         var structure = new HashSet<long>();
-        Collect(tree, "", entity, system, type, station, structure);
+        var moon   = new HashSet<int>();
+        Collect(tree, "", entity, system, type, station, structure, moon);
 
         // Resolve.
         var entityNames = entity.Count > 0 ? await names.ResolveAsync(entity) : Empty<long>();
+        var moonNames   = moon.Count   > 0 ? await names.ResolveMoonsAsync(moon) : Empty<int>();
         Dictionary<int, string> systemNames = new(), typeNames = new(), stationNames = new();
         Dictionary<long, string> structureNames = new();
         if (system.Count + type.Count + station.Count + structure.Count > 0)
@@ -53,7 +55,7 @@ public static class NotificationFormatter
                     .ToDictionaryAsync(s => s.StructureId, s => s.Name);
         }
 
-        var maps = new Maps(entityNames, systemNames, typeNames, stationNames, structureNames);
+        var maps = new Maps(entityNames, systemNames, typeNames, stationNames, structureNames, moonNames);
         var sb = new StringBuilder();
         Render(tree, "", 0, maps, sb);
         return sb.ToString().TrimEnd();
@@ -64,7 +66,8 @@ public static class NotificationFormatter
         IReadOnlyDictionary<int, string>  System,
         IReadOnlyDictionary<int, string>  Type,
         IReadOnlyDictionary<int, string>  Station,
-        IReadOnlyDictionary<long, string> Structure);
+        IReadOnlyDictionary<long, string> Structure,
+        IReadOnlyDictionary<int, string>  Moon);
 
     private static Dictionary<T, string> Empty<T>() where T : notnull => new();
 
@@ -76,17 +79,27 @@ public static class NotificationFormatter
         if (k.EndsWith("structureid"))                              return "structure";
         if (k.EndsWith("stationid"))                                return "station";
         if (k.Contains("solarsystem") || k == "systemid" || k.EndsWith("systemid")) return "system";
-        if (k.Contains("moon") || k.Contains("planet") || k.Contains("region")
-            || k.Contains("constellation"))                         return null;   // leave as id
+        if (k.Contains("moon"))                                     return "moon";
+        if (k.Contains("planet") || k.Contains("region") || k.Contains("constellation")) return null;
         if (k.Contains("char") || k.Contains("corp") || k.Contains("alliance")
             || k.Contains("sender") || k.Contains("owner") || k.Contains("startedby")
             || k.Contains("victim") || k.Contains("aggressor") || k.Contains("declaredby")
             || k.Contains("against") || k.Contains("member") || k.Contains("pilot")
             || k.Contains("ceo") || k.Contains("director") || k.Contains("applicant")
-            || k.Contains("invoker") || k.Contains("killer") || k.Contains("creator"))
+            || k.Contains("invoker") || k.Contains("killer") || k.Contains("creator")
+            || k.Contains("creditor") || k.Contains("debtor"))
             return "entity";
         return null;
     }
+
+    // A map whose KEYS are type ids (e.g. oreVolumeByType: { 45495: <volume> }).
+    private static bool IsTypeKeyedMap(string parentKey)
+    {
+        var k = parentKey.ToLowerInvariant();
+        return k.Contains("type") || k.Contains("ore") || k.Contains("volume") || k.Contains("material");
+    }
+
+    private const long StructureRange = 100_000_000_000L;   // ≥ this ⇒ an Upwell structure / item id
 
     private static bool Skip(string key)
     {
@@ -98,7 +111,7 @@ public static class NotificationFormatter
     // ── Pass 1: collect ──────────────────────────────────────────────────────────
     private static void Collect(object? node, string key,
         HashSet<long> entity, HashSet<int> system, HashSet<int> type,
-        HashSet<int> station, HashSet<long> structure, int depth = 0)
+        HashSet<int> station, HashSet<long> structure, HashSet<int> moon, int depth = 0)
     {
         if (depth > 12 || node is null) return;
         switch (node)
@@ -107,21 +120,23 @@ public static class NotificationFormatter
                 foreach (var (k, v) in map)
                 {
                     var ks = k?.ToString() ?? "";
-                    if (!Skip(ks)) Collect(v, ks, entity, system, type, station, structure, depth + 1);
+                    if (IsTypeKeyedMap(key) && int.TryParse(ks, out var tk) && tk > 0) type.Add(tk);
+                    if (!Skip(ks)) Collect(v, ks, entity, system, type, station, structure, moon, depth + 1);
                 }
                 break;
             case IList<object> list:
                 foreach (var item in list)
-                    Collect(item, key, entity, system, type, station, structure, depth + 1);
+                    Collect(item, key, entity, system, type, station, structure, moon, depth + 1);
                 break;
             case string s when long.TryParse(s, out var id) && id > 0:
+                if (id >= StructureRange) { structure.Add(id); break; }   // structure/item range
                 switch (Category(key))
                 {
                     case "entity":    entity.Add(id); break;
-                    case "system":    if (id <= int.MaxValue) system.Add((int)id); break;
-                    case "type":      if (id <= int.MaxValue) type.Add((int)id); break;
-                    case "station":   if (id <= int.MaxValue) station.Add((int)id); break;
-                    case "structure": structure.Add(id); break;
+                    case "system":    system.Add((int)id); break;
+                    case "type":      type.Add((int)id); break;
+                    case "station":   station.Add((int)id); break;
+                    case "moon":      moon.Add((int)id); break;
                 }
                 break;
         }
@@ -138,14 +153,17 @@ public static class NotificationFormatter
                 {
                     var ks = k?.ToString() ?? "";
                     if (Skip(ks)) continue;
+                    // In a type-keyed map (e.g. oreVolumeByType) the key itself is a type id → name it.
+                    var label = IsTypeKeyedMap(key) && int.TryParse(ks, out var tk)
+                             && maps.Type.TryGetValue(tk, out var tn) ? tn : Humanize(ks);
                     if (v is IDictionary<object, object> or IList<object>)
                     {
-                        sb.Append(pad).Append(Humanize(ks)).AppendLine(":");
+                        sb.Append(pad).Append(label).AppendLine(":");
                         Render(v, ks, indent + 1, maps, sb);
                     }
                     else
                     {
-                        sb.Append(pad).Append(Humanize(ks)).Append(": ")
+                        sb.Append(pad).Append(label).Append(": ")
                           .AppendLine(Scalar(ks, v?.ToString() ?? "", maps));
                     }
                 }
@@ -176,17 +194,20 @@ public static class NotificationFormatter
 
         if (long.TryParse(value, out var id) && id > 0)
         {
+            if (id >= StructureRange && maps.Structure.TryGetValue(id, out var st) && st.Length > 0)
+                return st;
+
             switch (Category(key))
             {
                 case "entity"    when maps.Entity.TryGetValue(id, out var n) && n.Length > 0: return n;
-                case "system"    when maps.System.TryGetValue((int)id, out var n): return n;
-                case "type"      when maps.Type.TryGetValue((int)id, out var n): return n;
-                case "station"   when maps.Station.TryGetValue((int)id, out var n): return n;
-                case "structure" when maps.Structure.TryGetValue(id, out var n) && n.Length > 0: return n;
+                case "system"    when id <= int.MaxValue && maps.System.TryGetValue((int)id, out var n): return n;
+                case "type"      when id <= int.MaxValue && maps.Type.TryGetValue((int)id, out var n): return n;
+                case "station"   when id <= int.MaxValue && maps.Station.TryGetValue((int)id, out var n): return n;
+                case "moon"      when id <= int.MaxValue && maps.Moon.TryGetValue((int)id, out var n) && n.Length > 0: return n;
             }
 
             var k = key.ToLowerInvariant();
-            if (k.EndsWith("time") || k.Contains("timestamp"))
+            if (k.EndsWith("time") || k.EndsWith("date") || k.Contains("timestamp"))
             {
                 // ≥ ~1e16 ticks on a time key is an absolute EVE filetime; smaller is a duration.
                 if (id >= 100_000_000_000_000_00L)
