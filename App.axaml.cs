@@ -168,9 +168,13 @@ public class App : Application
                     "RegionId"  INTEGER NOT NULL,
                     "TypeId"    INTEGER NOT NULL,
                     "FetchedAt" TEXT    NOT NULL,
+                    "HadData"   INTEGER NOT NULL DEFAULT 1,
                     PRIMARY KEY ("RegionId", "TypeId")
                 )
                 """);
+            // HadData added later — backfill on existing DBs.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MarketHistoryFetches" ADD COLUMN "HadData" INTEGER NOT NULL DEFAULT 1"""); }
+            catch { /* column already present */ }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "PriceHistoryRegions" (

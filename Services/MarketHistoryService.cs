@@ -8,7 +8,8 @@ namespace EveCortex.Services;
 
 public class MarketHistoryService : ReactiveObject
 {
-    private static readonly TimeSpan CacheAge = TimeSpan.FromHours(24);
+    private static readonly TimeSpan CacheAge      = TimeSpan.FromHours(24);  // items that trade
+    private static readonly TimeSpan EmptyCacheAge = TimeSpan.FromDays(7);    // marketable but no history
 
     // Gap between successive ESI history fetches during a background sweep. 50 ms keeps
     // us to ~20 calls/sec — comfortably inside ESI limits even on a cold full sweep.
@@ -65,7 +66,7 @@ public class MarketHistoryService : ReactiveObject
         var regions = await db.PriceHistoryRegions.AsNoTracking()
             .Select(r => new { r.RegionId, r.RegionName }).ToListAsync(ct);
         var configRegion = await BuildConfigRegionMapAsync(db, ct);
-        var cutoff = DateTimeOffset.UtcNow - CacheAge;
+        var marketable   = await GetMarketableTypeIdsAsync(db, ct);
 
         // Drop regions no longer configured.
         foreach (var id in _statusMap.Keys.Where(k => regions.All(r => r.RegionId != k)).ToList())
@@ -74,11 +75,8 @@ public class MarketHistoryService : ReactiveObject
         foreach (var region in regions)
         {
             var cfgIds = configRegion.Where(kv => kv.Value == region.RegionId).Select(kv => kv.Key).ToList();
-            var typeIds = cfgIds.Count == 0
-                ? new List<int>()
-                : await db.MarketRawOrders.AsNoTracking()
-                    .Where(o => cfgIds.Contains(o.ConfigId)).Select(o => o.TypeId).Distinct().ToListAsync(ct);
-            var freshSet = await GetFreshTypeIdsAsync(db, region.RegionId, cutoff, ct);
+            var typeIds = await GetRegionTypeIdsAsync(db, region.RegionId, cfgIds, marketable, ct);
+            var freshSet = await GetFreshTypeIdsAsync(db, region.RegionId, ct);
             int refreshed = typeIds.Count(t => freshSet.Contains(t));
             SetStatus(region.RegionId, region.RegionName, refreshed, typeIds.Count - refreshed);
         }
@@ -164,27 +162,20 @@ public class MarketHistoryService : ReactiveObject
         }
 
         int fetched = 0;
-        var cutoff = DateTimeOffset.UtcNow - CacheAge;
-
         // Map each enabled pricing config to its region. Region configs store the region in
         // LocationId; player-structure configs resolve through the structure's solar system.
-        // We must NOT derive region from each raw order's SystemId: structure-config orders
-        // have SystemId = 0, so that join finds no types for player-structure regions.
         var configRegion = await BuildConfigRegionMapAsync(db, ct);
+        var marketable   = await GetMarketableTypeIdsAsync(db, ct);
 
-        // Build a per-region work list of stale types (those not fetched in the last 24h).
+        // Build a per-region work list of stale types — the complete marketable set (not just
+        // items with live orders), minus anything still fresh.
         var work = new List<RegionWork>();
         foreach (var region in regions)
         {
-            var cfgIds = configRegion.Where(kv => kv.Value == region.RegionId)
-                                     .Select(kv => kv.Key).ToList();
-            var typeIds = cfgIds.Count == 0
-                ? new List<int>()
-                : await db.MarketRawOrders.AsNoTracking()
-                    .Where(o => cfgIds.Contains(o.ConfigId))
-                    .Select(o => o.TypeId).Distinct().ToListAsync(ct);
-
-            var freshTypes = await GetFreshTypeIdsAsync(db, region.RegionId, cutoff, ct);
+            var cfgIds  = configRegion.Where(kv => kv.Value == region.RegionId)
+                                      .Select(kv => kv.Key).ToList();
+            var typeIds = await GetRegionTypeIdsAsync(db, region.RegionId, cfgIds, marketable, ct);
+            var freshTypes = await GetFreshTypeIdsAsync(db, region.RegionId, ct);
 
             var rw = new RegionWork(region.RegionId, region.RegionName, typeIds,
                 new Queue<int>(typeIds.Where(t => !freshTypes.Contains(t))));
@@ -226,7 +217,7 @@ public class MarketHistoryService : ReactiveObject
         // Accurate final counts from the DB (failed fetches stay queued for the next run).
         foreach (var rw in work)
         {
-            var freshNow = await GetFreshTypeIdsAsync(db, rw.RegionId, cutoff, ct);
+            var freshNow = await GetFreshTypeIdsAsync(db, rw.RegionId, ct);
             int refreshedNow = rw.TypeIds.Count(t => freshNow.Contains(t));
             SetStatus(rw.RegionId, rw.Name, refreshedNow, rw.TypeIds.Count - refreshedNow);
         }
@@ -244,18 +235,49 @@ public class MarketHistoryService : ReactiveObject
         public int        Total    => typeIds.Count;
     }
 
-    // Type IDs whose history was fetched within the freshness window for a region.
+    // Type IDs whose history is still fresh for a region: within 24h if the item trades,
+    // or within 7 days if the last fetch found no history (marketable but untraded here).
     // EF Core's SQLite provider cannot translate a DateTimeOffset comparison in a Where,
-    // so pull the region's fetch timestamps and apply the cutoff in memory.
+    // so pull the region's fetch records and apply the cutoff in memory.
     private static async Task<HashSet<int>> GetFreshTypeIdsAsync(
-        AppDbContext db, int regionId, DateTimeOffset cutoff, CancellationToken ct)
+        AppDbContext db, int regionId, CancellationToken ct)
     {
+        var now = DateTimeOffset.UtcNow;
         var rows = await db.MarketHistoryFetches.AsNoTracking()
             .Where(f => f.RegionId == regionId)
-            .Select(f => new { f.TypeId, f.FetchedAt })
+            .Select(f => new { f.TypeId, f.FetchedAt, f.HadData })
             .ToListAsync(ct);
-        return rows.Where(f => f.FetchedAt >= cutoff).Select(f => f.TypeId).ToHashSet();
+        return rows
+            .Where(f => now - f.FetchedAt < (f.HadData ? CacheAge : EmptyCacheAge))
+            .Select(f => f.TypeId)
+            .ToHashSet();
     }
+
+    // The complete set of types worth history for a region: every marketable item (published
+    // with a market group) PLUS anything with live orders or already-stored history there.
+    // This is deliberately NOT limited to items with current orders — an item may have no
+    // orders today yet have traded in the past, and we want a complete market view.
+    private static async Task<List<int>> GetRegionTypeIdsAsync(
+        AppDbContext db, int regionId, List<int> cfgIds, HashSet<int> marketable, CancellationToken ct)
+    {
+        var set = new HashSet<int>(marketable);
+
+        if (cfgIds.Count > 0)
+            set.UnionWith(await db.MarketRawOrders.AsNoTracking()
+                .Where(o => cfgIds.Contains(o.ConfigId)).Select(o => o.TypeId).Distinct().ToListAsync(ct));
+
+        set.UnionWith(await db.MarketTypeHistories.AsNoTracking()
+            .Where(h => h.RegionId == regionId).Select(h => h.TypeId).Distinct().ToListAsync(ct));
+
+        return set.ToList();
+    }
+
+    // Marketable universe: published items sold on the market (have a market group).
+    private static async Task<HashSet<int>> GetMarketableTypeIdsAsync(AppDbContext db, CancellationToken ct)
+        => (await db.SdeTypes.AsNoTracking()
+                .Where(t => t.Published && t.MarketGroupId != null)
+                .Select(t => t.TypeId).ToListAsync(ct))
+            .ToHashSet();
 
     // Resolves each enabled market pricing config to a region id.
     private static async Task<Dictionary<int, int>> BuildConfigRegionMapAsync(AppDbContext db, CancellationToken ct)
@@ -301,7 +323,8 @@ public class MarketHistoryService : ReactiveObject
 
         var fetch = await db.MarketHistoryFetches.FindAsync([regionId, typeId], ct);
 
-        if (fetch is not null && DateTimeOffset.UtcNow - fetch.FetchedAt < CacheAge)
+        if (fetch is not null &&
+            DateTimeOffset.UtcNow - fetch.FetchedAt < (fetch.HadData ? CacheAge : EmptyCacheAge))
             return false; // already fresh
 
         var entries = await _esi.GetMarketHistoryAsync(regionId, typeId, ct);
@@ -351,6 +374,9 @@ public class MarketHistoryService : ReactiveObject
             db.MarketHistoryFetches.Add(fetch);
         }
         fetch.FetchedAt = DateTimeOffset.UtcNow;
+        // Items that returned no history (marketable but untraded here) are re-checked on the
+        // longer EmptyCacheAge instead of every 24h, to bound wasted empty fetches.
+        fetch.HadData   = entries.Count > 0;
 
         await db.SaveChangesAsync(ct);
         return true;
