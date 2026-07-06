@@ -177,40 +177,56 @@ public class ContractsService : ReactiveObject
     {
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
-        // Distinct contracts still needing items (item-bearing types only). Group by ContractId
-        // so a contract seen by multiple owners is fetched once; prefer an authed owner.
+        // Character & corp contracts still needing items (item-bearing types). Public contract
+        // items are NOT auto-pulled — there are tens of thousands; those are fetched on demand.
         var pending = (await db.EsiContracts.AsNoTracking()
-                .Where(c => !c.ItemsPulled)
-                .Select(c => new { c.ContractId, c.OwnerId, c.OwnerType, c.Type })
+                .Where(c => !c.ItemsPulled && c.OwnerType != "public")
+                .Select(c => new { c.ContractId, c.OwnerId, c.OwnerType, c.Type, c.IssuerCorporationId, c.Status })
                 .ToListAsync(ct))
             .Where(c => ItemBearingTypes.Contains(c.Type))
             .GroupBy(c => c.ContractId)
-            .Select(g => g.OrderBy(c => c.OwnerType switch { "character" => 0, "corporation" => 1, _ => 2 }).First())
             .ToList();
 
-        int done = 0;
-        foreach (var c in pending)
+        int done = 0, skipped = 0;
+        foreach (var group in pending)
         {
             if (ct.IsCancellationRequested) break;
+
+            // Pick an owner row we can actually fetch items from. ESI only serves corp contract
+            // items for contracts the corp ISSUED (or finished ones) — calling for contracts
+            // issued by another corp just 404s and burns the ESI error limit.
+            var src = group.FirstOrDefault(c =>
+                c.OwnerType == "character" ||
+                (c.OwnerType == "corporation" &&
+                 (c.IssuerCorporationId == (int)c.OwnerId || c.Status.StartsWith("finished"))));
+
+            if (src is null)
+            {
+                // Not fetchable via any owner (e.g. outstanding, issued by another corp) — mark
+                // done so we don't reconsider it (and don't 404) every sweep.
+                await db.EsiContracts.Where(x => x.ContractId == group.Key && !x.ItemsPulled)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.ItemsPulled, true), ct);
+                skipped++;
+                continue;
+            }
 
             while (_esi.IsErrorLimitBlocked && !ct.IsCancellationRequested)
             { try { await Task.Delay(3000, ct); } catch (OperationCanceledException) { break; } }
             if (ct.IsCancellationRequested) break;
 
-            bool ok = await FetchAndStoreItemsAsync(db, c.ContractId, c.OwnerId, c.OwnerType, ct);
-            if (ok)
+            if (await FetchAndStoreItemsAsync(db, group.Key, src.OwnerId, src.OwnerType, ct))
             {
                 // Mark every owner row for this contract as pulled.
-                await db.EsiContracts.Where(x => x.ContractId == c.ContractId && !x.ItemsPulled)
+                await db.EsiContracts.Where(x => x.ContractId == group.Key && !x.ItemsPulled)
                     .ExecuteUpdateAsync(s => s.SetProperty(x => x.ItemsPulled, true), ct);
                 done++;
             }
 
-            if ((done & 31) == 0)
-                StatusText = $"Contracts: pulled items for {done:N0} contracts…";
+            if (((done + skipped) & 31) == 0)
+                StatusText = $"Contracts: items {done:N0} pulled, {skipped:N0} skipped…";
             try { await Task.Delay(CallDelayMs, ct); } catch (OperationCanceledException) { break; }
         }
-        StatusText = $"Contracts: item pull complete ({done:N0}) — {DateTimeOffset.Now:t}";
+        StatusText = $"Contracts: item pass done ({done:N0} pulled, {skipped:N0} skipped) — {DateTimeOffset.Now:t}";
     }
 
     // Fetches a contract's items via the right endpoint and stores them (dedup by RecordId).
@@ -222,9 +238,8 @@ public class ContractsService : ReactiveObject
         if (await db.EsiContractItems.AnyAsync(i => i.ContractId == contractId, ct))
             return true;
 
-        var name = $"contract {contractId}";
-        using var handle = _log.StartCall(name, $"{ownerType}.contract.items");
-
+        // NOTE: individual item calls are intentionally NOT logged to the API activity log —
+        // there can be thousands, which would flood it. Genuine failures go to the error log.
         List<ContractItem>? items = null;
         int status = 0;
         string? error = null;
@@ -261,12 +276,13 @@ public class ContractsService : ReactiveObject
                 }).ToList();
         }
 
-        handle.Complete(items is not null, status, error);
-
         if (items is null)
         {
             // 403/404 (gone / no access) → treat as "handled" so we stop retrying it.
-            // Other failures → retry next sweep.
+            // Other failures → log and retry next sweep.
+            if (status is not (403 or 404))
+                _errorLogger.Log("ContractsService",
+                    $"items contract={contractId} owner={ownerType}", $"HTTP {status}: {error}");
             return status is 403 or 404;
         }
 
