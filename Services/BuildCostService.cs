@@ -385,6 +385,23 @@ public class BuildCostService
         var t2TypeIds      = metaGroupTypes.Where(t => t.MetaGroupId == 2).Select(t => t.TypeId).ToHashSet();
         var factionTypeIds = metaGroupTypes.Where(t => t.MetaGroupId == 4).Select(t => t.TypeId).ToHashSet();
 
+        // BPO-sourced blueprints: the blueprint type is buyable on the market (has a market group)
+        // OR is invented from a source blueprint that is buyable (T2 from a T1 BPO). Anything else
+        // is a BPC that must be bought from contracts — mirrors the Industry Opportunities filter.
+        var bpTypeIdList = allProducts.Select(p => p.TypeId).Distinct().ToList();
+        var marketBlueprints = (await db.SdeTypes.AsNoTracking()
+            .Where(t => bpTypeIdList.Contains(t.TypeId) && t.MarketGroupId != null)
+            .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
+        var inventionRows = await db.SdeBlueprintProducts.AsNoTracking()
+            .Where(p => p.Activity == "invention")
+            .Select(p => new { p.TypeId, p.ProductTypeId })
+            .ToListAsync(ct);
+        var inventedFromMarket = inventionRows
+            .Where(r => marketBlueprints.Contains(r.TypeId))
+            .Select(r => r.ProductTypeId).ToHashSet();
+        bool BlueprintIsBpoSourced(int bpTypeId) =>
+            marketBlueprints.Contains(bpTypeId) || inventedFromMarket.Contains(bpTypeId);
+
         // Load all blueprint materials (manufacturing + reaction).
         var allMaterials = await db.SdeBlueprintMaterials.AsNoTracking()
             .Where(m => m.Activity == "manufacturing" || m.Activity == "reaction")
@@ -548,6 +565,14 @@ public class BuildCostService
                 double adjPrice = adjustedPrices.TryGetValue(mat.MaterialTypeId, out var ap) ? ap : 0;
                 eivRun          += mat.Quantity * adjPrice; // EIV always uses base (ME0) quantities
             }
+
+            // Non-BPO items consume a blueprint copy bought from contracts. Treat the BPC as one
+            // more purchased input per run, valued at its contract-derived market value (set on
+            // blueprint types by MarketPricingService). EIV/job cost is unaffected — a BPC has no
+            // adjusted price and does not enter the job-fee base.
+            if (!isReaction && !BlueprintIsBpoSourced(bpTypeId)
+                && marketPrices.TryGetValue(bpTypeId, out var bpcPrice) && bpcPrice > 0)
+                rawMatRun += bpcPrice;
 
             // Job cost using the formula from the in-game breakdown.
             string activity   = isReaction ? "reaction" : "manufacturing";

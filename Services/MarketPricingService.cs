@@ -592,6 +592,64 @@ public class MarketPricingService
               AND MarketItemPrices.FromMarketData = 0
               AND MarketItemPrices.SellPrice     != c.EffSell
             """, ct);
+
+        // Step 4 — give BPCs (blueprint types) a market value from contracts. Blueprint copies
+        // aren't sold on the regular market, so faction/limited-run blueprints otherwise have no
+        // price at all. Real (buyable) BPOs carry FromMarketData = 1 rows and are left untouched.
+        await FillBpcContractPricesAsync(configId, db, fetched, ct);
+    }
+
+    // Sets the market value of blueprint types (SDE category 9) to their contract-derived price,
+    // so a BPC can be treated as a normal purchased input by the build-cost / production-calc code.
+    private static async Task FillBpcContractPricesAsync(
+        int configId, AppDbContext db, DateTimeOffset fetched, CancellationToken ct)
+    {
+        var eff = new Dictionary<int, double>();
+        foreach (var cp in await db.ContractPrices.AsNoTracking().ToListAsync(ct))
+        {
+            var e = ContractPricing.EffectivePrice(cp);
+            if (e is > 0) eff[cp.TypeId] = (double)e.Value;
+        }
+        if (eff.Count == 0) return;
+
+        var ids = eff.Keys.ToList();
+        var bpTypeIds = await db.SdeTypes.AsNoTracking()
+            .Where(t => ids.Contains(t.TypeId))
+            .Join(db.SdeGroups.AsNoTracking(), t => t.GroupId, g => g.GroupId,
+                  (t, g) => new { t.TypeId, g.CategoryId })
+            .Where(x => x.CategoryId == 9)   // Blueprint category
+            .Select(x => x.TypeId)
+            .ToListAsync(ct);
+        if (bpTypeIds.Count == 0) return;
+
+        var existing = await db.MarketItemPrices
+            .Where(p => p.ConfigId == configId && bpTypeIds.Contains(p.TypeId))
+            .ToListAsync(ct);
+        var existingIds = existing.Select(p => p.TypeId).ToHashSet();
+
+        // Refresh non-market blueprint rows (gap-filled / prior contract value) to the current
+        // contract price; never overwrite a real buyable-BPO market row (FromMarketData = 1).
+        foreach (var p in existing)
+        {
+            if (p.FromMarketData) continue;
+            var v = eff[p.TypeId];
+            p.BuyPrice = v; p.SellPrice = v; p.Midpoint = v; p.FetchedAt = fetched;
+        }
+
+        // Insert rows for contract-priced blueprint types the published-types gap fill skipped
+        // (e.g. unpublished faction blueprints).
+        foreach (var tid in bpTypeIds.Where(t => !existingIds.Contains(t)))
+        {
+            var v = eff[tid];
+            db.MarketItemPrices.Add(new MarketItemPrice
+            {
+                ConfigId = configId, TypeId = tid,
+                BuyPrice = v, SellPrice = v, Midpoint = v,
+                FetchedAt = fetched, FromMarketData = false,
+            });
+        }
+
+        await db.SaveChangesAsync(ct);
     }
 
     // ── Fuzzwork JSON DTOs ────────────────────────────────────────────────────

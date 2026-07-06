@@ -49,6 +49,19 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             .GroupBy(m => m.TypeId)
             .ToDictionary(g => g.Key, g => g.ToList());
 
+        // BPO-sourced blueprints: buyable on the market, or invented from a buyable source
+        // blueprint. Anything else is a BPC bought from contracts and added as an input material.
+        var marketBlueprints = (await db.SdeTypes.AsNoTracking()
+            .Where(t => bpTypeIds.Contains(t.TypeId) && t.MarketGroupId != null)
+            .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
+        var inventedFromMarket = (await db.SdeBlueprintProducts.AsNoTracking()
+                .Where(p => p.Activity == "invention")
+                .Select(p => new { p.TypeId, p.ProductTypeId }).ToListAsync(ct))
+            .Where(r => marketBlueprints.Contains(r.TypeId))
+            .Select(r => r.ProductTypeId).ToHashSet();
+        bool BlueprintIsBpoSourced(int bpTypeId) =>
+            marketBlueprints.Contains(bpTypeId) || inventedFromMarket.Contains(bpTypeId);
+
         // ── Type names and group/category info ─────────────────────────────
         var typeNames = await db.SdeTypes.AsNoTracking()
             .Select(t => new { t.TypeId, t.Name })
@@ -342,6 +355,12 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                             existingMat.TotalQty += effPerRun * extraRuns;
                         ExpandItem(mat.MaterialTypeId, effPerRun * extraRuns, false);
                     }
+                    // Non-BPO: one bought BPC per run — bump its input quantity too.
+                    if (!isReaction && !BlueprintIsBpoSourced(bpProd.TypeId))
+                    {
+                        var bpcMat = existing.Materials.FirstOrDefault(m => m.MaterialTypeId == bpProd.TypeId);
+                        if (bpcMat is not null) bpcMat.TotalQty += extraRuns;
+                    }
                 }
             }
             else
@@ -380,6 +399,21 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                         FormulaDisplay = $"ceil({basePerRun:N0} × {meFactor:F4}) = ceil({raw:N2}) → {effPerRun:N0}",
                     });
                     ExpandItem(mat.MaterialTypeId, effPerRun * runs, false);
+                }
+                // Non-BPO items: add the blueprint copy as a bought input material (one per run),
+                // valued at its contract-derived market value. A BPC is bought, never expanded.
+                if (!isReaction && !BlueprintIsBpoSourced(bpProd.TypeId))
+                {
+                    job.Materials.Add(new PlanJobMaterial
+                    {
+                        MaterialTypeId = bpProd.TypeId,
+                        TypeName       = typeNames.GetValueOrDefault(bpProd.TypeId, $"Type {bpProd.TypeId}") + " (BPC)",
+                        BaseQtyPerRun  = 1,
+                        EffQtyPerRun   = 1,
+                        TotalQty       = runs,
+                        IsBought       = true,
+                        FormulaDisplay = "1 BPC per run (contract price)",
+                    });
                 }
                 jobPool[typeId] = job;
             }
