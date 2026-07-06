@@ -236,6 +236,10 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             int sysId = (int)group.LocationId.Value;
             var ids = new HashSet<long>();
 
+            // The system id itself — items floating in space (or in a ship's cargo in
+            // space) root to the solar system, not a station/structure.
+            ids.Add(sysId);
+
             ids.UnionWith(await db.SdeStations
                 .Where(s => s.SolarSystemId == sysId)
                 .Select(s => (long)s.StationId)
@@ -260,6 +264,11 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 .ToListAsync(ct);
 
             var ids = new HashSet<long>();
+
+            // The systems themselves — items in space (or in ships in space) root to the
+            // solar system rather than a station/structure.
+            ids.UnionWith(sysIds.Select(s => (long)s));
+
             ids.UnionWith(await db.SdeStations
                 .Where(s => sysIds.Contains(s.SolarSystemId))
                 .Select(s => (long)s.StationId)
@@ -293,21 +302,49 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             foreach (var t in totals) assets[t.TypeId] = t.Total;
         }
 
-        // Industry Jobs — active manufacturing (ActivityId = 1)
+        // Industry Jobs — active manufacturing (1) and reactions (9, plus legacy 11).
+        // Count the UNITS that will be produced = Runs × output-per-run, so the total is
+        // consistent with asset quantities. Reactions and multi-output blueprints (e.g.
+        // capital components, ammo) produce many units per run, so counting runs alone
+        // undercounts — and reactions were previously excluded entirely.
         if (group.IncludeIndustryJobs)
         {
             var q = db.EsiIndustryJobs
-                .Where(j => j.ActivityId == 1
+                .Where(j => (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11)
                          && j.Status == "active"
                          && j.ProductTypeId.HasValue
                          && typeIds.Contains(j.ProductTypeId!.Value));
+            // Scope by FacilityId (the structure the job runs in), NOT OutputLocationId —
+            // the latter is the delivery hangar/container sub-location, which does not
+            // resolve to a structure and would drop every job from location-scoped groups.
             if (stationFilter != null)
-                q = q.Where(j => stationFilter.Contains(j.OutputLocationId));
+                q = q.Where(j => stationFilter.Contains(j.FacilityId));
 
-            var totals = await q.GroupBy(j => j.ProductTypeId!.Value)
-                .Select(g => new { TypeId = g.Key, Total = g.Sum(j => (long)j.Runs) })
+            var activeJobs = await q
+                .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value, j.Runs })
                 .ToListAsync(ct);
-            foreach (var t in totals) jobs[t.TypeId] = t.Total;
+
+            if (activeJobs.Count > 0)
+            {
+                // Output units per run, keyed by (blueprint, product). Use the job's own
+                // blueprint so the count matches exactly what that job will deliver.
+                var bpIds = activeJobs.Select(j => j.BlueprintTypeId).Distinct().ToList();
+                var qtyMap = (await db.SdeBlueprintProducts.AsNoTracking()
+                        .Where(p => bpIds.Contains(p.TypeId)
+                                 && (p.Activity == "manufacturing" || p.Activity == "reaction"))
+                        .Select(p => new { p.TypeId, p.ProductTypeId, p.Quantity })
+                        .ToListAsync(ct))
+                    .GroupBy(p => (p.TypeId, p.ProductTypeId))
+                    .ToDictionary(g => g.Key, g => g.First().Quantity);
+
+                foreach (var j in activeJobs)
+                {
+                    long perRun = qtyMap.TryGetValue((j.BlueprintTypeId, j.ProductTypeId), out var qy)
+                        ? Math.Max(1, qy) : 1;
+                    long units = (long)j.Runs * perRun;
+                    jobs[j.ProductTypeId] = jobs.TryGetValue(j.ProductTypeId, out var cur) ? cur + units : units;
+                }
+            }
         }
 
         // Market Buy Orders — active, not historical
@@ -346,20 +383,52 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             .Select(t => new { t.TypeId, t.Name, t.Volume })
             .ToListAsync(ct);
 
-        var prices = await db.EsiAdjustedPrices
-            .Where(p => ids.Contains(p.TypeId))
-            .ToDictionaryAsync(p => p.TypeId, p => p.AveragePrice, ct);
-
         var buildCosts = await db.BuildCosts
             .Where(b => ids.Contains(b.TypeId))
             .ToDictionaryAsync(b => b.TypeId, b => (double)b.TotalCost, ct);
+
+        // Market value follows the configured Default Pricing (Asset Value) source, which
+        // already gap-fills missing prices with build cost × markup. Fall back to that same
+        // build-cost markup in code, then to the ESI average, so the column is never blank
+        // just because ESI has no average price for an item (e.g. low-volume faction hulls).
+        var defaults    = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(ct);
+        int?   cfgId    = defaults?.AssetValueConfigId;
+        string priceKind = defaults?.AssetValuePriceType ?? MarketPriceType.Sell;
+        double markup   = 1.0 + (double)(defaults?.MissingPriceMarkupPct ?? 0) / 100.0;
+
+        var configPrices = new Dictionary<int, double>();
+        if (cfgId.HasValue)
+        {
+            var rows = await db.MarketItemPrices.AsNoTracking()
+                .Where(p => ids.Contains(p.TypeId) && p.ConfigId == cfgId.Value)
+                .ToListAsync(ct);
+            foreach (var p in rows)
+                configPrices[p.TypeId] = priceKind switch
+                {
+                    MarketPriceType.Buy      => p.BuyPrice,
+                    MarketPriceType.Midpoint => p.Midpoint,
+                    _                        => p.SellPrice,
+                };
+        }
+
+        var avgPrices = await db.EsiAdjustedPrices
+            .Where(p => ids.Contains(p.TypeId))
+            .ToDictionaryAsync(p => p.TypeId, p => p.AveragePrice, ct);
+
+        double? MarketValue(int typeId)
+        {
+            if (configPrices.TryGetValue(typeId, out var cp) && cp > 0) return cp;
+            if (buildCosts.TryGetValue(typeId, out var bc) && bc > 0)   return bc * markup;
+            if (avgPrices.TryGetValue(typeId, out var ap) && ap > 0)    return ap;
+            return null;
+        }
 
         return types.ToDictionary(
             t => t.TypeId,
             t => new InvTypeMeta(
                 t.Name,
                 t.Volume,
-                prices.TryGetValue(t.TypeId, out var p) && p > 0 ? p : null,
+                MarketValue(t.TypeId),
                 buildCosts.TryGetValue(t.TypeId, out var bc) && bc > 0 ? bc : null));
     }
 

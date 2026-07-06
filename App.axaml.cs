@@ -47,6 +47,7 @@ public class App : Application
 
         EsiPollingService?    polling       = null;
         MarketPricingService? marketPricing = null;
+        MarketHistoryService? marketHistory = null;
         MainWindow?           mainWindow    = null;
         SplashWindow?         splash        = null;
 
@@ -58,6 +59,7 @@ public class App : Application
 
             polling       = Services.GetRequiredService<EsiPollingService>();
             marketPricing = Services.GetRequiredService<MarketPricingService>();
+            marketHistory = Services.GetRequiredService<MarketHistoryService>();
 
             var buildCostService = Services.GetRequiredService<BuildCostService>();
             var reprService      = Services.GetRequiredService<ReprocessingValueService>();
@@ -71,6 +73,7 @@ public class App : Application
                 var tasks = new List<Task>();
                 if (polling       is not null) tasks.Add(polling.StopAsync());
                 if (marketPricing is not null) tasks.Add(marketPricing.StopAsync());
+                if (marketHistory is not null) tasks.Add(marketHistory.StopAsync());
                 await Task.WhenAll(tasks);
                 desktop.Shutdown();
             };
@@ -165,9 +168,13 @@ public class App : Application
                     "RegionId"  INTEGER NOT NULL,
                     "TypeId"    INTEGER NOT NULL,
                     "FetchedAt" TEXT    NOT NULL,
+                    "HadData"   INTEGER NOT NULL DEFAULT 1,
                     PRIMARY KEY ("RegionId", "TypeId")
                 )
                 """);
+            // HadData added later — backfill on existing DBs.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MarketHistoryFetches" ADD COLUMN "HadData" INTEGER NOT NULL DEFAULT 1"""); }
+            catch { /* column already present */ }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "PriceHistoryRegions" (
@@ -752,6 +759,14 @@ public class App : Application
                 """);
 
             db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "EsiStructureNameFailures" (
+                    "StructureId" INTEGER NOT NULL PRIMARY KEY,
+                    "FailedAt"    TEXT    NOT NULL DEFAULT '2000-01-01T00:00:00+00:00',
+                    "StatusCode"  INTEGER NOT NULL DEFAULT 0
+                )
+                """);
+
+            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiCorpStarbases" (
                     "CorporationId"   INTEGER NOT NULL,
                     "StarbaseId"      INTEGER NOT NULL,
@@ -1032,9 +1047,14 @@ public class App : Application
                     "TotalCost"    REAL    NOT NULL DEFAULT 0,
                     "MaterialCost" REAL    NOT NULL DEFAULT 0,
                     "JobCost"      REAL    NOT NULL DEFAULT 0,
+                    "BuildSeconds" REAL    NOT NULL DEFAULT 0,
                     "UpdatedAt"    TEXT    NOT NULL DEFAULT ''
                 )
                 """);
+            // BuildSeconds added after the schema squash — backfill it on existing DBs.
+            // ALTER throws if the column already exists, so swallow that one case.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "BuildCosts" ADD COLUMN "BuildSeconds" REAL NOT NULL DEFAULT 0"""); }
+            catch { /* column already present */ }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "ReprocessingValues" (
@@ -1098,6 +1118,17 @@ public class App : Application
             // Special Edition Assets (1659), Apparel (1396), Skills (150), Trade Goods (19).
             db.Database.ExecuteSqlRaw("""
                 INSERT OR IGNORE INTO "TradeOpportunitiesSettings" ("Id", "ExcludedMarketGroupIds") VALUES (1, '2,1954,1659,1396,150,19')
+                """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "IndustryOpportunitiesSettings" (
+                    "Id"                     INTEGER NOT NULL PRIMARY KEY,
+                    "ExcludedMarketGroupIds" TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            // No default exclusions for Industry Opportunities.
+            db.Database.ExecuteSqlRaw("""
+                INSERT OR IGNORE INTO "IndustryOpportunitiesSettings" ("Id", "ExcludedMarketGroupIds") VALUES (1, '')
                 """);
 
             db.Database.ExecuteSqlRaw("""
@@ -1244,6 +1275,7 @@ public class App : Application
         // Start background services
         polling?.Start();
         marketPricing?.Start();
+        marketHistory?.Start();
         Services.GetRequiredService<DatabaseBackupService>().Start();
     }
 
@@ -1309,6 +1341,7 @@ public class App : Application
         services.AddSingleton<EsiPollingService>();
         services.AddSingleton<NetWorthService>();
         services.AddSingleton<MarketPricingService>();
+        services.AddSingleton<MarketHistoryService>();
         services.AddSingleton<BuildCostService>();
         services.AddSingleton<ReprocessingValueService>();
         services.AddSingleton<ProductionCalculatorService>();

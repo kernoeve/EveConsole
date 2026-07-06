@@ -27,8 +27,11 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         // ── Load blueprint index ────────────────────────────────────────────
+        // Published blueprints only — some products also have an unpublished "Test
+        // Reaction Blueprint" with a tiny output quantity that would inflate materials.
         var bpProducts = await db.SdeBlueprintProducts.AsNoTracking()
-            .Where(p => p.Activity == MfgActivity || p.Activity == RxnActivity)
+            .Where(p => (p.Activity == MfgActivity || p.Activity == RxnActivity)
+                     && db.SdeTypes.Any(t => t.TypeId == p.TypeId && t.Published))
             .ToListAsync(ct);
 
         var blueprintByProduct = bpProducts
@@ -614,8 +617,11 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // No park: simple recursive expansion with ME only
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
+        // Published blueprints only (avoids junk unpublished duplicates — which would also
+        // throw here on the ToDictionary duplicate key).
         var bpProducts = await db.SdeBlueprintProducts.AsNoTracking()
-            .Where(p => p.Activity == MfgActivity)
+            .Where(p => p.Activity == MfgActivity
+                     && db.SdeTypes.Any(t => t.TypeId == p.TypeId && t.Published))
             .ToListAsync(ct);
         var byProduct = bpProducts.ToDictionary(p => p.ProductTypeId);
 

@@ -26,6 +26,7 @@ public class MainWindowViewModel : ReactiveObject
     public ItemBrowserViewModel           ItemBrowserVm          { get; }
     public NetWorthViewModel              NetWorthVm             { get; }
     public TradeOpportunitiesViewModel    TradeOpportunitiesVm   { get; }
+    public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
     public WalletViewModel                WalletVm               { get; }
@@ -114,6 +115,7 @@ public class MainWindowViewModel : ReactiveObject
             "indy_parks" => ("Indy Parks",      IndyParksVm,              true),
             "prod_calc"  => ("Production Calc", ProductionCalcVm,         true),
             "trade"           => ("Trade",           TradeOpportunitiesVm,     true),
+            "industry_opps"   => ("Industry Opps",   IndustryOpportunitiesVm,  true),
             "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
             "inv_levels"      => ("Inv. Levels",     InvLevelVm,               true),
             "net_worth"  => ("Net Worth",       NetWorthVm,               true),
@@ -199,13 +201,14 @@ public class MainWindowViewModel : ReactiveObject
         NewsService                     newsService,
         AppPreferencesService           appPrefs,
         DatabaseBackupService           dbBackup,
-        CorpTop10ExcludeService         corpTop10Exclude)
+        CorpTop10ExcludeService         corpTop10Exclude,
+        MarketHistoryService            historyService)
     {
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
-        ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings);
+        ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService);
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
@@ -242,7 +245,6 @@ public class MainWindowViewModel : ReactiveObject
         _pollingService   = pollingService;
         _buildCostService = buildCostService;
 
-        var historyService     = new MarketHistoryService(dbFactory, esi, errorLogger);
         PriceHistorySettingsVm = new PriceHistorySettingsViewModel(dbFactory.CreateDbContext());
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
         CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);
@@ -267,6 +269,7 @@ public class MainWindowViewModel : ReactiveObject
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
         IndustryBrowserVm    = new IndustryBrowserViewModel(connString);
         TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
+        IndustryOpportunitiesVm = new IndustryOpportunitiesViewModel(connString, historyService, batchAddService);
 
         agentService.Initialize(connString);
         TtsService         = ttsService;
@@ -304,19 +307,20 @@ public class MainWindowViewModel : ReactiveObject
             ]),
             new("Assets",
             [
-                new NavItem("assets", "Assets"),
-                new NavItem("items",  "Item Browser"),
+                new NavItem("assets",     "Assets"),
+                new NavItem("items",      "Item Browser"),
+                new NavItem("inv_levels", "Inventory Levels"),
             ]),
             new("Industry",
             [
-                new NavItem("industry",   "Industry Jobs"),
-                new NavItem("indy_parks", "Indy Parks"),
-                new NavItem("prod_calc",  "Production Calc"),
+                new NavItem("industry",      "Industry Jobs"),
+                new NavItem("indy_parks",    "Indy Parks"),
+                new NavItem("prod_calc",     "Production Calc"),
+                new NavItem("industry_opps", "Industry Opportunities"),
             ]),
             new("Market / Trade",
             [
                 new NavItem("market_levels", "Market Levels"),
-                new NavItem("inv_levels",    "Inventory Levels"),
                 new NavItem("trade",         "Trade Opportunities"),
             ]),
             new("Finance",

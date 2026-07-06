@@ -93,6 +93,9 @@ public class MarketHistoryFetch
     public int            RegionId  { get; set; }
     public int            TypeId    { get; set; }
     public DateTimeOffset FetchedAt { get; set; }
+    // Whether the last fetch returned any history. Items that returned nothing (marketable
+    // but never traded in this region) are re-checked far less often to bound wasted calls.
+    public bool           HadData   { get; set; } = true;
 }
 
 public class PriceHistoryRegion
