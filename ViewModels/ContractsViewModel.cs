@@ -347,10 +347,11 @@ public class ContractNameResolver
 
             // 3. ESI for the remainder (int64-capable). universe/names returns 404 for the WHOLE
             // batch if any single id is invalid (a deleted entity), so a naive batch of 1000 blanks
-            // everyone when one id is bad. Resolve with binary-split fallback: on a 404, split and
-            // recurse to isolate the bad id(s); a genuinely-invalid id (isolated to size 1) is cached
-            // with an empty name so it isn't re-fetched. Transient failures (420/5xx/network) skip the
-            // chunk without blacklisting, to be retried on a later load.
+            // everyone when one id is bad. universe/names rejects such a batch with 400 (or 404 on
+            // older gateways). Resolve with binary-split fallback: on 400/404, split and recurse to
+            // isolate the bad id(s); a genuinely-invalid id (isolated to size 1) is cached with an
+            // empty name so it isn't re-fetched. Transient failures (420/5xx/network) skip the chunk
+            // without blacklisting, to be retried on a later load.
             var fetch = need.Where(id => !_names.ContainsKey(id)).Distinct().ToList();
             var resolved = new List<UniverseName>();
 
@@ -363,6 +364,12 @@ public class ContractNameResolver
                         await ResolveChunkAsync(chunk.Skip(i).Take(1000).ToList());
                     return;
                 }
+
+                // Splitting bad-id batches generates 400s that count against ESI's shared error
+                // limit — back off rather than push over it (bounded: the limit resets ~60s).
+                for (int waited = 0; _esi.IsErrorLimitBlocked && waited < 40; waited++)
+                    try { await Task.Delay(2000); } catch { return; }
+
                 try
                 {
                     foreach (var n in await _esi.GetNamesAsync(chunk))
@@ -372,11 +379,13 @@ public class ContractNameResolver
                     }
                 }
                 catch (System.Net.Http.HttpRequestException ex)
-                    when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    when (ex.StatusCode is System.Net.HttpStatusCode.NotFound
+                                        or System.Net.HttpStatusCode.BadRequest)
                 {
                     if (chunk.Count == 1)
                     {
-                        // Definitively invalid id — cache empty so we stop retrying it.
+                        // Definitively invalid id (deleted character etc.) — cache empty so we
+                        // stop retrying it this session and in future ones.
                         _names[chunk[0]] = "";
                         resolved.Add(new UniverseName { EntityId = chunk[0], Name = "", Category = "_unresolved" });
                         return;
