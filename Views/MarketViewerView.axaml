@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveCortex.Views.MarketViewerView"
              x:DataType="vm:MarketViewerViewModel"
              Background="#0d0d12">
@@ -22,6 +23,38 @@
       <Setter Property="FontSize" Value="11" /><Setter Property="Foreground" Value="#555566" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+    <Style Selector="Border.kpi">
+      <Setter Property="Background" Value="#131320" />
+      <Setter Property="BorderBrush" Value="#252535" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="14 8" />
+      <Setter Property="Margin" Value="4 3" />
+      <Setter Property="MinWidth" Value="150" />
+    </Style>
+    <Style Selector="Border.kpi TextBlock.k">
+      <Setter Property="FontSize" Value="9" /><Setter Property="Foreground" Value="#888899" />
+      <Setter Property="FontWeight" Value="SemiBold" /><Setter Property="LetterSpacing" Value="1" />
+    </Style>
+    <Style Selector="Border.kpi TextBlock.v">
+      <Setter Property="FontSize" Value="20" /><Setter Property="Foreground" Value="#ccccdd" />
+      <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+    <Style Selector="Border.chartcard">
+      <Setter Property="Background" Value="#0d0d12" />
+      <Setter Property="BorderBrush" Value="#1e1e2a" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="Padding" Value="10 8" />
+    </Style>
+    <Style Selector="Border.chartcard TextBlock.title">
+      <Setter Property="FontSize" Value="11" /><Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#555566" />
+    </Style>
+    <Style Selector="TextBlock.nodata">
+      <Setter Property="FontSize" Value="11" /><Setter Property="Foreground" Value="#444455" />
+      <Setter Property="HorizontalAlignment" Value="Center" /><Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
   </UserControl.Styles>
 
   <Grid>
@@ -29,23 +62,71 @@
 
       <!-- ══ Summary ═════════════════════════════════════════════════════════ -->
       <TabItem Header="Summary">
-        <DataGrid ItemsSource="{Binding SummaryRows}"
-                  AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
-                  CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
-                  Background="#0d0d12">
-          <DataGrid.Columns>
-            <DataGridTextColumn Header="Region"           Binding="{Binding Region}"     Width="180" />
-            <DataGridTextColumn Header="Sell Order Count" Binding="{Binding SellCount}"  SortMemberPath="SellCountRaw"  Width="120" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sell Order ISK"   Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="120" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sell Order Types" Binding="{Binding SellTypes}"  SortMemberPath="SellTypesRaw"  Width="120" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy Order Count"  Binding="{Binding BuyCount}"   SortMemberPath="BuyCountRaw"   Width="120" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy Order ISK"    Binding="{Binding BuyIsk}"     SortMemberPath="BuyIskRaw"     Width="120" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy Order Types"  Binding="{Binding BuyTypes}"   SortMemberPath="BuyTypesRaw"   Width="120" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sales Units" Binding="{Binding SalesUnits}" SortMemberPath="SalesUnitsRaw" Width="110" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sales ISK"   Binding="{Binding SalesIsk}"   SortMemberPath="SalesIskRaw"   Width="110" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sales Types" Binding="{Binding SalesTypes}" SortMemberPath="SalesTypesRaw" Width="100" CellStyleClasses="num" />
-          </DataGrid.Columns>
-        </DataGrid>
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Spacing="10" Margin="10 10 10 12">
+
+            <!-- KPI boxes for the selected region (or all regions) -->
+            <WrapPanel Orientation="Horizontal">
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="SELL ORDER COUNT" /><TextBlock Classes="v" Text="{Binding KpiSellCount}" /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="SELL ORDER ISK"   /><TextBlock Classes="v" Text="{Binding KpiSellIsk}"   /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="SELL ORDER TYPES" /><TextBlock Classes="v" Text="{Binding KpiSellTypes}" /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="BUY ORDER COUNT"  /><TextBlock Classes="v" Text="{Binding KpiBuyCount}"  /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="BUY ORDER ISK"    /><TextBlock Classes="v" Text="{Binding KpiBuyIsk}"    /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="BUY ORDER TYPES"  /><TextBlock Classes="v" Text="{Binding KpiBuyTypes}"  /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="SALES UNITS"      /><TextBlock Classes="v" Text="{Binding KpiSalesUnits}" /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="SALES ISK"        /><TextBlock Classes="v" Text="{Binding KpiSalesIsk}"   /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="SALES TYPES"      /><TextBlock Classes="v" Text="{Binding KpiSalesTypes}" /></StackPanel></Border>
+            </WrapPanel>
+
+            <!-- Pie charts -->
+            <Grid ColumnDefinitions="*,10,*,10,*" Height="240">
+              <Border Grid.Column="0" Classes="chartcard">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="title" Text="Buy Orders by Corporation" />
+                  <lvc:PieChart IsVisible="{Binding HasBuyCorp}" Series="{Binding BuyCorpSeries}"
+                                LegendPosition="Right" LegendTextSize="10" Background="Transparent" Height="190" />
+                  <TextBlock Classes="nodata" IsVisible="{Binding !HasBuyCorp}" Margin="0 60"
+                             Text="No buy orders for this selection." />
+                </StackPanel>
+              </Border>
+              <Border Grid.Column="2" Classes="chartcard">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="title" Text="Sell Orders by Corporation" />
+                  <lvc:PieChart IsVisible="{Binding HasSellCorp}" Series="{Binding SellCorpSeries}"
+                                LegendPosition="Right" LegendTextSize="10" Background="Transparent" Height="190" />
+                  <TextBlock Classes="nodata" IsVisible="{Binding !HasSellCorp}" Margin="0 60"
+                             Text="No sell orders for this selection." />
+                </StackPanel>
+              </Border>
+              <Border Grid.Column="4" Classes="chartcard">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="title" Text="Sales by Market Group" />
+                  <lvc:PieChart IsVisible="{Binding HasSalesGroup}" Series="{Binding SalesGroupSeries}"
+                                LegendPosition="Right" LegendTextSize="10" Background="Transparent" Height="190" />
+                  <TextBlock Classes="nodata" IsVisible="{Binding !HasSalesGroup}" Margin="0 60"
+                             Text="No sales for this selection." />
+                </StackPanel>
+              </Border>
+            </Grid>
+
+            <!-- Daily sales ISK -->
+            <Border Classes="chartcard" Height="260">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="title" Text="Daily Sales ISK" />
+                <Grid Height="220">
+                  <lvc:CartesianChart IsVisible="{Binding HasSalesLine}"
+                                      Series="{Binding SalesLineSeries}"
+                                      XAxes="{Binding SalesXAxes}" YAxes="{Binding SalesYAxes}"
+                                      LegendPosition="Hidden" TooltipPosition="Top"
+                                      EasingFunction="{x:Null}" Background="Transparent" />
+                  <TextBlock Classes="nodata" IsVisible="{Binding !HasSalesLine}"
+                             Text="No sales history for this selection." />
+                </Grid>
+              </StackPanel>
+            </Border>
+
+          </StackPanel>
+        </ScrollViewer>
       </TabItem>
 
       <!-- ══ By Market Group ═════════════════════════════════════════════════ -->

@@ -2,8 +2,15 @@ using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using EveCortex.Data;
 using EveCortex.Services;
+using LiveChartsCore;
+using LiveChartsCore.Defaults;
+using LiveChartsCore.Kernel;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
+using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using SkiaSharp;
 
 namespace EveCortex.ViewModels;
 
@@ -35,38 +42,6 @@ public class MarketRegionOption
     public int?   RegionId { get; }   // null = all regions
     public MarketRegionOption(string label, int? regionId) { Label = label; RegionId = regionId; }
     public override string ToString() => Label;
-}
-
-// One region row on the Summary tab.
-public class MarketRegionSummaryVm
-{
-    public string Region { get; }
-    public string SellCount { get; }  public long   SellCountRaw { get; }
-    public string SellIsk   { get; }  public double SellIskRaw   { get; }
-    public string SellTypes { get; }  public long   SellTypesRaw { get; }
-    public string BuyCount  { get; }  public long   BuyCountRaw  { get; }
-    public string BuyIsk    { get; }  public double BuyIskRaw    { get; }
-    public string BuyTypes  { get; }  public long   BuyTypesRaw  { get; }
-    public string SalesUnits { get; } public double SalesUnitsRaw { get; }
-    public string SalesIsk   { get; } public double SalesIskRaw   { get; }
-    public string SalesTypes { get; } public long   SalesTypesRaw { get; }
-
-    public MarketRegionSummaryVm(string region,
-        long sellCount, double sellIsk, long sellTypes,
-        long buyCount, double buyIsk, long buyTypes,
-        double salesUnits, double salesIsk, long salesTypes)
-    {
-        Region        = region;
-        SellCountRaw  = sellCount;  SellCount  = sellCount.ToString("N0");
-        SellIskRaw    = sellIsk;    SellIsk    = MarketFmt.Isk(sellIsk);
-        SellTypesRaw  = sellTypes;  SellTypes  = sellTypes.ToString("N0");
-        BuyCountRaw   = buyCount;   BuyCount   = buyCount.ToString("N0");
-        BuyIskRaw     = buyIsk;     BuyIsk     = MarketFmt.Isk(buyIsk);
-        BuyTypesRaw   = buyTypes;   BuyTypes   = buyTypes.ToString("N0");
-        SalesUnitsRaw = salesUnits; SalesUnits = MarketFmt.Num(salesUnits);
-        SalesIskRaw   = salesIsk;   SalesIsk   = MarketFmt.Isk(salesIsk);
-        SalesTypesRaw = salesTypes; SalesTypes = salesTypes.ToString("N0");
-    }
 }
 
 // One type row on the By Type tab.
@@ -143,9 +118,77 @@ public class MarketViewerViewModel : ReactiveObject
         "SELECT g.MarketGroupId, t.TopId, t.TopName FROM SdeMarketGroups g " +
         "JOIN mg_top t ON g.ParentGroupId = t.MarketGroupId) ";
 
-    public ObservableCollection<MarketRegionSummaryVm> SummaryRows { get; } = new();
-    public ObservableCollection<MarketGroupSummaryVm>  GroupRows   { get; } = new();
-    public ObservableCollection<MarketTypeSummaryVm>   TypeRows    { get; } = new();
+    // Palette for pie slices (last entry — grey — is reserved for the "Other" bucket).
+    private static readonly SKColor[] PiePalette =
+    [
+        new(0xc8, 0xa8, 0x4b), new(0x5b, 0x9b, 0xd5), new(0x70, 0xad, 0x47), new(0xed, 0x7d, 0x31),
+        new(0xa8, 0x79, 0xd8), new(0x17, 0xbe, 0xcf), new(0xe7, 0x4c, 0x3c), new(0xf1, 0xc4, 0x0f),
+        new(0x2e, 0xcc, 0x71), new(0xe8, 0x4d, 0x8a),
+    ];
+    private static readonly SKColor OtherColor = new(0x55, 0x55, 0x66);
+
+    public ObservableCollection<MarketGroupSummaryVm> GroupRows { get; } = new();
+    public ObservableCollection<MarketTypeSummaryVm>  TypeRows  { get; } = new();
+
+    // ── Summary KPI boxes (selected region, or all regions) ───────────────────────
+    private string _kpiSellCount = "—", _kpiSellIsk = "—", _kpiSellTypes = "—";
+    private string _kpiBuyCount  = "—", _kpiBuyIsk  = "—", _kpiBuyTypes  = "—";
+    private string _kpiSalesUnits = "—", _kpiSalesIsk = "—", _kpiSalesTypes = "—";
+    public string KpiSellCount  { get => _kpiSellCount;  private set => this.RaiseAndSetIfChanged(ref _kpiSellCount,  value); }
+    public string KpiSellIsk    { get => _kpiSellIsk;    private set => this.RaiseAndSetIfChanged(ref _kpiSellIsk,    value); }
+    public string KpiSellTypes  { get => _kpiSellTypes;  private set => this.RaiseAndSetIfChanged(ref _kpiSellTypes,  value); }
+    public string KpiBuyCount   { get => _kpiBuyCount;   private set => this.RaiseAndSetIfChanged(ref _kpiBuyCount,   value); }
+    public string KpiBuyIsk     { get => _kpiBuyIsk;     private set => this.RaiseAndSetIfChanged(ref _kpiBuyIsk,     value); }
+    public string KpiBuyTypes   { get => _kpiBuyTypes;   private set => this.RaiseAndSetIfChanged(ref _kpiBuyTypes,   value); }
+    public string KpiSalesUnits { get => _kpiSalesUnits; private set => this.RaiseAndSetIfChanged(ref _kpiSalesUnits, value); }
+    public string KpiSalesIsk   { get => _kpiSalesIsk;   private set => this.RaiseAndSetIfChanged(ref _kpiSalesIsk,   value); }
+    public string KpiSalesTypes { get => _kpiSalesTypes; private set => this.RaiseAndSetIfChanged(ref _kpiSalesTypes, value); }
+
+    // ── Summary pie charts ────────────────────────────────────────────────────────
+    private ISeries[] _buyCorpSeries = [], _sellCorpSeries = [], _salesGroupSeries = [];
+    public ISeries[] BuyCorpSeries    { get => _buyCorpSeries;    private set => this.RaiseAndSetIfChanged(ref _buyCorpSeries,    value); }
+    public ISeries[] SellCorpSeries   { get => _sellCorpSeries;   private set => this.RaiseAndSetIfChanged(ref _sellCorpSeries,   value); }
+    public ISeries[] SalesGroupSeries { get => _salesGroupSeries; private set => this.RaiseAndSetIfChanged(ref _salesGroupSeries, value); }
+
+    private bool _hasBuyCorp, _hasSellCorp, _hasSalesGroup;
+    public bool HasBuyCorp    { get => _hasBuyCorp;    private set => this.RaiseAndSetIfChanged(ref _hasBuyCorp,    value); }
+    public bool HasSellCorp   { get => _hasSellCorp;   private set => this.RaiseAndSetIfChanged(ref _hasSellCorp,   value); }
+    public bool HasSalesGroup { get => _hasSalesGroup; private set => this.RaiseAndSetIfChanged(ref _hasSalesGroup, value); }
+
+    // ── Summary daily sales line ──────────────────────────────────────────────────
+    private ISeries[] _salesLineSeries = [];
+    public ISeries[] SalesLineSeries { get => _salesLineSeries; private set => this.RaiseAndSetIfChanged(ref _salesLineSeries, value); }
+    private bool _hasSalesLine;
+    public bool HasSalesLine { get => _hasSalesLine; private set => this.RaiseAndSetIfChanged(ref _hasSalesLine, value); }
+
+    public Axis[] SalesXAxes { get; } =
+    [
+        new Axis
+        {
+            Labeler = value =>
+            {
+                var ticks = (long)value;
+                return ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks
+                    ? "" : new DateTime(ticks).ToString("MMM d");
+            },
+            UnitWidth       = TimeSpan.FromDays(1).Ticks,
+            MinStep         = TimeSpan.FromDays(1).Ticks,
+            TextSize        = 11,
+            LabelsPaint     = new SolidColorPaint(new SKColor(0x88, 0x88, 0x99)),
+            SeparatorsPaint = new SolidColorPaint(new SKColor(0x1e, 0x1e, 0x2e)),
+        }
+    ];
+    public Axis[] SalesYAxes { get; } =
+    [
+        new Axis
+        {
+            Labeler         = MarketFmt.Num,
+            TextSize        = 11,
+            MinLimit        = 0,
+            LabelsPaint     = new SolidColorPaint(new SKColor(0x88, 0x88, 0x99)),
+            SeparatorsPaint = new SolidColorPaint(new SKColor(0x1e, 0x1e, 0x2e)),
+        }
+    ];
 
     public IReadOnlyList<MarketPeriodOption> Periods { get; } =
     [
@@ -167,7 +210,7 @@ public class MarketViewerViewModel : ReactiveObject
     public MarketRegionOption? SelectedRegion
     {
         get => _selectedRegion;
-        set { this.RaiseAndSetIfChanged(ref _selectedRegion, value); if (SelectedTab != 0) _ = LoadActiveAsync(); }
+        set { this.RaiseAndSetIfChanged(ref _selectedRegion, value); _ = LoadActiveAsync(); }
     }
 
     // 0 = Summary, 1 = By Market Group, 2 = By Type
@@ -239,7 +282,7 @@ public class MarketViewerViewModel : ReactiveObject
         }
     }
 
-    // ── Summary (one row per region; always all regions) ──────────────────────────
+    // ── Summary (KPI boxes + pies + daily line for the selected region, or all) ────
     private async Task LoadSummaryAsync()
     {
         if (!_initialized || IsLoading) return;
@@ -248,46 +291,102 @@ public class MarketViewerViewModel : ReactiveObject
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
+            int? region = _selectedRegion?.RegionId;
+            var  cutoff = Cutoff();
 
-            var orders = await db.Database.SqlQueryRaw<RegionOrderAgg>(
-                $"""
-                 SELECT {RegionExpr} AS RegionId,
-                        SUM(CASE WHEN o.IsBuyOrder = 0 THEN 1 ELSE 0 END)                        AS SellCount,
-                        SUM(CASE WHEN o.IsBuyOrder = 0 THEN o.Price * o.VolumeRemain ELSE 0 END) AS SellIsk,
-                        COUNT(DISTINCT CASE WHEN o.IsBuyOrder = 0 THEN o.TypeId END)             AS SellTypes,
-                        SUM(CASE WHEN o.IsBuyOrder = 1 THEN 1 ELSE 0 END)                        AS BuyCount,
-                        SUM(CASE WHEN o.IsBuyOrder = 1 THEN o.Price * o.VolumeRemain ELSE 0 END) AS BuyIsk,
-                        COUNT(DISTINCT CASE WHEN o.IsBuyOrder = 1 THEN o.TypeId END)             AS BuyTypes
-                 {OrdersFrom}
-                 WHERE {RegionExpr} IS NOT NULL
-                 GROUP BY {RegionExpr}
-                 """).ToListAsync();
+            // Order KPIs — current open orders (not period-dependent).
+            var orderWhere = region is int r1 ? $"WHERE {RegionExpr} = {r1}" : $"WHERE {RegionExpr} IS NOT NULL";
+            var o = (await db.Database.SqlQueryRaw<KpiOrderAgg>(
+                "SELECT " +
+                "SUM(CASE WHEN o.IsBuyOrder = 0 THEN 1 ELSE 0 END)                        AS SellCount, " +
+                "SUM(CASE WHEN o.IsBuyOrder = 0 THEN o.Price * o.VolumeRemain ELSE 0 END) AS SellIsk, " +
+                "COUNT(DISTINCT CASE WHEN o.IsBuyOrder = 0 THEN o.TypeId END)             AS SellTypes, " +
+                "SUM(CASE WHEN o.IsBuyOrder = 1 THEN 1 ELSE 0 END)                        AS BuyCount, " +
+                "SUM(CASE WHEN o.IsBuyOrder = 1 THEN o.Price * o.VolumeRemain ELSE 0 END) AS BuyIsk, " +
+                "COUNT(DISTINCT CASE WHEN o.IsBuyOrder = 1 THEN o.TypeId END)             AS BuyTypes " +
+                OrdersFrom + " " + orderWhere).ToListAsync()).FirstOrDefault() ?? new KpiOrderAgg();
 
-            var cutoff = Cutoff();
-            var sales = await db.Database.SqlQueryRaw<RegionSalesAgg>(
-                "SELECT RegionId AS RegionId, SUM(Volume) AS Units, SUM(Volume * Average) AS Isk, " +
-                "COUNT(DISTINCT CASE WHEN Volume > 0 THEN TypeId END) AS Types FROM MarketTypeHistories " +
-                (cutoff is null ? "" : $"WHERE Date >= '{cutoff}' ") + "GROUP BY RegionId").ToListAsync();
+            // Sales KPIs — driven by the selected period.
+            var saleConds = new List<string>();
+            if (region is int r2)      saleConds.Add($"RegionId = {r2}");
+            if (cutoff is not null)     saleConds.Add($"Date >= '{cutoff}'");
+            var saleWhere = saleConds.Count > 0 ? "WHERE " + string.Join(" AND ", saleConds) + " " : "";
+            var s = (await db.Database.SqlQueryRaw<KpiSalesAgg>(
+                "SELECT SUM(Volume) AS Units, SUM(Volume * Average) AS Isk, " +
+                "COUNT(DISTINCT CASE WHEN Volume > 0 THEN TypeId END) AS Types " +
+                "FROM MarketTypeHistories " + saleWhere).ToListAsync()).FirstOrDefault() ?? new KpiSalesAgg();
 
-            var regionIds = orders.Select(o => o.RegionId).Concat(sales.Select(s => s.RegionId)).Distinct().ToList();
-            var regionNames = await db.SdeRegions.AsNoTracking().Where(r => regionIds.Contains(r.RegionId))
-                .ToDictionaryAsync(r => r.RegionId, r => r.Name);
-            var oByR = orders.ToDictionary(o => o.RegionId);
-            var sByR = sales.ToDictionary(s => s.RegionId);
+            KpiSellCount  = o.SellCount.ToString("N0");
+            KpiSellIsk    = MarketFmt.Isk(o.SellIsk);
+            KpiSellTypes  = o.SellTypes.ToString("N0");
+            KpiBuyCount   = o.BuyCount.ToString("N0");
+            KpiBuyIsk     = MarketFmt.Isk(o.BuyIsk);
+            KpiBuyTypes   = o.BuyTypes.ToString("N0");
+            KpiSalesUnits = MarketFmt.Num(s.Units);
+            KpiSalesIsk   = MarketFmt.Isk(s.Isk);
+            KpiSalesTypes = s.Types.ToString("N0");
 
-            var rows = regionIds.Select(rid =>
-            {
-                oByR.TryGetValue(rid, out var o); sByR.TryGetValue(rid, out var s);
-                return new MarketRegionSummaryVm(
-                    regionNames.TryGetValue(rid, out var n) ? n : $"Region {rid}",
-                    o?.SellCount ?? 0, o?.SellIsk ?? 0, o?.SellTypes ?? 0,
-                    o?.BuyCount ?? 0, o?.BuyIsk ?? 0, o?.BuyTypes ?? 0,
-                    s?.Units ?? 0, s?.Isk ?? 0, s?.Types ?? 0);
-            }).OrderByDescending(r => r.SalesIskRaw).ToList();
+            // Buy/Sell orders by corporation — from owner-attributed orders (resolve corp from
+            // the owning character where needed); current open orders, selected region.
+            var corpWhere = region is int r3 ? $"WHERE eo.IsHistory = 0 AND eo.RegionId = {r3}" : "WHERE eo.IsHistory = 0";
+            var corps = await db.Database.SqlQueryRaw<CorpAgg>(
+                "SELECT (CASE WHEN eo.OwnerType = 'corporation' THEN eo.OwnerId ELSE c.CorporationId END) AS CorpId, " +
+                "co.Name AS CorpName, eo.IsBuyOrder AS IsBuyOrder, " +
+                "SUM(CAST(eo.Price AS REAL) * eo.VolumeRemain) AS Isk " +
+                "FROM EsiMarketOrders eo " +
+                "LEFT JOIN Characters c ON eo.OwnerType = 'character' AND c.Id = eo.OwnerId " +
+                "LEFT JOIN Corporations co ON co.Id = (CASE WHEN eo.OwnerType = 'corporation' THEN eo.OwnerId ELSE c.CorporationId END) " +
+                corpWhere + " GROUP BY CorpId, eo.IsBuyOrder").ToListAsync();
 
-            SummaryRows.Clear();
-            foreach (var r in rows) SummaryRows.Add(r);
-            StatusText = rows.Count == 0 ? "No market data yet." : $"{rows.Count:N0} region(s)";
+            static string CorpLabel(CorpAgg a) => string.IsNullOrWhiteSpace(a.CorpName) ? $"Corp {a.CorpId}" : a.CorpName!;
+            var buy  = corps.Where(a => a.IsBuyOrder == 1).Select(a => (CorpLabel(a), a.Isk));
+            var sell = corps.Where(a => a.IsBuyOrder == 0).Select(a => (CorpLabel(a), a.Isk));
+            BuyCorpSeries  = BuildPie(buy);   HasBuyCorp  = BuyCorpSeries.Length  > 0;
+            SellCorpSeries = BuildPie(sell);  HasSellCorp = SellCorpSeries.Length > 0;
+
+            // Sales by top-level market group — selected region and period.
+            var groups = await db.Database.SqlQueryRaw<GroupSalesFlat>(
+                MgTopCte +
+                "SELECT mt.TopName AS Name, SUM(h.Volume * h.Average) AS Isk " +
+                "FROM MarketTypeHistories h " +
+                "JOIN SdeTypes ty ON ty.TypeId = h.TypeId " +
+                "JOIN mg_top mt ON mt.MarketGroupId = ty.MarketGroupId " +
+                (region is int r4 || cutoff is not null
+                    ? "WHERE " + string.Join(" AND ",
+                        new[] { region is int r5 ? $"h.RegionId = {r5}" : null, cutoff is not null ? $"h.Date >= '{cutoff}'" : null }
+                        .Where(x => x is not null)) + " "
+                    : "") +
+                "GROUP BY mt.TopId").ToListAsync();
+            SalesGroupSeries = BuildPie(groups.Select(g => (g.Name, g.Isk)));
+            HasSalesGroup    = SalesGroupSeries.Length > 0;
+
+            // Daily sales ISK across the period.
+            var days = await db.Database.SqlQueryRaw<DayIsk>(
+                "SELECT Date AS Date, SUM(Volume * Average) AS Isk FROM MarketTypeHistories " +
+                saleWhere + "GROUP BY Date ORDER BY Date").ToListAsync();
+            var points = days
+                .Select(d => new DateTimePoint(DateTime.ParseExact(d.Date, "yyyy-MM-dd", null), d.Isk))
+                .ToArray();
+            SalesLineSeries = points.Length == 0 ? [] :
+            [
+                new LineSeries<DateTimePoint>
+                {
+                    Name                   = "Sales ISK",
+                    Values                 = points,
+                    Stroke                 = new SolidColorPaint(new SKColor(0xc8, 0xa8, 0x4b)) { StrokeThickness = 1.5f },
+                    Fill                   = null,
+                    GeometryFill           = new SolidColorPaint(new SKColor(0xc8, 0xa8, 0x4b)),
+                    GeometryStroke         = null,
+                    GeometrySize           = 4,
+                    LineSmoothness         = 0.3,
+                    YToolTipLabelFormatter = (ChartPoint<DateTimePoint, CircleGeometry, LabelGeometry> p)
+                        => $"{MarketFmt.Isk(p.Coordinate.PrimaryValue)} ISK",
+                }
+            ];
+            HasSalesLine = points.Length > 0;
+
+            var regionLabel = _selectedRegion?.RegionId is null ? "all regions" : _selectedRegion!.Label;
+            StatusText = $"{regionLabel} · {_selectedPeriod.Label}";
         }
         catch (Exception ex)
         {
@@ -295,6 +394,34 @@ public class MarketViewerViewModel : ReactiveObject
             StatusText = "Error loading summary.";
         }
         finally { IsLoading = false; }
+    }
+
+    // Top 10 items by value; the remainder collapses into a single "Other" slice.
+    private static ISeries[] BuildPie(IEnumerable<(string Label, double Value)> items)
+    {
+        var ordered = items.Where(i => i.Value > 0).OrderByDescending(i => i.Value).ToList();
+        var slices  = ordered.Take(10).ToList();
+        var rest    = ordered.Skip(10).Sum(i => i.Value);
+        if (rest > 0) slices.Add(("Other", rest));
+
+        var series = new List<ISeries>(slices.Count);
+        for (var i = 0; i < slices.Count; i++)
+        {
+            var (label, value) = slices[i];
+            var color = label == "Other" ? OtherColor : PiePalette[i % PiePalette.Length];
+            series.Add(new PieSeries<double>
+            {
+                Name                  = label,
+                Values                = [value],
+                Fill                  = new SolidColorPaint(color),
+                Stroke                = null,
+                DataLabelsPaint       = null,
+                AnimationsSpeed       = TimeSpan.Zero,
+                EasingFunction        = null,
+                ToolTipLabelFormatter = cp => $"{label}: {MarketFmt.Isk(cp.Coordinate.PrimaryValue)}",
+            });
+        }
+        return [.. series];
     }
 
     // ── By Market Group (one row per top-level market group; selected region or all) ──
@@ -426,15 +553,27 @@ public class MarketViewerViewModel : ReactiveObject
         finally { IsLoading = false; }
     }
 
-    private sealed class RegionOrderAgg
+    private sealed class KpiOrderAgg
     {
-        public int RegionId { get; set; }
         public long SellCount { get; set; } public double SellIsk { get; set; } public long SellTypes { get; set; }
         public long BuyCount  { get; set; } public double BuyIsk  { get; set; } public long BuyTypes  { get; set; }
     }
-    private sealed class RegionSalesAgg
+    private sealed class KpiSalesAgg
     {
-        public int RegionId { get; set; } public double Units { get; set; } public double Isk { get; set; } public long Types { get; set; }
+        public double Units { get; set; } public double Isk { get; set; } public long Types { get; set; }
+    }
+    private sealed class CorpAgg
+    {
+        public long CorpId { get; set; } public string? CorpName { get; set; }
+        public long IsBuyOrder { get; set; } public double Isk { get; set; }
+    }
+    private sealed class GroupSalesFlat
+    {
+        public string Name { get; set; } = ""; public double Isk { get; set; }
+    }
+    private sealed class DayIsk
+    {
+        public string Date { get; set; } = ""; public double Isk { get; set; }
     }
     private sealed class GroupOrderAgg
     {
