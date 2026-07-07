@@ -17,6 +17,7 @@ public class SaleRowVm
     public string WhenText { get; }
     public string Kind      { get; }   // "Market" or "Contract"
     public string OwnerType { get; }   // "character" or "corporation" (for filtering)
+    public long   OwnerId   { get; }
     public bool   OwnerIsPersonal { get; }
     public string Owner    { get; }
     public string Location { get; }
@@ -29,7 +30,7 @@ public class SaleRowVm
     public string Profit    { get; } public double ProfitRaw    { get; }
     public string ProfitPct { get; } public double ProfitPctRaw { get; }
 
-    public SaleRowVm(DateTimeOffset when, string kind, string ownerType, bool ownerIsPersonal,
+    public SaleRowVm(DateTimeOffset when, string kind, string ownerType, long ownerId, bool ownerIsPersonal,
         string owner, string location, string buyer,
         string items, string units, double total, double? build, double? market)
     {
@@ -38,6 +39,7 @@ public class SaleRowVm
         WhenText = when.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
         Kind      = kind;
         OwnerType = ownerType;
+        OwnerId   = ownerId;
         OwnerIsPersonal = ownerIsPersonal;
         Owner    = owner;
         Location = location;
@@ -58,9 +60,11 @@ public class SaleRowVm
     }
 }
 
-public enum OwnerScope { All, AllCharacters, PersonalCorps }
-public record SalesOwnerOption(string Label, OwnerScope Scope) { public override string ToString() => Label; }
-public record SalesTypeOption(string Label, string? Kind)      { public override string ToString() => Label; }
+public enum OwnerScope { All, AllCharacters, PersonalCorps, Specific }
+public record SalesOwnerOption(string Label, OwnerScope Scope, long OwnerId = 0, string OwnerType = "")
+{ public override string ToString() => Label; }
+public record SalesTypeOption(string Label, string? Kind)
+{ public override string ToString() => Label; }
 
 // Sales Tracker — lists market sales (wallet transactions) and contract sales (item_exchange
 // contracts sold for ISK), with build/market value pulled from TypePriceSnapshots (nearest day).
@@ -75,7 +79,7 @@ public class SalesTrackerViewModel : ReactiveObject
     public ObservableCollection<SaleRowVm> Rows { get; } = new();
 
     // ── Filters ───────────────────────────────────────────────────────────────
-    public IReadOnlyList<SalesOwnerOption> OwnerOptions { get; } =
+    public ObservableCollection<SalesOwnerOption> OwnerOptions { get; } =
     [
         new("All",            OwnerScope.All),
         new("All Characters", OwnerScope.AllCharacters),
@@ -101,7 +105,7 @@ public class SalesTrackerViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _selectedType, value ?? SaleTypeOptions[0]); ApplyFilters(); }
     }
 
-    private string _dateFrom = "";
+    private string _dateFrom;
     public string DateFrom { get => _dateFrom; set { this.RaiseAndSetIfChanged(ref _dateFrom, value); ApplyFilters(); } }
     private string _dateThru = "";
     public string DateThru { get => _dateThru; set { this.RaiseAndSetIfChanged(ref _dateThru, value); ApplyFilters(); } }
@@ -118,8 +122,9 @@ public class SalesTrackerViewModel : ReactiveObject
         _dbFactory   = dbFactory;
         _errorLogger = errorLogger;
         _names       = names;
-        _selectedOwner = OwnerOptions[2];    // Personal Corps
-        _selectedType  = SaleTypeOptions[0]; // All types
+        _selectedOwner = OwnerOptions[2];                                  // Personal Corps
+        _selectedType  = SaleTypeOptions[0];                               // All types
+        _dateFrom      = DateTime.UtcNow.AddDays(-90).ToString("yyyy-MM-dd"); // last 90 days
 
         Observable.Interval(TimeSpan.FromMinutes(5))
             .ObserveOn(RxApp.MainThreadScheduler)
@@ -136,6 +141,7 @@ public class SalesTrackerViewModel : ReactiveObject
         {
             OwnerScope.AllCharacters => q.Where(r => r.OwnerType == "character"),
             OwnerScope.PersonalCorps => q.Where(r => r.OwnerType == "corporation" && r.OwnerIsPersonal),
+            OwnerScope.Specific      => q.Where(r => r.OwnerType == _selectedOwner.OwnerType && r.OwnerId == _selectedOwner.OwnerId),
             _                        => q,
         };
 
@@ -158,28 +164,17 @@ public class SalesTrackerViewModel : ReactiveObject
         date = default; return false;
     }
 
-    // Snapshot lookup grabs the nearest day we have on hand (not just on/before the sale) so gaps
-    // in the price history — inevitable when the app isn't running — still resolve to something.
-    private const string BuildAsOf =
-        "(SELECT s.\"BuildCost\"   FROM \"TypePriceSnapshots\" s WHERE s.\"TypeId\" = {0} " +
-        "  ORDER BY ABS(julianday(s.\"Date\") - julianday(substr({1}, 1, 10))) LIMIT 1)";
-    private const string MarketAsOf =
-        "(SELECT s.\"MarketValue\" FROM \"TypePriceSnapshots\" s WHERE s.\"TypeId\" = {0} " +
-        "  ORDER BY ABS(julianday(s.\"Date\") - julianday(substr({1}, 1, 10))) LIMIT 1)";
-
     // Market sales: one row per sell transaction. Location = station/structure; buyer = the client.
-    private static readonly string MarketSql =
-        $"""
-         SELECT t."TransactionId" AS SaleId, t."OwnerId" AS OwnerId, t."OwnerType" AS OwnerType,
-                t."Date" AS DateStr, t."TypeId" AS TypeId, t."Quantity" AS Quantity,
-                CAST(t."UnitPrice" AS REAL) AS UnitPrice, t."ClientId" AS BuyerId,
-                COALESCE((SELECT "Name" FROM "SdeStations"      WHERE "StationId"   = t."LocationId"),
-                         (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = t."LocationId")) AS Location,
-                {string.Format(BuildAsOf,  "t.\"TypeId\"", "t.\"Date\"")} AS BuildUnit,
-                {string.Format(MarketAsOf, "t.\"TypeId\"", "t.\"Date\"")} AS MarketUnit
-         FROM "EsiWalletTransactions" t
-         WHERE t."IsBuy" = 0
-         """;
+    private const string MarketSql =
+        """
+        SELECT t."TransactionId" AS SaleId, t."OwnerId" AS OwnerId, t."OwnerType" AS OwnerType,
+               t."Date" AS DateStr, t."TypeId" AS TypeId, t."Quantity" AS Quantity,
+               CAST(t."UnitPrice" AS REAL) AS UnitPrice, t."ClientId" AS BuyerId,
+               COALESCE((SELECT "Name" FROM "SdeStations"       WHERE "StationId"   = t."LocationId"),
+                        (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = t."LocationId")) AS Location
+        FROM "EsiWalletTransactions" t
+        WHERE t."IsBuy" = 0
+        """;
 
     // Contract sales: item-exchange contracts finished for ISK, issued BY the tracked owner (so an
     // accepted purchase is excluded). Buyer = the acceptor; location = the items' location.
@@ -187,7 +182,7 @@ public class SalesTrackerViewModel : ReactiveObject
         """
         SELECT c."ContractId" AS SaleId, c."OwnerId" AS OwnerId, c."OwnerType" AS OwnerType,
                c."DateCompleted" AS DateStr, CAST(c."Price" AS REAL) AS Price, COALESCE(c."AcceptorId", 0) AS BuyerId,
-               COALESCE((SELECT "Name" FROM "SdeStations"      WHERE "StationId"   = c."StartLocationId"),
+               COALESCE((SELECT "Name" FROM "SdeStations"       WHERE "StationId"   = c."StartLocationId"),
                         (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = c."StartLocationId")) AS Location
         FROM "EsiContracts" c
         WHERE c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS REAL) > 0
@@ -195,18 +190,16 @@ public class SalesTrackerViewModel : ReactiveObject
              OR (c."OwnerType" = 'corporation' AND c."IssuerCorporationId" = c."OwnerId") )
         """;
 
-    private static readonly string ContractItemSql =
-        $"""
-         SELECT ci."ContractId" AS ContractId, ci."TypeId" AS TypeId, ci."Quantity" AS Quantity,
-                {string.Format(BuildAsOf,  "ci.\"TypeId\"", "c.\"DateCompleted\"")} AS BuildUnit,
-                {string.Format(MarketAsOf, "ci.\"TypeId\"", "c.\"DateCompleted\"")} AS MarketUnit
-         FROM "EsiContractItems" ci
-         JOIN "EsiContracts" c ON c."ContractId" = ci."ContractId"
-         WHERE ci."IsIncluded" = 1
-           AND c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS REAL) > 0
-           AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = 0)
-              OR (c."OwnerType" = 'corporation' AND c."IssuerCorporationId" = c."OwnerId") )
-         """;
+    private const string ContractItemSql =
+        """
+        SELECT ci."ContractId" AS ContractId, ci."TypeId" AS TypeId, ci."Quantity" AS Quantity
+        FROM "EsiContractItems" ci
+        JOIN "EsiContracts" c ON c."ContractId" = ci."ContractId"
+        WHERE ci."IsIncluded" = 1
+          AND c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS REAL) > 0
+          AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = 0)
+             OR (c."OwnerType" = 'corporation' AND c."IssuerCorporationId" = c."OwnerId") )
+        """;
 
     private async Task LoadAsync()
     {
@@ -227,22 +220,42 @@ public class SalesTrackerViewModel : ReactiveObject
             var typeNames = await db.SdeTypes.AsNoTracking().Where(t => typeIds.Contains(t.TypeId))
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name);
 
-            var charIds = market.Where(m => m.OwnerType == "character").Select(m => m.OwnerId)
-                .Concat(contracts.Where(c => c.OwnerType == "character").Select(c => c.OwnerId)).Distinct().ToList();
-            var corpIds = market.Where(m => m.OwnerType == "corporation").Select(m => m.OwnerId)
-                .Concat(contracts.Where(c => c.OwnerType == "corporation").Select(c => c.OwnerId)).Distinct().ToList();
-            var charNames = await db.Characters.AsNoTracking().Where(c => charIds.Contains(c.Id))
-                .ToDictionaryAsync(c => (long)c.Id, c => c.Name);
-            var corps = await db.Corporations.AsNoTracking().Where(c => corpIds.Contains(c.Id))
-                .Select(c => new { c.Id, c.Name, c.IsPersonal }).ToListAsync();
-            var corpNames    = corps.ToDictionary(c => (long)c.Id, c => c.Name);
-            var corpPersonal = corps.ToDictionary(c => (long)c.Id, c => c.IsPersonal);
+            // Nearest-day price snapshots for the sold types (resolved in memory — a correlated
+            // "nearest date" subquery can't reference the outer sale date in SQLite).
+            var snaps = await db.TypePriceSnapshots.AsNoTracking().Where(s => typeIds.Contains(s.TypeId))
+                .Select(s => new { s.TypeId, s.Date, s.BuildCost, s.MarketValue }).ToListAsync();
+            var snapByType = snaps
+                .Select(s => (s.TypeId, Date: ParseDay(s.Date), s.BuildCost, s.MarketValue))
+                .GroupBy(s => s.TypeId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            (double? Build, double? Market) Snap(int typeId, DateTimeOffset when)
+            {
+                if (!snapByType.TryGetValue(typeId, out var list) || list.Count == 0) return (null, null);
+                var target = when.UtcDateTime.Date;
+                var best = list[0]; var bestDist = double.MaxValue;
+                foreach (var s in list)
+                {
+                    var d = Math.Abs((s.Date - target).TotalDays);
+                    if (d < bestDist) { bestDist = d; best = s; }
+                }
+                return (best.BuildCost, best.MarketValue);
+            }
+
+            // Owner names + the personal-corp flag.
+            var allChars = await db.Characters.AsNoTracking().Select(c => new { c.Id, c.Name }).ToListAsync();
+            var allCorps = await db.Corporations.AsNoTracking().Select(c => new { c.Id, c.Name, c.IsPersonal }).ToListAsync();
+            var charNames    = allChars.ToDictionary(c => (long)c.Id, c => c.Name);
+            var corpNames    = allCorps.ToDictionary(c => (long)c.Id, c => c.Name);
+            var corpPersonal = allCorps.ToDictionary(c => (long)c.Id, c => c.IsPersonal);
             bool IsPersonal(long id, string type) => type == "corporation" && corpPersonal.TryGetValue(id, out var p) && p;
 
             string OwnerName(long id, string type) => type == "corporation"
                 ? (corpNames.TryGetValue(id, out var cn) ? cn : $"Corp {id}")
                 : (charNames.TryGetValue(id, out var pn) ? pn : $"Char {id}");
             string TypeName(int id) => typeNames.TryGetValue(id, out var n) ? n : $"Type {id}";
+
+            BuildOwnerOptions(allChars.Select(c => ((long)c.Id, c.Name)), allCorps.Select(c => ((long)c.Id, c.Name)));
 
             // Buyer names — external players. Resolve from local caches, fall back to ESI once and
             // persist to the shared UniverseNames cache so later loads stay offline.
@@ -255,24 +268,27 @@ public class SalesTrackerViewModel : ReactiveObject
             var rows = new List<SaleRowVm>(market.Count + contracts.Count);
 
             foreach (var m in market)
+            {
+                var (bu, mv) = Snap(m.TypeId, ParseDate(m.DateStr));
                 rows.Add(new SaleRowVm(
-                    ParseDate(m.DateStr), "Market", m.OwnerType, IsPersonal(m.OwnerId, m.OwnerType),
+                    ParseDate(m.DateStr), "Market", m.OwnerType, m.OwnerId, IsPersonal(m.OwnerId, m.OwnerType),
                     OwnerName(m.OwnerId, m.OwnerType), m.Location ?? "", BuyerName(m.BuyerId),
                     TypeName(m.TypeId), m.Quantity.ToString("N0"), m.Quantity * m.UnitPrice,
-                    m.BuildUnit is double b ? b * m.Quantity : null,
-                    m.MarketUnit is double mv ? mv * m.Quantity : null));
+                    bu is double b ? b * m.Quantity : null, mv is double v ? v * m.Quantity : null));
+            }
 
             foreach (var c in contracts)
             {
-                var its = itemsByContract.TryGetValue(c.SaleId, out var list) ? list : [];
+                var when = ParseDate(c.DateStr);
+                var its  = itemsByContract.TryGetValue(c.SaleId, out var list) ? list : [];
                 var names = string.Join(", ", its.Select(i => TypeName(i.TypeId)));
                 var units = string.Join(", ", its.Select(i => i.Quantity.ToString("N0")));
+                var build = SumOrNull(its.Select(i => Snap(i.TypeId, when).Build is double b ? b * i.Quantity : (double?)null));
+                var mkt   = SumOrNull(its.Select(i => Snap(i.TypeId, when).Market is double m ? m * i.Quantity : (double?)null));
                 rows.Add(new SaleRowVm(
-                    ParseDate(c.DateStr), "Contract", c.OwnerType, IsPersonal(c.OwnerId, c.OwnerType),
+                    when, "Contract", c.OwnerType, c.OwnerId, IsPersonal(c.OwnerId, c.OwnerType),
                     OwnerName(c.OwnerId, c.OwnerType), c.Location ?? "", BuyerName(c.BuyerId),
-                    names.Length == 0 ? "(no items)" : names, units, c.Price,
-                    SumOrNull(its.Select(i => i.BuildUnit.HasValue  ? i.BuildUnit.Value  * i.Quantity : (double?)null)),
-                    SumOrNull(its.Select(i => i.MarketUnit.HasValue ? i.MarketUnit.Value * i.Quantity : (double?)null))));
+                    names.Length == 0 ? "(no items)" : names, units, c.Price, build, mkt));
             }
 
             _all.Clear();
@@ -285,6 +301,16 @@ public class SalesTrackerViewModel : ReactiveObject
             StatusText = "Error loading sales.";
         }
         finally { IsLoading = false; }
+    }
+
+    // Populate the owner filter with every tracked character and corp (once).
+    private void BuildOwnerOptions(IEnumerable<(long Id, string Name)> chars, IEnumerable<(long Id, string Name)> corps)
+    {
+        if (OwnerOptions.Count > 3) return;   // already built (keeps the current selection intact)
+        foreach (var (id, name) in chars.OrderBy(c => c.Name))
+            OwnerOptions.Add(new SalesOwnerOption(name, OwnerScope.Specific, id, "character"));
+        foreach (var (id, name) in corps.OrderBy(c => c.Name))
+            OwnerOptions.Add(new SalesOwnerOption(name, OwnerScope.Specific, id, "corporation"));
     }
 
     private async Task<Dictionary<long, string>> ResolveBuyersAsync(
@@ -330,12 +356,14 @@ public class SalesTrackerViewModel : ReactiveObject
         DateTimeOffset.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var d)
             ? d : DateTimeOffset.MinValue;
 
+    private static DateTime ParseDay(string s) =>
+        DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d.Date : DateTime.MinValue;
+
     private sealed class MarketSaleDto
     {
         public long SaleId { get; set; } public long OwnerId { get; set; } public string OwnerType { get; set; } = "";
         public string DateStr { get; set; } = ""; public int TypeId { get; set; } public int Quantity { get; set; }
         public double UnitPrice { get; set; } public long BuyerId { get; set; } public string? Location { get; set; }
-        public double? BuildUnit { get; set; } public double? MarketUnit { get; set; }
     }
     private sealed class ContractSaleDto
     {
@@ -346,6 +374,5 @@ public class SalesTrackerViewModel : ReactiveObject
     private sealed class ContractItemDto
     {
         public long ContractId { get; set; } public int TypeId { get; set; } public long Quantity { get; set; }
-        public double? BuildUnit { get; set; } public double? MarketUnit { get; set; }
     }
 }
