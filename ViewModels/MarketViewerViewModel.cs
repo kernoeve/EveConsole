@@ -94,6 +94,31 @@ public class MarketTypeSummaryVm
     }
 }
 
+// One top-level-market-group row on the By Market Group tab.
+public class MarketGroupSummaryVm
+{
+    public string Group { get; }
+    public string SellUnits { get; } public double SellUnitsRaw { get; }
+    public string SellIsk   { get; } public double SellIskRaw   { get; }
+    public string BuyUnits  { get; } public double BuyUnitsRaw  { get; }
+    public string BuyIsk    { get; } public double BuyIskRaw    { get; }
+    public string SalesUnits { get; } public double SalesUnitsRaw { get; }
+    public string SalesIsk   { get; } public double SalesIskRaw   { get; }
+
+    public MarketGroupSummaryVm(string group,
+        double sellUnits, double sellIsk, double buyUnits, double buyIsk,
+        double salesUnits, double salesIsk)
+    {
+        Group         = group;
+        SellUnitsRaw  = sellUnits;  SellUnits  = MarketFmt.Num(sellUnits);
+        SellIskRaw    = sellIsk;    SellIsk    = MarketFmt.Isk(sellIsk);
+        BuyUnitsRaw   = buyUnits;   BuyUnits   = MarketFmt.Num(buyUnits);
+        BuyIskRaw     = buyIsk;     BuyIsk     = MarketFmt.Isk(buyIsk);
+        SalesUnitsRaw = salesUnits; SalesUnits = MarketFmt.Num(salesUnits);
+        SalesIskRaw   = salesIsk;   SalesIsk   = MarketFmt.Isk(salesIsk);
+    }
+}
+
 // Region-level market views. Orders map to a region via the order's solar system, or — for player
 // structures (null-sec), where the order has no system id — via the structure's system.
 public class MarketViewerViewModel : ReactiveObject
@@ -110,7 +135,16 @@ public class MarketViewerViewModel : ReactiveObject
         "LEFT JOIN SdeSolarSystems ssStr  ON ssStr.SolarSystemId = sn.SolarSystemId";
     private const string RegionExpr = "COALESCE(ssSys.RegionId, ssStr.RegionId)";
 
+    // Maps every market group to its top-level ancestor (TopId/TopName).
+    private const string MgTopCte =
+        "WITH RECURSIVE mg_top(MarketGroupId, TopId, TopName) AS (" +
+        "SELECT MarketGroupId, MarketGroupId, Name FROM SdeMarketGroups WHERE ParentGroupId IS NULL " +
+        "UNION ALL " +
+        "SELECT g.MarketGroupId, t.TopId, t.TopName FROM SdeMarketGroups g " +
+        "JOIN mg_top t ON g.ParentGroupId = t.MarketGroupId) ";
+
     public ObservableCollection<MarketRegionSummaryVm> SummaryRows { get; } = new();
+    public ObservableCollection<MarketGroupSummaryVm>  GroupRows   { get; } = new();
     public ObservableCollection<MarketTypeSummaryVm>   TypeRows    { get; } = new();
 
     public IReadOnlyList<MarketPeriodOption> Periods { get; } =
@@ -133,10 +167,10 @@ public class MarketViewerViewModel : ReactiveObject
     public MarketRegionOption? SelectedRegion
     {
         get => _selectedRegion;
-        set { this.RaiseAndSetIfChanged(ref _selectedRegion, value); if (SelectedTab == 1) _ = LoadByTypeAsync(); }
+        set { this.RaiseAndSetIfChanged(ref _selectedRegion, value); if (SelectedTab != 0) _ = LoadActiveAsync(); }
     }
 
-    // 0 = Summary, 1 = By Type
+    // 0 = Summary, 1 = By Market Group, 2 = By Type
     private int _selectedTab;
     public int SelectedTab
     {
@@ -167,7 +201,12 @@ public class MarketViewerViewModel : ReactiveObject
     private string? Cutoff() =>
         _selectedPeriod.Days is int d ? DateTime.UtcNow.AddDays(-d).ToString("yyyy-MM-dd") : null;
 
-    private Task LoadActiveAsync() => SelectedTab == 1 ? LoadByTypeAsync() : LoadSummaryAsync();
+    private Task LoadActiveAsync() => SelectedTab switch
+    {
+        1 => LoadByMarketGroupAsync(),
+        2 => LoadByTypeAsync(),
+        _ => LoadSummaryAsync(),
+    };
 
     private async Task InitAsync()
     {
@@ -258,6 +297,73 @@ public class MarketViewerViewModel : ReactiveObject
         finally { IsLoading = false; }
     }
 
+    // ── By Market Group (one row per top-level market group; selected region or all) ──
+    private async Task LoadByMarketGroupAsync()
+    {
+        if (!_initialized || IsLoading) return;
+        IsLoading = true;
+        StatusText = "Loading…";
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            int? region = _selectedRegion?.RegionId;
+
+            var orderWhere = region is int r1 ? $"WHERE {RegionExpr} = {r1}" : $"WHERE {RegionExpr} IS NOT NULL";
+#pragma warning disable EF1002 // region is an inlined int from a fixed, DB-derived set — no injection risk
+            var orders = await db.Database.SqlQueryRaw<GroupOrderAgg>(
+                MgTopCte +
+                "SELECT mt.TopId AS GroupId, mt.TopName AS GroupName, " +
+                "SUM(CASE WHEN o.IsBuyOrder = 0 THEN o.VolumeRemain ELSE 0 END)           AS SellUnits, " +
+                "SUM(CASE WHEN o.IsBuyOrder = 0 THEN o.Price * o.VolumeRemain ELSE 0 END) AS SellIsk, " +
+                "SUM(CASE WHEN o.IsBuyOrder = 1 THEN o.VolumeRemain ELSE 0 END)           AS BuyUnits, " +
+                "SUM(CASE WHEN o.IsBuyOrder = 1 THEN o.Price * o.VolumeRemain ELSE 0 END) AS BuyIsk " +
+                OrdersFrom + " " +
+                "JOIN SdeTypes ty ON ty.TypeId = o.TypeId " +
+                "JOIN mg_top mt ON mt.MarketGroupId = ty.MarketGroupId " +
+                orderWhere + " GROUP BY mt.TopId").ToListAsync();
+#pragma warning restore EF1002
+
+            var cutoff = Cutoff();
+            var conds = new List<string>();
+            if (region is int r2) conds.Add($"h.RegionId = {r2}");
+            if (cutoff is not null) conds.Add($"h.Date >= '{cutoff}'");
+            var salesWhere = conds.Count > 0 ? "WHERE " + string.Join(" AND ", conds) : "";
+            var sales = await db.Database.SqlQueryRaw<GroupSalesAgg>(
+                MgTopCte +
+                "SELECT mt.TopId AS GroupId, mt.TopName AS GroupName, " +
+                "SUM(h.Volume) AS Units, SUM(h.Volume * h.Average) AS Isk " +
+                "FROM MarketTypeHistories h " +
+                "JOIN SdeTypes ty ON ty.TypeId = h.TypeId " +
+                "JOIN mg_top mt ON mt.MarketGroupId = ty.MarketGroupId " +
+                salesWhere + " GROUP BY mt.TopId").ToListAsync();
+
+            var names = new Dictionary<int, string>();
+            foreach (var o in orders) names[o.GroupId] = o.GroupName;
+            foreach (var s in sales)   names.TryAdd(s.GroupId, s.GroupName);
+            var oByG = orders.ToDictionary(o => o.GroupId);
+            var sByG = sales.ToDictionary(s => s.GroupId);
+
+            var rows = names.Keys.Select(gid =>
+            {
+                oByG.TryGetValue(gid, out var o); sByG.TryGetValue(gid, out var s);
+                return new MarketGroupSummaryVm(
+                    names.TryGetValue(gid, out var n) ? n : $"Group {gid}",
+                    o?.SellUnits ?? 0, o?.SellIsk ?? 0, o?.BuyUnits ?? 0, o?.BuyIsk ?? 0,
+                    s?.Units ?? 0, s?.Isk ?? 0);
+            }).OrderByDescending(g => g.SalesIskRaw).ToList();
+
+            GroupRows.Clear();
+            foreach (var g in rows) GroupRows.Add(g);
+            StatusText = rows.Count == 0 ? "No market data for this selection." : $"{rows.Count:N0} market group(s)";
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("MarketViewerViewModel", "LoadByMarketGroup", ex);
+            StatusText = "Error loading by-market-group data.";
+        }
+        finally { IsLoading = false; }
+    }
+
     // ── By Type (one row per type; selected region or all) ────────────────────────
     private async Task LoadByTypeAsync()
     {
@@ -329,6 +435,17 @@ public class MarketViewerViewModel : ReactiveObject
     private sealed class RegionSalesAgg
     {
         public int RegionId { get; set; } public double Units { get; set; } public double Isk { get; set; } public long Types { get; set; }
+    }
+    private sealed class GroupOrderAgg
+    {
+        public int GroupId { get; set; } public string GroupName { get; set; } = "";
+        public double SellUnits { get; set; } public double SellIsk { get; set; }
+        public double BuyUnits  { get; set; } public double BuyIsk  { get; set; }
+    }
+    private sealed class GroupSalesAgg
+    {
+        public int GroupId { get; set; } public string GroupName { get; set; } = "";
+        public double Units { get; set; } public double Isk { get; set; }
     }
     private sealed class TypeOrderAgg
     {

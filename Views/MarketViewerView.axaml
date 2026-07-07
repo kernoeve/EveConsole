@@ -34,16 +34,34 @@
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="#0d0d12">
           <DataGrid.Columns>
-            <DataGridTextColumn Header="Region"      Binding="{Binding Region}"     Width="180" />
-            <DataGridTextColumn Header="Sell Orders" Binding="{Binding SellCount}"  SortMemberPath="SellCountRaw"  Width="100" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sell ISK"    Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="100" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sell Types"  Binding="{Binding SellTypes}"  SortMemberPath="SellTypesRaw"  Width="90"  CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy Orders"  Binding="{Binding BuyCount}"   SortMemberPath="BuyCountRaw"   Width="100" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy ISK"     Binding="{Binding BuyIsk}"     SortMemberPath="BuyIskRaw"     Width="100" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy Types"   Binding="{Binding BuyTypes}"   SortMemberPath="BuyTypesRaw"   Width="90"  CellStyleClasses="num" />
+            <DataGridTextColumn Header="Region"           Binding="{Binding Region}"     Width="180" />
+            <DataGridTextColumn Header="Sell Order Count" Binding="{Binding SellCount}"  SortMemberPath="SellCountRaw"  Width="120" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sell Order ISK"   Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="120" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sell Order Types" Binding="{Binding SellTypes}"  SortMemberPath="SellTypesRaw"  Width="120" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy Order Count"  Binding="{Binding BuyCount}"   SortMemberPath="BuyCountRaw"   Width="120" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy Order ISK"    Binding="{Binding BuyIsk}"     SortMemberPath="BuyIskRaw"     Width="120" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy Order Types"  Binding="{Binding BuyTypes}"   SortMemberPath="BuyTypesRaw"   Width="120" CellStyleClasses="num" />
             <DataGridTextColumn Header="Sales Units" Binding="{Binding SalesUnits}" SortMemberPath="SalesUnitsRaw" Width="110" CellStyleClasses="num" />
             <DataGridTextColumn Header="Sales ISK"   Binding="{Binding SalesIsk}"   SortMemberPath="SalesIskRaw"   Width="110" CellStyleClasses="num" />
             <DataGridTextColumn Header="Sales Types" Binding="{Binding SalesTypes}" SortMemberPath="SalesTypesRaw" Width="100" CellStyleClasses="num" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </TabItem>
+
+      <!-- ══ By Market Group ═════════════════════════════════════════════════ -->
+      <TabItem Header="By Market Group">
+        <DataGrid ItemsSource="{Binding GroupRows}"
+                  AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+                  CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                  Background="#0d0d12">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Market Group"     Binding="{Binding Group}"      Width="260" />
+            <DataGridTextColumn Header="Sell Order Units" Binding="{Binding SellUnits}"  SortMemberPath="SellUnitsRaw"  Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sell Order ISK"   Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy Order Units"  Binding="{Binding BuyUnits}"   SortMemberPath="BuyUnitsRaw"   Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy Order ISK"    Binding="{Binding BuyIsk}"     SortMemberPath="BuyIskRaw"     Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sales Units"      Binding="{Binding SalesUnits}" SortMemberPath="SalesUnitsRaw" Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sales ISK"        Binding="{Binding SalesIsk}"   SortMemberPath="SalesIskRaw"   Width="110" CellStyleClasses="num" />
           </DataGrid.Columns>
         </DataGrid>
       </TabItem>
@@ -55,13 +73,13 @@
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="#0d0d12">
           <DataGrid.Columns>
-            <DataGridTextColumn Header="Type"        Binding="{Binding Type}"       Width="260" />
-            <DataGridTextColumn Header="Sell Units"  Binding="{Binding SellUnits}"  SortMemberPath="SellUnitsRaw"  Width="110" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sell ISK"    Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="110" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy Units"   Binding="{Binding BuyUnits}"   SortMemberPath="BuyUnitsRaw"   Width="110" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy ISK"     Binding="{Binding BuyIsk}"     SortMemberPath="BuyIskRaw"     Width="110" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sales Units" Binding="{Binding SalesUnits}" SortMemberPath="SalesUnitsRaw" Width="110" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sales ISK"   Binding="{Binding SalesIsk}"   SortMemberPath="SalesIskRaw"   Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Type"             Binding="{Binding Type}"       Width="260" />
+            <DataGridTextColumn Header="Sell Order Units" Binding="{Binding SellUnits}"  SortMemberPath="SellUnitsRaw"  Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sell Order ISK"   Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy Order Units"  Binding="{Binding BuyUnits}"   SortMemberPath="BuyUnitsRaw"   Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy Order ISK"    Binding="{Binding BuyIsk}"     SortMemberPath="BuyIskRaw"     Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sales Units"      Binding="{Binding SalesUnits}" SortMemberPath="SalesUnitsRaw" Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sales ISK"        Binding="{Binding SalesIsk}"   SortMemberPath="SalesIskRaw"   Width="110" CellStyleClasses="num" />
           </DataGrid.Columns>
         </DataGrid>
       </TabItem>
