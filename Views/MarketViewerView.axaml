@@ -14,52 +14,70 @@
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding"    Value="6 5 2 5" />
     </Style>
-    <!-- Right-align numeric cells -->
     <Style Selector="DataGridCell.num TextBlock">
       <Setter Property="HorizontalAlignment" Value="Right" />
       <Setter Property="Margin" Value="0 0 8 0" />
     </Style>
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize" Value="11" /><Setter Property="Foreground" Value="#555566" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
   </UserControl.Styles>
 
-  <TabControl Background="#0d0d12">
+  <Grid>
+    <TabControl Background="#0d0d12" SelectedIndex="{Binding SelectedTab}">
 
-    <!-- ══ Summary ═══════════════════════════════════════════════════════════ -->
-    <TabItem Header="Summary">
-      <Grid RowDefinitions="Auto,*">
-
-        <Border Grid.Row="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
-                Padding="12 8">
-          <StackPanel Orientation="Horizontal" Spacing="10">
-            <TextBlock Text="Region market summary" FontSize="12" Foreground="#888899"
-                       VerticalAlignment="Center" />
-            <Button Command="{Binding RefreshCommand}" Content="↻ Refresh" FontSize="11"
-                    VerticalAlignment="Center" />
-            <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="#888899"
-                       VerticalAlignment="Center" />
-          </StackPanel>
-        </Border>
-
-        <DataGrid Grid.Row="1"
-                  ItemsSource="{Binding SummaryRows}"
+      <!-- ══ Summary ═════════════════════════════════════════════════════════ -->
+      <TabItem Header="Summary">
+        <DataGrid ItemsSource="{Binding SummaryRows}"
                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="#0d0d12">
           <DataGrid.Columns>
-            <DataGridTextColumn Header="Region"            Binding="{Binding Region}"     Width="180" />
-            <DataGridTextColumn Header="Sell Orders"       Binding="{Binding SellCount}"  SortMemberPath="SellCountRaw"  Width="100" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sell ISK"          Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="100" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sell Types"        Binding="{Binding SellTypes}"  SortMemberPath="SellTypesRaw"  Width="90"  CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy Orders"        Binding="{Binding BuyCount}"   SortMemberPath="BuyCountRaw"   Width="100" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy ISK"           Binding="{Binding BuyIsk}"     SortMemberPath="BuyIskRaw"     Width="100" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy Types"         Binding="{Binding BuyTypes}"   SortMemberPath="BuyTypesRaw"   Width="90"  CellStyleClasses="num" />
-            <DataGridTextColumn Header="30d Sales Units"   Binding="{Binding SalesUnits}" SortMemberPath="SalesUnitsRaw" Width="120" CellStyleClasses="num" />
-            <DataGridTextColumn Header="30d Sales ISK"     Binding="{Binding SalesIsk}"   SortMemberPath="SalesIskRaw"   Width="110" CellStyleClasses="num" />
-            <DataGridTextColumn Header="30d Sales Types"   Binding="{Binding SalesTypes}" SortMemberPath="SalesTypesRaw" Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Region"      Binding="{Binding Region}"     Width="180" />
+            <DataGridTextColumn Header="Sell Orders" Binding="{Binding SellCount}"  SortMemberPath="SellCountRaw"  Width="100" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sell ISK"    Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="100" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sell Types"  Binding="{Binding SellTypes}"  SortMemberPath="SellTypesRaw"  Width="90"  CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy Orders"  Binding="{Binding BuyCount}"   SortMemberPath="BuyCountRaw"   Width="100" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy ISK"     Binding="{Binding BuyIsk}"     SortMemberPath="BuyIskRaw"     Width="100" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy Types"   Binding="{Binding BuyTypes}"   SortMemberPath="BuyTypesRaw"   Width="90"  CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sales Units" Binding="{Binding SalesUnits}" SortMemberPath="SalesUnitsRaw" Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sales ISK"   Binding="{Binding SalesIsk}"   SortMemberPath="SalesIskRaw"   Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sales Types" Binding="{Binding SalesTypes}" SortMemberPath="SalesTypesRaw" Width="100" CellStyleClasses="num" />
           </DataGrid.Columns>
         </DataGrid>
+      </TabItem>
 
-      </Grid>
-    </TabItem>
+      <!-- ══ By Type ═════════════════════════════════════════════════════════ -->
+      <TabItem Header="By Type">
+        <DataGrid ItemsSource="{Binding TypeRows}"
+                  AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+                  CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                  Background="#0d0d12">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Type"        Binding="{Binding Type}"       Width="260" />
+            <DataGridTextColumn Header="Sell Units"  Binding="{Binding SellUnits}"  SortMemberPath="SellUnitsRaw"  Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sell ISK"    Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy Units"   Binding="{Binding BuyUnits}"   SortMemberPath="BuyUnitsRaw"   Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy ISK"     Binding="{Binding BuyIsk}"     SortMemberPath="BuyIskRaw"     Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sales Units" Binding="{Binding SalesUnits}" SortMemberPath="SalesUnitsRaw" Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sales ISK"   Binding="{Binding SalesIsk}"   SortMemberPath="SalesIskRaw"   Width="110" CellStyleClasses="num" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </TabItem>
 
-  </TabControl>
+    </TabControl>
+
+    <!-- Period + Region selectors, floated over the right of the tab strip -->
+    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Top"
+                Margin="0 5 10 0">
+      <TextBlock Text="{Binding StatusText}" Classes="flabel" Foreground="#888899" Margin="0 0 6 0" />
+      <TextBlock Classes="flabel" Text="Period:" />
+      <ComboBox ItemsSource="{Binding Periods}" SelectedItem="{Binding SelectedPeriod}"
+                MinWidth="130" FontSize="11" Height="26" VerticalAlignment="Center" />
+      <TextBlock Classes="flabel" Text="Region:" />
+      <ComboBox ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}"
+                MinWidth="150" FontSize="11" Height="26" VerticalAlignment="Center" />
+    </StackPanel>
+  </Grid>
 </UserControl>
