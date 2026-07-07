@@ -15,7 +15,9 @@ public class SaleRowVm
     public DateTimeOffset When { get; }
     public long   WhenSort { get; }
     public string WhenText { get; }
-    public string Kind     { get; }   // "Market" or "Contract"
+    public string Kind      { get; }   // "Market" or "Contract"
+    public string OwnerType { get; }   // "character" or "corporation" (for filtering)
+    public bool   OwnerIsPersonal { get; }
     public string Owner    { get; }
     public string Location { get; }
     public string Buyer    { get; }
@@ -27,13 +29,16 @@ public class SaleRowVm
     public string Profit    { get; } public double ProfitRaw    { get; }
     public string ProfitPct { get; } public double ProfitPctRaw { get; }
 
-    public SaleRowVm(DateTimeOffset when, string kind, string owner, string location, string buyer,
+    public SaleRowVm(DateTimeOffset when, string kind, string ownerType, bool ownerIsPersonal,
+        string owner, string location, string buyer,
         string items, string units, double total, double? build, double? market)
     {
         When     = when;
         WhenSort = when.UtcTicks;
         WhenText = when.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
-        Kind     = kind;
+        Kind      = kind;
+        OwnerType = ownerType;
+        OwnerIsPersonal = ownerIsPersonal;
         Owner    = owner;
         Location = location;
         Buyer    = buyer;
@@ -53,6 +58,10 @@ public class SaleRowVm
     }
 }
 
+public enum OwnerScope { All, AllCharacters, PersonalCorps }
+public record SalesOwnerOption(string Label, OwnerScope Scope) { public override string ToString() => Label; }
+public record SalesTypeOption(string Label, string? Kind)      { public override string ToString() => Label; }
+
 // Sales Tracker — lists market sales (wallet transactions) and contract sales (item_exchange
 // contracts sold for ISK), with build/market value pulled from TypePriceSnapshots (nearest day).
 public class SalesTrackerViewModel : ReactiveObject
@@ -61,7 +70,41 @@ public class SalesTrackerViewModel : ReactiveObject
     private readonly AppErrorLogger                  _errorLogger;
     private readonly CorpActivityService             _names;
 
+    private readonly List<SaleRowVm> _all = new();
+
     public ObservableCollection<SaleRowVm> Rows { get; } = new();
+
+    // ── Filters ───────────────────────────────────────────────────────────────
+    public IReadOnlyList<SalesOwnerOption> OwnerOptions { get; } =
+    [
+        new("All",            OwnerScope.All),
+        new("All Characters", OwnerScope.AllCharacters),
+        new("Personal Corps", OwnerScope.PersonalCorps),
+    ];
+    private SalesOwnerOption _selectedOwner;
+    public SalesOwnerOption SelectedOwner
+    {
+        get => _selectedOwner;
+        set { this.RaiseAndSetIfChanged(ref _selectedOwner, value ?? OwnerOptions[2]); ApplyFilters(); }
+    }
+
+    public IReadOnlyList<SalesTypeOption> SaleTypeOptions { get; } =
+    [
+        new("All types", null),
+        new("Market",    "Market"),
+        new("Contract",  "Contract"),
+    ];
+    private SalesTypeOption _selectedType;
+    public SalesTypeOption SelectedType
+    {
+        get => _selectedType;
+        set { this.RaiseAndSetIfChanged(ref _selectedType, value ?? SaleTypeOptions[0]); ApplyFilters(); }
+    }
+
+    private string _dateFrom = "";
+    public string DateFrom { get => _dateFrom; set { this.RaiseAndSetIfChanged(ref _dateFrom, value); ApplyFilters(); } }
+    private string _dateThru = "";
+    public string DateThru { get => _dateThru; set { this.RaiseAndSetIfChanged(ref _dateThru, value); ApplyFilters(); } }
 
     private bool _isLoading;
     public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
@@ -75,12 +118,44 @@ public class SalesTrackerViewModel : ReactiveObject
         _dbFactory   = dbFactory;
         _errorLogger = errorLogger;
         _names       = names;
+        _selectedOwner = OwnerOptions[2];    // Personal Corps
+        _selectedType  = SaleTypeOptions[0]; // All types
 
         Observable.Interval(TimeSpan.FromMinutes(5))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(tick => { _ = LoadAsync(); });
 
         _ = LoadAsync();
+    }
+
+    private void ApplyFilters()
+    {
+        IEnumerable<SaleRowVm> q = _all;
+
+        q = _selectedOwner?.Scope switch
+        {
+            OwnerScope.AllCharacters => q.Where(r => r.OwnerType == "character"),
+            OwnerScope.PersonalCorps => q.Where(r => r.OwnerType == "corporation" && r.OwnerIsPersonal),
+            _                        => q,
+        };
+
+        if (_selectedType?.Kind is string kind)
+            q = q.Where(r => r.Kind == kind);
+
+        if (TryDate(_dateFrom, out var from)) q = q.Where(r => r.When.UtcDateTime.Date >= from);
+        if (TryDate(_dateThru, out var thru)) q = q.Where(r => r.When.UtcDateTime.Date <= thru);
+
+        var list = q.ToList();
+        Rows.Clear();
+        foreach (var r in list) Rows.Add(r);
+        StatusText = list.Count == 0 ? "No sales match the filters." : $"{list.Count:N0} sale(s)";
+    }
+
+    private static bool TryDate(string s, out DateTime date)
+    {
+        if (DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d))
+        { date = d.Date; return true; }
+        date = default; return false;
     }
 
     // Snapshot lookup grabs the nearest day we have on hand (not just on/before the sale) so gaps
@@ -158,8 +233,11 @@ public class SalesTrackerViewModel : ReactiveObject
                 .Concat(contracts.Where(c => c.OwnerType == "corporation").Select(c => c.OwnerId)).Distinct().ToList();
             var charNames = await db.Characters.AsNoTracking().Where(c => charIds.Contains(c.Id))
                 .ToDictionaryAsync(c => (long)c.Id, c => c.Name);
-            var corpNames = await db.Corporations.AsNoTracking().Where(c => corpIds.Contains(c.Id))
-                .ToDictionaryAsync(c => (long)c.Id, c => c.Name);
+            var corps = await db.Corporations.AsNoTracking().Where(c => corpIds.Contains(c.Id))
+                .Select(c => new { c.Id, c.Name, c.IsPersonal }).ToListAsync();
+            var corpNames    = corps.ToDictionary(c => (long)c.Id, c => c.Name);
+            var corpPersonal = corps.ToDictionary(c => (long)c.Id, c => c.IsPersonal);
+            bool IsPersonal(long id, string type) => type == "corporation" && corpPersonal.TryGetValue(id, out var p) && p;
 
             string OwnerName(long id, string type) => type == "corporation"
                 ? (corpNames.TryGetValue(id, out var cn) ? cn : $"Corp {id}")
@@ -178,7 +256,8 @@ public class SalesTrackerViewModel : ReactiveObject
 
             foreach (var m in market)
                 rows.Add(new SaleRowVm(
-                    ParseDate(m.DateStr), "Market", OwnerName(m.OwnerId, m.OwnerType), m.Location ?? "", BuyerName(m.BuyerId),
+                    ParseDate(m.DateStr), "Market", m.OwnerType, IsPersonal(m.OwnerId, m.OwnerType),
+                    OwnerName(m.OwnerId, m.OwnerType), m.Location ?? "", BuyerName(m.BuyerId),
                     TypeName(m.TypeId), m.Quantity.ToString("N0"), m.Quantity * m.UnitPrice,
                     m.BuildUnit is double b ? b * m.Quantity : null,
                     m.MarketUnit is double mv ? mv * m.Quantity : null));
@@ -189,16 +268,16 @@ public class SalesTrackerViewModel : ReactiveObject
                 var names = string.Join(", ", its.Select(i => TypeName(i.TypeId)));
                 var units = string.Join(", ", its.Select(i => i.Quantity.ToString("N0")));
                 rows.Add(new SaleRowVm(
-                    ParseDate(c.DateStr), "Contract", OwnerName(c.OwnerId, c.OwnerType), c.Location ?? "", BuyerName(c.BuyerId),
+                    ParseDate(c.DateStr), "Contract", c.OwnerType, IsPersonal(c.OwnerId, c.OwnerType),
+                    OwnerName(c.OwnerId, c.OwnerType), c.Location ?? "", BuyerName(c.BuyerId),
                     names.Length == 0 ? "(no items)" : names, units, c.Price,
                     SumOrNull(its.Select(i => i.BuildUnit.HasValue  ? i.BuildUnit.Value  * i.Quantity : (double?)null)),
                     SumOrNull(its.Select(i => i.MarketUnit.HasValue ? i.MarketUnit.Value * i.Quantity : (double?)null))));
             }
 
-            var ordered = rows.OrderByDescending(r => r.WhenSort).ToList();
-            Rows.Clear();
-            foreach (var r in ordered) Rows.Add(r);
-            StatusText = ordered.Count == 0 ? "No sales found." : $"{ordered.Count:N0} sale(s)";
+            _all.Clear();
+            _all.AddRange(rows.OrderByDescending(r => r.WhenSort));
+            ApplyFilters();
         }
         catch (Exception ex)
         {
