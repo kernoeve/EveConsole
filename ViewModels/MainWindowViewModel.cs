@@ -18,6 +18,7 @@ public class MainWindowViewModel : ReactiveObject
     public AlertSettingsViewModel         AlertSettingsVm        { get; }
     public CharacterViewModel             CharacterVm            { get; }
     public SdeViewModel                   SdeVm                  { get; }
+    public UpdateViewModel                UpdateVm               { get; }
     public ApiActivityViewModel           ActivityVm             { get; }
     public EsiExplorerViewModel           ExplorerVm             { get; }
     public AssetBrowserViewModel          AssetBrowserVm         { get; }
@@ -289,6 +290,7 @@ public class MainWindowViewModel : ReactiveObject
         SpeechInputService = speechInputService;
         HotkeyService      = hotkeyService;
         AppPrefs           = appPrefs;
+        UpdateVm           = new UpdateViewModel(appPrefs, errorLogger);
         DbBackup           = dbBackup;
 
         var s = agentService.Settings;

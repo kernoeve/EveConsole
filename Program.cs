@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.ReactiveUI;
+using Velopack;
 
 namespace EveCortex;
 
@@ -9,6 +10,10 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        // Must run first: handles Velopack install/update/uninstall hooks (these invoke the exe
+        // with special args and exit before the UI starts).
+        VelopackApp.Build().Run();
+
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
