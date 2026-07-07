@@ -94,6 +94,23 @@ public class MarketGroupSummaryVm
     }
 }
 
+// One owner row on the Sell/Buy Orders by Owner tabs.
+public class MarketOwnerSummaryVm
+{
+    public string Owner { get; }
+    public string Units { get; } public double UnitsRaw { get; }
+    public string Isk   { get; } public double IskRaw   { get; }
+    public string Types { get; } public long   TypesRaw { get; }
+
+    public MarketOwnerSummaryVm(string owner, double units, double isk, long types)
+    {
+        Owner    = owner;
+        UnitsRaw = units; Units = MarketFmt.Num(units);
+        IskRaw   = isk;   Isk   = MarketFmt.Isk(isk);
+        TypesRaw = types; Types = types.ToString("N0");
+    }
+}
+
 // Region-level market views. Orders map to a region via the order's solar system, or — for player
 // structures (null-sec), where the order has no system id — via the structure's system.
 public class MarketViewerViewModel : ReactiveObject
@@ -129,6 +146,8 @@ public class MarketViewerViewModel : ReactiveObject
 
     public ObservableCollection<MarketGroupSummaryVm> GroupRows { get; } = new();
     public ObservableCollection<MarketTypeSummaryVm>  TypeRows  { get; } = new();
+    public ObservableCollection<MarketOwnerSummaryVm> SellByOwnerRows { get; } = new();
+    public ObservableCollection<MarketOwnerSummaryVm> BuyByOwnerRows  { get; } = new();
 
     // ── Summary KPI boxes (selected region, or all regions) ───────────────────────
     private string _kpiSellCount = "—", _kpiSellIsk = "—", _kpiSellTypes = "—";
@@ -213,7 +232,7 @@ public class MarketViewerViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _selectedRegion, value); _ = LoadActiveAsync(); }
     }
 
-    // 0 = Summary, 1 = By Market Group, 2 = By Type
+    // 0 = Summary, 1 = By Market Group, 2 = By Type, 3 = Sell by Owner, 4 = Buy by Owner
     private int _selectedTab;
     public int SelectedTab
     {
@@ -248,6 +267,8 @@ public class MarketViewerViewModel : ReactiveObject
     {
         1 => LoadByMarketGroupAsync(),
         2 => LoadByTypeAsync(),
+        3 => LoadByOwnerAsync(buy: false),
+        4 => LoadByOwnerAsync(buy: true),
         _ => LoadSummaryAsync(),
     };
 
@@ -553,6 +574,56 @@ public class MarketViewerViewModel : ReactiveObject
         finally { IsLoading = false; }
     }
 
+    // ── Sell/Buy Orders by Owner (owner-attributed orders; selected region or all) ──
+    private async Task LoadByOwnerAsync(bool buy)
+    {
+        if (!_initialized || IsLoading) return;
+        IsLoading = true;
+        StatusText = "Loading…";
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            int? region = _selectedRegion?.RegionId;
+
+            var conds = new List<string> { "eo.IsHistory = 0", $"eo.IsBuyOrder = {(buy ? 1 : 0)}" };
+            if (region is int r) conds.Add($"eo.RegionId = {r}");
+            var where = "WHERE " + string.Join(" AND ", conds);
+
+            var rows = await db.Database.SqlQueryRaw<OwnerAgg>(
+                "SELECT eo.OwnerId AS OwnerId, eo.OwnerType AS OwnerType, " +
+                "COALESCE(ch.Name, co.Name) AS OwnerName, " +
+                "SUM(eo.VolumeRemain) AS Units, " +
+                "SUM(CAST(eo.Price AS REAL) * eo.VolumeRemain) AS Isk, " +
+                "COUNT(DISTINCT eo.TypeId) AS Types " +
+                "FROM EsiMarketOrders eo " +
+                "LEFT JOIN Characters ch   ON eo.OwnerType = 'character'   AND ch.Id = eo.OwnerId " +
+                "LEFT JOIN Corporations co ON eo.OwnerType = 'corporation' AND co.Id = eo.OwnerId " +
+                where + " GROUP BY eo.OwnerId, eo.OwnerType").ToListAsync();
+
+            var vms = rows
+                .Select(a => new MarketOwnerSummaryVm(
+                    string.IsNullOrWhiteSpace(a.OwnerName) ? $"{a.OwnerType} {a.OwnerId}" : a.OwnerName!,
+                    a.Units, a.Isk, a.Types))
+                .OrderByDescending(v => v.IskRaw).ToList();
+
+            var target = buy ? BuyByOwnerRows : SellByOwnerRows;
+            target.Clear();
+            foreach (var v in vms) target.Add(v);
+            StatusText = vms.Count == 0 ? "No orders for this selection." : $"{vms.Count:N0} owner(s)";
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("MarketViewerViewModel", "LoadByOwner", ex);
+            StatusText = "Error loading by-owner data.";
+        }
+        finally { IsLoading = false; }
+    }
+
+    private sealed class OwnerAgg
+    {
+        public long OwnerId { get; set; } public string? OwnerType { get; set; } public string? OwnerName { get; set; }
+        public double Units { get; set; } public double Isk { get; set; } public long Types { get; set; }
+    }
     private sealed class KpiOrderAgg
     {
         public long SellCount { get; set; } public double SellIsk { get; set; } public long SellTypes { get; set; }
