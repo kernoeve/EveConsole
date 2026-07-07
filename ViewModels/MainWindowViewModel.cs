@@ -32,6 +32,7 @@ public class MainWindowViewModel : ReactiveObject
     public WalletViewModel                WalletVm               { get; }
     public ContractsViewModel             ContractsVm            { get; }
     public NotificationsViewModel         NotificationsVm        { get; }
+    public MarketViewerViewModel          MarketViewerVm         { get; }
     public MarketSettingsViewModel        MarketVm               { get; }
     public TimerSettingsViewModel         TimerVm                { get; }
     public AgentPanelViewModel            AgentVm                { get; }
@@ -123,6 +124,7 @@ public class MainWindowViewModel : ReactiveObject
             "net_worth"  => ("Net Worth",       NetWorthVm,               true),
             "wallet"         => ("Wallet",          WalletVm,          true),
             "contracts"      => ("Contracts",       ContractsVm,       true),
+            "market_viewer"  => ("Market Overview", MarketViewerVm,    true),
             "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
             "killmails"      => ("Killmails",      KillmailBrowserVm, true),
             "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
@@ -258,6 +260,7 @@ public class MainWindowViewModel : ReactiveObject
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
+        MarketViewerVm         = new MarketViewerViewModel(dbFactory, errorLogger);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
@@ -328,6 +331,7 @@ public class MainWindowViewModel : ReactiveObject
             new("Market / Trade",
             [
                 new NavItem("market_levels", "Market Levels"),
+                new NavItem("market_viewer", "Market Overview"),
                 new NavItem("trade",         "Trade Opportunities"),
                 new NavItem("contracts",     "Contracts"),
             ]),

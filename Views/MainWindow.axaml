@@ -285,6 +285,9 @@
               <DataTemplate DataType="vm:ContractsViewModel">
                 <views:ContractsView />
               </DataTemplate>
+              <DataTemplate DataType="vm:MarketViewerViewModel">
+                <views:MarketViewerView />
+              </DataTemplate>
               <DataTemplate DataType="vm:CorpActivityViewModel">
                 <views:CorpActivityView />
               </DataTemplate>
