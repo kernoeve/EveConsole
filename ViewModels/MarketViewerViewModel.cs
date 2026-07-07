@@ -347,23 +347,27 @@ public class MarketViewerViewModel : ReactiveObject
             KpiSalesIsk   = MarketFmt.Isk(s.Isk);
             KpiSalesTypes = s.Types.ToString("N0");
 
-            // Buy/Sell orders by corporation — from owner-attributed orders (resolve corp from
-            // the owning character where needed); current open orders, selected region.
-            var corpWhere = region is int r3 ? $"WHERE eo.IsHistory = 0 AND eo.RegionId = {r3}" : "WHERE eo.IsHistory = 0";
-            var corps = await db.Database.SqlQueryRaw<CorpAgg>(
-                "SELECT (CASE WHEN eo.OwnerType = 'corporation' THEN eo.OwnerId ELSE c.CorporationId END) AS CorpId, " +
-                "co.Name AS CorpName, eo.IsBuyOrder AS IsBuyOrder, " +
-                "SUM(CAST(eo.Price AS REAL) * eo.VolumeRemain) AS Isk " +
-                "FROM EsiMarketOrders eo " +
-                "LEFT JOIN Characters c ON eo.OwnerType = 'character' AND c.Id = eo.OwnerId " +
-                "LEFT JOIN Corporations co ON co.Id = (CASE WHEN eo.OwnerType = 'corporation' THEN eo.OwnerId ELSE c.CorporationId END) " +
-                corpWhere + " GROUP BY CorpId, eo.IsBuyOrder").ToListAsync();
+            // Sell/Buy orders by type — from the public order book (same source as the KPI order
+            // ISK, so the slices sum to it); current open orders, selected region.
+            var byType = await db.Database.SqlQueryRaw<TypeIskAgg>(
+                "SELECT o.TypeId AS TypeId, o.IsBuyOrder AS IsBuyOrder, SUM(o.Price * o.VolumeRemain) AS Isk " +
+                OrdersFrom + " " + orderWhere + " GROUP BY o.TypeId, o.IsBuyOrder").ToListAsync();
 
-            static string CorpLabel(CorpAgg a) => string.IsNullOrWhiteSpace(a.CorpName) ? $"Corp {a.CorpId}" : a.CorpName!;
-            var buy  = corps.Where(a => a.IsBuyOrder == 1).Select(a => (CorpLabel(a), a.Isk));
-            var sell = corps.Where(a => a.IsBuyOrder == 0).Select(a => (CorpLabel(a), a.Isk));
-            BuyCorpSeries  = BuildPie(buy);   HasBuyCorp  = BuyCorpSeries.Length  > 0;
-            SellCorpSeries = BuildPie(sell);  HasSellCorp = SellCorpSeries.Length > 0;
+            var sellByType = byType.Where(x => x.IsBuyOrder == 0).Select(x => (x.TypeId, x.Isk)).ToList();
+            var buyByType  = byType.Where(x => x.IsBuyOrder == 1).Select(x => (x.TypeId, x.Isk)).ToList();
+
+            // Only the top slices ever show a name; the rest collapse into "Other".
+            var needIds = sellByType.OrderByDescending(x => x.Isk).Take(10)
+                .Concat(buyByType.OrderByDescending(x => x.Isk).Take(10))
+                .Select(x => x.TypeId).Distinct().ToList();
+            var typeNames = await db.SdeTypes.AsNoTracking().Where(t => needIds.Contains(t.TypeId))
+                .ToDictionaryAsync(t => t.TypeId, t => t.Name);
+            string TName(int id) => typeNames.TryGetValue(id, out var n) ? n : $"Type {id}";
+
+            SellCorpSeries = BuildPie(sellByType.Select(x => (TName(x.TypeId), x.Isk)));
+            HasSellCorp    = SellCorpSeries.Length > 0;
+            BuyCorpSeries  = BuildPie(buyByType.Select(x => (TName(x.TypeId), x.Isk)));
+            HasBuyCorp     = BuyCorpSeries.Length > 0;
 
             // Sales by top-level market group — selected region and period.
             var groups = await db.Database.SqlQueryRaw<GroupSalesFlat>(
@@ -633,10 +637,9 @@ public class MarketViewerViewModel : ReactiveObject
     {
         public double Units { get; set; } public double Isk { get; set; } public long Types { get; set; }
     }
-    private sealed class CorpAgg
+    private sealed class TypeIskAgg
     {
-        public long CorpId { get; set; } public string? CorpName { get; set; }
-        public long IsBuyOrder { get; set; } public double Isk { get; set; }
+        public int TypeId { get; set; } public long IsBuyOrder { get; set; } public double Isk { get; set; }
     }
     private sealed class GroupSalesFlat
     {

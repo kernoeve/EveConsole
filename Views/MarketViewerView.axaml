@@ -82,20 +82,20 @@
             <Grid ColumnDefinitions="*,10,*,10,*" Height="240">
               <Border Grid.Column="0" Classes="chartcard">
                 <StackPanel Spacing="6">
-                  <TextBlock Classes="title" Text="Buy Orders by Corporation" />
-                  <lvc:PieChart IsVisible="{Binding HasBuyCorp}" Series="{Binding BuyCorpSeries}"
-                                LegendPosition="Right" LegendTextSize="10" Background="Transparent" Height="190" />
-                  <TextBlock Classes="nodata" IsVisible="{Binding !HasBuyCorp}" Margin="0 60"
-                             Text="No buy orders for this selection." />
-                </StackPanel>
-              </Border>
-              <Border Grid.Column="2" Classes="chartcard">
-                <StackPanel Spacing="6">
-                  <TextBlock Classes="title" Text="Sell Orders by Corporation" />
+                  <TextBlock Classes="title" Text="Sell Orders by Type" />
                   <lvc:PieChart IsVisible="{Binding HasSellCorp}" Series="{Binding SellCorpSeries}"
                                 LegendPosition="Right" LegendTextSize="10" Background="Transparent" Height="190" />
                   <TextBlock Classes="nodata" IsVisible="{Binding !HasSellCorp}" Margin="0 60"
                              Text="No sell orders for this selection." />
+                </StackPanel>
+              </Border>
+              <Border Grid.Column="2" Classes="chartcard">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="title" Text="Buy Orders by Type" />
+                  <lvc:PieChart IsVisible="{Binding HasBuyCorp}" Series="{Binding BuyCorpSeries}"
+                                LegendPosition="Right" LegendTextSize="10" Background="Transparent" Height="190" />
+                  <TextBlock Classes="nodata" IsVisible="{Binding !HasBuyCorp}" Margin="0 60"
+                             Text="No buy orders for this selection." />
                 </StackPanel>
               </Border>
               <Border Grid.Column="4" Classes="chartcard">
