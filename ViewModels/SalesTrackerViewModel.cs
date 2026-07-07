@@ -60,7 +60,7 @@ public class SaleRowVm
     }
 }
 
-public enum OwnerScope { All, AllCharacters, PersonalCorps, Specific }
+public enum OwnerScope { All, CharsAndPersonalCorps, Specific }
 public record SalesOwnerOption(string Label, OwnerScope Scope, long OwnerId = 0, string OwnerType = "")
 { public override string ToString() => Label; }
 public record SalesTypeOption(string Label, string? Kind)
@@ -81,15 +81,14 @@ public class SalesTrackerViewModel : ReactiveObject
     // ── Filters ───────────────────────────────────────────────────────────────
     public ObservableCollection<SalesOwnerOption> OwnerOptions { get; } =
     [
-        new("All",            OwnerScope.All),
-        new("All Characters", OwnerScope.AllCharacters),
-        new("Personal Corps", OwnerScope.PersonalCorps),
+        new("All",                             OwnerScope.All),
+        new("All Characters and Personal Corps", OwnerScope.CharsAndPersonalCorps),
     ];
     private SalesOwnerOption _selectedOwner;
     public SalesOwnerOption SelectedOwner
     {
         get => _selectedOwner;
-        set { this.RaiseAndSetIfChanged(ref _selectedOwner, value ?? OwnerOptions[2]); ApplyFilters(); }
+        set { this.RaiseAndSetIfChanged(ref _selectedOwner, value ?? OwnerOptions[1]); ApplyFilters(); }
     }
 
     public IReadOnlyList<SalesTypeOption> SaleTypeOptions { get; } =
@@ -122,7 +121,7 @@ public class SalesTrackerViewModel : ReactiveObject
         _dbFactory   = dbFactory;
         _errorLogger = errorLogger;
         _names       = names;
-        _selectedOwner = OwnerOptions[2];                                  // Personal Corps
+        _selectedOwner = OwnerOptions[1];                                  // All Characters and Personal Corps
         _selectedType  = SaleTypeOptions[0];                               // All types
         _dateFrom      = DateTime.UtcNow.AddDays(-90).ToString("yyyy-MM-dd"); // last 90 days
 
@@ -139,10 +138,9 @@ public class SalesTrackerViewModel : ReactiveObject
 
         q = _selectedOwner?.Scope switch
         {
-            OwnerScope.AllCharacters => q.Where(r => r.OwnerType == "character"),
-            OwnerScope.PersonalCorps => q.Where(r => r.OwnerType == "corporation" && r.OwnerIsPersonal),
-            OwnerScope.Specific      => q.Where(r => r.OwnerType == _selectedOwner.OwnerType && r.OwnerId == _selectedOwner.OwnerId),
-            _                        => q,
+            OwnerScope.CharsAndPersonalCorps => q.Where(r => r.OwnerType == "character" || (r.OwnerType == "corporation" && r.OwnerIsPersonal)),
+            OwnerScope.Specific              => q.Where(r => r.OwnerType == _selectedOwner.OwnerType && r.OwnerId == _selectedOwner.OwnerId),
+            _                                => q,
         };
 
         if (_selectedType?.Kind is string kind)
@@ -306,7 +304,7 @@ public class SalesTrackerViewModel : ReactiveObject
     // Populate the owner filter with every tracked character and corp (once).
     private void BuildOwnerOptions(IEnumerable<(long Id, string Name)> chars, IEnumerable<(long Id, string Name)> corps)
     {
-        if (OwnerOptions.Count > 3) return;   // already built (keeps the current selection intact)
+        if (OwnerOptions.Count > 2) return;   // already built (keeps the current selection intact)
         foreach (var (id, name) in chars.OrderBy(c => c.Name))
             OwnerOptions.Add(new SalesOwnerOption(name, OwnerScope.Specific, id, "character"));
         foreach (var (id, name) in corps.OrderBy(c => c.Name))
