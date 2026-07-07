@@ -33,6 +33,7 @@ public class MainWindowViewModel : ReactiveObject
     public ContractsViewModel             ContractsVm            { get; }
     public NotificationsViewModel         NotificationsVm        { get; }
     public MarketViewerViewModel          MarketViewerVm         { get; }
+    public SalesTrackerViewModel          SalesTrackerVm         { get; }
     public MarketSettingsViewModel        MarketVm               { get; }
     public TimerSettingsViewModel         TimerVm                { get; }
     public AgentPanelViewModel            AgentVm                { get; }
@@ -125,6 +126,7 @@ public class MainWindowViewModel : ReactiveObject
             "wallet"         => ("Wallet",          WalletVm,          true),
             "contracts"      => ("Contracts",       ContractsVm,       true),
             "market_viewer"  => ("Market Overview", MarketViewerVm,    true),
+            "sales_tracker"  => ("Sales Tracker",   SalesTrackerVm,    true),
             "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
             "killmails"      => ("Killmails",      KillmailBrowserVm, true),
             "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
@@ -261,6 +263,7 @@ public class MainWindowViewModel : ReactiveObject
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
         MarketViewerVm         = new MarketViewerViewModel(dbFactory, errorLogger);
+        SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
@@ -332,6 +335,7 @@ public class MainWindowViewModel : ReactiveObject
             [
                 new NavItem("market_levels", "Market Levels"),
                 new NavItem("market_viewer", "Market Overview"),
+                new NavItem("sales_tracker", "Sales Tracker"),
                 new NavItem("trade",         "Trade Opportunities"),
                 new NavItem("contracts",     "Contracts"),
             ]),
