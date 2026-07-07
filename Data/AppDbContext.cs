@@ -82,6 +82,9 @@ public class AppDbContext : DbContext
     // ── Net worth history ────────────────────────────────────────────────
     public DbSet<NetWorthSnapshot> NetWorthSnapshots => Set<NetWorthSnapshot>();
 
+    // ── Per-type price history ───────────────────────────────────────────
+    public DbSet<TypePriceSnapshot> TypePriceSnapshots => Set<TypePriceSnapshot>();
+
     // ── Application error log ────────────────────────────────────────────
     public DbSet<AppErrorEntry> AppErrors => Set<AppErrorEntry>();
 
@@ -749,6 +752,11 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.OwnerId, x.OwnerType, x.Date });
             e.Property(x => x.OwnerId).ValueGeneratedNever();
             e.ToTable("NetWorthSnapshots"); });
+
+        mb.Entity<TypePriceSnapshot>(e => {
+            e.HasKey(x => new { x.TypeId, x.Date });
+            e.Property(x => x.TypeId).ValueGeneratedNever();
+            e.ToTable("TypePriceSnapshots"); });
 
         mb.Entity<AppErrorEntry>(e => {
             e.HasKey(x => x.Id);

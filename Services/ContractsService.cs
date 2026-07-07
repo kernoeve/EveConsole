@@ -23,6 +23,9 @@ public class ContractsService : ReactiveObject
     private Task? _itemsLoop;
     private Task? _pricingLoop;
 
+    // Fired after each contract re-pricing so per-type price history can re-snapshot.
+    public event Func<CancellationToken, Task>? AfterPricing;
+
     // Pace between successive public-list region calls.
     private const int CallDelayMs = 100;
 
@@ -502,5 +505,11 @@ public class ContractsService : ReactiveObject
         await db.SaveChangesAsync(ct);
 
         StatusText = $"Contracts: priced {results.Count:N0} types — {DateTimeOffset.Now:t}";
+
+        if (AfterPricing is not null && !ct.IsCancellationRequested)
+        {
+            try { await AfterPricing(ct); }
+            catch (Exception ex) { _errorLogger.Log("ContractsService", "AfterPricing", ex); }
+        }
     }
 }
