@@ -40,11 +40,15 @@
         <DataGridTextColumn Header="Date / Time"  Binding="{Binding WhenText}" SortMemberPath="WhenSort" Width="130" />
         <DataGridTextColumn Header="Type"         Binding="{Binding Kind}"     Width="80" />
         <DataGridTextColumn Header="Owner"        Binding="{Binding Owner}"    Width="150" />
-        <DataGridTextColumn Header="Item(s)"      Binding="{Binding Items}"    Width="240" />
+        <DataGridTextColumn Header="Location"     Binding="{Binding Location}" Width="220" />
+        <DataGridTextColumn Header="Buyer"        Binding="{Binding Buyer}"    Width="150" />
+        <DataGridTextColumn Header="Item(s)"      Binding="{Binding Items}"    Width="220" />
         <DataGridTextColumn Header="Units"        Binding="{Binding Units}"    Width="90"  CellStyleClasses="num" />
-        <DataGridTextColumn Header="Total Sale"   Binding="{Binding Total}"    SortMemberPath="TotalRaw"  Width="110" CellStyleClasses="num" />
-        <DataGridTextColumn Header="Build Price"  Binding="{Binding Build}"    SortMemberPath="BuildRaw"  Width="110" CellStyleClasses="num" />
-        <DataGridTextColumn Header="Market Price" Binding="{Binding Market}"   SortMemberPath="MarketRaw" Width="110" CellStyleClasses="num" />
+        <DataGridTextColumn Header="Total Sale"   Binding="{Binding Total}"    SortMemberPath="TotalRaw"     Width="110" CellStyleClasses="num" />
+        <DataGridTextColumn Header="Build Price"  Binding="{Binding Build}"    SortMemberPath="BuildRaw"     Width="110" CellStyleClasses="num" />
+        <DataGridTextColumn Header="Market Price" Binding="{Binding Market}"   SortMemberPath="MarketRaw"    Width="110" CellStyleClasses="num" />
+        <DataGridTextColumn Header="Profit"       Binding="{Binding Profit}"    SortMemberPath="ProfitRaw"    Width="110" CellStyleClasses="num" />
+        <DataGridTextColumn Header="Profit %"     Binding="{Binding ProfitPct}" SortMemberPath="ProfitPctRaw" Width="90"  CellStyleClasses="num" />
       </DataGrid.Columns>
     </DataGrid>
 
