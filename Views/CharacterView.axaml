@@ -221,8 +221,8 @@
           </StackPanel>
         </Border>
 
-        <!-- ════ Alerts + Eve News ══════════════════════════════════════ -->
-        <Grid ColumnDefinitions="*,12,*">
+        <!-- ════ Alerts | Notifications | Eve News ═══════════════════════ -->
+        <Grid ColumnDefinitions="*,12,*,12,*">
 
           <!-- Alerts -->
           <Border Grid.Column="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
@@ -281,7 +281,7 @@
           </Border>
 
           <!-- Eve News Feed -->
-          <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <Border Grid.Column="4" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
             <StackPanel Spacing="8">
 
@@ -350,11 +350,9 @@
             </StackPanel>
           </Border>
 
-        </Grid>
-
-        <!-- ════ Recent Notifications ═════════════════════════════════════ -->
-        <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
-                CornerRadius="4" Padding="14 12" Margin="0 4 0 0">
+          <!-- Recent Notifications (middle column) -->
+          <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="14 12">
           <StackPanel Spacing="8">
 
             <TextBlock Text="Recent Notifications" FontSize="13" FontWeight="SemiBold"
@@ -397,7 +395,9 @@
             </ItemsControl>
 
           </StackPanel>
-        </Border>
+          </Border>
+
+        </Grid>
 
       </StackPanel>
     </ScrollViewer>
