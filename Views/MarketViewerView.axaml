@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             x:Class="EveCortex.Views.MarketViewerView"
+             x:DataType="vm:MarketViewerViewModel"
+             Background="#0d0d12">
+
+  <UserControl.Styles>
+    <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="Background" Value="#12121a" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding"    Value="6 5 2 5" />
+    </Style>
+    <!-- Right-align numeric cells -->
+    <Style Selector="DataGridCell.num TextBlock">
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="Margin" Value="0 0 8 0" />
+    </Style>
+  </UserControl.Styles>
+
+  <TabControl Background="#0d0d12">
+
+    <!-- ══ Summary ═══════════════════════════════════════════════════════════ -->
+    <TabItem Header="Summary">
+      <Grid RowDefinitions="Auto,*">
+
+        <Border Grid.Row="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
+                Padding="12 8">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="Region market summary" FontSize="12" Foreground="#888899"
+                       VerticalAlignment="Center" />
+            <Button Command="{Binding RefreshCommand}" Content="↻ Refresh" FontSize="11"
+                    VerticalAlignment="Center" />
+            <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="#888899"
+                       VerticalAlignment="Center" />
+          </StackPanel>
+        </Border>
+
+        <DataGrid Grid.Row="1"
+                  ItemsSource="{Binding SummaryRows}"
+                  AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+                  CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                  Background="#0d0d12">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Region"            Binding="{Binding Region}"     Width="180" />
+            <DataGridTextColumn Header="Sell Orders"       Binding="{Binding SellCount}"  SortMemberPath="SellCountRaw"  Width="100" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sell ISK"          Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="100" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Sell Types"        Binding="{Binding SellTypes}"  SortMemberPath="SellTypesRaw"  Width="90"  CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy Orders"        Binding="{Binding BuyCount}"   SortMemberPath="BuyCountRaw"   Width="100" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy ISK"           Binding="{Binding BuyIsk}"     SortMemberPath="BuyIskRaw"     Width="100" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Buy Types"         Binding="{Binding BuyTypes}"   SortMemberPath="BuyTypesRaw"   Width="90"  CellStyleClasses="num" />
+            <DataGridTextColumn Header="30d Sales Units"   Binding="{Binding SalesUnits}" SortMemberPath="SalesUnitsRaw" Width="120" CellStyleClasses="num" />
+            <DataGridTextColumn Header="30d Sales ISK"     Binding="{Binding SalesIsk}"   SortMemberPath="SalesIskRaw"   Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="30d Sales Types"   Binding="{Binding SalesTypes}" SortMemberPath="SalesTypesRaw" Width="110" CellStyleClasses="num" />
+          </DataGrid.Columns>
+        </DataGrid>
+
+      </Grid>
+    </TabItem>
+
+  </TabControl>
+</UserControl>
