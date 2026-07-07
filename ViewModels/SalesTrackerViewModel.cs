@@ -279,14 +279,19 @@ public class SalesTrackerViewModel : ReactiveObject
             {
                 var when = ParseDate(c.DateStr);
                 var its  = itemsByContract.TryGetValue(c.SaleId, out var list) ? list : [];
-                var names = string.Join(", ", its.Select(i => TypeName(i.TypeId)));
-                var units = string.Join(", ", its.Select(i => i.Quantity.ToString("N0")));
+                // One item: name + count. Many: first item + "+N more items", and units are just
+                // "Multiple" (the per-item counts still drive build/market below, but listing them
+                // for a big multi-item contract isn't useful).
+                string names, units;
+                if (its.Count == 0)      { names = "(no items)"; units = ""; }
+                else if (its.Count == 1) { names = TypeName(its[0].TypeId); units = its[0].Quantity.ToString("N0"); }
+                else                     { names = $"{TypeName(its[0].TypeId)} +{its.Count - 1} more items"; units = "Multiple"; }
                 var build = SumOrNull(its.Select(i => Snap(i.TypeId, when).Build is double b ? b * i.Quantity : (double?)null));
                 var mkt   = SumOrNull(its.Select(i => Snap(i.TypeId, when).Market is double m ? m * i.Quantity : (double?)null));
                 rows.Add(new SaleRowVm(
                     when, "Contract", c.OwnerType, c.OwnerId, IsPersonal(c.OwnerId, c.OwnerType),
                     OwnerName(c.OwnerId, c.OwnerType), c.Location ?? "", BuyerName(c.BuyerId),
-                    names.Length == 0 ? "(no items)" : names, units, c.Price, build, mkt));
+                    names, units, c.Price, build, mkt));
             }
 
             _all.Clear();
