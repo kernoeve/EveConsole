@@ -426,6 +426,52 @@ public class ContractNameResolver
         return map;
     }
 
+    // Resolves moon IDs to names via /universe/moons/{id}/ (universe/names can't) — cached in
+    // UniverseNames (category "moon"), one ESI call per new moon.
+    public async Task<IReadOnlyDictionary<int, string>> ResolveMoonsAsync(IEnumerable<int> moonIds)
+    {
+        var ids = moonIds.Where(m => m > 0).Distinct().ToList();
+        var result = new Dictionary<int, string>();
+        if (ids.Count == 0) return result;
+
+        var longIds = ids.Select(i => (long)i).ToList();
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        foreach (var kv in await db.UniverseNames.AsNoTracking()
+                     .Where(u => longIds.Contains(u.EntityId))
+                     .ToDictionaryAsync(u => (int)u.EntityId, u => u.Name))
+            result[kv.Key] = kv.Value;
+
+        var fresh = new List<UniverseName>();
+        foreach (var m in ids.Where(i => !result.ContainsKey(i)))
+        {
+            try
+            {
+                var moon = await _esi.GetMoonAsync(m);
+                if (moon is { Name.Length: > 0 })
+                {
+                    result[m] = moon.Name;
+                    fresh.Add(new UniverseName { EntityId = m, Name = moon.Name, Category = "moon" });
+                }
+            }
+            catch (Exception ex) { _errorLogger.Log("ContractNameResolver", "GetMoon", ex); }
+        }
+
+        if (fresh.Count > 0)
+        {
+            try
+            {
+                var have = (await db.UniverseNames.AsNoTracking()
+                        .Where(u => fresh.Select(f => f.EntityId).Contains(u.EntityId))
+                        .Select(u => u.EntityId).ToListAsync()).ToHashSet();
+                var toAdd = fresh.Where(f => !have.Contains(f.EntityId))
+                    .GroupBy(f => f.EntityId).Select(g => g.First()).ToList();
+                if (toAdd.Count > 0) { db.UniverseNames.AddRange(toAdd); await db.SaveChangesAsync(); }
+            }
+            catch (Exception ex) { _errorLogger.Log("ContractNameResolver", "PersistMoons", ex); }
+        }
+        return result;
+    }
+
     // Resolves station / structure location IDs to names.
     public async Task<IReadOnlyDictionary<long, string>> ResolveLocationsAsync(IEnumerable<long> ids)
     {

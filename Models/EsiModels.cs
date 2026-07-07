@@ -47,6 +47,14 @@ public class EsiUniverseName
     [JsonPropertyName("category")] public string Category { get; init; } = "";
 }
 
+// /universe/moons/{id}/ — moons aren't resolvable via universe/names, so they need this endpoint.
+public class EsiMoonDetail
+{
+    [JsonPropertyName("moon_id")]   public int    MoonId   { get; init; }
+    [JsonPropertyName("name")]      public string Name     { get; init; } = "";
+    [JsonPropertyName("system_id")] public int    SystemId { get; init; }
+}
+
 // Same payload but with an int64 id, so it can hold character IDs above int.MaxValue
 // (modern EVE character IDs exceed 2.1 billion).
 public class EsiUniverseNameLong

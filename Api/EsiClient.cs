@@ -278,6 +278,13 @@ public class EsiClient
     public Task<EsiKillMailFull?> GetKillMailAsync(int killMailId, string hash, CancellationToken ct = default)
         => GetAsync<EsiKillMailFull>($"killmails/{killMailId}/{hash}/", ct);
 
+    // Moon detail (public). Returns null on error. name is e.g. "X-1QGA VI - Moon 3".
+    public async Task<EsiMoonDetail?> GetMoonAsync(int moonId, CancellationToken ct = default)
+    {
+        try { return await GetAsync<EsiMoonDetail>($"universe/moons/{moonId}/", ct); }
+        catch { return null; }
+    }
+
     private async Task<T?> GetAsync<T>(string endpoint, CancellationToken ct)
     {
         var response = await _http.GetAsync(endpoint, ct);

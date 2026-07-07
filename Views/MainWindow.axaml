@@ -294,6 +294,9 @@
               <DataTemplate DataType="vm:EveMailViewModel">
                 <views:EveMailView />
               </DataTemplate>
+              <DataTemplate DataType="vm:NotificationsViewModel">
+                <views:NotificationsView />
+              </DataTemplate>
               <DataTemplate DataType="vm:EsiExplorerViewModel">
                 <views:EsiExplorerView />
               </DataTemplate>

@@ -618,6 +618,11 @@ public class WalletViewModel : ReactiveObject
         catch (Exception ex) { _errorLogger.Log("WalletViewModel", "LoadJournalPageAsync", ex); }
     }
 
+    // Treats a picked calendar date as UTC midnight — a DateTimeOffset with a zero offset can't be
+    // built directly from the Local-kind DateTime the date picker returns, so use components.
+    private static DateTimeOffset UtcMidnight(DateTime d) =>
+        new(d.Year, d.Month, d.Day, 0, 0, 0, TimeSpan.Zero);
+
     private async Task<(string Where, List<object> Parameters)> BuildJournalWhereAsync(
         AppDbContext db, WalletOwnerOption? owner, DateTimeOffset cutoff)
     {
@@ -666,9 +671,9 @@ public class WalletViewModel : ReactiveObject
         }
 
         if (_journalFromDate is DateTime fd)
-        { int i = ps.Count; ps.Add(new DateTimeOffset(fd.Date, TimeSpan.Zero)); parts.Add($"Date >= {{{i}}}"); }
+        { int i = ps.Count; ps.Add(UtcMidnight(fd)); parts.Add($"Date >= {{{i}}}"); }
         if (_journalThruDate is DateTime td)
-        { int i = ps.Count; ps.Add(new DateTimeOffset(td.Date.AddDays(1), TimeSpan.Zero)); parts.Add($"Date < {{{i}}}"); }
+        { int i = ps.Count; ps.Add(UtcMidnight(td.AddDays(1))); parts.Add($"Date < {{{i}}}"); }
 
         return (string.Join(" AND ", parts), ps);
     }
