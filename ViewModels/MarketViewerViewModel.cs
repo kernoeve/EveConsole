@@ -94,20 +94,18 @@ public class MarketGroupSummaryVm
     }
 }
 
-// One owner row on the Sell/Buy Orders by Owner tabs.
-public class MarketOwnerSummaryVm
+// One type row on the Sell/Buy Orders by Type tabs.
+public class MarketOrderByTypeVm
 {
-    public string Owner { get; }
+    public string Type  { get; }
     public string Units { get; } public double UnitsRaw { get; }
     public string Isk   { get; } public double IskRaw   { get; }
-    public string Types { get; } public long   TypesRaw { get; }
 
-    public MarketOwnerSummaryVm(string owner, double units, double isk, long types)
+    public MarketOrderByTypeVm(string type, double units, double isk)
     {
-        Owner    = owner;
+        Type     = type;
         UnitsRaw = units; Units = MarketFmt.Num(units);
         IskRaw   = isk;   Isk   = MarketFmt.Isk(isk);
-        TypesRaw = types; Types = types.ToString("N0");
     }
 }
 
@@ -146,8 +144,8 @@ public class MarketViewerViewModel : ReactiveObject
 
     public ObservableCollection<MarketGroupSummaryVm> GroupRows { get; } = new();
     public ObservableCollection<MarketTypeSummaryVm>  TypeRows  { get; } = new();
-    public ObservableCollection<MarketOwnerSummaryVm> SellByOwnerRows { get; } = new();
-    public ObservableCollection<MarketOwnerSummaryVm> BuyByOwnerRows  { get; } = new();
+    public ObservableCollection<MarketOrderByTypeVm> SellByTypeRows { get; } = new();
+    public ObservableCollection<MarketOrderByTypeVm> BuyByTypeRows  { get; } = new();
 
     // ── Summary KPI boxes (selected region, or all regions) ───────────────────────
     private string _kpiSellCount = "—", _kpiSellIsk = "—", _kpiSellTypes = "—";
@@ -232,7 +230,7 @@ public class MarketViewerViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _selectedRegion, value); _ = LoadActiveAsync(); }
     }
 
-    // 0 = Summary, 1 = By Market Group, 2 = By Type, 3 = Sell by Owner, 4 = Buy by Owner
+    // 0 = Summary, 1 = By Market Group, 2 = By Type, 3 = Sell by Type, 4 = Buy by Type
     private int _selectedTab;
     public int SelectedTab
     {
@@ -267,8 +265,8 @@ public class MarketViewerViewModel : ReactiveObject
     {
         1 => LoadByMarketGroupAsync(),
         2 => LoadByTypeAsync(),
-        3 => LoadByOwnerAsync(buy: false),
-        4 => LoadByOwnerAsync(buy: true),
+        3 => LoadOrdersByTypeAsync(buy: false),
+        4 => LoadOrdersByTypeAsync(buy: true),
         _ => LoadSummaryAsync(),
     };
 
@@ -578,8 +576,8 @@ public class MarketViewerViewModel : ReactiveObject
         finally { IsLoading = false; }
     }
 
-    // ── Sell/Buy Orders by Owner (owner-attributed orders; selected region or all) ──
-    private async Task LoadByOwnerAsync(bool buy)
+    // ── Sell/Buy Orders by Type (public order book; selected region or all) ────────
+    private async Task LoadOrdersByTypeAsync(bool buy)
     {
         if (!_initialized || IsLoading) return;
         IsLoading = true;
@@ -589,44 +587,40 @@ public class MarketViewerViewModel : ReactiveObject
             await using var db = await _dbFactory.CreateDbContextAsync();
             int? region = _selectedRegion?.RegionId;
 
-            var conds = new List<string> { "eo.IsHistory = 0", $"eo.IsBuyOrder = {(buy ? 1 : 0)}" };
-            if (region is int r) conds.Add($"eo.RegionId = {r}");
+            var conds = new List<string> { $"o.IsBuyOrder = {(buy ? 1 : 0)}" };
+            conds.Add(region is int r ? $"{RegionExpr} = {r}" : $"{RegionExpr} IS NOT NULL");
             var where = "WHERE " + string.Join(" AND ", conds);
 
-            var rows = await db.Database.SqlQueryRaw<OwnerAgg>(
-                "SELECT eo.OwnerId AS OwnerId, eo.OwnerType AS OwnerType, " +
-                "COALESCE(ch.Name, co.Name) AS OwnerName, " +
-                "SUM(eo.VolumeRemain) AS Units, " +
-                "SUM(CAST(eo.Price AS REAL) * eo.VolumeRemain) AS Isk, " +
-                "COUNT(DISTINCT eo.TypeId) AS Types " +
-                "FROM EsiMarketOrders eo " +
-                "LEFT JOIN Characters ch   ON eo.OwnerType = 'character'   AND ch.Id = eo.OwnerId " +
-                "LEFT JOIN Corporations co ON eo.OwnerType = 'corporation' AND co.Id = eo.OwnerId " +
-                where + " GROUP BY eo.OwnerId, eo.OwnerType").ToListAsync();
+            var rows = await db.Database.SqlQueryRaw<TypeUnitIskAgg>(
+                "SELECT o.TypeId AS TypeId, SUM(o.VolumeRemain) AS Units, " +
+                "SUM(o.Price * o.VolumeRemain) AS Isk " +
+                OrdersFrom + " " + where + " GROUP BY o.TypeId").ToListAsync();
+
+            var typeIds   = rows.Select(x => x.TypeId).ToList();
+            var typeNames = await db.SdeTypes.AsNoTracking().Where(t => typeIds.Contains(t.TypeId))
+                .ToDictionaryAsync(t => t.TypeId, t => t.Name);
 
             var vms = rows
-                .Select(a => new MarketOwnerSummaryVm(
-                    string.IsNullOrWhiteSpace(a.OwnerName) ? $"{a.OwnerType} {a.OwnerId}" : a.OwnerName!,
-                    a.Units, a.Isk, a.Types))
+                .Select(x => new MarketOrderByTypeVm(
+                    typeNames.TryGetValue(x.TypeId, out var n) ? n : $"Type {x.TypeId}", x.Units, x.Isk))
                 .OrderByDescending(v => v.IskRaw).ToList();
 
-            var target = buy ? BuyByOwnerRows : SellByOwnerRows;
+            var target = buy ? BuyByTypeRows : SellByTypeRows;
             target.Clear();
             foreach (var v in vms) target.Add(v);
-            StatusText = vms.Count == 0 ? "No orders for this selection." : $"{vms.Count:N0} owner(s)";
+            StatusText = vms.Count == 0 ? "No orders for this selection." : $"{vms.Count:N0} type(s)";
         }
         catch (Exception ex)
         {
-            _errorLogger.Log("MarketViewerViewModel", "LoadByOwner", ex);
-            StatusText = "Error loading by-owner data.";
+            _errorLogger.Log("MarketViewerViewModel", "LoadOrdersByType", ex);
+            StatusText = "Error loading orders-by-type data.";
         }
         finally { IsLoading = false; }
     }
 
-    private sealed class OwnerAgg
+    private sealed class TypeUnitIskAgg
     {
-        public long OwnerId { get; set; } public string? OwnerType { get; set; } public string? OwnerName { get; set; }
-        public double Units { get; set; } public double Isk { get; set; } public long Types { get; set; }
+        public int TypeId { get; set; } public double Units { get; set; } public double Isk { get; set; }
     }
     private sealed class KpiOrderAgg
     {

@@ -165,32 +165,30 @@
         </DataGrid>
       </TabItem>
 
-      <!-- ══ Sell Orders by Owner ════════════════════════════════════════════ -->
-      <TabItem Header="Sell Orders by Owner">
-        <DataGrid ItemsSource="{Binding SellByOwnerRows}"
+      <!-- ══ Sell Orders by Type ═════════════════════════════════════════════ -->
+      <TabItem Header="Sell Orders by Type">
+        <DataGrid ItemsSource="{Binding SellByTypeRows}"
                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="#0d0d12">
           <DataGrid.Columns>
-            <DataGridTextColumn Header="Owner" Binding="{Binding Owner}" Width="280" />
+            <DataGridTextColumn Header="Type"  Binding="{Binding Type}"  Width="280" />
             <DataGridTextColumn Header="Units" Binding="{Binding Units}" SortMemberPath="UnitsRaw" Width="140" CellStyleClasses="num" />
             <DataGridTextColumn Header="ISK"   Binding="{Binding Isk}"   SortMemberPath="IskRaw"   Width="140" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Types" Binding="{Binding Types}" SortMemberPath="TypesRaw" Width="120" CellStyleClasses="num" />
           </DataGrid.Columns>
         </DataGrid>
       </TabItem>
 
-      <!-- ══ Buy Orders by Owner ═════════════════════════════════════════════ -->
-      <TabItem Header="Buy Orders by Owner">
-        <DataGrid ItemsSource="{Binding BuyByOwnerRows}"
+      <!-- ══ Buy Orders by Type ══════════════════════════════════════════════ -->
+      <TabItem Header="Buy Orders by Type">
+        <DataGrid ItemsSource="{Binding BuyByTypeRows}"
                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="#0d0d12">
           <DataGrid.Columns>
-            <DataGridTextColumn Header="Owner" Binding="{Binding Owner}" Width="280" />
+            <DataGridTextColumn Header="Type"  Binding="{Binding Type}"  Width="280" />
             <DataGridTextColumn Header="Units" Binding="{Binding Units}" SortMemberPath="UnitsRaw" Width="140" CellStyleClasses="num" />
             <DataGridTextColumn Header="ISK"   Binding="{Binding Isk}"   SortMemberPath="IskRaw"   Width="140" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Types" Binding="{Binding Types}" SortMemberPath="TypesRaw" Width="120" CellStyleClasses="num" />
           </DataGrid.Columns>
         </DataGrid>
       </TabItem>
