@@ -124,6 +124,9 @@ public class MarketViewerViewModel : ReactiveObject
         "LEFT JOIN EsiStructureNames sn   ON sn.StructureId     = o.LocationId " +
         "LEFT JOIN SdeSolarSystems ssStr  ON ssStr.SolarSystemId = sn.SolarSystemId";
     private const string RegionExpr = "COALESCE(ssSys.RegionId, ssStr.RegionId)";
+    // Exclude NPC market orders: NPC seeded/buy orders use a 365-day duration, while player
+    // orders cap at 90 days (no order falls between 91 and 364), so this keeps players only.
+    private const string PlayerOrders = "o.Duration <= 90";
 
     // Maps every market group to its top-level ancestor (TopId/TopName).
     private const string MgTopCte =
@@ -314,7 +317,9 @@ public class MarketViewerViewModel : ReactiveObject
             var  cutoff = Cutoff();
 
             // Order KPIs — current open orders (not period-dependent).
-            var orderWhere = region is int r1 ? $"WHERE {RegionExpr} = {r1}" : $"WHERE {RegionExpr} IS NOT NULL";
+            var orderWhere = region is int r1
+                ? $"WHERE {PlayerOrders} AND {RegionExpr} = {r1}"
+                : $"WHERE {PlayerOrders} AND {RegionExpr} IS NOT NULL";
             var o = (await db.Database.SqlQueryRaw<KpiOrderAgg>(
                 "SELECT " +
                 "SUM(CASE WHEN o.IsBuyOrder = 0 THEN 1 ELSE 0 END)                        AS SellCount, " +
@@ -458,7 +463,9 @@ public class MarketViewerViewModel : ReactiveObject
             await using var db = await _dbFactory.CreateDbContextAsync();
             int? region = _selectedRegion?.RegionId;
 
-            var orderWhere = region is int r1 ? $"WHERE {RegionExpr} = {r1}" : $"WHERE {RegionExpr} IS NOT NULL";
+            var orderWhere = region is int r1
+                ? $"WHERE {PlayerOrders} AND {RegionExpr} = {r1}"
+                : $"WHERE {PlayerOrders} AND {RegionExpr} IS NOT NULL";
 #pragma warning disable EF1002 // region is an inlined int from a fixed, DB-derived set — no injection risk
             var orders = await db.Database.SqlQueryRaw<GroupOrderAgg>(
                 MgTopCte +
@@ -525,7 +532,9 @@ public class MarketViewerViewModel : ReactiveObject
             await using var db = await _dbFactory.CreateDbContextAsync();
             int? region = _selectedRegion?.RegionId;
 
-            var orderWhere = region is int r1 ? $"WHERE {RegionExpr} = {r1}" : $"WHERE {RegionExpr} IS NOT NULL";
+            var orderWhere = region is int r1
+                ? $"WHERE {PlayerOrders} AND {RegionExpr} = {r1}"
+                : $"WHERE {PlayerOrders} AND {RegionExpr} IS NOT NULL";
 #pragma warning disable EF1002 // region is an inlined int from a fixed, DB-derived set — no injection risk
             var orders = await db.Database.SqlQueryRaw<TypeOrderAgg>(
                 $"""
@@ -587,7 +596,7 @@ public class MarketViewerViewModel : ReactiveObject
             await using var db = await _dbFactory.CreateDbContextAsync();
             int? region = _selectedRegion?.RegionId;
 
-            var conds = new List<string> { $"o.IsBuyOrder = {(buy ? 1 : 0)}" };
+            var conds = new List<string> { PlayerOrders, $"o.IsBuyOrder = {(buy ? 1 : 0)}" };
             conds.Add(region is int r ? $"{RegionExpr} = {r}" : $"{RegionExpr} IS NOT NULL");
             var where = "WHERE " + string.Join(" AND ", conds);
 
