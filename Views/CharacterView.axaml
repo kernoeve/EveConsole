@@ -52,8 +52,10 @@
     </Border>
 
     <!-- ── Main scroll area ─────────────────────────────────────────────── -->
-    <ScrollViewer Grid.Row="1">
-      <StackPanel Spacing="12" Margin="14 12">
+    <Grid Grid.Row="1" RowDefinitions="Auto,*" Margin="14 12">
+
+      <!-- Top: summary + charts (natural height) -->
+      <StackPanel Grid.Row="0" Spacing="12">
 
         <!-- ════ Activity Summary ════════════════════════════════════════ -->
         <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
@@ -221,16 +223,21 @@
           </StackPanel>
         </Border>
 
-        <!-- ════ Alerts | Notifications | Eve News ═══════════════════════ -->
-        <Grid ColumnDefinitions="*,12,*,12,*">
+      </StackPanel>
+
+      <!-- ════ Alerts | Notifications | Eve News (fill remaining height, each scrolls) ══ -->
+      <Grid Grid.Row="1" ColumnDefinitions="*,12,*,12,*" Margin="0 4 0 0">
 
           <!-- Alerts -->
           <Border Grid.Column="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
-            <StackPanel Spacing="8">
+            <Grid RowDefinitions="Auto,*">
 
-              <TextBlock Text="Alerts" FontSize="13" FontWeight="SemiBold"
-                         Foreground="#c8a84b" />
+              <TextBlock Grid.Row="0" Text="Alerts" FontSize="13" FontWeight="SemiBold"
+                         Foreground="#c8a84b" Margin="0 0 0 8" />
+
+              <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="8">
 
               <TextBlock IsVisible="{Binding NoAlerts}"
                          Text="No active alerts."
@@ -277,16 +284,21 @@
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
 
-            </StackPanel>
+                </StackPanel>
+              </ScrollViewer>
+            </Grid>
           </Border>
 
           <!-- Eve News Feed -->
           <Border Grid.Column="4" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
-            <StackPanel Spacing="8">
+            <Grid RowDefinitions="Auto,*">
 
-              <TextBlock Text="Eve Online News" FontSize="13" FontWeight="SemiBold"
-                         Foreground="#c8a84b" />
+              <TextBlock Grid.Row="0" Text="Eve Online News" FontSize="13" FontWeight="SemiBold"
+                         Foreground="#c8a84b" Margin="0 0 0 8" />
+
+              <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="8">
 
               <TextBlock IsVisible="{Binding NoNews}"
                          Text="News unavailable — will retry next refresh."
@@ -347,16 +359,21 @@
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
 
-            </StackPanel>
+                </StackPanel>
+              </ScrollViewer>
+            </Grid>
           </Border>
 
           <!-- Recent Notifications (middle column) -->
           <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
-          <StackPanel Spacing="8">
+          <Grid RowDefinitions="Auto,*">
 
-            <TextBlock Text="Recent Notifications" FontSize="13" FontWeight="SemiBold"
-                       Foreground="#c8a84b" />
+            <TextBlock Grid.Row="0" Text="Recent Notifications" FontSize="13" FontWeight="SemiBold"
+                       Foreground="#c8a84b" Margin="0 0 0 8" />
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+              <StackPanel Spacing="8">
 
             <TextBlock IsVisible="{Binding NoNotifications}"
                        Text="No recent notifications."
@@ -394,13 +411,14 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-          </StackPanel>
+              </StackPanel>
+            </ScrollViewer>
+          </Grid>
           </Border>
 
         </Grid>
 
-      </StackPanel>
-    </ScrollViewer>
+    </Grid>
 
     <!-- ── Status bar ───────────────────────────────────────────────────── -->
     <Border Grid.Row="2" Background="#0d0d12" Padding="14 4"
