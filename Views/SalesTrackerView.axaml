@@ -43,8 +43,6 @@
         <DataGridTextColumn Header="Item(s)"      Binding="{Binding Items}"    Width="240" />
         <DataGridTextColumn Header="Units"        Binding="{Binding Units}"    Width="90"  CellStyleClasses="num" />
         <DataGridTextColumn Header="Total Sale"   Binding="{Binding Total}"    SortMemberPath="TotalRaw"  Width="110" CellStyleClasses="num" />
-        <DataGridTextColumn Header="Fees / Taxes" Binding="{Binding Fees}"     SortMemberPath="FeesRaw"   Width="110" CellStyleClasses="num" />
-        <DataGridTextColumn Header="Net Sale"     Binding="{Binding Net}"      SortMemberPath="NetRaw"    Width="110" CellStyleClasses="num" />
         <DataGridTextColumn Header="Build Price"  Binding="{Binding Build}"    SortMemberPath="BuildRaw"  Width="110" CellStyleClasses="num" />
         <DataGridTextColumn Header="Market Price" Binding="{Binding Market}"   SortMemberPath="MarketRaw" Width="110" CellStyleClasses="num" />
       </DataGrid.Columns>

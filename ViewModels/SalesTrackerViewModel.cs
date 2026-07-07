@@ -19,13 +19,11 @@ public class SaleRowVm
     public string Items    { get; }
     public string Units    { get; }
     public string Total  { get; } public double  TotalRaw  { get; }
-    public string Fees   { get; } public double  FeesRaw   { get; }
-    public string Net    { get; } public double  NetRaw    { get; }
     public string Build  { get; } public double  BuildRaw  { get; }
     public string Market { get; } public double  MarketRaw { get; }
 
     public SaleRowVm(DateTimeOffset when, string kind, string owner, string items, string units,
-        double total, double fees, double net, double? build, double? market)
+        double total, double? build, double? market)
     {
         When     = when;
         WhenSort = when.UtcTicks;
@@ -35,8 +33,6 @@ public class SaleRowVm
         Items    = items;
         Units    = units;
         TotalRaw = total;  Total = MarketFmt.Isk(total);
-        FeesRaw  = fees;   Fees  = MarketFmt.Isk(fees);
-        NetRaw   = net;    Net   = MarketFmt.Isk(net);
         BuildRaw  = build  ?? 0; Build  = build  is double b ? MarketFmt.Isk(b) : "—";
         MarketRaw = market ?? 0; Market = market is double m ? MarketFmt.Isk(m) : "—";
     }
@@ -69,15 +65,12 @@ public class SalesTrackerViewModel : ReactiveObject
         _ = LoadAsync();
     }
 
-    // Market sales: one row per sell transaction. Transaction (sales) tax is the transaction_tax
-    // journal entry sharing the owner + timestamp. Build/market value is the snapshot as of the day.
+    // Market sales: one row per sell transaction. Build/market value is the snapshot as of the day.
     private const string MarketSql =
         """
         SELECT t."TransactionId" AS SaleId, t."OwnerId" AS OwnerId, t."OwnerType" AS OwnerType,
                t."Date" AS DateStr, t."TypeId" AS TypeId, t."Quantity" AS Quantity,
                CAST(t."UnitPrice" AS REAL) AS UnitPrice,
-               (SELECT COALESCE(-SUM(CAST(jt."Amount" AS REAL)), 0) FROM "EsiWalletJournal" jt
-                 WHERE jt."RefType" = 'transaction_tax' AND jt."OwnerId" = t."OwnerId" AND jt."Date" = t."Date") AS Fees,
                (SELECT s."BuildCost"   FROM "TypePriceSnapshots" s
                  WHERE s."TypeId" = t."TypeId" AND s."Date" <= substr(t."Date", 1, 10)
                  ORDER BY s."Date" DESC LIMIT 1) AS BuildUnit,
@@ -89,14 +82,11 @@ public class SalesTrackerViewModel : ReactiveObject
         """;
 
     // Contract sales: item-exchange contracts finished for ISK, issued BY the tracked owner (so an
-    // accepted purchase is excluded). Contract broker fee links via the journal ContextId.
+    // accepted purchase is excluded).
     private const string ContractSql =
         """
         SELECT c."ContractId" AS SaleId, c."OwnerId" AS OwnerId, c."OwnerType" AS OwnerType,
-               c."DateCompleted" AS DateStr, CAST(c."Price" AS REAL) AS Price,
-               (SELECT COALESCE(-SUM(CAST(jf."Amount" AS REAL)), 0) FROM "EsiWalletJournal" jf
-                 WHERE jf."ContextId" = c."ContractId"
-                   AND jf."RefType" IN ('contract_brokers_fee', 'contract_brokers_fee_corp')) AS Fees
+               c."DateCompleted" AS DateStr, CAST(c."Price" AS REAL) AS Price
         FROM "EsiContracts" c
         WHERE c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS REAL) > 0
           AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = 0)
@@ -158,11 +148,10 @@ public class SalesTrackerViewModel : ReactiveObject
 
             foreach (var m in market)
             {
-                var total = m.Quantity * m.UnitPrice;
                 rows.Add(new SaleRowVm(
                     ParseDate(m.DateStr), "Market", OwnerName(m.OwnerId, m.OwnerType),
                     TypeName(m.TypeId), m.Quantity.ToString("N0"),
-                    total, m.Fees, total - m.Fees,
+                    m.Quantity * m.UnitPrice,
                     m.BuildUnit is double b ? b * m.Quantity : null,
                     m.MarketUnit is double mv ? mv * m.Quantity : null));
             }
@@ -175,7 +164,7 @@ public class SalesTrackerViewModel : ReactiveObject
                 rows.Add(new SaleRowVm(
                     ParseDate(c.DateStr), "Contract", OwnerName(c.OwnerId, c.OwnerType),
                     names.Length == 0 ? "(no items)" : names, units,
-                    c.Price, c.Fees, c.Price - c.Fees,
+                    c.Price,
                     SumOrNull(its.Select(i => i.BuildUnit.HasValue  ? i.BuildUnit.Value  * i.Quantity : (double?)null)),
                     SumOrNull(its.Select(i => i.MarketUnit.HasValue ? i.MarketUnit.Value * i.Quantity : (double?)null))));
             }
@@ -209,13 +198,13 @@ public class SalesTrackerViewModel : ReactiveObject
     {
         public long SaleId { get; set; } public long OwnerId { get; set; } public string OwnerType { get; set; } = "";
         public string DateStr { get; set; } = ""; public int TypeId { get; set; } public int Quantity { get; set; }
-        public double UnitPrice { get; set; } public double Fees { get; set; }
+        public double UnitPrice { get; set; }
         public double? BuildUnit { get; set; } public double? MarketUnit { get; set; }
     }
     private sealed class ContractSaleDto
     {
         public long SaleId { get; set; } public long OwnerId { get; set; } public string OwnerType { get; set; } = "";
-        public string DateStr { get; set; } = ""; public double Price { get; set; } public double Fees { get; set; }
+        public string DateStr { get; set; } = ""; public double Price { get; set; }
     }
     private sealed class ContractItemDto
     {
