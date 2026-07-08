@@ -126,7 +126,7 @@ public class MarketHistoryService : ReactiveObject
             // A scan that finds nothing stale is cheap, so we check frequently (default 10m):
             // items lapse their 24h freshness at staggered times, so frequent checks keep them
             // current and naturally spread the polls across the day instead of bursting daily.
-            int intervalSeconds = _timerSettings.GetInterval("market.history", 3600);
+            int intervalSeconds = _timerSettings.GetInterval("market.history", 600);
             try
             {
                 using var timer = new PeriodicTimer(TimeSpan.FromSeconds(intervalSeconds));

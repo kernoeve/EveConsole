@@ -67,7 +67,7 @@ public class TimerSettingsViewModel : ReactiveObject
             timerSettings, pollingService));
 
         OtherRows.Add(new TimerRowVm(
-            new EndpointInfo("market.history", "Price History Check", 120, 3600),
+            new EndpointInfo("market.history", "Price History Check", 120, 600),
             timerSettings, pollingService));
 
         OtherRows.Add(new TimerRowVm(
