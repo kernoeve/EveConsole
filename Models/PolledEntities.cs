@@ -723,6 +723,22 @@ public class TypePriceSnapshot
     public DateTimeOffset ComputedAt { get; set; }
 }
 
+// ── Order Tracker (user-entered outgoing orders) ────────────────────────────────
+
+// A user-tracked order: an item the user has agreed to supply to someone. Entirely user-entered
+// (not from ESI). Status moves pending → completed/canceled.
+public class TrackedOrder
+{
+    public int    Id            { get; set; }   // autoincrement
+    public int    TypeId        { get; set; }
+    public int    Units         { get; set; } = 1;
+    public string Buyer         { get; set; } = "";   // who the item is sent to (free text)
+    public string? EstimatedDate { get; set; }        // "yyyy-MM-dd", user's estimate
+    public double PurchasePrice { get; set; }         // total agreed price for the order
+    public string Status        { get; set; } = "pending";   // pending | completed | canceled
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
 // ── Error logging ─────────────────────────────────────────────────────────────
 
 public class AppErrorEntry

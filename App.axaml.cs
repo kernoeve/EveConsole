@@ -172,6 +172,20 @@ public class App : Application
                 )
                 """);
 
+            // Order Tracker — user-entered outgoing orders.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "TrackedOrders" (
+                    "Id"            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "TypeId"        INTEGER NOT NULL DEFAULT 0,
+                    "Units"         INTEGER NOT NULL DEFAULT 1,
+                    "Buyer"         TEXT    NOT NULL DEFAULT '',
+                    "EstimatedDate" TEXT,
+                    "PurchasePrice" REAL    NOT NULL DEFAULT 0,
+                    "Status"        TEXT    NOT NULL DEFAULT 'pending',
+                    "CreatedAt"     TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+
             // Market price history — on-demand ESI fetch cache
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "MarketTypeHistories" (
