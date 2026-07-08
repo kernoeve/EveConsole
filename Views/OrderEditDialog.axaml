@@ -1,0 +1,91 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveCortex.Views.OrderEditDialog"
+        Title="Add Order"
+        Width="420" Height="560"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <Window.Styles>
+    <Style Selector="TextBlock.lbl">
+      <Setter Property="FontSize" Value="10" /><Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#555566" /><Setter Property="LetterSpacing" Value="1" />
+    </Style>
+    <Style Selector="TextBox, NumericUpDown, ComboBox">
+      <Setter Property="Background" Value="#131320" /><Setter Property="BorderBrush" Value="#2a2a3a" />
+      <Setter Property="Foreground" Value="#e8e8f0" /><Setter Property="FontSize" Value="12" />
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="*,Auto" Margin="20">
+
+    <StackPanel Grid.Row="0" Spacing="10">
+
+      <TextBlock Classes="lbl" Text="ITEM TYPE" />
+      <TextBlock x:Name="SelectedTypeText" Text="(none selected)" Foreground="#c8a84b" FontSize="12" />
+      <TextBox x:Name="SearchBox" Watermark="Start typing item name…"
+               CornerRadius="3" CaretBrush="#c8a84b" Padding="8 5" TextChanged="OnSearchChanged" />
+      <Border x:Name="ResultsBox" IsVisible="False"
+              Background="#12121a" CornerRadius="3" BorderBrush="#1e1e2a" BorderThickness="1" Height="120">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <ListBox x:Name="ResultsList" Background="Transparent" BorderThickness="0"
+                   SelectionChanged="OnResultSelected">
+            <ListBox.Styles>
+              <Style Selector="ListBoxItem"><Setter Property="Padding" Value="10 5" /></Style>
+              <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                <Setter Property="Background" Value="#1a2030" />
+              </Style>
+            </ListBox.Styles>
+            <ListBox.ItemTemplate>
+              <DataTemplate><TextBlock Text="{Binding Name}" FontSize="12" Foreground="#c8c8d8" /></DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </ScrollViewer>
+      </Border>
+
+      <Grid ColumnDefinitions="*,12,*">
+        <StackPanel Grid.Column="0" Spacing="5">
+          <TextBlock Classes="lbl" Text="UNITS" />
+          <NumericUpDown x:Name="UnitsBox" Value="1" Minimum="1" Maximum="999999999"
+                         Increment="1" ShowButtonSpinner="True" />
+        </StackPanel>
+        <StackPanel Grid.Column="2" Spacing="5">
+          <TextBlock Classes="lbl" Text="PURCHASE PRICE (TOTAL)" />
+          <NumericUpDown x:Name="PriceBox" Value="0" Minimum="0" Maximum="1000000000000000"
+                         Increment="1000000" FormatString="N0" ShowButtonSpinner="False" />
+        </StackPanel>
+      </Grid>
+
+      <StackPanel Spacing="5">
+        <TextBlock Classes="lbl" Text="SENT TO (BUYER)" />
+        <TextBox x:Name="BuyerBox" Watermark="Recipient name" Padding="8 5" />
+      </StackPanel>
+
+      <StackPanel Spacing="5">
+        <TextBlock Classes="lbl" Text="ESTIMATED DATE" />
+        <TextBox x:Name="EstDateBox" Watermark="yyyy-MM-dd" Padding="8 5" />
+      </StackPanel>
+
+      <StackPanel Spacing="5">
+        <TextBlock Classes="lbl" Text="STATUS" />
+        <ComboBox x:Name="StatusBox" SelectedIndex="0" HorizontalAlignment="Stretch">
+          <ComboBoxItem>Pending</ComboBoxItem>
+          <ComboBoxItem>Completed</ComboBoxItem>
+          <ComboBoxItem>Canceled</ComboBoxItem>
+        </ComboBox>
+      </StackPanel>
+
+    </StackPanel>
+
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0 14 0 0">
+      <TextBlock Grid.Column="0" x:Name="HintText" Text="Select an item type above."
+                 Foreground="#444455" FontSize="11" VerticalAlignment="Center" />
+      <Button Grid.Column="1" Content="Cancel" Background="#1a1a28" Foreground="#888899"
+              BorderBrush="#2a2a3a" BorderThickness="1" Padding="14 6" Margin="0 0 8 0" Click="OnCancel" />
+      <Button Grid.Column="2" x:Name="OkButton" Content="Save" Background="#1a2030" Foreground="#c8a84b"
+              BorderBrush="#3a3020" BorderThickness="1" Padding="14 6" IsEnabled="False" Click="OnSave" />
+    </Grid>
+
+  </Grid>
+</Window>

@@ -50,7 +50,8 @@ public class IndustryBrowserViewModel : ReactiveObject
     public static readonly string[] DisplayColumns =
     [
         "Status", "Time Remaining", "Activity", "Product", "Runs", "Successful Runs",
-        "Items Produced", "Facility", "Installer", "Owner", "Completed Date",
+        "Items Produced", "Build Cost", "Market Value", "Facility", "Installer", "Owner",
+        "Created", "Completed",
     ];
 
     // Hidden detail-panel accessors
@@ -393,7 +394,12 @@ public class IndustryBrowserViewModel : ReactiveObject
         if (val is null) return "";
 
         if (val is double d)
-            return col == "Security" ? d.ToString("F1") : d.ToString("N2");
+            return col switch
+            {
+                "Security"                     => d.ToString("F1"),
+                "Build Cost" or "Market Value" => d.ToString("N0"),
+                _                              => d.ToString("N2"),
+            };
 
         if (val is long or int)
             return Convert.ToInt64(val).ToString("N0");
@@ -408,7 +414,7 @@ public class IndustryBrowserViewModel : ReactiveObject
                     System.Globalization.CultureInfo.InvariantCulture, out var cost))
                 return cost.ToString("N2");
 
-            if ((col is "Start Date" or "End Date" or "Completed Date")
+            if ((col is "Start Date" or "End Date" or "Completed Date" or "Created" or "Completed")
                 && DateTimeOffset.TryParse(s, null,
                     System.Globalization.DateTimeStyles.RoundtripKind, out var dt))
                 return dt.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
@@ -481,6 +487,9 @@ public class IndustryBrowserViewModel : ReactiveObject
                 j.EndDate                                                                     AS "End Date",
                 j.EndDate                                                                     AS "End Date Raw",
                 j.CompletedDate                                                               AS "Completed Date",
+                j.StartDate                                                                   AS "Created",
+                -- Actual completion if delivered, otherwise the projected end date (active jobs)
+                COALESCE(j.CompletedDate, j.EndDate)                                           AS "Completed",
                 -- Hidden: detail panel only
                 j.BlueprintTypeId                                                             AS "Blueprint Type Id",
                 COALESCE(j.ProductTypeId, 0)                                                 AS "Product Type Id",
@@ -513,7 +522,32 @@ public class IndustryBrowserViewModel : ReactiveObject
             LEFT JOIN (SELECT DISTINCT StructureId, TypeId FROM EsiCorpStructures) cs
                                                 ON cs.StructureId      = j.FacilityId
         )
-        SELECT * FROM Base
+        SELECT Base.*,
+            CAST(bc."TotalCost" AS REAL) * Base."Items Produced"                          AS "Build Cost",
+            -- Copying (5) / invention (8) output blueprint COPIES, valued from contracts (the
+            -- ContractPrices effective price); everything else uses the market price of the product.
+            CASE WHEN Base."Activity Id" IN (5, 8) THEN
+                (CASE
+                    WHEN cp."BestPrice" IS NULL THEN CAST(cp."Avg30Best" AS REAL)
+                    WHEN cp."Avg30Best" IS NULL THEN CAST(cp."BestPrice" AS REAL)
+                    WHEN CAST(cp."BestPrice" AS REAL) > 1.5 * CAST(cp."Avg30Best" AS REAL)
+                         THEN CAST(cp."Avg30Best" AS REAL)
+                    ELSE CAST(cp."BestPrice" AS REAL)
+                 END) * Base."Items Produced"
+            ELSE
+                (CASE COALESCE(mds."AssetValuePriceType", 'Midpoint')
+                    WHEN 'Buy'  THEN mp."BuyPrice"
+                    WHEN 'Sell' THEN mp."SellPrice"
+                    ELSE             mp."Midpoint"
+                 END) * Base."Items Produced"
+            END                                                                            AS "Market Value"
+        FROM Base
+        LEFT JOIN "BuildCosts"            bc  ON bc."TypeId" = Base."Product Type Id"
+        LEFT JOIN "ContractPrices"        cp  ON cp."TypeId" = Base."Product Type Id"
+        LEFT JOIN "MarketDefaultSettings" mds ON mds."Id" = 1
+        LEFT JOIN "MarketItemPrices"      mp  ON mds."AssetValueConfigId" IS NOT NULL
+                                             AND mp."ConfigId" = mds."AssetValueConfigId"
+                                             AND mp."TypeId"   = Base."Product Type Id"
         {where}
         ORDER BY
             CASE WHEN "Status" IN ('active', 'paused') THEN 0

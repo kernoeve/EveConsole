@@ -9,7 +9,7 @@ internal static class EveImageLoader
     private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(10) };
     private static readonly Dictionary<string, Bitmap?> _cache = [];
 
-    // variant: "bp", "icon", "render"
+    // variant: "bp" (blueprint original), "bpc" (blueprint copy), "icon", "render"
     public static async Task<Bitmap?> LoadTypeAsync(long typeId, string variant = "icon")
     {
         if (typeId <= 0) return null;

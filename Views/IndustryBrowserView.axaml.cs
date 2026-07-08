@@ -154,10 +154,13 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
     {
         if (ViewModel is null) return;
 
-        DateTimeOffset? from = FromDatePicker.SelectedDate.HasValue
-            ? new DateTimeOffset(FromDatePicker.SelectedDate.Value, TimeSpan.Zero) : null;
-        DateTimeOffset? thru = ThruDatePicker.SelectedDate.HasValue
-            ? new DateTimeOffset(ThruDatePicker.SelectedDate.Value, TimeSpan.Zero) : null;
+        // Build from the picked date's Y/M/D as UTC midnight — the picker returns a Local-kind
+        // DateTime, so pairing it directly with TimeSpan.Zero throws "UTC Offset does not match".
+        static DateTimeOffset? AsUtcDate(DateTime? d) => d.HasValue
+            ? new DateTimeOffset(d.Value.Year, d.Value.Month, d.Value.Day, 0, 0, 0, TimeSpan.Zero) : null;
+
+        DateTimeOffset? from = AsUtcDate(FromDatePicker.SelectedDate);
+        DateTimeOffset? thru = AsUtcDate(ThruDatePicker.SelectedDate);
 
         _ = ViewModel.ApplyFiltersAsync(
             ActivityPicker.SelectedItem as string,
@@ -409,7 +412,9 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
         long.TryParse(row[IndustryBrowserViewModel.ColFacilityTypeId].Replace(",", ""),  out var facTypeId);
 
         int.TryParse(row[IndustryBrowserViewModel.ColActivityId].Replace(",", ""), out var actId);
-        var prodVariant = actId is 3 or 4 or 5 or 8 ? "bp" : "icon";
+        // Copying (5) and invention (8) output a blueprint COPY (lighter "bpc" icon); research
+        // (3/4) outputs the original blueprint; everything else is a normal item.
+        var prodVariant = actId switch { 5 or 8 => "bpc", 3 or 4 => "bp", _ => "icon" };
 
         var tasks = new[]
         {
