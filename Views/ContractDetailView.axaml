@@ -1,0 +1,146 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             x:Class="EveCortex.Views.ContractDetailView"
+             x:DataType="vm:ContractDetailVm"
+             x:CompileBindings="True">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.lbl">
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="0 0 0 4" />
+    </Style>
+    <Style Selector="TextBlock.val">
+      <Setter Property="FontSize"   Value="11" />
+      <Setter Property="Foreground" Value="#c8c8d8" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="0 0 0 4" />
+    </Style>
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="Background" Value="#12121a" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding"    Value="6 4 2 4" />
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Margin="12 10" Spacing="8">
+
+      <!-- Header -->
+      <StackPanel Spacing="2">
+        <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold"
+                   Foreground="#e0e0ee" TextWrapping="Wrap" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Text="{Binding TypeLabel}" FontSize="11" Foreground="#888899" />
+          <TextBlock Text="•" FontSize="11" Foreground="#444455" />
+          <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold"
+                     Foreground="{Binding StatusColor}" />
+          <TextBlock Text="{Binding Availability}" FontSize="11" Foreground="#666677" />
+          <TextBlock Text="{Binding ContractId, StringFormat='#{0}'}" FontSize="10"
+                     Foreground="#444455" VerticalAlignment="Center" />
+        </StackPanel>
+      </StackPanel>
+
+      <Border Height="1" Background="#1e1e2a" />
+
+      <!-- Parties -->
+      <Grid ColumnDefinitions="82,*" RowDefinitions="Auto,Auto,Auto">
+        <TextBlock Grid.Row="0" Grid.Column="0" Classes="lbl" Text="Issuer" />
+        <TextBlock Grid.Row="0" Grid.Column="1" Classes="val" Text="{Binding Issuer}" />
+        <TextBlock Grid.Row="1" Grid.Column="0" Classes="lbl" Text="Assignee" />
+        <TextBlock Grid.Row="1" Grid.Column="1" Classes="val" Text="{Binding Assignee}" />
+        <TextBlock Grid.Row="2" Grid.Column="0" Classes="lbl" Text="Acceptor" />
+        <TextBlock Grid.Row="2" Grid.Column="1" Classes="val" Text="{Binding Acceptor}" />
+      </Grid>
+
+      <Border Height="1" Background="#1e1e2a" />
+
+      <!-- Value -->
+      <Grid ColumnDefinitions="82,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+        <TextBlock Grid.Row="0" Grid.Column="0" Classes="lbl" Text="Price" />
+        <TextBlock Grid.Row="0" Grid.Column="1" Classes="val" Text="{Binding Price}" Foreground="#c8a84b" />
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Classes="lbl" Text="Reward"
+                   IsVisible="{Binding HasReward}" />
+        <TextBlock Grid.Row="1" Grid.Column="1" Classes="val" Text="{Binding Reward}"
+                   Foreground="#5cb85c" IsVisible="{Binding HasReward}" />
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Classes="lbl" Text="Collateral"
+                   IsVisible="{Binding HasCollateral}" />
+        <TextBlock Grid.Row="2" Grid.Column="1" Classes="val" Text="{Binding Collateral}"
+                   IsVisible="{Binding HasCollateral}" />
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Classes="lbl" Text="Buyout"
+                   IsVisible="{Binding HasBuyout}" />
+        <TextBlock Grid.Row="3" Grid.Column="1" Classes="val" Text="{Binding Buyout}"
+                   IsVisible="{Binding HasBuyout}" />
+
+        <TextBlock Grid.Row="4" Grid.Column="0" Classes="lbl" Text="Volume" />
+        <TextBlock Grid.Row="4" Grid.Column="1" Classes="val" Text="{Binding Volume}" />
+      </Grid>
+
+      <Border Height="1" Background="#1e1e2a" />
+
+      <!-- Locations -->
+      <Grid ColumnDefinitions="82,*" RowDefinitions="Auto,Auto">
+        <TextBlock Grid.Row="0" Grid.Column="0" Classes="lbl" Text="From" />
+        <TextBlock Grid.Row="0" Grid.Column="1" Classes="val" Text="{Binding StartLocation}" />
+        <TextBlock Grid.Row="1" Grid.Column="0" Classes="lbl" Text="To"
+                   IsVisible="{Binding IsCourier}" />
+        <TextBlock Grid.Row="1" Grid.Column="1" Classes="val" Text="{Binding EndLocation}"
+                   IsVisible="{Binding IsCourier}" />
+      </Grid>
+
+      <Border Height="1" Background="#1e1e2a" />
+
+      <!-- Dates -->
+      <Grid ColumnDefinitions="82,*" RowDefinitions="Auto,Auto,Auto,Auto">
+        <TextBlock Grid.Row="0" Grid.Column="0" Classes="lbl" Text="Issued" />
+        <TextBlock Grid.Row="0" Grid.Column="1" Classes="val" Text="{Binding DateIssued}" />
+        <TextBlock Grid.Row="1" Grid.Column="0" Classes="lbl" Text="Expires" />
+        <TextBlock Grid.Row="1" Grid.Column="1" Classes="val" Text="{Binding DateExpired}" />
+        <TextBlock Grid.Row="2" Grid.Column="0" Classes="lbl" Text="Accepted" />
+        <TextBlock Grid.Row="2" Grid.Column="1" Classes="val" Text="{Binding DateAccepted}" />
+        <TextBlock Grid.Row="3" Grid.Column="0" Classes="lbl" Text="Completed" />
+        <TextBlock Grid.Row="3" Grid.Column="1" Classes="val" Text="{Binding DateCompleted}" />
+      </Grid>
+
+      <!-- Items -->
+      <StackPanel Spacing="4" IsVisible="{Binding HasItems}">
+        <TextBlock Text="Items" FontSize="11" FontWeight="SemiBold" Foreground="#555566" Margin="0 4 0 0" />
+        <DataGrid ItemsSource="{Binding Items}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  HeadersVisibility="Column"
+                  RowHeight="22"
+                  MaxHeight="320"
+                  CanUserReorderColumns="False"
+                  CanUserResizeColumns="True"
+                  CanUserSortColumns="False"
+                  Background="#0d0d12"
+                  GridLinesVisibility="Horizontal">
+          <DataGrid.Columns>
+            <DataGridTemplateColumn Header="" Width="70">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:ContractItemRowVm">
+                  <TextBlock Text="{Binding Kind}" Foreground="{Binding KindColor}"
+                             FontSize="10" Margin="6 0" VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Item"    Binding="{Binding TypeName}" Width="*"   FontSize="11" />
+            <DataGridTextColumn Header="Qty"     Binding="{Binding Quantity}" Width="Auto" />
+            <DataGridTextColumn Header="Details" Binding="{Binding Details}"  Width="Auto" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </StackPanel>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

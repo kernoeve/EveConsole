@@ -28,6 +28,19 @@ public class BuildCostService
     private const int AttrRigLowsecMult  = 2356;
     private const int AttrRigNullsecMult = 2357;
 
+    // Dogma attribute IDs for build-TIME modelling.
+    private const int AttrMfgRigTE       = 2593; // rig manufacturing time bonus (percent, negative)
+    private const int AttrRxnRigTE       = 2713; // rig reaction time bonus (percent, negative)
+    private const int AttrStrEngTime     = 2602; // structure manufacturing time role bonus (multiplier)
+    private const int AttrStrRxnTime     = 2721; // structure reaction time role bonus (multiplier)
+
+    // Build-time assumptions: a fully researched blueprint and maxed industry skills,
+    // matching the "ideal setup" spirit of the ME-researched cost side. Structure role
+    // and rig time bonuses ARE modelled (from the default park), per activity.
+    private const double MfgTimeEfficiency = 0.80; // TE20 researched blueprint (−20% time)
+    private const double MfgSkillFactor    = 0.68; // Industry V (0.80) × Advanced Industry V (0.85)
+    private const double RxnSkillFactor    = 0.85; // reactions: Advanced Industry V only; no TE research
+
     private static string RigCategoryFromName(string n)
     {
         if (n.Contains("Advanced Small Ship"))     return "adv_small_ships";
@@ -183,20 +196,25 @@ public class BuildCostService
             ? await db.SdeTypeDogmaAttributes.AsNoTracking()
                 .Where(a => rigTypeIds.Contains(a.TypeId) &&
                             (a.AttributeId == AttrMfgME         || a.AttributeId == AttrRxnME ||
+                             a.AttributeId == AttrMfgRigTE       || a.AttributeId == AttrRxnRigTE ||
                              a.AttributeId == AttrRigLowsecMult  || a.AttributeId == AttrRigNullsecMult))
                 .ToListAsync(ct)
             : [];
 
-        var mfgRigBonus    = new Dictionary<int, double>();
-        var rxnRigBonus    = new Dictionary<int, double>();
-        var rigLowsecMult  = new Dictionary<int, double>();
-        var rigNullsecMult = new Dictionary<int, double>();
+        var mfgRigBonus     = new Dictionary<int, double>();
+        var rxnRigBonus     = new Dictionary<int, double>();
+        var mfgRigTimeBonus = new Dictionary<int, double>();
+        var rxnRigTimeBonus = new Dictionary<int, double>();
+        var rigLowsecMult   = new Dictionary<int, double>();
+        var rigNullsecMult  = new Dictionary<int, double>();
         foreach (var a in rigAttrs)
         {
-            if (a.AttributeId == AttrMfgME)          mfgRigBonus[a.TypeId]    = Math.Abs(a.Value) / 100.0;
-            if (a.AttributeId == AttrRxnME)          rxnRigBonus[a.TypeId]    = Math.Abs(a.Value) / 100.0;
-            if (a.AttributeId == AttrRigLowsecMult)  rigLowsecMult[a.TypeId]  = a.Value;
-            if (a.AttributeId == AttrRigNullsecMult) rigNullsecMult[a.TypeId] = a.Value;
+            if (a.AttributeId == AttrMfgME)          mfgRigBonus[a.TypeId]     = Math.Abs(a.Value) / 100.0;
+            if (a.AttributeId == AttrRxnME)          rxnRigBonus[a.TypeId]     = Math.Abs(a.Value) / 100.0;
+            if (a.AttributeId == AttrMfgRigTE)       mfgRigTimeBonus[a.TypeId] = Math.Abs(a.Value) / 100.0;
+            if (a.AttributeId == AttrRxnRigTE)       rxnRigTimeBonus[a.TypeId] = Math.Abs(a.Value) / 100.0;
+            if (a.AttributeId == AttrRigLowsecMult)  rigLowsecMult[a.TypeId]   = a.Value;
+            if (a.AttributeId == AttrRigNullsecMult) rigNullsecMult[a.TypeId]  = a.Value;
         }
 
         // Load rig type names so we can determine which category each rig applies to.
@@ -226,6 +244,40 @@ public class BuildCostService
             .ToListAsync(ct);
         var itemOverrides = itemExceptions
             .ToDictionary(e => e.TypeId, e => structures.FirstOrDefault(s => s.Id == e.StructureId!.Value));
+
+        // Structure time role bonuses, keyed by lowercased structure type name (which
+        // matches IndyStructure.StructureTypeKey, e.g. "raitaru"). These are stored as
+        // multipliers on the structure type (e.g. Raitaru 0.85 → −15% manufacturing time).
+        var roleTimeRows = await db.SdeTypeDogmaAttributes.AsNoTracking()
+            .Where(a => a.AttributeId == AttrStrEngTime || a.AttributeId == AttrStrRxnTime)
+            .ToListAsync(ct);
+        var roleTimeNames = await db.SdeTypes.AsNoTracking()
+            .Where(t => roleTimeRows.Select(r => r.TypeId).Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name.ToLowerInvariant(), ct);
+        var mfgRoleTimeByKey = new Dictionary<string, double>();
+        var rxnRoleTimeByKey = new Dictionary<string, double>();
+        foreach (var r in roleTimeRows)
+        {
+            if (!roleTimeNames.TryGetValue(r.TypeId, out var key)) continue;
+            if (r.AttributeId == AttrStrEngTime) mfgRoleTimeByKey[key] = r.Value;
+            else                                 rxnRoleTimeByKey[key] = r.Value;
+        }
+
+        double StructureRoleTime(IndyStructure? s, bool isReaction)
+        {
+            if (s is null) return 1.0;
+            var key = s.StructureTypeKey.ToLowerInvariant();
+            var map = isReaction ? rxnRoleTimeByKey : mfgRoleTimeByKey;
+            return map.TryGetValue(key, out var m) ? m : 1.0;
+        }
+
+        // Base blueprint activity times (seconds per run), keyed by (blueprintTypeId, activity).
+        var activityTimes = await db.HoboBlueprintActivities.AsNoTracking()
+            .Where(a => a.Activity == "manufacturing" || a.Activity == "reaction")
+            .ToListAsync(ct);
+        var timeByBp = activityTimes
+            .GroupBy(a => (a.TypeId, a.Activity))
+            .ToDictionary(g => g.Key, g => (double)g.First().Time);
 
         double SecMult(IndyStructure s, int rigTypeId) => s.SecurityClass switch
         {
@@ -308,12 +360,16 @@ public class BuildCostService
             }
         }
 
-        // Load all blueprint products (manufacturing + reaction only).
+        // Load all blueprint products (manufacturing + reaction only). Only PUBLISHED
+        // blueprints — a handful of products (e.g. Tungsten Carbide) also have an
+        // unpublished "Test Reaction Blueprint" with a tiny output quantity that would
+        // otherwise be picked and inflate the per-unit cost ~500x.
         var allProducts = await db.SdeBlueprintProducts.AsNoTracking()
-            .Where(p => p.Activity == "manufacturing" || p.Activity == "reaction")
+            .Where(p => (p.Activity == "manufacturing" || p.Activity == "reaction")
+                     && db.SdeTypes.Any(t => t.TypeId == p.TypeId && t.Published))
             .ToListAsync(ct);
 
-        // productMap: productTypeId → first SdeBlueprintProduct record
+        // productMap: productTypeId → the (single, published) SdeBlueprintProduct record
         var productMap = allProducts
             .GroupBy(p => p.ProductTypeId)
             .ToDictionary(g => g.Key, g => g.First());
@@ -328,6 +384,23 @@ public class BuildCostService
             .ToListAsync(ct);
         var t2TypeIds      = metaGroupTypes.Where(t => t.MetaGroupId == 2).Select(t => t.TypeId).ToHashSet();
         var factionTypeIds = metaGroupTypes.Where(t => t.MetaGroupId == 4).Select(t => t.TypeId).ToHashSet();
+
+        // BPO-sourced blueprints: the blueprint type is buyable on the market (has a market group)
+        // OR is invented from a source blueprint that is buyable (T2 from a T1 BPO). Anything else
+        // is a BPC that must be bought from contracts — mirrors the Industry Opportunities filter.
+        var bpTypeIdList = allProducts.Select(p => p.TypeId).Distinct().ToList();
+        var marketBlueprints = (await db.SdeTypes.AsNoTracking()
+            .Where(t => bpTypeIdList.Contains(t.TypeId) && t.MarketGroupId != null)
+            .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
+        var inventionRows = await db.SdeBlueprintProducts.AsNoTracking()
+            .Where(p => p.Activity == "invention")
+            .Select(p => new { p.TypeId, p.ProductTypeId })
+            .ToListAsync(ct);
+        var inventedFromMarket = inventionRows
+            .Where(r => marketBlueprints.Contains(r.TypeId))
+            .Select(r => r.ProductTypeId).ToHashSet();
+        bool BlueprintIsBpoSourced(int bpTypeId) =>
+            marketBlueprints.Contains(bpTypeId) || inventedFromMarket.Contains(bpTypeId);
 
         // Load all blueprint materials (manufacturing + reaction).
         var allMaterials = await db.SdeBlueprintMaterials.AsNoTracking()
@@ -437,6 +510,7 @@ public class BuildCostService
         var unitCosts     = new Dictionary<int, decimal>();
         var rawMatCosts   = new Dictionary<int, decimal>(); // leaf-input market cost only
         var totalJobCosts = new Dictionary<int, decimal>(); // all job fees through the chain
+        var buildSeconds  = new Dictionary<int, double>();  // time to build ONE unit of this item
 
         foreach (var typeId in ordering)
         {
@@ -492,6 +566,14 @@ public class BuildCostService
                 eivRun          += mat.Quantity * adjPrice; // EIV always uses base (ME0) quantities
             }
 
+            // Non-BPO items consume a blueprint copy bought from contracts. Treat the BPC as one
+            // more purchased input per run, valued at its contract-derived market value (set on
+            // blueprint types by MarketPricingService). EIV/job cost is unaffected — a BPC has no
+            // adjusted price and does not enter the job-fee base.
+            if (!isReaction && !BlueprintIsBpoSourced(bpTypeId)
+                && marketPrices.TryGetValue(bpTypeId, out var bpcPrice) && bpcPrice > 0)
+                rawMatRun += bpcPrice;
+
             // Job cost using the formula from the in-game breakdown.
             string activity   = isReaction ? "reaction" : "manufacturing";
             double costIndex  = GetCostIndex(structure, activity);
@@ -508,6 +590,21 @@ public class BuildCostService
             unitCosts[typeId]     = rawMatPerUnit + totalJobPerUnit;
             rawMatCosts[typeId]   = rawMatPerUnit;
             totalJobCosts[typeId] = totalJobPerUnit;
+
+            // Build time for ONE unit. A manufacturing job for this item ties up only its
+            // own slot (sub-components are separate jobs), so this is not a chain sum:
+            //   baseRunTime × TE × skills × structureRoleBonus × (1 − rigTimeBonus) ÷ output.
+            double baseRunTime = timeByBp.TryGetValue(key, out var brt) ? brt : 0.0;
+            if (baseRunTime > 0)
+            {
+                double teFactor    = isReaction ? 1.0 : MfgTimeEfficiency;
+                double skillFactor = isReaction ? RxnSkillFactor : MfgSkillFactor;
+                double roleTime    = StructureRoleTime(structure, isReaction);
+                double rigTime     = isReaction ? RigBonus(structure, catKey, rxnRigTimeBonus)
+                                                : RigBonus(structure, catKey, mfgRigTimeBonus);
+                double rigFactor   = Math.Max(0.0, 1.0 - rigTime);
+                buildSeconds[typeId] = baseRunTime * teFactor * skillFactor * roleTime * rigFactor / outputQty;
+            }
         }
 
         // ── Persist results ───────────────────────────────────────────────────
@@ -523,6 +620,7 @@ public class BuildCostService
                 TotalCost    = unitCosts[tid],
                 MaterialCost = rawMatCosts.TryGetValue(tid, out var rm) ? rm : 0m,
                 JobCost      = totalJobCosts.TryGetValue(tid, out var tj) ? tj : 0m,
+                BuildSeconds = buildSeconds.TryGetValue(tid, out var bs) ? bs : 0.0,
                 UpdatedAt    = now,
             })
             .ToList();

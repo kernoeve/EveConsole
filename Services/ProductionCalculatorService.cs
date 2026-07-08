@@ -27,8 +27,11 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         // ── Load blueprint index ────────────────────────────────────────────
+        // Published blueprints only — some products also have an unpublished "Test
+        // Reaction Blueprint" with a tiny output quantity that would inflate materials.
         var bpProducts = await db.SdeBlueprintProducts.AsNoTracking()
-            .Where(p => p.Activity == MfgActivity || p.Activity == RxnActivity)
+            .Where(p => (p.Activity == MfgActivity || p.Activity == RxnActivity)
+                     && db.SdeTypes.Any(t => t.TypeId == p.TypeId && t.Published))
             .ToListAsync(ct);
 
         var blueprintByProduct = bpProducts
@@ -45,6 +48,19 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         var materialsByBp = bpMaterials
             .GroupBy(m => m.TypeId)
             .ToDictionary(g => g.Key, g => g.ToList());
+
+        // BPO-sourced blueprints: buyable on the market, or invented from a buyable source
+        // blueprint. Anything else is a BPC bought from contracts and added as an input material.
+        var marketBlueprints = (await db.SdeTypes.AsNoTracking()
+            .Where(t => bpTypeIds.Contains(t.TypeId) && t.MarketGroupId != null)
+            .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
+        var inventedFromMarket = (await db.SdeBlueprintProducts.AsNoTracking()
+                .Where(p => p.Activity == "invention")
+                .Select(p => new { p.TypeId, p.ProductTypeId }).ToListAsync(ct))
+            .Where(r => marketBlueprints.Contains(r.TypeId))
+            .Select(r => r.ProductTypeId).ToHashSet();
+        bool BlueprintIsBpoSourced(int bpTypeId) =>
+            marketBlueprints.Contains(bpTypeId) || inventedFromMarket.Contains(bpTypeId);
 
         // ── Type names and group/category info ─────────────────────────────
         var typeNames = await db.SdeTypes.AsNoTracking()
@@ -339,6 +355,14 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                             existingMat.TotalQty += effPerRun * extraRuns;
                         ExpandItem(mat.MaterialTypeId, effPerRun * extraRuns, false);
                     }
+                    // Non-BPO: one bought BPC per run — bump its input quantity too, and add to the
+                    // raw-material pool so it shows in the Raw Materials breakdown.
+                    if (!isReaction && !BlueprintIsBpoSourced(bpProd.TypeId))
+                    {
+                        var bpcMat = existing.Materials.FirstOrDefault(m => m.MaterialTypeId == bpProd.TypeId);
+                        if (bpcMat is not null) bpcMat.TotalQty += extraRuns;
+                        ExpandItem(bpProd.TypeId, extraRuns, false);
+                    }
                 }
             }
             else
@@ -377,6 +401,24 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                         FormulaDisplay = $"ceil({basePerRun:N0} × {meFactor:F4}) = ceil({raw:N2}) → {effPerRun:N0}",
                     });
                     ExpandItem(mat.MaterialTypeId, effPerRun * runs, false);
+                }
+                // Non-BPO items: add the blueprint copy as a bought input material (one per run),
+                // valued at its contract-derived market value. It's bought (never expanded into
+                // sub-materials), and also added to the raw-material pool so it appears in the Raw
+                // Materials breakdown alongside every other purchased input.
+                if (!isReaction && !BlueprintIsBpoSourced(bpProd.TypeId))
+                {
+                    job.Materials.Add(new PlanJobMaterial
+                    {
+                        MaterialTypeId = bpProd.TypeId,
+                        TypeName       = typeNames.GetValueOrDefault(bpProd.TypeId, $"Type {bpProd.TypeId}") + " (BPC)",
+                        BaseQtyPerRun  = 1,
+                        EffQtyPerRun   = 1,
+                        TotalQty       = runs,
+                        IsBought       = true,
+                        FormulaDisplay = "1 BPC per run (contract price)",
+                    });
+                    ExpandItem(bpProd.TypeId, runs, false);
                 }
                 jobPool[typeId] = job;
             }
@@ -614,8 +656,11 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // No park: simple recursive expansion with ME only
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
+        // Published blueprints only (avoids junk unpublished duplicates — which would also
+        // throw here on the ToDictionary duplicate key).
         var bpProducts = await db.SdeBlueprintProducts.AsNoTracking()
-            .Where(p => p.Activity == MfgActivity)
+            .Where(p => p.Activity == MfgActivity
+                     && db.SdeTypes.Any(t => t.TypeId == p.TypeId && t.Published))
             .ToListAsync(ct);
         var byProduct = bpProducts.ToDictionary(p => p.ProductTypeId);
 

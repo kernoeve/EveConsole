@@ -36,6 +36,9 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
+      - name: Install Velopack CLI
+        run: dotnet tool install -g vpk --version 1.2.0
+
       - name: Publish (self-contained win-x64)
         run: >
           dotnet publish EveCortex.csproj
@@ -43,45 +46,49 @@ jobs:
           -r win-x64
           --self-contained true
           -p:Version=${{ steps.version.outputs.version }}
-          -o EveCortex
+          -o publish
 
-      - name: Package zip
-        id: package
-        shell: pwsh
-        run: |
-          $zip = "EveCortex-v${{ steps.version.outputs.version }}-win-x64.zip"
-          Compress-Archive -Path "EveCortex" -DestinationPath $zip -Force
-          Write-Output "Created $zip"
-          echo "zip=$zip" >> $env:GITHUB_OUTPUT
+      # Pull the previous release so Velopack can generate a delta package (first run is a no-op).
+      - name: Download previous release
+        continue-on-error: true
+        run: vpk download github --repoUrl https://github.com/${{ github.repository }} --token ${{ github.token }}
 
-      - name: Tag release
-        shell: pwsh
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag "v${{ steps.version.outputs.version }}"
-          git push origin "v${{ steps.version.outputs.version }}"
+      - name: Pack Velopack release
+        run: >
+          vpk pack
+          --packId EveCortex
+          --packTitle "Eve Cortex"
+          --packVersion ${{ steps.version.outputs.version }}
+          --packDir publish
+          --mainExe EveCortex.exe
 
-      - name: Create GitHub Release
+      - name: Upload to GitHub release
+        run: >
+          vpk upload github
+          --repoUrl https://github.com/${{ github.repository }}
+          --token ${{ github.token }}
+          --publish
+          --releaseName "Eve Cortex v${{ steps.version.outputs.version }}"
+          --tag v${{ steps.version.outputs.version }}
+
+      - name: Add install notes to release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = "v${{ steps.version.outputs.version }}"
-          gh release create $tag "${{ steps.package.outputs.zip }}" --title "Eve Cortex $tag" --generate-notes
-          $auto = gh release view $tag --json body -q .body
-          $header = @(
+          $notes = @(
             '## Installing',
             '',
-            'Download the win-x64 zip below and extract it anywhere, then run `EveCortex.exe`. No .NET install is required (the runtime is bundled).',
+            '- **Installer (recommended):** download `EveCortex-win-Setup.exe` and run it. It installs Eve Cortex and keeps it updated automatically.',
+            '- **Portable:** download `EveCortex-win-Portable.zip`, extract it anywhere, and run `EveCortex.exe`.',
+            '',
+            'No .NET install is required — the runtime is bundled.',
             '',
             '### First launch (Windows SmartScreen)',
             'Eve Cortex is not code-signed yet, so Windows may show a "Windows protected your PC" warning the first time you run it. This is expected for a new indie app.',
             '',
             '- If the warning appears, click **More info**, then **Run anyway**.',
-            '- To avoid it entirely: **before extracting**, right-click the zip -> **Properties** -> tick **Unblock** -> **OK** (this clears the download flag from every file inside). If you have already extracted, do the same on **EveCortex.exe**.',
-            '',
-            '---',
-            ''
+            '- To avoid it entirely: right-click the downloaded file -> **Properties** -> tick **Unblock** -> **OK** before running.'
           ) -join "`n"
-          gh release edit $tag --notes ($header + "`n" + $auto)
+          gh release edit $tag --notes $notes

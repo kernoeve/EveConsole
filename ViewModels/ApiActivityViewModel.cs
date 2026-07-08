@@ -10,6 +10,51 @@ namespace EveCortex.ViewModels;
 
 public record TokenOption(long Id, string OwnerType, string DisplayName);
 
+// Live per-region row for the price-history sweep monitor.
+public class HistoryRegionRowVm : ReactiveObject
+{
+    public int    RegionId   { get; }
+    public string RegionName { get; }
+
+    public HistoryRegionRowVm(int regionId, string name) { RegionId = regionId; RegionName = name; }
+
+    private int _refreshed;
+    public int Refreshed
+    {
+        get => _refreshed;
+        set { this.RaiseAndSetIfChanged(ref _refreshed, value); RaiseDerived(); }
+    }
+
+    private int _queue;
+    public int Queue
+    {
+        get => _queue;
+        set { this.RaiseAndSetIfChanged(ref _queue, value); RaiseDerived(); }
+    }
+
+    private void RaiseDerived()
+    {
+        this.RaisePropertyChanged(nameof(Total));
+        this.RaisePropertyChanged(nameof(CountsText));
+        this.RaisePropertyChanged(nameof(StatusText));
+        this.RaisePropertyChanged(nameof(StatusColor));
+    }
+
+    public int    Total      => Refreshed + Queue;
+    public string CountsText => $"{Refreshed:N0} / {Total:N0}";
+
+    // Current = fully refreshed; Filling = partial; Empty = nothing fresh yet.
+    public string StatusText => Total == 0 ? "No tracked items"
+                              : Queue == 0 ? "Current"
+                              : Refreshed == 0 ? "Empty"
+                              : "Filling";
+
+    public string StatusColor => Total == 0 ? "#666677"
+                               : Queue == 0 ? "#70ad47"
+                               : Refreshed == 0 ? "#cc6666"
+                               : "#c8a84b";
+}
+
 public class ScheduleRowVm
 {
     public string         DisplayName  { get; init; } = "";
@@ -44,12 +89,35 @@ public class ApiActivityViewModel : ReactiveObject
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly EsiPollingService    _polling;
     private readonly TimerSettingsService _timerSettings;
+    private readonly MarketHistoryService _history;
+    private readonly ContractsService     _contracts;
 
-    public ObservableCollection<ActivityEntry> Entries        { get; }
-    public ObservableCollection<InFlightCall>  InFlight       { get; }
-    public ObservableCollection<TokenOption>   TokenOptions   { get; } = [];
-    public ObservableCollection<ScheduleRowVm> Schedule       { get; } = [];
-    public ObservableCollection<ScheduleRowVm> MarketSchedule { get; } = [];
+    public ObservableCollection<ActivityEntry>       Entries        { get; }
+    public ObservableCollection<InFlightCall>        InFlight       { get; }
+    public ObservableCollection<TokenOption>         TokenOptions   { get; } = [];
+    public ObservableCollection<ScheduleRowVm>       Schedule       { get; } = [];
+    public ObservableCollection<ScheduleRowVm>       MarketSchedule { get; } = [];
+    public ObservableCollection<HistoryRegionRowVm>  HistoryRegions { get; } = [];
+
+    private string _historyState = "";
+    public string HistoryState
+    {
+        get => _historyState;
+        private set => this.RaiseAndSetIfChanged(ref _historyState, value);
+    }
+
+    // ── Contract-items monitor ──────────────────────────────────────────────────
+    private string _contractsState = "";
+    public string ContractsState { get => _contractsState; private set => this.RaiseAndSetIfChanged(ref _contractsState, value); }
+
+    private string _contractsPublicText = "—";
+    public string ContractsPublicText { get => _contractsPublicText; private set => this.RaiseAndSetIfChanged(ref _contractsPublicText, value); }
+
+    private string _contractsOwnedText = "—";
+    public string ContractsOwnedText { get => _contractsOwnedText; private set => this.RaiseAndSetIfChanged(ref _contractsOwnedText, value); }
+
+    private string _contractsDeferredText = "—";
+    public string ContractsDeferredText { get => _contractsDeferredText; private set => this.RaiseAndSetIfChanged(ref _contractsDeferredText, value); }
 
     private bool _hasNoInFlight = true;
     public bool HasNoInFlight
@@ -74,15 +142,76 @@ public class ApiActivityViewModel : ReactiveObject
         ApiActivityLog       log,
         IServiceScopeFactory scopeFactory,
         EsiPollingService    polling,
-        TimerSettingsService timerSettings)
+        TimerSettingsService timerSettings,
+        MarketHistoryService history,
+        ContractsService     contracts)
     {
         Entries        = log.Entries;
         InFlight       = log.InFlightCalls;
         _scopeFactory  = scopeFactory;
         _polling       = polling;
         _timerSettings = timerSettings;
+        _history       = history;
+        _contracts     = contracts;
 
         InFlight.CollectionChanged += (_, _) => HasNoInFlight = InFlight.Count == 0;
+    }
+
+    // ── Contract-items monitor ──────────────────────────────────────────────────
+
+    public async Task RefreshContractsAsync()
+    {
+        ContractsService.ContractItemsStatus s;
+        try { s = await _contracts.GetItemsStatusAsync(); }
+        catch { return; /* best-effort monitor */ }
+
+        int pubQueue   = s.PublicTotal - s.PublicPulled;
+        int ownedQueue = s.OwnedTotal  - s.OwnedPulled;
+
+        ContractsPublicText   = $"{s.PublicPulled:N0} / {s.PublicTotal:N0} pulled · {pubQueue:N0} queued";
+        ContractsOwnedText    = $"{s.OwnedPulled:N0} / {s.OwnedTotal:N0} pulled · {ownedQueue:N0} queued";
+        ContractsDeferredText = $"{s.Deferred:N0} deferred (corp contracts issued by another corp — not pulled)";
+        ContractsState = s.Running
+            ? $"● Running — {pubQueue + ownedQueue:N0} contracts queued for items"
+            : (pubQueue + ownedQueue) > 0
+                ? $"○ Idle — {pubQueue + ownedQueue:N0} contracts queued for items"
+                : "○ Idle — all item pulls complete";
+    }
+
+    // ── Price-history sweep monitor ─────────────────────────────────────────────
+
+    // Recomputes accurate per-region counts from the DB (no ESI), then syncs the rows.
+    public async Task RefreshHistorySweepAsync()
+    {
+        try { await _history.RefreshStatusesAsync(); } catch { /* best-effort monitor */ }
+        SyncHistorySweep();
+    }
+
+    // Copies the service's in-memory counts into the bound collection. Call on the UI thread.
+    public void SyncHistorySweep()
+    {
+        var snap = _history.SweepStatuses;
+
+        foreach (var s in snap)
+        {
+            var row = HistoryRegions.FirstOrDefault(r => r.RegionId == s.RegionId);
+            if (row is null)
+            {
+                row = new HistoryRegionRowVm(s.RegionId, s.RegionName);
+                HistoryRegions.Add(row);
+            }
+            row.Refreshed = s.Refreshed;
+            row.Queue     = s.Queue;
+        }
+        foreach (var row in HistoryRegions.Where(r => snap.All(s => s.RegionId != r.RegionId)).ToList())
+            HistoryRegions.Remove(row);
+
+        int totalQueue = snap.Sum(s => s.Queue);
+        HistoryState = _history.IsSweeping
+            ? $"● Running — {totalQueue:N0} item{(totalQueue == 1 ? "" : "s")} queued"
+            : totalQueue > 0
+                ? $"○ Idle — {totalQueue:N0} item{(totalQueue == 1 ? "" : "s")} queued for next sweep"
+                : "○ Idle — all tracked items current";
     }
 
     public async Task LoadTokenOptionsAsync()

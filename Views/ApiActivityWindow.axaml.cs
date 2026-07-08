@@ -1,10 +1,14 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Threading;
 using EveCortex.ViewModels;
 
 namespace EveCortex.Views;
 
 public partial class ApiActivityWindow : Window
 {
+    private DispatcherTimer? _historyTimer;
+    private int _historyTick;
+
     public ApiActivityWindow()
     {
         InitializeComponent();
@@ -28,6 +32,29 @@ public partial class ApiActivityWindow : Window
                 if (schedTc.SelectedIndex == 1)
                     _ = vm.LoadMarketScheduleAsync();
             };
+
+        // Live price-history sweep monitor — recompute counts from the DB every ~10s and
+        // copy the service's live counts every 2s. Runs on the UI thread only while open.
+        _ = vm.RefreshHistorySweepAsync();
+        _ = vm.RefreshContractsAsync();
+        _historyTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+        _historyTimer.Tick += async (_, _) =>
+        {
+            try
+            {
+                if (++_historyTick % 5 == 0) { await vm.RefreshHistorySweepAsync(); await vm.RefreshContractsAsync(); }
+                else                          vm.SyncHistorySweep();
+            }
+            catch { /* best-effort monitor */ }
+        };
+        _historyTimer.Start();
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        _historyTimer?.Stop();
+        _historyTimer = null;
+        base.OnClosed(e);
     }
 
     private void UpdateCount(int count)

@@ -125,6 +125,8 @@ public class EsiPollingService : ReactiveObject
         ["corp.mining.observers"]   = "Mining Observers & Ledger",
         ["market.refresh"]        = "Market Price Refresh",
         ["build.costs"]           = "Build Cost Calculation",
+        ["contract.public"]       = "Public Contracts",
+        ["contract.items"]        = "Contract Items",
     };
 
     public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService)
@@ -490,14 +492,46 @@ public class EsiPollingService : ReactiveObject
         return FromResult(r);
     }
 
+    // ── Wallet backfill state (interruption hardening) ──────────────────────────
+    // The fast "stop at the first already-stored page" catch-up assumes our stored history is
+    // contiguous. A poll interrupted mid-way (error / rate-limit / shutdown) can break that
+    // assumption and leave a hole that a later fast catch-up would skip forever. These markers make
+    // the fetch re-page the whole ESI window until one full pass completes cleanly.
+
+    private static async Task<bool> IsBackfillCompleteAsync(
+        AppDbContext db, long ownerId, string ownerType, string kind, int division, CancellationToken ct)
+        => await db.WalletBackfillStates.AsNoTracking().AnyAsync(
+            s => s.OwnerId == ownerId && s.OwnerType == ownerType && s.Kind == kind
+              && s.Division == division && s.Complete, ct);
+
+    private static async Task SetBackfillCompleteAsync(
+        AppDbContext db, long ownerId, string ownerType, string kind, int division, bool complete, CancellationToken ct)
+    {
+        var row = await db.WalletBackfillStates.FirstOrDefaultAsync(
+            s => s.OwnerId == ownerId && s.OwnerType == ownerType && s.Kind == kind && s.Division == division, ct);
+        if (row is null)
+            db.WalletBackfillStates.Add(new WalletBackfillState
+            {
+                OwnerId = ownerId, OwnerType = ownerType, Kind = kind, Division = division, Complete = complete,
+            });
+        else
+            row.Complete = complete;
+        await db.SaveChangesAsync(ct);
+        db.ChangeTracker.Clear();
+    }
+
     private async Task<PollingResult> FetchWalletJournalAsync(long charId, AppDbContext db, CancellationToken ct)
     {
-        // Fetch page-by-page; stop as soon as a page is all-duplicates (we've caught up).
+        // Fetch page-by-page. Once a clean full pass is confirmed we stop at the first all-stored
+        // page (fast catch-up); until then (first run / after an interruption) we page the whole
+        // window so any hole left by a partial poll is filled.
         var existingIds = await db.EsiWalletJournal
             .Where(w => w.OwnerId == charId && w.OwnerType == "character")
             .Select(w => w.EsiId)
             .ToHashSetAsync(ct);
 
+        bool fullScan   = !await IsBackfillCompleteAsync(db, charId, "character", "journal", 0, ct);
+        bool interrupted = false, reachedEnd = false;
         PollingResult? lastResult = null;
 
         for (int page = 1; ; page++)
@@ -506,7 +540,8 @@ public class EsiPollingService : ReactiveObject
             var r = await _esi.ExecuteAuthAsync<List<EsiWalletJournalEntry>>(
                 charId, $"characters/{charId}/wallet/journal/", ct, page: page);
             lastResult = FromResult(r);
-            if (!r.IsSuccess || r.Data is null || r.Data.Count == 0) break;
+            if (!r.IsSuccess || r.Data is null) { interrupted = true; break; }
+            if (r.Data.Count == 0) { reachedEnd = true; break; }
 
             var newEntries = r.Data
                 .Where(e => !existingIds.Contains(e.Id))
@@ -538,12 +573,18 @@ public class EsiPollingService : ReactiveObject
                 foreach (var e in newEntries) existingIds.Add(e.EsiId);
             }
 
-            // All entries on this page already stored — we have everything older too
-            if (newEntries.Count == 0) break;
+            // Fast catch-up (only once fully backfilled): all entries on this page already stored,
+            // so everything older is stored too.
+            if (!fullScan && newEntries.Count == 0) { reachedEnd = true; break; }
 
-            // Reached the last page ESI has
-            if (page >= r.TotalPages) break;
+            // Reached the last page ESI has.
+            if (page >= r.TotalPages) { reachedEnd = true; break; }
         }
+
+        if (interrupted)
+            await SetBackfillCompleteAsync(db, charId, "character", "journal", 0, false, ct);
+        else if (reachedEnd && fullScan)
+            await SetBackfillCompleteAsync(db, charId, "character", "journal", 0, true, ct);
 
         return lastResult ?? new PollingResult(true, 200);
     }
@@ -558,6 +599,8 @@ public class EsiPollingService : ReactiveObject
             .Select(w => w.TransactionId)
             .ToHashSetAsync(ct);
 
+        bool fullScan   = !await IsBackfillCompleteAsync(db, charId, "character", "transactions", 0, ct);
+        bool interrupted = false, reachedEnd = false;
         PollingResult? lastResult = null;
         long? fromId = null;
 
@@ -570,7 +613,8 @@ public class EsiPollingService : ReactiveObject
 
             var r = await _esi.ExecuteAuthAsync<List<EsiWalletTransaction>>(charId, path, ct);
             lastResult = FromResult(r);
-            if (!r.IsSuccess || r.Data is null || r.Data.Count == 0) break;
+            if (!r.IsSuccess || r.Data is null) { interrupted = true; break; }
+            if (r.Data.Count == 0) { reachedEnd = true; break; }
 
             var newEntries = r.Data
                 .Where(t => !existingIds.Contains(t.TransactionId))
@@ -599,11 +643,18 @@ public class EsiPollingService : ReactiveObject
                 foreach (var e in newEntries) existingIds.Add(e.TransactionId);
             }
 
-            // < 2500 means end of history; 0 new means we've caught up with stored data
-            if (r.Data.Count < 2500 || newEntries.Count == 0) break;
+            // < 2500 means we've reached the end of ESI's window — a natural stop for any pass.
+            if (r.Data.Count < 2500) { reachedEnd = true; break; }
+            // Fast catch-up (only once fully backfilled): caught up with stored data.
+            if (!fullScan && newEntries.Count == 0) { reachedEnd = true; break; }
 
             fromId = r.Data.Min(t => t.TransactionId);
         }
+
+        if (interrupted)
+            await SetBackfillCompleteAsync(db, charId, "character", "transactions", 0, false, ct);
+        else if (reachedEnd && fullScan)
+            await SetBackfillCompleteAsync(db, charId, "character", "transactions", 0, true, ct);
 
         return lastResult ?? new PollingResult(true, 200);
     }
@@ -815,42 +866,54 @@ public class EsiPollingService : ReactiveObject
             $"characters/{charId}/contracts/", ct);
         if (!r.IsSuccess) return FromResult(r);
 
-        var existingIds = await db.EsiContracts
-            .Where(c => c.OwnerId == charId && c.OwnerType == "character")
-            .Select(c => c.ContractId)
-            .ToHashSetAsync(ct);
+        // Upsert: update existing rows (status/acceptance can change) and insert new ones.
+        // Contracts no longer returned by ESI are retained.
+        var existing = (await db.EsiContracts
+                .Where(c => c.OwnerId == charId && c.OwnerType == "character")
+                .ToListAsync(ct))
+            .ToDictionary(c => c.ContractId);
 
-        var newContracts = r.Data!
-            .Where(c => !existingIds.Contains(c.ContractId))
-            .Select(c => new ContractRecord
+        foreach (var c in r.Data!)
+        {
+            if (existing.TryGetValue(c.ContractId, out var row))
             {
-                ContractId          = c.ContractId,
-                OwnerId             = charId,
-                OwnerType           = "character",
-                IssuerId            = c.IssuerId,
-                IssuerCorporationId = c.IssuerCorporationId,
-                AssigneeId          = c.AssigneeId,
-                AcceptorId          = c.AcceptorId,
-                StartLocationId     = c.StartLocationId,
-                EndLocationId       = c.EndLocationId,
-                Type                = c.Type,
-                Status              = c.Status,
-                Title               = c.Title,
-                ForCorporation      = c.ForCorporation,
-                Availability        = c.Availability,
-                DateIssued          = c.DateIssued,
-                DateExpired         = c.DateExpired,
-                DateAccepted        = c.DateAccepted,
-                DateCompleted       = c.DateCompleted,
-                DaysToComplete      = c.DaysToComplete,
-                Price               = (decimal)c.Price,
-                Reward              = (decimal)c.Reward,
-                Collateral          = (decimal)c.Collateral,
-                Buyout              = (decimal)c.Buyout,
-                Volume              = (decimal)c.Volume,
-            });
-
-        db.EsiContracts.AddRange(newContracts);
+                row.Status        = c.Status;
+                row.AcceptorId    = c.AcceptorId;
+                row.DateAccepted  = c.DateAccepted;
+                row.DateCompleted = c.DateCompleted;
+                row.DateExpired   = c.DateExpired;
+            }
+            else
+            {
+                db.EsiContracts.Add(new ContractRecord
+                {
+                    ContractId          = c.ContractId,
+                    OwnerId             = charId,
+                    OwnerType           = "character",
+                    IssuerId            = c.IssuerId,
+                    IssuerCorporationId = c.IssuerCorporationId,
+                    AssigneeId          = c.AssigneeId,
+                    AcceptorId          = c.AcceptorId,
+                    StartLocationId     = c.StartLocationId,
+                    EndLocationId       = c.EndLocationId,
+                    Type                = c.Type,
+                    Status              = c.Status,
+                    Title               = c.Title,
+                    ForCorporation      = c.ForCorporation,
+                    Availability        = c.Availability,
+                    DateIssued          = c.DateIssued,
+                    DateExpired         = c.DateExpired,
+                    DateAccepted        = c.DateAccepted,
+                    DateCompleted       = c.DateCompleted,
+                    DaysToComplete      = c.DaysToComplete,
+                    Price               = (decimal)c.Price,
+                    Reward              = (decimal)c.Reward,
+                    Collateral          = (decimal)c.Collateral,
+                    Buyout              = (decimal)c.Buyout,
+                    Volume              = (decimal)c.Volume,
+                });
+            }
+        }
         await db.SaveChangesAsync(ct);
         return FromResult(r);
     }
@@ -1553,13 +1616,17 @@ public class EsiPollingService : ReactiveObject
 
         for (int division = 1; division <= 7; division++)
         {
+            bool fullScan   = !await IsBackfillCompleteAsync(db, corpId, "corporation", "journal", division, ct);
+            bool interrupted = false, reachedEnd = false;
+
             for (int page = 1; ; page++)
             {
                 ct.ThrowIfCancellationRequested();
                 var r = await _esi.ExecuteCorpAuthAsync<List<EsiWalletJournalEntry>>(
                     corpId, $"corporations/{corpId}/wallets/{division}/journal/", ct, page: page);
                 lastResult = FromResult(r);
-                if (!r.IsSuccess || r.Data is null || r.Data.Count == 0) break;
+                if (!r.IsSuccess || r.Data is null) { interrupted = true; break; }
+                if (r.Data.Count == 0) { reachedEnd = true; break; }
 
                 var newEntries = r.Data
                     .DistinctBy(e => e.Id)
@@ -1593,9 +1660,14 @@ public class EsiPollingService : ReactiveObject
                     foreach (var e in newEntries) existingIds.Add(e.EsiId);
                 }
 
-                if (newEntries.Count == 0) break;
-                if (page >= r.TotalPages) break;
+                if (!fullScan && newEntries.Count == 0) { reachedEnd = true; break; }
+                if (page >= r.TotalPages) { reachedEnd = true; break; }
             }
+
+            if (interrupted)
+                await SetBackfillCompleteAsync(db, corpId, "corporation", "journal", division, false, ct);
+            else if (reachedEnd && fullScan)
+                await SetBackfillCompleteAsync(db, corpId, "corporation", "journal", division, true, ct);
         }
 
         return lastResult ?? new PollingResult(true, 200);
@@ -1613,6 +1685,8 @@ public class EsiPollingService : ReactiveObject
 
         for (int division = 1; division <= 7; division++)
         {
+            bool fullScan   = !await IsBackfillCompleteAsync(db, corpId, "corporation", "transactions", division, ct);
+            bool interrupted = false, reachedEnd = false;
             long? fromId = null;
 
             while (true)
@@ -1624,7 +1698,8 @@ public class EsiPollingService : ReactiveObject
 
                 var r = await _esi.ExecuteCorpAuthAsync<List<EsiWalletTransaction>>(corpId, path, ct);
                 lastResult = FromResult(r);
-                if (!r.IsSuccess || r.Data is null || r.Data.Count == 0) break;
+                if (!r.IsSuccess || r.Data is null) { interrupted = true; break; }
+                if (r.Data.Count == 0) { reachedEnd = true; break; }
 
                 var newEntries = r.Data
                     .DistinctBy(t => t.TransactionId)
@@ -1655,10 +1730,16 @@ public class EsiPollingService : ReactiveObject
                     foreach (var e in newEntries) existingIds.Add(e.TransactionId);
                 }
 
-                if (r.Data.Count < 2500 || newEntries.Count == 0) break;
+                if (r.Data.Count < 2500) { reachedEnd = true; break; }
+                if (!fullScan && newEntries.Count == 0) { reachedEnd = true; break; }
 
                 fromId = r.Data.Min(t => t.TransactionId);
             }
+
+            if (interrupted)
+                await SetBackfillCompleteAsync(db, corpId, "corporation", "transactions", division, false, ct);
+            else if (reachedEnd && fullScan)
+                await SetBackfillCompleteAsync(db, corpId, "corporation", "transactions", division, true, ct);
         }
 
         return lastResult ?? new PollingResult(true, 200);
@@ -1875,40 +1956,53 @@ public class EsiPollingService : ReactiveObject
             corpId, $"corporations/{corpId}/contracts/", ct);
         if (!r.IsSuccess) return FromResult(r);
 
-        var existingIds = await db.EsiContracts
-            .Where(c => c.OwnerId == corpId && c.OwnerType == "corporation")
-            .Select(c => c.ContractId)
-            .ToHashSetAsync(ct);
+        // Upsert: update existing rows, insert new ones, retain contracts no longer returned.
+        var existing = (await db.EsiContracts
+                .Where(c => c.OwnerId == corpId && c.OwnerType == "corporation")
+                .ToListAsync(ct))
+            .ToDictionary(c => c.ContractId);
 
-        db.EsiContracts.AddRange(r.Data!
-            .Where(c => !existingIds.Contains(c.ContractId))
-            .Select(c => new ContractRecord
+        foreach (var c in r.Data!)
+        {
+            if (existing.TryGetValue(c.ContractId, out var row))
             {
-                ContractId          = c.ContractId,
-                OwnerId             = corpId,
-                OwnerType           = "corporation",
-                IssuerId            = c.IssuerId,
-                IssuerCorporationId = c.IssuerCorporationId,
-                AssigneeId          = c.AssigneeId,
-                AcceptorId          = c.AcceptorId,
-                StartLocationId     = c.StartLocationId,
-                EndLocationId       = c.EndLocationId,
-                Type                = c.Type,
-                Status              = c.Status,
-                Title               = c.Title,
-                ForCorporation      = c.ForCorporation,
-                Availability        = c.Availability,
-                DateIssued          = c.DateIssued,
-                DateExpired         = c.DateExpired,
-                DateAccepted        = c.DateAccepted,
-                DateCompleted       = c.DateCompleted,
-                DaysToComplete      = c.DaysToComplete,
-                Price               = (decimal)c.Price,
-                Reward              = (decimal)c.Reward,
-                Collateral          = (decimal)c.Collateral,
-                Buyout              = (decimal)c.Buyout,
-                Volume              = (decimal)c.Volume,
-            }));
+                row.Status        = c.Status;
+                row.AcceptorId    = c.AcceptorId;
+                row.DateAccepted  = c.DateAccepted;
+                row.DateCompleted = c.DateCompleted;
+                row.DateExpired   = c.DateExpired;
+            }
+            else
+            {
+                db.EsiContracts.Add(new ContractRecord
+                {
+                    ContractId          = c.ContractId,
+                    OwnerId             = corpId,
+                    OwnerType           = "corporation",
+                    IssuerId            = c.IssuerId,
+                    IssuerCorporationId = c.IssuerCorporationId,
+                    AssigneeId          = c.AssigneeId,
+                    AcceptorId          = c.AcceptorId,
+                    StartLocationId     = c.StartLocationId,
+                    EndLocationId       = c.EndLocationId,
+                    Type                = c.Type,
+                    Status              = c.Status,
+                    Title               = c.Title,
+                    ForCorporation      = c.ForCorporation,
+                    Availability        = c.Availability,
+                    DateIssued          = c.DateIssued,
+                    DateExpired         = c.DateExpired,
+                    DateAccepted        = c.DateAccepted,
+                    DateCompleted       = c.DateCompleted,
+                    DaysToComplete      = c.DaysToComplete,
+                    Price               = (decimal)c.Price,
+                    Reward              = (decimal)c.Reward,
+                    Collateral          = (decimal)c.Collateral,
+                    Buyout              = (decimal)c.Buyout,
+                    Volume              = (decimal)c.Volume,
+                });
+            }
+        }
         await db.SaveChangesAsync(ct);
         return FromResult(r);
     }
@@ -2002,7 +2096,22 @@ public class EsiPollingService : ReactiveObject
             .Select(s => s.StructureId)
             .ToHashSet();
 
-        var toResolve = candidateIds.Where(id => !fresh.Contains(id)).Distinct().ToList();
+        // Also skip structures we recently failed to resolve (no docking rights / gone), so
+        // we don't re-poll them every cycle. Retried only after a 30-day backoff, in case
+        // access is later granted. (DateTimeOffset filter done in memory — SQLite can't
+        // translate it.)
+        var failBackoff = DateTimeOffset.UtcNow.AddDays(-30);
+        var recentlyFailed = (await db.EsiStructureNameFailures
+            .Where(f => candidateIds.Contains(f.StructureId))
+            .Select(f => new { f.StructureId, f.FailedAt })
+            .ToListAsync(ct))
+            .Where(f => f.FailedAt > failBackoff)
+            .Select(f => f.StructureId)
+            .ToHashSet();
+
+        var toResolve = candidateIds
+            .Where(id => !fresh.Contains(id) && !recentlyFailed.Contains(id))
+            .Distinct().ToList();
         if (toResolve.Count == 0) return;
 
         // If a preferred structure-name character is configured, use only that character.
@@ -2054,9 +2163,23 @@ public class EsiPollingService : ReactiveObject
                 var sc = lastResult?.StatusCode ?? 0;
                 handle.Complete(false, sc, $"all {charIds.Count} character(s) failed");
 
-                // 403/404/502 are expected ESI responses (no access or structure gone) — not app errors.
-                bool isExpectedDenial = sc is 403 or 404 or 502;
-                if (!isExpectedDenial && sc is not (420 or 429))
+                // 403 (no docking rights) and 404 (structure gone) are persistent — flag the
+                // structure so we stop re-polling it until the backoff expires. 502 is a
+                // transient ESI error, so don't flag it.
+                if (sc is 403 or 404)
+                {
+                    var fail = await db.EsiStructureNameFailures.FindAsync([structId], ct);
+                    if (fail is null)
+                    {
+                        fail = new StructureNameFailure { StructureId = structId };
+                        db.EsiStructureNameFailures.Add(fail);
+                    }
+                    fail.FailedAt   = DateTimeOffset.UtcNow;
+                    fail.StatusCode = sc;
+                    await db.SaveChangesAsync(ct);
+                }
+                // 403/404/502 are expected ESI responses — not app errors.
+                else if (sc is not (420 or 429))
                     _errorLogger.Log(
                         "GetStructureAsync",
                         $"StructureId={structId}",
@@ -2084,6 +2207,11 @@ public class EsiPollingService : ReactiveObject
                     entry.SolarSystemId = detail.SolarSystemId;
                     entry.PulledAt      = DateTimeOffset.UtcNow;
                 }
+
+                // Access regained — clear any prior failure flag.
+                var oldFail = await db.EsiStructureNameFailures.FindAsync([structId], ct);
+                if (oldFail is not null) db.EsiStructureNameFailures.Remove(oldFail);
+
                 await db.SaveChangesAsync(ct);
             }
 
@@ -2471,8 +2599,10 @@ public class EsiPollingService : ReactiveObject
                 row.UpdatedAt       = DateTimeOffset.UtcNow;
 
                 // Static = terminal-state project whose detail + contributors were fully fetched.
-                // No data can change on a completed project; skip the expensive per-project calls.
-                if (row.IsStatic)
+                // DetailUnavailable = listed but its detail endpoint 404s (not visible to us).
+                // Either way the per-project detail/contributor calls are pointless — skip them
+                // (cheap list fields above are still kept current).
+                if (row.IsStatic || row.DetailUnavailable)
                     continue;
             }
 
@@ -2493,6 +2623,35 @@ public class EsiPollingService : ReactiveObject
             if (!detailResult.IsSuccess)
             {
                 if (detailResult.StatusCode is 420 or 429) break; // rate-limited — stop cleanly
+
+                // 404 = the detail endpoint doesn't serve this project (not visible to us). It's
+                // listed but perpetually 404s, so mark it DetailUnavailable and stop retrying —
+                // otherwise it fires a 404 every cycle and eats into ESI's error limit. Store the
+                // list data we do have so the row exists. Other statuses are transient: retry.
+                if (detailResult.StatusCode == 404)
+                {
+                    if (row is null)
+                    {
+                        row = new CorpProject
+                        {
+                            CorporationId   = corpId,
+                            ProjectId       = project.Id,
+                            Name            = project.Name,
+                            State           = project.State,
+                            LastModified    = project.LastModified,
+                            ProgressCurrent = project.Progress?.Current ?? 0,
+                            ProgressDesired = project.Progress?.Desired ?? 0,
+                            RewardInitial   = project.Reward?.Initial ?? 0,
+                            RewardRemaining = project.Reward?.Remaining ?? 0,
+                            UpdatedAt       = DateTimeOffset.UtcNow,
+                        };
+                        db.EsiCorpProjects.Add(row);
+                        existingProjects[project.Id] = row;
+                    }
+                    row.DetailUnavailable = true;
+                    continue;
+                }
+
                 _errorLogger.Log("EsiPollingService", $"corp.projects.detail:{corpId}",
                     $"HTTP {detailResult.StatusCode} project={project.Id}", detailResult.Error);
                 continue; // non-fatal — try the next project

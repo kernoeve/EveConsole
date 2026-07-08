@@ -273,11 +273,23 @@
               <DataTemplate DataType="vm:TradeOpportunitiesViewModel">
                 <views:TradeOpportunitiesView />
               </DataTemplate>
+              <DataTemplate DataType="vm:IndustryOpportunitiesViewModel">
+                <views:IndustryOpportunitiesView />
+              </DataTemplate>
               <DataTemplate DataType="vm:NetWorthViewModel">
                 <views:NetWorthView />
               </DataTemplate>
               <DataTemplate DataType="vm:WalletViewModel">
                 <views:WalletView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:ContractsViewModel">
+                <views:ContractsView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:MarketViewerViewModel">
+                <views:MarketViewerView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:SalesTrackerViewModel">
+                <views:SalesTrackerView />
               </DataTemplate>
               <DataTemplate DataType="vm:CorpActivityViewModel">
                 <views:CorpActivityView />
@@ -287,6 +299,9 @@
               </DataTemplate>
               <DataTemplate DataType="vm:EveMailViewModel">
                 <views:EveMailView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:NotificationsViewModel">
+                <views:NotificationsView />
               </DataTemplate>
               <DataTemplate DataType="vm:EsiExplorerViewModel">
                 <views:EsiExplorerView />

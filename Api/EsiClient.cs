@@ -118,6 +118,17 @@ public class EsiClient
         return await response.Content.ReadFromJsonAsync<List<EsiUniverseName>>(JsonOptions, ct) ?? [];
     }
 
+    /// <summary>
+    /// Resolves up to 1000 int64 IDs to names — handles character IDs above int.MaxValue.
+    /// </summary>
+    public async Task<List<EsiUniverseNameLong>> GetNamesAsync(IReadOnlyList<long> ids, CancellationToken ct = default)
+    {
+        if (ids.Count == 0) return [];
+        var response = await _http.PostAsJsonAsync("universe/names/", ids, ct);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<List<EsiUniverseNameLong>>(JsonOptions, ct) ?? [];
+    }
+
     private sealed record EsiSearchResult(
         [property: JsonPropertyName("character")] List<int>? Character);
 
@@ -232,18 +243,31 @@ public class EsiClient
     /// Returns null on HTTP error (caller should not cache the result).
     /// Returns an empty list when ESI responds 200 with no data (item has no history in region).
     /// </summary>
-    public async Task<List<EsiMarketHistoryEntry>?> GetMarketHistoryAsync(
+    // Returns (data, statusCode). data is null on any non-success; statusCode is 0 when the call
+    // was skipped because we're error-limit blocked. Callers use the status to tell a terminal 4xx
+    // (this type simply has no market history here) from a transient failure worth retrying.
+    public async Task<(List<EsiMarketHistoryEntry>? Data, int Status)> GetMarketHistoryAsync(
         int regionId, int typeId, CancellationToken ct = default)
     {
-        if (IsErrorLimitBlocked) return null;
+        if (IsErrorLimitBlocked) return (null, 0);
 
         await _httpGate.WaitAsync(ct);
         HttpResponseMessage response;
         try { response = await _http.GetAsync($"markets/{regionId}/history/?type_id={typeId}", ct); }
         finally { _httpGate.Release(); }
 
-        if (!response.IsSuccessStatusCode) return null;
-        return await response.Content.ReadFromJsonAsync<List<EsiMarketHistoryEntry>>(JsonOptions, ct) ?? [];
+        // Feed the shared error-limit tracker so the background history sweep self-throttles
+        // and can never push us over ESI's error limit — even when it runs on its own.
+        var headers = response.Headers;
+        int? remain = headers.TryGetValues("X-Esi-Error-Limit-Remain", out var rv)
+                      && int.TryParse(rv.FirstOrDefault(), out var r) ? r : null;
+        int? reset  = headers.TryGetValues("X-Esi-Error-Limit-Reset", out var sv)
+                      && int.TryParse(sv.FirstOrDefault(), out var s) ? s : null;
+        UpdateErrorLimitState((int)response.StatusCode, remain, reset);
+
+        if (!response.IsSuccessStatusCode) return (null, (int)response.StatusCode);
+        var data = await response.Content.ReadFromJsonAsync<List<EsiMarketHistoryEntry>>(JsonOptions, ct) ?? [];
+        return (data, (int)response.StatusCode);
     }
 
     // -----------------------------------------------------------------------
@@ -253,6 +277,13 @@ public class EsiClient
     // Kill mail detail — public endpoint, no auth required
     public Task<EsiKillMailFull?> GetKillMailAsync(int killMailId, string hash, CancellationToken ct = default)
         => GetAsync<EsiKillMailFull>($"killmails/{killMailId}/{hash}/", ct);
+
+    // Moon detail (public). Returns null on error. name is e.g. "X-1QGA VI - Moon 3".
+    public async Task<EsiMoonDetail?> GetMoonAsync(int moonId, CancellationToken ct = default)
+    {
+        try { return await GetAsync<EsiMoonDetail>($"universe/moons/{moonId}/", ct); }
+        catch { return null; }
+    }
 
     private async Task<T?> GetAsync<T>(string endpoint, CancellationToken ct)
     {
@@ -356,12 +387,15 @@ public class EsiClient
         }
 
         var allItems = new List<T>(firstPage.Data ?? []);
+        bool complete = true;
         for (int p = 2; p <= firstPage.TotalPages; p++)
         {
             ct.ThrowIfCancellationRequested();
             var page = await ExecutePublicAsync<List<T>>(path, ct, page: p);
             if (page.IsSuccess && page.Data is not null)
                 allItems.AddRange(page.Data);
+            else
+                complete = false;   // a page dropped — Data is now an incomplete set
         }
 
         return new EsiCallResult<List<T>>
@@ -369,6 +403,7 @@ public class EsiClient
             Data       = allItems,
             StatusCode = firstPage.StatusCode,
             TotalPages = firstPage.TotalPages,
+            Complete   = complete,
         };
     }
 

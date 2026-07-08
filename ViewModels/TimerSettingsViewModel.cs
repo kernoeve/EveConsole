@@ -66,6 +66,22 @@ public class TimerSettingsViewModel : ReactiveObject
             new EndpointInfo("market.refresh", "Market Price Refresh", 600, 3600),
             timerSettings, pollingService));
 
+        OtherRows.Add(new TimerRowVm(
+            new EndpointInfo("market.history", "Price History Check", 120, 600),
+            timerSettings, pollingService));
+
+        OtherRows.Add(new TimerRowVm(
+            new EndpointInfo("contract.public", "Public Contracts (all regions)", 900, 3600),
+            timerSettings, pollingService));
+
+        OtherRows.Add(new TimerRowVm(
+            new EndpointInfo("contract.items", "Contract Items Pull", 120, 600),
+            timerSettings, pollingService));
+
+        OtherRows.Add(new TimerRowVm(
+            new EndpointInfo("contract.pricing", "Contract Pricing Rebuild", 300, 1800),
+            timerSettings, pollingService));
+
         SaveCommand = ReactiveCommand.CreateFromTask(SaveAllAsync);
     }
 

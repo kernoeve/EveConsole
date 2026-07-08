@@ -30,6 +30,10 @@ public class AppDbContext : DbContext
     public DbSet<IndustryJob>                EsiIndustryJobs         => Set<IndustryJob>();
     public DbSet<MarketOrder>                EsiMarketOrders         => Set<MarketOrder>();
     public DbSet<ContractRecord>             EsiContracts            => Set<ContractRecord>();
+    public DbSet<ContractItem>               EsiContractItems        => Set<ContractItem>();
+    public DbSet<ContractPrice>              ContractPrices          => Set<ContractPrice>();
+    public DbSet<WalletBackfillState>        WalletBackfillStates    => Set<WalletBackfillState>();
+    public DbSet<UniverseName>               UniverseNames           => Set<UniverseName>();
     public DbSet<CharacterAsset>             EsiAssets               => Set<CharacterAsset>();
     public DbSet<CharacterBlueprint>         EsiBlueprints           => Set<CharacterBlueprint>();
     public DbSet<CharacterMiningEntry>       EsiMining               => Set<CharacterMiningEntry>();
@@ -58,6 +62,7 @@ public class AppDbContext : DbContext
     public DbSet<CorpMedal>             EsiCorpMedals            => Set<CorpMedal>();
     public DbSet<CorpStructure>         EsiCorpStructures        => Set<CorpStructure>();
     public DbSet<StructureName>         EsiStructureNames        => Set<StructureName>();
+    public DbSet<StructureNameFailure>  EsiStructureNameFailures => Set<StructureNameFailure>();
     public DbSet<CorpStarbase>          EsiCorpStarbases         => Set<CorpStarbase>();
     public DbSet<CorpFacility>          EsiCorpFacilities        => Set<CorpFacility>();
     public DbSet<CorpMiningExtraction>  EsiCorpMiningExtractions => Set<CorpMiningExtraction>();
@@ -76,6 +81,9 @@ public class AppDbContext : DbContext
 
     // ── Net worth history ────────────────────────────────────────────────
     public DbSet<NetWorthSnapshot> NetWorthSnapshots => Set<NetWorthSnapshot>();
+
+    // ── Per-type price history ───────────────────────────────────────────
+    public DbSet<TypePriceSnapshot> TypePriceSnapshots => Set<TypePriceSnapshot>();
 
     // ── Application error log ────────────────────────────────────────────
     public DbSet<AppErrorEntry> AppErrors => Set<AppErrorEntry>();
@@ -501,6 +509,26 @@ public class AppDbContext : DbContext
             e.Property(x => x.ContractId).ValueGeneratedNever();
             e.ToTable("EsiContracts"); });
 
+        mb.Entity<ContractItem>(e => {
+            e.HasKey(x => new { x.ContractId, x.RecordId });
+            e.Property(x => x.ContractId).ValueGeneratedNever();
+            e.Property(x => x.RecordId).ValueGeneratedNever();
+            e.ToTable("EsiContractItems"); });
+
+        mb.Entity<ContractPrice>(e => {
+            e.HasKey(x => x.TypeId);
+            e.Property(x => x.TypeId).ValueGeneratedNever();
+            e.ToTable("ContractPrices"); });
+
+        mb.Entity<UniverseName>(e => {
+            e.HasKey(x => x.EntityId);
+            e.Property(x => x.EntityId).ValueGeneratedNever();
+            e.ToTable("UniverseNames"); });
+
+        mb.Entity<WalletBackfillState>(e => {
+            e.HasKey(x => new { x.OwnerId, x.OwnerType, x.Kind, x.Division });
+            e.ToTable("WalletBackfillState"); });
+
         mb.Entity<CharacterAsset>(e => {
             e.HasKey(x => new { x.OwnerId, x.OwnerType, x.ItemId });
             e.Property(x => x.OwnerId).ValueGeneratedNever();
@@ -642,6 +670,11 @@ public class AppDbContext : DbContext
             e.Property(x => x.StructureId).ValueGeneratedNever();
             e.ToTable("EsiStructureNames"); });
 
+        mb.Entity<StructureNameFailure>(e => {
+            e.HasKey(x => x.StructureId);
+            e.Property(x => x.StructureId).ValueGeneratedNever();
+            e.ToTable("EsiStructureNameFailures"); });
+
         mb.Entity<CorpStarbase>(e => {
             e.HasKey(x => new { x.CorporationId, x.StarbaseId });
             e.Property(x => x.CorporationId).ValueGeneratedNever();
@@ -719,6 +752,11 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.OwnerId, x.OwnerType, x.Date });
             e.Property(x => x.OwnerId).ValueGeneratedNever();
             e.ToTable("NetWorthSnapshots"); });
+
+        mb.Entity<TypePriceSnapshot>(e => {
+            e.HasKey(x => new { x.TypeId, x.Date });
+            e.Property(x => x.TypeId).ValueGeneratedNever();
+            e.ToTable("TypePriceSnapshots"); });
 
         mb.Entity<AppErrorEntry>(e => {
             e.HasKey(x => x.Id);

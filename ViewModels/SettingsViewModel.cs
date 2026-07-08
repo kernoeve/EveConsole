@@ -16,10 +16,12 @@ public class SettingsViewModel : ReactiveObject
     public PollingSettingsViewModel       PollingVm       { get; }
     public CorpTop10SettingsViewModel     CorpTop10Vm     { get; }
     public DatabaseSettingsViewModel      DatabaseVm      { get; }
+    public UpdateViewModel                UpdateVm        { get; }
 
     public SettingsViewModel(
         CharacterViewModel            characterVm,
         SdeViewModel                  sdeVm,
+        UpdateViewModel               updateVm,
         MarketSettingsViewModel       marketVm,
         TimerSettingsViewModel        timerVm,
         AgentService                  agentService,
@@ -34,6 +36,7 @@ public class SettingsViewModel : ReactiveObject
     {
         CharacterVm    = characterVm;
         SdeVm          = sdeVm;
+        UpdateVm       = updateVm;
         MarketVm       = marketVm;
         TimerVm        = timerVm;
         AgentVm        = new AgentSettingsViewModel(agentService, tts, speech, hotkey);

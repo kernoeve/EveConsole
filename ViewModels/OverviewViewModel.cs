@@ -4,6 +4,7 @@ using System.Net;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
+using EveCortex.Api;
 using EveCortex.Data;
 using EveCortex.Services;
 using LiveChartsCore;
@@ -129,12 +130,26 @@ public class AlertRowVm : ReactiveObject
     public bool IsClickable => NavigateCommand is not null;
 }
 
+// A recent notification rendered as a formatted box on the Overview.
+public class NotificationBoxVm
+{
+    public string DateText   { get; init; } = "";
+    public string TypeLabel  { get; init; } = "";
+    public string Characters { get; init; } = "";
+    public string Sender     { get; init; } = "";
+    public string Body       { get; init; } = "";
+    public bool   IsUnread   { get; init; }
+    public string UnreadDot  => IsUnread ? "●" : "";
+}
+
 public class OverviewViewModel : ReactiveObject
 {
     private readonly AppDbContext           _db;
     private readonly AlertSettingsViewModel _alertSettings;
     private readonly AppErrorLogger         _errorLogger;
     private readonly NewsService            _newsService;
+    private readonly IDbContextFactory<AppDbContext>? _dbFactory;
+    private readonly ContractNameResolver?  _names;
 
     // ── Period selection ──────────────────────────────────────────────────────
     public IReadOnlyList<ActivityPeriodOption> Periods { get; } =
@@ -215,6 +230,13 @@ public class OverviewViewModel : ReactiveObject
     public bool HasNews { get => _hasNews; private set => this.RaiseAndSetIfChanged(ref _hasNews, value); }
     public bool NoNews  => !HasNews;
 
+    // ── Recent notifications ────────────────────────────────────────────────────
+    public ObservableCollection<NotificationBoxVm> RecentNotifications { get; } = [];
+
+    private bool _hasNotifications;
+    public bool HasNotifications { get => _hasNotifications; private set => this.RaiseAndSetIfChanged(ref _hasNotifications, value); }
+    public bool NoNotifications  => !HasNotifications;
+
     // ── Loading state ─────────────────────────────────────────────────────────
     private bool _isLoading;
     public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
@@ -231,7 +253,9 @@ public class OverviewViewModel : ReactiveObject
     public OverviewViewModel(AppDbContext db, AlertSettingsViewModel alertSettings,
                              AppErrorLogger errorLogger, NewsService newsService,
                              AppPreferencesService? prefs = null,
-                             CorpActivityService? corpActivity = null)
+                             CorpActivityService? corpActivity = null,
+                             IDbContextFactory<AppDbContext>? dbFactory = null,
+                             EsiClient? esi = null)
     {
         _db             = db;
         _alertSettings  = alertSettings;
@@ -239,6 +263,9 @@ public class OverviewViewModel : ReactiveObject
         _newsService    = newsService;
         _prefs          = prefs;
         _corpActivity   = corpActivity;
+        _dbFactory      = dbFactory;
+        if (dbFactory is not null && esi is not null)
+            _names = new ContractNameResolver(dbFactory, esi, errorLogger);
 
         // Restore saved period, defaulting to 30 days
         var savedHours  = prefs?.GetLong(PeriodPrefKey, 720) ?? 720;
@@ -544,6 +571,9 @@ public class OverviewViewModel : ReactiveObject
             HasNews = NewsItems.Count > 0;
             this.RaisePropertyChanged(nameof(NoNews));
 
+            LoadStatus = "Loading notifications...";
+            await LoadNotificationsAsync();
+
             LoadStatus = $"Loaded — {owners.Count} owner(s), period: {_selectedPeriod.Label}";
         }
         catch (Exception ex)
@@ -555,6 +585,65 @@ public class OverviewViewModel : ReactiveObject
         {
             IsLoading = false;
         }
+    }
+
+    // ── Recent notifications (last 25, one per NotificationId) ────────────────────
+    private async Task LoadNotificationsAsync()
+    {
+        if (_names is null || _dbFactory is null) return;   // not wired for name resolution/formatting
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+
+#pragma warning disable EF1002
+            var rows = await db.EsiNotifications.FromSqlRaw(
+                    "SELECT MIN(CharacterId) AS CharacterId, NotificationId, Type, SenderId, SenderType, " +
+                    "Timestamp, MIN(IsRead) AS IsRead, Text FROM EsiNotifications " +
+                    "GROUP BY NotificationId ORDER BY Timestamp DESC LIMIT 25")
+                .AsNoTracking().ToListAsync();
+
+            var ids = rows.Select(r => r.NotificationId).ToList();
+            var recipients = ids.Count == 0
+                ? new List<(long NotificationId, long CharacterId)>()
+                : (await db.EsiNotifications.FromSqlRaw(
+                        $"SELECT * FROM EsiNotifications WHERE NotificationId IN ({string.Join(",", ids)})")
+                    .AsNoTracking().Select(n => new { n.NotificationId, n.CharacterId }).ToListAsync())
+                  .Select(x => (x.NotificationId, x.CharacterId)).ToList();
+#pragma warning restore EF1002
+
+            var recipientsByNotif = recipients.GroupBy(x => x.NotificationId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.CharacterId).Distinct().ToList());
+
+            var names = await _names.ResolveAsync(
+                rows.Select(r => r.SenderId).Concat(recipients.Select(x => x.CharacterId)));
+
+            var boxes = new List<NotificationBoxVm>(rows.Count);
+            foreach (var r in rows)
+            {
+                var chars = recipientsByNotif.TryGetValue(r.NotificationId, out var cids)
+                    ? string.Join(", ", cids.Select(id => names.TryGetValue(id, out var cn) && cn.Length > 0 ? cn : $"ID {id}").OrderBy(s => s))
+                    : "";
+                var sender = r.SenderId > 0
+                    ? (names.TryGetValue(r.SenderId, out var sn) && sn.Length > 0 ? sn : $"ID {r.SenderId}")
+                    : "—";
+                var body = await NotificationFormatter.FormatAsync(r.Text, _names, _dbFactory);
+                boxes.Add(new NotificationBoxVm
+                {
+                    DateText   = r.Timestamp.ToLocalTime().ToString("MMM d, HH:mm"),
+                    TypeLabel  = NotificationFormatter.Humanize(r.Type),
+                    Characters = chars,
+                    Sender     = sender,
+                    Body       = body,
+                    IsUnread   = !r.IsRead,
+                });
+            }
+
+            RecentNotifications.Clear();
+            foreach (var b in boxes) RecentNotifications.Add(b);
+            HasNotifications = RecentNotifications.Count > 0;
+            this.RaisePropertyChanged(nameof(NoNotifications));
+        }
+        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadNotifications", ex); }
     }
 
     // ── DTOs for raw SQL results ──────────────────────────────────────────────

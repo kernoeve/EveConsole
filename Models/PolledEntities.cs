@@ -223,6 +223,56 @@ public class ContractRecord
     public decimal Collateral         { get; set; }
     public decimal Buyout             { get; set; }
     public decimal Volume             { get; set; }
+
+    // Region a public contract was listed in (0 for character/corp contracts).
+    public int    RegionId            { get; set; }
+    // True once the contract's item list has been fetched (item_exchange/auction/courier
+    // contracts have items; we pull them once per contract and never call again).
+    public bool   ItemsPulled         { get; set; }
+}
+
+// One line item on a contract (offered or requested). Shared across owner rows by ContractId.
+public class ContractItem
+{
+    public int    ContractId       { get; set; }
+    public long   RecordId         { get; set; }   // unique per item within the contract
+    public int    TypeId           { get; set; }
+    public long   Quantity         { get; set; }
+    public bool   IsIncluded       { get; set; }   // true = offered by issuer, false = requested
+    public bool   IsSingleton      { get; set; }
+    public int?   RawQuantity      { get; set; }   // negative encodes BPC etc.
+    // Public-contract extras (blueprint details); null for personal/corp items.
+    public bool?  IsBlueprintCopy    { get; set; }
+    public int?   MaterialEfficiency { get; set; }
+    public int?   TimeEfficiency     { get; set; }
+    public int?   Runs               { get; set; }
+}
+
+// Per-(owner, wallet division, kind) marker: true once a full page-through of the ESI wallet
+// window has completed without interruption. While false (first run, or after a poll that was cut
+// short) the fetch re-pages the entire window to fill any hole a partial poll may have left, rather
+// than stopping at the first already-stored page. Division 0 = character single wallet.
+public class WalletBackfillState
+{
+    public long   OwnerId   { get; set; }
+    public string OwnerType { get; set; } = "";
+    public string Kind      { get; set; } = "";   // "journal" | "transactions"
+    public int    Division  { get; set; }
+    public bool   Complete  { get; set; }
+}
+
+// Derived per-type pricing from single-item-type "sell" contracts (item_exchange offering one
+// item type for an ISK price, nothing requested back). Rebuilt periodically from EsiContracts +
+// EsiContractItems; the table is fully replaced each run. Prices are per unit (contract price ÷
+// number of units of the single type). One row per TypeId.
+public class ContractPrice
+{
+    public int      TypeId      { get; set; }   // key
+    public decimal? BestPrice   { get; set; }   // lowest per-unit ask among currently-active sells
+    public decimal? Avg30Best   { get; set; }   // 30-day average of the daily-best per-unit price
+    public int      ActiveCount { get; set; }   // # currently-active qualifying sell contracts
+    public int      SampleDays  { get; set; }   // days in the last 30 that had ≥1 active contract
+    public DateTimeOffset UpdatedAt { get; set; }
 }
 
 // ── Assets & blueprints ───────────────────────────────────────────────────────
@@ -506,6 +556,15 @@ public class StructureName
     public DateTimeOffset PulledAt     { get; set; }
 }
 
+// Structures whose name could not be resolved (no docking rights = 403, or gone = 404).
+// Used to stop re-polling them every cycle; retried only after a backoff period.
+public class StructureNameFailure
+{
+    public long           StructureId { get; set; }
+    public DateTimeOffset FailedAt    { get; set; }
+    public int            StatusCode  { get; set; }
+}
+
 public class CorpStarbase
 {
     public long   CorporationId   { get; set; }
@@ -583,6 +642,9 @@ public class CorpProject
     // True once a terminal-state project has had both detail + all contributors successfully fetched.
     // Static projects are never re-fetched for detail/contributors — only list-level fields update.
     public bool    IsStatic          { get; set; }
+    // True when the project appears in the list but its detail endpoint returns 404 (detail not
+    // available to us). We keep updating cheap list fields but stop retrying the detail call.
+    public bool    DetailUnavailable { get; set; }
     public string? ConfigType        { get; set; }  // e.g. "deliver_item"
     public string? ConfigurationJson { get; set; }
 }
@@ -642,6 +704,22 @@ public class NetWorthSnapshot
     public double ContractCollateral { get; set; }
     public double ContractValue      { get; set; }
     public double Total              { get; set; }
+    public DateTimeOffset ComputedAt { get; set; }
+}
+
+// ── Per-type price history ──────────────────────────────────────────────────────
+
+// One row per TypeId per UTC day. Like NetWorthSnapshot, the current day's row is
+// recomputed and overwritten as prices refresh; once the day rolls over the prior
+// day's values are frozen, giving a point-in-time view of each price. Values are
+// nullable — null means "no price of that kind on that day", distinct from 0.
+public class TypePriceSnapshot
+{
+    public int    TypeId        { get; set; }
+    public string Date          { get; set; } = "";  // "yyyy-MM-dd" UTC
+    public double? MarketValue   { get; set; }        // from the asset-value market config + price type
+    public double? BuildCost     { get; set; }        // BuildCosts.TotalCost
+    public double? ContractPrice { get; set; }        // ContractPricing.EffectivePrice
     public DateTimeOffset ComputedAt { get; set; }
 }
 

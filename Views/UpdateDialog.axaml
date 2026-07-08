@@ -1,0 +1,50 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:EveCortex.ViewModels"
+        x:Class="EveCortex.Views.UpdateDialog"
+        x:DataType="vm:UpdateViewModel"
+        Title="Update Available"
+        Width="460" Height="240"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <StackPanel Margin="24" Spacing="14">
+
+    <!-- ── Prompt ── -->
+    <StackPanel x:Name="PromptPanel" Spacing="14">
+
+      <TextBlock Text="A new version of Eve Cortex is available."
+                 FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
+
+      <Grid ColumnDefinitions="70,*" RowDefinitions="Auto,Auto">
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Current:"
+                   Foreground="#666" VerticalAlignment="Center" Margin="0 0 0 4" />
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentVersionText}"
+                   Foreground="#aaa" VerticalAlignment="Center" Margin="0 0 0 4" />
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Latest:"
+                   Foreground="#666" VerticalAlignment="Center" />
+        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LatestVersionText}"
+                   Foreground="#e8a030" VerticalAlignment="Center" />
+      </Grid>
+
+      <TextBlock FontSize="11" Foreground="#555566" TextWrapping="Wrap"
+                 Text="The app will download the update and restart to apply it." />
+
+      <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+        <Button Content="Update Now" Click="OnUpdateNow" Padding="16 5" />
+        <Button Content="Not Now"    Click="OnNotNow"    Padding="16 5" />
+      </StackPanel>
+
+    </StackPanel>
+
+    <!-- ── Progress (shown while downloading/applying) ── -->
+    <StackPanel x:Name="ProgressPanel" IsVisible="False" Spacing="10">
+      <TextBlock Text="Updating Eve Cortex…"
+                 FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
+      <ProgressBar IsIndeterminate="True" Height="8" />
+      <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="#888" TextWrapping="Wrap" />
+    </StackPanel>
+
+  </StackPanel>
+</Window>

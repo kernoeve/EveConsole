@@ -18,6 +18,7 @@ public class MainWindowViewModel : ReactiveObject
     public AlertSettingsViewModel         AlertSettingsVm        { get; }
     public CharacterViewModel             CharacterVm            { get; }
     public SdeViewModel                   SdeVm                  { get; }
+    public UpdateViewModel                UpdateVm               { get; }
     public ApiActivityViewModel           ActivityVm             { get; }
     public EsiExplorerViewModel           ExplorerVm             { get; }
     public AssetBrowserViewModel          AssetBrowserVm         { get; }
@@ -26,9 +27,14 @@ public class MainWindowViewModel : ReactiveObject
     public ItemBrowserViewModel           ItemBrowserVm          { get; }
     public NetWorthViewModel              NetWorthVm             { get; }
     public TradeOpportunitiesViewModel    TradeOpportunitiesVm   { get; }
+    public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
     public WalletViewModel                WalletVm               { get; }
+    public ContractsViewModel             ContractsVm            { get; }
+    public NotificationsViewModel         NotificationsVm        { get; }
+    public MarketViewerViewModel          MarketViewerVm         { get; }
+    public SalesTrackerViewModel          SalesTrackerVm         { get; }
     public MarketSettingsViewModel        MarketVm               { get; }
     public TimerSettingsViewModel         TimerVm                { get; }
     public AgentPanelViewModel            AgentVm                { get; }
@@ -114,13 +120,18 @@ public class MainWindowViewModel : ReactiveObject
             "indy_parks" => ("Indy Parks",      IndyParksVm,              true),
             "prod_calc"  => ("Production Calc", ProductionCalcVm,         true),
             "trade"           => ("Trade",           TradeOpportunitiesVm,     true),
+            "industry_opps"   => ("Industry Opps",   IndustryOpportunitiesVm,  true),
             "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
             "inv_levels"      => ("Inv. Levels",     InvLevelVm,               true),
             "net_worth"  => ("Net Worth",       NetWorthVm,               true),
             "wallet"         => ("Wallet",          WalletVm,          true),
+            "contracts"      => ("Contracts",       ContractsVm,       true),
+            "market_viewer"  => ("Market Overview", MarketViewerVm,    true),
+            "sales_tracker"  => ("Sales Tracker",   SalesTrackerVm,    true),
             "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
             "killmails"      => ("Killmails",      KillmailBrowserVm, true),
             "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
+            "notifications"  => ("Notifications",  NotificationsVm,   true),
             "data"           => ("ESI Explorer",   ExplorerVm,        true),
             _                => throw new ArgumentException($"Unknown tool: {toolId}")
         };
@@ -199,13 +210,15 @@ public class MainWindowViewModel : ReactiveObject
         NewsService                     newsService,
         AppPreferencesService           appPrefs,
         DatabaseBackupService           dbBackup,
-        CorpTop10ExcludeService         corpTop10Exclude)
+        CorpTop10ExcludeService         corpTop10Exclude,
+        MarketHistoryService            historyService,
+        ContractsService                contractsService)
     {
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
-        OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService);
+        OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
-        ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings);
+        ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService);
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
@@ -242,13 +255,16 @@ public class MainWindowViewModel : ReactiveObject
         _pollingService   = pollingService;
         _buildCostService = buildCostService;
 
-        var historyService     = new MarketHistoryService(dbFactory, esi, errorLogger);
         PriceHistorySettingsVm = new PriceHistorySettingsViewModel(dbFactory.CreateDbContext());
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
         CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);
         ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService);
         IndyParksVm            = new IndyParksViewModel(dbFactory);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
+        ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
+        NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
+        MarketViewerVm         = new MarketViewerViewModel(dbFactory, errorLogger);
+        SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
@@ -267,12 +283,14 @@ public class MainWindowViewModel : ReactiveObject
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
         IndustryBrowserVm    = new IndustryBrowserViewModel(connString);
         TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
+        IndustryOpportunitiesVm = new IndustryOpportunitiesViewModel(connString, historyService, batchAddService);
 
         agentService.Initialize(connString);
         TtsService         = ttsService;
         SpeechInputService = speechInputService;
         HotkeyService      = hotkeyService;
         AppPrefs           = appPrefs;
+        UpdateVm           = new UpdateViewModel(appPrefs, errorLogger);
         DbBackup           = dbBackup;
 
         var s = agentService.Settings;
@@ -304,20 +322,24 @@ public class MainWindowViewModel : ReactiveObject
             ]),
             new("Assets",
             [
-                new NavItem("assets", "Assets"),
-                new NavItem("items",  "Item Browser"),
+                new NavItem("assets",     "Assets"),
+                new NavItem("items",      "Item Browser"),
+                new NavItem("inv_levels", "Inventory Levels"),
             ]),
             new("Industry",
             [
-                new NavItem("industry",   "Industry Jobs"),
-                new NavItem("indy_parks", "Indy Parks"),
-                new NavItem("prod_calc",  "Production Calc"),
+                new NavItem("industry",      "Industry Jobs"),
+                new NavItem("indy_parks",    "Indy Parks"),
+                new NavItem("prod_calc",     "Production Calc"),
+                new NavItem("industry_opps", "Industry Opportunities"),
             ]),
             new("Market / Trade",
             [
                 new NavItem("market_levels", "Market Levels"),
-                new NavItem("inv_levels",    "Inventory Levels"),
+                new NavItem("market_viewer", "Market Overview"),
+                new NavItem("sales_tracker", "Sales Tracker"),
                 new NavItem("trade",         "Trade Opportunities"),
+                new NavItem("contracts",     "Contracts"),
             ]),
             new("Finance",
             [
@@ -329,6 +351,7 @@ public class MainWindowViewModel : ReactiveObject
             new("Communication",
             [
                 new NavItem("eve_mail", "Eve Mail"),
+                new NavItem("notifications", "Notifications"),
             ]),
             new("Tools",
             [

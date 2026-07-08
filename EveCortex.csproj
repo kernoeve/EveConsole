@@ -37,6 +37,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Velopack" Version="1.2.0" />
     <!-- YAML (SDE parsing) -->
     <PackageReference Include="YamlDotNet" Version="15.1.2" />
 

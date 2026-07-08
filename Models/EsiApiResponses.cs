@@ -108,6 +108,47 @@ public record EsiContractData(
     [property: JsonPropertyName("volume")]              double Volume
 );
 
+// Personal / corp contract item (/characters|corporations/{id}/contracts/{cid}/items/)
+public record EsiContractItem(
+    [property: JsonPropertyName("record_id")]   long  RecordId,
+    [property: JsonPropertyName("type_id")]     int   TypeId,
+    [property: JsonPropertyName("quantity")]    long  Quantity,
+    [property: JsonPropertyName("is_included")] bool  IsIncluded,
+    [property: JsonPropertyName("is_singleton")]bool  IsSingleton,
+    [property: JsonPropertyName("raw_quantity")]int?  RawQuantity
+);
+
+// Public contract list entry (/contracts/public/{region_id}/)
+public record EsiPublicContract(
+    [property: JsonPropertyName("contract_id")]          int    ContractId,
+    [property: JsonPropertyName("type")]                 string Type,
+    [property: JsonPropertyName("issuer_id")]            long   IssuerId,
+    [property: JsonPropertyName("issuer_corporation_id")]int   IssuerCorporationId,
+    [property: JsonPropertyName("start_location_id")]    long?  StartLocationId,
+    [property: JsonPropertyName("end_location_id")]      long?  EndLocationId,
+    [property: JsonPropertyName("title")]                string? Title,
+    [property: JsonPropertyName("date_issued")]          DateTimeOffset DateIssued,
+    [property: JsonPropertyName("date_expired")]         DateTimeOffset? DateExpired,
+    [property: JsonPropertyName("days_to_complete")]     int    DaysToComplete,
+    [property: JsonPropertyName("price")]                double Price,
+    [property: JsonPropertyName("reward")]               double Reward,
+    [property: JsonPropertyName("collateral")]           double Collateral,
+    [property: JsonPropertyName("buyout")]               double Buyout,
+    [property: JsonPropertyName("volume")]               double Volume
+);
+
+// Public contract item (/contracts/public/items/{contract_id}/)
+public record EsiPublicContractItem(
+    [property: JsonPropertyName("record_id")]           long RecordId,
+    [property: JsonPropertyName("type_id")]             int  TypeId,
+    [property: JsonPropertyName("quantity")]            long Quantity,
+    [property: JsonPropertyName("is_included")]         bool IsIncluded,
+    [property: JsonPropertyName("is_blueprint_copy")]   bool? IsBlueprintCopy,
+    [property: JsonPropertyName("material_efficiency")] int? MaterialEfficiency,
+    [property: JsonPropertyName("time_efficiency")]     int? TimeEfficiency,
+    [property: JsonPropertyName("runs")]                int? Runs
+);
+
 // ── Assets & blueprints ───────────────────────────────────────────────────────
 
 public record EsiAsset(

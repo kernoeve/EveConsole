@@ -1455,7 +1455,7 @@
                    FontSize="14" FontWeight="SemiBold" Foreground="#c8a84b" />
 
         <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
-                   Text="Regions listed here will have market price history fetched on-demand when viewing item details or calculating trade opportunities. History is cached for 24 hours per item." />
+                   Text="A background job refreshes 30-day market history for every traded item in these regions, once per 24 hours per item, so the opportunity tools and item details read it straight from the DB. It paces itself against ESI's error limit, so it will never push the app over. Large regions (e.g. The Forge) fill in gradually across sessions." />
 
         <!-- Configured regions grid -->
         <DataGrid ItemsSource="{Binding PriceHistoryVm.ConfiguredRegions}"
@@ -1499,6 +1499,9 @@
                   Background="#1a2a1a" Foreground="#70ad47"
                   BorderBrush="#253525" BorderThickness="1" />
         </StackPanel>
+
+        <TextBlock TextWrapping="Wrap" Foreground="#666677" FontSize="11" Margin="0 4 0 0"
+                   Text="Tip: watch live per-region sweep progress (refreshed vs queued, and whether it's running) on the API Activity Log → Price History tab." />
 
       </StackPanel>
     </ScrollViewer>
@@ -1632,6 +1635,37 @@
 
         </StackPanel>
       </ScrollViewer>
+    </TabItem>
+
+    <!-- ══ Updates ═════════════════════════════════════════════════════════ -->
+    <TabItem Header="Updates">
+      <StackPanel Margin="16" Spacing="14" MaxWidth="560" HorizontalAlignment="Left">
+
+        <CheckBox IsChecked="{Binding UpdateVm.AutoCheck}"
+                  Content="Automatically check for updates"
+                  Foreground="#ccccdd" FontSize="12" />
+        <TextBlock Text="Checks on startup and once an hour. When a new version is found you'll be prompted; declining won't ask again until the next version."
+                   FontSize="11" Foreground="#555566" TextWrapping="Wrap" Margin="24 -6 0 0" />
+
+        <Border Background="#131320" BorderBrush="#252535" BorderThickness="1" CornerRadius="4" Padding="14 10">
+          <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Current version" Foreground="#888899" FontSize="12" Margin="0 0 0 6" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding UpdateVm.CurrentVersionText}" Foreground="#ccccdd" FontSize="12" Margin="0 0 0 6" />
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Latest version"  Foreground="#888899" FontSize="12" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding UpdateVm.LatestVersionText}"  Foreground="#e8a030" FontSize="12" />
+          </Grid>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <Button Content="Check Now" Command="{Binding UpdateVm.CheckNowCommand}" Padding="14 5" />
+          <Button Content="Update Now" Command="{Binding UpdateVm.InstallUpdateCommand}"
+                  IsVisible="{Binding UpdateVm.UpdateAvailable}"
+                  IsEnabled="{Binding !UpdateVm.IsBusy}" Padding="14 5" />
+        </StackPanel>
+
+        <TextBlock Text="{Binding UpdateVm.StatusText}" FontSize="11" Foreground="#888899" TextWrapping="Wrap" />
+
+      </StackPanel>
     </TabItem>
 
   </TabControl>

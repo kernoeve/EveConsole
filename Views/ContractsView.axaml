@@ -1,0 +1,221 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             xmlns:views="clr-namespace:EveCortex.Views"
+             xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
+             x:Class="EveCortex.Views.ContractsView"
+             x:DataType="vm:ContractsViewModel"
+             Background="#0d0d12">
+
+  <UserControl.Styles>
+    <Style Selector="DataGridCell TextBlock">
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="Background" Value="#12121a" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding"    Value="6 5 2 5" />
+    </Style>
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize"   Value="11" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+
+  <TabControl Background="#0d0d12">
+
+    <!-- ══ Tab 1: Corporation & Personal ═══════════════════════════════════════ -->
+    <TabItem Header="Corporation &amp; Personal">
+      <Grid DataContext="{Binding Owned}" x:DataType="vm:OwnedContractsViewModel"
+            RowDefinitions="Auto,*">
+
+        <!-- Filter bar -->
+        <Border Grid.Row="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
+                Padding="12 8">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Classes="flabel" Text="Owner:" />
+            <ComboBox ItemsSource="{Binding Owners}" SelectedItem="{Binding SelectedOwner}"
+                      MinWidth="200" FontSize="11" VerticalAlignment="Center" />
+            <TextBlock Classes="flabel" Text="Assignee:" />
+            <ComboBox ItemsSource="{Binding Assignees}" SelectedItem="{Binding SelectedAssignee}"
+                      MinWidth="170" FontSize="11" VerticalAlignment="Center" />
+            <TextBlock Classes="flabel" Text="Acceptor:" />
+            <ComboBox ItemsSource="{Binding Acceptors}" SelectedItem="{Binding SelectedAcceptor}"
+                      MinWidth="170" FontSize="11" VerticalAlignment="Center" />
+            <Button Command="{Binding RefreshCommand}" Content="↻ Refresh"
+                    FontSize="11" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding StatusText}" Classes="flabel" Foreground="#888899" />
+          </StackPanel>
+        </Border>
+
+        <!-- Grid + detail -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,4,400">
+          <DataGrid Grid.Column="0"
+                    ItemsSource="{Binding Rows}"
+                    SelectedItem="{Binding SelectedRow}"
+                    AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+                    CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                    Background="#0d0d12">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="#"        Binding="{Binding ContractId}" Width="80" />
+              <DataGridTextColumn Header="Type"     Binding="{Binding TypeLabel}"  Width="110" />
+              <DataGridTemplateColumn Header="Status" Width="100" SortMemberPath="Status">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:ContractRowVm">
+                    <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
+                               FontSize="11" Margin="6 0" VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Contents" Binding="{Binding Contents}" Width="*" />
+              <DataGridTextColumn Header="Issuer"   Binding="{Binding Issuer}"   Width="150" />
+              <DataGridTextColumn Header="Assignee" Binding="{Binding Assignee}" Width="140" />
+              <DataGridTextColumn Header="Acceptor" Binding="{Binding Acceptor}" Width="140" />
+              <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" />
+              <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" />
+              <DataGridTextColumn Header="Issued"   Binding="{Binding DateIssued}" SortMemberPath="DateIssuedRaw" Width="130" />
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <GridSplitter Grid.Column="1" Background="#1e1e2a" Width="4" />
+
+          <Panel Grid.Column="2" Background="#0b0b10">
+            <ContentControl Content="{Binding Detail}">
+              <ContentControl.DataTemplates>
+                <DataTemplate DataType="vm:ContractDetailVm">
+                  <views:ContractDetailView />
+                </DataTemplate>
+              </ContentControl.DataTemplates>
+            </ContentControl>
+            <TextBlock Text="Select a contract to view its details."
+                       IsVisible="{Binding Detail, Converter={x:Static conv:ObjectConverters.IsNull}}"
+                       FontSize="12" Foreground="#444455"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Panel>
+        </Grid>
+
+        <!-- Loading overlay -->
+        <Border Grid.Row="1" IsVisible="{Binding IsLoading}" Background="#99000000">
+          <TextBlock Text="{Binding StatusText}" FontSize="13" Foreground="#aaaacc"
+                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+      </Grid>
+    </TabItem>
+
+    <!-- ══ Tab 2: Public ═══════════════════════════════════════════════════════ -->
+    <TabItem Header="Public">
+      <Grid DataContext="{Binding Public}" x:DataType="vm:PublicContractsViewModel"
+            RowDefinitions="Auto,*,Auto">
+
+        <!-- Filter bar -->
+        <Border Grid.Row="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
+                Padding="12 8">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Classes="flabel" Text="Show:" />
+            <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus}"
+                      MinWidth="100" FontSize="11" VerticalAlignment="Center" />
+            <TextBlock Classes="flabel" Text="Contract:" />
+            <ComboBox ItemsSource="{Binding ContractTypeOptions}" SelectedItem="{Binding SelectedContractType}"
+                      MinWidth="120" FontSize="11" VerticalAlignment="Center" />
+            <TextBlock Classes="flabel" Text="Region:" />
+            <ComboBox ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}"
+                      MinWidth="180" FontSize="11" VerticalAlignment="Center" />
+            <TextBlock Classes="flabel" Text="Category:" />
+            <ComboBox ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"
+                      MinWidth="180" FontSize="11" VerticalAlignment="Center" />
+            <TextBlock Classes="flabel" Text="Item:" />
+            <TextBox Text="{Binding TypeFilter, Mode=TwoWay}" Watermark="type name…"
+                     FontSize="11" Width="160" Height="24"
+                     Background="#0d0d12" Foreground="#c8c8d8" BorderBrush="#2a2a3a" Padding="5 2"
+                     VerticalAlignment="Center" />
+            <Button Command="{Binding ClearFiltersCommand}" Content="Clear"
+                    FontSize="10" Padding="8 2" Height="24"
+                    Background="#1a1a2a" Foreground="#888899" BorderBrush="#2a2a3a" BorderThickness="1"
+                    VerticalAlignment="Center" />
+            <TextBlock Classes="flabel" Text="Sort:" />
+            <ComboBox ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSort}"
+                      MinWidth="150" FontSize="11" VerticalAlignment="Center" />
+            <Button Command="{Binding RefreshCommand}" Content="↻ Refresh"
+                    FontSize="11" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding StatusText}" Classes="flabel" Foreground="#888899" />
+          </StackPanel>
+        </Border>
+
+        <!-- Grid + detail -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,4,400">
+          <DataGrid Grid.Column="0"
+                    ItemsSource="{Binding Rows}"
+                    SelectedItem="{Binding SelectedRow}"
+                    AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+                    CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="False"
+                    Background="#0d0d12">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="#"        Binding="{Binding ContractId}" Width="80" />
+              <DataGridTextColumn Header="Type"     Binding="{Binding TypeLabel}"  Width="110" />
+              <DataGridTemplateColumn Header="Status" Width="90">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:ContractRowVm">
+                    <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
+                               FontSize="11" Margin="6 0" VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Contents" Binding="{Binding Contents}"   Width="*" />
+              <DataGridTextColumn Header="Region"   Binding="{Binding Region}"     Width="140" />
+              <DataGridTextColumn Header="Issuer"   Binding="{Binding Issuer}"     Width="150" />
+              <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" />
+              <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" />
+              <DataGridTextColumn Header="Vol m³"   Binding="{Binding Volume}"     Width="80" />
+              <DataGridTextColumn Header="Issued"   Binding="{Binding DateIssued}" SortMemberPath="DateIssuedRaw" Width="130" />
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <GridSplitter Grid.Column="1" Background="#1e1e2a" Width="4" />
+
+          <Panel Grid.Column="2" Background="#0b0b10">
+            <ContentControl Content="{Binding Detail}">
+              <ContentControl.DataTemplates>
+                <DataTemplate DataType="vm:ContractDetailVm">
+                  <views:ContractDetailView />
+                </DataTemplate>
+              </ContentControl.DataTemplates>
+            </ContentControl>
+            <TextBlock Text="Select a contract to view its details."
+                       IsVisible="{Binding Detail, Converter={x:Static conv:ObjectConverters.IsNull}}"
+                       FontSize="12" Foreground="#444455"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Panel>
+        </Grid>
+
+        <!-- Loading overlay -->
+        <Border Grid.Row="1" IsVisible="{Binding IsLoading}" Background="#99000000">
+          <TextBlock Text="{Binding StatusText}" FontSize="13" Foreground="#aaaacc"
+                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+
+        <!-- Pager -->
+        <Border Grid.Row="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 1 0 0"
+                Padding="12 6">
+          <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center"
+                      VerticalAlignment="Center">
+            <Button Command="{Binding FirstPageCommand}" IsEnabled="{Binding CanPrev}"
+                    Content="⏮ First" FontSize="11" Padding="8 2" />
+            <Button Command="{Binding PrevPageCommand}"  IsEnabled="{Binding CanPrev}"
+                    Content="◀ Prev"  FontSize="11" Padding="8 2" />
+            <TextBlock Text="{Binding PageInfo}" FontSize="11" Foreground="#aab"
+                       VerticalAlignment="Center" Margin="12 0" MinWidth="220"
+                       TextAlignment="Center" />
+            <Button Command="{Binding NextPageCommand}"  IsEnabled="{Binding CanNext}"
+                    Content="Next ▶"  FontSize="11" Padding="8 2" />
+            <Button Command="{Binding LastPageCommand}"  IsEnabled="{Binding CanNext}"
+                    Content="Last ⏭"  FontSize="11" Padding="8 2" />
+          </StackPanel>
+        </Border>
+      </Grid>
+    </TabItem>
+
+  </TabControl>
+</UserControl>

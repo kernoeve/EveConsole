@@ -137,7 +137,7 @@
 
         <!-- ════ Journal ═══════════════════════════════════════════════════ -->
         <TabItem Header="Journal">
-          <Grid RowDefinitions="Auto,*">
+          <Grid RowDefinitions="Auto,*,Auto">
             <!-- Filter bar -->
             <Border Grid.Row="0" Background="#0d111a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
                     Padding="8 5">
@@ -165,6 +165,9 @@
                         Background="#1a1a2a" Foreground="#888899"
                         BorderBrush="#2a2a3a" BorderThickness="1"
                         VerticalAlignment="Center" />
+                <TextBlock Text="Sort:" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+                <ComboBox ItemsSource="{Binding JournalSortOptions}" SelectedItem="{Binding SelectedJournalSort}"
+                          FontSize="11" MinWidth="150" Height="22" VerticalAlignment="Center" />
               </StackPanel>
             </Border>
             <DataGrid Grid.Row="1"
@@ -175,7 +178,7 @@
                       RowHeight="24"
                       CanUserReorderColumns="False"
                       CanUserResizeColumns="True"
-                      CanUserSortColumns="True">
+                      CanUserSortColumns="False">
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Date"        Binding="{Binding DateText}"    Width="130" />
                 <DataGridTextColumn Header="Type"        Binding="{Binding RefTypeText}" Width="180" />
@@ -197,12 +200,21 @@
                 <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" />
               </DataGrid.Columns>
             </DataGrid>
+            <Border Grid.Row="2" Background="#0d111a" BorderBrush="#1e1e2a" BorderThickness="0 1 0 0" Padding="8 5">
+              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                <Button Command="{Binding JournalPager.FirstPageCommand}" IsEnabled="{Binding JournalPager.CanPrev}" Content="⏮ First" FontSize="11" Padding="8 2" />
+                <Button Command="{Binding JournalPager.PrevPageCommand}"  IsEnabled="{Binding JournalPager.CanPrev}" Content="◀ Prev"  FontSize="11" Padding="8 2" />
+                <TextBlock Text="{Binding JournalPager.PageInfo}" FontSize="11" Foreground="#aab" VerticalAlignment="Center" Margin="12 0" MinWidth="200" TextAlignment="Center" />
+                <Button Command="{Binding JournalPager.NextPageCommand}"  IsEnabled="{Binding JournalPager.CanNext}" Content="Next ▶"  FontSize="11" Padding="8 2" />
+                <Button Command="{Binding JournalPager.LastPageCommand}"  IsEnabled="{Binding JournalPager.CanNext}" Content="Last ⏭"  FontSize="11" Padding="8 2" />
+              </StackPanel>
+            </Border>
           </Grid>
         </TabItem>
 
         <!-- ════ Market Transactions ═══════════════════════════════════════ -->
         <TabItem Header="Market Transactions">
-          <Grid RowDefinitions="Auto,*">
+          <Grid RowDefinitions="Auto,*,Auto">
             <!-- Filter bar -->
             <Border Grid.Row="0" Background="#0d111a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
                     Padding="8 5">
@@ -232,6 +244,9 @@
                         Background="#1a1a2a" Foreground="#888899"
                         BorderBrush="#2a2a3a" BorderThickness="1"
                         VerticalAlignment="Center" />
+                <TextBlock Text="Sort:" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+                <ComboBox ItemsSource="{Binding TxnSortOptions}" SelectedItem="{Binding SelectedTxnSort}"
+                          FontSize="11" MinWidth="150" Height="22" VerticalAlignment="Center" />
               </StackPanel>
             </Border>
             <DataGrid Grid.Row="1"
@@ -242,7 +257,7 @@
                       RowHeight="24"
                       CanUserReorderColumns="False"
                       CanUserResizeColumns="True"
-                      CanUserSortColumns="True">
+                      CanUserSortColumns="False">
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Date"       Binding="{Binding DateText}"  Width="130" />
                 <DataGridTextColumn Header="Item"       Binding="{Binding TypeName}"  Width="220" />
@@ -266,6 +281,15 @@
                 <DataGridTextColumn Header="Div"        Binding="{Binding DivisionText}" Width="100" />
               </DataGrid.Columns>
             </DataGrid>
+            <Border Grid.Row="2" Background="#0d111a" BorderBrush="#1e1e2a" BorderThickness="0 1 0 0" Padding="8 5">
+              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                <Button Command="{Binding TxnPager.FirstPageCommand}" IsEnabled="{Binding TxnPager.CanPrev}" Content="⏮ First" FontSize="11" Padding="8 2" />
+                <Button Command="{Binding TxnPager.PrevPageCommand}"  IsEnabled="{Binding TxnPager.CanPrev}" Content="◀ Prev"  FontSize="11" Padding="8 2" />
+                <TextBlock Text="{Binding TxnPager.PageInfo}" FontSize="11" Foreground="#aab" VerticalAlignment="Center" Margin="12 0" MinWidth="200" TextAlignment="Center" />
+                <Button Command="{Binding TxnPager.NextPageCommand}"  IsEnabled="{Binding TxnPager.CanNext}" Content="Next ▶"  FontSize="11" Padding="8 2" />
+                <Button Command="{Binding TxnPager.LastPageCommand}"  IsEnabled="{Binding TxnPager.CanNext}" Content="Last ⏭"  FontSize="11" Padding="8 2" />
+              </StackPanel>
+            </Border>
           </Grid>
         </TabItem>
 

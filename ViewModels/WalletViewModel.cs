@@ -259,14 +259,45 @@ public class WalletViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _hasExpenseData, value);
     }
 
-    // ── Grids ─────────────────────────────────────────────────────────────────
-
-    private List<WalletJournalRowVm>     _allJournalRows = [];
-    private List<WalletTransactionRowVm> _allTxnRows     = [];
+    // ── Grids (server-side paged) ───────────────────────────────────────────────
 
     public ObservableCollection<WalletJournalRowVm>     JournalRows     { get; } = new();
     public ObservableCollection<WalletTransactionRowVm> TransactionRows { get; } = new();
     public ObservableCollection<WalletDivisionRowVm>    DivisionRows    { get; } = new();
+
+    public GridPager JournalPager { get; }
+    public GridPager TxnPager     { get; }
+
+    public IReadOnlyList<GridSortOption> JournalSortOptions { get; } =
+    [
+        new("Date: newest first",   "Date DESC"),
+        new("Date: oldest first",   "Date ASC"),
+        new("Amount: high → low",   "CAST(Amount AS REAL) DESC"),
+        new("Amount: low → high",   "CAST(Amount AS REAL) ASC"),
+        new("Balance: high → low",  "CAST(Balance AS REAL) DESC"),
+    ];
+    private GridSortOption _selectedJournalSort;
+    public GridSortOption SelectedJournalSort
+    {
+        get => _selectedJournalSort;
+        set { this.RaiseAndSetIfChanged(ref _selectedJournalSort, value ?? JournalSortOptions[0]); ReloadJournal(); }
+    }
+
+    public IReadOnlyList<GridSortOption> TxnSortOptions { get; } =
+    [
+        new("Date: newest first",     "Date DESC"),
+        new("Date: oldest first",     "Date ASC"),
+        new("Total: high → low",      "(Quantity * CAST(UnitPrice AS REAL)) DESC"),
+        new("Total: low → high",      "(Quantity * CAST(UnitPrice AS REAL)) ASC"),
+        new("Unit price: high → low", "CAST(UnitPrice AS REAL) DESC"),
+        new("Quantity: high → low",   "Quantity DESC"),
+    ];
+    private GridSortOption _selectedTxnSort;
+    public GridSortOption SelectedTxnSort
+    {
+        get => _selectedTxnSort;
+        set { this.RaiseAndSetIfChanged(ref _selectedTxnSort, value ?? TxnSortOptions[0]); ReloadTxn(); }
+    }
 
     // ── Journal filters ───────────────────────────────────────────────────────
 
@@ -279,27 +310,27 @@ public class WalletViewModel : ReactiveObject
     public string JournalTypeFilter
     {
         get => _journalTypeFilter;
-        set { this.RaiseAndSetIfChanged(ref _journalTypeFilter, value); ApplyJournalFilter(); }
+        set { this.RaiseAndSetIfChanged(ref _journalTypeFilter, value); DebounceJournal(); }
     }
     public string JournalOwnerFilter
     {
         get => _journalOwnerFilter;
-        set { this.RaiseAndSetIfChanged(ref _journalOwnerFilter, value); ApplyJournalFilter(); }
+        set { this.RaiseAndSetIfChanged(ref _journalOwnerFilter, value); DebounceJournal(); }
     }
     public string JournalDivFilter
     {
         get => _journalDivFilter;
-        set { this.RaiseAndSetIfChanged(ref _journalDivFilter, value); ApplyJournalFilter(); }
+        set { this.RaiseAndSetIfChanged(ref _journalDivFilter, value); DebounceJournal(); }
     }
     public DateTime? JournalFromDate
     {
         get => _journalFromDate;
-        set { this.RaiseAndSetIfChanged(ref _journalFromDate, value); ApplyJournalFilter(); }
+        set { this.RaiseAndSetIfChanged(ref _journalFromDate, value); ReloadJournal(); }
     }
     public DateTime? JournalThruDate
     {
         get => _journalThruDate;
-        set { this.RaiseAndSetIfChanged(ref _journalThruDate, value); ApplyJournalFilter(); }
+        set { this.RaiseAndSetIfChanged(ref _journalThruDate, value); ReloadJournal(); }
     }
 
     public ReactiveCommand<Unit, Unit> ClearJournalFiltersCommand { get; }
@@ -317,30 +348,52 @@ public class WalletViewModel : ReactiveObject
     public string TxnItemFilter
     {
         get => _txnItemFilter;
-        set { this.RaiseAndSetIfChanged(ref _txnItemFilter, value); ApplyTxnFilter(); }
+        set { this.RaiseAndSetIfChanged(ref _txnItemFilter, value); DebounceTxn(); }
     }
     public string TxnDirectionFilter
     {
         get => _txnDirectionFilter;
-        set { this.RaiseAndSetIfChanged(ref _txnDirectionFilter, value ?? "All"); ApplyTxnFilter(); }
+        set { this.RaiseAndSetIfChanged(ref _txnDirectionFilter, value ?? "All"); ReloadTxn(); }
     }
     public string TxnLocationFilter
     {
         get => _txnLocationFilter;
-        set { this.RaiseAndSetIfChanged(ref _txnLocationFilter, value); ApplyTxnFilter(); }
+        set { this.RaiseAndSetIfChanged(ref _txnLocationFilter, value); DebounceTxn(); }
     }
     public string TxnOwnerFilter
     {
         get => _txnOwnerFilter;
-        set { this.RaiseAndSetIfChanged(ref _txnOwnerFilter, value); ApplyTxnFilter(); }
+        set { this.RaiseAndSetIfChanged(ref _txnOwnerFilter, value); DebounceTxn(); }
     }
     public string TxnDivFilter
     {
         get => _txnDivFilter;
-        set { this.RaiseAndSetIfChanged(ref _txnDivFilter, value); ApplyTxnFilter(); }
+        set { this.RaiseAndSetIfChanged(ref _txnDivFilter, value); DebounceTxn(); }
     }
 
     public ReactiveCommand<Unit, Unit> ClearTxnFiltersCommand { get; }
+
+    // Reload helpers — reset to page 1 and re-query one grid; text filters are debounced.
+    private void ReloadJournal() { if (_initialized) { JournalPager.Reset(); _ = LoadJournalPageAsync(); } }
+    private void ReloadTxn()     { if (_initialized) { TxnPager.Reset();     _ = LoadTxnPageAsync(); } }
+
+    private int _journalGen;
+    private async void DebounceJournal()
+    {
+        if (!_initialized) return;
+        int gen = ++_journalGen;
+        try { await Task.Delay(350); } catch { return; }
+        if (gen == _journalGen) ReloadJournal();
+    }
+
+    private int _txnGen;
+    private async void DebounceTxn()
+    {
+        if (!_initialized) return;
+        int gen = ++_txnGen;
+        try { await Task.Delay(350); } catch { return; }
+        if (gen == _txnGen) ReloadTxn();
+    }
 
     // ── Status ────────────────────────────────────────────────────────────────
 
@@ -376,6 +429,11 @@ public class WalletViewModel : ReactiveObject
         ];
         _selectedPeriod = Periods[2];
 
+        JournalPager = new GridPager(LoadJournalPageAsync);
+        TxnPager     = new GridPager(LoadTxnPageAsync);
+        _selectedJournalSort = JournalSortOptions[0];
+        _selectedTxnSort     = TxnSortOptions[0];
+
         RefreshCommand             = ReactiveCommand.CreateFromTask(LoadAsync);
         ClearJournalFiltersCommand = ReactiveCommand.Create(() =>
         {
@@ -384,7 +442,7 @@ public class WalletViewModel : ReactiveObject
             _journalDivFilter   = ""; this.RaisePropertyChanged(nameof(JournalDivFilter));
             _journalFromDate    = null; this.RaisePropertyChanged(nameof(JournalFromDate));
             _journalThruDate    = null; this.RaisePropertyChanged(nameof(JournalThruDate));
-            ApplyJournalFilter();
+            ReloadJournal();
         });
         ClearTxnFiltersCommand = ReactiveCommand.Create(() =>
         {
@@ -393,7 +451,7 @@ public class WalletViewModel : ReactiveObject
             _txnLocationFilter  = ""; this.RaisePropertyChanged(nameof(TxnLocationFilter));
             _txnOwnerFilter     = ""; this.RaisePropertyChanged(nameof(TxnOwnerFilter));
             _txnDivFilter       = ""; this.RaisePropertyChanged(nameof(TxnDivFilter));
-            ApplyTxnFilter();
+            ReloadTxn();
         });
         _ = InitAsync();
     }
@@ -443,12 +501,6 @@ public class WalletViewModel : ReactiveObject
             StatusText = "Loading balances...";
             await LoadBalanceAsync(db, owner);
 
-            StatusText = "Loading journal...";
-            await LoadJournalAsync(db, owner, cutoff);
-
-            StatusText = "Loading transactions...";
-            await LoadTransactionsAsync(db, owner, cutoff);
-
             StatusText = "Building charts...";
             await BuildChartsAsync(db, owner, cutoff);
 
@@ -470,6 +522,13 @@ public class WalletViewModel : ReactiveObject
             StatusText = "Error loading wallet data.";
         }
         finally { IsLoading = false; }
+
+        // The Journal and Market Transactions grids are independently server-side paged: on an
+        // owner/period change reset both to page 1 and reload the first page.
+        JournalPager.Reset();
+        TxnPager.Reset();
+        await LoadJournalPageAsync();
+        await LoadTxnPageAsync();
     }
 
     private async Task<(List<long> CharIds, List<long> PersonalCorpIds)> GetAllOwnerIdsAsync(AppDbContext db)
@@ -523,167 +582,214 @@ public class WalletViewModel : ReactiveObject
         BalanceText = FormatIsk((decimal)(result?.Total ?? 0.0)) + " ISK";
     }
 
-    private async Task LoadJournalAsync(AppDbContext db, WalletOwnerOption? owner, DateTimeOffset cutoff)
+    // ── Journal page ────────────────────────────────────────────────────────────
+    // Filters, sort and paging all run in SQL against the whole (owner + period) set, so they
+    // apply to every row — not just a loaded window. Filter values are parameters; only computed
+    // integers / the trusted sort expression are interpolated (hence the EF1002 suppression).
+    private async Task LoadJournalPageAsync()
     {
-        // Use FromSqlInterpolated to avoid the DateTimeOffset LINQ translation bug in EF Core SQLite.
-        List<WalletJournalEntry> rows;
+        if (!_initialized) return;
+        try
+        {
+            var owner  = _selectedOwner;
+            var cutoff = DateTimeOffset.UtcNow.AddHours(-_selectedPeriod.Hours);
+            await using var db = await _dbFactory.CreateDbContextAsync();
+
+            var (where, ps) = await BuildJournalWhereAsync(db, owner, cutoff);
+            var pars = ps.ToArray();
+            string baseSql = $"SELECT * FROM EsiWalletJournal WHERE {where}";
+
+#pragma warning disable EF1002
+            JournalPager.TotalCount = await db.EsiWalletJournal.FromSqlRaw(baseSql, pars).AsNoTracking().CountAsync();
+            JournalPager.ClampToRange();
+
+            var entries = JournalPager.TotalCount == 0
+                ? new List<WalletJournalEntry>()
+                : await db.EsiWalletJournal.FromSqlRaw(
+                        baseSql + $" ORDER BY {_selectedJournalSort.Sql} LIMIT {GridPager.PageSize} OFFSET {JournalPager.Offset}",
+                        pars).AsNoTracking().ToListAsync();
+#pragma warning restore EF1002
+
+            var names  = await BuildOwnerNamesAsync(db, owner, entries.Select(r => r.OwnerId));
+            var divMap = await BuildDivisionMapAsync(db, owner);
+            JournalRows.Clear();
+            foreach (var r in entries) JournalRows.Add(new WalletJournalRowVm(r, names, divMap));
+        }
+        catch (Exception ex) { _errorLogger.Log("WalletViewModel", "LoadJournalPageAsync", ex); }
+    }
+
+    // Treats a picked calendar date as UTC midnight — a DateTimeOffset with a zero offset can't be
+    // built directly from the Local-kind DateTime the date picker returns, so use components.
+    private static DateTimeOffset UtcMidnight(DateTime d) =>
+        new(d.Year, d.Month, d.Day, 0, 0, 0, TimeSpan.Zero);
+
+    private async Task<(string Where, List<object> Parameters)> BuildJournalWhereAsync(
+        AppDbContext db, WalletOwnerOption? owner, DateTimeOffset cutoff)
+    {
+        var parts = new List<string>();
+        var ps    = new List<object>();
+
         if (owner?.OwnerId != null)
         {
-            var oid = owner.OwnerId.Value;
-            var ot  = owner.OwnerType!;
-            rows = await db.EsiWalletJournal.FromSqlInterpolated(
-                $"""
-                 SELECT * FROM "EsiWalletJournal"
-                 WHERE "OwnerId" = {oid} AND "OwnerType" = {ot} AND "Date" >= {cutoff}
-                 ORDER BY "Date" DESC
-                 LIMIT 2000
-                 """).AsNoTracking().ToListAsync();
+            int ti = ps.Count; ps.Add(owner.OwnerType!);       parts.Add($"OwnerType = {{{ti}}}");
+            int oi = ps.Count; ps.Add(owner.OwnerId.Value);    parts.Add($"OwnerId = {{{oi}}}");
         }
         else
         {
             var (charIds, corpIds) = await GetAllOwnerIdsAsync(db);
-            var charList = string.Join(",", charIds);
-            var corpList = string.Join(",", corpIds);
-            // Build a WHERE clause that covers only characters + personal corps.
-            // Fall back to returning nothing if there are no owners.
-            if (charIds.Count == 0 && corpIds.Count == 0)
-            {
-                rows = [];
-            }
-            else
-            {
-                var conditions = new List<string>();
-                if (charIds.Count > 0)
-                    conditions.Add($"(\"OwnerType\" = 'character' AND \"OwnerId\" IN ({charList}))");
-                if (corpIds.Count > 0)
-                    conditions.Add($"(\"OwnerType\" = 'corporation' AND \"OwnerId\" IN ({corpList}))");
-                var where = string.Join(" OR ", conditions);
-#pragma warning disable EF1002
-                rows = await db.EsiWalletJournal.FromSqlRaw(
-                    $"""
-                     SELECT * FROM "EsiWalletJournal"
-                     WHERE ({where}) AND "Date" >= '{cutoff:yyyy-MM-ddTHH:mm:sszzz}'
-                     ORDER BY "Date" DESC
-                     LIMIT 2000
-                     """).AsNoTracking().ToListAsync();
-#pragma warning restore EF1002
-            }
+            var conds = new List<string>();
+            if (charIds.Count > 0) conds.Add($"(OwnerType='character' AND OwnerId IN ({string.Join(",", charIds)}))");
+            if (corpIds.Count > 0) conds.Add($"(OwnerType='corporation' AND OwnerId IN ({string.Join(",", corpIds)}))");
+            parts.Add(conds.Count > 0 ? "(" + string.Join(" OR ", conds) + ")" : "1=0");
         }
 
-        var names  = await BuildOwnerNamesAsync(db, owner, rows.Select(r => r.OwnerId));
-        var divMap = await BuildDivisionMapAsync(db, owner);
-        _allJournalRows = rows.Select(r => new WalletJournalRowVm(r, names, divMap)).ToList();
-        ApplyJournalFilter();
-    }
+        int ci = ps.Count; ps.Add(cutoff); parts.Add($"Date >= {{{ci}}}");
 
-    private async Task LoadTransactionsAsync(AppDbContext db, WalletOwnerOption? owner, DateTimeOffset cutoff)
-    {
-        // Use FromSqlInterpolated to avoid the DateTimeOffset LINQ translation bug in EF Core SQLite.
-        List<WalletTransaction> rows;
-        if (owner?.OwnerId != null)
+        var typeF = _journalTypeFilter.Trim();
+        if (typeF.Length > 0)
         {
-            var oid = owner.OwnerId.Value;
-            var ot  = owner.OwnerType!;
-            rows = await db.EsiWalletTransactions.FromSqlInterpolated(
-                $"""
-                 SELECT * FROM "EsiWalletTransactions"
-                 WHERE "OwnerId" = {oid} AND "OwnerType" = {ot} AND "Date" >= {cutoff}
-                 ORDER BY "Date" DESC
-                 LIMIT 2000
-                 """).AsNoTracking().ToListAsync();
-        }
-        else
-        {
-            var (charIds, corpIds) = await GetAllOwnerIdsAsync(db);
-            var charList = string.Join(",", charIds);
-            var corpList = string.Join(",", corpIds);
-            if (charIds.Count == 0 && corpIds.Count == 0)
-            {
-                rows = [];
-            }
-            else
-            {
-                var conditions = new List<string>();
-                if (charIds.Count > 0)
-                    conditions.Add($"(\"OwnerType\" = 'character' AND \"OwnerId\" IN ({charList}))");
-                if (corpIds.Count > 0)
-                    conditions.Add($"(\"OwnerType\" = 'corporation' AND \"OwnerId\" IN ({corpList}))");
-                var where = string.Join(" OR ", conditions);
-                // Deduplicate: corp row wins over character row for the same TransactionId.
-#pragma warning disable EF1002
-                rows = await db.EsiWalletTransactions.FromSqlRaw(
-                    $"""
-                     WITH ranked AS (
-                       SELECT *,
-                         ROW_NUMBER() OVER (
-                           PARTITION BY "TransactionId"
-                           ORDER BY CASE WHEN "OwnerType" = 'corporation' THEN 0 ELSE 1 END
-                         ) AS rn
-                       FROM "EsiWalletTransactions"
-                       WHERE ({where}) AND "Date" >= '{cutoff:yyyy-MM-ddTHH:mm:sszzz}'
-                     )
-                     SELECT "TransactionId","OwnerId","OwnerType","Division","Date","ClientId",
-                            "LocationId","Quantity","TypeId","UnitPrice","IsBuy","IsPersonal","JournalRefId"
-                     FROM ranked WHERE rn = 1
-                     ORDER BY "Date" DESC
-                     LIMIT 2000
-                     """).AsNoTracking().ToListAsync();
-#pragma warning restore EF1002
-            }
+            int i = ps.Count; ps.Add("%" + typeF.Replace(' ', '_') + "%");
+            parts.Add($"RefType LIKE {{{i}}}");
         }
 
-        var typeIds   = rows.Select(r => r.TypeId).Distinct().ToList();
-        var typeNames = await db.SdeTypes
-            .Where(t => typeIds.Contains(t.TypeId))
-            .ToDictionaryAsync(t => t.TypeId, t => t.Name);
-
-        var ownerNames    = await BuildOwnerNamesAsync(db, owner, rows.Select(r => r.OwnerId));
-        var locationNames = await BuildLocationNamesAsync(db, rows.Select(r => r.LocationId));
-        var divMap        = await BuildDivisionMapAsync(db, owner);
-        _allTxnRows = rows
-            .Select(r => new WalletTransactionRowVm(r, typeNames, ownerNames, locationNames, divMap))
-            .ToList();
-        ApplyTxnFilter();
-    }
-
-    private void ApplyJournalFilter()
-    {
-        var typeF  = _journalTypeFilter.Trim();
         var ownerF = _journalOwnerFilter.Trim();
-        var divF   = _journalDivFilter.Trim();
-        var fromD  = _journalFromDate;
-        var thruD  = _journalThruDate;
-
-        JournalRows.Clear();
-        foreach (var r in _allJournalRows)
+        if (ownerF.Length > 0)
         {
-            if (typeF.Length  > 0 && !r.RefTypeText.Contains(typeF,   StringComparison.OrdinalIgnoreCase)) continue;
-            if (ownerF.Length > 0 && !r.OwnerText.Contains(ownerF,    StringComparison.OrdinalIgnoreCase)) continue;
-            if (divF.Length   > 0 && !r.DivisionText.Contains(divF,   StringComparison.OrdinalIgnoreCase)) continue;
-            if (fromD.HasValue && r.DateRaw.UtcDateTime.Date < fromD.Value.Date) continue;
-            if (thruD.HasValue && r.DateRaw.UtcDateTime.Date > thruD.Value.Date) continue;
-            JournalRows.Add(r);
+            int i = ps.Count; ps.Add("%" + ownerF + "%");
+            int j = ps.Count; ps.Add("%" + ownerF + "%");
+            parts.Add($"OwnerId IN (SELECT Id FROM Characters WHERE Name LIKE {{{i}}} "
+                    + $"UNION SELECT Id FROM Corporations WHERE Name LIKE {{{j}}})");
         }
+
+        var divF = _journalDivFilter.Trim();
+        if (divF.Length > 0)
+        {
+            int i = ps.Count; ps.Add("%" + divF + "%");
+            int j = ps.Count; ps.Add("%" + divF + "%");
+            parts.Add($"(Division IN (SELECT Division FROM EsiCorpDivisions WHERE DivisionType='wallet' AND Name LIKE {{{i}}}) "
+                    + $"OR CAST(Division AS TEXT) LIKE {{{j}}})");
+        }
+
+        if (_journalFromDate is DateTime fd)
+        { int i = ps.Count; ps.Add(UtcMidnight(fd)); parts.Add($"Date >= {{{i}}}"); }
+        if (_journalThruDate is DateTime td)
+        { int i = ps.Count; ps.Add(UtcMidnight(td.AddDays(1))); parts.Add($"Date < {{{i}}}"); }
+
+        return (string.Join(" AND ", parts), ps);
     }
 
-    private void ApplyTxnFilter()
+    // ── Transactions page ─────────────────────────────────────────────────────────
+    private async Task LoadTxnPageAsync()
     {
-        var itemF  = _txnItemFilter.Trim();
-        var dirF   = _txnDirectionFilter;
-        var locF   = _txnLocationFilter.Trim();
-        var ownerF = _txnOwnerFilter.Trim();
-        var divF   = _txnDivFilter.Trim();
-
-        TransactionRows.Clear();
-        foreach (var r in _allTxnRows)
+        if (!_initialized) return;
+        try
         {
-            if (itemF.Length  > 0 && !r.TypeName.Contains(itemF,      StringComparison.OrdinalIgnoreCase)) continue;
-            if (dirF != "All"     && !r.Direction.Equals(dirF,        StringComparison.OrdinalIgnoreCase)) continue;
-            if (locF.Length   > 0 && !r.LocationName.Contains(locF,   StringComparison.OrdinalIgnoreCase)) continue;
-            if (ownerF.Length > 0 && !r.OwnerText.Contains(ownerF,    StringComparison.OrdinalIgnoreCase)) continue;
-            if (divF.Length   > 0 && !r.DivisionText.Contains(divF,   StringComparison.OrdinalIgnoreCase)) continue;
-            TransactionRows.Add(r);
+            var owner  = _selectedOwner;
+            var cutoff = DateTimeOffset.UtcNow.AddHours(-_selectedPeriod.Hours);
+            await using var db = await _dbFactory.CreateDbContextAsync();
+
+            var (baseInner, ps) = await BuildTxnBaseAsync(db, owner, cutoff);
+            string filter = BuildTxnFilter(ps);
+            var pars = ps.ToArray();
+            string wrapped = $"SELECT * FROM ({baseInner}) x WHERE {filter}";
+
+#pragma warning disable EF1002
+            TxnPager.TotalCount = await db.EsiWalletTransactions.FromSqlRaw(wrapped, pars).AsNoTracking().CountAsync();
+            TxnPager.ClampToRange();
+
+            var rows = TxnPager.TotalCount == 0
+                ? new List<WalletTransaction>()
+                : await db.EsiWalletTransactions.FromSqlRaw(
+                        wrapped + $" ORDER BY {_selectedTxnSort.Sql} LIMIT {GridPager.PageSize} OFFSET {TxnPager.Offset}",
+                        pars).AsNoTracking().ToListAsync();
+#pragma warning restore EF1002
+
+            var typeIds   = rows.Select(r => r.TypeId).Distinct().ToList();
+            var typeNames = await db.SdeTypes.Where(t => typeIds.Contains(t.TypeId))
+                .ToDictionaryAsync(t => t.TypeId, t => t.Name);
+            var ownerNames    = await BuildOwnerNamesAsync(db, owner, rows.Select(r => r.OwnerId));
+            var locationNames = await BuildLocationNamesAsync(db, rows.Select(r => r.LocationId));
+            var divMap        = await BuildDivisionMapAsync(db, owner);
+
+            TransactionRows.Clear();
+            foreach (var r in rows)
+                TransactionRows.Add(new WalletTransactionRowVm(r, typeNames, ownerNames, locationNames, divMap));
         }
+        catch (Exception ex) { _errorLogger.Log("WalletViewModel", "LoadTxnPageAsync", ex); }
+    }
+
+    // Base row set (owner + period), deduplicated across owners so a shared TransactionId shows once.
+    private async Task<(string Sql, List<object> Parameters)> BuildTxnBaseAsync(
+        AppDbContext db, WalletOwnerOption? owner, DateTimeOffset cutoff)
+    {
+        var ps = new List<object>();
+        if (owner?.OwnerId != null)
+        {
+            int oi = ps.Count; ps.Add(owner.OwnerId.Value);
+            int ti = ps.Count; ps.Add(owner.OwnerType!);
+            int ci = ps.Count; ps.Add(cutoff);
+            return ($"SELECT * FROM EsiWalletTransactions WHERE OwnerId = {{{oi}}} AND OwnerType = {{{ti}}} AND Date >= {{{ci}}}", ps);
+        }
+
+        var (charIds, corpIds) = await GetAllOwnerIdsAsync(db);
+        var conds = new List<string>();
+        if (charIds.Count > 0) conds.Add($"(OwnerType='character' AND OwnerId IN ({string.Join(",", charIds)}))");
+        if (corpIds.Count > 0) conds.Add($"(OwnerType='corporation' AND OwnerId IN ({string.Join(",", corpIds)}))");
+        string ownerCond = conds.Count > 0 ? "(" + string.Join(" OR ", conds) + ")" : "1=0";
+        int cix = ps.Count; ps.Add(cutoff);
+
+        // Corp row wins over the character copy of the same transaction.
+        string sql =
+            "SELECT \"TransactionId\",\"OwnerId\",\"OwnerType\",\"Division\",\"Date\",\"ClientId\"," +
+            "\"LocationId\",\"Quantity\",\"TypeId\",\"UnitPrice\",\"IsBuy\",\"IsPersonal\",\"JournalRefId\" " +
+            "FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY TransactionId " +
+            "ORDER BY CASE WHEN OwnerType='corporation' THEN 0 ELSE 1 END) AS rn " +
+            $"FROM EsiWalletTransactions WHERE {ownerCond} AND Date >= {{{cix}}}) WHERE rn = 1";
+        return (sql, ps);
+    }
+
+    private string BuildTxnFilter(List<object> ps)
+    {
+        var parts = new List<string>();
+
+        var itemF = _txnItemFilter.Trim();
+        if (itemF.Length > 0)
+        {
+            int i = ps.Count; ps.Add("%" + itemF + "%");
+            parts.Add($"x.TypeId IN (SELECT TypeId FROM SdeTypes WHERE Name LIKE {{{i}}})");
+        }
+
+        if (_txnDirectionFilter == "Buy")  parts.Add("x.IsBuy = 1");
+        else if (_txnDirectionFilter == "Sell") parts.Add("x.IsBuy = 0");
+
+        var locF = _txnLocationFilter.Trim();
+        if (locF.Length > 0)
+        {
+            int i = ps.Count; ps.Add("%" + locF + "%");
+            int j = ps.Count; ps.Add("%" + locF + "%");
+            parts.Add($"x.LocationId IN (SELECT StationId FROM SdeStations WHERE Name LIKE {{{i}}} "
+                    + $"UNION SELECT StructureId FROM EsiStructureNames WHERE Name LIKE {{{j}}})");
+        }
+
+        var ownerF = _txnOwnerFilter.Trim();
+        if (ownerF.Length > 0)
+        {
+            int i = ps.Count; ps.Add("%" + ownerF + "%");
+            int j = ps.Count; ps.Add("%" + ownerF + "%");
+            parts.Add($"x.OwnerId IN (SELECT Id FROM Characters WHERE Name LIKE {{{i}}} "
+                    + $"UNION SELECT Id FROM Corporations WHERE Name LIKE {{{j}}})");
+        }
+
+        var divF = _txnDivFilter.Trim();
+        if (divF.Length > 0)
+        {
+            int i = ps.Count; ps.Add("%" + divF + "%");
+            int j = ps.Count; ps.Add("%" + divF + "%");
+            parts.Add($"(x.Division IN (SELECT Division FROM EsiCorpDivisions WHERE DivisionType='wallet' AND Name LIKE {{{i}}}) "
+                    + $"OR CAST(x.Division AS TEXT) LIKE {{{j}}})");
+        }
+
+        return parts.Count > 0 ? string.Join(" AND ", parts) : "1=1";
     }
 
     private async Task<Dictionary<(long, int), string>> BuildDivisionMapAsync(
