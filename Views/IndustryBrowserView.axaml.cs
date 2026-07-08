@@ -412,7 +412,9 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
         long.TryParse(row[IndustryBrowserViewModel.ColFacilityTypeId].Replace(",", ""),  out var facTypeId);
 
         int.TryParse(row[IndustryBrowserViewModel.ColActivityId].Replace(",", ""), out var actId);
-        var prodVariant = actId is 3 or 4 or 5 or 8 ? "bp" : "icon";
+        // Copying (5) and invention (8) output a blueprint COPY (lighter "bpc" icon); research
+        // (3/4) outputs the original blueprint; everything else is a normal item.
+        var prodVariant = actId switch { 5 or 8 => "bpc", 3 or 4 => "bp", _ => "icon" };
 
         var tasks = new[]
         {
