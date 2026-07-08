@@ -119,14 +119,23 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
         WHERE a."OwnerId" = @ownerId AND a."OwnerType" = @ownerType
         """;
 
-    // Active/paused/ready industry jobs: blueprint value (BPO base price) + product market value.
-    // Copying (5) and invention (8) produce BPCs so their product value is 0.
+    // Active/paused/ready industry jobs: source blueprint value (BPO base price, returned on
+    // completion) + product value. Copying (5) and invention (8) produce blueprint COPIES, valued
+    // as BPCs from contracts (ContractPrices effective price) — NOT as the source BPO's market price.
     private const string IndustryJobValueSql = """
         SELECT COALESCE(SUM(
             COALESCE(CASE WHEN ebp."Quantity" = -1 THEN COALESCE(bt."BasePrice", 0.0) ELSE 0.0 END, 0.0)
             +
             CASE
-                WHEN j."ActivityId" IN (5, 8) THEN 0.0
+                WHEN j."ActivityId" IN (5, 8) THEN
+                    CAST(j."Runs" AS REAL) * COALESCE(
+                        CASE
+                            WHEN cp."BestPrice" IS NULL THEN CAST(cp."Avg30Best" AS REAL)
+                            WHEN cp."Avg30Best" IS NULL THEN CAST(cp."BestPrice" AS REAL)
+                            WHEN CAST(cp."BestPrice" AS REAL) > 1.5 * CAST(cp."Avg30Best" AS REAL)
+                                 THEN CAST(cp."Avg30Best" AS REAL)
+                            ELSE CAST(cp."BestPrice" AS REAL)
+                        END, 0.0)
                 ELSE CAST(COALESCE(bp."Quantity", 1) * j."Runs" AS REAL) *
                      COALESCE(
                          NULLIF(
@@ -161,6 +170,7 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
               AND p."ConfigId" = mds."AssetValueConfigId"
               AND p."TypeId"   = j."ProductTypeId"
         LEFT JOIN "BuildCosts" bc ON bc."TypeId" = j."ProductTypeId"
+        LEFT JOIN "ContractPrices" cp ON cp."TypeId" = j."ProductTypeId"
         WHERE j."OwnerId"  = @ownerId AND j."OwnerType" = @ownerType
           AND j."Status" NOT IN ('delivered', 'cancelled', 'failed', 'reverted')
         """;
