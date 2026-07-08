@@ -707,6 +707,22 @@ public class NetWorthSnapshot
     public DateTimeOffset ComputedAt { get; set; }
 }
 
+// ── Per-type price history ──────────────────────────────────────────────────────
+
+// One row per TypeId per UTC day. Like NetWorthSnapshot, the current day's row is
+// recomputed and overwritten as prices refresh; once the day rolls over the prior
+// day's values are frozen, giving a point-in-time view of each price. Values are
+// nullable — null means "no price of that kind on that day", distinct from 0.
+public class TypePriceSnapshot
+{
+    public int    TypeId        { get; set; }
+    public string Date          { get; set; } = "";  // "yyyy-MM-dd" UTC
+    public double? MarketValue   { get; set; }        // from the asset-value market config + price type
+    public double? BuildCost     { get; set; }        // BuildCosts.TotalCost
+    public double? ContractPrice { get; set; }        // ContractPricing.EffectivePrice
+    public DateTimeOffset ComputedAt { get; set; }
+}
+
 // ── Error logging ─────────────────────────────────────────────────────────────
 
 public class AppErrorEntry

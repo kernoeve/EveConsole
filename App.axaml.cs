@@ -65,9 +65,17 @@ public class App : Application
 
             var buildCostService = Services.GetRequiredService<BuildCostService>();
             var reprService      = Services.GetRequiredService<ReprocessingValueService>();
+            var typePriceHistory = Services.GetRequiredService<TypePriceHistoryService>();
             marketPricing.AfterRefresh        = ct => buildCostService.RunAfterMarketRefreshAsync(ct);
-            buildCostService.AfterRecalculate += ct => marketPricing.FillAllGapsAsync(ct);
+            // Fill price gaps first, then snapshot today's per-type prices (market + build now final).
+            buildCostService.AfterRecalculate += async ct =>
+            {
+                await marketPricing.FillAllGapsAsync(ct);
+                await typePriceHistory.RecalculateAsync(ct);
+            };
             buildCostService.AfterRecalculate += ct => reprService.RecalculateAllAsync(ct);
+            // Contract prices refresh on their own loop — re-snapshot when they do.
+            contracts.AfterPricing += ct => typePriceHistory.RecalculateAsync(ct);
 
             desktop.ShutdownRequested += async (_, e) =>
             {
@@ -148,6 +156,19 @@ public class App : Application
                     "Total"              REAL    NOT NULL DEFAULT 0,
                     "ComputedAt"         TEXT    NOT NULL DEFAULT '',
                     PRIMARY KEY ("OwnerId", "OwnerType", "Date")
+                )
+                """);
+
+            // Per-type price history — one row per TypeId per UTC day (market / build / contract).
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "TypePriceSnapshots" (
+                    "TypeId"        INTEGER NOT NULL,
+                    "Date"          TEXT    NOT NULL,
+                    "MarketValue"   REAL,
+                    "BuildCost"     REAL,
+                    "ContractPrice" REAL,
+                    "ComputedAt"    TEXT    NOT NULL DEFAULT '',
+                    PRIMARY KEY ("TypeId", "Date")
                 )
                 """);
 
@@ -1402,6 +1423,7 @@ public class App : Application
         services.AddSingleton<DatabaseBackupService>();
         services.AddSingleton<EsiPollingService>();
         services.AddSingleton<NetWorthService>();
+        services.AddSingleton<TypePriceHistoryService>();
         services.AddSingleton<MarketPricingService>();
         services.AddSingleton<MarketHistoryService>();
         services.AddSingleton<ContractsService>();

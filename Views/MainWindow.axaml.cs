@@ -275,6 +275,17 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 });
         }
 
+        // App update prompt (Velopack) — only when a new version is found and not already declined.
+        vm.UpdateVm.WhenAnyValue(x => x.ShouldPrompt)
+            .Where(prompt => prompt)
+            .Take(1)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(async _ =>
+            {
+                var dialog = new UpdateDialog { DataContext = vm.UpdateVm };
+                await dialog.ShowDialog(this);
+            });
+
         _ = vm.OverviewVm.LoadAsync();
     }
 
@@ -360,7 +371,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         await vm.PollingSettingsVm.LoadAsync(vm.CharacterVm.Characters);
         vm.CorpTop10SettingsVm.Load();
         var dbVm = new DatabaseSettingsViewModel(vm.AppPrefs, vm.DbBackup);
-        var settingsVm = new SettingsViewModel(vm.CharacterVm, vm.SdeVm, vm.MarketVm, vm.TimerVm,
+        var settingsVm = new SettingsViewModel(vm.CharacterVm, vm.SdeVm, vm.UpdateVm, vm.MarketVm, vm.TimerVm,
                                                vm.AgentVm.Service, vm.PriceHistorySettingsVm,
                                                vm.AlertSettingsVm, vm.PollingSettingsVm,
                                                vm.CorpTop10SettingsVm, dbVm,
