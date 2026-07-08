@@ -46,7 +46,7 @@ public partial class OrderEditDialog : Window
         var ct = _cts.Token;
 
         var text = SearchBox.Text ?? "";
-        if (text.Length < 2) { ResultsList.ItemsSource = null; return; }
+        if (text.Length < 2) { ResultsList.ItemsSource = null; ResultsBox.IsVisible = false; return; }
 
         try
         {
@@ -54,6 +54,7 @@ public partial class OrderEditDialog : Window
             var results = await _searchFunc(text);
             if (ct.IsCancellationRequested) return;
             ResultsList.ItemsSource = results;
+            ResultsBox.IsVisible = results.Count > 0;
         }
         catch (OperationCanceledException) { }
     }
@@ -65,6 +66,7 @@ public partial class OrderEditDialog : Window
             _typeId = t.TypeId;
             _typeName = t.Name;
             SelectedTypeText.Text = t.Name;
+            ResultsBox.IsVisible = false;   // collapse the results once an item is chosen
             UpdateOk();
         }
     }

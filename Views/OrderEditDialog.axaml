@@ -26,7 +26,8 @@
       <TextBlock x:Name="SelectedTypeText" Text="(none selected)" Foreground="#c8a84b" FontSize="12" />
       <TextBox x:Name="SearchBox" Watermark="Start typing item name…"
                CornerRadius="3" CaretBrush="#c8a84b" Padding="8 5" TextChanged="OnSearchChanged" />
-      <Border Background="#12121a" CornerRadius="3" BorderBrush="#1e1e2a" BorderThickness="1" Height="120">
+      <Border x:Name="ResultsBox" IsVisible="False"
+              Background="#12121a" CornerRadius="3" BorderBrush="#1e1e2a" BorderThickness="1" Height="120">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
           <ListBox x:Name="ResultsList" Background="Transparent" BorderThickness="0"
                    SelectionChanged="OnResultSelected">
