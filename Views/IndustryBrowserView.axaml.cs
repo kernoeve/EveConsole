@@ -154,10 +154,13 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
     {
         if (ViewModel is null) return;
 
-        DateTimeOffset? from = FromDatePicker.SelectedDate.HasValue
-            ? new DateTimeOffset(FromDatePicker.SelectedDate.Value, TimeSpan.Zero) : null;
-        DateTimeOffset? thru = ThruDatePicker.SelectedDate.HasValue
-            ? new DateTimeOffset(ThruDatePicker.SelectedDate.Value, TimeSpan.Zero) : null;
+        // Build from the picked date's Y/M/D as UTC midnight — the picker returns a Local-kind
+        // DateTime, so pairing it directly with TimeSpan.Zero throws "UTC Offset does not match".
+        static DateTimeOffset? AsUtcDate(DateTime? d) => d.HasValue
+            ? new DateTimeOffset(d.Value.Year, d.Value.Month, d.Value.Day, 0, 0, 0, TimeSpan.Zero) : null;
+
+        DateTimeOffset? from = AsUtcDate(FromDatePicker.SelectedDate);
+        DateTimeOffset? thru = AsUtcDate(ThruDatePicker.SelectedDate);
 
         _ = ViewModel.ApplyFiltersAsync(
             ActivityPicker.SelectedItem as string,
