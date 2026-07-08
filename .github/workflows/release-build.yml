@@ -71,13 +71,13 @@ jobs:
           --releaseName "Eve Cortex v${{ steps.version.outputs.version }}"
           --tag v${{ steps.version.outputs.version }}
 
-      - name: Add install notes to release
+      - name: Set release notes (changelog + install)
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = "v${{ steps.version.outputs.version }}"
-          $notes = @(
+          $install = @(
             '## Installing',
             '',
             '- **Installer (recommended):** download `EveCortex-win-Setup.exe` and run it. It installs Eve Cortex and keeps it updated automatically.',
@@ -91,4 +91,12 @@ jobs:
             '- If the warning appears, click **More info**, then **Run anyway**.',
             '- To avoid it entirely: right-click the downloaded file -> **Properties** -> tick **Unblock** -> **OK** before running.'
           ) -join "`n"
-          gh release edit $tag --notes $notes
+          # Carry the merged (develop -> main) PR description through as the changelog.
+          $prBody = gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" --jq '.[0].body // ""'
+          if ([string]::IsNullOrWhiteSpace($prBody)) {
+            $notes = $install
+          } else {
+            $notes = $prBody.TrimEnd() + "`n`n---`n`n" + $install
+          }
+          Set-Content -Path release_notes.md -Value $notes -Encoding utf8
+          gh release edit $tag --notes-file release_notes.md
