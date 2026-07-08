@@ -524,13 +524,26 @@ public class IndustryBrowserViewModel : ReactiveObject
         )
         SELECT Base.*,
             CAST(bc."TotalCost" AS REAL) * Base."Items Produced"                          AS "Build Cost",
-            (CASE COALESCE(mds."AssetValuePriceType", 'Midpoint')
-                WHEN 'Buy'  THEN mp."BuyPrice"
-                WHEN 'Sell' THEN mp."SellPrice"
-                ELSE             mp."Midpoint"
-             END) * Base."Items Produced"                                                 AS "Market Value"
+            -- Copying (5) / invention (8) output blueprint COPIES, valued from contracts (the
+            -- ContractPrices effective price); everything else uses the market price of the product.
+            CASE WHEN Base."Activity Id" IN (5, 8) THEN
+                (CASE
+                    WHEN cp."BestPrice" IS NULL THEN CAST(cp."Avg30Best" AS REAL)
+                    WHEN cp."Avg30Best" IS NULL THEN CAST(cp."BestPrice" AS REAL)
+                    WHEN CAST(cp."BestPrice" AS REAL) > 1.5 * CAST(cp."Avg30Best" AS REAL)
+                         THEN CAST(cp."Avg30Best" AS REAL)
+                    ELSE CAST(cp."BestPrice" AS REAL)
+                 END) * Base."Items Produced"
+            ELSE
+                (CASE COALESCE(mds."AssetValuePriceType", 'Midpoint')
+                    WHEN 'Buy'  THEN mp."BuyPrice"
+                    WHEN 'Sell' THEN mp."SellPrice"
+                    ELSE             mp."Midpoint"
+                 END) * Base."Items Produced"
+            END                                                                            AS "Market Value"
         FROM Base
         LEFT JOIN "BuildCosts"            bc  ON bc."TypeId" = Base."Product Type Id"
+        LEFT JOIN "ContractPrices"        cp  ON cp."TypeId" = Base."Product Type Id"
         LEFT JOIN "MarketDefaultSettings" mds ON mds."Id" = 1
         LEFT JOIN "MarketItemPrices"      mp  ON mds."AssetValueConfigId" IS NOT NULL
                                              AND mp."ConfigId" = mds."AssetValueConfigId"
