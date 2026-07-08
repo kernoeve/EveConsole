@@ -528,12 +528,13 @@ public class MarketPricingService
         // Build cost × markup is the initial price; types with no build cost get 0.
         await db.Database.ExecuteSqlInterpolatedAsync(
             $"""
-            INSERT INTO MarketItemPrices (ConfigId, TypeId, BuyPrice, SellPrice, Midpoint, FetchedAt)
+            INSERT INTO MarketItemPrices (ConfigId, TypeId, BuyPrice, SellPrice, Midpoint, FetchedAt, FromMarketData)
             SELECT {configId}, t.TypeId,
                 COALESCE(CAST(bc.TotalCost AS REAL) * {markup}, 0.0),
                 COALESCE(CAST(bc.TotalCost AS REAL) * {markup}, 0.0),
                 COALESCE(CAST(bc.TotalCost AS REAL) * {markup}, 0.0),
-                {fetched}
+                {fetched},
+                0
             FROM SdeTypes t
             LEFT JOIN BuildCosts bc ON bc.TypeId = t.TypeId
             WHERE t.Published = 1
