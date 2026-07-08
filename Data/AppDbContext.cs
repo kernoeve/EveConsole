@@ -85,6 +85,9 @@ public class AppDbContext : DbContext
     // ── Per-type price history ───────────────────────────────────────────
     public DbSet<TypePriceSnapshot> TypePriceSnapshots => Set<TypePriceSnapshot>();
 
+    // ── Order Tracker (user-entered) ─────────────────────────────────────
+    public DbSet<TrackedOrder> TrackedOrders => Set<TrackedOrder>();
+
     // ── Application error log ────────────────────────────────────────────
     public DbSet<AppErrorEntry> AppErrors => Set<AppErrorEntry>();
 
@@ -757,6 +760,10 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.TypeId, x.Date });
             e.Property(x => x.TypeId).ValueGeneratedNever();
             e.ToTable("TypePriceSnapshots"); });
+
+        mb.Entity<TrackedOrder>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("TrackedOrders"); });
 
         mb.Entity<AppErrorEntry>(e => {
             e.HasKey(x => x.Id);
