@@ -22,6 +22,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     public async Task<ProductionPlan> CalculateAsync(
         List<ProductionQueueEntry> requests,
         int parkId,
+        bool includeBpcCost = false,
         CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
@@ -366,12 +367,12 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                             existingMat.TotalQty += effPerRun * extraRuns;
                         ExpandItem(mat.MaterialTypeId, effPerRun * extraRuns, false);
                     }
-                    // Non-BPO: one bought BPC per run — bump its input quantity too, and add to the
-                    // raw-material pool so it shows in the Raw Materials breakdown.
-                    if (!isReaction && !BlueprintIsBpoSourced(bpProd.TypeId))
+                    // If this (final) job included its blueprint copy, keep the BPC quantity in
+                    // sync as the job gains runs (and add the extra copies to the raw pool).
+                    var bpcMat = existing.Materials.FirstOrDefault(m => m.MaterialTypeId == bpProd.TypeId);
+                    if (bpcMat is not null)
                     {
-                        var bpcMat = existing.Materials.FirstOrDefault(m => m.MaterialTypeId == bpProd.TypeId);
-                        if (bpcMat is not null) bpcMat.TotalQty += extraRuns;
+                        bpcMat.TotalQty += extraRuns;
                         ExpandItem(bpProd.TypeId, extraRuns, false);
                     }
                 }
@@ -413,11 +414,11 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     });
                     ExpandItem(mat.MaterialTypeId, effPerRun * runs, false);
                 }
-                // Non-BPO items: add the blueprint copy as a bought input material (one per run),
-                // valued at its contract-derived market value. It's bought (never expanded into
-                // sub-materials), and also added to the raw-material pool so it appears in the Raw
-                // Materials breakdown alongside every other purchased input.
-                if (!isReaction && !BlueprintIsBpoSourced(bpProd.TypeId))
+                // Include the blueprint copy as a bought input for the FINAL product only (one per
+                // run), valued at its contract-derived market value — forced when the item is non-BPO
+                // (no obtainable BPO) and optional otherwise (the includeBpcCost toggle). Sub-materials
+                // never add their BPC. It's bought (never expanded) and joins the raw-material pool.
+                if (!isReaction && isFinal && (!BlueprintIsBpoSourced(bpProd.TypeId) || includeBpcCost))
                 {
                     job.Materials.Add(new PlanJobMaterial
                     {
@@ -658,7 +659,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         {
             var plan = await CalculateAsync(
                 [new ProductionQueueEntry { TypeId = productTypeId, Quantity = runs, MeLevel = meLevel }],
-                parkId.Value, ct);
+                parkId.Value, ct: ct);
             return plan.RawMaterials.ToDictionary(
                 r => r.TypeId,
                 r => (r.Quantity, r.TypeName));
