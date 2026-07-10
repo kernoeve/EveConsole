@@ -1,4 +1,8 @@
-# Eve Cortex
+<p align="center">
+  <img src="docs/images/banner.png" alt="Eve Cortex" width="100%">
+</p>
+
+<p align="center"><em>A local-first, free, open-source desktop companion for EVE Online.</em></p>
 
 **Eve Cortex** is a desktop companion app for [EVE Online](https://www.eveonline.com/), running locally on the players system.  Ultimately I run many tools for my day to date activities in Eve (i.e., Ravworks, jEveAssets, Excel, etc.), and was looking for a single tool, where all of my data stayed local, and was completely free with source.  While the tool does not do everything today, it does the things I need it to do.  There is an AI agent integrated into the application, and it was added as I needed to play around with it to get some better familiarity in agent integration for my job, so we ended up with it in this tool.  It does have access to view all of the data in the tools DB, so possibly can answer questions that the UI is not setup to do.  Agent does come with optional TTS and voice input.  Included a number of both external paid options, as well as local alternatives to provide a variety of options, and also for me to get a little exposure with each.  That all being said, it will not be active unless you actually set it up, so you can ignore it if you choose.
 
@@ -7,6 +11,23 @@ I am currently developing and testing this on Windows, but the intent is to even
 Keep in mind this application is still very green.  You are free to play around with it, but do expect issues during use.  Do not give up your old tools for this quite yet.  Needs a bit of a hardening period.
 
 > **Status:** Beta (`0.9.x`). Actively developed — expect rough edges.
+
+---
+
+## Screenshots
+
+<!--
+  Add screenshots to docs/images/ and reference them here. Example:
+
+  <p align="center">
+    <img src="docs/images/overview.png" alt="Overview dashboard" width="800">
+  </p>
+  <p align="center">
+    <img src="docs/images/production-calculator.png" alt="Production Calculator" width="800">
+  </p>
+-->
+
+_Screenshots coming soon._
 
 ---
 
