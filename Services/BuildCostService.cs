@@ -392,6 +392,17 @@ public class BuildCostService
         var marketBlueprints = (await db.SdeTypes.AsNoTracking()
             .Where(t => bpTypeIdList.Contains(t.TypeId) && t.MarketGroupId != null)
             .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
+
+        // Products in the BPC-only loot tiers — Storyline (3), Faction (4), Officer (5), Deadspace (6)
+        // — never have an obtainable BPO, even when their blueprint carries a market group (some
+        // faction module blueprints do, e.g. Imperial Navy Bastion Module Blueprint). Their build
+        // cost must include the purchased BPC, so exclude those blueprints from the BPO set.
+        var bpcOnlyProductIds = (await db.SdeTypes.AsNoTracking()
+            .Where(t => productTypeIds.Contains(t.TypeId) && t.MetaGroupId >= 3 && t.MetaGroupId <= 6)
+            .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
+        marketBlueprints.ExceptWith(allProducts
+            .Where(p => p.Activity == "manufacturing" && bpcOnlyProductIds.Contains(p.ProductTypeId))
+            .Select(p => p.TypeId));
         var inventionRows = await db.SdeBlueprintProducts.AsNoTracking()
             .Where(p => p.Activity == "invention")
             .Select(p => new { p.TypeId, p.ProductTypeId })
