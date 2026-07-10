@@ -127,6 +127,10 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
             COALESCE(CASE WHEN ebp."Quantity" = -1 THEN COALESCE(bt."BasePrice", 0.0) ELSE 0.0 END, 0.0)
             +
             CASE
+                -- ME/TE research (3, 4) produces no new item: the BPO is both input
+                -- and output, so it is valued once above via the BPO base price and
+                -- must not add any output value here (would double-count).
+                WHEN j."ActivityId" IN (3, 4) THEN 0.0
                 WHEN j."ActivityId" IN (5, 8) THEN
                     CAST(j."Runs" AS REAL) * COALESCE(
                         CASE
