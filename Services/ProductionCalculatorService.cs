@@ -54,6 +54,17 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         var marketBlueprints = (await db.SdeTypes.AsNoTracking()
             .Where(t => bpTypeIds.Contains(t.TypeId) && t.MarketGroupId != null)
             .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
+        // BPC-only loot tiers (Storyline 3, Faction 4, Officer 5, Deadspace 6) have no obtainable BPO
+        // even when the blueprint carries a market group (e.g. Imperial Navy Bastion Module Blueprint)
+        // — their build consumes a purchased BPC, so drop them from the BPO set.
+        var mfgProductIds = bpProducts.Where(p => p.Activity == MfgActivity)
+            .Select(p => p.ProductTypeId).Distinct().ToList();
+        var bpcOnlyProductIds = (await db.SdeTypes.AsNoTracking()
+            .Where(t => mfgProductIds.Contains(t.TypeId) && t.MetaGroupId >= 3 && t.MetaGroupId <= 6)
+            .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
+        marketBlueprints.ExceptWith(bpProducts
+            .Where(p => p.Activity == MfgActivity && bpcOnlyProductIds.Contains(p.ProductTypeId))
+            .Select(p => p.TypeId));
         var inventedFromMarket = (await db.SdeBlueprintProducts.AsNoTracking()
                 .Where(p => p.Activity == "invention")
                 .Select(p => new { p.TypeId, p.ProductTypeId }).ToListAsync(ct))
