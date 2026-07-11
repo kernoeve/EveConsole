@@ -41,9 +41,9 @@ Verify a raw image URL returns 200 before syncing pages that reference a new ima
 | Home | `Home.md` | Written (banner header) |
 | Getting Started | `Getting-Started.md` | Written; needs `login`, `overview` screenshots |
 | Tools Reference | `Tools-Reference.md` | Written; per-tool screenshots optional |
-| Configuring Markets | `Configuring-Markets.md` | **Outline only** — needs real steps + screenshots |
-| Industry Parks | `Industry-Parks.md` | **Outline only** — needs real steps + screenshots |
-| AI Agent (Eden) | `AI-Agent-Eden.md` | **Outline only** — needs real steps + screenshots |
+| Configuring Markets | `Configuring-Markets.md` | Written (steps from source); needs `market-config`, `market-price-type` screenshots |
+| Industry Parks | `Industry-Parks.md` | Written (steps from source); needs `industry-park` screenshot |
+| AI Agent (Eden) | `AI-Agent-Eden.md` | Written (steps from source); needs `agent-config` screenshot |
 | FAQ & Troubleshooting | `FAQ-and-Troubleshooting.md` | Written |
 
 ## 3. Screenshot manifest

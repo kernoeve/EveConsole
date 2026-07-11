@@ -30,4 +30,5 @@ git add -A && git commit -m "Sync wiki from docs/wiki" && git push
 - `_Sidebar.md` is the navigation shown on every wiki page.
 - Images are **not** copied here — they live in `docs/images/` in the main repo and
   are referenced from wiki pages by absolute raw URL
-  (`https://raw.githubusercontent.com/kernoeve/EveCortex/main/docs/images/<file>`).
+  (`https://raw.githubusercontent.com/kernoeve/EveCortex/develop/docs/images/<file>`;
+  `develop` is where doc images land first — see BUILD-PLAN.md).

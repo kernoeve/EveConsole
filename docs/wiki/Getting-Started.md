@@ -48,8 +48,8 @@ Most tools depend on a little configuration first:
   SCREENSHOT SLOTS (add files to docs/images/ in the main repo, then uncomment):
 
   Login screen:
-  ![Log in with Eve](https://raw.githubusercontent.com/kernoeve/EveCortex/main/docs/images/login.png)
+  ![Log in with Eve](https://raw.githubusercontent.com/kernoeve/EveCortex/develop/docs/images/login.png)
 
   Main overview after login:
-  ![Overview](https://raw.githubusercontent.com/kernoeve/EveCortex/main/docs/images/overview.png)
+  ![Overview](https://raw.githubusercontent.com/kernoeve/EveCortex/develop/docs/images/overview.png)
 -->

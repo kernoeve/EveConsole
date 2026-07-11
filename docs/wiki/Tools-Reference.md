@@ -38,5 +38,5 @@ A quick tour of what each tool does. Most depend on having a
 
 <!--
   Per-tool screenshots can be added inline above each section using:
-  ![Production Calculator](https://raw.githubusercontent.com/kernoeve/EveCortex/main/docs/images/production-calculator.png)
+  ![Production Calculator](https://raw.githubusercontent.com/kernoeve/EveCortex/develop/docs/images/production-calculator.png)
 -->
