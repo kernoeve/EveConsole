@@ -1,9 +1,12 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
+using Avalonia.Media.Imaging;
 using EveCortex.Api;
 using EveCortex.Data;
 using EveCortex.Services;
@@ -128,6 +131,12 @@ public class AlertRowVm : ReactiveObject
 
     public ReactiveCommand<Unit, Unit>? NavigateCommand { get; init; }
     public bool IsClickable => NavigateCommand is not null;
+
+    // Alert-specific leading icon. When set (e.g. a character portrait for skill-queue
+    // alerts) it replaces the default warning glyph.
+    public Bitmap? Icon { get; init; }
+    public bool HasIcon => Icon is not null;
+    public bool NoIcon  => Icon is null;
 }
 
 // A recent notification rendered as a formatted box on the Overview.
@@ -222,6 +231,26 @@ public class OverviewViewModel : ReactiveObject
     private bool _hasAlerts;
     public bool HasAlerts { get => _hasAlerts; private set => this.RaiseAndSetIfChanged(ref _hasAlerts, value); }
     public bool NoAlerts  => !HasAlerts;
+
+    // Character portraits used as alert icons, cached across polls so each is fetched once.
+    private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(10) };
+    private readonly Dictionary<long, Bitmap> _portraitCache = [];
+
+    private async Task<Bitmap?> GetPortraitAsync(long characterId)
+    {
+        if (_portraitCache.TryGetValue(characterId, out var cached))
+            return cached;
+        try
+        {
+            var url   = $"https://images.evetech.net/characters/{characterId}/portrait?size=64";
+            var bytes = await _http.GetByteArrayAsync(url);
+            using var ms = new MemoryStream(bytes);
+            var bmp = new Bitmap(ms);
+            _portraitCache[characterId] = bmp;
+            return bmp;
+        }
+        catch { return null; }   // portrait is optional; retry on the next poll
+    }
 
     // ── News feed ─────────────────────────────────────────────────────────────
     public ObservableCollection<NewsItemVm> NewsItems { get; } = [];
@@ -745,7 +774,8 @@ public class OverviewViewModel : ReactiveObject
                     newAlerts.Add(new AlertRowVm
                     {
                         Message = $"{ch.Name}: Skill queue is empty.",
-                        NavigateCommand = skillsNavCommand
+                        NavigateCommand = skillsNavCommand,
+                        Icon = await GetPortraitAsync(ch.Id)
                     });
                     continue;
                 }
@@ -757,7 +787,8 @@ public class OverviewViewModel : ReactiveObject
                         newAlerts.Add(new AlertRowVm
                         {
                             Message = $"{ch.Name}: Skill queue is paused.",
-                            NavigateCommand = skillsNavCommand
+                            NavigateCommand = skillsNavCommand,
+                            Icon = await GetPortraitAsync(ch.Id)
                         });
                 }
 
@@ -778,7 +809,8 @@ public class OverviewViewModel : ReactiveObject
                         newAlerts.Add(new AlertRowVm
                         {
                             Message = $"{ch.Name}: Skill queue ends in {when} (within {warnDays}-day threshold).",
-                            NavigateCommand = skillsNavCommand
+                            NavigateCommand = skillsNavCommand,
+                            Icon = await GetPortraitAsync(ch.Id)
                         });
                     }
                 }

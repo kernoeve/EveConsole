@@ -252,8 +252,18 @@
                             BorderThickness="1" CornerRadius="3"
                             Padding="10 6" Margin="0 2">
                       <Grid ColumnDefinitions="Auto,*,Auto">
-                        <TextBlock Grid.Column="0" Text="⚠" FontSize="13" Foreground="#c8a84b"
-                                   VerticalAlignment="Center" Margin="0 0 8 0" />
+                        <!-- Leading icon: alert-specific (e.g. character portrait) or the default warning glyph -->
+                        <Panel Grid.Column="0" Width="18" Height="18"
+                               VerticalAlignment="Center" Margin="0 0 8 0">
+                          <TextBlock Text="⚠" FontSize="13" Foreground="#c8a84b"
+                                     IsVisible="{Binding NoIcon}"
+                                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+                          <Border IsVisible="{Binding HasIcon}"
+                                  Width="18" Height="18" CornerRadius="9" ClipToBounds="True">
+                            <Image Source="{Binding Icon}" Width="18" Height="18"
+                                   Stretch="UniformToFill" />
+                          </Border>
+                        </Panel>
                         <TextBlock Grid.Column="1" Text="{Binding Message}"
                                    IsVisible="{Binding !IsClickable}"
                                    FontSize="12" Foreground="#ddccaa"
