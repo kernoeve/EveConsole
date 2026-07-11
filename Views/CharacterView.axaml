@@ -394,28 +394,35 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:NotificationBoxVm">
                   <Border Background="#0e0e16" BorderBrush="#1e1e2a" BorderThickness="1"
-                          CornerRadius="3" Padding="10 8" Margin="0 3">
-                    <StackPanel Spacing="4">
-                      <Grid ColumnDefinitions="Auto,*,Auto">
-                        <TextBlock Grid.Column="0" Text="{Binding UnreadDot}" Foreground="#c8a84b"
-                                   FontSize="12" Margin="0 0 6 0" VerticalAlignment="Center" />
-                        <TextBlock Grid.Column="1" Text="{Binding TypeLabel}" FontSize="12"
-                                   FontWeight="SemiBold" Foreground="#dfe4ee" VerticalAlignment="Center" />
-                        <TextBlock Grid.Column="2" Text="{Binding DateText}" FontSize="10"
-                                   Foreground="#556" VerticalAlignment="Center" />
-                      </Grid>
-                      <StackPanel Orientation="Horizontal" Spacing="4">
-                        <TextBlock Text="To:" FontSize="10" Foreground="#556" VerticalAlignment="Center" />
-                        <TextBlock Text="{Binding Characters}" FontSize="10" Foreground="#8899aa"
-                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="· From:" FontSize="10" Foreground="#556"
-                                   Margin="6 0 0 0" VerticalAlignment="Center" />
-                        <TextBlock Text="{Binding Sender}" FontSize="10" Foreground="#8899aa"
-                                   VerticalAlignment="Center" />
+                          CornerRadius="3" Padding="8 6" Margin="0 2">
+                    <ToolTip.Tip>
+                      <TextBlock Text="{Binding TooltipText}" FontSize="11" MaxWidth="440"
+                                 FontFamily="Consolas, Menlo, monospace" TextWrapping="Wrap" />
+                    </ToolTip.Tip>
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                      <!-- Icon: portrait / structure-type / logo, or a fallback glyph -->
+                      <Panel Grid.Column="0" Width="32" Height="32" Margin="0 0 8 0"
+                             VerticalAlignment="Top">
+                        <Border IsVisible="{Binding HasIcon}" Width="32" Height="32"
+                                CornerRadius="3" ClipToBounds="True">
+                          <Image Source="{Binding Icon}" Width="32" Height="32" Stretch="UniformToFill" />
+                        </Border>
+                        <TextBlock IsVisible="{Binding NoIcon}" Text="{Binding FallbackGlyph}"
+                                   FontSize="16" Foreground="#8899aa"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                      </Panel>
+
+                      <!-- One-liner + relative age -->
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                        <TextBlock Text="{Binding OneLiner}" FontSize="12" Foreground="#dfe4ee"
+                                   TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding AgeText}" FontSize="10" Foreground="#667" />
                       </StackPanel>
-                      <SelectableTextBlock Text="{Binding Body}" FontSize="11" Foreground="#8899aa"
-                                           FontFamily="Consolas, Menlo, monospace" TextWrapping="Wrap" />
-                    </StackPanel>
+
+                      <!-- Unread marker -->
+                      <TextBlock Grid.Column="2" Text="{Binding UnreadDot}" Foreground="#c8a84b"
+                                 FontSize="12" VerticalAlignment="Top" Margin="6 0 0 0" />
+                    </Grid>
                   </Border>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>

@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Avalonia.Media.Imaging;
 using EveCortex.Api;
@@ -139,16 +140,20 @@ public class AlertRowVm : ReactiveObject
     public bool NoIcon  => Icon is null;
 }
 
-// A recent notification rendered as a formatted box on the Overview.
+// A recent notification rendered in the in-game style: icon + one-liner + age,
+// with the full detail in a tooltip.
 public class NotificationBoxVm
 {
-    public string DateText   { get; init; } = "";
-    public string TypeLabel  { get; init; } = "";
-    public string Characters { get; init; } = "";
-    public string Sender     { get; init; } = "";
-    public string Body       { get; init; } = "";
-    public bool   IsUnread   { get; init; }
-    public string UnreadDot  => IsUnread ? "●" : "";
+    public string OneLiner    { get; init; } = "";
+    public string AgeText     { get; init; } = "";
+    public string TooltipText { get; init; } = "";
+    public bool   IsUnread    { get; init; }
+    public string UnreadDot   => IsUnread ? "●" : "";
+
+    public Bitmap? Icon          { get; init; }
+    public string  FallbackGlyph { get; init; } = "✉";
+    public bool HasIcon => Icon is not null;
+    public bool NoIcon  => Icon is null;
 }
 
 public class OverviewViewModel : ReactiveObject
@@ -232,25 +237,29 @@ public class OverviewViewModel : ReactiveObject
     public bool HasAlerts { get => _hasAlerts; private set => this.RaiseAndSetIfChanged(ref _hasAlerts, value); }
     public bool NoAlerts  => !HasAlerts;
 
-    // Character portraits used as alert icons, cached across polls so each is fetched once.
+    // EVE image-server images (portraits, corp/alliance logos, type icons) used as alert
+    // and notification icons, cached by path across polls so each is fetched at most once.
     private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(10) };
-    private readonly Dictionary<long, Bitmap> _portraitCache = [];
+    private readonly Dictionary<string, Bitmap> _imageCache = [];
 
-    private async Task<Bitmap?> GetPortraitAsync(long characterId)
+    // path is relative to https://images.evetech.net/ (e.g. "characters/123/portrait?size=64").
+    private async Task<Bitmap?> GetImageAsync(string path)
     {
-        if (_portraitCache.TryGetValue(characterId, out var cached))
+        if (_imageCache.TryGetValue(path, out var cached))
             return cached;
         try
         {
-            var url   = $"https://images.evetech.net/characters/{characterId}/portrait?size=64";
-            var bytes = await _http.GetByteArrayAsync(url);
+            var bytes = await _http.GetByteArrayAsync($"https://images.evetech.net/{path}");
             using var ms = new MemoryStream(bytes);
             var bmp = new Bitmap(ms);
-            _portraitCache[characterId] = bmp;
+            _imageCache[path] = bmp;
             return bmp;
         }
-        catch { return null; }   // portrait is optional; retry on the next poll
+        catch { return null; }   // icon is optional; retry on the next poll
     }
+
+    private Task<Bitmap?> GetPortraitAsync(long characterId) =>
+        GetImageAsync($"characters/{characterId}/portrait?size=64");
 
     // ── News feed ─────────────────────────────────────────────────────────────
     public ObservableCollection<NewsItemVm> NewsItems { get; } = [];
@@ -643,12 +652,35 @@ public class OverviewViewModel : ReactiveObject
             var recipientsByNotif = recipients.GroupBy(x => x.NotificationId)
                 .ToDictionary(g => g.Key, g => g.Select(x => x.CharacterId).Distinct().ToList());
 
-            var names = await _names.ResolveAsync(
-                rows.Select(r => r.SenderId).Concat(recipients.Select(x => x.CharacterId)));
+            // Parse each notification's fields once, up front.
+            var parsed = rows.ToDictionary(r => r.NotificationId, r => NotificationSummary.Parse(r.Text));
+
+            // Resolve every entity (sender, recipients, and per-notification fields) in one batch.
+            var entityIds = new HashSet<long>();
+            foreach (var r in rows) if (r.SenderId > 0) entityIds.Add(r.SenderId);
+            foreach (var (_, cid) in recipients) entityIds.Add(cid);
+            foreach (var f in parsed.Values)
+                foreach (var id in NotificationSummary.EntityIds(f)) entityIds.Add(id);
+
+            var names = await _names.ResolveAsync(entityIds);
+
+            // Resolve structure names for one-liners (structure life-cycle / ownership notifications).
+            var structIds = parsed.Values
+                .Where(f => f.StructureId.HasValue).Select(f => f.StructureId!.Value).Distinct().ToList();
+            var structNames = structIds.Count == 0
+                ? new Dictionary<long, string>()
+                : await db.EsiStructureNames.AsNoTracking()
+                    .Where(s => structIds.Contains(s.StructureId))
+                    .ToDictionaryAsync(s => s.StructureId, s => s.Name);
 
             var boxes = new List<NotificationBoxVm>(rows.Count);
             foreach (var r in rows)
             {
+                var f        = parsed[r.NotificationId];
+                var oneLiner = NotificationSummary.OneLiner(r.Type, f, names, structNames);
+                var (iconPath, glyph) = NotificationSummary.Icon(r.Type, r.SenderId, r.SenderType, f);
+                var icon     = iconPath is null ? null : await GetImageAsync(iconPath);
+
                 var chars = recipientsByNotif.TryGetValue(r.NotificationId, out var cids)
                     ? string.Join(", ", cids.Select(id => names.TryGetValue(id, out var cn) && cn.Length > 0 ? cn : $"ID {id}").OrderBy(s => s))
                     : "";
@@ -656,14 +688,22 @@ public class OverviewViewModel : ReactiveObject
                     ? (names.TryGetValue(r.SenderId, out var sn) && sn.Length > 0 ? sn : $"ID {r.SenderId}")
                     : "—";
                 var body = await NotificationFormatter.FormatAsync(r.Text, _names, _dbFactory);
+
+                var tip = new StringBuilder();
+                tip.Append(NotificationFormatter.Humanize(r.Type)).Append('\n');
+                tip.Append(r.Timestamp.ToLocalTime().ToString("MMM d, yyyy HH:mm"));
+                if (chars.Length > 0) tip.Append("\nTo: ").Append(chars);
+                if (sender != "—")    tip.Append("\nFrom: ").Append(sender);
+                if (body.Length > 0)  tip.Append("\n\n").Append(body);
+
                 boxes.Add(new NotificationBoxVm
                 {
-                    DateText   = r.Timestamp.ToLocalTime().ToString("MMM d, HH:mm"),
-                    TypeLabel  = NotificationFormatter.Humanize(r.Type),
-                    Characters = chars,
-                    Sender     = sender,
-                    Body       = body,
-                    IsUnread   = !r.IsRead,
+                    OneLiner      = oneLiner,
+                    AgeText       = NotificationSummary.Age(r.Timestamp),
+                    TooltipText   = tip.ToString(),
+                    IsUnread      = !r.IsRead,
+                    Icon          = icon,
+                    FallbackGlyph = glyph,
                 });
             }
 
