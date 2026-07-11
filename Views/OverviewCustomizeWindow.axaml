@@ -1,0 +1,77 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:EveCortex.ViewModels"
+        x:Class="EveCortex.Views.OverviewCustomizeWindow"
+        x:DataType="vm:OverviewCustomizeViewModel"
+        Title="Customize Overview" Width="660" Height="440"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="16">
+
+    <TextBlock Grid.Row="0" Text="Overview Layout" FontSize="15" FontWeight="SemiBold"
+               Foreground="#c8a84b" Margin="0 0 0 4" />
+
+    <StackPanel Grid.Row="1" Spacing="10" Margin="0 8 0 12">
+      <TextBlock Text="Define the grid, then place each section by its start cell (Row/Col) and how many cells it spans. Cells are equal size; more rows or columns make each cell smaller."
+                 FontSize="11" Foreground="#888899" TextWrapping="Wrap" />
+      <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+        <TextBlock Text="Grid size —" Foreground="#aaaacc" VerticalAlignment="Center" FontSize="12" />
+        <TextBlock Text="Rows" Foreground="#888899" VerticalAlignment="Center" FontSize="12" />
+        <NumericUpDown Value="{Binding Rows}" Minimum="1" Maximum="12" Increment="1"
+                       FormatString="0" Width="110" />
+        <TextBlock Text="Columns" Foreground="#888899" VerticalAlignment="Center" FontSize="12" />
+        <NumericUpDown Value="{Binding Cols}" Minimum="1" Maximum="12" Increment="1"
+                       FormatString="0" Width="110" />
+      </StackPanel>
+    </StackPanel>
+
+    <Border Grid.Row="2" BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="4" Padding="8">
+      <DockPanel>
+
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="52,*,96,96,96,96" Margin="0 0 0 6">
+          <TextBlock Grid.Column="0" Text="Show"    FontSize="11" Foreground="#888899" />
+          <TextBlock Grid.Column="1" Text="Section" FontSize="11" Foreground="#888899" />
+          <TextBlock Grid.Column="2" Text="Row"     FontSize="11" Foreground="#888899" HorizontalAlignment="Center" />
+          <TextBlock Grid.Column="3" Text="Col"     FontSize="11" Foreground="#888899" HorizontalAlignment="Center" />
+          <TextBlock Grid.Column="4" Text="Row span" FontSize="11" Foreground="#888899" HorizontalAlignment="Center" />
+          <TextBlock Grid.Column="5" Text="Col span" FontSize="11" Foreground="#888899" HorizontalAlignment="Center" />
+        </Grid>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <ItemsControl ItemsSource="{Binding Sections}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:OverviewSectionEditVm">
+                <Grid ColumnDefinitions="52,*,96,96,96,96" Margin="0 3">
+                  <CheckBox Grid.Column="0" IsChecked="{Binding Enabled}" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Text="{Binding Title}" Foreground="#ccccdd"
+                             FontSize="12" VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Column="2" Value="{Binding Row}" Minimum="1" Maximum="12"
+                                 Increment="1" FormatString="0" Margin="2 0" />
+                  <NumericUpDown Grid.Column="3" Value="{Binding Col}" Minimum="1" Maximum="12"
+                                 Increment="1" FormatString="0" Margin="2 0" />
+                  <NumericUpDown Grid.Column="4" Value="{Binding RowSpan}" Minimum="1" Maximum="12"
+                                 Increment="1" FormatString="0" Margin="2 0" />
+                  <NumericUpDown Grid.Column="5" Value="{Binding ColSpan}" Minimum="1" Maximum="12"
+                                 Increment="1" FormatString="0" Margin="2 0" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+
+      </DockPanel>
+    </Border>
+
+    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right"
+                Spacing="8" Margin="0 12 0 0">
+      <Button Content="Cancel" Click="OnCancel"
+              FontSize="12" Padding="14 6"
+              Background="#1a1a28" Foreground="#ccccdd" BorderBrush="#2a2a3a" BorderThickness="1" />
+      <Button Content="Apply" Click="OnApply"
+              FontSize="12" Padding="14 6"
+              Background="#2a2210" Foreground="#c8a84b" BorderBrush="#3a2c10" BorderThickness="1" />
+    </StackPanel>
+
+  </Grid>
+</Window>

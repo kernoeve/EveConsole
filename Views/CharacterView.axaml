@@ -26,7 +26,7 @@
     <!-- ── Toolbar ──────────────────────────────────────────────────────── -->
     <Border Grid.Row="0" Background="#12121a" Padding="14 10"
             BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
-      <Grid ColumnDefinitions="Auto,Auto,*">
+      <Grid ColumnDefinitions="Auto,Auto,*,Auto">
 
         <TextBlock Grid.Column="0" Text="Period:" FontSize="12"
                    Foreground="#888899" VerticalAlignment="Center"
@@ -48,18 +48,27 @@
                      IsVisible="{Binding HasLoadError}"
                      FontSize="11" Foreground="#e07070" />
         </StackPanel>
+
+        <Button Grid.Column="3" Content="⚙ Customize Layout"
+                Click="OnCustomizeClick"
+                FontSize="11" Padding="10 4" VerticalAlignment="Center"
+                Background="#1a1a28" Foreground="#c8a84b"
+                BorderBrush="#2a2a3a" BorderThickness="1" />
       </Grid>
     </Border>
 
-    <!-- ── Main scroll area ─────────────────────────────────────────────── -->
-    <Grid Grid.Row="1" RowDefinitions="Auto,*" Margin="14 12">
+    <!-- ── Dynamic section layout ────────────────────────────────────────────
+         Sections live off-stage in SectionStore and are placed into LayoutHost at
+         runtime from the saved OverviewLayout (see CharacterView.axaml.cs). -->
+    <Grid x:Name="LayoutHost" Grid.Row="1" Margin="8" />
 
-      <!-- Top: summary + charts (natural height) -->
-      <StackPanel Grid.Row="0" Spacing="12">
+    <Panel x:Name="SectionStore" Grid.Row="1" IsVisible="False">
 
         <!-- ════ Activity Summary ════════════════════════════════════════ -->
-        <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+        <Border x:Name="SectionActivitySummary"
+                Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                 CornerRadius="4" Padding="14 12">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
           <StackPanel Spacing="12">
 
             <TextBlock Text="Activity Summary" FontSize="13" FontWeight="SemiBold"
@@ -221,15 +230,11 @@
             </Grid>
 
           </StackPanel>
+          </ScrollViewer>
         </Border>
 
-      </StackPanel>
-
-      <!-- ════ Alerts | Notifications | Eve News (fill remaining height, each scrolls) ══ -->
-      <Grid Grid.Row="1" ColumnDefinitions="*,12,*,12,*" Margin="0 4 0 0">
-
-          <!-- Alerts -->
-          <Border Grid.Column="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <!-- ════ Alerts ═══════════════════════════════════════════════ -->
+          <Border x:Name="SectionAlerts" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
 
@@ -300,7 +305,7 @@
           </Border>
 
           <!-- Eve News Feed -->
-          <Border Grid.Column="4" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <Border x:Name="SectionNews" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
 
@@ -375,8 +380,8 @@
             </Grid>
           </Border>
 
-          <!-- Recent Notifications (middle column) -->
-          <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <!-- Recent Notifications -->
+          <Border x:Name="SectionNotifications" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
           <Grid RowDefinitions="Auto,*">
 
@@ -434,9 +439,7 @@
           </Grid>
           </Border>
 
-        </Grid>
-
-    </Grid>
+    </Panel>
 
     <!-- ── Status bar ───────────────────────────────────────────────────── -->
     <Border Grid.Row="2" Background="#0d0d12" Padding="14 4"

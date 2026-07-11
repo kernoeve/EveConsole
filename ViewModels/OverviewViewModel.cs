@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using Avalonia.Media.Imaging;
 using EveCortex.Api;
 using EveCortex.Data;
+using EveCortex.Models;
 using EveCortex.Services;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
@@ -288,6 +289,22 @@ public class OverviewViewModel : ReactiveObject
     public Action<string>? NavigateToCharacterSkills               { get; set; }
     public Action?          NavigateToStandingProjects              { get; set; }
 
+    // ── Customizable section layout ─────────────────────────────────────────────
+    private const string LayoutPrefKey = "overview.layout";
+    private OverviewLayout _layout = OverviewLayout.Default();
+    public OverviewLayout Layout => _layout;
+
+    // Raised when the layout changes; the view rebuilds its section grid in response.
+    public event Action? LayoutChanged;
+
+    public async Task ApplyLayoutAsync(OverviewLayout layout)
+    {
+        _layout = layout;
+        if (_prefs is not null)
+            await _prefs.SetAsync(LayoutPrefKey, layout.ToJson());
+        LayoutChanged?.Invoke();
+    }
+
     public OverviewViewModel(AppDbContext db, AlertSettingsViewModel alertSettings,
                              AppErrorLogger errorLogger, NewsService newsService,
                              AppPreferencesService? prefs = null,
@@ -302,6 +319,7 @@ public class OverviewViewModel : ReactiveObject
         _prefs          = prefs;
         _corpActivity   = corpActivity;
         _dbFactory      = dbFactory;
+        _layout         = OverviewLayout.FromJsonOrDefault(prefs?.Get(LayoutPrefKey));
         if (dbFactory is not null && esi is not null)
             _names = new ContractNameResolver(dbFactory, esi, errorLogger);
 
