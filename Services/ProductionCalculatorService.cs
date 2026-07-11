@@ -278,6 +278,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                    or "Jump Freighter" or "Industrial Command Ship")                        => "capital_ships",
                 // ── Other categories ────────────────────────────────────────────────
                 (7, _)          => "modules_equipment",
+                // Structure Modules — service modules and all structure rigs — are built at
+                // engineering complexes like equipment.
+                (66, _)         => "modules_equipment",
                 (8, _)          => "ammo_charges",
                 (18 or 87, _)   => "drones_fighters",
                 _ when tg.GroupId == 1136                                 => "structure_ammo",   // Fuel Blocks
