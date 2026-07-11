@@ -15,7 +15,13 @@ The wiki repo doesn't exist until the first page is created through the web UI:
 
 ```bash
 git clone https://github.com/kernoeve/EveCortex.wiki.git /tmp/eve-wiki
-cp docs/wiki/*.md /tmp/eve-wiki/
+# Copy every page except the repo-facing docs (README.md, BUILD-PLAN.md)
+for f in docs/wiki/*.md; do
+  b=$(basename "$f")
+  [ "$b" = "README.md" ] && continue
+  [ "$b" = "BUILD-PLAN.md" ] && continue
+  cp "$f" "/tmp/eve-wiki/$b"
+done
 cd /tmp/eve-wiki
 git add -A && git commit -m "Sync wiki from docs/wiki" && git push
 ```
