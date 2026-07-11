@@ -49,11 +49,12 @@ public partial class CharacterView : UserControl
 
     private Border? SectionFor(string key) => key switch
     {
-        "ActivitySummary" => SectionActivitySummary,
-        "Alerts"          => SectionAlerts,
-        "Notifications"   => SectionNotifications,
-        "News"            => SectionNews,
-        _                 => null,
+        "ActivitySummary"   => SectionActivitySummary,
+        "Alerts"            => SectionAlerts,
+        "Notifications"     => SectionNotifications,
+        "News"              => SectionNews,
+        "PersonalKillmails" => SectionPersonalKillmails,
+        _                   => null,
     };
 
     // Rebuilds the LayoutHost grid from the current layout, moving section controls into it.
