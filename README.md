@@ -47,6 +47,15 @@ Keep in mind this application is still very green.  You are free to play around 
     <td align="center" width="33%">
       <a href="docs/images/Screenshot8.png"><img src="docs/images/Screenshot8.png" alt="Eve Cortex screenshot" width="280"></a>
     </td>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot9.png"><img src="docs/images/Screenshot9.png" alt="Eve Cortex screenshot" width="280"></a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot10.png"><img src="docs/images/Screenshot10.png" alt="Eve Cortex screenshot" width="280"></a>
+    </td>
+    <td align="center" width="33%"></td>
     <td align="center" width="33%"></td>
   </tr>
 </table>
