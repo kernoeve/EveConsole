@@ -276,6 +276,20 @@ public class OverviewViewModel : ReactiveObject
     public bool HasNotifications { get => _hasNotifications; private set => this.RaiseAndSetIfChanged(ref _hasNotifications, value); }
     public bool NoNotifications  => !HasNotifications;
 
+    // ── Personal killmails section ──────────────────────────────────────────────
+    public ObservableCollection<Activity24hKillRowVm> PersonalKills { get; } = [];
+
+    private bool _hasPersonalKills;
+    public bool HasPersonalKills { get => _hasPersonalKills; private set => this.RaiseAndSetIfChanged(ref _hasPersonalKills, value); }
+    public bool NoPersonalKills  => !HasPersonalKills;
+
+    private string _personalKillCount = "—"; public string PersonalKillCount { get => _personalKillCount; private set => this.RaiseAndSetIfChanged(ref _personalKillCount, value); }
+    private string _personalKillIsk   = "—"; public string PersonalKillIsk   { get => _personalKillIsk;   private set => this.RaiseAndSetIfChanged(ref _personalKillIsk,   value); }
+    private string _personalLossCount = "—"; public string PersonalLossCount { get => _personalLossCount; private set => this.RaiseAndSetIfChanged(ref _personalLossCount, value); }
+    private string _personalLossIsk   = "—"; public string PersonalLossIsk   { get => _personalLossIsk;   private set => this.RaiseAndSetIfChanged(ref _personalLossIsk,   value); }
+
+    private HashSet<int> _lastPersonalKillIds = [];
+
     // ── Loading state ─────────────────────────────────────────────────────────
     private bool _isLoading;
     public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
@@ -547,6 +561,9 @@ public class OverviewViewModel : ReactiveObject
             ShipKillCount = totalKills.ToString("N0");
             ShipLossCount = totalLosses.ToString("N0");
 
+            // ── Personal killmails section (bound to the same period) ───────────
+            await LoadPersonalKillsAsync(charIds, Math.Max(1, SelectedPeriod.Hours / 24));
+
             // ── Wallet journal — pie chart categorisation ──────────────────────
             LoadStatus = "Loading journal data...";
             // Group by RefType in SQL with date filter — avoids loading all rows.
@@ -731,6 +748,49 @@ public class OverviewViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(NoNotifications));
         }
         catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadNotifications", ex); }
+    }
+
+    // ── Personal killmails ────────────────────────────────────────────────────
+    private async Task LoadPersonalKillsAsync(List<long> charIds, int days)
+    {
+        if (_corpActivity is null || charIds.Count == 0)
+        {
+            _lastPersonalKillIds = [];
+            PersonalKills.Clear();
+            HasPersonalKills = false;
+            this.RaisePropertyChanged(nameof(NoPersonalKills));
+            PersonalKillCount = PersonalLossCount = "0";
+            PersonalKillIsk = PersonalLossIsk = CorpActivityViewModel.FormatIskStatic(0m);
+            return;
+        }
+
+        List<CorpActivityService.Activity24hKillRow> rows;
+        try { rows = await _corpActivity.GetPersonalKillsForPeriodAsync(charIds, days); }
+        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadPersonalKills", ex); return; }
+
+        int kills  = rows.Count(r => !r.IsLoss);
+        int losses = rows.Count(r => r.IsLoss);
+        PersonalKillCount = kills.ToString("N0");
+        PersonalLossCount = losses.ToString("N0");
+        PersonalKillIsk   = CorpActivityViewModel.FormatIskStatic(rows.Where(r => !r.IsLoss).Sum(r => r.IskValue));
+        PersonalLossIsk   = CorpActivityViewModel.FormatIskStatic(rows.Where(r => r.IsLoss).Sum(r => r.IskValue));
+
+        // If the set of killmails is unchanged since the last refresh, keep the existing rows
+        // (and their already-loaded images) instead of rebuilding + re-downloading every 60s.
+        var ids = rows.Select(r => r.KillMailId).ToHashSet();
+        if (ids.SetEquals(_lastPersonalKillIds))
+        {
+            HasPersonalKills = rows.Count > 0;
+            this.RaisePropertyChanged(nameof(NoPersonalKills));
+            return;
+        }
+        _lastPersonalKillIds = ids;
+
+        PersonalKills.Clear();
+        foreach (var r in rows) PersonalKills.Add(new Activity24hKillRowVm(r));
+        HasPersonalKills = PersonalKills.Count > 0;
+        this.RaisePropertyChanged(nameof(NoPersonalKills));
+        _ = Task.WhenAll(PersonalKills.Select(k => k.LoadImagesAsync()));
     }
 
     // ── DTOs for raw SQL results ──────────────────────────────────────────────

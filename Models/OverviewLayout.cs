@@ -28,10 +28,11 @@ public sealed class OverviewLayout
     // Section key → display title. Order here is the order shown in the customize dialog.
     public static readonly (string Key, string Title)[] KnownSections =
     [
-        ("ActivitySummary", "Activity Summary"),
-        ("Alerts",          "Alerts"),
-        ("Notifications",   "Recent Notifications"),
-        ("News",            "Eve Online News"),
+        ("ActivitySummary",  "Activity Summary"),
+        ("Alerts",           "Alerts"),
+        ("Notifications",    "Recent Notifications"),
+        ("News",             "Eve Online News"),
+        ("PersonalKillmails", "Personal Killmails"),
     ];
 
     // Default matches the pre-customization layout: Activity Summary across the top row,

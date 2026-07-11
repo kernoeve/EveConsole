@@ -1431,6 +1431,102 @@ public class CorpActivityService
         }).ToList();
     }
 
+    // Killmails within the period where any of the given (personal) characters is the victim
+    // or one of the attackers — scanning all stored killmails regardless of which ESI ref
+    // (character or corporation) delivered them. IsLoss is true when a personal character is
+    // the victim.
+    public async Task<List<Activity24hKillRow>> GetPersonalKillsForPeriodAsync(
+        IReadOnlyList<long> charIds, int days, CancellationToken ct = default)
+    {
+        if (charIds.Count == 0) return [];
+        using var db = _dbFactory.CreateDbContext();
+        var cutoff = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
+        var idList = string.Join(",", charIds);
+
+#pragma warning disable EF1002
+        var rows = await db.Database.SqlQueryRaw<Kill24hRaw>($"""
+            SELECT d."KillMailId", d."KillMailTime", d."VictimCorpId", d."VictimAllianceId",
+                   d."VictimShipTypeId", d."VictimCharId", d."SolarSystemId"
+            FROM "KillMailDetails" d
+            WHERE d."KillMailTime" >= '{cutoff}'
+              AND ( d."VictimCharId" IN ({idList})
+                 OR EXISTS ( SELECT 1 FROM "KillMailAttackers" a
+                             WHERE a."KillMailId" = d."KillMailId" AND a."CharacterId" IN ({idList}) ) )
+            ORDER BY d."KillMailTime" DESC
+            LIMIT 500
+            """).ToListAsync(ct);
+#pragma warning restore EF1002
+        if (rows.Count == 0) return [];
+
+        var killIds     = rows.Select(r => r.KillMailId).ToList();
+        var killIdList  = string.Join(",", killIds);
+#pragma warning disable EF1002
+        var fbRows = await db.Database.SqlQueryRaw<Fb24hRaw>($"""
+            SELECT a."KillMailId", a."CharacterId", a."CorporationId", a."AllianceId"
+            FROM "KillMailAttackers" a
+            WHERE a."FinalBlow" = 1 AND a."KillMailId" IN ({killIdList})
+            """).ToListAsync(ct);
+#pragma warning restore EF1002
+        var fbMap = fbRows.GroupBy(f => f.KillMailId).ToDictionary(g => g.Key, g => g.First());
+
+        var shipTypeIds = rows.Select(r => r.VictimShipTypeId).Distinct().ToList();
+        var shipNames   = await db.SdeTypes.AsNoTracking()
+            .Where(t => shipTypeIds.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+
+        var sysIds  = rows.Select(r => r.SolarSystemId).Distinct().ToList();
+        var systems = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => sysIds.Contains(s.SolarSystemId)).ToListAsync(ct);
+        var systemMap = systems.ToDictionary(s => s.SolarSystemId);
+
+        var regionMap = await db.SdeRegions.AsNoTracking()
+            .Where(r => systems.Select(s => s.RegionId).Contains(r.RegionId))
+            .ToDictionaryAsync(r => r.RegionId, r => r.Name, ct);
+        var constellationMap = await db.SdeConstellations.AsNoTracking()
+            .Where(c => systems.Select(s => s.ConstellationId).Contains(c.ConstellationId))
+            .ToDictionaryAsync(c => c.ConstellationId, c => c.Name, ct);
+
+        var entityIds = new HashSet<long>();
+        foreach (var r in rows)
+        {
+            if (r.VictimCharId != 0) entityIds.Add(r.VictimCharId);
+            if (r.VictimCorpId != 0) entityIds.Add(r.VictimCorpId);
+            if (r.VictimAllianceId.HasValue) entityIds.Add(r.VictimAllianceId.Value);
+        }
+        foreach (var f in fbRows)
+        {
+            if (f.CharacterId.HasValue)   entityIds.Add(f.CharacterId.Value);
+            if (f.CorporationId.HasValue) entityIds.Add(f.CorporationId.Value);
+            if (f.AllianceId.HasValue)    entityIds.Add(f.AllianceId.Value);
+        }
+        var names = await ResolveNamesAsync(entityIds, ct);
+        string Res(long? id) => id.HasValue && id.Value != 0 && names.TryGetValue(id.Value, out var n) ? n : "";
+
+        var charSet   = charIds.ToHashSet();
+        var iskValues = await GetKillIskValuesAsync(killIds, db, ct);
+
+        return rows.Select(r =>
+        {
+            fbMap.TryGetValue(r.KillMailId, out var fb);
+            systemMap.TryGetValue(r.SolarSystemId, out var sys);
+            iskValues.TryGetValue(r.KillMailId, out var isk);
+            return new Activity24hKillRow(
+                r.KillMailId, r.KillMailTime,
+                charSet.Contains(r.VictimCharId),
+                r.VictimShipTypeId,
+                shipNames.TryGetValue(r.VictimShipTypeId, out var sn) ? sn : $"Type {r.VictimShipTypeId}",
+                sys?.Name ?? $"System {r.SolarSystemId}",
+                sys is not null && constellationMap.TryGetValue(sys.ConstellationId, out var cn) ? cn : "",
+                sys is not null && regionMap.TryGetValue(sys.RegionId, out var rn) ? rn : "",
+                sys?.Security ?? 0.0,
+                r.VictimCorpId, r.VictimAllianceId ?? 0L,
+                Res(r.VictimCharId), Res(r.VictimCorpId), Res(r.VictimAllianceId),
+                fb?.CorporationId ?? 0L, fb?.AllianceId ?? 0L,
+                Res(fb?.CharacterId), Res(fb?.CorporationId), Res(fb?.AllianceId),
+                isk);
+        }).ToList();
+    }
+
     private sealed class WalletTypeRaw
     {
         public string RefType { get; set; } = "";
