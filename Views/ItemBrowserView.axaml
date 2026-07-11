@@ -809,6 +809,51 @@
               </Grid>
             </TabItem>
 
+            <!-- Derived History tab -->
+            <TabItem Header="Derived History">
+              <Grid RowDefinitions="Auto,8,*" Margin="16 12">
+
+                <!-- Header row: period picker + loading indicator -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
+                  <TextBlock Text="Period:" FontSize="12" Foreground="#666677"
+                             VerticalAlignment="Center" />
+                  <ComboBox x:CompileBindings="False"
+                            ItemsSource="{Binding PeriodOptions}"
+                            SelectedItem="{Binding SelectedDerivedPeriod}"
+                            MinWidth="130">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Label}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <ProgressBar IsIndeterminate="True" Width="60" Height="3"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding IsLoadingDerived}" />
+                </StackPanel>
+
+                <!-- Empty state -->
+                <TextBlock Grid.Row="2"
+                           IsVisible="{Binding DerivedIsEmpty}"
+                           Text="No derived price history recorded for this item yet. A daily snapshot of market, build, and contract value is captured automatically as prices refresh."
+                           FontSize="12" Foreground="#555566"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           TextWrapping="Wrap" TextAlignment="Center" Margin="32" />
+
+                <!-- Chart -->
+                <lvc:CartesianChart Grid.Row="2"
+                                    IsVisible="{Binding !DerivedIsEmpty}"
+                                    Series="{Binding DerivedSeries}"
+                                    XAxes="{Binding DerivedXAxes}"
+                                    YAxes="{Binding DerivedYAxes}"
+                                    LegendPosition="Top"
+                                    TooltipPosition="Top"
+                                    EasingFunction="{x:Null}"
+                                    Background="Transparent" />
+
+              </Grid>
+            </TabItem>
+
           </TabControl>
         </Grid>
       </Grid>

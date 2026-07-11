@@ -10,6 +10,7 @@ using LiveChartsCore;
 using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
@@ -278,6 +279,7 @@ public class ItemBrowserViewModel : ReactiveObject
             "industry"                       => 4,
             "market_orders" or "market" or "orders" => 5,
             "price_history" or "history" or "price" => 6,
+            "derived_history" or "derived" => 7,
             _ => null,
         };
         if (idx is null) return $"Unknown Item Browser tab '{tabKey}'.";
@@ -463,6 +465,43 @@ public class ItemBrowserViewModel : ReactiveObject
     public Axis[]    HistoryXAxes  { get => _historyXAxes  ?? []; private set => this.RaiseAndSetIfChanged(ref _historyXAxes,  value); }
     public Axis[]    HistoryYAxes  { get => _historyYAxes  ?? []; private set => this.RaiseAndSetIfChanged(ref _historyYAxes,  value); }
 
+    // ── Derived History (TypePriceSnapshots) ──────────────────────────────────
+    // Daily snapshot of the item's computed Market / Build / Contract value, one
+    // series each. Sourced from the TypePriceSnapshots table for the selected type.
+
+    private CancellationTokenSource _derivedCts = new();
+    private record DerivedRow(string Date, double? Market, double? Build, double? Contract);
+    private List<DerivedRow> _allDerivedRows = [];
+
+    private PeriodOption _selectedDerivedPeriod;
+    public PeriodOption SelectedDerivedPeriod
+    {
+        get => _selectedDerivedPeriod;
+        set { this.RaiseAndSetIfChanged(ref _selectedDerivedPeriod, value); ApplyDerivedPeriodFilter(); }
+    }
+
+    private bool _isLoadingDerived;
+    public bool IsLoadingDerived
+    {
+        get => _isLoadingDerived;
+        private set => this.RaiseAndSetIfChanged(ref _isLoadingDerived, value);
+    }
+
+    private bool _derivedIsEmpty = true;
+    public bool DerivedIsEmpty
+    {
+        get => _derivedIsEmpty;
+        private set => this.RaiseAndSetIfChanged(ref _derivedIsEmpty, value);
+    }
+
+    private ISeries[]? _derivedSeries;
+    private Axis[]?    _derivedXAxes;
+    private Axis[]?    _derivedYAxes;
+
+    public ISeries[] DerivedSeries { get => _derivedSeries ?? []; private set => this.RaiseAndSetIfChanged(ref _derivedSeries, value); }
+    public Axis[]    DerivedXAxes  { get => _derivedXAxes  ?? []; private set => this.RaiseAndSetIfChanged(ref _derivedXAxes,  value); }
+    public Axis[]    DerivedYAxes  { get => _derivedYAxes  ?? []; private set => this.RaiseAndSetIfChanged(ref _derivedYAxes,  value); }
+
     // ── Blueprint activity selection ──────────────────────────────────────────
 
     private BpActivityVm? _selectedBpActivity;
@@ -523,6 +562,7 @@ public class ItemBrowserViewModel : ReactiveObject
         _db             = db;
         _historyService = historyService;
         _selectedPeriod = PeriodOptions[0]; // All Time
+        _selectedDerivedPeriod = PeriodOptions[0]; // All Time
 
         GoBackCommand    = ReactiveCommand.CreateFromTask(GoBackAsync,
                                this.WhenAnyValue(x => x.CanGoBack));
@@ -969,6 +1009,156 @@ public class ItemBrowserViewModel : ReactiveObject
         ];
     }
 
+    // ── Derived History loading / chart ───────────────────────────────────────
+
+    public async Task LoadDerivedHistoryAsync()
+    {
+        var item = SelectedItem;
+        if (item is null) return;
+
+        // Cancel any in-progress load
+        var prevCts = _derivedCts;
+        _derivedCts = new CancellationTokenSource();
+        var ct = _derivedCts.Token;
+        try { prevCts.Cancel(); prevCts.Dispose(); } catch { }
+
+        var typeId = item.TypeId;
+        IsLoadingDerived = true;
+        try
+        {
+            var rows = await Task.Run(() => FetchDerivedRows(typeId), ct);
+
+            if (ct.IsCancellationRequested) return;
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _allDerivedRows = rows;
+                ApplyDerivedPeriodFilter();
+            });
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"LoadDerivedHistoryAsync error: {ex}");
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _allDerivedRows = [];
+                ApplyDerivedPeriodFilter();
+            });
+        }
+        finally { IsLoadingDerived = false; }
+    }
+
+    // Read snapshots on a background thread via an independent connection so this
+    // never races the shared _db context (orders/history can be loading at the same time).
+    private List<DerivedRow> FetchDerivedRows(int typeId)
+    {
+        var rows = new List<DerivedRow>();
+        var connStr = _db.Database.GetDbConnection().ConnectionString;
+        using var conn = new SqliteConnection(connStr);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = """
+            SELECT "Date", "MarketValue", "BuildCost", "ContractPrice"
+            FROM "TypePriceSnapshots"
+            WHERE "TypeId" = @typeId
+            ORDER BY "Date"
+            """;
+        cmd.Parameters.AddWithValue("@typeId", typeId);
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+        {
+            rows.Add(new DerivedRow(
+                r.GetString(0),
+                r.IsDBNull(1) ? null : r.GetDouble(1),
+                r.IsDBNull(2) ? null : r.GetDouble(2),
+                r.IsDBNull(3) ? null : r.GetDouble(3)));
+        }
+        return rows;
+    }
+
+    private void ApplyDerivedPeriodFilter()
+    {
+        IEnumerable<DerivedRow> source = _allDerivedRows;
+        if (_selectedDerivedPeriod.Days > 0)
+        {
+            var cutoff = DateTime.UtcNow.AddDays(-_selectedDerivedPeriod.Days).ToString("yyyy-MM-dd");
+            source = source.Where(r => string.Compare(r.Date, cutoff, StringComparison.Ordinal) >= 0);
+        }
+        var filtered = source.ToList();
+        DerivedIsEmpty = filtered.Count == 0;
+
+        try { BuildDerivedChart(filtered); }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"BuildDerivedChart error: {ex}");
+            DerivedSeries = [];
+            DerivedXAxes  = [];
+            DerivedYAxes  = [];
+        }
+    }
+
+    private void BuildDerivedChart(List<DerivedRow> rows)
+    {
+        if (rows.Count == 0)
+        {
+            DerivedSeries = [];
+            DerivedXAxes  = [];
+            DerivedYAxes  = [];
+            return;
+        }
+
+        static DateTimePoint ToPoint(DerivedRow r, double? v)
+        {
+            if (!DateTime.TryParse(r.Date, out var dt)) dt = DateTime.MinValue;
+            return new DateTimePoint(dt, v);   // null value → gap in the line
+        }
+
+        var marketPts   = rows.Select(r => ToPoint(r, r.Market)).ToList();
+        var buildPts    = rows.Select(r => ToPoint(r, r.Build)).ToList();
+        var contractPts = rows.Select(r => ToPoint(r, r.Contract)).ToList();
+
+        static LineSeries<DateTimePoint> Line(string name, List<DateTimePoint> pts, SKColor c) => new()
+        {
+            Name                   = name,
+            Values                 = pts,
+            Stroke                 = new SolidColorPaint(c) { StrokeThickness = 2 },
+            Fill                   = null,
+            GeometryFill           = new SolidColorPaint(c),
+            GeometryStroke         = null,
+            GeometrySize           = 4,
+            LineSmoothness         = 0.3,
+            YToolTipLabelFormatter = p => $"{name}: {p.Coordinate.PrimaryValue:N2} ISK",
+        };
+
+        DerivedSeries =
+        [
+            Line("Market",   marketPts,   new SKColor(0x5b, 0x9b, 0xd5)),
+            Line("Build",    buildPts,    new SKColor(0xed, 0x7d, 0x31)),
+            Line("Contract", contractPts, new SKColor(0xf1, 0xc4, 0x0f)),
+        ];
+
+        DerivedXAxes =
+        [
+            new DateTimeAxis(TimeSpan.FromDays(1), d => d.ToString("MMM d"))
+            {
+                LabelsPaint     = new SolidColorPaint(new SKColor(136, 136, 153)),
+                SeparatorsPaint = new SolidColorPaint(new SKColor(40, 40, 60)),
+            }
+        ];
+
+        DerivedYAxes =
+        [
+            new Axis
+            {
+                Name            = "ISK",
+                LabelsPaint     = new SolidColorPaint(new SKColor(200, 168, 75)),
+                SeparatorsPaint = new SolidColorPaint(new SKColor(40, 40, 60)),
+                Labeler         = v => FormatIsk(v),
+            }
+        ];
+    }
+
     private static string FormatIsk(double v) => v switch
     {
         >= 1_000_000_000 => $"{v / 1_000_000_000:N1}B",
@@ -1097,6 +1287,7 @@ public class ItemBrowserViewModel : ReactiveObject
                 _ = LoadOrdersAsync();
                 if (HasPriceHistoryRegions)
                     _ = LoadPriceHistoryAsync();
+                _ = LoadDerivedHistoryAsync();
             });
 
             // Load icon asynchronously
