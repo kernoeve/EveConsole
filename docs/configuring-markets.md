@@ -21,18 +21,18 @@ of the title bar, then open the **Market** tab.
 ## Key concepts
 
 - **Price source (method)** — each source pulls order data one of three ways:
-  - **Fuzzwork** — pre-computed percentile prices from
-    [fuzzwork.co.uk](https://market.fuzzwork.co.uk/). Fast, needs no auth, and
-    stores just one price row per item. It does **not** store individual orders,
-    so the Market Orders view in the Item Browser needs a Region or Player
-    Structure source.
-  - **Region** — all public orders for an entire region, from ESI. Use this for
-    NPC trade hubs (e.g. **The Forge** for Jita). Orders placed *inside*
-    player-owned structures aren't included; only regional buy orders posted from
-    structures appear.
-  - **Player Structure** — every order inside one player-owned structure (citadel,
-    engineering complex, etc.). Requires an auth character with docking access.
-    Use this for null-sec staging keeps and other private markets.
+    - **Fuzzwork** — pre-computed percentile prices from
+      [fuzzwork.co.uk](https://market.fuzzwork.co.uk/). Fast, needs no auth, and
+      stores just one price row per item. It does **not** store individual orders,
+      so the Market Orders view in the Item Browser needs a Region or Player
+      Structure source.
+    - **Region** — all public orders for an entire region, from ESI. Use this for
+      NPC trade hubs (e.g. **The Forge** for Jita). Orders placed *inside*
+      player-owned structures aren't included; only regional buy orders posted from
+      structures appear.
+    - **Player Structure** — every order inside one player-owned structure (citadel,
+      engineering complex, etc.). Requires an auth character with docking access.
+      Use this for null-sec staging keeps and other private markets.
 - **High/low percentile filter** — thinly-traded items (capitals, supers, titans)
   often carry a few garbage orders far from real value. Enabled per source, it
   discards the extreme *N* % of the book: sell price becomes the *N*-th-percentile
@@ -56,15 +56,15 @@ of the title bar, then open the **Market** tab.
 3. Set a **Location Name** — a friendly label such as *Jita 4-4* that appears in
    the source list and the Default Pricing dropdowns.
 4. Point the source at a location:
-   - **Region** — choose from the **Region** dropdown (e.g. *The Forge*).
-     Optionally set a **Station Filter** to restrict prices to one station; the
-     list is populated *after* the source's first refresh.
-   - **Fuzzwork / Player Structure** — enter a **Location ID** (station or
-     structure ID). The resolved name appears automatically a moment after you
-     stop typing. Don't know the ID? Expand **Find Location by Name…**, search,
-     pick a result, and click **Use Selected**.
-   - **Player Structure** also needs an **Auth Character** with docking access —
-     select one from the dropdown (structure lookups fail without it).
+    - **Region** — choose from the **Region** dropdown (e.g. *The Forge*).
+      Optionally set a **Station Filter** to restrict prices to one station; the
+      list is populated *after* the source's first refresh.
+    - **Fuzzwork / Player Structure** — enter a **Location ID** (station or
+      structure ID). The resolved name appears automatically a moment after you
+      stop typing. Don't know the ID? Expand **Find Location by Name…**, search,
+      pick a result, and click **Use Selected**.
+    - **Player Structure** also needs an **Auth Character** with docking access —
+      select one from the dropdown (structure lookups fail without it).
 5. Leave **Filter High/Low Orders** on (default) unless you have a reason not to,
    and adjust **Filter %** if needed (0.1–25, default 5).
 6. Make sure **Enabled** is ticked, then click **Save**.
@@ -73,10 +73,10 @@ of the title bar, then open the **Market** tab.
    result.
 
 <!--
-  SCREENSHOT SLOTS (add files to docs/images/ in the main repo, then uncomment):
+  SCREENSHOT SLOTS (add files to docs/images/, then uncomment):
 
-  ![Market configuration](https://raw.githubusercontent.com/kernoeve/EveCortex/develop/docs/images/market-config.png)
-  ![Price type and outlier filtering](https://raw.githubusercontent.com/kernoeve/EveCortex/develop/docs/images/market-price-type.png)
+  ![Market configuration](images/market-config.png)
+  ![Price type and outlier filtering](images/market-price-type.png)
 -->
 
 ## Setting default pricing
@@ -102,6 +102,6 @@ industry setup.
 
 ## Related
 
-- [Industry Parks](Industry-Parks) — build costs feed the missing-price markup and
+- [Industry Parks](industry-parks.md) — build costs feed the missing-price markup and
   lowball filter above.
-- [Tools Reference](Tools-Reference)
+- [Tools Reference](tools-reference.md)

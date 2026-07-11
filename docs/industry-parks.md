@@ -26,8 +26,8 @@ Open **Indy Parks** from the left sidebar under the **Industry** group.
   that doesn't belong with its category's default structure.
 
 Parks feed the system-wide **build cost** Eve Cortex calculates and stores for
-every craftable item, which in turn feeds the [Production Calculator](Tools-Reference)
-and the build-cost floor in [market pricing](Configuring-Markets).
+every craftable item, which in turn feeds the [Production Calculator](tools-reference.md)
+and the build-cost floor in [market pricing](configuring-markets.md).
 
 > Changes save automatically as you type or pick from a dropdown — there's no
 > separate Save button. After significant changes, use **Recalculate** under
@@ -39,14 +39,14 @@ and the build-cost floor in [market pricing](Configuring-Markets).
    select it to edit. Rename it in the **Park Name** box at the top.
 2. Under **Structures**, click **+ Add Structure** for each facility you build in,
    and fill in:
-   - **Name** — a label such as *Main Raitaru*.
-   - **Type** — the structure hull; this determines which rigs are available.
-   - **Solar system** and **Security** — these drive the security/system-cost
-     modifiers.
-   - **Tax Percentage** — the facility's job tax.
-   - **Rigs** — pick up to three from the per-type dropdowns (leave a slot on
-     *— empty —* if unused).
-   - Remove a structure with the **✕** button on its card.
+    - **Name** — a label such as *Main Raitaru*.
+    - **Type** — the structure hull; this determines which rigs are available.
+    - **Solar system** and **Security** — these drive the security/system-cost
+      modifiers.
+    - **Tax Percentage** — the facility's job tax.
+    - **Rigs** — pick up to three from the per-type dropdowns (leave a slot on
+      *— empty —* if unused).
+    - Remove a structure with the **✕** button on its card.
 3. Under **Production Assignments**, set each category's dropdown to the structure
    that produces it. Leave a category on *— not assigned —* if you don't build it.
 4. (Optional) Under **Item Exceptions**, type an item name into the search box,
@@ -55,9 +55,9 @@ and the build-cost floor in [market pricing](Configuring-Markets).
 5. To make this the park used everywhere, click **★ Set Default**.
 
 <!--
-  SCREENSHOT SLOTS (add files to docs/images/ in the main repo, then uncomment):
+  SCREENSHOT SLOTS (add files to docs/images/, then uncomment):
 
-  ![Industry park setup](https://raw.githubusercontent.com/kernoeve/EveCortex/develop/docs/images/industry-park.png)
+  ![Industry park setup](images/industry-park.png)
 -->
 
 ## Sharing parks
@@ -69,5 +69,5 @@ as new entries and never overwrite an existing one.
 
 ## Related
 
-- [Configuring Markets](Configuring-Markets)
-- [Tools Reference](Tools-Reference)
+- [Configuring Markets](configuring-markets.md)
+- [Tools Reference](tools-reference.md)

@@ -14,3 +14,6 @@ CLAUDE.md
 # OS
 Thumbs.db
 .DS_Store
+
+# MkDocs build output
+/site/

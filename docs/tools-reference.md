@@ -1,7 +1,7 @@
 # Tools Reference
 
 A quick tour of what each tool does. Most depend on having a
-[market configured](Configuring-Markets) and an [industry park](Industry-Parks) set up.
+[market configured](configuring-markets.md) and an [industry park](industry-parks.md) set up.
 
 ## Industry / Trade
 
@@ -38,5 +38,5 @@ A quick tour of what each tool does. Most depend on having a
 
 <!--
   Per-tool screenshots can be added inline above each section using:
-  ![Production Calculator](https://raw.githubusercontent.com/kernoeve/EveCortex/develop/docs/images/production-calculator.png)
+  ![Production Calculator](images/production-calculator.png)
 -->
