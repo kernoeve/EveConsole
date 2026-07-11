@@ -253,6 +253,12 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("corp_activity");
             CorpActivityVm.ShowStandingProjectsTab();
         };
+        OverviewVm.RequestOpenKillmail = killMailId =>
+        {
+            OpenTool("killmails");
+            KillmailBrowserVm.SelectedCorp = KillmailBrowserViewModel.AllCorps;
+            KillmailBrowserVm.SelectById(killMailId);
+        };
         TimerVm           = new TimerSettingsViewModel(pollingService, timerSettings);
         _pollingService   = pollingService;
         _buildCostService = buildCostService;

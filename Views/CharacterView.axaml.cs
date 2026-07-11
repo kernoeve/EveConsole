@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using EveCortex.Models;
@@ -112,6 +113,12 @@ public partial class CharacterView : UserControl
         var result = await dlg.ShowDialog<OverviewLayout?>(GetWindow());
         if (result is not null)
             await _vm.ApplyLayoutAsync(result);
+    }
+
+    private void OnKillmailDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (_vm is not null && (sender as ListBox)?.SelectedItem is Activity24hKillRowVm row)
+            _vm.RequestOpenKillmail?.Invoke(row.KillMailId);
     }
 
     private Window GetWindow() => (TopLevel.GetTopLevel(this) as Window)!;

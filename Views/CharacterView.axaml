@@ -487,6 +487,7 @@
               <ListBox Grid.Row="2" IsVisible="{Binding HasPersonalKills}"
                        ItemsSource="{Binding PersonalKills}"
                        Background="Transparent" BorderThickness="0"
+                       DoubleTapped="OnKillmailDoubleTapped"
                        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListBox.Styles>
                   <Style Selector="ListBoxItem">
@@ -499,7 +500,8 @@
                 </ListBox.Styles>
                 <ListBox.ItemTemplate>
                   <DataTemplate DataType="vm:Activity24hKillRowVm">
-                    <Border BorderBrush="#1a1a26" BorderThickness="0 0 0 1">
+                    <Border BorderBrush="#1a1a26" BorderThickness="0 0 0 1"
+                            Background="{Binding RowTint}">
                       <Grid ColumnDefinitions="70,50,*,160,160" Margin="4">
 
                         <!-- Date / Time / ISK -->

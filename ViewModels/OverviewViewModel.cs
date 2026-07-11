@@ -302,6 +302,7 @@ public class OverviewViewModel : ReactiveObject
     // relevant UI (character skills tab, corp activity standing projects tab).
     public Action<string>? NavigateToCharacterSkills               { get; set; }
     public Action?          NavigateToStandingProjects              { get; set; }
+    public Action<int>?     RequestOpenKillmail                     { get; set; }
 
     // ── Customizable section layout ─────────────────────────────────────────────
     private const string LayoutPrefKey = "overview.layout";
@@ -317,6 +318,9 @@ public class OverviewViewModel : ReactiveObject
         if (_prefs is not null)
             await _prefs.SetAsync(LayoutPrefKey, layout.ToJson());
         LayoutChanged?.Invoke();
+        // A newly-added section (e.g. Personal Killmails) needs its data loaded now rather
+        // than waiting for the next refresh tick.
+        _ = LoadAsync();
     }
 
     public OverviewViewModel(AppDbContext db, AlertSettingsViewModel alertSettings,
@@ -356,10 +360,27 @@ public class OverviewViewModel : ReactiveObject
             .Subscribe(n => _ = LoadAsync());
     }
 
+    private bool _loadPending;
+
     public async Task LoadAsync()
     {
-        if (IsLoading) return;
-        IsLoading  = true;
+        // If a load is already running, mark that another is needed and let the current run
+        // re-run when it finishes — so changing the period (or a refresh tick) always applies.
+        if (IsLoading) { _loadPending = true; return; }
+        IsLoading = true;
+        try
+        {
+            do
+            {
+                _loadPending = false;
+                await LoadCoreAsync();
+            } while (_loadPending);
+        }
+        finally { IsLoading = false; }
+    }
+
+    private async Task LoadCoreAsync()
+    {
         LoadStatus = "Querying scope...";
         try
         {
@@ -481,81 +502,32 @@ public class OverviewViewModel : ReactiveObject
                                     .ToString("N0");
 
             // ── Kill mails ─────────────────────────────────────────────────────
-            // Count kills/losses using raw SQL JOINs to:
-            //   a) verify victim or attacker is one of our authenticated characters
-            //   b) deduplicate kill mail IDs that appear in both character AND corp refs
+            // Losses = distinct killmails where one of our characters is the victim; kills =
+            // where one of our characters is an attacker but not the victim. KillMailDetails
+            // only exist for killmails we hold (from character OR corp refs), so two aggregate
+            // queries replace the old per-character/per-corp loop (much faster).
             LoadStatus = "Counting kills and losses...";
-            var countedKmIds = new HashSet<int>();
             int totalKills = 0, totalLosses = 0;
-
-            foreach (var charId in charIds)
+            if (charIds.Count > 0)
             {
-                // Losses: our character is the victim (from character refs)
-                var lossIds = await _db.Database.SqlQuery<KmIdRow>(
-                    $"""
-                    SELECT DISTINCT d."KillMailId"
+                var cutoffStr  = DateTimeOffset.UtcNow.AddHours(-SelectedPeriod.Hours)
+                    .UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+                var charIdList = string.Join(",", charIds);
+#pragma warning disable EF1002
+                totalLosses = await _db.Database.SqlQueryRaw<int>($"""
+                    SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
                     FROM "KillMailDetails" d
-                    JOIN "EsiKillMailRefs" r ON d."KillMailId" = r."KillMailId"
-                    WHERE r."OwnerType" = {"character"} AND r."OwnerId" = {charId}
-                      AND d."VictimCharId" = {charId}
-                      AND d."KillMailTime" >= {cutoff}
-                    """
-                ).ToListAsync();
-                foreach (var row in lossIds)
-                    if (countedKmIds.Add(row.KillMailId)) totalLosses++;
-
-                // Kills: our character appears in the attacker list (from character refs)
-                var killIds = await _db.Database.SqlQuery<KmIdRow>(
-                    $"""
-                    SELECT DISTINCT d."KillMailId"
+                    WHERE d."KillMailTime" >= '{cutoffStr}' AND d."VictimCharId" IN ({charIdList})
+                    """).FirstAsync();
+                totalKills = await _db.Database.SqlQueryRaw<int>($"""
+                    SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
                     FROM "KillMailDetails" d
-                    JOIN "EsiKillMailRefs" r ON d."KillMailId" = r."KillMailId"
-                    JOIN "KillMailAttackers" a ON a."KillMailId" = d."KillMailId"
-                    WHERE r."OwnerType" = {"character"} AND r."OwnerId" = {charId}
-                      AND a."CharacterId" = {charId}
-                      AND d."VictimCharId" != {charId}
-                      AND d."KillMailTime" >= {cutoff}
-                    """
-                ).ToListAsync();
-                foreach (var row in killIds)
-                    if (countedKmIds.Add(row.KillMailId)) totalKills++;
-            }
-
-            // Corp refs: pick up any kills/losses not already counted via character refs.
-            // Only count if one of our authenticated characters was the actual participant.
-            foreach (var corpId in corpIds)
-            {
-                foreach (var charId in charIds)
-                {
-                    // Corp-sourced losses where our character was the victim
-                    var corpLossIds = await _db.Database.SqlQuery<KmIdRow>(
-                        $"""
-                        SELECT DISTINCT d."KillMailId"
-                        FROM "KillMailDetails" d
-                        JOIN "EsiKillMailRefs" r ON d."KillMailId" = r."KillMailId"
-                        WHERE r."OwnerType" = {"corporation"} AND r."OwnerId" = {corpId}
-                          AND d."VictimCharId" = {charId}
-                          AND d."KillMailTime" >= {cutoff}
-                        """
-                    ).ToListAsync();
-                    foreach (var row in corpLossIds)
-                        if (countedKmIds.Add(row.KillMailId)) totalLosses++;
-
-                    // Corp-sourced kills where our character was an attacker
-                    var corpKillIds = await _db.Database.SqlQuery<KmIdRow>(
-                        $"""
-                        SELECT DISTINCT d."KillMailId"
-                        FROM "KillMailDetails" d
-                        JOIN "EsiKillMailRefs" r ON d."KillMailId" = r."KillMailId"
-                        JOIN "KillMailAttackers" a ON a."KillMailId" = d."KillMailId"
-                        WHERE r."OwnerType" = {"corporation"} AND r."OwnerId" = {corpId}
-                          AND a."CharacterId" = {charId}
-                          AND d."KillMailTime" >= {cutoff}
-                        """
-                    ).ToListAsync();
-                    foreach (var row in corpKillIds)
-                        if (countedKmIds.Add(row.KillMailId)) totalKills++;
-                }
+                    WHERE d."KillMailTime" >= '{cutoffStr}'
+                      AND d."VictimCharId" NOT IN ({charIdList})
+                      AND EXISTS (SELECT 1 FROM "KillMailAttackers" a
+                                  WHERE a."KillMailId" = d."KillMailId" AND a."CharacterId" IN ({charIdList}))
+                    """).FirstAsync();
+#pragma warning restore EF1002
             }
 
             ShipKillCount = totalKills.ToString("N0");
@@ -654,10 +626,6 @@ public class OverviewViewModel : ReactiveObject
             _errorLogger.Log("OverviewViewModel", "LoadAsync", ex);
             LoadStatus = $"Error: {ex.Message}";
         }
-        finally
-        {
-            IsLoading = false;
-        }
     }
 
     // ── Recent notifications (last 25, one per NotificationId) ────────────────────
@@ -753,7 +721,9 @@ public class OverviewViewModel : ReactiveObject
     // ── Personal killmails ────────────────────────────────────────────────────
     private async Task LoadPersonalKillsAsync(List<long> charIds, int days)
     {
-        if (_corpActivity is null || charIds.Count == 0)
+        // Skip the (heavier) listing query entirely unless the section is on the grid.
+        bool sectionEnabled = _layout.Sections.Any(s => s.Key == "PersonalKillmails" && s.Enabled);
+        if (!sectionEnabled || _corpActivity is null || charIds.Count == 0)
         {
             _lastPersonalKillIds = [];
             PersonalKills.Clear();
@@ -809,7 +779,6 @@ public class OverviewViewModel : ReactiveObject
         public double TotalAmount { get; set; }
     }
 
-    private sealed class KmIdRow { public int KillMailId { get; set; } }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 

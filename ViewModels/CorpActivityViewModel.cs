@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Text.Json;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using EveCortex.Models;
 using EveCortex.Services;
@@ -395,6 +396,12 @@ public sealed class Activity24hKillRowVm : ReactiveObject
     public string         FbCorp            { get; }
     public string         FbAlliance        { get; }
     public string         TotalIskText      { get; }
+
+    // Red tint for rows that are the viewer's own loss. Bound by the Overview "Personal
+    // Killmails" grid; the Corp Activity grid leaves it unbound, so its rows are unaffected.
+    public IBrush RowTint => IsLoss
+        ? new SolidColorBrush(Color.FromArgb(0x26, 0xcc, 0x44, 0x44))
+        : Brushes.Transparent;
 
     private Bitmap? _shipRender;
     private Bitmap? _victimLogo;
