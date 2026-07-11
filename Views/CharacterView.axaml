@@ -319,7 +319,8 @@
                             ItemsSource="{Binding NewsItems}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:NewsItemVm">
-                    <Border BorderBrush="#1e1e2a" BorderThickness="0 0 0 1" Padding="0 8">
+                    <Border Background="#0e0e16" BorderBrush="#1e1e2a" BorderThickness="1"
+                            CornerRadius="3" Padding="8 6" Margin="0 2">
                       <StackPanel Spacing="4">
 
                         <!-- Title row: clickable link + date -->
