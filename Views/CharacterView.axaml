@@ -250,17 +250,17 @@
                   <DataTemplate x:DataType="vm:AlertRowVm">
                     <Border Background="#1a1208" BorderBrush="#3a2c10"
                             BorderThickness="1" CornerRadius="3"
-                            Padding="10 6" Margin="0 2">
+                            Padding="8 6" Margin="0 2">
                       <Grid ColumnDefinitions="Auto,*,Auto">
                         <!-- Leading icon: alert-specific (e.g. character portrait) or the default warning glyph -->
-                        <Panel Grid.Column="0" Width="18" Height="18"
+                        <Panel Grid.Column="0" Width="32" Height="32"
                                VerticalAlignment="Center" Margin="0 0 8 0">
-                          <TextBlock Text="⚠" FontSize="13" Foreground="#c8a84b"
+                          <TextBlock Text="⚠" FontSize="16" Foreground="#c8a84b"
                                      IsVisible="{Binding NoIcon}"
                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
                           <Border IsVisible="{Binding HasIcon}"
-                                  Width="18" Height="18" CornerRadius="9" ClipToBounds="True">
-                            <Image Source="{Binding Icon}" Width="18" Height="18"
+                                  Width="32" Height="32" CornerRadius="16" ClipToBounds="True">
+                            <Image Source="{Binding Icon}" Width="32" Height="32"
                                    Stretch="UniformToFill" />
                           </Border>
                         </Panel>
