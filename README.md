@@ -16,18 +16,49 @@ Keep in mind this application is still very green.  You are free to play around 
 
 ## Screenshots
 
-<!--
-  Add screenshots to docs/images/ and reference them here. Example:
-
-  <p align="center">
-    <img src="docs/images/overview.png" alt="Overview dashboard" width="800">
-  </p>
-  <p align="center">
-    <img src="docs/images/production-calculator.png" alt="Production Calculator" width="800">
-  </p>
--->
-
-_Screenshots coming soon._
+<!-- Thumbnails are 3-across; click any image to view it full size. Add more as <td> cells, 3 per <tr>. -->
+<table align="center">
+  <tr>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot1.png"><img src="docs/images/Screenshot1.png" alt="Eve Cortex screenshot" width="280"></a>
+    </td>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot2.png"><img src="docs/images/Screenshot2.png" alt="Eve Cortex screenshot" width="280"></a>
+    </td>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot3.png"><img src="docs/images/Screenshot3.png" alt="Eve Cortex screenshot" width="280"></a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot4.png"><img src="docs/images/Screenshot4.png" alt="Eve Cortex screenshot" width="280"></a>
+    </td>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot5.png"><img src="docs/images/Screenshot5.png" alt="Eve Cortex screenshot" width="280"></a>
+    </td>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot6.png"><img src="docs/images/Screenshot6.png" alt="Eve Cortex screenshot" width="280"></a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot7.png"><img src="docs/images/Screenshot7.png" alt="Eve Cortex screenshot" width="280"></a>
+    </td>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot8.png"><img src="docs/images/Screenshot8.png" alt="Eve Cortex screenshot" width="280"></a>
+    </td>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot9.png"><img src="docs/images/Screenshot9.png" alt="Eve Cortex screenshot" width="280"></a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot10.png"><img src="docs/images/Screenshot10.png" alt="Eve Cortex screenshot" width="280"></a>
+    </td>
+    <td align="center" width="33%"></td>
+    <td align="center" width="33%"></td>
+  </tr>
+</table>
 
 ---
 
