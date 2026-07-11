@@ -3,7 +3,7 @@
         xmlns:vm="clr-namespace:EveCortex.ViewModels"
         x:Class="EveCortex.Views.OverviewCustomizeWindow"
         x:DataType="vm:OverviewCustomizeViewModel"
-        Title="Customize Overview" Width="660" Height="440"
+        Title="Customize Overview" Width="820" Height="560"
         WindowStartupLocation="CenterOwner"
         Background="#0d0d12">
 
@@ -12,56 +12,50 @@
     <TextBlock Grid.Row="0" Text="Overview Layout" FontSize="15" FontWeight="SemiBold"
                Foreground="#c8a84b" Margin="0 0 0 4" />
 
-    <StackPanel Grid.Row="1" Spacing="10" Margin="0 8 0 12">
-      <TextBlock Text="Define the grid, then place each section by its start cell (Row/Col) and how many cells it spans. Cells are equal size; more rows or columns make each cell smaller."
-                 FontSize="11" Foreground="#888899" TextWrapping="Wrap" />
-      <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-        <TextBlock Text="Grid size —" Foreground="#aaaacc" VerticalAlignment="Center" FontSize="12" />
-        <TextBlock Text="Rows" Foreground="#888899" VerticalAlignment="Center" FontSize="12" />
-        <NumericUpDown Value="{Binding Rows}" Minimum="1" Maximum="12" Increment="1"
-                       FormatString="0" Width="110" />
-        <TextBlock Text="Columns" Foreground="#888899" VerticalAlignment="Center" FontSize="12" />
-        <NumericUpDown Value="{Binding Cols}" Minimum="1" Maximum="12" Increment="1"
-                       FormatString="0" Width="110" />
-      </StackPanel>
+    <!-- Grid size -->
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0 8 0 12"
+                VerticalAlignment="Center">
+      <TextBlock Text="Grid size —" Foreground="#aaaacc" VerticalAlignment="Center" FontSize="12" />
+      <TextBlock Text="Rows" Foreground="#888899" VerticalAlignment="Center" FontSize="12" />
+      <NumericUpDown Value="{Binding Rows}" Minimum="1" Maximum="12" Increment="1"
+                     FormatString="0" Width="110" />
+      <TextBlock Text="Columns" Foreground="#888899" VerticalAlignment="Center" FontSize="12" />
+      <NumericUpDown Value="{Binding Cols}" Minimum="1" Maximum="12" Increment="1"
+                     FormatString="0" Width="110" />
     </StackPanel>
 
-    <Border Grid.Row="2" BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="4" Padding="8">
-      <DockPanel>
+    <!-- Body: section palette (left) + grid preview (right) -->
+    <Grid Grid.Row="2" ColumnDefinitions="190,12,*">
 
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="52,*,96,96,96,96" Margin="0 0 0 6">
-          <TextBlock Grid.Column="0" Text="Show"    FontSize="11" Foreground="#888899" />
-          <TextBlock Grid.Column="1" Text="Section" FontSize="11" Foreground="#888899" />
-          <TextBlock Grid.Column="2" Text="Row"     FontSize="11" Foreground="#888899" HorizontalAlignment="Center" />
-          <TextBlock Grid.Column="3" Text="Col"     FontSize="11" Foreground="#888899" HorizontalAlignment="Center" />
-          <TextBlock Grid.Column="4" Text="Row span" FontSize="11" Foreground="#888899" HorizontalAlignment="Center" />
-          <TextBlock Grid.Column="5" Text="Col span" FontSize="11" Foreground="#888899" HorizontalAlignment="Center" />
-        </Grid>
-
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
-          <ItemsControl ItemsSource="{Binding Sections}">
+      <!-- Palette of sections not yet on the grid -->
+      <Border Grid.Column="0" BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="4" Padding="8">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Text="Sections" FontSize="12" FontWeight="SemiBold"
+                     Foreground="#888899" Margin="0 0 0 8" />
+          <TextBlock DockPanel.Dock="Bottom" Text="Drag a section onto the grid to add it."
+                     FontSize="10" Foreground="#556" TextWrapping="Wrap" Margin="0 8 0 0" />
+          <ItemsControl x:Name="Palette" ItemsSource="{Binding Sections}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:OverviewSectionEditVm">
-                <Grid ColumnDefinitions="52,*,96,96,96,96" Margin="0 3">
-                  <CheckBox Grid.Column="0" IsChecked="{Binding Enabled}" VerticalAlignment="Center" />
-                  <TextBlock Grid.Column="1" Text="{Binding Title}" Foreground="#ccccdd"
-                             FontSize="12" VerticalAlignment="Center" />
-                  <NumericUpDown Grid.Column="2" Value="{Binding Row}" Minimum="1" Maximum="12"
-                                 Increment="1" FormatString="0" Margin="2 0" />
-                  <NumericUpDown Grid.Column="3" Value="{Binding Col}" Minimum="1" Maximum="12"
-                                 Increment="1" FormatString="0" Margin="2 0" />
-                  <NumericUpDown Grid.Column="4" Value="{Binding RowSpan}" Minimum="1" Maximum="12"
-                                 Increment="1" FormatString="0" Margin="2 0" />
-                  <NumericUpDown Grid.Column="5" Value="{Binding ColSpan}" Minimum="1" Maximum="12"
-                                 Increment="1" FormatString="0" Margin="2 0" />
-                </Grid>
+                <Border IsVisible="{Binding !Enabled}"
+                        Background="#161622" BorderBrush="#2a2a3a" BorderThickness="1"
+                        CornerRadius="3" Padding="10 8" Margin="0 0 0 6"
+                        Cursor="Hand" PointerPressed="OnPalettePressed">
+                  <TextBlock Text="{Binding Title}" Foreground="#ccccdd" FontSize="12" />
+                </Border>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-        </ScrollViewer>
+        </DockPanel>
+      </Border>
 
-      </DockPanel>
-    </Border>
+      <!-- Grid preview / editor (rendered in code-behind) -->
+      <Border Grid.Column="2" BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="4"
+              Padding="6" Background="#0a0a0e">
+        <Canvas x:Name="EditorCanvas" Background="Transparent" ClipToBounds="True" />
+      </Border>
+
+    </Grid>
 
     <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right"
                 Spacing="8" Margin="0 12 0 0">
