@@ -8,12 +8,12 @@ is uploaded; the app only talks to CCP's ESI API to refresh your data.
 ## Do I have to use the AI agent?
 
 No. It's optional and stays inactive until you configure it. See
-[AI Agent (Eden)](AI-Agent-Eden).
+[AI Agent (Eden)](ai-agent-eden.md).
 
 ## Prices / build costs look wrong or empty
 
-Make sure you've [configured a market](Configuring-Markets) and, for build costs,
-an [industry park](Industry-Parks). Prices and build costs are (re)calculated as
+Make sure you've [configured a market](configuring-markets.md) and, for build costs,
+an [industry park](industry-parks.md). Prices and build costs are (re)calculated as
 market data refreshes while the app is running, so give it a refresh cycle after
 first setup.
 

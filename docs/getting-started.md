@@ -40,16 +40,16 @@ While Eve Cortex is running it performs background ESI pulls on a schedule. Most
 
 Most tools depend on a little configuration first:
 
-1. **[Configure a market](Configuring-Markets)** so the app knows where prices come from.
-2. **[Set up an industry park](Industry-Parks)** so build costs and the Production Calculator are accurate.
-3. Optionally, **[set up the AI agent](AI-Agent-Eden)**.
+1. **[Configure a market](configuring-markets.md)** so the app knows where prices come from.
+2. **[Set up an industry park](industry-parks.md)** so build costs and the Production Calculator are accurate.
+3. Optionally, **[set up the AI agent](ai-agent-eden.md)**.
 
 <!--
-  SCREENSHOT SLOTS (add files to docs/images/ in the main repo, then uncomment):
+  SCREENSHOT SLOTS (add files to docs/images/, then uncomment):
 
   Login screen:
-  ![Log in with Eve](https://raw.githubusercontent.com/kernoeve/EveCortex/develop/docs/images/login.png)
+  ![Log in with Eve](images/login.png)
 
   Main overview after login:
-  ![Overview](https://raw.githubusercontent.com/kernoeve/EveCortex/develop/docs/images/overview.png)
+  ![Overview](images/overview.png)
 -->

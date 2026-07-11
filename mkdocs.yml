@@ -1,0 +1,63 @@
+site_name: Eve Cortex
+site_description: A local-first, free, open-source desktop companion for EVE Online.
+site_url: https://kernoeve.github.io/EveCortex/
+repo_url: https://github.com/kernoeve/EveCortex
+repo_name: kernoeve/EveCortex
+edit_uri: edit/develop/docs/
+copyright: >
+  Eve Cortex is a third-party tool, not affiliated with or endorsed by CCP Games.
+  EVE Online and the EVE logo are trademarks of CCP hf.
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: amber
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: amber
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - navigation.sections
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+# Non-page markdown that should not be built (kept in docs/images for the README)
+exclude_docs: |
+  images/README.md
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Setup:
+      - Configuring Markets: configuring-markets.md
+      - Industry Parks: industry-parks.md
+      - AI Agent (Eden): ai-agent-eden.md
+  - Tools Reference: tools-reference.md
+  - FAQ & Troubleshooting: faq-and-troubleshooting.md
