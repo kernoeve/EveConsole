@@ -331,7 +331,7 @@
           <Grid RowDefinitions="Auto,*">
 
             <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
-              <TextBlock Text="Recent Notifications" FontSize="13" FontWeight="SemiBold"
+              <TextBlock Text="Notifications" FontSize="13" FontWeight="SemiBold"
                          Foreground="#c8a84b" VerticalAlignment="Center" />
               <Button Grid.Column="1" Classes="newslink" Click="OnOpenNotifications" VerticalAlignment="Center">
                 <TextBlock Text="Notifications →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />

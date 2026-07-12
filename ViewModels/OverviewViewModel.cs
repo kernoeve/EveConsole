@@ -627,7 +627,7 @@ public class OverviewViewModel : ReactiveObject
         }
     }
 
-    // ── Recent notifications (last 25, one per NotificationId) ────────────────────
+    // ── Notifications (one per NotificationId, within the selected period) ─────────
     private async Task LoadNotificationsAsync()
     {
         if (_names is null || _dbFactory is null) return;   // not wired for name resolution/formatting
@@ -635,11 +635,16 @@ public class OverviewViewModel : ReactiveObject
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
 
+            // Honour the Overview period dropdown. EF converts the DateTimeOffset parameter to the
+            // stored text format, so this comparison matches the way Timestamp is persisted.
+            object cutoff = DateTimeOffset.UtcNow.AddDays(-CurrentPeriodDays);
+
 #pragma warning disable EF1002
             var rows = await db.EsiNotifications.FromSqlRaw(
                     "SELECT MIN(CharacterId) AS CharacterId, NotificationId, Type, SenderId, SenderType, " +
                     "Timestamp, MIN(IsRead) AS IsRead, Text FROM EsiNotifications " +
-                    "GROUP BY NotificationId ORDER BY Timestamp DESC LIMIT 25")
+                    "WHERE Timestamp >= {0} " +
+                    "GROUP BY NotificationId ORDER BY Timestamp DESC LIMIT 25", cutoff)
                 .AsNoTracking().ToListAsync();
 
             var ids = rows.Select(r => r.NotificationId).ToList();

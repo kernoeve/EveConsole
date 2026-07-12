@@ -30,7 +30,7 @@ public sealed class OverviewLayout
     [
         ("ActivitySummary",   "Activity Summary"),
         ("Alerts",            "Alerts"),
-        ("Notifications",     "Recent Notifications"),
+        ("Notifications",     "Notifications"),
         ("News",              "Eve Online News"),
         ("PersonalKillmails", "Personal Killmails"),
         ("SaleListingBuild",  "Sale Listing (Build)"),
