@@ -639,12 +639,17 @@ public class OverviewViewModel : ReactiveObject
             // stored text format, so this comparison matches the way Timestamp is persisted.
             object cutoff = DateTimeOffset.UtcNow.AddDays(-CurrentPeriodDays);
 
+            // The period is the real bound; LIMIT is only a safety backstop set well above the
+            // notification volume of a normal period, so it doesn't clip the selected window
+            // (previously LIMIT 200 clipped a 30-day view to ~8-9 days for busy corps). It still
+            // caps a pathological volume, since the list isn't virtualized and every loaded row is
+            // formatted on each refresh.
 #pragma warning disable EF1002
             var rows = await db.EsiNotifications.FromSqlRaw(
                     "SELECT MIN(CharacterId) AS CharacterId, NotificationId, Type, SenderId, SenderType, " +
                     "Timestamp, MIN(IsRead) AS IsRead, Text FROM EsiNotifications " +
                     "WHERE Timestamp >= {0} " +
-                    "GROUP BY NotificationId ORDER BY Timestamp DESC LIMIT 200", cutoff)
+                    "GROUP BY NotificationId ORDER BY Timestamp DESC LIMIT 1000", cutoff)
                 .AsNoTracking().ToListAsync();
 
             var ids = rows.Select(r => r.NotificationId).ToList();
