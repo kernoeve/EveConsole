@@ -279,6 +279,8 @@ public class MainWindowViewModel : ReactiveObject
         SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService);
         SaleListingBuildVm     = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.BuildCost);
         SaleListingMarketVm    = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.MarketValue);
+        OverviewVm.SaleListingBuild  = SaleListingBuildVm;   // let the Overview embed them as sections
+        OverviewVm.SaleListingMarket = SaleListingMarketVm;
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
         ProductionCalcVm.NavigateToItemAction = typeId =>

@@ -55,6 +55,8 @@ public partial class CharacterView : UserControl
         "Notifications"     => SectionNotifications,
         "News"              => SectionNews,
         "PersonalKillmails" => SectionPersonalKillmails,
+        "SaleListingBuild"  => SectionSaleListingBuild,
+        "SaleListingMarket" => SectionSaleListingMarket,
         _                   => null,
     };
 

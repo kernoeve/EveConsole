@@ -304,6 +304,13 @@ public class OverviewViewModel : ReactiveObject
     public Action?          NavigateToStandingProjects              { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
 
+    // Shared Sale Listing tool VMs, injected by MainWindowViewModel, so the Overview can embed
+    // those grids as sections without loading the data a second time.
+    private SaleListingViewModel? _saleListingBuild;
+    public SaleListingViewModel? SaleListingBuild { get => _saleListingBuild; set => this.RaiseAndSetIfChanged(ref _saleListingBuild, value); }
+    private SaleListingViewModel? _saleListingMarket;
+    public SaleListingViewModel? SaleListingMarket { get => _saleListingMarket; set => this.RaiseAndSetIfChanged(ref _saleListingMarket, value); }
+
     // ── Customizable section layout ─────────────────────────────────────────────
     private const string LayoutPrefKey = "overview.layout";
     private OverviewLayout _layout = OverviewLayout.Default();

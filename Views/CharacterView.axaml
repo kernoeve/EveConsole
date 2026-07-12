@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             xmlns:views="clr-namespace:EveCortex.Views"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveCortex.Views.CharacterView"
              x:DataType="vm:OverviewViewModel"
@@ -572,6 +573,18 @@
               </ListBox>
 
             </Grid>
+          </Border>
+
+          <!-- ════ Sale Listing (Build) ═════════════════════════════════ -->
+          <Border x:Name="SectionSaleListingBuild" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" ClipToBounds="True">
+            <views:SaleListingView DataContext="{Binding SaleListingBuild}" />
+          </Border>
+
+          <!-- ════ Sale Listing (Market) ════════════════════════════════ -->
+          <Border x:Name="SectionSaleListingMarket" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" ClipToBounds="True">
+            <views:SaleListingView DataContext="{Binding SaleListingMarket}" />
           </Border>
 
     </Panel>
