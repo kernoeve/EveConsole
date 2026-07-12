@@ -26,6 +26,9 @@ internal static class SalesQuery
                         (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = t."LocationId")) AS Location
         FROM "EsiWalletTransactions" t
         WHERE t."IsBuy" = 0
+          -- A corp trade a character executes is stored under both the character (is_personal=0)
+          -- and the corporation. Keep the corp row; drop the character's duplicate.
+          AND (t."OwnerType" = 'corporation' OR t."IsPersonal" = 1)
         """;
 
     // Contract sales: item-exchange contracts finished for ISK, issued BY the tracked owner (so an
