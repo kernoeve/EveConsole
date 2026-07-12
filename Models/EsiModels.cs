@@ -124,4 +124,10 @@ public class Corporation
     public DateTimeOffset? AccessTokenExpiresAt { get; set; }
     public DateTimeOffset  LastUpdated          { get; set; }
     public bool            IsPersonal           { get; set; } = false;
+
+    // Comma-separated corp endpoint keys the auth character cannot poll (lacks the required
+    // in-corp role). Populated from the auth character's roles on add / role refresh, and
+    // self-healed when an endpoint returns a 403 "required role" error. Skipped by the poller
+    // so we stop hammering endpoints we have no access to.
+    public string          DeniedEndpoints      { get; set; } = "";
 }

@@ -6,6 +6,7 @@ using EveCortex.Api;
 using EveCortex.Auth;
 using EveCortex.Data;
 using EveCortex.Models;
+using EveCortex.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
@@ -474,6 +475,15 @@ public class CharacterViewModel : ReactiveObject
             corpEntity.GrantedScopes        = string.Join(' ', scopes);
             corpEntity.AccessTokenExpiresAt = tokens.ExpiresAt;
             corpEntity.LastUpdated          = DateTimeOffset.UtcNow;
+
+            // Flag which corp endpoints this character has no role to poll, so the poller skips
+            // them instead of eating 403 "required role" errors. If the character's roles aren't
+            // known yet they'll be filled in by the role poll (which recomputes this) and any gaps
+            // self-heal on the first 403.
+            var authRoles = await _db.EsiRoles.Where(rr => rr.CharacterId == characterId)
+                .Select(rr => rr.Role).ToListAsync();
+            if (authRoles.Count > 0)
+                corpEntity.DeniedEndpoints = EsiPollingService.ComputeDeniedCorpEndpoints(authRoles);
 
             if (isNew)
             {
