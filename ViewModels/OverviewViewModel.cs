@@ -644,7 +644,7 @@ public class OverviewViewModel : ReactiveObject
                     "SELECT MIN(CharacterId) AS CharacterId, NotificationId, Type, SenderId, SenderType, " +
                     "Timestamp, MIN(IsRead) AS IsRead, Text FROM EsiNotifications " +
                     "WHERE Timestamp >= {0} " +
-                    "GROUP BY NotificationId ORDER BY Timestamp DESC LIMIT 25", cutoff)
+                    "GROUP BY NotificationId ORDER BY Timestamp DESC LIMIT 200", cutoff)
                 .AsNoTracking().ToListAsync();
 
             var ids = rows.Select(r => r.NotificationId).ToList();
