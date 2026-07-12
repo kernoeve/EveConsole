@@ -50,7 +50,7 @@ public sealed record WalletExpenseDayRow(
     decimal OtherExpense);
 
 public sealed record PlayerAmountRow(long CharacterId, decimal Amount);
-public sealed record RankedPlayerRow(int Rank, long CharacterId, decimal Amount);
+public sealed record RankedPlayerRow(int Rank, long CharacterId, decimal Amount, double Percent = 0);
 public sealed record DailyAmountRow(string Day, decimal Amount);
 public sealed record TaxPayerRow(int Rank, long EntityId, string Name, decimal Amount);
 public sealed record WalletDetailRow(DateTimeOffset Date, string RefType, decimal Amount, long PartyId, string PartyName, string Reason = "");
@@ -692,7 +692,7 @@ public class CorpActivityService
         return rows.OrderByDescending(p => p.LastModified).ToList();
     }
 
-    public async Task<List<(long CharacterId, string Name, decimal IskPayout)>> GetTopProjectContributorsAsync(
+    public async Task<List<(long CharacterId, string Name, decimal IskPayout, double Percent)>> GetTopProjectContributorsAsync(
         long corpId, DateTimeOffset? monthStart = null, DateTimeOffset? monthEnd = null,
         IReadOnlySet<long>? excludeIds = null, CancellationToken ct = default)
     {
@@ -732,13 +732,17 @@ public class CorpActivityService
             .Where(r => excludeIds?.Contains(r.CharacterId) != true)
             .ToList();
 
+        // % of total across all (post-exclude) contributors, not just the top 10.
+        decimal total = filtered.Sum(r => r.IskPayout);
+        double Pct(decimal v) => total > 0 ? (double)(v / total) * 100.0 : 0.0;
+
         if (filtered.Count <= 10)
-            return filtered.Select(r => (r.CharacterId, r.Name, r.IskPayout)).ToList();
+            return filtered.Select(r => (r.CharacterId, r.Name, r.IskPayout, Pct(r.IskPayout))).ToList();
 
         var threshold = filtered[9].IskPayout;
         return filtered
             .TakeWhile(r => r.IskPayout >= threshold)
-            .Select(r => (r.CharacterId, r.Name, r.IskPayout))
+            .Select(r => (r.CharacterId, r.Name, r.IskPayout, Pct(r.IskPayout)))
             .ToList();
     }
 
@@ -899,6 +903,9 @@ public class CorpActivityService
             .Where(r => excludeIds?.Contains(r.CharacterId) != true)
             .ToList();
 
+        // % of total is measured against the whole (post-exclude) population, not just the top 10.
+        decimal total = filtered.Sum(r => (decimal)r.Amount);
+
         var result        = new List<RankedPlayerRow>();
         decimal? threshold = filtered.Count > 10
             ? (decimal?)filtered[9].Amount : null;
@@ -919,7 +926,8 @@ public class CorpActivityService
             }
 
             countAtRank++;
-            result.Add(new RankedPlayerRow(currentRank, r.CharacterId, amount));
+            var pct = total > 0 ? (double)(amount / total) * 100.0 : 0.0;
+            result.Add(new RankedPlayerRow(currentRank, r.CharacterId, amount, pct));
             prevAmount = amount;
         }
 

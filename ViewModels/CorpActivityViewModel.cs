@@ -78,8 +78,9 @@ public sealed class CorpTopPlayerRowVm
     public int    Rank          { get; }
     public string CharacterName { get; }
     public string AmountText    { get; }
+    public string PercentText   { get; }   // share of the category total
 
-    public CorpTopPlayerRowVm(int rank, string name, decimal amount, bool isCount = false)
+    public CorpTopPlayerRowVm(int rank, string name, decimal amount, bool isCount = false, double percent = 0)
     {
         Rank          = rank;
         CharacterName = name;
@@ -88,6 +89,7 @@ public sealed class CorpTopPlayerRowVm
                       : amount >= 1_000_000m     ? $"{amount / 1_000_000m:F2}M"
                       : amount >= 1_000m         ? $"{amount / 1_000m:F1}K"
                       : amount.ToString("N0");
+        PercentText   = $"{percent:F1}%";
     }
 }
 
@@ -1248,7 +1250,11 @@ public class CorpActivityViewModel : ReactiveObject
         TopContributors.Clear();
     }
 
-    public string BuildTop10Export()
+    // includeIsk true → "rank  name\tamount"; false → "rank  name\t%" (name + share only).
+    public string BuildTop10Export() => BuildTop10Export(includeIsk: true);
+    public string BuildTop10ExportNoIsk() => BuildTop10Export(includeIsk: false);
+
+    private string BuildTop10Export(bool includeIsk)
     {
         var month = SelectedTop10Month?.Name ?? "?";
         var year  = SelectedTop10Year;
@@ -1264,7 +1270,7 @@ public class CorpActivityViewModel : ReactiveObject
             {
                 var rank = $"{r.Rank,2}.";
                 var name = r.CharacterName.PadRight(28);
-                sb.AppendLine($"{rank}  {name}\t{r.AmountText}");
+                sb.AppendLine($"{rank}  {name}\t{(includeIsk ? r.AmountText : r.PercentText)}");
             }
             sb.AppendLine();
         }
@@ -1309,7 +1315,7 @@ public class CorpActivityViewModel : ReactiveObject
         List<RankedPlayerRow> industryRows = [];
         List<RankedPlayerRow> killerRows   = [];
         List<RankedPlayerRow> minerRows    = [];
-        List<(long CharacterId, string Name, decimal IskPayout)> contribRows = [];
+        List<(long CharacterId, string Name, decimal IskPayout, double Percent)> contribRows = [];
 
         try { rattingRows  = await _service.GetTopRattersAsync(corpId, since, until, excludeIds, ct); }
         catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Top10] ratters failed: {ex.Message}"); }
@@ -1342,9 +1348,9 @@ public class CorpActivityViewModel : ReactiveObject
         TopContributors.Clear();
         for (int i = 0; i < contribRows.Count; i++)
         {
-            var (_, name, iskPayout) = contribRows[i];
+            var (_, name, iskPayout, pct) = contribRows[i];
             int rank = contribRows.Count(r => r.IskPayout > iskPayout) + 1;
-            TopContributors.Add(new CorpTopPlayerRowVm(rank, name, iskPayout, isCount: false));
+            TopContributors.Add(new CorpTopPlayerRowVm(rank, name, iskPayout, isCount: false, pct));
         }
     }
 
@@ -2082,7 +2088,7 @@ public class CorpActivityViewModel : ReactiveObject
     {
         list.Clear();
         foreach (var r in rows)
-            list.Add(new CorpTopPlayerRowVm(r.Rank, resolveName(r.CharacterId), r.Amount, isCount));
+            list.Add(new CorpTopPlayerRowVm(r.Rank, resolveName(r.CharacterId), r.Amount, isCount, r.Percent));
     }
 
     internal static string FormatIskStatic(decimal v) => FormatIsk((double)v);
