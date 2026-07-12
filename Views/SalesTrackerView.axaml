@@ -77,13 +77,14 @@
 
       <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="4">
         <Grid RowDefinitions="Auto,*">
-          <TextBlock Grid.Row="0" Text="By Market Group" FontSize="11" FontWeight="SemiBold"
+          <TextBlock Grid.Row="0" Text="Profit by Market Group" FontSize="11" FontWeight="SemiBold"
                      Foreground="#c8a84b" Margin="10 6 10 4" />
           <DataGrid Grid.Row="1" ItemsSource="{Binding MarketGroups}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Group" Binding="{Binding Name}"   Width="*" />
-              <DataGridTextColumn Header="ISK"   Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Group"  Binding="{Binding Name}"      Width="*" />
+              <DataGridTextColumn Header="Profit" Binding="{Binding Profit}"    SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="%"      Binding="{Binding ProfitPct}" Width="Auto" CellStyleClasses="num" />
             </DataGrid.Columns>
           </DataGrid>
         </Grid>
@@ -91,13 +92,14 @@
 
       <Border Grid.Column="4" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="4">
         <Grid RowDefinitions="Auto,*">
-          <TextBlock Grid.Row="0" Text="By Item" FontSize="11" FontWeight="SemiBold"
+          <TextBlock Grid.Row="0" Text="Profit by Item" FontSize="11" FontWeight="SemiBold"
                      Foreground="#c8a84b" Margin="10 6 10 4" />
           <DataGrid Grid.Row="1" ItemsSource="{Binding TopItems}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Item" Binding="{Binding Name}"   Width="*" />
-              <DataGridTextColumn Header="ISK"  Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Item"   Binding="{Binding Name}"      Width="*" />
+              <DataGridTextColumn Header="Profit" Binding="{Binding Profit}"    SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="%"      Binding="{Binding ProfitPct}" Width="Auto" CellStyleClasses="num" />
             </DataGrid.Columns>
           </DataGrid>
         </Grid>

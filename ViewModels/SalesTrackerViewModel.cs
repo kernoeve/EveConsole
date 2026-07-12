@@ -105,6 +105,24 @@ public class GroupRowVm
     }
 }
 
+// One row on a profit rollup grid — summed build-based profit plus the average profit % of the
+// sales in the group. Sorted by the profit amount (ProfitRaw). "—" when no sale in the group had
+// a cost basis to profit against.
+public class ProfitGroupRowVm
+{
+    public string Name      { get; }
+    public string Profit    { get; }
+    public double ProfitRaw { get; }
+    public string ProfitPct { get; }
+    public ProfitGroupRowVm(string name, double? profit, double? pctAvg)
+    {
+        Name      = name;
+        ProfitRaw = profit ?? double.MinValue;
+        Profit    = profit is double p  ? MarketFmt.Isk(p) : "—";
+        ProfitPct = pctAvg is double pp ? $"{pp:N1}%"      : "—";
+    }
+}
+
 // Sales Tracker — lists market sales and contract sales with build/market value and build-based
 // profit. Data is loaded by the shared SalesQuery.
 public class SalesTrackerViewModel : ReactiveObject
@@ -117,10 +135,11 @@ public class SalesTrackerViewModel : ReactiveObject
 
     public ObservableCollection<SaleRowVm> Rows { get; } = new();
 
-    // Rollup grids (grouped over the filtered sales, largest ISK first).
-    public ObservableCollection<GroupRowVm> TopBuyers    { get; } = new();
-    public ObservableCollection<GroupRowVm> MarketGroups { get; } = new();
-    public ObservableCollection<GroupRowVm> TopItems     { get; } = new();
+    // Rollup grids (grouped over the filtered sales). Top Buyers ranks by ISK sold; the market
+    // group and item grids rank by build-based profit.
+    public ObservableCollection<GroupRowVm>       TopBuyers    { get; } = new();
+    public ObservableCollection<ProfitGroupRowVm> MarketGroups { get; } = new();
+    public ObservableCollection<ProfitGroupRowVm> TopItems     { get; } = new();
 
     // ── Filters ───────────────────────────────────────────────────────────────
     public ObservableCollection<SalesOwnerOption> OwnerOptions { get; } =
@@ -198,9 +217,9 @@ public class SalesTrackerViewModel : ReactiveObject
         foreach (var r in list) Rows.Add(r);
         StatusText = list.Count == 0 ? "No sales match the filters." : $"{list.Count:N0} sale(s)";
 
-        FillGroup(TopBuyers,    list, r => r.Buyer);
-        FillGroup(MarketGroups, list, r => r.MarketGroup);
-        FillGroup(TopItems,     list, r => r.Items);
+        FillGroup(TopBuyers,          list, r => r.Buyer);
+        FillProfitGroup(MarketGroups, list, r => r.MarketGroup);
+        FillProfitGroup(TopItems,     list, r => r.Items);
     }
 
     private static void FillGroup(ObservableCollection<GroupRowVm> target, List<SaleRowVm> rows, Func<SaleRowVm, string> key)
@@ -211,6 +230,26 @@ public class SalesTrackerViewModel : ReactiveObject
             .GroupBy(key)
             .Select(g => new GroupRowVm(g.Key, g.Sum(r => r.TotalRaw)))
             .OrderByDescending(g => g.AmountRaw);
+        foreach (var g in groups) target.Add(g);
+    }
+
+    // Group sales and sum build-based profit, plus the average profit % over the sales that had a
+    // cost basis. Ordered by profit amount (still by amount, not by percent).
+    private static void FillProfitGroup(ObservableCollection<ProfitGroupRowVm> target, List<SaleRowVm> rows, Func<SaleRowVm, string> key)
+    {
+        target.Clear();
+        var groups = rows
+            .Where(r => !string.IsNullOrEmpty(key(r)))
+            .GroupBy(key)
+            .Select(g =>
+            {
+                var profits = g.Where(r => r.ProfitRaw    != double.MinValue).Select(r => r.ProfitRaw).ToList();
+                var pcts    = g.Where(r => r.ProfitPctRaw != double.MinValue).Select(r => r.ProfitPctRaw).ToList();
+                double? profit = profits.Count > 0 ? profits.Sum()     : (double?)null;
+                double? pctAvg = pcts.Count    > 0 ? pcts.Average()    : (double?)null;
+                return new ProfitGroupRowVm(g.Key, profit, pctAvg);
+            })
+            .OrderByDescending(g => g.ProfitRaw);
         foreach (var g in groups) target.Add(g);
     }
 
