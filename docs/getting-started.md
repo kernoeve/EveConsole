@@ -49,10 +49,19 @@ Source builds don't auto-update — pull and rebuild to get newer changes.
 
 ## First launch
 
-On first launch you have no characters yet. Click **Log in with Eve**, which takes
-you to EVE's official Single Sign-On (SSO) page in your browser — log in and
-authorize the character. You can add more characters (and corporations) any time
-from the ESI Tokens settings below.
+The first time you launch Eve Cortex, it starts downloading the EVE game data it
+needs (the Static Data Export and Hoboleaks data) **in the background**. A short
+**Welcome** dialog explains this — item lookups, market pricing, and industry tools
+fill in over a few minutes as the download completes, and you can watch progress on
+the **SDE** tab in Settings.
+
+Click **Get Started** on that dialog and the **Settings** window opens automatically
+on the **ESI Tokens** tab. That's where you authorize your characters and
+corporations — click **Add Character** to log in your first character through EVE's
+Single Sign-On, as described next.
+
+You can reopen ESI Tokens any time from **Settings** (the **⚙** gear button,
+top-right); it's the first tab.
 
 ## Managing ESI tokens (characters & corporations)
 
