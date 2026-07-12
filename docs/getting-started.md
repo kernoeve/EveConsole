@@ -11,20 +11,16 @@
 
 Grab the latest build from the project's [Releases page](https://github.com/kernoeve/EveCortex/releases/latest). The links below always point at the **newest** release, so they don't go stale:
 
-- **[Installer — `EveCortex-win-Setup.exe`](https://github.com/kernoeve/EveCortex/releases/latest/download/EveCortex-win-Setup.exe)** *(recommended)* — installs the app and enables automatic updates.
-- **[Portable — `EveCortex-win-Portable.zip`](https://github.com/kernoeve/EveCortex/releases/latest/download/EveCortex-win-Portable.zip)** — no install; unzip and run `EveCortex.exe`.
+- **[Installer — `EveCortex-win-Setup.exe`](https://github.com/kernoeve/EveCortex/releases/latest/download/EveCortex-win-Setup.exe)** — installs Eve Cortex (adds Start-menu and uninstall entries), then launch it.
+- **[Portable — `EveCortex-win-Portable.zip`](https://github.com/kernoeve/EveCortex/releases/latest/download/EveCortex-win-Portable.zip)** — no install; extract it anywhere and run `EveCortex.exe`.
 
-Run the installer, then launch **Eve Cortex**.
-
-!!! tip "Recommended: the installer"
-
-    Use the installer unless you have a reason not to — only installed builds update themselves (see below). The portable build never touches your system, but you'll have to re-download it by hand for each new version.
+Both are the same app and **both keep themselves up to date automatically** (see below), so which you choose is a matter of preference — the installer if you'd like it integrated into Windows, the portable ZIP if you'd rather keep everything in a single folder you can move or delete.
 
 Your data is stored locally at `%LOCALAPPDATA%\EveCortex\EveCortex.db`. Nothing is uploaded anywhere — the app talks only to CCP's ESI API to refresh your data.
 
 ## Staying up to date
 
-You normally won't need to download the app again. An installed build **checks for updates on startup and once an hour**, and when a new version is available it **prompts you inside the app** — accepting downloads the update and restarts to apply it. Declining won't nag you again until the *next* version.
+You normally won't need to download the app again. Whether you installed it or run the portable build, Eve Cortex **checks for updates on startup and once an hour**, and when a new version is available it **prompts you inside the app** — accepting downloads the update and restarts to apply it. Declining won't nag you again until the *next* version.
 
 You can manage this under **Settings** (the **⚙** gear button, top-right) → **Updates**:
 
@@ -35,7 +31,7 @@ You can manage this under **Settings** (the **⚙** gear button, top-right) → 
 
 !!! note
 
-    Automatic updates apply to the **installer** build only. The portable ZIP and source builds show *"n/a — not an installed build"* and must be updated manually by grabbing the latest release.
+    Automatic updates apply to the released builds (installer **and** portable ZIP). Only a build you run **from source** can't self-update — the Updates tab shows *"n/a — not an installed build,"* and you update it by pulling and rebuilding.
 
 ## Building from source
 
