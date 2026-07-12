@@ -6,7 +6,7 @@ Item Browser all read from the prices produced here.
 
 A **price source** answers two questions:
 
-1. **Where do orders come from?** — Fuzzwork, an entire ESI region, or a single
+1. **Where do orders come from?** — an entire ESI region, or a single
    player-owned structure.
 2. **How is the raw order book cleaned up?** — an optional high/low percentile
    filter that trims outlier orders before a price is computed.
@@ -20,12 +20,7 @@ of the title bar, then open the **Market** tab.
 
 ## Key concepts
 
-- **Price source (method)** — each source pulls order data one of three ways:
-    - **Fuzzwork** — pre-computed percentile prices from
-      [fuzzwork.co.uk](https://market.fuzzwork.co.uk/). Fast, needs no auth, and
-      stores just one price row per item. It does **not** store individual orders,
-      so the Market Orders view in the Item Browser needs a Region or Player
-      Structure source.
+- **Price source (method)** — each source pulls order data one of two ways:
     - **Region** — all public orders for an entire region, from ESI. Use this for
       NPC trade hubs (e.g. **The Forge** for Jita). Orders placed *inside*
       player-owned structures aren't included; only regional buy orders posted from
@@ -49,21 +44,20 @@ of the title bar, then open the **Market** tab.
 ## Adding a price source
 
 1. Open **Settings ▸ Market**. Existing sources are listed on the left under
-   **Price Sources**; click **Add** to create one (it starts as a Fuzzwork source
-   named *New Market*).
+   **Price Sources**; click **Add** to create a new source, then fill in its
+   details on the right.
 2. In the edit panel on the right, pick a **Method**. A short note explains each
    one, and the fields below adapt to your choice.
 3. Set a **Location Name** — a friendly label such as *Jita 4-4* that appears in
    the source list and the Default Pricing dropdowns.
-4. Point the source at a location:
+4. Point the source at a location, depending on the method:
     - **Region** — choose from the **Region** dropdown (e.g. *The Forge*).
       Optionally set a **Station Filter** to restrict prices to one station; the
       list is populated *after* the source's first refresh.
-    - **Fuzzwork / Player Structure** — enter a **Location ID** (station or
-      structure ID). The resolved name appears automatically a moment after you
-      stop typing. Don't know the ID? Expand **Find Location by Name…**, search,
-      pick a result, and click **Use Selected**.
-    - **Player Structure** also needs an **Auth Character** with docking access —
+    - **Player Structure** — enter the structure's **Location ID**; the resolved
+      name appears automatically a moment after you stop typing. Don't know the ID?
+      Expand **Find Location by Name…**, search, pick a result, and click **Use
+      Selected**. This method also needs an **Auth Character** with docking access —
       select one from the dropdown (structure lookups fail without it).
 5. Leave **Filter High/Low Orders** on (default) unless you have a reason not to,
    and adjust **Filter %** if needed (0.1–25, default 5).
@@ -92,9 +86,8 @@ app turns sources into the single price it needs:
   orders for an item: `price = build cost × (1 + markup%)`. If there are no buy
   orders, buy falls back to sell.
 - **Filter lowball buy orders below N % of build cost** (default on, 25 %) —
-  drops absurd buy orders from the *buy* price calculation for ESI Region /
-  Player Structure sources. Those orders still show in the market UI; they're just
-  ignored when computing a price.
+  drops absurd buy orders from the *buy* price calculation. Those orders still show
+  in the market UI; they're just ignored when computing a price.
 
 Click **Save Defaults** after changing anything here. Use **Recalculate** next to
 **Build Costs** to rebuild stored build costs after you've changed sources or
