@@ -43,6 +43,41 @@ public class IncomeExpenseViewModel : ReactiveObject
     private int _days = 90;
     public void SetPeriodDays(int days) { _days = Math.Max(1, days); _ = LoadAsync(); }
 
+    // Full category lists (largest first) and how many rows the view has room to show. Extra
+    // categories beyond the limit are rolled into a single "Other" line. The view drives the
+    // limit from the height of the list area (see IncomeExpenseView code-behind).
+    private List<WalletCategory> _incFull = new();
+    private List<WalletCategory> _expFull = new();
+    private int _maxRows = 6;
+
+    public void SetMaxRows(int max)
+    {
+        max = Math.Max(1, max);
+        if (max == _maxRows) return;
+        _maxRows = max;
+        ApplyMaxRows();
+    }
+
+    private void ApplyMaxRows()
+    {
+        Fill(IncomeRows,  _incFull, isIncome: true);
+        Fill(ExpenseRows, _expFull, isIncome: false);
+    }
+
+    private void Fill(ObservableCollection<IncomeExpenseRowVm> target, List<WalletCategory> full, bool isIncome)
+    {
+        target.Clear();
+        if (full.Count <= _maxRows)
+        {
+            foreach (var c in full) target.Add(new IncomeExpenseRowVm(c));
+            return;
+        }
+        int show = Math.Max(1, _maxRows - 1);   // leave a slot for the rolled-up "Other"
+        for (int i = 0; i < show; i++) target.Add(new IncomeExpenseRowVm(full[i]));
+        var otherSum = full.Skip(show).Sum(c => c.Amount);
+        target.Add(new IncomeExpenseRowVm(new WalletCategory("Other", otherSum, isIncome, new SKColor(120, 120, 130))));
+    }
+
     private ISeries[] _series = [];
     public ISeries[] Series { get => _series; private set => this.RaiseAndSetIfChanged(ref _series, value); }
 
@@ -134,14 +169,12 @@ public class IncomeExpenseViewModel : ReactiveObject
             }
 
             var cats = WalletCategorizer.CategorizeDetailed(refTotals);
-            var inc  = cats.Where(c => c.IsIncome).ToList();
-            var exp  = cats.Where(c => !c.IsIncome).ToList();
+            _incFull = cats.Where(c => c.IsIncome).OrderByDescending(c => c.Amount).ToList();
+            _expFull = cats.Where(c => !c.IsIncome).OrderByDescending(c => c.Amount).ToList();
+            ApplyMaxRows();
 
-            IncomeRows.Clear();  foreach (var c in inc) IncomeRows.Add(new IncomeExpenseRowVm(c));
-            ExpenseRows.Clear(); foreach (var c in exp) ExpenseRows.Add(new IncomeExpenseRowVm(c));
-
-            var incomeTotal  = inc.Sum(c => c.Amount);
-            var expenseTotal = exp.Sum(c => c.Amount);
+            var incomeTotal  = _incFull.Sum(c => c.Amount);
+            var expenseTotal = _expFull.Sum(c => c.Amount);
             IncomeTotal  = MarketFmt.Isk((double)incomeTotal);
             ExpenseTotal = MarketFmt.Isk((double)expenseTotal);
             NetTotal     = MarketFmt.Isk((double)(incomeTotal - expenseTotal));
