@@ -61,6 +61,26 @@ public static class AppKnowledge
         filter by item name, location, and owner. Use set_asset_filter to apply filters
         programmatically.
 
+        How asset locations nest (important when answering "where is X?"): every asset
+        sits in a location that is either a station, a solar system, a player-owned
+        structure, or ANOTHER item — a container. "Container" means anything that holds
+        items: a ship's cargo hold or other holds, an assembled ship parked in a hangar,
+        a station/secure/audit container, a jettisoned can, etc. Containers nest inside
+        containers (a can inside a ship inside a structure hangar), so an item's immediate
+        location often points only to its parent container, not to a place on the map. To
+        find where an item actually is, you follow that parent chain upward, container by
+        container, until you reach a real terminal location (a station, a player structure,
+        or open space in a solar system). That terminal is the "root" location, and it is
+        what determines the station → solar system → region → security — never the
+        immediate container. Eve Cortex precomputes this root for every asset (walking the
+        parent links for you), so the Asset Browser's Location Name, Solar System, Region,
+        and Security columns already reflect the true, fully-resolved location no matter how
+        deeply nested, while the Container column shows the nesting path within that
+        location. Player-structure names only resolve if an authenticated character has
+        docking access; otherwise they display as "<Unknown Structure>". When reasoning
+        about an item's system/region yourself, always use the resolved root/station, not
+        the item's direct container.
+
         ### Item Browser
         Look up any published EVE item by name. Shows description, attributes/dogma,
         current market orders and price history for your defined markets, and industry
@@ -108,6 +128,35 @@ public static class AppKnowledge
         DB (history is kept current by the background Price History Sweep).
 
         ## Market / Trade tools
+
+        ### Price sources & the Method dropdown (Settings > Market)
+        Every market and valuation tool prices against a named "price source" defined in
+        Settings > Market. The Method dropdown chooses HOW that source gets its prices,
+        and the choice has real consequences the capsuleer often asks about:
+        - Fuzzwork — pre-computed percentile prices pulled from fuzzwork.co.uk. Fast, needs
+          no auth, and stores almost nothing locally (one price row per item). It does NOT
+          store individual orders, so the Item Browser's Market Orders tab will be empty for
+          a Fuzzwork source. Good as a quick global (Jita-style) reference price.
+        - Region (ESI Region) — fetches every public order across an ENTIRE region from ESI.
+          Use it for NPC trade hubs (e.g. The Forge for Jita). An optional Station Filter
+          narrows the computed price to a single NPC station (e.g. Jita 4-4) after the first
+          refresh. CRITICAL LIMITATION: ESI's public region market feed does not include
+          sell orders that sit inside player-owned structures — only orders at NPC stations
+          (plus public regional buy orders) come back. A market that lives inside a citadel,
+          Fortizar, Keepstar, etc. is therefore invisible to the Region method.
+        - Player Structure — fetches all orders inside one specific player-owned structure.
+          Requires an authenticated character with docking access to that structure. This is
+          the ONLY way to price a null-sec or low-sec staging market, or any private
+          structure market.
+
+        So when the capsuleer asks something like "why can't I use the Region method for my
+        null-sec staging market?": it is because that market is inside a player structure,
+        and ESI's region endpoint does not return orders located inside structures — it only
+        sees NPC-station orders (and public regional buy orders). The fix is to define that
+        source with the Player Structure method using a character that has docking access to
+        the keep. The Station Filter under the Region method is only for isolating one NPC
+        station within a region; it cannot reach a player structure. (Fuzzwork likewise
+        cannot, since it is regional/hub data with no per-structure orders.)
 
         ### Market Levels
         Monitor a specific, definable market (region or structure) for the quantity of
