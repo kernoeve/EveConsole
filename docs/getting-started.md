@@ -45,7 +45,45 @@ dotnet restore
 dotnet run
 ```
 
-Source builds don't auto-update — pull and rebuild to get newer changes.
+A `dotnet run` build doesn't self-update — `git pull` and rebuild to get newer changes.
+
+### Building a self-updating package
+
+If you want a **packaged, self-updating build from your own checkout** — the same
+kind of installer/portable the downloads produce — run the packager the release
+pipeline uses ([Velopack](https://velopack.io/)) yourself:
+
+1. Install the Velopack CLI (pinned to the version CI uses):
+
+    ```powershell
+    dotnet tool install -g vpk --version 1.2.0
+    ```
+
+2. Publish a self-contained Windows build. Use a version number — matching the
+   latest release (or the `VERSION` file) is a good default:
+
+    ```powershell
+    dotnet publish EveCortex.csproj -c Release -r win-x64 --self-contained true -p:Version=0.9.5 -o publish
+    ```
+
+3. Pack it with Velopack. Keep `--packId EveCortex` so the updater recognizes the
+   project's official releases:
+
+    ```powershell
+    vpk pack --packId EveCortex --packTitle "Eve Cortex" --packVersion 0.9.5 --packDir publish --mainExe EveCortex.exe
+    ```
+
+The installer (`EveCortex-win-Setup.exe`) and portable ZIP appear in the `Releases`
+folder. Run either and you have a Velopack-managed build that self-updates exactly
+like an official download.
+
+!!! warning "A self-updating source build tracks the *official* releases"
+
+    Because it checks the project's GitHub releases, a locally-packed build will
+    **update itself to the next official release**, replacing your custom build. That's
+    fine if you just want the latest source as a self-updating app, but your local
+    changes get overwritten when a new release ships. For ongoing development, stick
+    with `dotnet run` and `git pull`.
 
 ## First launch
 
