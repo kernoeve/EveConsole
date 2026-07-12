@@ -18,6 +18,19 @@ orders for an item.
 All of this lives in **Settings** — click the **⚙** gear button in the top-right
 of the title bar, then open the **Market** tab.
 
+!!! tip "Recommended setup"
+
+    Eve Cortex sets up **The Forge** (Jita's region) as a Region source for you by
+    default, and already uses it for **asset valuation** — the recommended choice, so
+    you normally don't need to change it. It's worth keeping The Forge around for that
+    reason even if you trade elsewhere. (A second region, **Domain** — Amarr's — is
+    seeded as a starter source too.)
+
+    If there's a market you regularly use **outside Jita** — another region, or your
+    home player structure — add it as its own source as well. Several tools compare two
+    markets (for example **Trade Opportunities**), so they only become useful once you
+    have a second source to compare against.
+
 ## Key concepts
 
 - **Price source (method)** — each source pulls order data one of two ways:
