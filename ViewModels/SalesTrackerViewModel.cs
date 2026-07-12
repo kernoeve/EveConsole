@@ -43,14 +43,22 @@ public class SaleRowVm
     public double? BuildOrNull  { get; }
     public double? MarketOrNull { get; }
 
+    // Item type and its market group two levels up (e.g. Revelation → "Standard Dreadnoughts"),
+    // used by the Sales Tracker rollup grids.
+    public int    TypeId      { get; }
+    public string MarketGroup { get; }
+
     // Green when the (build-based) profit is positive, red when negative, grey when unknown.
     public IBrush ProfitBrush => ProfitRaw == double.MinValue ? ProfitBrushes.Gray
                                : ProfitRaw >= 0 ? ProfitBrushes.Green : ProfitBrushes.Red;
 
     public SaleRowVm(DateTimeOffset when, string kind, string ownerType, long ownerId, bool ownerIsPersonal,
         string owner, string location, string buyer,
-        string items, string units, double total, double? build, double? market)
+        string items, string units, double total, double? build, double? market,
+        int typeId = 0, string marketGroup = "—")
     {
+        TypeId      = typeId;
+        MarketGroup = marketGroup;
         When     = when;
         WhenSort = when.UtcTicks;
         WhenText = when.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
@@ -85,6 +93,18 @@ public record SalesOwnerOption(string Label, OwnerScope Scope, long OwnerId = 0,
 public record SalesTypeOption(string Label, string? Kind)
 { public override string ToString() => Label; }
 
+// One row on a Sales Tracker rollup grid (sales grouped by buyer / market group / item).
+public class GroupRowVm
+{
+    public string Name      { get; }
+    public string Amount    { get; }
+    public double AmountRaw { get; }
+    public GroupRowVm(string name, double amount)
+    {
+        Name = name; AmountRaw = amount; Amount = MarketFmt.Isk(amount);
+    }
+}
+
 // Sales Tracker — lists market sales and contract sales with build/market value and build-based
 // profit. Data is loaded by the shared SalesQuery.
 public class SalesTrackerViewModel : ReactiveObject
@@ -96,6 +116,11 @@ public class SalesTrackerViewModel : ReactiveObject
     private readonly List<SaleRowVm> _all = new();
 
     public ObservableCollection<SaleRowVm> Rows { get; } = new();
+
+    // Rollup grids (grouped over the filtered sales, largest ISK first).
+    public ObservableCollection<GroupRowVm> TopBuyers    { get; } = new();
+    public ObservableCollection<GroupRowVm> MarketGroups { get; } = new();
+    public ObservableCollection<GroupRowVm> TopItems     { get; } = new();
 
     // ── Filters ───────────────────────────────────────────────────────────────
     public ObservableCollection<SalesOwnerOption> OwnerOptions { get; } =
@@ -172,6 +197,21 @@ public class SalesTrackerViewModel : ReactiveObject
         Rows.Clear();
         foreach (var r in list) Rows.Add(r);
         StatusText = list.Count == 0 ? "No sales match the filters." : $"{list.Count:N0} sale(s)";
+
+        FillGroup(TopBuyers,    list, r => r.Buyer);
+        FillGroup(MarketGroups, list, r => r.MarketGroup);
+        FillGroup(TopItems,     list, r => r.Items);
+    }
+
+    private static void FillGroup(ObservableCollection<GroupRowVm> target, List<SaleRowVm> rows, Func<SaleRowVm, string> key)
+    {
+        target.Clear();
+        var groups = rows
+            .Where(r => !string.IsNullOrEmpty(key(r)))
+            .GroupBy(key)
+            .Select(g => new GroupRowVm(g.Key, g.Sum(r => r.TotalRaw)))
+            .OrderByDescending(g => g.AmountRaw);
+        foreach (var g in groups) target.Add(g);
     }
 
     private static bool TryDate(string s, out DateTime date)

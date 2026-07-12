@@ -71,6 +71,21 @@ internal static class SalesQuery
         var typeNames = await db.SdeTypes.AsNoTracking().Where(t => typeIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => t.Name);
 
+        // Market group two levels up (item → its group [1 up] → that group's parent [2 up]),
+        // e.g. Revelation → Amarr → "Standard Dreadnoughts". Used by the Sales Tracker rollups.
+        var typeMg = await db.SdeTypes.AsNoTracking().Where(t => typeIds.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.MarketGroupId);
+        var mgAll = await db.SdeMarketGroups.AsNoTracking()
+            .ToDictionaryAsync(g => g.MarketGroupId, g => new { g.ParentGroupId, g.Name });
+
+        string GroupTwoUp(int typeId)
+        {
+            if (!typeMg.TryGetValue(typeId, out var mgId) || mgId is null) return "—";
+            if (!mgAll.TryGetValue(mgId.Value, out var mg)) return "—";
+            if (mg.ParentGroupId is int pid && mgAll.TryGetValue(pid, out var parent)) return parent.Name;
+            return mg.Name;   // item's group is already top-level
+        }
+
         // Nearest-day price snapshots for the sold types (resolved in memory — a correlated
         // "nearest date" subquery can't reference the outer sale date in SQLite).
         var snaps = await db.TypePriceSnapshots.AsNoTracking().Where(s => typeIds.Contains(s.TypeId))
@@ -123,7 +138,8 @@ internal static class SalesQuery
                 ParseDate(m.DateStr), "Market", m.OwnerType, m.OwnerId, IsPersonal(m.OwnerId, m.OwnerType),
                 OwnerName(m.OwnerId, m.OwnerType), m.Location ?? "", BuyerName(m.BuyerId),
                 TypeName(m.TypeId), m.Quantity.ToString("N0"), m.Quantity * m.UnitPrice,
-                bu is double b ? b * m.Quantity : null, mv is double v ? v * m.Quantity : null));
+                bu is double b ? b * m.Quantity : null, mv is double v ? v * m.Quantity : null,
+                m.TypeId, GroupTwoUp(m.TypeId)));
         }
 
         foreach (var c in contracts)
@@ -136,10 +152,12 @@ internal static class SalesQuery
             else                     { namesText = $"{TypeName(its[0].TypeId)} +{its.Count - 1} more items"; units = "Multiple"; }
             var build = SumOrNull(its.Select(i => Snap(i.TypeId, when).Build is double b ? b * i.Quantity : (double?)null));
             var mkt   = SumOrNull(its.Select(i => Snap(i.TypeId, when).Market is double m ? m * i.Quantity : (double?)null));
+            var firstType = its.Count > 0 ? its[0].TypeId : 0;
             rows.Add(new SaleRowVm(
                 when, "Contract", c.OwnerType, c.OwnerId, IsPersonal(c.OwnerId, c.OwnerType),
                 OwnerName(c.OwnerId, c.OwnerType), c.Location ?? "", BuyerName(c.BuyerId),
-                namesText, units, c.Price, build, mkt));
+                namesText, units, c.Price, build, mkt,
+                firstType, firstType > 0 ? GroupTwoUp(firstType) : "—"));
         }
 
         return new SalesLoadResult(
