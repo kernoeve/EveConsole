@@ -39,7 +39,7 @@ public class MarketPricingConfigVm : ReactiveObject
 {
     public int Id { get; init; }
 
-    private string _method = MarketMethod.Fuzzwork;
+    private string _method = MarketMethod.EsiRegion;
     public string Method
     {
         get => _method;
@@ -171,8 +171,10 @@ public class MarketSettingsViewModel : ReactiveObject
     private readonly EsiClient                       _esiClient;
     private readonly BuildCostService?               _buildCostSvc;
 
+    // Fuzzwork is intentionally omitted — too much of the app (per-order views, station filters,
+    // structure markets) needs raw orders, which the Fuzzwork method does not provide.
     public IReadOnlyList<string>              Methods    { get; }
-        = [MarketMethod.Fuzzwork, MarketMethod.EsiRegion, MarketMethod.PlayerStructure];
+        = [MarketMethod.EsiRegion, MarketMethod.PlayerStructure];
     public IReadOnlyList<string>              PriceTypes { get; }
         = [MarketPriceType.Midpoint, MarketPriceType.Buy, MarketPriceType.Sell];
 
@@ -548,7 +550,7 @@ public class MarketSettingsViewModel : ReactiveObject
     {
         var config = new MarketPricingConfig
         {
-            Method       = MarketMethod.Fuzzwork,
+            Method       = MarketMethod.EsiRegion,
             LocationName = "New Market",
             LocationId   = 60003760,
             PriceType    = MarketPriceType.Midpoint,

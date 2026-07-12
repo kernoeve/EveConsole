@@ -216,6 +216,20 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 unitCosts[p.TypeId] = (decimal)(mktType switch { "Buy" => p.BuyPrice, "Sell" => p.SellPrice, _ => p.Midpoint });
         }
 
+        // BPC inputs are bought from contracts, not the market, so overlay each blueprint type's
+        // contract-derived price onto the local price table. This covers EVERY BPC — including
+        // those whose item has an obtainable BPO (the market-price fill deliberately leaves a
+        // buyable-BPO blueprint's market row alone, which otherwise leaves the BPC input at 0).
+        // Restricted to blueprint-category types so real item market prices are never overwritten.
+        foreach (var cp in await db.ContractPrices.AsNoTracking().ToListAsync(ct))
+        {
+            var e = ContractPricing.EffectivePrice(cp);
+            if (e is not > 0) continue;
+            if (typeGroupMap.TryGetValue(cp.TypeId, out var tg)
+                && groupCatMap.TryGetValue(tg.GroupId, out var gc) && gc.CategoryId == 9)
+                unitCosts[cp.TypeId] = e.Value;
+        }
+
         // ── Adjusted prices (for EIV / job cost) ──────────────────────────
         var adjPrices = await db.EsiAdjustedPrices.AsNoTracking()
             .ToDictionaryAsync(p => p.TypeId, p => p.AdjustedPrice, ct);

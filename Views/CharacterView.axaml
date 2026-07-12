@@ -338,19 +338,32 @@
               </Button>
             </Grid>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-              <StackPanel Spacing="8">
+            <Grid Grid.Row="1">
 
             <TextBlock IsVisible="{Binding NoNotifications}"
                        Text="No recent notifications."
-                       FontSize="12" Foreground="#444455" FontStyle="Italic" />
+                       FontSize="12" Foreground="#444455" FontStyle="Italic"
+                       VerticalAlignment="Top" />
 
+            <!-- Virtualized so a long period (hundreds/thousands of notifications) stays cheap. -->
             <ItemsControl IsVisible="{Binding HasNotifications}"
                           ItemsSource="{Binding RecentNotifications}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <VirtualizingStackPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.Template>
+                <ControlTemplate>
+                  <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsPresenter />
+                  </ScrollViewer>
+                </ControlTemplate>
+              </ItemsControl.Template>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:NotificationBoxVm">
                   <Border Background="#0e0e16" BorderBrush="#1e1e2a" BorderThickness="1"
-                          CornerRadius="3" Padding="8 6" Margin="0 2">
+                          CornerRadius="3" Padding="8 6" Margin="0 0 0 6">
                     <ToolTip.Tip>
                       <TextBlock Text="{Binding TooltipText}" FontSize="11" MaxWidth="440"
                                  FontFamily="Consolas, Menlo, monospace" TextWrapping="Wrap" />
@@ -384,8 +397,7 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-              </StackPanel>
-            </ScrollViewer>
+            </Grid>
           </Grid>
           </Border>
 
