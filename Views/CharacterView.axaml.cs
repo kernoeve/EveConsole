@@ -57,6 +57,8 @@ public partial class CharacterView : UserControl
         "PersonalKillmails" => SectionPersonalKillmails,
         "SaleListingBuild"  => SectionSaleListingBuild,
         "SaleListingMarket" => SectionSaleListingMarket,
+        "IncomePie"         => SectionIncomePie,
+        "ExpensePie"        => SectionExpensePie,
         _                   => null,
     };
 
@@ -103,6 +105,17 @@ public partial class CharacterView : UserControl
             b.Margin = new Thickness(6);
             LayoutHost.Children.Add(b);
         }
+
+        // Nudge the pie charts to render after being (re)placed — LiveCharts can otherwise
+        // measure to 0×0 when reparented into a freshly-laid-out cell.
+        Dispatcher.UIThread.Post(() =>
+            Dispatcher.UIThread.Post(() =>
+            {
+                IncomeChart?.InvalidateMeasure();
+                IncomeChart?.InvalidateVisual();
+                ExpenseChart?.InvalidateMeasure();
+                ExpenseChart?.InvalidateVisual();
+            }));
     }
 
     private async void OnCustomizeClick(object? sender, RoutedEventArgs e)

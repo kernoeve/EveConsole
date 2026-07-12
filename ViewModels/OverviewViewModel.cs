@@ -583,52 +583,8 @@ public class OverviewViewModel : ReactiveObject
                 .GroupBy(g => g.RefType, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.Total), StringComparer.OrdinalIgnoreCase);
 
-            var bountyTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                { "bounty_prizes", "npc_bounty", "bounty_prize", "corporate_reward", "agent_bounty_prize" };
-            var contractIncTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                { "contract_reward", "contract_price", "contract_price_payment_corp",
-                  "contract_reward_refund", "contract_auction_sold" };
-            var knownExpenseTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                { "broker_fee", "brokers_fee", "transaction_tax",
-                  "industry_job_tax", "manufacturing_tax",
-                  "contract_deposit", "contract_sales_tax", "contract_deposit_sales_tax",
-                  "planetary_import_tax", "planetary_export_tax", "planetary_construction" };
-
-            decimal mktSell      = 0m, mktBuy       = 0m;
-            decimal npcBounty    = 0m, contractInc  = 0m, contractExp = 0m, otherIncome  = 0m;
-            decimal brokerFees   = 0m, txnTax       = 0m, indyTax     = 0m, otherExpense = 0m;
-
-            foreach (var (refType, total) in journalByType)
-            {
-                if (refType == "market_transaction")
-                {
-                    if (total > 0) mktSell += total;
-                    else           mktBuy  += Math.Abs(total);
-                }
-                else if (bountyTypes.Contains(refType))
-                    { if (total > 0) npcBounty += total; }
-                else if (contractIncTypes.Contains(refType))
-                {
-                    if (total > 0) contractInc += total;
-                    else           contractExp += Math.Abs(total);
-                }
-                else if (refType is "broker_fee" or "brokers_fee")
-                    brokerFees += Math.Abs(total);
-                else if (refType == "transaction_tax")
-                    txnTax += Math.Abs(total);
-                else if (refType is "industry_job_tax" or "manufacturing_tax")
-                    indyTax += Math.Abs(total);
-                else if (!knownExpenseTypes.Contains(refType))
-                {
-                    if (total > 0) otherIncome  += total;
-                    else           otherExpense  += Math.Abs(total);
-                }
-            }
-
             LoadStatus = "Building charts...";
-            BuildPieCharts(
-                mktSell, npcBounty, contractInc, otherIncome,
-                mktBuy, brokerFees, txnTax, indyTax, otherExpense, contractExp);
+            BuildPieCharts(WalletCategorizer.Categorize(journalByType));
 
             LoadStatus = "Evaluating alerts...";
             await EvaluateAlertsAsync(charIds);
@@ -806,45 +762,31 @@ public class OverviewViewModel : ReactiveObject
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private void BuildPieCharts(
-        decimal mktSell,   decimal npcBounty,  decimal contractInc, decimal otherIncome,
-        decimal mktBuy,    decimal brokerFee,  decimal txnTax,      decimal indyTax,
-        decimal otherExpense, decimal contractExp)
+    private void BuildPieCharts(List<WalletCategory> cats)
     {
-        static ISeries Slice(string name, decimal value, SKColor color) =>
+        static ISeries Slice(WalletCategory c) =>
             new PieSeries<double>
             {
-                Name                  = name,
-                Values                = [(double)value],
-                Fill                  = new SolidColorPaint(color),
+                Name                  = c.Name,
+                Values                = [(double)c.Amount],
+                Fill                  = new SolidColorPaint(c.Color),
                 Stroke                = null,
                 DataLabelsPaint       = null,
                 AnimationsSpeed       = TimeSpan.Zero,
                 EasingFunction        = null,
-                ToolTipLabelFormatter = cp => $"{name}: {FormatIsk((decimal)cp.Coordinate.PrimaryValue)}",
+                ToolTipLabelFormatter = cp => $"{c.Name}: {FormatIsk((decimal)cp.Coordinate.PrimaryValue)}",
             };
 
-        var incSlices = new List<ISeries>();
-        if (mktSell     > 0) incSlices.Add(Slice("Market Sales",    mktSell,     new SKColor(200, 168,  75)));
-        if (npcBounty   > 0) incSlices.Add(Slice("NPC Bounties",    npcBounty,   new SKColor(110, 190, 100)));
-        if (contractInc > 0) incSlices.Add(Slice("Contract Sales",  contractInc, new SKColor( 91, 155, 213)));
-        if (otherIncome > 0) incSlices.Add(Slice("Other Income",    otherIncome, new SKColor(155, 120, 200)));
+        var inc = cats.Where(c => c.IsIncome).ToList();
+        var exp = cats.Where(c => !c.IsIncome).ToList();
 
-        var expSlices = new List<ISeries>();
-        if (mktBuy       > 0) expSlices.Add(Slice("Market Purchases",   mktBuy,       new SKColor(200,  90,  90)));
-        if (contractExp  > 0) expSlices.Add(Slice("Contract Purchases", contractExp,  new SKColor(200, 120, 160)));
-        if (brokerFee    > 0) expSlices.Add(Slice("Broker Fees",        brokerFee,    new SKColor(220, 150,  60)));
-        if (txnTax       > 0) expSlices.Add(Slice("Transaction Tax",    txnTax,       new SKColor(180, 180,  60)));
-        if (indyTax      > 0) expSlices.Add(Slice("Industry Tax",       indyTax,      new SKColor(100, 170, 200)));
-        if (otherExpense > 0) expSlices.Add(Slice("Other Expenses",     otherExpense, new SKColor(160, 100, 120)));
+        IncomeSeries   = inc.Select(Slice).ToArray();
+        ExpenseSeries  = exp.Select(Slice).ToArray();
+        HasIncomeData  = inc.Count > 0;
+        HasExpenseData = exp.Count > 0;
 
-        IncomeSeries   = [.. incSlices];
-        ExpenseSeries  = [.. expSlices];
-        HasIncomeData  = incSlices.Count > 0;
-        HasExpenseData = expSlices.Count > 0;
-
-        var incomeTotal  = mktSell + npcBounty + contractInc + otherIncome;
-        var expenseTotal = mktBuy  + contractExp + brokerFee + txnTax + indyTax + otherExpense;
+        var incomeTotal  = inc.Sum(c => c.Amount);
+        var expenseTotal = exp.Sum(c => c.Amount);
         IncomeTotalText  = incomeTotal  > 0 ? FormatIsk(incomeTotal)  : "";
         ExpenseTotalText = expenseTotal > 0 ? FormatIsk(expenseTotal) : "";
     }

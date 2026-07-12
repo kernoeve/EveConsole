@@ -26,6 +26,7 @@ public class MainWindowViewModel : ReactiveObject
     public CharacterViewerViewModel       CharacterViewerVm      { get; }
     public ItemBrowserViewModel           ItemBrowserVm          { get; }
     public NetWorthViewModel              NetWorthVm             { get; }
+    public IncomeExpenseViewModel         IncomeExpenseVm        { get; }
     public TradeOpportunitiesViewModel    TradeOpportunitiesVm   { get; }
     public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
@@ -127,6 +128,7 @@ public class MainWindowViewModel : ReactiveObject
             "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
             "inv_levels"      => ("Inv. Levels",     InvLevelVm,               true),
             "net_worth"  => ("Net Worth",       NetWorthVm,               true),
+            "income_expense" => ("Income & Expense", IncomeExpenseVm,     true),
             "wallet"         => ("Wallet",          WalletVm,          true),
             "contracts"      => ("Contracts",       ContractsVm,       true),
             "market_viewer"  => ("Market Overview", MarketViewerVm,    true),
@@ -227,6 +229,7 @@ public class MainWindowViewModel : ReactiveObject
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService);
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
+        IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
         var fittingsService = new FittingsService(esi, dbFactory);
         MarketLevelVm     = new MarketLevelViewModel(marketLevelService, dbFactory, fittingsService,
@@ -367,6 +370,7 @@ public class MainWindowViewModel : ReactiveObject
             new("Finance",
             [
                 new NavItem("net_worth",     "Net Worth"),
+                new NavItem("income_expense","Income & Expense"),
                 new NavItem("wallet",        "Wallet"),
                 new NavItem("corp_activity", "Corp Activity"),
                 new NavItem("killmails",     "Killmails"),

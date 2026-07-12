@@ -35,6 +35,8 @@ public sealed class OverviewLayout
         ("PersonalKillmails", "Personal Killmails"),
         ("SaleListingBuild",  "Sale Listing (Build)"),
         ("SaleListingMarket", "Sale Listing (Market)"),
+        ("IncomePie",         "Income (Pie)"),
+        ("ExpensePie",        "Expenses (Pie)"),
     ];
 
     // Default matches the pre-customization layout: Activity Summary across the top row,

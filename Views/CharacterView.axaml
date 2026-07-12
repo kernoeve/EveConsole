@@ -169,67 +169,6 @@
 
             </Grid>
 
-            <!-- Pie charts row -->
-            <Grid ColumnDefinitions="*,16,*" Margin="0 8 0 0">
-
-              <!-- Income pie -->
-              <Border Grid.Column="0" Background="#0d0d12" CornerRadius="3"
-                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
-                <StackPanel Spacing="6">
-                  <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Text="Income" FontSize="11" FontWeight="SemiBold"
-                               Foreground="#555566" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1"
-                               Text="{Binding IncomeTotalText}"
-                               FontSize="11" FontWeight="SemiBold"
-                               Foreground="#c8a84b" VerticalAlignment="Center" />
-                  </Grid>
-                  <lvc:PieChart x:Name="IncomeChart"
-                                IsVisible="{Binding HasIncomeData}"
-                                Series="{Binding IncomeSeries}"
-                                Height="200"
-                                LegendPosition="Right"
-                                LegendTextSize="10"
-                                Background="Transparent" />
-                  <TextBlock IsVisible="{Binding !HasIncomeData}"
-                             Text="No income data for this period."
-                             FontSize="11" Foreground="#444455"
-                             HorizontalAlignment="Center"
-                             VerticalAlignment="Center"
-                             Margin="0 60" />
-                </StackPanel>
-              </Border>
-
-              <!-- Expenses pie -->
-              <Border Grid.Column="2" Background="#0d0d12" CornerRadius="3"
-                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
-                <StackPanel Spacing="6">
-                  <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Text="Expenses" FontSize="11" FontWeight="SemiBold"
-                               Foreground="#555566" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1"
-                               Text="{Binding ExpenseTotalText}"
-                               FontSize="11" FontWeight="SemiBold"
-                               Foreground="#c8a84b" VerticalAlignment="Center" />
-                  </Grid>
-                  <lvc:PieChart x:Name="ExpenseChart"
-                                IsVisible="{Binding HasExpenseData}"
-                                Series="{Binding ExpenseSeries}"
-                                Height="200"
-                                LegendPosition="Right"
-                                LegendTextSize="10"
-                                Background="Transparent" />
-                  <TextBlock IsVisible="{Binding !HasExpenseData}"
-                             Text="No expense data for this period."
-                             FontSize="11" Foreground="#444455"
-                             HorizontalAlignment="Center"
-                             VerticalAlignment="Center"
-                             Margin="0 60" />
-                </StackPanel>
-              </Border>
-
-            </Grid>
-
           </StackPanel>
           </ScrollViewer>
         </Border>
@@ -600,6 +539,50 @@
           <Border x:Name="SectionSaleListingMarket" Background="#12121a" BorderBrush="#1e1e2a"
                   BorderThickness="1" CornerRadius="4" ClipToBounds="True">
             <views:SaleListingView DataContext="{Binding SaleListingMarket}" />
+          </Border>
+
+          <!-- ════ Income (Pie) ═════════════════════════════════════════ -->
+          <Border x:Name="SectionIncomePie" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Income" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{Binding IncomeTotalText}" FontSize="12"
+                           FontWeight="SemiBold" Foreground="#c8a84b" VerticalAlignment="Center" />
+              </Grid>
+              <lvc:PieChart Grid.Row="1" x:Name="IncomeChart"
+                            IsVisible="{Binding HasIncomeData}"
+                            Series="{Binding IncomeSeries}"
+                            LegendPosition="Right" LegendTextSize="10"
+                            Background="Transparent" />
+              <TextBlock Grid.Row="1" IsVisible="{Binding !HasIncomeData}"
+                         Text="No income data for this period."
+                         FontSize="12" Foreground="#444455"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Grid>
+          </Border>
+
+          <!-- ════ Expenses (Pie) ═══════════════════════════════════════ -->
+          <Border x:Name="SectionExpensePie" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Expenses" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{Binding ExpenseTotalText}" FontSize="12"
+                           FontWeight="SemiBold" Foreground="#c8a84b" VerticalAlignment="Center" />
+              </Grid>
+              <lvc:PieChart Grid.Row="1" x:Name="ExpenseChart"
+                            IsVisible="{Binding HasExpenseData}"
+                            Series="{Binding ExpenseSeries}"
+                            LegendPosition="Right" LegendTextSize="10"
+                            Background="Transparent" />
+              <TextBlock Grid.Row="1" IsVisible="{Binding !HasExpenseData}"
+                         Text="No expense data for this period."
+                         FontSize="12" Foreground="#444455"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Grid>
           </Border>
 
     </Panel>

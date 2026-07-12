@@ -279,6 +279,9 @@
               <DataTemplate DataType="vm:NetWorthViewModel">
                 <views:NetWorthView />
               </DataTemplate>
+              <DataTemplate DataType="vm:IncomeExpenseViewModel">
+                <views:IncomeExpenseView />
+              </DataTemplate>
               <DataTemplate DataType="vm:WalletViewModel">
                 <views:WalletView />
               </DataTemplate>
