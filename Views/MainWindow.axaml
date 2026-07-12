@@ -291,6 +291,9 @@
               <DataTemplate DataType="vm:SalesTrackerViewModel">
                 <views:SalesTrackerView />
               </DataTemplate>
+              <DataTemplate DataType="vm:SaleListingViewModel">
+                <views:SaleListingView />
+              </DataTemplate>
               <DataTemplate DataType="vm:OrderTrackerViewModel">
                 <views:OrderTrackerView />
               </DataTemplate>

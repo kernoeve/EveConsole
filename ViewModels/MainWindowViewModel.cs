@@ -35,6 +35,8 @@ public class MainWindowViewModel : ReactiveObject
     public NotificationsViewModel         NotificationsVm        { get; }
     public MarketViewerViewModel          MarketViewerVm         { get; }
     public SalesTrackerViewModel          SalesTrackerVm         { get; }
+    public SaleListingViewModel           SaleListingBuildVm     { get; }
+    public SaleListingViewModel           SaleListingMarketVm    { get; }
     public OrderTrackerViewModel          OrderTrackerVm         { get; }
     public MarketSettingsViewModel        MarketVm               { get; }
     public TimerSettingsViewModel         TimerVm                { get; }
@@ -129,6 +131,8 @@ public class MainWindowViewModel : ReactiveObject
             "contracts"      => ("Contracts",       ContractsVm,       true),
             "market_viewer"  => ("Market Overview", MarketViewerVm,    true),
             "sales_tracker"  => ("Sales Tracker",   SalesTrackerVm,    true),
+            "sale_list_build"  => ("Sale Listing (Build)",  SaleListingBuildVm,  true),
+            "sale_list_market" => ("Sale Listing (Market)", SaleListingMarketVm, true),
             "order_tracker"  => ("Order Tracker",   OrderTrackerVm,    true),
             "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
             "killmails"      => ("Killmails",      KillmailBrowserVm, true),
@@ -273,6 +277,8 @@ public class MainWindowViewModel : ReactiveObject
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
         MarketViewerVm         = new MarketViewerViewModel(dbFactory, errorLogger);
         SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService);
+        SaleListingBuildVm     = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.BuildCost);
+        SaleListingMarketVm    = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.MarketValue);
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
         ProductionCalcVm.NavigateToItemAction = typeId =>
@@ -347,6 +353,8 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("market_levels", "Market Levels"),
                 new NavItem("market_viewer", "Market Overview"),
                 new NavItem("sales_tracker", "Sales Tracker"),
+                new NavItem("sale_list_build",  "Sale Listing (Build)"),
+                new NavItem("sale_list_market", "Sale Listing (Market)"),
                 new NavItem("order_tracker", "Order Tracker"),
                 new NavItem("trade",         "Trade Opportunities"),
                 new NavItem("contracts",     "Contracts"),
