@@ -126,7 +126,7 @@ dotnet restore
 dotnet run
 ```
 
-On first launch, click **Log in with Eve** to authenticate a character via EVE's SSO. Your data is stored locally in SQLite at `%LOCALAPPDATA%\EveCortex\EveCortex.db`.
+On first launch, a **Welcome** dialog appears and the Settings window opens on the **ESI Tokens** tab — click **Add Character** there to authorize a character via EVE's SSO. Your data is stored locally in SQLite at `%LOCALAPPDATA%\EveCortex\EveCortex.db`. See the [documentation](https://kernoeve.github.io/EveCortex/getting-started/) for full install and setup steps.
 
 ---
 

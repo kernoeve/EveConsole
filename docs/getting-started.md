@@ -123,8 +123,8 @@ Most tools depend on a little configuration first:
 <!--
   SCREENSHOT SLOTS (add files to docs/images/, then uncomment):
 
-  Login screen:
-  ![Log in with Eve](images/login.png)
+  Welcome dialog:
+  ![Welcome dialog](images/welcome.png)
 
   ESI Tokens settings tab:
   ![ESI Tokens](images/esi-tokens.png)
