@@ -290,6 +290,12 @@ public class OverviewViewModel : ReactiveObject
 
     private HashSet<int> _lastPersonalKillIds = [];
 
+    // ── Standing projects section ───────────────────────────────────────────────
+    public ObservableCollection<StandingProjectRowVm> StandingProjects { get; } = [];
+    private bool _hasStandingProjects;
+    public bool HasStandingProjects { get => _hasStandingProjects; private set => this.RaiseAndSetIfChanged(ref _hasStandingProjects, value); }
+    public bool NoStandingProjects  => !HasStandingProjects;
+
     // ── Loading state ─────────────────────────────────────────────────────────
     private bool _isLoading;
     public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
@@ -570,6 +576,9 @@ public class OverviewViewModel : ReactiveObject
             // ── Personal killmails section (bound to the same period) ───────────
             await LoadPersonalKillsAsync(charIds, Math.Max(1, SelectedPeriod.Hours / 24));
 
+            // ── Standing projects section ───────────────────────────────────────
+            await LoadStandingProjectsAsync();
+
             // ── Wallet journal — pie chart categorisation ──────────────────────
             LoadStatus = "Loading journal data...";
             // Group by RefType in SQL with date filter — avoids loading all rows.
@@ -751,6 +760,37 @@ public class OverviewViewModel : ReactiveObject
         HasPersonalKills = PersonalKills.Count > 0;
         this.RaisePropertyChanged(nameof(NoPersonalKills));
         _ = Task.WhenAll(PersonalKills.Select(k => k.LoadImagesAsync()));
+    }
+
+    // ── Standing projects ─────────────────────────────────────────────────────
+    private async Task LoadStandingProjectsAsync()
+    {
+        bool enabled = _corpActivity is not null
+                    && _layout.Sections.Any(s => s.Key == "StandingProjects" && s.Enabled);
+        if (!enabled)
+        {
+            StandingProjects.Clear();
+            HasStandingProjects = false;
+            this.RaisePropertyChanged(nameof(NoStandingProjects));
+            return;
+        }
+
+        try
+        {
+            var corpIds = await _db.CorpStandingProjects.AsNoTracking()
+                .Select(sp => sp.CorporationId).Distinct().ToListAsync();
+
+            var rows = new List<StandingProjectGridRow>();
+            foreach (var corpId in corpIds)
+                rows.AddRange(await _corpActivity!.BuildMaintainGridRowsAsync(corpId));
+
+            StandingProjects.Clear();
+            foreach (var r in rows)
+                StandingProjects.Add(new StandingProjectRowVm(r, _ => { }, _ => { }));
+            HasStandingProjects = StandingProjects.Count > 0;
+            this.RaisePropertyChanged(nameof(NoStandingProjects));
+        }
+        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadStandingProjects", ex); }
     }
 
     // ── DTOs for raw SQL results ──────────────────────────────────────────────

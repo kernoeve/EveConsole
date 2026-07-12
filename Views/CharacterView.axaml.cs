@@ -60,6 +60,7 @@ public partial class CharacterView : UserControl
         "IncomePie"         => SectionIncomePie,
         "ExpensePie"        => SectionExpensePie,
         "IncomeExpense"     => SectionIncomeExpense,
+        "StandingProjects"  => SectionStandingProjects,
         _                   => null,
     };
 
@@ -145,6 +146,9 @@ public partial class CharacterView : UserControl
 
     private void OnOpenAlertSettings(object? sender, RoutedEventArgs e)
         => _vm?.OpenAlertSettingsRequested?.Invoke();
+
+    private void OnOpenStandingProjects(object? sender, RoutedEventArgs e)
+        => _vm?.NavigateToStandingProjects?.Invoke();
 
     private Window GetWindow() => (TopLevel.GetTopLevel(this) as Window)!;
 }

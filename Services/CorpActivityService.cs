@@ -87,6 +87,8 @@ public sealed record StandingProjectGridRow(
     string MatchedName,
     string RemainingText,
     string RemainingPayoutText,
+    string RemainingPercentText,
+    double RemainingPercentValue,   // percent of the target still outstanding; -1 when not applicable
     int?   ItemTypeId,
     string ItemTypeName);
 
@@ -1938,6 +1940,7 @@ public class CorpActivityService
                     sp.ItemTypeId.HasValue && d.TypeIds.Contains(sp.ItemTypeId.Value) &&
                     sp.StationId.HasValue  && d.StationIds.Contains(sp.StationId.Value));
                 var deliverRemaining = match is not null ? match.ProgressDesired - match.ProgressCurrent : 0L;
+                var deliverPct = match is not null ? RemainingPct(deliverRemaining, match.ProgressDesired) : -1.0;
                 rows.Add(new StandingProjectGridRow(
                     DbId                : sp.Id,
                     TypeDisplay         : "Deliver Item",
@@ -1948,6 +1951,8 @@ public class CorpActivityService
                     MatchedName         : match?.ProjectName ?? "",
                     RemainingText       : match is not null ? FormatRemaining(deliverRemaining) : "",
                     RemainingPayoutText : match is not null ? FormatPayout(deliverRemaining, match.RewardPerContrib) : "",
+                    RemainingPercentText : match is not null ? FormatRemainingPct(deliverPct) : "",
+                    RemainingPercentValue: deliverPct,
                     ItemTypeId          : sp.ItemTypeId,
                     ItemTypeName        : sp.ItemTypeName ?? ""));
             }
@@ -1960,6 +1965,7 @@ public class CorpActivityService
                         var match = destroyConfigs.FirstOrDefault(d =>
                             sp.SolarSystemId.HasValue && d.SystemIds.Contains(sp.SolarSystemId.Value));
                         var sysRemaining = match is not null ? match.ProgressDesired - match.ProgressCurrent : 0L;
+                        var sysPct = match is not null ? RemainingPct(sysRemaining, match.ProgressDesired) : -1.0;
                         rows.Add(new StandingProjectGridRow(
                             DbId                : sp.Id,
                             TypeDisplay         : "Destroy NPC",
@@ -1970,6 +1976,8 @@ public class CorpActivityService
                             MatchedName         : match?.ProjectName ?? "",
                             RemainingText       : match is not null ? FormatRemaining(sysRemaining) : "",
                             RemainingPayoutText : match is not null ? FormatPayout(sysRemaining, match.RewardPerContrib) : "",
+                            RemainingPercentText : match is not null ? FormatRemainingPct(sysPct) : "",
+                            RemainingPercentValue: sysPct,
                             ItemTypeId          : null,
                             ItemTypeName        : ""));
                         break;
@@ -2005,6 +2013,8 @@ public class CorpActivityService
                                 MatchedName         : "",
                                 RemainingText       : "",
                                 RemainingPayoutText : "",
+                                RemainingPercentText : "",
+                                RemainingPercentValue: -1.0,
                                 ItemTypeId          : null,
                                 ItemTypeName        : ""));
                         }
@@ -2015,6 +2025,7 @@ public class CorpActivityService
                                 var match = destroyConfigs.FirstOrDefault(
                                     d => d.SystemIds.Contains(sys.SystemId));
                                 var admRemaining = match is not null ? match.ProgressDesired - match.ProgressCurrent : 0L;
+                                var admPct = match is not null ? RemainingPct(admRemaining, match.ProgressDesired) : -1.0;
                                 rows.Add(new StandingProjectGridRow(
                                     DbId                : sp.Id,
                                     TypeDisplay         : "Destroy NPC",
@@ -2025,6 +2036,8 @@ public class CorpActivityService
                                     MatchedName         : match?.ProjectName ?? "",
                                     RemainingText       : match is not null ? FormatRemaining(admRemaining) : "",
                                     RemainingPayoutText : match is not null ? FormatPayout(admRemaining, match.RewardPerContrib) : "",
+                                    RemainingPercentText : match is not null ? FormatRemainingPct(admPct) : "",
+                                    RemainingPercentValue: admPct,
                                     ItemTypeId          : null,
                                     ItemTypeName        : ""));
                             }
@@ -2127,6 +2140,12 @@ public class CorpActivityService
         }
         return result;
     }
+
+    // Percent of the target still outstanding (remaining / desired). -1 when there's no target.
+    private static double RemainingPct(long remaining, long desired) =>
+        desired > 0 ? (double)remaining / desired * 100.0 : -1.0;
+
+    private static string FormatRemainingPct(double pct) => pct >= 0 ? $"{pct:F1}%" : "";
 
     private static string FormatRemaining(long remaining)
     {

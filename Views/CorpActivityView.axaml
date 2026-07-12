@@ -1280,7 +1280,22 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="REMAINING"   Binding="{Binding RemainingText}"       Width="90" />
+                    <DataGridTemplateColumn Header="REMAINING" Width="90">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                          <TextBlock Text="{Binding RemainingText}" Foreground="{Binding RemainingColor}"
+                                     FontSize="10" VerticalAlignment="Center" Padding="6 0" />
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="REM. %" Width="70">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                          <TextBlock Text="{Binding RemainingPercentText}" Foreground="{Binding RemainingColor}"
+                                     FontSize="10" VerticalAlignment="Center" Padding="6 0" />
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTextColumn Header="PAYOUT"      Binding="{Binding RemainingPayoutText}" Width="110" />
                     <DataGridTemplateColumn Header="" Width="120" IsReadOnly="True">
                       <DataGridTemplateColumn.CellTemplate>

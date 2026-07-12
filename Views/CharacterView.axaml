@@ -591,6 +591,66 @@
             <views:IncomeExpenseView DataContext="{Binding IncomeExpense}" />
           </Border>
 
+          <!-- ════ Standing Projects ════════════════════════════════════ -->
+          <Border x:Name="SectionStandingProjects" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Standing Projects" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="newslink" Click="OnOpenStandingProjects" VerticalAlignment="Center">
+                  <TextBlock Text="Corp Activity →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                </Button>
+              </Grid>
+
+              <TextBlock Grid.Row="1" IsVisible="{Binding NoStandingProjects}"
+                         Text="No standing projects." FontSize="12" Foreground="#444455" FontStyle="Italic"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+              <DataGrid Grid.Row="1" IsVisible="{Binding HasStandingProjects}"
+                        ItemsSource="{Binding StandingProjects}"
+                        AutoGenerateColumns="False" IsReadOnly="True" RowHeight="22"
+                        CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                        Background="Transparent">
+                <DataGrid.Styles>
+                  <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+                  <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                    <Setter Property="FontSize" Value="10" /><Setter Property="FontWeight" Value="SemiBold" />
+                    <Setter Property="Padding" Value="6 5 2 5" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Description" Binding="{Binding DescriptionText}" Width="*" />
+                  <DataGridTemplateColumn Header="Project Status" Width="170">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                        <TextBlock Text="{Binding ProjectStatusText}" Foreground="{Binding ProjectStatusColor}"
+                                   FontSize="11" VerticalAlignment="Center" Padding="6 0" TextTrimming="CharacterEllipsis" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Remaining" Width="90">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                        <TextBlock Text="{Binding RemainingText}" Foreground="{Binding RemainingColor}"
+                                   FontSize="11" VerticalAlignment="Center" Padding="6 0" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Rem. %" Width="70">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                        <TextBlock Text="{Binding RemainingPercentText}" Foreground="{Binding RemainingColor}"
+                                   FontSize="11" VerticalAlignment="Center" Padding="6 0" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
+
     </Panel>
 
     <!-- ── Status bar ───────────────────────────────────────────────────── -->

@@ -38,6 +38,7 @@ public sealed class OverviewLayout
         ("IncomePie",         "Income (Pie)"),
         ("ExpensePie",        "Expenses (Pie)"),
         ("IncomeExpense",     "Income & Expense"),
+        ("StandingProjects",  "Standing Projects"),
     ];
 
     // Default matches the pre-customization layout: Activity Summary across the top row,

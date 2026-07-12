@@ -231,8 +231,11 @@ public sealed class StandingProjectRowVm
     public string LocationText      { get; }
     public string ProjectStatusText { get; }
     public string ProjectStatusColor { get; }
-    public string RemainingText       { get; }
-    public string RemainingPayoutText { get; }
+    public string RemainingText        { get; }
+    public string RemainingPayoutText  { get; }
+    public string RemainingPercentText { get; }
+    public bool   IsLowRemaining       { get; }   // < 10% of the target left
+    public string RemainingColor       { get; }
     public bool   IsDeliverItem       { get; }
     public int?   ItemTypeId          { get; }
     public string ItemTypeName        { get; }
@@ -249,24 +252,27 @@ public sealed class StandingProjectRowVm
         DescriptionText = row.TargetDisplay;
         LocationText    = row.DestDisplay;
 
-        switch (row.MatchStatus)
-        {
-            case "matched":
-                ProjectStatusText  = row.MatchedName;
-                ProjectStatusColor = "#6aaa88";
-                break;
-            case "no_systems":
-                ProjectStatusText  = "no systems below the minimum ADM";
-                ProjectStatusColor = "#888899";
-                break;
-            default:
-                ProjectStatusText  = "project not active";
-                ProjectStatusColor = "#cc4444";
-                break;
-        }
+        // Less than 10% of the target left — flag the near-complete (often stuck) projects in orange.
+        IsLowRemaining = row.RemainingPercentValue >= 0 && row.RemainingPercentValue < 10.0;
 
-        RemainingText       = row.RemainingText;
-        RemainingPayoutText = row.RemainingPayoutText;
+        string statusColor = row.MatchStatus switch
+        {
+            "matched"    => "#6aaa88",
+            "no_systems" => "#888899",
+            _            => "#cc4444",
+        };
+        ProjectStatusText = row.MatchStatus switch
+        {
+            "matched"    => row.MatchedName,
+            "no_systems" => "no systems below the minimum ADM",
+            _            => "project not active",
+        };
+        ProjectStatusColor = IsLowRemaining ? "#e0902e" : statusColor;
+
+        RemainingText        = row.RemainingText;
+        RemainingPayoutText  = row.RemainingPayoutText;
+        RemainingPercentText = row.RemainingPercentText;
+        RemainingColor       = IsLowRemaining ? "#e0902e" : "#c8c8d8";
         IsDeliverItem       = row.ItemTypeId.HasValue;
         ItemTypeId          = row.ItemTypeId;
         ItemTypeName        = row.ItemTypeName;
