@@ -59,6 +59,7 @@ public partial class CharacterView : UserControl
         "SaleListingMarket" => SectionSaleListingMarket,
         "IncomePie"         => SectionIncomePie,
         "ExpensePie"        => SectionExpensePie,
+        "IncomeExpense"     => SectionIncomeExpense,
         _                   => null,
     };
 

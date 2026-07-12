@@ -37,6 +37,7 @@ public sealed class OverviewLayout
         ("SaleListingMarket", "Sale Listing (Market)"),
         ("IncomePie",         "Income (Pie)"),
         ("ExpensePie",        "Expenses (Pie)"),
+        ("IncomeExpense",     "Income & Expense"),
     ];
 
     // Default matches the pre-customization layout: Activity Summary across the top row,

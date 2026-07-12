@@ -285,6 +285,7 @@ public class MainWindowViewModel : ReactiveObject
         SaleListingMarketVm    = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.MarketValue);
         OverviewVm.SaleListingBuild  = SaleListingBuildVm;   // let the Overview embed them as sections
         OverviewVm.SaleListingMarket = SaleListingMarketVm;
+        OverviewVm.IncomeExpense     = IncomeExpenseVm;
         SaleListingBuildVm.OpenSalesTracker  = () => OpenTool("sales_tracker");
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);

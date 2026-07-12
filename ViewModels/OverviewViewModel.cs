@@ -321,6 +321,11 @@ public class OverviewViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _saleListingMarket, value); value?.SetPeriodDays(CurrentPeriodDays); }
     }
 
+    // The Income & Expense tool VM, injected by MainWindowViewModel so it can be embedded as a
+    // section. It keeps its own period selector.
+    private IncomeExpenseViewModel? _incomeExpense;
+    public IncomeExpenseViewModel? IncomeExpense { get => _incomeExpense; set => this.RaiseAndSetIfChanged(ref _incomeExpense, value); }
+
     private int CurrentPeriodDays => Math.Max(1, SelectedPeriod.Hours / 24);
 
     // ── Customizable section layout ─────────────────────────────────────────────

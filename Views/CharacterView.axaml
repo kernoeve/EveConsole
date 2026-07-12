@@ -585,6 +585,12 @@
             </Grid>
           </Border>
 
+          <!-- ════ Income & Expense ═════════════════════════════════════ -->
+          <Border x:Name="SectionIncomeExpense" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" ClipToBounds="True">
+            <views:IncomeExpenseView DataContext="{Binding IncomeExpense}" />
+          </Border>
+
     </Panel>
 
     <!-- ── Status bar ───────────────────────────────────────────────────── -->
