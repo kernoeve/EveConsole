@@ -345,7 +345,10 @@ public class CharacterViewModel : ReactiveObject
         if (SelectedCharacterInSettings is null) return;
         var target = SelectedCharacterInSettings;
 
-        InitFromGranted(_charScopeGroups, target.GrantedScopes);
+        // Pre-select the full current scope set so an update always picks up scopes added to the
+        // app since this character was last authed (e.g. the corp-roles scope). The user can still
+        // deselect any before proceeding.
+        ResetAllSelected(_charScopeGroups);
         DialogScopeGroups = _charScopeGroups;
 
         var proceed = await ScopeSelectionInteraction.Handle("character");
@@ -407,8 +410,9 @@ public class CharacterViewModel : ReactiveObject
         if (SelectedCorp is null) return;
         var target = SelectedCorp;
 
-        // Pre-select scopes from the corp's own stored grants.
-        InitFromGranted(_corpScopeGroups, target.GrantedScopes);
+        // Pre-select the full current corp scope set so an update always picks up scopes added to
+        // the app since this corp was last authed. The user can still deselect any before proceeding.
+        ResetAllSelected(_corpScopeGroups);
         DialogScopeGroups = _corpScopeGroups;
 
         var proceed = await ScopeSelectionInteraction.Handle("corporation");
@@ -635,15 +639,6 @@ public class CharacterViewModel : ReactiveObject
     {
         foreach (var item in groups.SelectMany(g => g.Items))
             item.IsSelected = true;
-    }
-
-    private static void InitFromGranted(IReadOnlyList<ScopeGroup> groups, string? grantedScopes)
-    {
-        var parts = grantedScopes?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? [];
-        if (parts.Length == 0) { ResetAllSelected(groups); return; }
-        var grantedSet = new HashSet<string>(parts);
-        foreach (var item in groups.SelectMany(g => g.Items))
-            item.IsSelected = grantedSet.Contains(item.Scope);
     }
 
     private string[] GetSelectedScopes()
