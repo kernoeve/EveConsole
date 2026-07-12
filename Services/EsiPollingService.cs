@@ -2867,7 +2867,9 @@ public class EsiPollingService : ReactiveObject
         ["corp.facilities"]         = ["Factory_Manager"],
         ["corp.roles"]              = ["Director", "Personnel_Manager"],
         ["corp.titles"]             = ["Director"],
-        ["corp.projects"]           = ["Brand_Manager"],
+        // corp.projects is readable without a special role (observed: a Personnel_Manager with no
+        // project role reads it fine), so it's intentionally NOT gated here — leaving it in the map
+        // would wrongly deny and permanently skip it. A genuine 403 still self-heals.
         ["corp.mining.extractions"] = ["Station_Manager"],
         ["corp.mining.observers"]   = ["Accountant"],
     };
