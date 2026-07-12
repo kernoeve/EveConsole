@@ -73,8 +73,22 @@
         <DataGridTextColumn Header="Total Sale"   Binding="{Binding Total}"    SortMemberPath="TotalRaw"     Width="110" CellStyleClasses="num" />
         <DataGridTextColumn Header="Build Price"  Binding="{Binding Build}"    SortMemberPath="BuildRaw"     Width="110" CellStyleClasses="num" />
         <DataGridTextColumn Header="Market Price" Binding="{Binding Market}"   SortMemberPath="MarketRaw"    Width="110" CellStyleClasses="num" />
-        <DataGridTextColumn Header="Profit"       Binding="{Binding Profit}"    SortMemberPath="ProfitRaw"    Width="110" CellStyleClasses="num" />
-        <DataGridTextColumn Header="Profit %"     Binding="{Binding ProfitPct}" SortMemberPath="ProfitPctRaw" Width="90"  CellStyleClasses="num" />
+        <DataGridTemplateColumn Header="Profit" SortMemberPath="ProfitRaw" Width="110">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleRowVm">
+              <TextBlock Text="{Binding Profit}" Foreground="{Binding ProfitBrush}" FontSize="11"
+                         HorizontalAlignment="Right" Margin="0 0 8 0" VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTemplateColumn Header="Profit %" SortMemberPath="ProfitPctRaw" Width="90">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleRowVm">
+              <TextBlock Text="{Binding ProfitPct}" Foreground="{Binding ProfitBrush}" FontSize="11"
+                         HorizontalAlignment="Right" Margin="0 0 8 0" VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
       </DataGrid.Columns>
     </DataGrid>
 

@@ -307,9 +307,19 @@ public class OverviewViewModel : ReactiveObject
     // Shared Sale Listing tool VMs, injected by MainWindowViewModel, so the Overview can embed
     // those grids as sections without loading the data a second time.
     private SaleListingViewModel? _saleListingBuild;
-    public SaleListingViewModel? SaleListingBuild { get => _saleListingBuild; set => this.RaiseAndSetIfChanged(ref _saleListingBuild, value); }
+    public SaleListingViewModel? SaleListingBuild
+    {
+        get => _saleListingBuild;
+        set { this.RaiseAndSetIfChanged(ref _saleListingBuild, value); value?.SetPeriodDays(CurrentPeriodDays); }
+    }
     private SaleListingViewModel? _saleListingMarket;
-    public SaleListingViewModel? SaleListingMarket { get => _saleListingMarket; set => this.RaiseAndSetIfChanged(ref _saleListingMarket, value); }
+    public SaleListingViewModel? SaleListingMarket
+    {
+        get => _saleListingMarket;
+        set { this.RaiseAndSetIfChanged(ref _saleListingMarket, value); value?.SetPeriodDays(CurrentPeriodDays); }
+    }
+
+    private int CurrentPeriodDays => Math.Max(1, SelectedPeriod.Hours / 24);
 
     // ── Customizable section layout ─────────────────────────────────────────────
     private const string LayoutPrefKey = "overview.layout";
@@ -358,6 +368,8 @@ public class OverviewViewModel : ReactiveObject
             {
                 if (_prefs is not null)
                     _ = _prefs.SetLongAsync(PeriodPrefKey, p.Hours);
+                SaleListingBuild?.SetPeriodDays(CurrentPeriodDays);
+                SaleListingMarket?.SetPeriodDays(CurrentPeriodDays);
                 _ = LoadAsync();
             });
 

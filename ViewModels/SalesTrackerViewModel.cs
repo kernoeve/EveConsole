@@ -1,12 +1,21 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive.Linq;
+using Avalonia.Media;
 using EveCortex.Data;
 using EveCortex.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
 namespace EveCortex.ViewModels;
+
+// Shared profit-colour brushes for the sales grids.
+internal static class ProfitBrushes
+{
+    public static readonly IBrush Green = new SolidColorBrush(Color.Parse("#4caf50"));
+    public static readonly IBrush Red   = new SolidColorBrush(Color.Parse("#e05252"));
+    public static readonly IBrush Gray  = new SolidColorBrush(Color.Parse("#888899"));
+}
 
 // One sale on the Sales Tracker grid (a market transaction or a contract sale).
 public class SaleRowVm
@@ -33,6 +42,10 @@ public class SaleRowVm
     // tools to compute profit against build cost or market value.
     public double? BuildOrNull  { get; }
     public double? MarketOrNull { get; }
+
+    // Green when the (build-based) profit is positive, red when negative, grey when unknown.
+    public IBrush ProfitBrush => ProfitRaw == double.MinValue ? ProfitBrushes.Gray
+                               : ProfitRaw >= 0 ? ProfitBrushes.Green : ProfitBrushes.Red;
 
     public SaleRowVm(DateTimeOffset when, string kind, string ownerType, long ownerId, bool ownerIsPersonal,
         string owner, string location, string buyer,

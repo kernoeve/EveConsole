@@ -15,10 +15,6 @@ public enum SaleCostBasis { BuildCost, MarketValue }
 // against build cost or market value depending on the tool; positive is green, negative red.
 public class SaleListingRowVm
 {
-    private static readonly IBrush Green = new SolidColorBrush(Color.Parse("#4caf50"));
-    private static readonly IBrush Red   = new SolidColorBrush(Color.Parse("#e05252"));
-    private static readonly IBrush Gray  = new SolidColorBrush(Color.Parse("#888899"));
-
     public DateTimeOffset When { get; }
     public long   WhenSort { get; }
     public string WhenText { get; }
@@ -49,13 +45,13 @@ public class SaleListingRowVm
             var pct = c != 0 ? profit / c * 100 : (double?)null;
             ProfitPctRaw = pct ?? double.MinValue;
             ProfitPct    = pct is double pp ? $"{pp:N1}%" : "—";
-            ProfitBrush  = profit >= 0 ? Green : Red;
+            ProfitBrush  = profit >= 0 ? ProfitBrushes.Green : ProfitBrushes.Red;
         }
         else
         {
             ProfitRaw = double.MinValue; Profit = "—";
             ProfitPctRaw = double.MinValue; ProfitPct = "—";
-            ProfitBrush = Gray;
+            ProfitBrush = ProfitBrushes.Gray;
         }
     }
 }
@@ -129,6 +125,17 @@ public class SaleListingViewModel : ReactiveObject
             .Subscribe(tick => { _ = LoadAsync(); });
 
         _ = LoadAsync();
+    }
+
+    // Set the date window to the last N days (driven by the Overview period dropdown when this
+    // VM is embedded as an Overview section). Data is loaded once and filtered in memory.
+    public void SetPeriodDays(int days)
+    {
+        _dateThru = "";
+        _dateFrom = DateTime.UtcNow.AddDays(-days).ToString("yyyy-MM-dd");
+        this.RaisePropertyChanged(nameof(DateFrom));
+        this.RaisePropertyChanged(nameof(DateThru));
+        ApplyFilters();
     }
 
     private async Task LoadAsync()
