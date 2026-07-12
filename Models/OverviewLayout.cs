@@ -41,18 +41,20 @@ public sealed class OverviewLayout
         ("StandingProjects",  "Standing Projects"),
     ];
 
-    // Default matches the pre-customization layout: Activity Summary across the top row,
-    // Alerts / Notifications / News across the bottom row.
+    // Default layout: Sale Listing (Build) / Income & Expense / Personal Killmails across the top
+    // row, Alerts / Notifications / News across the bottom row — all single cells.
     public static OverviewLayout Default() => new()
     {
         Rows = 2,
         Cols = 3,
         Sections =
         [
-            new() { Key = "ActivitySummary", Enabled = true, Row = 1, Col = 1, RowSpan = 1, ColSpan = 3 },
-            new() { Key = "Alerts",          Enabled = true, Row = 2, Col = 1, RowSpan = 1, ColSpan = 1 },
-            new() { Key = "Notifications",   Enabled = true, Row = 2, Col = 2, RowSpan = 1, ColSpan = 1 },
-            new() { Key = "News",            Enabled = true, Row = 2, Col = 3, RowSpan = 1, ColSpan = 1 },
+            new() { Key = "SaleListingBuild",  Enabled = true, Row = 1, Col = 1, RowSpan = 1, ColSpan = 1 },
+            new() { Key = "IncomeExpense",     Enabled = true, Row = 1, Col = 2, RowSpan = 1, ColSpan = 1 },
+            new() { Key = "PersonalKillmails", Enabled = true, Row = 1, Col = 3, RowSpan = 1, ColSpan = 1 },
+            new() { Key = "Alerts",            Enabled = true, Row = 2, Col = 1, RowSpan = 1, ColSpan = 1 },
+            new() { Key = "Notifications",     Enabled = true, Row = 2, Col = 2, RowSpan = 1, ColSpan = 1 },
+            new() { Key = "News",              Enabled = true, Row = 2, Col = 3, RowSpan = 1, ColSpan = 1 },
         ],
     };
 
