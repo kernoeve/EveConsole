@@ -519,13 +519,16 @@ public class OverviewViewModel : ReactiveObject
                     FROM "KillMailDetails" d
                     WHERE d."KillMailTime" >= '{cutoffStr}' AND d."VictimCharId" IN ({charIdList})
                     """).FirstAsync();
+                // Non-correlated IN-subquery: computes the attacker killmail set once. A
+                // correlated EXISTS here scans the 100k-row attackers table per killmail
+                // (~26s); this is ~20ms.
                 totalKills = await _db.Database.SqlQueryRaw<int>($"""
                     SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
                     FROM "KillMailDetails" d
                     WHERE d."KillMailTime" >= '{cutoffStr}'
                       AND d."VictimCharId" NOT IN ({charIdList})
-                      AND EXISTS (SELECT 1 FROM "KillMailAttackers" a
-                                  WHERE a."KillMailId" = d."KillMailId" AND a."CharacterId" IN ({charIdList}))
+                      AND d."KillMailId" IN (SELECT a."KillMailId" FROM "KillMailAttackers" a
+                                             WHERE a."CharacterId" IN ({charIdList}))
                     """).FirstAsync();
 #pragma warning restore EF1002
             }

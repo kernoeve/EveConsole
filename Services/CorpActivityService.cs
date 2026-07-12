@@ -1450,8 +1450,8 @@ public class CorpActivityService
             FROM "KillMailDetails" d
             WHERE d."KillMailTime" >= '{cutoff}'
               AND ( d."VictimCharId" IN ({idList})
-                 OR EXISTS ( SELECT 1 FROM "KillMailAttackers" a
-                             WHERE a."KillMailId" = d."KillMailId" AND a."CharacterId" IN ({idList}) ) )
+                 OR d."KillMailId" IN ( SELECT a."KillMailId" FROM "KillMailAttackers" a
+                                        WHERE a."CharacterId" IN ({idList}) ) )
             ORDER BY d."KillMailTime" DESC
             LIMIT 500
             """).ToListAsync(ct);
