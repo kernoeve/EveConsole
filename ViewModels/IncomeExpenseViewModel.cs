@@ -23,8 +23,6 @@ public class IncomeExpenseRowVm
     public IncomeExpenseRowVm(WalletCategory c) { Name = c.Name; Amount = MarketFmt.Isk((double)c.Amount); }
 }
 
-public record IncomeExpensePeriod(string Label, int Days) { public override string ToString() => Label; }
-
 // Income & Expense tool — income category totals on the left, expense on the right, plus a daily
 // line chart of total income, total expense, and running cashflow (net). Scoped to authenticated
 // characters and personal corporations, over the selected period.
@@ -40,18 +38,10 @@ public class IncomeExpenseViewModel : ReactiveObject
     private string _expenseTotal = "—"; public string ExpenseTotal { get => _expenseTotal; private set => this.RaiseAndSetIfChanged(ref _expenseTotal, value); }
     private string _netTotal = "—";     public string NetTotal     { get => _netTotal;     private set => this.RaiseAndSetIfChanged(ref _netTotal, value); }
 
-    public IReadOnlyList<IncomeExpensePeriod> Periods { get; } =
-    [
-        new("Last 30 Days",  30),
-        new("Last 90 Days",  90),
-        new("Last 365 Days", 365),
-    ];
-    private IncomeExpensePeriod _selectedPeriod;
-    public IncomeExpensePeriod SelectedPeriod
-    {
-        get => _selectedPeriod;
-        set { this.RaiseAndSetIfChanged(ref _selectedPeriod, value ?? Periods[1]); _ = LoadAsync(); }
-    }
+    // Days of history to show — driven by the Overview period dropdown (this VM is embedded as an
+    // Overview section; there is no local period control).
+    private int _days = 90;
+    public void SetPeriodDays(int days) { _days = Math.Max(1, days); _ = LoadAsync(); }
 
     private ISeries[] _series = [];
     public ISeries[] Series { get => _series; private set => this.RaiseAndSetIfChanged(ref _series, value); }
@@ -88,7 +78,6 @@ public class IncomeExpenseViewModel : ReactiveObject
     {
         _dbFactory      = dbFactory;
         _errorLogger    = errorLogger;
-        _selectedPeriod = Periods[1];
 
         Observable.Interval(TimeSpan.FromMinutes(5))
             .ObserveOn(RxApp.MainThreadScheduler)
@@ -111,7 +100,7 @@ public class IncomeExpenseViewModel : ReactiveObject
             var owners  = charIds.Select(id => ("character", (long)id))
                           .Concat(corpIds.Select(id => ("corporation", (long)id))).ToList();
 
-            var days      = _selectedPeriod.Days;
+            var days      = _days;
             var cutoff    = DateTimeOffset.UtcNow.AddDays(-days);
             var refTotals = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
             var dailyMap  = new Dictionary<string, (decimal Inc, decimal Exp)>();
@@ -158,7 +147,7 @@ public class IncomeExpenseViewModel : ReactiveObject
             NetTotal     = MarketFmt.Isk((double)(incomeTotal - expenseTotal));
 
             BuildChart(dailyMap, cutoff.UtcDateTime.Date);
-            StatusText = owners.Count == 0 ? "No characters." : $"{_selectedPeriod.Label}";
+            StatusText = owners.Count == 0 ? "No characters." : $"Last {days} day{(days == 1 ? "" : "s")}";
         }
         catch (Exception ex)
         {

@@ -324,7 +324,11 @@ public class OverviewViewModel : ReactiveObject
     // The Income & Expense tool VM, injected by MainWindowViewModel so it can be embedded as a
     // section. It keeps its own period selector.
     private IncomeExpenseViewModel? _incomeExpense;
-    public IncomeExpenseViewModel? IncomeExpense { get => _incomeExpense; set => this.RaiseAndSetIfChanged(ref _incomeExpense, value); }
+    public IncomeExpenseViewModel? IncomeExpense
+    {
+        get => _incomeExpense;
+        set { this.RaiseAndSetIfChanged(ref _incomeExpense, value); value?.SetPeriodDays(CurrentPeriodDays); }
+    }
 
     private int CurrentPeriodDays => Math.Max(1, SelectedPeriod.Hours / 24);
 
@@ -377,6 +381,7 @@ public class OverviewViewModel : ReactiveObject
                     _ = _prefs.SetLongAsync(PeriodPrefKey, p.Hours);
                 SaleListingBuild?.SetPeriodDays(CurrentPeriodDays);
                 SaleListingMarket?.SetPeriodDays(CurrentPeriodDays);
+                IncomeExpense?.SetPeriodDays(CurrentPeriodDays);
                 _ = LoadAsync();
             });
 
