@@ -231,6 +231,14 @@ public class EsiPollingService : ReactiveObject
         }));
     }
 
+    // Character endpoints that need a scope beyond the base set. A token authorized before the
+    // scope existed won't have it, so we skip the call instead of 401ing on it every cycle —
+    // the character must be re-added to grant the scope.
+    private static readonly Dictionary<string, string> s_charEndpointScopes = new()
+    {
+        ["char.roles"] = "esi-characters.read_corporation_roles.v1",
+    };
+
     private async Task ProcessCharacterAsync(Character character, DateTimeOffset now, CancellationToken ct)
     {
         var netWorthDirty = false;
@@ -238,6 +246,9 @@ public class EsiPollingService : ReactiveObject
         foreach (var ep in _characterEndpoints)
         {
             ct.ThrowIfCancellationRequested();
+
+            if (s_charEndpointScopes.TryGetValue(ep.Key, out var reqScope) && !character.HasScope(reqScope))
+                continue;
 
             var callKey = $"{ep.Key}:{character.Id}:character";
 
