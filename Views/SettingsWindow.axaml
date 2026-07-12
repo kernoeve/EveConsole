@@ -28,7 +28,7 @@
     </Style>
   </Window.Styles>
 
-  <TabControl Margin="8">
+  <TabControl x:Name="Tabs" Margin="8">
 
     <!-- ══ ESI Tokens ══════════════════════════════════════════════════════ -->
     <TabItem Header="ESI Tokens">

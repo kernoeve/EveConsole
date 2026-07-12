@@ -18,17 +18,29 @@
       <Setter Property="HorizontalAlignment" Value="Right" />
       <Setter Property="Margin" Value="0 0 8 0" />
     </Style>
+    <Style Selector="Button.link">
+      <Setter Property="Background"      Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding"         Value="0" />
+      <Setter Property="Cursor"          Value="Hand" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,*">
 
     <!-- Header -->
     <Border Grid.Row="0" Background="#0d0d12" Padding="10 6" BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
-      <Grid ColumnDefinitions="*,Auto">
+      <Grid ColumnDefinitions="Auto,*,Auto">
         <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b"
                    VerticalAlignment="Center" />
         <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="#888899"
-                   VerticalAlignment="Center" />
+                   VerticalAlignment="Center" Margin="12 0 12 0" />
+        <Button Grid.Column="2" Classes="link" Click="OnOpenSalesTracker" VerticalAlignment="Center">
+          <TextBlock Text="Sales Tracker →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+        </Button>
       </Grid>
     </Border>
 
@@ -49,7 +61,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Profit %" SortMemberPath="ProfitPctRaw" Width="100">
+        <DataGridTemplateColumn Header="Profit %" SortMemberPath="ProfitPctRaw" Width="50">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleListingRowVm">
               <TextBlock Text="{Binding ProfitPct}" Foreground="{Binding ProfitBrush}" FontSize="11"

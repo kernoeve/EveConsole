@@ -303,6 +303,8 @@ public class OverviewViewModel : ReactiveObject
     public Action<string>? NavigateToCharacterSkills               { get; set; }
     public Action?          NavigateToStandingProjects              { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
+    public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
+    public Action?          OpenAlertSettingsRequested              { get; set; }  // Settings ▸ Alerts
 
     // Shared Sale Listing tool VMs, injected by MainWindowViewModel, so the Overview can embed
     // those grids as sections without loading the data a second time.

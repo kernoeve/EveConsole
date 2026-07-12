@@ -263,6 +263,7 @@ public class MainWindowViewModel : ReactiveObject
             KillmailBrowserVm.SelectedCorp = KillmailBrowserViewModel.AllCorps;
             KillmailBrowserVm.SelectById(killMailId);
         };
+        OverviewVm.OpenToolRequested = OpenTool;
         TimerVm           = new TimerSettingsViewModel(pollingService, timerSettings);
         _pollingService   = pollingService;
         _buildCostService = buildCostService;
@@ -281,6 +282,8 @@ public class MainWindowViewModel : ReactiveObject
         SaleListingMarketVm    = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.MarketValue);
         OverviewVm.SaleListingBuild  = SaleListingBuildVm;   // let the Overview embed them as sections
         OverviewVm.SaleListingMarket = SaleListingMarketVm;
+        SaleListingBuildVm.OpenSalesTracker  = () => OpenTool("sales_tracker");
+        SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
         ProductionCalcVm.NavigateToItemAction = typeId =>

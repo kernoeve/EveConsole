@@ -286,6 +286,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 await dialog.ShowDialog(this);
             });
 
+        vm.OverviewVm.OpenAlertSettingsRequested = () => _ = OpenSettingsAsync(vm, "Alerts");
+
         _ = vm.OverviewVm.LoadAsync();
     }
 
@@ -361,7 +363,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             await OpenSettingsAsync(vm);
     }
 
-    private async Task OpenSettingsAsync(MainWindowViewModel vm)
+    private async Task OpenSettingsAsync(MainWindowViewModel vm, string? initialTab = null)
     {
         // If the Market VM loaded before the SDE finished importing (first run), its
         // region dropdowns are unresolved — reload now that the SDE data is available.
@@ -378,6 +380,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                                                vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
         var settingsWin = new SettingsWindow { DataContext = settingsVm };
         settingsWin.WireDatabase(dbVm, this);
+        if (initialTab is not null) settingsWin.SelectTab(initialTab);
         await settingsWin.ShowDialog(this);
     }
 

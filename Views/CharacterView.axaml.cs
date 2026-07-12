@@ -123,5 +123,14 @@ public partial class CharacterView : UserControl
             _vm.RequestOpenKillmail?.Invoke(row.KillMailId);
     }
 
+    private void OnOpenNotifications(object? sender, RoutedEventArgs e)
+        => _vm?.OpenToolRequested?.Invoke("notifications");
+
+    private void OnOpenKillmailsTool(object? sender, RoutedEventArgs e)
+        => _vm?.OpenToolRequested?.Invoke("killmails");
+
+    private void OnOpenAlertSettings(object? sender, RoutedEventArgs e)
+        => _vm?.OpenAlertSettingsRequested?.Invoke();
+
     private Window GetWindow() => (TopLevel.GetTopLevel(this) as Window)!;
 }

@@ -70,6 +70,9 @@ public class SaleListingViewModel : ReactiveObject
 
     public string Title { get; }
 
+    // Wired by MainWindowViewModel — opens the Sales Tracker tool from the header link.
+    public Action? OpenSalesTracker { get; set; }
+
     // ── Filters (same as Sales Tracker) ─────────────────────────────────────────
     public ObservableCollection<SalesOwnerOption> OwnerOptions { get; } =
     [

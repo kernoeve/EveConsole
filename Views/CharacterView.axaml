@@ -239,8 +239,13 @@
                   CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
 
-              <TextBlock Grid.Row="0" Text="Alerts" FontSize="13" FontWeight="SemiBold"
-                         Foreground="#c8a84b" Margin="0 0 0 8" />
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Alerts" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="newslink" Click="OnOpenAlertSettings" VerticalAlignment="Center">
+                  <TextBlock Text="Alert Settings →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                </Button>
+              </Grid>
 
               <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="8">
@@ -386,8 +391,13 @@
                   CornerRadius="4" Padding="14 12">
           <Grid RowDefinitions="Auto,*">
 
-            <TextBlock Grid.Row="0" Text="Recent Notifications" FontSize="13" FontWeight="SemiBold"
-                       Foreground="#c8a84b" Margin="0 0 0 8" />
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+              <TextBlock Text="Recent Notifications" FontSize="13" FontWeight="SemiBold"
+                         Foreground="#c8a84b" VerticalAlignment="Center" />
+              <Button Grid.Column="1" Classes="newslink" Click="OnOpenNotifications" VerticalAlignment="Center">
+                <TextBlock Text="Notifications →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+              </Button>
+            </Grid>
 
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
               <StackPanel Spacing="8">
@@ -445,8 +455,13 @@
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,Auto,*">
 
-              <TextBlock Grid.Row="0" Text="Personal Killmails" FontSize="13" FontWeight="SemiBold"
-                         Foreground="#c8a84b" Margin="0 0 0 8" />
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Personal Killmails" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="newslink" Click="OnOpenKillmailsTool" VerticalAlignment="Center">
+                  <TextBlock Text="Killmails →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                </Button>
+              </Grid>
 
               <!-- Kill / Loss counts + ISK -->
               <Grid Grid.Row="1" ColumnDefinitions="*,*" Margin="0 0 0 8">
