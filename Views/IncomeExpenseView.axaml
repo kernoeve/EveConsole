@@ -6,7 +6,7 @@
              x:DataType="vm:IncomeExpenseViewModel"
              Background="#0d0d12">
 
-  <Grid RowDefinitions="Auto,Auto,*" Margin="0">
+  <Grid RowDefinitions="Auto,*,*" Margin="0">
 
     <!-- Header -->
     <Border Grid.Row="0" Background="#0d0d12" Padding="12 8" BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
@@ -19,46 +19,50 @@
     </Border>
 
     <!-- Income (left) + Expenses (right) -->
-    <Grid Grid.Row="1" ColumnDefinitions="*,12,*" Margin="12 10">
+    <Grid Grid.Row="1" ColumnDefinitions="*,12,*" Margin="12 10 12 6">
 
       <Border Grid.Column="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
               CornerRadius="4" Padding="12 10">
-        <StackPanel Spacing="4">
-          <Grid ColumnDefinitions="*,Auto" Margin="0 0 0 4">
+        <Grid RowDefinitions="Auto,*">
+          <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 6">
             <TextBlock Text="INCOME" FontSize="10" FontWeight="SemiBold" Foreground="#888899" LetterSpacing="1" />
             <TextBlock Grid.Column="1" Text="{Binding IncomeTotal}" FontSize="13" FontWeight="Bold" Foreground="#70ad47" />
           </Grid>
-          <ItemsControl ItemsSource="{Binding IncomeRows}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="vm:IncomeExpenseRowVm">
-                <Grid ColumnDefinitions="*,Auto" Margin="0 2">
-                  <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#aaaacc" />
-                  <TextBlock Grid.Column="1" Text="{Binding Amount}" FontSize="12" Foreground="#ccccdd" />
-                </Grid>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </StackPanel>
+          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding IncomeRows}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:IncomeExpenseRowVm">
+                  <Grid ColumnDefinitions="*,Auto" Margin="0 2">
+                    <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#aaaacc" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Text="{Binding Amount}" FontSize="12" Foreground="#ccccdd" Margin="8 0 0 0" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Grid>
       </Border>
 
       <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
               CornerRadius="4" Padding="12 10">
-        <StackPanel Spacing="4">
-          <Grid ColumnDefinitions="*,Auto" Margin="0 0 0 4">
+        <Grid RowDefinitions="Auto,*">
+          <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 6">
             <TextBlock Text="EXPENSES" FontSize="10" FontWeight="SemiBold" Foreground="#888899" LetterSpacing="1" />
             <TextBlock Grid.Column="1" Text="{Binding ExpenseTotal}" FontSize="13" FontWeight="Bold" Foreground="#e05252" />
           </Grid>
-          <ItemsControl ItemsSource="{Binding ExpenseRows}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="vm:IncomeExpenseRowVm">
-                <Grid ColumnDefinitions="*,Auto" Margin="0 2">
-                  <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#aaaacc" />
-                  <TextBlock Grid.Column="1" Text="{Binding Amount}" FontSize="12" Foreground="#ccccdd" />
-                </Grid>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </StackPanel>
+          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding ExpenseRows}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:IncomeExpenseRowVm">
+                  <Grid ColumnDefinitions="*,Auto" Margin="0 2">
+                    <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#aaaacc" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Text="{Binding Amount}" FontSize="12" Foreground="#ccccdd" Margin="8 0 0 0" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Grid>
       </Border>
 
     </Grid>

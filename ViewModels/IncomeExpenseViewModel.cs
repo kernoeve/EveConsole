@@ -133,7 +133,7 @@ public class IncomeExpenseViewModel : ReactiveObject
                 }
             }
 
-            var cats = WalletCategorizer.Categorize(refTotals);
+            var cats = WalletCategorizer.CategorizeDetailed(refTotals);
             var inc  = cats.Where(c => c.IsIncome).ToList();
             var exp  = cats.Where(c => !c.IsIncome).ToList();
 
