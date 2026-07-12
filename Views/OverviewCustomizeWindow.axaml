@@ -34,18 +34,20 @@
                      Foreground="#888899" Margin="0 0 0 8" />
           <TextBlock DockPanel.Dock="Bottom" Text="Drag a section onto the grid to add it."
                      FontSize="10" Foreground="#556" TextWrapping="Wrap" Margin="0 8 0 0" />
-          <ItemsControl x:Name="Palette" ItemsSource="{Binding Sections}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="vm:OverviewSectionEditVm">
-                <Border IsVisible="{Binding !Enabled}"
-                        Background="#161622" BorderBrush="#2a2a3a" BorderThickness="1"
-                        CornerRadius="3" Padding="10 8" Margin="0 0 0 6"
-                        Cursor="Hand" PointerPressed="OnPalettePressed">
-                  <TextBlock Text="{Binding Title}" Foreground="#ccccdd" FontSize="12" />
-                </Border>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ItemsControl x:Name="Palette" ItemsSource="{Binding Sections}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:OverviewSectionEditVm">
+                  <Border IsVisible="{Binding !Enabled}"
+                          Background="#161622" BorderBrush="#2a2a3a" BorderThickness="1"
+                          CornerRadius="3" Padding="10 8" Margin="0 0 0 6"
+                          Cursor="Hand" PointerPressed="OnPalettePressed">
+                    <TextBlock Text="{Binding Title}" Foreground="#ccccdd" FontSize="12" />
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
         </DockPanel>
       </Border>
 
