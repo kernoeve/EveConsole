@@ -2,7 +2,7 @@
 
 A zKillboard-style browser for your corporations' kills and losses, with a filterable list and a full detail view for each killmail.
 
-Open it from the left sidebar under **Finance**.
+Open it from the left sidebar under **Corp / Interactions**.
 
 ## What it shows
 
