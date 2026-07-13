@@ -18,7 +18,8 @@ internal static class ProfitBrushes
 }
 
 // One sale on the Sales Tracker grid (a market transaction or a contract sale).
-public class SaleRowVm
+// ReactiveObject so the main grid's Profit columns refresh live when the cost basis changes.
+public class SaleRowVm : ReactiveObject
 {
     public DateTimeOffset When { get; }
     public long   WhenSort { get; }
@@ -92,6 +93,13 @@ public class SaleRowVm
         var pct = cost is double c2 && c2 != 0 ? (TotalRaw - c2) / c2 * 100 : (double?)null;
         ProfitPctRaw = pct ?? double.MinValue;
         ProfitPct    = pct is double pp ? $"{pp:N1}%" : "—";
+
+        // Notify so the main grid's Profit / Profit % cells (and their colour) update in place.
+        this.RaisePropertyChanged(nameof(Profit));
+        this.RaisePropertyChanged(nameof(ProfitRaw));
+        this.RaisePropertyChanged(nameof(ProfitPct));
+        this.RaisePropertyChanged(nameof(ProfitPctRaw));
+        this.RaisePropertyChanged(nameof(ProfitBrush));
     }
 }
 
