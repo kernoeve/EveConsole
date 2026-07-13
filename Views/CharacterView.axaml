@@ -345,22 +345,26 @@
                        FontSize="12" Foreground="#444455" FontStyle="Italic"
                        VerticalAlignment="Top" />
 
-            <!-- Virtualized so a long period (hundreds/thousands of notifications) stays cheap. -->
-            <ItemsControl IsVisible="{Binding HasNotifications}"
-                          ItemsSource="{Binding RecentNotifications}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <VirtualizingStackPanel />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.Template>
-                <ControlTemplate>
-                  <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <ItemsPresenter />
-                  </ScrollViewer>
-                </ControlTemplate>
-              </ItemsControl.Template>
-              <ItemsControl.ItemTemplate>
+            <!-- ListBox virtualizes by default (VirtualizingStackPanel), so a long period stays
+                 cheap; styled to read like a plain list with no selection chrome. -->
+            <ListBox IsVisible="{Binding HasNotifications}"
+                     ItemsSource="{Binding RecentNotifications}"
+                     Background="Transparent" BorderThickness="0" Padding="0"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+              <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                  <Setter Property="Padding" Value="0" />
+                  <Setter Property="Margin" Value="0" />
+                  <Setter Property="Background" Value="Transparent" />
+                </Style>
+                <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                  <Setter Property="Background" Value="Transparent" />
+                </Style>
+                <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                  <Setter Property="Background" Value="Transparent" />
+                </Style>
+              </ListBox.Styles>
+              <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:NotificationBoxVm">
                   <Border Background="#0e0e16" BorderBrush="#1e1e2a" BorderThickness="1"
                           CornerRadius="3" Padding="8 6" Margin="0 0 0 6">
@@ -394,8 +398,8 @@
                     </Grid>
                   </Border>
                 </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
+              </ListBox.ItemTemplate>
+            </ListBox>
 
             </Grid>
           </Grid>
