@@ -189,9 +189,13 @@ internal static class SalesQuery
             foreach (var kv in resolved)
             {
                 resolvedNames[kv.Key] = kv.Value;
-                db.UniverseNames.Add(new UniverseName { EntityId = kv.Key, Name = kv.Value, Category = "" });
+                // INSERT OR IGNORE: the Sales Tracker and Sale Listing tools (and their refresh
+                // timers) run SalesQuery concurrently, so two loads can resolve the same buyer at
+                // once — a plain Add + SaveChanges then races on the unique EntityId. This makes the
+                // shared-cache write idempotent and race-safe.
+                await db.Database.ExecuteSqlAsync(
+                    $"INSERT OR IGNORE INTO UniverseNames (EntityId, Name, Category) VALUES ({kv.Key}, {kv.Value}, '')");
             }
-            if (resolved.Count > 0) await db.SaveChangesAsync();
         }
         catch (Exception ex) { errorLogger.Log("SalesQuery", "ResolveBuyers", ex); }
 
