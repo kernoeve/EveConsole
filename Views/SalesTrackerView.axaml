@@ -54,6 +54,8 @@
           <ComboBox ItemsSource="{Binding OwnerOptions}" SelectedItem="{Binding SelectedOwner}" MinWidth="140" />
           <TextBlock Classes="fl" Text="Sale Type" Margin="8 0 0 0" />
           <ComboBox ItemsSource="{Binding SaleTypeOptions}" SelectedItem="{Binding SelectedType}" MinWidth="110" />
+          <TextBlock Classes="fl" Text="Profit based on" Margin="8 0 0 0" />
+          <ComboBox ItemsSource="{Binding ProfitBasisOptions}" SelectedItem="{Binding SelectedProfitBasis}" MinWidth="90" />
         </StackPanel>
       </StackPanel>
     </Border>

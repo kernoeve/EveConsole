@@ -35,8 +35,8 @@ public class SaleRowVm
     public string Total  { get; } public double TotalRaw  { get; }
     public string Build  { get; } public double BuildRaw  { get; }
     public string Market { get; } public double MarketRaw { get; }
-    public string Profit    { get; } public double ProfitRaw    { get; }
-    public string ProfitPct { get; } public double ProfitPctRaw { get; }
+    public string Profit    { get; private set; } = "—"; public double ProfitRaw    { get; private set; } = double.MinValue;
+    public string ProfitPct { get; private set; } = "—"; public double ProfitPctRaw { get; private set; } = double.MinValue;
 
     // Nullable cost bases (null when no snapshot was available) — used by the Sale Listing
     // tools to compute profit against build cost or market value.
@@ -48,7 +48,7 @@ public class SaleRowVm
     public int    TypeId      { get; }
     public string MarketGroup { get; }
 
-    // Green when the (build-based) profit is positive, red when negative, grey when unknown.
+    // Green when profit (for the active cost basis) is positive, red when negative, grey when unknown.
     public IBrush ProfitBrush => ProfitRaw == double.MinValue ? ProfitBrushes.Gray
                                : ProfitRaw >= 0 ? ProfitBrushes.Green : ProfitBrushes.Red;
 
@@ -77,11 +77,19 @@ public class SaleRowVm
         BuildOrNull  = build;
         MarketOrNull = market;
 
-        // Profit is measured against build cost (sale price − build cost).
-        var profit = build is double bc ? total - bc : (double?)null;
+        ApplyBasis(SaleCostBasis.BuildCost);   // default; Sales Tracker can switch to market value
+    }
+
+    // Recompute profit (sale price − cost basis) against build cost or market value. The Sales
+    // Tracker calls this when the "Profit based on" selection changes; the main grid reads Profit/
+    // ProfitPct/ProfitBrush and the rollups read ProfitRaw/ProfitPctRaw.
+    public void ApplyBasis(SaleCostBasis basis)
+    {
+        var cost   = basis == SaleCostBasis.BuildCost ? BuildOrNull : MarketOrNull;
+        var profit = cost is double c ? TotalRaw - c : (double?)null;
         ProfitRaw = profit ?? double.MinValue;
         Profit    = profit is double p ? MarketFmt.Isk(p) : "—";
-        var pct = build is double bc2 && bc2 != 0 ? (total - bc2) / bc2 * 100 : (double?)null;
+        var pct = cost is double c2 && c2 != 0 ? (TotalRaw - c2) / c2 * 100 : (double?)null;
         ProfitPctRaw = pct ?? double.MinValue;
         ProfitPct    = pct is double pp ? $"{pp:N1}%" : "—";
     }
@@ -165,6 +173,23 @@ public class SalesTrackerViewModel : ReactiveObject
     {
         get => _selectedType;
         set { this.RaiseAndSetIfChanged(ref _selectedType, value ?? SaleTypeOptions[0]); ApplyFilters(); }
+    }
+
+    // Cost basis the profit columns / rollups are measured against.
+    public IReadOnlyList<string> ProfitBasisOptions { get; } = ["Build", "Market"];
+    private string _selectedProfitBasis = "Build";
+    public string SelectedProfitBasis
+    {
+        get => _selectedProfitBasis;
+        set { this.RaiseAndSetIfChanged(ref _selectedProfitBasis, value ?? "Build"); ApplyProfitBasis(); }
+    }
+    private SaleCostBasis CurrentBasis =>
+        _selectedProfitBasis == "Market" ? SaleCostBasis.MarketValue : SaleCostBasis.BuildCost;
+
+    private void ApplyProfitBasis()
+    {
+        foreach (var r in _all) r.ApplyBasis(CurrentBasis);
+        ApplyFilters();
     }
 
     private string _dateFrom;
@@ -271,6 +296,7 @@ public class SalesTrackerViewModel : ReactiveObject
             BuildOwnerOptions(result.Chars, result.Corps);
             _all.Clear();
             _all.AddRange(result.Rows);
+            foreach (var r in _all) r.ApplyBasis(CurrentBasis);
             ApplyFilters();
         }
         catch (Exception ex)

@@ -362,8 +362,6 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("market_levels", "Market Levels"),
                 new NavItem("market_viewer", "Market Overview"),
                 new NavItem("sales_tracker", "Sales Tracker"),
-                new NavItem("sale_list_build",  "Sale Listing (Build)"),
-                new NavItem("sale_list_market", "Sale Listing (Market)"),
                 new NavItem("order_tracker", "Order Tracker"),
                 new NavItem("trade",         "Trade Opportunities"),
                 new NavItem("contracts",     "Contracts"),
