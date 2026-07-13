@@ -26,7 +26,7 @@ Before most tools are useful, configure a few things:
 
 Eve Cortex is organized into tools you open from the left sidebar, grouped by theme. Each tool below links to its own page with details on what it does and how to use it.
 
-### Character
+### General
 
 - **[Overview](tools/overview.md)** — the landing dashboard: at-a-glance alerts, recent notifications and killmails, and a customizable grid of summary panels.
 - **[Characters](tools/characters.md)** — an in-app character sheet (skills, attributes, and info) for your authorized characters, handy when you'd rather not log the character into the game.
@@ -58,6 +58,9 @@ Eve Cortex is organized into tools you open from the left sidebar, grouped by th
 - **[Net Worth](tools/net-worth.md)** — a running chart of your total value over time across wallets, assets, and jobs.
 - **[Income & Expense](tools/income-expense.md)** — a categorized breakdown of where your ISK comes from and goes over a chosen period.
 - **[Wallet](tools/wallet.md)** — wallet balances plus journal and transaction history for your characters and corp.
+
+### Corp / Interactions
+
 - **[Corp Activity](tools/corp-activity.md)** — corp-wide activity: ratting/industry/mining tax, donations, kills, projects, and Top 10 leaderboards, over 24h or monthly.
 - **[Killmails](tools/killmails.md)** — your and your corp's recent kills and losses, with values and details.
 
@@ -69,6 +72,7 @@ Eve Cortex is organized into tools you open from the left sidebar, grouped by th
 ### Tools
 
 - **[ESI Explorer](tools/esi-explorer.md)** — a power-user browser for the raw ESI data the app has synced into its local database: filter, sort, and page through the underlying tables.
+- **[Error Log](tools/error-log.md)** — a viewer for the app's own internal error log, filterable by date range — handy for troubleshooting and bug reports.
 
 ## Help
 

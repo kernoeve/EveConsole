@@ -2,7 +2,7 @@
 
 A corporation dashboard covering 24-hour and monthly activity, wallet income and expense, ratting/industry/mining taxes, donations, killmails, corp projects, and Top 10 leaderboards.
 
-Open it from the left sidebar under **Finance**.
+Open it from the left sidebar under **Corp / Interactions**.
 
 ## What it shows
 

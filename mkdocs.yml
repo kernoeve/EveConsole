@@ -60,7 +60,7 @@ nav:
       - Industry Parks: industry-parks.md
       - AI Agent (Eden): ai-agent-eden.md
   - Functionality:
-      - Character:
+      - General:
           - Overview: tools/overview.md
           - Characters: tools/characters.md
       - Assets:
@@ -82,10 +82,13 @@ nav:
           - Net Worth: tools/net-worth.md
           - Income & Expense: tools/income-expense.md
           - Wallet: tools/wallet.md
+      - Corp / Interactions:
           - Corp Activity: tools/corp-activity.md
           - Killmails: tools/killmails.md
       - Communication:
           - Eve Mail: tools/eve-mail.md
           - Notifications: tools/notifications.md
-      - ESI Explorer: tools/esi-explorer.md
+      - Tools:
+          - ESI Explorer: tools/esi-explorer.md
+          - Error Log: tools/error-log.md
   - FAQ & Troubleshooting: faq-and-troubleshooting.md

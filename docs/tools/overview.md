@@ -2,7 +2,7 @@
 
 The Overview is Eve Cortex's landing dashboard: a customizable grid of sections that summarizes activity, alerts, notifications, killmails, wallet income/expense and news across all of your authorized characters and personal corporations.
 
-Open it from the left sidebar under **Character**.
+Open it from the left sidebar under **General**.
 
 ## What it shows
 
