@@ -59,5 +59,33 @@ nav:
       - Configuring Markets: configuring-markets.md
       - Industry Parks: industry-parks.md
       - AI Agent (Eden): ai-agent-eden.md
-  - Tools Reference: tools-reference.md
+  - Functionality:
+      - Character:
+          - Overview: tools/overview.md
+          - Characters: tools/characters.md
+      - Assets:
+          - Assets: tools/assets.md
+          - Item Browser: tools/item-browser.md
+          - Inventory Levels: tools/inventory-levels.md
+      - Industry:
+          - Industry Jobs: tools/industry-jobs.md
+          - Production Calculator: tools/production-calculator.md
+          - Industry Opportunities: tools/industry-opportunities.md
+      - Market / Trade:
+          - Market Levels: tools/market-levels.md
+          - Market Overview: tools/market-overview.md
+          - Sales Tracker: tools/sales-tracker.md
+          - Order Tracker: tools/order-tracker.md
+          - Trade Opportunities: tools/trade-opportunities.md
+          - Contracts: tools/contracts.md
+      - Finance:
+          - Net Worth: tools/net-worth.md
+          - Income & Expense: tools/income-expense.md
+          - Wallet: tools/wallet.md
+          - Corp Activity: tools/corp-activity.md
+          - Killmails: tools/killmails.md
+      - Communication:
+          - Eve Mail: tools/eve-mail.md
+          - Notifications: tools/notifications.md
+      - ESI Explorer: tools/esi-explorer.md
   - FAQ & Troubleshooting: faq-and-troubleshooting.md

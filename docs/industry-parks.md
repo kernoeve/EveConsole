@@ -26,7 +26,7 @@ Open **Indy Parks** from the left sidebar under the **Industry** group.
   that doesn't belong with its category's default structure.
 
 Parks feed the system-wide **build cost** Eve Cortex calculates and stores for
-every craftable item, which in turn feeds the [Production Calculator](tools-reference.md)
+every craftable item, which in turn feeds the [Production Calculator](tools/production-calculator.md)
 and the build-cost floor in [market pricing](configuring-markets.md).
 
 > Changes save automatically as you type or pick from a dropdown — there's no
@@ -70,4 +70,4 @@ as new entries and never overwrite an existing one.
 ## Related
 
 - [Configuring Markets](configuring-markets.md)
-- [Tools Reference](tools-reference.md)
+- [Browse all tools](index.md)
