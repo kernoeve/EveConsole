@@ -339,7 +339,7 @@ public class MainWindowViewModel : ReactiveObject
 
         NavGroup[] groups =
         [
-            new("Character",
+            new("General",
             [
                 new NavItem("overview",    "Overview"),
                 new NavItem("characters",  "Characters"),
@@ -371,6 +371,9 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("net_worth",     "Net Worth"),
                 new NavItem("income_expense","Income & Expense"),
                 new NavItem("wallet",        "Wallet"),
+            ]),
+            new("Corp / Interactions",
+            [
                 new NavItem("corp_activity", "Corp Activity"),
                 new NavItem("killmails",     "Killmails"),
             ]),
