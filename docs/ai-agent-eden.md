@@ -80,4 +80,4 @@ All settings are on the **AI Agent** tab. Click **Save** at the bottom when done
 ## Related
 
 - [Getting Started](getting-started.md)
-- [Tools Reference](tools-reference.md)
+- [Browse all tools](index.md)

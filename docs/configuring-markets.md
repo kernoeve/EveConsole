@@ -110,4 +110,4 @@ industry setup.
 
 - [Industry Parks](industry-parks.md) — build costs feed the missing-price markup and
   lowball filter above.
-- [Tools Reference](tools-reference.md)
+- [Browse all tools](index.md)
