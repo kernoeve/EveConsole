@@ -1262,7 +1262,9 @@ public class CorpActivityViewModel : ReactiveObject
 
         var sb = new System.Text.StringBuilder();
 
-        void AppendList(string title, IEnumerable<CorpTopPlayerRowVm> rows)
+        // alwaysAmount forces the count column even in the no-ISK export — Kills has no ISK value,
+        // so its "amount" is the kill count and there is nothing meaningful to show as a percentage.
+        void AppendList(string title, IEnumerable<CorpTopPlayerRowVm> rows, bool alwaysAmount = false)
         {
             sb.AppendLine(title);
             sb.AppendLine(new string('=', Math.Max(title.Length, 32)));
@@ -1270,7 +1272,7 @@ public class CorpActivityViewModel : ReactiveObject
             {
                 var rank = $"{r.Rank,2}.";
                 var name = r.CharacterName.PadRight(28);
-                sb.AppendLine($"{rank}  {name}\t{(includeIsk ? r.AmountText : r.PercentText)}");
+                sb.AppendLine($"{rank}  {name}\t{(includeIsk || alwaysAmount ? r.AmountText : r.PercentText)}");
             }
             sb.AppendLine();
         }
@@ -1281,7 +1283,7 @@ public class CorpActivityViewModel : ReactiveObject
 
         AppendList("Ratting Tax",           TopRatters);
         AppendList("Mining — Reprocessed Value", TopMiners);
-        AppendList("Kills",                 TopKillers);
+        AppendList("Kills",                 TopKillers, alwaysAmount: true);
         AppendList("Project Contributors",  TopContributors);
         AppendList("Industry Tax",          TopIndustry);
 
