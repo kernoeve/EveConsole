@@ -98,6 +98,7 @@ public class EsiPollingService : ReactiveObject
         ["char.medals"]           = "Medals",
         ["char.standings"]        = "Standings",
         ["char.titles"]           = "Titles",
+        ["char.roles"]            = "Roles",
         ["char.fittings"]         = "Fittings",
         ["char.mail"]             = "Eve Mail",
         ["corp.wallet.balances"]  = "Wallet Balances",
@@ -230,6 +231,14 @@ public class EsiPollingService : ReactiveObject
         }));
     }
 
+    // Character endpoints that need a scope beyond the base set. A token authorized before the
+    // scope existed won't have it, so we skip the call instead of 401ing on it every cycle —
+    // the character must be re-added to grant the scope.
+    private static readonly Dictionary<string, string> s_charEndpointScopes = new()
+    {
+        ["char.roles"] = "esi-characters.read_corporation_roles.v1",
+    };
+
     private async Task ProcessCharacterAsync(Character character, DateTimeOffset now, CancellationToken ct)
     {
         var netWorthDirty = false;
@@ -237,6 +246,9 @@ public class EsiPollingService : ReactiveObject
         foreach (var ep in _characterEndpoints)
         {
             ct.ThrowIfCancellationRequested();
+
+            if (s_charEndpointScopes.TryGetValue(ep.Key, out var reqScope) && !character.HasScope(reqScope))
+                continue;
 
             var callKey = $"{ep.Key}:{character.Id}:character";
 
@@ -1316,6 +1328,8 @@ public class EsiPollingService : ReactiveObject
             $"characters/{charId}/roles/", ct);
         if (!r.IsSuccess) return FromResult(r);
 
+        var oldRoles = await db.EsiRoles.Where(rr => rr.CharacterId == charId)
+            .Select(rr => rr.Role).ToListAsync(ct);
         await db.EsiRoles.Where(rr => rr.CharacterId == charId).ExecuteDeleteAsync(ct);
 
         var roles = new List<CharacterRole>();
@@ -1326,6 +1340,16 @@ public class EsiPollingService : ReactiveObject
 
         db.EsiRoles.AddRange(roles);
         await db.SaveChangesAsync(ct);
+
+        // When a character's roles change, re-derive corp endpoint access for every corp that
+        // polls under this character's token — a lost role starts skipping, a gained one re-opens.
+        var newRoles = roles.Select(rr => rr.Role).ToHashSet();
+        if (!newRoles.SetEquals(oldRoles))
+        {
+            var denied = ComputeDeniedCorpEndpoints(newRoles);
+            await db.Corporations.Where(c => c.AuthCharacterId == charId)
+                .ExecuteUpdateAsync(s => s.SetProperty(c => c.DeniedEndpoints, denied), ct);
+        }
         return FromResult(r);
     }
 
@@ -1437,6 +1461,7 @@ public class EsiPollingService : ReactiveObject
         new("char.medals",          3600, 14400, FetchMedalsAsync),
         new("char.standings",       3600,  7200, FetchStandingsAsync),
         new("char.titles",          3600,  7200, FetchTitlesAsync),
+        new("char.roles",           3600,  7200, FetchRolesAsync),
         new("char.fittings",        300,   1800, FetchFittingsAsync),
         new("char.mail",            300,    600, FetchMailAsync),
     ];
@@ -1501,9 +1526,15 @@ public class EsiPollingService : ReactiveObject
     {
         var netWorthDirty = false;
 
+        // Endpoints the auth character has no role to poll — skipped so we stop hammering them.
+        var denied = ParseDenied(corp.DeniedEndpoints);
+
         foreach (var ep in _corpEndpoints)
         {
             ct.ThrowIfCancellationRequested();
+
+            if (denied.Contains(ep.Key))
+                continue;
 
             var callKey = $"{ep.Key}:{corp.Id}:corporation";
 
@@ -1547,6 +1578,16 @@ public class EsiPollingService : ReactiveObject
             if (!result.Success && result.StatusCode > 0)
                 _errorLogger.Log("EsiPollingService", $"{ep.Key}:{corp.Id}",
                     $"HTTP {result.StatusCode}", result.ErrorMessage);
+
+            // Self-heal: a role-denied 403 means the auth char can't reach this endpoint — record
+            // it so this and future cycles skip the call instead of re-tripping the same 403.
+            if (IsRoleDenied(result.StatusCode, result.ErrorMessage) && denied.Add(ep.Key))
+            {
+                corp.DeniedEndpoints = string.Join(',', denied.OrderBy(k => k, StringComparer.Ordinal));
+                var csv = corp.DeniedEndpoints;
+                await callDb.Corporations.Where(c => c.Id == corp.Id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(c => c.DeniedEndpoints, csv), ct);
+            }
 
             if (result.Success && s_netWorthCorpEndpoints.Contains(ep.Key))
                 netWorthDirty = true;
@@ -2802,4 +2843,57 @@ public class EsiPollingService : ReactiveObject
         new("corp.mining.extractions",   3600,  7200, FetchCorpMiningExtractionsAsync),
         new("corp.mining.observers",     3600,  7200, FetchCorpMiningObserversAndLedgerAsync),
     ];
+
+    // ── Corp endpoint role gating ────────────────────────────────────────────
+    // Which in-corp roles grant access to each corp endpoint. A Director can read everything,
+    // so Director is treated as a universal grant below. Endpoints absent from this map require
+    // no special role (any corp member can read them, e.g. contracts / contacts / members /
+    // standings / medals). This lets us skip endpoints the auth character can never poll
+    // instead of repeatedly eating 403 "Character does not have required role(s)" errors.
+    private static readonly Dictionary<string, string[]> s_corpEndpointRoles = new()
+    {
+        ["corp.wallet.balances"]    = ["Accountant", "Junior_Accountant"],
+        ["corp.divisions"]          = ["Accountant", "Junior_Accountant"],
+        ["corp.wallet.journal"]     = ["Accountant", "Junior_Accountant"],
+        ["corp.wallet.txns"]        = ["Accountant", "Junior_Accountant"],
+        ["corp.industry.jobs"]      = ["Factory_Manager"],
+        ["corp.orders.active"]      = ["Accountant", "Trader"],
+        ["corp.orders.history"]     = ["Accountant", "Trader"],
+        ["corp.assets"]             = ["Director"],
+        ["corp.blueprints"]         = ["Director"],
+        ["corp.killmails"]          = ["Director"],
+        ["corp.structures"]         = ["Station_Manager"],
+        ["corp.starbases"]          = ["Config_Starbase_Equipment_Roles"],
+        ["corp.facilities"]         = ["Factory_Manager"],
+        ["corp.roles"]              = ["Director", "Personnel_Manager"],
+        ["corp.titles"]             = ["Director"],
+        // corp.projects is readable without a special role (observed: a Personnel_Manager with no
+        // project role reads it fine), so it's intentionally NOT gated here — leaving it in the map
+        // would wrongly deny and permanently skip it. A genuine 403 still self-heals.
+        ["corp.mining.extractions"] = ["Station_Manager"],
+        ["corp.mining.observers"]   = ["Accountant"],
+    };
+
+    // Build the comma-separated list of corp endpoint keys the given roles cannot access.
+    // A Director (or an empty/unknown role set that still contains Director) can access all.
+    public static string ComputeDeniedCorpEndpoints(IEnumerable<string> roles)
+    {
+        var have = roles as HashSet<string> ?? new HashSet<string>(roles);
+        if (have.Contains("Director")) return "";
+
+        var denied = s_corpEndpointRoles
+            .Where(kv => kv.Value.Length > 0 && !kv.Value.Any(have.Contains))
+            .Select(kv => kv.Key)
+            .OrderBy(k => k, StringComparer.Ordinal);
+        return string.Join(',', denied);
+    }
+
+    private static HashSet<string> ParseDenied(string? csv) =>
+        string.IsNullOrEmpty(csv)
+            ? new HashSet<string>()
+            : new HashSet<string>(csv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
+    // A 403 that names a missing role — the endpoint is out of reach for this corp's auth char.
+    private static bool IsRoleDenied(int statusCode, string? error) =>
+        statusCode == 403 && error is not null && error.Contains("role", StringComparison.OrdinalIgnoreCase);
 }

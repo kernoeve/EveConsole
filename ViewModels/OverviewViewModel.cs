@@ -1,11 +1,16 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using Avalonia.Media.Imaging;
 using EveCortex.Api;
 using EveCortex.Data;
+using EveCortex.Models;
 using EveCortex.Services;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
@@ -128,18 +133,28 @@ public class AlertRowVm : ReactiveObject
 
     public ReactiveCommand<Unit, Unit>? NavigateCommand { get; init; }
     public bool IsClickable => NavigateCommand is not null;
+
+    // Alert-specific leading icon. When set (e.g. a character portrait for skill-queue
+    // alerts) it replaces the default warning glyph.
+    public Bitmap? Icon { get; init; }
+    public bool HasIcon => Icon is not null;
+    public bool NoIcon  => Icon is null;
 }
 
-// A recent notification rendered as a formatted box on the Overview.
+// A recent notification rendered in the in-game style: icon + one-liner + age,
+// with the full detail in a tooltip.
 public class NotificationBoxVm
 {
-    public string DateText   { get; init; } = "";
-    public string TypeLabel  { get; init; } = "";
-    public string Characters { get; init; } = "";
-    public string Sender     { get; init; } = "";
-    public string Body       { get; init; } = "";
-    public bool   IsUnread   { get; init; }
-    public string UnreadDot  => IsUnread ? "●" : "";
+    public string OneLiner    { get; init; } = "";
+    public string AgeText     { get; init; } = "";
+    public string TooltipText { get; init; } = "";
+    public bool   IsUnread    { get; init; }
+    public string UnreadDot   => IsUnread ? "●" : "";
+
+    public Bitmap? Icon          { get; init; }
+    public string  FallbackGlyph { get; init; } = "✉";
+    public bool HasIcon => Icon is not null;
+    public bool NoIcon  => Icon is null;
 }
 
 public class OverviewViewModel : ReactiveObject
@@ -223,6 +238,30 @@ public class OverviewViewModel : ReactiveObject
     public bool HasAlerts { get => _hasAlerts; private set => this.RaiseAndSetIfChanged(ref _hasAlerts, value); }
     public bool NoAlerts  => !HasAlerts;
 
+    // EVE image-server images (portraits, corp/alliance logos, type icons) used as alert
+    // and notification icons, cached by path across polls so each is fetched at most once.
+    private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(10) };
+    private readonly Dictionary<string, Bitmap> _imageCache = [];
+
+    // path is relative to https://images.evetech.net/ (e.g. "characters/123/portrait?size=64").
+    private async Task<Bitmap?> GetImageAsync(string path)
+    {
+        if (_imageCache.TryGetValue(path, out var cached))
+            return cached;
+        try
+        {
+            var bytes = await _http.GetByteArrayAsync($"https://images.evetech.net/{path}");
+            using var ms = new MemoryStream(bytes);
+            var bmp = new Bitmap(ms);
+            _imageCache[path] = bmp;
+            return bmp;
+        }
+        catch { return null; }   // icon is optional; retry on the next poll
+    }
+
+    private Task<Bitmap?> GetPortraitAsync(long characterId) =>
+        GetImageAsync($"characters/{characterId}/portrait?size=64");
+
     // ── News feed ─────────────────────────────────────────────────────────────
     public ObservableCollection<NewsItemVm> NewsItems { get; } = [];
 
@@ -237,6 +276,26 @@ public class OverviewViewModel : ReactiveObject
     public bool HasNotifications { get => _hasNotifications; private set => this.RaiseAndSetIfChanged(ref _hasNotifications, value); }
     public bool NoNotifications  => !HasNotifications;
 
+    // ── Personal killmails section ──────────────────────────────────────────────
+    public ObservableCollection<Activity24hKillRowVm> PersonalKills { get; } = [];
+
+    private bool _hasPersonalKills;
+    public bool HasPersonalKills { get => _hasPersonalKills; private set => this.RaiseAndSetIfChanged(ref _hasPersonalKills, value); }
+    public bool NoPersonalKills  => !HasPersonalKills;
+
+    private string _personalKillCount = "—"; public string PersonalKillCount { get => _personalKillCount; private set => this.RaiseAndSetIfChanged(ref _personalKillCount, value); }
+    private string _personalKillIsk   = "—"; public string PersonalKillIsk   { get => _personalKillIsk;   private set => this.RaiseAndSetIfChanged(ref _personalKillIsk,   value); }
+    private string _personalLossCount = "—"; public string PersonalLossCount { get => _personalLossCount; private set => this.RaiseAndSetIfChanged(ref _personalLossCount, value); }
+    private string _personalLossIsk   = "—"; public string PersonalLossIsk   { get => _personalLossIsk;   private set => this.RaiseAndSetIfChanged(ref _personalLossIsk,   value); }
+
+    private HashSet<int> _lastPersonalKillIds = [];
+
+    // ── Standing projects section ───────────────────────────────────────────────
+    public ObservableCollection<StandingProjectRowVm> StandingProjects { get; } = [];
+    private bool _hasStandingProjects;
+    public bool HasStandingProjects { get => _hasStandingProjects; private set => this.RaiseAndSetIfChanged(ref _hasStandingProjects, value); }
+    public bool NoStandingProjects  => !HasStandingProjects;
+
     // ── Loading state ─────────────────────────────────────────────────────────
     private bool _isLoading;
     public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
@@ -249,6 +308,54 @@ public class OverviewViewModel : ReactiveObject
     // relevant UI (character skills tab, corp activity standing projects tab).
     public Action<string>? NavigateToCharacterSkills               { get; set; }
     public Action?          NavigateToStandingProjects              { get; set; }
+    public Action<int>?     RequestOpenKillmail                     { get; set; }
+    public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
+    public Action?          OpenAlertSettingsRequested              { get; set; }  // Settings ▸ Alerts
+
+    // Shared Sale Listing tool VMs, injected by MainWindowViewModel, so the Overview can embed
+    // those grids as sections without loading the data a second time.
+    private SaleListingViewModel? _saleListingBuild;
+    public SaleListingViewModel? SaleListingBuild
+    {
+        get => _saleListingBuild;
+        set { this.RaiseAndSetIfChanged(ref _saleListingBuild, value); value?.SetPeriodDays(CurrentPeriodDays); }
+    }
+    private SaleListingViewModel? _saleListingMarket;
+    public SaleListingViewModel? SaleListingMarket
+    {
+        get => _saleListingMarket;
+        set { this.RaiseAndSetIfChanged(ref _saleListingMarket, value); value?.SetPeriodDays(CurrentPeriodDays); }
+    }
+
+    // The Income & Expense tool VM, injected by MainWindowViewModel so it can be embedded as a
+    // section. It keeps its own period selector.
+    private IncomeExpenseViewModel? _incomeExpense;
+    public IncomeExpenseViewModel? IncomeExpense
+    {
+        get => _incomeExpense;
+        set { this.RaiseAndSetIfChanged(ref _incomeExpense, value); value?.SetPeriodDays(CurrentPeriodDays); }
+    }
+
+    private int CurrentPeriodDays => Math.Max(1, SelectedPeriod.Hours / 24);
+
+    // ── Customizable section layout ─────────────────────────────────────────────
+    private const string LayoutPrefKey = "overview.layout";
+    private OverviewLayout _layout = OverviewLayout.Default();
+    public OverviewLayout Layout => _layout;
+
+    // Raised when the layout changes; the view rebuilds its section grid in response.
+    public event Action? LayoutChanged;
+
+    public async Task ApplyLayoutAsync(OverviewLayout layout)
+    {
+        _layout = layout;
+        if (_prefs is not null)
+            await _prefs.SetAsync(LayoutPrefKey, layout.ToJson());
+        LayoutChanged?.Invoke();
+        // A newly-added section (e.g. Personal Killmails) needs its data loaded now rather
+        // than waiting for the next refresh tick.
+        _ = LoadAsync();
+    }
 
     public OverviewViewModel(AppDbContext db, AlertSettingsViewModel alertSettings,
                              AppErrorLogger errorLogger, NewsService newsService,
@@ -264,6 +371,7 @@ public class OverviewViewModel : ReactiveObject
         _prefs          = prefs;
         _corpActivity   = corpActivity;
         _dbFactory      = dbFactory;
+        _layout         = OverviewLayout.FromJsonOrDefault(prefs?.Get(LayoutPrefKey));
         if (dbFactory is not null && esi is not null)
             _names = new ContractNameResolver(dbFactory, esi, errorLogger);
 
@@ -277,6 +385,9 @@ public class OverviewViewModel : ReactiveObject
             {
                 if (_prefs is not null)
                     _ = _prefs.SetLongAsync(PeriodPrefKey, p.Hours);
+                SaleListingBuild?.SetPeriodDays(CurrentPeriodDays);
+                SaleListingMarket?.SetPeriodDays(CurrentPeriodDays);
+                IncomeExpense?.SetPeriodDays(CurrentPeriodDays);
                 _ = LoadAsync();
             });
 
@@ -286,10 +397,27 @@ public class OverviewViewModel : ReactiveObject
             .Subscribe(n => _ = LoadAsync());
     }
 
+    private bool _loadPending;
+
     public async Task LoadAsync()
     {
-        if (IsLoading) return;
-        IsLoading  = true;
+        // If a load is already running, mark that another is needed and let the current run
+        // re-run when it finishes — so changing the period (or a refresh tick) always applies.
+        if (IsLoading) { _loadPending = true; return; }
+        IsLoading = true;
+        try
+        {
+            do
+            {
+                _loadPending = false;
+                await LoadCoreAsync();
+            } while (_loadPending);
+        }
+        finally { IsLoading = false; }
+    }
+
+    private async Task LoadCoreAsync()
+    {
         LoadStatus = "Querying scope...";
         try
         {
@@ -411,85 +539,45 @@ public class OverviewViewModel : ReactiveObject
                                     .ToString("N0");
 
             // ── Kill mails ─────────────────────────────────────────────────────
-            // Count kills/losses using raw SQL JOINs to:
-            //   a) verify victim or attacker is one of our authenticated characters
-            //   b) deduplicate kill mail IDs that appear in both character AND corp refs
+            // Losses = distinct killmails where one of our characters is the victim; kills =
+            // where one of our characters is an attacker but not the victim. KillMailDetails
+            // only exist for killmails we hold (from character OR corp refs), so two aggregate
+            // queries replace the old per-character/per-corp loop (much faster).
             LoadStatus = "Counting kills and losses...";
-            var countedKmIds = new HashSet<int>();
             int totalKills = 0, totalLosses = 0;
-
-            foreach (var charId in charIds)
+            if (charIds.Count > 0)
             {
-                // Losses: our character is the victim (from character refs)
-                var lossIds = await _db.Database.SqlQuery<KmIdRow>(
-                    $"""
-                    SELECT DISTINCT d."KillMailId"
+                var cutoffStr  = DateTimeOffset.UtcNow.AddHours(-SelectedPeriod.Hours)
+                    .UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+                var charIdList = string.Join(",", charIds);
+#pragma warning disable EF1002
+                totalLosses = await _db.Database.SqlQueryRaw<int>($"""
+                    SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
                     FROM "KillMailDetails" d
-                    JOIN "EsiKillMailRefs" r ON d."KillMailId" = r."KillMailId"
-                    WHERE r."OwnerType" = {"character"} AND r."OwnerId" = {charId}
-                      AND d."VictimCharId" = {charId}
-                      AND d."KillMailTime" >= {cutoff}
-                    """
-                ).ToListAsync();
-                foreach (var row in lossIds)
-                    if (countedKmIds.Add(row.KillMailId)) totalLosses++;
-
-                // Kills: our character appears in the attacker list (from character refs)
-                var killIds = await _db.Database.SqlQuery<KmIdRow>(
-                    $"""
-                    SELECT DISTINCT d."KillMailId"
+                    WHERE d."KillMailTime" >= '{cutoffStr}' AND d."VictimCharId" IN ({charIdList})
+                    """).FirstAsync();
+                // Non-correlated IN-subquery: computes the attacker killmail set once. A
+                // correlated EXISTS here scans the 100k-row attackers table per killmail
+                // (~26s); this is ~20ms.
+                totalKills = await _db.Database.SqlQueryRaw<int>($"""
+                    SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
                     FROM "KillMailDetails" d
-                    JOIN "EsiKillMailRefs" r ON d."KillMailId" = r."KillMailId"
-                    JOIN "KillMailAttackers" a ON a."KillMailId" = d."KillMailId"
-                    WHERE r."OwnerType" = {"character"} AND r."OwnerId" = {charId}
-                      AND a."CharacterId" = {charId}
-                      AND d."VictimCharId" != {charId}
-                      AND d."KillMailTime" >= {cutoff}
-                    """
-                ).ToListAsync();
-                foreach (var row in killIds)
-                    if (countedKmIds.Add(row.KillMailId)) totalKills++;
-            }
-
-            // Corp refs: pick up any kills/losses not already counted via character refs.
-            // Only count if one of our authenticated characters was the actual participant.
-            foreach (var corpId in corpIds)
-            {
-                foreach (var charId in charIds)
-                {
-                    // Corp-sourced losses where our character was the victim
-                    var corpLossIds = await _db.Database.SqlQuery<KmIdRow>(
-                        $"""
-                        SELECT DISTINCT d."KillMailId"
-                        FROM "KillMailDetails" d
-                        JOIN "EsiKillMailRefs" r ON d."KillMailId" = r."KillMailId"
-                        WHERE r."OwnerType" = {"corporation"} AND r."OwnerId" = {corpId}
-                          AND d."VictimCharId" = {charId}
-                          AND d."KillMailTime" >= {cutoff}
-                        """
-                    ).ToListAsync();
-                    foreach (var row in corpLossIds)
-                        if (countedKmIds.Add(row.KillMailId)) totalLosses++;
-
-                    // Corp-sourced kills where our character was an attacker
-                    var corpKillIds = await _db.Database.SqlQuery<KmIdRow>(
-                        $"""
-                        SELECT DISTINCT d."KillMailId"
-                        FROM "KillMailDetails" d
-                        JOIN "EsiKillMailRefs" r ON d."KillMailId" = r."KillMailId"
-                        JOIN "KillMailAttackers" a ON a."KillMailId" = d."KillMailId"
-                        WHERE r."OwnerType" = {"corporation"} AND r."OwnerId" = {corpId}
-                          AND a."CharacterId" = {charId}
-                          AND d."KillMailTime" >= {cutoff}
-                        """
-                    ).ToListAsync();
-                    foreach (var row in corpKillIds)
-                        if (countedKmIds.Add(row.KillMailId)) totalKills++;
-                }
+                    WHERE d."KillMailTime" >= '{cutoffStr}'
+                      AND d."VictimCharId" NOT IN ({charIdList})
+                      AND d."KillMailId" IN (SELECT a."KillMailId" FROM "KillMailAttackers" a
+                                             WHERE a."CharacterId" IN ({charIdList}))
+                    """).FirstAsync();
+#pragma warning restore EF1002
             }
 
             ShipKillCount = totalKills.ToString("N0");
             ShipLossCount = totalLosses.ToString("N0");
+
+            // ── Personal killmails section (bound to the same period) ───────────
+            await LoadPersonalKillsAsync(charIds, Math.Max(1, SelectedPeriod.Hours / 24));
+
+            // ── Standing projects section ───────────────────────────────────────
+            await LoadStandingProjectsAsync();
 
             // ── Wallet journal — pie chart categorisation ──────────────────────
             LoadStatus = "Loading journal data...";
@@ -514,52 +602,8 @@ public class OverviewViewModel : ReactiveObject
                 .GroupBy(g => g.RefType, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.Total), StringComparer.OrdinalIgnoreCase);
 
-            var bountyTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                { "bounty_prizes", "npc_bounty", "bounty_prize", "corporate_reward", "agent_bounty_prize" };
-            var contractIncTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                { "contract_reward", "contract_price", "contract_price_payment_corp",
-                  "contract_reward_refund", "contract_auction_sold" };
-            var knownExpenseTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                { "broker_fee", "brokers_fee", "transaction_tax",
-                  "industry_job_tax", "manufacturing_tax",
-                  "contract_deposit", "contract_sales_tax", "contract_deposit_sales_tax",
-                  "planetary_import_tax", "planetary_export_tax", "planetary_construction" };
-
-            decimal mktSell      = 0m, mktBuy       = 0m;
-            decimal npcBounty    = 0m, contractInc  = 0m, contractExp = 0m, otherIncome  = 0m;
-            decimal brokerFees   = 0m, txnTax       = 0m, indyTax     = 0m, otherExpense = 0m;
-
-            foreach (var (refType, total) in journalByType)
-            {
-                if (refType == "market_transaction")
-                {
-                    if (total > 0) mktSell += total;
-                    else           mktBuy  += Math.Abs(total);
-                }
-                else if (bountyTypes.Contains(refType))
-                    { if (total > 0) npcBounty += total; }
-                else if (contractIncTypes.Contains(refType))
-                {
-                    if (total > 0) contractInc += total;
-                    else           contractExp += Math.Abs(total);
-                }
-                else if (refType is "broker_fee" or "brokers_fee")
-                    brokerFees += Math.Abs(total);
-                else if (refType == "transaction_tax")
-                    txnTax += Math.Abs(total);
-                else if (refType is "industry_job_tax" or "manufacturing_tax")
-                    indyTax += Math.Abs(total);
-                else if (!knownExpenseTypes.Contains(refType))
-                {
-                    if (total > 0) otherIncome  += total;
-                    else           otherExpense  += Math.Abs(total);
-                }
-            }
-
             LoadStatus = "Building charts...";
-            BuildPieCharts(
-                mktSell, npcBounty, contractInc, otherIncome,
-                mktBuy, brokerFees, txnTax, indyTax, otherExpense, contractExp);
+            BuildPieCharts(WalletCategorizer.Categorize(journalByType));
 
             LoadStatus = "Evaluating alerts...";
             await EvaluateAlertsAsync(charIds);
@@ -581,13 +625,9 @@ public class OverviewViewModel : ReactiveObject
             _errorLogger.Log("OverviewViewModel", "LoadAsync", ex);
             LoadStatus = $"Error: {ex.Message}";
         }
-        finally
-        {
-            IsLoading = false;
-        }
     }
 
-    // ── Recent notifications (last 25, one per NotificationId) ────────────────────
+    // ── Notifications (one per NotificationId, within the selected period) ─────────
     private async Task LoadNotificationsAsync()
     {
         if (_names is null || _dbFactory is null) return;   // not wired for name resolution/formatting
@@ -595,11 +635,21 @@ public class OverviewViewModel : ReactiveObject
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
 
+            // Honour the Overview period dropdown. EF converts the DateTimeOffset parameter to the
+            // stored text format, so this comparison matches the way Timestamp is persisted.
+            object cutoff = DateTimeOffset.UtcNow.AddDays(-CurrentPeriodDays);
+
+            // The period is the real bound; LIMIT is only a safety backstop set well above the
+            // notification volume of a normal period, so it doesn't clip the selected window
+            // (previously LIMIT 200 clipped a 30-day view to ~8-9 days for busy corps). It still
+            // caps a pathological volume, since the list isn't virtualized and every loaded row is
+            // formatted on each refresh.
 #pragma warning disable EF1002
             var rows = await db.EsiNotifications.FromSqlRaw(
                     "SELECT MIN(CharacterId) AS CharacterId, NotificationId, Type, SenderId, SenderType, " +
                     "Timestamp, MIN(IsRead) AS IsRead, Text FROM EsiNotifications " +
-                    "GROUP BY NotificationId ORDER BY Timestamp DESC LIMIT 25")
+                    "WHERE Timestamp >= {0} " +
+                    "GROUP BY NotificationId ORDER BY Timestamp DESC LIMIT 1000", cutoff)
                 .AsNoTracking().ToListAsync();
 
             var ids = rows.Select(r => r.NotificationId).ToList();
@@ -614,12 +664,35 @@ public class OverviewViewModel : ReactiveObject
             var recipientsByNotif = recipients.GroupBy(x => x.NotificationId)
                 .ToDictionary(g => g.Key, g => g.Select(x => x.CharacterId).Distinct().ToList());
 
-            var names = await _names.ResolveAsync(
-                rows.Select(r => r.SenderId).Concat(recipients.Select(x => x.CharacterId)));
+            // Parse each notification's fields once, up front.
+            var parsed = rows.ToDictionary(r => r.NotificationId, r => NotificationSummary.Parse(r.Text));
+
+            // Resolve every entity (sender, recipients, and per-notification fields) in one batch.
+            var entityIds = new HashSet<long>();
+            foreach (var r in rows) if (r.SenderId > 0) entityIds.Add(r.SenderId);
+            foreach (var (_, cid) in recipients) entityIds.Add(cid);
+            foreach (var f in parsed.Values)
+                foreach (var id in NotificationSummary.EntityIds(f)) entityIds.Add(id);
+
+            var names = await _names.ResolveAsync(entityIds);
+
+            // Resolve structure names for one-liners (structure life-cycle / ownership notifications).
+            var structIds = parsed.Values
+                .Where(f => f.StructureId.HasValue).Select(f => f.StructureId!.Value).Distinct().ToList();
+            var structNames = structIds.Count == 0
+                ? new Dictionary<long, string>()
+                : await db.EsiStructureNames.AsNoTracking()
+                    .Where(s => structIds.Contains(s.StructureId))
+                    .ToDictionaryAsync(s => s.StructureId, s => s.Name);
 
             var boxes = new List<NotificationBoxVm>(rows.Count);
             foreach (var r in rows)
             {
+                var f        = parsed[r.NotificationId];
+                var oneLiner = NotificationSummary.OneLiner(r.Type, f, names, structNames);
+                var (iconPath, glyph) = NotificationSummary.Icon(r.Type, r.SenderId, r.SenderType, f);
+                var icon     = iconPath is null ? null : await GetImageAsync(iconPath);
+
                 var chars = recipientsByNotif.TryGetValue(r.NotificationId, out var cids)
                     ? string.Join(", ", cids.Select(id => names.TryGetValue(id, out var cn) && cn.Length > 0 ? cn : $"ID {id}").OrderBy(s => s))
                     : "";
@@ -627,14 +700,22 @@ public class OverviewViewModel : ReactiveObject
                     ? (names.TryGetValue(r.SenderId, out var sn) && sn.Length > 0 ? sn : $"ID {r.SenderId}")
                     : "—";
                 var body = await NotificationFormatter.FormatAsync(r.Text, _names, _dbFactory);
+
+                var tip = new StringBuilder();
+                tip.Append(NotificationFormatter.Humanize(r.Type)).Append('\n');
+                tip.Append(r.Timestamp.ToLocalTime().ToString("MMM d, yyyy HH:mm"));
+                if (chars.Length > 0) tip.Append("\nTo: ").Append(chars);
+                if (sender != "—")    tip.Append("\nFrom: ").Append(sender);
+                if (body.Length > 0)  tip.Append("\n\n").Append(body);
+
                 boxes.Add(new NotificationBoxVm
                 {
-                    DateText   = r.Timestamp.ToLocalTime().ToString("MMM d, HH:mm"),
-                    TypeLabel  = NotificationFormatter.Humanize(r.Type),
-                    Characters = chars,
-                    Sender     = sender,
-                    Body       = body,
-                    IsUnread   = !r.IsRead,
+                    OneLiner      = oneLiner,
+                    AgeText       = NotificationSummary.Age(r.Timestamp),
+                    TooltipText   = tip.ToString(),
+                    IsUnread      = !r.IsRead,
+                    Icon          = icon,
+                    FallbackGlyph = glyph,
                 });
             }
 
@@ -644,6 +725,82 @@ public class OverviewViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(NoNotifications));
         }
         catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadNotifications", ex); }
+    }
+
+    // ── Personal killmails ────────────────────────────────────────────────────
+    private async Task LoadPersonalKillsAsync(List<long> charIds, int days)
+    {
+        // Skip the (heavier) listing query entirely unless the section is on the grid.
+        bool sectionEnabled = _layout.Sections.Any(s => s.Key == "PersonalKillmails" && s.Enabled);
+        if (!sectionEnabled || _corpActivity is null || charIds.Count == 0)
+        {
+            _lastPersonalKillIds = [];
+            PersonalKills.Clear();
+            HasPersonalKills = false;
+            this.RaisePropertyChanged(nameof(NoPersonalKills));
+            PersonalKillCount = PersonalLossCount = "0";
+            PersonalKillIsk = PersonalLossIsk = CorpActivityViewModel.FormatIskStatic(0m);
+            return;
+        }
+
+        List<CorpActivityService.Activity24hKillRow> rows;
+        try { rows = await _corpActivity.GetPersonalKillsForPeriodAsync(charIds, days); }
+        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadPersonalKills", ex); return; }
+
+        int kills  = rows.Count(r => !r.IsLoss);
+        int losses = rows.Count(r => r.IsLoss);
+        PersonalKillCount = kills.ToString("N0");
+        PersonalLossCount = losses.ToString("N0");
+        PersonalKillIsk   = CorpActivityViewModel.FormatIskStatic(rows.Where(r => !r.IsLoss).Sum(r => r.IskValue));
+        PersonalLossIsk   = CorpActivityViewModel.FormatIskStatic(rows.Where(r => r.IsLoss).Sum(r => r.IskValue));
+
+        // If the set of killmails is unchanged since the last refresh, keep the existing rows
+        // (and their already-loaded images) instead of rebuilding + re-downloading every 60s.
+        var ids = rows.Select(r => r.KillMailId).ToHashSet();
+        if (ids.SetEquals(_lastPersonalKillIds))
+        {
+            HasPersonalKills = rows.Count > 0;
+            this.RaisePropertyChanged(nameof(NoPersonalKills));
+            return;
+        }
+        _lastPersonalKillIds = ids;
+
+        PersonalKills.Clear();
+        foreach (var r in rows) PersonalKills.Add(new Activity24hKillRowVm(r));
+        HasPersonalKills = PersonalKills.Count > 0;
+        this.RaisePropertyChanged(nameof(NoPersonalKills));
+        _ = Task.WhenAll(PersonalKills.Select(k => k.LoadImagesAsync()));
+    }
+
+    // ── Standing projects ─────────────────────────────────────────────────────
+    private async Task LoadStandingProjectsAsync()
+    {
+        bool enabled = _corpActivity is not null
+                    && _layout.Sections.Any(s => s.Key == "StandingProjects" && s.Enabled);
+        if (!enabled)
+        {
+            StandingProjects.Clear();
+            HasStandingProjects = false;
+            this.RaisePropertyChanged(nameof(NoStandingProjects));
+            return;
+        }
+
+        try
+        {
+            var corpIds = await _db.CorpStandingProjects.AsNoTracking()
+                .Select(sp => sp.CorporationId).Distinct().ToListAsync();
+
+            var rows = new List<StandingProjectGridRow>();
+            foreach (var corpId in corpIds)
+                rows.AddRange(await _corpActivity!.BuildMaintainGridRowsAsync(corpId));
+
+            StandingProjects.Clear();
+            foreach (var r in rows)
+                StandingProjects.Add(new StandingProjectRowVm(r, _ => { }, _ => { }));
+            HasStandingProjects = StandingProjects.Count > 0;
+            this.RaisePropertyChanged(nameof(NoStandingProjects));
+        }
+        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadStandingProjects", ex); }
     }
 
     // ── DTOs for raw SQL results ──────────────────────────────────────────────
@@ -662,49 +819,34 @@ public class OverviewViewModel : ReactiveObject
         public double TotalAmount { get; set; }
     }
 
-    private sealed class KmIdRow { public int KillMailId { get; set; } }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private void BuildPieCharts(
-        decimal mktSell,   decimal npcBounty,  decimal contractInc, decimal otherIncome,
-        decimal mktBuy,    decimal brokerFee,  decimal txnTax,      decimal indyTax,
-        decimal otherExpense, decimal contractExp)
+    private void BuildPieCharts(List<WalletCategory> cats)
     {
-        static ISeries Slice(string name, decimal value, SKColor color) =>
+        static ISeries Slice(WalletCategory c) =>
             new PieSeries<double>
             {
-                Name                  = name,
-                Values                = [(double)value],
-                Fill                  = new SolidColorPaint(color),
+                Name                  = c.Name,
+                Values                = [(double)c.Amount],
+                Fill                  = new SolidColorPaint(c.Color),
                 Stroke                = null,
                 DataLabelsPaint       = null,
                 AnimationsSpeed       = TimeSpan.Zero,
                 EasingFunction        = null,
-                ToolTipLabelFormatter = cp => $"{name}: {FormatIsk((decimal)cp.Coordinate.PrimaryValue)}",
+                ToolTipLabelFormatter = cp => $"{c.Name}: {FormatIsk((decimal)cp.Coordinate.PrimaryValue)}",
             };
 
-        var incSlices = new List<ISeries>();
-        if (mktSell     > 0) incSlices.Add(Slice("Market Sales",    mktSell,     new SKColor(200, 168,  75)));
-        if (npcBounty   > 0) incSlices.Add(Slice("NPC Bounties",    npcBounty,   new SKColor(110, 190, 100)));
-        if (contractInc > 0) incSlices.Add(Slice("Contract Sales",  contractInc, new SKColor( 91, 155, 213)));
-        if (otherIncome > 0) incSlices.Add(Slice("Other Income",    otherIncome, new SKColor(155, 120, 200)));
+        var inc = cats.Where(c => c.IsIncome).ToList();
+        var exp = cats.Where(c => !c.IsIncome).ToList();
 
-        var expSlices = new List<ISeries>();
-        if (mktBuy       > 0) expSlices.Add(Slice("Market Purchases",   mktBuy,       new SKColor(200,  90,  90)));
-        if (contractExp  > 0) expSlices.Add(Slice("Contract Purchases", contractExp,  new SKColor(200, 120, 160)));
-        if (brokerFee    > 0) expSlices.Add(Slice("Broker Fees",        brokerFee,    new SKColor(220, 150,  60)));
-        if (txnTax       > 0) expSlices.Add(Slice("Transaction Tax",    txnTax,       new SKColor(180, 180,  60)));
-        if (indyTax      > 0) expSlices.Add(Slice("Industry Tax",       indyTax,      new SKColor(100, 170, 200)));
-        if (otherExpense > 0) expSlices.Add(Slice("Other Expenses",     otherExpense, new SKColor(160, 100, 120)));
+        IncomeSeries   = inc.Select(Slice).ToArray();
+        ExpenseSeries  = exp.Select(Slice).ToArray();
+        HasIncomeData  = inc.Count > 0;
+        HasExpenseData = exp.Count > 0;
 
-        IncomeSeries   = [.. incSlices];
-        ExpenseSeries  = [.. expSlices];
-        HasIncomeData  = incSlices.Count > 0;
-        HasExpenseData = expSlices.Count > 0;
-
-        var incomeTotal  = mktSell + npcBounty + contractInc + otherIncome;
-        var expenseTotal = mktBuy  + contractExp + brokerFee + txnTax + indyTax + otherExpense;
+        var incomeTotal  = inc.Sum(c => c.Amount);
+        var expenseTotal = exp.Sum(c => c.Amount);
         IncomeTotalText  = incomeTotal  > 0 ? FormatIsk(incomeTotal)  : "";
         ExpenseTotalText = expenseTotal > 0 ? FormatIsk(expenseTotal) : "";
     }
@@ -745,7 +887,8 @@ public class OverviewViewModel : ReactiveObject
                     newAlerts.Add(new AlertRowVm
                     {
                         Message = $"{ch.Name}: Skill queue is empty.",
-                        NavigateCommand = skillsNavCommand
+                        NavigateCommand = skillsNavCommand,
+                        Icon = await GetPortraitAsync(ch.Id)
                     });
                     continue;
                 }
@@ -757,7 +900,8 @@ public class OverviewViewModel : ReactiveObject
                         newAlerts.Add(new AlertRowVm
                         {
                             Message = $"{ch.Name}: Skill queue is paused.",
-                            NavigateCommand = skillsNavCommand
+                            NavigateCommand = skillsNavCommand,
+                            Icon = await GetPortraitAsync(ch.Id)
                         });
                 }
 
@@ -778,7 +922,8 @@ public class OverviewViewModel : ReactiveObject
                         newAlerts.Add(new AlertRowVm
                         {
                             Message = $"{ch.Name}: Skill queue ends in {when} (within {warnDays}-day threshold).",
-                            NavigateCommand = skillsNavCommand
+                            NavigateCommand = skillsNavCommand,
+                            Icon = await GetPortraitAsync(ch.Id)
                         });
                     }
                 }

@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             xmlns:views="clr-namespace:EveCortex.Views"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveCortex.Views.CharacterView"
              x:DataType="vm:OverviewViewModel"
@@ -26,7 +27,7 @@
     <!-- ── Toolbar ──────────────────────────────────────────────────────── -->
     <Border Grid.Row="0" Background="#12121a" Padding="14 10"
             BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
-      <Grid ColumnDefinitions="Auto,Auto,*">
+      <Grid ColumnDefinitions="Auto,Auto,*,Auto">
 
         <TextBlock Grid.Column="0" Text="Period:" FontSize="12"
                    Foreground="#888899" VerticalAlignment="Center"
@@ -48,18 +49,27 @@
                      IsVisible="{Binding HasLoadError}"
                      FontSize="11" Foreground="#e07070" />
         </StackPanel>
+
+        <Button Grid.Column="3" Content="⚙ Customize Layout"
+                Click="OnCustomizeClick"
+                FontSize="11" Padding="10 4" VerticalAlignment="Center"
+                Background="#1a1a28" Foreground="#c8a84b"
+                BorderBrush="#2a2a3a" BorderThickness="1" />
       </Grid>
     </Border>
 
-    <!-- ── Main scroll area ─────────────────────────────────────────────── -->
-    <Grid Grid.Row="1" RowDefinitions="Auto,*" Margin="14 12">
+    <!-- ── Dynamic section layout ────────────────────────────────────────────
+         Sections live off-stage in SectionStore and are placed into LayoutHost at
+         runtime from the saved OverviewLayout (see CharacterView.axaml.cs). -->
+    <Grid x:Name="LayoutHost" Grid.Row="1" Margin="8" />
 
-      <!-- Top: summary + charts (natural height) -->
-      <StackPanel Grid.Row="0" Spacing="12">
+    <Panel x:Name="SectionStore" Grid.Row="1" IsVisible="False">
 
         <!-- ════ Activity Summary ════════════════════════════════════════ -->
-        <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+        <Border x:Name="SectionActivitySummary"
+                Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                 CornerRadius="4" Padding="14 12">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
           <StackPanel Spacing="12">
 
             <TextBlock Text="Activity Summary" FontSize="13" FontWeight="SemiBold"
@@ -159,82 +169,22 @@
 
             </Grid>
 
-            <!-- Pie charts row -->
-            <Grid ColumnDefinitions="*,16,*" Margin="0 8 0 0">
-
-              <!-- Income pie -->
-              <Border Grid.Column="0" Background="#0d0d12" CornerRadius="3"
-                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
-                <StackPanel Spacing="6">
-                  <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Text="Income" FontSize="11" FontWeight="SemiBold"
-                               Foreground="#555566" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1"
-                               Text="{Binding IncomeTotalText}"
-                               FontSize="11" FontWeight="SemiBold"
-                               Foreground="#c8a84b" VerticalAlignment="Center" />
-                  </Grid>
-                  <lvc:PieChart x:Name="IncomeChart"
-                                IsVisible="{Binding HasIncomeData}"
-                                Series="{Binding IncomeSeries}"
-                                Height="200"
-                                LegendPosition="Right"
-                                LegendTextSize="10"
-                                Background="Transparent" />
-                  <TextBlock IsVisible="{Binding !HasIncomeData}"
-                             Text="No income data for this period."
-                             FontSize="11" Foreground="#444455"
-                             HorizontalAlignment="Center"
-                             VerticalAlignment="Center"
-                             Margin="0 60" />
-                </StackPanel>
-              </Border>
-
-              <!-- Expenses pie -->
-              <Border Grid.Column="2" Background="#0d0d12" CornerRadius="3"
-                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
-                <StackPanel Spacing="6">
-                  <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Text="Expenses" FontSize="11" FontWeight="SemiBold"
-                               Foreground="#555566" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1"
-                               Text="{Binding ExpenseTotalText}"
-                               FontSize="11" FontWeight="SemiBold"
-                               Foreground="#c8a84b" VerticalAlignment="Center" />
-                  </Grid>
-                  <lvc:PieChart x:Name="ExpenseChart"
-                                IsVisible="{Binding HasExpenseData}"
-                                Series="{Binding ExpenseSeries}"
-                                Height="200"
-                                LegendPosition="Right"
-                                LegendTextSize="10"
-                                Background="Transparent" />
-                  <TextBlock IsVisible="{Binding !HasExpenseData}"
-                             Text="No expense data for this period."
-                             FontSize="11" Foreground="#444455"
-                             HorizontalAlignment="Center"
-                             VerticalAlignment="Center"
-                             Margin="0 60" />
-                </StackPanel>
-              </Border>
-
-            </Grid>
-
           </StackPanel>
+          </ScrollViewer>
         </Border>
 
-      </StackPanel>
-
-      <!-- ════ Alerts | Notifications | Eve News (fill remaining height, each scrolls) ══ -->
-      <Grid Grid.Row="1" ColumnDefinitions="*,12,*,12,*" Margin="0 4 0 0">
-
-          <!-- Alerts -->
-          <Border Grid.Column="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <!-- ════ Alerts ═══════════════════════════════════════════════ -->
+          <Border x:Name="SectionAlerts" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
 
-              <TextBlock Grid.Row="0" Text="Alerts" FontSize="13" FontWeight="SemiBold"
-                         Foreground="#c8a84b" Margin="0 0 0 8" />
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Alerts" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="newslink" Click="OnOpenAlertSettings" VerticalAlignment="Center">
+                  <TextBlock Text="Alert Settings →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                </Button>
+              </Grid>
 
               <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="8">
@@ -250,10 +200,20 @@
                   <DataTemplate x:DataType="vm:AlertRowVm">
                     <Border Background="#1a1208" BorderBrush="#3a2c10"
                             BorderThickness="1" CornerRadius="3"
-                            Padding="10 6" Margin="0 2">
+                            Padding="8 6" Margin="0 2">
                       <Grid ColumnDefinitions="Auto,*,Auto">
-                        <TextBlock Grid.Column="0" Text="⚠" FontSize="13" Foreground="#c8a84b"
-                                   VerticalAlignment="Center" Margin="0 0 8 0" />
+                        <!-- Leading icon: alert-specific (e.g. character portrait) or the default warning glyph -->
+                        <Panel Grid.Column="0" Width="32" Height="32"
+                               VerticalAlignment="Center" Margin="0 0 8 0">
+                          <TextBlock Text="⚠" FontSize="16" Foreground="#c8a84b"
+                                     IsVisible="{Binding NoIcon}"
+                                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+                          <Border IsVisible="{Binding HasIcon}"
+                                  Width="32" Height="32" CornerRadius="16" ClipToBounds="True">
+                            <Image Source="{Binding Icon}" Width="32" Height="32"
+                                   Stretch="UniformToFill" />
+                          </Border>
+                        </Panel>
                         <TextBlock Grid.Column="1" Text="{Binding Message}"
                                    IsVisible="{Binding !IsClickable}"
                                    FontSize="12" Foreground="#ddccaa"
@@ -290,7 +250,7 @@
           </Border>
 
           <!-- Eve News Feed -->
-          <Border Grid.Column="4" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <Border x:Name="SectionNews" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
 
@@ -309,7 +269,8 @@
                             ItemsSource="{Binding NewsItems}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:NewsItemVm">
-                    <Border BorderBrush="#1e1e2a" BorderThickness="0 0 0 1" Padding="0 8">
+                    <Border Background="#0e0e16" BorderBrush="#1e1e2a" BorderThickness="1"
+                            CornerRadius="3" Padding="8 6" Margin="0 2">
                       <StackPanel Spacing="4">
 
                         <!-- Title row: clickable link + date -->
@@ -364,61 +325,349 @@
             </Grid>
           </Border>
 
-          <!-- Recent Notifications (middle column) -->
-          <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <!-- Recent Notifications -->
+          <Border x:Name="SectionNotifications" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
           <Grid RowDefinitions="Auto,*">
 
-            <TextBlock Grid.Row="0" Text="Recent Notifications" FontSize="13" FontWeight="SemiBold"
-                       Foreground="#c8a84b" Margin="0 0 0 8" />
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+              <TextBlock Text="Notifications" FontSize="13" FontWeight="SemiBold"
+                         Foreground="#c8a84b" VerticalAlignment="Center" />
+              <Button Grid.Column="1" Classes="newslink" Click="OnOpenNotifications" VerticalAlignment="Center">
+                <TextBlock Text="Notifications →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+              </Button>
+            </Grid>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-              <StackPanel Spacing="8">
+            <Grid Grid.Row="1">
 
             <TextBlock IsVisible="{Binding NoNotifications}"
                        Text="No recent notifications."
-                       FontSize="12" Foreground="#444455" FontStyle="Italic" />
+                       FontSize="12" Foreground="#444455" FontStyle="Italic"
+                       VerticalAlignment="Top" />
 
-            <ItemsControl IsVisible="{Binding HasNotifications}"
-                          ItemsSource="{Binding RecentNotifications}">
-              <ItemsControl.ItemTemplate>
+            <!-- ListBox virtualizes by default (VirtualizingStackPanel), so a long period stays
+                 cheap; styled to read like a plain list with no selection chrome. -->
+            <ListBox IsVisible="{Binding HasNotifications}"
+                     ItemsSource="{Binding RecentNotifications}"
+                     Background="Transparent" BorderThickness="0" Padding="0"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+              <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                  <Setter Property="Padding" Value="0" />
+                  <Setter Property="Margin" Value="0" />
+                  <Setter Property="Background" Value="Transparent" />
+                </Style>
+                <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                  <Setter Property="Background" Value="Transparent" />
+                </Style>
+                <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                  <Setter Property="Background" Value="Transparent" />
+                </Style>
+              </ListBox.Styles>
+              <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:NotificationBoxVm">
                   <Border Background="#0e0e16" BorderBrush="#1e1e2a" BorderThickness="1"
-                          CornerRadius="3" Padding="10 8" Margin="0 3">
-                    <StackPanel Spacing="4">
-                      <Grid ColumnDefinitions="Auto,*,Auto">
-                        <TextBlock Grid.Column="0" Text="{Binding UnreadDot}" Foreground="#c8a84b"
-                                   FontSize="12" Margin="0 0 6 0" VerticalAlignment="Center" />
-                        <TextBlock Grid.Column="1" Text="{Binding TypeLabel}" FontSize="12"
-                                   FontWeight="SemiBold" Foreground="#dfe4ee" VerticalAlignment="Center" />
-                        <TextBlock Grid.Column="2" Text="{Binding DateText}" FontSize="10"
-                                   Foreground="#556" VerticalAlignment="Center" />
-                      </Grid>
-                      <StackPanel Orientation="Horizontal" Spacing="4">
-                        <TextBlock Text="To:" FontSize="10" Foreground="#556" VerticalAlignment="Center" />
-                        <TextBlock Text="{Binding Characters}" FontSize="10" Foreground="#8899aa"
-                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="· From:" FontSize="10" Foreground="#556"
-                                   Margin="6 0 0 0" VerticalAlignment="Center" />
-                        <TextBlock Text="{Binding Sender}" FontSize="10" Foreground="#8899aa"
-                                   VerticalAlignment="Center" />
+                          CornerRadius="3" Padding="8 6" Margin="0 0 0 6">
+                    <ToolTip.Tip>
+                      <TextBlock Text="{Binding TooltipText}" FontSize="11" MaxWidth="440"
+                                 FontFamily="Consolas, Menlo, monospace" TextWrapping="Wrap" />
+                    </ToolTip.Tip>
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                      <!-- Icon: portrait / structure-type / logo, or a fallback glyph -->
+                      <Panel Grid.Column="0" Width="32" Height="32" Margin="0 0 8 0"
+                             VerticalAlignment="Top">
+                        <Border IsVisible="{Binding HasIcon}" Width="32" Height="32"
+                                CornerRadius="3" ClipToBounds="True">
+                          <Image Source="{Binding Icon}" Width="32" Height="32" Stretch="UniformToFill" />
+                        </Border>
+                        <TextBlock IsVisible="{Binding NoIcon}" Text="{Binding FallbackGlyph}"
+                                   FontSize="16" Foreground="#8899aa"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                      </Panel>
+
+                      <!-- One-liner + relative age -->
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                        <TextBlock Text="{Binding OneLiner}" FontSize="12" Foreground="#dfe4ee"
+                                   TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding AgeText}" FontSize="10" Foreground="#667" />
                       </StackPanel>
-                      <SelectableTextBlock Text="{Binding Body}" FontSize="11" Foreground="#8899aa"
-                                           FontFamily="Consolas, Menlo, monospace" TextWrapping="Wrap" />
-                    </StackPanel>
+
+                      <!-- Unread marker -->
+                      <TextBlock Grid.Column="2" Text="{Binding UnreadDot}" Foreground="#c8a84b"
+                                 FontSize="12" VerticalAlignment="Top" Margin="6 0 0 0" />
+                    </Grid>
                   </Border>
                 </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
+              </ListBox.ItemTemplate>
+            </ListBox>
 
-              </StackPanel>
-            </ScrollViewer>
+            </Grid>
           </Grid>
           </Border>
 
-        </Grid>
+          <!-- ════ Personal Killmails ═══════════════════════════════════ -->
+          <Border x:Name="SectionPersonalKillmails" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,Auto,*">
 
-    </Grid>
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Personal Killmails" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="newslink" Click="OnOpenKillmailsTool" VerticalAlignment="Center">
+                  <TextBlock Text="Killmails →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                </Button>
+              </Grid>
+
+              <!-- Kill / Loss counts + ISK -->
+              <Grid Grid.Row="1" ColumnDefinitions="*,*" Margin="0 0 0 8">
+                <Border Grid.Column="0" Background="#0d0d12" CornerRadius="3" BorderBrush="#1e1e2a"
+                        BorderThickness="1" Padding="10 6" Margin="0 0 4 0">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="KILLS" FontSize="9" Foreground="#888899"
+                               FontWeight="SemiBold" LetterSpacing="1" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <TextBlock Text="{Binding PersonalKillCount}" FontSize="16"
+                                 Foreground="#70ad47" FontWeight="Bold" />
+                      <TextBlock Text="{Binding PersonalKillIsk}" FontSize="12" Foreground="#8899aa"
+                                 VerticalAlignment="Bottom" Margin="0 0 0 2" />
+                    </StackPanel>
+                  </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Background="#0d0d12" CornerRadius="3" BorderBrush="#1e1e2a"
+                        BorderThickness="1" Padding="10 6" Margin="4 0 0 0">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="LOSSES" FontSize="9" Foreground="#888899"
+                               FontWeight="SemiBold" LetterSpacing="1" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <TextBlock Text="{Binding PersonalLossCount}" FontSize="16"
+                                 Foreground="#cc4444" FontWeight="Bold" />
+                      <TextBlock Text="{Binding PersonalLossIsk}" FontSize="12" Foreground="#8899aa"
+                                 VerticalAlignment="Bottom" Margin="0 0 0 2" />
+                    </StackPanel>
+                  </StackPanel>
+                </Border>
+              </Grid>
+
+              <!-- Empty state -->
+              <TextBlock Grid.Row="2" IsVisible="{Binding NoPersonalKills}"
+                         Text="No killmails in this period."
+                         FontSize="12" Foreground="#444455" FontStyle="Italic"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+              <!-- Killmail list (zkillboard style, like Corp Activity) -->
+              <ListBox Grid.Row="2" IsVisible="{Binding HasPersonalKills}"
+                       ItemsSource="{Binding PersonalKills}"
+                       Background="Transparent" BorderThickness="0"
+                       DoubleTapped="OnKillmailDoubleTapped"
+                       ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.Styles>
+                  <Style Selector="ListBoxItem">
+                    <Setter Property="Padding"    Value="0" />
+                    <Setter Property="Background" Value="Transparent" />
+                  </Style>
+                  <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                    <Setter Property="Background" Value="#141420" />
+                  </Style>
+                </ListBox.Styles>
+                <ListBox.ItemTemplate>
+                  <DataTemplate DataType="vm:Activity24hKillRowVm">
+                    <Border BorderBrush="#1a1a26" BorderThickness="0 0 0 1"
+                            Background="{Binding RowTint}">
+                      <Grid ColumnDefinitions="70,50,*,160,160" Margin="4">
+
+                        <!-- Date / Time / ISK -->
+                        <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
+                          <TextBlock Text="{Binding DateText}" FontSize="10" Foreground="#888899" />
+                          <TextBlock Text="{Binding TimeText}" FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" />
+                          <TextBlock Text="{Binding TotalIskText}" FontSize="10" Foreground="#c8a84b"
+                                     IsVisible="{Binding TotalIskText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+
+                        <!-- Ship render -->
+                        <Image Grid.Column="1" Source="{Binding ShipRender}" Width="48" Height="48"
+                               Stretch="Uniform" VerticalAlignment="Center"
+                               ToolTip.Tip="{Binding ShipName}" Margin="0 0 6 0" />
+
+                        <!-- System / Constellation / Region -->
+                        <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
+                          <StackPanel Orientation="Horizontal" Spacing="3">
+                            <TextBlock Text="{Binding SecurityText}" FontSize="10" FontWeight="SemiBold"
+                                       Foreground="{Binding SecurityColor}" />
+                            <TextBlock Text="{Binding SystemName}" FontSize="10" Foreground="#c8c8d8"
+                                       FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                          </StackPanel>
+                          <TextBlock Text="{Binding ConstellationName}" FontSize="9" Foreground="#888899"
+                                     TextTrimming="CharacterEllipsis"
+                                     IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          <TextBlock Text="{Binding RegionName}" FontSize="9" Foreground="#666677"
+                                     TextTrimming="CharacterEllipsis"
+                                     IsVisible="{Binding RegionName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+
+                        <!-- Victim -->
+                        <Grid Grid.Column="3" ColumnDefinitions="32,*" Margin="0 0 4 0">
+                          <Image Grid.Column="0" Source="{Binding VictimLogo}" Width="32" Height="32"
+                                 Stretch="Uniform" VerticalAlignment="Center"
+                                 ToolTip.Tip="{Binding VictimAlliance}" Margin="0 0 4 0" />
+                          <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding VictimName}" FontSize="10" Foreground="#c8c8d8"
+                                       FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding VictimCorp}" FontSize="9" Foreground="#888899"
+                                       TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding VictimAlliance}" FontSize="9" Foreground="#666677"
+                                       TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          </StackPanel>
+                        </Grid>
+
+                        <!-- Final blow -->
+                        <Grid Grid.Column="4" ColumnDefinitions="32,*">
+                          <Image Grid.Column="0" Source="{Binding FbLogo}" Width="32" Height="32"
+                                 Stretch="Uniform" VerticalAlignment="Center"
+                                 ToolTip.Tip="{Binding FbAlliance}" Margin="0 0 4 0" />
+                          <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding FbName}" FontSize="10" Foreground="#c8c8d8"
+                                       FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding FbCorp}" FontSize="9" Foreground="#888899"
+                                       TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding FbAlliance}" FontSize="9" Foreground="#666677"
+                                       TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          </StackPanel>
+                        </Grid>
+
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+
+            </Grid>
+          </Border>
+
+          <!-- ════ Sale Listing (Build) ═════════════════════════════════ -->
+          <Border x:Name="SectionSaleListingBuild" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" ClipToBounds="True">
+            <views:SaleListingView DataContext="{Binding SaleListingBuild}" />
+          </Border>
+
+          <!-- ════ Sale Listing (Market) ════════════════════════════════ -->
+          <Border x:Name="SectionSaleListingMarket" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" ClipToBounds="True">
+            <views:SaleListingView DataContext="{Binding SaleListingMarket}" />
+          </Border>
+
+          <!-- ════ Income (Pie) ═════════════════════════════════════════ -->
+          <Border x:Name="SectionIncomePie" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Income" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{Binding IncomeTotalText}" FontSize="12"
+                           FontWeight="SemiBold" Foreground="#c8a84b" VerticalAlignment="Center" />
+              </Grid>
+              <lvc:PieChart Grid.Row="1" x:Name="IncomeChart"
+                            IsVisible="{Binding HasIncomeData}"
+                            Series="{Binding IncomeSeries}"
+                            LegendPosition="Right" LegendTextSize="10"
+                            Background="Transparent" />
+              <TextBlock Grid.Row="1" IsVisible="{Binding !HasIncomeData}"
+                         Text="No income data for this period."
+                         FontSize="12" Foreground="#444455"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Grid>
+          </Border>
+
+          <!-- ════ Expenses (Pie) ═══════════════════════════════════════ -->
+          <Border x:Name="SectionExpensePie" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Expenses" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{Binding ExpenseTotalText}" FontSize="12"
+                           FontWeight="SemiBold" Foreground="#c8a84b" VerticalAlignment="Center" />
+              </Grid>
+              <lvc:PieChart Grid.Row="1" x:Name="ExpenseChart"
+                            IsVisible="{Binding HasExpenseData}"
+                            Series="{Binding ExpenseSeries}"
+                            LegendPosition="Right" LegendTextSize="10"
+                            Background="Transparent" />
+              <TextBlock Grid.Row="1" IsVisible="{Binding !HasExpenseData}"
+                         Text="No expense data for this period."
+                         FontSize="12" Foreground="#444455"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Grid>
+          </Border>
+
+          <!-- ════ Income & Expense ═════════════════════════════════════ -->
+          <Border x:Name="SectionIncomeExpense" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" ClipToBounds="True">
+            <views:IncomeExpenseView DataContext="{Binding IncomeExpense}" />
+          </Border>
+
+          <!-- ════ Standing Projects ════════════════════════════════════ -->
+          <Border x:Name="SectionStandingProjects" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Standing Projects" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="newslink" Click="OnOpenStandingProjects" VerticalAlignment="Center">
+                  <TextBlock Text="Corp Activity →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                </Button>
+              </Grid>
+
+              <TextBlock Grid.Row="1" IsVisible="{Binding NoStandingProjects}"
+                         Text="No standing projects." FontSize="12" Foreground="#444455" FontStyle="Italic"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+              <DataGrid Grid.Row="1" IsVisible="{Binding HasStandingProjects}"
+                        ItemsSource="{Binding StandingProjects}"
+                        AutoGenerateColumns="False" IsReadOnly="True" RowHeight="22"
+                        CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                        Background="Transparent">
+                <DataGrid.Styles>
+                  <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+                  <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                    <Setter Property="FontSize" Value="10" /><Setter Property="FontWeight" Value="SemiBold" />
+                    <Setter Property="Padding" Value="6 5 2 5" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Description" Binding="{Binding DescriptionText}" Width="*" />
+                  <DataGridTemplateColumn Header="Project Status" Width="170">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                        <TextBlock Text="{Binding ProjectStatusText}" Foreground="{Binding ProjectStatusColor}"
+                                   FontSize="11" VerticalAlignment="Center" Padding="6 0" TextTrimming="CharacterEllipsis" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Remaining" Width="90">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                        <TextBlock Text="{Binding RemainingText}" Foreground="{Binding RemainingColor}"
+                                   FontSize="11" VerticalAlignment="Center" Padding="6 0" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Rem. %" Width="70">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                        <TextBlock Text="{Binding RemainingPercentText}" Foreground="{Binding RemainingColor}"
+                                   FontSize="11" VerticalAlignment="Center" Padding="6 0" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
+
+    </Panel>
 
     <!-- ── Status bar ───────────────────────────────────────────────────── -->
     <Border Grid.Row="2" Background="#0d0d12" Padding="14 4"

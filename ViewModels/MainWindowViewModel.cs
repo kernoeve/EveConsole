@@ -21,11 +21,13 @@ public class MainWindowViewModel : ReactiveObject
     public UpdateViewModel                UpdateVm               { get; }
     public ApiActivityViewModel           ActivityVm             { get; }
     public EsiExplorerViewModel           ExplorerVm             { get; }
+    public ErrorLogViewModel              ErrorLogVm             { get; }
     public AssetBrowserViewModel          AssetBrowserVm         { get; }
     public IndustryBrowserViewModel       IndustryBrowserVm      { get; }
     public CharacterViewerViewModel       CharacterViewerVm      { get; }
     public ItemBrowserViewModel           ItemBrowserVm          { get; }
     public NetWorthViewModel              NetWorthVm             { get; }
+    public IncomeExpenseViewModel         IncomeExpenseVm        { get; }
     public TradeOpportunitiesViewModel    TradeOpportunitiesVm   { get; }
     public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
@@ -35,6 +37,8 @@ public class MainWindowViewModel : ReactiveObject
     public NotificationsViewModel         NotificationsVm        { get; }
     public MarketViewerViewModel          MarketViewerVm         { get; }
     public SalesTrackerViewModel          SalesTrackerVm         { get; }
+    public SaleListingViewModel           SaleListingBuildVm     { get; }
+    public SaleListingViewModel           SaleListingMarketVm    { get; }
     public OrderTrackerViewModel          OrderTrackerVm         { get; }
     public MarketSettingsViewModel        MarketVm               { get; }
     public TimerSettingsViewModel         TimerVm                { get; }
@@ -125,16 +129,20 @@ public class MainWindowViewModel : ReactiveObject
             "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
             "inv_levels"      => ("Inv. Levels",     InvLevelVm,               true),
             "net_worth"  => ("Net Worth",       NetWorthVm,               true),
+            "income_expense" => ("Income & Expense", IncomeExpenseVm,     true),
             "wallet"         => ("Wallet",          WalletVm,          true),
             "contracts"      => ("Contracts",       ContractsVm,       true),
             "market_viewer"  => ("Market Overview", MarketViewerVm,    true),
             "sales_tracker"  => ("Sales Tracker",   SalesTrackerVm,    true),
+            "sale_list_build"  => ("Sale Listing (Build)",  SaleListingBuildVm,  true),
+            "sale_list_market" => ("Sale Listing (Market)", SaleListingMarketVm, true),
             "order_tracker"  => ("Order Tracker",   OrderTrackerVm,    true),
             "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
             "killmails"      => ("Killmails",      KillmailBrowserVm, true),
             "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
             "notifications"  => ("Notifications",  NotificationsVm,   true),
             "data"           => ("ESI Explorer",   ExplorerVm,        true),
+            "error_log"      => ("Error Log",      ErrorLogVm,        true),
             _                => throw new ArgumentException($"Unknown tool: {toolId}")
         };
 
@@ -223,6 +231,7 @@ public class MainWindowViewModel : ReactiveObject
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService);
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
+        IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
         var fittingsService = new FittingsService(esi, dbFactory);
         MarketLevelVm     = new MarketLevelViewModel(marketLevelService, dbFactory, fittingsService,
@@ -253,6 +262,13 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("corp_activity");
             CorpActivityVm.ShowStandingProjectsTab();
         };
+        OverviewVm.RequestOpenKillmail = killMailId =>
+        {
+            OpenTool("killmails");
+            KillmailBrowserVm.SelectedCorp = KillmailBrowserViewModel.AllCorps;
+            KillmailBrowserVm.SelectById(killMailId);
+        };
+        OverviewVm.OpenToolRequested = OpenTool;
         TimerVm           = new TimerSettingsViewModel(pollingService, timerSettings);
         _pollingService   = pollingService;
         _buildCostService = buildCostService;
@@ -267,6 +283,13 @@ public class MainWindowViewModel : ReactiveObject
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
         MarketViewerVm         = new MarketViewerViewModel(dbFactory, errorLogger);
         SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService);
+        SaleListingBuildVm     = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.BuildCost);
+        SaleListingMarketVm    = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.MarketValue);
+        OverviewVm.SaleListingBuild  = SaleListingBuildVm;   // let the Overview embed them as sections
+        OverviewVm.SaleListingMarket = SaleListingMarketVm;
+        OverviewVm.IncomeExpense     = IncomeExpenseVm;
+        SaleListingBuildVm.OpenSalesTracker  = () => OpenTool("sales_tracker");
+        SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
         ProductionCalcVm.NavigateToItemAction = typeId =>
@@ -283,6 +306,7 @@ public class MainWindowViewModel : ReactiveObject
         using var tmpDb      = dbFactory.CreateDbContext();
         var connString       = tmpDb.Database.GetConnectionString()!;
         ExplorerVm           = new EsiExplorerViewModel(connString);
+        ErrorLogVm           = new ErrorLogViewModel(dbFactory, errorLogger);
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
         IndustryBrowserVm    = new IndustryBrowserViewModel(connString);
         TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
@@ -318,7 +342,7 @@ public class MainWindowViewModel : ReactiveObject
 
         NavGroup[] groups =
         [
-            new("Character",
+            new("General",
             [
                 new NavItem("overview",    "Overview"),
                 new NavItem("characters",  "Characters"),
@@ -348,7 +372,11 @@ public class MainWindowViewModel : ReactiveObject
             new("Finance",
             [
                 new NavItem("net_worth",     "Net Worth"),
+                new NavItem("income_expense","Income & Expense"),
                 new NavItem("wallet",        "Wallet"),
+            ]),
+            new("Corp / Interactions",
+            [
                 new NavItem("corp_activity", "Corp Activity"),
                 new NavItem("killmails",     "Killmails"),
             ]),
@@ -360,6 +388,7 @@ public class MainWindowViewModel : ReactiveObject
             new("Tools",
             [
                 new NavItem("data", "ESI Explorer"),
+                new NavItem("error_log", "Error Log"),
             ]),
         ];
 

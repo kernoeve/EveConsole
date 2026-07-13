@@ -1,0 +1,92 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
+             x:Class="EveCortex.Views.ErrorLogView"
+             x:DataType="vm:ErrorLogViewModel"
+             Background="#0d0d12">
+
+  <UserControl.Styles>
+    <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="Background" Value="#12121a" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding"    Value="6 5 2 5" />
+    </Style>
+    <Style Selector="TextBlock.fl">
+      <Setter Property="Foreground" Value="#555566" /><Setter Property="FontSize" Value="11" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="#131320" /><Setter Property="BorderBrush" Value="#2a2a3a" />
+      <Setter Property="Foreground" Value="#ccccdd" /><Setter Property="FontSize" Value="11" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,2*,4,1*">
+
+    <!-- Header + filters -->
+    <Border Grid.Row="0" Background="#0d0d12" Padding="10 6" BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
+      <StackPanel Spacing="7">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Error Log" FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b"
+                     VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="#888899"
+                     VerticalAlignment="Center" />
+        </Grid>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Classes="fl" Text="From" />
+          <TextBox Text="{Binding DateFrom}" Watermark="yyyy-MM-dd HH:mm" Width="140" />
+          <TextBlock Classes="fl" Text="Thru" />
+          <TextBox Text="{Binding DateThru}" Watermark="(now)" Width="140" />
+          <Button Command="{Binding RefreshCommand}" Content="Refresh" FontSize="10" Padding="8 2"
+                  Background="#1a1a2a" Foreground="#888899" BorderBrush="#2a2a3a" BorderThickness="1"
+                  VerticalAlignment="Center" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Grid -->
+    <DataGrid Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}"
+              AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+              CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+              Background="#0d0d12">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Time"    Binding="{Binding TimeText}" SortMemberPath="TimeSort" Width="150" />
+        <DataGridTextColumn Header="Source"  Binding="{Binding Source}"   Width="180" />
+        <DataGridTextColumn Header="Context" Binding="{Binding Context}"  Width="180" />
+        <DataGridTextColumn Header="Message" Binding="{Binding Message}"  Width="*" />
+        <DataGridTextColumn Header="Inner"   Binding="{Binding Inner}"    Width="280" />
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <GridSplitter Grid.Row="2" Height="4" ResizeDirection="Rows"
+                  HorizontalAlignment="Stretch" Background="#1e1e2a" />
+
+    <!-- Detail (selected row) -->
+    <Border Grid.Row="3" Background="#0b0b10" BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
+      <Panel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      IsVisible="{Binding Selected, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+          <StackPanel Margin="12 8" Spacing="4" DataContext="{Binding Selected}"
+                      x:DataType="vm:ErrorLogRowVm">
+            <TextBlock Text="{Binding TimeText}" FontSize="12" FontWeight="SemiBold" Foreground="#e0e0ee" />
+            <TextBlock FontSize="11" Foreground="#888899">
+              <Run Text="{Binding Source}" /><Run Text="  —  " /><Run Text="{Binding Context}" />
+            </TextBlock>
+            <Border Height="1" Background="#1e1e2a" Margin="0 2" />
+            <SelectableTextBlock Text="{Binding Detail}" FontSize="12" Foreground="#c8a0a0"
+                                 FontFamily="Consolas, Menlo, monospace" TextWrapping="Wrap" />
+          </StackPanel>
+        </ScrollViewer>
+        <TextBlock Text="Select an error to view its details."
+                   IsVisible="{Binding Selected, Converter={x:Static conv:ObjectConverters.IsNull}}"
+                   FontSize="12" Foreground="#444455"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </Panel>
+    </Border>
+
+  </Grid>
+</UserControl>

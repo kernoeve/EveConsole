@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
+using Avalonia.Media.Imaging;
 using EveCortex.Api;
 using EveCortex.Data;
 using EveCortex.Models;
@@ -49,7 +50,14 @@ public class NotificationDetailVm
     public string ReadText   { get; }
     public string Body       { get; }
 
-    public NotificationDetailVm(NotificationRowVm row, string body)
+    // Same icon treatment as the Overview notifications list: sender portrait / corp-alliance logo
+    // / structure-type icon, with a glyph fallback when there's no image.
+    public Bitmap? Icon          { get; }
+    public bool    HasIcon       => Icon is not null;
+    public bool    NoIcon        => Icon is null;
+    public string  FallbackGlyph { get; }
+
+    public NotificationDetailVm(NotificationRowVm row, string body, Bitmap? icon, string glyph)
     {
         TypeLabel = row.TypeLabel;
         DateText  = row.Record.Timestamp.ToLocalTime().ToString("dddd, MMM d yyyy  HH:mm");
@@ -57,6 +65,8 @@ public class NotificationDetailVm
         Sender    = row.SenderType.Length > 0 ? $"{row.Sender} ({row.SenderType})" : row.Sender;
         ReadText  = row.ReadText;
         Body      = body.Length > 0 ? body : "(no details)";
+        Icon          = icon;
+        FallbackGlyph = glyph;
     }
 }
 
@@ -338,13 +348,22 @@ public class NotificationsViewModel : ReactiveObject
         try
         {
             var body = await NotificationFormatter.FormatAsync(row.Record.Text, _names, _dbFactory);
+
+            // Resolve the notification icon the same way the Overview list does.
+            var f = NotificationSummary.Parse(row.Record.Text);
+            var (iconPath, glyph) = NotificationSummary.Icon(
+                row.Record.Type, row.Record.SenderId, row.Record.SenderType, f);
+            var icon = iconPath is null
+                ? null
+                : await EveImageCache.GetAsync($"https://images.evetech.net/{iconPath}");
+
             if (ReferenceEquals(row, SelectedRow))   // ignore if selection moved on
-                Detail = new NotificationDetailVm(row, body);
+                Detail = new NotificationDetailVm(row, body, icon, glyph);
         }
         catch (Exception ex)
         {
             _errorLogger.Log("NotificationsViewModel", "BuildDetail", ex);
-            Detail = new NotificationDetailVm(row, row.Record.Text ?? "");
+            Detail = new NotificationDetailVm(row, row.Record.Text ?? "", null, "✉");
         }
     }
 }

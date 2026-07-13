@@ -18,6 +18,13 @@ public partial class CorpActivityView : UserControl
             _ = TopLevel.GetTopLevel(this)?.Clipboard?.SetTextAsync(text);
         };
 
+        ExportTop10NoIskButton.Click += (_, _) =>
+        {
+            if (DataContext is not CorpActivityViewModel vm) return;
+            var text = vm.BuildTop10ExportNoIsk();
+            _ = TopLevel.GetTopLevel(this)?.Clipboard?.SetTextAsync(text);
+        };
+
         Kill24hList.DoubleTapped += OnKill24hDoubleTapped;
         DataContextChanged += OnDataContextChanged;
     }

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Text.Json;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using EveCortex.Models;
 using EveCortex.Services;
@@ -77,8 +78,9 @@ public sealed class CorpTopPlayerRowVm
     public int    Rank          { get; }
     public string CharacterName { get; }
     public string AmountText    { get; }
+    public string PercentText   { get; }   // share of the category total
 
-    public CorpTopPlayerRowVm(int rank, string name, decimal amount, bool isCount = false)
+    public CorpTopPlayerRowVm(int rank, string name, decimal amount, bool isCount = false, double percent = 0)
     {
         Rank          = rank;
         CharacterName = name;
@@ -87,6 +89,7 @@ public sealed class CorpTopPlayerRowVm
                       : amount >= 1_000_000m     ? $"{amount / 1_000_000m:F2}M"
                       : amount >= 1_000m         ? $"{amount / 1_000m:F1}K"
                       : amount.ToString("N0");
+        PercentText   = $"{percent:F1}%";
     }
 }
 
@@ -230,8 +233,11 @@ public sealed class StandingProjectRowVm
     public string LocationText      { get; }
     public string ProjectStatusText { get; }
     public string ProjectStatusColor { get; }
-    public string RemainingText       { get; }
-    public string RemainingPayoutText { get; }
+    public string RemainingText        { get; }
+    public string RemainingPayoutText  { get; }
+    public string RemainingPercentText { get; }
+    public bool   IsLowRemaining       { get; }   // < 10% of the target left
+    public string RemainingColor       { get; }
     public bool   IsDeliverItem       { get; }
     public int?   ItemTypeId          { get; }
     public string ItemTypeName        { get; }
@@ -248,24 +254,27 @@ public sealed class StandingProjectRowVm
         DescriptionText = row.TargetDisplay;
         LocationText    = row.DestDisplay;
 
-        switch (row.MatchStatus)
-        {
-            case "matched":
-                ProjectStatusText  = row.MatchedName;
-                ProjectStatusColor = "#6aaa88";
-                break;
-            case "no_systems":
-                ProjectStatusText  = "no systems below the minimum ADM";
-                ProjectStatusColor = "#888899";
-                break;
-            default:
-                ProjectStatusText  = "project not active";
-                ProjectStatusColor = "#cc4444";
-                break;
-        }
+        // Less than 10% of the target left — flag the near-complete (often stuck) projects in orange.
+        IsLowRemaining = row.RemainingPercentValue >= 0 && row.RemainingPercentValue < 10.0;
 
-        RemainingText       = row.RemainingText;
-        RemainingPayoutText = row.RemainingPayoutText;
+        string statusColor = row.MatchStatus switch
+        {
+            "matched"    => "#6aaa88",
+            "no_systems" => "#888899",
+            _            => "#cc4444",
+        };
+        ProjectStatusText = row.MatchStatus switch
+        {
+            "matched"    => row.MatchedName,
+            "no_systems" => "no systems below the minimum ADM",
+            _            => "project not active",
+        };
+        ProjectStatusColor = IsLowRemaining ? "#e0902e" : statusColor;
+
+        RemainingText        = row.RemainingText;
+        RemainingPayoutText  = row.RemainingPayoutText;
+        RemainingPercentText = row.RemainingPercentText;
+        RemainingColor       = IsLowRemaining ? "#e0902e" : "#c8c8d8";
         IsDeliverItem       = row.ItemTypeId.HasValue;
         ItemTypeId          = row.ItemTypeId;
         ItemTypeName        = row.ItemTypeName;
@@ -395,6 +404,12 @@ public sealed class Activity24hKillRowVm : ReactiveObject
     public string         FbCorp            { get; }
     public string         FbAlliance        { get; }
     public string         TotalIskText      { get; }
+
+    // Red tint for rows that are the viewer's own loss. Bound by the Overview "Personal
+    // Killmails" grid; the Corp Activity grid leaves it unbound, so its rows are unaffected.
+    public IBrush RowTint => IsLoss
+        ? new SolidColorBrush(Color.FromArgb(0x26, 0xcc, 0x44, 0x44))
+        : Brushes.Transparent;
 
     private Bitmap? _shipRender;
     private Bitmap? _victimLogo;
@@ -1235,7 +1250,11 @@ public class CorpActivityViewModel : ReactiveObject
         TopContributors.Clear();
     }
 
-    public string BuildTop10Export()
+    // includeIsk true → "rank  name\tamount"; false → "rank  name\t%" (name + share only).
+    public string BuildTop10Export() => BuildTop10Export(includeIsk: true);
+    public string BuildTop10ExportNoIsk() => BuildTop10Export(includeIsk: false);
+
+    private string BuildTop10Export(bool includeIsk)
     {
         var month = SelectedTop10Month?.Name ?? "?";
         var year  = SelectedTop10Year;
@@ -1243,7 +1262,9 @@ public class CorpActivityViewModel : ReactiveObject
 
         var sb = new System.Text.StringBuilder();
 
-        void AppendList(string title, IEnumerable<CorpTopPlayerRowVm> rows)
+        // alwaysAmount forces the count column even in the no-ISK export — Kills has no ISK value,
+        // so its "amount" is the kill count and there is nothing meaningful to show as a percentage.
+        void AppendList(string title, IEnumerable<CorpTopPlayerRowVm> rows, bool alwaysAmount = false)
         {
             sb.AppendLine(title);
             sb.AppendLine(new string('=', Math.Max(title.Length, 32)));
@@ -1251,7 +1272,7 @@ public class CorpActivityViewModel : ReactiveObject
             {
                 var rank = $"{r.Rank,2}.";
                 var name = r.CharacterName.PadRight(28);
-                sb.AppendLine($"{rank}  {name}\t{r.AmountText}");
+                sb.AppendLine($"{rank}  {name}\t{(includeIsk || alwaysAmount ? r.AmountText : r.PercentText)}");
             }
             sb.AppendLine();
         }
@@ -1262,7 +1283,7 @@ public class CorpActivityViewModel : ReactiveObject
 
         AppendList("Ratting Tax",           TopRatters);
         AppendList("Mining — Reprocessed Value", TopMiners);
-        AppendList("Kills",                 TopKillers);
+        AppendList("Kills",                 TopKillers, alwaysAmount: true);
         AppendList("Project Contributors",  TopContributors);
         AppendList("Industry Tax",          TopIndustry);
 
@@ -1296,7 +1317,7 @@ public class CorpActivityViewModel : ReactiveObject
         List<RankedPlayerRow> industryRows = [];
         List<RankedPlayerRow> killerRows   = [];
         List<RankedPlayerRow> minerRows    = [];
-        List<(long CharacterId, string Name, decimal IskPayout)> contribRows = [];
+        List<(long CharacterId, string Name, decimal IskPayout, double Percent)> contribRows = [];
 
         try { rattingRows  = await _service.GetTopRattersAsync(corpId, since, until, excludeIds, ct); }
         catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Top10] ratters failed: {ex.Message}"); }
@@ -1329,9 +1350,9 @@ public class CorpActivityViewModel : ReactiveObject
         TopContributors.Clear();
         for (int i = 0; i < contribRows.Count; i++)
         {
-            var (_, name, iskPayout) = contribRows[i];
+            var (_, name, iskPayout, pct) = contribRows[i];
             int rank = contribRows.Count(r => r.IskPayout > iskPayout) + 1;
-            TopContributors.Add(new CorpTopPlayerRowVm(rank, name, iskPayout, isCount: false));
+            TopContributors.Add(new CorpTopPlayerRowVm(rank, name, iskPayout, isCount: false, pct));
         }
     }
 
@@ -2069,7 +2090,7 @@ public class CorpActivityViewModel : ReactiveObject
     {
         list.Clear();
         foreach (var r in rows)
-            list.Add(new CorpTopPlayerRowVm(r.Rank, resolveName(r.CharacterId), r.Amount, isCount));
+            list.Add(new CorpTopPlayerRowVm(r.Rank, resolveName(r.CharacterId), r.Amount, isCount, r.Percent));
     }
 
     internal static string FormatIskStatic(decimal v) => FormatIsk((double)v);

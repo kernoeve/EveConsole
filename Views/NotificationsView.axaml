@@ -83,16 +83,31 @@
                       IsVisible="{Binding Detail, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
           <StackPanel Margin="12 8" Spacing="6" DataContext="{Binding Detail}"
                       x:DataType="vm:NotificationDetailVm">
-            <TextBlock Text="{Binding TypeLabel}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0ee" />
-            <Grid ColumnDefinitions="70,*,70,*" RowDefinitions="Auto,Auto">
-              <TextBlock Grid.Row="0" Grid.Column="0" Classes="dhdr" Text="Date" />
-              <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DateText}"  FontSize="11" Foreground="#c8c8d8" Margin="0 0 12 0" />
-              <TextBlock Grid.Row="0" Grid.Column="2" Classes="dhdr" Text="Read" />
-              <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding ReadText}"  FontSize="11" Foreground="#c8c8d8" />
-              <TextBlock Grid.Row="1" Grid.Column="0" Classes="dhdr" Text="Char" />
-              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Character}" FontSize="11" Foreground="#c8c8d8" Margin="0 0 12 0" />
-              <TextBlock Grid.Row="1" Grid.Column="2" Classes="dhdr" Text="Sender" />
-              <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding Sender}"    FontSize="11" Foreground="#c8c8d8" />
+            <!-- Top section: icon (portrait / logo / structure) + title + meta, matching the
+                 Overview notifications list. -->
+            <Grid ColumnDefinitions="Auto,*">
+              <Panel Grid.Column="0" Width="40" Height="40" Margin="0 0 10 0" VerticalAlignment="Top">
+                <Border IsVisible="{Binding HasIcon}" Width="40" Height="40"
+                        CornerRadius="3" ClipToBounds="True">
+                  <Image Source="{Binding Icon}" Width="40" Height="40" Stretch="UniformToFill" />
+                </Border>
+                <TextBlock IsVisible="{Binding NoIcon}" Text="{Binding FallbackGlyph}"
+                           FontSize="20" Foreground="#8899aa"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Panel>
+              <StackPanel Grid.Column="1" Spacing="6">
+                <TextBlock Text="{Binding TypeLabel}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0ee" />
+                <Grid ColumnDefinitions="70,*,70,*" RowDefinitions="Auto,Auto">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Classes="dhdr" Text="Date" />
+                  <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DateText}"  FontSize="11" Foreground="#c8c8d8" Margin="0 0 12 0" />
+                  <TextBlock Grid.Row="0" Grid.Column="2" Classes="dhdr" Text="Read" />
+                  <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding ReadText}"  FontSize="11" Foreground="#c8c8d8" />
+                  <TextBlock Grid.Row="1" Grid.Column="0" Classes="dhdr" Text="Char" />
+                  <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Character}" FontSize="11" Foreground="#c8c8d8" Margin="0 0 12 0" />
+                  <TextBlock Grid.Row="1" Grid.Column="2" Classes="dhdr" Text="Sender" />
+                  <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding Sender}"    FontSize="11" Foreground="#c8c8d8" />
+                </Grid>
+              </StackPanel>
             </Grid>
             <Border Height="1" Background="#1e1e2a" Margin="0 2" />
             <SelectableTextBlock Text="{Binding Body}" FontSize="12" Foreground="#aab8c8"

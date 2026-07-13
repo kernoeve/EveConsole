@@ -1,16 +1,25 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive.Linq;
+using Avalonia.Media;
 using EveCortex.Data;
-using EveCortex.Models;
 using EveCortex.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
 namespace EveCortex.ViewModels;
 
+// Shared profit-colour brushes for the sales grids.
+internal static class ProfitBrushes
+{
+    public static readonly IBrush Green = new SolidColorBrush(Color.Parse("#4caf50"));
+    public static readonly IBrush Red   = new SolidColorBrush(Color.Parse("#e05252"));
+    public static readonly IBrush Gray  = new SolidColorBrush(Color.Parse("#888899"));
+}
+
 // One sale on the Sales Tracker grid (a market transaction or a contract sale).
-public class SaleRowVm
+// ReactiveObject so the main grid's Profit columns refresh live when the cost basis changes.
+public class SaleRowVm : ReactiveObject
 {
     public DateTimeOffset When { get; }
     public long   WhenSort { get; }
@@ -27,13 +36,30 @@ public class SaleRowVm
     public string Total  { get; } public double TotalRaw  { get; }
     public string Build  { get; } public double BuildRaw  { get; }
     public string Market { get; } public double MarketRaw { get; }
-    public string Profit    { get; } public double ProfitRaw    { get; }
-    public string ProfitPct { get; } public double ProfitPctRaw { get; }
+    public string Profit    { get; private set; } = "—"; public double ProfitRaw    { get; private set; } = double.MinValue;
+    public string ProfitPct { get; private set; } = "—"; public double ProfitPctRaw { get; private set; } = double.MinValue;
+
+    // Nullable cost bases (null when no snapshot was available) — used by the Sale Listing
+    // tools to compute profit against build cost or market value.
+    public double? BuildOrNull  { get; }
+    public double? MarketOrNull { get; }
+
+    // Item type and its market group two levels up (e.g. Revelation → "Standard Dreadnoughts"),
+    // used by the Sales Tracker rollup grids.
+    public int    TypeId      { get; }
+    public string MarketGroup { get; }
+
+    // Green when profit (for the active cost basis) is positive, red when negative, grey when unknown.
+    public IBrush ProfitBrush => ProfitRaw == double.MinValue ? ProfitBrushes.Gray
+                               : ProfitRaw >= 0 ? ProfitBrushes.Green : ProfitBrushes.Red;
 
     public SaleRowVm(DateTimeOffset when, string kind, string ownerType, long ownerId, bool ownerIsPersonal,
         string owner, string location, string buyer,
-        string items, string units, double total, double? build, double? market)
+        string items, string units, double total, double? build, double? market,
+        int typeId = 0, string marketGroup = "—")
     {
+        TypeId      = typeId;
+        MarketGroup = marketGroup;
         When     = when;
         WhenSort = when.UtcTicks;
         WhenText = when.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
@@ -49,14 +75,31 @@ public class SaleRowVm
         TotalRaw  = total;      Total  = MarketFmt.Isk(total);
         BuildRaw  = build  ?? 0; Build  = build  is double b ? MarketFmt.Isk(b) : "—";
         MarketRaw = market ?? 0; Market = market is double m ? MarketFmt.Isk(m) : "—";
+        BuildOrNull  = build;
+        MarketOrNull = market;
 
-        // Profit is measured against build cost (sale price − build cost).
-        var profit = build is double bc ? total - bc : (double?)null;
+        ApplyBasis(SaleCostBasis.BuildCost);   // default; Sales Tracker can switch to market value
+    }
+
+    // Recompute profit (sale price − cost basis) against build cost or market value. The Sales
+    // Tracker calls this when the "Profit based on" selection changes; the main grid reads Profit/
+    // ProfitPct/ProfitBrush and the rollups read ProfitRaw/ProfitPctRaw.
+    public void ApplyBasis(SaleCostBasis basis)
+    {
+        var cost   = basis == SaleCostBasis.BuildCost ? BuildOrNull : MarketOrNull;
+        var profit = cost is double c ? TotalRaw - c : (double?)null;
         ProfitRaw = profit ?? double.MinValue;
         Profit    = profit is double p ? MarketFmt.Isk(p) : "—";
-        var pct = build is double bc2 && bc2 != 0 ? (total - bc2) / bc2 * 100 : (double?)null;
+        var pct = cost is double c2 && c2 != 0 ? (TotalRaw - c2) / c2 * 100 : (double?)null;
         ProfitPctRaw = pct ?? double.MinValue;
         ProfitPct    = pct is double pp ? $"{pp:N1}%" : "—";
+
+        // Notify so the main grid's Profit / Profit % cells (and their colour) update in place.
+        this.RaisePropertyChanged(nameof(Profit));
+        this.RaisePropertyChanged(nameof(ProfitRaw));
+        this.RaisePropertyChanged(nameof(ProfitPct));
+        this.RaisePropertyChanged(nameof(ProfitPctRaw));
+        this.RaisePropertyChanged(nameof(ProfitBrush));
     }
 }
 
@@ -66,8 +109,38 @@ public record SalesOwnerOption(string Label, OwnerScope Scope, long OwnerId = 0,
 public record SalesTypeOption(string Label, string? Kind)
 { public override string ToString() => Label; }
 
-// Sales Tracker — lists market sales (wallet transactions) and contract sales (item_exchange
-// contracts sold for ISK), with build/market value pulled from TypePriceSnapshots (nearest day).
+// One row on a Sales Tracker rollup grid (sales grouped by buyer / market group / item).
+public class GroupRowVm
+{
+    public string Name      { get; }
+    public string Amount    { get; }
+    public double AmountRaw { get; }
+    public GroupRowVm(string name, double amount)
+    {
+        Name = name; AmountRaw = amount; Amount = MarketFmt.Isk(amount);
+    }
+}
+
+// One row on a profit rollup grid — summed build-based profit plus the average profit % of the
+// sales in the group. Sorted by the profit amount (ProfitRaw). "—" when no sale in the group had
+// a cost basis to profit against.
+public class ProfitGroupRowVm
+{
+    public string Name      { get; }
+    public string Profit    { get; }
+    public double ProfitRaw { get; }
+    public string ProfitPct { get; }
+    public ProfitGroupRowVm(string name, double? profit, double? pctAvg)
+    {
+        Name      = name;
+        ProfitRaw = profit ?? double.MinValue;
+        Profit    = profit is double p  ? MarketFmt.Isk(p) : "—";
+        ProfitPct = pctAvg is double pp ? $"{pp:N1}%"      : "—";
+    }
+}
+
+// Sales Tracker — lists market sales and contract sales with build/market value and build-based
+// profit. Data is loaded by the shared SalesQuery.
 public class SalesTrackerViewModel : ReactiveObject
 {
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
@@ -77,6 +150,12 @@ public class SalesTrackerViewModel : ReactiveObject
     private readonly List<SaleRowVm> _all = new();
 
     public ObservableCollection<SaleRowVm> Rows { get; } = new();
+
+    // Rollup grids (grouped over the filtered sales). Top Buyers ranks by ISK sold; the market
+    // group and item grids rank by build-based profit.
+    public ObservableCollection<GroupRowVm>       TopBuyers    { get; } = new();
+    public ObservableCollection<ProfitGroupRowVm> MarketGroups { get; } = new();
+    public ObservableCollection<ProfitGroupRowVm> TopItems     { get; } = new();
 
     // ── Filters ───────────────────────────────────────────────────────────────
     public ObservableCollection<SalesOwnerOption> OwnerOptions { get; } =
@@ -102,6 +181,23 @@ public class SalesTrackerViewModel : ReactiveObject
     {
         get => _selectedType;
         set { this.RaiseAndSetIfChanged(ref _selectedType, value ?? SaleTypeOptions[0]); ApplyFilters(); }
+    }
+
+    // Cost basis the profit columns / rollups are measured against.
+    public IReadOnlyList<string> ProfitBasisOptions { get; } = ["Build", "Market"];
+    private string _selectedProfitBasis = "Build";
+    public string SelectedProfitBasis
+    {
+        get => _selectedProfitBasis;
+        set { this.RaiseAndSetIfChanged(ref _selectedProfitBasis, value ?? "Build"); ApplyProfitBasis(); }
+    }
+    private SaleCostBasis CurrentBasis =>
+        _selectedProfitBasis == "Market" ? SaleCostBasis.MarketValue : SaleCostBasis.BuildCost;
+
+    private void ApplyProfitBasis()
+    {
+        foreach (var r in _all) r.ApplyBasis(CurrentBasis);
+        ApplyFilters();
     }
 
     private string _dateFrom;
@@ -153,6 +249,41 @@ public class SalesTrackerViewModel : ReactiveObject
         Rows.Clear();
         foreach (var r in list) Rows.Add(r);
         StatusText = list.Count == 0 ? "No sales match the filters." : $"{list.Count:N0} sale(s)";
+
+        FillGroup(TopBuyers,          list, r => r.Buyer);
+        FillProfitGroup(MarketGroups, list, r => r.MarketGroup);
+        FillProfitGroup(TopItems,     list, r => r.Items);
+    }
+
+    private static void FillGroup(ObservableCollection<GroupRowVm> target, List<SaleRowVm> rows, Func<SaleRowVm, string> key)
+    {
+        target.Clear();
+        var groups = rows
+            .Where(r => !string.IsNullOrEmpty(key(r)))
+            .GroupBy(key)
+            .Select(g => new GroupRowVm(g.Key, g.Sum(r => r.TotalRaw)))
+            .OrderByDescending(g => g.AmountRaw);
+        foreach (var g in groups) target.Add(g);
+    }
+
+    // Group sales and sum build-based profit, plus the average profit % over the sales that had a
+    // cost basis. Ordered by profit amount (still by amount, not by percent).
+    private static void FillProfitGroup(ObservableCollection<ProfitGroupRowVm> target, List<SaleRowVm> rows, Func<SaleRowVm, string> key)
+    {
+        target.Clear();
+        var groups = rows
+            .Where(r => !string.IsNullOrEmpty(key(r)))
+            .GroupBy(key)
+            .Select(g =>
+            {
+                var profits = g.Where(r => r.ProfitRaw    != double.MinValue).Select(r => r.ProfitRaw).ToList();
+                var pcts    = g.Where(r => r.ProfitPctRaw != double.MinValue).Select(r => r.ProfitPctRaw).ToList();
+                double? profit = profits.Count > 0 ? profits.Sum()     : (double?)null;
+                double? pctAvg = pcts.Count    > 0 ? pcts.Average()    : (double?)null;
+                return new ProfitGroupRowVm(g.Key, profit, pctAvg);
+            })
+            .OrderByDescending(g => g.ProfitRaw);
+        foreach (var g in groups) target.Add(g);
     }
 
     private static bool TryDate(string s, out DateTime date)
@@ -162,43 +293,6 @@ public class SalesTrackerViewModel : ReactiveObject
         date = default; return false;
     }
 
-    // Market sales: one row per sell transaction. Location = station/structure; buyer = the client.
-    private const string MarketSql =
-        """
-        SELECT t."TransactionId" AS SaleId, t."OwnerId" AS OwnerId, t."OwnerType" AS OwnerType,
-               t."Date" AS DateStr, t."TypeId" AS TypeId, t."Quantity" AS Quantity,
-               CAST(t."UnitPrice" AS REAL) AS UnitPrice, t."ClientId" AS BuyerId,
-               COALESCE((SELECT "Name" FROM "SdeStations"       WHERE "StationId"   = t."LocationId"),
-                        (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = t."LocationId")) AS Location
-        FROM "EsiWalletTransactions" t
-        WHERE t."IsBuy" = 0
-        """;
-
-    // Contract sales: item-exchange contracts finished for ISK, issued BY the tracked owner (so an
-    // accepted purchase is excluded). Buyer = the acceptor; location = the items' location.
-    private const string ContractSql =
-        """
-        SELECT c."ContractId" AS SaleId, c."OwnerId" AS OwnerId, c."OwnerType" AS OwnerType,
-               c."DateCompleted" AS DateStr, CAST(c."Price" AS REAL) AS Price, COALESCE(c."AcceptorId", 0) AS BuyerId,
-               COALESCE((SELECT "Name" FROM "SdeStations"       WHERE "StationId"   = c."StartLocationId"),
-                        (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = c."StartLocationId")) AS Location
-        FROM "EsiContracts" c
-        WHERE c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS REAL) > 0
-          AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = 0)
-             OR (c."OwnerType" = 'corporation' AND c."IssuerCorporationId" = c."OwnerId") )
-        """;
-
-    private const string ContractItemSql =
-        """
-        SELECT ci."ContractId" AS ContractId, ci."TypeId" AS TypeId, ci."Quantity" AS Quantity
-        FROM "EsiContractItems" ci
-        JOIN "EsiContracts" c ON c."ContractId" = ci."ContractId"
-        WHERE ci."IsIncluded" = 1
-          AND c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS REAL) > 0
-          AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = 0)
-             OR (c."OwnerType" = 'corporation' AND c."IssuerCorporationId" = c."OwnerId") )
-        """;
-
     private async Task LoadAsync()
     {
         if (IsLoading) return;
@@ -206,96 +300,11 @@ public class SalesTrackerViewModel : ReactiveObject
         StatusText = "Loading…";
         try
         {
-            await using var db = await _dbFactory.CreateDbContextAsync();
-
-            var market    = await db.Database.SqlQueryRaw<MarketSaleDto>(MarketSql).ToListAsync();
-            var contracts = (await db.Database.SqlQueryRaw<ContractSaleDto>(ContractSql).ToListAsync())
-                            .DistinctBy(c => c.SaleId).ToList();
-            var citems    = await db.Database.SqlQueryRaw<ContractItemDto>(ContractItemSql).ToListAsync();
-
-            // Item + owner names.
-            var typeIds = market.Select(m => m.TypeId).Concat(citems.Select(i => i.TypeId)).Distinct().ToList();
-            var typeNames = await db.SdeTypes.AsNoTracking().Where(t => typeIds.Contains(t.TypeId))
-                .ToDictionaryAsync(t => t.TypeId, t => t.Name);
-
-            // Nearest-day price snapshots for the sold types (resolved in memory — a correlated
-            // "nearest date" subquery can't reference the outer sale date in SQLite).
-            var snaps = await db.TypePriceSnapshots.AsNoTracking().Where(s => typeIds.Contains(s.TypeId))
-                .Select(s => new { s.TypeId, s.Date, s.BuildCost, s.MarketValue }).ToListAsync();
-            var snapByType = snaps
-                .Select(s => (s.TypeId, Date: ParseDay(s.Date), s.BuildCost, s.MarketValue))
-                .GroupBy(s => s.TypeId)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            (double? Build, double? Market) Snap(int typeId, DateTimeOffset when)
-            {
-                if (!snapByType.TryGetValue(typeId, out var list) || list.Count == 0) return (null, null);
-                var target = when.UtcDateTime.Date;
-                var best = list[0]; var bestDist = double.MaxValue;
-                foreach (var s in list)
-                {
-                    var d = Math.Abs((s.Date - target).TotalDays);
-                    if (d < bestDist) { bestDist = d; best = s; }
-                }
-                return (best.BuildCost, best.MarketValue);
-            }
-
-            // Owner names + the personal-corp flag.
-            var allChars = await db.Characters.AsNoTracking().Select(c => new { c.Id, c.Name }).ToListAsync();
-            var allCorps = await db.Corporations.AsNoTracking().Select(c => new { c.Id, c.Name, c.IsPersonal }).ToListAsync();
-            var charNames    = allChars.ToDictionary(c => (long)c.Id, c => c.Name);
-            var corpNames    = allCorps.ToDictionary(c => (long)c.Id, c => c.Name);
-            var corpPersonal = allCorps.ToDictionary(c => (long)c.Id, c => c.IsPersonal);
-            bool IsPersonal(long id, string type) => type == "corporation" && corpPersonal.TryGetValue(id, out var p) && p;
-
-            string OwnerName(long id, string type) => type == "corporation"
-                ? (corpNames.TryGetValue(id, out var cn) ? cn : $"Corp {id}")
-                : (charNames.TryGetValue(id, out var pn) ? pn : $"Char {id}");
-            string TypeName(int id) => typeNames.TryGetValue(id, out var n) ? n : $"Type {id}";
-
-            BuildOwnerOptions(allChars.Select(c => ((long)c.Id, c.Name)), allCorps.Select(c => ((long)c.Id, c.Name)));
-
-            // Buyer names — external players. Resolve from local caches, fall back to ESI once and
-            // persist to the shared UniverseNames cache so later loads stay offline.
-            var buyerIds = market.Select(m => m.BuyerId)
-                .Concat(contracts.Select(c => c.BuyerId)).Where(id => id > 0).Distinct().ToList();
-            var buyerNames = await ResolveBuyersAsync(db, buyerIds, charNames, corpNames);
-            string BuyerName(long id) => id <= 0 ? "" : (buyerNames.TryGetValue(id, out var n) ? n : id.ToString());
-
-            var itemsByContract = citems.GroupBy(i => i.ContractId).ToDictionary(g => g.Key, g => g.ToList());
-            var rows = new List<SaleRowVm>(market.Count + contracts.Count);
-
-            foreach (var m in market)
-            {
-                var (bu, mv) = Snap(m.TypeId, ParseDate(m.DateStr));
-                rows.Add(new SaleRowVm(
-                    ParseDate(m.DateStr), "Market", m.OwnerType, m.OwnerId, IsPersonal(m.OwnerId, m.OwnerType),
-                    OwnerName(m.OwnerId, m.OwnerType), m.Location ?? "", BuyerName(m.BuyerId),
-                    TypeName(m.TypeId), m.Quantity.ToString("N0"), m.Quantity * m.UnitPrice,
-                    bu is double b ? b * m.Quantity : null, mv is double v ? v * m.Quantity : null));
-            }
-
-            foreach (var c in contracts)
-            {
-                var when = ParseDate(c.DateStr);
-                var its  = itemsByContract.TryGetValue(c.SaleId, out var list) ? list : [];
-                // One item: name + count. Many: first item + "+N more items", and units are just
-                // "Multiple" (the per-item counts still drive build/market below, but listing them
-                // for a big multi-item contract isn't useful).
-                string names, units;
-                if (its.Count == 0)      { names = "(no items)"; units = ""; }
-                else if (its.Count == 1) { names = TypeName(its[0].TypeId); units = its[0].Quantity.ToString("N0"); }
-                else                     { names = $"{TypeName(its[0].TypeId)} +{its.Count - 1} more items"; units = "Multiple"; }
-                var build = SumOrNull(its.Select(i => Snap(i.TypeId, when).Build is double b ? b * i.Quantity : (double?)null));
-                var mkt   = SumOrNull(its.Select(i => Snap(i.TypeId, when).Market is double m ? m * i.Quantity : (double?)null));
-                rows.Add(new SaleRowVm(
-                    when, "Contract", c.OwnerType, c.OwnerId, IsPersonal(c.OwnerId, c.OwnerType),
-                    OwnerName(c.OwnerId, c.OwnerType), c.Location ?? "", BuyerName(c.BuyerId),
-                    names, units, c.Price, build, mkt));
-            }
-
+            var result = await SalesQuery.LoadAsync(_dbFactory, _names, _errorLogger);
+            BuildOwnerOptions(result.Chars, result.Corps);
             _all.Clear();
-            _all.AddRange(rows.OrderByDescending(r => r.WhenSort));
+            _all.AddRange(result.Rows);
+            foreach (var r in _all) r.ApplyBasis(CurrentBasis);
             ApplyFilters();
         }
         catch (Exception ex)
@@ -307,75 +316,12 @@ public class SalesTrackerViewModel : ReactiveObject
     }
 
     // Populate the owner filter with every tracked character and corp (once).
-    private void BuildOwnerOptions(IEnumerable<(long Id, string Name)> chars, IEnumerable<(long Id, string Name)> corps)
+    private void BuildOwnerOptions(IReadOnlyList<(long Id, string Name)> chars, IReadOnlyList<(long Id, string Name)> corps)
     {
         if (OwnerOptions.Count > 2) return;   // already built (keeps the current selection intact)
         foreach (var (id, name) in chars.OrderBy(c => c.Name))
             OwnerOptions.Add(new SalesOwnerOption(name, OwnerScope.Specific, id, "character"));
         foreach (var (id, name) in corps.OrderBy(c => c.Name))
             OwnerOptions.Add(new SalesOwnerOption(name, OwnerScope.Specific, id, "corporation"));
-    }
-
-    private async Task<Dictionary<long, string>> ResolveBuyersAsync(
-        AppDbContext db, List<long> ids, Dictionary<long, string> chars, Dictionary<long, string> corps)
-    {
-        var names = new Dictionary<long, string>();
-        if (ids.Count == 0) return names;
-
-        foreach (var u in await db.UniverseNames.AsNoTracking().Where(u => ids.Contains(u.EntityId)).ToListAsync())
-            names[u.EntityId] = u.Name;
-        foreach (var id in ids)
-            if (!names.ContainsKey(id) && chars.TryGetValue(id, out var cn)) names[id] = cn;
-        foreach (var id in ids)
-            if (!names.ContainsKey(id) && corps.TryGetValue(id, out var on)) names[id] = on;
-
-        var missing = ids.Where(id => !names.ContainsKey(id)).ToList();
-        if (missing.Count == 0) return names;
-
-        try
-        {
-            var resolved = await _names.ResolveNamesAsync(missing);
-            foreach (var kv in resolved)
-            {
-                names[kv.Key] = kv.Value;
-                db.UniverseNames.Add(new UniverseName { EntityId = kv.Key, Name = kv.Value, Category = "" });
-            }
-            if (resolved.Count > 0) await db.SaveChangesAsync();
-        }
-        catch (Exception ex) { _errorLogger.Log("SalesTrackerViewModel", "ResolveBuyers", ex); }
-
-        return names;
-    }
-
-    // Sum of the present values; null only when every item lacked a snapshot.
-    private static double? SumOrNull(IEnumerable<double?> values)
-    {
-        double sum = 0; var any = false;
-        foreach (var v in values) if (v.HasValue) { sum += v.Value; any = true; }
-        return any ? sum : null;
-    }
-
-    private static DateTimeOffset ParseDate(string s) =>
-        DateTimeOffset.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var d)
-            ? d : DateTimeOffset.MinValue;
-
-    private static DateTime ParseDay(string s) =>
-        DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d.Date : DateTime.MinValue;
-
-    private sealed class MarketSaleDto
-    {
-        public long SaleId { get; set; } public long OwnerId { get; set; } public string OwnerType { get; set; } = "";
-        public string DateStr { get; set; } = ""; public int TypeId { get; set; } public int Quantity { get; set; }
-        public double UnitPrice { get; set; } public long BuyerId { get; set; } public string? Location { get; set; }
-    }
-    private sealed class ContractSaleDto
-    {
-        public long SaleId { get; set; } public long OwnerId { get; set; } public string OwnerType { get; set; } = "";
-        public string DateStr { get; set; } = ""; public double Price { get; set; }
-        public long BuyerId { get; set; } public string? Location { get; set; }
-    }
-    private sealed class ContractItemDto
-    {
-        public long ContractId { get; set; } public int TypeId { get; set; } public long Quantity { get; set; }
     }
 }

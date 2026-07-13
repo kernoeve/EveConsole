@@ -127,6 +127,11 @@ public class ProductionCalculatorViewModel : ReactiveObject
     private ParkOption? _selectedPark;
     public ParkOption? SelectedPark { get => _selectedPark; set => this.RaiseAndSetIfChanged(ref _selectedPark, value); }
 
+    // Include the final product's blueprint copy (contract price) as an input. Always applied for
+    // non-BPO (BPC-only) items regardless of this toggle; optional for standard BPO items.
+    private bool _includeBpcCost;
+    public bool IncludeBpcCost { get => _includeBpcCost; set => this.RaiseAndSetIfChanged(ref _includeBpcCost, value); }
+
     // ── Results ───────────────────────────────────────────────────────────
     private ProductionPlan? _plan;
     public ProductionPlan? Plan
@@ -255,8 +260,12 @@ public class ProductionCalculatorViewModel : ReactiveObject
         if (text.Length < 2) { ShowResults = false; return; }
 
         await using var db = await _dbFactory.CreateDbContextAsync();
+        // Only offer items that can actually be produced — i.e. types that are the output of a
+        // manufacturing or reaction blueprint. This excludes BPOs, raw materials, etc.
         var matches = await db.SdeTypes.AsNoTracking()
-            .Where(t => t.Published && EF.Functions.Like(t.Name, $"%{text}%"))
+            .Where(t => t.Published && EF.Functions.Like(t.Name, $"%{text}%")
+                     && db.SdeBlueprintProducts.Any(p => p.ProductTypeId == t.TypeId
+                            && (p.Activity == "manufacturing" || p.Activity == "reaction")))
             .OrderBy(t => t.Name)
             .Take(100)
             .Select(t => new { t.TypeId, t.Name })
@@ -340,7 +349,7 @@ public class ProductionCalculatorViewModel : ReactiveObject
                 MeLevel  = q.MeLevel,
             }).ToList();
 
-            var plan = await _service.CalculateAsync(requests, SelectedPark.Id);
+            var plan = await _service.CalculateAsync(requests, SelectedPark.Id, IncludeBpcCost);
             Plan   = plan;
             Status = $"Done — {plan.AllJobs.Count} jobs, {plan.RawMaterials.Count} raw materials";
         }

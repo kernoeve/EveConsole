@@ -22,6 +22,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     public async Task<ProductionPlan> CalculateAsync(
         List<ProductionQueueEntry> requests,
         int parkId,
+        bool includeBpcCost = false,
         CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
@@ -54,6 +55,17 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         var marketBlueprints = (await db.SdeTypes.AsNoTracking()
             .Where(t => bpTypeIds.Contains(t.TypeId) && t.MarketGroupId != null)
             .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
+        // BPC-only loot tiers (Storyline 3, Faction 4, Officer 5, Deadspace 6) have no obtainable BPO
+        // even when the blueprint carries a market group (e.g. Imperial Navy Bastion Module Blueprint)
+        // — their build consumes a purchased BPC, so drop them from the BPO set.
+        var mfgProductIds = bpProducts.Where(p => p.Activity == MfgActivity)
+            .Select(p => p.ProductTypeId).Distinct().ToList();
+        var bpcOnlyProductIds = (await db.SdeTypes.AsNoTracking()
+            .Where(t => mfgProductIds.Contains(t.TypeId) && t.MetaGroupId >= 3 && t.MetaGroupId <= 6)
+            .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
+        marketBlueprints.ExceptWith(bpProducts
+            .Where(p => p.Activity == MfgActivity && bpcOnlyProductIds.Contains(p.ProductTypeId))
+            .Select(p => p.TypeId));
         var inventedFromMarket = (await db.SdeBlueprintProducts.AsNoTracking()
                 .Where(p => p.Activity == "invention")
                 .Select(p => new { p.TypeId, p.ProductTypeId }).ToListAsync(ct))
@@ -204,6 +216,20 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 unitCosts[p.TypeId] = (decimal)(mktType switch { "Buy" => p.BuyPrice, "Sell" => p.SellPrice, _ => p.Midpoint });
         }
 
+        // BPC inputs are bought from contracts, not the market, so overlay each blueprint type's
+        // contract-derived price onto the local price table. This covers EVERY BPC — including
+        // those whose item has an obtainable BPO (the market-price fill deliberately leaves a
+        // buyable-BPO blueprint's market row alone, which otherwise leaves the BPC input at 0).
+        // Restricted to blueprint-category types so real item market prices are never overwritten.
+        foreach (var cp in await db.ContractPrices.AsNoTracking().ToListAsync(ct))
+        {
+            var e = ContractPricing.EffectivePrice(cp);
+            if (e is not > 0) continue;
+            if (typeGroupMap.TryGetValue(cp.TypeId, out var tg)
+                && groupCatMap.TryGetValue(tg.GroupId, out var gc) && gc.CategoryId == 9)
+                unitCosts[cp.TypeId] = e.Value;
+        }
+
         // ── Adjusted prices (for EIV / job cost) ──────────────────────────
         var adjPrices = await db.EsiAdjustedPrices.AsNoTracking()
             .ToDictionaryAsync(p => p.TypeId, p => p.AdjustedPrice, ct);
@@ -266,6 +292,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                    or "Jump Freighter" or "Industrial Command Ship")                        => "capital_ships",
                 // ── Other categories ────────────────────────────────────────────────
                 (7, _)          => "modules_equipment",
+                // Structure Modules — service modules and all structure rigs — are built at
+                // engineering complexes like equipment.
+                (66, _)         => "modules_equipment",
                 (8, _)          => "ammo_charges",
                 (18 or 87, _)   => "drones_fighters",
                 _ when tg.GroupId == 1136                                 => "structure_ammo",   // Fuel Blocks
@@ -355,12 +384,12 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                             existingMat.TotalQty += effPerRun * extraRuns;
                         ExpandItem(mat.MaterialTypeId, effPerRun * extraRuns, false);
                     }
-                    // Non-BPO: one bought BPC per run — bump its input quantity too, and add to the
-                    // raw-material pool so it shows in the Raw Materials breakdown.
-                    if (!isReaction && !BlueprintIsBpoSourced(bpProd.TypeId))
+                    // If this (final) job included its blueprint copy, keep the BPC quantity in
+                    // sync as the job gains runs (and add the extra copies to the raw pool).
+                    var bpcMat = existing.Materials.FirstOrDefault(m => m.MaterialTypeId == bpProd.TypeId);
+                    if (bpcMat is not null)
                     {
-                        var bpcMat = existing.Materials.FirstOrDefault(m => m.MaterialTypeId == bpProd.TypeId);
-                        if (bpcMat is not null) bpcMat.TotalQty += extraRuns;
+                        bpcMat.TotalQty += extraRuns;
                         ExpandItem(bpProd.TypeId, extraRuns, false);
                     }
                 }
@@ -402,11 +431,11 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     });
                     ExpandItem(mat.MaterialTypeId, effPerRun * runs, false);
                 }
-                // Non-BPO items: add the blueprint copy as a bought input material (one per run),
-                // valued at its contract-derived market value. It's bought (never expanded into
-                // sub-materials), and also added to the raw-material pool so it appears in the Raw
-                // Materials breakdown alongside every other purchased input.
-                if (!isReaction && !BlueprintIsBpoSourced(bpProd.TypeId))
+                // Include the blueprint copy as a bought input for the FINAL product only (one per
+                // run), valued at its contract-derived market value — forced when the item is non-BPO
+                // (no obtainable BPO) and optional otherwise (the includeBpcCost toggle). Sub-materials
+                // never add their BPC. It's bought (never expanded) and joins the raw-material pool.
+                if (!isReaction && isFinal && (!BlueprintIsBpoSourced(bpProd.TypeId) || includeBpcCost))
                 {
                     job.Materials.Add(new PlanJobMaterial
                     {
@@ -647,7 +676,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         {
             var plan = await CalculateAsync(
                 [new ProductionQueueEntry { TypeId = productTypeId, Quantity = runs, MeLevel = meLevel }],
-                parkId.Value, ct);
+                parkId.Value, ct: ct);
             return plan.RawMaterials.ToDictionary(
                 r => r.TypeId,
                 r => (r.Quantity, r.TypeName));

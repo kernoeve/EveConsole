@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Linq;
 using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
@@ -13,6 +14,13 @@ public partial class SettingsWindow : Window
     public SettingsWindow()
     {
         InitializeComponent();
+    }
+
+    // Select a tab by its header text (e.g. "Alerts").
+    public void SelectTab(string header)
+    {
+        var tab = Tabs.Items.OfType<TabItem>().FirstOrDefault(t => (t.Header as string) == header);
+        if (tab is not null) Tabs.SelectedItem = tab;
     }
 
     protected override void OnOpened(EventArgs e)

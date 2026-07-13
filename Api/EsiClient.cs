@@ -425,7 +425,17 @@ public class EsiClient
             T?      data  = default;
             string? error = null;
             if (response.IsSuccessStatusCode)
-                data = await response.Content.ReadFromJsonAsync<T>(JsonOptions, ct);
+            {
+                // A 204, or a success with an empty body, is a valid "no content" response (e.g. a
+                // public contract with no retrievable items). Treat it as empty rather than letting
+                // the JSON reader throw "input does not contain any JSON tokens".
+                if (statusCode != 204)
+                {
+                    var body = await response.Content.ReadAsStringAsync(ct);
+                    if (!string.IsNullOrWhiteSpace(body))
+                        data = JsonSerializer.Deserialize<T>(body, JsonOptions);
+                }
+            }
             else
                 error = await response.Content.ReadAsStringAsync(ct);
 

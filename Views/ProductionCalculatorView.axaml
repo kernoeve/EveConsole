@@ -68,6 +68,9 @@
         <Separator DockPanel.Dock="Top" Margin="0 2 0 8" Background="#252530"/>
 
         <StackPanel DockPanel.Dock="Bottom" Spacing="6" Margin="0 8 0 0">
+          <CheckBox IsChecked="{Binding IncludeBpcCost}" Content="Include final BPC cost"
+                    Foreground="#ccccdd" FontSize="11"
+                    ToolTip.Tip="Add the final product's blueprint copy (contract price) as an input. Always included for faction / BPC-only items; optional for standard BPO items." />
           <Separator Background="#252530"/>
           <Button Content="Calculate" Command="{Binding CalculateCommand}"
                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"

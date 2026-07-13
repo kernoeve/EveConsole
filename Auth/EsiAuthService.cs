@@ -37,6 +37,10 @@ public class EsiAuthService
         "esi-characters.read_blueprints.v1",
         "esi-characters.read_chat_channels.v1",
         "esi-characters.read_contacts.v1",
+        // Reads the character's OWN corp roles (/characters/{id}/roles/) — a character-token
+        // scope, despite the "corporation" in the name. Must live here so character tokens
+        // request it; the corp roles endpoint uses read_corporation_membership instead.
+        "esi-characters.read_corporation_roles.v1",
         "esi-characters.read_fatigue.v1",
         "esi-characters.read_freelance_jobs.v1",
         "esi-characters.read_fw_stats.v1",
@@ -81,7 +85,6 @@ public class EsiAuthService
     public static readonly string[] CorporationScopes =
     [
         "esi-assets.read_corporation_assets.v1",
-        "esi-characters.read_corporation_roles.v1",
         "esi-contracts.read_corporation_contracts.v1",
         "esi-corporations.read_blueprints.v1",
         "esi-corporations.read_contacts.v1",
