@@ -21,6 +21,7 @@ public class MainWindowViewModel : ReactiveObject
     public UpdateViewModel                UpdateVm               { get; }
     public ApiActivityViewModel           ActivityVm             { get; }
     public EsiExplorerViewModel           ExplorerVm             { get; }
+    public ErrorLogViewModel              ErrorLogVm             { get; }
     public AssetBrowserViewModel          AssetBrowserVm         { get; }
     public IndustryBrowserViewModel       IndustryBrowserVm      { get; }
     public CharacterViewerViewModel       CharacterViewerVm      { get; }
@@ -141,6 +142,7 @@ public class MainWindowViewModel : ReactiveObject
             "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
             "notifications"  => ("Notifications",  NotificationsVm,   true),
             "data"           => ("ESI Explorer",   ExplorerVm,        true),
+            "error_log"      => ("Error Log",      ErrorLogVm,        true),
             _                => throw new ArgumentException($"Unknown tool: {toolId}")
         };
 
@@ -304,6 +306,7 @@ public class MainWindowViewModel : ReactiveObject
         using var tmpDb      = dbFactory.CreateDbContext();
         var connString       = tmpDb.Database.GetConnectionString()!;
         ExplorerVm           = new EsiExplorerViewModel(connString);
+        ErrorLogVm           = new ErrorLogViewModel(dbFactory, errorLogger);
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
         IndustryBrowserVm    = new IndustryBrowserViewModel(connString);
         TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
@@ -385,6 +388,7 @@ public class MainWindowViewModel : ReactiveObject
             new("Tools",
             [
                 new NavItem("data", "ESI Explorer"),
+                new NavItem("error_log", "Error Log"),
             ]),
         ];
 

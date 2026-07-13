@@ -315,6 +315,9 @@
               <DataTemplate DataType="vm:EsiExplorerViewModel">
                 <views:EsiExplorerView />
               </DataTemplate>
+              <DataTemplate DataType="vm:ErrorLogViewModel">
+                <views:ErrorLogView />
+              </DataTemplate>
             </ContentControl.DataTemplates>
           </ContentControl>
 
