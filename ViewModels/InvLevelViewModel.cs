@@ -37,6 +37,9 @@ public record CollectionOption(int? CollectionId, string Name)
 
 public class InvCollectionRow : ReactiveObject
 {
+    private static readonly SolidColorBrush RowBrush = new(Color.Parse("#0e0e1a"));
+    public IBrush RowBackground => RowBrush;
+
     public bool IsCollection => true;
     public bool IsGroup      => false;
     public bool IsItem       => false;
@@ -88,6 +91,9 @@ public class InvCollectionRow : ReactiveObject
 
 public class InvGroupRow : ReactiveObject
 {
+    private static readonly SolidColorBrush RowBrush = new(Color.Parse("#141420"));
+    public IBrush RowBackground => RowBrush;
+
     public bool IsCollection => false;
     public bool IsGroup      => true;
     public bool IsItem       => false;
@@ -199,9 +205,16 @@ public class InvGroupRow : ReactiveObject
 
 public class InvItemRow : ReactiveObject
 {
-    private static readonly SolidColorBrush Green = new(Color.Parse("#4a9a4a"));
-    private static readonly SolidColorBrush Red   = new(Color.Parse("#9a4a4a"));
-    private static readonly SolidColorBrush Gray  = new(Color.Parse("#666677"));
+    private static readonly SolidColorBrush Green  = new(Color.Parse("#4a9a4a"));
+    private static readonly SolidColorBrush Orange = new(Color.Parse("#e0902e"));
+    private static readonly SolidColorBrush Red    = new(Color.Parse("#d05a5a"));
+    private static readonly SolidColorBrush Gray   = new(Color.Parse("#666677"));
+
+    // Whole-row background tint when the item is under target: orange from 0% down to -50%,
+    // red once the shortfall is worse than -50%. Transparent lets the base row colour show.
+    private static readonly SolidColorBrush RowClear  = new(Colors.Transparent);
+    private static readonly SolidColorBrush RowOrange = new(Color.Parse("#3a2a12"));
+    private static readonly SolidColorBrush RowRed    = new(Color.Parse("#3a1616"));
 
     private readonly InvLevelService _svc;
 
@@ -276,7 +289,11 @@ public class InvItemRow : ReactiveObject
     public string DiffText        => FormatQty(Diff, sign: true);
     public string DiffPctText     => TargetTotal > 0 ? $"{DiffPct:+0.0;-0.0}%" : "—";
 
-    public IBrush DiffColor => Diff >= 0 ? Green : Red;
+    // Green when at/above target; orange for a 0% to -50% shortfall; red when worse than -50%.
+    public IBrush DiffColor => Diff >= 0 ? Green : DiffPct >= -50 ? Orange : Red;
+
+    // Whole-row tint mirroring the shortfall severity (transparent when at/above target).
+    public IBrush RowBackground => Diff >= 0 ? RowClear : DiffPct >= -50 ? RowOrange : RowRed;
 
     public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
 
@@ -321,6 +338,7 @@ public class InvItemRow : ReactiveObject
         this.RaisePropertyChanged(nameof(DiffText));
         this.RaisePropertyChanged(nameof(DiffPctText));
         this.RaisePropertyChanged(nameof(DiffColor));
+        this.RaisePropertyChanged(nameof(RowBackground));
     }
 
     private static string FormatQty(long v, bool sign = false)

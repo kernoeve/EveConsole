@@ -3,32 +3,18 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Media;
 using EveCortex.ViewModels;
 
 namespace EveCortex.Views;
 
 public partial class InvLevelView : UserControl
 {
-    private static readonly IBrush _collectionBrush = new SolidColorBrush(Color.Parse("#0e0e1a"));
-    private static readonly IBrush _groupBrush      = new SolidColorBrush(Color.Parse("#141420"));
-    private static readonly IBrush _itemBrush       = new SolidColorBrush(Color.Parse("#0d0d12"));
-
     public InvLevelView()
     {
         InitializeComponent();
-        MainGrid.LoadingRow += OnLoadingRow;
+        // Row backgrounds are bound to each row's RowBackground (see InvLevelView.axaml) so they
+        // update live as availability changes, rather than being set once on LoadingRow.
         DataContextChanged += OnDataContextChanged;
-    }
-
-    private void OnLoadingRow(object? sender, DataGridRowEventArgs e)
-    {
-        e.Row.Background = e.Row.DataContext switch
-        {
-            InvCollectionRow => _collectionBrush,
-            InvGroupRow      => _groupBrush,
-            _                => _itemBrush
-        };
     }
 
     private void OnDataContextChanged(object? sender, System.EventArgs e)

@@ -107,6 +107,9 @@
         </Style>
         <Style Selector="DataGridRow">
           <Setter Property="MinHeight" Value="25" />
+          <!-- Per-row tint: base colour for collection/group/item rows, orange/red when an item
+               is under target. Bound (not set on LoadingRow) so it updates live as stock changes. -->
+          <Setter Property="Background" Value="{Binding RowBackground}" />
         </Style>
       </DataGrid.Styles>
 
