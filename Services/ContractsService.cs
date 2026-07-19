@@ -266,6 +266,13 @@ public class ContractsService : ReactiveObject
     {
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
+        // This sweep reuses one context across many contracts, only ever Add-ing new items or
+        // ExecuteUpdate-ing (which bypasses tracking). Change detection is therefore unneeded, and
+        // leaving it on made every SaveChanges re-scan an ever-growing tracked graph — an O(n²)
+        // cost that also crashed EF's ChangeDetector (fatal CLR access violation) once large. We
+        // disable auto-detect and Clear() the tracker after each contract to keep it bounded.
+        db.ChangeTracker.AutoDetectChangesEnabled = false;
+
         // All contracts still needing items (item-bearing types), grouped by ContractId so a
         // contract seen by several owners is fetched once.
         var pending = (await db.EsiContracts.AsNoTracking()
@@ -397,6 +404,7 @@ public class ContractsService : ReactiveObject
 
         if (items.Count > 0) db.EsiContractItems.AddRange(items);
         await db.SaveChangesAsync(ct);
+        db.ChangeTracker.Clear();   // don't let saved items accumulate across the sweep
         return true;
     }
 
@@ -411,6 +419,9 @@ public class ContractsService : ReactiveObject
     public async Task RecomputePricingAsync(CancellationToken ct)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        // Pure delete + bulk insert of a fresh set — no change detection needed (and a large
+        // DetectChanges pass is the failure mode we're avoiding elsewhere in this service).
+        db.ChangeTracker.AutoDetectChangesEnabled = false;
 
         // Per-contract item aggregate. MinType==MaxType ⇒ a single distinct type; Requested==0 ⇒
         // nothing is asked for in return (a pure item-for-ISK sell); Qty = total units offered.
