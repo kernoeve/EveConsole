@@ -28,7 +28,7 @@ public partial class CorpActivityView : UserControl
         PostTop10SlackButton.Click += (_, _) =>
         {
             if (DataContext is not CorpActivityViewModel vm) return;
-            _ = vm.PostTop10ToSlackAsync(includeIsk: true);
+            _ = vm.PostTop10ToSlackAsync(includeIsk: false);
         };
 
         Kill24hList.DoubleTapped += OnKill24hDoubleTapped;

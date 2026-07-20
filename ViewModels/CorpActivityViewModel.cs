@@ -1296,7 +1296,10 @@ public class CorpActivityViewModel : ReactiveObject
     {
         var month = SelectedTop10Month?.Name ?? "?";
         var year  = SelectedTop10Year;
-        var header = $"Top 10 — {month} {year}";
+        var corp  = SelectedCorp?.Name;
+        var header = string.IsNullOrWhiteSpace(corp)
+            ? $"Top 10 — {month} {year}"
+            : $"{corp} Top 10 — {month} {year}";
 
         var sb = new System.Text.StringBuilder();
 
