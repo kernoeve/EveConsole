@@ -17,15 +17,15 @@ jobs:
 
       - name: Publish (self-contained win-x64)
         run: >
-          dotnet publish EveCortex.csproj
+          dotnet publish EveConsole.csproj
           -c Release
           -r win-x64
           --self-contained true
-          -o EveCortex
+          -o EveConsole
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: EveCortex-develop-win-x64
-          path: EveCortex/
+          name: EveConsole-develop-win-x64
+          path: EveConsole/
           retention-days: 30
