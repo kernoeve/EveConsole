@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>EveCortex</RootNamespace>
-    <AssemblyName>EveCortex</AssemblyName>
+    <AssemblyName>EveConsole</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
     <ApplicationIcon>Assets\ec.ico</ApplicationIcon>

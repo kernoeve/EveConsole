@@ -51,7 +51,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         base.OnOpened(e);
 
         // Load icon from assets stream so Windows taskbar picks it up correctly.
-        using var stream = AssetLoader.Open(new Uri("avares://EveCortex/Assets/ec.ico"));
+        using var stream = AssetLoader.Open(new Uri("avares://EveConsole/Assets/ec.ico"));
         Icon = new WindowIcon(stream);
 
         RestoreWindowState();

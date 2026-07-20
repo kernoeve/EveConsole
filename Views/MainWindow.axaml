@@ -5,7 +5,7 @@
         x:Class="EveCortex.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Eve Cortex"
-        Icon="avares://EveCortex/Assets/ec.ico"
+        Icon="avares://EveConsole/Assets/ec.ico"
         Width="1820" Height="900"
         MinWidth="1200" MinHeight="640"
         WindowStartupLocation="Manual"
@@ -18,7 +18,7 @@
       <Grid ColumnDefinitions="*,Auto,Auto">
 
         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-          <Image Source="avares://EveCortex/Assets/logo.png"
+          <Image Source="avares://EveConsole/Assets/logo.png"
                  Width="30" Height="30"
                  RenderOptions.BitmapInterpolationMode="HighQuality" />
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
