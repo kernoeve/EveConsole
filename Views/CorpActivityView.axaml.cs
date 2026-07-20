@@ -52,6 +52,12 @@ public partial class CorpActivityView : UserControl
             return await dialog.ShowDialog<CorpStandingProject?>(GetWindow());
         };
 
+        vm.ConfirmSlackRepost = async (message) =>
+        {
+            var dlg = new ConfirmDialog(message);
+            return await dlg.ShowDialog<bool>(GetWindow());
+        };
+
         vm.ConfirmDelete = async () =>
         {
             var dlg = new ConfirmDialog("Are you sure you want to delete this standing project?");

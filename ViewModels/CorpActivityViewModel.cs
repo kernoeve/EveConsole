@@ -1272,6 +1272,13 @@ public class CorpActivityViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(SlackTop10ChannelText));
     }
 
+    // The Top 10 is a low-volume, deliberate post. Re-posting inside this window asks for
+    // confirmation first, so a stray double-click doesn't spam the channel.
+    private static readonly TimeSpan SlackRepostWindow = TimeSpan.FromHours(24);
+
+    /// <summary>Asked before re-posting within the cooldown; return true to post anyway.</summary>
+    public Func<string, Task<bool>>? ConfirmSlackRepost { get; set; }
+
     /// <summary>Posts the Top 10 export to the configured channel, as the capsuleer.</summary>
     public async Task PostTop10ToSlackAsync(bool includeIsk)
     {
@@ -1279,10 +1286,22 @@ public class CorpActivityViewModel : ReactiveObject
         var channel = _slack.ChannelId(SlackService.AreaCorpTop10);
         if (string.IsNullOrEmpty(channel)) { SlackStatus = "No Slack channel configured."; return; }
 
+        // Guard against accidental double-posting.
+        if (_slack.LastPostAt(SlackService.AreaCorpTop10) is { } last
+            && DateTimeOffset.UtcNow - last < SlackRepostWindow
+            && ConfirmSlackRepost is not null)
+        {
+            var confirmed = await ConfirmSlackRepost(
+                $"This Top 10 listing was already posted to Slack {NotificationSummary.Age(last)}.\n\n" +
+                "Post it again?");
+            if (!confirmed) { SlackStatus = "Post cancelled."; return; }
+        }
+
         SlackStatus = "Posting to Slack…";
         // Wrapped in a code block so the padded columns line up in Slack's proportional font.
         var body = BuildTop10Export(includeIsk);
         var res  = await _slack.PostMessageAsync(channel, $"```\n{body}\n```");
+        if (res.Ok) await _slack.SetLastPostAsync(SlackService.AreaCorpTop10, DateTimeOffset.UtcNow);
         SlackStatus = res.Ok
             ? $"Posted to {SlackTop10ChannelText} — {DateTimeOffset.Now:t}"
             : $"Slack post failed: {res.Error}";

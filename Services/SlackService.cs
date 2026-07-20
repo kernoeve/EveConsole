@@ -38,6 +38,7 @@ public class SlackService
 
     private static string ChanIdKey(string area)   => $"slack.channel.{area}.id";
     private static string ChanNameKey(string area) => $"slack.channel.{area}.name";
+    private static string LastPostKey(string area) => $"slack.lastpost.{area}";
 
     private readonly IHttpClientFactory     _httpFactory;
     private readonly AppPreferencesService  _prefs;
@@ -65,6 +66,13 @@ public class SlackService
 
     public Task SetTokenAsync(string? token)
         => _prefs.SetAsync(TokenKey, string.IsNullOrWhiteSpace(token) ? null : token.Trim());
+
+    /// <summary>When this area last posted successfully — used to warn about accidental reposts.</summary>
+    public DateTimeOffset? LastPostAt(string area)
+        => DateTimeOffset.TryParse(_prefs.Get(LastPostKey(area)), out var t) ? t : null;
+
+    public Task SetLastPostAsync(string area, DateTimeOffset when)
+        => _prefs.SetAsync(LastPostKey(area), when.ToString("o"));
 
     /// <summary>Runs the PKCE browser flow and stores the resulting user token.</summary>
     public async Task<SlackAuthResult> ConnectAsync(CancellationToken ct = default)
