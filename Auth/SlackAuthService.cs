@@ -34,7 +34,7 @@ public class SlackAuthService
     //     workspaces can install it
     // The client id is public by design (same as the ESI one) — no secret ships.
     // -----------------------------------------------------------------------
-    public const string ClientId = "";   // ← paste the Slack app's Client ID here
+    public const string ClientId = "5825064640678.11610347528311";
 
     private const string CallbackUrl   = "http://localhost:5051/slack/callback";
     private const string ListenPrefix  = "http://localhost:5051/slack/callback/";
