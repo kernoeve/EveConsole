@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
+using EveCortex.Auth;
 using EveCortex.Services;
 using ReactiveUI;
 
@@ -31,9 +32,55 @@ public class SlackSettingsViewModel : ReactiveObject
             Channels.Add(_corpTop10Channel);
         }
 
-        SaveAndTestCommand  = ReactiveCommand.CreateFromTask(SaveAndTestAsync);
-        LoadChannelsCommand = ReactiveCommand.CreateFromTask(LoadChannelsAsync);
+        SaveAndTestCommand   = ReactiveCommand.CreateFromTask(SaveAndTestAsync);
+        LoadChannelsCommand  = ReactiveCommand.CreateFromTask(LoadChannelsAsync);
         OpenSlackAppsCommand = ReactiveCommand.Create(() => OpenUrl(AppsUrl));
+        ConnectCommand       = ReactiveCommand.CreateFromTask(ConnectAsync);
+        DisconnectCommand    = ReactiveCommand.CreateFromTask(DisconnectAsync);
+
+        IsConnected = slack.HasToken;
+        if (IsConnected && slack.TeamName is { Length: > 0 } team)
+            Status = $"Connected to {team}.";
+    }
+
+    /// <summary>True when this build has a Slack Client ID, so one-click connect is possible.</summary>
+    public bool CanConnect => SlackAuthService.IsAvailable;
+
+    /// <summary>Manual token entry is the fallback when no Client ID is compiled in.</summary>
+    public bool ShowManualToken => !SlackAuthService.IsAvailable;
+
+    public ReactiveCommand<Unit, Unit> ConnectCommand    { get; }
+    public ReactiveCommand<Unit, Unit> DisconnectCommand { get; }
+
+    private async Task ConnectAsync()
+    {
+        IsBusy = true;
+        Status = "Waiting for Slack authorization in your browser…";
+        try
+        {
+            var res = await _slack.ConnectAsync();
+            IsConnected = res.Ok;
+            Status = res.Ok
+                ? $"Connected — posting as {res.User} in {res.Team}."
+                : $"Failed: {res.Error}";
+            if (res.Ok)
+            {
+                Token = _slack.Token ?? "";
+                await LoadChannelsAsync();
+            }
+        }
+        finally { IsBusy = false; }
+    }
+
+    private async Task DisconnectAsync()
+    {
+        await _slack.DisconnectAsync();
+        Token       = "";
+        IsConnected = false;
+        Channels.Clear();
+        _corpTop10Channel = null;
+        this.RaisePropertyChanged(nameof(CorpTop10Channel));
+        Status = "Disconnected.";
     }
 
     // ── Token ────────────────────────────────────────────────────────────────

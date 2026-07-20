@@ -1377,31 +1377,56 @@
         <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
                    Text="Post from Eve Cortex straight into Slack. Posts are made with your own user token, so they appear as you — not as a bot. Nothing is posted automatically; you choose when to send." />
 
-        <!-- Setup steps -->
-        <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="4" Padding="14 12">
-          <StackPanel Spacing="8">
-            <TextBlock Text="One-time setup" FontSize="12" FontWeight="SemiBold" Foreground="#c8c8d8" />
-            <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
-                       Text="1.  Open api.slack.com/apps and choose Create New App → From scratch. Name it (e.g. Eve Cortex) and pick your workspace." />
-            <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
-                       Text="2.  Go to OAuth &amp; Permissions and add these under User Token Scopes (not Bot Token Scopes):" />
-            <SelectableTextBlock Text="chat:write     channels:read     groups:read     im:read     mpim:read"
-                                 FontFamily="Consolas, Menlo, monospace" FontSize="12" Foreground="#6aaa88"
-                                 Margin="16 0 0 0" />
-            <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
-                       Text="3.  Click Install to Workspace and approve. Some workspaces require an owner to approve the install." />
-            <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
-                       Text="4.  Copy the User OAuth Token (it starts with xoxp-) and paste it below." />
-            <Button Content="Open api.slack.com/apps"
-                    Command="{Binding SlackVm.OpenSlackAppsCommand}"
-                    HorizontalAlignment="Left" Padding="10 3" FontSize="11"
+        <!-- Connect (one-click, PKCE) -->
+        <StackPanel Spacing="8" IsVisible="{Binding SlackVm.CanConnect}">
+          <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
+                     Text="Connecting opens Slack in your browser. Choose the workspace, approve access, and you're done — Eve Cortex never sees your Slack password, and you can revoke it any time from your Slack account settings." />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="Connect to Slack"
+                    Command="{Binding SlackVm.ConnectCommand}"
+                    IsEnabled="{Binding !SlackVm.IsBusy}"
+                    Padding="14 5" FontSize="12"
                     Background="#1a2a1a" Foreground="#6aaa88"
                     BorderBrush="#2a3a2a" BorderThickness="1" />
+            <Button Content="Disconnect"
+                    Command="{Binding SlackVm.DisconnectCommand}"
+                    IsVisible="{Binding SlackVm.IsConnected}"
+                    Padding="12 5" FontSize="12"
+                    Background="#2a1010" Foreground="#cc4444"
+                    BorderBrush="#3a1515" BorderThickness="1" />
+            <Button Content="Reload Channels"
+                    Command="{Binding SlackVm.LoadChannelsCommand}"
+                    IsEnabled="{Binding !SlackVm.IsBusy}"
+                    Padding="12 5" FontSize="12"
+                    Background="#1a1a28" Foreground="#8888cc"
+                    BorderBrush="#2a2a4a" BorderThickness="1" />
           </StackPanel>
-        </Border>
+          <TextBlock Text="{Binding SlackVm.Status}" FontSize="11" Foreground="#888899"
+                     TextWrapping="Wrap" />
+        </StackPanel>
 
-        <!-- Token -->
-        <StackPanel Spacing="6">
+        <!-- Manual token — only when this build has no Slack Client ID compiled in -->
+        <StackPanel Spacing="8" IsVisible="{Binding SlackVm.ShowManualToken}">
+          <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Manual setup" FontSize="12" FontWeight="SemiBold" Foreground="#c8c8d8" />
+              <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
+                         Text="1.  Open api.slack.com/apps and choose Create New App → From scratch. Name it (e.g. Eve Cortex) and pick your workspace." />
+              <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
+                         Text="2.  Go to OAuth &amp; Permissions and add these under User Token Scopes (not Bot Token Scopes):" />
+              <SelectableTextBlock Text="chat:write     channels:read     groups:read     im:read     mpim:read"
+                                   FontFamily="Consolas, Menlo, monospace" FontSize="12" Foreground="#6aaa88"
+                                   Margin="16 0 0 0" />
+              <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
+                         Text="3.  Click Install to Workspace and approve, then copy the User OAuth Token (it starts with xoxp-)." />
+              <Button Content="Open api.slack.com/apps"
+                      Command="{Binding SlackVm.OpenSlackAppsCommand}"
+                      HorizontalAlignment="Left" Padding="10 3" FontSize="11"
+                      Background="#1a2a1a" Foreground="#6aaa88"
+                      BorderBrush="#2a3a2a" BorderThickness="1" />
+            </StackPanel>
+          </Border>
+
           <TextBlock Text="User OAuth Token" FontSize="12" Foreground="#c8c8d8" />
           <TextBox Text="{Binding SlackVm.Token}" PasswordChar="●"
                    Watermark="xoxp-…" FontSize="12"

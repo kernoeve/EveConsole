@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using EveCortex.Auth;
 
 namespace EveCortex.Services;
 
@@ -27,7 +28,10 @@ public class SlackChannel
 /// </summary>
 public class SlackService
 {
-    public const string TokenKey = "slack.user_token";
+    public const string TokenKey    = "slack.user_token";
+    private const string RefreshKey = "slack.refresh_token";
+    private const string ExpiresKey = "slack.token_expires_at";
+    private const string TeamKey    = "slack.team_name";
 
     // Areas of the app that post to Slack; each maps to its own configured channel.
     public const string AreaCorpTop10 = "corp_top10";
@@ -38,16 +42,20 @@ public class SlackService
     private readonly IHttpClientFactory     _httpFactory;
     private readonly AppPreferencesService  _prefs;
     private readonly AppErrorLogger         _errors;
+    private readonly SlackAuthService       _auth;
 
-    public SlackService(IHttpClientFactory httpFactory, AppPreferencesService prefs, AppErrorLogger errors)
+    public SlackService(IHttpClientFactory httpFactory, AppPreferencesService prefs,
+                        AppErrorLogger errors, SlackAuthService auth)
     {
         _httpFactory = httpFactory;
         _prefs       = prefs;
         _errors      = errors;
+        _auth        = auth;
     }
 
     public string? Token       => _prefs.Get(TokenKey);
     public bool    HasToken    => !string.IsNullOrWhiteSpace(Token);
+    public string? TeamName    => _prefs.Get(TeamKey);
     public string? ChannelId(string area)   => _prefs.Get(ChanIdKey(area));
     public string? ChannelName(string area) => _prefs.Get(ChanNameKey(area));
 
@@ -57,6 +65,56 @@ public class SlackService
 
     public Task SetTokenAsync(string? token)
         => _prefs.SetAsync(TokenKey, string.IsNullOrWhiteSpace(token) ? null : token.Trim());
+
+    /// <summary>Runs the PKCE browser flow and stores the resulting user token.</summary>
+    public async Task<SlackAuthResult> ConnectAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            var tokens = await _auth.LoginAsync(ct);
+            await StoreAsync(tokens);
+            // auth.test confirms the token works and gives us the display name to show.
+            return await TestAuthAsync(ct: ct);
+        }
+        catch (OperationCanceledException) { return new SlackAuthResult(false, null, null, "Cancelled."); }
+        catch (Exception ex)
+        {
+            _errors.Log("SlackService", "Connect", ex);
+            return new SlackAuthResult(false, null, null, ex.Message);
+        }
+    }
+
+    /// <summary>Clears the stored token and its refresh state.</summary>
+    public async Task DisconnectAsync()
+    {
+        await _prefs.SetAsync(TokenKey,   null);
+        await _prefs.SetAsync(RefreshKey, null);
+        await _prefs.SetAsync(ExpiresKey, null);
+        await _prefs.SetAsync(TeamKey,    null);
+    }
+
+    private async Task StoreAsync(SlackTokenSet t)
+    {
+        await _prefs.SetAsync(TokenKey,   t.AccessToken);
+        await _prefs.SetAsync(RefreshKey, t.RefreshToken);
+        await _prefs.SetAsync(ExpiresKey, t.ExpiresAt?.ToString("o"));
+        if (t.TeamName is not null) await _prefs.SetAsync(TeamKey, t.TeamName);
+    }
+
+    /// <summary>
+    /// Renews the token when it's rotating and close to expiry. Non-rotating tokens (the usual
+    /// case for a loopback redirect) have no refresh token and are left alone.
+    /// </summary>
+    private async Task EnsureFreshTokenAsync(CancellationToken ct)
+    {
+        var refresh = _prefs.Get(RefreshKey);
+        if (string.IsNullOrEmpty(refresh)) return;
+        if (!DateTimeOffset.TryParse(_prefs.Get(ExpiresKey), out var expiresAt)) return;
+        if (DateTimeOffset.UtcNow < expiresAt.AddMinutes(-5)) return;
+
+        try { await StoreAsync(await _auth.RefreshAsync(refresh, ct)); }
+        catch (Exception ex) { _errors.Log("SlackService", "RefreshToken", ex); }
+    }
 
     public async Task SetChannelAsync(string area, SlackChannel? channel)
     {
@@ -71,6 +129,7 @@ public class SlackService
     {
         try
         {
+            if (token is null) await EnsureFreshTokenAsync(ct);
             using var client = Client(token);
             using var res    = await client.PostAsync("auth.test", null, ct);
             using var doc    = JsonDocument.Parse(await res.Content.ReadAsStringAsync(ct));
@@ -89,6 +148,7 @@ public class SlackService
         var all = new List<SlackChannel>();
         try
         {
+            await EnsureFreshTokenAsync(ct);
             using var client = Client(null);
             string? cursor = null;
             do
@@ -131,6 +191,7 @@ public class SlackService
     {
         try
         {
+            await EnsureFreshTokenAsync(ct);
             var payload = new Dictionary<string, object?>
             {
                 ["channel"] = channelId,

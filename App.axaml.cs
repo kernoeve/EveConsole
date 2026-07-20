@@ -1442,6 +1442,7 @@ public class App : Application
         services.AddSingleton<AppErrorLogger>();
         services.AddSingleton<TimerSettingsService>();
         services.AddSingleton<AppPreferencesService>();
+        services.AddSingleton<SlackAuthService>();
         services.AddSingleton<SlackService>();
         services.AddSingleton<DatabaseBackupService>();
         services.AddSingleton<EsiPollingService>();
