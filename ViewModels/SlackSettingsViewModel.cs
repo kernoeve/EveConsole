@@ -37,6 +37,7 @@ public class SlackSettingsViewModel : ReactiveObject
         OpenSlackAppsCommand = ReactiveCommand.Create(() => OpenUrl(AppsUrl));
         ConnectCommand       = ReactiveCommand.CreateFromTask(ConnectAsync);
         DisconnectCommand    = ReactiveCommand.CreateFromTask(DisconnectAsync);
+        CancelConnectCommand = ReactiveCommand.Create(CancelConnect);
 
         IsConnected = slack.HasToken;
         if (IsConnected && slack.TeamName is { Length: > 0 } team)
@@ -49,16 +50,32 @@ public class SlackSettingsViewModel : ReactiveObject
     /// <summary>Manual token entry is the fallback when no Client ID is compiled in.</summary>
     public bool ShowManualToken => !SlackAuthService.IsAvailable;
 
-    public ReactiveCommand<Unit, Unit> ConnectCommand    { get; }
-    public ReactiveCommand<Unit, Unit> DisconnectCommand { get; }
+    public ReactiveCommand<Unit, Unit> ConnectCommand       { get; }
+    public ReactiveCommand<Unit, Unit> DisconnectCommand    { get; }
+    public ReactiveCommand<Unit, Unit> CancelConnectCommand { get; }
+
+    // Slack only redirects back if the user clicks Cancel on its page; closing the tab (or an
+    // error page that doesn't redirect) sends nothing. So the wait is always bounded, and the
+    // user can abandon it explicitly.
+    private static readonly TimeSpan ConnectTimeout = TimeSpan.FromMinutes(5);
+
+    private CancellationTokenSource? _connectCts;
+
+    private bool _isConnecting;
+    public bool IsConnecting { get => _isConnecting; private set => this.RaiseAndSetIfChanged(ref _isConnecting, value); }
 
     private async Task ConnectAsync()
     {
-        IsBusy = true;
-        Status = "Waiting for Slack authorization in your browser…";
+        _connectCts?.Cancel();
+        _connectCts?.Dispose();
+        var cts = new CancellationTokenSource(ConnectTimeout);
+        _connectCts = cts;
+
+        IsBusy = IsConnecting = true;
+        Status = "Waiting for Slack authorization in your browser… (Cancel if you closed it)";
         try
         {
-            var res = await _slack.ConnectAsync();
+            var res = await _slack.ConnectAsync(cts.Token);
             IsConnected = res.Ok;
             Status = res.Ok
                 ? $"Connected — posting as {res.User} in {res.Team}."
@@ -69,7 +86,18 @@ public class SlackSettingsViewModel : ReactiveObject
                 await LoadChannelsAsync();
             }
         }
-        finally { IsBusy = false; }
+        finally
+        {
+            IsBusy = IsConnecting = false;
+            if (ReferenceEquals(_connectCts, cts)) _connectCts = null;
+            cts.Dispose();
+        }
+    }
+
+    private void CancelConnect()
+    {
+        _connectCts?.Cancel();
+        Status = "Connection cancelled.";
     }
 
     private async Task DisconnectAsync()

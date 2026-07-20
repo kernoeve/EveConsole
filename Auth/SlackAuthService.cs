@@ -148,7 +148,14 @@ public class SlackAuthService
         var contextTask = listener.GetContextAsync();
         var cancelTask  = Task.Delay(Timeout.Infinite, ct);
         if (await Task.WhenAny(contextTask, cancelTask) == cancelTask)
-            throw new OperationCanceledException("Slack authorization timed out or was cancelled.");
+        {
+            // Slack redirects back with ?error=… when the user clicks Cancel, but sends nothing at
+            // all if they close the tab or Slack shows an error page instead of redirecting — so
+            // the caller's token (timeout / explicit cancel) is what frees us here.
+            // Observe the abandoned listener task so disposing it can't raise an unobserved fault.
+            _ = contextTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+            throw new OperationCanceledException("Slack authorization was cancelled or timed out.");
+        }
 
         var context = await contextTask;
         var query   = context.Request.QueryString;

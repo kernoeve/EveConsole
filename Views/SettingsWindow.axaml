@@ -1388,6 +1388,12 @@
                     Padding="14 5" FontSize="12"
                     Background="#1a2a1a" Foreground="#6aaa88"
                     BorderBrush="#2a3a2a" BorderThickness="1" />
+            <Button Content="Cancel"
+                    Command="{Binding SlackVm.CancelConnectCommand}"
+                    IsVisible="{Binding SlackVm.IsConnecting}"
+                    Padding="12 5" FontSize="12"
+                    Background="#1a1a28" Foreground="#888899"
+                    BorderBrush="#2a2a3a" BorderThickness="1" />
             <Button Content="Disconnect"
                     Command="{Binding SlackVm.DisconnectCommand}"
                     IsVisible="{Binding SlackVm.IsConnected}"
