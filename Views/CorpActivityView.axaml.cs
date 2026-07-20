@@ -25,6 +25,12 @@ public partial class CorpActivityView : UserControl
             _ = TopLevel.GetTopLevel(this)?.Clipboard?.SetTextAsync(text);
         };
 
+        PostTop10SlackButton.Click += (_, _) =>
+        {
+            if (DataContext is not CorpActivityViewModel vm) return;
+            _ = vm.PostTop10ToSlackAsync(includeIsk: true);
+        };
+
         Kill24hList.DoubleTapped += OnKill24hDoubleTapped;
         DataContextChanged += OnDataContextChanged;
     }

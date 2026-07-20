@@ -376,12 +376,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         var settingsVm = new SettingsViewModel(vm.CharacterVm, vm.SdeVm, vm.UpdateVm, vm.MarketVm, vm.TimerVm,
                                                vm.AgentVm.Service, vm.PriceHistorySettingsVm,
                                                vm.AlertSettingsVm, vm.PollingSettingsVm,
-                                               vm.CorpTop10SettingsVm, dbVm,
+                                               vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm,
                                                vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
         var settingsWin = new SettingsWindow { DataContext = settingsVm };
         settingsWin.WireDatabase(dbVm, this);
         if (initialTab is not null) settingsWin.SelectTab(initialTab);
         await settingsWin.ShowDialog(this);
+        // Slack token / channel may have changed — re-evaluate the post buttons' visibility.
+        vm.CorpActivityVm.RefreshSlackState();
     }
 
     private void OnResolveNamesClick(object? sender, RoutedEventArgs e)

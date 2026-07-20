@@ -920,10 +920,12 @@ public class CorpActivityViewModel : ReactiveObject
 
     public CorpActivityViewModel(CorpActivityService service,
                                  ObservableCollection<Corporation> corps,
-                                 CorpTop10ExcludeService? excludeSvc = null)
+                                 CorpTop10ExcludeService? excludeSvc = null,
+                                 SlackService? slack = null)
     {
         _service    = service;
         _excludeSvc = excludeSvc!;
+        _slack      = slack;
         Corps       = corps;
         _selectedChartPeriod    = ChartPeriods[2];  // default 90 days
         _selectedRattingPeriod  = TaxPeriods[1];    // default 30 days
@@ -1248,6 +1250,42 @@ public class CorpActivityViewModel : ReactiveObject
         TopKillers.Clear();
         TopMiners.Clear();
         TopContributors.Clear();
+    }
+
+    // ── Slack ────────────────────────────────────────────────────────────────
+    // The post button only shows once a token and a Top 10 channel are configured. Re-checked when
+    // the Settings window closes (see MainWindow.OpenSettingsAsync).
+
+    private readonly SlackService? _slack;
+
+    public bool IsSlackTop10Configured => _slack?.IsConfigured(SlackService.AreaCorpTop10) == true;
+
+    public string SlackTop10ChannelText =>
+        _slack?.ChannelName(SlackService.AreaCorpTop10) is { Length: > 0 } n ? $"#{n}" : "";
+
+    private string _slackStatus = "";
+    public string SlackStatus { get => _slackStatus; private set => this.RaiseAndSetIfChanged(ref _slackStatus, value); }
+
+    public void RefreshSlackState()
+    {
+        this.RaisePropertyChanged(nameof(IsSlackTop10Configured));
+        this.RaisePropertyChanged(nameof(SlackTop10ChannelText));
+    }
+
+    /// <summary>Posts the Top 10 export to the configured channel, as the capsuleer.</summary>
+    public async Task PostTop10ToSlackAsync(bool includeIsk)
+    {
+        if (_slack is null) return;
+        var channel = _slack.ChannelId(SlackService.AreaCorpTop10);
+        if (string.IsNullOrEmpty(channel)) { SlackStatus = "No Slack channel configured."; return; }
+
+        SlackStatus = "Posting to Slack…";
+        // Wrapped in a code block so the padded columns line up in Slack's proportional font.
+        var body = BuildTop10Export(includeIsk);
+        var res  = await _slack.PostMessageAsync(channel, $"```\n{body}\n```");
+        SlackStatus = res.Ok
+            ? $"Posted to {SlackTop10ChannelText} — {DateTimeOffset.Now:t}"
+            : $"Slack post failed: {res.Error}";
     }
 
     // includeIsk true → "rank  name\tamount"; false → "rank  name\t%" (name + share only).

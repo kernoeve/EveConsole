@@ -1426,6 +1426,13 @@ public class App : Application
             client.DefaultRequestHeaders.Add("User-Agent", "EveCortex/1.0 (EVE Online companion app)");
         });
 
+        // Named HTTP client for the Slack Web API (posts as the user via their xoxp- token)
+        services.AddHttpClient("slack", client =>
+        {
+            client.BaseAddress = new Uri("https://slack.com/api/");
+            client.DefaultRequestHeaders.Add("User-Agent", "EveCortex/1.0 (EVE Online companion app)");
+        });
+
         // Services — EsiClient is singleton so it can hold per-character token state
         services.AddSingleton<EsiClient>();
         services.AddSingleton<EsiAuthService>();
@@ -1435,6 +1442,7 @@ public class App : Application
         services.AddSingleton<AppErrorLogger>();
         services.AddSingleton<TimerSettingsService>();
         services.AddSingleton<AppPreferencesService>();
+        services.AddSingleton<SlackService>();
         services.AddSingleton<DatabaseBackupService>();
         services.AddSingleton<EsiPollingService>();
         services.AddSingleton<NetWorthService>();

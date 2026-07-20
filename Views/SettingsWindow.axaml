@@ -1366,6 +1366,93 @@
       </ScrollViewer>
     </TabItem>
 
+  <!-- ── Slack ─────────────────────────────────────────────────────────── -->
+  <TabItem Header="Slack">
+    <ScrollViewer>
+      <StackPanel Spacing="16" Margin="24 16">
+
+        <TextBlock Text="Slack Integration"
+                   FontSize="14" FontWeight="SemiBold" Foreground="#c8a84b" />
+
+        <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
+                   Text="Post from Eve Cortex straight into Slack. Posts are made with your own user token, so they appear as you — not as a bot. Nothing is posted automatically; you choose when to send." />
+
+        <!-- Setup steps -->
+        <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="4" Padding="14 12">
+          <StackPanel Spacing="8">
+            <TextBlock Text="One-time setup" FontSize="12" FontWeight="SemiBold" Foreground="#c8c8d8" />
+            <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
+                       Text="1.  Open api.slack.com/apps and choose Create New App → From scratch. Name it (e.g. Eve Cortex) and pick your workspace." />
+            <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
+                       Text="2.  Go to OAuth &amp; Permissions and add these under User Token Scopes (not Bot Token Scopes):" />
+            <SelectableTextBlock Text="chat:write     channels:read     groups:read     im:read     mpim:read"
+                                 FontFamily="Consolas, Menlo, monospace" FontSize="12" Foreground="#6aaa88"
+                                 Margin="16 0 0 0" />
+            <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
+                       Text="3.  Click Install to Workspace and approve. Some workspaces require an owner to approve the install." />
+            <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
+                       Text="4.  Copy the User OAuth Token (it starts with xoxp-) and paste it below." />
+            <Button Content="Open api.slack.com/apps"
+                    Command="{Binding SlackVm.OpenSlackAppsCommand}"
+                    HorizontalAlignment="Left" Padding="10 3" FontSize="11"
+                    Background="#1a2a1a" Foreground="#6aaa88"
+                    BorderBrush="#2a3a2a" BorderThickness="1" />
+          </StackPanel>
+        </Border>
+
+        <!-- Token -->
+        <StackPanel Spacing="6">
+          <TextBlock Text="User OAuth Token" FontSize="12" Foreground="#c8c8d8" />
+          <TextBox Text="{Binding SlackVm.Token}" PasswordChar="●"
+                   Watermark="xoxp-…" FontSize="12"
+                   Background="#131320" Foreground="#ccccdd"
+                   BorderBrush="#2a2a3a" BorderThickness="1" />
+          <TextBlock TextWrapping="Wrap" Foreground="#666677" FontSize="11"
+                     Text="Stored locally in your Eve Cortex database. Treat it like a password — it can post as you in any channel you can reach." />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="Save &amp; Test"
+                    Command="{Binding SlackVm.SaveAndTestCommand}"
+                    IsEnabled="{Binding !SlackVm.IsBusy}"
+                    Padding="12 4" FontSize="11"
+                    Background="#1a2a1a" Foreground="#6aaa88"
+                    BorderBrush="#2a3a2a" BorderThickness="1" />
+            <Button Content="Reload Channels"
+                    Command="{Binding SlackVm.LoadChannelsCommand}"
+                    IsEnabled="{Binding !SlackVm.IsBusy}"
+                    Padding="12 4" FontSize="11"
+                    Background="#1a1a28" Foreground="#8888cc"
+                    BorderBrush="#2a2a4a" BorderThickness="1" />
+            <TextBlock Text="{Binding SlackVm.Status}" FontSize="11" Foreground="#888899"
+                       VerticalAlignment="Center" TextWrapping="Wrap" />
+          </StackPanel>
+        </StackPanel>
+
+        <Border Height="1" Background="#1e1e2a" />
+
+        <!-- Channel assignment per area -->
+        <StackPanel Spacing="6">
+          <TextBlock Text="Channels" FontSize="12" FontWeight="SemiBold" Foreground="#c8c8d8" />
+          <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
+                     Text="Pick which channel each part of Eve Cortex posts to. A section's post button only appears once its channel is set." />
+          <Grid ColumnDefinitions="200,*" Margin="0 4 0 0">
+            <TextBlock Grid.Column="0" Text="Corp Activity — Top 10" FontSize="12" Foreground="#c8c8d8"
+                       VerticalAlignment="Center" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding SlackVm.Channels}"
+                      SelectedItem="{Binding SlackVm.CorpTop10Channel}"
+                      PlaceholderText="Select a channel…"
+                      HorizontalAlignment="Stretch" FontSize="12"
+                      Background="#131320" Foreground="#ccccdd"
+                      BorderBrush="#2a2a3a" BorderThickness="1" />
+          </Grid>
+          <TextBlock TextWrapping="Wrap" Foreground="#666677" FontSize="11"
+                     Text="Private channels only appear if you are a member of them. If a channel is missing, use Reload Channels." />
+        </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+  </TabItem>
+
   <!-- ── Alerts ────────────────────────────────────────────────────────── -->
   <TabItem Header="Alerts">
     <ScrollViewer>
