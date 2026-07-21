@@ -1,12 +1,12 @@
 name: docs
 
 # Validation only. The site is built and deployed by Cloudflare Pages
-# (production branch: develop) — published at https://docs.eveconsole.com/.
+# (production branch: main) — published at https://docs.eveconsole.com/.
 # This job just fails a PR/push if the docs don't build cleanly.
 
 on:
   push:
-    branches: [develop]
+    branches: [main]
     paths:
       - "docs/**"
       - "mkdocs.yml"
