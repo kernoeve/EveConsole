@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SkiaSharp;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public sealed record WalletCategory(string Name, decimal Amount, bool IsIncome, SKColor Color);
 

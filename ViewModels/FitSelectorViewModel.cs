@@ -5,13 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Media;
-using EveCortex.Data;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Data;
+using EveConsole.Models;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // ── Supporting types ──────────────────────────────────────────────────────────
 

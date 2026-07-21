@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace EveCortex.Agent.Tools.Actions;
+namespace EveConsole.Agent.Tools.Actions;
 
 public sealed class SetAssetFilterTool : IAgentTool
 {

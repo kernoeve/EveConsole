@@ -4,13 +4,13 @@ using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
-using EveCortex.Data;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Data;
+using EveConsole.Models;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public class ProdTypeSearchResult
 {

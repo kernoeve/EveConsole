@@ -3,9 +3,9 @@ using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
-using EveCortex.Data;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Data;
+using EveConsole.Models;
+using EveConsole.Services;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView;
@@ -15,7 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // ── Tree node types ───────────────────────────────────────────────────────────
 

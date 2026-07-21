@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 
-namespace EveCortex.Agent.Tools.Data;
+namespace EveConsole.Agent.Tools.Data;
 
 public sealed class SearchItemsTool : IAgentTool
 {

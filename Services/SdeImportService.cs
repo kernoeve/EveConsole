@@ -1,17 +1,17 @@
 using System.IO.Compression;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using EveCortex.Data;
-using EveCortex.Models;
+using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using YamlDotNet.Serialization;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 public record SdeImportProgress(string Stage, string Detail, double Fraction);
 
-// Thrown when the SDE archive is missing files this version of Eve Cortex requires.
+// Thrown when the SDE archive is missing files this version of EVE Console requires.
 // The existing SDE data is left intact so the app remains functional.
 public class SdeCompatibilityException : Exception
 {
@@ -22,7 +22,7 @@ public class SdeCompatibilityException : Exception
         MissingFiles = missing;
     }
     private static string BuildMessage(IReadOnlyList<string> missing) =>
-        $"Eve Cortex needs to be updated before it can refresh the SDE. " +
+        $"EVE Console needs to be updated before it can refresh the SDE. " +
         $"The following required file(s) were not found in the archive " +
         $"(CCP may have restructured the SDE format): {string.Join(", ", missing)}. " +
         $"Your existing SDE data has NOT been cleared.";

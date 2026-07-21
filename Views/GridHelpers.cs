@@ -3,9 +3,9 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
-using EveCortex.ViewModels;
+using EveConsole.ViewModels;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 // Fires on the UI thread approximately every second.  One shared timer for all subscribers.
 internal static class ClockService

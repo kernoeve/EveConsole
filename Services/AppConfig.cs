@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 /// <summary>
 /// Persists machine-level config outside the database so it can be read before the DB

@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:EveCortex.ViewModels"
-        x:Class="EveCortex.Views.UpdateDialog"
+        xmlns:vm="clr-namespace:EveConsole.ViewModels"
+        x:Class="EveConsole.Views.UpdateDialog"
         x:DataType="vm:UpdateViewModel"
         Title="Update Available"
         Width="460" Height="240"
@@ -14,7 +14,7 @@
     <!-- ── Prompt ── -->
     <StackPanel x:Name="PromptPanel" Spacing="14">
 
-      <TextBlock Text="A new version of Eve Cortex is available."
+      <TextBlock Text="A new version of EVE Console is available."
                  FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
 
       <Grid ColumnDefinitions="70,*" RowDefinitions="Auto,Auto">
@@ -40,7 +40,7 @@
 
     <!-- ── Progress (shown while downloading/applying) ── -->
     <StackPanel x:Name="ProgressPanel" IsVisible="False" Spacing="10">
-      <TextBlock Text="Updating Eve Cortex…"
+      <TextBlock Text="Updating EVE Console…"
                  FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
       <ProgressBar IsIndeterminate="True" Height="8" />
       <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="#888" TextWrapping="Wrap" />

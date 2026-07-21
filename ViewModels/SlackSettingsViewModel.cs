@@ -2,15 +2,15 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
-using EveCortex.Auth;
-using EveCortex.Services;
+using EveConsole.Auth;
+using EveConsole.Services;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // Settings for the Slack integration. The capsuleer creates a private app in their own workspace,
 // installs it with User Token Scopes, and pastes the resulting xoxp- token here — so posts are
-// attributed to them, and no client secret ships with EveCortex.
+// attributed to them, and no client secret ships with EVE Console.
 public class SlackSettingsViewModel : ReactiveObject
 {
     public const string AppsUrl   = "https://api.slack.com/apps";

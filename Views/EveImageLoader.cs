@@ -2,7 +2,7 @@
 using System.Net.Http;
 using Avalonia.Media.Imaging;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 internal static class EveImageLoader
 {

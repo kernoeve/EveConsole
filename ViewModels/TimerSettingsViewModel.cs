@@ -1,9 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive;
-using EveCortex.Services;
+using EveConsole.Services;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public class TimerRowVm : ReactiveObject
 {

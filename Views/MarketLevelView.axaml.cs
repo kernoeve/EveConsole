@@ -2,9 +2,9 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
-using EveCortex.ViewModels;
+using EveConsole.ViewModels;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class MarketLevelView : UserControl
 {

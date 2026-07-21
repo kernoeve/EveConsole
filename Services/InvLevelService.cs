@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using EveCortex.Data;
-using EveCortex.Models;
-using EveCortex.ViewModels;
+using EveConsole.Data;
+using EveConsole.Models;
+using EveConsole.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 public record LocationOption(long Id, string Name);
 

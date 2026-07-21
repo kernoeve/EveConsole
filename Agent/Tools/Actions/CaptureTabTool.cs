@@ -1,7 +1,7 @@
 using System.Text.Json;
-using EveCortex.Agent;
+using EveConsole.Agent;
 
-namespace EveCortex.Agent.Tools.Actions;
+namespace EveConsole.Agent.Tools.Actions;
 
 /// <summary>
 /// Renders a named tab (or the currently active view) to a PNG image and returns it
@@ -16,7 +16,7 @@ public sealed class CaptureTabTool : IAgentTool
 
     public string Name        => "capture_tab";
     public string Description =>
-        "Capture a screenshot of a tab or panel in the Eve Cortex application so you can " +
+        "Capture a screenshot of a tab or panel in the EVE Console application so you can " +
         "see exactly what the user is looking at. " +
         "tab_name can be: 'current' (whatever is active), 'assets', 'industry', " +
         "'characters', 'items', 'data', or 'overview'. " +

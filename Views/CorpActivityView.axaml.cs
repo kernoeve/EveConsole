@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
-using EveCortex.Models;
-using EveCortex.ViewModels;
+using EveConsole.Models;
+using EveConsole.ViewModels;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class CorpActivityView : UserControl
 {

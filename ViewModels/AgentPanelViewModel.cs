@@ -3,11 +3,11 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Avalonia.Threading;
-using EveCortex.Agent;
-using EveCortex.Services;
+using EveConsole.Agent;
+using EveConsole.Services;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public sealed class AgentPanelViewModel : ReactiveObject
 {
@@ -175,7 +175,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
     // ── TTS mute / volume (session controls, separate from Settings) ──────────
     // These are only visible when a TTS provider is active.
     public bool HasTts => _tts is not null &&
-                          _service.Settings.TtsProvider != EveCortex.Agent.TtsProvider.None;
+                          _service.Settings.TtsProvider != EveConsole.Agent.TtsProvider.None;
 
     private bool _isMuted;
     public bool IsMuted
@@ -350,7 +350,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
                     StreamingText = "";
                 });
 
-                if (_tts is not null && _service.Settings.TtsProvider != EveCortex.Agent.TtsProvider.None)
+                if (_tts is not null && _service.Settings.TtsProvider != EveConsole.Agent.TtsProvider.None)
                     _tts.SpeakAsync(responseText);
 
                 SaveHistory();

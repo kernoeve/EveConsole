@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace EveCortex.Agent;
+namespace EveConsole.Agent;
 
 public enum MessageRole { User, Assistant }
 

@@ -3,10 +3,10 @@ using Avalonia.Input;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using Avalonia.Interactivity;
-using EveCortex.ViewModels;
+using EveConsole.ViewModels;
 using ReactiveUI;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class AgentPanel : ReactiveUserControl<AgentPanelViewModel>
 {

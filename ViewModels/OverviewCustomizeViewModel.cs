@@ -1,10 +1,10 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using EveCortex.Models;
+using EveConsole.Models;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // Backs the "Customize Overview" dialog. Rows/Cols are decimal so they bind directly to
 // NumericUpDown; section placements are edited visually on a grid canvas (see the window

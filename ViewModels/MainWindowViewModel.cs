@@ -1,16 +1,16 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
-using EveCortex.Agent;
-using EveCortex.Data;
-using EveCortex.Api;
-using EveCortex.Auth;
-using EveCortex.Services;
+using EveConsole.Agent;
+using EveConsole.Data;
+using EveConsole.Api;
+using EveConsole.Auth;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public class MainWindowViewModel : ReactiveObject
 {

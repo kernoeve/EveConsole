@@ -1,8 +1,8 @@
-using EveCortex.Agent;
-using EveCortex.Services;
+using EveConsole.Agent;
+using EveConsole.Services;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public class SettingsViewModel : ReactiveObject
 {

@@ -1,6 +1,6 @@
-using EveCortex.Models;
+using EveConsole.Models;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 // Shared rule for turning a ContractPrice row into a single usable value.
 public static class ContractPricing

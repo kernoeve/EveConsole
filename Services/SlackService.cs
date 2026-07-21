@@ -3,9 +3,9 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using EveCortex.Auth;
+using EveConsole.Auth;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 public record SlackAuthResult(bool Ok, string? User, string? Team, string? Error);
 
@@ -23,7 +23,7 @@ public class SlackChannel
 /// <summary>
 /// Posts to Slack on the capsuleer's behalf using a user token (xoxp-), so messages appear as
 /// them rather than as an app. The token is created by the user in their own workspace
-/// (api.slack.com/apps → User Token Scopes → Install), so no client secret ships with EveCortex.
+/// (api.slack.com/apps → User Token Scopes → Install), so no client secret ships with EVE Console.
 /// Slack returns HTTP 200 even for failures, with {"ok":false,"error":"..."} — always check "ok".
 /// </summary>
 public class SlackService

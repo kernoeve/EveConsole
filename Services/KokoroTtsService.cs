@@ -1,7 +1,7 @@
 using KokoroSharp;
 using System.Text.RegularExpressions;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 /// <summary>
 /// Local TTS via Kokoro 82M (ONNX inference, fully offline after initial download).

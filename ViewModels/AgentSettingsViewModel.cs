@@ -1,10 +1,10 @@
-using EveCortex.Agent;
-using EveCortex.Services;
+using EveConsole.Agent;
+using EveConsole.Services;
 using ReactiveUI;
 using System.Windows.Input;
 using System.Linq;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public sealed class AgentSettingsViewModel : ReactiveObject
 {

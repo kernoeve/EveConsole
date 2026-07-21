@@ -1,11 +1,11 @@
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Text;
-using EveCortex.Agent;
+using EveConsole.Agent;
 using PortAudioSharp;
 using PaStream = PortAudioSharp.Stream;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 public sealed class SpeechInputService : IDisposable
 {

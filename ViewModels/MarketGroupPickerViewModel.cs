@@ -4,10 +4,10 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using EveCortex.Services;
+using EveConsole.Services;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public record MarketGroupPickerResult(int MarketGroupId, string GroupName, int TargetQty);
 

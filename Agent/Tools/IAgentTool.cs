@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace EveCortex.Agent.Tools;
+namespace EveConsole.Agent.Tools;
 
 public interface IAgentTool
 {

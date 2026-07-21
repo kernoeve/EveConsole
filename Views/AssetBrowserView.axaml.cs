@@ -10,10 +10,10 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.ReactiveUI;
 using Avalonia.VisualTree;
-using EveCortex.ViewModels;
+using EveConsole.ViewModels;
 using ReactiveUI;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewModel>
 {

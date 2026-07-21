@@ -1,9 +1,9 @@
 using System.Collections.ObjectModel;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Models;
+using EveConsole.Services;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public class CharacterOption(long id, string name)
 {

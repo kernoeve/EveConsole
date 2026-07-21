@@ -1,5 +1,5 @@
 using System.Collections.ObjectModel;
-using EveCortex.Data;
+using EveConsole.Data;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
 using LiveChartsCore.Kernel;
@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public record NetWorthOwnerOption(string DisplayName, bool IsPersonal, long? CorpId);
 

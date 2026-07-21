@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="EveCortex.Views.SplashWindow"
+        x:Class="EveConsole.Views.SplashWindow"
         Width="900" Height="360"
         Icon="avares://EveConsole/Assets/ec.ico"
         SystemDecorations="None"
@@ -56,13 +56,13 @@
 
       <!-- App name just above the progress section -->
       <StackPanel DockPanel.Dock="Bottom" Spacing="3" Margin="0 0 0 18">
-        <!-- Two-tone name: Eve in white, Cortex in amber -->
+        <!-- Two-tone name: EVE in white, Console in amber -->
         <StackPanel Orientation="Horizontal">
-          <TextBlock Text="Eve "
+          <TextBlock Text="EVE "
                      FontSize="34" FontWeight="Bold"
                      Foreground="#e8e8ec"
                      LetterSpacing="10" />
-          <TextBlock Text="Cortex"
+          <TextBlock Text="Console"
                      FontSize="34" FontWeight="Bold"
                      Foreground="#c8a84b"
                      LetterSpacing="10" />

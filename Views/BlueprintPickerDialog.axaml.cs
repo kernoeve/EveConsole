@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using EveCortex.Models;
-using EveCortex.Services;
-using EveCortex.ViewModels;
+using EveConsole.Models;
+using EveConsole.Services;
+using EveConsole.ViewModels;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class BlueprintPickerDialog : Window
 {

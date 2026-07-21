@@ -1,4 +1,4 @@
-﻿namespace EveCortex.Api;
+﻿namespace EveConsole.Api;
 
 public class EsiCallResult<T>
 {

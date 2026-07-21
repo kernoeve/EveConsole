@@ -2,12 +2,12 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive.Linq;
 using Avalonia.Media;
-using EveCortex.Data;
-using EveCortex.Services;
+using EveConsole.Data;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public enum SaleCostBasis { BuildCost, MarketValue }
 

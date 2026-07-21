@@ -1,14 +1,14 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
-using EveCortex.Api;
-using EveCortex.Data;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Api;
+using EveConsole.Data;
+using EveConsole.Models;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public class CharacterAuthOption
 {

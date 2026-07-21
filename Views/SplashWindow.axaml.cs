@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using System.Reflection;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class SplashWindow : Window
 {

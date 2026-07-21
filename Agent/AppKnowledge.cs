@@ -1,7 +1,7 @@
-namespace EveCortex.Agent;
+namespace EveConsole.Agent;
 
 /// <summary>
-/// In-depth reference describing every Eve Cortex tool — its purpose, how to use it,
+/// In-depth reference describing every EVE Console tool — its purpose, how to use it,
 /// and the key concepts behind it. Injected into the agent's system prompt so the
 /// agent can explain and guide the capsuleer from real understanding rather than by
 /// describing a screenshot. Keep this current when tools are added or changed.
@@ -9,9 +9,9 @@ namespace EveCortex.Agent;
 public static class AppKnowledge
 {
     public const string Guide = """
-        # Eve Cortex — Tool Reference
+        # EVE Console — Tool Reference
 
-        Eve Cortex is a locally-run capsuleer companion for EVE Online. All data lives
+        EVE Console is a locally-run capsuleer companion for EVE Online. All data lives
         in a local SQLite database and is kept current by background ESI polling. The
         left sidebar opens tools as tabs, grouped into: Character, Assets, Industry,
         Market / Trade, Finance, Communication, and Tools. The gear icon (top-right)
@@ -27,7 +27,7 @@ public static class AppKnowledge
           skills, etc. on their own timers. Data is current; never suggest refreshing
           unless explicitly asked.
         - Market price definitions: the user defines named "price sources" (a region or
-          a player structure market). As orders refresh, Eve Cortex computes and stores
+          a player structure market). As orders refresh, EVE Console computes and stores
           a price per item, with optional filtering of lowball/highball anomaly orders,
           and can base prices on a % over build cost — useful for capitals/supers/titans.
         - Build costs: the app calculates and stores the manufacturing cost of every
@@ -72,7 +72,7 @@ public static class AppKnowledge
         container, until you reach a real terminal location (a station, a player structure,
         or open space in a solar system). That terminal is the "root" location, and it is
         what determines the station → solar system → region → security — never the
-        immediate container. Eve Cortex precomputes this root for every asset (walking the
+        immediate container. EVE Console precomputes this root for every asset (walking the
         parent links for you), so the Asset Browser's Location Name, Solar System, Region,
         and Security columns already reflect the true, fully-resolved location no matter how
         deeply nested, while the Container column shows the nesting path within that
@@ -213,7 +213,7 @@ public static class AppKnowledge
         ## Communication tools
 
         ### Eve Mail
-        Read and compose EVE mail from within Eve Cortex.
+        Read and compose EVE mail from within EVE Console.
 
         ## Tools
 

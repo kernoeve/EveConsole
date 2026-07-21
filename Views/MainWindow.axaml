@@ -1,10 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:EveCortex.ViewModels"
-        xmlns:views="clr-namespace:EveCortex.Views"
-        x:Class="EveCortex.Views.MainWindow"
+        xmlns:vm="clr-namespace:EveConsole.ViewModels"
+        xmlns:views="clr-namespace:EveConsole.Views"
+        x:Class="EveConsole.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="Eve Cortex"
+        Title="EVE Console"
         Icon="avares://EveConsole/Assets/ec.ico"
         Width="1820" Height="900"
         MinWidth="1200" MinHeight="640"
@@ -22,10 +22,10 @@
                  Width="30" Height="30"
                  RenderOptions.BitmapInterpolationMode="HighQuality" />
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <TextBlock Text="Eve "
+            <TextBlock Text="EVE "
                        FontSize="18" FontWeight="SemiBold"
                        Foreground="#e8e8ec" />
-            <TextBlock Text="Cortex"
+            <TextBlock Text="Console"
                        FontSize="18" FontWeight="SemiBold"
                        Foreground="#c8a84b" />
           </StackPanel>
@@ -61,7 +61,7 @@
           <Button Content="ⓘ" FontSize="16"
                   Background="Transparent" BorderThickness="0"
                   Foreground="#555566" Padding="8 4" VerticalAlignment="Center"
-                  ToolTip.Tip="About Eve Cortex"
+                  ToolTip.Tip="About EVE Console"
                   Click="OnAboutClick" />
 
         </StackPanel>

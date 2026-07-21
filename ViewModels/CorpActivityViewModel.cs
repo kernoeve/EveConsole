@@ -4,9 +4,9 @@ using System.Reactive.Linq;
 using System.Text.Json;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using EveCortex.Models;
-using EveCortex.Services;
-using static EveCortex.Services.CorpActivityService;
+using EveConsole.Models;
+using EveConsole.Services;
+using static EveConsole.Services.CorpActivityService;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView;
@@ -14,7 +14,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using ReactiveUI;
 using SkiaSharp;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // ── Shared period option ──────────────────────────────────────────────────────
 

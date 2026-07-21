@@ -1,11 +1,11 @@
 using System.Text.RegularExpressions;
-using EveCortex.Api;
-using EveCortex.Data;
-using EveCortex.Models;
+using EveConsole.Api;
+using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 public sealed record EveMailRow(
     int            MailId,

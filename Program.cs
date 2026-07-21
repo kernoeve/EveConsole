@@ -1,9 +1,9 @@
 ﻿using Avalonia;
 using Avalonia.ReactiveUI;
-using EveCortex.Services;
+using EveConsole.Services;
 using Velopack;
 
-namespace EveCortex;
+namespace EveConsole;
 
 class Program
 {

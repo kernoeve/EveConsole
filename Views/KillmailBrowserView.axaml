@@ -1,8 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:EveCortex.ViewModels"
-             xmlns:m="clr-namespace:EveCortex.Models"
-             x:Class="EveCortex.Views.KillmailBrowserView"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:m="clr-namespace:EveConsole.Models"
+             x:Class="EveConsole.Views.KillmailBrowserView"
              x:DataType="vm:KillmailBrowserViewModel"
              Background="#0d0d12">
 

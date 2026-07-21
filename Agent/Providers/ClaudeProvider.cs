@@ -1,10 +1,10 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using EveCortex.Agent;
-using EveCortex.Agent.Tools;
+using EveConsole.Agent;
+using EveConsole.Agent.Tools;
 
-namespace EveCortex.Agent.Providers;
+namespace EveConsole.Agent.Providers;
 
 public sealed class ClaudeProvider : IAgentProvider
 {
