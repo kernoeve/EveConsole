@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:EveCortex.ViewModels"
-             x:Class="EveCortex.Views.EsiExplorerView"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.EsiExplorerView"
              x:DataType="vm:EsiExplorerViewModel"
              Background="#0d0d12">
 

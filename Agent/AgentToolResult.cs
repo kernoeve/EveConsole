@@ -1,4 +1,4 @@
-namespace EveCortex.Agent;
+namespace EveConsole.Agent;
 
 /// <summary>Tool result that optionally carries an image payload alongside text.</summary>
 public sealed record AgentToolResult

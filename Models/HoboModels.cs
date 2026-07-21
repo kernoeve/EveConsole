@@ -1,4 +1,4 @@
-namespace EveCortex.Models;
+namespace EveConsole.Models;
 
 // Single-row metadata saved after each successful Hoboleaks import.
 public class HoboBuildInfo

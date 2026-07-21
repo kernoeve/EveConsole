@@ -1,8 +1,8 @@
 using Avalonia.Controls;
-using EveCortex.Services;
-using EveCortex.ViewModels;
+using EveConsole.Services;
+using EveConsole.ViewModels;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class EveMailView : UserControl
 {

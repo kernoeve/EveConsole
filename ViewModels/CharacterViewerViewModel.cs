@@ -3,12 +3,12 @@ using System.Net.Http;
 using System.Reactive;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
-using EveCortex.Data;
-using EveCortex.Models;
+using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // ── Display model types ───────────────────────────────────────────────────────
 

@@ -1,7 +1,7 @@
 ﻿using System.Data.Common;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace EveCortex.Data;
+namespace EveConsole.Data;
 
 // EF Core's SQLite provider runs "PRAGMA foreign_keys = ON" after every connection open.
 // Our Corporations table still has the old FK constraint in its DDL (SQLite can't drop constraints).

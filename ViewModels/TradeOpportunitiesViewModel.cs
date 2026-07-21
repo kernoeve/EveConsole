@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
-using EveCortex.Services;
+using EveConsole.Services;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public record StationOption(long LocationId, string Name);
 

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace EveCortex.Models;
+namespace EveConsole.Models;
 
 // -----------------------------------------------------------------------
 // ESI response shapes — these match the JSON returned by the API

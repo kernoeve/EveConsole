@@ -1,9 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:EveCortex.ViewModels"
-             xmlns:views="clr-namespace:EveCortex.Views"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
-             x:Class="EveCortex.Views.CharacterView"
+             x:Class="EveConsole.Views.CharacterView"
              x:DataType="vm:OverviewViewModel"
              Background="#0d0d12">
 

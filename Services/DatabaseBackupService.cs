@@ -1,7 +1,7 @@
 using System.IO.Compression;
 using Avalonia.Threading;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 public class DatabaseBackupService(AppPreferencesService prefs)
 {

@@ -8,10 +8,10 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.ReactiveUI;
-using EveCortex.ViewModels;
+using EveConsole.ViewModels;
 using ReactiveUI;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class EsiExplorerView : ReactiveUserControl<EsiExplorerViewModel>
 {

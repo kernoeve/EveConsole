@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
-using EveCortex.Models;
-using EveCortex.ViewModels;
+using EveConsole.Models;
+using EveConsole.ViewModels;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class CorpActivityView : UserControl
 {
@@ -23,6 +23,12 @@ public partial class CorpActivityView : UserControl
             if (DataContext is not CorpActivityViewModel vm) return;
             var text = vm.BuildTop10ExportNoIsk();
             _ = TopLevel.GetTopLevel(this)?.Clipboard?.SetTextAsync(text);
+        };
+
+        PostTop10SlackButton.Click += (_, _) =>
+        {
+            if (DataContext is not CorpActivityViewModel vm) return;
+            _ = vm.PostTop10ToSlackAsync(includeIsk: false);
         };
 
         Kill24hList.DoubleTapped += OnKill24hDoubleTapped;
@@ -44,6 +50,12 @@ public partial class CorpActivityView : UserControl
         {
             var dialog = new StandingProjectDialog(vm.Service, existing);
             return await dialog.ShowDialog<CorpStandingProject?>(GetWindow());
+        };
+
+        vm.ConfirmSlackRepost = async (message) =>
+        {
+            var dlg = new ConfirmDialog(message);
+            return await dlg.ShowDialog<bool>(GetWindow());
         };
 
         vm.ConfirmDelete = async () =>

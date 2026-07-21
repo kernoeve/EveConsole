@@ -1,13 +1,13 @@
 using System.Text.Json;
 
-namespace EveCortex.Agent.Tools.Actions;
+namespace EveConsole.Agent.Tools.Actions;
 
 public sealed class OpenWindowTool : IAgentTool
 {
     private readonly Action<string> _callback;
 
     public string Name        => "open_window";
-    public string Description => "Opens a specific window in the Eve Cortex application. " +
+    public string Description => "Opens a specific window in the EVE Console application. " +
                                  "Use this when the capsuleer asks to see a window, or when showing live data would be helpful.";
 
     public object InputSchema => new

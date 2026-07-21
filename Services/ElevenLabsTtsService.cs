@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using LibVLCSharp.Shared;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 public sealed class ElevenLabsTtsService : IDisposable
 {

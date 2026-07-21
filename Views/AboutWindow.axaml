@@ -1,8 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="EveCortex.Views.AboutWindow"
-        Title="About Eve Cortex"
-        Icon="avares://EveCortex/Assets/ec.ico"
+        x:Class="EveConsole.Views.AboutWindow"
+        Title="About EVE Console"
+        Icon="avares://EveConsole/Assets/ec.ico"
         Width="400"
         SizeToContent="Height"
         CanResize="False"
@@ -12,7 +12,7 @@
   <StackPanel Margin="36 32 36 28" Spacing="0">
 
     <!-- Logo -->
-    <Image Source="avares://EveCortex/Assets/logo.png"
+    <Image Source="avares://EveConsole/Assets/logo.png"
            Width="160" Height="160"
            HorizontalAlignment="Center"
            RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -20,11 +20,11 @@
 
     <!-- Two-tone app name -->
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 0 0 4">
-      <TextBlock Text="Eve "
+      <TextBlock Text="EVE "
                  FontSize="26" FontWeight="Bold"
                  Foreground="#e8e8ec"
                  LetterSpacing="4" />
-      <TextBlock Text="Cortex"
+      <TextBlock Text="Console"
                  FontSize="26" FontWeight="Bold"
                  Foreground="#c8a84b"
                  LetterSpacing="4" />
@@ -57,7 +57,7 @@
                TextAlignment="Center"
                LineHeight="17">
       EVE Online and the EVE logo are the registered trademarks of CCP hf.
-      Eve Cortex is not affiliated with or endorsed by CCP hf.
+      EVE Console is not affiliated with or endorsed by CCP hf.
     </TextBlock>
 
     <!-- Close button -->

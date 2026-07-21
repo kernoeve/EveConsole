@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using EveCortex.Data;
-using EveCortex.Models;
+using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 public record BlueprintSearchResult(int BlueprintTypeId, int ProductTypeId, string ProductName);
 

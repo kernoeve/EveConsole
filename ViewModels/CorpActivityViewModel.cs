@@ -4,9 +4,9 @@ using System.Reactive.Linq;
 using System.Text.Json;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using EveCortex.Models;
-using EveCortex.Services;
-using static EveCortex.Services.CorpActivityService;
+using EveConsole.Models;
+using EveConsole.Services;
+using static EveConsole.Services.CorpActivityService;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView;
@@ -14,7 +14,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using ReactiveUI;
 using SkiaSharp;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // ── Shared period option ──────────────────────────────────────────────────────
 
@@ -920,10 +920,12 @@ public class CorpActivityViewModel : ReactiveObject
 
     public CorpActivityViewModel(CorpActivityService service,
                                  ObservableCollection<Corporation> corps,
-                                 CorpTop10ExcludeService? excludeSvc = null)
+                                 CorpTop10ExcludeService? excludeSvc = null,
+                                 SlackService? slack = null)
     {
         _service    = service;
         _excludeSvc = excludeSvc!;
+        _slack      = slack;
         Corps       = corps;
         _selectedChartPeriod    = ChartPeriods[2];  // default 90 days
         _selectedRattingPeriod  = TaxPeriods[1];    // default 30 days
@@ -1250,6 +1252,61 @@ public class CorpActivityViewModel : ReactiveObject
         TopContributors.Clear();
     }
 
+    // ── Slack ────────────────────────────────────────────────────────────────
+    // The post button only shows once a token and a Top 10 channel are configured. Re-checked when
+    // the Settings window closes (see MainWindow.OpenSettingsAsync).
+
+    private readonly SlackService? _slack;
+
+    public bool IsSlackTop10Configured => _slack?.IsConfigured(SlackService.AreaCorpTop10) == true;
+
+    public string SlackTop10ChannelText =>
+        _slack?.ChannelName(SlackService.AreaCorpTop10) is { Length: > 0 } n ? $"#{n}" : "";
+
+    private string _slackStatus = "";
+    public string SlackStatus { get => _slackStatus; private set => this.RaiseAndSetIfChanged(ref _slackStatus, value); }
+
+    public void RefreshSlackState()
+    {
+        this.RaisePropertyChanged(nameof(IsSlackTop10Configured));
+        this.RaisePropertyChanged(nameof(SlackTop10ChannelText));
+    }
+
+    // The Top 10 is a low-volume, deliberate post. Re-posting inside this window asks for
+    // confirmation first, so a stray double-click doesn't spam the channel.
+    private static readonly TimeSpan SlackRepostWindow = TimeSpan.FromHours(24);
+
+    /// <summary>Asked before re-posting within the cooldown; return true to post anyway.</summary>
+    public Func<string, Task<bool>>? ConfirmSlackRepost { get; set; }
+
+    /// <summary>Posts the Top 10 export to the configured channel, as the capsuleer.</summary>
+    public async Task PostTop10ToSlackAsync(bool includeIsk)
+    {
+        if (_slack is null) return;
+        var channel = _slack.ChannelId(SlackService.AreaCorpTop10);
+        if (string.IsNullOrEmpty(channel)) { SlackStatus = "No Slack channel configured."; return; }
+
+        // Guard against accidental double-posting.
+        if (_slack.LastPostAt(SlackService.AreaCorpTop10) is { } last
+            && DateTimeOffset.UtcNow - last < SlackRepostWindow
+            && ConfirmSlackRepost is not null)
+        {
+            var confirmed = await ConfirmSlackRepost(
+                $"This Top 10 listing was already posted to Slack {NotificationSummary.Age(last)}.\n\n" +
+                "Post it again?");
+            if (!confirmed) { SlackStatus = "Post cancelled."; return; }
+        }
+
+        SlackStatus = "Posting to Slack…";
+        // Wrapped in a code block so the padded columns line up in Slack's proportional font.
+        var body = BuildTop10Export(includeIsk);
+        var res  = await _slack.PostMessageAsync(channel, $"```\n{body}\n```");
+        if (res.Ok) await _slack.SetLastPostAsync(SlackService.AreaCorpTop10, DateTimeOffset.UtcNow);
+        SlackStatus = res.Ok
+            ? $"Posted to {SlackTop10ChannelText} — {DateTimeOffset.Now:t}"
+            : $"Slack post failed: {res.Error}";
+    }
+
     // includeIsk true → "rank  name\tamount"; false → "rank  name\t%" (name + share only).
     public string BuildTop10Export() => BuildTop10Export(includeIsk: true);
     public string BuildTop10ExportNoIsk() => BuildTop10Export(includeIsk: false);
@@ -1258,7 +1315,10 @@ public class CorpActivityViewModel : ReactiveObject
     {
         var month = SelectedTop10Month?.Name ?? "?";
         var year  = SelectedTop10Year;
-        var header = $"Top 10 — {month} {year}";
+        var corp  = SelectedCorp?.Name;
+        var header = string.IsNullOrWhiteSpace(corp)
+            ? $"Top 10 — {month} {year}"
+            : $"{corp} Top 10 — {month} {year}";
 
         var sb = new System.Text.StringBuilder();
 

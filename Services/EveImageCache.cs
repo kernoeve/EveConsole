@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using Avalonia.Media.Imaging;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 internal static class EveImageCache
 {

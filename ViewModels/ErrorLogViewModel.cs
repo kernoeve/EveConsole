@@ -1,13 +1,13 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive;
-using EveCortex.Data;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Data;
+using EveConsole.Models;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // One row in the Error Log viewer.
 public class ErrorLogRowVm

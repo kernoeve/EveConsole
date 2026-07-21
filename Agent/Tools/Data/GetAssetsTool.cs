@@ -1,14 +1,14 @@
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 
-namespace EveCortex.Agent.Tools.Data;
+namespace EveConsole.Agent.Tools.Data;
 
 public sealed class GetAssetsTool : IAgentTool
 {
     private readonly string _connString;
 
     public string Name        => "get_assets";
-    public string Description => "Returns the capsuleer's assets stored in the local Eve Cortex database. " +
+    public string Description => "Returns the capsuleer's assets stored in the local EVE Console database. " +
                                  "Can filter by character, item name, or location. " +
                                  "Groups identical items at the same location and returns estimated value where market prices are available.";
 

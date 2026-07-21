@@ -2,15 +2,15 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia.Media;
-using EveCortex.Api;
-using EveCortex.Auth;
-using EveCortex.Data;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Api;
+using EveConsole.Auth;
+using EveConsole.Data;
+using EveConsole.Models;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public record SkillQueueItemVm(
     int             QueuePosition,

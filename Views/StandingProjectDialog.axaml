@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="EveCortex.Views.StandingProjectDialog"
+        x:Class="EveConsole.Views.StandingProjectDialog"
         Title="Standing Project"
         Width="480" Height="520"
         MinWidth="480" MinHeight="420"

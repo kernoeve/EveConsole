@@ -6,11 +6,11 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
-using EveCortex.Models;
-using EveCortex.ViewModels;
+using EveConsole.Models;
+using EveConsole.ViewModels;
 using ReactiveUI;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class OverviewCustomizeWindow : Window
 {

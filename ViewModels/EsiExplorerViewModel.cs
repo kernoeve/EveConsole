@@ -3,7 +3,7 @@ using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public record TableEntry(string DisplayName, string SqlTable, string? OrderBy = null);
 

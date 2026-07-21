@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Net.Http;
 using System.Xml.Linq;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 public record NewsItem(string Title, string Link, DateTimeOffset PubDate, string DescriptionHtml)
 {

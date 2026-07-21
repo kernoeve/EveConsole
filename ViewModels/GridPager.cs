@@ -1,7 +1,7 @@
 using System.Reactive;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // A trusted ORDER BY expression paired with a display label, for server-side sort combos.
 public class GridSortOption

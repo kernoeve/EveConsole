@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace EveCortex.Agent.Tools.Actions;
+namespace EveConsole.Agent.Tools.Actions;
 
 public sealed class SelectCharacterTool : IAgentTool
 {
@@ -9,7 +9,7 @@ public sealed class SelectCharacterTool : IAgentTool
     public string Name        => "select_character";
     public string Description => "Opens the Characters tab and selects a specific character in the Character Viewer. " +
                                  "Use this to switch the active character being viewed. " +
-                                 "The character must already be configured in Eve Cortex.";
+                                 "The character must already be configured in EVE Console.";
 
     public object InputSchema => new
     {

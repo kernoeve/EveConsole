@@ -1,19 +1,19 @@
 ﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using EveCortex.Agent;
-using EveCortex.Data;
-using EveCortex.Views;
-using EveCortex.ViewModels;
-using EveCortex.Auth;
-using EveCortex.Api;
-using EveCortex.Services;
+using EveConsole.Agent;
+using EveConsole.Data;
+using EveConsole.Views;
+using EveConsole.ViewModels;
+using EveConsole.Auth;
+using EveConsole.Api;
+using EveConsole.Services;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 
-namespace EveCortex;
+namespace EveConsole;
 
 public class App : Application
 {
@@ -1416,14 +1416,21 @@ public class App : Application
         services.AddHttpClient("esi", client =>
         {
             client.BaseAddress = new Uri("https://esi.evetech.net/latest/");
-            client.DefaultRequestHeaders.Add("User-Agent", "EveCortex/1.0 (EVE Online companion app)");
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
         });
 
         // Named HTTP client for Fuzzwork market aggregates
         services.AddHttpClient("fuzzwork", client =>
         {
             client.BaseAddress = new Uri("https://market.fuzzwork.co.uk/aggregates/");
-            client.DefaultRequestHeaders.Add("User-Agent", "EveCortex/1.0 (EVE Online companion app)");
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
+        });
+
+        // Named HTTP client for the Slack Web API (posts as the user via their xoxp- token)
+        services.AddHttpClient("slack", client =>
+        {
+            client.BaseAddress = new Uri("https://slack.com/api/");
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
         });
 
         // Services — EsiClient is singleton so it can hold per-character token state
@@ -1435,6 +1442,8 @@ public class App : Application
         services.AddSingleton<AppErrorLogger>();
         services.AddSingleton<TimerSettingsService>();
         services.AddSingleton<AppPreferencesService>();
+        services.AddSingleton<SlackAuthService>();
+        services.AddSingleton<SlackService>();
         services.AddSingleton<DatabaseBackupService>();
         services.AddSingleton<EsiPollingService>();
         services.AddSingleton<NetWorthService>();

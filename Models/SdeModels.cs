@@ -1,4 +1,4 @@
-﻿namespace EveCortex.Models;
+﻿namespace EveConsole.Models;
 
 // Metadata row saved at the end of each successful SDE import (always Id = 1).
 public class SdeBuildInfo

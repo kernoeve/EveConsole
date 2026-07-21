@@ -1,6 +1,6 @@
 # Configuring Markets
 
-Markets are the foundation for almost everything price-related in Eve Cortex —
+Markets are the foundation for almost everything price-related in EVE Console —
 Trade Opportunities, Net Worth, build costs, the Production Calculator, and the
 Item Browser all read from the prices produced here.
 
@@ -20,7 +20,7 @@ of the title bar, then open the **Market** tab.
 
 !!! tip "Recommended setup"
 
-    Eve Cortex sets up **The Forge** (Jita's region) as a Region source for you by
+    EVE Console sets up **The Forge** (Jita's region) as a Region source for you by
     default, and already uses it for **asset valuation** — the recommended choice, so
     you normally don't need to change it. It's worth keeping The Forge around for that
     reason even if you trade elsewhere. (A second region, **Domain** — Amarr's — is

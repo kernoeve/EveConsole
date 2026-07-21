@@ -1,8 +1,8 @@
-using EveCortex.Data;
-using EveCortex.Models;
+using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFactory)
 {

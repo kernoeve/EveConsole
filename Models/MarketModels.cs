@@ -1,4 +1,4 @@
-﻿namespace EveCortex.Models;
+﻿namespace EveConsole.Models;
 
 public static class MarketMethod
 {

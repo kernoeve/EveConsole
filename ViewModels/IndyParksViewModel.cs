@@ -3,12 +3,12 @@ using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Text.Json;
-using EveCortex.Data;
-using EveCortex.Models;
+using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // ── SDE rig option (loaded once from DB) ──────────────────────────────────────
 

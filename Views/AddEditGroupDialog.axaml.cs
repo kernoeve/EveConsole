@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using EveCortex.Services;
-using EveCortex.ViewModels;
+using EveConsole.Services;
+using EveConsole.ViewModels;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class AddEditGroupDialog : Window
 {

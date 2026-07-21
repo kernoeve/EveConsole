@@ -1,7 +1,7 @@
-﻿using EveCortex.Models;
+﻿using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace EveCortex.Data;
+namespace EveConsole.Data;
 
 public class AppDbContext : DbContext
 {

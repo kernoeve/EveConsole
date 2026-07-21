@@ -1,8 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="EveCortex.Views.WelcomeWindow"
-        Title="Welcome to Eve Cortex"
-        Icon="avares://EveCortex/Assets/ec.ico"
+        x:Class="EveConsole.Views.WelcomeWindow"
+        Title="Welcome to EVE Console"
+        Icon="avares://EveConsole/Assets/ec.ico"
         Width="460"
         SizeToContent="Height"
         CanResize="False"
@@ -13,10 +13,10 @@
 
     <!-- Two-tone app name -->
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 0 0 6">
-      <TextBlock Text="Welcome to Eve "
+      <TextBlock Text="Welcome to EVE "
                  FontSize="22" FontWeight="Bold"
                  Foreground="#e8e8ec" />
-      <TextBlock Text="Cortex"
+      <TextBlock Text="Console"
                  FontSize="22" FontWeight="Bold"
                  Foreground="#c8a84b" />
     </StackPanel>
@@ -26,7 +26,7 @@
     <!-- Data download notice -->
     <TextBlock FontSize="13" Foreground="#aaaabc" TextWrapping="Wrap" LineHeight="20"
                Margin="0 0 0 16"
-               Text="Eve Cortex is downloading the EVE game data it needs (the Static Data Export and Hoboleaks data) in the background. This can take a few minutes — item lookups, market pricing, and industry tools will fill in as it completes. You can watch progress on the SDE tab in Settings." />
+               Text="EVE Console is downloading the EVE game data it needs (the Static Data Export and Hoboleaks data) in the background. This can take a few minutes — item lookups, market pricing, and industry tools will fill in as it completes. You can watch progress on the SDE tab in Settings." />
 
     <!-- ESI setup notice -->
     <TextBlock FontSize="13" Foreground="#aaaabc" TextWrapping="Wrap" LineHeight="20"

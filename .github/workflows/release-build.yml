@@ -41,7 +41,7 @@ jobs:
 
       - name: Publish (self-contained win-x64)
         run: >
-          dotnet publish EveCortex.csproj
+          dotnet publish EveConsole.csproj
           -c Release
           -r win-x64
           --self-contained true
@@ -56,11 +56,11 @@ jobs:
       - name: Pack Velopack release
         run: >
           vpk pack
-          --packId EveCortex
-          --packTitle "Eve Cortex"
+          --packId EveConsole
+          --packTitle "EVE Console"
           --packVersion ${{ steps.version.outputs.version }}
           --packDir publish
-          --mainExe EveCortex.exe
+          --mainExe EveConsole.exe
 
       - name: Upload to GitHub release
         run: >
@@ -68,7 +68,7 @@ jobs:
           --repoUrl https://github.com/${{ github.repository }}
           --token ${{ github.token }}
           --publish
-          --releaseName "Eve Cortex v${{ steps.version.outputs.version }}"
+          --releaseName "EVE Console v${{ steps.version.outputs.version }}"
           --tag v${{ steps.version.outputs.version }}
 
       - name: Set release notes (changelog + install)
@@ -80,13 +80,13 @@ jobs:
           $install = @(
             '## Installing',
             '',
-            '- **Installer (recommended):** download `EveCortex-win-Setup.exe` and run it. It installs Eve Cortex and keeps it updated automatically.',
-            '- **Portable:** download `EveCortex-win-Portable.zip`, extract it anywhere, and run `EveCortex.exe`.',
+            '- **Installer (recommended):** download `EveConsole-win-Setup.exe` and run it. It installs EVE Console and keeps it updated automatically.',
+            '- **Portable:** download `EveConsole-win-Portable.zip`, extract it anywhere, and run `EveConsole.exe`.',
             '',
             'No .NET install is required — the runtime is bundled.',
             '',
             '### First launch (Windows SmartScreen)',
-            'Eve Cortex is not code-signed yet, so Windows may show a "Windows protected your PC" warning the first time you run it. This is expected for a new indie app.',
+            'EVE Console is not code-signed yet, so Windows may show a "Windows protected your PC" warning the first time you run it. This is expected for a new indie app.',
             '',
             '- If the warning appears, click **More info**, then **Run anyway**.',
             '- To avoid it entirely: right-click the downloaded file -> **Properties** -> tick **Unblock** -> **OK** before running.'

@@ -1,6 +1,6 @@
-using EveCortex.Agent;
+using EveConsole.Agent;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 // Facade over OpenAI/VLC, ElevenLabs, Kokoro, and Piper TTS providers.
 // Call Configure() after loading/saving settings.

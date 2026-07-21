@@ -3,10 +3,10 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using EveCortex.Auth;
-using EveCortex.Models;
+using EveConsole.Auth;
+using EveConsole.Models;
 
-namespace EveCortex.Api;
+namespace EveConsole.Api;
 
 /// <summary>
 /// Typed HTTP client for the Eve ESI REST API.

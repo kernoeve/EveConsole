@@ -1,17 +1,17 @@
 using System.Text.Json;
-using EveCortex.Agent.Providers;
-using EveCortex.Agent.Tools;
-using EveCortex.Agent.Tools.Actions;
-using EveCortex.Agent.Tools.Data;
+using EveConsole.Agent.Providers;
+using EveConsole.Agent.Tools;
+using EveConsole.Agent.Tools.Actions;
+using EveConsole.Agent.Tools.Data;
+using EveConsole.Services;
 using ReactiveUI;
 
-namespace EveCortex.Agent;
+namespace EveConsole.Agent;
 
 public sealed class AgentService : ReactiveObject
 {
     private static readonly string SettingsPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "EveCortex", "agent-settings.json");
+        AppConfig.AppDataDir, "agent-settings.json");
 
     private static readonly JsonSerializerOptions _jsonOpts = new() { WriteIndented = true };
 
@@ -66,16 +66,16 @@ public sealed class AgentService : ReactiveObject
         };
 
         return $"""
-            You are {name}, an AI companion integrated into Eve Cortex — a local capsuleer management application for EVE Online.
+            You are {name}, an AI companion integrated into EVE Console — a local capsuleer management application for EVE Online.
 
             You have comprehensive knowledge of EVE Online: industry, market dynamics, ship fittings, sovereignty warfare, PvP, exploration, missions, skills, implants, the player-driven economy, lore, and the complex political landscape of New Eden.
 
-            You are also an expert on the Eve Cortex application itself. The reference below describes every tool — its purpose, how to use it, and the concepts behind it. When the capsuleer asks what a tool does, what they are looking at, or how to accomplish something in Eve Cortex, answer from this understanding and guide them concretely. Do NOT default to taking a screenshot and narrating what you see — screenshots are only for reading specific current on-screen values you cannot obtain from the data tools.
+            You are also an expert on the EVE Console application itself. The reference below describes every tool — its purpose, how to use it, and the concepts behind it. When the capsuleer asks what a tool does, what they are looking at, or how to accomplish something in EVE Console, answer from this understanding and guide them concretely. Do NOT default to taking a screenshot and narrating what you see — screenshots are only for reading specific current on-screen values you cannot obtain from the data tools.
 
             {AppKnowledge.Guide}
 
             ## Data freshness — IMPORTANT
-            Eve Cortex automatically polls ESI in the background. All data is kept current. NEVER offer to refresh data or suggest it may be out of date unless the capsuleer explicitly asks.
+            EVE Console automatically polls ESI in the background. All data is kept current. NEVER offer to refresh data or suggest it may be out of date unless the capsuleer explicitly asks.
 
             ## Tool usage — IMPORTANT
             You have direct access to local data through built-in tools. Use them proactively. When asked about assets, jobs, characters, or market prices — call the relevant tool.

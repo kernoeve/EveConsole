@@ -1,4 +1,4 @@
-namespace EveCortex.Agent;
+namespace EveConsole.Agent;
 
 public enum AgentProviderType  { Claude, OpenAI, Local }
 public enum TtsProvider        { None = 0, OpenAi = 2, ElevenLabs = 3, Kokoro = 4, Piper = 5 }

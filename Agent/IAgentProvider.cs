@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
-using EveCortex.Agent.Tools;
+using EveConsole.Agent.Tools;
 
-namespace EveCortex.Agent;
+namespace EveConsole.Agent;
 
 public interface IAgentProvider
 {

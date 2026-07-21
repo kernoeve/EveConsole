@@ -1,19 +1,19 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reflection;
-using EveCortex.Services;
+using EveConsole.Services;
 using ReactiveUI;
 using Velopack;
 using Velopack.Sources;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // Auto-update via Velopack against the GitHub releases. Checks on startup and hourly (when the
 // auto-check preference is on), lets the user apply the update, and only prompts once per version
 // (declining is remembered so we re-prompt only for the next version).
 public class UpdateViewModel : ReactiveObject
 {
-    private const string RepoUrl        = "https://github.com/kernoeve/EveCortex";
+    private const string RepoUrl        = "https://github.com/kernoeve/EveConsole";
     public  const string AutoCheckKey   = "update.auto_check";
     public  const string DeclinedKey    = "update.declined_version";
 

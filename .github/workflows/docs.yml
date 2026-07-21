@@ -1,5 +1,9 @@
 name: docs
 
+# Validation only. The site is built and deployed by Cloudflare Pages
+# (production branch: develop) — published at https://docs.eveconsole.com/.
+# This job just fails a PR/push if the docs don't build cleanly.
+
 on:
   push:
     branches: [develop]
@@ -18,13 +22,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-# Allow one concurrent deployment; don't cancel an in-progress one.
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
   build:
@@ -37,18 +34,3 @@ jobs:
       - run: pip install -r requirements-docs.txt
       # --strict fails the build on broken links or pages missing from the nav.
       - run: mkdocs build --strict
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-  # Deploy only on develop pushes / manual runs — never on pull requests.
-  deploy:
-    if: github.event_name != 'pull_request'
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4

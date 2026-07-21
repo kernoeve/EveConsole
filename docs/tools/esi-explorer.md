@@ -1,6 +1,6 @@
 # ESI Explorer
 
-A power-user tool for browsing the raw ESI data EveCortex has synced into its local database — every wallet, asset, skill, contract, and corp table, straight from the source rows.
+A power-user tool for browsing the raw ESI data EVE Console has synced into its local database — every wallet, asset, skill, contract, and corp table, straight from the source rows.
 
 Open it from the left sidebar under **Tools**.
 
@@ -26,6 +26,6 @@ Each table is shown in full (shared tables show all their contents, not just one
 
 ## Notes
 
-- This browses the data EveCortex has already synced from ESI into its local SQLite database; it does not make live ESI calls. What you see is as fresh as the app's last sync for that data. Syncing itself uses your characters' authorized ESI tokens, so a table only has rows for characters (and scopes) you've authorized — see the [getting-started guide](../getting-started.md).
+- This browses the data EVE Console has already synced from ESI into its local SQLite database; it does not make live ESI calls. What you see is as fresh as the app's last sync for that data. Syncing itself uses your characters' authorized ESI tokens, so a table only has rows for characters (and scopes) you've authorized — see the [getting-started guide](../getting-started.md).
 - Values are shown as stored, which may be raw IDs or ISO timestamps rather than resolved names — this is a diagnostic view, not a formatted report. For friendlier presentations use the dedicated tools (Wallet, Contracts, [Notifications](notifications.md), etc.).
 - The grid is read-only; nothing here edits the database or your characters.

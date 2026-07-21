@@ -2,7 +2,7 @@
 
 An in-app character sheet for your authorized characters: skills and training queue, attributes, clones, medals, titles and standings.
 
-Open it from the left sidebar under **Character**.
+Open it from the left sidebar under **General**.
 
 ## What it shows
 

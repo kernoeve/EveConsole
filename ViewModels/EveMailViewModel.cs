@@ -3,11 +3,11 @@ using System.Collections.Specialized;
 using System.Reactive;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Models;
+using EveConsole.Services;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // ── Row view-models ───────────────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 using System.Net.Http.Headers;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 public sealed class OpenAiWhisperService
 {

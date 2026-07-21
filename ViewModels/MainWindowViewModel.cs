@@ -1,16 +1,16 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
-using EveCortex.Agent;
-using EveCortex.Data;
-using EveCortex.Api;
-using EveCortex.Auth;
-using EveCortex.Services;
+using EveConsole.Agent;
+using EveConsole.Data;
+using EveConsole.Api;
+using EveConsole.Auth;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public class MainWindowViewModel : ReactiveObject
 {
@@ -51,6 +51,8 @@ public class MainWindowViewModel : ReactiveObject
     public PriceHistorySettingsViewModel  PriceHistorySettingsVm { get; }
     public PollingSettingsViewModel       PollingSettingsVm      { get; }
     public CorpTop10SettingsViewModel     CorpTop10SettingsVm    { get; }
+    public SlackSettingsViewModel         SlackSettingsVm        { get; }
+    public SlackService                   Slack                  { get; }
     public TtsService                     TtsService             { get; }
     public SpeechInputService             SpeechInputService     { get; }
     public GlobalHotkeyService            HotkeyService          { get; }
@@ -222,8 +224,11 @@ public class MainWindowViewModel : ReactiveObject
         DatabaseBackupService           dbBackup,
         CorpTop10ExcludeService         corpTop10Exclude,
         MarketHistoryService            historyService,
-        ContractsService                contractsService)
+        ContractsService                contractsService,
+        SlackService                    slackService)
     {
+        Slack             = slackService;
+        SlackSettingsVm   = new SlackSettingsViewModel(slackService);
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());
@@ -238,7 +243,7 @@ public class MainWindowViewModel : ReactiveObject
             CharacterVm.Characters, CharacterVm.Corporations, batchAddService, prodCalcService);
         InvLevelVm        = new InvLevelViewModel(invLevelService, dbFactory, batchAddService,
             prodCalcService, fittingsService, CharacterVm.Characters, CharacterVm.Corporations);
-        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude);
+        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, slackService);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Corporations);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);

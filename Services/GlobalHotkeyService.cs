@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 // Global push-to-talk keyboard hook.
 // Windows: low-level keyboard hook via user32.dll (works from any thread; fires on UI thread via callback thread).
