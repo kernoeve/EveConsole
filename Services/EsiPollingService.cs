@@ -671,6 +671,31 @@ public class EsiPollingService : ReactiveObject
         return lastResult ?? new PollingResult(true, 200);
     }
 
+    // ESI's industry-jobs feed only carries jobs within roughly the past 90 days. A long job (e.g.
+    // capital ME/TE research) can outlive that window and drop out of the feed while its last-seen
+    // status is still "active" — leaving a finished, since-delivered job stuck showing as active /
+    // ready-to-deliver forever, because the upsert above only touches jobs ESI still returns.
+    //
+    // Reconcile that: a stored job whose timer has elapsed but that a COMPLETE pull no longer returns
+    // has left the active set — it was delivered (or cancelled) and aged out. Mark it delivered so it
+    // stops surfacing as active. Gated on `complete` so a silently-dropped page can never be mistaken
+    // for a vanished job.
+    private static void ReconcileVanishedJobs(
+        IEnumerable<IndustryJob> stored, HashSet<int> returnedIds, bool complete)
+    {
+        if (!complete) return;
+        var now = DateTimeOffset.UtcNow;
+        foreach (var row in stored)
+        {
+            if (!returnedIds.Contains(row.JobId)
+                && row.EndDate < now
+                && row.Status is "active" or "paused" or "ready")
+            {
+                row.Status = "delivered";
+            }
+        }
+    }
+
     private async Task<PollingResult> FetchIndustryJobsAsync(long charId, AppDbContext db, CancellationToken ct)
     {
         var r = await _esi.ExecuteAuthAsync<List<EsiIndustryJob>>(charId,
@@ -725,6 +750,10 @@ public class EsiPollingService : ReactiveObject
                 });
             }
         }
+
+        // Single-page fetch: complete only if the endpoint didn't paginate beyond page 1.
+        ReconcileVanishedJobs(existingMap.Values,
+            r.Data!.Select(j => j.JobId).ToHashSet(), r.Complete && r.TotalPages <= 1);
 
         await db.SaveChangesAsync(ct);
         return FromResult(r);
@@ -1838,6 +1867,9 @@ public class EsiPollingService : ReactiveObject
                 });
             }
         }
+
+        ReconcileVanishedJobs(existingMap.Values,
+            r.Data!.Select(j => j.JobId).ToHashSet(), r.Complete);
 
         await db.SaveChangesAsync(ct);
         return FromResult(r);
