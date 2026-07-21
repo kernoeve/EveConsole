@@ -7,8 +7,7 @@ namespace EveCortex.Services;
 public sealed class LocalWhisperService
 {
     private static readonly string ModelDir = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "EveCortex", "whisper-models");
+        AppConfig.AppDataDir, "whisper-models");
 
     public static readonly IReadOnlyList<(string Id, string Label)> Models =
     [
