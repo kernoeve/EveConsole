@@ -13,7 +13,7 @@ namespace EveConsole.ViewModels;
 // (declining is remembered so we re-prompt only for the next version).
 public class UpdateViewModel : ReactiveObject
 {
-    private const string RepoUrl        = "https://github.com/kernoeve/EveCortex";
+    private const string RepoUrl        = "https://github.com/kernoeve/EveConsole";
     public  const string AutoCheckKey   = "update.auto_check";
     public  const string DeclinedKey    = "update.declined_version";
 
