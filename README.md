@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/banner.png" alt="EVE Console" width="100%">
+  <img src="media/banner.png" alt="EVE Console" width="100%">
 </p>
 
 <p align="center"><em>A local-first, free, open-source desktop companion for EVE Online.</em></p>
@@ -22,40 +22,40 @@ Keep in mind this application is still very green.  You are free to play around 
 <table align="center">
   <tr>
     <td align="center" width="33%">
-      <a href="docs/images/Screenshot1.png"><img src="docs/images/Screenshot1.png" alt="EVE Console screenshot" width="280"></a>
+      <a href="media/screenshots/Screenshot1.png"><img src="media/screenshots/Screenshot1.png" alt="EVE Console screenshot" width="280"></a>
     </td>
     <td align="center" width="33%">
-      <a href="docs/images/Screenshot2.png"><img src="docs/images/Screenshot2.png" alt="EVE Console screenshot" width="280"></a>
+      <a href="media/screenshots/Screenshot2.png"><img src="media/screenshots/Screenshot2.png" alt="EVE Console screenshot" width="280"></a>
     </td>
     <td align="center" width="33%">
-      <a href="docs/images/Screenshot3.png"><img src="docs/images/Screenshot3.png" alt="EVE Console screenshot" width="280"></a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="33%">
-      <a href="docs/images/Screenshot4.png"><img src="docs/images/Screenshot4.png" alt="EVE Console screenshot" width="280"></a>
-    </td>
-    <td align="center" width="33%">
-      <a href="docs/images/Screenshot5.png"><img src="docs/images/Screenshot5.png" alt="EVE Console screenshot" width="280"></a>
-    </td>
-    <td align="center" width="33%">
-      <a href="docs/images/Screenshot6.png"><img src="docs/images/Screenshot6.png" alt="EVE Console screenshot" width="280"></a>
+      <a href="media/screenshots/Screenshot3.png"><img src="media/screenshots/Screenshot3.png" alt="EVE Console screenshot" width="280"></a>
     </td>
   </tr>
   <tr>
     <td align="center" width="33%">
-      <a href="docs/images/Screenshot7.png"><img src="docs/images/Screenshot7.png" alt="EVE Console screenshot" width="280"></a>
+      <a href="media/screenshots/Screenshot4.png"><img src="media/screenshots/Screenshot4.png" alt="EVE Console screenshot" width="280"></a>
     </td>
     <td align="center" width="33%">
-      <a href="docs/images/Screenshot8.png"><img src="docs/images/Screenshot8.png" alt="EVE Console screenshot" width="280"></a>
+      <a href="media/screenshots/Screenshot5.png"><img src="media/screenshots/Screenshot5.png" alt="EVE Console screenshot" width="280"></a>
     </td>
     <td align="center" width="33%">
-      <a href="docs/images/Screenshot9.png"><img src="docs/images/Screenshot9.png" alt="EVE Console screenshot" width="280"></a>
+      <a href="media/screenshots/Screenshot6.png"><img src="media/screenshots/Screenshot6.png" alt="EVE Console screenshot" width="280"></a>
     </td>
   </tr>
   <tr>
     <td align="center" width="33%">
-      <a href="docs/images/Screenshot10.png"><img src="docs/images/Screenshot10.png" alt="EVE Console screenshot" width="280"></a>
+      <a href="media/screenshots/Screenshot7.png"><img src="media/screenshots/Screenshot7.png" alt="EVE Console screenshot" width="280"></a>
+    </td>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot8.png"><img src="media/screenshots/Screenshot8.png" alt="EVE Console screenshot" width="280"></a>
+    </td>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot9.png"><img src="media/screenshots/Screenshot9.png" alt="EVE Console screenshot" width="280"></a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot10.png"><img src="media/screenshots/Screenshot10.png" alt="EVE Console screenshot" width="280"></a>
     </td>
     <td align="center" width="33%"></td>
     <td align="center" width="33%"></td>
