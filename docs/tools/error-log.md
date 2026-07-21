@@ -1,6 +1,6 @@
 # Error Log
 
-A viewer for Eve Cortex's own internal error log — the errors the app records
+A viewer for EVE Console's own internal error log — the errors the app records
 when something goes wrong in the background (a failed ESI pull, a calculation
 error, etc.). It's mainly useful for troubleshooting and bug reports.
 

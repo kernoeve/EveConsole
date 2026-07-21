@@ -1,6 +1,6 @@
 # Eve Mail
 
-Read your characters' EVE in-game mail and compose new messages without leaving EveCortex.
+Read your characters' EVE in-game mail and compose new messages without leaving EVE Console.
 
 Open it from the left sidebar under **Communication**.
 
@@ -17,7 +17,7 @@ The window is split into three columns, with a toolbar across the top.
 
 1. Pick a character from the **Character** selector, or leave it on *All Characters* to pool mail from every authorized character.
 2. Choose a folder on the left to filter (All Mail, Inbox, Sent, Corp, Alliance, or a custom label).
-3. Click a message in the middle list to open it in the reading pane. Opening an unread message marks it read (both in EveCortex and in-game).
+3. Click a message in the middle list to open it in the reading pane. Opening an unread message marks it read (both in EVE Console and in-game).
 4. Click **+ Compose** to write a new mail.
 
 The list auto-refreshes about once a minute, and again right after you send a message.

@@ -1,6 +1,6 @@
 # Notifications
 
-Browse the in-game EVE notifications (structure alerts, war updates, insurance, corp and faction messages, and more) that EveCortex has synced for your characters.
+Browse the in-game EVE notifications (structure alerts, war updates, insurance, corp and faction messages, and more) that EVE Console has synced for your characters.
 
 Open it from the left sidebar under **Communication**.
 
@@ -32,5 +32,5 @@ Select any row to load its formatted details in the pane below.
 ## Notes
 
 - Requires characters authorized with the `esi-characters.read_notifications.v1` ESI scope. Add characters and grant scopes from the [getting-started guide](../getting-started.md).
-- The grid shows what EveCortex has already synced, so freshness depends on the app's last notification sync rather than a live fetch.
+- The grid shows what EVE Console has already synced, so freshness depends on the app's last notification sync rather than a live fetch.
 - For player-written mail rather than system notifications, see [Eve Mail](eve-mail.md).

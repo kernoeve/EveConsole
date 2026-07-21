@@ -2,7 +2,7 @@
 
 ## Where is my data stored?
 
-Locally, in a SQLite database at `%LOCALAPPDATA%\EveCortex\EveCortex.db`. Nothing
+Locally, in a SQLite database at `%LOCALAPPDATA%\EveConsole\EveConsole.db`. Nothing
 is uploaded; the app only talks to CCP's ESI API to refresh your data.
 
 ## Do I have to use the AI agent?
@@ -19,7 +19,7 @@ first setup.
 
 ## Is this affiliated with CCP?
 
-No. Eve Cortex is a third-party tool and is not affiliated with or endorsed by
+No. EVE Console is a third-party tool and is not affiliated with or endorsed by
 CCP Games. EVE Online and the EVE logo are trademarks of CCP hf.
 
 <!-- Add more entries here as common questions come up. -->

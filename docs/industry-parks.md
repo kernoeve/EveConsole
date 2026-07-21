@@ -25,7 +25,7 @@ Open **Indy Parks** from the left sidebar under the **Industry** group.
 - **Item exceptions** — override the category assignment for one specific item
   that doesn't belong with its category's default structure.
 
-Parks feed the system-wide **build cost** Eve Cortex calculates and stores for
+Parks feed the system-wide **build cost** EVE Console calculates and stores for
 every craftable item, which in turn feeds the [Production Calculator](tools/production-calculator.md)
 and the build-cost floor in [market pricing](configuring-markets.md).
 

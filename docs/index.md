@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="images/banner.png" alt="Eve Cortex">
+  <img src="images/banner.png" alt="EVE Console">
 </p>
 
-# Eve Cortex
+# EVE Console
 
-**Eve Cortex** is a local-first, free, open-source desktop companion for [EVE Online](https://www.eveonline.com/). All of your data stays on your machine in a local SQLite database, refreshed from CCP's ESI API while the app runs.
+**EVE Console** is a local-first, free, open-source desktop companion for [EVE Online](https://www.eveonline.com/). All of your data stays on your machine in a local SQLite database, refreshed from CCP's ESI API while the app runs.
 
 !!! note
 
@@ -24,7 +24,7 @@ Before most tools are useful, configure a few things:
 
 ## Functionality
 
-Eve Cortex is organized into tools you open from the left sidebar, grouped by theme. Each tool below links to its own page with details on what it does and how to use it.
+EVE Console is organized into tools you open from the left sidebar, grouped by theme. Each tool below links to its own page with details on what it does and how to use it.
 
 ### General
 
@@ -80,4 +80,4 @@ Eve Cortex is organized into tools you open from the left sidebar, grouped by th
 
 ---
 
-*Eve Cortex is a third-party tool and is not affiliated with or endorsed by CCP Games. EVE Online and the EVE logo are trademarks of CCP hf.*
+*EVE Console is a third-party tool and is not affiliated with or endorsed by CCP Games. EVE Online and the EVE logo are trademarks of CCP hf.*

@@ -1,11 +1,11 @@
-site_name: Eve Cortex
+site_name: EVE Console
 site_description: A local-first, free, open-source desktop companion for EVE Online.
 site_url: https://kernoeve.github.io/EveCortex/
-repo_url: https://github.com/kernoeve/EveCortex
-repo_name: kernoeve/EveCortex
+repo_url: https://github.com/kernoeve/EveConsole
+repo_name: kernoeve/EveConsole
 edit_uri: edit/develop/docs/
 copyright: >
-  Eve Cortex is a third-party tool, not affiliated with or endorsed by CCP Games.
+  EVE Console is a third-party tool, not affiliated with or endorsed by CCP Games.
   EVE Online and the EVE logo are trademarks of CCP hf.
 
 theme:
