@@ -4,7 +4,7 @@
 // command (pip install -r requirements-docs.txt && mkdocs build), which produces
 // ./site, and then `npx wrangler deploy` publishes that folder as static assets.
 //
-// Set the Workers Builds "production branch" to `develop` so merges to develop
+// Set the Workers Builds "production branch" to `main` so merges to main
 // publish to https://docs.eveconsole.com/. There is no Worker script — this is an
 // assets-only Worker (no "main"), so it just serves the built files.
 {
