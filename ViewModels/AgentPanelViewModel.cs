@@ -12,8 +12,7 @@ namespace EveCortex.ViewModels;
 public sealed class AgentPanelViewModel : ReactiveObject
 {
     private static readonly string HistoryPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "EveCortex", "aura-history.json");
+        AppConfig.AppDataDir, "aura-history.json");
 
     private static readonly JsonSerializerOptions _jsonOpts = new()
     {

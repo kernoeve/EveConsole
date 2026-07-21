@@ -3,6 +3,7 @@ using EveCortex.Agent.Providers;
 using EveCortex.Agent.Tools;
 using EveCortex.Agent.Tools.Actions;
 using EveCortex.Agent.Tools.Data;
+using EveCortex.Services;
 using ReactiveUI;
 
 namespace EveCortex.Agent;
@@ -10,8 +11,7 @@ namespace EveCortex.Agent;
 public sealed class AgentService : ReactiveObject
 {
     private static readonly string SettingsPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "EveCortex", "agent-settings.json");
+        AppConfig.AppDataDir, "agent-settings.json");
 
     private static readonly JsonSerializerOptions _jsonOpts = new() { WriteIndented = true };
 

@@ -21,8 +21,7 @@ public sealed class PiperTtsService : IDisposable
 
     // Fallback: user-local download path (for backwards compat or developer override).
     private static readonly string LocalAppPiperDir = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "EveCortex", "piper");
+        AppConfig.AppDataDir, "piper");
 
     private static string ExePath =>
         File.Exists(BundledExePath) ? BundledExePath
