@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="docs/images/banner.png" alt="Eve Cortex" width="100%">
+  <img src="docs/images/banner.png" alt="EVE Console" width="100%">
 </p>
 
 <p align="center"><em>A local-first, free, open-source desktop companion for EVE Online.</em></p>
 
 <p align="center">📖 <strong><a href="https://kernoeve.github.io/EveCortex/">Documentation</a></strong></p>
 
-**Eve Cortex** is a desktop companion app for [EVE Online](https://www.eveonline.com/), running locally on the players system.  Ultimately I run many tools for my day to date activities in Eve (i.e., Ravworks, jEveAssets, Excel, etc.), and was looking for a single tool, where all of my data stayed local, and was completely free with source.  While the tool does not do everything today, it does the things I need it to do.  There is an AI agent integrated into the application, and it was added as I needed to play around with it to get some better familiarity in agent integration for my job, so we ended up with it in this tool.  It does have access to view all of the data in the tools DB, so possibly can answer questions that the UI is not setup to do.  Agent does come with optional TTS and voice input.  Included a number of both external paid options, as well as local alternatives to provide a variety of options, and also for me to get a little exposure with each.  That all being said, it will not be active unless you actually set it up, so you can ignore it if you choose.
+**EVE Console** is a desktop companion app for [EVE Online](https://www.eveonline.com/), running locally on the players system.  Ultimately I run many tools for my day to date activities in Eve (i.e., Ravworks, jEveAssets, Excel, etc.), and was looking for a single tool, where all of my data stayed local, and was completely free with source.  While the tool does not do everything today, it does the things I need it to do.  There is an AI agent integrated into the application, and it was added as I needed to play around with it to get some better familiarity in agent integration for my job, so we ended up with it in this tool.  It does have access to view all of the data in the tools DB, so possibly can answer questions that the UI is not setup to do.  Agent does come with optional TTS and voice input.  Included a number of both external paid options, as well as local alternatives to provide a variety of options, and also for me to get a little exposure with each.  That all being said, it will not be active unless you actually set it up, so you can ignore it if you choose.
 
 I am currently developing and testing this on Windows, but the intent is to eventually provide builds for both Windows and Linux, which is why I ultimately went with Avalonia.  This will likely happen when I get to a point where I am okay with the functionality for the 1.0.0 release.
 
@@ -22,40 +22,40 @@ Keep in mind this application is still very green.  You are free to play around 
 <table align="center">
   <tr>
     <td align="center" width="33%">
-      <a href="docs/images/Screenshot1.png"><img src="docs/images/Screenshot1.png" alt="Eve Cortex screenshot" width="280"></a>
+      <a href="docs/images/Screenshot1.png"><img src="docs/images/Screenshot1.png" alt="EVE Console screenshot" width="280"></a>
     </td>
     <td align="center" width="33%">
-      <a href="docs/images/Screenshot2.png"><img src="docs/images/Screenshot2.png" alt="Eve Cortex screenshot" width="280"></a>
+      <a href="docs/images/Screenshot2.png"><img src="docs/images/Screenshot2.png" alt="EVE Console screenshot" width="280"></a>
     </td>
     <td align="center" width="33%">
-      <a href="docs/images/Screenshot3.png"><img src="docs/images/Screenshot3.png" alt="Eve Cortex screenshot" width="280"></a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="33%">
-      <a href="docs/images/Screenshot4.png"><img src="docs/images/Screenshot4.png" alt="Eve Cortex screenshot" width="280"></a>
-    </td>
-    <td align="center" width="33%">
-      <a href="docs/images/Screenshot5.png"><img src="docs/images/Screenshot5.png" alt="Eve Cortex screenshot" width="280"></a>
-    </td>
-    <td align="center" width="33%">
-      <a href="docs/images/Screenshot6.png"><img src="docs/images/Screenshot6.png" alt="Eve Cortex screenshot" width="280"></a>
+      <a href="docs/images/Screenshot3.png"><img src="docs/images/Screenshot3.png" alt="EVE Console screenshot" width="280"></a>
     </td>
   </tr>
   <tr>
     <td align="center" width="33%">
-      <a href="docs/images/Screenshot7.png"><img src="docs/images/Screenshot7.png" alt="Eve Cortex screenshot" width="280"></a>
+      <a href="docs/images/Screenshot4.png"><img src="docs/images/Screenshot4.png" alt="EVE Console screenshot" width="280"></a>
     </td>
     <td align="center" width="33%">
-      <a href="docs/images/Screenshot8.png"><img src="docs/images/Screenshot8.png" alt="Eve Cortex screenshot" width="280"></a>
+      <a href="docs/images/Screenshot5.png"><img src="docs/images/Screenshot5.png" alt="EVE Console screenshot" width="280"></a>
     </td>
     <td align="center" width="33%">
-      <a href="docs/images/Screenshot9.png"><img src="docs/images/Screenshot9.png" alt="Eve Cortex screenshot" width="280"></a>
+      <a href="docs/images/Screenshot6.png"><img src="docs/images/Screenshot6.png" alt="EVE Console screenshot" width="280"></a>
     </td>
   </tr>
   <tr>
     <td align="center" width="33%">
-      <a href="docs/images/Screenshot10.png"><img src="docs/images/Screenshot10.png" alt="Eve Cortex screenshot" width="280"></a>
+      <a href="docs/images/Screenshot7.png"><img src="docs/images/Screenshot7.png" alt="EVE Console screenshot" width="280"></a>
+    </td>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot8.png"><img src="docs/images/Screenshot8.png" alt="EVE Console screenshot" width="280"></a>
+    </td>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot9.png"><img src="docs/images/Screenshot9.png" alt="EVE Console screenshot" width="280"></a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <a href="docs/images/Screenshot10.png"><img src="docs/images/Screenshot10.png" alt="EVE Console screenshot" width="280"></a>
     </td>
     <td align="center" width="33%"></td>
     <td align="center" width="33%"></td>
@@ -120,13 +120,13 @@ Keep in mind this application is still very green.  You are free to play around 
 ### Build & run
 
 ```powershell
-git clone https://github.com/kernoeve/EveCortex.git
-cd EveCortex
+git clone https://github.com/kernoeve/EveConsole.git
+cd EveConsole
 dotnet restore
 dotnet run
 ```
 
-On first launch, a **Welcome** dialog appears and the Settings window opens on the **ESI Tokens** tab — click **Add Character** there to authorize a character via EVE's SSO. Your data is stored locally in SQLite at `%LOCALAPPDATA%\EveCortex\EveCortex.db`. See the [documentation](https://kernoeve.github.io/EveCortex/getting-started/) for full install and setup steps.
+On first launch, a **Welcome** dialog appears and the Settings window opens on the **ESI Tokens** tab — click **Add Character** there to authorize a character via EVE's SSO. Your data is stored locally in SQLite at `%LOCALAPPDATA%\EveConsole\EveConsole.db`. See the [documentation](https://kernoeve.github.io/EveCortex/getting-started/) for full install and setup steps.
 
 ---
 
@@ -142,8 +142,8 @@ This project uses a `develop` → `main` branching model:
 
 ## License
 
-Eve Cortex is licensed under the [GNU General Public License v3.0](LICENSE).
+EVE Console is licensed under the [GNU General Public License v3.0](LICENSE).
 
 ---
 
-*Eve Cortex is a third-party tool and is not affiliated with or endorsed by CCP Games. EVE Online and the EVE logo are trademarks of CCP hf.*
+*EVE Console is a third-party tool and is not affiliated with or endorsed by CCP Games. EVE Online and the EVE logo are trademarks of CCP hf.*

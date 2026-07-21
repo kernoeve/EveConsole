@@ -9,18 +9,18 @@
 
 ## Download & install
 
-Grab the latest build from the project's [Releases page](https://github.com/kernoeve/EveCortex/releases/latest). The links below always point at the **newest** release, so they don't go stale:
+Grab the latest build from the project's [Releases page](https://github.com/kernoeve/EveConsole/releases/latest). The links below always point at the **newest** release, so they don't go stale:
 
-- **[Installer — `EveCortex-win-Setup.exe`](https://github.com/kernoeve/EveCortex/releases/latest/download/EveCortex-win-Setup.exe)** — installs Eve Cortex (adds Start-menu and uninstall entries), then launch it.
-- **[Portable — `EveCortex-win-Portable.zip`](https://github.com/kernoeve/EveCortex/releases/latest/download/EveCortex-win-Portable.zip)** — no install; extract it anywhere and run `EveCortex.exe`.
+- **[Installer — `EveConsole-win-Setup.exe`](https://github.com/kernoeve/EveConsole/releases/latest/download/EveConsole-win-Setup.exe)** — installs EVE Console (adds Start-menu and uninstall entries), then launch it.
+- **[Portable — `EveConsole-win-Portable.zip`](https://github.com/kernoeve/EveConsole/releases/latest/download/EveConsole-win-Portable.zip)** — no install; extract it anywhere and run `EveConsole.exe`.
 
 Both are the same app and **both keep themselves up to date automatically** (see below), so which you choose is a matter of preference — the installer if you'd like it integrated into Windows, the portable ZIP if you'd rather keep everything in a single folder you can move or delete.
 
-Your data is stored locally at `%LOCALAPPDATA%\EveCortex\EveCortex.db`. Nothing is uploaded anywhere — the app talks only to CCP's ESI API to refresh your data.
+Your data is stored locally at `%LOCALAPPDATA%\EveConsole\EveConsole.db`. Nothing is uploaded anywhere — the app talks only to CCP's ESI API to refresh your data.
 
 ## Staying up to date
 
-You normally won't need to download the app again. Whether you installed it or run the portable build, Eve Cortex **checks for updates on startup and once an hour**, and when a new version is available it **prompts you inside the app** — accepting downloads the update and restarts to apply it. Declining won't nag you again until the *next* version.
+You normally won't need to download the app again. Whether you installed it or run the portable build, EVE Console **checks for updates on startup and once an hour**, and when a new version is available it **prompts you inside the app** — accepting downloads the update and restarts to apply it. Declining won't nag you again until the *next* version.
 
 You can manage this under **Settings** (the **⚙** gear button, top-right) → **Updates**:
 
@@ -39,8 +39,8 @@ If you'd rather build it yourself (or want to contribute), you'll also need the
 [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0):
 
 ```powershell
-git clone https://github.com/kernoeve/EveCortex.git
-cd EveCortex
+git clone https://github.com/kernoeve/EveConsole.git
+cd EveConsole
 dotnet restore
 dotnet run
 ```
@@ -63,17 +63,17 @@ pipeline uses ([Velopack](https://velopack.io/)) yourself:
    latest release (or the `VERSION` file) is a good default:
 
     ```powershell
-    dotnet publish EveCortex.csproj -c Release -r win-x64 --self-contained true -p:Version=0.9.5 -o publish
+    dotnet publish EveConsole.csproj -c Release -r win-x64 --self-contained true -p:Version=0.9.5 -o publish
     ```
 
-3. Pack it with Velopack. Keep `--packId EveCortex` so the updater recognizes the
+3. Pack it with Velopack. Keep `--packId EveConsole` so the updater recognizes the
    project's official releases:
 
     ```powershell
-    vpk pack --packId EveCortex --packTitle "Eve Cortex" --packVersion 0.9.5 --packDir publish --mainExe EveCortex.exe
+    vpk pack --packId EveConsole --packTitle "EVE Console" --packVersion 0.9.5 --packDir publish --mainExe EveConsole.exe
     ```
 
-The installer (`EveCortex-win-Setup.exe`) and portable ZIP appear in the `Releases`
+The installer (`EveConsole-win-Setup.exe`) and portable ZIP appear in the `Releases`
 folder. Run either and you have a Velopack-managed build that self-updates exactly
 like an official download.
 
@@ -87,7 +87,7 @@ like an official download.
 
 ## First launch
 
-The first time you launch Eve Cortex, it starts downloading the EVE game data it
+The first time you launch EVE Console, it starts downloading the EVE game data it
 needs (the Static Data Export and Hoboleaks data) **in the background**. A short
 **Welcome** dialog explains this — item lookups, market pricing, and industry tools
 fill in over a few minutes as the download completes, and you can watch progress on
@@ -145,7 +145,7 @@ dot flags personal corps in the list).
 
 ## How data stays fresh
 
-While Eve Cortex is running it performs background ESI pulls on a schedule. Most
+While EVE Console is running it performs background ESI pulls on a schedule. Most
 screens update automatically as new data arrives, so you can leave it open in the
 background. Some data (like market price history) is cached and refreshed on longer
 intervals to respect ESI limits.

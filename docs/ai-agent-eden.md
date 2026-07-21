@@ -1,6 +1,6 @@
 # AI Agent (Eden)
 
-Eve Cortex ships with an optional built-in conversational assistant — **Eden** by
+EVE Console ships with an optional built-in conversational assistant — **Eden** by
 default (you can rename it). It has read access to the data in your local database
 via tool calls, so it can answer questions the UI isn't explicitly designed for.
 

@@ -16,7 +16,7 @@ and there is a single source of truth for both.
      ```
    - **From a Wiki page** (absolute raw URL — relative paths are unreliable in wikis):
      ```markdown
-     ![Market price configuration](https://raw.githubusercontent.com/kernoeve/EveCortex/main/docs/images/market-price-config.png)
+     ![Market price configuration](https://raw.githubusercontent.com/kernoeve/EveConsole/main/docs/images/market-price-config.png)
      ```
 
 ## A note on privacy
