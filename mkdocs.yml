@@ -1,6 +1,6 @@
 site_name: EVE Console
 site_description: A local-first, free, open-source desktop companion for EVE Online.
-site_url: https://kernoeve.github.io/EveCortex/
+site_url: https://docs.eveconsole.com/
 repo_url: https://github.com/kernoeve/EveConsole
 repo_name: kernoeve/EveConsole
 edit_uri: edit/develop/docs/
