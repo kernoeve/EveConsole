@@ -79,11 +79,11 @@
   </ItemGroup>
 
   <Target Name="DownloadPiperBinaryWindows" BeforeTargets="Build" Condition="$([MSBuild]::IsOsPlatform('Windows')) And !Exists('$(ProjectDir)Resources\piper\piper.exe')">
-    <Message Text="[EveCortex] Downloading Piper TTS binary for Windows x64..." Importance="high" />
+    <Message Text="[EveConsole] Downloading Piper TTS binary for Windows x64..." Importance="high" />
     <MakeDir Directories="$(ProjectDir)Resources\" />
     <Exec Command="powershell -NonInteractive -Command &quot;Invoke-WebRequest -Uri 'https://github.com/rhasspy/piper/releases/latest/download/piper_windows_amd64.zip' -OutFile '$(ProjectDir)Resources\piper_win_tmp.zip'&quot;" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
     <Exec Command="powershell -NonInteractive -Command &quot;if (Test-Path '$(ProjectDir)Resources\piper_win_tmp.zip') { Expand-Archive -Path '$(ProjectDir)Resources\piper_win_tmp.zip' -DestinationPath '$(ProjectDir)Resources\' -Force; Remove-Item '$(ProjectDir)Resources\piper_win_tmp.zip' }&quot;" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
-    <Message Text="[EveCortex] Piper binary download complete." Importance="high" />
+    <Message Text="[EveConsole] Piper binary download complete." Importance="high" />
   </Target>
 
 </Project>
