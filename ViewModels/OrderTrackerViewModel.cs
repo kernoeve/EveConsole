@@ -1,13 +1,13 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive;
-using EveCortex.Data;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Data;
+using EveConsole.Models;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // Result returned by the add/edit order dialog.
 public record OrderDialogResult(int TypeId, string TypeName, int Units, string Buyer,

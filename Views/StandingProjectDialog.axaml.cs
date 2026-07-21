@@ -2,10 +2,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Models;
+using EveConsole.Services;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class StandingProjectDialog : Window
 {

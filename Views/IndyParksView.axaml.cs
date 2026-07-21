@@ -1,9 +1,9 @@
 using System.IO;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
-using EveCortex.ViewModels;
+using EveConsole.ViewModels;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class IndyParksView : UserControl
 {

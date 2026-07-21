@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 
-namespace EveCortex.Agent.Tools.Data;
+namespace EveConsole.Agent.Tools.Data;
 
 /// <summary>
 /// Generic read-only SQL tool. Gives the agent direct SELECT access to every table.
@@ -15,7 +15,7 @@ public sealed class QueryDatabaseTool : IAgentTool
     public string Name        => "query_database";
     public string Description =>
         """
-        Execute a read-only SQL SELECT query against the Eve Cortex local SQLite database.
+        Execute a read-only SQL SELECT query against the EVE Console local SQLite database.
         Returns up to 200 rows as a JSON array. Use this to answer any question about
         character data, skills, assets, industry jobs, market orders, wallet history, etc.
 

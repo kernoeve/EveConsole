@@ -1,10 +1,10 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:EveCortex.ViewModels"
-        xmlns:models="clr-namespace:EveCortex.Models"
-        xmlns:agent="clr-namespace:EveCortex.Agent"
-        xmlns:views="clr-namespace:EveCortex.Views"
-        x:Class="EveCortex.Views.SettingsWindow"
+        xmlns:vm="clr-namespace:EveConsole.ViewModels"
+        xmlns:models="clr-namespace:EveConsole.Models"
+        xmlns:agent="clr-namespace:EveConsole.Agent"
+        xmlns:views="clr-namespace:EveConsole.Views"
+        x:Class="EveConsole.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
         Title="Settings"
         Width="940" Height="820"
@@ -806,7 +806,7 @@
 
               <StackPanel Margin="12 10 12 12" Spacing="8">
                 <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
-                           Text="When resolving unknown structure names, Eve Cortex tries each authenticated character in turn until one succeeds. If most structures deny access to your characters, choosing a single character here prevents unnecessary failed calls and avoids burning your ESI error budget." />
+                           Text="When resolving unknown structure names, EVE Console tries each authenticated character in turn until one succeeds. If most structures deny access to your characters, choosing a single character here prevents unnecessary failed calls and avoids burning your ESI error budget." />
 
                 <Grid ColumnDefinitions="Auto,*" Margin="0 4 0 0">
                   <TextBlock Grid.Column="0" Text="Character:" Foreground="#ccc"
@@ -1375,12 +1375,12 @@
                    FontSize="14" FontWeight="SemiBold" Foreground="#c8a84b" />
 
         <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
-                   Text="Post from Eve Cortex straight into Slack. Posts are made with your own user token, so they appear as you — not as a bot. Nothing is posted automatically; you choose when to send." />
+                   Text="Post from EVE Console straight into Slack. Posts are made with your own user token, so they appear as you — not as a bot. Nothing is posted automatically; you choose when to send." />
 
         <!-- Connect (one-click, PKCE) -->
         <StackPanel Spacing="8" IsVisible="{Binding SlackVm.CanConnect}">
           <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
-                     Text="Connecting opens Slack in your browser. Choose the workspace, approve access, and you're done — Eve Cortex never sees your Slack password, and you can revoke it any time from your Slack account settings." />
+                     Text="Connecting opens Slack in your browser. Choose the workspace, approve access, and you're done — EVE Console never sees your Slack password, and you can revoke it any time from your Slack account settings." />
           <StackPanel Orientation="Horizontal" Spacing="8">
             <Button Content="Connect to Slack"
                     Command="{Binding SlackVm.ConnectCommand}"
@@ -1417,7 +1417,7 @@
             <StackPanel Spacing="8">
               <TextBlock Text="Manual setup" FontSize="12" FontWeight="SemiBold" Foreground="#c8c8d8" />
               <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
-                         Text="1.  Open api.slack.com/apps and choose Create New App → From scratch. Name it (e.g. Eve Cortex) and pick your workspace." />
+                         Text="1.  Open api.slack.com/apps and choose Create New App → From scratch. Name it (e.g. EVE Console) and pick your workspace." />
               <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
                          Text="2.  Go to OAuth &amp; Permissions and add these under User Token Scopes (not Bot Token Scopes):" />
               <SelectableTextBlock Text="chat:write     channels:read     groups:read     im:read     mpim:read"
@@ -1439,7 +1439,7 @@
                    Background="#131320" Foreground="#ccccdd"
                    BorderBrush="#2a2a3a" BorderThickness="1" />
           <TextBlock TextWrapping="Wrap" Foreground="#666677" FontSize="11"
-                     Text="Stored locally in your Eve Cortex database. Treat it like a password — it can post as you in any channel you can reach." />
+                     Text="Stored locally in your EVE Console database. Treat it like a password — it can post as you in any channel you can reach." />
           <StackPanel Orientation="Horizontal" Spacing="8">
             <Button Content="Save &amp; Test"
                     Command="{Binding SlackVm.SaveAndTestCommand}"
@@ -1464,7 +1464,7 @@
         <StackPanel Spacing="6">
           <TextBlock Text="Channels" FontSize="12" FontWeight="SemiBold" Foreground="#c8c8d8" />
           <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
-                     Text="Pick which channel each part of Eve Cortex posts to. A section's post button only appears once its channel is set." />
+                     Text="Pick which channel each part of EVE Console posts to. A section's post button only appears once its channel is set." />
           <Grid ColumnDefinitions="200,*" Margin="0 4 0 0">
             <TextBlock Grid.Column="0" Text="Corp Activity — Top 10" FontSize="12" Foreground="#c8c8d8"
                        VerticalAlignment="Center" />

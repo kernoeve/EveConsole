@@ -1,10 +1,10 @@
 using System.Globalization;
-using EveCortex.Data;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Data;
+using EveConsole.Models;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public sealed record SalesLoadResult(
     List<SaleRowVm> Rows,

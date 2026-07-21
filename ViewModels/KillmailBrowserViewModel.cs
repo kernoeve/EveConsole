@@ -1,11 +1,11 @@
 using System.Collections.ObjectModel;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Models;
+using EveConsole.Services;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // ── List row VM ───────────────────────────────────────────────────────────────
 public class KillmailListRowVm : ReactiveObject

@@ -7,7 +7,7 @@ using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public class IndustryBrowserViewModel : ReactiveObject
 {

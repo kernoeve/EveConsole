@@ -2,10 +2,10 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Media;
 using Avalonia.ReactiveUI;
-using EveCortex.ViewModels;
+using EveConsole.ViewModels;
 using Avalonia.Interactivity;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class ItemBrowserView : ReactiveUserControl<ItemBrowserViewModel>
 {

@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
-using EveCortex.Api;
-using EveCortex.Data;
-using EveCortex.Models;
+using EveConsole.Api;
+using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 public class CorpTop10ExcludeService(IDbContextFactory<AppDbContext> factory, EsiClient esi)
 {

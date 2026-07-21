@@ -1,7 +1,7 @@
 ﻿using Avalonia.Media;
-using EveCortex.Models;
+using EveConsole.Models;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public class CharacterListItem(Character character, string statusLabel, IBrush statusBrush)
 {

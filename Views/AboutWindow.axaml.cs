@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using System.Reflection;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class AboutWindow : Window
 {

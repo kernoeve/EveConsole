@@ -1,6 +1,6 @@
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public class ToolTab
 {

@@ -3,9 +3,9 @@ using System.Linq;
 using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
-using EveCortex.ViewModels;
+using EveConsole.ViewModels;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class SettingsWindow : Window
 {

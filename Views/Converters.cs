@@ -3,9 +3,9 @@ using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Layout;
 using Avalonia.Media;
-using EveCortex.Agent;
+using EveConsole.Agent;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public class SkillDotBrushConverter : IValueConverter
 {

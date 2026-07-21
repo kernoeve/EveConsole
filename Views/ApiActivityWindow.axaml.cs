@@ -1,8 +1,8 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Threading;
-using EveCortex.ViewModels;
+using EveConsole.ViewModels;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class ApiActivityWindow : Window
 {

@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
-using EveCortex.Data;
-using EveCortex.Services;
+using EveConsole.Data;
+using EveConsole.Services;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
 using LiveChartsCore.Kernel;
@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 internal static class MarketFmt
 {

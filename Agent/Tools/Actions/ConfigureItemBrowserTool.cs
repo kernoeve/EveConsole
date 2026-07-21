@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace EveCortex.Agent.Tools.Actions;
+namespace EveConsole.Agent.Tools.Actions;
 
 /// <summary>
 /// Adjusts the Item Browser view for whatever item is currently loaded there:

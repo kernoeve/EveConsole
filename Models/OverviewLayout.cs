@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EveCortex.Models;
+namespace EveConsole.Models;
 
 // One section's placement within the Overview grid. Row/Col are 1-based start cells;
 // RowSpan/ColSpan are how many cells the section covers.

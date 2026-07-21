@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EveCortex.Auth;
+namespace EveConsole.Auth;
 
 /// <summary>
 /// Handles the Eve ESI OAuth2 PKCE authentication flow.
@@ -218,7 +218,7 @@ public class EsiAuthService
         <head>
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>Eve Cortex — Login Successful</title>
+          <title>EVE Console — Login Successful</title>
           <style>
             :root { color-scheme: dark; }
             * { box-sizing: border-box; }
@@ -240,7 +240,7 @@ public class EsiAuthService
             }
             .brand { font-size: 24px; font-weight: 700; letter-spacing: 2px; margin-bottom: 22px; }
             .brand .eve { color: #e8e8ec; }
-            .brand .cortex { color: #c8a84b; }
+            .brand .console { color: #c8a84b; }
             .check {
               width: 66px; height: 66px; margin: 6px auto 20px;
               border-radius: 50%;
@@ -258,14 +258,14 @@ public class EsiAuthService
         </head>
         <body>
           <div class="card">
-            <div class="brand"><span class="eve">EVE </span><span class="cortex">CORTEX</span></div>
+            <div class="brand"><span class="eve">EVE </span><span class="console">CONSOLE</span></div>
             <div class="check">
               <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
             <h1>Login Successful</h1>
             <p>Your character has been authenticated with EVE Online.</p>
             <div class="divider"></div>
-            <p class="hint">You can close this tab and return to Eve Cortex.</p>
+            <p class="hint">You can close this tab and return to EVE Console.</p>
           </div>
         </body>
         </html>

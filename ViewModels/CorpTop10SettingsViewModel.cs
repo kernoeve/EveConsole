@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Models;
+using EveConsole.Services;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public sealed class CorpTop10ExcludeRowVm : ReactiveObject
 {

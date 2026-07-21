@@ -1,10 +1,10 @@
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using EveCortex.ViewModels;
+using EveConsole.ViewModels;
 using ReactiveUI;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class SdeUpdateDialog : Window
 {

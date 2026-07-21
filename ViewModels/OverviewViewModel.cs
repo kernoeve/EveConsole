@@ -8,10 +8,10 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Avalonia.Media.Imaging;
-using EveCortex.Api;
-using EveCortex.Data;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Api;
+using EveConsole.Data;
+using EveConsole.Models;
+using EveConsole.Services;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
@@ -19,7 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public record ActivityPeriodOption(string Label, int Hours)
 {

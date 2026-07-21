@@ -4,7 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 /// <summary>
 /// TextBlock that understands Eve Online colour markup: &lt;color='0xAARRGGBB'&gt;…&lt;/color&gt;

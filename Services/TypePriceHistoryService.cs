@@ -1,9 +1,9 @@
 using System.Globalization;
-using EveCortex.Data;
+using EveConsole.Data;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 // Records a daily point-in-time snapshot of each type's market value, build cost and contract
 // price. Like NetWorthService, the current UTC day's rows are recomputed/overwritten each time

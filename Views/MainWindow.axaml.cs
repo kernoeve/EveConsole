@@ -1,6 +1,6 @@
 using System.Reactive.Linq;
 using System.Text;
-using EveCortex.Services;
+using EveConsole.Services;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -11,10 +11,10 @@ using Avalonia.Platform;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using EveCortex.ViewModels;
+using EveConsole.ViewModels;
 using ReactiveUI;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
@@ -523,7 +523,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         var activeTitle = vm.SelectedTab?.Title ?? "None";
         sb.AppendLine($"Active tab: {activeTitle}");
-        var activeIntent = EveCortex.Agent.AppKnowledge.TabIntent(activeTitle);
+        var activeIntent = EveConsole.Agent.AppKnowledge.TabIntent(activeTitle);
         if (!string.IsNullOrEmpty(activeIntent))
             sb.AppendLine($"Active tab purpose: {activeIntent}");
 
@@ -583,7 +583,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 bmp.Save(ms);
 
                 var title  = tabName == "current" ? (vm?.SelectedTab?.Title ?? "") : tabName;
-                var intent = EveCortex.Agent.AppKnowledge.TabIntent(title);
+                var intent = EveConsole.Agent.AppKnowledge.TabIntent(title);
                 var desc   = $"Screenshot of the {title} tab.";
                 if (!string.IsNullOrEmpty(intent)) desc += $" ({intent})";
 

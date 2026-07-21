@@ -1,9 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:EveCortex.ViewModels"
-             xmlns:views="using:EveCortex.Views"
-             xmlns:models="using:EveCortex.Models"
-             x:Class="EveCortex.Views.ProductionCalculatorView"
+             xmlns:vm="using:EveConsole.ViewModels"
+             xmlns:views="using:EveConsole.Views"
+             xmlns:models="using:EveConsole.Models"
+             x:Class="EveConsole.Views.ProductionCalculatorView"
              x:DataType="vm:ProductionCalculatorViewModel">
 
   <UserControl.Styles>

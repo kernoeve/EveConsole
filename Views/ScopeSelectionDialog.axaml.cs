@@ -1,7 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class ScopeSelectionDialog : Window
 {

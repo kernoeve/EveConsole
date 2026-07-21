@@ -1,9 +1,9 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using ReactiveUI;
-using EveCortex.Services;
+using EveConsole.Services;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public class DatabaseSettingsViewModel : ReactiveObject
 {
@@ -214,7 +214,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
         var confirmed = await ShowConfirmDialog(
             "Switch Database",
-            $"Point Eve Cortex to the existing database at:\n{newPath}\n\nThe application will restart.");
+            $"Point EVE Console to the existing database at:\n{newPath}\n\nThe application will restart.");
         if (!confirmed) return;
 
         AppConfig.SetDbPath(newPath);

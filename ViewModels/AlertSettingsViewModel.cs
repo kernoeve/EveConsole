@@ -1,9 +1,9 @@
 using System.Reactive;
-using EveCortex.Data;
+using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public class AlertSettingsViewModel : ReactiveObject
 {

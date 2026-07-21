@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace EveCortex.Auth;
+namespace EveConsole.Auth;
 
 /// <summary>Result of a successful Slack user-token authorization.</summary>
 public record SlackTokenSet(
@@ -17,7 +17,7 @@ public record SlackTokenSet(
 /// <summary>
 /// Slack OAuth using PKCE (generally available since 2026-03-30), which lets a public client —
 /// a distributed desktop app — complete the flow with no client secret, exactly like EVE's SSO.
-/// One Eve Cortex Slack app serves every user; each authorizes it into their own workspace.
+/// One EVE Console Slack app serves every user; each authorizes it into their own workspace.
 ///
 /// Only USER scopes are requested, so posts appear as the capsuleer rather than as a bot.
 /// (Slack forbids bot scopes on desktop redirects anyway.)
@@ -25,7 +25,7 @@ public record SlackTokenSet(
 public class SlackAuthService
 {
     // -----------------------------------------------------------------------
-    // Register the Eve Cortex app at https://api.slack.com/apps, then:
+    // Register the EVE Console app at https://api.slack.com/apps, then:
     //   • OAuth & Permissions → enable PKCE (this is permanent — it marks the
     //     app a public client)
     //   • add the User Token Scopes listed below
@@ -209,7 +209,7 @@ public class SlackAuthService
 
     private const string SuccessHtml = """
         <!DOCTYPE html><html lang="en"><head><meta charset="utf-8" />
-        <title>Eve Cortex — Slack Connected</title><style>
+        <title>EVE Console — Slack Connected</title><style>
         :root{color-scheme:dark}html,body{height:100%;margin:0}
         body{display:flex;align-items:center;justify-content:center;
         background:radial-gradient(1200px 600px at 50% -10%,#16161f 0%,#0d0d12 60%);
@@ -217,21 +217,21 @@ public class SlackAuthService
         .card{width:440px;max-width:90vw;background:#12121a;border:1px solid #1e1e28;border-radius:10px;
         padding:40px 44px 36px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
         .brand{font-size:24px;font-weight:700;letter-spacing:2px;margin-bottom:22px}
-        .brand .eve{color:#e8e8ec}.brand .cortex{color:#c8a84b}
+        .brand .eve{color:#e8e8ec}.brand .console{color:#c8a84b}
         h1{color:#e8e8ec;font-size:20px;font-weight:600;margin:0 0 10px}
         p{font-size:14px;line-height:21px;margin:0}
         .hint{color:#555566;font-size:12px;margin-top:22px}</style></head>
         <body><div class="card">
-        <div class="brand"><span class="eve">EVE</span> <span class="cortex">CORTEX</span></div>
+        <div class="brand"><span class="eve">EVE</span> <span class="console">CONSOLE</span></div>
         <h1>Slack connected</h1>
-        <p>Eve Cortex can now post to Slack as you.</p>
+        <p>EVE Console can now post to Slack as you.</p>
         <p class="hint">You can close this tab and return to the app.</p>
         </div></body></html>
         """;
 
     private const string FailureHtml = """
         <!DOCTYPE html><html lang="en"><head><meta charset="utf-8" />
-        <title>Eve Cortex — Slack Authorization Failed</title><style>
+        <title>EVE Console — Slack Authorization Failed</title><style>
         :root{color-scheme:dark}html,body{height:100%;margin:0}
         body{display:flex;align-items:center;justify-content:center;
         background:radial-gradient(1200px 600px at 50% -10%,#16161f 0%,#0d0d12 60%);
@@ -243,7 +243,7 @@ public class SlackAuthService
         .hint{color:#555566;font-size:12px;margin-top:22px}</style></head>
         <body><div class="card">
         <h1>Authorization cancelled</h1>
-        <p>Eve Cortex was not connected to Slack.</p>
+        <p>EVE Console was not connected to Slack.</p>
         <p class="hint">You can close this tab and try again from Settings.</p>
         </div></body></html>
         """;

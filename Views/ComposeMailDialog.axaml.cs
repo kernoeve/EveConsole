@@ -2,11 +2,11 @@ using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using EveCortex.Models;
-using EveCortex.Services;
-using EveCortex.ViewModels;
+using EveConsole.Models;
+using EveConsole.Services;
+using EveConsole.ViewModels;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class ComposeMailDialog : Window
 {

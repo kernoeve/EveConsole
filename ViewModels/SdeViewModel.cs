@@ -1,10 +1,10 @@
 using System.Reactive;
-using EveCortex.Data;
-using EveCortex.Services;
+using EveConsole.Data;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 public class SdeViewModel : ReactiveObject
 {
@@ -147,7 +147,7 @@ public class SdeViewModel : ReactiveObject
         }
         catch (SdeCompatibilityException ex)
         {
-            // SDE format changed in a way this version of Eve Cortex can't handle.
+            // SDE format changed in a way this version of EVE Console can't handle.
             // Existing data is intact — just surface the message and leave the progress bar where it is.
             StatusText = $"⚠ Update required — {ex.Message}";
             Fraction   = 0;

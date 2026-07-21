@@ -2,7 +2,7 @@
 using System.Collections.ObjectModel;
 using Avalonia.Threading;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 public record ActivityEntry(
     DateTimeOffset Timestamp,

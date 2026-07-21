@@ -2,7 +2,7 @@ using System.Text;
 using Whisper.net;
 using Whisper.net.Ggml;
 
-namespace EveCortex.Services;
+namespace EveConsole.Services;
 
 public sealed class LocalWhisperService
 {

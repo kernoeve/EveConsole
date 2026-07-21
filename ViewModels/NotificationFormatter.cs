@@ -1,10 +1,10 @@
 using System.Text;
 using System.Text.RegularExpressions;
-using EveCortex.Data;
+using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
 using YamlDotNet.Serialization;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // Turns an ESI notification's raw YAML "text" into a readable multi-line block: IDs become names
 // (characters/corps/alliances via the shared resolver; systems/types/stations via the SDE;

@@ -1,11 +1,11 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
-using EveCortex.Models;
-using EveCortex.Services;
+using EveConsole.Models;
+using EveConsole.Services;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // Which market number to compare the build cost against.
 public enum IndustryMode { BuildAndSellOrder, BuildAndSellToBuyOrder }

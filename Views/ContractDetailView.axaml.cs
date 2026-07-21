@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace EveCortex.Views;
+namespace EveConsole.Views;
 
 public partial class ContractDetailView : UserControl
 {

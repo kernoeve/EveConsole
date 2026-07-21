@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using YamlDotNet.Serialization;
 
-namespace EveCortex.ViewModels;
+namespace EveConsole.ViewModels;
 
 // Condenses an ESI notification into the in-game style: a leading icon, a one-line
 // summary, and a relative age — with the full detail left for a tooltip. Best-effort

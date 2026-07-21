@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 
-namespace EveCortex.Auth;
+namespace EveConsole.Auth;
 
 /// <summary>
 /// Minimal JWT decoder — only used to extract the character ID from the ESI access token.

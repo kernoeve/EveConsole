@@ -1,8 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:EveCortex.ViewModels"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
-             x:Class="EveCortex.Views.ItemBrowserView"
+             x:Class="EveConsole.Views.ItemBrowserView"
              x:DataType="vm:ItemBrowserViewModel"
              Background="#0d0d12">
 
