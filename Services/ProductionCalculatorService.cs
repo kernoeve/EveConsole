@@ -236,6 +236,26 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         var boughtSet = (await db.BuildCosts.AsNoTracking().Where(b => b.Bought)
             .Select(b => b.TypeId).ToListAsync(ct)).ToHashSet();
 
+        // User price overrides. Market → the item's price (PriceOf); contract → the per-run BPC
+        // price; build → pin the item as a fixed-value leaf (not expanded) at the given cost, unless
+        // it was cheaper to buy (already in boughtSet, priced at market). These mirror the overlays
+        // BuildCostService applies so both calculators agree.
+        var overrides   = await db.PriceOverrides.AsNoTracking().ToDictionaryAsync(o => o.TypeId, ct);
+        var requestedIds = requests.Select(r => r.TypeId).ToHashSet();
+        var pinnedBuild = new HashSet<int>();
+        foreach (var o in overrides.Values)
+        {
+            if (o.MarketValue.HasValue)   unitCosts[o.TypeId] = o.MarketValue.Value;
+            if (o.ContractValue.HasValue) bpcPerRun[o.TypeId] = [(0, o.ContractValue.Value)];
+            // Pin a sub-component's build cost as a fixed-value leaf. Skip requested final products —
+            // their build cost is computed from the tree, and unitCosts drives their market value read.
+            if (o.BuildCost.HasValue && !boughtSet.Contains(o.TypeId) && !requestedIds.Contains(o.TypeId))
+            {
+                unitCosts[o.TypeId] = o.BuildCost.Value;   // PriceOf → pinned build cost (a consumed leaf)
+                pinnedBuild.Add(o.TypeId);
+            }
+        }
+
         // ── Adjusted prices (for EIV / job cost) ──────────────────────────
         var adjPrices = await db.EsiAdjustedPrices.AsNoTracking()
             .ToDictionaryAsync(p => p.TypeId, p => p.AdjustedPrice, ct);
@@ -334,9 +354,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
         void ExpandItem(int typeId, int qty, bool isFinal)
         {
-            // Cheaper to buy than build (per the build-cost calc) → purchase it: a raw material with
-            // no job. The final product is always built. Keeps this calc consistent with build costs.
-            if (!isFinal && boughtSet.Contains(typeId))
+            // Cheaper to buy than build (per the build-cost calc), or pinned to a fixed build cost by
+            // a price override → treat as a raw material with no job. The final product is always
+            // built. Keeps this calc consistent with build costs.
+            if (!isFinal && (boughtSet.Contains(typeId) || pinnedBuild.Contains(typeId)))
             {
                 rawPool[typeId] = rawPool.GetValueOrDefault(typeId, 0) + qty;
                 return;
@@ -441,7 +462,8 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                         EffQtyPerRun   = effPerRun,
                         TotalQty       = effPerRun * runs,
                         IsBought       = !blueprintByProduct.ContainsKey(mat.MaterialTypeId)
-                                          || boughtSet.Contains(mat.MaterialTypeId),
+                                          || boughtSet.Contains(mat.MaterialTypeId)
+                                          || pinnedBuild.Contains(mat.MaterialTypeId),
                         FormulaDisplay = $"ceil({basePerRun:N0} × {meFactor:F4}) = ceil({raw:N2}) → {effPerRun:N0}",
                     });
                     ExpandItem(mat.MaterialTypeId, effPerRun * runs, false);

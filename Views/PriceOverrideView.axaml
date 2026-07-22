@@ -1,0 +1,110 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.PriceOverrideView"
+             x:DataType="vm:PriceOverrideViewModel"
+             Background="#0d0d12">
+
+  <Grid RowDefinitions="Auto,1,Auto,*">
+
+    <!-- ── Toolbar ──────────────────────────────────────────────────── -->
+    <Border Grid.Row="0" Background="#12121a" Padding="12 8"
+            BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+
+        <Button Grid.Column="0"
+                Command="{Binding AddCommand}"
+                Content="+ Add Type"
+                Background="#1a1a28" Foreground="#c8a84b"
+                BorderBrush="#3a3020" BorderThickness="1"
+                Padding="12 4" FontSize="11" />
+
+        <Button Grid.Column="1"
+                Command="{Binding DeleteSelectedCommand}"
+                Content="Remove"
+                Background="#1a1a28" Foreground="#cc6666"
+                BorderBrush="#4a2a2a" BorderThickness="1"
+                Padding="12 4" FontSize="11" Margin="8 0 0 0" />
+
+        <Button Grid.Column="2"
+                Command="{Binding SaveCommand}"
+                IsEnabled="{Binding !Busy}"
+                Content="Save &amp; Recalculate"
+                Background="#1a281a" Foreground="#88cc88"
+                BorderBrush="#2a4a2a" BorderThickness="1"
+                Padding="12 4" FontSize="11" Margin="8 0 0 0" />
+
+        <TextBlock Grid.Column="3"
+                   Text="{Binding Status}"
+                   FontSize="11" Foreground="#666677"
+                   VerticalAlignment="Center" Margin="16 0 0 0"
+                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+      </Grid>
+    </Border>
+
+    <Rectangle Grid.Row="1" Fill="#1e1e2a" />
+
+    <!-- ── Help banner ──────────────────────────────────────────────── -->
+    <Border Grid.Row="2" Background="#101018" Padding="12 6"
+            BorderThickness="0 0 0 1" BorderBrush="#1a1a26">
+      <TextBlock FontSize="10.5" Foreground="#707084" TextWrapping="Wrap"
+                 Text="Leave a cell blank to leave that value computed. A set value REPLACES the computed value everywhere it is used. Contract Value on a blueprint is the PER-RUN BPC price. Values are in ISK; commas are ignored." />
+    </Border>
+
+    <!-- ── Data grid ─────────────────────────────────────────────────── -->
+    <DataGrid Grid.Row="3"
+              x:Name="MainGrid"
+              ItemsSource="{Binding Rows}"
+              SelectedItem="{Binding SelectedRow}"
+              AutoGenerateColumns="False"
+              CanUserReorderColumns="True"
+              CanUserResizeColumns="True"
+              CanUserSortColumns="True"
+              IsReadOnly="False"
+              Background="#0d0d12"
+              RowBackground="#0d0d12"
+              GridLinesVisibility="Horizontal"
+              HorizontalGridLinesBrush="#1a1a26"
+              HeadersVisibility="Column"
+              FontSize="11"
+              RowHeight="25"
+              BorderThickness="0"
+              KeyDown="OnGridKeyDown">
+
+      <DataGrid.Styles>
+        <Style Selector="DataGridColumnHeader">
+          <Setter Property="Background"                Value="#12121a" />
+          <Setter Property="Foreground"                Value="#555566" />
+          <Setter Property="FontSize"                  Value="10" />
+          <Setter Property="FontWeight"                Value="SemiBold" />
+          <Setter Property="Padding"                   Value="6 6 2 6" />
+          <Setter Property="HorizontalContentAlignment" Value="Left" />
+          <Setter Property="BorderBrush"               Value="#1e1e2a" />
+          <Setter Property="BorderThickness"           Value="0 0 1 1" />
+        </Style>
+        <Style Selector="DataGridCell">
+          <Setter Property="Padding"         Value="6 0" />
+          <Setter Property="BorderThickness" Value="0" />
+          <Setter Property="FontSize"        Value="11" />
+          <Setter Property="MinHeight"       Value="0" />
+        </Style>
+        <Style Selector="DataGridRow">
+          <Setter Property="MinHeight" Value="25" />
+        </Style>
+      </DataGrid.Styles>
+
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Type" Binding="{Binding TypeName}"
+                            IsReadOnly="True" Width="2*" />
+        <DataGridTextColumn Header="Type ID" Binding="{Binding TypeId}"
+                            IsReadOnly="True" Width="Auto" />
+        <DataGridTextColumn Header="Build Cost" Binding="{Binding BuildCostText}"
+                            Width="*" />
+        <DataGridTextColumn Header="Market Value" Binding="{Binding MarketValueText}"
+                            Width="*" />
+        <DataGridTextColumn Header="Contract Value (per-run for BPCs)"
+                            Binding="{Binding ContractValueText}" Width="1.4*" />
+      </DataGrid.Columns>
+    </DataGrid>
+  </Grid>
+</UserControl>

@@ -290,6 +290,22 @@ public class ContractBpcPrice
     public DateTimeOffset UpdatedAt { get; set; }
 }
 
+// Manual, user-supplied price corrections for a single type. Each field is null unless the user
+// has explicitly pinned it; a non-null value REPLACES the computed value in its channel:
+//   BuildCost     → the item's build cost (cheaper-of still applies vs the market buy price)
+//   MarketValue   → the item's market price (buy/build comparison, raw-material valuation)
+//   ContractValue → the item's contract price; for a BLUEPRINT type it is the PER-RUN BPC price
+// Used to work around contract/market manipulation (e.g. someone milking single-item BPC contracts).
+public class PriceOverride
+{
+    public int      TypeId        { get; set; }   // key
+    public string   TypeName      { get; set; } = "";
+    public decimal? BuildCost     { get; set; }
+    public decimal? MarketValue   { get; set; }
+    public decimal? ContractValue { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
 // ── Assets & blueprints ───────────────────────────────────────────────────────
 
 public class CharacterAsset

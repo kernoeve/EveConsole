@@ -523,6 +523,17 @@ public class BuildCostService
             .GroupBy(x => x.TypeId)
             .ToDictionary(g => g.Key, g => g.Select(x => (Me: x.Me, PerRun: x.Price!.Value)).ToList());
 
+        // User price overrides. A market override replaces the buy price (so it drives the
+        // build-vs-buy comparison and any use of this item as a leaf); a contract override
+        // replaces the per-run BPC price at every ME. Build-cost overrides are applied per type
+        // inside the loop below.
+        var overrides = await db.PriceOverrides.AsNoTracking().ToDictionaryAsync(o => o.TypeId, ct);
+        foreach (var o in overrides.Values)
+        {
+            if (o.MarketValue.HasValue)   marketPrices[o.TypeId] = o.MarketValue.Value;
+            if (o.ContractValue.HasValue) bpcPerRun[o.TypeId]    = [(0, o.ContractValue.Value)];
+        }
+
         // ── Bottom-up cost calculation ────────────────────────────────────────
         // rawMatCosts: pure market-purchase cost of all leaf inputs (no job fees anywhere).
         // totalJobCosts: sum of every job fee in the build chain per unit of this item.
@@ -629,6 +640,16 @@ public class BuildCostService
             decimal buildRawPerUnit = (buildRawRun + bpcRun) / outputQty;
             decimal buildJobPerUnit = (buildSubJobRun + thisJobRun) / outputQty;
             decimal buildTotal      = buildRawPerUnit + buildJobPerUnit;
+
+            // A build-cost override pins the build side to a fixed value (counted entirely as
+            // material, no job fee) — cheaper-of vs buying still applies below.
+            if (overrides.TryGetValue(typeId, out var ov) && ov.BuildCost.HasValue)
+            {
+                costable        = true;
+                buildRawPerUnit = ov.BuildCost.Value;
+                buildJobPerUnit = 0m;
+                buildTotal      = ov.BuildCost.Value;
+            }
 
             // Cheaper-of build vs buy the finished item on the configured market. When buying wins
             // (or the build can't be costed), the item becomes a purchased leaf — its cost is the

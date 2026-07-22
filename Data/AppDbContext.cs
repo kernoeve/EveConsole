@@ -33,6 +33,7 @@ public class AppDbContext : DbContext
     public DbSet<ContractItem>               EsiContractItems        => Set<ContractItem>();
     public DbSet<ContractPrice>              ContractPrices          => Set<ContractPrice>();
     public DbSet<ContractBpcPrice>           ContractBpcPrices       => Set<ContractBpcPrice>();
+    public DbSet<PriceOverride>              PriceOverrides          => Set<PriceOverride>();
     public DbSet<WalletBackfillState>        WalletBackfillStates    => Set<WalletBackfillState>();
     public DbSet<UniverseName>               UniverseNames           => Set<UniverseName>();
     public DbSet<CharacterAsset>             EsiAssets               => Set<CharacterAsset>();
@@ -533,6 +534,11 @@ public class AppDbContext : DbContext
         mb.Entity<ContractBpcPrice>(e => {
             e.HasKey(x => new { x.TypeId, x.Me });
             e.ToTable("ContractBpcPrices"); });
+
+        mb.Entity<PriceOverride>(e => {
+            e.HasKey(x => x.TypeId);
+            e.Property(x => x.TypeId).ValueGeneratedNever();
+            e.ToTable("PriceOverrides"); });
 
         mb.Entity<UniverseName>(e => {
             e.HasKey(x => x.EntityId);

@@ -32,6 +32,7 @@ public class MainWindowViewModel : ReactiveObject
     public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
+    public PriceOverrideViewModel         PriceOverrideVm        { get; }
     public WalletViewModel                WalletVm               { get; }
     public ContractsViewModel             ContractsVm            { get; }
     public NotificationsViewModel         NotificationsVm        { get; }
@@ -127,6 +128,7 @@ public class MainWindowViewModel : ReactiveObject
             "industry"   => ("Industry Jobs",   IndustryBrowserVm,        true),
             "indy_parks" => ("Indy Parks",      IndyParksVm,              true),
             "prod_calc"  => ("Production Calc", ProductionCalcVm,         true),
+            "price_overrides" => ("Price Overrides", PriceOverrideVm,     true),
             "trade"           => ("Trade",           TradeOpportunitiesVm,     true),
             "industry_opps"   => ("Industry Opps",   IndustryOpportunitiesVm,  true),
             "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
@@ -301,6 +303,7 @@ public class MainWindowViewModel : ReactiveObject
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
+        PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
@@ -367,6 +370,7 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("industry",      "Industry Jobs"),
                 new NavItem("indy_parks",    "Indy Parks"),
                 new NavItem("prod_calc",     "Production Calc"),
+                new NavItem("price_overrides", "Price Overrides"),
                 new NavItem("industry_opps", "Industry Opportunities"),
             ]),
             new("Market / Trade",

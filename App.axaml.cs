@@ -692,6 +692,17 @@ public class App : Application
                     PRIMARY KEY ("TypeId","Me")
                 )
                 """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "PriceOverrides" (
+                    "TypeId"        INTEGER NOT NULL,
+                    "TypeName"      TEXT    NOT NULL DEFAULT '',
+                    "BuildCost"     TEXT,
+                    "MarketValue"   TEXT,
+                    "ContractValue" TEXT,
+                    "UpdatedAt"     TEXT    NOT NULL DEFAULT '',
+                    PRIMARY KEY ("TypeId")
+                )
+                """);
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiAssets" (
