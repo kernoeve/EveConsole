@@ -68,6 +68,9 @@ public class MarketGroupPickerViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _targetQty, Math.Max(1, value));
     }
 
+    // Inventory Levels uses a per-item target quantity; Sale Posting does not, so it hides the field.
+    public bool ShowQuantity { get; }
+
     public bool CanConfirm => _selectedNode != null;
 
     private string _statusText = "Loading market groups…";
@@ -77,9 +80,10 @@ public class MarketGroupPickerViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _statusText, value);
     }
 
-    public MarketGroupPickerViewModel(BatchAddService svc)
+    public MarketGroupPickerViewModel(BatchAddService svc, bool showQuantity = true)
     {
         _svc = svc;
+        ShowQuantity = showQuantity;
     }
 
     public async Task LoadAsync(CancellationToken ct = default)

@@ -1,0 +1,371 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using EveConsole.Data;
+using EveConsole.Models;
+using EveConsole.ViewModels;
+using Microsoft.EntityFrameworkCore;
+
+namespace EveConsole.Services;
+
+// Per-type computed values for a posting: quantities (assets / industry jobs / order
+// tracker) plus the three reference prices and the configured sale price.
+public record SalePostingCalc(
+    string  Name,
+    long    InStock,
+    long    InBuild,
+    long    Reserved,
+    double? BuildCost,
+    double? MarketValue,
+    double? ContractValue,
+    double? SalePrice,
+    DateTimeOffset? EarliestJobEnd);
+
+// Backs the Sale Posting tool. Persistence + computation for postings → sections → items.
+// Reuses InvLevelService for the (non-trivial) location-scope → assets/industry-jobs
+// aggregation, type metadata, and the type/location search pickers, so the two tools stay
+// consistent. Reserved comes from the Order Tracker; contract value from ContractPricing;
+// the "Specific Market" basis is priced off a region's 30-day average via MarketHistoryService.
+public class SalePostingService(
+    IDbContextFactory<AppDbContext> dbFactory,
+    InvLevelService                 inv)
+{
+    // ── Posting CRUD ──────────────────────────────────────────────────────────
+
+    public async Task<List<SalePosting>> LoadPostingsAsync(CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        return await db.SalePostings.OrderBy(p => p.Name).ToListAsync(ct);
+    }
+
+    public async Task<SalePosting> AddPostingAsync(PostingDialogResult r, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        var p = new SalePosting
+        {
+            Name             = r.Name,
+            Scope            = r.Scope,
+            LocationId       = r.LocationId,
+            LocationName     = r.LocationName,
+            PricingBasis      = r.PricingBasis,
+            PricePercent      = r.PricePercent,
+            MarketStationId   = r.MarketStationId,
+            MarketStationName = r.MarketStationName,
+            MarketPriceType   = r.MarketPriceType,
+            ShowInStock       = r.ShowInStock,
+            ShowInBuild       = r.ShowInBuild,
+            ShowReserved      = r.ShowReserved,
+            IncludeCompletionDate = r.IncludeCompletionDate,
+            OnlyPackaged      = r.OnlyPackaged,
+        };
+        db.SalePostings.Add(p);
+        await db.SaveChangesAsync(ct);
+        return p;
+    }
+
+    public async Task UpdatePostingAsync(int postingId, PostingDialogResult r, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        var p = await db.SalePostings.FindAsync([postingId], ct);
+        if (p is null) return;
+        p.Name             = r.Name;
+        p.Scope            = r.Scope;
+        p.LocationId       = r.LocationId;
+        p.LocationName     = r.LocationName;
+        p.PricingBasis      = r.PricingBasis;
+        p.PricePercent      = r.PricePercent;
+        p.MarketStationId   = r.MarketStationId;
+        p.MarketStationName = r.MarketStationName;
+        p.MarketPriceType   = r.MarketPriceType;
+        p.ShowInStock       = r.ShowInStock;
+        p.ShowInBuild       = r.ShowInBuild;
+        p.ShowReserved      = r.ShowReserved;
+        p.IncludeCompletionDate = r.IncludeCompletionDate;
+        p.OnlyPackaged      = r.OnlyPackaged;
+        await db.SaveChangesAsync(ct);
+    }
+
+    public async Task DeletePostingAsync(int postingId, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        var sectionIds = await db.SalePostingSections
+            .Where(s => s.PostingId == postingId).Select(s => s.Id).ToListAsync(ct);
+        await db.SalePostingItems.Where(i => sectionIds.Contains(i.SectionId)).ExecuteDeleteAsync(ct);
+        await db.SalePostingSections.Where(s => s.PostingId == postingId).ExecuteDeleteAsync(ct);
+        await db.SalePostingPosts.Where(p => p.PostingId == postingId).ExecuteDeleteAsync(ct);
+        await db.SalePostings.Where(p => p.Id == postingId).ExecuteDeleteAsync(ct);
+    }
+
+    // ── Post blocks (the Summary/Detail/Static blocks a posting renders as) ──────
+
+    public async Task<List<SalePostingPost>> LoadPostsAsync(int postingId, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        return await db.SalePostingPosts.Where(p => p.PostingId == postingId)
+            .OrderBy(p => p.Ordinal).ToListAsync(ct);
+    }
+
+    // Replace a posting's post blocks wholesale (handles add/edit/delete/reorder in one shot).
+    // Ordinal is the list index; the first block is the parent.
+    public async Task ReplacePostsAsync(int postingId, IReadOnlyList<PostBlockDraft> posts, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        await db.SalePostingPosts.Where(p => p.PostingId == postingId).ExecuteDeleteAsync(ct);
+        for (int i = 0; i < posts.Count; i++)
+        {
+            var d = posts[i];
+            bool isStatic = d.PostType == "Static";
+            db.SalePostingPosts.Add(new SalePostingPost
+            {
+                PostingId     = postingId,
+                Ordinal       = i,
+                PostType      = d.PostType,
+                Name          = d.Name,
+                StaticContent = isStatic ? d.StaticContent : null,
+                Header        = isStatic ? "" : d.Header,
+                Footer        = isStatic ? "" : d.Footer,
+            });
+        }
+        await db.SaveChangesAsync(ct);
+    }
+
+    // ── Section CRUD ──────────────────────────────────────────────────────────
+
+    public async Task<List<SalePostingSection>> LoadSectionsAsync(CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        return await db.SalePostingSections.OrderBy(s => s.Name).ToListAsync(ct);
+    }
+
+    public async Task<SalePostingSection> AddSectionAsync(int postingId, SectionDialogResult r, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        var s = new SalePostingSection { PostingId = postingId };
+        ApplySection(s, r);
+        db.SalePostingSections.Add(s);
+        await db.SaveChangesAsync(ct);
+        return s;
+    }
+
+    public async Task UpdateSectionAsync(int sectionId, SectionDialogResult r, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        var s = await db.SalePostingSections.FindAsync([sectionId], ct);
+        if (s is null) return;
+        ApplySection(s, r);
+        await db.SaveChangesAsync(ct);
+    }
+
+    private static void ApplySection(SalePostingSection s, SectionDialogResult r)
+    {
+        s.Name              = r.Name;
+        s.Prefix            = r.Prefix;
+        s.OverrideScope     = r.OverrideScope;
+        s.Scope             = r.Scope;
+        s.LocationId        = r.LocationId;
+        s.LocationName      = r.LocationName;
+        s.OverridePricing   = r.OverridePricing;
+        s.PricingBasis      = r.PricingBasis;
+        s.PricePercent      = r.PricePercent;
+        s.MarketStationId   = r.MarketStationId;
+        s.MarketStationName = r.MarketStationName;
+        s.MarketPriceType   = r.MarketPriceType;
+        s.OverrideOnlyPackaged = r.OverrideOnlyPackaged;
+        s.OnlyPackaged      = r.OnlyPackaged;
+    }
+
+    public async Task DeleteSectionAsync(int sectionId, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        await db.SalePostingItems.Where(i => i.SectionId == sectionId).ExecuteDeleteAsync(ct);
+        await db.SalePostingSections.Where(s => s.Id == sectionId).ExecuteDeleteAsync(ct);
+    }
+
+    // ── Item CRUD ─────────────────────────────────────────────────────────────
+
+    public async Task<List<SalePostingItem>> LoadItemsAsync(int sectionId, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        return await db.SalePostingItems.Where(i => i.SectionId == sectionId).ToListAsync(ct);
+    }
+
+    public async Task<SalePostingItem?> AddItemAsync(int sectionId, int typeId, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        if (await db.SalePostingItems.AnyAsync(i => i.SectionId == sectionId && i.TypeId == typeId, ct))
+            return null;
+        var item = new SalePostingItem { SectionId = sectionId, TypeId = typeId };
+        db.SalePostingItems.Add(item);
+        await db.SaveChangesAsync(ct);
+        return item;
+    }
+
+    public async Task DeleteItemAsync(int itemId, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        await db.SalePostingItems.Where(i => i.Id == itemId).ExecuteDeleteAsync(ct);
+    }
+
+    public async Task UpdateItemNameOverrideAsync(int itemId, string? value, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        await db.SalePostingItems.Where(i => i.Id == itemId)
+            .ExecuteUpdateAsync(u => u.SetProperty(i => i.NameOverride, value), ct);
+    }
+
+    public async Task UpdateItemNamePrefixAsync(int itemId, string? value, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        await db.SalePostingItems.Where(i => i.Id == itemId)
+            .ExecuteUpdateAsync(u => u.SetProperty(i => i.NamePrefix, value), ct);
+    }
+
+    public async Task UpdateItemInStockOverrideAsync(int itemId, int? value, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        await db.SalePostingItems.Where(i => i.Id == itemId)
+            .ExecuteUpdateAsync(u => u.SetProperty(i => i.InStockOverride, value), ct);
+    }
+
+    public async Task UpdateItemInBuildOverrideAsync(int itemId, int? value, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        await db.SalePostingItems.Where(i => i.Id == itemId)
+            .ExecuteUpdateAsync(u => u.SetProperty(i => i.InBuildOverride, value), ct);
+    }
+
+    public async Task UpdateItemReservedOverrideAsync(int itemId, int? value, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        await db.SalePostingItems.Where(i => i.Id == itemId)
+            .ExecuteUpdateAsync(u => u.SetProperty(i => i.ReservedOverride, value), ct);
+    }
+
+    // ── Search (reuse InvLevelService) ────────────────────────────────────────
+
+    public Task<IReadOnlyList<InvTypeResult>> SearchTypesAsync(string text, CancellationToken ct = default)
+        => inv.SearchTypesAsync(text, ct);
+
+    public Task<IReadOnlyList<LocationOption>> SearchLocationsAsync(string scope, string text, CancellationToken ct = default)
+        => inv.SearchLocationsAsync(scope, text, ct);
+
+    // Stations the app has current order data for (from polled Market configs) — the same set
+    // the Trade Opportunities from/to dropdowns offer. This is what "Specific Market" picks from.
+    public async Task<List<StationOption>> GetMarketStationsAsync(CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        var locIds = await db.MarketRawOrders.Select(o => o.LocationId).Distinct().ToListAsync(ct);
+        if (locIds.Count == 0) return [];
+
+        var stationInts = locIds.Where(id => id <= int.MaxValue).Select(id => (int)id).ToList();
+        var stationNames = await db.SdeStations.Where(s => stationInts.Contains(s.StationId))
+            .ToDictionaryAsync(s => (long)s.StationId, s => s.Name, ct);
+        var structNames = await db.EsiStructureNames.Where(s => locIds.Contains(s.StructureId))
+            .ToDictionaryAsync(s => s.StructureId, s => s.Name, ct);
+
+        return locIds
+            .Select(id => new StationOption(id,
+                stationNames.GetValueOrDefault(id) ?? structNames.GetValueOrDefault(id) ?? $"Unknown ({id})"))
+            .OrderBy(s => s.Name)
+            .ToList();
+    }
+
+    // ── Computation ───────────────────────────────────────────────────────────
+
+    // Compute quantities + prices for a posting's items. In Stock (assets) and In Build
+    // (industry jobs) reuse InvLevelService's scope aggregation; Reserved sums pending
+    // Order Tracker units; contract value uses ContractPricing.EffectivePrice; sale price
+    // applies the posting's basis × percent (region 30-day average for the Market basis).
+    public async Task<Dictionary<int, SalePostingCalc>> ComputeAsync(
+        SalePosting posting, IReadOnlyList<int> typeIds, CancellationToken ct = default)
+    {
+        var ids = typeIds.Distinct().ToList();
+        if (ids.Count == 0) return [];
+
+        // Assets (In Stock) + industry jobs (In Build), scoped like an InvLevel group.
+        var scopeGroup = new InvLevelGroup
+        {
+            Scope                  = posting.Scope,
+            LocationId             = posting.LocationId,
+            IncludeAssets          = true,
+            IncludeIndustryJobs    = true,
+            IncludeMarketBuyOrders = false,
+        };
+        var avail    = await inv.LoadAvailableAsync(scopeGroup, ids, ct, packagedOnly: posting.OnlyPackaged);
+        var meta     = await inv.GetTypeMetaAsync(ids, ct);
+        var earliest = posting.IncludeCompletionDate
+            ? await inv.LoadEarliestJobEndAsync(scopeGroup, ids, ct)
+            : [];
+
+        await using var db = dbFactory.CreateDbContext();
+
+        // Reserved = pending Order Tracker units (global; no location/owner dimension).
+        var reserved = (await db.TrackedOrders
+                .Where(o => o.Status == "pending" && ids.Contains(o.TypeId))
+                .GroupBy(o => o.TypeId)
+                .Select(g => new { TypeId = g.Key, Units = g.Sum(o => o.Units) })
+                .ToListAsync(ct))
+            .ToDictionary(x => x.TypeId, x => (long)x.Units);
+
+        // Contract value per type via the shared best/avg reduction rule.
+        var contract = (await db.ContractPrices
+                .Where(c => ids.Contains(c.TypeId))
+                .ToListAsync(ct))
+            .ToDictionary(c => c.TypeId, c => ContractPricing.EffectivePrice(c));
+
+        // Current price for the Market basis: best sell / best buy / midpoint at the chosen
+        // station, from the polled order book (MarketRawOrders), per the posting's price type.
+        var stationPrice = new Dictionary<int, double>();
+        if (posting.PricingBasis == "Market" && posting.MarketStationId is long stationId)
+        {
+            var orders = await db.MarketRawOrders
+                .Where(o => o.LocationId == stationId && ids.Contains(o.TypeId))
+                .Select(o => new { o.TypeId, o.IsBuyOrder, o.Price })
+                .ToListAsync(ct);
+
+            foreach (var g in orders.GroupBy(o => o.TypeId))
+            {
+                var sells = g.Where(o => !o.IsBuyOrder).Select(o => o.Price).ToList();
+                var buys  = g.Where(o =>  o.IsBuyOrder).Select(o => o.Price).ToList();
+                double? bestSell = sells.Count > 0 ? sells.Min() : null;
+                double? bestBuy  = buys.Count  > 0 ? buys.Max()  : null;
+                double? v = posting.MarketPriceType switch
+                {
+                    "Buy"      => bestBuy,
+                    "Midpoint" => bestBuy.HasValue && bestSell.HasValue ? (bestBuy.Value + bestSell.Value) / 2 : bestSell ?? bestBuy,
+                    _          => bestSell,
+                };
+                if (v.HasValue) stationPrice[g.Key] = v.Value;
+            }
+        }
+
+        double pct = posting.PricePercent / 100.0;
+
+        return ids.ToDictionary(id => id, id =>
+        {
+            meta.TryGetValue(id, out var m);
+            double? build    = m?.BuildPrice;
+            double? market   = m?.MarketPrice;
+            double? contractV = contract.TryGetValue(id, out var cv) && cv.HasValue ? (double)cv.Value : null;
+
+            double? basisVal = posting.PricingBasis switch
+            {
+                "Contract" => contractV,
+                "Market"   => stationPrice.TryGetValue(id, out var sp) ? sp : null,
+                _          => build,
+            };
+            double? sale = basisVal.HasValue ? basisVal.Value * pct : null;
+
+            avail.TryGetValue(id, out var a);
+            DateTimeOffset? ej = earliest.TryGetValue(id, out var e) ? e : null;
+            return new SalePostingCalc(
+                m?.Name ?? $"Type {id}",
+                a?.Assets ?? 0,
+                a?.IndustryJobs ?? 0,
+                reserved.GetValueOrDefault(id),
+                build, market, contractV, sale, ej);
+        });
+    }
+}

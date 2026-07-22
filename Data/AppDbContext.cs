@@ -156,6 +156,12 @@ public class AppDbContext : DbContext
     public DbSet<InvLevelGroup>      InvLevelGroups      => Set<InvLevelGroup>();
     public DbSet<InvLevelItem>       InvLevelItems       => Set<InvLevelItem>();
 
+    // ── Sale Posting ─────────────────────────────────────────────────────────
+    public DbSet<SalePosting>        SalePostings        => Set<SalePosting>();
+    public DbSet<SalePostingSection> SalePostingSections => Set<SalePostingSection>();
+    public DbSet<SalePostingItem>    SalePostingItems    => Set<SalePostingItem>();
+    public DbSet<SalePostingPost>    SalePostingPosts    => Set<SalePostingPost>();
+
     // ── Indy Parks ──────────────────────────────────────────────────────────
     public DbSet<IndyPark>               IndyParks               => Set<IndyPark>();
     public DbSet<IndyStructure>          IndyStructures          => Set<IndyStructure>();

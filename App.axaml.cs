@@ -186,6 +186,95 @@ public class App : Application
                 )
                 """);
 
+            // Sale Posting — postings → sections → items (see SalePostingModels.cs)
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "SalePostings" (
+                    "Id"               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "Name"             TEXT    NOT NULL DEFAULT '',
+                    "Scope"            TEXT    NOT NULL DEFAULT 'Everywhere',
+                    "LocationId"       INTEGER,
+                    "LocationName"     TEXT    NOT NULL DEFAULT '',
+                    "PricingBasis"      TEXT    NOT NULL DEFAULT 'Build',
+                    "PricePercent"      REAL    NOT NULL DEFAULT 110,
+                    "MarketStationId"   INTEGER,
+                    "MarketStationName" TEXT    NOT NULL DEFAULT '',
+                    "MarketPriceType"   TEXT    NOT NULL DEFAULT 'Sell',
+                    "ShowInStock"       INTEGER NOT NULL DEFAULT 1,
+                    "ShowInBuild"       INTEGER NOT NULL DEFAULT 1,
+                    "ShowReserved"      INTEGER NOT NULL DEFAULT 1,
+                    "IncludeCompletionDate" INTEGER NOT NULL DEFAULT 0,
+                    "OnlyPackaged"      INTEGER NOT NULL DEFAULT 0
+                )
+                """);
+            // Existing installs created before the Market-basis reworked to station pricing.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "MarketStationId" INTEGER"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "MarketStationName" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "MarketPriceType" TEXT NOT NULL DEFAULT 'Sell'"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "IncludeCompletionDate" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "OnlyPackaged" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "SalePostingSections" (
+                    "Id"                INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "PostingId"         INTEGER NOT NULL DEFAULT 0,
+                    "Name"              TEXT    NOT NULL DEFAULT '',
+                    "Prefix"            TEXT    NOT NULL DEFAULT '',
+                    "OverrideScope"     INTEGER NOT NULL DEFAULT 0,
+                    "Scope"             TEXT    NOT NULL DEFAULT 'Everywhere',
+                    "LocationId"        INTEGER,
+                    "LocationName"      TEXT    NOT NULL DEFAULT '',
+                    "OverridePricing"   INTEGER NOT NULL DEFAULT 0,
+                    "PricingBasis"      TEXT    NOT NULL DEFAULT 'Build',
+                    "PricePercent"      REAL    NOT NULL DEFAULT 110,
+                    "MarketStationId"   INTEGER,
+                    "MarketStationName" TEXT    NOT NULL DEFAULT '',
+                    "MarketPriceType"   TEXT    NOT NULL DEFAULT 'Sell',
+                    "OverrideOnlyPackaged" INTEGER NOT NULL DEFAULT 0,
+                    "OnlyPackaged"      INTEGER NOT NULL DEFAULT 0
+                )
+                """);
+            // Existing installs created before section-level overrides.
+            foreach (var col in new[] {
+                """ALTER TABLE "SalePostingSections" ADD COLUMN "Prefix" TEXT NOT NULL DEFAULT ''""",
+                """ALTER TABLE "SalePostingSections" ADD COLUMN "OverrideScope" INTEGER NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SalePostingSections" ADD COLUMN "Scope" TEXT NOT NULL DEFAULT 'Everywhere'""",
+                """ALTER TABLE "SalePostingSections" ADD COLUMN "LocationId" INTEGER""",
+                """ALTER TABLE "SalePostingSections" ADD COLUMN "LocationName" TEXT NOT NULL DEFAULT ''""",
+                """ALTER TABLE "SalePostingSections" ADD COLUMN "OverridePricing" INTEGER NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SalePostingSections" ADD COLUMN "PricingBasis" TEXT NOT NULL DEFAULT 'Build'""",
+                """ALTER TABLE "SalePostingSections" ADD COLUMN "PricePercent" REAL NOT NULL DEFAULT 110""",
+                """ALTER TABLE "SalePostingSections" ADD COLUMN "MarketStationId" INTEGER""",
+                """ALTER TABLE "SalePostingSections" ADD COLUMN "MarketStationName" TEXT NOT NULL DEFAULT ''""",
+                """ALTER TABLE "SalePostingSections" ADD COLUMN "MarketPriceType" TEXT NOT NULL DEFAULT 'Sell'""",
+                """ALTER TABLE "SalePostingSections" ADD COLUMN "OverrideOnlyPackaged" INTEGER NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SalePostingSections" ADD COLUMN "OnlyPackaged" INTEGER NOT NULL DEFAULT 0""",
+            }) { try { db.Database.ExecuteSqlRaw(col); } catch { } }
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "SalePostingItems" (
+                    "Id"               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "SectionId"        INTEGER NOT NULL DEFAULT 0,
+                    "TypeId"           INTEGER NOT NULL DEFAULT 0,
+                    "NameOverride"     TEXT,
+                    "NamePrefix"       TEXT,
+                    "InStockOverride"  INTEGER,
+                    "InBuildOverride"  INTEGER,
+                    "ReservedOverride" INTEGER
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "SalePostingPosts" (
+                    "Id"            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "PostingId"     INTEGER NOT NULL DEFAULT 0,
+                    "Ordinal"       INTEGER NOT NULL DEFAULT 0,
+                    "PostType"      TEXT    NOT NULL DEFAULT 'Summary',
+                    "Name"          TEXT    NOT NULL DEFAULT '',
+                    "StaticContent" TEXT,
+                    "Header"        TEXT    NOT NULL DEFAULT '',
+                    "Footer"        TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingPosts" ADD COLUMN "Header" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingPosts" ADD COLUMN "Footer" TEXT NOT NULL DEFAULT ''"""); } catch { }
+
             // Market price history — on-demand ESI fetch cache
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "MarketTypeHistories" (
@@ -1463,6 +1552,7 @@ public class App : Application
         services.AddSingleton<NewsService>();
         services.AddSingleton<MarketLevelService>();
         services.AddSingleton<InvLevelService>();
+        services.AddSingleton<SalePostingService>();
         services.AddSingleton<BatchAddService>();
         services.AddSingleton<CorpActivityService>();
         services.AddSingleton<KillmailBrowserService>();

@@ -13,10 +13,13 @@ public partial class AddItemDialog : Window
     private readonly Func<string, Task<List<TypeResultVm>>> _searchFunc;
     private CancellationTokenSource? _cts;
 
-    public AddItemDialog(Func<string, Task<List<TypeResultVm>>> searchFunc)
+    // showQuantity: Inventory Levels needs a per-item target quantity; Sale Posting does not,
+    // so it passes false to hide the field.
+    public AddItemDialog(Func<string, Task<List<TypeResultVm>>> searchFunc, bool showQuantity = true)
     {
         InitializeComponent();
         _searchFunc = searchFunc;
+        QtyPanel.IsVisible = showQuantity;
     }
 
     private async void OnSearchChanged(object? sender, TextChangedEventArgs e)

@@ -197,6 +197,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
             });
 
+        vm.SalePostingVm.OpenInItemBrowser = (typeId, name) =>
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
+                else vm.OpenTool("items");
+                _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
+            });
+
         vm.AssetBrowserVm.OpenInItemBrowser = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {

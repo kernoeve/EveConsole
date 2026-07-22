@@ -1,0 +1,439 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:v="clr-namespace:EveConsole.Views"
+             x:Class="EveConsole.Views.SalePostingView"
+             x:DataType="vm:SalePostingViewModel"
+             Background="#0d0d12">
+
+  <TabControl Padding="0" Background="#0d0d12">
+    <TabItem Header="Definitions" FontSize="12">
+
+  <Grid RowDefinitions="Auto,1,*">
+
+    <!-- ── Toolbar ──────────────────────────────────────────────────── -->
+    <Border Grid.Row="0" Background="#12121a" Padding="12 8"
+            BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*">
+
+        <Button Grid.Column="0"
+                Command="{Binding AddPostingCommand}"
+                Content="+ Add Posting"
+                Background="#1a1a28" Foreground="#c8a84b"
+                BorderBrush="#3a3020" BorderThickness="1"
+                Padding="12 4" FontSize="11" />
+
+        <Button Grid.Column="1"
+                Command="{Binding RefreshCommand}"
+                Content="Refresh"
+                Background="#1a1a28" Foreground="#5599aa"
+                BorderBrush="#2a3a44" BorderThickness="1"
+                Padding="12 4" FontSize="11" Margin="8 0 0 0" />
+
+        <TextBlock Grid.Column="2" Text="Profit based on"
+                   FontSize="11" Foreground="#888899"
+                   VerticalAlignment="Center" Margin="16 0 6 0" />
+        <ComboBox Grid.Column="3"
+                  ItemsSource="{Binding ProfitBasisOptions}"
+                  SelectedItem="{Binding SelectedProfitBasis}"
+                  MinWidth="90" FontSize="11"
+                  Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+
+        <TextBlock Grid.Column="4"
+                   Text="{Binding StatusText}"
+                   FontSize="11" Foreground="#666677"
+                   VerticalAlignment="Center" Margin="16 0 0 0" />
+      </Grid>
+    </Border>
+
+    <Rectangle Grid.Row="1" Fill="#1e1e2a" />
+
+    <!-- ── Data grid ─────────────────────────────────────────────────── -->
+    <DataGrid Grid.Row="2"
+              x:Name="MainGrid"
+              ItemsSource="{Binding GridRows}"
+              SelectedItem="{Binding SelectedRow}"
+              AutoGenerateColumns="False"
+              CanUserReorderColumns="True"
+              CanUserResizeColumns="True"
+              CanUserSortColumns="False"
+              IsReadOnly="False"
+              Background="#0d0d12"
+              RowBackground="#0d0d12"
+              GridLinesVisibility="Horizontal"
+              HorizontalGridLinesBrush="#1a1a26"
+              HeadersVisibility="Column"
+              FontSize="11"
+              RowHeight="25"
+              BorderThickness="0"
+              KeyDown="OnGridKeyDown">
+
+      <DataGrid.ContextMenu>
+        <ContextMenu>
+          <MenuItem Header="Open in Item Browser"
+                    Command="{Binding OpenInItemBrowserCommand}"
+                    IsEnabled="{Binding IsItemRowSelected}" />
+          <Separator />
+          <MenuItem Header="Add Items From Market Group"
+                    Command="{Binding AddFromMarketGroupCommand}" />
+          <Separator />
+          <MenuItem Header="Delete Item"
+                    Command="{Binding DeleteSelectedItemCommand}"
+                    IsEnabled="{Binding IsItemRowSelected}" />
+        </ContextMenu>
+      </DataGrid.ContextMenu>
+
+      <DataGrid.Styles>
+        <Style Selector="DataGridColumnHeader">
+          <Setter Property="Background"                Value="#12121a" />
+          <Setter Property="Foreground"                Value="#555566" />
+          <Setter Property="FontSize"                  Value="10" />
+          <Setter Property="FontWeight"                Value="SemiBold" />
+          <Setter Property="Padding"                   Value="6 6 2 6" />
+          <Setter Property="HorizontalContentAlignment" Value="Left" />
+          <Setter Property="BorderBrush"               Value="#1e1e2a" />
+          <Setter Property="BorderThickness"           Value="0 0 1 1" />
+        </Style>
+        <Style Selector="DataGridCell">
+          <Setter Property="Padding"         Value="0" />
+          <Setter Property="BorderThickness" Value="0" />
+          <Setter Property="ClipToBounds"    Value="False" />
+          <Setter Property="FontSize"        Value="11" />
+          <Setter Property="MinHeight"       Value="0" />
+        </Style>
+        <Style Selector="DataGridRow">
+          <Setter Property="MinHeight" Value="25" />
+          <Setter Property="Background" Value="{Binding RowBackground}" />
+        </Style>
+        <!-- Compact editable cells -->
+        <Style Selector="TextBox.cell">
+          <Setter Property="Background"      Value="Transparent" />
+          <Setter Property="BorderThickness" Value="0" />
+          <Setter Property="Foreground"      Value="#d8d8b0" />
+          <Setter Property="CaretBrush"      Value="#c8a84b" />
+          <Setter Property="FontSize"        Value="11" />
+          <Setter Property="Padding"         Value="4 0" />
+          <Setter Property="MinHeight"       Value="0" />
+          <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+      </DataGrid.Styles>
+
+      <DataGrid.Columns>
+
+        <!-- POSTING / SECTION / ITEM -->
+        <DataGridTemplateColumn Header="POSTING / SECTION / ITEM" Width="*" MinWidth="340" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Canvas x:CompileBindings="False" ClipToBounds="False" Height="25">
+
+                <!-- Posting row -->
+                <StackPanel IsVisible="{Binding IsPosting}" Orientation="Horizontal" Spacing="6"
+                            Canvas.Left="4" Canvas.Top="2">
+                  <Button Command="{Binding ToggleCommand}" Content="{Binding ExpanderIcon}"
+                          Background="Transparent" BorderThickness="0"
+                          Foreground="#c8a84b" Padding="2 0" FontSize="11"
+                          VerticalAlignment="Center" Cursor="Hand" />
+                  <TextBlock Text="{Binding PostingName}" FontSize="12" FontWeight="SemiBold"
+                             Foreground="#c8a84b" VerticalAlignment="Center" />
+                  <Button Command="{Binding AddSectionCommand}" Content="+ Section"
+                          Background="#0d1a12" Foreground="#4a8a5a"
+                          BorderBrush="#1e3a28" BorderThickness="1"
+                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" Margin="6 0 0 0" />
+                  <Button Command="{Binding EditCommand}" Content="Edit"
+                          Background="#1a1a28" Foreground="#888899"
+                          BorderBrush="#2a2a3a" BorderThickness="1"
+                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
+                  <Button Command="{Binding DeleteCommand}" Content="Delete"
+                          Background="#2a1010" Foreground="#aa4444"
+                          BorderBrush="#3a2020" BorderThickness="1"
+                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
+                  <TextBlock Text="{Binding ScopeDisplay}" FontSize="10" Foreground="#445566"
+                             VerticalAlignment="Center" Margin="8 0 0 0" />
+                  <TextBlock Text="{Binding PricingDisplay}" FontSize="10" Foreground="#6a5a2a"
+                             VerticalAlignment="Center" Margin="4 0 0 0" />
+                </StackPanel>
+
+                <!-- Section row -->
+                <StackPanel IsVisible="{Binding IsSection}" Orientation="Horizontal" Spacing="6"
+                            Canvas.Left="20" Canvas.Top="2">
+                  <Button Command="{Binding ToggleCommand}" Content="{Binding ExpanderIcon}"
+                          Background="Transparent" BorderThickness="0"
+                          Foreground="#888899" Padding="2 0" FontSize="11"
+                          VerticalAlignment="Center" Cursor="Hand" />
+                  <TextBlock Text="{Binding SectionName}" FontSize="12" FontWeight="SemiBold"
+                             Foreground="#8888cc" VerticalAlignment="Center" />
+                  <Button Command="{Binding AddItemCommand}" Content="+ Item"
+                          Background="#0d1a12" Foreground="#4a8a5a"
+                          BorderBrush="#1e3a28" BorderThickness="1"
+                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" Margin="4 0 0 0" />
+                  <Button Command="{Binding EditCommand}" Content="Edit"
+                          Background="#1a1a28" Foreground="#888899"
+                          BorderBrush="#2a2a3a" BorderThickness="1"
+                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
+                  <Button Command="{Binding DeleteCommand}" Content="Delete"
+                          Background="#2a1010" Foreground="#aa4444"
+                          BorderBrush="#3a2020" BorderThickness="1"
+                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
+                  <TextBlock Text="{Binding OverrideSummary}" FontSize="10" Foreground="#7a6a3a"
+                             VerticalAlignment="Center" Margin="8 0 0 0" />
+                </StackPanel>
+
+                <!-- Item row -->
+                <TextBlock IsVisible="{Binding IsItem}" Text="{Binding TypeName}"
+                           FontSize="11" Foreground="#c8c8d8" Canvas.Left="32" Canvas.Top="5" />
+              </Canvas>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- NAME OVERRIDE -->
+        <DataGridTemplateColumn Header="NAME OVERRIDE" Width="150" MinWidth="120">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBox x:CompileBindings="False" Classes="cell"
+                       IsVisible="{Binding IsItem}"
+                       Watermark="—"
+                       Text="{Binding NameOverride, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- PREFIX -->
+        <DataGridTemplateColumn Header="PREFIX" Width="110" MinWidth="80">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBox x:CompileBindings="False" Classes="cell"
+                       IsVisible="{Binding IsItem}"
+                       Watermark="—"
+                       Text="{Binding NamePrefix, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- IN STOCK -->
+        <DataGridTemplateColumn Header="IN STOCK" Width="80" MinWidth="70" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding InStockText}"
+                         Foreground="#99aacc" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- IN STOCK OVERRIDE -->
+        <DataGridTemplateColumn Header="STOCK OVR" Width="80" MinWidth="70">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBox x:CompileBindings="False" Classes="cell" TextAlignment="Right"
+                       IsVisible="{Binding IsItem}" Watermark="—"
+                       Text="{Binding InStockOverrideText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- IN BUILD -->
+        <DataGridTemplateColumn Header="IN BUILD" Width="80" MinWidth="70" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding InBuildText}"
+                         Foreground="#99aacc" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- IN BUILD OVERRIDE -->
+        <DataGridTemplateColumn Header="BUILD OVR" Width="80" MinWidth="70">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBox x:CompileBindings="False" Classes="cell" TextAlignment="Right"
+                       IsVisible="{Binding IsItem}" Watermark="—"
+                       Text="{Binding InBuildOverrideText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- RESERVED -->
+        <DataGridTemplateColumn Header="RESERVED" Width="80" MinWidth="70" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding ReservedText}"
+                         Foreground="#99aacc" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- RESERVED OVERRIDE -->
+        <DataGridTemplateColumn Header="RSRV OVR" Width="80" MinWidth="70">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBox x:CompileBindings="False" Classes="cell" TextAlignment="Right"
+                       IsVisible="{Binding IsItem}" Watermark="—"
+                       Text="{Binding ReservedOverrideText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- BUILD COST -->
+        <DataGridTemplateColumn Header="BUILD COST" Width="95" MinWidth="85" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding BuildCostText}"
+                         Foreground="#88bbaa" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- MARKET VALUE -->
+        <DataGridTemplateColumn Header="MKT VALUE" Width="95" MinWidth="85" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding MarketValueText}"
+                         Foreground="#aabbcc" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- CONTRACT VALUE -->
+        <DataGridTemplateColumn Header="CONTRACT" Width="95" MinWidth="85" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding ContractValueText}"
+                         Foreground="#bbaacc" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- SALE PRICE (+ posting total) -->
+        <DataGridTemplateColumn Header="SALE PRICE" Width="105" MinWidth="95" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Panel x:CompileBindings="False">
+                <TextBlock IsVisible="{Binding IsItem}" Text="{Binding SalePriceText}"
+                           Foreground="#e8d8a0" FontWeight="SemiBold"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+                <TextBlock IsVisible="{Binding IsSection}" Text="{Binding TotalSaleValueText}"
+                           Foreground="#e8d8a0" FontWeight="SemiBold"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+                <TextBlock IsVisible="{Binding IsPosting}" Text="{Binding TotalSaleValueText}"
+                           Foreground="#e8d8a0" FontWeight="Bold"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- PROFIT (+ posting total) -->
+        <DataGridTemplateColumn Header="PROFIT" Width="100" MinWidth="90" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Panel x:CompileBindings="False">
+                <TextBlock IsVisible="{Binding IsItem}" Text="{Binding ProfitText}"
+                           Foreground="{Binding ProfitColor}" FontWeight="SemiBold"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+                <TextBlock IsVisible="{Binding IsSection}" Text="{Binding TotalProfitText}"
+                           Foreground="{Binding TotalProfitColor}" FontWeight="SemiBold"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+                <TextBlock IsVisible="{Binding IsPosting}" Text="{Binding TotalProfitText}"
+                           Foreground="{Binding TotalProfitColor}" FontWeight="Bold"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- PROFIT % (+ posting total) -->
+        <DataGridTemplateColumn Header="PROFIT %" Width="85" MinWidth="75" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Panel x:CompileBindings="False">
+                <TextBlock IsVisible="{Binding IsItem}" Text="{Binding ProfitPctText}"
+                           Foreground="{Binding ProfitColor}"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+                <TextBlock IsVisible="{Binding IsSection}" Text="{Binding TotalProfitPctText}"
+                           Foreground="{Binding TotalProfitColor}" FontWeight="SemiBold"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+                <TextBlock IsVisible="{Binding IsPosting}" Text="{Binding TotalProfitPctText}"
+                           Foreground="{Binding TotalProfitColor}" FontWeight="Bold"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- READY (earliest job completion — only when out of stock but building, if enabled) -->
+        <DataGridTemplateColumn Header="READY (EST.)" Width="130" MinWidth="110" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding CompletionDateText}"
+                         Foreground="#88aa99"
+                         HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+      </DataGrid.Columns>
+    </DataGrid>
+
+  </Grid>
+    </TabItem>
+
+    <TabItem Header="Posting" FontSize="12">
+      <Grid ColumnDefinitions="230,1,*" Background="#0d0d12">
+
+        <!-- Posting list -->
+        <ListBox Grid.Column="0"
+                 ItemsSource="{Binding Postings}"
+                 SelectedItem="{Binding SelectedPostingForTab}"
+                 Background="#0d0d12" BorderThickness="0" FontSize="12">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False" Text="{Binding PostingName}"
+                         Foreground="#c8a84b" FontSize="12" Padding="4 3" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Rectangle Grid.Column="1" Fill="#1e1e2a" />
+
+        <!-- Rendered blocks -->
+        <Grid Grid.Column="2" RowDefinitions="Auto,*">
+          <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="14 10 0 0">
+            <TextBlock Text="Format" VerticalAlignment="Center" Foreground="#888899" FontSize="11" />
+            <ComboBox ItemsSource="{Binding FormatOptions}" SelectedItem="{Binding SelectedFormat}"
+                      MinWidth="110" FontSize="11"
+                      Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+            <Button Command="{Binding RenderRefreshCommand}" Content="Refresh"
+                    Background="#1a1a28" Foreground="#5599aa" BorderBrush="#2a3a44" BorderThickness="1"
+                    Padding="12 4" FontSize="11"
+                    ToolTip.Tip="Re-render the selected posting with the latest definitions data" />
+          </StackPanel>
+          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding RenderedBlocks}" Margin="14">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border x:CompileBindings="False"
+                        Background="#12121a" BorderBrush="#20202c" BorderThickness="1"
+                        CornerRadius="4" Margin="0 0 0 12" Padding="10 8">
+                  <StackPanel Spacing="6">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <TextBlock Grid.Column="0" Text="{Binding Header}" FontSize="11" FontWeight="SemiBold"
+                                 Foreground="#8888cc" VerticalAlignment="Center" />
+                      <Button Grid.Column="1" Content="Copy" Click="OnCopyBlock"
+                              Background="#1a1a28" Foreground="#5599aa" BorderBrush="#2a3a44" BorderThickness="1"
+                              Padding="10 2" FontSize="10"
+                              ToolTip.Tip="Copy the raw formatted text (with markup) to the clipboard" />
+                    </Grid>
+                    <SelectableTextBlock v:InlineRenderer.Segments="{Binding Segments}" Foreground="#d8d8d8"
+                                         FontFamily="Cascadia Mono,Consolas,monospace" FontSize="12"
+                                         TextWrapping="Wrap" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Grid>
+      </Grid>
+    </TabItem>
+  </TabControl>
+</UserControl>

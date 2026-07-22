@@ -61,6 +61,20 @@ public record EsiIndustryJob(
     [property: JsonPropertyName("successful_runs")]      int?   SuccessfulRuns
 );
 
+// ── Active ship + location ──────────────────────────────────────────────────────
+// ESI omits a character's active ship from the assets endpoint, so we pull these two
+// and synthesize an asset for the hull (see EsiPollingService.FetchAssetsAsync).
+
+public record EsiCharacterShip(
+    [property: JsonPropertyName("ship_item_id")] long   ShipItemId,
+    [property: JsonPropertyName("ship_name")]    string ShipName,
+    [property: JsonPropertyName("ship_type_id")] int    ShipTypeId);
+
+public record EsiCharacterLocation(
+    [property: JsonPropertyName("solar_system_id")] int   SolarSystemId,
+    [property: JsonPropertyName("station_id")]      int?  StationId,
+    [property: JsonPropertyName("structure_id")]    long? StructureId);
+
 // ── Market orders ─────────────────────────────────────────────────────────────
 
 public record EsiMarketOrder(

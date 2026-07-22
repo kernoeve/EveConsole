@@ -217,73 +217,82 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         };
     }
 
-    // ── Availability aggregation ──────────────────────────────────────────────
+    // ── Scope resolution ──────────────────────────────────────────────────────
 
-    public async Task<Dictionary<int, InvAvailability>> LoadAvailableAsync(
+    // Resolve the set of location IDs a group's scope covers — NPC stations + player/corp
+    // structures, plus the solar-system id itself so items floating in space (or in a ship in
+    // space, e.g. a titan a character is logged off in) are included. Null = Everywhere.
+    private static async Task<HashSet<long>?> ResolveScopeFilterAsync(
+        AppDbContext db, InvLevelGroup group, CancellationToken ct)
+    {
+        if (group.Scope == "Station" && group.LocationId.HasValue)
+            return [group.LocationId.Value];
+
+        if (group.Scope == "System" && group.LocationId.HasValue)
+        {
+            int sysId = (int)group.LocationId.Value;
+            var ids = new HashSet<long> { sysId };
+            ids.UnionWith(await db.SdeStations
+                .Where(s => s.SolarSystemId == sysId).Select(s => (long)s.StationId).ToListAsync(ct));
+            ids.UnionWith(await db.EsiStructureNames
+                .Where(s => s.SolarSystemId == sysId).Select(s => s.StructureId).ToListAsync(ct));
+            ids.UnionWith(await db.EsiCorpStructures
+                .Where(s => s.SystemId == sysId).Select(s => s.StructureId).ToListAsync(ct));
+            return ids;
+        }
+
+        if (group.Scope == "Region" && group.LocationId.HasValue)
+        {
+            int regionId = (int)group.LocationId.Value;
+            var sysIds = await db.SdeSolarSystems
+                .Where(s => s.RegionId == regionId).Select(s => s.SolarSystemId).ToListAsync(ct);
+            var ids = new HashSet<long>(sysIds.Select(s => (long)s));
+            ids.UnionWith(await db.SdeStations
+                .Where(s => sysIds.Contains(s.SolarSystemId)).Select(s => (long)s.StationId).ToListAsync(ct));
+            ids.UnionWith(await db.EsiStructureNames
+                .Where(s => sysIds.Contains(s.SolarSystemId)).Select(s => s.StructureId).ToListAsync(ct));
+            ids.UnionWith(await db.EsiCorpStructures
+                .Where(s => sysIds.Contains(s.SystemId)).Select(s => s.StructureId).ToListAsync(ct));
+            return ids;
+        }
+
+        return null; // Everywhere
+    }
+
+    // Earliest active-job completion (EndDate) per product type, scoped like LoadAvailableAsync's
+    // "in build" — so the completion date lines up with the in-build count.
+    public async Task<Dictionary<int, DateTimeOffset>> LoadEarliestJobEndAsync(
         InvLevelGroup group, IReadOnlyList<int> typeIds, CancellationToken ct = default)
     {
         if (typeIds.Count == 0) return [];
         await using var db = dbFactory.CreateDbContext();
+        var stationFilter = await ResolveScopeFilterAsync(db, group, ct);
 
-        // Resolve all location IDs (NPC stations + player structures) for the scope.
-        HashSet<long>? stationFilter = null;
-        if (group.Scope == "Station" && group.LocationId.HasValue)
-        {
-            stationFilter = [group.LocationId.Value];
-        }
-        else if (group.Scope == "System" && group.LocationId.HasValue)
-        {
-            int sysId = (int)group.LocationId.Value;
-            var ids = new HashSet<long>();
+        var q = db.EsiIndustryJobs
+            .Where(j => (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11)
+                     && j.Status == "active"
+                     && j.ProductTypeId.HasValue
+                     && typeIds.Contains(j.ProductTypeId!.Value));
+        if (stationFilter != null)
+            q = q.Where(j => stationFilter.Contains(j.FacilityId));
 
-            // The system id itself — items floating in space (or in a ship's cargo in
-            // space) root to the solar system, not a station/structure.
-            ids.Add(sysId);
+        var rows = await q
+            .Select(j => new { Type = j.ProductTypeId!.Value, j.EndDate })
+            .ToListAsync(ct);
 
-            ids.UnionWith(await db.SdeStations
-                .Where(s => s.SolarSystemId == sysId)
-                .Select(s => (long)s.StationId)
-                .ToListAsync(ct));
-            ids.UnionWith(await db.EsiStructureNames
-                .Where(s => s.SolarSystemId == sysId)
-                .Select(s => s.StructureId)
-                .ToListAsync(ct));
-            ids.UnionWith(await db.EsiCorpStructures
-                .Where(s => s.SystemId == sysId)
-                .Select(s => s.StructureId)
-                .ToListAsync(ct));
+        return rows.GroupBy(r => r.Type).ToDictionary(g => g.Key, g => g.Min(r => r.EndDate));
+    }
 
-            stationFilter = ids;
-        }
-        else if (group.Scope == "Region" && group.LocationId.HasValue)
-        {
-            int regionId = (int)group.LocationId.Value;
-            var sysIds = await db.SdeSolarSystems
-                .Where(s => s.RegionId == regionId)
-                .Select(s => s.SolarSystemId)
-                .ToListAsync(ct);
+    // ── Availability aggregation ──────────────────────────────────────────────
 
-            var ids = new HashSet<long>();
+    public async Task<Dictionary<int, InvAvailability>> LoadAvailableAsync(
+        InvLevelGroup group, IReadOnlyList<int> typeIds, CancellationToken ct = default,
+        bool packagedOnly = false)
+    {
+        if (typeIds.Count == 0) return [];
+        await using var db = dbFactory.CreateDbContext();
 
-            // The systems themselves — items in space (or in ships in space) root to the
-            // solar system rather than a station/structure.
-            ids.UnionWith(sysIds.Select(s => (long)s));
-
-            ids.UnionWith(await db.SdeStations
-                .Where(s => sysIds.Contains(s.SolarSystemId))
-                .Select(s => (long)s.StationId)
-                .ToListAsync(ct));
-            ids.UnionWith(await db.EsiStructureNames
-                .Where(s => sysIds.Contains(s.SolarSystemId))
-                .Select(s => s.StructureId)
-                .ToListAsync(ct));
-            ids.UnionWith(await db.EsiCorpStructures
-                .Where(s => sysIds.Contains(s.SystemId))
-                .Select(s => s.StructureId)
-                .ToListAsync(ct));
-
-            stationFilter = ids;
-        }
+        var stationFilter = await ResolveScopeFilterAsync(db, group, ct);
 
         var assets  = new Dictionary<int, long>();
         var jobs    = new Dictionary<int, long>();
@@ -295,6 +304,9 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             var q = db.EsiAssets.Where(a => typeIds.Contains(a.TypeId));
             if (stationFilter != null)
                 q = q.Where(a => stationFilter.Contains(a.RootLocationId));
+            // Only packaged (non-singleton) items — skip assembled/fitted hulls.
+            if (packagedOnly)
+                q = q.Where(a => !a.IsSingleton);
 
             var totals = await q.GroupBy(a => a.TypeId)
                 .Select(g => new { TypeId = g.Key, Total = g.Sum(a => (long)a.Quantity) })
