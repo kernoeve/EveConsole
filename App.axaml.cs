@@ -680,6 +680,18 @@ public class App : Application
                     PRIMARY KEY ("TypeId")
                 )
                 """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "ContractBpcPrices" (
+                    "TypeId"      INTEGER NOT NULL,
+                    "Me"          INTEGER NOT NULL,
+                    "BestPerRun"  TEXT,
+                    "Avg30PerRun" TEXT,
+                    "ActiveCount" INTEGER NOT NULL DEFAULT 0,
+                    "SampleDays"  INTEGER NOT NULL DEFAULT 0,
+                    "UpdatedAt"   TEXT    NOT NULL DEFAULT '',
+                    PRIMARY KEY ("TypeId","Me")
+                )
+                """);
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiAssets" (
@@ -1234,12 +1246,15 @@ public class App : Application
                     "MaterialCost" REAL    NOT NULL DEFAULT 0,
                     "JobCost"      REAL    NOT NULL DEFAULT 0,
                     "BuildSeconds" REAL    NOT NULL DEFAULT 0,
+                    "Bought"       INTEGER NOT NULL DEFAULT 0,
                     "UpdatedAt"    TEXT    NOT NULL DEFAULT ''
                 )
                 """);
             // BuildSeconds added after the schema squash — backfill it on existing DBs.
             // ALTER throws if the column already exists, so swallow that one case.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "BuildCosts" ADD COLUMN "BuildSeconds" REAL NOT NULL DEFAULT 0"""); }
+            catch { /* column already present */ }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "BuildCosts" ADD COLUMN "Bought" INTEGER NOT NULL DEFAULT 0"""); }
             catch { /* column already present */ }
 
             db.Database.ExecuteSqlRaw("""

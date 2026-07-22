@@ -48,6 +48,7 @@ public class PlanJobMaterial
     public int     EffQtyPerRun   { get; set; }
     public int     TotalQty       { get; set; }
     public bool    IsBought       { get; set; }
+    public bool    PrePriced      { get; set; }   // UnitPrice already set (e.g. a BPC per-run) — don't overwrite
     public decimal UnitPrice      { get; set; }
     public decimal TotalCost      => IsBought ? TotalQty * UnitPrice : 0;
     public string  Source         => IsBought ? "Buy" : "Build";

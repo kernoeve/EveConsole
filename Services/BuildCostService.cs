@@ -514,6 +514,15 @@ public class BuildCostService
         foreach (var typeId in productMap.Keys)
             Visit(typeId);
 
+        // Per-run BPC contract prices grouped by blueprint type → [(ME, per-run price)]. A BPC-only
+        // item is built by consuming one run of its (purchased) BPC; we pick the ME that minimises
+        // total cost. Empty for BPCs we've never seen on contracts.
+        var bpcPerRun = (await db.ContractBpcPrices.AsNoTracking().ToListAsync(ct))
+            .Select(c => new { c.TypeId, c.Me, Price = ContractPricing.EffectivePerRun(c) })
+            .Where(x => x.Price is > 0m)
+            .GroupBy(x => x.TypeId)
+            .ToDictionary(g => g.Key, g => g.Select(x => (Me: x.Me, PerRun: x.Price!.Value)).ToList());
+
         // ── Bottom-up cost calculation ────────────────────────────────────────
         // rawMatCosts: pure market-purchase cost of all leaf inputs (no job fees anywhere).
         // totalJobCosts: sum of every job fee in the build chain per unit of this item.
@@ -525,6 +534,7 @@ public class BuildCostService
         var rawMatCosts   = new Dictionary<int, decimal>(); // leaf-input market cost only
         var totalJobCosts = new Dictionary<int, decimal>(); // all job fees through the chain
         var buildSeconds  = new Dictionary<int, double>();  // time to build ONE unit of this item
+        var boughtTypes   = new HashSet<int>();             // items cheaper to buy than build
 
         foreach (var typeId in ordering)
         {
@@ -561,49 +571,82 @@ public class BuildCostService
             double matRoleBonus = (!isReaction && IsUpwell(structure)) ? UpwellMaterialBonus : 0.0;
             double meFactor     = bpMeFactor * (1.0 - rigMeBonus) * (1.0 - matRoleBonus);
 
-            decimal rawMatRun    = 0m; // market price of leaf inputs for this run
-            decimal subJobRun    = 0m; // job fees of sub-components for this run
-            double  eivRun       = 0.0;
-
+            // EIV uses base (ME0) quantities and is independent of the ME chosen.
+            double eivRun = 0.0;
             foreach (var mat in materials)
-            {
-                int effectiveQty = Math.Max(1, (int)Math.Ceiling(mat.Quantity * meFactor));
+                eivRun += mat.Quantity * (adjustedPrices.TryGetValue(mat.MaterialTypeId, out var ap) ? ap : 0);
 
-                // Use the sub-component's raw material cost (not its full unitCost) so that
-                // its job fees are counted in subJobRun rather than inflating rawMatRun.
-                decimal subRaw = rawMatCosts.TryGetValue(mat.MaterialTypeId, out var rm) ? rm : 0m;
-                decimal subJob = totalJobCosts.TryGetValue(mat.MaterialTypeId, out var tj) ? tj : 0m;
-                rawMatRun += effectiveQty * subRaw;
-                subJobRun += effectiveQty * subJob;
-
-                double adjPrice = adjustedPrices.TryGetValue(mat.MaterialTypeId, out var ap) ? ap : 0;
-                eivRun          += mat.Quantity * adjPrice; // EIV always uses base (ME0) quantities
-            }
-
-            // Non-BPO items consume a blueprint copy bought from contracts. Treat the BPC as one
-            // more purchased input per run, valued at its contract-derived market value (set on
-            // blueprint types by MarketPricingService). EIV/job cost is unaffected — a BPC has no
-            // adjusted price and does not enter the job-fee base.
-            if (!isReaction && !BlueprintIsBpoSourced(bpTypeId)
-                && marketPrices.TryGetValue(bpTypeId, out var bpcPrice) && bpcPrice > 0)
-                rawMatRun += bpcPrice;
-
-            // Job cost using the formula from the in-game breakdown.
+            // Job cost — driven by EIV, independent of ME.
             string activity   = isReaction ? "reaction" : "manufacturing";
             double costIndex  = GetCostIndex(structure, activity);
             double facTax     = structure is not null ? (double)structure.FacilityTax / 100.0 : 0.0;
             double roleBonus  = IsUpwell(structure) ? UpwellRoleBonus : 1.0;
+            decimal thisJobRun = Math.Round((decimal)(eivRun * costIndex * roleBonus), 0)
+                               + Math.Round((decimal)(eivRun * (facTax + SccSurcharge)), 0);
 
-            decimal jobGrossRun = Math.Round((decimal)(eivRun * costIndex * roleBonus), 0);
-            decimal taxesRun    = Math.Round((decimal)(eivRun * (facTax + SccSurcharge)), 0);
-            decimal thisJobRun  = jobGrossRun + taxesRun;
+            // Material + sub-component-job cost for one run at a given material factor.
+            (decimal Raw, decimal SubJob) RunAt(double mf)
+            {
+                decimal raw = 0m, sub = 0m;
+                foreach (var mat in materials)
+                {
+                    int q = Math.Max(1, (int)Math.Ceiling(mat.Quantity * mf));
+                    raw += q * (rawMatCosts.TryGetValue(mat.MaterialTypeId, out var rm) ? rm : 0m);
+                    sub += q * (totalJobCosts.TryGetValue(mat.MaterialTypeId, out var tj) ? tj : 0m);
+                }
+                return (raw, sub);
+            }
+            double structRig = (1.0 - rigMeBonus) * (1.0 - matRoleBonus);
 
-            decimal rawMatPerUnit   = rawMatRun                  / outputQty;
-            decimal totalJobPerUnit = (subJobRun + thisJobRun)   / outputQty;
+            bool    bpcOnly = !isReaction && !BlueprintIsBpoSourced(bpTypeId);
+            decimal buildRawRun, buildSubJobRun, bpcRun = 0m;
+            bool    costable = true;
 
-            unitCosts[typeId]     = rawMatPerUnit + totalJobPerUnit;
-            rawMatCosts[typeId]   = rawMatPerUnit;
-            totalJobCosts[typeId] = totalJobPerUnit;
+            if (bpcOnly && bpcPerRun.TryGetValue(bpTypeId, out var meOptions) && meOptions.Count > 0)
+            {
+                // Consumes one run of a purchased BPC. Pick the ME that minimises materials + BPC.
+                decimal bestTotal = decimal.MaxValue; (decimal Raw, decimal SubJob) best = default;
+                foreach (var (me, perRun) in meOptions)
+                {
+                    var r = RunAt((1.0 - me / 100.0) * structRig);
+                    decimal total = r.Raw + r.SubJob + perRun;
+                    if (total < bestTotal) { bestTotal = total; best = r; bpcRun = perRun; }
+                }
+                (buildRawRun, buildSubJobRun) = best;
+            }
+            else if (bpcOnly)
+            {
+                // BPC-only but never seen on contracts — we can't cost the build; prefer buying.
+                costable = false;
+                (buildRawRun, buildSubJobRun) = RunAt(structRig);   // ME0 placeholder
+            }
+            else
+            {
+                // BPO-sourced (or reaction): researched-BPO ME assumption, no BPC cost.
+                (buildRawRun, buildSubJobRun) = RunAt(meFactor);
+            }
+
+            decimal buildRawPerUnit = (buildRawRun + bpcRun) / outputQty;
+            decimal buildJobPerUnit = (buildSubJobRun + thisJobRun) / outputQty;
+            decimal buildTotal      = buildRawPerUnit + buildJobPerUnit;
+
+            // Cheaper-of build vs buy the finished item on the configured market. When buying wins
+            // (or the build can't be costed), the item becomes a purchased leaf — its cost is the
+            // buy price and it carries no job fees for its parents.
+            decimal buyPrice = marketPrices.TryGetValue(typeId, out var fin) ? fin : 0m;
+            if (buyPrice > 0 && (!costable || buyPrice < buildTotal))
+            {
+                unitCosts[typeId]     = buyPrice;
+                rawMatCosts[typeId]   = buyPrice;
+                totalJobCosts[typeId] = 0m;
+                boughtTypes.Add(typeId);
+            }
+            else
+            {
+                unitCosts[typeId]     = buildTotal;
+                rawMatCosts[typeId]   = buildRawPerUnit;
+                totalJobCosts[typeId] = buildJobPerUnit;
+            }
 
             // Build time for ONE unit. A manufacturing job for this item ties up only its
             // own slot (sub-components are separate jobs), so this is not a chain sum:
@@ -635,6 +678,7 @@ public class BuildCostService
                 MaterialCost = rawMatCosts.TryGetValue(tid, out var rm) ? rm : 0m,
                 JobCost      = totalJobCosts.TryGetValue(tid, out var tj) ? tj : 0m,
                 BuildSeconds = buildSeconds.TryGetValue(tid, out var bs) ? bs : 0.0,
+                Bought       = boughtTypes.Contains(tid),
                 UpdatedAt    = now,
             })
             .ToList();
