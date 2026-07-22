@@ -399,10 +399,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                         ExpandItem(mat.MaterialTypeId, effPerRun * extraRuns, false);
                     }
                     // If this job included its blueprint copy, keep the BPC quantity in sync as it
-                    // gains runs (per-run priced job material — not expanded into the raw pool).
+                    // gains runs (and add the extra copies to the raw pool).
                     var bpcMat = existing.Materials.FirstOrDefault(m => m.MaterialTypeId == bpProd.TypeId);
                     if (bpcMat is not null)
+                    {
                         bpcMat.TotalQty += extraRuns;
+                        ExpandItem(bpProd.TypeId, extraRuns, false);
+                    }
                 }
             }
             else
@@ -449,7 +452,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 bool bpcOnly = !isReaction && !BlueprintIsBpoSourced(bpProd.TypeId);
                 if (bpcOnly || (!isReaction && isFinal && includeBpcCost))
                 {
-                    decimal perRun = BpcPerRunAt(bpProd.TypeId, meLevel);
+                    // Overlay the BPC's PER-RUN price (at this item's ME) into the price table so both
+                    // the raw-material total and the job-material line value it identically.
+                    unitCosts[bpProd.TypeId] = BpcPerRunAt(bpProd.TypeId, meLevel);
                     job.Materials.Add(new PlanJobMaterial
                     {
                         MaterialTypeId = bpProd.TypeId,
@@ -458,10 +463,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                         EffQtyPerRun   = 1,
                         TotalQty       = runs,
                         IsBought       = true,
-                        PrePriced      = true,
-                        UnitPrice      = perRun,
-                        FormulaDisplay = $"1 BPC per run @ {perRun:N0}/run (ME{meLevel})",
+                        FormulaDisplay = $"1 BPC per run @ ME{meLevel} contract price",
                     });
+                    ExpandItem(bpProd.TypeId, runs, false);   // also a raw-material line (per-run priced)
                 }
                 jobPool[typeId] = job;
             }
@@ -508,7 +512,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             double  eiv     = 0;
             foreach (var mat in job.Materials)
             {
-                if (!mat.PrePriced) mat.UnitPrice = PriceOf(mat.MaterialTypeId);   // BPCs are per-run priced
+                mat.UnitPrice = PriceOf(mat.MaterialTypeId);   // BPCs read the per-run overlay above
                 // Only count purchased inputs; built intermediates have their own job cost
                 if (mat.IsBought) matCost += mat.TotalQty * mat.UnitPrice;
                 double ap = adjPrices.GetValueOrDefault(mat.MaterialTypeId, 0.0);
