@@ -440,7 +440,8 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                         BaseQtyPerRun  = basePerRun,
                         EffQtyPerRun   = effPerRun,
                         TotalQty       = effPerRun * runs,
-                        IsBought       = !blueprintByProduct.ContainsKey(mat.MaterialTypeId),
+                        IsBought       = !blueprintByProduct.ContainsKey(mat.MaterialTypeId)
+                                          || boughtSet.Contains(mat.MaterialTypeId),
                         FormulaDisplay = $"ceil({basePerRun:N0} × {meFactor:F4}) = ceil({raw:N2}) → {effPerRun:N0}",
                     });
                     ExpandItem(mat.MaterialTypeId, effPerRun * runs, false);
