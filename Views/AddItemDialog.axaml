@@ -44,7 +44,7 @@
         </ScrollViewer>
       </Border>
 
-      <StackPanel Spacing="5">
+      <StackPanel x:Name="QtyPanel" Spacing="5">
         <TextBlock Text="TARGET QUANTITY" FontSize="10" FontWeight="SemiBold"
                    Foreground="#555566" LetterSpacing="1" />
         <NumericUpDown x:Name="QtyBox"

@@ -858,6 +858,47 @@ public class EsiPollingService : ReactiveObject
         }));
         await db.SaveChangesAsync(ct);
 
+        // ESI's assets endpoint omits the character's ACTIVE ship (the one they are currently
+        // in — e.g. a titan a character is logged off in). Pull it via the ship + location
+        // endpoints and synthesize an asset for the hull so every asset-consuming tool counts
+        // it. Hull only — ESI does not expose the active ship's cargo or fittings. Best-effort:
+        // never fail the assets poll over it.
+        try
+        {
+            var shipR = await _esi.ExecuteAuthAsync<EsiCharacterShip>(charId, $"characters/{charId}/ship/", ct);
+            var locR  = await _esi.ExecuteAuthAsync<EsiCharacterLocation>(charId, $"characters/{charId}/location/", ct);
+            if (shipR.IsSuccess && shipR.Data is { } ship && ship.ShipItemId > 0
+                && locR.IsSuccess && locR.Data is { } loc)
+            {
+                (long rootId, string rootType) =
+                      loc.StructureId is long stru ? (stru,        "other")
+                    : loc.StationId  is int  sta   ? ((long)sta,   "station")
+                    :                                ((long)loc.SolarSystemId, "solar_system");
+
+                // Guard against the rare case ESI does list the active ship (avoid a PK clash).
+                if (!await db.EsiAssets.AnyAsync(a => a.ItemId == ship.ShipItemId, ct))
+                {
+                    db.EsiAssets.Add(new CharacterAsset
+                    {
+                        ItemId           = ship.ShipItemId,
+                        OwnerId          = charId,
+                        OwnerType        = "character",
+                        TypeId           = ship.ShipTypeId,
+                        LocationId       = rootId,
+                        LocationType     = rootType,
+                        LocationFlag     = "ActiveShip",
+                        Quantity         = 1,
+                        IsSingleton      = true,
+                        IsBlueprintCopy  = false,
+                        RootLocationId   = rootId,
+                        RootLocationType = rootType,
+                    });
+                    await db.SaveChangesAsync(ct);
+                }
+            }
+        }
+        catch { /* active ship is a bonus; never fail the assets poll over it */ }
+
         // A LocationId > 1T is a real player structure only if it doesn't appear as an
         // ItemId in this asset list. Office folders, CorpSAG divisions, ships, and
         // containers all have their own ItemId > 1T and will self-exclude here.

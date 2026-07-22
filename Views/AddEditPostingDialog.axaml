@@ -1,0 +1,207 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveConsole.Views.AddEditPostingDialog"
+        Title="Posting"
+        Width="480" Height="720"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <Grid RowDefinitions="*,Auto" Margin="20">
+
+    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="16">
+
+        <!-- Posting Name -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="POSTING NAME" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <TextBox x:Name="NameBox"
+                   Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                   CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                   FontSize="13" Padding="8 5" />
+        </StackPanel>
+
+        <!-- Inventory Scope -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="INVENTORY SCOPE (In Stock / In Build)" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <WrapPanel>
+            <RadioButton x:Name="ScopeStation"    Content="Station"    GroupName="Scope"
+                         Foreground="#c8c8d8" FontSize="12" Margin="0 0 16 4" />
+            <RadioButton x:Name="ScopeSystem"     Content="System"     GroupName="Scope"
+                         Foreground="#c8c8d8" FontSize="12" Margin="0 0 16 4" />
+            <RadioButton x:Name="ScopeRegion"     Content="Region"     GroupName="Scope"
+                         Foreground="#c8c8d8" FontSize="12" Margin="0 0 16 4" />
+            <RadioButton x:Name="ScopeEverywhere" Content="Everywhere" GroupName="Scope"
+                         Foreground="#c8c8d8" FontSize="12" IsChecked="True" />
+          </WrapPanel>
+        </StackPanel>
+
+        <!-- Location picker (hidden for Everywhere) -->
+        <StackPanel x:Name="LocationPanel" Spacing="5" IsVisible="False">
+          <TextBlock x:Name="LocationLabel" Text="LOCATION" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <TextBox x:Name="LocationSearchBox" Watermark="Type to search…"
+                   Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                   CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                   FontSize="12" Padding="8 5" />
+          <Border x:Name="LocationResultsBorder"
+                  Background="#131320" BorderBrush="#2a2a3a" BorderThickness="1"
+                  CornerRadius="3" MaxHeight="120" IsVisible="False">
+            <ListBox x:Name="LocationListBox" Background="Transparent" BorderThickness="0"
+                     FontSize="12" Foreground="#c8c8d8" />
+          </Border>
+          <TextBlock x:Name="SelectedLocationText" FontSize="11" Foreground="#888899" />
+        </StackPanel>
+
+        <Rectangle Height="1" Fill="#1e1e2a" />
+
+        <!-- Pricing basis -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="SALE PRICE BASIS" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <WrapPanel>
+            <RadioButton x:Name="BasisBuild"    Content="Build Cost"      GroupName="Basis"
+                         Foreground="#c8c8d8" FontSize="12" Margin="0 0 16 4" IsChecked="True" />
+            <RadioButton x:Name="BasisContract" Content="Contract Cost"   GroupName="Basis"
+                         Foreground="#c8c8d8" FontSize="12" Margin="0 0 16 4" />
+            <RadioButton x:Name="BasisMarket"   Content="Specific Market" GroupName="Basis"
+                         Foreground="#c8c8d8" FontSize="12" />
+          </WrapPanel>
+        </StackPanel>
+
+        <!-- Market station + price type (Specific Market only) -->
+        <StackPanel x:Name="MarketPanel" Spacing="5" IsVisible="False">
+          <TextBlock Text="MARKET (current orders — same list as Trade Opportunities)"
+                     FontSize="10" FontWeight="SemiBold" Foreground="#555566" LetterSpacing="1" />
+          <ComboBox x:Name="MarketStationBox"
+                    Background="#1a1a28" BorderBrush="#2a2a3a" Foreground="#c8c8d8"
+                    FontSize="12" HorizontalAlignment="Stretch">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Name}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <TextBlock x:Name="NoStationsText"
+                     Text="No polled markets yet — add a Market config under Market Overview first."
+                     FontSize="11" Foreground="#aa6644" IsVisible="False" TextWrapping="Wrap" />
+          <TextBlock Text="PRICE TYPE" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" Margin="0 6 0 0" />
+          <ComboBox x:Name="PriceTypeBox"
+                    Background="#1a1a28" BorderBrush="#2a2a3a" Foreground="#c8c8d8"
+                    FontSize="12" HorizontalAlignment="Stretch" />
+        </StackPanel>
+
+        <!-- Percent -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="SALE PRICE = BASIS ×  %" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <NumericUpDown x:Name="PercentBox"
+                           Value="110" Minimum="0" Maximum="100000"
+                           Increment="5" ShowButtonSpinner="True"
+                           Width="120" FontSize="12"
+                           Background="#131320" BorderBrush="#2a2a3a" Foreground="#c8c8d8" />
+            <TextBlock Text="%  (Build defaults 110%, Contract/Market 100%)"
+                       FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+          </StackPanel>
+        </StackPanel>
+
+        <Rectangle Height="1" Fill="#1e1e2a" />
+
+        <!-- Show quantities -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="SHOW QUANTITIES IN POSTING" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <CheckBox x:Name="ShowInStockBox"  Content="In Stock"  IsChecked="True"
+                    Foreground="#c8c8d8" FontSize="12" />
+          <CheckBox x:Name="ShowInBuildBox"  Content="In Build"  IsChecked="True"
+                    Foreground="#c8c8d8" FontSize="12" />
+          <CheckBox x:Name="ShowReservedBox" Content="Reserved"  IsChecked="True"
+                    Foreground="#c8c8d8" FontSize="12" />
+          <CheckBox x:Name="IncludeCompletionBox"
+                    Content="Include earliest job completion date (when In Stock = 0 and In Build ≥ 1)"
+                    Foreground="#c8c8d8" FontSize="12" Margin="0 4 0 0" />
+          <CheckBox x:Name="OnlyPackagedBox"
+                    Content="Only include packaged items (skip assembled / fitted hulls)"
+                    Foreground="#c8c8d8" FontSize="12" Margin="0 4 0 0" />
+        </StackPanel>
+
+        <Rectangle Height="1" Fill="#1e1e2a" />
+
+        <!-- Post blocks -->
+        <StackPanel Spacing="6">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="POST BLOCKS  (first = parent; rest = thread detail)"
+                       FontSize="10" FontWeight="SemiBold" Foreground="#555566" LetterSpacing="1"
+                       VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="+ Add Post" Command="{Binding AddPostCommand}"
+                    Background="#0d1a12" Foreground="#4a8a5a" BorderBrush="#1e3a28" BorderThickness="1"
+                    Padding="8 3" FontSize="11" />
+          </Grid>
+
+          <ItemsControl ItemsSource="{Binding Posts}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Background="#12121a" BorderBrush="#20202c" BorderThickness="1"
+                        CornerRadius="3" Padding="6" Margin="0 0 0 6">
+                  <StackPanel Spacing="5">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <ComboBox ItemsSource="{Binding PostTypeOptions}"
+                                SelectedItem="{Binding PostType, Mode=TwoWay}" Width="100" FontSize="12"
+                                Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+                      <TextBox Text="{Binding Name}" Watermark="Name" Width="210" FontSize="12"
+                               Background="#1a1a28" Foreground="#e8e8f0" BorderBrush="#2a2a3a" Padding="6 3" />
+                      <Button Content="▲" ToolTip.Tip="Move up"
+                              Command="{Binding $parent[Window].DataContext.MoveUpCommand}" CommandParameter="{Binding}"
+                              Background="#1a1a28" Foreground="#888899" BorderBrush="#2a2a3a" BorderThickness="1"
+                              Padding="7 2" FontSize="10" />
+                      <Button Content="▼" ToolTip.Tip="Move down"
+                              Command="{Binding $parent[Window].DataContext.MoveDownCommand}" CommandParameter="{Binding}"
+                              Background="#1a1a28" Foreground="#888899" BorderBrush="#2a2a3a" BorderThickness="1"
+                              Padding="7 2" FontSize="10" />
+                      <Button Content="✕" ToolTip.Tip="Delete"
+                              Command="{Binding $parent[Window].DataContext.DeletePostCommand}" CommandParameter="{Binding}"
+                              Background="#2a1010" Foreground="#aa4444" BorderBrush="#3a2020" BorderThickness="1"
+                              Padding="7 2" FontSize="10" />
+                    </StackPanel>
+                    <TextBox IsVisible="{Binding IsStatic}" Text="{Binding StaticContent}"
+                             AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="150"
+                             Watermark="Static content…" FontSize="12"
+                             Background="#131320" Foreground="#e8e8f0" BorderBrush="#2a2a3a" Padding="6 4" />
+                    <TextBox IsVisible="{Binding ShowHeaderFooter}" Text="{Binding Header}"
+                             AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="120"
+                             Watermark="Header — text before the content…" FontSize="12"
+                             Background="#131320" Foreground="#e8e8f0" BorderBrush="#2a2a3a" Padding="6 4" />
+                    <TextBox IsVisible="{Binding ShowHeaderFooter}" Text="{Binding Footer}"
+                             AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="120"
+                             Watermark="Footer — text after the content…" FontSize="12"
+                             Background="#131320" Foreground="#e8e8f0" BorderBrush="#2a2a3a" Padding="6 4" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Buttons -->
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0 16 0 0">
+      <TextBlock Grid.Column="0" x:Name="ErrorText"
+                 Foreground="#aa4444" FontSize="11" VerticalAlignment="Center" TextWrapping="Wrap" />
+      <Button Grid.Column="1" Content="Cancel"
+              Background="#1a1a28" Foreground="#888899"
+              BorderBrush="#2a2a3a" BorderThickness="1"
+              Padding="14 6" Margin="0 0 8 0" Click="OnCancelClick" />
+      <Button Grid.Column="2" Content="OK"
+              Background="#1a2030" Foreground="#c8a84b"
+              BorderBrush="#3a3020" BorderThickness="1"
+              Padding="14 6" Click="OnOkClick" />
+    </Grid>
+
+  </Grid>
+</Window>

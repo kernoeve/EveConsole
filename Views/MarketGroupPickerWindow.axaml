@@ -48,7 +48,8 @@
 
     <!-- Target qty -->
     <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10"
-                Margin="0 10 0 0" VerticalAlignment="Center">
+                Margin="0 10 0 0" VerticalAlignment="Center"
+                IsVisible="{Binding ShowQuantity}">
       <TextBlock Text="TARGET QTY PER ITEM"
                  FontSize="10" Foreground="#888899"
                  VerticalAlignment="Center" />

@@ -270,6 +270,9 @@
               <DataTemplate DataType="vm:InvLevelViewModel">
                 <views:InvLevelView />
               </DataTemplate>
+              <DataTemplate DataType="vm:SalePostingViewModel">
+                <views:SalePostingView />
+              </DataTemplate>
               <DataTemplate DataType="vm:TradeOpportunitiesViewModel">
                 <views:TradeOpportunitiesView />
               </DataTemplate>
