@@ -335,6 +335,11 @@ public class BuildCostService
         var defaultSettings = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(ct);
         int? mktConfigId    = defaultSettings?.ManufacturingConfigId;
         string mktPriceType = defaultSettings?.ManufacturingPriceType ?? "Sell";
+        // Opt-in cheaper-of-buy: only replace building with buying when the user has enabled it, and
+        // then only when market value <= threshold% of build. Items that can't be costed are still
+        // bought regardless. Off by default (bouncy/thin component markets make it unreliable).
+        bool    buyWhenCheaper  = defaultSettings?.PurchaseWhenCheaper ?? false;
+        decimal buyThresholdPct = defaultSettings?.PurchaseThresholdPct ?? 100m;
 
         if (!mktConfigId.HasValue)
         {
@@ -655,7 +660,8 @@ public class BuildCostService
             // (or the build can't be costed), the item becomes a purchased leaf — its cost is the
             // buy price and it carries no job fees for its parents.
             decimal buyPrice = marketPrices.TryGetValue(typeId, out var fin) ? fin : 0m;
-            if (buyPrice > 0 && (!costable || buyPrice < buildTotal))
+            bool    cheaperToBuy = buyWhenCheaper && buyPrice <= buildTotal * buyThresholdPct / 100m;
+            if (buyPrice > 0 && (!costable || cheaperToBuy))
             {
                 unitCosts[typeId]     = buyPrice;
                 rawMatCosts[typeId]   = buyPrice;

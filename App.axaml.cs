@@ -1168,9 +1168,13 @@ public class App : Application
                     "ManufacturingPriceType" TEXT   NOT NULL DEFAULT 'Sell',
                     "MissingPriceMarkupPct"      REAL    NOT NULL DEFAULT 15.0,
                     "FilterLowballBuyOrders"     INTEGER NOT NULL DEFAULT 1,
-                    "LowballBuyOrderThresholdPct" REAL   NOT NULL DEFAULT 25.0
+                    "LowballBuyOrderThresholdPct" REAL   NOT NULL DEFAULT 25.0,
+                    "PurchaseWhenCheaper"        INTEGER NOT NULL DEFAULT 0,
+                    "PurchaseThresholdPct"       REAL    NOT NULL DEFAULT 100.0
                 )
                 """);
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MarketDefaultSettings" ADD COLUMN "PurchaseWhenCheaper" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MarketDefaultSettings" ADD COLUMN "PurchaseThresholdPct" REAL NOT NULL DEFAULT 100.0"""); } catch { }
 
             // Seed default region price sources on first run: The Forge and Domain,
             // all stations, high/low order filtering at 1%. Both rows evaluate their
