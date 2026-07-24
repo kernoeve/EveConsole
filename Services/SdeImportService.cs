@@ -706,8 +706,13 @@ public class SdeImportService
             await SaveBatchesAsync(db, db.SdeStargates, rows, "Stargates", raw.Count, p, 0.82, 0.83, ct);
             foreach (var (gid, g) in raw)
                 if (g.position is { } gp)
+                {
+                    string dest = g.destination != null
+                                  && sysNames.TryGetValue(g.destination.solarSystemID, out var dn) && dn.Length > 0
+                        ? $"Stargate to {dn}" : "Stargate";
                     celestials.Add(new SdeCelestial { ItemId = gid, SolarSystemId = g.solarSystemID,
-                        TypeId = g.typeID, Kind = 2, X = gp.x, Y = gp.y, Z = gp.z, Name = "Stargate" });
+                        TypeId = g.typeID, Kind = 2, X = gp.x, Y = gp.y, Z = gp.z, Name = dest });
+                }
         }
 
         // Planets and moons are separate top-level files in the flat SDE. Moons carry celestialIndex
@@ -1366,7 +1371,7 @@ public class SdeImportService
         public PositionYaml?    position      { get; set; }
         public MapStargateDestYaml? destination   { get; set; }
     }
-    private class MapStargateDestYaml { public int stargateID { get; set; } }
+    private class MapStargateDestYaml { public int stargateID { get; set; } public int solarSystemID { get; set; } }
 
     // Old BSD station list DTO
     private class StationYaml

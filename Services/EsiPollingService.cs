@@ -171,12 +171,21 @@ public class EsiPollingService : ReactiveObject
 
     // ── Main loop ────────────────────────────────────────────────────────────
 
+    // Full structure sweep (all location-ID sources + nearest-celestial backfill) cadence. The
+    // per-poll asset resolution (FetchAssetsAsync) keeps asset structures current continuously; this
+    // periodic sweep folds in contracts, market, wallet, and industry, and re-checks structures whose
+    // 30-day freshness has lapsed (catching unanchors → 404 → Unanchored status).
+    private static readonly TimeSpan StructureSweepInterval = TimeSpan.FromHours(1);
+    private DateTimeOffset _lastStructureSweepUtc = DateTimeOffset.MinValue;
+
     private async Task RunPollingLoopAsync(CancellationToken ct)
     {
         await LoadLastCallTimesAsync(ct);
         await LoadCharacterTokensAsync(ct);
         await LoadCorpTokensAsync(ct);
         StatusText = "Polling: Running";
+        // The app already kicks a sweep at startup; delay the first loop-driven one by a full interval.
+        _lastStructureSweepUtc = DateTimeOffset.UtcNow;
 
         while (!ct.IsCancellationRequested)
         {
@@ -186,6 +195,12 @@ public class EsiPollingService : ReactiveObject
                     RunOneCycleAsync(ct),
                     RunCorpCycleAsync(ct),
                     _killMailService.FetchMissingAsync(ct: ct));
+
+                if (DateTimeOffset.UtcNow - _lastStructureSweepUtc >= StructureSweepInterval)
+                {
+                    _lastStructureSweepUtc = DateTimeOffset.UtcNow;
+                    await ForceResolveStructureNamesAsync(ct);
+                }
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {

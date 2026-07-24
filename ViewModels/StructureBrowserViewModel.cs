@@ -95,8 +95,8 @@ public class StructureBrowserViewModel : ReactiveObject
     private static string StatusLabel(int status) => (StructureStatus)status switch
     {
         StructureStatus.Resolved => "OK",
-        StructureStatus.NoAccess => "No access",
-        StructureStatus.NotFound => "Gone (404)",
+        StructureStatus.NoAccess => "No access",         // 403 — private / no docking rights
+        StructureStatus.NotFound => "Unanchored (gone)", // 404 — structure no longer exists
         _                        => "Pending",
     };
 
@@ -117,6 +117,14 @@ public class StructureBrowserViewModel : ReactiveObject
                 .ToDictionaryAsync(s => s.SolarSystemId, s => new { s.Name, s.ConstellationId, s.RegionId });
             var cons  = await db.SdeConstellations.AsNoTracking().ToDictionaryAsync(c => c.ConstellationId, c => c.Name);
             var regs  = await db.SdeRegions.AsNoTracking().ToDictionaryAsync(r => r.RegionId, r => r.Name);
+            // Resolve the nearest-celestial name live from the celestial table (by stored id) so
+            // updated names (e.g. "Stargate to C-FD0D" after a re-import) show without recomputing.
+            var nearIds = structs.Where(s => s.NearestCelestialId != 0)
+                                 .Select(s => s.NearestCelestialId).Distinct().ToList();
+            var nearNames = await db.SdeCelestials.AsNoTracking()
+                .Where(c => nearIds.Contains(c.ItemId))
+                .ToDictionaryAsync(c => c.ItemId, c => c.Name);
+
             var allTypeIds = structs.Where(s => s.TypeId > 0).Select(s => s.TypeId).Distinct().ToList();
             var typeNames = await db.SdeTypes.AsNoTracking()
                 .Where(t => allTypeIds.Contains(t.TypeId))
@@ -172,7 +180,9 @@ public class StructureBrowserViewModel : ReactiveObject
                     IsKnown         = s.Status == (int)StructureStatus.Resolved,
                     Coordinates     = (s.X == 0 && s.Y == 0 && s.Z == 0)
                                         ? "" : $"{s.X:N0}, {s.Y:N0}, {s.Z:N0}",
-                    NearestCelestial= s.NearestCelestial,
+                    NearestCelestial= s.NearestCelestialId != 0
+                                        ? nearNames.GetValueOrDefault(s.NearestCelestialId, s.NearestCelestial)
+                                        : s.NearestCelestial,
                     CorpId          = s.OwnerId,
                     AllianceId      = s.AllianceId,
                     SystemId        = s.SolarSystemId,
