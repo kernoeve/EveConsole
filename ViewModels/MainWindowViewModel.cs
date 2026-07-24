@@ -33,6 +33,7 @@ public class MainWindowViewModel : ReactiveObject
     public IndyParksViewModel             IndyParksVm            { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
+    public StructureBrowserViewModel      StructureBrowserVm     { get; }
     public WalletViewModel                WalletVm               { get; }
     public ContractsViewModel             ContractsVm            { get; }
     public NotificationsViewModel         NotificationsVm        { get; }
@@ -129,6 +130,7 @@ public class MainWindowViewModel : ReactiveObject
             "indy_parks" => ("Indy Parks",      IndyParksVm,              true),
             "prod_calc"  => ("Production Calc", ProductionCalcVm,         true),
             "price_overrides" => ("Price Overrides", PriceOverrideVm,     true),
+            "structure_browser" => ("Structure Browser", StructureBrowserVm, true),
             "trade"           => ("Trade",           TradeOpportunitiesVm,     true),
             "industry_opps"   => ("Industry Opps",   IndustryOpportunitiesVm,  true),
             "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
@@ -304,6 +306,7 @@ public class MainWindowViewModel : ReactiveObject
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
+        StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
@@ -364,6 +367,7 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("assets",     "Assets"),
                 new NavItem("items",      "Item Browser"),
                 new NavItem("inv_levels", "Inventory Levels"),
+                new NavItem("structure_browser", "Structure Browser"),
             ]),
             new("Industry",
             [

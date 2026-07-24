@@ -2290,6 +2290,19 @@ public class EsiPollingService : ReactiveObject
                     }
                     fail.FailedAt   = DateTimeOffset.UtcNow;
                     fail.StatusCode = sc;
+
+                    // Record the structure itself with a status so the Structure Browser still lists
+                    // it (403 = no docking rights; 404 = gone). Don't clobber a previously-resolved
+                    // name/details — a 404 after unanchor keeps the last known info.
+                    var srow = await db.EsiStructureNames.FindAsync([structId], ct);
+                    if (srow is null)
+                    {
+                        srow = new StructureName { StructureId = structId };
+                        db.EsiStructureNames.Add(srow);
+                    }
+                    if (srow.Status != (int)StructureStatus.Resolved || sc == 404)
+                        srow.Status = sc == 403 ? (int)StructureStatus.NoAccess : (int)StructureStatus.NotFound;
+
                     await db.SaveChangesAsync(ct);
                 }
                 // 403/404/502 are expected ESI responses — not app errors.
@@ -2304,23 +2317,30 @@ public class EsiPollingService : ReactiveObject
             {
                 handle.Complete(true, lastResult?.StatusCode ?? 200);
 
+                // The owning corp's alliance (public endpoint) — for the Structure Browser filter.
+                long allianceId = 0;
+                if (detail.OwnerId is > 0 and <= int.MaxValue)
+                {
+                    try { allianceId = (await _esi.GetCorporationPublicAsync((int)detail.OwnerId, ct))?.AllianceId ?? 0; }
+                    catch { /* alliance is best-effort; leave 0 on failure */ }
+                }
+
                 var entry = await db.EsiStructureNames.FindAsync([structId], ct);
                 if (entry is null)
                 {
-                    db.EsiStructureNames.Add(new StructureName
-                    {
-                        StructureId   = structId,
-                        Name          = detail.Name,
-                        SolarSystemId = detail.SolarSystemId,
-                        PulledAt      = DateTimeOffset.UtcNow,
-                    });
+                    entry = new StructureName { StructureId = structId };
+                    db.EsiStructureNames.Add(entry);
                 }
-                else
-                {
-                    entry.Name          = detail.Name;
-                    entry.SolarSystemId = detail.SolarSystemId;
-                    entry.PulledAt      = DateTimeOffset.UtcNow;
-                }
+                entry.Name          = detail.Name;
+                entry.SolarSystemId = detail.SolarSystemId;
+                entry.OwnerId       = detail.OwnerId;
+                entry.AllianceId    = allianceId;
+                entry.TypeId        = detail.TypeId ?? 0;
+                entry.X             = detail.Position?.X ?? 0;
+                entry.Y             = detail.Position?.Y ?? 0;
+                entry.Z             = detail.Position?.Z ?? 0;
+                entry.Status        = (int)StructureStatus.Resolved;
+                entry.PulledAt      = DateTimeOffset.UtcNow;
 
                 // Access regained — clear any prior failure flag.
                 var oldFail = await db.EsiStructureNameFailures.FindAsync([structId], ct);
@@ -2346,26 +2366,54 @@ public class EsiPollingService : ReactiveObject
             // an ItemId in EsiAssets. Office folders, CorpSAG divisions, ships, and
             // containers all have ItemId > 1T and self-exclude. The chain walks itself:
             // item→CorpSAG→OfficeFolder→structure; only the terminal structure escapes.
+            const long T = EveIds.PlayerStructureThreshold;
+            var ids = new HashSet<long>();
+
+            // Assets — a location ID > 1T is a real external structure only if it is NOT itself an
+            // owned ItemId (offices, CorpSAG divisions, ships, containers all self-exclude).
             var knownItemIds = new HashSet<long>(await db.EsiAssets
-                .Where(a => a.ItemId > 1_000_000_000_000L)
-                .Select(a => a.ItemId)
-                .ToListAsync(ct));
+                .Where(a => a.ItemId > T).Select(a => a.ItemId).ToListAsync(ct));
+            foreach (var id in await db.EsiAssets.Where(a => a.LocationId > T)
+                .Select(a => a.LocationId).Distinct().ToListAsync(ct))
+                if (!knownItemIds.Contains(id)) ids.Add(id);
 
-            var assetStructureIds = (await db.EsiAssets
-                .Where(a => a.LocationId > 1_000_000_000_000L)
-                .Select(a => a.LocationId)
-                .Distinct()
-                .ToListAsync(ct))
-                .Where(id => !knownItemIds.Contains(id))
-                .ToList();
+            // Corp structures.
+            foreach (var id in await db.EsiCorpStructures.Select(s => s.StructureId).Distinct().ToListAsync(ct))
+                ids.Add(id);
 
-            var corpStructureIds = await db.EsiCorpStructures
-                .Select(s => s.StructureId)
-                .Distinct()
-                .ToListAsync(ct);
+            // Contracts (incl. public) — start/end locations are always stations or structures.
+            foreach (var id in await db.EsiContracts.Where(c => c.StartLocationId != null && c.StartLocationId > T)
+                .Select(c => c.StartLocationId!.Value).Distinct().ToListAsync(ct)) ids.Add(id);
+            foreach (var id in await db.EsiContracts.Where(c => c.EndLocationId != null && c.EndLocationId > T)
+                .Select(c => c.EndLocationId!.Value).Distinct().ToListAsync(ct)) ids.Add(id);
 
-            var structureIds = assetStructureIds.Union(corpStructureIds).ToList();
+            // Industry job facilities and blueprint/output locations.
+            foreach (var id in await db.EsiIndustryJobs.Where(j => j.StationId > T)
+                .Select(j => j.StationId).Distinct().ToListAsync(ct)) ids.Add(id);
+            foreach (var id in await db.EsiIndustryJobs.Where(j => j.BlueprintLocationId > T)
+                .Select(j => j.BlueprintLocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+            foreach (var id in await db.EsiIndustryJobs.Where(j => j.OutputLocationId > T)
+                .Select(j => j.OutputLocationId).Distinct().ToListAsync(ct)) ids.Add(id);
 
+            // Market orders and wallet transactions.
+            foreach (var id in await db.EsiMarketOrders.Where(o => o.LocationId > T)
+                .Select(o => o.LocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+            foreach (var id in await db.EsiWalletTransactions.Where(w => w.LocationId > T)
+                .Select(w => w.LocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+
+            // Seed placeholder rows so newly-seen structures appear in the browser (as Pending)
+            // even before their details resolve.
+            var existing = new HashSet<long>(await db.EsiStructureNames.Select(s => s.StructureId).ToListAsync(ct));
+            var epoch    = DateTimeOffset.FromUnixTimeSeconds(0);
+            foreach (var id in ids)
+                if (!existing.Contains(id))
+                    db.EsiStructureNames.Add(new StructureName
+                    {
+                        StructureId = id, Status = (int)StructureStatus.Pending, PulledAt = epoch,
+                    });
+            await db.SaveChangesAsync(ct);
+
+            var structureIds = ids.ToList();
             StatusText = $"Polling: Resolving {structureIds.Count} structure(s)…";
             await ResolveNewStructureNamesAsync(0, structureIds, db, ct);
             StatusText = structureIds.Count == 0

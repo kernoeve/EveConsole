@@ -574,9 +574,18 @@ public record EsiStationDetail(
     [property: JsonPropertyName("system_id")]    int    SystemId
 );
 
+public record EsiStructurePosition(
+    [property: JsonPropertyName("x")] double X,
+    [property: JsonPropertyName("y")] double Y,
+    [property: JsonPropertyName("z")] double Z
+);
+
 public record EsiStructureDetail(
-    [property: JsonPropertyName("name")]          string Name,
-    [property: JsonPropertyName("solar_system_id")] int  SolarSystemId
+    [property: JsonPropertyName("name")]            string Name,
+    [property: JsonPropertyName("solar_system_id")] int    SolarSystemId,
+    [property: JsonPropertyName("owner_id")]        long   OwnerId,
+    [property: JsonPropertyName("type_id")]         int?   TypeId,
+    [property: JsonPropertyName("position")]        EsiStructurePosition? Position
 );
 
 public record EsiLocationSearch(
