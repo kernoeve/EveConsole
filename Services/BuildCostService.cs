@@ -165,6 +165,16 @@ public class BuildCostService
         await db.SaveChangesAsync(ct);
     }
 
+    // EVE material consumption for a whole job: per-run adjusted quantity (base × ME/rig/role
+    // modifiers) rounded to 2 dp, × run count, ceilinged ONCE, floored at one per run. Must match
+    // ProductionCalculatorService.JobMaterialTotal so the two calculators agree.
+    private static int JobMaterialTotal(int baseQty, double factor, int runs)
+    {
+        double perRun = Math.Round(baseQty * factor, 2);
+        double total  = Math.Round(perRun * runs, 4);
+        return Math.Max(runs, (int)Math.Ceiling(total));
+    }
+
     // ── Core calculation ──────────────────────────────────────────────────────
 
     public async Task RecalculateAllAsync(CancellationToken ct = default)
@@ -552,6 +562,16 @@ public class BuildCostService
         var buildSeconds  = new Dictionary<int, double>();  // time to build ONE unit of this item
         var boughtTypes   = new HashSet<int>();             // items cheaper to buy than build
 
+        // Per-type build recipe captured during the pass below, then walked as a FULL CHAIN (not a
+        // per-unit rollup) to get accurate quantities — building 2 items in one job may need 9 of a
+        // sub-material, not 2 × ceil(4.5) = 10. See RecomputeFullChain at the end.
+        var recOutputQty = new Dictionary<int, int>();               // units produced per run
+        var recMeFactor  = new Dictionary<int, double>();            // material factor used to build it
+        var recJobPerRun = new Dictionary<int, decimal>();           // job fee for one run
+        var recBpcPerRun = new Dictionary<int, decimal>();           // BPC contract cost per run (0 if none)
+        var recMaterials = new Dictionary<int, List<(int Mat, int Qty)>>();
+        var recOverride  = new Dictionary<int, decimal>();           // pinned build cost (fixed leaf)
+
         foreach (var typeId in ordering)
         {
             if (!productMap.TryGetValue(typeId, out var prod))
@@ -617,6 +637,7 @@ public class BuildCostService
             bool    bpcOnly = !isReaction && !BlueprintIsBpoSourced(bpTypeId);
             decimal buildRawRun, buildSubJobRun, bpcRun = 0m;
             bool    costable = true;
+            double  usedMeFactor = meFactor;   // factor the full-chain walk will reuse
 
             if (bpcOnly && bpcPerRun.TryGetValue(bpTypeId, out var meOptions) && meOptions.Count > 0)
             {
@@ -624,9 +645,10 @@ public class BuildCostService
                 decimal bestTotal = decimal.MaxValue; (decimal Raw, decimal SubJob) best = default;
                 foreach (var (me, perRun) in meOptions)
                 {
-                    var r = RunAt((1.0 - me / 100.0) * structRig);
+                    double mf = (1.0 - me / 100.0) * structRig;
+                    var r = RunAt(mf);
                     decimal total = r.Raw + r.SubJob + perRun;
-                    if (total < bestTotal) { bestTotal = total; best = r; bpcRun = perRun; }
+                    if (total < bestTotal) { bestTotal = total; best = r; bpcRun = perRun; usedMeFactor = mf; }
                 }
                 (buildRawRun, buildSubJobRun) = best;
             }
@@ -634,6 +656,7 @@ public class BuildCostService
             {
                 // BPC-only but never seen on contracts — we can't cost the build; prefer buying.
                 costable = false;
+                usedMeFactor = structRig;
                 (buildRawRun, buildSubJobRun) = RunAt(structRig);   // ME0 placeholder
             }
             else
@@ -641,6 +664,13 @@ public class BuildCostService
                 // BPO-sourced (or reaction): researched-BPO ME assumption, no BPC cost.
                 (buildRawRun, buildSubJobRun) = RunAt(meFactor);
             }
+
+            // Capture the recipe for the full-chain recompute (quantities rounded per whole job).
+            recOutputQty[typeId] = outputQty;
+            recMeFactor[typeId]  = usedMeFactor;
+            recJobPerRun[typeId] = thisJobRun;
+            recBpcPerRun[typeId] = bpcRun;
+            recMaterials[typeId] = materials.Select(m => (m.MaterialTypeId, m.Quantity)).ToList();
 
             decimal buildRawPerUnit = (buildRawRun + bpcRun) / outputQty;
             decimal buildJobPerUnit = (buildSubJobRun + thisJobRun) / outputQty;
@@ -654,6 +684,7 @@ public class BuildCostService
                 buildRawPerUnit = ov.BuildCost.Value;
                 buildJobPerUnit = 0m;
                 buildTotal      = ov.BuildCost.Value;
+                recOverride[typeId] = ov.BuildCost.Value;   // fixed-value leaf in the full-chain walk
             }
 
             // Cheaper-of build vs buy the finished item on the configured market. When buying wins
@@ -689,6 +720,52 @@ public class BuildCostService
                 double rigFactor   = Math.Max(0.0, 1.0 - rigTime);
                 buildSeconds[typeId] = baseRunTime * teFactor * skillFactor * roleTime * rigFactor / outputQty;
             }
+        }
+
+        // ── Full-chain recompute ──────────────────────────────────────────────
+        // The per-unit pass above sizes each sub-material at ceil(base × ME) for a single run and
+        // lets parents multiply by an integer count — which over-counts when a batch rounds down
+        // (2 items needing 9 of a material, not 2 × ceil(4.5) = 10). Re-cost every built item by
+        // walking its whole chain with job-level rounding (JobMaterialTotal), so stored build costs
+        // match the Production Calculator. The pass's decisions (bought / BPC-ME / overrides) stand.
+        var obtainMemo = new Dictionary<(int Type, int Qty), (decimal Raw, decimal Job)>();
+        (decimal Raw, decimal Job) ObtainCost(int type, int qty)
+        {
+            if (qty <= 0) return (0m, 0m);
+            if (obtainMemo.TryGetValue((type, qty), out var cached)) return cached;
+
+            (decimal Raw, decimal Job) result;
+            if (recOverride.TryGetValue(type, out var ovc) && !boughtTypes.Contains(type))
+                result = (qty * ovc, 0m);                                 // pinned fixed-value leaf
+            else if (boughtTypes.Contains(type) || !recMaterials.TryGetValue(type, out var mats))
+                result = (qty * (unitCosts.TryGetValue(type, out var pr) ? pr : 0m), 0m);  // buy leaf
+            else
+            {
+                int    outQ = recOutputQty.TryGetValue(type, out var oq) ? Math.Max(1, oq) : 1;
+                int    runs = (int)Math.Ceiling((double)qty / outQ);
+                double mf   = recMeFactor.TryGetValue(type, out var f) ? f : 1.0;
+                decimal raw = (recBpcPerRun.TryGetValue(type, out var bpc) ? bpc : 0m) * runs;
+                decimal job = (recJobPerRun.TryGetValue(type, out var jp) ? jp : 0m) * runs;
+                foreach (var (matType, baseQty) in mats)
+                {
+                    int need = JobMaterialTotal(baseQty, mf, runs);
+                    var (cr, cj) = ObtainCost(matType, need);
+                    raw += cr; job += cj;
+                }
+                result = (raw, job);
+            }
+            obtainMemo[(type, qty)] = result;
+            return result;
+        }
+
+        foreach (var typeId in productMap.Keys)
+        {
+            if (boughtTypes.Contains(typeId) || !recMaterials.ContainsKey(typeId)) continue;
+            int outQ = recOutputQty.TryGetValue(typeId, out var oq) ? Math.Max(1, oq) : 1;
+            var (raw, job) = ObtainCost(typeId, outQ);   // cost of one run, spread over its output
+            rawMatCosts[typeId]   = raw / outQ;
+            totalJobCosts[typeId] = job / outQ;
+            unitCosts[typeId]     = (raw + job) / outQ;
         }
 
         // ── Persist results ───────────────────────────────────────────────────
