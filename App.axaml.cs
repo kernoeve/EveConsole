@@ -991,6 +991,21 @@ public class App : Application
                     "StatusCode"  INTEGER NOT NULL DEFAULT 0
                 )
                 """);
+            // Celestial positions for nearest-structure labelling. Normally created/populated by the
+            // SDE import; created here (empty) so queries don't fail before the user re-imports.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "SdeCelestials" (
+                    "ItemId"        INTEGER NOT NULL PRIMARY KEY,
+                    "SolarSystemId" INTEGER NOT NULL DEFAULT 0,
+                    "TypeId"        INTEGER NOT NULL DEFAULT 0,
+                    "Kind"          INTEGER NOT NULL DEFAULT 0,
+                    "X"             REAL    NOT NULL DEFAULT 0,
+                    "Y"             REAL    NOT NULL DEFAULT 0,
+                    "Z"             REAL    NOT NULL DEFAULT 0,
+                    "Name"          TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_SdeCelestials_System" ON "SdeCelestials" ("SolarSystemId")""");
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiCorpStarbases" (

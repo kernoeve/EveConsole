@@ -287,6 +287,8 @@ public class SdeImportService
             """CREATE TABLE IF NOT EXISTS "SdeConstellations" ("ConstellationId" INTEGER NOT NULL PRIMARY KEY, "RegionId" INTEGER NOT NULL, "Name" TEXT NOT NULL, "IsWormhole" INTEGER NOT NULL)""",
             """CREATE TABLE IF NOT EXISTS "SdeSolarSystems" ("SolarSystemId" INTEGER NOT NULL PRIMARY KEY, "ConstellationId" INTEGER NOT NULL, "RegionId" INTEGER NOT NULL, "Name" TEXT NOT NULL, "Security" REAL NOT NULL, "FactionId" INTEGER, "IsWormhole" INTEGER NOT NULL)""",
             """CREATE TABLE IF NOT EXISTS "SdeStargates" ("StargateId" INTEGER NOT NULL PRIMARY KEY, "SolarSystemId" INTEGER NOT NULL, "DestinationStargateId" INTEGER NOT NULL)""",
+            """CREATE TABLE IF NOT EXISTS "SdeCelestials" ("ItemId" INTEGER NOT NULL PRIMARY KEY, "SolarSystemId" INTEGER NOT NULL, "TypeId" INTEGER NOT NULL, "Kind" INTEGER NOT NULL, "X" REAL NOT NULL, "Y" REAL NOT NULL, "Z" REAL NOT NULL, "Name" TEXT NOT NULL)""",
+            """CREATE INDEX IF NOT EXISTS "IX_SdeCelestials_System" ON "SdeCelestials" ("SolarSystemId")""",
             """CREATE TABLE IF NOT EXISTS "SdeStations" ("StationId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "SolarSystemId" INTEGER NOT NULL, "ConstellationId" INTEGER NOT NULL, "RegionId" INTEGER NOT NULL, "CorporationId" INTEGER, "StationTypeId" INTEGER, "Security" REAL NOT NULL, "ReprocessingEfficiency" REAL NOT NULL, "ReprocessingTax" REAL NOT NULL)""",
             """CREATE TABLE IF NOT EXISTS "SdeFactions" ("FactionId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "Description" TEXT NOT NULL, "CorporationId" INTEGER, "MilitiaCorporationId" INTEGER, "SolarSystemId" INTEGER)""",
             """CREATE TABLE IF NOT EXISTS "SdeNpcCorporations" ("CorporationId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "FactionId" INTEGER)""",
@@ -334,6 +336,7 @@ public class SdeImportService
             "DELETE FROM \"SdeBlueprintMaterials\"",  "DELETE FROM \"SdeBlueprintProducts\"",
             "DELETE FROM \"SdeBlueprintSkills\"",     "DELETE FROM \"SdeBlueprints\"",
             "DELETE FROM \"SdeStargates\"",           "DELETE FROM \"SdeStations\"",
+            "DELETE FROM \"SdeCelestials\"",
             "DELETE FROM \"SdeSolarSystems\"",        "DELETE FROM \"SdeConstellations\"",
             "DELETE FROM \"SdeRegions\"",             "DELETE FROM \"SdeTypes\"",
             "DELETE FROM \"SdeGroups\"",              "DELETE FROM \"SdeCategories\"",
@@ -582,6 +585,38 @@ public class SdeImportService
         await SaveBatchesAsync(db, db.SdeBlueprintSkills,    skills, "Blueprint Skills",    -1,        p, 0.74, 0.76, ct);
     }
 
+    private static string RomanNumeral(int n)
+    {
+        if (n <= 0) return n.ToString();
+        var map = new (int v, string s)[] { (10, "X"), (9, "IX"), (5, "V"), (4, "IV"), (1, "I") };
+        var sb = new System.Text.StringBuilder();
+        foreach (var (v, s) in map) while (n >= v) { sb.Append(s); n -= v; }
+        return sb.ToString();
+    }
+
+    // Flattens a system's planets (and their moons) into celestial rows: "Jita IV", "Jita IV - Moon 4".
+    private static void AddPlanetCelestials(List<SdeCelestial> list, int systemId, string systemName,
+        Dictionary<int, PlanetYaml>? planets)
+    {
+        if (planets is null) return;
+        foreach (var (pid, planet) in planets.OrderBy(kv => kv.Value.celestialIndex))
+        {
+            string pName = $"{systemName} {RomanNumeral(planet.celestialIndex)}";
+            if (planet.position is { Count: 3 } pp)
+                list.Add(new SdeCelestial { ItemId = pid, SolarSystemId = systemId, TypeId = planet.typeID,
+                    Kind = 0, X = pp[0], Y = pp[1], Z = pp[2], Name = pName });
+            if (planet.moons is null) continue;
+            int mi = 0;
+            foreach (var (mid, moon) in planet.moons.OrderBy(kv => kv.Key))
+            {
+                mi++;
+                if (moon.position is { Count: 3 } mp)
+                    list.Add(new SdeCelestial { ItemId = mid, SolarSystemId = systemId, TypeId = moon.typeID,
+                        Kind = 1, X = mp[0], Y = mp[1], Z = mp[2], Name = $"{pName} - Moon {mi}" });
+            }
+        }
+    }
+
     private async Task ImportUniverseAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
@@ -634,6 +669,7 @@ public class SdeImportService
         }
 
         Report(p, "Universe", "Parsing mapSolarSystems.yaml…", 0.80);
+        var celestials = new List<SdeCelestial>();
         var sysEntry = zip.GetEntry($"{fsdRoot}mapSolarSystems.yaml");
         if (sysEntry != null)
         {
@@ -649,7 +685,9 @@ public class SdeImportService
                 FactionId       = kv.Value.factionID,
                 IsWormhole      = kv.Value.regionID >= 11000000 && kv.Value.regionID < 12000000,
             });
-            await SaveBatchesAsync(db, db.SdeSolarSystems, rows, "Solar Systems", raw.Count, p, 0.80, 0.84, ct);
+            await SaveBatchesAsync(db, db.SdeSolarSystems, rows, "Solar Systems", raw.Count, p, 0.80, 0.83, ct);
+            foreach (var (sysId, sys) in raw)
+                AddPlanetCelestials(celestials, sysId, sys.name?.en ?? "", sys.planets);
         }
 
         Report(p, "Universe", "Parsing mapStargates.yaml…", 0.84);
@@ -665,8 +703,14 @@ public class SdeImportService
                     SolarSystemId         = kv.Value.solarSystemID,
                     DestinationStargateId = kv.Value.destination!.stargateID,
                 });
-            await SaveBatchesAsync(db, db.SdeStargates, rows, "Stargates", raw.Count, p, 0.84, 0.87, ct);
+            await SaveBatchesAsync(db, db.SdeStargates, rows, "Stargates", raw.Count, p, 0.84, 0.86, ct);
+            foreach (var (gid, g) in raw)
+                if (g.position is { Count: 3 } gp)
+                    celestials.Add(new SdeCelestial { ItemId = gid, SolarSystemId = g.solarSystemID,
+                        TypeId = g.typeID, Kind = 2, X = gp[0], Y = gp[1], Z = gp[2], Name = "Stargate" });
         }
+
+        await SaveBatchesAsync(db, db.SdeCelestials, celestials, "Celestials", celestials.Count, p, 0.86, 0.87, ct);
     }
 
     private async Task ImportUniverseNestedAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -731,8 +775,9 @@ public class SdeImportService
         }
         await SaveBatchesAsync(db, db.SdeConstellations, constellations, "Constellations", constellations.Count, p, 0.78, 0.80, ct);
 
-        var systems   = new List<SdeSolarSystem>(systemEntries.Count);
-        var stargates = new List<SdeStargate>();
+        var systems    = new List<SdeSolarSystem>(systemEntries.Count);
+        var stargates  = new List<SdeStargate>();
+        var celestials = new List<SdeCelestial>();
         foreach (var e in systemEntries)
         {
             var parts = e.FullName.Split('/');
@@ -742,16 +787,24 @@ public class SdeImportService
             using var r = OpenEntry(e);
             var y = _yaml.Deserialize<SolarSystemYaml>(r);
             if (y is null) continue;
+            var sysName = parts[sysIdx];
             systems.Add(new SdeSolarSystem
             {
                 SolarSystemId = y.solarSystemID, ConstellationId = constId, RegionId = regionId,
-                Name = parts[sysIdx], Security = y.security, FactionId = y.factionID, IsWormhole = parts[typeIdx] == "wormhole",
+                Name = sysName, Security = y.security, FactionId = y.factionID, IsWormhole = parts[typeIdx] == "wormhole",
             });
             foreach (var (sgId, sg) in (y.stargates ?? []))
+            {
                 stargates.Add(new SdeStargate { StargateId = sgId, SolarSystemId = y.solarSystemID, DestinationStargateId = sg.destination });
+                if (sg.position is { Count: 3 } gp)
+                    celestials.Add(new SdeCelestial { ItemId = sgId, SolarSystemId = y.solarSystemID,
+                        TypeId = sg.typeID, Kind = 2, X = gp[0], Y = gp[1], Z = gp[2], Name = "Stargate" });
+            }
+            AddPlanetCelestials(celestials, y.solarSystemID, sysName, y.planets);
         }
-        await SaveBatchesAsync(db, db.SdeSolarSystems, systems,   "Solar Systems", systems.Count,   p, 0.80, 0.84, ct);
-        await SaveBatchesAsync(db, db.SdeStargates,    stargates, "Stargates",     stargates.Count, p, 0.84, 0.87, ct);
+        await SaveBatchesAsync(db, db.SdeSolarSystems, systems,    "Solar Systems", systems.Count,    p, 0.80, 0.83, ct);
+        await SaveBatchesAsync(db, db.SdeStargates,    stargates,  "Stargates",     stargates.Count,  p, 0.83, 0.85, ct);
+        await SaveBatchesAsync(db, db.SdeCelestials,   celestials, "Celestials",    celestials.Count, p, 0.85, 0.87, ct);
     }
 
     private async Task ImportStationsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1215,8 +1268,27 @@ public class SdeImportService
         public double security      { get; set; }
         public int?   factionID     { get; set; }
         public Dictionary<int, StargateYaml>? stargates { get; set; }
+        public Dictionary<int, PlanetYaml>?   planets   { get; set; }
     }
-    private class StargateYaml { public int destination { get; set; } }
+    private class StargateYaml
+    {
+        public int           destination { get; set; }
+        public int           typeID      { get; set; }
+        public List<double>? position    { get; set; }
+    }
+    // Celestial bodies (nested and flat universe both use this planet/moon shape).
+    private class PlanetYaml
+    {
+        public int           celestialIndex { get; set; }
+        public int           typeID         { get; set; }
+        public List<double>? position       { get; set; }
+        public Dictionary<int, MoonYaml>? moons { get; set; }
+    }
+    private class MoonYaml
+    {
+        public int           typeID   { get; set; }
+        public List<double>? position { get; set; }
+    }
 
     // New flat-universe DTOs
     private class MapRegionYaml
@@ -1237,10 +1309,13 @@ public class SdeImportService
         public int              regionID        { get; set; }
         public double           securityStatus  { get; set; }
         public int?             factionID       { get; set; }
+        public Dictionary<int, PlanetYaml>? planets { get; set; }
     }
     private class MapStargateYaml
     {
         public int              solarSystemID { get; set; }
+        public int              typeID        { get; set; }
+        public List<double>?    position      { get; set; }
         public MapStargateDestYaml? destination   { get; set; }
     }
     private class MapStargateDestYaml { public int stargateID { get; set; } }

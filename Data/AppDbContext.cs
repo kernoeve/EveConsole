@@ -121,6 +121,7 @@ public class AppDbContext : DbContext
     public DbSet<SdeConstellation>      SdeConstellations      => Set<SdeConstellation>();
     public DbSet<SdeSolarSystem>        SdeSolarSystems        => Set<SdeSolarSystem>();
     public DbSet<SdeStargate>           SdeStargates           => Set<SdeStargate>();
+    public DbSet<SdeCelestial>          SdeCelestials          => Set<SdeCelestial>();
     public DbSet<SdeStation>            SdeStations            => Set<SdeStation>();
     public DbSet<SdeFaction>            SdeFactions            => Set<SdeFaction>();
     public DbSet<SdeNpcCorporation>     SdeNpcCorporations     => Set<SdeNpcCorporation>();
@@ -322,6 +323,11 @@ public class AppDbContext : DbContext
         mb.Entity<SdeStargate>(e => {
             e.HasKey(x => x.StargateId);
             e.Property(x => x.StargateId).ValueGeneratedNever(); });
+
+        mb.Entity<SdeCelestial>(e => {
+            e.HasKey(x => x.ItemId);
+            e.Property(x => x.ItemId).ValueGeneratedNever();
+            e.HasIndex(x => x.SolarSystemId); });
 
         mb.Entity<SdeStation>(e => {
             e.HasKey(x => x.StationId);

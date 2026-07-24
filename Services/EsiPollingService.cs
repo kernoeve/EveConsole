@@ -2204,9 +2204,11 @@ public class EsiPollingService : ReactiveObject
         var cutoff = DateTimeOffset.UtcNow.AddDays(-30);
         var fresh = (await db.EsiStructureNames
             .Where(s => candidateIds.Contains(s.StructureId))
-            .Select(s => new { s.StructureId, s.PulledAt })
+            .Select(s => new { s.StructureId, s.PulledAt, s.Status })
             .ToListAsync(ct))
-            .Where(s => s.PulledAt > cutoff)
+            // Fresh only if fully resolved recently — rows from the old name-only resolver (Status 0)
+            // are re-queried once to backfill owner/type/position.
+            .Where(s => s.PulledAt > cutoff && s.Status == (int)StructureStatus.Resolved)
             .Select(s => s.StructureId)
             .ToHashSet();
 
@@ -2354,6 +2356,43 @@ public class EsiPollingService : ReactiveObject
         }
     }
 
+    // Labels each resolved structure with the nearest planet/moon/stargate in its system (3D
+    // distance). Only fills structures that have a position but no nearest yet; no-ops until the SDE
+    // celestial table is populated (a re-import). Structures don't move, so this runs once per row.
+    private async Task BackfillNearestCelestialsAsync(AppDbContext db, CancellationToken ct)
+    {
+        var pending = await db.EsiStructureNames
+            .Where(s => s.NearestCelestialId == 0 && (s.X != 0 || s.Y != 0 || s.Z != 0))
+            .ToListAsync(ct);
+        if (pending.Count == 0) return;
+
+        foreach (var group in pending.GroupBy(s => s.SolarSystemId))
+        {
+            if (group.Key == 0) continue;
+            var cels = await db.SdeCelestials.AsNoTracking()
+                .Where(c => c.SolarSystemId == group.Key).ToListAsync(ct);
+            if (cels.Count == 0) continue;   // celestials not imported for this system yet
+
+            foreach (var s in group)
+            {
+                SdeCelestial? best = null;
+                double bestD = double.MaxValue;
+                foreach (var c in cels)
+                {
+                    double dx = c.X - s.X, dy = c.Y - s.Y, dz = c.Z - s.Z;
+                    double d = dx * dx + dy * dy + dz * dz;
+                    if (d < bestD) { bestD = d; best = c; }
+                }
+                if (best is not null)
+                {
+                    s.NearestCelestialId = best.ItemId;
+                    s.NearestCelestial   = best.Name;
+                }
+            }
+        }
+        await db.SaveChangesAsync(ct);
+    }
+
     public async Task ForceResolveStructureNamesAsync(CancellationToken ct = default)
     {
         StatusText = "Resolving structure names…";
@@ -2416,6 +2455,7 @@ public class EsiPollingService : ReactiveObject
             var structureIds = ids.ToList();
             StatusText = $"Polling: Resolving {structureIds.Count} structure(s)…";
             await ResolveNewStructureNamesAsync(0, structureIds, db, ct);
+            await BackfillNearestCelestialsAsync(db, ct);
             StatusText = structureIds.Count == 0
                 ? "Polling: No structure IDs found in assets"
                 : $"Polling: Structure names resolved ({structureIds.Count} IDs)";
