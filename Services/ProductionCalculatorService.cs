@@ -19,6 +19,17 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     private static readonly HashSet<string> UpwellKeys    = ["raitaru","azbel","sotiyo","athanor","tatara","astrahus","fortizar","keepstar","draccous","horiuchi","moreau","prometheus","lancer"];
     private static readonly HashSet<string> EngComplexKeys = ["raitaru","azbel","sotiyo"];
 
+    // EVE material consumption for a whole job: the per-run adjusted quantity (base × ME/rig/role
+    // modifiers) is rounded to 2 dp, multiplied by the run count, and ceilinged ONCE — not rounded
+    // per unit and then multiplied. Floors at one per run. Rounding per unit inflates batches (e.g.
+    // a 4.5/run material over 2 runs is 9, not ceil(4.5)×2 = 10).
+    private static int JobMaterialTotal(int baseQty, double factor, int runs)
+    {
+        double perRun = Math.Round(baseQty * factor, 2);
+        double total  = Math.Round(perRun * runs, 4);   // guard floating-point before the ceiling
+        return Math.Max(runs, (int)Math.Ceiling(total));
+    }
+
     public async Task<ProductionPlan> CalculateAsync(
         List<ProductionQueueEntry> requests,
         int parkId,
@@ -412,12 +423,19 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 {
                     foreach (var mat in bpMats)
                     {
-                        int effPerRun = Math.Max(1, (int)Math.Ceiling(mat.Quantity * meFactor));
-                        // Keep TotalQty in sync when the job gains additional runs
+                        // Recompute the whole-job total at the new run count and expand only the
+                        // delta — rounding at the job level, not per run (see JobMaterialTotal).
+                        int newTotal    = JobMaterialTotal(mat.Quantity, meFactor, newRuns);
                         var existingMat = existing.Materials.FirstOrDefault(m => m.MaterialTypeId == mat.MaterialTypeId);
+                        int oldTotal    = existingMat?.TotalQty ?? JobMaterialTotal(mat.Quantity, meFactor, oldRuns);
+                        int delta       = newTotal - oldTotal;
                         if (existingMat is not null)
-                            existingMat.TotalQty += effPerRun * extraRuns;
-                        ExpandItem(mat.MaterialTypeId, effPerRun * extraRuns, false);
+                        {
+                            existingMat.TotalQty = newTotal;
+                            existingMat.FormulaDisplay =
+                                $"ceil({mat.Quantity:N0} × {meFactor:F4} × {newRuns:N0} runs) → {newTotal:N0}";
+                        }
+                        if (delta > 0) ExpandItem(mat.MaterialTypeId, delta, false);
                     }
                     // If this job included its blueprint copy, keep the BPC quantity in sync as it
                     // gains runs (and add the extra copies to the raw pool).
@@ -452,21 +470,21 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 foreach (var mat in bpMats)
                 {
                     int    basePerRun = mat.Quantity;
-                    double raw        = basePerRun * meFactor;
-                    int    effPerRun  = Math.Max(1, (int)Math.Ceiling(raw));
+                    double perRunAdj  = Math.Round(basePerRun * meFactor, 2);
+                    int    totalQty   = JobMaterialTotal(basePerRun, meFactor, runs);
                     job.Materials.Add(new PlanJobMaterial
                     {
                         MaterialTypeId = mat.MaterialTypeId,
                         TypeName       = typeNames.GetValueOrDefault(mat.MaterialTypeId, $"Type {mat.MaterialTypeId}"),
                         BaseQtyPerRun  = basePerRun,
-                        EffQtyPerRun   = effPerRun,
-                        TotalQty       = effPerRun * runs,
+                        EffQtyPerRun   = (int)Math.Ceiling(perRunAdj),
+                        TotalQty       = totalQty,
                         IsBought       = !blueprintByProduct.ContainsKey(mat.MaterialTypeId)
                                           || boughtSet.Contains(mat.MaterialTypeId)
                                           || pinnedBuild.Contains(mat.MaterialTypeId),
-                        FormulaDisplay = $"ceil({basePerRun:N0} × {meFactor:F4}) = ceil({raw:N2}) → {effPerRun:N0}",
+                        FormulaDisplay = $"ceil({basePerRun:N0} × {meFactor:F4} × {runs:N0} runs) = ceil({perRunAdj:N2} × {runs:N0}) → {totalQty:N0}",
                     });
-                    ExpandItem(mat.MaterialTypeId, effPerRun * runs, false);
+                    ExpandItem(mat.MaterialTypeId, totalQty, false);
                 }
                 // A BPC-only item (no obtainable BPO) always consumes one purchased BPC per run; a
                 // BPO item only does so when the user opts in (includeBpcCost). Valued PER RUN at the
