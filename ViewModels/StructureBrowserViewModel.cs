@@ -105,6 +105,10 @@ public class StructureBrowserViewModel : ReactiveObject
         Busy = true;
         try
         {
+            // Compute nearest celestials for anything pending (local-only, fast) so the column fills
+            // after an SDE import without a full ESI resolve.
+            try { await _polling.RefreshNearestCelestialsAsync(); } catch { }
+
             await using var db = await _dbFactory.CreateDbContextAsync();
 
             var structs = await db.EsiStructureNames.AsNoTracking().ToListAsync();

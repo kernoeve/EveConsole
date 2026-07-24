@@ -2356,6 +2356,16 @@ public class EsiPollingService : ReactiveObject
         }
     }
 
+    // Local-only (no ESI): compute nearest celestials for any pending structures. Cheap and
+    // idempotent — the Structure Browser calls this on refresh so nearest fills after an SDE import
+    // without needing a full ESI resolve pass.
+    public async Task RefreshNearestCelestialsAsync(CancellationToken ct = default)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await BackfillNearestCelestialsAsync(db, ct);
+    }
+
     // Labels each resolved structure with the nearest planet/moon/stargate in its system (3D
     // distance). Only fills structures that have a position but no nearest yet; no-ops until the SDE
     // celestial table is populated (a re-import). Structures don't move, so this runs once per row.
