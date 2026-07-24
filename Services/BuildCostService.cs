@@ -9,11 +9,8 @@ namespace EveConsole.Services;
 
 public class BuildCostService
 {
-    // Blueprint ME assumption for manufactured items.
-    // Reactions use ME0 (no blueprint ME research applies to reactions).
-    private const double MfgBlueprintMeFactor        = 0.90; // ME10 — T1 and most items
-    private const double T2MfgBlueprintMeFactor       = 0.97; // ME3  — T2 items (invention cap)
-    private const double FactionMfgBlueprintMeFactor  = 1.00; // ME0  — faction BPCs (not researchable)
+    // Blueprint ME assumptions live in IndustryMe (shared with the Production Calculator):
+    // ME10 default, T2 ME3, BPC-only/faction ME0, titans & Keepstars ME9, reactions ME0.
 
     // Upwell role bonuses: -3% job gross cost, -1% material requirements (Engineering Complexes).
     private const double UpwellRoleBonus     = 0.97;
@@ -398,7 +395,11 @@ public class BuildCostService
             .Select(t => new { t.TypeId, t.MetaGroupId })
             .ToListAsync(ct);
         var t2TypeIds      = metaGroupTypes.Where(t => t.MetaGroupId == 2).Select(t => t.TypeId).ToHashSet();
-        var factionTypeIds = metaGroupTypes.Where(t => t.MetaGroupId == 4).Select(t => t.TypeId).ToHashSet();
+        // Titans (group 30) and the Keepstar get ME9; other items follow the standard rule.
+        var titanKeepstarIds = (await db.SdeTypes.AsNoTracking()
+            .Where(t => productTypeIds.Contains(t.TypeId)
+                     && (t.GroupId == IndustryMe.TitanGroupId || t.TypeId == IndustryMe.KeepstarTypeId))
+            .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
 
         // BPO-sourced blueprints: the blueprint type is buyable on the market (has a market group)
         // OR is invented from a source blueprint that is buyable (T2 from a T1 BPO). Anything else
@@ -598,10 +599,12 @@ public class BuildCostService
 
             string catKey       = ItemCategoryKey(typeId, isReaction);
             var    structure    = StructureFor(catKey, typeId);
-            double bpMeFactor   = isReaction                    ? 1.0
-                                : factionTypeIds.Contains(typeId) ? FactionMfgBlueprintMeFactor
-                                : t2TypeIds.Contains(typeId)      ? T2MfgBlueprintMeFactor
-                                : MfgBlueprintMeFactor;
+            // Default ME assumption: ME10, except T2 (ME3), BPC-only/faction (ME0), titans &
+            // Keepstars (ME9), reactions (ME0). Shared with the Production Calculator via IndustryMe.
+            bool   bpcItem      = !isReaction && !BlueprintIsBpoSourced(bpTypeId);
+            int    defaultMe    = IndustryMe.DefaultMe(isReaction, bpcItem,
+                                      t2TypeIds.Contains(typeId), titanKeepstarIds.Contains(typeId));
+            double bpMeFactor   = IndustryMe.Factor(defaultMe);
             double rigMeBonus   = isReaction ? RigBonus(structure, catKey, rxnRigBonus)
                                              : RigBonus(structure, catKey, mfgRigBonus);
             double matRoleBonus = (!isReaction && IsUpwell(structure)) ? UpwellMaterialBonus : 0.0;
@@ -634,7 +637,7 @@ public class BuildCostService
             }
             double structRig = (1.0 - rigMeBonus) * (1.0 - matRoleBonus);
 
-            bool    bpcOnly = !isReaction && !BlueprintIsBpoSourced(bpTypeId);
+            bool    bpcOnly = bpcItem;
             decimal buildRawRun, buildSubJobRun, bpcRun = 0m;
             bool    costable = true;
             double  usedMeFactor = meFactor;   // factor the full-chain walk will reuse

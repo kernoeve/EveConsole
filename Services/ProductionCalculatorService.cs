@@ -98,6 +98,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             .Select(g => new { g.GroupId, g.CategoryId, g.Name })
             .ToDictionaryAsync(g => g.GroupId, ct);
 
+        // Classification for the default-ME rule (shared with BuildCostService via IndustryMe).
+        var t2TypeIds = (await db.SdeTypes.AsNoTracking()
+            .Where(t => t.MetaGroupId == 2).Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
+        var titanKeepstarIds = (await db.SdeTypes.AsNoTracking()
+            .Where(t => t.GroupId == IndustryMe.TitanGroupId || t.TypeId == IndustryMe.KeepstarTypeId)
+            .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
+
         // ── Park / structure data ──────────────────────────────────────────
         var structures  = await db.IndyStructures.AsNoTracking().Where(s => s.ParkId == parkId).ToListAsync(ct);
         var rigs        = await db.IndyStructureRigs.AsNoTracking()
@@ -400,8 +407,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 }
             }
 
-            // Reaction formulas have no ME research — always ME 0. Manufacturing BPs default to ME 10.
-            int    meLevel    = isReaction ? 0 : (isFinal && finalMeLevels.TryGetValue(typeId, out var ml)) ? ml : 10;
+            // Final products use the user-chosen ME (defaulted per the same rule when added to the
+            // queue). Sub-components follow the shared default-ME rule (ME10 / T2 ME3 / BPC-only ME0 /
+            // titan & Keepstar ME9 / reactions ME0) so this matches the stored build cost.
+            int    meLevel    = (isFinal && !isReaction && finalMeLevels.TryGetValue(typeId, out var ml))
+                                ? ml
+                                : IndustryMe.DefaultMe(isReaction, !isReaction && !BlueprintIsBpoSourced(bpProd.TypeId),
+                                      t2TypeIds.Contains(typeId), titanKeepstarIds.Contains(typeId));
             var    structure  = StructureFor(catKey, typeId);
             bool   isEngCx    = structure is not null && EngComplexKeys.Contains(structure.StructureTypeKey);
             double bpMeFactor = (100.0 - meLevel) / 100.0;
@@ -689,6 +701,39 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             TotalLeftoverValue   = totalLeftover,
             NetCost              = totalRawMat + totalJobCost - totalLeftover,
         };
+    }
+
+    // Default ME to pre-select when an item is added to the production queue, per the shared rule
+    // (ME10 / T2 ME3 / BPC-only ME0 / titan & Keepstar ME9 / reactions ME0). Users can override it.
+    public async Task<int> GetDefaultMeAsync(int productTypeId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var bp = await db.SdeBlueprintProducts.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.ProductTypeId == productTypeId
+                && (p.Activity == MfgActivity || p.Activity == RxnActivity), ct);
+        if (bp is null) return 10;
+        bool isReaction = bp.Activity == RxnActivity;
+
+        var prod = await db.SdeTypes.AsNoTracking()
+            .Where(t => t.TypeId == productTypeId)
+            .Select(t => new { t.MetaGroupId, t.GroupId })
+            .FirstOrDefaultAsync(ct);
+        int? meta  = prod?.MetaGroupId;
+        int  group = prod?.GroupId ?? 0;
+
+        // BPO-sourced if the blueprint has a market group or is invented from one; faction/loot
+        // tiers (meta 3-6) are always BPC-only regardless.
+        bool bpHasMarket = await db.SdeTypes.AnyAsync(t => t.TypeId == bp.TypeId && t.MarketGroupId != null, ct);
+        bool inventedFromMarket = await db.SdeBlueprintProducts.AsNoTracking()
+            .Where(p => p.Activity == "invention" && p.ProductTypeId == bp.TypeId)
+            .Join(db.SdeTypes, p => p.TypeId, t => t.TypeId, (p, t) => t.MarketGroupId)
+            .AnyAsync(mg => mg != null, ct);
+        bool lootTier = meta is >= 3 and <= 6;
+        bool bpcOnly  = !isReaction && (lootTier || !(bpHasMarket || inventedFromMarket));
+
+        bool isT2 = meta == 2;
+        bool isTitanKeepstar = group == IndustryMe.TitanGroupId || productTypeId == IndustryMe.KeepstarTypeId;
+        return IndustryMe.DefaultMe(isReaction, bpcOnly, isT2, isTitanKeepstar);
     }
 
     // ── Batch-add helpers: direct materials (single blueprint) ────────────────

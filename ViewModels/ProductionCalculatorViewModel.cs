@@ -276,7 +276,7 @@ public class ProductionCalculatorViewModel : ReactiveObject
         ShowResults = SearchResults.Count > 0;
     }
 
-    private void SelectResult(ProdTypeSearchResult result)
+    private async void SelectResult(ProdTypeSearchResult result)
     {
         _suppressSearchCount++;          // block the debounced search that this assignment triggers
         PendingType           = result;
@@ -285,6 +285,10 @@ public class ProductionCalculatorViewModel : ReactiveObject
         SearchResults.Clear();
         _selectedSearchResult = null;
         this.RaisePropertyChanged(nameof(SelectedSearchResult));
+
+        // Pre-select the default ME for this item (user can still change it before adding).
+        try { NewMeLevel = await _service.GetDefaultMeAsync(result.TypeId); }
+        catch { /* leave NewMeLevel as-is on lookup failure */ }
     }
 
     private void AddToQueue()
