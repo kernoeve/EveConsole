@@ -23,7 +23,7 @@
     <!-- ── Toolbar ──────────────────────────────────────────────────── -->
     <Border Grid.Row="0" Background="#12121a" Padding="12 8"
             BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
-      <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*">
         <Button Grid.Column="0" Command="{Binding RefreshCommand}" Content="Refresh"
                 Background="#1a1a28" Foreground="#5599aa" BorderBrush="#2a3a44"
                 BorderThickness="1" Padding="12 4" FontSize="11" />
@@ -33,7 +33,10 @@
         <Button Grid.Column="2" Command="{Binding ClearFilters}" Content="Clear Filters"
                 Background="#1a1a28" Foreground="#888" BorderBrush="#2a2a3a"
                 BorderThickness="1" Padding="12 4" FontSize="11" Margin="8 0 0 0" />
-        <TextBlock Grid.Column="3" Text="{Binding Status}" FontSize="11" Foreground="#666677"
+        <CheckBox Grid.Column="3" IsChecked="{Binding ShowUnknown}"
+                  Content="Show unknown" FontSize="11" Foreground="#999"
+                  VerticalAlignment="Center" Margin="14 0 0 0" />
+        <TextBlock Grid.Column="4" Text="{Binding Status}" FontSize="11" Foreground="#666677"
                    VerticalAlignment="Center" Margin="16 0 0 0"
                    TextTrimming="CharacterEllipsis" />
       </Grid>

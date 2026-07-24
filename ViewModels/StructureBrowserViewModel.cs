@@ -25,6 +25,7 @@ public class StructureRow
     public string StatusText   { get; init; } = "";
     public string Coordinates  { get; init; } = "";
     public string NearestCelestial { get; init; } = "";
+    public bool   IsKnown      { get; init; }   // false = no access / not found / pending
 
     // Filter keys (0 = unknown/none).
     public long CorpId          { get; init; }
@@ -61,6 +62,9 @@ public class StructureBrowserViewModel : ReactiveObject
     public string TypeText          { get => _typeText;          set { this.RaiseAndSetIfChanged(ref _typeText, value); ApplyFilters(); } }
     public string CorpText          { get => _corpText;          set { this.RaiseAndSetIfChanged(ref _corpText, value); ApplyFilters(); } }
     public string AllianceText      { get => _allianceText;      set { this.RaiseAndSetIfChanged(ref _allianceText, value); ApplyFilters(); } }
+
+    private bool _showUnknown;
+    public bool ShowUnknown { get => _showUnknown; set { this.RaiseAndSetIfChanged(ref _showUnknown, value); ApplyFilters(); } }
 
     private string _status = "";
     public string Status { get => _status; set => this.RaiseAndSetIfChanged(ref _status, value); }
@@ -161,6 +165,7 @@ public class StructureBrowserViewModel : ReactiveObject
                     AllianceName    = AllyN(s.AllianceId),
                     TypeName        = s.TypeId > 0 ? typeNames.GetValueOrDefault(s.TypeId, $"Type {s.TypeId}") : "",
                     StatusText      = StatusLabel(s.Status),
+                    IsKnown         = s.Status == (int)StructureStatus.Resolved,
                     Coordinates     = (s.X == 0 && s.Y == 0 && s.Z == 0)
                                         ? "" : $"{s.X:N0}, {s.Y:N0}, {s.Z:N0}",
                     NearestCelestial= s.NearestCelestial,
@@ -205,6 +210,7 @@ public class StructureBrowserViewModel : ReactiveObject
             value.Contains(filter.Trim(), StringComparison.OrdinalIgnoreCase);
 
         bool Match(StructureRow r) =>
+            (ShowUnknown || r.IsKnown) &&
             Has(r.Region, RegionText) && Has(r.Constellation, ConstellationText) &&
             Has(r.SystemName, SystemText) && Has(r.TypeName, TypeText) &&
             Has(r.CorpName, CorpText) && Has(r.AllianceName, AllianceText);
@@ -212,7 +218,10 @@ public class StructureBrowserViewModel : ReactiveObject
         Rows.Clear();
         foreach (var r in _all.Where(Match).OrderBy(r => r.Region).ThenBy(r => r.SystemName).ThenBy(r => r.Name))
             Rows.Add(r);
-        Status = $"{Rows.Count} of {_all.Count} structure(s).";
+        int hidden = _all.Count(r => !r.IsKnown);
+        Status = ShowUnknown || hidden == 0
+            ? $"{Rows.Count} of {_all.Count} structure(s)."
+            : $"{Rows.Count} shown · {hidden} unknown hidden.";
     }
 
     private async Task ResolveAsync()
