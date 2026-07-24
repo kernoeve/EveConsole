@@ -12,26 +12,6 @@ using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
-// One selectable value in a multi-select filter column.
-public class StructureFilterOption : ReactiveObject
-{
-    public long   Key   { get; }
-    public string Label { get; }
-    private readonly Action _onChanged;
-
-    public StructureFilterOption(long key, string label, Action onChanged)
-    {
-        Key = key; Label = label; _onChanged = onChanged;
-    }
-
-    private bool _isSelected;
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set { this.RaiseAndSetIfChanged(ref _isSelected, value); _onChanged(); }
-    }
-}
-
 public class StructureRow
 {
     public long   StructureId  { get; init; }
@@ -65,12 +45,22 @@ public class StructureBrowserViewModel : ReactiveObject
 
     public ObservableCollection<StructureRow> Rows { get; } = [];
 
-    public ObservableCollection<StructureFilterOption> CorpFilters      { get; } = [];
-    public ObservableCollection<StructureFilterOption> AllianceFilters  { get; } = [];
-    public ObservableCollection<StructureFilterOption> SystemFilters    { get; } = [];
-    public ObservableCollection<StructureFilterOption> ConstellationFilters { get; } = [];
-    public ObservableCollection<StructureFilterOption> RegionFilters    { get; } = [];
-    public ObservableCollection<StructureFilterOption> TypeFilters      { get; } = [];
+    // Autocomplete suggestion lists (distinct values present in the data).
+    public ObservableCollection<string> RegionSuggestions        { get; } = [];
+    public ObservableCollection<string> ConstellationSuggestions { get; } = [];
+    public ObservableCollection<string> SystemSuggestions        { get; } = [];
+    public ObservableCollection<string> TypeSuggestions          { get; } = [];
+    public ObservableCollection<string> CorpSuggestions          { get; } = [];
+    public ObservableCollection<string> AllianceSuggestions      { get; } = [];
+
+    private string _regionText = "", _constellationText = "", _systemText = "",
+                   _typeText = "", _corpText = "", _allianceText = "";
+    public string RegionText        { get => _regionText;        set { this.RaiseAndSetIfChanged(ref _regionText, value); ApplyFilters(); } }
+    public string ConstellationText { get => _constellationText; set { this.RaiseAndSetIfChanged(ref _constellationText, value); ApplyFilters(); } }
+    public string SystemText        { get => _systemText;        set { this.RaiseAndSetIfChanged(ref _systemText, value); ApplyFilters(); } }
+    public string TypeText          { get => _typeText;          set { this.RaiseAndSetIfChanged(ref _typeText, value); ApplyFilters(); } }
+    public string CorpText          { get => _corpText;          set { this.RaiseAndSetIfChanged(ref _corpText, value); ApplyFilters(); } }
+    public string AllianceText      { get => _allianceText;      set { this.RaiseAndSetIfChanged(ref _allianceText, value); ApplyFilters(); } }
 
     private string _status = "";
     public string Status { get => _status; set => this.RaiseAndSetIfChanged(ref _status, value); }
@@ -92,15 +82,11 @@ public class StructureBrowserViewModel : ReactiveObject
         ResolveCommand = ReactiveCommand.CreateFromTask(ResolveAsync);
         ClearFilters   = ReactiveCommand.Create(() =>
         {
-            foreach (var f in AllFilters()) f.IsSelected = false;
+            RegionText = ConstellationText = SystemText = TypeText = CorpText = AllianceText = "";
         });
 
         _ = LoadAsync();
     }
-
-    private IEnumerable<StructureFilterOption> AllFilters() =>
-        CorpFilters.Concat(AllianceFilters).Concat(SystemFilters)
-                   .Concat(ConstellationFilters).Concat(RegionFilters).Concat(TypeFilters);
 
     private static string StatusLabel(int status) => (StructureStatus)status switch
     {
@@ -197,44 +183,31 @@ public class StructureBrowserViewModel : ReactiveObject
 
     private void BuildFilters()
     {
-        void Fill(ObservableCollection<StructureFilterOption> col,
-                  Func<StructureRow, long> key, Func<StructureRow, string> label)
+        void Fill(ObservableCollection<string> col, Func<StructureRow, string> sel)
         {
-            var selected = col.Where(o => o.IsSelected).Select(o => o.Key).ToHashSet();
             col.Clear();
-            var items = _all.Where(r => key(r) > 0)
-                            .GroupBy(key)
-                            .Select(g => (Key: g.Key, Label: label(g.First())))
-                            .Where(x => !string.IsNullOrEmpty(x.Label))
-                            .OrderBy(x => x.Label);
-            foreach (var (k, lbl) in items)
-                col.Add(new StructureFilterOption(k, lbl, ApplyFilters) { IsSelected = selected.Contains(k) });
+            foreach (var v in _all.Select(sel).Where(s => !string.IsNullOrEmpty(s))
+                                  .Distinct().OrderBy(s => s))
+                col.Add(v);
         }
-
-        Fill(CorpFilters,          r => r.CorpId,          r => r.CorpName);
-        Fill(AllianceFilters,      r => r.AllianceId,      r => r.AllianceName);
-        Fill(SystemFilters,        r => r.SystemId,        r => r.SystemName);
-        Fill(ConstellationFilters, r => r.ConstellationId, r => r.Constellation);
-        Fill(RegionFilters,        r => r.RegionId,        r => r.Region);
-        Fill(TypeFilters,          r => r.TypeId,          r => r.TypeName);
+        Fill(RegionSuggestions,        r => r.Region);
+        Fill(ConstellationSuggestions, r => r.Constellation);
+        Fill(SystemSuggestions,        r => r.SystemName);
+        Fill(TypeSuggestions,          r => r.TypeName);
+        Fill(CorpSuggestions,          r => r.CorpName);
+        Fill(AllianceSuggestions,      r => r.AllianceName);
     }
 
     private void ApplyFilters()
     {
-        HashSet<long> Sel(ObservableCollection<StructureFilterOption> col) =>
-            col.Where(o => o.IsSelected).Select(o => o.Key).ToHashSet();
-
-        var corp = Sel(CorpFilters);       var ally = Sel(AllianceFilters);
-        var sysS = Sel(SystemFilters);     var conS = Sel(ConstellationFilters);
-        var regS = Sel(RegionFilters);     var typS = Sel(TypeFilters);
+        static bool Has(string value, string filter) =>
+            string.IsNullOrWhiteSpace(filter) ||
+            value.Contains(filter.Trim(), StringComparison.OrdinalIgnoreCase);
 
         bool Match(StructureRow r) =>
-            (corp.Count == 0 || corp.Contains(r.CorpId)) &&
-            (ally.Count == 0 || ally.Contains(r.AllianceId)) &&
-            (sysS.Count == 0 || sysS.Contains(r.SystemId)) &&
-            (conS.Count == 0 || conS.Contains(r.ConstellationId)) &&
-            (regS.Count == 0 || regS.Contains(r.RegionId)) &&
-            (typS.Count == 0 || typS.Contains(r.TypeId));
+            Has(r.Region, RegionText) && Has(r.Constellation, ConstellationText) &&
+            Has(r.SystemName, SystemText) && Has(r.TypeName, TypeText) &&
+            Has(r.CorpName, CorpText) && Has(r.AllianceName, AllianceText);
 
         Rows.Clear();
         foreach (var r in _all.Where(Match).OrderBy(r => r.Region).ThenBy(r => r.SystemName).ThenBy(r => r.Name))

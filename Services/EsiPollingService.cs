@@ -2440,6 +2440,12 @@ public class EsiPollingService : ReactiveObject
             foreach (var id in await db.EsiWalletTransactions.Where(w => w.LocationId > T)
                 .Select(w => w.LocationId).Distinct().ToListAsync(ct)) ids.Add(id);
 
+            // Any already-tracked structure that isn't fully resolved yet (old name-only rows, or
+            // placeholders whose source data has since rolled out of the other tables).
+            foreach (var id in await db.EsiStructureNames
+                .Where(s => s.Status != (int)StructureStatus.Resolved)
+                .Select(s => s.StructureId).ToListAsync(ct)) ids.Add(id);
+
             // Seed placeholder rows so newly-seen structures appear in the browser (as Pending)
             // even before their details resolve.
             var existing = new HashSet<long>(await db.EsiStructureNames.Select(s => s.StructureId).ToListAsync(ct));

@@ -594,7 +594,7 @@ public class SdeImportService
         return sb.ToString();
     }
 
-    // Flattens a system's planets (and their moons) into celestial rows: "Jita IV", "Jita IV - Moon 4".
+    // Nested universe (old SDE): flattens a system's inline planets+moons into celestial rows.
     private static void AddPlanetCelestials(List<SdeCelestial> list, int systemId, string systemName,
         Dictionary<int, PlanetYaml>? planets)
     {
@@ -602,17 +602,17 @@ public class SdeImportService
         foreach (var (pid, planet) in planets.OrderBy(kv => kv.Value.celestialIndex))
         {
             string pName = $"{systemName} {RomanNumeral(planet.celestialIndex)}";
-            if (planet.position is { Count: 3 } pp)
+            if (planet.position is { } pp)
                 list.Add(new SdeCelestial { ItemId = pid, SolarSystemId = systemId, TypeId = planet.typeID,
-                    Kind = 0, X = pp[0], Y = pp[1], Z = pp[2], Name = pName });
+                    Kind = 0, X = pp.x, Y = pp.y, Z = pp.z, Name = pName });
             if (planet.moons is null) continue;
             int mi = 0;
             foreach (var (mid, moon) in planet.moons.OrderBy(kv => kv.Key))
             {
                 mi++;
-                if (moon.position is { Count: 3 } mp)
+                if (moon.position is { } mp)
                     list.Add(new SdeCelestial { ItemId = mid, SolarSystemId = systemId, TypeId = moon.typeID,
-                        Kind = 1, X = mp[0], Y = mp[1], Z = mp[2], Name = $"{pName} - Moon {mi}" });
+                        Kind = 1, X = mp.x, Y = mp.y, Z = mp.z, Name = $"{pName} - Moon {mi}" });
             }
         }
     }
@@ -669,7 +669,7 @@ public class SdeImportService
         }
 
         Report(p, "Universe", "Parsing mapSolarSystems.yaml…", 0.80);
-        var celestials = new List<SdeCelestial>();
+        var sysNames = new Dictionary<int, string>();
         var sysEntry = zip.GetEntry($"{fsdRoot}mapSolarSystems.yaml");
         if (sysEntry != null)
         {
@@ -685,12 +685,12 @@ public class SdeImportService
                 FactionId       = kv.Value.factionID,
                 IsWormhole      = kv.Value.regionID >= 11000000 && kv.Value.regionID < 12000000,
             });
-            await SaveBatchesAsync(db, db.SdeSolarSystems, rows, "Solar Systems", raw.Count, p, 0.80, 0.83, ct);
-            foreach (var (sysId, sys) in raw)
-                AddPlanetCelestials(celestials, sysId, sys.name?.en ?? "", sys.planets);
+            await SaveBatchesAsync(db, db.SdeSolarSystems, rows, "Solar Systems", raw.Count, p, 0.80, 0.82, ct);
+            foreach (var (sysId, sys) in raw) sysNames[sysId] = sys.name?.en ?? "";
         }
 
-        Report(p, "Universe", "Parsing mapStargates.yaml…", 0.84);
+        Report(p, "Universe", "Parsing mapStargates.yaml…", 0.82);
+        var celestials = new List<SdeCelestial>();
         var sgEntry = zip.GetEntry($"{fsdRoot}mapStargates.yaml");
         if (sgEntry != null)
         {
@@ -703,14 +703,42 @@ public class SdeImportService
                     SolarSystemId         = kv.Value.solarSystemID,
                     DestinationStargateId = kv.Value.destination!.stargateID,
                 });
-            await SaveBatchesAsync(db, db.SdeStargates, rows, "Stargates", raw.Count, p, 0.84, 0.86, ct);
+            await SaveBatchesAsync(db, db.SdeStargates, rows, "Stargates", raw.Count, p, 0.82, 0.83, ct);
             foreach (var (gid, g) in raw)
-                if (g.position is { Count: 3 } gp)
+                if (g.position is { } gp)
                     celestials.Add(new SdeCelestial { ItemId = gid, SolarSystemId = g.solarSystemID,
-                        TypeId = g.typeID, Kind = 2, X = gp[0], Y = gp[1], Z = gp[2], Name = "Stargate" });
+                        TypeId = g.typeID, Kind = 2, X = gp.x, Y = gp.y, Z = gp.z, Name = "Stargate" });
         }
 
-        await SaveBatchesAsync(db, db.SdeCelestials, celestials, "Celestials", celestials.Count, p, 0.86, 0.87, ct);
+        // Planets and moons are separate top-level files in the flat SDE. Moons carry celestialIndex
+        // (of their planet) + orbitIndex (moon number), so both can be named from the system name.
+        Report(p, "Universe", "Parsing mapPlanets.yaml…", 0.83);
+        var planetEntry = zip.GetEntry($"{fsdRoot}mapPlanets.yaml");
+        if (planetEntry != null)
+        {
+            using var r = OpenEntry(planetEntry);
+            var raw = _yaml.Deserialize<Dictionary<int, MapPlanetYaml>>(r) ?? [];
+            foreach (var (pid, pl) in raw)
+                if (pl.position is { } pp)
+                    celestials.Add(new SdeCelestial { ItemId = pid, SolarSystemId = pl.solarSystemID,
+                        TypeId = pl.typeID, Kind = 0, X = pp.x, Y = pp.y, Z = pp.z,
+                        Name = $"{sysNames.GetValueOrDefault(pl.solarSystemID, "")} {RomanNumeral(pl.celestialIndex)}".Trim() });
+        }
+
+        Report(p, "Universe", "Parsing mapMoons.yaml…", 0.84);
+        var moonEntry = zip.GetEntry($"{fsdRoot}mapMoons.yaml");
+        if (moonEntry != null)
+        {
+            using var r = OpenEntry(moonEntry);
+            var raw = _yaml.Deserialize<Dictionary<int, MapMoonYaml>>(r) ?? [];
+            foreach (var (mid, mo) in raw)
+                if (mo.position is { } mp)
+                    celestials.Add(new SdeCelestial { ItemId = mid, SolarSystemId = mo.solarSystemID,
+                        TypeId = mo.typeID, Kind = 1, X = mp.x, Y = mp.y, Z = mp.z,
+                        Name = $"{sysNames.GetValueOrDefault(mo.solarSystemID, "")} {RomanNumeral(mo.celestialIndex)} - Moon {mo.orbitIndex}".Trim() });
+        }
+
+        await SaveBatchesAsync(db, db.SdeCelestials, celestials, "Celestials", celestials.Count, p, 0.85, 0.87, ct);
     }
 
     private async Task ImportUniverseNestedAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -796,9 +824,9 @@ public class SdeImportService
             foreach (var (sgId, sg) in (y.stargates ?? []))
             {
                 stargates.Add(new SdeStargate { StargateId = sgId, SolarSystemId = y.solarSystemID, DestinationStargateId = sg.destination });
-                if (sg.position is { Count: 3 } gp)
+                if (sg.position is { } gp)
                     celestials.Add(new SdeCelestial { ItemId = sgId, SolarSystemId = y.solarSystemID,
-                        TypeId = sg.typeID, Kind = 2, X = gp[0], Y = gp[1], Z = gp[2], Name = "Stargate" });
+                        TypeId = sg.typeID, Kind = 2, X = gp.x, Y = gp.y, Z = gp.z, Name = "Stargate" });
             }
             AddPlanetCelestials(celestials, y.solarSystemID, sysName, y.planets);
         }
@@ -1270,24 +1298,44 @@ public class SdeImportService
         public Dictionary<int, StargateYaml>? stargates { get; set; }
         public Dictionary<int, PlanetYaml>?   planets   { get; set; }
     }
+    // SDE positions are objects {x, y, z}, not arrays.
+    private class PositionYaml { public double x { get; set; } public double y { get; set; } public double z { get; set; } }
     private class StargateYaml
     {
         public int           destination { get; set; }
         public int           typeID      { get; set; }
-        public List<double>? position    { get; set; }
+        public PositionYaml? position    { get; set; }
     }
-    // Celestial bodies (nested and flat universe both use this planet/moon shape).
+    // Nested universe (old SDE): planets carry their moons inline.
     private class PlanetYaml
     {
         public int           celestialIndex { get; set; }
         public int           typeID         { get; set; }
-        public List<double>? position       { get; set; }
+        public PositionYaml? position       { get; set; }
         public Dictionary<int, MoonYaml>? moons { get; set; }
     }
     private class MoonYaml
     {
         public int           typeID   { get; set; }
-        public List<double>? position { get; set; }
+        public PositionYaml? position { get; set; }
+    }
+    // Flat universe (current SDE): mapPlanets.yaml / mapMoons.yaml are separate top-level files.
+    // Moons carry celestialIndex (of their planet) + orbitIndex (moon number), so a moon can be
+    // named without joining back to its planet.
+    private class MapPlanetYaml
+    {
+        public int           celestialIndex { get; set; }
+        public int           solarSystemID  { get; set; }
+        public int           typeID         { get; set; }
+        public PositionYaml? position       { get; set; }
+    }
+    private class MapMoonYaml
+    {
+        public int           celestialIndex { get; set; }
+        public int           orbitIndex     { get; set; }
+        public int           solarSystemID  { get; set; }
+        public int           typeID         { get; set; }
+        public PositionYaml? position       { get; set; }
     }
 
     // New flat-universe DTOs
@@ -1315,7 +1363,7 @@ public class SdeImportService
     {
         public int              solarSystemID { get; set; }
         public int              typeID        { get; set; }
-        public List<double>?    position      { get; set; }
+        public PositionYaml?    position      { get; set; }
         public MapStargateDestYaml? destination   { get; set; }
     }
     private class MapStargateDestYaml { public int stargateID { get; set; } }

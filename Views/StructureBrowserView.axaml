@@ -6,23 +6,19 @@
              Background="#0d0d12">
 
   <UserControl.Styles>
-    <Style Selector="Expander">
-      <Setter Property="Margin" Value="0 0 0 4" />
-      <Setter Property="Padding" Value="0" />
-    </Style>
-    <Style Selector="Expander /template/ ToggleButton">
+    <Style Selector="AutoCompleteBox">
       <Setter Property="FontSize" Value="11" />
-      <Setter Property="Foreground" Value="#c8a84b" />
+      <Setter Property="Margin" Value="0 0 6 0" />
     </Style>
-    <Style Selector="CheckBox">
-      <Setter Property="FontSize" Value="11" />
-      <Setter Property="Foreground" Value="#bbb" />
-      <Setter Property="MinHeight" Value="0" />
-      <Setter Property="Padding" Value="4 0 0 0" />
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize" Value="9.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Margin" Value="2 0 0 1" />
     </Style>
   </UserControl.Styles>
 
-  <Grid RowDefinitions="Auto,1,*">
+  <Grid RowDefinitions="Auto,1,Auto,1,*">
 
     <!-- ── Toolbar ──────────────────────────────────────────────────── -->
     <Border Grid.Row="0" Background="#12121a" Padding="12 8"
@@ -45,74 +41,46 @@
 
     <Rectangle Grid.Row="1" Fill="#1e1e2a" />
 
-    <Grid Grid.Row="2" ColumnDefinitions="220,1,*">
-
-      <!-- ── Filters ─────────────────────────────────────────────────── -->
-      <ScrollViewer Grid.Column="0" Background="#0b0b10" Padding="8 8">
-        <StackPanel Spacing="2">
-          <TextBlock Text="FILTERS" FontSize="10" FontWeight="SemiBold"
-                     Foreground="#555566" Margin="2 0 0 6" />
-
-          <Expander Header="Region" IsExpanded="True">
-            <ItemsControl ItemsSource="{Binding RegionFilters}" MaxHeight="150">
-              <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:StructureFilterOption">
-                <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Label}" />
-              </DataTemplate></ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </Expander>
-
-          <Expander Header="Constellation">
-            <ItemsControl ItemsSource="{Binding ConstellationFilters}" MaxHeight="150">
-              <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:StructureFilterOption">
-                <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Label}" />
-              </DataTemplate></ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </Expander>
-
-          <Expander Header="System">
-            <ScrollViewer MaxHeight="180">
-              <ItemsControl ItemsSource="{Binding SystemFilters}">
-                <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:StructureFilterOption">
-                  <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Label}" />
-                </DataTemplate></ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </ScrollViewer>
-          </Expander>
-
-          <Expander Header="Type">
-            <ItemsControl ItemsSource="{Binding TypeFilters}" MaxHeight="150">
-              <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:StructureFilterOption">
-                <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Label}" />
-              </DataTemplate></ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </Expander>
-
-          <Expander Header="Corp">
-            <ScrollViewer MaxHeight="180">
-              <ItemsControl ItemsSource="{Binding CorpFilters}">
-                <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:StructureFilterOption">
-                  <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Label}" />
-                </DataTemplate></ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </ScrollViewer>
-          </Expander>
-
-          <Expander Header="Alliance">
-            <ScrollViewer MaxHeight="180">
-              <ItemsControl ItemsSource="{Binding AllianceFilters}">
-                <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:StructureFilterOption">
-                  <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Label}" />
-                </DataTemplate></ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </ScrollViewer>
-          </Expander>
+    <!-- ── Filter bar (autocomplete text fields) ───────────────────────── -->
+    <Border Grid.Row="2" Background="#0b0b10" Padding="10 6">
+      <Grid ColumnDefinitions="*,*,*,*,*,*">
+        <StackPanel Grid.Column="0">
+          <TextBlock Classes="flabel" Text="REGION" />
+          <AutoCompleteBox Text="{Binding RegionText}" ItemsSource="{Binding RegionSuggestions}"
+                           FilterMode="Contains" MinimumPrefixLength="0" Watermark="any" />
         </StackPanel>
-      </ScrollViewer>
+        <StackPanel Grid.Column="1">
+          <TextBlock Classes="flabel" Text="CONSTELLATION" />
+          <AutoCompleteBox Text="{Binding ConstellationText}" ItemsSource="{Binding ConstellationSuggestions}"
+                           FilterMode="Contains" MinimumPrefixLength="0" Watermark="any" />
+        </StackPanel>
+        <StackPanel Grid.Column="2">
+          <TextBlock Classes="flabel" Text="SYSTEM" />
+          <AutoCompleteBox Text="{Binding SystemText}" ItemsSource="{Binding SystemSuggestions}"
+                           FilterMode="Contains" MinimumPrefixLength="0" Watermark="any" />
+        </StackPanel>
+        <StackPanel Grid.Column="3">
+          <TextBlock Classes="flabel" Text="TYPE" />
+          <AutoCompleteBox Text="{Binding TypeText}" ItemsSource="{Binding TypeSuggestions}"
+                           FilterMode="Contains" MinimumPrefixLength="0" Watermark="any" />
+        </StackPanel>
+        <StackPanel Grid.Column="4">
+          <TextBlock Classes="flabel" Text="CORP" />
+          <AutoCompleteBox Text="{Binding CorpText}" ItemsSource="{Binding CorpSuggestions}"
+                           FilterMode="Contains" MinimumPrefixLength="0" Watermark="any" />
+        </StackPanel>
+        <StackPanel Grid.Column="5">
+          <TextBlock Classes="flabel" Text="ALLIANCE" />
+          <AutoCompleteBox Text="{Binding AllianceText}" ItemsSource="{Binding AllianceSuggestions}"
+                           FilterMode="Contains" MinimumPrefixLength="0" Watermark="any" />
+        </StackPanel>
+      </Grid>
+    </Border>
 
-      <Rectangle Grid.Column="1" Fill="#1e1e2a" />
+    <Rectangle Grid.Row="3" Fill="#1e1e2a" />
 
-      <!-- ── Grid ────────────────────────────────────────────────────── -->
-      <DataGrid Grid.Column="2"
+    <!-- ── Grid ────────────────────────────────────────────────────────── -->
+    <DataGrid Grid.Row="4"
                 ItemsSource="{Binding Rows}"
                 AutoGenerateColumns="False"
                 CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="True"
@@ -147,6 +115,5 @@
           <DataGridTextColumn Header="Status" Binding="{Binding StatusText}" Width="Auto" />
         </DataGrid.Columns>
       </DataGrid>
-    </Grid>
   </Grid>
 </UserControl>
