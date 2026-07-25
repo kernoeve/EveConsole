@@ -905,7 +905,18 @@ public class SalePostingViewModel : ReactiveObject
             };
             var clip = fmt.Finalize(body);        // clipboard: raw markup + literal :emoji:
             var segs = fmt.ToDisplay(clip);       // preview: real bold + emoji placeholder
-            RenderedBlocks.Add(new RenderedBlock($"{post.Name}  ·  {post.PostType}", clip, segs));
+
+            // Slack's own composer has no typed/pasted syntax for underline (toolbar/shortcut
+            // only — confirmed there's no character sequence for it, unlike *bold*/_italic_), so
+            // this app's internal <u>...</u> marker would show up as literal, confusing text if
+            // manually copy-pasted into Slack. Strip it from what gets copied (keep the inner
+            // text) for that one target — the preview above already parsed the tags for display,
+            // and the real "Post to Slack" button re-renders independently of this copy text, so
+            // dropping it here doesn't touch either.
+            var clipboardText = _selectedFormat == "Slack"
+                ? Regex.Replace(clip, "</?u>", "", RegexOptions.IgnoreCase)
+                : clip;
+            RenderedBlocks.Add(new RenderedBlock($"{post.Name}  ·  {post.PostType}", clipboardText, segs));
         }
     }
 
