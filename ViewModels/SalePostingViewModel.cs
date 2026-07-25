@@ -274,8 +274,21 @@ internal sealed class OutputFormat
         var sections = new List<object>(lines.Length);
         foreach (var line in lines)
         {
+            // Protect :emoji_name: shortcodes from the bold/italic/strike/underline matching below
+            // FIRST — same reason the preview tokenizer swaps them out via EmojiPh (see ToDisplay
+            // above): an emoji name containing an underscore (e.g. :white_small_square:) has no
+            // partner underscore of its own, so the _italic_ rule instead pairs it with the
+            // underscore in the NEXT unrelated shortcode later on the same line, and silently eats
+            // both underscores plus everything between them. Swap each shortcode for a placeholder
+            // with no markup-significant characters, tokenize, then restore the literal text —
+            // unlike the preview (which shows an emoji placeholder glyph since it can't render real
+            // custom emoji anyway), the actual posted text must keep the real shortcode so Slack
+            // renders the emoji.
+            var emojis = new List<string>();
+            var protectedLine = Emoji.Replace(line, m => { emojis.Add(m.Value); return $"{emojis.Count - 1}"; });
+
             var elements = new List<object>();
-            WalkSlackBlock(line, SegStyle.None, elements);
+            WalkSlackBlock(protectedLine, SegStyle.None, emojis, elements);
             // A blank line (paragraph spacing) has nothing to emit, but Slack's rich_text schema
             // rejects a zero-length text element outright ("must be more than 0 characters") --
             // a single space satisfies that while still rendering as an empty-looking line.
@@ -285,7 +298,10 @@ internal sealed class OutputFormat
         return new { type = "rich_text", elements = sections };
     }
 
-    private static void WalkSlackBlock(string text, SegStyle inherited, List<object> o)
+    private static string RestoreEmojis(string s, List<string> emojis) =>
+        emojis.Count == 0 ? s : Regex.Replace(s, "(\\d+)", m => emojis[int.Parse(m.Groups[1].Value)]);
+
+    private static void WalkSlackBlock(string text, SegStyle inherited, List<string> emojis, List<object> o)
     {
         int pos = 0;
         while (pos < text.Length)
@@ -297,21 +313,22 @@ internal sealed class OutputFormat
                 var m = r.Re.Match(text, pos);
                 if (m.Success && (best is null || m.Index < best.Index)) { best = m; br = r; }
             }
-            if (best is null || br is null) { EmitSlackText(o, text[pos..], inherited); return; }
-            if (best.Index > pos) EmitSlackText(o, text[pos..best.Index], inherited);
+            if (best is null || br is null) { EmitSlackText(o, text[pos..], inherited, emojis); return; }
+            if (best.Index > pos) EmitSlackText(o, text[pos..best.Index], inherited, emojis);
 
             var inner = best.Groups[br.Value.TextGroup].Value;
             if (br.Value.Style == SegStyle.Link)
-                o.Add(new { type = "link", url = best.Groups[br.Value.UrlGroup!.Value].Value, text = inner });
+                o.Add(new { type = "link", url = RestoreEmojis(best.Groups[br.Value.UrlGroup!.Value].Value, emojis), text = RestoreEmojis(inner, emojis) });
             else
-                WalkSlackBlock(inner, inherited | br.Value.Style, o);   // recurse — styles can nest
+                WalkSlackBlock(inner, inherited | br.Value.Style, emojis, o);   // recurse — styles can nest
             pos = best.Index + best.Length;
         }
     }
 
-    private static void EmitSlackText(List<object> o, string t, SegStyle style)
+    private static void EmitSlackText(List<object> o, string t, SegStyle style, List<string> emojis)
     {
         if (t.Length == 0) return;
+        t = RestoreEmojis(t, emojis);
         if (style == SegStyle.None) { o.Add(new { type = "text", text = t }); return; }
         var styleObj = new Dictionary<string, object>();
         if (style.HasFlag(SegStyle.Bold))      styleObj["bold"]      = true;
