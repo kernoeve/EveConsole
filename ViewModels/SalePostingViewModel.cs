@@ -129,14 +129,20 @@ internal sealed class OutputFormat
     private static readonly Regex BbTag   = new(@"\[/?[^\]]+\]", RegexOptions.Compiled);
 
     // Per-format inline rules — multi-char delimiters listed before single-char so they win ties.
-    // Underline is intentionally absent where the platform lacks it (Slack, Markdown).
+    // Underline is intentionally absent where the platform lacks it (Markdown has no underline
+    // syntax anywhere). Slack's legacy mrkdwn text has no underline token either, but Slack's real
+    // posting mechanism now uses Block Kit rich_text (see BuildSlackRichTextBlock below), which DOES
+    // support underline (confirmed against Slack's live API) — so __x__ here is just this app's own
+    // internal marker, parsed by both this preview tokenizer and the rich_text converter; it's never
+    // sent to Slack as literal text.
     private static readonly InlineRule[] SlackRules =
     [
-        new(R(@"\*([^*\n]+)\*"),               SegStyle.Bold,   1, true),
-        new(R(@"_([^_\n]+)_"),                 SegStyle.Italic, 1, true),
-        new(R(@"~([^~\n]+)~"),                 SegStyle.Strike, 1, true),
-        new(R(@"<([^>|\n]+)\|([^>\n]+)>"),     SegStyle.Link,   2, false),
-        new(R(@"<((?:https?|mailto)[^>\n]+)>"),SegStyle.Link,   1, false),
+        new(R(@"\*([^*\n]+)\*"),               SegStyle.Bold,      1, true),
+        new(R(@"__([^\n]+?)__"),               SegStyle.Underline, 1, true),
+        new(R(@"_([^_\n]+)_"),                 SegStyle.Italic,    1, true),
+        new(R(@"~([^~\n]+)~"),                 SegStyle.Strike,    1, true),
+        new(R(@"<([^>|\n]+)\|([^>\n]+)>"),     SegStyle.Link,      2, false),
+        new(R(@"<((?:https?|mailto)[^>\n]+)>"),SegStyle.Link,      1, false),
     ];
     private static readonly InlineRule[] DiscordRules =
     [
@@ -231,7 +237,7 @@ internal sealed class OutputFormat
         // Slack/Discord: swap :emoji: for the placeholder FIRST so underscores inside a shortcode
         // (e.g. :white_small_square:) aren't mistaken for italics by the style parser.
         new("Plain Text", Identity,                     Identity,             StripMarkup, s => [new(s, SegStyle.None)]),
-        new("Slack",      x => $"*{x}*",                Identity,             Identity,    s => Tokenize(EmojiPh(s), SlackRules, Identity)),
+        new("Slack",      x => $"*{x}*",                x => $"__{x}__",      Identity,    s => Tokenize(EmojiPh(s), SlackRules, Identity)),
         new("Discord",    x => $"**{x}**",              x => $"__{x}__",      Identity,    s => Tokenize(EmojiPh(s), DiscordRules, Identity)),
         new("Markdown",   x => $"**{x}**",              Identity,             Identity,    s => Tokenize(MdLists(s), MdRules, Identity)),
         new("HTML",       x => $"<strong>{x}</strong>", x => $"<u>{x}</u>",   HtmlBreaks,  HtmlDisplay),
@@ -239,6 +245,75 @@ internal sealed class OutputFormat
     ];
 
     public static OutputFormat ByName(string? name) => All.FirstOrDefault(f => f.Name == name) ?? All[0];
+
+    // ── Slack rich_text (real posting, not the preview/clipboard markup above) ─────────────
+    // Slack's legacy mrkdwn `text` field has no underline token at all, but Slack's Block Kit
+    // rich_text format DOES support it (confirmed live against Slack's API: an unlisted-in-docs
+    // but genuinely accepted `style.underline` — Slack echoed it back on the posted message).
+    // This walks the SAME "Slack" markup this class produces (*bold*, __underline__, _italic_,
+    // ~strike~, <url|label>/<url>) into a rich_text block, preserving link URLs (which the shared
+    // DisplaySeg/preview pipeline discards, since the preview never needs to open a link).
+    private static readonly (Regex Re, int TextGroup, int? UrlGroup, SegStyle Style)[] SlackBlockRules =
+    [
+        (R(@"\*([^*\n]+)\*"),                1, null, SegStyle.Bold),
+        (R(@"__([^\n]+?)__"),                1, null, SegStyle.Underline),
+        (R(@"_([^_\n]+)_"),                  1, null, SegStyle.Italic),
+        (R(@"~([^~\n]+)~"),                  1, null, SegStyle.Strike),
+        (R(@"<([^>|\n]+)\|([^>\n]+)>"),      2, 1,    SegStyle.Link),
+        (R(@"<((?:https?|mailto)[^>\n]+)>"), 1, 1,    SegStyle.Link),
+    ];
+
+    /// <summary>Converts Slack-format markup text into a Block Kit "rich_text" block object, one
+    /// rich_text_section per line, ready to pass as SlackService.PostMessageAsync's `blocks`.</summary>
+    public static object BuildSlackRichTextBlock(string markup)
+    {
+        var lines = markup.Replace("\r\n", "\n").Split('\n');
+        var sections = new List<object>(lines.Length);
+        foreach (var line in lines)
+        {
+            var elements = new List<object>();
+            WalkSlackBlock(line, SegStyle.None, elements);
+            if (elements.Count == 0) elements.Add(new { type = "text", text = "" });
+            sections.Add(new { type = "rich_text_section", elements });
+        }
+        return new { type = "rich_text", elements = sections };
+    }
+
+    private static void WalkSlackBlock(string text, SegStyle inherited, List<object> o)
+    {
+        int pos = 0;
+        while (pos < text.Length)
+        {
+            Match? best = null;
+            (Regex Re, int TextGroup, int? UrlGroup, SegStyle Style)? br = null;
+            foreach (var r in SlackBlockRules)
+            {
+                var m = r.Re.Match(text, pos);
+                if (m.Success && (best is null || m.Index < best.Index)) { best = m; br = r; }
+            }
+            if (best is null || br is null) { EmitSlackText(o, text[pos..], inherited); return; }
+            if (best.Index > pos) EmitSlackText(o, text[pos..best.Index], inherited);
+
+            var inner = best.Groups[br.Value.TextGroup].Value;
+            if (br.Value.Style == SegStyle.Link)
+                o.Add(new { type = "link", url = best.Groups[br.Value.UrlGroup!.Value].Value, text = inner });
+            else
+                WalkSlackBlock(inner, inherited | br.Value.Style, o);   // recurse — styles can nest
+            pos = best.Index + best.Length;
+        }
+    }
+
+    private static void EmitSlackText(List<object> o, string t, SegStyle style)
+    {
+        if (t.Length == 0) return;
+        if (style == SegStyle.None) { o.Add(new { type = "text", text = t }); return; }
+        var styleObj = new Dictionary<string, object>();
+        if (style.HasFlag(SegStyle.Bold))      styleObj["bold"]      = true;
+        if (style.HasFlag(SegStyle.Italic))    styleObj["italic"]    = true;
+        if (style.HasFlag(SegStyle.Strike))    styleObj["strike"]    = true;
+        if (style.HasFlag(SegStyle.Underline)) styleObj["underline"] = true;
+        o.Add(new { type = "text", text = t, style = styleObj });
+    }
 }
 
 // ── Posting row (top level) ─────────────────────────────────────────────────────
@@ -901,10 +976,15 @@ public class SalePostingViewModel : ReactiveObject
                     "Detail"  => RenderDetail(pr, fmt, post),
                     _         => post.StaticContent ?? "",
                 };
-                var text = fmt.Finalize(body);
-                if (string.IsNullOrWhiteSpace(text)) continue;
+                var markup = fmt.Finalize(body);
+                if (string.IsNullOrWhiteSpace(markup)) continue;
 
-                var res = await _slack.PostMessageAsync(channel, text, threadTs);
+                // Slack's legacy mrkdwn `text` field can't underline, so the real message is a
+                // Block Kit rich_text block (built from the same *bold*/__underline__ markup);
+                // `text` is still sent as the notification/accessibility fallback Slack expects.
+                var fallbackText = OutputFormat.ByName("Plain Text").Finalize(markup);
+                var block        = OutputFormat.BuildSlackRichTextBlock(markup);
+                var res = await _slack.PostMessageAsync(channel, fallbackText, threadTs, blocks: new[] { block });
                 if (!res.Ok) { SlackStatus = $"Slack post failed on \"{post.Name}\": {res.Error}"; return; }
                 threadTs ??= res.Ts;
                 posted++;

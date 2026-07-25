@@ -219,10 +219,12 @@ public class SlackService
     /// <summary>
     /// Posts as the token's user. Pass threadTs to reply under an existing message; broadcast also
     /// surfaces that reply in the channel (edits never resurface a message, threaded broadcasts do).
+    /// Pass blocks for rich formatting Slack's legacy mrkdwn text field can't do (e.g. underline) —
+    /// text is still sent as the notification/accessibility fallback Slack recommends alongside it.
     /// </summary>
     public async Task<SlackPostResult> PostMessageAsync(
         string channelId, string text, string? threadTs = null, bool broadcast = false,
-        CancellationToken ct = default)
+        object? blocks = null, CancellationToken ct = default)
     {
         try
         {
@@ -232,6 +234,7 @@ public class SlackService
                 ["channel"] = channelId,
                 ["text"]    = text,
             };
+            if (blocks is not null) payload["blocks"] = blocks;
             if (!string.IsNullOrEmpty(threadTs))
             {
                 payload["thread_ts"] = threadTs;
