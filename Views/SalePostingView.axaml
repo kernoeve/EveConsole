@@ -409,7 +409,8 @@
                       ToolTip.Tip="Re-render the selected posting with the latest definitions data" />
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-              <TextBlock Text="{Binding SlackStatus}" FontSize="10" Foreground="#888899"
+              <TextBlock Text="{Binding SlackStatus}" ToolTip.Tip="{Binding SlackStatus}"
+                         FontSize="10" Foreground="#888899"
                          VerticalAlignment="Center" MaxWidth="220" TextTrimming="CharacterEllipsis" />
               <!-- Only shown once a Slack token and a Sale Posting channel are configured. The first
                    post block becomes the channel message; the rest thread under it. -->

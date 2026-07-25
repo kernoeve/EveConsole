@@ -1460,7 +1460,8 @@
                 <TextBlock Text="TOP 10 BY MONTH"
                            FontSize="10" FontWeight="SemiBold" Foreground="#6aaa88"
                            VerticalAlignment="Center" />
-                <TextBlock Text="{Binding SlackStatus}" FontSize="10" Foreground="#888899"
+                <TextBlock Text="{Binding SlackStatus}" ToolTip.Tip="{Binding SlackStatus}"
+                           FontSize="10" Foreground="#888899"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
               </StackPanel>
               <TextBlock Grid.Column="1" Text="Month:" FontSize="10" Foreground="#555566"

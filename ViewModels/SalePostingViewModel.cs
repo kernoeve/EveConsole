@@ -276,7 +276,10 @@ internal sealed class OutputFormat
         {
             var elements = new List<object>();
             WalkSlackBlock(line, SegStyle.None, elements);
-            if (elements.Count == 0) elements.Add(new { type = "text", text = "" });
+            // A blank line (paragraph spacing) has nothing to emit, but Slack's rich_text schema
+            // rejects a zero-length text element outright ("must be more than 0 characters") --
+            // a single space satisfies that while still rendering as an empty-looking line.
+            if (elements.Count == 0) elements.Add(new { type = "text", text = " " });
             sections.Add(new { type = "rich_text_section", elements });
         }
         return new { type = "rich_text", elements = sections };
