@@ -392,6 +392,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         await settingsWin.ShowDialog(this);
         // Slack token / channel may have changed — re-evaluate the post buttons' visibility.
         vm.CorpActivityVm.RefreshSlackState();
+        vm.SalePostingVm.RefreshSlackState();
     }
 
     private void OnResolveNamesClick(object? sender, RoutedEventArgs e)

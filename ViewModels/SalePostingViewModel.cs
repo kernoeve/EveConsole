@@ -599,6 +599,7 @@ public class SalePostingViewModel : ReactiveObject
 {
     private readonly SalePostingService _svc;
     private readonly BatchAddService?   _batchSvc;
+    private readonly SlackService?      _slack;
 
     private List<SalePostingRow> _allPostings = [];
 
@@ -652,6 +653,7 @@ public class SalePostingViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> AddFromMarketGroupCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenInItemBrowserCommand  { get; }
     public ReactiveCommand<Unit, Unit> RenderRefreshCommand      { get; }
+    public ReactiveCommand<Unit, Unit> PostToSlackCommand        { get; }
 
     // Dialog delegates — wired by the view (ShowDialog decoupling).
     public Func<Task<PostingDialogResult?>>?                        ShowAddPostingDialog;
@@ -663,10 +665,11 @@ public class SalePostingViewModel : ReactiveObject
     public Action<int, string>?                                     OpenInItemBrowser;
 
     public SalePostingViewModel(SalePostingService svc, IDbContextFactory<AppDbContext> dbFactory,
-        BatchAddService? batchSvc = null)
+        BatchAddService? batchSvc = null, SlackService? slack = null)
     {
         _svc      = svc;
         _batchSvc = batchSvc;
+        _slack    = slack;
 
         AddPostingCommand         = ReactiveCommand.CreateFromTask(AddPostingAsync);
         RefreshCommand            = ReactiveCommand.CreateFromTask(RefreshAllAsync);
@@ -674,6 +677,7 @@ public class SalePostingViewModel : ReactiveObject
         AddFromMarketGroupCommand = ReactiveCommand.CreateFromTask(AddFromMarketGroupAsync);
         OpenInItemBrowserCommand  = ReactiveCommand.Create(OpenSelectedInItemBrowser);
         RenderRefreshCommand      = ReactiveCommand.CreateFromTask(RenderSelectedAsync);
+        PostToSlackCommand        = ReactiveCommand.CreateFromTask(PostSelectedToSlackAsync);
 
         _ = InitAsync();
 
@@ -825,6 +829,92 @@ public class SalePostingViewModel : ReactiveObject
             var segs = fmt.ToDisplay(clip);       // preview: real bold + emoji placeholder
             RenderedBlocks.Add(new RenderedBlock($"{post.Name}  ·  {post.PostType}", clip, segs));
         }
+    }
+
+    // ── Slack ────────────────────────────────────────────────────────────────
+    // The post button only shows once a token and a Sale Posting channel are configured.
+    // Re-checked when the Settings window closes (see MainWindow.OpenSettingsAsync).
+
+    public bool IsSlackConfigured => _slack?.IsConfigured(SlackService.AreaSalePosting) == true;
+
+    public string SlackChannelText =>
+        _slack?.ChannelName(SlackService.AreaSalePosting) is { Length: > 0 } n ? $"#{n}" : "";
+
+    private string _slackStatus = "";
+    public string SlackStatus { get => _slackStatus; private set => this.RaiseAndSetIfChanged(ref _slackStatus, value); }
+
+    private bool _isPostingToSlack;
+    public bool IsPostingToSlack { get => _isPostingToSlack; private set => this.RaiseAndSetIfChanged(ref _isPostingToSlack, value); }
+
+    public void RefreshSlackState()
+    {
+        this.RaisePropertyChanged(nameof(IsSlackConfigured));
+        this.RaisePropertyChanged(nameof(SlackChannelText));
+    }
+
+    // A posting is a deliberate, low-volume post. Re-posting inside this window asks for
+    // confirmation first, so a stray double-click doesn't spam the channel. Keyed per posting
+    // (not just the area) so posting one listing doesn't gate a re-post of a different one.
+    private static readonly TimeSpan SlackRepostWindow = TimeSpan.FromHours(24);
+
+    /// <summary>Asked before re-posting within the cooldown; return true to post anyway.</summary>
+    public Func<string, Task<bool>>? ConfirmSlackRepost { get; set; }
+
+    /// <summary>
+    /// Posts the selected posting's blocks to Slack in order: the first (Ordinal 0) becomes a
+    /// standalone message in the configured channel, and every block after that is posted as a
+    /// threaded reply under it — mirroring how SalePostingPost already models a posting's blocks.
+    /// </summary>
+    private async Task PostSelectedToSlackAsync()
+    {
+        if (_slack is null) return;
+        if (_selectedPostingForTab is not SalePostingRow pr) { SlackStatus = "Select a posting first."; return; }
+        var channel = _slack.ChannelId(SlackService.AreaSalePosting);
+        if (string.IsNullOrEmpty(channel)) { SlackStatus = "No Slack channel configured."; return; }
+
+        var guardKey = $"{SlackService.AreaSalePosting}.{pr.PostingId}";
+        if (_slack.LastPostAt(guardKey) is { } last
+            && DateTimeOffset.UtcNow - last < SlackRepostWindow
+            && ConfirmSlackRepost is not null)
+        {
+            var confirmed = await ConfirmSlackRepost(
+                $"\"{pr.PostingName}\" was already posted to Slack {NotificationSummary.Age(last)}.\n\n" +
+                "Post it again?");
+            if (!confirmed) { SlackStatus = "Post cancelled."; return; }
+        }
+
+        IsPostingToSlack = true;
+        SlackStatus = "Posting to Slack…";
+        try
+        {
+            var fmt   = OutputFormat.ByName("Slack");
+            var posts = (await _svc.LoadPostsAsync(pr.PostingId)).OrderBy(p => p.Ordinal).ToList();
+            if (posts.Count == 0) { SlackStatus = "Nothing to post — this posting has no post blocks."; return; }
+
+            string? threadTs = null;
+            int posted = 0;
+            foreach (var post in posts)
+            {
+                string body = post.PostType switch
+                {
+                    "Summary" => RenderSummary(pr, fmt, post),
+                    "Detail"  => RenderDetail(pr, fmt, post),
+                    _         => post.StaticContent ?? "",
+                };
+                var text = fmt.Finalize(body);
+                if (string.IsNullOrWhiteSpace(text)) continue;
+
+                var res = await _slack.PostMessageAsync(channel, text, threadTs);
+                if (!res.Ok) { SlackStatus = $"Slack post failed on \"{post.Name}\": {res.Error}"; return; }
+                threadTs ??= res.Ts;
+                posted++;
+            }
+
+            if (posted == 0) { SlackStatus = "Nothing to post — all post blocks were empty."; return; }
+            await _slack.SetLastPostAsync(guardKey, DateTimeOffset.UtcNow);
+            SlackStatus = $"Posted to {SlackChannelText} — {DateTimeOffset.Now:t}";
+        }
+        finally { IsPostingToSlack = false; }
     }
 
     private static string RenderSummary(SalePostingRow pr, OutputFormat fmt, SalePostingPost post)

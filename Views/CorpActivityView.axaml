@@ -1499,13 +1499,24 @@
                       BorderBrush="#2a3a2a" BorderThickness="1" />
               <!-- Only shown once a Slack token and a Top 10 channel are configured. -->
               <Button Grid.Column="15" x:Name="PostTop10SlackButton"
-                      Content="Post to Slack"
                       IsVisible="{Binding IsSlackTop10Configured}"
                       IsEnabled="{Binding !IsTop10Loading}"
                       ToolTip.Tip="{Binding SlackTop10ChannelText}"
                       FontSize="10" Padding="8 3"
                       Background="#1a1a2e" Foreground="#8899cc"
-                      BorderBrush="#2a2a4a" BorderThickness="1" />
+                      BorderBrush="#2a2a4a" BorderThickness="1">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                  <Viewbox Width="12" Height="12">
+                    <Canvas Width="127" Height="127">
+                      <Path Fill="#E01E5A" Data="M27.2 80c0 7.3-5.9 13.2-13.2 13.2C6.7 93.2.8 87.3.8 80c0-7.3 5.9-13.2 13.2-13.2h13.2V80zm6.6 0c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2v33c0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V80z" />
+                      <Path Fill="#36C5F0" Data="M47 27c-7.3 0-13.2-5.9-13.2-13.2C33.8 6.5 39.7.6 47 .6c7.3 0 13.2 5.9 13.2 13.2V27H47zm0 6.7c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2H13.9C6.6 60.1.7 54.2.7 46.9c0-7.3 5.9-13.2 13.2-13.2H47z" />
+                      <Path Fill="#2EB67D" Data="M99.9 46.9c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2H99.9V46.9zm-6.6 0c0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V13.8C66.9 6.5 72.8.6 80.1.6c7.3 0 13.2 5.9 13.2 13.2v33.1z" />
+                      <Path Fill="#ECB22E" Data="M80.1 99.8c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V99.8h13.2zm0-6.6c-7.3 0-13.2-5.9-13.2-13.2 0-7.3 5.9-13.2 13.2-13.2h33.1c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2H80.1z" />
+                    </Canvas>
+                  </Viewbox>
+                  <TextBlock Text="Post to Slack" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
             </Grid>
           </Border>
 
