@@ -132,13 +132,16 @@ internal sealed class OutputFormat
     // Underline is intentionally absent where the platform lacks it (Markdown has no underline
     // syntax anywhere). Slack's legacy mrkdwn text has no underline token either, but Slack's real
     // posting mechanism now uses Block Kit rich_text (see BuildSlackRichTextBlock below), which DOES
-    // support underline (confirmed against Slack's live API) — so __x__ here is just this app's own
-    // internal marker, parsed by both this preview tokenizer and the rich_text converter; it's never
-    // sent to Slack as literal text.
+    // support underline (confirmed against Slack's live API) — so <u>x</u> here is just this app's
+    // own internal marker, parsed by both this preview tokenizer and the rich_text converter; it's
+    // never sent to Slack as literal text. Deliberately NOT __x__: Slack's own composer partially
+    // auto-formats a pasted double-underscore as italic (mistaking one underscore on each side for
+    // its real _italic_ token), leaving a stray leftover underscore — an HTML-style tag isn't one of
+    // Slack's own markdown triggers, so pasting it manually into Slack leaves it inert instead.
     private static readonly InlineRule[] SlackRules =
     [
         new(R(@"\*([^*\n]+)\*"),               SegStyle.Bold,      1, true),
-        new(R(@"__([^\n]+?)__"),               SegStyle.Underline, 1, true),
+        new(R(@"<u>(.*?)</u>", true),          SegStyle.Underline, 1, true),
         new(R(@"_([^_\n]+)_"),                 SegStyle.Italic,    1, true),
         new(R(@"~([^~\n]+)~"),                 SegStyle.Strike,    1, true),
         new(R(@"<([^>|\n]+)\|([^>\n]+)>"),     SegStyle.Link,      2, false),
@@ -237,7 +240,7 @@ internal sealed class OutputFormat
         // Slack/Discord: swap :emoji: for the placeholder FIRST so underscores inside a shortcode
         // (e.g. :white_small_square:) aren't mistaken for italics by the style parser.
         new("Plain Text", Identity,                     Identity,             StripMarkup, s => [new(s, SegStyle.None)]),
-        new("Slack",      x => $"*{x}*",                x => $"__{x}__",      Identity,    s => Tokenize(EmojiPh(s), SlackRules, Identity)),
+        new("Slack",      x => $"*{x}*",                x => $"<u>{x}</u>",   Identity,    s => Tokenize(EmojiPh(s), SlackRules, Identity)),
         new("Discord",    x => $"**{x}**",              x => $"__{x}__",      Identity,    s => Tokenize(EmojiPh(s), DiscordRules, Identity)),
         new("Markdown",   x => $"**{x}**",              Identity,             Identity,    s => Tokenize(MdLists(s), MdRules, Identity)),
         new("HTML",       x => $"<strong>{x}</strong>", x => $"<u>{x}</u>",   HtmlBreaks,  HtmlDisplay),
@@ -250,13 +253,13 @@ internal sealed class OutputFormat
     // Slack's legacy mrkdwn `text` field has no underline token at all, but Slack's Block Kit
     // rich_text format DOES support it (confirmed live against Slack's API: an unlisted-in-docs
     // but genuinely accepted `style.underline` — Slack echoed it back on the posted message).
-    // This walks the SAME "Slack" markup this class produces (*bold*, __underline__, _italic_,
+    // This walks the SAME "Slack" markup this class produces (*bold*, <u>underline</u>, _italic_,
     // ~strike~, <url|label>/<url>) into a rich_text block, preserving link URLs (which the shared
     // DisplaySeg/preview pipeline discards, since the preview never needs to open a link).
     private static readonly (Regex Re, int TextGroup, int? UrlGroup, SegStyle Style)[] SlackBlockRules =
     [
         (R(@"\*([^*\n]+)\*"),                1, null, SegStyle.Bold),
-        (R(@"__([^\n]+?)__"),                1, null, SegStyle.Underline),
+        (R(@"<u>(.*?)</u>", true),           1, null, SegStyle.Underline),
         (R(@"_([^_\n]+)_"),                  1, null, SegStyle.Italic),
         (R(@"~([^~\n]+)~"),                  1, null, SegStyle.Strike),
         (R(@"<([^>|\n]+)\|([^>\n]+)>"),      2, 1,    SegStyle.Link),
