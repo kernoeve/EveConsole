@@ -7,7 +7,7 @@ using EveConsole.Auth;
 
 namespace EveConsole.Services;
 
-public record SlackAuthResult(bool Ok, string? User, string? Team, string? Error);
+public record SlackAuthResult(bool Ok, string? User, string? Team, string? Error, string? UserId = null);
 
 // Ts is the posted message's id — persist it (with Channel) to thread replies under it later.
 public record SlackPostResult(bool Ok, string? Channel, string? Ts, string? Error);
@@ -17,7 +17,10 @@ public class SlackChannel
     public string Id        { get; init; } = "";
     public string Name      { get; init; } = "";
     public bool   IsPrivate { get; init; }
-    public override string ToString() => IsPrivate ? $"🔒 {Name}" : $"# {Name}";
+    // Your own DM-with-yourself — Slack's "note to self" conversation. Other people's DMs aren't
+    // surfaced (conversations.list gives no name for them without the users:read scope).
+    public bool   IsSelfDm  { get; init; }
+    public override string ToString() => IsSelfDm ? $"📝 {Name}" : IsPrivate ? $"🔒 {Name}" : $"# {Name}";
 }
 
 /// <summary>
@@ -32,6 +35,7 @@ public class SlackService
     private const string RefreshKey = "slack.refresh_token";
     private const string ExpiresKey = "slack.token_expires_at";
     private const string TeamKey    = "slack.team_name";
+    private const string SelfIdKey  = "slack.self_user_id";
 
     // Areas of the app that post to Slack; each maps to its own configured channel.
     public const string AreaCorpTop10 = "corp_top10";
@@ -57,6 +61,7 @@ public class SlackService
     public string? Token       => _prefs.Get(TokenKey);
     public bool    HasToken    => !string.IsNullOrWhiteSpace(Token);
     public string? TeamName    => _prefs.Get(TeamKey);
+    public string? SelfUserId  => _prefs.Get(SelfIdKey);
     public string? ChannelId(string area)   => _prefs.Get(ChanIdKey(area));
     public string? ChannelName(string area) => _prefs.Get(ChanNameKey(area));
 
@@ -99,6 +104,7 @@ public class SlackService
         await _prefs.SetAsync(RefreshKey, null);
         await _prefs.SetAsync(ExpiresKey, null);
         await _prefs.SetAsync(TeamKey,    null);
+        await _prefs.SetAsync(SelfIdKey,  null);
     }
 
     private async Task StoreAsync(SlackTokenSet t)
@@ -143,17 +149,24 @@ public class SlackService
             using var doc    = JsonDocument.Parse(await res.Content.ReadAsStringAsync(ct));
             var root = doc.RootElement;
 
-            return IsOk(root)
-                ? new SlackAuthResult(true, Str(root, "user"), Str(root, "team"), null)
-                : new SlackAuthResult(false, null, null, Err(root));
+            if (!IsOk(root)) return new SlackAuthResult(false, null, null, Err(root));
+
+            // user_id identifies your own self-DM ("note to self") in the channel picker — it needs
+            // no extra scope, auth.test always returns it.
+            var userId = Str(root, "user_id");
+            if (userId is not null) await _prefs.SetAsync(SelfIdKey, userId);
+            return new SlackAuthResult(true, Str(root, "user"), Str(root, "team"), null, userId);
         }
         catch (Exception ex) { return new SlackAuthResult(false, null, null, ex.Message); }
     }
 
-    /// <summary>Public + private channels the user can see, for the channel pickers.</summary>
+    /// <summary>Public + private channels the user can see, plus their own self-DM, for the
+    /// channel pickers. Other people's DMs aren't listed — conversations.list gives no name for
+    /// them without the users:read scope.</summary>
     public async Task<(List<SlackChannel> Channels, string? Error)> ListChannelsAsync(CancellationToken ct = default)
     {
-        var all = new List<SlackChannel>();
+        var all    = new List<SlackChannel>();
+        var selfId = SelfUserId;
         try
         {
             await EnsureFreshTokenAsync(ct);
@@ -161,7 +174,7 @@ public class SlackService
             string? cursor = null;
             do
             {
-                var url = "conversations.list?types=public_channel,private_channel"
+                var url = "conversations.list?types=public_channel,private_channel,im"
                         + "&exclude_archived=true&limit=200"
                         + (string.IsNullOrEmpty(cursor) ? "" : $"&cursor={Uri.EscapeDataString(cursor)}");
 
@@ -172,19 +185,32 @@ public class SlackService
 
                 if (root.TryGetProperty("channels", out var chans))
                     foreach (var c in chans.EnumerateArray())
+                    {
+                        bool isIm = c.TryGetProperty("is_im", out var im) && im.ValueKind == JsonValueKind.True;
+                        if (isIm)
+                        {
+                            // A DM's "user" is the other party — only your own self-DM is nameable
+                            // without users:read, so that's the only DM we surface.
+                            if (selfId is null || Str(c, "user") != selfId) continue;
+                            all.Add(new SlackChannel { Id = Str(c, "id") ?? "", Name = "Note to Self", IsSelfDm = true });
+                            continue;
+                        }
                         all.Add(new SlackChannel
                         {
                             Id        = Str(c, "id")   ?? "",
                             Name      = Str(c, "name") ?? "",
                             IsPrivate = c.TryGetProperty("is_private", out var p) && p.ValueKind == JsonValueKind.True,
                         });
+                    }
 
                 cursor = root.TryGetProperty("response_metadata", out var meta)
                       && meta.TryGetProperty("next_cursor", out var nc) ? nc.GetString() : null;
             }
             while (!string.IsNullOrEmpty(cursor));
 
-            return (all.Where(c => c.Id.Length > 0).OrderBy(c => c.Name).ToList(), null);
+            return (all.Where(c => c.Id.Length > 0)
+                       .OrderBy(c => c.IsSelfDm ? 0 : 1).ThenBy(c => c.Name)
+                       .ToList(), null);
         }
         catch (Exception ex) { return (all, ex.Message); }
     }
