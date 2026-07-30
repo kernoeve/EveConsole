@@ -170,6 +170,20 @@ public class SdeStargate
     public int DestinationStargateId { get; set; }
 }
 
+// In-system celestials (planets, moons, stargates) with their positions, used to label the nearest
+// point to a player structure. Populated from the universe SDE. Kind: 0 planet, 1 moon, 2 stargate.
+public class SdeCelestial
+{
+    public long   ItemId        { get; set; }   // planet/moon/stargate id (moons exceed int range)
+    public int    SolarSystemId { get; set; }
+    public int    TypeId        { get; set; }
+    public int    Kind          { get; set; }
+    public double X             { get; set; }
+    public double Y             { get; set; }
+    public double Z             { get; set; }
+    public string Name          { get; set; } = "";
+}
+
 public class SdeStation
 {
     public int    StationId              { get; set; }

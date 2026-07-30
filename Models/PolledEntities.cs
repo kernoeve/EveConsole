@@ -578,12 +578,33 @@ public class CorpStructure
     public int?   ReinforceHour      { get; set; }
 }
 
-// Universal cache of player-structure names resolved via /universe/structures/{id}/
+// Resolution status of a tracked player structure.
+public enum StructureStatus
+{
+    Pending  = 0,   // seen as a location ID, not yet queried
+    Resolved = 1,   // /universe/structures returned data
+    NoAccess = 2,   // 403 — no docking rights; we can't read its details
+    NotFound = 3,   // 404 — structure gone/unanchored
+}
+
+// The formal table of player-owned structures anchored in space. Seeded from any location ID we
+// receive (assets, contracts, industry, market, wallet, notifications) and enriched via
+// /universe/structures/{id}/ when a character has docking access. NPC stations live in the SDE
+// (SdeStations) — this table is player structures only.
 public class StructureName
 {
     public long          StructureId   { get; set; }
     public string        Name          { get; set; } = "";
     public int           SolarSystemId { get; set; }
+    public long          OwnerId       { get; set; }   // owning corporation id (0 if unknown)
+    public long          AllianceId    { get; set; }   // owning corp's alliance (0 if none/unknown)
+    public int           TypeId        { get; set; }   // structure type id (Keepstar = 35834)
+    public double        X             { get; set; }   // position within the solar system
+    public double        Y             { get; set; }
+    public double        Z             { get; set; }
+    public long          NearestCelestialId { get; set; }  // Phase 2 — nearest planet/moon/gate
+    public string        NearestCelestial   { get; set; } = "";
+    public int           Status        { get; set; }   // StructureStatus
     public DateTimeOffset PulledAt     { get; set; }
 }
 

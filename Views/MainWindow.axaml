@@ -267,6 +267,9 @@
               <DataTemplate DataType="vm:PriceOverrideViewModel">
                 <views:PriceOverrideView />
               </DataTemplate>
+              <DataTemplate DataType="vm:StructureBrowserViewModel">
+                <views:StructureBrowserView />
+              </DataTemplate>
               <DataTemplate DataType="vm:MarketLevelViewModel">
                 <views:MarketLevelView />
               </DataTemplate>
