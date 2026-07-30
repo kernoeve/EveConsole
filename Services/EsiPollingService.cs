@@ -101,6 +101,9 @@ public class EsiPollingService : ReactiveObject
         ["char.roles"]            = "Roles",
         ["char.fittings"]         = "Fittings",
         ["char.mail"]             = "Eve Mail",
+        ["char.online"]           = "Online Status",
+        ["char.location"]         = "Location",
+        ["char.ship"]             = "Current Ship",
         ["corp.wallet.balances"]  = "Wallet Balances",
         ["corp.divisions"]        = "Divisions",
         ["corp.wallet.journal"]   = "Wallet Journal",
@@ -251,8 +254,25 @@ public class EsiPollingService : ReactiveObject
     // the character must be re-added to grant the scope.
     private static readonly Dictionary<string, string> s_charEndpointScopes = new()
     {
-        ["char.roles"] = "esi-characters.read_corporation_roles.v1",
+        ["char.roles"]    = "esi-characters.read_corporation_roles.v1",
+        ["char.online"]   = "esi-location.read_online.v1",
+        ["char.location"] = "esi-location.read_location.v1",
+        ["char.ship"]     = "esi-location.read_ship_type.v1",
     };
+
+    // Endpoints not worth re-polling while a character is logged off. ESI still
+    // answers them when offline — it reports where the character logged off — so
+    // each one is fetched ONCE per app run even for offline characters, giving every
+    // alt a last-known position, and skipped thereafter until they log back in.
+    // An idle account therefore costs one /online/ call a minute, not three calls
+    // every ten seconds.
+    private static readonly HashSet<string> s_onlineOnlyEndpoints =
+        ["char.location", "char.ship"];
+
+    private readonly ConcurrentDictionary<long, bool> _onlineState = new();
+
+    // (characterId, endpointKey) pairs already fetched since startup.
+    private readonly ConcurrentDictionary<(long, string), bool> _offlineFixTaken = new();
 
     private async Task ProcessCharacterAsync(Character character, DateTimeOffset now, CancellationToken ct)
     {
@@ -263,6 +283,14 @@ public class EsiPollingService : ReactiveObject
             ct.ThrowIfCancellationRequested();
 
             if (s_charEndpointScopes.TryGetValue(ep.Key, out var reqScope) && !character.HasScope(reqScope))
+                continue;
+
+            // Skip before the call so no API-activity record is written for a request
+            // that was never made. Offline characters still get one fix per app run
+            // so their last-known location and ship are recorded.
+            if (s_onlineOnlyEndpoints.Contains(ep.Key)
+                && _onlineState.TryGetValue(character.Id, out var isOnline) && !isOnline
+                && _offlineFixTaken.ContainsKey((character.Id, ep.Key)))
                 continue;
 
             var callKey = $"{ep.Key}:{character.Id}:character";
@@ -311,6 +339,9 @@ public class EsiPollingService : ReactiveObject
 
             if (result.Success && s_netWorthCharEndpoints.Contains(ep.Key))
                 netWorthDirty = true;
+
+            if (result.Success && s_onlineOnlyEndpoints.Contains(ep.Key))
+                _offlineFixTaken[(character.Id, ep.Key)] = true;
 
             await Task.Delay(500, ct);
         }
@@ -1133,6 +1164,95 @@ public class EsiPollingService : ReactiveObject
         return FromResult(r);
     }
 
+    // ── Live session state ───────────────────────────────────────────────────
+    // Current online / location / ship per character, stored in CharacterStatuses.
+    // Unlike the other endpoints these overwrite rather than accumulate — only the
+    // present state matters. Location and ship are skipped while a character is
+    // offline, which is what keeps the call volume reasonable at a 10s cadence.
+
+    private static async Task<CharacterStatus> GetOrCreateStatusAsync(
+        AppDbContext db, long charId, CancellationToken ct)
+    {
+        var status = await db.CharacterStatuses.FindAsync([charId], ct);
+        if (status is null)
+        {
+            status = new CharacterStatus { CharacterId = charId };
+            db.CharacterStatuses.Add(status);
+        }
+        return status;
+    }
+
+    private async Task<PollingResult> FetchOnlineAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        var r = await _esi.ExecuteAuthAsync<EsiCharacterOnline>(charId,
+            $"characters/{charId}/online/", ct);
+        if (!r.IsSuccess || r.Data is null) return FromResult(r);
+
+        var status = await GetOrCreateStatusAsync(db, charId, ct);
+
+        status.Online          = r.Data.Online;
+        status.LastLogin       = r.Data.LastLogin;
+        status.LastLogout      = r.Data.LastLogout;
+        status.LoginCount      = r.Data.Logins;
+        status.OnlineCheckedAt = DateTimeOffset.UtcNow;
+
+        // Cached so the endpoint loop can skip location/ship without a DB read.
+        var wasOnline = _onlineState.TryGetValue(charId, out var prev) && prev;
+        _onlineState[charId] = r.Data.Online;
+
+        // Location and ship are deliberately NOT cleared on logout. Last-known
+        // position is the whole point for cross-alt planning ("which of my
+        // characters is nearest system X"), which has to work for logged-off alts.
+        // Consumers distinguish live from stale via Online and LocationCheckedAt.
+
+        // On the online→offline transition, drop the once-per-run guard so location
+        // and ship are read one final time. ESI still answers both while offline, and
+        // the last in-session poll could be a whole interval — and several jumps —
+        // out of date, so this captures where they actually logged off.
+        if (wasOnline && !r.Data.Online)
+        {
+            _offlineFixTaken.TryRemove((charId, "char.location"), out _);
+            _offlineFixTaken.TryRemove((charId, "char.ship"), out _);
+        }
+
+        await db.SaveChangesAsync(ct);
+        return FromResult(r);
+    }
+
+    private async Task<PollingResult> FetchLocationAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        var status = await GetOrCreateStatusAsync(db, charId, ct);
+
+        var r = await _esi.ExecuteAuthAsync<EsiCharacterLocation>(charId,
+            $"characters/{charId}/location/", ct);
+        if (!r.IsSuccess || r.Data is null) return FromResult(r);
+
+        status.SolarSystemId     = r.Data.SolarSystemId;
+        status.StationId         = r.Data.StationId;
+        status.StructureId       = r.Data.StructureId;
+        status.LocationCheckedAt = DateTimeOffset.UtcNow;
+
+        await db.SaveChangesAsync(ct);
+        return FromResult(r);
+    }
+
+    private async Task<PollingResult> FetchShipAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        var status = await GetOrCreateStatusAsync(db, charId, ct);
+
+        var r = await _esi.ExecuteAuthAsync<EsiCharacterShip>(charId,
+            $"characters/{charId}/ship/", ct);
+        if (!r.IsSuccess || r.Data is null) return FromResult(r);
+
+        status.ShipTypeId    = r.Data.ShipTypeId;
+        status.ShipItemId    = r.Data.ShipItemId;
+        status.ShipName      = r.Data.ShipName;
+        status.ShipCheckedAt = DateTimeOffset.UtcNow;
+
+        await db.SaveChangesAsync(ct);
+        return FromResult(r);
+    }
+
     private async Task<PollingResult> FetchImplantsAsync(long charId, AppDbContext db, CancellationToken ct)
     {
         var r = await _esi.ExecuteAuthAsync<List<int>>(charId,
@@ -1549,6 +1669,11 @@ public class EsiPollingService : ReactiveObject
         new("char.roles",           3600,  7200, FetchRolesAsync),
         new("char.fittings",        300,   1800, FetchFittingsAsync),
         new("char.mail",            300,    600, FetchMailAsync),
+        // Live session state. Much faster cadence than everything else here — these
+        // endpoints cache for 5s (location, ship) and 60s (online) rather than minutes.
+        new("char.online",          60,      60, FetchOnlineAsync),
+        new("char.location",         5,      10, FetchLocationAsync),
+        new("char.ship",             5,      10, FetchShipAsync),
     ];
 
     // ── Token loading ────────────────────────────────────────────────────────

@@ -802,3 +802,185 @@ public class AppErrorEntry
     public string Message     { get; set; } = "";
     public string? InnerMessage { get; set; }
 }
+
+// ── Client activity monitoring ────────────────────────────────────────────────
+
+/// <summary>
+/// Current live session state for a character, refreshed by the char.online /
+/// char.location / char.ship polling endpoints.
+///
+/// Kept in its own table rather than as columns on Character so that fast-changing
+/// session state never collides with the identity/skill upserts that write the
+/// Character row.
+/// </summary>
+public class CharacterStatus
+{
+    public long CharacterId { get; set; }
+
+    public bool            Online      { get; set; }
+    public DateTimeOffset? LastLogin   { get; set; }
+    public DateTimeOffset? LastLogout  { get; set; }
+    public int?            LoginCount  { get; set; }
+
+    // Location. StationId and StructureId are both null when in space.
+    //
+    // RETAINED AFTER LOGOUT — deliberately. These hold last-known position, which is
+    // what cross-alt planning needs ("which of my characters is nearest system X"),
+    // and that has to work for logged-off alts. Use Online to tell whether the
+    // character is there right now, and LocationCheckedAt for how fresh it is.
+    public int?  SolarSystemId { get; set; }
+    public long? StationId     { get; set; }
+    public long? StructureId   { get; set; }
+
+    public int?    ShipTypeId { get; set; }
+    public long?   ShipItemId { get; set; }
+    public string? ShipName   { get; set; }
+
+    public DateTimeOffset? OnlineCheckedAt   { get; set; }
+    public DateTimeOffset? LocationCheckedAt { get; set; }
+    public DateTimeOffset? ShipCheckedAt     { get; set; }
+
+    /// <summary>True when the character is docked (station or structure).</summary>
+    public bool IsDocked => StationId is not null || StructureId is not null;
+}
+
+/// <summary>
+/// Per-file parse position for the game log importer, so a restart resumes exactly
+/// where it stopped instead of re-reading or skipping.
+/// </summary>
+public class GameLogFile
+{
+    public string Path { get; set; } = "";
+
+    public long?   CharacterId   { get; set; }
+    public string? CharacterName { get; set; }
+
+    /// <summary>Byte offset already consumed.</summary>
+    public long LastOffset { get; set; }
+    /// <summary>Lines already consumed; combined with Path this makes rows unique.</summary>
+    public long LastLineNumber { get; set; }
+    /// <summary>File length at last read — a smaller length means truncation or replacement.</summary>
+    public long LastFileLength { get; set; }
+
+    public DateTimeOffset FirstSeenAt  { get; set; }
+    public DateTimeOffset LastParsedAt { get; set; }
+}
+
+/// <summary>
+/// One parsed game log line worth keeping.
+///
+/// ⚠ OccurredAt is an ISO-8601 STRING, not DateTimeOffset. EF Core's SQLite provider
+/// cannot translate DateTimeOffset comparisons inside a LINQ Where — it throws at
+/// runtime and the failure is easy to swallow in a background loop. Tools will
+/// certainly want to filter by date, so this follows the same string-date pattern as
+/// MarketTypeHistory.Date. Format "yyyy-MM-ddTHH:mm:ssZ" sorts lexicographically.
+/// </summary>
+public class GameLogEvent
+{
+    public int    Id         { get; set; }
+    public string OccurredAt { get; set; } = "";
+    public string Kind       { get; set; } = "";
+
+    public long?   CharacterId   { get; set; }
+    public string? CharacterName { get; set; }
+
+    /// <summary>Provenance. With LineNumber this identifies the source line exactly.</summary>
+    public string SourceFile { get; set; } = "";
+    public long   LineNumber { get; set; }
+
+    /// <summary>Damage, GJ neutralised, repair amount, units mined, ISK bounty —
+    /// whatever the line quantified. Long because bounty payouts are ISK.</summary>
+    public long? Amount { get; set; }
+
+    /// <summary>Second quantity where a line carries one — currently only mining,
+    /// where it holds the lost residue.</summary>
+    public long? SecondaryAmount { get; set; }
+
+    public string? SourceName     { get; set; }
+    public string? SourceShip     { get; set; }
+    public string? SourceCorp     { get; set; }
+    public string? SourceAlliance { get; set; }
+
+    public string? TargetName     { get; set; }
+    public string? TargetShip     { get; set; }
+    public string? TargetCorp     { get; set; }
+    public string? TargetAlliance { get; set; }
+
+    public string? Weapon  { get; set; }
+    public string? Quality { get; set; }
+
+    public string? FromSystem   { get; set; }
+    public string? ToSystem     { get; set; }
+    public string? LocationName { get; set; }
+
+    /// <summary>Markup-stripped original line, for diagnosing parse gaps.</summary>
+    public string? RawText { get; set; }
+}
+
+// ── Chat log import ───────────────────────────────────────────────────────────
+
+/// <summary>
+/// Per-file parse position for the chat log importer. Separate from GameLogFiles
+/// because chat files also carry channel identity, and the two importers are
+/// independently enabled.
+/// </summary>
+public class ChatLogFile
+{
+    public string Path { get; set; } = "";
+
+    /// <summary>Channel name taken from the filename, available before the file is
+    /// opened — this is what the allowlist is matched against.</summary>
+    public string ChannelName { get; set; } = "";
+    /// <summary>Channel ID from the file header, e.g. "local" or "player_&lt;guid&gt;".</summary>
+    public string? ChannelId { get; set; }
+
+    public long?   ListenerCharacterId { get; set; }
+    public string? ListenerName        { get; set; }
+
+    public long LastOffset     { get; set; }
+    public long LastLineNumber { get; set; }
+    public long LastFileLength { get; set; }
+
+    public DateTimeOffset FirstSeenAt  { get; set; }
+    public DateTimeOffset LastParsedAt { get; set; }
+}
+
+/// <summary>
+/// One chat message.
+///
+/// ⚠ PRIVACY. Unlike game logs, this stores other people's words — including private
+/// conversations, which appear as channels named "Private Chat (2)", "Private Chat (3)"
+/// and so on. Those are generic SLOT names, reused for different people over time, so
+/// one such channel can cover DMs with many different players.
+/// Import is therefore off by default AND gated on an explicit per-channel allowlist,
+/// so nothing is stored until the user names the channels they want kept.
+///
+/// OccurredAt is an ISO-8601 string for the same reason as GameLogEvent: EF Core's
+/// SQLite provider cannot translate DateTimeOffset comparisons in a LINQ Where.
+/// </summary>
+public class ChatMessage
+{
+    public int    Id         { get; set; }
+    public string OccurredAt { get; set; } = "";
+
+    public string  ChannelName { get; set; } = "";
+    public string? ChannelId   { get; set; }
+
+    /// <summary>Which of the user's characters logged this — whose client wrote the file.</summary>
+    public long?   ListenerCharacterId { get; set; }
+    public string? ListenerName        { get; set; }
+
+    public string  SenderName { get; set; } = "";
+    public string  Message    { get; set; } = "";
+
+    /// <summary>True for "EVE System" lines — MOTD, "Channel changed to Local : X",
+    /// chat server connect/disconnect. These carry no player speech.</summary>
+    public bool IsSystemMessage { get; set; }
+
+    /// <summary>For system "Channel changed to Local : &lt;system&gt;" lines, the solar
+    /// system name. Gives per-character presence independent of the game logs.</summary>
+    public string? SystemName { get; set; }
+
+    public string SourceFile { get; set; } = "";
+    public long   LineNumber { get; set; }
+}

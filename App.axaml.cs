@@ -7,6 +7,7 @@ using EveConsole.Views;
 using EveConsole.ViewModels;
 using EveConsole.Auth;
 using EveConsole.Api;
+using EveConsole.Monitoring;
 using EveConsole.Services;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
@@ -49,6 +50,8 @@ public class App : Application
         MarketPricingService? marketPricing = null;
         MarketHistoryService? marketHistory = null;
         ContractsService?     contracts     = null;
+        GameLogImportService? gameLogs      = null;
+        ChatLogImportService? chatLogs      = null;
         MainWindow?           mainWindow    = null;
         SplashWindow?         splash        = null;
 
@@ -62,6 +65,8 @@ public class App : Application
             marketPricing = Services.GetRequiredService<MarketPricingService>();
             marketHistory = Services.GetRequiredService<MarketHistoryService>();
             contracts     = Services.GetRequiredService<ContractsService>();
+            gameLogs      = Services.GetRequiredService<GameLogImportService>();
+            chatLogs      = Services.GetRequiredService<ChatLogImportService>();
 
             var buildCostService = Services.GetRequiredService<BuildCostService>();
             var reprService      = Services.GetRequiredService<ReprocessingValueService>();
@@ -85,6 +90,8 @@ public class App : Application
                 if (marketPricing is not null) tasks.Add(marketPricing.StopAsync());
                 if (marketHistory is not null) tasks.Add(marketHistory.StopAsync());
                 if (contracts     is not null) tasks.Add(contracts.StopAsync());
+                if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
+                if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
                 await Task.WhenAll(tasks);
                 desktop.Shutdown();
             };
@@ -1344,6 +1351,132 @@ public class App : Application
                 )
                 """);
 
+            // ── Client activity monitoring ───────────────────────────────────
+            // Live session state per character, refreshed by the char.online /
+            // char.location / char.ship polling endpoints.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "CharacterStatuses" (
+                    "CharacterId"       INTEGER NOT NULL CONSTRAINT "PK_CharacterStatuses" PRIMARY KEY,
+                    "Online"            INTEGER NOT NULL DEFAULT 0,
+                    "LastLogin"         TEXT,
+                    "LastLogout"        TEXT,
+                    "LoginCount"        INTEGER,
+                    "SolarSystemId"     INTEGER,
+                    "StationId"         INTEGER,
+                    "StructureId"       INTEGER,
+                    "ShipTypeId"        INTEGER,
+                    "ShipItemId"        INTEGER,
+                    "ShipName"          TEXT,
+                    "OnlineCheckedAt"   TEXT,
+                    "LocationCheckedAt" TEXT,
+                    "ShipCheckedAt"     TEXT
+                )
+                """);
+
+            // Per-file parse position, so restarts resume rather than re-read or skip.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "GameLogFiles" (
+                    "Path"           TEXT    NOT NULL CONSTRAINT "PK_GameLogFiles" PRIMARY KEY,
+                    "CharacterId"    INTEGER,
+                    "CharacterName"  TEXT,
+                    "LastOffset"     INTEGER NOT NULL DEFAULT 0,
+                    "LastLineNumber" INTEGER NOT NULL DEFAULT 0,
+                    "LastFileLength" INTEGER NOT NULL DEFAULT 0,
+                    "FirstSeenAt"    TEXT    NOT NULL DEFAULT '',
+                    "LastParsedAt"   TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+
+            // Parsed log lines. OccurredAt is an ISO string, not a DateTimeOffset —
+            // EF Core + SQLite cannot translate DateTimeOffset comparisons in a Where.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "GameLogEvents" (
+                    "Id"             INTEGER NOT NULL CONSTRAINT "PK_GameLogEvents" PRIMARY KEY AUTOINCREMENT,
+                    "OccurredAt"     TEXT    NOT NULL DEFAULT '',
+                    "Kind"           TEXT    NOT NULL DEFAULT '',
+                    "CharacterId"    INTEGER,
+                    "CharacterName"  TEXT,
+                    "SourceFile"     TEXT    NOT NULL DEFAULT '',
+                    "LineNumber"     INTEGER NOT NULL DEFAULT 0,
+                    "Amount"         INTEGER,
+                    "SecondaryAmount" INTEGER,
+                    "SourceName"     TEXT,
+                    "SourceShip"     TEXT,
+                    "SourceCorp"     TEXT,
+                    "SourceAlliance" TEXT,
+                    "TargetName"     TEXT,
+                    "TargetShip"     TEXT,
+                    "TargetCorp"     TEXT,
+                    "TargetAlliance" TEXT,
+                    "Weapon"         TEXT,
+                    "Quality"        TEXT,
+                    "FromSystem"     TEXT,
+                    "ToSystem"       TEXT,
+                    "LocationName"   TEXT,
+                    "RawText"        TEXT
+                )
+                """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_GameLogEvents_SourceFile_LineNumber"
+                ON "GameLogEvents" ("SourceFile", "LineNumber")
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_GameLogEvents_OccurredAt"
+                ON "GameLogEvents" ("OccurredAt")
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_GameLogEvents_CharacterId_Kind"
+                ON "GameLogEvents" ("CharacterId", "Kind")
+                """);
+
+            // Chat log import. Off by default and gated on a per-channel allowlist —
+            // these rows contain other people's words, including private conversations.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "ChatLogFiles" (
+                    "Path"                TEXT    NOT NULL CONSTRAINT "PK_ChatLogFiles" PRIMARY KEY,
+                    "ChannelName"         TEXT    NOT NULL DEFAULT '',
+                    "ChannelId"           TEXT,
+                    "ListenerCharacterId" INTEGER,
+                    "ListenerName"        TEXT,
+                    "LastOffset"          INTEGER NOT NULL DEFAULT 0,
+                    "LastLineNumber"      INTEGER NOT NULL DEFAULT 0,
+                    "LastFileLength"      INTEGER NOT NULL DEFAULT 0,
+                    "FirstSeenAt"         TEXT    NOT NULL DEFAULT '',
+                    "LastParsedAt"        TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "ChatMessages" (
+                    "Id"                  INTEGER NOT NULL CONSTRAINT "PK_ChatMessages" PRIMARY KEY AUTOINCREMENT,
+                    "OccurredAt"          TEXT    NOT NULL DEFAULT '',
+                    "ChannelName"         TEXT    NOT NULL DEFAULT '',
+                    "ChannelId"           TEXT,
+                    "ListenerCharacterId" INTEGER,
+                    "ListenerName"        TEXT,
+                    "SenderName"          TEXT    NOT NULL DEFAULT '',
+                    "Message"             TEXT    NOT NULL DEFAULT '',
+                    "IsSystemMessage"     INTEGER NOT NULL DEFAULT 0,
+                    "SystemName"          TEXT,
+                    "SourceFile"          TEXT    NOT NULL DEFAULT '',
+                    "LineNumber"          INTEGER NOT NULL DEFAULT 0
+                )
+                """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_ChatMessages_SourceFile_LineNumber"
+                ON "ChatMessages" ("SourceFile", "LineNumber")
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_ChatMessages_OccurredAt"
+                ON "ChatMessages" ("OccurredAt")
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_ChatMessages_ChannelName_OccurredAt"
+                ON "ChatMessages" ("ChannelName", "OccurredAt")
+                """);
+
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "AlertSettings" (
                     "Id"                    INTEGER NOT NULL PRIMARY KEY,
@@ -1529,6 +1662,8 @@ public class App : Application
         marketHistory?.Start();
         contracts?.Start();
         Services.GetRequiredService<DatabaseBackupService>().Start();
+        gameLogs?.Start();
+        chatLogs?.Start();
     }
 
     private static void PositionSplashOnLastMonitor(SplashWindow splash)
@@ -1622,6 +1757,14 @@ public class App : Application
         services.AddSingleton<CorpActivityService>();
         services.AddSingleton<KillmailBrowserService>();
         services.AddSingleton<CorpTop10ExcludeService>();
+
+        // Game log import — reads EVE's own logs into GameLogEvents for tools to
+        // query. Read-only; nothing is ever written back to an EVE-owned file.
+        services.AddSingleton<MonitoringSettings>();
+        services.AddSingleton<GameLogImportService>();
+        // Chat import is off by default and additionally gated on a per-channel
+        // allowlist — it stores other people's messages.
+        services.AddSingleton<ChatLogImportService>();
 
         // ViewModels
         services.AddTransient<MainWindowViewModel>();

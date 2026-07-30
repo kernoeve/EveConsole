@@ -642,3 +642,14 @@ public record EsiMailLabelsWrapper(
     [property: JsonPropertyName("labels")]             List<EsiMailLabelInfo>? Labels,
     [property: JsonPropertyName("total_unread_count")] int?                   TotalUnreadCount
 );
+
+// ── Session (used by the activity monitoring subsystem) ──────────────────────
+// EsiCharacterLocation and EsiCharacterShip already exist above — they were
+// defined but never actually polled until the monitoring subsystem arrived.
+
+public record EsiCharacterOnline(
+    [property: JsonPropertyName("online")]      bool            Online,
+    [property: JsonPropertyName("last_login")]  DateTimeOffset? LastLogin,
+    [property: JsonPropertyName("last_logout")] DateTimeOffset? LastLogout,
+    [property: JsonPropertyName("logins")]      int?            Logins
+);
