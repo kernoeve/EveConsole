@@ -324,6 +324,12 @@
               <DataTemplate DataType="vm:ErrorLogViewModel">
                 <views:ErrorLogView />
               </DataTemplate>
+              <DataTemplate DataType="vm:GameLogViewerViewModel">
+                <views:GameLogViewerView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:ChatLogViewerViewModel">
+                <views:ChatLogViewerView />
+              </DataTemplate>
             </ContentControl.DataTemplates>
           </ContentControl>
 
