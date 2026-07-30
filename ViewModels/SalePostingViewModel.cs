@@ -129,14 +129,23 @@ internal sealed class OutputFormat
     private static readonly Regex BbTag   = new(@"\[/?[^\]]+\]", RegexOptions.Compiled);
 
     // Per-format inline rules — multi-char delimiters listed before single-char so they win ties.
-    // Underline is intentionally absent where the platform lacks it (Slack, Markdown).
+    // Underline is intentionally absent where the platform lacks it (Markdown has no underline
+    // syntax anywhere). Slack's legacy mrkdwn text has no underline token either, but Slack's real
+    // posting mechanism now uses Block Kit rich_text (see BuildSlackRichTextBlock below), which DOES
+    // support underline (confirmed against Slack's live API) — so <u>x</u> here is just this app's
+    // own internal marker, parsed by both this preview tokenizer and the rich_text converter; it's
+    // never sent to Slack as literal text. Deliberately NOT __x__: Slack's own composer partially
+    // auto-formats a pasted double-underscore as italic (mistaking one underscore on each side for
+    // its real _italic_ token), leaving a stray leftover underscore — an HTML-style tag isn't one of
+    // Slack's own markdown triggers, so pasting it manually into Slack leaves it inert instead.
     private static readonly InlineRule[] SlackRules =
     [
-        new(R(@"\*([^*\n]+)\*"),               SegStyle.Bold,   1, true),
-        new(R(@"_([^_\n]+)_"),                 SegStyle.Italic, 1, true),
-        new(R(@"~([^~\n]+)~"),                 SegStyle.Strike, 1, true),
-        new(R(@"<([^>|\n]+)\|([^>\n]+)>"),     SegStyle.Link,   2, false),
-        new(R(@"<((?:https?|mailto)[^>\n]+)>"),SegStyle.Link,   1, false),
+        new(R(@"\*([^*\n]+)\*"),               SegStyle.Bold,      1, true),
+        new(R(@"<u>(.*?)</u>", true),          SegStyle.Underline, 1, true),
+        new(R(@"_([^_\n]+)_"),                 SegStyle.Italic,    1, true),
+        new(R(@"~([^~\n]+)~"),                 SegStyle.Strike,    1, true),
+        new(R(@"<([^>|\n]+)\|([^>\n]+)>"),     SegStyle.Link,      2, false),
+        new(R(@"<((?:https?|mailto)[^>\n]+)>"),SegStyle.Link,      1, false),
     ];
     private static readonly InlineRule[] DiscordRules =
     [
@@ -231,7 +240,7 @@ internal sealed class OutputFormat
         // Slack/Discord: swap :emoji: for the placeholder FIRST so underscores inside a shortcode
         // (e.g. :white_small_square:) aren't mistaken for italics by the style parser.
         new("Plain Text", Identity,                     Identity,             StripMarkup, s => [new(s, SegStyle.None)]),
-        new("Slack",      x => $"*{x}*",                Identity,             Identity,    s => Tokenize(EmojiPh(s), SlackRules, Identity)),
+        new("Slack",      x => $"*{x}*",                x => $"<u>{x}</u>",   Identity,    s => Tokenize(EmojiPh(s), SlackRules, Identity)),
         new("Discord",    x => $"**{x}**",              x => $"__{x}__",      Identity,    s => Tokenize(EmojiPh(s), DiscordRules, Identity)),
         new("Markdown",   x => $"**{x}**",              Identity,             Identity,    s => Tokenize(MdLists(s), MdRules, Identity)),
         new("HTML",       x => $"<strong>{x}</strong>", x => $"<u>{x}</u>",   HtmlBreaks,  HtmlDisplay),
@@ -239,6 +248,95 @@ internal sealed class OutputFormat
     ];
 
     public static OutputFormat ByName(string? name) => All.FirstOrDefault(f => f.Name == name) ?? All[0];
+
+    // ── Slack rich_text (real posting, not the preview/clipboard markup above) ─────────────
+    // Slack's legacy mrkdwn `text` field has no underline token at all, but Slack's Block Kit
+    // rich_text format DOES support it (confirmed live against Slack's API: an unlisted-in-docs
+    // but genuinely accepted `style.underline` — Slack echoed it back on the posted message).
+    // This walks the SAME "Slack" markup this class produces (*bold*, <u>underline</u>, _italic_,
+    // ~strike~, <url|label>/<url>) into a rich_text block, preserving link URLs (which the shared
+    // DisplaySeg/preview pipeline discards, since the preview never needs to open a link).
+    private static readonly (Regex Re, int TextGroup, int? UrlGroup, SegStyle Style)[] SlackBlockRules =
+    [
+        (R(@"\*([^*\n]+)\*"),                1, null, SegStyle.Bold),
+        (R(@"<u>(.*?)</u>", true),           1, null, SegStyle.Underline),
+        (R(@"_([^_\n]+)_"),                  1, null, SegStyle.Italic),
+        (R(@"~([^~\n]+)~"),                  1, null, SegStyle.Strike),
+        (R(@"<([^>|\n]+)\|([^>\n]+)>"),      2, 1,    SegStyle.Link),
+        (R(@"<((?:https?|mailto)[^>\n]+)>"), 1, 1,    SegStyle.Link),
+    ];
+
+    /// <summary>Converts Slack-format markup text into a Block Kit "rich_text" block object, one
+    /// rich_text_section per line, ready to pass as SlackService.PostMessageAsync's `blocks`.</summary>
+    public static object BuildSlackRichTextBlock(string markup)
+    {
+        var lines = markup.Replace("\r\n", "\n").Split('\n');
+        var sections = new List<object>(lines.Length);
+        foreach (var line in lines)
+        {
+            // Protect :emoji_name: shortcodes from the bold/italic/strike/underline matching below
+            // FIRST — same reason the preview tokenizer swaps them out via EmojiPh (see ToDisplay
+            // above): an emoji name containing an underscore (e.g. :white_small_square:) has no
+            // partner underscore of its own, so the _italic_ rule instead pairs it with the
+            // underscore in the NEXT unrelated shortcode later on the same line, and silently eats
+            // both underscores plus everything between them. Swap each shortcode for a placeholder
+            // with no markup-significant characters, tokenize, then restore the literal text —
+            // unlike the preview (which shows an emoji placeholder glyph since it can't render real
+            // custom emoji anyway), the actual posted text must keep the real shortcode so Slack
+            // renders the emoji.
+            var emojis = new List<string>();
+            var protectedLine = Emoji.Replace(line, m => { emojis.Add(m.Value); return $"{emojis.Count - 1}"; });
+
+            var elements = new List<object>();
+            WalkSlackBlock(protectedLine, SegStyle.None, emojis, elements);
+            // A blank line (paragraph spacing) has nothing to emit, but Slack's rich_text schema
+            // rejects a zero-length text element outright ("must be more than 0 characters") --
+            // a single space satisfies that while still rendering as an empty-looking line.
+            if (elements.Count == 0) elements.Add(new { type = "text", text = " " });
+            sections.Add(new { type = "rich_text_section", elements });
+        }
+        return new { type = "rich_text", elements = sections };
+    }
+
+    private static string RestoreEmojis(string s, List<string> emojis) =>
+        emojis.Count == 0 ? s : Regex.Replace(s, "(\\d+)", m => emojis[int.Parse(m.Groups[1].Value)]);
+
+    private static void WalkSlackBlock(string text, SegStyle inherited, List<string> emojis, List<object> o)
+    {
+        int pos = 0;
+        while (pos < text.Length)
+        {
+            Match? best = null;
+            (Regex Re, int TextGroup, int? UrlGroup, SegStyle Style)? br = null;
+            foreach (var r in SlackBlockRules)
+            {
+                var m = r.Re.Match(text, pos);
+                if (m.Success && (best is null || m.Index < best.Index)) { best = m; br = r; }
+            }
+            if (best is null || br is null) { EmitSlackText(o, text[pos..], inherited, emojis); return; }
+            if (best.Index > pos) EmitSlackText(o, text[pos..best.Index], inherited, emojis);
+
+            var inner = best.Groups[br.Value.TextGroup].Value;
+            if (br.Value.Style == SegStyle.Link)
+                o.Add(new { type = "link", url = RestoreEmojis(best.Groups[br.Value.UrlGroup!.Value].Value, emojis), text = RestoreEmojis(inner, emojis) });
+            else
+                WalkSlackBlock(inner, inherited | br.Value.Style, emojis, o);   // recurse — styles can nest
+            pos = best.Index + best.Length;
+        }
+    }
+
+    private static void EmitSlackText(List<object> o, string t, SegStyle style, List<string> emojis)
+    {
+        if (t.Length == 0) return;
+        t = RestoreEmojis(t, emojis);
+        if (style == SegStyle.None) { o.Add(new { type = "text", text = t }); return; }
+        var styleObj = new Dictionary<string, object>();
+        if (style.HasFlag(SegStyle.Bold))      styleObj["bold"]      = true;
+        if (style.HasFlag(SegStyle.Italic))    styleObj["italic"]    = true;
+        if (style.HasFlag(SegStyle.Strike))    styleObj["strike"]    = true;
+        if (style.HasFlag(SegStyle.Underline)) styleObj["underline"] = true;
+        o.Add(new { type = "text", text = t, style = styleObj });
+    }
 }
 
 // ── Posting row (top level) ─────────────────────────────────────────────────────
@@ -599,6 +697,7 @@ public class SalePostingViewModel : ReactiveObject
 {
     private readonly SalePostingService _svc;
     private readonly BatchAddService?   _batchSvc;
+    private readonly SlackService?      _slack;
 
     private List<SalePostingRow> _allPostings = [];
 
@@ -652,6 +751,7 @@ public class SalePostingViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> AddFromMarketGroupCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenInItemBrowserCommand  { get; }
     public ReactiveCommand<Unit, Unit> RenderRefreshCommand      { get; }
+    public ReactiveCommand<Unit, Unit> PostToSlackCommand        { get; }
 
     // Dialog delegates — wired by the view (ShowDialog decoupling).
     public Func<Task<PostingDialogResult?>>?                        ShowAddPostingDialog;
@@ -663,10 +763,11 @@ public class SalePostingViewModel : ReactiveObject
     public Action<int, string>?                                     OpenInItemBrowser;
 
     public SalePostingViewModel(SalePostingService svc, IDbContextFactory<AppDbContext> dbFactory,
-        BatchAddService? batchSvc = null)
+        BatchAddService? batchSvc = null, SlackService? slack = null)
     {
         _svc      = svc;
         _batchSvc = batchSvc;
+        _slack    = slack;
 
         AddPostingCommand         = ReactiveCommand.CreateFromTask(AddPostingAsync);
         RefreshCommand            = ReactiveCommand.CreateFromTask(RefreshAllAsync);
@@ -674,6 +775,7 @@ public class SalePostingViewModel : ReactiveObject
         AddFromMarketGroupCommand = ReactiveCommand.CreateFromTask(AddFromMarketGroupAsync);
         OpenInItemBrowserCommand  = ReactiveCommand.Create(OpenSelectedInItemBrowser);
         RenderRefreshCommand      = ReactiveCommand.CreateFromTask(RenderSelectedAsync);
+        PostToSlackCommand        = ReactiveCommand.CreateFromTask(PostSelectedToSlackAsync);
 
         _ = InitAsync();
 
@@ -823,8 +925,110 @@ public class SalePostingViewModel : ReactiveObject
             };
             var clip = fmt.Finalize(body);        // clipboard: raw markup + literal :emoji:
             var segs = fmt.ToDisplay(clip);       // preview: real bold + emoji placeholder
-            RenderedBlocks.Add(new RenderedBlock($"{post.Name}  ·  {post.PostType}", clip, segs));
+
+            // Slack's own composer has no typed/pasted syntax for underline (toolbar/shortcut
+            // only — confirmed there's no character sequence for it, unlike *bold*/_italic_), so
+            // this app's internal <u>...</u> marker would show up as literal, confusing text if
+            // manually copy-pasted into Slack. Strip it from what gets copied (keep the inner
+            // text) for that one target — the preview above already parsed the tags for display,
+            // and the real "Post to Slack" button re-renders independently of this copy text, so
+            // dropping it here doesn't touch either.
+            var clipboardText = _selectedFormat == "Slack"
+                ? Regex.Replace(clip, "</?u>", "", RegexOptions.IgnoreCase)
+                : clip;
+            RenderedBlocks.Add(new RenderedBlock($"{post.Name}  ·  {post.PostType}", clipboardText, segs));
         }
+    }
+
+    // ── Slack ────────────────────────────────────────────────────────────────
+    // The post button only shows once a token and a Sale Posting channel are configured.
+    // Re-checked when the Settings window closes (see MainWindow.OpenSettingsAsync).
+
+    public bool IsSlackConfigured => _slack?.IsConfigured(SlackService.AreaSalePosting) == true;
+
+    public string SlackChannelText =>
+        _slack?.ChannelName(SlackService.AreaSalePosting) is { Length: > 0 } n ? $"#{n}" : "";
+
+    private string _slackStatus = "";
+    public string SlackStatus { get => _slackStatus; private set => this.RaiseAndSetIfChanged(ref _slackStatus, value); }
+
+    private bool _isPostingToSlack;
+    public bool IsPostingToSlack { get => _isPostingToSlack; private set => this.RaiseAndSetIfChanged(ref _isPostingToSlack, value); }
+
+    public void RefreshSlackState()
+    {
+        this.RaisePropertyChanged(nameof(IsSlackConfigured));
+        this.RaisePropertyChanged(nameof(SlackChannelText));
+    }
+
+    // A posting is a deliberate, low-volume post. Re-posting inside this window asks for
+    // confirmation first, so a stray double-click doesn't spam the channel. Keyed per posting
+    // (not just the area) so posting one listing doesn't gate a re-post of a different one.
+    private static readonly TimeSpan SlackRepostWindow = TimeSpan.FromHours(24);
+
+    /// <summary>Asked before re-posting within the cooldown; return true to post anyway.</summary>
+    public Func<string, Task<bool>>? ConfirmSlackRepost { get; set; }
+
+    /// <summary>
+    /// Posts the selected posting's blocks to Slack in order: the first (Ordinal 0) becomes a
+    /// standalone message in the configured channel, and every block after that is posted as a
+    /// threaded reply under it — mirroring how SalePostingPost already models a posting's blocks.
+    /// </summary>
+    private async Task PostSelectedToSlackAsync()
+    {
+        if (_slack is null) return;
+        if (_selectedPostingForTab is not SalePostingRow pr) { SlackStatus = "Select a posting first."; return; }
+        var channel = _slack.ChannelId(SlackService.AreaSalePosting);
+        if (string.IsNullOrEmpty(channel)) { SlackStatus = "No Slack channel configured."; return; }
+
+        var guardKey = $"{SlackService.AreaSalePosting}.{pr.PostingId}";
+        if (_slack.LastPostAt(guardKey) is { } last
+            && DateTimeOffset.UtcNow - last < SlackRepostWindow
+            && ConfirmSlackRepost is not null)
+        {
+            var confirmed = await ConfirmSlackRepost(
+                $"\"{pr.PostingName}\" was already posted to Slack {NotificationSummary.Age(last)}.\n\n" +
+                "Post it again?");
+            if (!confirmed) { SlackStatus = "Post cancelled."; return; }
+        }
+
+        IsPostingToSlack = true;
+        SlackStatus = "Posting to Slack…";
+        try
+        {
+            var fmt   = OutputFormat.ByName("Slack");
+            var posts = (await _svc.LoadPostsAsync(pr.PostingId)).OrderBy(p => p.Ordinal).ToList();
+            if (posts.Count == 0) { SlackStatus = "Nothing to post — this posting has no post blocks."; return; }
+
+            string? threadTs = null;
+            int posted = 0;
+            foreach (var post in posts)
+            {
+                string body = post.PostType switch
+                {
+                    "Summary" => RenderSummary(pr, fmt, post),
+                    "Detail"  => RenderDetail(pr, fmt, post),
+                    _         => post.StaticContent ?? "",
+                };
+                var markup = fmt.Finalize(body);
+                if (string.IsNullOrWhiteSpace(markup)) continue;
+
+                // Slack's legacy mrkdwn `text` field can't underline, so the real message is a
+                // Block Kit rich_text block (built from the same *bold*/__underline__ markup);
+                // `text` is still sent as the notification/accessibility fallback Slack expects.
+                var fallbackText = OutputFormat.ByName("Plain Text").Finalize(markup);
+                var block        = OutputFormat.BuildSlackRichTextBlock(markup);
+                var res = await _slack.PostMessageAsync(channel, fallbackText, threadTs, blocks: new[] { block });
+                if (!res.Ok) { SlackStatus = $"Slack post failed on \"{post.Name}\": {res.Error}"; return; }
+                threadTs ??= res.Ts;
+                posted++;
+            }
+
+            if (posted == 0) { SlackStatus = "Nothing to post — all post blocks were empty."; return; }
+            await _slack.SetLastPostAsync(guardKey, DateTimeOffset.UtcNow);
+            SlackStatus = $"Posted to {SlackChannelText} — {DateTimeOffset.Now:t}";
+        }
+        finally { IsPostingToSlack = false; }
     }
 
     private static string RenderSummary(SalePostingRow pr, OutputFormat fmt, SalePostingPost post)

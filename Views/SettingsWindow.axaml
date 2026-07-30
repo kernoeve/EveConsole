@@ -1769,6 +1769,17 @@
                       Background="#131320" Foreground="#ccccdd"
                       BorderBrush="#2a2a3a" BorderThickness="1" />
           </Grid>
+          <Grid ColumnDefinitions="200,*" Margin="0 4 0 0">
+            <TextBlock Grid.Column="0" Text="Sale Posting" FontSize="12" Foreground="#c8c8d8"
+                       VerticalAlignment="Center" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding SlackVm.Channels}"
+                      SelectedItem="{Binding SlackVm.SalePostingChannel}"
+                      PlaceholderText="Select a channel…"
+                      HorizontalAlignment="Stretch" FontSize="12"
+                      Background="#131320" Foreground="#ccccdd"
+                      BorderBrush="#2a2a3a" BorderThickness="1" />
+          </Grid>
           <TextBlock TextWrapping="Wrap" Foreground="#666677" FontSize="11"
                      Text="Private channels only appear if you are a member of them. If a channel is missing, use Reload Channels." />
         </StackPanel>

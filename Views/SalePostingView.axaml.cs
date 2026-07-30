@@ -82,6 +82,12 @@ public partial class SalePostingView : UserControl
             var win = new MarketGroupPickerWindow(pickerVm);
             return await win.ShowDialog<MarketGroupPickerResult?>(GetWindow());
         };
+
+        vm.ConfirmSlackRepost = async (message) =>
+        {
+            var dlg = new ConfirmDialog(message);
+            return await dlg.ShowDialog<bool>(GetWindow());
+        };
     }
 
     private async void OnCopyBlock(object? sender, RoutedEventArgs e)

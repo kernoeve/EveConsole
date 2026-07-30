@@ -29,14 +29,20 @@ public class SlackAuthService
     //   • OAuth & Permissions → enable PKCE (this is permanent — it marks the
     //     app a public client)
     //   • add the User Token Scopes listed below
-    //   • add the redirect URL below
+    //   • add the redirect URL below — this MUST be the exact string in CallbackUrl
     //   • Manage Distribution → activate public distribution so other
     //     workspaces can install it
     // The client id is public by design (same as the ESI one) — no secret ships.
+    //
+    // Slack requires an HTTPS redirect URL for public distribution (http://localhost is dev-only,
+    // and only works inside the workspace that installed the app in dev mode). CallbackUrl is a
+    // static page on eveconsole.com (repo eveconsole-web, public/slack/callback.html) that does a
+    // client-side redirect to ListenPrefix with the query string intact — the OAuth code is
+    // useless without the PKCE verifier, which stays on this machine, so relaying it is safe.
     // -----------------------------------------------------------------------
     public const string ClientId = "5825064640678.11610347528311";
 
-    private const string CallbackUrl   = "http://localhost:5051/slack/callback";
+    private const string CallbackUrl   = "https://eveconsole.com/slack/callback";
     private const string ListenPrefix  = "http://localhost:5051/slack/callback/";
     private const string AuthEndpoint  = "https://slack.com/oauth/v2/authorize";
     private const string TokenEndpoint = "https://slack.com/api/oauth.v2.access";

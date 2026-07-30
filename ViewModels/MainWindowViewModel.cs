@@ -262,7 +262,7 @@ public class MainWindowViewModel : ReactiveObject
             CharacterVm.Characters, CharacterVm.Corporations, batchAddService, prodCalcService);
         InvLevelVm        = new InvLevelViewModel(invLevelService, dbFactory, batchAddService,
             prodCalcService, fittingsService, CharacterVm.Characters, CharacterVm.Corporations);
-        SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService);
+        SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService);
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, slackService);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Corporations);
         MailSvc           = eveMailService;
