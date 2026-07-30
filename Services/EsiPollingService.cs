@@ -101,6 +101,9 @@ public class EsiPollingService : ReactiveObject
         ["char.roles"]            = "Roles",
         ["char.fittings"]         = "Fittings",
         ["char.mail"]             = "Eve Mail",
+        ["char.online"]           = "Online Status",
+        ["char.location"]         = "Location",
+        ["char.ship"]             = "Current Ship",
         ["corp.wallet.balances"]  = "Wallet Balances",
         ["corp.divisions"]        = "Divisions",
         ["corp.wallet.journal"]   = "Wallet Journal",
@@ -171,12 +174,21 @@ public class EsiPollingService : ReactiveObject
 
     // ── Main loop ────────────────────────────────────────────────────────────
 
+    // Full structure sweep (all location-ID sources + nearest-celestial backfill) cadence. The
+    // per-poll asset resolution (FetchAssetsAsync) keeps asset structures current continuously; this
+    // periodic sweep folds in contracts, market, wallet, and industry, and re-checks structures whose
+    // 30-day freshness has lapsed (catching unanchors → 404 → Unanchored status).
+    private static readonly TimeSpan StructureSweepInterval = TimeSpan.FromHours(1);
+    private DateTimeOffset _lastStructureSweepUtc = DateTimeOffset.MinValue;
+
     private async Task RunPollingLoopAsync(CancellationToken ct)
     {
         await LoadLastCallTimesAsync(ct);
         await LoadCharacterTokensAsync(ct);
         await LoadCorpTokensAsync(ct);
         StatusText = "Polling: Running";
+        // The app already kicks a sweep at startup; delay the first loop-driven one by a full interval.
+        _lastStructureSweepUtc = DateTimeOffset.UtcNow;
 
         while (!ct.IsCancellationRequested)
         {
@@ -186,6 +198,12 @@ public class EsiPollingService : ReactiveObject
                     RunOneCycleAsync(ct),
                     RunCorpCycleAsync(ct),
                     _killMailService.FetchMissingAsync(ct: ct));
+
+                if (DateTimeOffset.UtcNow - _lastStructureSweepUtc >= StructureSweepInterval)
+                {
+                    _lastStructureSweepUtc = DateTimeOffset.UtcNow;
+                    await ForceResolveStructureNamesAsync(ct);
+                }
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
@@ -236,8 +254,25 @@ public class EsiPollingService : ReactiveObject
     // the character must be re-added to grant the scope.
     private static readonly Dictionary<string, string> s_charEndpointScopes = new()
     {
-        ["char.roles"] = "esi-characters.read_corporation_roles.v1",
+        ["char.roles"]    = "esi-characters.read_corporation_roles.v1",
+        ["char.online"]   = "esi-location.read_online.v1",
+        ["char.location"] = "esi-location.read_location.v1",
+        ["char.ship"]     = "esi-location.read_ship_type.v1",
     };
+
+    // Endpoints not worth re-polling while a character is logged off. ESI still
+    // answers them when offline — it reports where the character logged off — so
+    // each one is fetched ONCE per app run even for offline characters, giving every
+    // alt a last-known position, and skipped thereafter until they log back in.
+    // An idle account therefore costs one /online/ call a minute, not three calls
+    // every ten seconds.
+    private static readonly HashSet<string> s_onlineOnlyEndpoints =
+        ["char.location", "char.ship"];
+
+    private readonly ConcurrentDictionary<long, bool> _onlineState = new();
+
+    // (characterId, endpointKey) pairs already fetched since startup.
+    private readonly ConcurrentDictionary<(long, string), bool> _offlineFixTaken = new();
 
     private async Task ProcessCharacterAsync(Character character, DateTimeOffset now, CancellationToken ct)
     {
@@ -248,6 +283,14 @@ public class EsiPollingService : ReactiveObject
             ct.ThrowIfCancellationRequested();
 
             if (s_charEndpointScopes.TryGetValue(ep.Key, out var reqScope) && !character.HasScope(reqScope))
+                continue;
+
+            // Skip before the call so no API-activity record is written for a request
+            // that was never made. Offline characters still get one fix per app run
+            // so their last-known location and ship are recorded.
+            if (s_onlineOnlyEndpoints.Contains(ep.Key)
+                && _onlineState.TryGetValue(character.Id, out var isOnline) && !isOnline
+                && _offlineFixTaken.ContainsKey((character.Id, ep.Key)))
                 continue;
 
             var callKey = $"{ep.Key}:{character.Id}:character";
@@ -296,6 +339,9 @@ public class EsiPollingService : ReactiveObject
 
             if (result.Success && s_netWorthCharEndpoints.Contains(ep.Key))
                 netWorthDirty = true;
+
+            if (result.Success && s_onlineOnlyEndpoints.Contains(ep.Key))
+                _offlineFixTaken[(character.Id, ep.Key)] = true;
 
             await Task.Delay(500, ct);
         }
@@ -1118,6 +1164,95 @@ public class EsiPollingService : ReactiveObject
         return FromResult(r);
     }
 
+    // ── Live session state ───────────────────────────────────────────────────
+    // Current online / location / ship per character, stored in CharacterStatuses.
+    // Unlike the other endpoints these overwrite rather than accumulate — only the
+    // present state matters. Location and ship are skipped while a character is
+    // offline, which is what keeps the call volume reasonable at a 10s cadence.
+
+    private static async Task<CharacterStatus> GetOrCreateStatusAsync(
+        AppDbContext db, long charId, CancellationToken ct)
+    {
+        var status = await db.CharacterStatuses.FindAsync([charId], ct);
+        if (status is null)
+        {
+            status = new CharacterStatus { CharacterId = charId };
+            db.CharacterStatuses.Add(status);
+        }
+        return status;
+    }
+
+    private async Task<PollingResult> FetchOnlineAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        var r = await _esi.ExecuteAuthAsync<EsiCharacterOnline>(charId,
+            $"characters/{charId}/online/", ct);
+        if (!r.IsSuccess || r.Data is null) return FromResult(r);
+
+        var status = await GetOrCreateStatusAsync(db, charId, ct);
+
+        status.Online          = r.Data.Online;
+        status.LastLogin       = r.Data.LastLogin;
+        status.LastLogout      = r.Data.LastLogout;
+        status.LoginCount      = r.Data.Logins;
+        status.OnlineCheckedAt = DateTimeOffset.UtcNow;
+
+        // Cached so the endpoint loop can skip location/ship without a DB read.
+        var wasOnline = _onlineState.TryGetValue(charId, out var prev) && prev;
+        _onlineState[charId] = r.Data.Online;
+
+        // Location and ship are deliberately NOT cleared on logout. Last-known
+        // position is the whole point for cross-alt planning ("which of my
+        // characters is nearest system X"), which has to work for logged-off alts.
+        // Consumers distinguish live from stale via Online and LocationCheckedAt.
+
+        // On the online→offline transition, drop the once-per-run guard so location
+        // and ship are read one final time. ESI still answers both while offline, and
+        // the last in-session poll could be a whole interval — and several jumps —
+        // out of date, so this captures where they actually logged off.
+        if (wasOnline && !r.Data.Online)
+        {
+            _offlineFixTaken.TryRemove((charId, "char.location"), out _);
+            _offlineFixTaken.TryRemove((charId, "char.ship"), out _);
+        }
+
+        await db.SaveChangesAsync(ct);
+        return FromResult(r);
+    }
+
+    private async Task<PollingResult> FetchLocationAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        var status = await GetOrCreateStatusAsync(db, charId, ct);
+
+        var r = await _esi.ExecuteAuthAsync<EsiCharacterLocation>(charId,
+            $"characters/{charId}/location/", ct);
+        if (!r.IsSuccess || r.Data is null) return FromResult(r);
+
+        status.SolarSystemId     = r.Data.SolarSystemId;
+        status.StationId         = r.Data.StationId;
+        status.StructureId       = r.Data.StructureId;
+        status.LocationCheckedAt = DateTimeOffset.UtcNow;
+
+        await db.SaveChangesAsync(ct);
+        return FromResult(r);
+    }
+
+    private async Task<PollingResult> FetchShipAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        var status = await GetOrCreateStatusAsync(db, charId, ct);
+
+        var r = await _esi.ExecuteAuthAsync<EsiCharacterShip>(charId,
+            $"characters/{charId}/ship/", ct);
+        if (!r.IsSuccess || r.Data is null) return FromResult(r);
+
+        status.ShipTypeId    = r.Data.ShipTypeId;
+        status.ShipItemId    = r.Data.ShipItemId;
+        status.ShipName      = r.Data.ShipName;
+        status.ShipCheckedAt = DateTimeOffset.UtcNow;
+
+        await db.SaveChangesAsync(ct);
+        return FromResult(r);
+    }
+
     private async Task<PollingResult> FetchImplantsAsync(long charId, AppDbContext db, CancellationToken ct)
     {
         var r = await _esi.ExecuteAuthAsync<List<int>>(charId,
@@ -1534,6 +1669,11 @@ public class EsiPollingService : ReactiveObject
         new("char.roles",           3600,  7200, FetchRolesAsync),
         new("char.fittings",        300,   1800, FetchFittingsAsync),
         new("char.mail",            300,    600, FetchMailAsync),
+        // Live session state. Much faster cadence than everything else here — these
+        // endpoints cache for 5s (location, ship) and 60s (online) rather than minutes.
+        new("char.online",          60,      60, FetchOnlineAsync),
+        new("char.location",         5,      10, FetchLocationAsync),
+        new("char.ship",             5,      10, FetchShipAsync),
     ];
 
     // ── Token loading ────────────────────────────────────────────────────────
@@ -2204,9 +2344,11 @@ public class EsiPollingService : ReactiveObject
         var cutoff = DateTimeOffset.UtcNow.AddDays(-30);
         var fresh = (await db.EsiStructureNames
             .Where(s => candidateIds.Contains(s.StructureId))
-            .Select(s => new { s.StructureId, s.PulledAt })
+            .Select(s => new { s.StructureId, s.PulledAt, s.Status })
             .ToListAsync(ct))
-            .Where(s => s.PulledAt > cutoff)
+            // Fresh only if fully resolved recently — rows from the old name-only resolver (Status 0)
+            // are re-queried once to backfill owner/type/position.
+            .Where(s => s.PulledAt > cutoff && s.Status == (int)StructureStatus.Resolved)
             .Select(s => s.StructureId)
             .ToHashSet();
 
@@ -2290,6 +2432,19 @@ public class EsiPollingService : ReactiveObject
                     }
                     fail.FailedAt   = DateTimeOffset.UtcNow;
                     fail.StatusCode = sc;
+
+                    // Record the structure itself with a status so the Structure Browser still lists
+                    // it (403 = no docking rights; 404 = gone). Don't clobber a previously-resolved
+                    // name/details — a 404 after unanchor keeps the last known info.
+                    var srow = await db.EsiStructureNames.FindAsync([structId], ct);
+                    if (srow is null)
+                    {
+                        srow = new StructureName { StructureId = structId };
+                        db.EsiStructureNames.Add(srow);
+                    }
+                    if (srow.Status != (int)StructureStatus.Resolved || sc == 404)
+                        srow.Status = sc == 403 ? (int)StructureStatus.NoAccess : (int)StructureStatus.NotFound;
+
                     await db.SaveChangesAsync(ct);
                 }
                 // 403/404/502 are expected ESI responses — not app errors.
@@ -2304,23 +2459,30 @@ public class EsiPollingService : ReactiveObject
             {
                 handle.Complete(true, lastResult?.StatusCode ?? 200);
 
+                // The owning corp's alliance (public endpoint) — for the Structure Browser filter.
+                long allianceId = 0;
+                if (detail.OwnerId is > 0 and <= int.MaxValue)
+                {
+                    try { allianceId = (await _esi.GetCorporationPublicAsync((int)detail.OwnerId, ct))?.AllianceId ?? 0; }
+                    catch { /* alliance is best-effort; leave 0 on failure */ }
+                }
+
                 var entry = await db.EsiStructureNames.FindAsync([structId], ct);
                 if (entry is null)
                 {
-                    db.EsiStructureNames.Add(new StructureName
-                    {
-                        StructureId   = structId,
-                        Name          = detail.Name,
-                        SolarSystemId = detail.SolarSystemId,
-                        PulledAt      = DateTimeOffset.UtcNow,
-                    });
+                    entry = new StructureName { StructureId = structId };
+                    db.EsiStructureNames.Add(entry);
                 }
-                else
-                {
-                    entry.Name          = detail.Name;
-                    entry.SolarSystemId = detail.SolarSystemId;
-                    entry.PulledAt      = DateTimeOffset.UtcNow;
-                }
+                entry.Name          = detail.Name;
+                entry.SolarSystemId = detail.SolarSystemId;
+                entry.OwnerId       = detail.OwnerId;
+                entry.AllianceId    = allianceId;
+                entry.TypeId        = detail.TypeId ?? 0;
+                entry.X             = detail.Position?.X ?? 0;
+                entry.Y             = detail.Position?.Y ?? 0;
+                entry.Z             = detail.Position?.Z ?? 0;
+                entry.Status        = (int)StructureStatus.Resolved;
+                entry.PulledAt      = DateTimeOffset.UtcNow;
 
                 // Access regained — clear any prior failure flag.
                 var oldFail = await db.EsiStructureNameFailures.FindAsync([structId], ct);
@@ -2332,6 +2494,53 @@ public class EsiPollingService : ReactiveObject
             // Pace calls to avoid burning through ESI's error rate limit.
             await Task.Delay(200, ct);
         }
+    }
+
+    // Local-only (no ESI): compute nearest celestials for any pending structures. Cheap and
+    // idempotent — the Structure Browser calls this on refresh so nearest fills after an SDE import
+    // without needing a full ESI resolve pass.
+    public async Task RefreshNearestCelestialsAsync(CancellationToken ct = default)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await BackfillNearestCelestialsAsync(db, ct);
+    }
+
+    // Labels each resolved structure with the nearest planet/moon/stargate in its system (3D
+    // distance). Only fills structures that have a position but no nearest yet; no-ops until the SDE
+    // celestial table is populated (a re-import). Structures don't move, so this runs once per row.
+    private async Task BackfillNearestCelestialsAsync(AppDbContext db, CancellationToken ct)
+    {
+        var pending = await db.EsiStructureNames
+            .Where(s => s.NearestCelestialId == 0 && (s.X != 0 || s.Y != 0 || s.Z != 0))
+            .ToListAsync(ct);
+        if (pending.Count == 0) return;
+
+        foreach (var group in pending.GroupBy(s => s.SolarSystemId))
+        {
+            if (group.Key == 0) continue;
+            var cels = await db.SdeCelestials.AsNoTracking()
+                .Where(c => c.SolarSystemId == group.Key).ToListAsync(ct);
+            if (cels.Count == 0) continue;   // celestials not imported for this system yet
+
+            foreach (var s in group)
+            {
+                SdeCelestial? best = null;
+                double bestD = double.MaxValue;
+                foreach (var c in cels)
+                {
+                    double dx = c.X - s.X, dy = c.Y - s.Y, dz = c.Z - s.Z;
+                    double d = dx * dx + dy * dy + dz * dz;
+                    if (d < bestD) { bestD = d; best = c; }
+                }
+                if (best is not null)
+                {
+                    s.NearestCelestialId = best.ItemId;
+                    s.NearestCelestial   = best.Name;
+                }
+            }
+        }
+        await db.SaveChangesAsync(ct);
     }
 
     public async Task ForceResolveStructureNamesAsync(CancellationToken ct = default)
@@ -2346,28 +2555,63 @@ public class EsiPollingService : ReactiveObject
             // an ItemId in EsiAssets. Office folders, CorpSAG divisions, ships, and
             // containers all have ItemId > 1T and self-exclude. The chain walks itself:
             // item→CorpSAG→OfficeFolder→structure; only the terminal structure escapes.
+            const long T = EveIds.PlayerStructureThreshold;
+            var ids = new HashSet<long>();
+
+            // Assets — a location ID > 1T is a real external structure only if it is NOT itself an
+            // owned ItemId (offices, CorpSAG divisions, ships, containers all self-exclude).
             var knownItemIds = new HashSet<long>(await db.EsiAssets
-                .Where(a => a.ItemId > 1_000_000_000_000L)
-                .Select(a => a.ItemId)
-                .ToListAsync(ct));
+                .Where(a => a.ItemId > T).Select(a => a.ItemId).ToListAsync(ct));
+            foreach (var id in await db.EsiAssets.Where(a => a.LocationId > T)
+                .Select(a => a.LocationId).Distinct().ToListAsync(ct))
+                if (!knownItemIds.Contains(id)) ids.Add(id);
 
-            var assetStructureIds = (await db.EsiAssets
-                .Where(a => a.LocationId > 1_000_000_000_000L)
-                .Select(a => a.LocationId)
-                .Distinct()
-                .ToListAsync(ct))
-                .Where(id => !knownItemIds.Contains(id))
-                .ToList();
+            // Corp structures.
+            foreach (var id in await db.EsiCorpStructures.Select(s => s.StructureId).Distinct().ToListAsync(ct))
+                ids.Add(id);
 
-            var corpStructureIds = await db.EsiCorpStructures
-                .Select(s => s.StructureId)
-                .Distinct()
-                .ToListAsync(ct);
+            // Contracts (incl. public) — start/end locations are always stations or structures.
+            foreach (var id in await db.EsiContracts.Where(c => c.StartLocationId != null && c.StartLocationId > T)
+                .Select(c => c.StartLocationId!.Value).Distinct().ToListAsync(ct)) ids.Add(id);
+            foreach (var id in await db.EsiContracts.Where(c => c.EndLocationId != null && c.EndLocationId > T)
+                .Select(c => c.EndLocationId!.Value).Distinct().ToListAsync(ct)) ids.Add(id);
 
-            var structureIds = assetStructureIds.Union(corpStructureIds).ToList();
+            // Industry job facilities and blueprint/output locations.
+            foreach (var id in await db.EsiIndustryJobs.Where(j => j.StationId > T)
+                .Select(j => j.StationId).Distinct().ToListAsync(ct)) ids.Add(id);
+            foreach (var id in await db.EsiIndustryJobs.Where(j => j.BlueprintLocationId > T)
+                .Select(j => j.BlueprintLocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+            foreach (var id in await db.EsiIndustryJobs.Where(j => j.OutputLocationId > T)
+                .Select(j => j.OutputLocationId).Distinct().ToListAsync(ct)) ids.Add(id);
 
+            // Market orders and wallet transactions.
+            foreach (var id in await db.EsiMarketOrders.Where(o => o.LocationId > T)
+                .Select(o => o.LocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+            foreach (var id in await db.EsiWalletTransactions.Where(w => w.LocationId > T)
+                .Select(w => w.LocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+
+            // Any already-tracked structure that isn't fully resolved yet (old name-only rows, or
+            // placeholders whose source data has since rolled out of the other tables).
+            foreach (var id in await db.EsiStructureNames
+                .Where(s => s.Status != (int)StructureStatus.Resolved)
+                .Select(s => s.StructureId).ToListAsync(ct)) ids.Add(id);
+
+            // Seed placeholder rows so newly-seen structures appear in the browser (as Pending)
+            // even before their details resolve.
+            var existing = new HashSet<long>(await db.EsiStructureNames.Select(s => s.StructureId).ToListAsync(ct));
+            var epoch    = DateTimeOffset.FromUnixTimeSeconds(0);
+            foreach (var id in ids)
+                if (!existing.Contains(id))
+                    db.EsiStructureNames.Add(new StructureName
+                    {
+                        StructureId = id, Status = (int)StructureStatus.Pending, PulledAt = epoch,
+                    });
+            await db.SaveChangesAsync(ct);
+
+            var structureIds = ids.ToList();
             StatusText = $"Polling: Resolving {structureIds.Count} structure(s)…";
             await ResolveNewStructureNamesAsync(0, structureIds, db, ct);
+            await BackfillNearestCelestialsAsync(db, ct);
             StatusText = structureIds.Count == 0
                 ? "Polling: No structure IDs found in assets"
                 : $"Polling: Structure names resolved ({structureIds.Count} IDs)";

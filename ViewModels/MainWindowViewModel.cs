@@ -5,6 +5,7 @@ using EveConsole.Agent;
 using EveConsole.Data;
 using EveConsole.Api;
 using EveConsole.Auth;
+using EveConsole.Monitoring;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,8 @@ public class MainWindowViewModel : ReactiveObject
     public ApiActivityViewModel           ActivityVm             { get; }
     public EsiExplorerViewModel           ExplorerVm             { get; }
     public ErrorLogViewModel              ErrorLogVm             { get; }
+    public GameLogViewerViewModel         GameLogViewerVm        { get; }
+    public ChatLogViewerViewModel         ChatLogViewerVm        { get; }
     public AssetBrowserViewModel          AssetBrowserVm         { get; }
     public IndustryBrowserViewModel       IndustryBrowserVm      { get; }
     public CharacterViewerViewModel       CharacterViewerVm      { get; }
@@ -32,6 +35,8 @@ public class MainWindowViewModel : ReactiveObject
     public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
+    public PriceOverrideViewModel         PriceOverrideVm        { get; }
+    public StructureBrowserViewModel      StructureBrowserVm     { get; }
     public WalletViewModel                WalletVm               { get; }
     public ContractsViewModel             ContractsVm            { get; }
     public NotificationsViewModel         NotificationsVm        { get; }
@@ -53,6 +58,8 @@ public class MainWindowViewModel : ReactiveObject
     public PollingSettingsViewModel       PollingSettingsVm      { get; }
     public CorpTop10SettingsViewModel     CorpTop10SettingsVm    { get; }
     public SlackSettingsViewModel         SlackSettingsVm        { get; }
+    public GameLogSettingsViewModel       GameLogSettingsVm      { get; }
+    public ChatLogSettingsViewModel       ChatLogSettingsVm      { get; }
     public SlackService                   Slack                  { get; }
     public TtsService                     TtsService             { get; }
     public SpeechInputService             SpeechInputService     { get; }
@@ -127,6 +134,8 @@ public class MainWindowViewModel : ReactiveObject
             "industry"   => ("Industry Jobs",   IndustryBrowserVm,        true),
             "indy_parks" => ("Indy Parks",      IndyParksVm,              true),
             "prod_calc"  => ("Production Calc", ProductionCalcVm,         true),
+            "price_overrides" => ("Price Overrides", PriceOverrideVm,     true),
+            "structure_browser" => ("Structure Browser", StructureBrowserVm, true),
             "trade"           => ("Trade",           TradeOpportunitiesVm,     true),
             "industry_opps"   => ("Industry Opps",   IndustryOpportunitiesVm,  true),
             "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
@@ -147,6 +156,8 @@ public class MainWindowViewModel : ReactiveObject
             "notifications"  => ("Notifications",  NotificationsVm,   true),
             "data"           => ("ESI Explorer",   ExplorerVm,        true),
             "error_log"      => ("Error Log",      ErrorLogVm,        true),
+            "game_log"       => ("Game Log",       GameLogViewerVm,   true),
+            "chat_log"       => ("Chat Log",       ChatLogViewerVm,   true),
             _                => throw new ArgumentException($"Unknown tool: {toolId}")
         };
 
@@ -228,10 +239,15 @@ public class MainWindowViewModel : ReactiveObject
         CorpTop10ExcludeService         corpTop10Exclude,
         MarketHistoryService            historyService,
         ContractsService                contractsService,
-        SlackService                    slackService)
+        SlackService                    slackService,
+        MonitoringSettings              monitoringSettings,
+        GameLogImportService            gameLogImport,
+        ChatLogImportService            chatLogImport)
     {
         Slack             = slackService;
         SlackSettingsVm   = new SlackSettingsViewModel(slackService);
+        GameLogSettingsVm = new GameLogSettingsViewModel(monitoringSettings, gameLogImport);
+        ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport);
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());
@@ -301,6 +317,8 @@ public class MainWindowViewModel : ReactiveObject
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
+        PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
+        StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
@@ -316,6 +334,8 @@ public class MainWindowViewModel : ReactiveObject
         var connString       = tmpDb.Database.GetConnectionString()!;
         ExplorerVm           = new EsiExplorerViewModel(connString);
         ErrorLogVm           = new ErrorLogViewModel(dbFactory, errorLogger);
+        GameLogViewerVm      = new GameLogViewerViewModel(dbFactory, errorLogger);
+        ChatLogViewerVm      = new ChatLogViewerViewModel(dbFactory, errorLogger, monitoringSettings);
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
         IndustryBrowserVm    = new IndustryBrowserViewModel(connString);
         TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
@@ -361,12 +381,14 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("assets",     "Assets"),
                 new NavItem("items",      "Item Browser"),
                 new NavItem("inv_levels", "Inventory Levels"),
+                new NavItem("structure_browser", "Structure Browser"),
             ]),
             new("Industry",
             [
                 new NavItem("industry",      "Industry Jobs"),
                 new NavItem("indy_parks",    "Indy Parks"),
                 new NavItem("prod_calc",     "Production Calc"),
+                new NavItem("price_overrides", "Price Overrides"),
                 new NavItem("industry_opps", "Industry Opportunities"),
             ]),
             new("Market / Trade",
@@ -399,6 +421,8 @@ public class MainWindowViewModel : ReactiveObject
             [
                 new NavItem("data", "ESI Explorer"),
                 new NavItem("error_log", "Error Log"),
+                new NavItem("game_log", "Game Log"),
+                new NavItem("chat_log", "Chat Log"),
             ]),
         ];
 

@@ -385,6 +385,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                                                vm.AgentVm.Service, vm.PriceHistorySettingsVm,
                                                vm.AlertSettingsVm, vm.PollingSettingsVm,
                                                vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm,
+                                               vm.GameLogSettingsVm, vm.ChatLogSettingsVm,
                                                vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
         var settingsWin = new SettingsWindow { DataContext = settingsVm };
         settingsWin.WireDatabase(dbVm, this);

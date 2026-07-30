@@ -19,6 +19,17 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     private static readonly HashSet<string> UpwellKeys    = ["raitaru","azbel","sotiyo","athanor","tatara","astrahus","fortizar","keepstar","draccous","horiuchi","moreau","prometheus","lancer"];
     private static readonly HashSet<string> EngComplexKeys = ["raitaru","azbel","sotiyo"];
 
+    // EVE material consumption for a whole job: the per-run adjusted quantity (base × ME/rig/role
+    // modifiers) is rounded to 2 dp, multiplied by the run count, and ceilinged ONCE — not rounded
+    // per unit and then multiplied. Floors at one per run. Rounding per unit inflates batches (e.g.
+    // a 4.5/run material over 2 runs is 9, not ceil(4.5)×2 = 10).
+    private static int JobMaterialTotal(int baseQty, double factor, int runs)
+    {
+        double perRun = Math.Round(baseQty * factor, 2);
+        double total  = Math.Round(perRun * runs, 4);   // guard floating-point before the ceiling
+        return Math.Max(runs, (int)Math.Ceiling(total));
+    }
+
     public async Task<ProductionPlan> CalculateAsync(
         List<ProductionQueueEntry> requests,
         int parkId,
@@ -86,6 +97,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         var groupCatMap = await db.SdeGroups.AsNoTracking()
             .Select(g => new { g.GroupId, g.CategoryId, g.Name })
             .ToDictionaryAsync(g => g.GroupId, ct);
+
+        // Classification for the default-ME rule (shared with BuildCostService via IndustryMe).
+        var t2TypeIds = (await db.SdeTypes.AsNoTracking()
+            .Where(t => t.MetaGroupId == 2).Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
+        var titanKeepstarIds = (await db.SdeTypes.AsNoTracking()
+            .Where(t => t.GroupId == IndustryMe.TitanGroupId || t.TypeId == IndustryMe.KeepstarTypeId)
+            .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
 
         // ── Park / structure data ──────────────────────────────────────────
         var structures  = await db.IndyStructures.AsNoTracking().Where(s => s.ParkId == parkId).ToListAsync(ct);
@@ -216,18 +234,44 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 unitCosts[p.TypeId] = (decimal)(mktType switch { "Buy" => p.BuyPrice, "Sell" => p.SellPrice, _ => p.Midpoint });
         }
 
-        // BPC inputs are bought from contracts, not the market, so overlay each blueprint type's
-        // contract-derived price onto the local price table. This covers EVERY BPC — including
-        // those whose item has an obtainable BPO (the market-price fill deliberately leaves a
-        // buyable-BPO blueprint's market row alone, which otherwise leaves the BPC input at 0).
-        // Restricted to blueprint-category types so real item market prices are never overwritten.
-        foreach (var cp in await db.ContractPrices.AsNoTracking().ToListAsync(ct))
+        // Per-run BPC contract prices grouped by blueprint type → [(ME, per-run price)]. A BPC-only
+        // item consumes one run of a purchased BPC; value it per run at the item's ME.
+        var bpcPerRun = (await db.ContractBpcPrices.AsNoTracking().ToListAsync(ct))
+            .Select(c => new { c.TypeId, c.Me, Price = ContractPricing.EffectivePerRun(c) })
+            .Where(x => x.Price is > 0m)
+            .GroupBy(x => x.TypeId)
+            .ToDictionary(g => g.Key, g => g.Select(x => (Me: x.Me, PerRun: x.Price!.Value)).ToList());
+
+        decimal BpcPerRunAt(int bpTypeId, int me)
         {
-            var e = ContractPricing.EffectivePrice(cp);
-            if (e is not > 0) continue;
-            if (typeGroupMap.TryGetValue(cp.TypeId, out var tg)
-                && groupCatMap.TryGetValue(tg.GroupId, out var gc) && gc.CategoryId == 9)
-                unitCosts[cp.TypeId] = e.Value;
+            if (!bpcPerRun.TryGetValue(bpTypeId, out var opts) || opts.Count == 0) return 0m;
+            foreach (var (m, p) in opts) if (m == me) return p;   // exact ME, else the cheapest available
+            return opts.Min(o => o.PerRun);
+        }
+
+        // Items the build-cost calc found cheaper to BUY than build — buy them here too (raw material,
+        // no job) so the two calcs agree.
+        var boughtSet = (await db.BuildCosts.AsNoTracking().Where(b => b.Bought)
+            .Select(b => b.TypeId).ToListAsync(ct)).ToHashSet();
+
+        // User price overrides. Market → the item's price (PriceOf); contract → the per-run BPC
+        // price; build → pin the item as a fixed-value leaf (not expanded) at the given cost, unless
+        // it was cheaper to buy (already in boughtSet, priced at market). These mirror the overlays
+        // BuildCostService applies so both calculators agree.
+        var overrides   = await db.PriceOverrides.AsNoTracking().ToDictionaryAsync(o => o.TypeId, ct);
+        var requestedIds = requests.Select(r => r.TypeId).ToHashSet();
+        var pinnedBuild = new HashSet<int>();
+        foreach (var o in overrides.Values)
+        {
+            if (o.MarketValue.HasValue)   unitCosts[o.TypeId] = o.MarketValue.Value;
+            if (o.ContractValue.HasValue) bpcPerRun[o.TypeId] = [(0, o.ContractValue.Value)];
+            // Pin a sub-component's build cost as a fixed-value leaf. Skip requested final products —
+            // their build cost is computed from the tree, and unitCosts drives their market value read.
+            if (o.BuildCost.HasValue && !boughtSet.Contains(o.TypeId) && !requestedIds.Contains(o.TypeId))
+            {
+                unitCosts[o.TypeId] = o.BuildCost.Value;   // PriceOf → pinned build cost (a consumed leaf)
+                pinnedBuild.Add(o.TypeId);
+            }
         }
 
         // ── Adjusted prices (for EIV / job cost) ──────────────────────────
@@ -328,6 +372,15 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
         void ExpandItem(int typeId, int qty, bool isFinal)
         {
+            // Cheaper to buy than build (per the build-cost calc), or pinned to a fixed build cost by
+            // a price override → treat as a raw material with no job. The final product is always
+            // built. Keeps this calc consistent with build costs.
+            if (!isFinal && (boughtSet.Contains(typeId) || pinnedBuild.Contains(typeId)))
+            {
+                rawPool[typeId] = rawPool.GetValueOrDefault(typeId, 0) + qty;
+                return;
+            }
+
             if (!blueprintByProduct.TryGetValue(typeId, out var bpProd))
             {
                 rawPool[typeId] = rawPool.GetValueOrDefault(typeId, 0) + qty;
@@ -354,8 +407,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 }
             }
 
-            // Reaction formulas have no ME research — always ME 0. Manufacturing BPs default to ME 10.
-            int    meLevel    = isReaction ? 0 : (isFinal && finalMeLevels.TryGetValue(typeId, out var ml)) ? ml : 10;
+            // Final products use the user-chosen ME (defaulted per the same rule when added to the
+            // queue). Sub-components follow the shared default-ME rule (ME10 / T2 ME3 / BPC-only ME0 /
+            // titan & Keepstar ME9 / reactions ME0) so this matches the stored build cost.
+            int    meLevel    = (isFinal && !isReaction && finalMeLevels.TryGetValue(typeId, out var ml))
+                                ? ml
+                                : IndustryMe.DefaultMe(isReaction, !isReaction && !BlueprintIsBpoSourced(bpProd.TypeId),
+                                      t2TypeIds.Contains(typeId), titanKeepstarIds.Contains(typeId));
             var    structure  = StructureFor(catKey, typeId);
             bool   isEngCx    = structure is not null && EngComplexKeys.Contains(structure.StructureTypeKey);
             double bpMeFactor = (100.0 - meLevel) / 100.0;
@@ -377,15 +435,22 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 {
                     foreach (var mat in bpMats)
                     {
-                        int effPerRun = Math.Max(1, (int)Math.Ceiling(mat.Quantity * meFactor));
-                        // Keep TotalQty in sync when the job gains additional runs
+                        // Recompute the whole-job total at the new run count and expand only the
+                        // delta — rounding at the job level, not per run (see JobMaterialTotal).
+                        int newTotal    = JobMaterialTotal(mat.Quantity, meFactor, newRuns);
                         var existingMat = existing.Materials.FirstOrDefault(m => m.MaterialTypeId == mat.MaterialTypeId);
+                        int oldTotal    = existingMat?.TotalQty ?? JobMaterialTotal(mat.Quantity, meFactor, oldRuns);
+                        int delta       = newTotal - oldTotal;
                         if (existingMat is not null)
-                            existingMat.TotalQty += effPerRun * extraRuns;
-                        ExpandItem(mat.MaterialTypeId, effPerRun * extraRuns, false);
+                        {
+                            existingMat.TotalQty = newTotal;
+                            existingMat.FormulaDisplay =
+                                $"ceil({mat.Quantity:N0} × {meFactor:F4} × {newRuns:N0} runs) → {newTotal:N0}";
+                        }
+                        if (delta > 0) ExpandItem(mat.MaterialTypeId, delta, false);
                     }
-                    // If this (final) job included its blueprint copy, keep the BPC quantity in
-                    // sync as the job gains runs (and add the extra copies to the raw pool).
+                    // If this job included its blueprint copy, keep the BPC quantity in sync as it
+                    // gains runs (and add the extra copies to the raw pool).
                     var bpcMat = existing.Materials.FirstOrDefault(m => m.MaterialTypeId == bpProd.TypeId);
                     if (bpcMat is not null)
                     {
@@ -417,26 +482,32 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 foreach (var mat in bpMats)
                 {
                     int    basePerRun = mat.Quantity;
-                    double raw        = basePerRun * meFactor;
-                    int    effPerRun  = Math.Max(1, (int)Math.Ceiling(raw));
+                    double perRunAdj  = Math.Round(basePerRun * meFactor, 2);
+                    int    totalQty   = JobMaterialTotal(basePerRun, meFactor, runs);
                     job.Materials.Add(new PlanJobMaterial
                     {
                         MaterialTypeId = mat.MaterialTypeId,
                         TypeName       = typeNames.GetValueOrDefault(mat.MaterialTypeId, $"Type {mat.MaterialTypeId}"),
                         BaseQtyPerRun  = basePerRun,
-                        EffQtyPerRun   = effPerRun,
-                        TotalQty       = effPerRun * runs,
-                        IsBought       = !blueprintByProduct.ContainsKey(mat.MaterialTypeId),
-                        FormulaDisplay = $"ceil({basePerRun:N0} × {meFactor:F4}) = ceil({raw:N2}) → {effPerRun:N0}",
+                        EffQtyPerRun   = (int)Math.Ceiling(perRunAdj),
+                        TotalQty       = totalQty,
+                        IsBought       = !blueprintByProduct.ContainsKey(mat.MaterialTypeId)
+                                          || boughtSet.Contains(mat.MaterialTypeId)
+                                          || pinnedBuild.Contains(mat.MaterialTypeId),
+                        FormulaDisplay = $"ceil({basePerRun:N0} × {meFactor:F4} × {runs:N0} runs) = ceil({perRunAdj:N2} × {runs:N0}) → {totalQty:N0}",
                     });
-                    ExpandItem(mat.MaterialTypeId, effPerRun * runs, false);
+                    ExpandItem(mat.MaterialTypeId, totalQty, false);
                 }
-                // Include the blueprint copy as a bought input for the FINAL product only (one per
-                // run), valued at its contract-derived market value — forced when the item is non-BPO
-                // (no obtainable BPO) and optional otherwise (the includeBpcCost toggle). Sub-materials
-                // never add their BPC. It's bought (never expanded) and joins the raw-material pool.
-                if (!isReaction && isFinal && (!BlueprintIsBpoSourced(bpProd.TypeId) || includeBpcCost))
+                // A BPC-only item (no obtainable BPO) always consumes one purchased BPC per run; a
+                // BPO item only does so when the user opts in (includeBpcCost). Valued PER RUN at the
+                // item's ME. It's a priced job material (not expanded into the raw pool) so its cost
+                // is counted once and matches the build-cost calc.
+                bool bpcOnly = !isReaction && !BlueprintIsBpoSourced(bpProd.TypeId);
+                if (bpcOnly || (!isReaction && isFinal && includeBpcCost))
                 {
+                    // Overlay the BPC's PER-RUN price (at this item's ME) into the price table so both
+                    // the raw-material total and the job-material line value it identically.
+                    unitCosts[bpProd.TypeId] = BpcPerRunAt(bpProd.TypeId, meLevel);
                     job.Materials.Add(new PlanJobMaterial
                     {
                         MaterialTypeId = bpProd.TypeId,
@@ -445,9 +516,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                         EffQtyPerRun   = 1,
                         TotalQty       = runs,
                         IsBought       = true,
-                        FormulaDisplay = "1 BPC per run (contract price)",
+                        FormulaDisplay = $"1 BPC per run @ ME{meLevel} contract price",
                     });
-                    ExpandItem(bpProd.TypeId, runs, false);
+                    ExpandItem(bpProd.TypeId, runs, false);   // also a raw-material line (per-run priced)
                 }
                 jobPool[typeId] = job;
             }
@@ -494,7 +565,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             double  eiv     = 0;
             foreach (var mat in job.Materials)
             {
-                mat.UnitPrice = PriceOf(mat.MaterialTypeId);
+                mat.UnitPrice = PriceOf(mat.MaterialTypeId);   // BPCs read the per-run overlay above
                 // Only count purchased inputs; built intermediates have their own job cost
                 if (mat.IsBought) matCost += mat.TotalQty * mat.UnitPrice;
                 double ap = adjPrices.GetValueOrDefault(mat.MaterialTypeId, 0.0);
@@ -630,6 +701,39 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             TotalLeftoverValue   = totalLeftover,
             NetCost              = totalRawMat + totalJobCost - totalLeftover,
         };
+    }
+
+    // Default ME to pre-select when an item is added to the production queue, per the shared rule
+    // (ME10 / T2 ME3 / BPC-only ME0 / titan & Keepstar ME9 / reactions ME0). Users can override it.
+    public async Task<int> GetDefaultMeAsync(int productTypeId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var bp = await db.SdeBlueprintProducts.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.ProductTypeId == productTypeId
+                && (p.Activity == MfgActivity || p.Activity == RxnActivity), ct);
+        if (bp is null) return 10;
+        bool isReaction = bp.Activity == RxnActivity;
+
+        var prod = await db.SdeTypes.AsNoTracking()
+            .Where(t => t.TypeId == productTypeId)
+            .Select(t => new { t.MetaGroupId, t.GroupId })
+            .FirstOrDefaultAsync(ct);
+        int? meta  = prod?.MetaGroupId;
+        int  group = prod?.GroupId ?? 0;
+
+        // BPO-sourced if the blueprint has a market group or is invented from one; faction/loot
+        // tiers (meta 3-6) are always BPC-only regardless.
+        bool bpHasMarket = await db.SdeTypes.AnyAsync(t => t.TypeId == bp.TypeId && t.MarketGroupId != null, ct);
+        bool inventedFromMarket = await db.SdeBlueprintProducts.AsNoTracking()
+            .Where(p => p.Activity == "invention" && p.ProductTypeId == bp.TypeId)
+            .Join(db.SdeTypes, p => p.TypeId, t => t.TypeId, (p, t) => t.MarketGroupId)
+            .AnyAsync(mg => mg != null, ct);
+        bool lootTier = meta is >= 3 and <= 6;
+        bool bpcOnly  = !isReaction && (lootTier || !(bpHasMarket || inventedFromMarket));
+
+        bool isT2 = meta == 2;
+        bool isTitanKeepstar = group == IndustryMe.TitanGroupId || productTypeId == IndustryMe.KeepstarTypeId;
+        return IndustryMe.DefaultMe(isReaction, bpcOnly, isT2, isTitanKeepstar);
     }
 
     // ── Batch-add helpers: direct materials (single blueprint) ────────────────

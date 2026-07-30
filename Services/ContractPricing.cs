@@ -17,4 +17,14 @@ public static class ContractPricing
         if (avg  is null) return best;
         return best.Value > 1.5m * avg.Value ? avg : best;
     }
+
+    // Same best-vs-30-day rule for a BPC's per-run price.
+    public static decimal? EffectivePerRun(ContractBpcPrice cp)
+    {
+        var best = cp.BestPerRun;
+        var avg  = cp.Avg30PerRun;
+        if (best is null) return avg;
+        if (avg  is null) return best;
+        return best.Value > 1.5m * avg.Value ? avg : best;
+    }
 }

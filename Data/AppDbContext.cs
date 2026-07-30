@@ -32,6 +32,8 @@ public class AppDbContext : DbContext
     public DbSet<ContractRecord>             EsiContracts            => Set<ContractRecord>();
     public DbSet<ContractItem>               EsiContractItems        => Set<ContractItem>();
     public DbSet<ContractPrice>              ContractPrices          => Set<ContractPrice>();
+    public DbSet<ContractBpcPrice>           ContractBpcPrices       => Set<ContractBpcPrice>();
+    public DbSet<PriceOverride>              PriceOverrides          => Set<PriceOverride>();
     public DbSet<WalletBackfillState>        WalletBackfillStates    => Set<WalletBackfillState>();
     public DbSet<UniverseName>               UniverseNames           => Set<UniverseName>();
     public DbSet<CharacterAsset>             EsiAssets               => Set<CharacterAsset>();
@@ -91,6 +93,13 @@ public class AppDbContext : DbContext
     // ── Application error log ────────────────────────────────────────────
     public DbSet<AppErrorEntry> AppErrors => Set<AppErrorEntry>();
 
+    // ── Client activity monitoring ───────────────────────────────────────
+    public DbSet<CharacterStatus> CharacterStatuses => Set<CharacterStatus>();
+    public DbSet<GameLogFile>     GameLogFiles      => Set<GameLogFile>();
+    public DbSet<GameLogEvent>    GameLogEvents     => Set<GameLogEvent>();
+    public DbSet<ChatLogFile>     ChatLogFiles      => Set<ChatLogFile>();
+    public DbSet<ChatMessage>     ChatMessages      => Set<ChatMessage>();
+
     // ── Market pricing ───────────────────────────────────────────────
     public DbSet<MarketPricingConfig>   MarketPricingConfigs   => Set<MarketPricingConfig>();
     public DbSet<MarketItemPrice>       MarketItemPrices       => Set<MarketItemPrice>();
@@ -119,6 +128,7 @@ public class AppDbContext : DbContext
     public DbSet<SdeConstellation>      SdeConstellations      => Set<SdeConstellation>();
     public DbSet<SdeSolarSystem>        SdeSolarSystems        => Set<SdeSolarSystem>();
     public DbSet<SdeStargate>           SdeStargates           => Set<SdeStargate>();
+    public DbSet<SdeCelestial>          SdeCelestials          => Set<SdeCelestial>();
     public DbSet<SdeStation>            SdeStations            => Set<SdeStation>();
     public DbSet<SdeFaction>            SdeFactions            => Set<SdeFaction>();
     public DbSet<SdeNpcCorporation>     SdeNpcCorporations     => Set<SdeNpcCorporation>();
@@ -320,6 +330,11 @@ public class AppDbContext : DbContext
         mb.Entity<SdeStargate>(e => {
             e.HasKey(x => x.StargateId);
             e.Property(x => x.StargateId).ValueGeneratedNever(); });
+
+        mb.Entity<SdeCelestial>(e => {
+            e.HasKey(x => x.ItemId);
+            e.Property(x => x.ItemId).ValueGeneratedNever();
+            e.HasIndex(x => x.SolarSystemId); });
 
         mb.Entity<SdeStation>(e => {
             e.HasKey(x => x.StationId);
@@ -528,6 +543,15 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.TypeId);
             e.Property(x => x.TypeId).ValueGeneratedNever();
             e.ToTable("ContractPrices"); });
+
+        mb.Entity<ContractBpcPrice>(e => {
+            e.HasKey(x => new { x.TypeId, x.Me });
+            e.ToTable("ContractBpcPrices"); });
+
+        mb.Entity<PriceOverride>(e => {
+            e.HasKey(x => x.TypeId);
+            e.Property(x => x.TypeId).ValueGeneratedNever();
+            e.ToTable("PriceOverrides"); });
 
         mb.Entity<UniverseName>(e => {
             e.HasKey(x => x.EntityId);
@@ -774,6 +798,32 @@ public class AppDbContext : DbContext
         mb.Entity<AppErrorEntry>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("AppErrorLog"); });
+
+        mb.Entity<CharacterStatus>(e => {
+            e.HasKey(x => x.CharacterId);
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.Ignore(x => x.IsDocked); });
+
+        mb.Entity<GameLogFile>(e => {
+            e.HasKey(x => x.Path);
+            e.Property(x => x.Path).ValueGeneratedNever(); });
+
+        mb.Entity<GameLogEvent>(e => {
+            e.HasKey(x => x.Id);
+            // Re-importing a file must not duplicate rows.
+            e.HasIndex(x => new { x.SourceFile, x.LineNumber }).IsUnique();
+            e.HasIndex(x => x.OccurredAt);
+            e.HasIndex(x => new { x.CharacterId, x.Kind }); });
+
+        mb.Entity<ChatLogFile>(e => {
+            e.HasKey(x => x.Path);
+            e.Property(x => x.Path).ValueGeneratedNever(); });
+
+        mb.Entity<ChatMessage>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.SourceFile, x.LineNumber }).IsUnique();
+            e.HasIndex(x => x.OccurredAt);
+            e.HasIndex(x => new { x.ChannelName, x.OccurredAt }); });
 
         mb.Entity<MarketTypeHistory>(e => {
             e.HasKey(x => new { x.RegionId, x.TypeId, x.Date });

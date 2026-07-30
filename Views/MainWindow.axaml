@@ -264,6 +264,12 @@
               <DataTemplate DataType="vm:ProductionCalculatorViewModel">
                 <views:ProductionCalculatorView />
               </DataTemplate>
+              <DataTemplate DataType="vm:PriceOverrideViewModel">
+                <views:PriceOverrideView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:StructureBrowserViewModel">
+                <views:StructureBrowserView />
+              </DataTemplate>
               <DataTemplate DataType="vm:MarketLevelViewModel">
                 <views:MarketLevelView />
               </DataTemplate>
@@ -320,6 +326,12 @@
               </DataTemplate>
               <DataTemplate DataType="vm:ErrorLogViewModel">
                 <views:ErrorLogView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:GameLogViewerViewModel">
+                <views:GameLogViewerView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:ChatLogViewerViewModel">
+                <views:ChatLogViewerView />
               </DataTemplate>
             </ContentControl.DataTemplates>
           </ContentControl>

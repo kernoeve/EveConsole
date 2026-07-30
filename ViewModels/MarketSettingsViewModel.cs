@@ -315,6 +315,20 @@ public class MarketSettingsViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _lowballBuyOrderThresholdPct, value);
     }
 
+    private bool _purchaseWhenCheaper;
+    public bool PurchaseWhenCheaper
+    {
+        get => _purchaseWhenCheaper;
+        set => this.RaiseAndSetIfChanged(ref _purchaseWhenCheaper, value);
+    }
+
+    private decimal _purchaseThresholdPct = 100m;
+    public decimal PurchaseThresholdPct
+    {
+        get => _purchaseThresholdPct;
+        set => this.RaiseAndSetIfChanged(ref _purchaseThresholdPct, value);
+    }
+
     private string _defaultsStatus = "";
     public string DefaultsStatus
     {
@@ -416,6 +430,8 @@ public class MarketSettingsViewModel : ReactiveObject
                 MissingPriceMarkupPct          = defaults.MissingPriceMarkupPct;
                 FilterLowballBuyOrders         = defaults.FilterLowballBuyOrders;
                 LowballBuyOrderThresholdPct    = defaults.LowballBuyOrderThresholdPct;
+                PurchaseWhenCheaper            = defaults.PurchaseWhenCheaper;
+                PurchaseThresholdPct           = defaults.PurchaseThresholdPct;
             }
         }
     }
@@ -431,6 +447,8 @@ public class MarketSettingsViewModel : ReactiveObject
             decimal markup        = MissingPriceMarkupPct;
             int     filterLowball = FilterLowballBuyOrders ? 1 : 0;
             decimal lowballPct    = LowballBuyOrderThresholdPct;
+            int     buyCheaper    = PurchaseWhenCheaper ? 1 : 0;
+            decimal buyThreshold  = PurchaseThresholdPct;
 
             await using var fdb = _dbFactory.CreateDbContext();
             await fdb.Database.ExecuteSqlInterpolatedAsync(
@@ -438,11 +456,13 @@ public class MarketSettingsViewModel : ReactiveObject
                 INSERT INTO MarketDefaultSettings
                     (Id, AssetValueConfigId, AssetValuePriceType,
                      ManufacturingConfigId, ManufacturingPriceType, MissingPriceMarkupPct,
-                     FilterLowballBuyOrders, LowballBuyOrderThresholdPct)
+                     FilterLowballBuyOrders, LowballBuyOrderThresholdPct,
+                     PurchaseWhenCheaper, PurchaseThresholdPct)
                 VALUES
                     (1, {assetConfigId}, {assetType},
                      {mfgConfigId}, {mfgType}, {markup},
-                     {filterLowball}, {lowballPct})
+                     {filterLowball}, {lowballPct},
+                     {buyCheaper}, {buyThreshold})
                 ON CONFLICT(Id) DO UPDATE SET
                     AssetValueConfigId          = excluded.AssetValueConfigId,
                     AssetValuePriceType         = excluded.AssetValuePriceType,
@@ -450,7 +470,9 @@ public class MarketSettingsViewModel : ReactiveObject
                     ManufacturingPriceType       = excluded.ManufacturingPriceType,
                     MissingPriceMarkupPct        = excluded.MissingPriceMarkupPct,
                     FilterLowballBuyOrders       = excluded.FilterLowballBuyOrders,
-                    LowballBuyOrderThresholdPct  = excluded.LowballBuyOrderThresholdPct
+                    LowballBuyOrderThresholdPct  = excluded.LowballBuyOrderThresholdPct,
+                    PurchaseWhenCheaper          = excluded.PurchaseWhenCheaper,
+                    PurchaseThresholdPct         = excluded.PurchaseThresholdPct
                 """);
 
             DefaultsStatus = "Saved.";

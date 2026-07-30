@@ -7,6 +7,7 @@ using EveConsole.Views;
 using EveConsole.ViewModels;
 using EveConsole.Auth;
 using EveConsole.Api;
+using EveConsole.Monitoring;
 using EveConsole.Services;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
@@ -49,6 +50,8 @@ public class App : Application
         MarketPricingService? marketPricing = null;
         MarketHistoryService? marketHistory = null;
         ContractsService?     contracts     = null;
+        GameLogImportService? gameLogs      = null;
+        ChatLogImportService? chatLogs      = null;
         MainWindow?           mainWindow    = null;
         SplashWindow?         splash        = null;
 
@@ -62,6 +65,8 @@ public class App : Application
             marketPricing = Services.GetRequiredService<MarketPricingService>();
             marketHistory = Services.GetRequiredService<MarketHistoryService>();
             contracts     = Services.GetRequiredService<ContractsService>();
+            gameLogs      = Services.GetRequiredService<GameLogImportService>();
+            chatLogs      = Services.GetRequiredService<ChatLogImportService>();
 
             var buildCostService = Services.GetRequiredService<BuildCostService>();
             var reprService      = Services.GetRequiredService<ReprocessingValueService>();
@@ -85,6 +90,8 @@ public class App : Application
                 if (marketPricing is not null) tasks.Add(marketPricing.StopAsync());
                 if (marketHistory is not null) tasks.Add(marketHistory.StopAsync());
                 if (contracts     is not null) tasks.Add(contracts.StopAsync());
+                if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
+                if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
                 await Task.WhenAll(tasks);
                 desktop.Shutdown();
             };
@@ -680,6 +687,29 @@ public class App : Application
                     PRIMARY KEY ("TypeId")
                 )
                 """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "ContractBpcPrices" (
+                    "TypeId"      INTEGER NOT NULL,
+                    "Me"          INTEGER NOT NULL,
+                    "BestPerRun"  TEXT,
+                    "Avg30PerRun" TEXT,
+                    "ActiveCount" INTEGER NOT NULL DEFAULT 0,
+                    "SampleDays"  INTEGER NOT NULL DEFAULT 0,
+                    "UpdatedAt"   TEXT    NOT NULL DEFAULT '',
+                    PRIMARY KEY ("TypeId","Me")
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "PriceOverrides" (
+                    "TypeId"        INTEGER NOT NULL,
+                    "TypeName"      TEXT    NOT NULL DEFAULT '',
+                    "BuildCost"     TEXT,
+                    "MarketValue"   TEXT,
+                    "ContractValue" TEXT,
+                    "UpdatedAt"     TEXT    NOT NULL DEFAULT '',
+                    PRIMARY KEY ("TypeId")
+                )
+                """);
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiAssets" (
@@ -937,9 +967,29 @@ public class App : Application
                     "StructureId"   INTEGER NOT NULL PRIMARY KEY,
                     "Name"          TEXT    NOT NULL DEFAULT '',
                     "SolarSystemId" INTEGER NOT NULL DEFAULT 0,
+                    "OwnerId"       INTEGER NOT NULL DEFAULT 0,
+                    "AllianceId"    INTEGER NOT NULL DEFAULT 0,
+                    "TypeId"        INTEGER NOT NULL DEFAULT 0,
+                    "X"             REAL    NOT NULL DEFAULT 0,
+                    "Y"             REAL    NOT NULL DEFAULT 0,
+                    "Z"             REAL    NOT NULL DEFAULT 0,
+                    "NearestCelestialId" INTEGER NOT NULL DEFAULT 0,
+                    "NearestCelestial"   TEXT    NOT NULL DEFAULT '',
+                    "Status"        INTEGER NOT NULL DEFAULT 0,
                     "PulledAt"      TEXT    NOT NULL DEFAULT '2000-01-01T00:00:00+00:00'
                 )
                 """);
+            foreach (var col in new[] {
+                """ALTER TABLE "EsiStructureNames" ADD COLUMN "OwnerId" INTEGER NOT NULL DEFAULT 0""",
+                """ALTER TABLE "EsiStructureNames" ADD COLUMN "AllianceId" INTEGER NOT NULL DEFAULT 0""",
+                """ALTER TABLE "EsiStructureNames" ADD COLUMN "TypeId" INTEGER NOT NULL DEFAULT 0""",
+                """ALTER TABLE "EsiStructureNames" ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "EsiStructureNames" ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "EsiStructureNames" ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "EsiStructureNames" ADD COLUMN "NearestCelestialId" INTEGER NOT NULL DEFAULT 0""",
+                """ALTER TABLE "EsiStructureNames" ADD COLUMN "NearestCelestial" TEXT NOT NULL DEFAULT ''""",
+                """ALTER TABLE "EsiStructureNames" ADD COLUMN "Status" INTEGER NOT NULL DEFAULT 0""",
+            }) { try { db.Database.ExecuteSqlRaw(col); } catch { } }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiStructureNameFailures" (
@@ -948,6 +998,21 @@ public class App : Application
                     "StatusCode"  INTEGER NOT NULL DEFAULT 0
                 )
                 """);
+            // Celestial positions for nearest-structure labelling. Normally created/populated by the
+            // SDE import; created here (empty) so queries don't fail before the user re-imports.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "SdeCelestials" (
+                    "ItemId"        INTEGER NOT NULL PRIMARY KEY,
+                    "SolarSystemId" INTEGER NOT NULL DEFAULT 0,
+                    "TypeId"        INTEGER NOT NULL DEFAULT 0,
+                    "Kind"          INTEGER NOT NULL DEFAULT 0,
+                    "X"             REAL    NOT NULL DEFAULT 0,
+                    "Y"             REAL    NOT NULL DEFAULT 0,
+                    "Z"             REAL    NOT NULL DEFAULT 0,
+                    "Name"          TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_SdeCelestials_System" ON "SdeCelestials" ("SolarSystemId")""");
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiCorpStarbases" (
@@ -1145,9 +1210,13 @@ public class App : Application
                     "ManufacturingPriceType" TEXT   NOT NULL DEFAULT 'Sell',
                     "MissingPriceMarkupPct"      REAL    NOT NULL DEFAULT 15.0,
                     "FilterLowballBuyOrders"     INTEGER NOT NULL DEFAULT 1,
-                    "LowballBuyOrderThresholdPct" REAL   NOT NULL DEFAULT 25.0
+                    "LowballBuyOrderThresholdPct" REAL   NOT NULL DEFAULT 25.0,
+                    "PurchaseWhenCheaper"        INTEGER NOT NULL DEFAULT 0,
+                    "PurchaseThresholdPct"       REAL    NOT NULL DEFAULT 100.0
                 )
                 """);
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MarketDefaultSettings" ADD COLUMN "PurchaseWhenCheaper" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MarketDefaultSettings" ADD COLUMN "PurchaseThresholdPct" REAL NOT NULL DEFAULT 100.0"""); } catch { }
 
             // Seed default region price sources on first run: The Forge and Domain,
             // all stations, high/low order filtering at 1%. Both rows evaluate their
@@ -1234,12 +1303,15 @@ public class App : Application
                     "MaterialCost" REAL    NOT NULL DEFAULT 0,
                     "JobCost"      REAL    NOT NULL DEFAULT 0,
                     "BuildSeconds" REAL    NOT NULL DEFAULT 0,
+                    "Bought"       INTEGER NOT NULL DEFAULT 0,
                     "UpdatedAt"    TEXT    NOT NULL DEFAULT ''
                 )
                 """);
             // BuildSeconds added after the schema squash — backfill it on existing DBs.
             // ALTER throws if the column already exists, so swallow that one case.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "BuildCosts" ADD COLUMN "BuildSeconds" REAL NOT NULL DEFAULT 0"""); }
+            catch { /* column already present */ }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "BuildCosts" ADD COLUMN "Bought" INTEGER NOT NULL DEFAULT 0"""); }
             catch { /* column already present */ }
 
             db.Database.ExecuteSqlRaw("""
@@ -1277,6 +1349,132 @@ public class App : Application
                     "Message"      TEXT    NOT NULL DEFAULT '',
                     "InnerMessage" TEXT
                 )
+                """);
+
+            // ── Client activity monitoring ───────────────────────────────────
+            // Live session state per character, refreshed by the char.online /
+            // char.location / char.ship polling endpoints.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "CharacterStatuses" (
+                    "CharacterId"       INTEGER NOT NULL CONSTRAINT "PK_CharacterStatuses" PRIMARY KEY,
+                    "Online"            INTEGER NOT NULL DEFAULT 0,
+                    "LastLogin"         TEXT,
+                    "LastLogout"        TEXT,
+                    "LoginCount"        INTEGER,
+                    "SolarSystemId"     INTEGER,
+                    "StationId"         INTEGER,
+                    "StructureId"       INTEGER,
+                    "ShipTypeId"        INTEGER,
+                    "ShipItemId"        INTEGER,
+                    "ShipName"          TEXT,
+                    "OnlineCheckedAt"   TEXT,
+                    "LocationCheckedAt" TEXT,
+                    "ShipCheckedAt"     TEXT
+                )
+                """);
+
+            // Per-file parse position, so restarts resume rather than re-read or skip.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "GameLogFiles" (
+                    "Path"           TEXT    NOT NULL CONSTRAINT "PK_GameLogFiles" PRIMARY KEY,
+                    "CharacterId"    INTEGER,
+                    "CharacterName"  TEXT,
+                    "LastOffset"     INTEGER NOT NULL DEFAULT 0,
+                    "LastLineNumber" INTEGER NOT NULL DEFAULT 0,
+                    "LastFileLength" INTEGER NOT NULL DEFAULT 0,
+                    "FirstSeenAt"    TEXT    NOT NULL DEFAULT '',
+                    "LastParsedAt"   TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+
+            // Parsed log lines. OccurredAt is an ISO string, not a DateTimeOffset —
+            // EF Core + SQLite cannot translate DateTimeOffset comparisons in a Where.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "GameLogEvents" (
+                    "Id"             INTEGER NOT NULL CONSTRAINT "PK_GameLogEvents" PRIMARY KEY AUTOINCREMENT,
+                    "OccurredAt"     TEXT    NOT NULL DEFAULT '',
+                    "Kind"           TEXT    NOT NULL DEFAULT '',
+                    "CharacterId"    INTEGER,
+                    "CharacterName"  TEXT,
+                    "SourceFile"     TEXT    NOT NULL DEFAULT '',
+                    "LineNumber"     INTEGER NOT NULL DEFAULT 0,
+                    "Amount"         INTEGER,
+                    "SecondaryAmount" INTEGER,
+                    "SourceName"     TEXT,
+                    "SourceShip"     TEXT,
+                    "SourceCorp"     TEXT,
+                    "SourceAlliance" TEXT,
+                    "TargetName"     TEXT,
+                    "TargetShip"     TEXT,
+                    "TargetCorp"     TEXT,
+                    "TargetAlliance" TEXT,
+                    "Weapon"         TEXT,
+                    "Quality"        TEXT,
+                    "FromSystem"     TEXT,
+                    "ToSystem"       TEXT,
+                    "LocationName"   TEXT,
+                    "RawText"        TEXT
+                )
+                """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_GameLogEvents_SourceFile_LineNumber"
+                ON "GameLogEvents" ("SourceFile", "LineNumber")
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_GameLogEvents_OccurredAt"
+                ON "GameLogEvents" ("OccurredAt")
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_GameLogEvents_CharacterId_Kind"
+                ON "GameLogEvents" ("CharacterId", "Kind")
+                """);
+
+            // Chat log import. Off by default and gated on a per-channel allowlist —
+            // these rows contain other people's words, including private conversations.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "ChatLogFiles" (
+                    "Path"                TEXT    NOT NULL CONSTRAINT "PK_ChatLogFiles" PRIMARY KEY,
+                    "ChannelName"         TEXT    NOT NULL DEFAULT '',
+                    "ChannelId"           TEXT,
+                    "ListenerCharacterId" INTEGER,
+                    "ListenerName"        TEXT,
+                    "LastOffset"          INTEGER NOT NULL DEFAULT 0,
+                    "LastLineNumber"      INTEGER NOT NULL DEFAULT 0,
+                    "LastFileLength"      INTEGER NOT NULL DEFAULT 0,
+                    "FirstSeenAt"         TEXT    NOT NULL DEFAULT '',
+                    "LastParsedAt"        TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "ChatMessages" (
+                    "Id"                  INTEGER NOT NULL CONSTRAINT "PK_ChatMessages" PRIMARY KEY AUTOINCREMENT,
+                    "OccurredAt"          TEXT    NOT NULL DEFAULT '',
+                    "ChannelName"         TEXT    NOT NULL DEFAULT '',
+                    "ChannelId"           TEXT,
+                    "ListenerCharacterId" INTEGER,
+                    "ListenerName"        TEXT,
+                    "SenderName"          TEXT    NOT NULL DEFAULT '',
+                    "Message"             TEXT    NOT NULL DEFAULT '',
+                    "IsSystemMessage"     INTEGER NOT NULL DEFAULT 0,
+                    "SystemName"          TEXT,
+                    "SourceFile"          TEXT    NOT NULL DEFAULT '',
+                    "LineNumber"          INTEGER NOT NULL DEFAULT 0
+                )
+                """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_ChatMessages_SourceFile_LineNumber"
+                ON "ChatMessages" ("SourceFile", "LineNumber")
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_ChatMessages_OccurredAt"
+                ON "ChatMessages" ("OccurredAt")
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_ChatMessages_ChannelName_OccurredAt"
+                ON "ChatMessages" ("ChannelName", "OccurredAt")
                 """);
 
             db.Database.ExecuteSqlRaw("""
@@ -1464,6 +1662,8 @@ public class App : Application
         marketHistory?.Start();
         contracts?.Start();
         Services.GetRequiredService<DatabaseBackupService>().Start();
+        gameLogs?.Start();
+        chatLogs?.Start();
     }
 
     private static void PositionSplashOnLastMonitor(SplashWindow splash)
@@ -1557,6 +1757,14 @@ public class App : Application
         services.AddSingleton<CorpActivityService>();
         services.AddSingleton<KillmailBrowserService>();
         services.AddSingleton<CorpTop10ExcludeService>();
+
+        // Game log import — reads EVE's own logs into GameLogEvents for tools to
+        // query. Read-only; nothing is ever written back to an EVE-owned file.
+        services.AddSingleton<MonitoringSettings>();
+        services.AddSingleton<GameLogImportService>();
+        // Chat import is off by default and additionally gated on a per-channel
+        // allowlist — it stores other people's messages.
+        services.AddSingleton<ChatLogImportService>();
 
         // ViewModels
         services.AddTransient<MainWindowViewModel>();
