@@ -18,6 +18,8 @@ public class SettingsViewModel : ReactiveObject
     public DatabaseSettingsViewModel      DatabaseVm      { get; }
     public UpdateViewModel                UpdateVm        { get; }
     public SlackSettingsViewModel         SlackVm         { get; }
+    public GameLogSettingsViewModel       GameLogVm       { get; }
+    public ChatLogSettingsViewModel       ChatLogVm       { get; }
 
     public SettingsViewModel(
         CharacterViewModel            characterVm,
@@ -32,11 +34,15 @@ public class SettingsViewModel : ReactiveObject
         CorpTop10SettingsViewModel    corpTop10Vm,
         DatabaseSettingsViewModel     databaseVm,
         SlackSettingsViewModel        slackVm,
+        GameLogSettingsViewModel      gameLogVm,
+        ChatLogSettingsViewModel      chatLogVm,
         TtsService?                   tts     = null,
         SpeechInputService?           speech  = null,
         GlobalHotkeyService?          hotkey  = null)
     {
         SlackVm        = slackVm;
+        GameLogVm      = gameLogVm;
+        ChatLogVm      = chatLogVm;
         CharacterVm    = characterVm;
         SdeVm          = sdeVm;
         UpdateVm       = updateVm;
