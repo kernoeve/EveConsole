@@ -91,6 +91,13 @@ public class AppDbContext : DbContext
     // ── Application error log ────────────────────────────────────────────
     public DbSet<AppErrorEntry> AppErrors => Set<AppErrorEntry>();
 
+    // ── Client activity monitoring ───────────────────────────────────────
+    public DbSet<CharacterStatus> CharacterStatuses => Set<CharacterStatus>();
+    public DbSet<GameLogFile>     GameLogFiles      => Set<GameLogFile>();
+    public DbSet<GameLogEvent>    GameLogEvents     => Set<GameLogEvent>();
+    public DbSet<ChatLogFile>     ChatLogFiles      => Set<ChatLogFile>();
+    public DbSet<ChatMessage>     ChatMessages      => Set<ChatMessage>();
+
     // ── Market pricing ───────────────────────────────────────────────
     public DbSet<MarketPricingConfig>   MarketPricingConfigs   => Set<MarketPricingConfig>();
     public DbSet<MarketItemPrice>       MarketItemPrices       => Set<MarketItemPrice>();
@@ -774,6 +781,32 @@ public class AppDbContext : DbContext
         mb.Entity<AppErrorEntry>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("AppErrorLog"); });
+
+        mb.Entity<CharacterStatus>(e => {
+            e.HasKey(x => x.CharacterId);
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.Ignore(x => x.IsDocked); });
+
+        mb.Entity<GameLogFile>(e => {
+            e.HasKey(x => x.Path);
+            e.Property(x => x.Path).ValueGeneratedNever(); });
+
+        mb.Entity<GameLogEvent>(e => {
+            e.HasKey(x => x.Id);
+            // Re-importing a file must not duplicate rows.
+            e.HasIndex(x => new { x.SourceFile, x.LineNumber }).IsUnique();
+            e.HasIndex(x => x.OccurredAt);
+            e.HasIndex(x => new { x.CharacterId, x.Kind }); });
+
+        mb.Entity<ChatLogFile>(e => {
+            e.HasKey(x => x.Path);
+            e.Property(x => x.Path).ValueGeneratedNever(); });
+
+        mb.Entity<ChatMessage>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.SourceFile, x.LineNumber }).IsUnique();
+            e.HasIndex(x => x.OccurredAt);
+            e.HasIndex(x => new { x.ChannelName, x.OccurredAt }); });
 
         mb.Entity<MarketTypeHistory>(e => {
             e.HasKey(x => new { x.RegionId, x.TypeId, x.Date });

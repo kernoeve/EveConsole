@@ -828,6 +828,249 @@
       </ScrollViewer>
     </TabItem>
 
+    <!-- ══ Game Logs ══════════════════════════════════════════════════════════ -->
+    <TabItem Header="Game Logs">
+      <ScrollViewer Margin="0 8 0 0">
+        <StackPanel Spacing="14">
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Game Log Import" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="Reads EVE's own game logs and stores what it finds — combat, mining, bounties, jumps, undocking — so other tools can query it. Logs are opened read-only; nothing is ever written back and nothing is sent to the game client." />
+
+                <CheckBox IsChecked="{Binding GameLogVm.Enabled}"
+                          Content="Import game logs (on by default)" Foreground="#ccc" FontSize="12" />
+
+                <TextBlock FontSize="11" Foreground="#666" TextWrapping="Wrap"
+                           Text="This captures activity from now on. Logs EVE has already written are only loaded if you run an import below." />
+
+                <TextBlock Text="{Binding GameLogVm.Status}" FontSize="11" Foreground="#888899"
+                           TextWrapping="Wrap" />
+
+                <TextBlock FontSize="11" Foreground="#666" TextWrapping="Wrap"
+                           Text="Parse position is remembered per file, so anything logged while EVE Console was closed is picked up the next time it starts." />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Log Folders" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="Leave the list empty to use the local folder automatically. Add a network path (\\MACHINE\share\Gamelogs) to import logs from EVE clients running on other computers — nothing needs to be installed on them." />
+
+                <ListBox ItemsSource="{Binding GameLogVm.Directories}"
+                         SelectedItem="{Binding GameLogVm.SelectedDirectory}"
+                         MaxHeight="110" FontSize="11" Background="#131320" />
+
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBox Grid.Column="0" Text="{Binding GameLogVm.NewDirectory}"
+                           Watermark="C:\Users\you\Documents\EVE\logs\Gamelogs  or  \\PC2\eve-logs" />
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="6 0 0 0">
+                    <Button Content="Add"    Command="{Binding GameLogVm.AddDirectoryCommand}"    Padding="10 3" />
+                    <Button Content="Remove" Command="{Binding GameLogVm.RemoveDirectoryCommand}" Padding="10 3" />
+                    <Button Content="Detect" Command="{Binding GameLogVm.DetectDirectoryCommand}" Padding="10 3" />
+                    <Button Content="Open"   Command="{Binding GameLogVm.OpenDirectoryCommand}"   Padding="10 3" />
+                  </StackPanel>
+                </Grid>
+
+                <TextBlock Text="Currently reading:" FontSize="11" Foreground="#888" Margin="0 4 0 0" />
+                <SelectableTextBlock Text="{Binding GameLogVm.ResolvedPaths}" FontSize="11"
+                                     Foreground="#999" TextWrapping="Wrap"
+                                     FontFamily="Consolas, Menlo, monospace" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Historical import: an explicit, user-initiated action. Enabling the
+               importer above only picks up NEW activity, so the amount of history to
+               process is chosen here BEFORE anything runs, with the cost shown. -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Import Past Logs" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="Turning the importer on only picks up new activity from that point. To also load what EVE has already logged, choose how far back to go and start the import. This runs once — afterwards new activity is picked up automatically." />
+
+                <Grid ColumnDefinitions="Auto,80,Auto" IsEnabled="{Binding !GameLogVm.IsImporting}">
+                  <TextBlock Grid.Column="0" Text="Import logs from the last (days):" Foreground="#ccc"
+                             FontSize="12" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <TextBox Grid.Column="1" Text="{Binding GameLogVm.HistoryDays}" />
+                  <TextBlock Grid.Column="2" Text="0 = all history" Foreground="#666"
+                             FontSize="11" VerticalAlignment="Center" Margin="10 0 0 0" />
+                </Grid>
+
+                <TextBlock Text="{Binding GameLogVm.EstimateText}" FontSize="11" Foreground="#c8a84b"
+                           TextWrapping="Wrap" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Start Import" Command="{Binding GameLogVm.ImportHistoryCommand}"
+                          IsEnabled="{Binding !GameLogVm.IsImporting}" Padding="14 4" />
+                  <Button Content="Recount" Command="{Binding GameLogVm.EstimateCommand}"
+                          IsEnabled="{Binding !GameLogVm.IsImporting}" Padding="14 4" />
+                  <Button Content="Cancel" Command="{Binding GameLogVm.CancelImportCommand}"
+                          IsVisible="{Binding GameLogVm.IsImporting}" Padding="14 4" />
+                </StackPanel>
+
+                <!-- Real determinate progress: file X of Y, so a large historical
+                     import shows how much is left rather than just spinning. -->
+                <StackPanel Spacing="4" IsVisible="{Binding GameLogVm.IsImporting}">
+                  <ProgressBar Minimum="0"
+                               Maximum="{Binding GameLogVm.ProgressTotal}"
+                               Value="{Binding GameLogVm.ProgressCurrent}"
+                               Height="14" Foreground="#c8a84b" Background="#131320" />
+                  <TextBlock Text="{Binding GameLogVm.ProgressText}" FontSize="11" Foreground="#888899"
+                             TextTrimming="CharacterEllipsis"
+                             ToolTip.Tip="{Binding GameLogVm.ProgressText}" />
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Options" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <Grid ColumnDefinitions="Auto,80,Auto">
+                  <TextBlock Grid.Column="0" Text="Check for new lines every (s):" Foreground="#ccc"
+                             FontSize="12" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <TextBox Grid.Column="1" Text="{Binding GameLogVm.ScanSeconds}" />
+                </Grid>
+
+                <CheckBox IsChecked="{Binding GameLogVm.StoreUnmatched}" Foreground="#ccc" FontSize="12"
+                          Content="Keep lines that no rule recognised" />
+                <TextBlock FontSize="11" Foreground="#666" TextWrapping="Wrap"
+                           Text="Recommended. EVE's log format is undocumented and varies by client version, and recognition rules can only cover activity someone has actually done. Keeping unrecognised lines (as kind 'unmatched') means missing coverage shows up in your own data instead of going unnoticed." />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <!-- ══ Chat Logs ══════════════════════════════════════════════════════════ -->
+    <TabItem Header="Chat Logs">
+      <ScrollViewer Margin="0 8 0 0">
+        <StackPanel Spacing="14">
+
+          <Border BorderBrush="#4a3a20" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#241a10" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Chat Log Import" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="#c8a84b" TextWrapping="Wrap"
+                           Text="Unlike game logs, chat logs contain what other people wrote. Nothing is stored unless you both enable this and tick specific channels below." />
+                <TextBlock FontSize="11" Foreground="#c8a84b" TextWrapping="Wrap"
+                           Text="Note: private conversations appear as &quot;Private Chat (2)&quot;, &quot;Private Chat (3)&quot; and so on. EVE reuses those names for different people over time, so ticking one can capture direct messages with many different players." />
+
+                <CheckBox IsChecked="{Binding ChatLogVm.Enabled}"
+                          Content="Import chat logs" Foreground="#ccc" FontSize="12" />
+
+                <TextBlock Text="{Binding ChatLogVm.Status}" FontSize="11" Foreground="#888899"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Channels to Store" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="Only ticked channels are read at all — files for other channels are never opened. Discovery reads filenames only; it can take a moment as these folders hold tens of thousands of files." />
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Discover Channels" Command="{Binding ChatLogVm.DiscoverCommand}"
+                          IsEnabled="{Binding !ChatLogVm.IsBusy}" Padding="14 4" />
+                  <Button Content="Untick All" Command="{Binding ChatLogVm.SelectNoneCommand}"
+                          IsEnabled="{Binding !ChatLogVm.IsBusy}" Padding="14 4" />
+                </StackPanel>
+
+                <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="3"
+                        Background="#131320" MaxHeight="220">
+                  <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding ChatLogVm.Channels}" Margin="8">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ChatChannelViewModel">
+                          <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Name}"
+                                    Foreground="#ccc" FontSize="11" Margin="0 1" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </ScrollViewer>
+                </Border>
+
+                <TextBlock Text="{Binding ChatLogVm.SelectionText}" FontSize="11" Foreground="#888899" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Import Past Chat" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="As with game logs, enabling only captures new messages. Use this to also load past chat for the selected channels." />
+
+                <Grid ColumnDefinitions="Auto,80,Auto" IsEnabled="{Binding !ChatLogVm.IsBusy}">
+                  <TextBlock Grid.Column="0" Text="Import chat from the last (days):" Foreground="#ccc"
+                             FontSize="12" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <TextBox Grid.Column="1" Text="{Binding ChatLogVm.HistoryDays}" />
+                  <TextBlock Grid.Column="2" Text="0 = all history" Foreground="#666"
+                             FontSize="11" VerticalAlignment="Center" Margin="10 0 0 0" />
+                </Grid>
+
+                <TextBlock Text="{Binding ChatLogVm.EstimateText}" FontSize="11" Foreground="#c8a84b"
+                           TextWrapping="Wrap" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Start Import" Command="{Binding ChatLogVm.ImportHistoryCommand}"
+                          IsEnabled="{Binding !ChatLogVm.IsBusy}" Padding="14 4" />
+                  <Button Content="Cancel" Command="{Binding ChatLogVm.CancelImportCommand}"
+                          IsVisible="{Binding ChatLogVm.IsBusy}" Padding="14 4" />
+                </StackPanel>
+
+                <StackPanel Spacing="4" IsVisible="{Binding ChatLogVm.IsBusy}">
+                  <ProgressBar Minimum="0"
+                               Maximum="{Binding ChatLogVm.ProgressTotal}"
+                               Value="{Binding ChatLogVm.ProgressCurrent}"
+                               Height="14" Foreground="#c8a84b" Background="#131320" />
+                  <TextBlock Text="{Binding ChatLogVm.ProgressText}" FontSize="11" Foreground="#888899"
+                             TextTrimming="CharacterEllipsis"
+                             ToolTip.Tip="{Binding ChatLogVm.ProgressText}" />
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
     <!-- ══ Corp Top 10 ════════════════════════════════════════════════════════ -->
     <TabItem Header="Corp Top 10">
       <Grid RowDefinitions="*,Auto" Margin="0 8 0 0">
