@@ -54,6 +54,12 @@ public class MarketDefaultSettings
     public decimal MissingPriceMarkupPct         { get; set; } = 15m;
     public bool    FilterLowballBuyOrders         { get; set; } = true;
     public decimal LowballBuyOrderThresholdPct    { get; set; } = 25m;
+    // When true, the build-cost calc (and Production Calc via the Bought flag) may replace building
+    // a component with buying it whenever its market value is <= PurchaseThresholdPct% of its build
+    // cost. Off by default: bouncy component markets and thin cheap-order quantities make this
+    // unreliable. Items that simply cannot be costed are still bought regardless of this flag.
+    public bool    PurchaseWhenCheaper            { get; set; } = false;
+    public decimal PurchaseThresholdPct           { get; set; } = 100m;
 }
 
 public class MarketRawOrder

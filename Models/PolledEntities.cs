@@ -275,6 +275,37 @@ public class ContractPrice
     public DateTimeOffset UpdatedAt { get; set; }
 }
 
+// Per-run BPC contract price, keyed by (blueprint TypeId, ME). Unlike ContractPrice (a per-unit
+// finished-item price), this divides a BPC contract's ask by the copy's runs so consumers can
+// cost a single build run, and separates ME levels (which change material cost — matters for
+// titans/supers). BestPerRun / Avg30PerRun mirror ContractPrice's best-vs-30-day-average rule.
+public class ContractBpcPrice
+{
+    public int      TypeId      { get; set; }   // blueprint type id  (key part 1)
+    public int      Me          { get; set; }   // material efficiency (key part 2)
+    public decimal? BestPerRun  { get; set; }
+    public decimal? Avg30PerRun { get; set; }
+    public int      ActiveCount { get; set; }
+    public int      SampleDays  { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
+// Manual, user-supplied price corrections for a single type. Each field is null unless the user
+// has explicitly pinned it; a non-null value REPLACES the computed value in its channel:
+//   BuildCost     → the item's build cost (cheaper-of still applies vs the market buy price)
+//   MarketValue   → the item's market price (buy/build comparison, raw-material valuation)
+//   ContractValue → the item's contract price; for a BLUEPRINT type it is the PER-RUN BPC price
+// Used to work around contract/market manipulation (e.g. someone milking single-item BPC contracts).
+public class PriceOverride
+{
+    public int      TypeId        { get; set; }   // key
+    public string   TypeName      { get; set; } = "";
+    public decimal? BuildCost     { get; set; }
+    public decimal? MarketValue   { get; set; }
+    public decimal? ContractValue { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
 // ── Assets & blueprints ───────────────────────────────────────────────────────
 
 public class CharacterAsset

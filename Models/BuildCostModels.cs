@@ -24,6 +24,9 @@ public class BuildCost
     // Seconds to manufacture ONE unit in the default park (blueprint TE + skills +
     // structure role/rig time bonuses applied). 0 if the item is not manufacturable.
     public double   BuildSeconds { get; set; }
+    // True when buying the finished item is cheaper than building it — TotalCost is then the buy
+    // price with no job. The Production Calculator reads this to buy (not build) the component.
+    public bool     Bought       { get; set; }
     public DateTime UpdatedAt    { get; set; }
 }
 

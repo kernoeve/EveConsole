@@ -687,6 +687,29 @@ public class App : Application
                     PRIMARY KEY ("TypeId")
                 )
                 """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "ContractBpcPrices" (
+                    "TypeId"      INTEGER NOT NULL,
+                    "Me"          INTEGER NOT NULL,
+                    "BestPerRun"  TEXT,
+                    "Avg30PerRun" TEXT,
+                    "ActiveCount" INTEGER NOT NULL DEFAULT 0,
+                    "SampleDays"  INTEGER NOT NULL DEFAULT 0,
+                    "UpdatedAt"   TEXT    NOT NULL DEFAULT '',
+                    PRIMARY KEY ("TypeId","Me")
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "PriceOverrides" (
+                    "TypeId"        INTEGER NOT NULL,
+                    "TypeName"      TEXT    NOT NULL DEFAULT '',
+                    "BuildCost"     TEXT,
+                    "MarketValue"   TEXT,
+                    "ContractValue" TEXT,
+                    "UpdatedAt"     TEXT    NOT NULL DEFAULT '',
+                    PRIMARY KEY ("TypeId")
+                )
+                """);
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiAssets" (
@@ -1152,9 +1175,13 @@ public class App : Application
                     "ManufacturingPriceType" TEXT   NOT NULL DEFAULT 'Sell',
                     "MissingPriceMarkupPct"      REAL    NOT NULL DEFAULT 15.0,
                     "FilterLowballBuyOrders"     INTEGER NOT NULL DEFAULT 1,
-                    "LowballBuyOrderThresholdPct" REAL   NOT NULL DEFAULT 25.0
+                    "LowballBuyOrderThresholdPct" REAL   NOT NULL DEFAULT 25.0,
+                    "PurchaseWhenCheaper"        INTEGER NOT NULL DEFAULT 0,
+                    "PurchaseThresholdPct"       REAL    NOT NULL DEFAULT 100.0
                 )
                 """);
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MarketDefaultSettings" ADD COLUMN "PurchaseWhenCheaper" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MarketDefaultSettings" ADD COLUMN "PurchaseThresholdPct" REAL NOT NULL DEFAULT 100.0"""); } catch { }
 
             // Seed default region price sources on first run: The Forge and Domain,
             // all stations, high/low order filtering at 1%. Both rows evaluate their
@@ -1241,12 +1268,15 @@ public class App : Application
                     "MaterialCost" REAL    NOT NULL DEFAULT 0,
                     "JobCost"      REAL    NOT NULL DEFAULT 0,
                     "BuildSeconds" REAL    NOT NULL DEFAULT 0,
+                    "Bought"       INTEGER NOT NULL DEFAULT 0,
                     "UpdatedAt"    TEXT    NOT NULL DEFAULT ''
                 )
                 """);
             // BuildSeconds added after the schema squash — backfill it on existing DBs.
             // ALTER throws if the column already exists, so swallow that one case.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "BuildCosts" ADD COLUMN "BuildSeconds" REAL NOT NULL DEFAULT 0"""); }
+            catch { /* column already present */ }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "BuildCosts" ADD COLUMN "Bought" INTEGER NOT NULL DEFAULT 0"""); }
             catch { /* column already present */ }
 
             db.Database.ExecuteSqlRaw("""

@@ -528,7 +528,7 @@
         <!-- Default Pricing -->
         <Border Grid.Row="1" Background="#161620" BorderBrush="#252530" BorderThickness="1"
                 CornerRadius="4" Padding="12 10" Margin="0 8 0 0">
-          <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+          <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
             <TextBlock Grid.Row="0" Text="Default Pricing" FontWeight="SemiBold"
                        Foreground="#c8a84b" FontSize="12" Margin="0 0 0 8" />
 
@@ -611,25 +611,8 @@
                          TextWrapping="Wrap" />
             </Grid>
 
-            <!-- Build Costs recalculate -->
-            <Grid Grid.Row="5" ColumnDefinitions="160,Auto,*" Margin="0 0 0 8">
-              <TextBlock Grid.Column="0" Text="Build Costs:"
-                         FontSize="12" Foreground="#ccc" VerticalAlignment="Center" />
-              <Button Grid.Column="1"
-                      Content="Recalculate"
-                      Command="{Binding MarketVm.RecalculateBuildCostsCommand}"
-                      Background="#1a1a28" Foreground="#c8a84b"
-                      BorderBrush="#3a3020" BorderThickness="1"
-                      Padding="12 4" FontSize="11" />
-              <TextBlock Grid.Column="2"
-                         Text="{Binding MarketVm.BuildCostStatus}"
-                         FontSize="11" Foreground="#888"
-                         VerticalAlignment="Center" Margin="10 0 0 0"
-                         TextWrapping="Wrap" />
-            </Grid>
-
             <!-- Save row -->
-            <StackPanel Grid.Row="6" Orientation="Horizontal" Spacing="10">
+            <StackPanel Grid.Row="5" Orientation="Horizontal" Spacing="10">
               <Button Content="Save Defaults" Command="{Binding MarketVm.SaveDefaultsCommand}" Padding="14 4" />
               <TextBlock Text="{Binding MarketVm.DefaultsStatus}"
                          FontSize="11" Foreground="#888" VerticalAlignment="Center" />
@@ -653,6 +636,73 @@
         </Border>
 
       </Grid>
+    </TabItem>
+
+    <!-- ══ Industry ══════════════════════════════════════════════════════════ -->
+    <TabItem Header="Industry">
+      <ScrollViewer Margin="0 8 0 0">
+        <StackPanel Spacing="12" Margin="0 0 4 0">
+
+          <!-- Build Costs -->
+          <Border Background="#161620" BorderBrush="#252530" BorderThickness="1"
+                  CornerRadius="4" Padding="12 10">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Build Costs" FontWeight="SemiBold" Foreground="#c8a84b" FontSize="12" />
+              <TextBlock Text="Recalculate stored build costs for every manufacturable item. Runs automatically after a market refresh; use this to force an update after changing pricing or overrides."
+                         FontSize="11" Foreground="#666" TextWrapping="Wrap" />
+              <Grid ColumnDefinitions="Auto,*" Margin="0 2 0 0">
+                <Button Grid.Column="0"
+                        Content="Recalculate Build Costs"
+                        Command="{Binding MarketVm.RecalculateBuildCostsCommand}"
+                        Background="#1a1a28" Foreground="#c8a84b"
+                        BorderBrush="#3a3020" BorderThickness="1"
+                        Padding="12 4" FontSize="11" />
+                <TextBlock Grid.Column="1"
+                           Text="{Binding MarketVm.BuildCostStatus}"
+                           FontSize="11" Foreground="#888"
+                           VerticalAlignment="Center" Margin="10 0 0 0"
+                           TextWrapping="Wrap" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <!-- Production Calc behaviour -->
+          <Border Background="#161620" BorderBrush="#252530" BorderThickness="1"
+                  CornerRadius="4" Padding="12 10">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Production Calculator" FontWeight="SemiBold" Foreground="#c8a84b" FontSize="12" />
+
+              <Grid ColumnDefinitions="Auto,120,Auto,*">
+                <CheckBox Grid.Column="0"
+                          IsChecked="{Binding MarketVm.PurchaseWhenCheaper}"
+                          Content="Purchase a component instead of building when its market value is ≤"
+                          FontSize="12" Foreground="#ccc" VerticalAlignment="Center"
+                          Margin="0 0 6 0" />
+                <NumericUpDown Grid.Column="1"
+                               Value="{Binding MarketVm.PurchaseThresholdPct}"
+                               Minimum="1" Maximum="500" Increment="5"
+                               FormatString="0" FontSize="12"
+                               IsEnabled="{Binding MarketVm.PurchaseWhenCheaper}"
+                               HorizontalAlignment="Stretch" />
+                <TextBlock Grid.Column="2" Text="% of build value"
+                           FontSize="12" Foreground="#aaa"
+                           VerticalAlignment="Center" Margin="5 0 12 0" />
+              </Grid>
+
+              <TextBlock FontSize="11" Foreground="#666" TextWrapping="Wrap"
+                         Text="Off by default. Component markets bounce around, and a few units listed cheap don't guarantee the quantity you need is available at that price — nor that it's worth tracking down and hauling. When off, the calculators build every component they can (items that genuinely can't be costed are still bought). Turn it on to let cheaper-of-build-vs-buy decide."/>
+            </StackPanel>
+          </Border>
+
+          <!-- Save row -->
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button Content="Save" Command="{Binding MarketVm.SaveDefaultsCommand}" Padding="14 4" />
+            <TextBlock Text="{Binding MarketVm.DefaultsStatus}"
+                       FontSize="11" Foreground="#888" VerticalAlignment="Center" />
+          </StackPanel>
+
+        </StackPanel>
+      </ScrollViewer>
     </TabItem>
 
     <!-- ══ Timers ════════════════════════════════════════════════════════════ -->
