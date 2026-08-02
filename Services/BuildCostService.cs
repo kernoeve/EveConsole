@@ -732,33 +732,54 @@ public class BuildCostService
         // walking its whole chain with job-level rounding (JobMaterialTotal), so stored build costs
         // match the Production Calculator. The pass's decisions (bought / BPC-ME / overrides) stand.
         var obtainMemo = new Dictionary<(int Type, int Qty), (decimal Raw, decimal Job)>();
+
+        // Types currently being costed further up this recursion. EVE's material graph is not
+        // guaranteed acyclic — a chain can lead back to an ancestor — and re-entering one
+        // recurses until the stack dies. This was previously masked rather than handled: an
+        // item inside a cycle was normally uncostable, so it picked up a market price, landed
+        // in boughtTypes, and hit the buy-leaf branch below, which terminates. Clearing those
+        // prices removed that accidental terminator and turned it into a StackOverflow at
+        // roughly 1,100 frames. The memo cannot serve as the guard because it is only written
+        // after a call completes, so a cycle re-enters before any entry exists.
+        var inProgress = new HashSet<int>();
+
         (decimal Raw, decimal Job) ObtainCost(int type, int qty)
         {
             if (qty <= 0) return (0m, 0m);
             if (obtainMemo.TryGetValue((type, qty), out var cached)) return cached;
 
-            (decimal Raw, decimal Job) result;
-            if (recOverride.TryGetValue(type, out var ovc) && !boughtTypes.Contains(type))
-                result = (qty * ovc, 0m);                                 // pinned fixed-value leaf
-            else if (boughtTypes.Contains(type) || !recMaterials.TryGetValue(type, out var mats))
-                result = (qty * (unitCosts.TryGetValue(type, out var pr) ? pr : 0m), 0m);  // buy leaf
-            else
+            // Cycle hit: cost this type as a purchased leaf using the per-unit estimate from
+            // the pass above and stop descending. Deliberately not memoised — the value is
+            // only valid for the branch that closed the loop, not for the type generally.
+            if (!inProgress.Add(type))
+                return (qty * (unitCosts.TryGetValue(type, out var cyc) ? cyc : 0m), 0m);
+
+            try
             {
-                int    outQ = recOutputQty.TryGetValue(type, out var oq) ? Math.Max(1, oq) : 1;
-                int    runs = (int)Math.Ceiling((double)qty / outQ);
-                double mf   = recMeFactor.TryGetValue(type, out var f) ? f : 1.0;
-                decimal raw = (recBpcPerRun.TryGetValue(type, out var bpc) ? bpc : 0m) * runs;
-                decimal job = (recJobPerRun.TryGetValue(type, out var jp) ? jp : 0m) * runs;
-                foreach (var (matType, baseQty) in mats)
+                (decimal Raw, decimal Job) result;
+                if (recOverride.TryGetValue(type, out var ovc) && !boughtTypes.Contains(type))
+                    result = (qty * ovc, 0m);                                 // pinned fixed-value leaf
+                else if (boughtTypes.Contains(type) || !recMaterials.TryGetValue(type, out var mats))
+                    result = (qty * (unitCosts.TryGetValue(type, out var pr) ? pr : 0m), 0m);  // buy leaf
+                else
                 {
-                    int need = JobMaterialTotal(baseQty, mf, runs);
-                    var (cr, cj) = ObtainCost(matType, need);
-                    raw += cr; job += cj;
+                    int    outQ = recOutputQty.TryGetValue(type, out var oq) ? Math.Max(1, oq) : 1;
+                    int    runs = (int)Math.Ceiling((double)qty / outQ);
+                    double mf   = recMeFactor.TryGetValue(type, out var f) ? f : 1.0;
+                    decimal raw = (recBpcPerRun.TryGetValue(type, out var bpc) ? bpc : 0m) * runs;
+                    decimal job = (recJobPerRun.TryGetValue(type, out var jp) ? jp : 0m) * runs;
+                    foreach (var (matType, baseQty) in mats)
+                    {
+                        int need = JobMaterialTotal(baseQty, mf, runs);
+                        var (cr, cj) = ObtainCost(matType, need);
+                        raw += cr; job += cj;
+                    }
+                    result = (raw, job);
                 }
-                result = (raw, job);
+                obtainMemo[(type, qty)] = result;
+                return result;
             }
-            obtainMemo[(type, qty)] = result;
-            return result;
+            finally { inProgress.Remove(type); }
         }
 
         foreach (var typeId in productMap.Keys)

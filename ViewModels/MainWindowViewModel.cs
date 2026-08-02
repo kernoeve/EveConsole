@@ -294,7 +294,8 @@ public class MainWindowViewModel : ReactiveObject
         ZkillboardPostService           zkbPost,
         EntityNameBackfillService       entityNames,
         EveServerStatusService          serverStatus,
-        UiLinkSettings                  uiLinks)
+        UiLinkSettings                  uiLinks,
+        ExportFormatSettings            exportFormat)
     {
         _uiLinks        = uiLinks;
         OtherSettingsVm = new OtherSettingsViewModel(uiLinks);
@@ -320,8 +321,8 @@ public class MainWindowViewModel : ReactiveObject
             CharacterVm.Characters, CharacterVm.Corporations, batchAddService, prodCalcService);
         InvLevelVm        = new InvLevelViewModel(invLevelService, dbFactory, batchAddService,
             prodCalcService, fittingsService, CharacterVm.Characters, CharacterVm.Corporations);
-        SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService);
-        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, slackService);
+        SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
+        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, slackService, exportFormat);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);

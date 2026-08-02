@@ -923,6 +923,42 @@ public class App : Application
                 )
                 """);
 
+            // Current member-tracking values, overwritten on each poll.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "EsiCorpMemberTracking" (
+                    "CorporationId" INTEGER NOT NULL,
+                    "CharacterId"   INTEGER NOT NULL,
+                    "StartDate"     TEXT,
+                    "LogonDate"     TEXT,
+                    "LogoffDate"    TEXT,
+                    "LocationId"    INTEGER,
+                    "ShipTypeId"    INTEGER,
+                    "BaseId"        INTEGER,
+                    "UpdatedAt"     TEXT NOT NULL DEFAULT '',
+                    PRIMARY KEY ("CorporationId", "CharacterId")
+                )
+                """);
+
+            // Accumulated login history — one row per distinct logon we observe. The unique
+            // index is what makes repeated polls idempotent: the same logon seen again is
+            // rejected rather than duplicated.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "EsiCorpMemberSessions" (
+                    "Id"            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "CorporationId" INTEGER NOT NULL,
+                    "CharacterId"   INTEGER NOT NULL,
+                    "LogonDate"     TEXT    NOT NULL,
+                    "LogoffDate"    TEXT,
+                    "LocationId"    INTEGER,
+                    "ShipTypeId"    INTEGER,
+                    "RecordedAt"    TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_EsiCorpMemberSessions_Key"
+                ON "EsiCorpMemberSessions" ("CorporationId", "CharacterId", "LogonDate")
+                """);
+
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiCorpMemberRoles" (
                     "CorporationId" INTEGER NOT NULL,
@@ -1839,6 +1875,7 @@ public class App : Application
         services.AddSingleton<EntityNameBackfillService>();
         services.AddSingleton<EveServerStatusService>();
         services.AddSingleton<UiLinkSettings>();
+        services.AddSingleton<ExportFormatSettings>();
 
         // ViewModels
         services.AddTransient<MainWindowViewModel>();

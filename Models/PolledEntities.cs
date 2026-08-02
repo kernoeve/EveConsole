@@ -562,6 +562,46 @@ public class CorpMember
     public long CharacterId   { get; set; }
 }
 
+/// <summary>
+/// Corp member tracking (/corporations/{id}/membertracking/). Current values only — ESI
+/// reports the LAST logon/logoff, not a history, so a row is overwritten on every poll and
+/// cannot answer "was this character active in March". CorpMemberSession exists for that.
+/// </summary>
+public class CorpMemberTracking
+{
+    public long            CorporationId { get; set; }
+    public long            CharacterId   { get; set; }
+    public DateTimeOffset? StartDate     { get; set; }   // joined the corp
+    public DateTimeOffset? LogonDate     { get; set; }
+    public DateTimeOffset? LogoffDate    { get; set; }
+    public long?           LocationId    { get; set; }
+    public int?            ShipTypeId    { get; set; }
+    public long?           BaseId        { get; set; }
+    public DateTimeOffset  UpdatedAt     { get; set; }
+}
+
+/// <summary>
+/// One observed login, derived by watching CorpMemberTracking.LogonDate change between
+/// polls. ESI only ever exposes the latest logon, so this is the only way to accumulate the
+/// dated history that per-month activity reporting needs.
+///
+/// Forward-only by nature: it can say nothing about months that elapsed before tracking
+/// started, and a login is missed entirely if the member logs in and out again between two
+/// polls of the same corp.
+/// </summary>
+public class CorpMemberSession
+{
+    public long            Id            { get; set; }
+    public long            CorporationId { get; set; }
+    public long            CharacterId   { get; set; }
+    /// <summary>The logon timestamp ESI reported — the login itself, not when we saw it.</summary>
+    public DateTimeOffset  LogonDate     { get; set; }
+    public DateTimeOffset? LogoffDate    { get; set; }
+    public long?           LocationId    { get; set; }
+    public int?            ShipTypeId    { get; set; }
+    public DateTimeOffset  RecordedAt    { get; set; }
+}
+
 public class CorpMemberRole
 {
     public long   CorporationId { get; set; }

@@ -524,6 +524,18 @@ public class MarketPricingService
         double markup  = 1.0 + (double)(defaults?.MissingPriceMarkupPct ?? 15m) / 100.0;
         var    fetched = DateTimeOffset.UtcNow;
 
+        // ⚠️ All three steps below ignore BuildCosts rows with Bought = 1, on purpose.
+        //
+        // A "bought" row is one BuildCostService could not cost as a build — BPC-only with the
+        // BPC never seen on contracts, or cheaper-to-buy when that option is enabled — so it
+        // sets TotalCost to the item's own MARKET PRICE. Feeding that back through
+        // "price = TotalCost × markup" is circular: every refresh multiplies the price by the
+        // markup again. Seen live at ~15 refreshes/day against a 15% markup: 1.15^15 = 8.137x
+        // per day, taking a Prototype Cerebral Accelerator from 2.9M to 98.8B in four days and
+        // a 'Roaring' Small Graviton Smartbomb past a trillion ISK.
+        //
+        // Rows that genuinely cost out a build (Bought = 0) are unaffected.
+
         // Step 1 — insert a row for every published SDE type that has no row yet for this config.
         // Build cost × markup is the initial price; types with no build cost get 0.
         await db.Database.ExecuteSqlInterpolatedAsync(
@@ -536,7 +548,7 @@ public class MarketPricingService
                 {fetched},
                 0
             FROM SdeTypes t
-            LEFT JOIN BuildCosts bc ON bc.TypeId = t.TypeId
+            LEFT JOIN BuildCosts bc ON bc.TypeId = t.TypeId AND bc.Bought = 0
             WHERE t.Published = 1
               AND NOT EXISTS (
                   SELECT 1 FROM MarketItemPrices p
@@ -553,6 +565,7 @@ public class MarketPricingService
             WITH costs AS (
                 SELECT TypeId, CAST(TotalCost AS REAL) * {markup} AS EffSell
                 FROM BuildCosts
+                WHERE Bought = 0
             )
             UPDATE MarketItemPrices
             SET SellPrice = COALESCE((SELECT c.EffSell FROM costs c WHERE c.TypeId = MarketItemPrices.TypeId), 0.0),
@@ -581,6 +594,7 @@ public class MarketPricingService
             WITH costs AS (
                 SELECT TypeId, CAST(TotalCost AS REAL) * {markup} AS EffSell
                 FROM BuildCosts
+                WHERE Bought = 0
             )
             UPDATE MarketItemPrices
             SET SellPrice = c.EffSell,
@@ -594,15 +608,28 @@ public class MarketPricingService
               AND MarketItemPrices.SellPrice     != c.EffSell
             """, ct);
 
-        // Step 4 — give BPCs (blueprint types) a market value from contracts. Blueprint copies
-        // aren't sold on the regular market, so faction/limited-run blueprints otherwise have no
-        // price at all. Real (buyable) BPOs carry FromMarketData = 1 rows and are left untouched.
-        await FillBpcContractPricesAsync(configId, db, fetched, ct);
+        // Step 4 — price anything that sells on contracts rather than the market from contract
+        // data. Runs last so it wins over the build-cost estimate above, which is the weaker
+        // signal for these items. Real market rows (FromMarketData = 1) are never touched.
+        await FillContractPricesAsync(configId, db, fetched, ct);
     }
 
-    // Sets the market value of blueprint types (SDE category 9) to their contract-derived price,
-    // so a BPC can be treated as a normal purchased input by the build-cost / production-calc code.
-    private static async Task FillBpcContractPricesAsync(
+    /// <summary>
+    /// Sets the market value of contract-traded types to their contract-derived price, so they
+    /// can be treated as normal purchased inputs by the build-cost / production-calc code.
+    ///
+    /// Applies to ANY type with contract observations, not just blueprints. It was originally
+    /// blueprint-only (SDE category 9) because BPCs are the obvious case — they never appear on
+    /// the regular market. But the same is true of plenty of non-blueprints: measured on a live
+    /// database, 510 non-blueprint types had contract prices and no market orders at all. Those
+    /// were left to the build-cost estimate, which for an uncostable item is its own market
+    /// price — the circular path described in FillPriceGapsAsync.
+    ///
+    /// The price comes from ContractPricing.EffectivePrice, so the existing rule applies: the
+    /// lowest active contract price, unless that is more than 50% above the 30-day average of
+    /// the daily best, in which case the steadier average is used.
+    /// </summary>
+    private static async Task FillContractPricesAsync(
         int configId, AppDbContext db, DateTimeOffset fetched, CancellationToken ct)
     {
         var eff = new Dictionary<int, double>();
@@ -614,22 +641,14 @@ public class MarketPricingService
         if (eff.Count == 0) return;
 
         var ids = eff.Keys.ToList();
-        var bpTypeIds = await db.SdeTypes.AsNoTracking()
-            .Where(t => ids.Contains(t.TypeId))
-            .Join(db.SdeGroups.AsNoTracking(), t => t.GroupId, g => g.GroupId,
-                  (t, g) => new { t.TypeId, g.CategoryId })
-            .Where(x => x.CategoryId == 9)   // Blueprint category
-            .Select(x => x.TypeId)
-            .ToListAsync(ct);
-        if (bpTypeIds.Count == 0) return;
 
         var existing = await db.MarketItemPrices
-            .Where(p => p.ConfigId == configId && bpTypeIds.Contains(p.TypeId))
+            .Where(p => p.ConfigId == configId && ids.Contains(p.TypeId))
             .ToListAsync(ct);
         var existingIds = existing.Select(p => p.TypeId).ToHashSet();
 
-        // Refresh non-market blueprint rows (gap-filled / prior contract value) to the current
-        // contract price; never overwrite a real buyable-BPO market row (FromMarketData = 1).
+        // Refresh non-market rows (gap-filled / prior contract value) to the current contract
+        // price; never overwrite a row backed by real market orders.
         foreach (var p in existing)
         {
             if (p.FromMarketData) continue;
@@ -637,9 +656,9 @@ public class MarketPricingService
             p.BuyPrice = v; p.SellPrice = v; p.Midpoint = v; p.FetchedAt = fetched;
         }
 
-        // Insert rows for contract-priced blueprint types the published-types gap fill skipped
+        // Insert rows for contract-priced types the published-types gap fill skipped
         // (e.g. unpublished faction blueprints).
-        foreach (var tid in bpTypeIds.Where(t => !existingIds.Contains(t)))
+        foreach (var tid in ids.Where(t => !existingIds.Contains(t)))
         {
             var v = eff[tid];
             db.MarketItemPrices.Add(new MarketItemPrice

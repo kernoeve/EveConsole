@@ -121,6 +121,7 @@ public class EsiPollingService : ReactiveObject
         ["corp.starbases"]        = "Starbases",
         ["corp.facilities"]       = "Facilities",
         ["corp.members"]          = "Members",
+        ["corp.membertracking"]   = "Member Tracking",
         ["corp.roles"]            = "Roles",
         ["corp.titles"]           = "Titles",
         ["corp.medals"]           = "Medals",
@@ -2730,6 +2731,67 @@ public class EsiPollingService : ReactiveObject
         return FromResult(r);
     }
 
+    /// <summary>
+    /// Corp member tracking. Stores the current values, and — because ESI only ever reports
+    /// the LAST logon rather than a history — also appends a row to EsiCorpMemberSessions
+    /// whenever a member's logon timestamp differs from the one already recorded. That is
+    /// the only way to build the dated login history that per-month reporting needs; it is
+    /// necessarily forward-only and cannot reconstruct months that predate it, and a member
+    /// who logs in and out again between two polls is missed entirely.
+    /// </summary>
+    private async Task<PollingResult> FetchCorpMemberTrackingAsync(long corpId, AppDbContext db, CancellationToken ct)
+    {
+        var r = await _esi.ExecuteCorpAuthAsync<List<EsiMemberTrackingEntry>>(
+            corpId, $"corporations/{corpId}/membertracking/", ct);
+        if (!r.IsSuccess) return FromResult(r);
+
+        var now      = DateTimeOffset.UtcNow;
+        var existing = await db.EsiCorpMemberTracking
+            .Where(t => t.CorporationId == corpId)
+            .ToDictionaryAsync(t => t.CharacterId, ct);
+
+        // Logons already recorded, so a re-poll cannot insert the same one twice.
+        var knownLogons = (await db.EsiCorpMemberSessions
+                .Where(s => s.CorporationId == corpId)
+                .Select(s => new { s.CharacterId, s.LogonDate })
+                .ToListAsync(ct))
+            .Select(s => (s.CharacterId, s.LogonDate))
+            .ToHashSet();
+
+        foreach (var m in r.Data!)
+        {
+            if (!existing.TryGetValue(m.CharacterId, out var row))
+            {
+                row = new CorpMemberTracking { CorporationId = corpId, CharacterId = m.CharacterId };
+                db.EsiCorpMemberTracking.Add(row);
+                existing[m.CharacterId] = row;
+            }
+
+            row.StartDate  = m.StartDate;
+            row.LogonDate  = m.LogonDate;
+            row.LogoffDate = m.LogoffDate;
+            row.LocationId = m.LocationId;
+            row.ShipTypeId = m.ShipTypeId;
+            row.BaseId     = m.BaseId;
+            row.UpdatedAt  = now;
+
+            if (m.LogonDate is { } logon && knownLogons.Add((m.CharacterId, logon)))
+                db.EsiCorpMemberSessions.Add(new CorpMemberSession
+                {
+                    CorporationId = corpId,
+                    CharacterId   = m.CharacterId,
+                    LogonDate     = logon,
+                    LogoffDate    = m.LogoffDate,
+                    LocationId    = m.LocationId,
+                    ShipTypeId    = m.ShipTypeId,
+                    RecordedAt    = now,
+                });
+        }
+
+        await db.SaveChangesAsync(ct);
+        return FromResult(r);
+    }
+
     private async Task<PollingResult> FetchCorpRolesAsync(long corpId, AppDbContext db, CancellationToken ct)
     {
         var r = await _esi.ExecuteCorpAuthAsync<List<EsiCorpRoleEntry>>(
@@ -3164,6 +3226,9 @@ public class EsiPollingService : ReactiveObject
         new("corp.starbases",          3600,  7200, FetchCorpStarbasesAsync),
         new("corp.facilities",         3600, 86400, FetchCorpFacilitiesAsync),
         new("corp.members",             600,  3600, FetchCorpMembersAsync),
+        // Polled often: each poll can only see the CURRENT logon, so a longer interval
+        // means more logins collapse into one observation and never reach the history.
+        new("corp.membertracking",      600,   900, FetchCorpMemberTrackingAsync),
         new("corp.roles",              3600,  7200, FetchCorpRolesAsync),
         new("corp.titles",             3600, 86400, FetchCorpTitlesAsync),
         new("corp.medals",             3600, 86400, FetchCorpMedalsAsync),
