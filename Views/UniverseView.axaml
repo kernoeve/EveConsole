@@ -1,0 +1,153 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:ctrl="clr-namespace:EveConsole.Controls"
+             x:Class="EveConsole.Views.UniverseView"
+             x:DataType="vm:UniverseViewModel"
+             Background="#0d0d12">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize" Value="9.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Margin" Value="2 0 0 1" />
+    </Style>
+    <Style Selector="Button.crumb">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Foreground" Value="#5599aa" />
+      <Setter Property="Padding" Value="4 2" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="Button.crumb:disabled">
+      <Setter Property="Foreground" Value="#c8c8d8" />
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="TextBlock.dlabel">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="#777788" />
+    </Style>
+    <Style Selector="TextBlock.dvalue">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="#c8c8d8" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,1,Auto,1,*">
+
+    <!-- ── Toolbar ──────────────────────────────────────────────────── -->
+    <Border Grid.Row="0" Background="#12121a" Padding="12 8"
+            BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*">
+        <TextBlock Grid.Column="0" Text="OVERLAY" Classes="flabel"
+                   VerticalAlignment="Center" Margin="0 0 6 0" />
+        <ComboBox Grid.Column="1" ItemsSource="{Binding OverlayModes}"
+                  SelectedItem="{Binding SelectedOverlay}"
+                  FontSize="11" MinWidth="140" />
+
+        <TextBlock Grid.Column="2" Text="GO TO REGION" Classes="flabel"
+                   VerticalAlignment="Center" Margin="16 0 6 0" />
+        <AutoCompleteBox Grid.Column="3" Text="{Binding RegionSearch}"
+                         ItemsSource="{Binding RegionNames}"
+                         FilterMode="Contains" MinimumPrefixLength="1"
+                         Watermark="region name" FontSize="11" MinWidth="170" />
+
+        <Button Grid.Column="4" Command="{Binding RefreshCommand}" Content="Refresh"
+                Background="#1a1a28" Foreground="#5599aa" BorderBrush="#2a3a44"
+                BorderThickness="1" Padding="12 4" FontSize="11" Margin="16 0 0 0" />
+
+        <TextBlock Grid.Column="5" Text="{Binding Status}" FontSize="11" Foreground="#666677"
+                   VerticalAlignment="Center" Margin="16 0 0 0"
+                   TextTrimming="CharacterEllipsis" />
+      </Grid>
+    </Border>
+
+    <Rectangle Grid.Row="1" Fill="#1e1e2a" />
+
+    <!-- ── Breadcrumb ───────────────────────────────────────────────── -->
+    <Border Grid.Row="2" Background="#0b0b10" Padding="10 4">
+      <ItemsControl ItemsSource="{Binding Crumbs}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="vm:CrumbVm">
+            <StackPanel Orientation="Horizontal">
+              <!-- The trailing crumb is where you already are, so it is shown but not clickable. -->
+              <Button Classes="crumb" Content="{Binding Text}"
+                      Command="{Binding GoCommand}" IsEnabled="{Binding !IsLast}" />
+              <TextBlock Text="›" Foreground="#44445a" FontSize="12"
+                         VerticalAlignment="Center" Margin="2 0"
+                         IsVisible="{Binding !IsLast}" />
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </Border>
+
+    <Rectangle Grid.Row="3" Fill="#1e1e2a" />
+
+    <!-- ── Map + side panel ─────────────────────────────────────────── -->
+    <Grid Grid.Row="4" ColumnDefinitions="*,1,220">
+
+      <ctrl:MapCanvas Grid.Column="0"
+                      Graph="{Binding Graph}"
+                      Overlay="{Binding Overlay}"
+                      SelectedId="{Binding SelectedId, Mode=TwoWay}"
+                      ActivateCommand="{Binding DrillDownCommand}" />
+
+      <Rectangle Grid.Column="1" Fill="#1e1e2a" />
+
+      <Border Grid.Column="2" Background="#0b0b10" Padding="12 10">
+        <StackPanel Spacing="10">
+
+          <StackPanel IsVisible="{Binding DetailTitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="{Binding DetailTitle}" FontSize="14" FontWeight="SemiBold"
+                       Foreground="#e0e0ec" TextWrapping="Wrap" />
+            <ItemsControl ItemsSource="{Binding DetailRows}" Margin="0 6 0 0">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid ColumnDefinitions="*,Auto" Margin="0 2">
+                    <TextBlock Grid.Column="0" Classes="dlabel" Text="{Binding Label}" />
+                    <TextBlock Grid.Column="1" Classes="dvalue" Text="{Binding Value}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <TextBlock Text="Click a node for details. Double-click to open it."
+                     FontSize="11" Foreground="#55556a" TextWrapping="Wrap"
+                     IsVisible="{Binding DetailTitle, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+
+          <Rectangle Height="1" Fill="#1e1e2a" IsVisible="{Binding Legend.Count}" />
+
+          <StackPanel IsVisible="{Binding Legend.Count}">
+            <TextBlock Classes="flabel" Text="LEGEND" Margin="0 0 0 4" />
+            <ItemsControl ItemsSource="{Binding Legend}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:LegendEntryVm">
+                  <StackPanel Orientation="Horizontal" Spacing="7" Margin="0 2">
+                    <Ellipse Width="9" Height="9" Fill="{Binding Brush}"
+                             VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Label}" FontSize="11" Foreground="#8a8a9a" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <Rectangle Height="1" Fill="#1e1e2a" />
+
+          <TextBlock FontSize="10.5" Foreground="#4a4a5c" TextWrapping="Wrap"
+                     Text="Scroll to zoom, drag to pan. Kill counts come from killmails this app has stored, not from all of New Eden." />
+
+        </StackPanel>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

@@ -37,6 +37,7 @@ public class MainWindowViewModel : ReactiveObject
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
     public StructureBrowserViewModel      StructureBrowserVm     { get; }
+    public UniverseViewModel              UniverseVm             { get; }
     public WalletViewModel                WalletVm               { get; }
     public ContractsViewModel             ContractsVm            { get; }
     public NotificationsViewModel         NotificationsVm        { get; }
@@ -180,6 +181,7 @@ public class MainWindowViewModel : ReactiveObject
             "prod_calc"  => ("Production Calc", ProductionCalcVm,         true),
             "price_overrides" => ("Price Overrides", PriceOverrideVm,     true),
             "structure_browser" => ("Structure Browser", StructureBrowserVm, true),
+            "universe"        => ("Universe",        UniverseVm,        true),
             "trade"           => ("Trade",           TradeOpportunitiesVm,     true),
             "industry_opps"   => ("Industry Opps",   IndustryOpportunitiesVm,  true),
             "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
@@ -373,6 +375,7 @@ public class MainWindowViewModel : ReactiveObject
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
+        UniverseVm             = new UniverseViewModel(new UniverseMapService(dbFactory));
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
@@ -478,6 +481,7 @@ public class MainWindowViewModel : ReactiveObject
             ]),
             new("Tools",
             [
+                new NavItem("universe", "Universe Map"),
                 new NavItem("data", "ESI Explorer"),
                 new NavItem("error_log", "Error Log"),
                 new NavItem("game_log", "Game Log"),
