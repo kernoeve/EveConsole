@@ -25,7 +25,10 @@ public sealed record MapEdge(int FromId, int ToId);
 
 public sealed record MapGraph(IReadOnlyList<MapNode> Nodes, IReadOnlyList<MapEdge> Edges);
 
-public sealed record RegionSummary(int RegionId, string Name, bool IsWormhole, int SystemCount);
+public sealed record RegionSummary(
+    int RegionId, string Name, bool IsWormhole, int SystemCount,
+    /// <summary>False for Anoikis, abyssal and VR-* regions, which have no place on the map.</summary>
+    bool IsKnownSpace);
 
 /// <summary>
 /// Map geometry for the Universe tool.
@@ -59,6 +62,54 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         JOIN "SdeStargates" b ON b."StargateId" = a."DestinationStargateId"
         """;
 
+    // The queries below are compile-time constants with {0}-style placeholders for their
+    // values, rather than strings interpolated at the call site. Same SQL, but the values go
+    // through parameters, which is what keeps EF1002 quiet and the injection surface at zero.
+
+    private const string RegionLinksSql = $$"""
+        SELECT DISTINCT
+               MIN(a."RegionId", b."RegionId") AS "FromId",
+               MAX(a."RegionId", b."RegionId") AS "ToId"
+        FROM ({{LinkSql}}) l
+        JOIN "SdeSolarSystems" a ON a."SolarSystemId" = l."FromId"
+        JOIN "SdeSolarSystems" b ON b."SolarSystemId" = l."ToId"
+        WHERE a."RegionId" <> b."RegionId"
+        """;
+
+    private const string RegionSystemLinksSql = $$"""
+        SELECT DISTINCT
+               MIN(l."FromId", l."ToId") AS "FromId",
+               MAX(l."FromId", l."ToId") AS "ToId"
+        FROM ({{LinkSql}}) l
+        JOIN "SdeSolarSystems" a ON a."SolarSystemId" = l."FromId"
+        JOIN "SdeSolarSystems" b ON b."SolarSystemId" = l."ToId"
+        WHERE a."RegionId" = {0} OR b."RegionId" = {0}
+        """;
+
+    private const string RegionGatewayCountSql = $$"""
+        SELECT 0 AS "Key", COUNT(*) AS "Total" FROM (
+            SELECT DISTINCT l."FromId", l."ToId"
+            FROM ({{LinkSql}}) l
+            JOIN "SdeSolarSystems" a ON a."SolarSystemId" = l."FromId"
+            JOIN "SdeSolarSystems" b ON b."SolarSystemId" = l."ToId"
+            WHERE a."RegionId" = {0} AND b."RegionId" <> {0})
+        """;
+
+    private const string KillsByRegionSql = """
+        SELECT s."RegionId" AS "Key", COUNT(*) AS "Total"
+        FROM "KillMailDetails" k
+        JOIN "SdeSolarSystems" s ON s."SolarSystemId" = k."SolarSystemId"
+        WHERE k."KillMailTime" >= {0}
+        GROUP BY s."RegionId"
+        """;
+
+    private const string KillsBySystemSql = """
+        SELECT k."SolarSystemId" AS "Key", COUNT(*) AS "Total"
+        FROM "KillMailDetails" k
+        WHERE k."KillMailTime" >= {0}
+        GROUP BY k."SolarSystemId"
+        """;
+
     private sealed class LinkRaw
     {
         public int FromId { get; set; }
@@ -68,12 +119,25 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     public async Task<List<RegionSummary>> GetRegionsAsync(CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();
-        return await db.SdeRegions.AsNoTracking()
-            .Select(r => new RegionSummary(
-                r.RegionId, r.Name, r.IsWormhole,
-                db.SdeSolarSystems.Count(s => s.RegionId == r.RegionId)))
-            .OrderBy(r => r.Name)
+
+        // Projected to an anonymous type and ordered in memory: EF cannot translate an OrderBy
+        // that reads a property off a constructed record, so sorting after the Select throws.
+        var rows = await db.SdeRegions.AsNoTracking()
+            .Select(r => new
+            {
+                r.RegionId,
+                r.Name,
+                r.IsWormhole,
+                Systems = db.SdeSolarSystems.Count(s => s.RegionId == r.RegionId),
+            })
             .ToListAsync(ct);
+
+        return rows
+            .OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(r => new RegionSummary(
+                r.RegionId, r.Name, r.IsWormhole, r.Systems,
+                r.RegionId < MaxKnownSpaceRegionId))
+            .ToList();
     }
 
     /// <summary>
@@ -103,15 +167,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
 
         var known = nodes.Select(n => n.Id).ToHashSet();
 
-        var links = await db.Database.SqlQueryRaw<LinkRaw>($"""
-            SELECT DISTINCT
-                   MIN(a."RegionId", b."RegionId") AS "FromId",
-                   MAX(a."RegionId", b."RegionId") AS "ToId"
-            FROM ({LinkSql}) l
-            JOIN "SdeSolarSystems" a ON a."SolarSystemId" = l."FromId"
-            JOIN "SdeSolarSystems" b ON b."SolarSystemId" = l."ToId"
-            WHERE a."RegionId" <> b."RegionId"
-            """).ToListAsync(ct);
+        var links = await db.Database.SqlQueryRaw<LinkRaw>(RegionLinksSql).ToListAsync(ct);
 
         var edges = links
             .Where(l => known.Contains(l.FromId) && known.Contains(l.ToId))
@@ -130,15 +186,8 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     {
         using var db = dbFactory.CreateDbContext();
 
-        var all = await db.Database.SqlQueryRaw<LinkRaw>($"""
-            SELECT DISTINCT
-                   MIN(l."FromId", l."ToId") AS "FromId",
-                   MAX(l."FromId", l."ToId") AS "ToId"
-            FROM ({LinkSql}) l
-            JOIN "SdeSolarSystems" a ON a."SolarSystemId" = l."FromId"
-            JOIN "SdeSolarSystems" b ON b."SolarSystemId" = l."ToId"
-            WHERE a."RegionId" = {regionId} OR b."RegionId" = {regionId}
-            """).ToListAsync(ct);
+        var all = await db.Database
+            .SqlQueryRaw<LinkRaw>(RegionSystemLinksSql, regionId).ToListAsync(ct);
 
         var ids = all.SelectMany(l => new[] { l.FromId, l.ToId }).Distinct().ToList();
 
@@ -194,16 +243,10 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         // KillMailTime is a DateTimeOffset, which SQLite cannot compare in a LINQ Where — EF
         // throws "could not be translated". The stored format is sortable, so compare as text.
         var cutoff = DateTimeOffset.UtcNow.AddDays(-days).ToString("yyyy-MM-dd HH:mm:ss+00:00");
-        var keyCol = byRegion ? "s.\"RegionId\"" : "k.\"SolarSystemId\"";
 
-        // $$ so that {0} stays literal for the parameter placeholder and {{...}} interpolates.
-        var rows = await db.Database.SqlQueryRaw<CountRaw>($$"""
-            SELECT {{keyCol}} AS "Key", COUNT(*) AS "Total"
-            FROM "KillMailDetails" k
-            JOIN "SdeSolarSystems" s ON s."SolarSystemId" = k."SolarSystemId"
-            WHERE k."KillMailTime" >= {0}
-            GROUP BY {{keyCol}}
-            """, cutoff).ToListAsync(ct);
+        var rows = await db.Database
+            .SqlQueryRaw<CountRaw>(byRegion ? KillsByRegionSql : KillsBySystemSql, cutoff)
+            .ToListAsync(ct);
 
         return rows.ToDictionary(r => r.Key, r => r.Total);
     }
@@ -307,14 +350,8 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
                   st => st.SolarSystemId, s => s.SolarSystemId, (st, s) => s.RegionId)
             .CountAsync(rid => rid == regionId, ct);
 
-        var gateways = await db.Database.SqlQueryRaw<CountRaw>($"""
-            SELECT 0 AS "Key", COUNT(*) AS "Total" FROM (
-                SELECT DISTINCT l."FromId", l."ToId"
-                FROM ({LinkSql}) l
-                JOIN "SdeSolarSystems" a ON a."SolarSystemId" = l."FromId"
-                JOIN "SdeSolarSystems" b ON b."SolarSystemId" = l."ToId"
-                WHERE a."RegionId" = {regionId} AND b."RegionId" <> {regionId})
-            """).FirstOrDefaultAsync(ct);
+        var gateways = await db.Database
+            .SqlQueryRaw<CountRaw>(RegionGatewayCountSql, regionId).FirstOrDefaultAsync(ct);
 
         return new RegionDetail(
             r.RegionId, r.Name, systems.Count, constellations, stations,
