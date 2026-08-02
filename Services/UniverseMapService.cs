@@ -219,7 +219,157 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             .Select(l => new MapEdge(l.FromId, l.ToId))
             .ToList();
 
-        return new MapGraph(nodes, edges);
+        return new MapGraph(PlaceGateways(nodes, edges), edges);
+    }
+
+    /// <summary>
+    /// Moves each out-of-region system from its true position to just outside the border system
+    /// it connects to.
+    ///
+    /// Their real coordinates can be most of a region away, and since the view is framed to fit
+    /// every node, one distant neighbour is enough to squash the region under inspection into a
+    /// corner. Keeping the true <em>direction</em> but replacing the true distance with roughly
+    /// one system's spacing preserves the sense of which way the exit leads while letting the
+    /// region fill the canvas — the same thing dotlan does with its grey border boxes.
+    /// </summary>
+    private static List<MapNode> PlaceGateways(List<MapNode> nodes, List<MapEdge> edges)
+    {
+        var insideIds = nodes.Where(n => !n.IsOutsideRegion).Select(n => n.Id).ToHashSet();
+        var outside   = nodes.Where(n => n.IsOutsideRegion).ToList();
+        if (outside.Count == 0) return nodes;
+
+        var byId = nodes.ToDictionary(n => n.Id);
+
+        // Typical distance between neighbouring systems in this region, used as the offset so
+        // the boxes sit a natural jump away at any region's scale.
+        var intra = edges
+            .Where(e => insideIds.Contains(e.FromId) && insideIds.Contains(e.ToId))
+            .Select(e => Distance(byId[e.FromId], byId[e.ToId]))
+            .Where(d => d > 0)
+            .OrderBy(d => d)
+            .ToList();
+
+        var step = intra.Count > 0
+            ? intra[intra.Count / 2] * 1.3
+            : Spread(nodes.Where(n => !n.IsOutsideRegion)) * 0.25;
+        if (step <= 0) step = 1;
+
+        // Anchor each gateway to the border system(s) it actually connects to.
+        var anchors = outside.ToDictionary(
+            n => n.Id,
+            n => edges
+                .Where(e => e.FromId == n.Id || e.ToId == n.Id)
+                .Select(e => e.FromId == n.Id ? e.ToId : e.FromId)
+                .Where(insideIds.Contains)
+                .Select(id => byId[id])
+                .ToList());
+
+        var insideNodes = nodes.Where(n => !n.IsOutsideRegion).ToList();
+        var cx = insideNodes.Average(n => n.X);
+        var cy = insideNodes.Average(n => n.Y);
+
+        var moved  = new Dictionary<int, MapNode>();
+        var taken  = new List<(double X, double Y)>();
+        var clear  = step * 0.85;
+
+        foreach (var group in outside.GroupBy(n => string.Join(",", anchors[n.Id]
+                                                   .Select(a => a.Id).OrderBy(i => i))))
+        {
+            var anchorList = anchors[group.First().Id];
+            if (anchorList.Count == 0) continue;   // unreachable from this region; leave it be
+
+            var ax = anchorList.Average(a => a.X);
+            var ay = anchorList.Average(a => a.Y);
+
+            // Bearing blends where the neighbour really lies with "away from the middle of the
+            // region". True bearing alone regularly pointed along the border and dropped the box
+            // onto another system.
+            var placed = group
+                .Select(n => (Node: n, Angle: Bearing(n, ax, ay, cx, cy)))
+                .OrderBy(x => x.Angle)
+                .ToList();
+
+            // Several regions can share one border system, so fan out anything too close.
+            const double minGap = 0.55;   // radians, ~31 degrees
+            for (var i = 1; i < placed.Count; i++)
+                if (placed[i].Angle - placed[i - 1].Angle < minGap)
+                    placed[i] = (placed[i].Node, placed[i - 1].Angle + minGap);
+
+            foreach (var (node, angle) in placed)
+            {
+                // Look for somewhere with room, preferring the truthful bearing and only
+                // rotating away from it when the whole ray stays blocked — which happens in
+                // dense regions like Domain, where pushing straight out just meets more systems.
+                var best      = (X: ax + Math.Cos(angle) * step, Y: ay + Math.Sin(angle) * step);
+                var bestClear = double.MinValue;
+
+                foreach (var offset in AngleOffsets)
+                {
+                    var a = angle + offset;
+                    var found = false;
+
+                    for (var mult = 1.0; mult <= 3.0; mult += 0.2)
+                    {
+                        var x = ax + Math.Cos(a) * step * mult;
+                        var y = ay + Math.Sin(a) * step * mult;
+
+                        var room = Math.Min(
+                            insideNodes.Min(s => Hypot(s.X - x, s.Y - y)),
+                            taken.Count == 0 ? double.MaxValue
+                                             : taken.Min(t => Hypot(t.X - x, t.Y - y)));
+
+                        if (room > bestClear) { bestClear = room; best = (x, y); }
+                        if (room >= clear)    { found = true; break; }
+                    }
+
+                    if (found) break;
+                }
+
+                taken.Add(best);
+                moved[node.Id] = node with { X = best.X, Y = best.Y };
+            }
+        }
+
+        return nodes.Select(n => moved.GetValueOrDefault(n.Id, n)).ToList();
+    }
+
+    /// <summary>Rotations tried when the preferred bearing is blocked, nearest first so the
+    /// placement stays as close to the true direction as the space allows.</summary>
+    private static readonly double[] AngleOffsets =
+        [0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05, 1.4, -1.4];
+
+    /// <summary>Direction to push a gateway: mostly where the neighbouring region actually is,
+    /// nudged away from the region's centre so the box lands outside rather than among the
+    /// systems.</summary>
+    private static double Bearing(MapNode gate, double ax, double ay, double cx, double cy)
+    {
+        var (tx, ty) = Normalize(gate.X - ax, gate.Y - ay);
+        var (ox, oy) = Normalize(ax - cx, ay - cy);
+        var x = tx + ox * 0.6;
+        var y = ty + oy * 0.6;
+        if (Hypot(x, y) < 1e-9) { x = ox; y = oy; }
+        if (Hypot(x, y) < 1e-9) { x = 0;  y = -1; }   // degenerate: send it north
+        return Math.Atan2(y, x);
+    }
+
+    private static (double X, double Y) Normalize(double x, double y)
+    {
+        var len = Hypot(x, y);
+        return len < 1e-9 ? (0, 0) : (x / len, y / len);
+    }
+
+    private static double Hypot(double x, double y) => Math.Sqrt(x * x + y * y);
+
+    private static double Distance(MapNode a, MapNode b) => Math.Sqrt(
+        (a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
+
+    /// <summary>Largest axis of a node set's bounding box; 0 when there is nothing to measure.</summary>
+    private static double Spread(IEnumerable<MapNode> nodes)
+    {
+        var list = nodes.ToList();
+        if (list.Count < 2) return 0;
+        return Math.Max(list.Max(n => n.X) - list.Min(n => n.X),
+                        list.Max(n => n.Y) - list.Min(n => n.Y));
     }
 
     // ── Overlay data ─────────────────────────────────────────────────────────

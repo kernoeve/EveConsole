@@ -131,10 +131,22 @@
             <ItemsControl ItemsSource="{Binding Legend}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:LegendEntryVm">
-                  <StackPanel Orientation="Horizontal" Spacing="7" Margin="0 2">
-                    <Ellipse Width="9" Height="9" Fill="{Binding Brush}"
-                             VerticalAlignment="Center" />
-                    <TextBlock Text="{Binding Label}" FontSize="11" Foreground="#8a8a9a" />
+                  <StackPanel Orientation="Horizontal" Spacing="7" Margin="0 3">
+                    <!-- A band may cover several steps of the ramp, so the swatch is a strip. -->
+                    <ItemsControl ItemsSource="{Binding Swatches}" VerticalAlignment="Center">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Rectangle Width="9" Height="9" Fill="{Binding}" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="{Binding Label}" FontSize="11" Foreground="#8a8a9a"
+                               VerticalAlignment="Center" />
                   </StackPanel>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>

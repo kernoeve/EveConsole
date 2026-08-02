@@ -76,24 +76,31 @@ public class MapCanvas : Control
 
     private static readonly IBrush BackBrush     = new ImmutableSolidColorBrush(Color.Parse("#0b0b10"));
     private static readonly IPen   EdgePen       = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#3a3a4e")), 1);
-    private static readonly IPen   EdgeOutPen    = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#25252f")), 1);
     private static readonly IPen   NodePen       = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#0b0b10")), 1.5);
     private static readonly IPen   SelectedPen   = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#e8c86a")), 2);
     private static readonly IPen   HoverPen      = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#7fb8d8")), 1.5);
     private static readonly IBrush LabelBrush    = new ImmutableSolidColorBrush(Color.Parse("#b8b8c8"));
-    private static readonly IBrush LabelDimBrush = new ImmutableSolidColorBrush(Color.Parse("#5a5a68"));
     private static readonly IBrush BadgeBrush    = new ImmutableSolidColorBrush(Color.Parse("#e8c86a"));
     private static readonly IBrush TipBackBrush  = new ImmutableSolidColorBrush(Color.Parse("#e6141420"));
     private static readonly IPen   TipPen        = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#3a3a4e")), 1);
     private static readonly IBrush TipTextBrush  = new ImmutableSolidColorBrush(Color.Parse("#d8d8e4"));
     private static readonly Color  DefaultFill   = Color.Parse("#6a6a80");
 
-    private static readonly Typeface Face = Typeface.Default;
+    // Gateways to neighbouring regions: a box rather than a dot, so they read as an exit from
+    // the map rather than as one more system on it.
+    private static readonly IBrush GateBackBrush   = new ImmutableSolidColorBrush(Color.Parse("#1e2630"));
+    private static readonly IPen   GatePen         = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#5a7d99")), 1);
+    private static readonly IBrush GateSysBrush    = new ImmutableSolidColorBrush(Color.Parse("#c2ccd6"));
+    private static readonly IBrush GateRegionBrush = new ImmutableSolidColorBrush(Color.Parse("#79b0d8"));
+    private static readonly IPen   GateEdgePen     = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#3f5a6e")), 1);
 
-    private const double NodeRadius    = 5.0;
-    private const double OutNodeRadius = 3.0;
-    private const double LabelSize     = 10.0;
-    private const double HitRadius     = 9.0;
+    private static readonly Typeface Face     = Typeface.Default;
+    private static readonly Typeface BoldFace =
+        new(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold);
+
+    private const double NodeRadius = 5.0;
+    private const double LabelSize  = 10.0;
+    private const double HitRadius  = 9.0;
 
     // ── View transform ───────────────────────────────────────────────────────
 
@@ -112,6 +119,13 @@ public class MapCanvas : Control
     private MapGraph?                     _built;
     private Dictionary<int, MapNode>       _byId   = new();
     private Dictionary<int, FormattedText> _labels = new();
+
+    /// <summary>System name and region name for each gateway node.</summary>
+    private Dictionary<int, (FormattedText Sys, FormattedText Region)> _gateLabels = new();
+
+    /// <summary>Screen rectangles of the gateway boxes from the last paint, so hit-testing
+    /// matches what is actually drawn instead of assuming a dot-sized target.</summary>
+    private readonly Dictionary<int, Rect> _gateRects = new();
 
     private Point ToScreen(double x, double y) =>
         new((x - _cx) * _scale + Bounds.Width / 2, (y - _cy) * _scale + Bounds.Height / 2);
@@ -169,11 +183,22 @@ public class MapCanvas : Control
 
     private void RebuildCaches(MapGraph g)
     {
-        _built  = g;
-        _byId   = g.Nodes.ToDictionary(n => n.Id);
-        _labels = g.Nodes.ToDictionary(n => n.Id, n => new FormattedText(
-            n.Name, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-            Face, LabelSize, n.IsOutsideRegion ? LabelDimBrush : LabelBrush));
+        _built = g;
+        _byId  = g.Nodes.ToDictionary(n => n.Id);
+
+        _labels = g.Nodes.Where(n => !n.IsOutsideRegion).ToDictionary(n => n.Id, n =>
+            new FormattedText(n.Name, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+                              Face, LabelSize, LabelBrush));
+
+        _gateLabels = g.Nodes.Where(n => n.IsOutsideRegion).ToDictionary(n => n.Id, n =>
+        (
+            Sys: new FormattedText(n.Name, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+                                   Face, LabelSize, GateSysBrush),
+            Region: new FormattedText(n.RegionName, CultureInfo.CurrentCulture,
+                                      FlowDirection.LeftToRight, BoldFace, LabelSize - 1, GateRegionBrush)
+        ));
+
+        _gateRects.Clear();
     }
 
     public override void Render(DrawingContext ctx)
@@ -194,50 +219,79 @@ public class MapCanvas : Control
             if (!_byId.TryGetValue(e.FromId, out var a) || !_byId.TryGetValue(e.ToId, out var b)) continue;
             var pa = ToScreen(a.X, a.Y);
             var pb = ToScreen(b.X, b.Y);
-            ctx.DrawLine(a.IsOutsideRegion || b.IsOutsideRegion ? EdgeOutPen : EdgePen, pa, pb);
+            ctx.DrawLine(a.IsOutsideRegion || b.IsOutsideRegion ? GateEdgePen : EdgePen, pa, pb);
         }
 
         // Labels are only legible once the graph is framed or closer; below that they overlap
         // into noise, so they are dropped rather than drawn on top of each other.
         var showLabels = _scale >= _fitScale * 0.95;
 
+        _gateRects.Clear();
+
         foreach (var n in g.Nodes)
         {
             var p = ToScreen(n.X, n.Y);
-            var r = n.IsOutsideRegion ? OutNodeRadius : NodeRadius;
 
             // Skip anything scrolled well outside the viewport — at high zoom this is most
             // of the graph.
-            if (p.X < -40 || p.Y < -40 || p.X > Bounds.Width + 40 || p.Y > Bounds.Height + 40) continue;
+            if (p.X < -80 || p.Y < -80 || p.X > Bounds.Width + 80 || p.Y > Bounds.Height + 80) continue;
+
+            if (n.IsOutsideRegion) { DrawGateway(ctx, n, p); continue; }
 
             var style = overlay is not null && overlay.TryGetValue(n.Id, out var s) ? s : null;
             var fill  = new ImmutableSolidColorBrush(style?.Fill ?? DefaultFill);
 
-            ctx.DrawEllipse(fill, NodePen, p, r, r);
+            ctx.DrawEllipse(fill, NodePen, p, NodeRadius, NodeRadius);
 
-            if (n.Id == SelectedId)   ctx.DrawEllipse(null, SelectedPen, p, r + 4, r + 4);
-            else if (_hover?.Id == n.Id) ctx.DrawEllipse(null, HoverPen, p, r + 3, r + 3);
+            if (n.Id == SelectedId)      ctx.DrawEllipse(null, SelectedPen, p, NodeRadius + 4, NodeRadius + 4);
+            else if (_hover?.Id == n.Id) ctx.DrawEllipse(null, HoverPen,    p, NodeRadius + 3, NodeRadius + 3);
 
             if (showLabels && _labels.TryGetValue(n.Id, out var label))
-                ctx.DrawText(label, new Point(p.X + r + 3, p.Y - label.Height / 2));
+                ctx.DrawText(label, new Point(p.X + NodeRadius + 3, p.Y - label.Height / 2));
 
             if (showLabels && style?.Badge is { Length: > 0 } badge)
             {
                 var bt = new FormattedText(badge, CultureInfo.CurrentCulture,
                     FlowDirection.LeftToRight, Face, LabelSize - 1.5, BadgeBrush);
-                ctx.DrawText(bt, new Point(p.X - bt.Width / 2, p.Y + r + 1));
+                ctx.DrawText(bt, new Point(p.X - bt.Width / 2, p.Y + NodeRadius + 1));
             }
         }
 
         if (_hover is not null) DrawTooltip(ctx, _hover);
     }
 
+    /// <summary>
+    /// A two-line box naming the system and the region it leads to. Sized in screen space, so
+    /// it stays readable at any zoom, and recorded in <see cref="_gateRects"/> so clicks match
+    /// the box rather than a dot at its centre.
+    /// </summary>
+    private void DrawGateway(DrawingContext ctx, MapNode n, Point p)
+    {
+        if (!_gateLabels.TryGetValue(n.Id, out var text)) return;
+
+        const double padX = 5, padY = 3;
+        var w = Math.Max(text.Sys.Width, text.Region.Width) + padX * 2;
+        var h = text.Sys.Height + text.Region.Height + padY * 2;
+        var rect = new Rect(p.X - w / 2, p.Y - h / 2, w, h);
+
+        _gateRects[n.Id] = rect;
+
+        ctx.DrawRectangle(GateBackBrush, GatePen, new RoundedRect(rect, 2));
+        ctx.DrawText(text.Sys,    new Point(p.X - text.Sys.Width / 2,    rect.Y + padY));
+        ctx.DrawText(text.Region, new Point(p.X - text.Region.Width / 2, rect.Y + padY + text.Sys.Height));
+
+        if (n.Id == SelectedId)
+            ctx.DrawRectangle(null, SelectedPen, new RoundedRect(rect.Inflate(3), 3));
+        else if (_hover?.Id == n.Id)
+            ctx.DrawRectangle(null, HoverPen, new RoundedRect(rect.Inflate(2), 3));
+    }
+
     private void DrawTooltip(DrawingContext ctx, MapNode n)
     {
         var style  = Overlay is not null && Overlay.TryGetValue(n.Id, out var s) ? s : null;
         var detail = style?.Detail;
-        if (n.IsOutsideRegion)
-            detail = string.IsNullOrEmpty(detail) ? n.RegionName : $"{n.RegionName}\n{detail}";
+        // The box already names the region, so the tooltip explains the gesture instead.
+        if (n.IsOutsideRegion) detail = $"Double-click to open {n.RegionName}";
 
         var title = new FormattedText(n.Name, CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight, Face, 11.5, TipTextBrush);
@@ -269,10 +323,17 @@ public class MapCanvas : Control
         var g = Graph;
         if (g is null) return null;
 
+        // Gateway boxes are much larger than a node dot, so they are tested against the
+        // rectangle actually painted. Checked first: a box may well cover a nearby system.
+        foreach (var (id, rect) in _gateRects)
+            if (rect.Contains(p) && _byId.TryGetValue(id, out var gate)) return gate;
+
         MapNode? best = null;
         var bestDist = HitRadius * HitRadius;
         foreach (var n in g.Nodes)
         {
+            if (n.IsOutsideRegion) continue;
+
             var s  = ToScreen(n.X, n.Y);
             var dx = s.X - p.X;
             var dy = s.Y - p.Y;

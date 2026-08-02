@@ -38,10 +38,23 @@ public class OverlayModeVm(string name, string key)
     public override string ToString() => Name;
 }
 
-public class LegendEntryVm(string label, Color color)
+/// <summary>
+/// One legend row. Carries a list of swatches rather than a single colour because security is a
+/// stepped ramp — showing one sample per band claimed 1.0 cyan stood for all of high sec and
+/// left out the greens entirely.
+/// </summary>
+public class LegendEntryVm
 {
-    public string Label { get; } = label;
-    public IBrush Brush { get; } = new SolidColorBrush(color);
+    public string               Label    { get; }
+    public IReadOnlyList<IBrush> Swatches { get; }
+
+    public LegendEntryVm(string label, Color color) : this(label, [color]) { }
+
+    public LegendEntryVm(string label, IEnumerable<Color> colors)
+    {
+        Label    = label;
+        Swatches = colors.Select(c => (IBrush)new SolidColorBrush(c)).ToList();
+    }
 }
 
 /// <summary>A label/value line in the detail pane. A named tuple will not do here — tuple
@@ -471,9 +484,14 @@ public class UniverseViewModel : ReactiveObject
                 SecurityColor(n.Security),
                 Detail: $"Security {n.Security:F2}" + (byRegion ? " (region average)" : ""));
 
-        legend.Add(new LegendEntryVm("1.0 high sec",       SecurityRamp[0].Color));
-        legend.Add(new LegendEntryVm("0.5 high sec floor", SecurityRamp[5].Color));
-        legend.Add(new LegendEntryVm("0.0 and below",      SecurityRamp[^1].Color));
+        // Every stop in the ramp, grouped by the band it belongs to, so the legend shows the
+        // colours actually on the map — greens included — instead of one sample per band.
+        legend.Add(new LegendEntryVm("High sec  1.0 – 0.5",
+            SecurityRamp.Where(r => r.Sec >= 0.5).Select(r => r.Color)));
+        legend.Add(new LegendEntryVm("Low sec  0.4 – 0.1",
+            SecurityRamp.Where(r => r.Sec is < 0.5 and > 0.0).Select(r => r.Color)));
+        legend.Add(new LegendEntryVm("Null sec  0.0 and below",
+            [SecurityRamp[^1].Color]));
     }
 
     private static void BuildConstellationOverlay(
