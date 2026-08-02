@@ -37,13 +37,24 @@ public partial class ApiActivityWindow : Window
         // copy the service's live counts every 2s. Runs on the UI thread only while open.
         _ = vm.RefreshHistorySweepAsync();
         _ = vm.RefreshContractsAsync();
+        _ = vm.RefreshNameCacheAsync();
+        vm.SyncBackgroundProcesses();
         _historyTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         _historyTimer.Tick += async (_, _) =>
         {
             try
             {
-                if (++_historyTick % 5 == 0) { await vm.RefreshHistorySweepAsync(); await vm.RefreshContractsAsync(); }
-                else                          vm.SyncHistorySweep();
+                // In-memory status mirrors are cheap, so they refresh on every tick;
+                // anything that touches the DB or ESI stays on the slower 10s cadence.
+                vm.SyncBackgroundProcesses();
+
+                if (++_historyTick % 5 == 0)
+                {
+                    await vm.RefreshHistorySweepAsync();
+                    await vm.RefreshContractsAsync();
+                    await vm.RefreshNameCacheAsync();
+                }
+                else vm.SyncHistorySweep();
             }
             catch { /* best-effort monitor */ }
         };

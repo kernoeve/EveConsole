@@ -72,6 +72,13 @@ public class UniverseName
     public long   EntityId { get; set; }
     public string Name     { get; set; } = "";
     public string Category { get; set; } = "";
+
+    /// <summary>When this name was fetched. Nothing re-reads it today: character,
+    /// corporation and alliance names are all fixed at creation and cannot be changed by
+    /// players. CCP support can rename an entity by petition, which is rare enough not to
+    /// justify expiring rows — this exists so that if revalidation is ever wanted, there
+    /// is an age to work from instead of having to discard the whole cache.</summary>
+    public DateTimeOffset? PulledAt { get; set; }
 }
 
 public class EsiSkillQueueItem

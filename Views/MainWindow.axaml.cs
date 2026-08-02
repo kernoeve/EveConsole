@@ -385,7 +385,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                                                vm.AgentVm.Service, vm.PriceHistorySettingsVm,
                                                vm.AlertSettingsVm, vm.PollingSettingsVm,
                                                vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm,
-                                               vm.GameLogSettingsVm, vm.ChatLogSettingsVm,
+                                               vm.GameLogSettingsVm, vm.ChatLogSettingsVm, vm.ZkbSettingsVm,
+                                               vm.OtherSettingsVm,
                                                vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
         var settingsWin = new SettingsWindow { DataContext = settingsVm };
         settingsWin.WireDatabase(dbVm, this);
@@ -400,6 +401,31 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         if (DataContext is not MainWindowViewModel vm) return;
         _ = vm.ForceResolveNamesAsync();
+    }
+
+    private void OnEveTimeClick(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm) return;
+        OpenInBrowser(vm.EveTimeUrl);
+    }
+
+    private void OnServerStatusClick(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+        => OpenInBrowser(EveConsole.Services.UiLinkSettings.ServerStatusUrl);
+
+    /// <summary>Hands the URL to the OS default browser. Guarded because a user-supplied
+    /// EVE-time URL can be anything, and a malformed one must not take the app down.</summary>
+    private static void OpenInBrowser(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return;
+        try
+        {
+            System.Diagnostics.Process.Start(
+                new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Link] could not open {url}: {ex.Message}");
+        }
     }
 
     private void OnPollingStatusClick(object? sender, RoutedEventArgs e)
@@ -547,7 +573,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (_industryBrowserWindow?.IsVisible == true) detached.Add("Industry");
         if (_itemBrowserWindow?.IsVisible     == true) detached.Add("Items");
         if (_explorerWindow?.IsVisible        == true) detached.Add("ESI Explorer");
-        if (_activityWindow?.IsVisible        == true) detached.Add("API Activity");
+        if (_activityWindow?.IsVisible        == true) detached.Add("Background Processes");
         if (detached.Count > 0)
             sb.AppendLine($"Detached windows: {string.Join(", ", detached)}");
 

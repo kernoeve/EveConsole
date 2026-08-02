@@ -810,6 +810,15 @@ public class CorpActivityService
         using var db  = _dbFactory.CreateDbContext();
         var result    = new Dictionary<long, string>();
 
+        // Persistent id → name cache first. Without this every Killmail Browser page was
+        // re-resolving ~160 entities over ESI on each refresh, because universe-wide kills
+        // involve characters and corps that are not our own and so never appear in the
+        // Characters table below. Names do not change, so a cached row is always good.
+        var cachedNames = await db.UniverseNames.AsNoTracking()
+            .Where(u => idList.Contains(u.EntityId))
+            .ToDictionaryAsync(u => u.EntityId, u => u.Name, ct);
+        foreach (var kv in cachedNames) result[kv.Key] = kv.Value;
+
         var chars = await db.Characters
             .Where(c => idList.Contains(c.Id))
             .ToDictionaryAsync(c => c.Id, c => c.Name, ct);
@@ -858,40 +867,81 @@ public class CorpActivityService
         var remaining = idList.Where(id => !result.ContainsKey(id) && id <= int.MaxValue)
                              .Select(id => (int)id).ToList();
 
-        // Chunk into batches of 200. If a batch fails (ESI 422 on any bad ID),
-        // only that chunk falls back to individual calls â€” not the whole list.
+        if (remaining.Count == 0) return result;
+
+        var fetched = new List<EsiUniverseName>();
         const int ChunkSize = 200;
         for (int offset = 0; offset < remaining.Count; offset += ChunkSize)
+            await ResolveChunkAsync(remaining.Skip(offset).Take(ChunkSize).ToList());
+
+        foreach (var n in fetched) result[n.Id] = n.Name;
+        await PersistNamesAsync(db, fetched, ct);
+        return result;
+
+        // One bad ID makes ESI reject the whole request, so a failed chunk is split and
+        // retried rather than expanded into one call per ID. Halving isolates the offender
+        // in ~log2(n) extra calls; the old per-ID fallback turned a single 200-ID chunk
+        // into 200 sequential requests, which on a slow or degraded ESI took minutes.
+        async Task ResolveChunkAsync(List<int> chunk)
         {
-            var chunk = remaining.Skip(offset).Take(ChunkSize).ToList();
+            if (chunk.Count == 0) return;
             try
             {
-                var names = await _esi.GetNamesAsync(chunk, ct);
-                foreach (var n in names) result[(long)n.Id] = n.Name;
+                fetched.AddRange(await _esi.GetNamesAsync(chunk, ct));
             }
-            catch (Exception batchEx)
+            catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[ESI] /universe/names/ chunk failed ({batchEx.Message}) â€” " +
-                    $"retrying {chunk.Count} IDs individually");
-                foreach (var id in chunk)
+                if (chunk.Count == 1)
                 {
-                    if (result.ContainsKey((long)id)) continue;
-                    try
-                    {
-                        var single = await _esi.GetNamesAsync([id], ct);
-                        foreach (var n in single) result[(long)n.Id] = n.Name;
-                    }
-                    catch (Exception singleEx)
-                    {
-                        System.Diagnostics.Debug.WriteLine(
-                            $"[ESI] ID {id} not resolved ({singleEx.Message})");
-                    }
+                    System.Diagnostics.Debug.WriteLine($"[ESI] ID {chunk[0]} not resolved ({ex.Message})");
+                    return;
                 }
+                var half = chunk.Count / 2;
+                await ResolveChunkAsync(chunk.Take(half).ToList());
+                await ResolveChunkAsync(chunk.Skip(half).ToList());
             }
         }
+    }
 
-        return result;
+    /// <summary>Writes freshly-resolved names into the persistent cache so no session ever
+    /// pays for them again. Insert-only — an existing row is never rewritten, since the
+    /// name behind an ID does not change.</summary>
+    private async Task PersistNamesAsync(
+        AppDbContext db, IReadOnlyCollection<EsiUniverseName> names, CancellationToken ct)
+    {
+        if (names.Count == 0) return;
+        try
+        {
+            var ids  = names.Select(n => (long)n.Id).ToList();
+            var have = (await db.UniverseNames.AsNoTracking()
+                    .Where(u => ids.Contains(u.EntityId))
+                    .Select(u => u.EntityId).ToListAsync(ct))
+                .ToHashSet();
+
+            var fresh = names
+                .Where(n => !have.Contains(n.Id))
+                .GroupBy(n => n.Id)
+                .Select(g => new UniverseName
+                {
+                    EntityId = g.Key,
+                    Name     = g.First().Name,
+                    Category = g.First().Category,
+                    PulledAt = DateTimeOffset.UtcNow,
+                })
+                .ToList();
+
+            if (fresh.Count > 0)
+            {
+                db.UniverseNames.AddRange(fresh);
+                await db.SaveChangesAsync(ct);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Best-effort: the names were already resolved and returned to the caller, so
+            // a failed cache write costs a repeat lookup later, nothing more.
+            System.Diagnostics.Debug.WriteLine($"[Names] cache write failed: {ex.Message}");
+        }
     }
 
     // â”€â”€ Tie-inclusive Top 10 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

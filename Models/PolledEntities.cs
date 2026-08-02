@@ -434,6 +434,35 @@ public class KillMailItem
     public int   Singleton         { get; set; }
 }
 
+/// <summary>
+/// Per-killmail zKillboard state: whether zKillboard is known to already have the kill,
+/// and the outcome of any submission we made for it.
+///
+/// A side table rather than columns on KillMailDetails, because killmails themselves are
+/// immutable once stored (nothing in this app ever updates or deletes one) — this is our
+/// own bookkeeping about a kill, not part of the kill.
+///
+/// There is no separate "zKillboard kill id" to store: zKillboard keys kills by the same
+/// ESI killmail_id that is already this row's primary key.
+/// </summary>
+public class ZkbKillFlag
+{
+    public int KillMailId { get; set; }
+
+    /// <summary>When we first observed this kill coming from a zKillboard source (live
+    /// poll, firehose, or daily-dump backfill), or confirmed it via a submission. Null
+    /// means we have no evidence zKillboard has it.</summary>
+    public DateTimeOffset? SeenOnZkbAt { get; set; }
+
+    /// <summary>When we last submitted this kill to zKillboard's add endpoint. Set on
+    /// both success and failure so a failing kill isn't retried in a tight loop.</summary>
+    public DateTimeOffset? PostedAt { get; set; }
+
+    /// <summary>Outcome of that submission: "new" (zKillboard accepted it as one it did
+    /// not have), "duplicate" (it already had it), or an error description.</summary>
+    public string PostResult { get; set; } = "";
+}
+
 public class PlanetaryColony
 {
     public long   CharacterId   { get; set; }

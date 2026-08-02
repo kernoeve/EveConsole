@@ -194,6 +194,17 @@ public class EsiPollingService : ReactiveObject
         {
             try
             {
+                // Tranquility down: every authenticated call would fail and spend
+                // error-limit budget doing it. Idle instead of running the cycle. The
+                // status check itself is a separate public endpoint on its own client,
+                // so it keeps polling and will lift this on its own.
+                if (_esi.ServerOffline)
+                {
+                    StatusText = "Polling: Paused — Tranquility is offline";
+                    await Task.Delay(TimeSpan.FromSeconds(20), ct);
+                    continue;
+                }
+
                 await Task.WhenAll(
                     RunOneCycleAsync(ct),
                     RunCorpCycleAsync(ct),

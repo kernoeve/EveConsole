@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Linq;
 using EveConsole.Monitoring;
@@ -47,13 +48,20 @@ public class ChatLogSettingsViewModel : ReactiveObject
 
         _enabled     = settings.ChatEnabled;
         _historyDays = settings.ChatHistoryDays;
+        _newDirectory = "";
+
+        foreach (var d in settings.ChatDirectories) Directories.Add(d);
 
         LoadChannels();
 
-        DiscoverCommand      = ReactiveCommand.CreateFromTask(DiscoverAsync);
-        ImportHistoryCommand = ReactiveCommand.CreateFromTask(() => _importer.ImportHistoryAsync(HistoryDays));
-        CancelImportCommand  = ReactiveCommand.Create(() => _importer.CancelImport());
-        SelectNoneCommand    = ReactiveCommand.Create(SelectNone);
+        DiscoverCommand        = ReactiveCommand.CreateFromTask(DiscoverAsync);
+        ImportHistoryCommand   = ReactiveCommand.CreateFromTask(() => _importer.ImportHistoryAsync(HistoryDays));
+        CancelImportCommand    = ReactiveCommand.Create(() => _importer.CancelImport());
+        SelectNoneCommand      = ReactiveCommand.Create(SelectNone);
+        AddDirectoryCommand    = ReactiveCommand.CreateFromTask(AddDirectoryAsync);
+        RemoveDirectoryCommand = ReactiveCommand.CreateFromTask(RemoveDirectoryAsync);
+        DetectDirectoryCommand = ReactiveCommand.CreateFromTask(DetectDirectoryAsync);
+        OpenDirectoryCommand   = ReactiveCommand.Create(OpenSelectedDirectory);
 
         Observable.Interval(TimeSpan.FromSeconds(2))
                   .ObserveOn(RxApp.MainThreadScheduler)
@@ -87,6 +95,39 @@ public class ChatLogSettingsViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ImportHistoryCommand { get; }
     public ReactiveCommand<Unit, Unit> CancelImportCommand  { get; }
     public ReactiveCommand<Unit, Unit> SelectNoneCommand    { get; }
+
+    /// <summary>Directories to import from. May be UNC paths, same as game logs — that
+    /// is how EVE clients on other machines are covered without installing anything
+    /// there.</summary>
+    public ObservableCollection<string> Directories { get; } = [];
+
+    private string _newDirectory;
+    public string NewDirectory
+    {
+        get => _newDirectory;
+        set => this.RaiseAndSetIfChanged(ref _newDirectory, value);
+    }
+
+    private string? _selectedDirectory;
+    public string? SelectedDirectory
+    {
+        get => _selectedDirectory;
+        set => this.RaiseAndSetIfChanged(ref _selectedDirectory, value);
+    }
+
+    public ReactiveCommand<Unit, Unit> AddDirectoryCommand    { get; }
+    public ReactiveCommand<Unit, Unit> RemoveDirectoryCommand { get; }
+    public ReactiveCommand<Unit, Unit> DetectDirectoryCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenDirectoryCommand   { get; }
+
+    private string _resolvedPaths = "";
+    /// <summary>What is actually being read. Shown because Documents redirection
+    /// (OneDrive, corporate policy) is the most common reason nothing is found.</summary>
+    public string ResolvedPaths
+    {
+        get => _resolvedPaths;
+        private set => this.RaiseAndSetIfChanged(ref _resolvedPaths, value);
+    }
 
     private string _status = "";
     public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
@@ -173,6 +214,53 @@ public class ChatLogSettingsViewModel : ReactiveObject
         UpdateEstimate();
     }
 
+    private async Task AddDirectoryAsync()
+    {
+        var dir = NewDirectory?.Trim();
+        if (string.IsNullOrWhiteSpace(dir)) return;
+        if (Directories.Contains(dir, StringComparer.OrdinalIgnoreCase)) return;
+
+        Directories.Add(dir);
+        NewDirectory = "";
+        await SaveDirectoriesAsync();
+    }
+
+    private async Task RemoveDirectoryAsync()
+    {
+        if (SelectedDirectory is null) return;
+        Directories.Remove(SelectedDirectory);
+        await SaveDirectoriesAsync();
+    }
+
+    private async Task DetectDirectoryAsync()
+    {
+        var auto = MonitoringSettings.DefaultChatLogDirectory();
+        if (auto is null) { ResolvedPaths = "Could not find a local EVE chat log folder."; return; }
+
+        if (!Directories.Contains(auto, StringComparer.OrdinalIgnoreCase))
+        {
+            Directories.Add(auto);
+            await SaveDirectoriesAsync();
+        }
+    }
+
+    private void OpenSelectedDirectory()
+    {
+        var dir = SelectedDirectory ?? _settings.ResolveChatDirectories().FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(dir)) return;
+
+        try { Process.Start(new ProcessStartInfo(dir) { UseShellExecute = true }); }
+        catch { /* nothing useful to do if the shell refuses */ }
+    }
+
+    private Task SaveDirectoriesAsync()
+    {
+        _settings.ChatDirectories = Directories.ToList();
+        Refresh();
+        UpdateEstimate();
+        return Task.CompletedTask;
+    }
+
     private void Refresh()
     {
         Status          = _importer.StatusText;
@@ -180,5 +268,11 @@ public class ChatLogSettingsViewModel : ReactiveObject
         ProgressCurrent = _importer.ProgressCurrent;
         ProgressTotal   = Math.Max(1, _importer.ProgressTotal);
         ProgressText    = _importer.ProgressText;
+
+        var resolved = _settings.ResolveChatDirectories();
+        ResolvedPaths = resolved.Count == 0
+            ? "No chat log folder found — add one below."
+            : string.Join("\n", resolved.Select(d =>
+                (Directory.Exists(d) ? "✓ " : "✗ unreachable — ") + d));
     }
 }

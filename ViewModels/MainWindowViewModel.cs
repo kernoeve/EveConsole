@@ -60,6 +60,7 @@ public class MainWindowViewModel : ReactiveObject
     public SlackSettingsViewModel         SlackSettingsVm        { get; }
     public GameLogSettingsViewModel       GameLogSettingsVm      { get; }
     public ChatLogSettingsViewModel       ChatLogSettingsVm      { get; }
+    public ZkillboardSettingsViewModel    ZkbSettingsVm          { get; }
     public SlackService                   Slack                  { get; }
     public TtsService                     TtsService             { get; }
     public SpeechInputService             SpeechInputService     { get; }
@@ -87,6 +88,49 @@ public class MainWindowViewModel : ReactiveObject
             Avalonia.Threading.Dispatcher.UIThread.Post(
                 () => EveTimeText = DateTimeOffset.UtcNow.ToString("HH:mm:ss"));
         timer.Start();
+    }
+
+    /// <summary>Where clicking the EVE clock goes. Read at click time rather than cached,
+    /// so a change in Settings takes effect without reopening the window.</summary>
+    private UiLinkSettings? _uiLinks;
+
+    /// <summary>Held here because SettingsViewModel is built by hand when the window is
+    /// opened rather than resolved from DI.</summary>
+    public OtherSettingsViewModel OtherSettingsVm { get; private set; } = null!;
+
+    public string EveTimeUrl    => _uiLinks?.EveTimeUrl ?? UiLinkSettings.EveOnlineTimeUrl;
+    public string EveTimeLinkTip => $"EVE time (UTC) — click to open {EveTimeUrl}";
+
+    // ── Tranquility status (shown beside the EVE clock) ─────────────────────────
+
+    private string _serverStatusText = "Online";
+    public string ServerStatusText { get => _serverStatusText; private set => this.RaiseAndSetIfChanged(ref _serverStatusText, value); }
+
+    private string _serverStatusColor = "#70ad47";
+    public string ServerStatusColor { get => _serverStatusColor; private set => this.RaiseAndSetIfChanged(ref _serverStatusColor, value); }
+
+    private string _serverPlayersText = "";
+    public string ServerPlayersText { get => _serverPlayersText; private set => this.RaiseAndSetIfChanged(ref _serverPlayersText, value); }
+
+    private string _serverStatusTip = "Tranquility server status";
+    public string ServerStatusTip { get => _serverStatusTip; private set => this.RaiseAndSetIfChanged(ref _serverStatusTip, value); }
+
+    /// <summary>Mirrors EveServerStatusService onto the UI thread. The service raises
+    /// changes from its own polling task, so everything here is marshalled explicitly.</summary>
+    private void BindServerStatus(EveServerStatusService status)
+    {
+        void Apply() => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            ServerStatusText   = status.StatusText;
+            ServerStatusColor  = status.StatusColor;
+            ServerPlayersText  = status.PlayersText;
+            ServerStatusTip    = status.IsOnline
+                ? $"Tranquility is online{(status.Players > 0 ? $" — {status.Players:N0} players" : "")}"
+                : "Tranquility is offline — ESI polling is paused until it returns";
+        });
+
+        status.PropertyChanged += (_, _) => Apply();
+        Apply();
     }
 
     private string _pollingStatusText = "Polling: Not started";
@@ -242,17 +286,31 @@ public class MainWindowViewModel : ReactiveObject
         SlackService                    slackService,
         MonitoringSettings              monitoringSettings,
         GameLogImportService            gameLogImport,
-        ChatLogImportService            chatLogImport)
+        ChatLogImportService            chatLogImport,
+        ZkillboardSettings              zkillboardSettings,
+        ZkillboardPollingService        zkbPolling,
+        ZkillboardFirehoseService       zkbFirehose,
+        ZkillboardBackfillService       zkbBackfill,
+        ZkillboardPostService           zkbPost,
+        EntityNameBackfillService       entityNames,
+        EveServerStatusService          serverStatus,
+        UiLinkSettings                  uiLinks)
     {
+        _uiLinks        = uiLinks;
+        OtherSettingsVm = new OtherSettingsViewModel(uiLinks);
+        BindServerStatus(serverStatus);
+
         Slack             = slackService;
         SlackSettingsVm   = new SlackSettingsViewModel(slackService);
         GameLogSettingsVm = new GameLogSettingsViewModel(monitoringSettings, gameLogImport);
         ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport);
+        ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
-        ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService);
+        ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
+                                                     zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost, entityNames);
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
@@ -264,16 +322,12 @@ public class MainWindowViewModel : ReactiveObject
             prodCalcService, fittingsService, CharacterVm.Characters, CharacterVm.Corporations);
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService);
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, slackService);
-        KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Corporations);
+        KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
         CorpActivityVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");
-            // Sync the corp selection so the browser uses the same corp context
-            if (CorpActivityVm.SelectedCorp is { } corp &&
-                KillmailBrowserVm.SelectedCorp?.Id != corp.Id)
-                KillmailBrowserVm.SelectedCorp = corp;
             KillmailBrowserVm.SelectById(killMailId);
         };
 
@@ -290,7 +344,6 @@ public class MainWindowViewModel : ReactiveObject
         OverviewVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");
-            KillmailBrowserVm.SelectedCorp = KillmailBrowserViewModel.AllCorps;
             KillmailBrowserVm.SelectById(killMailId);
         };
         OverviewVm.OpenToolRequested = OpenTool;
@@ -325,6 +378,11 @@ public class MainWindowViewModel : ReactiveObject
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
         };
         CharacterViewerVm.NavigateToItemAction = typeId =>
+        {
+            OpenTool("items");
+            _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
+        };
+        KillmailBrowserVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();

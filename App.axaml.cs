@@ -50,8 +50,12 @@ public class App : Application
         MarketPricingService? marketPricing = null;
         MarketHistoryService? marketHistory = null;
         ContractsService?     contracts     = null;
-        GameLogImportService? gameLogs      = null;
-        ChatLogImportService? chatLogs      = null;
+        GameLogImportService?       gameLogs      = null;
+        ChatLogImportService?       chatLogs      = null;
+        ZkillboardPollingService?   zkbPolling    = null;
+        ZkillboardFirehoseService?  zkbFirehose   = null;
+        ZkillboardBackfillService?  zkbBackfill   = null;
+        ZkillboardPostService?      zkbPost       = null;
         MainWindow?           mainWindow    = null;
         SplashWindow?         splash        = null;
 
@@ -67,6 +71,10 @@ public class App : Application
             contracts     = Services.GetRequiredService<ContractsService>();
             gameLogs      = Services.GetRequiredService<GameLogImportService>();
             chatLogs      = Services.GetRequiredService<ChatLogImportService>();
+            zkbPolling    = Services.GetRequiredService<ZkillboardPollingService>();
+            zkbFirehose   = Services.GetRequiredService<ZkillboardFirehoseService>();
+            zkbBackfill   = Services.GetRequiredService<ZkillboardBackfillService>();
+            zkbPost       = Services.GetRequiredService<ZkillboardPostService>();
 
             var buildCostService = Services.GetRequiredService<BuildCostService>();
             var reprService      = Services.GetRequiredService<ReprocessingValueService>();
@@ -661,9 +669,13 @@ public class App : Application
                     "EntityId" INTEGER NOT NULL,
                     "Name"     TEXT    NOT NULL DEFAULT '',
                     "Category" TEXT    NOT NULL DEFAULT '',
+                    "PulledAt" TEXT,
                     PRIMARY KEY ("EntityId")
                 )
                 """);
+            // Added after the table shipped — existing installs need the column grafted on.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "UniverseNames" ADD COLUMN "PulledAt" TEXT"""); }
+            catch { /* already present */ }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "WalletBackfillState" (
@@ -1632,6 +1644,23 @@ public class App : Application
                     "Singleton"         INTEGER NOT NULL DEFAULT 0
                 )
                 """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "ZkbKillFlags" (
+                    "KillMailId"  INTEGER NOT NULL PRIMARY KEY,
+                    "SeenOnZkbAt" TEXT,
+                    "PostedAt"    TEXT,
+                    "PostResult"  TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+
+            // Added once zKillboard import pushed KillMailDetails/Attackers/Items well past
+            // the row counts these tables saw before (100K+ and growing continuously via
+            // the firehose) — without these, the Kills browser's "most recent N" query and
+            // its per-kill attacker/item lookups were full-table scans.
+            db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailDetails_KillMailTime" ON "KillMailDetails" ("KillMailTime")""");
+            db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailAttackers_KillMailId" ON "KillMailAttackers" ("KillMailId")""");
+            db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailItems_KillMailId" ON "KillMailItems" ("KillMailId")""");
         }
         }); // end Task.Run — schema migration complete
 
@@ -1664,6 +1693,13 @@ public class App : Application
         Services.GetRequiredService<DatabaseBackupService>().Start();
         gameLogs?.Start();
         chatLogs?.Start();
+        zkbPolling?.Start();
+        zkbFirehose?.Start();
+        zkbBackfill?.Start();
+        zkbPost?.Start();
+        Services.GetRequiredService<EntityNameBackfillService>().Start();
+        // Started early and independently: everything else consults its verdict.
+        Services.GetRequiredService<EveServerStatusService>().Start();
     }
 
     private static void PositionSplashOnLastMonitor(SplashWindow splash)
@@ -1708,6 +1744,16 @@ public class App : Application
             client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
         });
 
+        // Separate client for the public /status/ check. Kept apart from "esi" on purpose:
+        // it is the one call that must still run while everything else is paused for
+        // downtime, and it needs a short timeout so a hung request cannot stall detection.
+        services.AddHttpClient("esi-public", client =>
+        {
+            client.BaseAddress = new Uri("https://esi.evetech.net/latest/");
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
+            client.Timeout = TimeSpan.FromSeconds(15);
+        });
+
         // Named HTTP client for Fuzzwork market aggregates
         services.AddHttpClient("fuzzwork", client =>
         {
@@ -1720,6 +1766,20 @@ public class App : Application
         {
             client.BaseAddress = new Uri("https://slack.com/api/");
             client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
+        });
+
+        // Named HTTP client for zKillboard (zkillboard.com + r2z2.zkillboard.com). No
+        // BaseAddress — the API and history/firehose endpoints live on different hosts,
+        // so callers use absolute URLs. Automatic gzip decompression since daily dumps
+        // and killmail bodies benefit from it; zKillboard's own etiquette asks for a
+        // User-Agent identifying the app/maintainer.
+        services.AddHttpClient("zkillboard", client =>
+        {
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (https://github.com/kernoeve/EveConsole)");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            AutomaticDecompression = System.Net.DecompressionMethods.All,
         });
 
         // Services — EsiClient is singleton so it can hold per-character token state
@@ -1765,6 +1825,20 @@ public class App : Application
         // Chat import is off by default and additionally gated on a per-channel
         // allowlist — it stores other people's messages.
         services.AddSingleton<ChatLogImportService>();
+
+        // zKillboard integration — optional supplement to the ESI-based kill pull (see
+        // ZkillboardPollingService/ZkillboardFirehoseService for why the "Mine + Corp"
+        // and "All kills" scopes each use a different live mechanism). Off by default.
+        services.AddSingleton<ZkillboardSettings>();
+        services.AddSingleton<ZkillboardApiClient>();
+        services.AddSingleton<ZkillboardKillImportService>();
+        services.AddSingleton<ZkillboardPollingService>();
+        services.AddSingleton<ZkillboardFirehoseService>();
+        services.AddSingleton<ZkillboardBackfillService>();
+        services.AddSingleton<ZkillboardPostService>();
+        services.AddSingleton<EntityNameBackfillService>();
+        services.AddSingleton<EveServerStatusService>();
+        services.AddSingleton<UiLinkSettings>();
 
         // ViewModels
         services.AddTransient<MainWindowViewModel>();
