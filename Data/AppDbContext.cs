@@ -44,6 +44,7 @@ public class AppDbContext : DbContext
     public DbSet<ContactEntry>               EsiContacts             => Set<ContactEntry>();
     public DbSet<KillMailRef>                EsiKillMailRefs         => Set<KillMailRef>();
     public DbSet<KillMailDetail>             KillMailDetails         => Set<KillMailDetail>();
+    public DbSet<ZkbKillFlag>                ZkbKillFlags            => Set<ZkbKillFlag>();
     public DbSet<KillMailAttacker>           KillMailAttackers       => Set<KillMailAttacker>();
     public DbSet<KillMailItem>               KillMailItems           => Set<KillMailItem>();
     public DbSet<PlanetaryColony>            EsiPlanetaryColonies    => Set<PlanetaryColony>();
@@ -616,6 +617,11 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             e.Property(x => x.Id).ValueGeneratedOnAdd();
             e.ToTable("KillMailItems"); });
+
+        mb.Entity<ZkbKillFlag>(e => {
+            e.HasKey(x => x.KillMailId);
+            e.Property(x => x.KillMailId).ValueGeneratedNever();
+            e.ToTable("ZkbKillFlags"); });
 
         mb.Entity<PlanetaryColony>(e => {
             e.HasKey(x => new { x.CharacterId, x.PlanetId });

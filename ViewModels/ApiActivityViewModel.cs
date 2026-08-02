@@ -92,6 +92,13 @@ public class ApiActivityViewModel : ReactiveObject
     private readonly MarketHistoryService _history;
     private readonly ContractsService     _contracts;
 
+    private readonly ZkillboardSettings         _zkbSettings;
+    private readonly ZkillboardPollingService    _zkbPolling;
+    private readonly ZkillboardFirehoseService   _zkbFirehose;
+    private readonly ZkillboardBackfillService   _zkbBackfill;
+    private readonly ZkillboardPostService       _zkbPost;
+    private readonly EntityNameBackfillService   _nameCache;
+
     public ObservableCollection<ActivityEntry>       Entries        { get; }
     public ObservableCollection<InFlightCall>        InFlight       { get; }
     public ObservableCollection<TokenOption>         TokenOptions   { get; } = [];
@@ -144,7 +151,13 @@ public class ApiActivityViewModel : ReactiveObject
         EsiPollingService    polling,
         TimerSettingsService timerSettings,
         MarketHistoryService history,
-        ContractsService     contracts)
+        ContractsService     contracts,
+        ZkillboardSettings        zkbSettings,
+        ZkillboardPollingService  zkbPolling,
+        ZkillboardFirehoseService zkbFirehose,
+        ZkillboardBackfillService zkbBackfill,
+        ZkillboardPostService     zkbPost,
+        EntityNameBackfillService nameCache)
     {
         Entries        = log.Entries;
         InFlight       = log.InFlightCalls;
@@ -153,8 +166,80 @@ public class ApiActivityViewModel : ReactiveObject
         _timerSettings = timerSettings;
         _history       = history;
         _contracts     = contracts;
+        _zkbSettings   = zkbSettings;
+        _zkbPolling    = zkbPolling;
+        _zkbFirehose   = zkbFirehose;
+        _zkbBackfill   = zkbBackfill;
+        _zkbPost       = zkbPost;
+        _nameCache     = nameCache;
 
         InFlight.CollectionChanged += (_, _) => HasNoInFlight = InFlight.Count == 0;
+    }
+
+    // ── Background process monitors (zKillboard, name cache) ────────────────────
+    //
+    // Each service already publishes a StatusText it maintains as it works; this just
+    // mirrors them onto the UI thread so the window can show what is running versus idle
+    // without any of them having to know a window exists.
+
+    private string _zkbLiveState = "";
+    public string ZkbLiveState { get => _zkbLiveState; private set => this.RaiseAndSetIfChanged(ref _zkbLiveState, value); }
+
+    private string _zkbLiveDetail = "";
+    public string ZkbLiveDetail { get => _zkbLiveDetail; private set => this.RaiseAndSetIfChanged(ref _zkbLiveDetail, value); }
+
+    private string _zkbBackfillDetail = "";
+    public string ZkbBackfillDetail { get => _zkbBackfillDetail; private set => this.RaiseAndSetIfChanged(ref _zkbBackfillDetail, value); }
+
+    private string _zkbPostDetail = "";
+    public string ZkbPostDetail { get => _zkbPostDetail; private set => this.RaiseAndSetIfChanged(ref _zkbPostDetail, value); }
+
+    private string _zkbScopeText = "";
+    public string ZkbScopeText { get => _zkbScopeText; private set => this.RaiseAndSetIfChanged(ref _zkbScopeText, value); }
+
+    private string _zkbCoverageText = "";
+    public string ZkbCoverageText { get => _zkbCoverageText; private set => this.RaiseAndSetIfChanged(ref _zkbCoverageText, value); }
+
+    private string _nameCacheState = "";
+    public string NameCacheState { get => _nameCacheState; private set => this.RaiseAndSetIfChanged(ref _nameCacheState, value); }
+
+    private string _nameCacheCountText = "—";
+    public string NameCacheCountText { get => _nameCacheCountText; private set => this.RaiseAndSetIfChanged(ref _nameCacheCountText, value); }
+
+    /// <summary>Cheap, in-memory only — safe to call on the window's 2s tick.</summary>
+    public void SyncBackgroundProcesses()
+    {
+        var enabled = _zkbSettings.Enabled;
+        var allScope = _zkbSettings.Scope == ZkbScope.All;
+
+        ZkbLiveState = !enabled
+            ? "○ Disabled — zKillboard import is switched off"
+            : allScope
+                ? "● All kills — live capture via the R2Z2 firehose"
+                : "● My characters & corp — live capture via interval poll";
+
+        ZkbScopeText     = allScope ? "All kills (universe-wide)" : "My characters & corp";
+        ZkbLiveDetail    = allScope ? _zkbFirehose.StatusText : _zkbPolling.StatusText;
+        ZkbBackfillDetail = _zkbBackfill.StatusText;
+        ZkbPostDetail    = _zkbSettings.PostEnabled ? _zkbPost.StatusText : "○ Off — not submitting kills to zKillboard";
+        ZkbCoverageText  = _zkbSettings.LastFullDay is { } d
+            ? $"Daily dumps imported through {d:yyyy-MM-dd}"
+            : "No daily dump imported yet";
+
+        NameCacheState = _nameCache.StatusText;
+    }
+
+    /// <summary>Hits the DB for the cached-name total, so it runs on the slower tick.</summary>
+    public async Task RefreshNameCacheAsync()
+    {
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var total = await db.UniverseNames.CountAsync();
+            NameCacheCountText = $"{total:N0} name(s) cached";
+        }
+        catch { /* best-effort monitor */ }
     }
 
     // ── Contract-items monitor ──────────────────────────────────────────────────

@@ -1,3 +1,4 @@
+using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
@@ -16,26 +17,40 @@ public sealed record KillmailListRow(
 
 public sealed record KillmailDetailData(
     int KillMailId, DateTimeOffset KillMailTime,
-    string ShipName, string SystemName, string RegionName,
+    string ShipName, string SystemName, string RegionName, string LocationText,
+    long VictimCharId, long VictimCorpId, long VictimAllianceId, int VictimShipTypeId,
     string VictimName, string VictimCorp, string VictimAlliance,
     int VictimDamageTaken,
-    List<(string SlotGroup, List<KillmailItemRow> Items)> SlotGroups,
+    List<KillmailSlotGroupRow> SlotGroups,
     List<KillmailAttackerRow> Attackers,
     double DestroyedIsk, double DroppedIsk);
 
+/// <summary>A slot section (High Slots, Cargo Hold, ...). Every group has at least one
+/// sub-group — for anything but Cargo Hold there's exactly one with an empty
+/// SubGroupName (meaning "don't render a sub-header"); Cargo Hold is split further by
+/// market group so a large cargo list (fuel, ore, ammo, blueprints, ...) isn't one huge
+/// undifferentiated list.</summary>
+public sealed record KillmailSlotGroupRow(string GroupName, List<KillmailSubGroupRow> SubGroups);
+
+public sealed record KillmailSubGroupRow(string SubGroupName, List<KillmailItemRow> Items);
+
 public sealed record KillmailItemRow(
-    int TypeId, string TypeName, long QtyDestroyed, long QtyDropped, double EstValue);
+    int TypeId, string TypeName, long QtyDestroyed, long QtyDropped, double EstValue,
+    bool IsBpo, bool IsBpc);
 
 public sealed record KillmailAttackerRow(
     string CharName, string CorpName, string AllianceName,
     int DamageDone, bool FinalBlow, string ShipName, string WeaponName,
     long CharacterId, int ShipTypeId, int WeaponTypeId);
 
+public sealed record KillmailListPage(List<KillmailListRow> Rows, bool HasMore);
+
 public class KillmailBrowserService(
     IDbContextFactory<AppDbContext> dbFactory,
-    CorpActivityService corpActivityService)
+    CorpActivityService corpActivityService,
+    EsiClient esi)
 {
-    private const int ListLimit = 2000;
+    public const int PageSize = 500;
 
     private sealed class KmDetailRaw
     {
@@ -56,72 +71,115 @@ public class KillmailBrowserService(
         public long? AllianceId    { get; set; }
     }
 
-    private sealed class IskRaw
-    {
-        public int    KillMailId { get; set; }
-        public double TotalIsk   { get; set; }
-    }
 
-    public async Task<List<KillmailListRow>> GetListAsync(long corpId, CancellationToken ct = default)
+    /// <summary>
+    /// One page of kills, most recent first. <paramref name="offset"/>/<paramref name="limit"/>
+    /// drive "load more" paging from the caller rather than a single hard-capped list —
+    /// with zKillboard-scale data (100K+ rows and growing) a fixed cap meant older kills
+    /// were simply unreachable. Fetches <paramref name="limit"/>+1 rows to detect
+    /// <see cref="KillmailListPage.HasMore"/> cheaply, without a separate COUNT(*).
+    ///
+    /// All filters run in the SQL query itself, not against whatever page happens to be
+    /// loaded client-side — with 100K+ rows total and only a page loaded at a time, a
+    /// client-side filter would silently miss anything outside the currently-loaded
+    /// window. <paramref name="characterFilter"/>/<paramref name="corporationFilter"/> are
+    /// the exceptions that can't be a plain SQL LIKE: arbitrary killmail
+    /// participants' names are resolved live via ESI (there is no persistent name cache
+    /// in this app), so each is resolved to a set of ids first — our own tracked
+    /// characters/corps via a local name search, falling back to ESI's authenticated
+    /// search (same pattern as CorpTop10ExcludeService.SearchAsync) — and then matched
+    /// by id in SQL. Both match victim OR the final-blow attacker only, mirroring the
+    /// only two identity columns the list actually displays.
+    /// </summary>
+    public async Task<KillmailListPage> GetListAsync(
+        int offset, int limit,
+        DateOnly? fromDate = null, DateOnly? thruDate = null,
+        string? characterFilter = null, string? corporationFilter = null,
+        string? shipFilter = null, string? systemFilter = null,
+        CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();
 
-        // corpId == 0 means "all corps" — no EsiKillMailRefs filter
-        List<KmDetailRaw> details;
-        List<FbRaw>       fbAttackers;
-
-        if (corpId == 0)
+        List<long>? characterIds = null;
+        if (!string.IsNullOrWhiteSpace(characterFilter))
         {
-            details = await db.Database.SqlQuery<KmDetailRaw>($"""
-                SELECT d."KillMailId", d."KillMailTime",
-                       d."VictimCharId", d."VictimCorpId", d."VictimAllianceId",
-                       d."VictimShipTypeId", d."SolarSystemId"
-                FROM "KillMailDetails" d
-                ORDER BY d."KillMailTime" DESC
-                LIMIT {ListLimit}
-                """).ToListAsync(ct);
-
-            if (details.Count == 0) return [];
-
-            fbAttackers = await db.Database.SqlQuery<FbRaw>($"""
-                SELECT a."KillMailId", a."CharacterId", a."CorporationId", a."AllianceId"
-                FROM "KillMailAttackers" a
-                WHERE a."FinalBlow" = 1
-                  AND a."KillMailId" IN (
-                    SELECT d."KillMailId" FROM "KillMailDetails" d
-                    ORDER BY d."KillMailTime" DESC LIMIT {ListLimit}
-                  )
-                """).ToListAsync(ct);
+            characterIds = await ResolveCharacterIdsAsync(db, characterFilter, ct);
+            if (characterIds.Count == 0) return new KillmailListPage([], false);
         }
-        else
+
+        List<long>? corporationIds = null;
+        if (!string.IsNullOrWhiteSpace(corporationFilter))
         {
-            details = await db.Database.SqlQuery<KmDetailRaw>($"""
-                SELECT d."KillMailId", d."KillMailTime",
-                       d."VictimCharId", d."VictimCorpId", d."VictimAllianceId",
-                       d."VictimShipTypeId", d."SolarSystemId"
-                FROM "KillMailDetails" d
-                JOIN "EsiKillMailRefs" r ON r."KillMailId" = d."KillMailId"
-                    AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
-                ORDER BY d."KillMailTime" DESC
-                LIMIT {ListLimit}
-                """).ToListAsync(ct);
-
-            if (details.Count == 0) return [];
-
-            fbAttackers = await db.Database.SqlQuery<FbRaw>($"""
-                SELECT a."KillMailId", a."CharacterId", a."CorporationId", a."AllianceId"
-                FROM "KillMailAttackers" a
-                WHERE a."FinalBlow" = 1
-                  AND a."KillMailId" IN (
-                    SELECT d."KillMailId"
-                    FROM "KillMailDetails" d
-                    JOIN "EsiKillMailRefs" r ON r."KillMailId" = d."KillMailId"
-                        AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
-                    ORDER BY d."KillMailTime" DESC
-                    LIMIT {ListLimit}
-                  )
-                """).ToListAsync(ct);
+            corporationIds = await ResolveCorporationIdsAsync(db, corporationFilter, ct);
+            if (corporationIds.Count == 0) return new KillmailListPage([], false);
         }
+
+        var args = new List<object>();
+        string P(object value) { args.Add(value); return $"@p{args.Count - 1}"; }
+
+        var conditions = new List<string>();
+        if (fromDate is { } fd)
+            conditions.Add($"""d."KillMailTime" >= {P(fd.ToString("yyyy-MM-dd") + " 00:00:00+00:00")}""");
+        if (thruDate is { } td)
+            conditions.Add($"""d."KillMailTime" <= {P(td.ToString("yyyy-MM-dd") + " 23:59:59+00:00")}""");
+        if (!string.IsNullOrWhiteSpace(shipFilter))
+            conditions.Add($"""st."Name" LIKE {P($"%{shipFilter.Trim()}%")}""");
+        if (!string.IsNullOrWhiteSpace(systemFilter))
+        {
+            var sysArg = P($"%{systemFilter.Trim()}%");
+            var regionArg = P($"%{systemFilter.Trim()}%");
+            conditions.Add($"""(ss."Name" LIKE {sysArg} OR sr."Name" LIKE {regionArg})""");
+        }
+        if (characterIds is { Count: > 0 })
+        {
+            // Ids resolved above (our own tracked characters, or an ESI search result) —
+            // not raw user text, safe to inline as a literal int list like killIdsStr below.
+            var idsStr = string.Join(",", characterIds);
+            conditions.Add($"""(d."VictimCharId" IN ({idsStr}) OR EXISTS (SELECT 1 FROM "KillMailAttackers" a WHERE a."KillMailId" = d."KillMailId" AND a."FinalBlow" = 1 AND a."CharacterId" IN ({idsStr})))""");
+        }
+        if (corporationIds is { Count: > 0 })
+        {
+            var idsStr = string.Join(",", corporationIds);
+            conditions.Add($"""(d."VictimCorpId" IN ({idsStr}) OR EXISTS (SELECT 1 FROM "KillMailAttackers" a WHERE a."KillMailId" = d."KillMailId" AND a."FinalBlow" = 1 AND a."CorporationId" IN ({idsStr})))""");
+        }
+
+        var whereSql = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
+        var limitArg  = P(limit + 1);
+        var offsetArg = P(offset);
+
+        var listSql = $"""
+            SELECT d."KillMailId", d."KillMailTime",
+                   d."VictimCharId", d."VictimCorpId", d."VictimAllianceId",
+                   d."VictimShipTypeId", d."SolarSystemId"
+            FROM "KillMailDetails" d
+            LEFT JOIN "SdeTypes" st ON st."TypeId" = d."VictimShipTypeId"
+            LEFT JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = d."SolarSystemId"
+            LEFT JOIN "SdeRegions" sr ON sr."RegionId" = ss."RegionId"
+            {whereSql}
+            ORDER BY d."KillMailTime" DESC
+            LIMIT {limitArg} OFFSET {offsetArg}
+            """;
+
+#pragma warning disable EF1002 // structural SQL is built entirely from our own branches above; only values in args[] are parameterized
+        var details = await db.Database.SqlQueryRaw<KmDetailRaw>(listSql, args.ToArray()).ToListAsync(ct);
+#pragma warning restore EF1002
+
+        if (details.Count == 0) return new KillmailListPage([], false);
+
+        var hasMore = details.Count > limit;
+        if (hasMore) details.RemoveAt(details.Count - 1);
+
+        var killIds = details.Select(d => d.KillMailId).ToList();
+        var killIdsStr = string.Join(",", killIds);
+
+#pragma warning disable EF1002 // killIdsStr is built from int KillMailIds we just queried ourselves, not user input
+        var fbAttackers = await db.Database.SqlQueryRaw<FbRaw>($"""
+            SELECT a."KillMailId", a."CharacterId", a."CorporationId", a."AllianceId"
+            FROM "KillMailAttackers" a
+            WHERE a."FinalBlow" = 1 AND a."KillMailId" IN ({killIdsStr})
+            """).ToListAsync(ct);
+#pragma warning restore EF1002
+
         var fbMap = fbAttackers
             .GroupBy(a => a.KillMailId)
             .ToDictionary(g => g.Key, g => g.First());
@@ -162,38 +220,61 @@ public class KillmailBrowserService(
             .Where(c => constellationIds.Contains(c.ConstellationId))
             .ToDictionaryAsync(c => c.ConstellationId, c => c.Name, ct);
 
-        // ISK calculation — batch query against market prices
+        // ISK calculation — includes the victim's own hull (a bare pod's total really is
+        // just its implants, since a pod hull has no meaningful market price) and is
+        // Blueprint-Copy-aware: an item is only priced off MarketItemPrices (which
+        // reflects Blueprint ORIGINAL prices) when it isn't a BPC. The SAME blueprint
+        // type can appear as both a BPO and a BPC line on one kill, so this branches
+        // per-item, not per-type. See GetDetailAsync/GroupItemsBySlot for the matching
+        // per-kill logic — the two must stay consistent.
         var iskMap = new Dictionary<int, double>();
-        var killIds = details.Select(d => d.KillMailId).ToList();
         var defaultSettings = await db.MarketDefaultSettings.AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == 1, ct);
         if (defaultSettings?.AssetValueConfigId is int configId && killIds.Count > 0)
         {
-            var priceCol = (defaultSettings.AssetValuePriceType ?? "Midpoint") switch
+            var priceType = defaultSettings.AssetValuePriceType;
+
+            var items = await db.KillMailItems.AsNoTracking()
+                .Where(i => killIds.Contains(i.KillMailId))
+                .Select(i => new { i.KillMailId, i.ItemTypeId, i.QuantityDestroyed, i.QuantityDropped, i.Singleton })
+                .ToListAsync(ct);
+
+            var itemTypeIds = items.Select(i => i.ItemTypeId).Distinct().ToList();
+            var blueprintIds = await GetBlueprintTypeIdsAsync(db, itemTypeIds, ct);
+            var bpcTypeIds = items.Where(i => i.Singleton == 2 && blueprintIds.Contains(i.ItemTypeId))
+                .Select(i => i.ItemTypeId).Distinct().ToList();
+            var bpcPerRun = await GetCheapestBpcPerRunAsync(db, bpcTypeIds, ct);
+
+            var priceTypeIds = itemTypeIds.Concat(details.Select(d => d.VictimShipTypeId)).Distinct().ToList();
+            var marketPrices = await db.MarketItemPrices.AsNoTracking()
+                .Where(p => p.ConfigId == configId && priceTypeIds.Contains(p.TypeId))
+                .ToDictionaryAsync(p => p.TypeId, p => priceType switch
+                {
+                    "Buy"  => p.BuyPrice,
+                    "Sell" => p.SellPrice,
+                    _      => p.Midpoint,
+                }, ct);
+
+            foreach (var item in items)
             {
-                "Buy"  => "BuyPrice",
-                "Sell" => "SellPrice",
-                _      => "Midpoint"
-            };
-            var killIdsStr = string.Join(",", killIds);
-            var iskSql = $"""
-                SELECT i."KillMailId",
-                       SUM((COALESCE(i."QuantityDestroyed", 0) + COALESCE(i."QuantityDropped", 0))
-                           * COALESCE(p."{priceCol}", 0.0)) AS "TotalIsk"
-                FROM "KillMailItems" i
-                LEFT JOIN "MarketItemPrices" p ON p."TypeId" = i."ItemTypeId" AND p."ConfigId" = @p0
-                WHERE i."KillMailId" IN ({killIdsStr})
-                GROUP BY i."KillMailId"
-                """;
-#pragma warning disable EF1002
-            var iskRows = await db.Database.SqlQueryRaw<IskRaw>(iskSql, configId).ToListAsync(ct);
-#pragma warning restore EF1002
-            iskMap = iskRows.ToDictionary(x => x.KillMailId, x => x.TotalIsk);
+                var qty = (item.QuantityDestroyed ?? 0) + (item.QuantityDropped ?? 0);
+                var unitPrice = item.Singleton == 2 && blueprintIds.Contains(item.ItemTypeId)
+                    ? bpcPerRun.GetValueOrDefault(item.ItemTypeId)
+                    : marketPrices.GetValueOrDefault(item.ItemTypeId);
+                iskMap[item.KillMailId] = iskMap.GetValueOrDefault(item.KillMailId) + qty * unitPrice;
+            }
+
+            foreach (var d in details)
+                iskMap[d.KillMailId] = iskMap.GetValueOrDefault(d.KillMailId)
+                    + marketPrices.GetValueOrDefault(d.VictimShipTypeId);
         }
 
         string Res(long? id) => id.HasValue && id.Value != 0 && names.TryGetValue(id.Value, out var n) ? n : "";
 
-        return details.Select(d =>
+        // Preserves the SQL's ORDER BY KillMailTime DESC — details is mapped 1:1 in
+        // place, never re-sorted, so a "Load More" page can never desync from what's
+        // already rendered above it.
+        var rows = details.Select(d =>
         {
             fbMap.TryGetValue(d.KillMailId, out var fb);
             systemMap.TryGetValue(d.SolarSystemId, out var sys);
@@ -214,6 +295,127 @@ public class KillmailBrowserService(
                 fb is not null ? Res(fb.CorporationId) : "",
                 fb is not null ? Res(fb.AllianceId) : "");
         }).ToList();
+
+        return new KillmailListPage(rows, hasMore);
+    }
+
+    /// <summary>Character-name fragment → matching character ids, same pattern as
+    /// CorpTop10ExcludeService.SearchAsync: our own tracked characters first (a real
+    /// local Name column), falling back to ESI's authenticated non-strict character
+    /// search using whichever tracked character happens to be first — there is no
+    /// persistent local cache of arbitrary killmail participants' names to search
+    /// against directly. Empty (not null) return means "filter active, matched
+    /// nobody" — the caller should short-circuit to zero results rather than run the
+    /// main query with an empty id list (which would match everything).</summary>
+    private async Task<List<long>> ResolveCharacterIdsAsync(
+        AppDbContext db, string nameFragment, CancellationToken ct)
+    {
+        var trimmed = nameFragment.Trim();
+
+        var localIds = await db.Characters
+            .Where(c => c.Name.Contains(trimmed))
+            .Select(c => c.Id)
+            .ToListAsync(ct);
+        if (localIds.Count > 0) return localIds;
+
+        var searchAsCharId = await db.Characters
+            .OrderBy(c => c.Id).Select(c => c.Id).FirstOrDefaultAsync(ct);
+        if (searchAsCharId == 0) return [];
+
+        var esiIds = await esi.SearchCharacterIdsAsync(searchAsCharId, trimmed, ct);
+        return esiIds.Select(id => (long)id).ToList();
+    }
+
+    /// <summary>Corp-name fragment → matching corporation ids. Same shape as
+    /// ResolveCharacterIdsAsync — any corp involved in a kill, not just ones we track,
+    /// since the old approach (a dropdown of our own tracked corps joined through
+    /// EsiKillMailRefs) could only ever show "my corp"'s kills by construction.</summary>
+    private async Task<List<long>> ResolveCorporationIdsAsync(
+        AppDbContext db, string nameFragment, CancellationToken ct)
+    {
+        var trimmed = nameFragment.Trim();
+
+        var localIds = await db.Corporations
+            .Where(c => c.Name.Contains(trimmed))
+            .Select(c => (long)c.Id)
+            .ToListAsync(ct);
+        if (localIds.Count > 0) return localIds;
+
+        var searchAsCharId = await db.Characters
+            .OrderBy(c => c.Id).Select(c => c.Id).FirstOrDefaultAsync(ct);
+        if (searchAsCharId == 0) return [];
+
+        var esiIds = await esi.SearchCorporationIdsAsync(searchAsCharId, trimmed, ct);
+        return esiIds.Select(id => (long)id).ToList();
+    }
+
+    /// <summary>Which of <paramref name="typeIds"/> are blueprint types at all (BPO or
+    /// BPC) — a killmail item is only a Blueprint Copy when it's both this AND
+    /// Singleton == 2; the same underlying EVE item_type_id is used for a type's BPO
+    /// and BPC alike, so singleton is what disambiguates a given line, not the type id.</summary>
+    /// <summary>
+    /// SdeBlueprintProducts also carries "invention" rows where the TypeId key is a
+    /// consumed INPUT MATERIAL, not a real blueprint you'd hold — confirmed via the SDE
+    /// for T3 reverse-engineering relics ("Wrecked Armor Nanobot", "Intact Hull
+    /// Section", etc.): every row for those is Activity=invention and nothing else,
+    /// which is exactly how they were wrongly getting BPO icon/grouping treatment. A
+    /// genuine blueprint always either has a non-invention (manufacturing/reaction) row
+    /// too, or — for a handful of invention-only structure-rig blueprints — its name
+    /// still ends in "Blueprint" even with no other activity row. Both conditions
+    /// together correctly include real blueprints/reaction formulas and exclude relic
+    /// materials.
+    /// </summary>
+    private static async Task<HashSet<int>> GetBlueprintTypeIdsAsync(
+        AppDbContext db, IReadOnlyCollection<int> typeIds, CancellationToken ct)
+    {
+        if (typeIds.Count == 0) return [];
+
+        var candidates = await db.SdeBlueprintProducts.AsNoTracking()
+            .Where(p => typeIds.Contains(p.TypeId))
+            .Select(p => new { p.TypeId, p.Activity })
+            .Distinct()
+            .ToListAsync(ct);
+        if (candidates.Count == 0) return [];
+
+        var candidateIds = candidates.Select(c => c.TypeId).Distinct().ToList();
+        var namesById = await db.SdeTypes.AsNoTracking()
+            .Where(t => candidateIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.Name })
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+
+        return candidates
+            .GroupBy(c => c.TypeId)
+            .Where(g => g.Any(c => c.Activity != "invention")
+                     || (namesById.TryGetValue(g.Key, out var name) && name.EndsWith("Blueprint", StringComparison.Ordinal)))
+            .Select(g => g.Key)
+            .ToHashSet();
+    }
+
+    /// <summary>Cheapest known per-run BPC contract price for each blueprint type in
+    /// <paramref name="blueprintTypeIds"/>, using the same best-vs-30-day-average rule
+    /// (ContractPricing.EffectivePerRun) BuildCostService already applies elsewhere —
+    /// the lowest across all ME rows, since a killmail item gives no runs/ME to pick a
+    /// specific one. A type with no contract price on file is simply absent from the
+    /// result; callers should treat that as unpriced (0), never fall back to the BPO
+    /// market price.</summary>
+    private static async Task<Dictionary<int, double>> GetCheapestBpcPerRunAsync(
+        AppDbContext db, IReadOnlyCollection<int> blueprintTypeIds, CancellationToken ct)
+    {
+        if (blueprintTypeIds.Count == 0) return [];
+
+        var rows = await db.ContractBpcPrices.AsNoTracking()
+            .Where(p => blueprintTypeIds.Contains(p.TypeId))
+            .ToListAsync(ct);
+
+        var result = new Dictionary<int, double>();
+        foreach (var row in rows)
+        {
+            if (ContractPricing.EffectivePerRun(row) is not { } effective) continue;
+            var value = (double)effective;
+            if (!result.TryGetValue(row.TypeId, out var existing) || value < existing)
+                result[row.TypeId] = value;
+        }
+        return result;
     }
 
     public async Task<KillmailDetailData?> GetDetailAsync(int killMailId, CancellationToken ct = default)
@@ -262,6 +464,20 @@ public class KillmailBrowserService(
             });
         }
 
+        // Blueprint Copy awareness — same reasoning as GetListAsync's ISK total: a BPC
+        // (Singleton == 2 on a blueprint type id) is priced off the cheapest known
+        // per-run contract price instead of the BPO market price in `prices`, since the
+        // same type id can be either a BPO or BPC line depending on this kill's items.
+        var itemTypeIds = items.Select(i => i.ItemTypeId).Distinct().ToList();
+        var blueprintIds = await GetBlueprintTypeIdsAsync(db, itemTypeIds, ct);
+        var bpcTypeIds = items.Where(i => i.Singleton == 2 && blueprintIds.Contains(i.ItemTypeId))
+            .Select(i => i.ItemTypeId).Distinct().ToList();
+        var bpcPerRun = await GetCheapestBpcPerRunAsync(db, bpcTypeIds, ct);
+
+        // Market group per item type, for the Cargo Hold sub-grouping — same value for a
+        // blueprint regardless of BPO/BPC (both share the one EVE type id).
+        var marketGroupNames = await GetMarketGroupNamesAsync(db, itemTypeIds, ct);
+
         // Resolve entity names
         var entityIds = new HashSet<long>();
         if (detail.VictimCharId != 0) entityIds.Add(detail.VictimCharId);
@@ -286,12 +502,35 @@ public class KillmailBrowserService(
         // Ship name
         string shipName = typeNames.TryGetValue(detail.VictimShipTypeId, out var vsn) ? vsn : detail.VictimShipTypeId.ToString();
 
+        // Nearest celestial + distance, e.g. "Stargate (6-IAFR) (3599.69 km)" — matches
+        // what zKillboard shows. Positions are raw ESI meters on both sides, so directly
+        // comparable; skipped entirely when the killmail has no recorded position.
+        var locationText = "";
+        if (detail.VictimPosX is double px && detail.VictimPosY is double py && detail.VictimPosZ is double pz)
+        {
+            var celestials = await db.SdeCelestials.AsNoTracking()
+                .Where(c => c.SolarSystemId == detail.SolarSystemId)
+                .ToListAsync(ct);
+
+            SdeCelestial? nearest = null;
+            var bestDistSq = double.MaxValue;
+            foreach (var c in celestials)
+            {
+                var dx = c.X - px; var dy = c.Y - py; var dz = c.Z - pz;
+                var distSq = dx * dx + dy * dy + dz * dz;
+                if (distSq < bestDistSq) { bestDistSq = distSq; nearest = c; }
+            }
+            if (nearest is not null)
+                locationText = $"{nearest.Name} ({Math.Sqrt(bestDistSq) / 1000.0:N2} km)";
+        }
+
         // Group items by slot, then append ship row at the end (always destroyed)
         double destroyedIsk = 0, droppedIsk = 0;
-        var grouped = GroupItemsBySlot(items, typeNames, prices, ref destroyedIsk, ref droppedIsk);
+        var grouped = GroupItemsBySlot(items, typeNames, prices, marketGroupNames, blueprintIds, bpcPerRun, ref destroyedIsk, ref droppedIsk);
         var shipPrice = prices.TryGetValue(detail.VictimShipTypeId, out var sp) ? sp : 0;
         destroyedIsk += shipPrice;
-        grouped.Add(("Ship", [new KillmailItemRow(detail.VictimShipTypeId, shipName, 1, 0, shipPrice)]));
+        grouped.Add(new KillmailSlotGroupRow("Ship",
+            [new KillmailSubGroupRow("", [new KillmailItemRow(detail.VictimShipTypeId, shipName, 1, 0, shipPrice, false, false)])]));
 
         // Attackers
         var attackerRows = attackers.Select(a => new KillmailAttackerRow(
@@ -312,6 +551,8 @@ public class KillmailBrowserService(
             shipName,
             system?.Name ?? detail.SolarSystemId.ToString(),
             region?.Name ?? "",
+            locationText,
+            detail.VictimCharId, detail.VictimCorpId, detail.VictimAllianceId ?? 0L, detail.VictimShipTypeId,
             Res(detail.VictimCharId),
             Res(detail.VictimCorpId),
             Res(detail.VictimAllianceId),
@@ -320,22 +561,83 @@ public class KillmailBrowserService(
             destroyedIsk, droppedIsk);
     }
 
-    private static List<(string SlotGroup, List<KillmailItemRow> Items)> GroupItemsBySlot(
+    /// <summary>Market group per item type id, for Cargo Hold sub-grouping — deep enough
+    /// to be useful (top-level alone, e.g. just "Ships", is too coarse) without the
+    /// noise of the item's own often much-deeper leaf group, so this walks the market
+    /// group tree and keeps only the top two levels: <c>TopLevel</c> alone (used to
+    /// collapse ALL blueprints into one bucket regardless of what they're blueprints
+    /// for — same EVE type id for a BPO or BPC, so this is naturally shared already) and
+    /// <c>Display</c> ("TopLevel &gt; SecondLevel", or just "TopLevel" when the type's
+    /// own group already IS top-level). "Other" for a type with no market group.</summary>
+    private static async Task<Dictionary<int, (string TopLevel, string Display)>> GetMarketGroupNamesAsync(
+        AppDbContext db, IReadOnlyCollection<int> typeIds, CancellationToken ct)
+    {
+        if (typeIds.Count == 0) return [];
+
+        var typeGroups = await db.SdeTypes.AsNoTracking()
+            .Where(t => typeIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.MarketGroupId })
+            .ToListAsync(ct);
+
+        // The whole tree is only a few hundred rows — simpler to load it once and walk
+        // ancestor chains in memory than to resolve them one id at a time.
+        var allGroups = await db.SdeMarketGroups.AsNoTracking().ToListAsync(ct);
+        var groupById = allGroups.ToDictionary(g => g.MarketGroupId);
+
+        var chainCache = new Dictionary<int, (string TopLevel, string Display)>();
+        (string TopLevel, string Display) ResolveChain(int marketGroupId)
+        {
+            if (chainCache.TryGetValue(marketGroupId, out var cached)) return cached;
+
+            var chain = new List<SdeMarketGroup>();
+            var current = groupById.GetValueOrDefault(marketGroupId);
+            while (current is not null)
+            {
+                chain.Add(current);
+                current = current.ParentGroupId.HasValue ? groupById.GetValueOrDefault(current.ParentGroupId.Value) : null;
+            }
+            chain.Reverse(); // root first
+
+            var result = chain.Count switch
+            {
+                0 => ("Other", "Other"),
+                1 => (chain[0].Name, chain[0].Name),
+                _ => (chain[0].Name, $"{chain[0].Name} > {chain[1].Name}"),
+            };
+            chainCache[marketGroupId] = result;
+            return result;
+        }
+
+        return typeGroups.ToDictionary(
+            t => t.TypeId,
+            t => t.MarketGroupId.HasValue ? ResolveChain(t.MarketGroupId.Value) : ("Other", "Other"));
+    }
+
+    private static List<KillmailSlotGroupRow> GroupItemsBySlot(
         List<KillMailItem> items,
         Dictionary<int, string> typeNames,
         Dictionary<int, double> prices,
+        Dictionary<int, (string TopLevel, string Display)> marketGroupNames,
+        HashSet<int> blueprintIds,
+        Dictionary<int, double> bpcPerRun,
         ref double destroyedIsk, ref double droppedIsk)
     {
         var groups = new Dictionary<string, List<KillmailItemRow>>();
-        var order  = new List<string>();
 
         foreach (var item in items)
         {
             var group = FlagToSlotGroup(item.Flag);
-            if (!groups.ContainsKey(group)) { groups[group] = []; order.Add(group); }
+            if (!groups.TryGetValue(group, out var groupItems)) { groupItems = []; groups[group] = groupItems; }
 
-            var name     = typeNames.TryGetValue(item.ItemTypeId, out var n) ? n : item.ItemTypeId.ToString();
-            var unitPrc  = prices.TryGetValue(item.ItemTypeId, out var p) ? p : 0;
+            var name = typeNames.TryGetValue(item.ItemTypeId, out var n) ? n : item.ItemTypeId.ToString();
+            var isBlueprint = blueprintIds.Contains(item.ItemTypeId);
+            var isBpc = item.Singleton == 2 && isBlueprint;
+            var isBpo = isBlueprint && !isBpc;
+            if (isBpc) name += " (Copy)"; // the one visual cue this was missing entirely
+
+            var unitPrc  = isBpc
+                ? bpcPerRun.GetValueOrDefault(item.ItemTypeId)
+                : prices.GetValueOrDefault(item.ItemTypeId);
             var qtyDest  = item.QuantityDestroyed ?? 0;
             var qtyDrop  = item.QuantityDropped   ?? 0;
             var valDest  = unitPrc * qtyDest;
@@ -344,34 +646,109 @@ public class KillmailBrowserService(
             destroyedIsk += valDest;
             droppedIsk   += valDrop;
 
-            groups[group].Add(new KillmailItemRow(item.ItemTypeId, name, qtyDest, qtyDrop, valDest + valDrop));
+            groupItems.Add(new KillmailItemRow(item.ItemTypeId, name, qtyDest, qtyDrop, valDest + valDrop, isBpo, isBpc));
         }
 
-        // Return groups in canonical EVE slot order; any unrecognised groups go at the end
-        return _slotOrder
-            .Where(groups.ContainsKey)
-            .Select(g => (g, groups[g]))
-            .Concat(groups.Where(kv => !_slotOrder.Contains(kv.Key)).Select(kv => (kv.Key, kv.Value)))
-            .ToList();
+        // Canonical EVE slot order; any unrecognised groups go at the end. Cargo Hold is
+        // further split into sub-groups by market group (large cargo lists — blueprint
+        // libraries, ore/fuel/ammo holds — are unreadable as one flat list); every other
+        // group is one implicit sub-group with no sub-header. Sorted by name throughout.
+        var orderedGroupNames = _slotOrder.Where(groups.ContainsKey)
+            .Concat(groups.Keys.Where(k => !_slotOrder.Contains(k)).OrderBy(k => k, StringComparer.OrdinalIgnoreCase));
+
+        var result = new List<KillmailSlotGroupRow>();
+        foreach (var groupName in orderedGroupNames)
+        {
+            var groupItems = groups[groupName];
+            List<KillmailSubGroupRow> subGroups;
+
+            if (groupName == "Cargo Hold")
+            {
+                // Blueprints (BPO or BPC) always collapse to the one fixed bucket below,
+                // regardless of what they're each blueprints for — keeping "all BPO/BPC
+                // together" as the ask. Deliberately NOT resolved via each blueprint's
+                // own MarketGroupId chain: verified against the SDE that most T2/faction
+                // blueprint TYPES have no MarketGroupId of their own at all (965 of 1033
+                // T2 blueprints, 743 of 754 for one faction tier) — only their PRODUCT
+                // does — so doing this per-item the same way as regular items silently
+                // dropped most T2/faction BPCs into "Other". Everything else still gets
+                // the deeper "TopLevel > SecondLevel" name for more context.
+                string SubGroupKey(KillmailItemRow i)
+                {
+                    if (i.IsBpo || i.IsBpc) return BlueprintsGroupName;
+                    var (_, display) = marketGroupNames.GetValueOrDefault(i.TypeId, ("Other", "Other"));
+                    return display;
+                }
+
+                subGroups = groupItems
+                    .GroupBy(SubGroupKey)
+                    .OrderBy(g => g.Key == "Other" ? 1 : 0)
+                    .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
+                    .Select(g => new KillmailSubGroupRow(
+                        g.Key, g.OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList()))
+                    .ToList();
+            }
+            else
+            {
+                subGroups = [new KillmailSubGroupRow("",
+                    groupItems.OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList())];
+            }
+
+            result.Add(new KillmailSlotGroupRow(groupName, subGroups));
+        }
+
+        return result;
     }
 
+    // The real top-level SDE market group name (MarketGroupId 2, confirmed via a direct
+    // query — "SELECT Name FROM SdeMarketGroups WHERE MarketGroupId = 2"), used as a
+    // fixed bucket for every blueprint item rather than resolved per-item (see
+    // SubGroupKey above for why).
+    private const string BlueprintsGroupName = "Blueprints & Reactions";
+
+    // Slot display order. Corrected against CCP's authoritative flag list
+    // (esi/eve-glue location_flag.py) after finding two real mismatches: LoSlot0-7 are
+    // flags 11-18 and HiSlot0-7 are 27-34 (this code had them swapped), and flags
+    // 133-143 are eleven DIFFERENT specialized holds (fuel/ore/gas/mineral/salvage/ship/
+    // ammo), not "Fighter Tubes" — real fighter tubes are 159-163, fighter bay is 158.
+    // Verified against a real killmail: an "ORE Expanded Cargohold" (a low-slot module,
+    // confirmed via its SDE group — not the same group as the Cargohold Optimization
+    // rig) at flag 11-13, and Nitrogen Isotopes (fuel) at flag 133.
     private static readonly string[] _slotOrder =
     [
-        "High Slots", "Mid Slots", "Low Slots", "Rig Slots",
-        "Subsystem Slots", "Fighter Tubes", "Drone Bay", "Ship Hangar", "Cargo Hold", "Other",
+        "High Slots", "Mid Slots", "Low Slots", "Rig Slots", "Subsystem Slots",
+        "Drone Bay", "Fighter Bay", "Fighter Tubes", "Ship Hangar", "Fleet Hangar",
+        "Fuel Bay", "Ore Hold", "Ice Hold", "Asteroid Hold", "Gas Hold", "Mineral Hold",
+        "Salvage Hold", "Ship Hold", "Small Ship Hold", "Medium Ship Hold",
+        "Large Ship Hold", "Industrial Ship Hold", "Ammo Hold", "Cargo Hold", "Other",
     ];
 
     private static string FlagToSlotGroup(int flag) => flag switch
     {
-        >= 11 and <= 18   => "High Slots",
+        5                 => "Cargo Hold",
+        >= 11 and <= 18   => "Low Slots",
         >= 19 and <= 26   => "Mid Slots",
-        >= 27 and <= 34   => "Low Slots",
+        >= 27 and <= 34   => "High Slots",
+        87                => "Drone Bay",
+        90                => "Ship Hangar",
         >= 92 and <= 99   => "Rig Slots",
         >= 125 and <= 132 => "Subsystem Slots",
-        >= 133 and <= 143 => "Fighter Tubes",
-        57 or 87          => "Drone Bay",
-        88 or 89          => "Ship Hangar",
-        5                 => "Cargo Hold",
+        133               => "Fuel Bay",
+        134               => "Ore Hold",
+        135               => "Gas Hold",
+        136               => "Mineral Hold",
+        137               => "Salvage Hold",
+        138               => "Ship Hold",
+        139               => "Small Ship Hold",
+        140               => "Medium Ship Hold",
+        141               => "Large Ship Hold",
+        142               => "Industrial Ship Hold",
+        143               => "Ammo Hold",
+        155               => "Fleet Hangar",
+        158               => "Fighter Bay",
+        >= 159 and <= 163 => "Fighter Tubes",
+        181               => "Ice Hold",
+        182               => "Asteroid Hold",
         _                 => "Other",
     };
 }

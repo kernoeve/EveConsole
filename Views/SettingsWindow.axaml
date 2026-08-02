@@ -1043,6 +1043,39 @@
           <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
             <StackPanel>
               <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Log Folders" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="Leave the list empty to use the local folder automatically. Add a network path (\\MACHINE\share\Chatlogs) to import logs from EVE clients running on other computers — nothing needs to be installed on them. Channel discovery below only sees channels from the folder(s) configured here." />
+
+                <ListBox ItemsSource="{Binding ChatLogVm.Directories}"
+                         SelectedItem="{Binding ChatLogVm.SelectedDirectory}"
+                         MaxHeight="110" FontSize="11" Background="#131320" />
+
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBox Grid.Column="0" Text="{Binding ChatLogVm.NewDirectory}"
+                           Watermark="C:\Users\you\Documents\EVE\logs\Chatlogs  or  \\PC2\eve-logs" />
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="6 0 0 0">
+                    <Button Content="Add"    Command="{Binding ChatLogVm.AddDirectoryCommand}"    Padding="10 3" />
+                    <Button Content="Remove" Command="{Binding ChatLogVm.RemoveDirectoryCommand}" Padding="10 3" />
+                    <Button Content="Detect" Command="{Binding ChatLogVm.DetectDirectoryCommand}" Padding="10 3" />
+                    <Button Content="Open"   Command="{Binding ChatLogVm.OpenDirectoryCommand}"   Padding="10 3" />
+                  </StackPanel>
+                </Grid>
+
+                <TextBlock Text="Currently reading:" FontSize="11" Foreground="#888" Margin="0 4 0 0" />
+                <SelectableTextBlock Text="{Binding ChatLogVm.ResolvedPaths}" FontSize="11"
+                                     Foreground="#999" TextWrapping="Wrap"
+                                     FontFamily="Consolas, Menlo, monospace" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
                 <TextBlock Text="Channels to Store" FontWeight="SemiBold" Foreground="#c8a84b" />
               </Border>
 
@@ -1113,6 +1146,142 @@
                              TextTrimming="CharacterEllipsis"
                              ToolTip.Tip="{Binding ChatLogVm.ProgressText}" />
                 </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <!-- ══ Kill Mails ═════════════════════════════════════════════════════════ -->
+    <TabItem Header="Kill Mails">
+      <ScrollViewer Margin="0 8 0 0">
+        <StackPanel Spacing="14" x:DataType="vm:ZkillboardSettingsViewModel" DataContext="{Binding ZkbVm}">
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="zKillboard Kill Import" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="ESI only returns a killmail when you were the victim or got the final blow — participating in a kill without the final blow is invisible to it. zKillboard tracks every participant, so merging it in fills that gap. Optional; off by default. Merges into the same Kills data used everywhere else, never duplicates or overwrites what ESI already provided." />
+
+                <CheckBox IsChecked="{Binding Enabled}"
+                          Content="Enable zKillboard kill import" Foreground="#ccc" FontSize="12" />
+
+                <TextBlock Text="{Binding LiveStatus}" FontSize="11" Foreground="#888899" TextWrapping="Wrap" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Scope" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <RadioButton GroupName="ZkbScope" IsChecked="{Binding ScopeIsMineAndCorp}"
+                             Content="My characters &amp; corp only" Foreground="#ccc" FontSize="12" />
+                <TextBlock FontSize="11" Foreground="#666" Margin="22 0 0 0" TextWrapping="Wrap"
+                           Text="Live capture polls zKillboard for just the characters and corps already tracked in this app, at the interval below." />
+
+                <RadioButton GroupName="ZkbScope" IsChecked="{Binding ScopeIsAll}"
+                             Content="Capture all kills" Foreground="#ccc" FontSize="12" Margin="0 6 0 0" />
+                <TextBlock FontSize="11" Foreground="#666" Margin="22 0 0 0" TextWrapping="Wrap"
+                           Text="Live capture switches to zKillboard's real-time firehose, which has no interval to set — it streams continuously. Database size will grow substantially faster than Mine+Corp mode, since every kill in New Eden is stored, not just your own." />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Live Poll Interval" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8" IsEnabled="{Binding ScopeIsMineAndCorp}">
+                <Grid ColumnDefinitions="Auto,80,Auto">
+                  <TextBlock Grid.Column="0" Text="Check zKillboard for new kills every (s):" Foreground="#ccc"
+                             FontSize="12" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <TextBox Grid.Column="1" Text="{Binding PollIntervalSeconds}" />
+                  <TextBlock Grid.Column="2" Text="60–3600" Foreground="#666"
+                             FontSize="11" VerticalAlignment="Center" Margin="10 0 0 0" />
+                </Grid>
+                <TextBlock FontSize="11" Foreground="#666" TextWrapping="Wrap"
+                           Text="Not used in All-kills scope — the firehose paces itself instead." />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Backfill: manual button for initial history, plus an automatic hourly
+               check that catches up on any gap since the app last ran — both drive the
+               same progress state below. -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Backfill History" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="Pulls zKillboard's daily kill dumps for the chosen range and merges in anything matching the scope above. Also runs automatically once an hour to catch up on any gap since the app was last running — this button is mainly for pulling in history from before tracking started." />
+
+                <Grid ColumnDefinitions="Auto,80,Auto" IsEnabled="{Binding !IsImporting}">
+                  <TextBlock Grid.Column="0" Text="Backfill the last (days):" Foreground="#ccc"
+                             FontSize="12" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <TextBox Grid.Column="1" Text="{Binding BackfillDays}" />
+                  <TextBlock Grid.Column="2" Text="{Binding LastFullDayText, StringFormat='last full day: {0}'}"
+                             Foreground="#666" FontSize="11" VerticalAlignment="Center" Margin="10 0 0 0" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Start Backfill" Command="{Binding BackfillCommand}"
+                          IsEnabled="{Binding !IsImporting}" Padding="14 4" />
+                  <Button Content="Cancel" Command="{Binding CancelBackfillCommand}"
+                          IsVisible="{Binding IsImporting}" Padding="14 4" />
+                </StackPanel>
+
+                <StackPanel Spacing="4" IsVisible="{Binding IsImporting}">
+                  <ProgressBar Minimum="0"
+                               Maximum="{Binding ProgressTotal}"
+                               Value="{Binding ProgressCurrent}"
+                               Height="14" Foreground="#c8a84b" Background="#131320" />
+                  <TextBlock Text="{Binding ProgressText}" FontSize="11" Foreground="#888899"
+                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ProgressText}" />
+                </StackPanel>
+
+                <TextBlock Text="{Binding BackfillStatus}" FontSize="11" Foreground="#888899"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Submission runs the other direction: kills we have that zKillboard doesn't.
+               Only considers kills inside the backfilled/live coverage window, since a
+               kill from before we ever looked at zKillboard tells us nothing. -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Post Kills to zKillboard" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="Submits killmails this app has that zKillboard is missing — typically ESI kills that nobody else uploaded. Only kills from the covered date range below are considered, and only once they are a few hours old, so a kill still working its way through zKillboard is never submitted needlessly. Nothing is ever submitted twice." />
+
+                <CheckBox IsChecked="{Binding PostEnabled}"
+                          Content="Post killmails to zKillboard" Foreground="#ccc" FontSize="12" />
+
+                <TextBlock Text="{Binding CoverageFromText, StringFormat='Covered from: {0}'}"
+                           FontSize="11" Foreground="#666" TextWrapping="Wrap" />
+                <TextBlock FontSize="11" Foreground="#666" TextWrapping="Wrap"
+                           Text="That is the oldest kill confirmed present on zKillboard. Anything older predates everything zKillboard has shown us, so it can't be judged missing and is left alone — backfill further back to widen the range." />
+
+                <TextBlock Text="{Binding PostStatus}" FontSize="11" Foreground="#888899" TextWrapping="Wrap" />
               </StackPanel>
             </StackPanel>
           </Border>
@@ -1930,7 +2099,7 @@
         </StackPanel>
 
         <TextBlock TextWrapping="Wrap" Foreground="#666677" FontSize="11" Margin="0 4 0 0"
-                   Text="Tip: watch live per-region sweep progress (refreshed vs queued, and whether it's running) on the API Activity Log → Price History tab." />
+                   Text="Tip: watch live per-region sweep progress (refreshed vs queued, and whether it's running) on the Background Processes → Price History tab." />
 
       </StackPanel>
     </ScrollViewer>
@@ -2095,6 +2264,57 @@
         <TextBlock Text="{Binding UpdateVm.StatusText}" FontSize="11" Foreground="#888899" TextWrapping="Wrap" />
 
       </StackPanel>
+    </TabItem>
+
+    <!-- ══ Other ══════════════════════════════════════════════════════════════ -->
+    <TabItem Header="Other">
+      <ScrollViewer Margin="0 8 0 0">
+        <StackPanel Spacing="14" x:DataType="vm:OtherSettingsViewModel" DataContext="{Binding OtherVm}">
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="EVE Time Link" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="Clicking the EVE clock in the title bar opens this site. Pick one of the suggestions or choose Custom URL and enter your own." />
+
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Grid.Column="0" Text="Open:" Foreground="#ccc" FontSize="12"
+                             VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                            ItemsSource="{Binding EveTimeSiteOptions}"
+                            SelectedItem="{Binding SelectedEveTimeSite}" />
+                </Grid>
+
+                <TextBox Text="{Binding CustomEveTimeUrl}"
+                         Watermark="https://example.com/"
+                         IsVisible="{Binding IsCustomSelected}" />
+
+                <TextBlock Text="{Binding EffectiveUrl, StringFormat='Clicking the clock opens: {0}'}"
+                           FontSize="11" Foreground="#666" TextWrapping="Wrap" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Server Status Link" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="Clicking the Tranquility indicator beside the clock opens CCP's official service status page. Not configurable — no other site carries the same information." />
+                <TextBlock Text="https://status.eveonline.com/" FontSize="11" Foreground="#666" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+        </StackPanel>
+      </ScrollViewer>
     </TabItem>
 
   </TabControl>

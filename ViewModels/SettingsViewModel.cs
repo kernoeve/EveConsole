@@ -20,6 +20,8 @@ public class SettingsViewModel : ReactiveObject
     public SlackSettingsViewModel         SlackVm         { get; }
     public GameLogSettingsViewModel       GameLogVm       { get; }
     public ChatLogSettingsViewModel       ChatLogVm       { get; }
+    public ZkillboardSettingsViewModel    ZkbVm           { get; }
+    public OtherSettingsViewModel         OtherVm         { get; }
 
     public SettingsViewModel(
         CharacterViewModel            characterVm,
@@ -36,6 +38,8 @@ public class SettingsViewModel : ReactiveObject
         SlackSettingsViewModel        slackVm,
         GameLogSettingsViewModel      gameLogVm,
         ChatLogSettingsViewModel      chatLogVm,
+        ZkillboardSettingsViewModel   zkbVm,
+        OtherSettingsViewModel        otherVm,
         TtsService?                   tts     = null,
         SpeechInputService?           speech  = null,
         GlobalHotkeyService?          hotkey  = null)
@@ -43,6 +47,7 @@ public class SettingsViewModel : ReactiveObject
         SlackVm        = slackVm;
         GameLogVm      = gameLogVm;
         ChatLogVm      = chatLogVm;
+        ZkbVm          = zkbVm;
         CharacterVm    = characterVm;
         SdeVm          = sdeVm;
         UpdateVm       = updateVm;
@@ -54,5 +59,6 @@ public class SettingsViewModel : ReactiveObject
         PollingVm      = pollingVm;
         CorpTop10Vm    = corpTop10Vm;
         DatabaseVm     = databaseVm;
+        OtherVm        = otherVm;
     }
 }

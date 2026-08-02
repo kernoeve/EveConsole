@@ -40,7 +40,26 @@
           <TextBlock Text="{Binding EveTimeText}"
                      FontSize="14" FontWeight="SemiBold" FontFamily="Consolas,Courier New,monospace"
                      Foreground="#7799bb"
-                     VerticalAlignment="Center" />
+                     VerticalAlignment="Center"
+                     Cursor="Hand"
+                     ToolTip.Tip="{Binding EveTimeLinkTip}"
+                     PointerPressed="OnEveTimeClick" />
+
+          <!-- Tranquility status: dot + label, with the concurrent player count when up.
+               The whole group is clickable and opens CCP's service status page. -->
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                      Margin="10 0 0 0" Cursor="Hand"
+                      Background="Transparent"
+                      ToolTip.Tip="{Binding ServerStatusTip}"
+                      PointerPressed="OnServerStatusClick">
+            <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                     Fill="{Binding ServerStatusColor}" />
+            <TextBlock Text="{Binding ServerStatusText}"
+                       FontSize="10" VerticalAlignment="Center"
+                       Foreground="{Binding ServerStatusColor}" />
+            <TextBlock Text="{Binding ServerPlayersText}"
+                       FontSize="10" Foreground="#555566" VerticalAlignment="Center" />
+          </StackPanel>
         </StackPanel>
 
         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">

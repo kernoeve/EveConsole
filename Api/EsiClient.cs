@@ -27,7 +27,18 @@ public class EsiClient
     // Written by authenticated-endpoint responses; checked by all callers including market refresh.
     private long _errorLimitBlockedTicks; // UTC ticks; 0 = not blocked
 
-    internal bool IsErrorLimitBlocked
+    // Set by EveServerStatusService from ESI's public /status/ endpoint. While Tranquility
+    // is down every authenticated call fails anyway, and each failure spends error-limit
+    // budget, so the whole client stands down until the server is back. The status check
+    // itself uses its own HttpClient and is unaffected — see EveServerStatusService.
+    private volatile bool _serverOffline;
+    public bool ServerOffline
+    {
+        get => _serverOffline;
+        set => _serverOffline = value;
+    }
+
+    private bool IsErrorLimited
     {
         get
         {
@@ -35,6 +46,10 @@ public class EsiClient
             return ticks > 0 && DateTimeOffset.UtcNow.UtcTicks < ticks;
         }
     }
+
+    /// <summary>Callers should hold off entirely: either ESI's error budget is nearly
+    /// spent, or Tranquility is down. Both mean "do not spend a request right now".</summary>
+    internal bool IsErrorLimitBlocked => _serverOffline || IsErrorLimited;
 
     private void UpdateErrorLimitState(int statusCode, int? errorLimitRemain, int? errorLimitReset)
     {
@@ -130,7 +145,8 @@ public class EsiClient
     }
 
     private sealed record EsiSearchResult(
-        [property: JsonPropertyName("character")] List<int>? Character);
+        [property: JsonPropertyName("character")]   List<int>? Character,
+        [property: JsonPropertyName("corporation")] List<int>? Corporation);
 
     private sealed record EsiUniverseIdsResult(
         [property: JsonPropertyName("characters")]   List<EsiIdItem>? Characters,
@@ -172,6 +188,18 @@ public class EsiClient
         {
             var result = await GetAuthAsync<EsiSearchResult>(charId, url, ct);
             return result?.Character ?? [];
+        }
+        catch { return []; }
+    }
+
+    public async Task<List<int>> SearchCorporationIdsAsync(long charId, string name, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return [];
+        var url = $"characters/{charId}/search/?categories=corporation&search={Uri.EscapeDataString(name)}&strict=false";
+        try
+        {
+            var result = await GetAuthAsync<EsiSearchResult>(charId, url, ct);
+            return result?.Corporation ?? [];
         }
         catch { return []; }
     }
