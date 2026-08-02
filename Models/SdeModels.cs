@@ -136,12 +136,20 @@ public class SdeBlueprintSkill
     public int    Level       { get; set; }
 }
 
+// Map geometry, shared by the three types below: X/Y/Z are galactic positions in metres in
+// CCP's left-handed frame — +X east, +Y up, +Z north, with Venal as "space north". The
+// conventional top-down projection is (X, -Z), leaving Y as the out-of-plane axis. The
+// universe is genuinely three-dimensional, not a flattened disc.
+
 public class SdeRegion
 {
     public int    RegionId   { get; set; }
     public string Name       { get; set; } = "";
     public int?   FactionId  { get; set; }
     public bool   IsWormhole { get; set; }
+    public double X          { get; set; }
+    public double Y          { get; set; }
+    public double Z          { get; set; }
 }
 
 public class SdeConstellation
@@ -150,6 +158,9 @@ public class SdeConstellation
     public int    RegionId        { get; set; }
     public string Name            { get; set; } = "";
     public bool   IsWormhole      { get; set; }
+    public double X               { get; set; }
+    public double Y               { get; set; }
+    public double Z               { get; set; }
 }
 
 public class SdeSolarSystem
@@ -161,6 +172,22 @@ public class SdeSolarSystem
     public double Security        { get; set; }
     public int?   FactionId       { get; set; }
     public bool   IsWormhole      { get; set; }
+    public double X               { get; set; }
+    public double Y               { get; set; }
+    public double Z               { get; set; }
+
+    /// <summary>CCP's published 2D map layout — the arrangement the in-game map draws, not
+    /// a projection we compute. Null outside New Eden: wormhole, abyssal and Zarzakh systems
+    /// have a 3D position but no place on that map. Null therefore means "not mapped", which
+    /// is different from being at the origin.</summary>
+    public double? X2D           { get; set; }
+    public double? Y2D           { get; set; }
+
+    /// <summary>Single-letter class CCP uses to bucket systems for spawns and effects.</summary>
+    public string SecurityClass  { get; set; } = "";
+
+    /// <summary>Extent of the system in metres — the scale for an in-system view.</summary>
+    public double Radius         { get; set; }
 }
 
 public class SdeStargate

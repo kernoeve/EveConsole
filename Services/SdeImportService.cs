@@ -283,9 +283,13 @@ public class SdeImportService
             """CREATE TABLE IF NOT EXISTS "SdeBlueprintMaterials" ("TypeId" INTEGER NOT NULL, "Activity" TEXT NOT NULL, "MaterialTypeId" INTEGER NOT NULL, "Quantity" INTEGER NOT NULL, PRIMARY KEY ("TypeId", "Activity", "MaterialTypeId"))""",
             """CREATE TABLE IF NOT EXISTS "SdeBlueprintProducts" ("TypeId" INTEGER NOT NULL, "Activity" TEXT NOT NULL, "ProductTypeId" INTEGER NOT NULL, "Quantity" INTEGER NOT NULL, "Probability" REAL NOT NULL, PRIMARY KEY ("TypeId", "Activity", "ProductTypeId"))""",
             """CREATE TABLE IF NOT EXISTS "SdeBlueprintSkills" ("TypeId" INTEGER NOT NULL, "Activity" TEXT NOT NULL, "SkillTypeId" INTEGER NOT NULL, "Level" INTEGER NOT NULL, PRIMARY KEY ("TypeId", "Activity", "SkillTypeId"))""",
-            """CREATE TABLE IF NOT EXISTS "SdeRegions" ("RegionId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "FactionId" INTEGER, "IsWormhole" INTEGER NOT NULL)""",
-            """CREATE TABLE IF NOT EXISTS "SdeConstellations" ("ConstellationId" INTEGER NOT NULL PRIMARY KEY, "RegionId" INTEGER NOT NULL, "Name" TEXT NOT NULL, "IsWormhole" INTEGER NOT NULL)""",
-            """CREATE TABLE IF NOT EXISTS "SdeSolarSystems" ("SolarSystemId" INTEGER NOT NULL PRIMARY KEY, "ConstellationId" INTEGER NOT NULL, "RegionId" INTEGER NOT NULL, "Name" TEXT NOT NULL, "Security" REAL NOT NULL, "FactionId" INTEGER, "IsWormhole" INTEGER NOT NULL)""",
+            // Map geometry: X/Y/Z are galactic metres in CCP's left-handed frame (+X east,
+            // +Y up, +Z north). X2D/Y2D is CCP's own published 2D map layout and is NULL
+            // outside New Eden — only systems 30000000-30999999 carry it, which is exactly
+            // the set the in-game map draws.
+            """CREATE TABLE IF NOT EXISTS "SdeRegions" ("RegionId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "FactionId" INTEGER, "IsWormhole" INTEGER NOT NULL, "X" REAL NOT NULL DEFAULT 0, "Y" REAL NOT NULL DEFAULT 0, "Z" REAL NOT NULL DEFAULT 0)""",
+            """CREATE TABLE IF NOT EXISTS "SdeConstellations" ("ConstellationId" INTEGER NOT NULL PRIMARY KEY, "RegionId" INTEGER NOT NULL, "Name" TEXT NOT NULL, "IsWormhole" INTEGER NOT NULL, "X" REAL NOT NULL DEFAULT 0, "Y" REAL NOT NULL DEFAULT 0, "Z" REAL NOT NULL DEFAULT 0)""",
+            """CREATE TABLE IF NOT EXISTS "SdeSolarSystems" ("SolarSystemId" INTEGER NOT NULL PRIMARY KEY, "ConstellationId" INTEGER NOT NULL, "RegionId" INTEGER NOT NULL, "Name" TEXT NOT NULL, "Security" REAL NOT NULL, "FactionId" INTEGER, "IsWormhole" INTEGER NOT NULL, "X" REAL NOT NULL DEFAULT 0, "Y" REAL NOT NULL DEFAULT 0, "Z" REAL NOT NULL DEFAULT 0, "X2D" REAL, "Y2D" REAL, "SecurityClass" TEXT NOT NULL DEFAULT '', "Radius" REAL NOT NULL DEFAULT 0)""",
             """CREATE TABLE IF NOT EXISTS "SdeStargates" ("StargateId" INTEGER NOT NULL PRIMARY KEY, "SolarSystemId" INTEGER NOT NULL, "DestinationStargateId" INTEGER NOT NULL)""",
             """CREATE TABLE IF NOT EXISTS "SdeCelestials" ("ItemId" INTEGER NOT NULL PRIMARY KEY, "SolarSystemId" INTEGER NOT NULL, "TypeId" INTEGER NOT NULL, "Kind" INTEGER NOT NULL, "X" REAL NOT NULL, "Y" REAL NOT NULL, "Z" REAL NOT NULL, "Name" TEXT NOT NULL)""",
             """CREATE INDEX IF NOT EXISTS "IX_SdeCelestials_System" ON "SdeCelestials" ("SolarSystemId")""",
@@ -319,6 +323,23 @@ public class SdeImportService
             """ALTER TABLE "SdeTypes"  ADD COLUMN "FactionId"  INTEGER""",
             """ALTER TABLE "SdeTypes"  ADD COLUMN "RaceId"     INTEGER""",
             """ALTER TABLE "SdeTypes"  ADD COLUMN "MetaGroupId" INTEGER""",
+            // Map geometry, added for the Universe tool.
+            """ALTER TABLE "SdeRegions"        ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeRegions"        ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeRegions"        ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeConstellations" ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeConstellations" ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeConstellations" ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
+            // Nullable on purpose: CCP publishes a 2D layout only for New Eden, so a NULL
+            // here means "not on the in-game map" (wormhole, abyssal, Zarzakh) rather than
+            // "at the origin".
+            """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "X2D" REAL""",
+            """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Y2D" REAL""",
+            """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "SecurityClass" TEXT NOT NULL DEFAULT ''""",
+            """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Radius" REAL NOT NULL DEFAULT 0""",
         };
         foreach (var sql in alters)
         {
@@ -648,6 +669,9 @@ public class SdeImportService
                 Name      = kv.Value.name?.en ?? "",
                 FactionId = kv.Value.factionID,
                 IsWormhole = kv.Key >= 11000000 && kv.Key < 12000000,
+                X = kv.Value.position?.x ?? 0,
+                Y = kv.Value.position?.y ?? 0,
+                Z = kv.Value.position?.z ?? 0,
             });
             await SaveBatchesAsync(db, db.SdeRegions, rows, "Regions", raw.Count, p, 0.76, 0.78, ct);
         }
@@ -664,6 +688,9 @@ public class SdeImportService
                 RegionId        = kv.Value.regionID,
                 Name            = kv.Value.name?.en ?? "",
                 IsWormhole      = kv.Value.regionID >= 11000000 && kv.Value.regionID < 12000000,
+                X = kv.Value.position?.x ?? 0,
+                Y = kv.Value.position?.y ?? 0,
+                Z = kv.Value.position?.z ?? 0,
             });
             await SaveBatchesAsync(db, db.SdeConstellations, rows, "Constellations", raw.Count, p, 0.78, 0.80, ct);
         }
@@ -684,6 +711,14 @@ public class SdeImportService
                 Security        = kv.Value.securityStatus,
                 FactionId       = kv.Value.factionID,
                 IsWormhole      = kv.Value.regionID >= 11000000 && kv.Value.regionID < 12000000,
+                X = kv.Value.position?.x ?? 0,
+                Y = kv.Value.position?.y ?? 0,
+                Z = kv.Value.position?.z ?? 0,
+                // Left null where CCP publishes none — see SdeSolarSystem.X2D.
+                X2D           = kv.Value.position2D?.x,
+                Y2D           = kv.Value.position2D?.y,
+                SecurityClass = kv.Value.securityClass ?? "",
+                Radius        = kv.Value.radius,
             });
             await SaveBatchesAsync(db, db.SdeSolarSystems, rows, "Solar Systems", raw.Count, p, 0.80, 0.82, ct);
             foreach (var (sysId, sys) in raw) sysNames[sysId] = sys.name?.en ?? "";
@@ -1348,13 +1383,20 @@ public class SdeImportService
     {
         public LocalizedString? name      { get; set; }
         public int?             factionID { get; set; }
+        public PositionYaml?    position  { get; set; }
     }
     private class MapConstellationYaml
     {
         public LocalizedString? name      { get; set; }
         public int              regionID  { get; set; }
         public int?             factionID { get; set; }
+        public PositionYaml?    position  { get; set; }
     }
+    /// <summary>position2D is CCP's own published map layout — the one the in-game map
+    /// draws — and is present only for New Eden systems (30000000-30999999). Wormhole,
+    /// abyssal and Zarzakh systems have position but no position2D.</summary>
+    private class Position2DYaml { public double x { get; set; } public double y { get; set; } }
+
     private class MapSolarSystemYaml
     {
         public LocalizedString? name           { get; set; }
@@ -1362,6 +1404,10 @@ public class SdeImportService
         public int              regionID        { get; set; }
         public double           securityStatus  { get; set; }
         public int?             factionID       { get; set; }
+        public PositionYaml?    position        { get; set; }
+        public Position2DYaml?  position2D      { get; set; }
+        public string?          securityClass   { get; set; }
+        public double           radius          { get; set; }
         public Dictionary<int, PlanetYaml>? planets { get; set; }
     }
     private class MapStargateYaml
