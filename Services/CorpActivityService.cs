@@ -578,21 +578,33 @@ public class CorpActivityService
         var miningByMonth = miningRows.ToDictionary(r => r.Month, r => r.Count);
         var killsByMonth  = killMonths.ToDictionary(r => r.Month);
 
-        // Distinct active players per month (ratting + industry + mining)
+        // Distinct active players per month.
+        //
+        // Deliberately as broad as the stored data allows: any dated activity attributable
+        // to a character counts. There is no login signal available — ESI exposes corp
+        // member last-logon but this app does not store it — so this measures "did
+        // something the corp can see", not "logged in".
+        //
+        // Only corp-wide sources are used. Per-character tables (personal mining ledger,
+        // skill queue, mail, notifications, planetary colonies, game/chat logs) exist only
+        // for characters whose tokens we hold, so counting them would give a handful of
+        // members many extra ways to register while everyone else had few — an inconsistent
+        // measure rather than a broader one.
         var playerRows = await db.Database.SqlQuery<MonthCountRaw>($"""
             SELECT "Month", COUNT(DISTINCT "CharId") AS "Count"
             FROM (
-              SELECT strftime('%Y-%m', "Date") AS "Month", "SecondPartyId" AS "CharId"
-              FROM "EsiWalletJournal"
-              WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
-                AND "RefType" IN ('bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts')
-                AND "Date" >= {cutoff} AND "SecondPartyId" IS NOT NULL
-              UNION
+              -- Any wallet movement with the character as a counterparty: ratting bounties,
+              -- industry and reprocessing tax, donations (which is how mining is billed),
+              -- contract payments, project payouts, medals — rather than a fixed RefType list.
               SELECT strftime('%Y-%m', "Date") AS "Month", "FirstPartyId" AS "CharId"
               FROM "EsiWalletJournal"
               WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
-                AND "RefType" IN ('industry_job_tax','manufacturing_tax','reprocessing_tax')
                 AND "Date" >= {cutoff} AND "FirstPartyId" IS NOT NULL AND "FirstPartyId" != {corpId}
+              UNION
+              SELECT strftime('%Y-%m', "Date") AS "Month", "SecondPartyId" AS "CharId"
+              FROM "EsiWalletJournal"
+              WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
+                AND "Date" >= {cutoff} AND "SecondPartyId" IS NOT NULL AND "SecondPartyId" != {corpId}
               UNION
               SELECT strftime('%Y-%m', "LastUpdated") AS "Month", "CharacterId" AS "CharId"
               FROM "EsiCorpMiningLedger"
@@ -612,7 +624,41 @@ public class CorpActivityService
                   AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
               WHERE d."VictimCorpId" = {corpId} AND d."VictimCharId" != 0
                 AND d."KillMailTime" >= {cutoff}
+              UNION
+              -- Installed a corp industry job
+              SELECT strftime('%Y-%m', "StartDate") AS "Month", "InstallerId" AS "CharId"
+              FROM "EsiIndustryJobs"
+              WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
+                AND "StartDate" >= {cutoff} AND "InstallerId" != 0
+              UNION
+              -- Issued or accepted a corp contract
+              SELECT strftime('%Y-%m', "DateIssued") AS "Month", "IssuerId" AS "CharId"
+              FROM "EsiContracts"
+              WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
+                AND "DateIssued" >= {cutoff} AND "IssuerId" != 0
+              UNION
+              SELECT strftime('%Y-%m', "DateAccepted") AS "Month", "AcceptorId" AS "CharId"
+              FROM "EsiContracts"
+              WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
+                AND "DateAccepted" >= {cutoff} AND "AcceptorId" IS NOT NULL AND "AcceptorId" != 0
+              UNION
+              -- Created a corp project
+              SELECT strftime('%Y-%m', "Created") AS "Month", "CreatorId" AS "CharId"
+              FROM "EsiCorpProjects"
+              WHERE "CorporationId" = {corpId} AND "Created" >= {cutoff} AND "CreatorId" IS NOT NULL
+              UNION
+              -- Created a corp medal
+              SELECT strftime('%Y-%m', "CreatedAt") AS "Month", "CreatorId" AS "CharId"
+              FROM "EsiCorpMedals"
+              WHERE "CorporationId" = {corpId} AND "CreatedAt" >= {cutoff} AND "CreatorId" IS NOT NULL
+              UNION
+              -- Logged in. Accumulated by watching member tracking change between polls, so
+              -- it only covers months since that polling began — see CorpMemberSession.
+              SELECT strftime('%Y-%m', "LogonDate") AS "Month", "CharacterId" AS "CharId"
+              FROM "EsiCorpMemberSessions"
+              WHERE "CorporationId" = {corpId} AND "LogonDate" >= {cutoff}
             )
+            WHERE "CharId" IS NOT NULL AND "CharId" > 0
             GROUP BY "Month"
             """).ToListAsync(ct);
         var playersByMonth = playerRows.ToDictionary(r => r.Month, r => (int)r.Count);
@@ -984,9 +1030,248 @@ public class CorpActivityService
         return result;
     }
 
-    // â”€â”€ Income / Expense by type â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Income / Expense by type ──────────────────────────────────────────────
+    //
+    // These used to drop every corporation_account_withdrawal row, which hid the largest
+    // category outright — measured on a 30-day window: 91.6B of withdrawals missing
+    // against 52.8B of everything the tab did show. The intent was to keep inter-division
+    // transfers out, so only those are excluded now: a divisional move has the corp as both
+    // parties, whereas ISK genuinely leaving or entering the corp does not.
 
     public sealed record WalletTypeRow(string RefType, int Count, decimal Amount);
+
+    // ── Monthly summary ───────────────────────────────────────────────────────
+
+    /// <summary>One month's figures. Wallet is null when the month has no journal entries
+    /// at all, which is why every accessor below tolerates it.</summary>
+    public sealed record MonthFigures(
+        WalletMonthRow? Wallet,
+        int             Kills,
+        int             Losses,
+        decimal         IskDestroyed,
+        decimal         IskLost,
+        long            UnitsMined,
+        decimal         MiningValue,
+        int             PlayersActive,
+        int             ProjectsCreated,
+        decimal         ProjectsCreatedValue,
+        int             ProjectsCompleted,
+        decimal         ProjectsCompletedValue)
+    {
+        public static readonly MonthFigures Empty =
+            new(null, 0, 0, 0m, 0m, 0, 0m, 0, 0, 0m, 0, 0m);
+
+        public decimal TotalIncome  => Wallet?.TotalIncome  ?? 0m;
+        public decimal TotalExpense => Wallet?.TotalExpense ?? 0m;
+        public decimal Net          => TotalIncome - TotalExpense;
+
+        /// <summary>ISK efficiency the way killboards report it — destroyed as a share of
+        /// everything that changed hands. Null when nothing was destroyed either way,
+        /// because both 0% and 100% would misrepresent an empty month.</summary>
+        public double? IskEfficiency =>
+            IskDestroyed + IskLost <= 0 ? null
+            : (double)(IskDestroyed / (IskDestroyed + IskLost)) * 100.0;
+    }
+
+    /// <summary>The selected month alongside the one before it, so every line can show
+    /// movement rather than only the handful that used to carry a delta.</summary>
+    public sealed record MonthSummary(int Year, int Month, MonthFigures Current, MonthFigures Previous);
+
+    /// <summary>
+    /// Aggregate for a single calendar month (UTC).
+    ///
+    /// Wallet totals, kill counts and active-player counts come from the existing
+    /// per-month queries rather than fresh SQL, so the RefType classification and the
+    /// definition of "active" can never drift from the Wallet and Monthly Activity views.
+    /// Those queries take a lookback in months, so the distance from now is computed and
+    /// the target month picked out of the result.
+    /// </summary>
+    public async Task<MonthSummary> GetMonthSummaryAsync(
+        long corpId, int year, int month, CancellationToken ct = default)
+    {
+        var now       = DateTimeOffset.UtcNow;
+        var monthsAgo = (now.Year * 12 + now.Month) - (year * 12 + month);
+        // +2 so the preceding month is in range too; floor of 2 covers the current month.
+        var lookback  = Math.Max(2, monthsAgo + 2);
+
+        var key     = $"{year:D4}-{month:D2}";
+        var prev    = new DateTime(year, month, 1).AddMonths(-1);
+        var prevKey = $"{prev.Year:D4}-{prev.Month:D2}";
+
+        var walletMonths = await GetWalletMonthsAsync(corpId, lookback, ct);
+        var killMonths   = await GetKillMonthsAsync(corpId, lookback, ct);
+        var activity     = await GetMonthlyActivityAsync(corpId, lookback, ct);
+        var projects     = await GetMonthProjectStatsAsync(corpId, ct);
+
+        var from     = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
+        var prevFrom = from.AddMonths(-1);
+
+        async Task<MonthFigures> Build(string monthKey, DateTimeOffset monthStart)
+        {
+            var (destroyed, lost) = await GetMonthKillIskAsync(corpId, monthStart, ct);
+            var miningValue       = await GetMonthMiningValueAsync(corpId, monthStart, ct);
+            var kills             = killMonths.FirstOrDefault(k => k.Month == monthKey);
+            var act               = activity.FirstOrDefault(a => a.Month == monthKey);
+            var proj              = projects.GetValueOrDefault(monthKey);
+
+            return new MonthFigures(
+                walletMonths.FirstOrDefault(w => w.Month == monthKey),
+                kills?.Kills  ?? 0, kills?.Losses ?? 0,
+                destroyed, lost,
+                act?.UnitsMined    ?? 0, miningValue,
+                act?.PlayersActive ?? 0,
+                proj.Created, proj.CreatedValue, proj.Completed, proj.CompletedValue);
+        }
+
+        return new MonthSummary(year, month, await Build(key, from), await Build(prevKey, prevFrom));
+    }
+
+    /// <summary>
+    /// Projects created and completed per month, with their reward values.
+    ///
+    /// "Completed" is dated by LastModified, which is the closest thing the corp-projects
+    /// data carries to a completion timestamp — a project edited after it completed would
+    /// be counted in the wrong month. The reward figure is what was actually handed out
+    /// (initial minus remaining); the wallet's project_payouts line is the authoritative
+    /// ISK-out number and is reported separately under Expenses.
+    /// </summary>
+    private async Task<Dictionary<string, (int Created, decimal CreatedValue, int Completed, decimal CompletedValue)>>
+        GetMonthProjectStatsAsync(long corpId, CancellationToken ct)
+    {
+        using var db = _dbFactory.CreateDbContext();
+
+        var created = await db.Database.SqlQuery<MonthProjectRaw>($"""
+            SELECT strftime('%Y-%m', "Created") AS "Month",
+                   COUNT(*) AS "Count",
+                   COALESCE(SUM("RewardInitial"), 0) AS "Value"
+            FROM "EsiCorpProjects"
+            WHERE "CorporationId" = {corpId} AND "Created" IS NOT NULL AND "Created" != ''
+            GROUP BY "Month"
+            """).ToListAsync(ct);
+
+        var completed = await db.Database.SqlQuery<MonthProjectRaw>($"""
+            SELECT strftime('%Y-%m', "LastModified") AS "Month",
+                   COUNT(*) AS "Count",
+                   COALESCE(SUM("RewardInitial" - "RewardRemaining"), 0) AS "Value"
+            FROM "EsiCorpProjects"
+            WHERE "CorporationId" = {corpId} AND "State" = 'Completed'
+              AND "LastModified" IS NOT NULL AND "LastModified" != ''
+            GROUP BY "Month"
+            """).ToListAsync(ct);
+
+        var result = new Dictionary<string, (int, decimal, int, decimal)>();
+        foreach (var r in created)
+            result[r.Month] = (r.Count, (decimal)r.Value, 0, 0m);
+        foreach (var r in completed)
+        {
+            var prior = result.GetValueOrDefault(r.Month);
+            result[r.Month] = (prior.Item1, prior.Item2, r.Count, (decimal)r.Value);
+        }
+        return result;
+    }
+
+    private sealed class MonthProjectRaw
+    {
+        public string Month { get; set; } = "";
+        public int    Count { get; set; }
+        public double Value { get; set; }
+    }
+
+    /// <summary>
+    /// ISK destroyed vs lost for the month, summed in SQL rather than by pulling every
+    /// killmail — a busy month runs to thousands of kills and only the totals are wanted.
+    /// A kill counts as a loss when the victim belonged to this corp.
+    ///
+    /// Prices are filtered to the configured pricing config: MarketItemPrices is keyed
+    /// (ConfigId, TypeId) and holds a row per config, so joining on TypeId alone counts
+    /// every item once per config and inflates the total several times over. The hull is
+    /// included, matching what the Killmail Browser reports for the same kill.
+    /// </summary>
+    private async Task<(decimal Destroyed, decimal Lost)> GetMonthKillIskAsync(
+        long corpId, DateTimeOffset from, CancellationToken ct)
+    {
+        using var db = _dbFactory.CreateDbContext();
+        var fromStr  = SqlCutoff(from);
+        var toStr    = SqlCutoff(from.AddMonths(1));
+
+        var settings  = await db.MarketDefaultSettings.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == 1, ct);
+        if (settings?.AssetValueConfigId is not int configId) return (0m, 0m);
+        var priceType = settings.AssetValuePriceType;
+
+        var rows = await db.Database.SqlQuery<MonthKillIskRaw>($"""
+            WITH km AS (
+                SELECT d."KillMailId", d."VictimShipTypeId",
+                       CASE WHEN d."VictimCorpId" = {corpId} THEN 1 ELSE 0 END AS "IsLoss"
+                FROM "KillMailDetails" d
+                JOIN "EsiKillMailRefs" r ON r."KillMailId" = d."KillMailId"
+                    AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
+                WHERE d."KillMailTime" >= {fromStr} AND d."KillMailTime" < {toStr}
+                GROUP BY d."KillMailId"
+            )
+            SELECT "IsLoss", COALESCE(SUM("Isk"), 0) AS "Isk"
+            FROM (
+                SELECT km."IsLoss" AS "IsLoss",
+                       (COALESCE(i."QuantityDestroyed", 0) + COALESCE(i."QuantityDropped", 0))
+                       * COALESCE(CASE {priceType}
+                                       WHEN 'Buy'  THEN p."BuyPrice"
+                                       WHEN 'Sell' THEN p."SellPrice"
+                                       ELSE p."Midpoint" END, 0.0) AS "Isk"
+                FROM km
+                LEFT JOIN "KillMailItems" i ON i."KillMailId" = km."KillMailId"
+                LEFT JOIN "MarketItemPrices" p
+                       ON p."ConfigId" = {configId} AND p."TypeId" = i."ItemTypeId"
+                UNION ALL
+                SELECT km."IsLoss",
+                       COALESCE(CASE {priceType}
+                                     WHEN 'Buy'  THEN hp."BuyPrice"
+                                     WHEN 'Sell' THEN hp."SellPrice"
+                                     ELSE hp."Midpoint" END, 0.0)
+                FROM km
+                LEFT JOIN "MarketItemPrices" hp
+                       ON hp."ConfigId" = {configId} AND hp."TypeId" = km."VictimShipTypeId"
+            )
+            GROUP BY "IsLoss"
+            """).ToListAsync(ct);
+
+        var destroyed = rows.FirstOrDefault(r => r.IsLoss == 0)?.Isk ?? 0.0;
+        var lost      = rows.FirstOrDefault(r => r.IsLoss == 1)?.Isk ?? 0.0;
+        return ((decimal)destroyed, (decimal)lost);
+    }
+
+    /// <summary>Reprocessed value of everything mined that month, priced from the same
+    /// reprocessing values the Mining Ledger uses.
+    ///
+    /// The table is "ReprocessingValues" — the DbSet is named ReprocessingItemValues, which
+    /// is not the same thing and does not exist in SQL.</summary>
+    private async Task<decimal> GetMonthMiningValueAsync(
+        long corpId, DateTimeOffset from, CancellationToken ct)
+    {
+        using var db = _dbFactory.CreateDbContext();
+        var fromStr  = SqlCutoff(from);
+        var toStr    = SqlCutoff(from.AddMonths(1));
+
+        var rows = await db.Database.SqlQuery<MonthValueRaw>($"""
+            SELECT COALESCE(SUM(m."Quantity" * COALESCE(v."Value", 0.0)), 0) AS "Value"
+            FROM "EsiCorpMiningLedger" m
+            LEFT JOIN "ReprocessingValues" v ON v."TypeId" = m."TypeId"
+            WHERE m."CorporationId" = {corpId}
+              AND m."LastUpdated" >= {fromStr} AND m."LastUpdated" < {toStr}
+            """).ToListAsync(ct);
+
+        return (decimal)(rows.FirstOrDefault()?.Value ?? 0.0);
+    }
+
+    private sealed class MonthKillIskRaw
+    {
+        public int    IsLoss { get; set; }
+        public double Isk    { get; set; }
+    }
+
+    private sealed class MonthValueRaw
+    {
+        public double Value { get; set; }
+    }
 
     public async Task<List<WalletTypeRow>> GetIncomeByTypeAsync(
         long corpId, int days, CancellationToken ct = default)
@@ -1001,7 +1286,8 @@ public class CorpActivityService
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
               AND CAST("Amount" AS REAL) > 0
-              AND "RefType" != 'corporation_account_withdrawal'
+              AND NOT ("RefType" = 'corporation_account_withdrawal'
+                       AND "FirstPartyId" = "SecondPartyId")
             GROUP BY "RefType"
             ORDER BY SUM(CAST("Amount" AS REAL)) DESC
             """).ToListAsync(ct);
@@ -1021,7 +1307,8 @@ public class CorpActivityService
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
               AND CAST("Amount" AS REAL) < 0
-              AND "RefType" != 'corporation_account_withdrawal'
+              AND NOT ("RefType" = 'corporation_account_withdrawal'
+                       AND "FirstPartyId" = "SecondPartyId")
             GROUP BY "RefType"
             ORDER BY ABS(SUM(CAST("Amount" AS REAL))) DESC
             """).ToListAsync(ct);
@@ -1617,21 +1904,39 @@ public class CorpActivityService
         public double TotalIsk   { get; set; }
     }
 
+    /// <summary>
+    /// Per-kill ISK totals for the kill lists.
+    ///
+    /// MarketItemPrices is keyed (ConfigId, TypeId) and this database carries four pricing
+    /// configs, so the original join on TypeId alone matched every item once per config and
+    /// summed them all — measured at roughly 11x the real value on a sample kill. Restricted
+    /// to the configured config and price type, which is what the Killmail Browser already
+    /// used, so the two views now agree.
+    /// </summary>
     private static async Task<Dictionary<int, decimal>> GetKillIskValuesAsync(
         IReadOnlyList<int> killIds, AppDbContext db, CancellationToken ct)
     {
         if (killIds.Count == 0) return [];
+
+        var settings = await db.MarketDefaultSettings.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == 1, ct);
+        if (settings?.AssetValueConfigId is not int configId) return [];
+        var priceType = settings.AssetValuePriceType;
+
         var idStr = string.Join(",", killIds);
-#pragma warning disable EF1002
+#pragma warning disable EF1002 // idStr is built from int kill ids we queried ourselves
         var rows = await db.Database.SqlQueryRaw<KillIskRaw>($"""
             SELECT i."KillMailId",
                    SUM((COALESCE(i."QuantityDestroyed", 0) + COALESCE(i."QuantityDropped", 0))
-                       * COALESCE(p."Midpoint", 0.0)) AS "TotalIsk"
+                       * COALESCE(CASE @p1
+                                       WHEN 'Buy'  THEN p."BuyPrice"
+                                       WHEN 'Sell' THEN p."SellPrice"
+                                       ELSE p."Midpoint" END, 0.0)) AS "TotalIsk"
             FROM "KillMailItems" i
-            LEFT JOIN "MarketItemPrices" p ON p."TypeId" = i."ItemTypeId"
+            LEFT JOIN "MarketItemPrices" p ON p."ConfigId" = @p0 AND p."TypeId" = i."ItemTypeId"
             WHERE i."KillMailId" IN ({idStr})
             GROUP BY i."KillMailId"
-            """).ToListAsync(ct);
+            """, configId, priceType).ToListAsync(ct);
 #pragma warning restore EF1002
         return rows.ToDictionary(r => r.KillMailId, r => (decimal)r.TotalIsk);
     }

@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:m="clr-namespace:EveConsole.Models"
@@ -125,7 +125,7 @@
                 </DataGrid.Styles>
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="CHARACTER" Binding="{Binding Name}"      Width="*"   />
-                  <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" Width="90"  />
+                  <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" SortMemberPath="ValueRaw" Width="90"  />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -154,7 +154,7 @@
                 </DataGrid.Styles>
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="CHARACTER" Binding="{Binding Name}"      Width="*"   />
-                  <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" Width="90"  />
+                  <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" SortMemberPath="ValueRaw" Width="90"  />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -183,7 +183,7 @@
                 </DataGrid.Styles>
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="CHARACTER" Binding="{Binding Name}"      Width="*"   />
-                  <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" Width="90"  />
+                  <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" SortMemberPath="ValueRaw" Width="90"  />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -446,7 +446,7 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="*" />
-                    <DataGridTextColumn Header="COUNT"  Binding="{Binding CountText}"  Width="75" />
+                    <DataGridTextColumn Header="COUNT"  Binding="{Binding CountText}"  SortMemberPath="CountRaw"  Width="75" />
                     <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="120" />
                   </DataGrid.Columns>
                 </DataGrid>
@@ -479,7 +479,7 @@
                   <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
                   <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"       Width="*"   />
-                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" Width="110" />
+                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
@@ -541,7 +541,7 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="*" />
-                    <DataGridTextColumn Header="COUNT"  Binding="{Binding CountText}"  Width="75" />
+                    <DataGridTextColumn Header="COUNT"  Binding="{Binding CountText}"  SortMemberPath="CountRaw"  Width="75" />
                     <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="120" />
                   </DataGrid.Columns>
                 </DataGrid>
@@ -574,7 +574,7 @@
                   <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
                   <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"       Width="*"   />
-                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" Width="110" />
+                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
@@ -636,7 +636,7 @@
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"      Binding="{Binding Rank}"   Width="40"  />
                     <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"   Width="*"   />
-                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount}" Width="110" />
+                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="110" />
                   </DataGrid.Columns>
                 </DataGrid>
                 <Border Grid.Row="1" Background="#12121a" Padding="10 6 10 4"
@@ -668,7 +668,7 @@
                   <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
                   <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"       Width="*"   />
-                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" Width="110" />
+                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
@@ -730,7 +730,7 @@
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"      Binding="{Binding Rank}"   Width="40"  />
                     <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"   Width="*"   />
-                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount}" Width="110" />
+                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="110" />
                   </DataGrid.Columns>
                 </DataGrid>
                 <Border Grid.Row="1" Background="#12121a" Padding="10 6 10 4"
@@ -762,7 +762,7 @@
                   <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
                   <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"       Width="*"   />
-                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" Width="110" />
+                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
@@ -824,7 +824,7 @@
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"       Binding="{Binding Rank}"   Width="40"  />
                     <DataGridTextColumn Header="NAME"    Binding="{Binding Name}"   Width="*"   />
-                    <DataGridTextColumn Header="DONATED" Binding="{Binding Amount}" Width="110" />
+                    <DataGridTextColumn Header="DONATED" Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="110" />
                   </DataGrid.Columns>
                 </DataGrid>
                 <Border Grid.Row="1" Background="#12121a" Padding="10 6 10 4"
@@ -856,7 +856,7 @@
                   <DataGridTextColumn Header="TIME"    Binding="{Binding TimeText}"   Width="60"  />
                   <DataGridTextColumn Header="TYPE"    Binding="{Binding TypeName}"   Width="120" />
                   <DataGridTextColumn Header="DONOR"   Binding="{Binding Name}"       Width="160" />
-                  <DataGridTextColumn Header="AMOUNT"  Binding="{Binding AmountText}" Width="110" />
+                  <DataGridTextColumn Header="AMOUNT"  Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
                   <DataGridTextColumn Header="REASON"  Binding="{Binding ReasonText}" Width="*"   />
                 </DataGrid.Columns>
               </DataGrid>
@@ -1455,7 +1455,7 @@
           <!-- Period selector row -->
           <Border Grid.Row="0" Background="#12121a" Padding="10 6 10 4"
                   BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
-            <Grid ColumnDefinitions="*,Auto,8,Auto,16,Auto,8,Auto,16,Auto,8,Auto,8,Auto,8,Auto">
+            <Grid ColumnDefinitions="*,Auto,8,Auto,16,Auto,8,Auto,16,Auto,8,Auto,8,Auto,8,Auto,8,Auto">
               <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <TextBlock Text="TOP 10 BY MONTH"
                            FontSize="10" FontWeight="SemiBold" Foreground="#6aaa88"
@@ -1486,20 +1486,29 @@
                          IsVisible="{Binding IsTop10Loading}"
                          FontSize="10" Foreground="#6aaa88" FontStyle="Italic"
                          VerticalAlignment="Center" />
-              <Button Grid.Column="11" x:Name="ExportTop10Button"
+              <!-- Clipboard/post format only — the lists below are unaffected. Shared with
+                   the Monthly Summary tab and remembered between sessions. -->
+              <ComboBox Grid.Column="11"
+                        ItemsSource="{Binding ExportFormats}"
+                        SelectedItem="{Binding SelectedExportFormat}"
+                        ToolTip.Tip="Format used for Export to Clipboard and Post to Slack"
+                        FontSize="10" MinWidth="95"
+                        Background="#1a1a28" Foreground="#c8c8d8"
+                        BorderBrush="#2a2a3a" BorderThickness="1" />
+              <Button Grid.Column="13" x:Name="ExportTop10Button"
                       Content="Export to Clipboard"
                       IsEnabled="{Binding !IsTop10Loading}"
                       FontSize="10" Padding="8 3"
                       Background="#1a2a1a" Foreground="#6aaa88"
                       BorderBrush="#2a3a2a" BorderThickness="1" />
-              <Button Grid.Column="13" x:Name="ExportTop10NoIskButton"
+              <Button Grid.Column="15" x:Name="ExportTop10NoIskButton"
                       Content="Export (No ISK)"
                       IsEnabled="{Binding !IsTop10Loading}"
                       FontSize="10" Padding="8 3"
                       Background="#1a2a1a" Foreground="#6aaa88"
                       BorderBrush="#2a3a2a" BorderThickness="1" />
               <!-- Only shown once a Slack token and a Top 10 channel are configured. -->
-              <Button Grid.Column="15" x:Name="PostTop10SlackButton"
+              <Button Grid.Column="17" x:Name="PostTop10SlackButton"
                       IsVisible="{Binding IsSlackTop10Configured}"
                       IsEnabled="{Binding !IsTop10Loading}"
                       ToolTip.Tip="{Binding SlackTop10ChannelText}"
@@ -1651,6 +1660,136 @@
               </Border>
 
             </WrapPanel>
+          </ScrollViewer>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ══ Monthly Summary ════════════════════════════════════════ -->
+      <TabItem Header="MONTHLY SUMMARY">
+        <Grid RowDefinitions="Auto,*">
+
+          <!-- Period selector row -->
+          <Border Grid.Row="0" Background="#12121a" Padding="10 6 10 4"
+                  BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+            <Grid ColumnDefinitions="*,Auto,8,Auto,16,Auto,8,Auto,16,Auto,8,Auto,8,Auto,8,Auto">
+              <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <TextBlock Text="MONTHLY SUMMARY"
+                           FontSize="10" FontWeight="SemiBold" Foreground="#6aaa88"
+                           VerticalAlignment="Center" />
+                <TextBlock Text="{Binding SlackStatus}" ToolTip.Tip="{Binding SlackStatus}"
+                           FontSize="10" Foreground="#888899"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </StackPanel>
+              <TextBlock Grid.Column="1" Text="Month:" FontSize="10" Foreground="#555566"
+                         VerticalAlignment="Center" />
+              <ComboBox Grid.Column="3"
+                        ItemsSource="{Binding SummaryMonths}"
+                        SelectedItem="{Binding SelectedSummaryMonth}"
+                        IsEnabled="{Binding !IsSummaryLoading}"
+                        FontSize="10" MinWidth="100"
+                        Background="#1a1a28" Foreground="#c8c8d8"
+                        BorderBrush="#2a2a3a" BorderThickness="1" />
+              <TextBlock Grid.Column="5" Text="Year:" FontSize="10" Foreground="#555566"
+                         VerticalAlignment="Center" />
+              <ComboBox Grid.Column="7"
+                        ItemsSource="{Binding SummaryYears}"
+                        SelectedItem="{Binding SelectedSummaryYear}"
+                        IsEnabled="{Binding !IsSummaryLoading}"
+                        FontSize="10" MinWidth="60"
+                        Background="#1a1a28" Foreground="#c8c8d8"
+                        BorderBrush="#2a2a3a" BorderThickness="1" />
+              <TextBlock Grid.Column="9" Text="Loading..."
+                         IsVisible="{Binding IsSummaryLoading}"
+                         FontSize="10" Foreground="#6aaa88" FontStyle="Italic"
+                         VerticalAlignment="Center" />
+              <!-- Clipboard format only — the grid above is unaffected. -->
+              <ComboBox Grid.Column="11"
+                        ItemsSource="{Binding ExportFormats}"
+                        SelectedItem="{Binding SelectedExportFormat}"
+                        ToolTip.Tip="Format used for Export to Clipboard and Post to Slack"
+                        FontSize="10" MinWidth="95"
+                        Background="#1a1a28" Foreground="#c8c8d8"
+                        BorderBrush="#2a2a3a" BorderThickness="1" />
+              <Button Grid.Column="13" x:Name="ExportSummaryButton"
+                      Content="Export to Clipboard"
+                      IsEnabled="{Binding !IsSummaryLoading}"
+                      FontSize="10" Padding="8 3"
+                      Background="#1a2a1a" Foreground="#6aaa88"
+                      BorderBrush="#2a3a2a" BorderThickness="1" />
+              <!-- Only shown once a Slack token and a Monthly Summary channel are configured. -->
+              <Button Grid.Column="15" x:Name="PostSummarySlackButton"
+                      IsVisible="{Binding IsSlackMonthlyConfigured}"
+                      IsEnabled="{Binding !IsSummaryLoading}"
+                      ToolTip.Tip="{Binding SlackMonthlyChannelText}"
+                      FontSize="10" Padding="8 3"
+                      Background="#1a1a2e" Foreground="#8899cc"
+                      BorderBrush="#2a2a4a" BorderThickness="1">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                  <Viewbox Width="12" Height="12">
+                    <Canvas Width="127" Height="127">
+                      <Path Fill="#E01E5A" Data="M27.2 80c0 7.3-5.9 13.2-13.2 13.2C6.7 93.2.8 87.3.8 80c0-7.3 5.9-13.2 13.2-13.2h13.2V80zm6.6 0c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2v33c0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V80z" />
+                      <Path Fill="#36C5F0" Data="M47 27c-7.3 0-13.2-5.9-13.2-13.2C33.8 6.5 39.7.6 47 .6c7.3 0 13.2 5.9 13.2 13.2V27H47zm0 6.7c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2H13.9C6.6 60.1.7 54.2.7 46.9c0-7.3 5.9-13.2 13.2-13.2H47z" />
+                      <Path Fill="#2EB67D" Data="M99.9 46.9c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2H99.9V46.9zm-6.6 0c0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V13.8C66.9 6.5 72.8.6 80.1.6c7.3 0 13.2 5.9 13.2 13.2v33.1z" />
+                      <Path Fill="#ECB22E" Data="M80.1 99.8c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V99.8h13.2zm0-6.6c-7.3 0-13.2-5.9-13.2-13.2 0-7.3 5.9-13.2 13.2-13.2h33.1c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2H80.1z" />
+                    </Canvas>
+                  </Viewbox>
+                  <TextBlock Text="Post to Slack" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </Grid>
+          </Border>
+
+          <ScrollViewer Grid.Row="1"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="12 8 12 12" MaxWidth="600" HorizontalAlignment="Left">
+
+              <!-- Column headers -->
+              <Grid ColumnDefinitions="*,110,110,70" Margin="0 0 0 4">
+                <TextBlock Grid.Column="1" Text="This month" FontSize="9" Foreground="#555566"
+                           HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="2" Text="Change" FontSize="9" Foreground="#555566"
+                           HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="3" Text="%" FontSize="9" Foreground="#555566"
+                           HorizontalAlignment="Right" Margin="8 0 0 0" />
+              </Grid>
+
+              <ItemsControl ItemsSource="{Binding SummaryLines}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:MonthSummaryLineVm">
+                    <Grid ColumnDefinitions="*,110,110,70">
+                      <!-- Section header -->
+                      <TextBlock Grid.Column="0" Grid.ColumnSpan="4"
+                                 Text="{Binding Label}"
+                                 IsVisible="{Binding IsHeader}"
+                                 FontSize="10" FontWeight="SemiBold" Foreground="#6aaa88"
+                                 Margin="0 10 0 3" />
+
+                      <!-- Value row -->
+                      <TextBlock Grid.Column="0" Text="{Binding Label}"
+                                 IsVisible="{Binding IsValue}"
+                                 FontSize="11" Foreground="#888899" Margin="8 1 0 1" />
+                      <TextBlock Grid.Column="1" Text="{Binding Value}"
+                                 IsVisible="{Binding IsValue}"
+                                 Foreground="{Binding ValueColor}"
+                                 FontSize="11" HorizontalAlignment="Right" Margin="0 1" />
+                      <TextBlock Grid.Column="2" Text="{Binding Change}"
+                                 IsVisible="{Binding IsValue}"
+                                 Foreground="{Binding ChangeColor}"
+                                 FontSize="11" HorizontalAlignment="Right" Margin="0 1"
+                                 ToolTip.Tip="Change vs the previous month" />
+                      <TextBlock Grid.Column="3" Text="{Binding Percent}"
+                                 IsVisible="{Binding IsValue}"
+                                 Foreground="{Binding ChangeColor}"
+                                 FontSize="10" HorizontalAlignment="Right" Margin="8 1 0 1"
+                                 ToolTip.Tip="Percent change vs the previous month" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+            </StackPanel>
           </ScrollViewer>
 
         </Grid>

@@ -31,6 +31,19 @@ public partial class CorpActivityView : UserControl
             _ = vm.PostTop10ToSlackAsync(includeIsk: false);
         };
 
+        ExportSummaryButton.Click += (_, _) =>
+        {
+            if (DataContext is not CorpActivityViewModel vm) return;
+            var text = vm.BuildMonthlySummaryExport();
+            _ = TopLevel.GetTopLevel(this)?.Clipboard?.SetTextAsync(text);
+        };
+
+        PostSummarySlackButton.Click += (_, _) =>
+        {
+            if (DataContext is not CorpActivityViewModel vm) return;
+            _ = vm.PostMonthlySummaryToSlackAsync();
+        };
+
         Kill24hList.DoubleTapped += OnKill24hDoubleTapped;
         DataContextChanged += OnDataContextChanged;
     }

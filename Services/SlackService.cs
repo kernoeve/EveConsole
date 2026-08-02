@@ -39,6 +39,7 @@ public class SlackService
 
     // Areas of the app that post to Slack; each maps to its own configured channel.
     public const string AreaCorpTop10   = "corp_top10";
+    public const string AreaCorpMonthly = "corp_monthly";
     public const string AreaSalePosting = "sale_posting";
 
     private static string ChanIdKey(string area)   => $"slack.channel.{area}.id";

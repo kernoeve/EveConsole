@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Text.Json;
@@ -317,17 +317,45 @@ public sealed class MiningLedgerRowVm
     }
 }
 
+/// <summary>
+/// One line of the Monthly Summary. Section headers are the same type with IsHeader set,
+/// so the grid and the clipboard export walk a single ordered list rather than each
+/// re-deriving the layout.
+/// </summary>
+public sealed class MonthSummaryLineVm
+{
+    public string Label   { get; init; } = "";
+    public string Value   { get; init; } = "";
+    /// <summary>Absolute movement against the previous month, signed and formatted.</summary>
+    public string Change  { get; init; } = "";
+    /// <summary>The same movement as a percentage. Empty when the previous month was zero,
+    /// where a percentage would be meaningless rather than merely large.</summary>
+    public string Percent { get; init; } = "";
+    public bool   IsHeader { get; init; }
+    /// <summary>Set only where the sign carries meaning — net position, efficiency.</summary>
+    public string ValueColor { get; init; } = "#ccccdd";
+
+    public bool   IsValue    => !IsHeader;
+    public string ChangeColor => Change.StartsWith('+') ? "#70ad47"
+                              : Change.StartsWith('-')  ? "#cc6666"
+                              : "#666677";
+}
+
 public sealed class TaxPayerRowVm
 {
     public int    Rank   { get; }
     public string Name   { get; }
     public string Amount { get; }
+    /// <summary>Sort key for the Amount column. The displayed value is abbreviated
+    /// ("1.2B", "950.0M"), so sorting on it puts 950M above 1.2B alphabetically.</summary>
+    public decimal AmountRaw { get; }
 
     public TaxPayerRowVm(TaxPayerRow r)
     {
-        Rank   = r.Rank;
-        Name   = r.Name;
-        Amount = CorpActivityViewModel.FormatIskStatic(r.Amount);
+        Rank      = r.Rank;
+        Name      = r.Name;
+        AmountRaw = r.Amount;
+        Amount    = CorpActivityViewModel.FormatIskStatic(r.Amount);
     }
 }
 
@@ -339,6 +367,8 @@ public sealed class WalletDetailRowVm
     public string Name       { get; }
     public string AmountText { get; }
     public string ReasonText { get; }
+    /// <summary>Sort key for the Amount column — see TaxPayerRowVm.AmountRaw.</summary>
+    public decimal AmountRaw { get; }
 
     public WalletDetailRowVm(WalletDetailRow r)
     {
@@ -346,6 +376,7 @@ public sealed class WalletDetailRowVm
         TimeText   = r.Date.UtcDateTime.ToString("HH:mm");
         TypeName   = CorpActivityViewModel.FormatRefType(r.RefType);
         Name       = r.PartyName;
+        AmountRaw  = r.Amount;
         AmountText = CorpActivityViewModel.FormatIskStatic(r.Amount);
         ReasonText = r.Reason;
     }
@@ -357,10 +388,13 @@ public sealed class WalletTypeRowVm
     public string  CountText  { get; }
     public string  AmountText { get; }
     public decimal AmountRaw  { get; }
+    /// <summary>Sort key for the Count column — "1,234" sorts before "9" as text.</summary>
+    public int     CountRaw   { get; }
 
     public WalletTypeRowVm(WalletTypeRow r)
     {
         TypeName   = CorpActivityViewModel.FormatRefType(r.RefType);
+        CountRaw   = r.Count;
         CountText  = r.Count.ToString("N0");
         AmountRaw  = r.Amount;
         AmountText = CorpActivityViewModel.FormatIskStatic(r.Amount);
@@ -371,10 +405,13 @@ public sealed class Activity24hPlayerRowVm
 {
     public string Name      { get; }
     public string ValueText { get; }
+    /// <summary>Sort key for the Value column — see TaxPayerRowVm.AmountRaw.</summary>
+    public decimal ValueRaw { get; }
 
     public Activity24hPlayerRowVm(Activity24hPlayerRow r)
     {
         Name      = r.CharacterName;
+        ValueRaw  = r.Value;
         ValueText = CorpActivityViewModel.FormatIskStatic(r.Value);
     }
 }
@@ -915,18 +952,74 @@ public class CorpActivityViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _selectedTop10Month, value);
     }
 
+    // ── Monthly Summary ───────────────────────────────────────────────────────
+    //
+    // The grid and the clipboard export both render from this one collection, so the two
+    // can never drift apart.
+    public ObservableCollection<MonthSummaryLineVm> SummaryLines { get; } = [];
+
+    public IReadOnlyList<int>              SummaryYears  { get; }
+    public IReadOnlyList<Top10MonthOption> SummaryMonths { get; }
+
+    private int _selectedSummaryYear;
+    public int SelectedSummaryYear
+    {
+        get => _selectedSummaryYear;
+        set => this.RaiseAndSetIfChanged(ref _selectedSummaryYear, value);
+    }
+
+    private Top10MonthOption? _selectedSummaryMonth;
+    public Top10MonthOption? SelectedSummaryMonth
+    {
+        get => _selectedSummaryMonth;
+        set => this.RaiseAndSetIfChanged(ref _selectedSummaryMonth, value);
+    }
+
+    private bool _isSummaryLoading;
+    public bool IsSummaryLoading
+    {
+        get => _isSummaryLoading;
+        private set => this.RaiseAndSetIfChanged(ref _isSummaryLoading, value);
+    }
+
+    private CancellationTokenSource? _summaryCts;
+
+    /// <summary>Clipboard formats, shared with the sale poster so the two behave the same
+    /// way. Affects only the exported text — the grids are unchanged.
+    ///
+    /// One selection backs both the Top 10 and the Monthly Summary dropdowns, and persists
+    /// across sessions — see ExportFormatSettings.</summary>
+    public IReadOnlyList<string> ExportFormats { get; } = OutputFormat.All.Select(f => f.Name).ToList();
+
+    private string _selectedExportFormat = ExportFormatSettings.Default;
+    public string SelectedExportFormat
+    {
+        get => _selectedExportFormat;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedExportFormat, value ?? ExportFormatSettings.Default);
+            if (_exportFormat is not null) _exportFormat.Format = _selectedExportFormat;
+        }
+    }
+
     // ── Commands ──────────────────────────────────────────────────────────────
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
 
     public CorpActivityViewModel(CorpActivityService service,
                                  ObservableCollection<Corporation> corps,
                                  CorpTop10ExcludeService? excludeSvc = null,
-                                 SlackService? slack = null)
+                                 SlackService? slack = null,
+                                 ExportFormatSettings? exportFormat = null)
     {
-        _service    = service;
-        _excludeSvc = excludeSvc!;
-        _slack      = slack;
-        Corps       = corps;
+        _service      = service;
+        _excludeSvc   = excludeSvc!;
+        _slack        = slack;
+        _exportFormat = exportFormat;
+        Corps         = corps;
+
+        // Restored before any dropdown binds, so the saved choice is what the user sees.
+        if (exportFormat is not null) _selectedExportFormat = exportFormat.Format;
+
         _selectedChartPeriod    = ChartPeriods[2];  // default 90 days
         _selectedRattingPeriod  = TaxPeriods[1];    // default 30 days
         _selectedDonationPeriod = TaxPeriods[1];    // default 30 days
@@ -943,6 +1036,13 @@ public class CorpActivityViewModel : ReactiveObject
             .ToList();
         _selectedTop10Year  = now.Year;
         _selectedTop10Month = Top10Months[now.Month - 1];
+
+        // Same option lists as Top 10, but tracked separately so the two tabs can sit on
+        // different months without fighting each other.
+        SummaryYears          = Top10Years;
+        SummaryMonths         = Top10Months;
+        _selectedSummaryYear  = now.Year;
+        _selectedSummaryMonth = Top10Months[now.Month - 1];
 
         // Auto-select first corp if already available
         if (Corps.Count > 0)
@@ -1075,6 +1175,17 @@ public class CorpActivityViewModel : ReactiveObject
                 _ = SwitchTop10PeriodAsync((long)SelectedCorp!.Id, _top10Cts.Token);
             });
 
+        this.WhenAnyValue(x => x.SelectedSummaryYear, x => x.SelectedSummaryMonth)
+            .Skip(1)
+            .Where(t => SelectedCorp is not null && t.Item2 is not null)
+            .Subscribe(t =>
+            {
+                _summaryCts?.Cancel();
+                _summaryCts?.Dispose();
+                _summaryCts = new CancellationTokenSource();
+                _ = LoadMonthlySummaryAsync((long)SelectedCorp!.Id, _summaryCts.Token);
+            });
+
         // Light refresh every 60 s; full refresh (including detail tabs) every 5 min (tick 5).
         Observable.Interval(TimeSpan.FromSeconds(60))
             .ObserveOn(RxApp.MainThreadScheduler)
@@ -1102,6 +1213,7 @@ public class CorpActivityViewModel : ReactiveObject
 
             var (since, until) = GetTop10DateRange();
             await RunStep("top 10",   () => LoadAllTop10Async(corpId, excludeIds, since, until, ct));
+            await RunStep("monthly summary", () => LoadMonthlySummaryAsync(corpId, ct));
             await RunStep("mining",   () => LoadMiningLedgerAsync(corpId, ct));
             await RunStep("ratting",   () => LoadRattingTabAsync(corpId, ct));
             await RunStep("donations", () => LoadDonationTabAsync(corpId, ct));
@@ -1257,6 +1369,7 @@ public class CorpActivityViewModel : ReactiveObject
     // the Settings window closes (see MainWindow.OpenSettingsAsync).
 
     private readonly SlackService? _slack;
+    private readonly ExportFormatSettings? _exportFormat;
 
     public bool IsSlackTop10Configured => _slack?.IsConfigured(SlackService.AreaCorpTop10) == true;
 
@@ -1266,10 +1379,17 @@ public class CorpActivityViewModel : ReactiveObject
     private string _slackStatus = "";
     public string SlackStatus { get => _slackStatus; private set => this.RaiseAndSetIfChanged(ref _slackStatus, value); }
 
+    public bool IsSlackMonthlyConfigured => _slack?.IsConfigured(SlackService.AreaCorpMonthly) == true;
+
+    public string SlackMonthlyChannelText =>
+        _slack?.ChannelName(SlackService.AreaCorpMonthly) is { Length: > 0 } n ? $"#{n}" : "";
+
     public void RefreshSlackState()
     {
         this.RaisePropertyChanged(nameof(IsSlackTop10Configured));
         this.RaisePropertyChanged(nameof(SlackTop10ChannelText));
+        this.RaisePropertyChanged(nameof(IsSlackMonthlyConfigured));
+        this.RaisePropertyChanged(nameof(SlackMonthlyChannelText));
     }
 
     // The Top 10 is a low-volume, deliberate post. Re-posting inside this window asks for
@@ -1298,13 +1418,293 @@ public class CorpActivityViewModel : ReactiveObject
         }
 
         SlackStatus = "Posting to Slack…";
-        // Wrapped in a code block so the padded columns line up in Slack's proportional font.
-        var body = BuildTop10Export(includeIsk);
-        var res  = await _slack.PostMessageAsync(channel, $"```\n{body}\n```");
+        // Plain Text is wrapped in a code block so the padded columns line up in Slack's
+        // proportional font; a markup format is posted raw, since a code block would show
+        // its bold markers literally instead of rendering them.
+        var plain = SelectedExportFormat == "Plain Text";
+        var body  = BuildTop10Export(includeIsk);
+        var res   = await _slack.PostMessageAsync(channel, plain ? $"```\n{body}\n```" : body);
         if (res.Ok) await _slack.SetLastPostAsync(SlackService.AreaCorpTop10, DateTimeOffset.UtcNow);
         SlackStatus = res.Ok
             ? $"Posted to {SlackTop10ChannelText} — {DateTimeOffset.Now:t}"
             : $"Slack post failed: {res.Error}";
+    }
+
+    /// <summary>
+    /// Posts the monthly summary to its own configured channel.
+    ///
+    /// Plain Text goes inside a code block so the padded columns survive Slack's
+    /// proportional font. Any other format is posted as-is: its whole point is markup, and
+    /// a code block would show the bold markers literally instead of rendering them.
+    /// </summary>
+    public async Task PostMonthlySummaryToSlackAsync()
+    {
+        if (_slack is null) return;
+        var channel = _slack.ChannelId(SlackService.AreaCorpMonthly);
+        if (string.IsNullOrEmpty(channel)) { SlackStatus = "No Slack channel configured."; return; }
+
+        if (_slack.LastPostAt(SlackService.AreaCorpMonthly) is { } last
+            && DateTimeOffset.UtcNow - last < SlackRepostWindow
+            && ConfirmSlackRepost is not null)
+        {
+            var confirmed = await ConfirmSlackRepost(
+                $"This monthly summary was already posted to Slack {NotificationSummary.Age(last)}.\n\n" +
+                "Post it again?");
+            if (!confirmed) { SlackStatus = "Post cancelled."; return; }
+        }
+
+        SlackStatus = "Posting to Slack…";
+        var plain = SelectedExportFormat == "Plain Text";
+        var body  = BuildMonthlySummaryExport();
+        var res   = await _slack.PostMessageAsync(channel, plain ? $"```\n{body}\n```" : body);
+        if (res.Ok) await _slack.SetLastPostAsync(SlackService.AreaCorpMonthly, DateTimeOffset.UtcNow);
+        SlackStatus = res.Ok
+            ? $"Posted to {SlackMonthlyChannelText} — {DateTimeOffset.Now:t}"
+            : $"Slack post failed: {res.Error}";
+    }
+
+    // ── Monthly Summary ───────────────────────────────────────────────────────
+
+    private async Task LoadMonthlySummaryAsync(long corpId, CancellationToken ct = default)
+    {
+        var year  = SelectedSummaryYear;
+        var month = SelectedSummaryMonth?.Number ?? DateTimeOffset.UtcNow.Month;
+
+        IsSummaryLoading = true;
+        try
+        {
+            var s = await _service.GetMonthSummaryAsync(corpId, year, month, ct);
+            ct.ThrowIfCancellationRequested();
+            BuildSummaryLines(s);
+        }
+        catch (OperationCanceledException) { /* month switched again — discard */ }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[CorpActivity] Monthly summary failed: {ex}");
+            SummaryLines.Clear();
+        }
+        finally { IsSummaryLoading = false; }
+    }
+
+    private void BuildSummaryLines(CorpActivityService.MonthSummary s)
+    {
+        SummaryLines.Clear();
+
+        var c = s.Current;
+        var p = s.Previous;
+
+        void Header(string t) => SummaryLines.Add(new MonthSummaryLineVm { Label = t, IsHeader = true });
+
+        // ISK line: value, signed absolute change, and the same change as a percentage.
+        void Isk(string label, decimal cur, decimal prev, string? color = null) =>
+            SummaryLines.Add(new MonthSummaryLineVm
+            {
+                Label = label,
+                Value = FormatIskStatic(cur),
+                Change = SignedIsk(cur - prev),
+                Percent = Pct(cur, prev),
+                ValueColor = color ?? "#ccccdd",
+            });
+
+        void Count(string label, long cur, long prev, string? color = null) =>
+            SummaryLines.Add(new MonthSummaryLineVm
+            {
+                Label = label,
+                Value = cur.ToString("N0"),
+                Change = SignedCount(cur - prev),
+                Percent = Pct(cur, prev),
+                ValueColor = color ?? "#ccccdd",
+            });
+
+        var w  = c.Wallet;
+        var pw = p.Wallet;
+
+        Header("Income");
+        // No "Mining tax" line: EVE has no corp mining-tax wallet entry, and this corp has
+        // never had one. Mining is billed manually and lands in Donations, which cannot be
+        // separated from other donations.
+        Isk("Ratting tax",  w?.RattingTax     ?? 0m, pw?.RattingTax     ?? 0m);
+        Isk("Industry tax", w?.IndustryTax    ?? 0m, pw?.IndustryTax    ?? 0m);
+        Isk("Donations",    w?.Donations      ?? 0m, pw?.Donations      ?? 0m);
+        Isk("Contracts",    w?.ContractIncome ?? 0m, pw?.ContractIncome ?? 0m);
+        Isk("Market",       w?.MarketIncome   ?? 0m, pw?.MarketIncome   ?? 0m);
+        Isk("Other",        w?.OtherIncome    ?? 0m, pw?.OtherIncome    ?? 0m);
+        Isk("Total income", c.TotalIncome,           p.TotalIncome);
+
+        Header("Expenses");
+        Isk("Market",          w?.MarketExpense   ?? 0m, pw?.MarketExpense   ?? 0m);
+        Isk("Contracts",       w?.ContractExpense ?? 0m, pw?.ContractExpense ?? 0m);
+        Isk("Project payouts", w?.ProjectPayouts  ?? 0m, pw?.ProjectPayouts  ?? 0m);
+        Isk("Withdrawals",     w?.AccountWithdraw ?? 0m, pw?.AccountWithdraw ?? 0m);
+        Isk("Other",           w?.OtherExpense    ?? 0m, pw?.OtherExpense    ?? 0m);
+        Isk("Total expenses",  c.TotalExpense,           p.TotalExpense);
+
+        Header("Net");
+        Isk("Net position", c.Net, p.Net, c.Net >= 0 ? "#70ad47" : "#cc6666");
+
+        Header("Combat");
+        Count("Kills",  c.Kills,  p.Kills);
+        Count("Losses", c.Losses, p.Losses);
+        Isk("ISK destroyed", c.IskDestroyed, p.IskDestroyed);
+        Isk("ISK lost",      c.IskLost,      p.IskLost);
+        SummaryLines.Add(new MonthSummaryLineVm
+        {
+            Label   = "ISK efficiency",
+            Value   = c.IskEfficiency is { } e ? $"{e:F1}%" : "—",
+            Change  = c.IskEfficiency is { } e1 && p.IskEfficiency is { } e0
+                      ? $"{(e1 - e0 > 0 ? "+" : "")}{e1 - e0:F1} pts" : "",
+            ValueColor = c.IskEfficiency is { } e2 ? (e2 >= 50 ? "#70ad47" : "#cc6666") : "#ccccdd",
+        });
+
+        Header("Mining");
+        Count("Units mined", c.UnitsMined,  p.UnitsMined);
+        Isk("Mined value",   c.MiningValue, p.MiningValue);
+
+        Header("Corp Projects");
+        Count("Created",         c.ProjectsCreated,        p.ProjectsCreated);
+        Isk("Created value",     c.ProjectsCreatedValue,   p.ProjectsCreatedValue);
+        Count("Completed",       c.ProjectsCompleted,      p.ProjectsCompleted);
+        Isk("Completed value",   c.ProjectsCompletedValue, p.ProjectsCompletedValue);
+
+        Header("Members");
+        Count("Active players", c.PlayersActive, p.PlayersActive);
+    }
+
+    /// <summary>Month-over-month movement as a percentage. Blank when the previous month
+    /// was zero — a percentage change from nothing is undefined, not infinite.</summary>
+    private static string Pct(decimal current, decimal previous)
+    {
+        if (previous == 0m) return "";
+        var change = (double)((current - previous) / Math.Abs(previous)) * 100.0;
+        if (Math.Abs(change) < 0.05) return "0.0%";
+        return $"{(change > 0 ? "+" : "")}{change:F1}%";
+    }
+
+    private static string Pct(long current, long previous) => Pct((decimal)current, previous);
+
+    // ── Column layout for exported text ───────────────────────────────────────
+    //
+    // Columns are space-padded and the data rows are wrapped in the target platform's
+    // code-block syntax, which switches it to a monospace font where padding is exact.
+    //
+    // Tabs were tried first and cannot work: Slack renders messages proportionally and its
+    // tab stops are pixel-based, so which stop a row reaches depends on the pixel width of
+    // the text before it, and no count of characters predicts that. Adjusting the tab count
+    // per platform only moves the misalignment. Fencing is also the only approach that
+    // works for Copy to Clipboard, which is how most people post — the Block Kit rich_text
+    // route would only have helped the API-based Post to Slack button.
+    //
+    // Headers stay OUTSIDE the fence so they can still be bold; only the rows go inside.
+
+    private static (string Open, string Close) CodeFence(string formatName) => formatName switch
+    {
+        "Slack" or "Discord" or "Markdown" => ("```", "```"),
+        "HTML"                             => ("<pre>", "</pre>"),
+        "BBCode"                           => ("[code]", "[/code]"),
+        _                                  => ("", ""),   // Plain Text needs no fence
+    };
+
+    private static int[] ColumnWidths(IReadOnlyList<string[]> rows, int columns)
+    {
+        var widths = new int[columns];
+        for (var i = 0; i < columns; i++)
+            widths[i] = rows.Count == 0 ? 0 : rows.Max(r => r[i].Length);
+        return widths;
+    }
+
+    /// <summary>Space-padded row. Two spaces of gutter between columns; the last populated
+    /// cell is not padded, so there is no trailing whitespace.</summary>
+    private static string PaddedRow(string[] cells, int[] widths)
+    {
+        var last = cells.Length - 1;
+        while (last > 0 && string.IsNullOrEmpty(cells[last])) last--;
+
+        var sb = new System.Text.StringBuilder();
+        for (var i = 0; i <= last; i++)
+            sb.Append(i == last ? cells[i] : cells[i].PadRight(widths[i] + 2));
+        return sb.ToString();
+    }
+
+    private static string SignedIsk(decimal delta) =>
+        delta == 0m ? "—" : $"{(delta > 0 ? "+" : "-")}{FormatIskStatic(Math.Abs(delta))}";
+
+    private static string SignedCount(long delta) =>
+        delta == 0 ? "—" : $"{(delta > 0 ? "+" : "-")}{Math.Abs(delta):N0}";
+
+    /// <summary>
+    /// The summary as text for Slack / Discord / forums, in the currently selected format.
+    /// Walks the same lines the grid shows, so the two cannot disagree.
+    ///
+    /// The rule lines under the title and each section are kept in every format — they
+    /// carry the structure when a client renders markup weakly or not at all, and bold is
+    /// an addition to them rather than a replacement.
+    /// </summary>
+    public string BuildMonthlySummaryExport() => BuildMonthlySummaryExport(SelectedExportFormat);
+
+    public string BuildMonthlySummaryExport(string formatName)
+    {
+        var fmt   = OutputFormat.ByName(formatName);
+        var plain = fmt.Name == "Plain Text";
+
+        var month  = SelectedSummaryMonth?.Name ?? "?";
+        var year   = SelectedSummaryYear;
+        var corp   = SelectedCorp?.Name;
+        var header = string.IsNullOrWhiteSpace(corp)
+            ? $"Monthly Summary — {month} {year}"
+            : $"{corp} — Monthly Summary — {month} {year}";
+        const string subtitle = "Change columns compare against the previous month.";
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine(plain ? header : fmt.Bold(header));
+        sb.AppendLine(new string('=', Math.Max(header.Length, 32)));
+        sb.AppendLine(plain ? subtitle : fmt.Bold(subtitle));
+
+        // Widths measured across every value row, so all sections share one column grid.
+        var cells  = SummaryLines
+            .Where(l => l.IsValue)
+            .Select(l => new[] { l.Label, l.Value, l.Change, l.Percent })
+            .ToList();
+        var widths = ColumnWidths(cells, 4);
+        var (open, close) = CodeFence(fmt.Name);
+
+        var inFence = false;
+        void CloseFence()
+        {
+            if (!inFence) return;
+            if (close.Length > 0) sb.AppendLine(close);
+            inFence = false;
+        }
+
+        foreach (var line in SummaryLines)
+        {
+            if (line.IsHeader)
+            {
+                CloseFence();
+                sb.AppendLine();
+                sb.AppendLine(plain ? line.Label : fmt.Bold(line.Label));
+                // Slack draws a fenced block as an outlined box, so a rule above it is
+                // just noise. Every other format keeps the rule — the box either is not
+                // drawn or is not distinct enough to replace it.
+                if (fmt.Name != "Slack")
+                    sb.AppendLine(new string('-', Math.Max(line.Label.Length, 16)));
+                continue;
+            }
+
+            if (!inFence)
+            {
+                if (open.Length > 0) sb.AppendLine(open);
+                inFence = true;
+            }
+            sb.AppendLine(PaddedRow([line.Label, line.Value, line.Change, line.Percent], widths));
+        }
+        CloseFence();
+
+        var body = sb.ToString().TrimEnd();
+
+        // Plain Text's Finalize is a markup stripper that also collapses runs of spaces,
+        // which would flatten the column padding this block depends on. Nothing here emits
+        // markup in the first place, so there is nothing to strip.
+        return plain ? body : fmt.Finalize(body);
     }
 
     // includeIsk true → "rank  name\tamount"; false → "rank  name\t%" (name + share only).
@@ -1313,31 +1713,47 @@ public class CorpActivityViewModel : ReactiveObject
 
     private string BuildTop10Export(bool includeIsk)
     {
+        var fmt   = OutputFormat.ByName(SelectedExportFormat);
+        var plain = fmt.Name == "Plain Text";
+
         var month = SelectedTop10Month?.Name ?? "?";
         var year  = SelectedTop10Year;
         var corp  = SelectedCorp?.Name;
         var header = string.IsNullOrWhiteSpace(corp)
             ? $"Top 10 — {month} {year}"
-            : $"{corp} Top 10 — {month} {year}";
+            : $"{corp} — Top 10 — {month} {year}";
 
         var sb = new System.Text.StringBuilder();
 
         // alwaysAmount forces the count column even in the no-ISK export — Kills has no ISK value,
         // so its "amount" is the kill count and there is nothing meaningful to show as a percentage.
+        string[] Cells(CorpTopPlayerRowVm r, bool alwaysAmount) =>
+            [$"{r.Rank}.", r.CharacterName, includeIsk || alwaysAmount ? r.AmountText : r.PercentText];
+
+        // One grid across every list, so the five sections line up with each other rather
+        // than each finding its own column widths.
+        var allRows = new List<string[]>();
+        allRows.AddRange(TopRatters.Select(r => Cells(r, false)));
+        allRows.AddRange(TopMiners.Select(r => Cells(r, false)));
+        allRows.AddRange(TopKillers.Select(r => Cells(r, true)));
+        allRows.AddRange(TopContributors.Select(r => Cells(r, false)));
+        allRows.AddRange(TopIndustry.Select(r => Cells(r, false)));
+        var widths = ColumnWidths(allRows, 3);
+        var (open, close) = CodeFence(fmt.Name);
+
         void AppendList(string title, IEnumerable<CorpTopPlayerRowVm> rows, bool alwaysAmount = false)
         {
-            sb.AppendLine(title);
-            sb.AppendLine(new string('=', Math.Max(title.Length, 32)));
+            sb.AppendLine(plain ? title : fmt.Bold(title));
+            // See BuildMonthlySummaryExport: only Slack's fenced box replaces the rule.
+            if (fmt.Name != "Slack") sb.AppendLine(new string('=', Math.Max(title.Length, 32)));
+            if (open.Length > 0) sb.AppendLine(open);
             foreach (var r in rows)
-            {
-                var rank = $"{r.Rank,2}.";
-                var name = r.CharacterName.PadRight(28);
-                sb.AppendLine($"{rank}  {name}\t{(includeIsk || alwaysAmount ? r.AmountText : r.PercentText)}");
-            }
+                sb.AppendLine(PaddedRow(Cells(r, alwaysAmount), widths));
+            if (close.Length > 0) sb.AppendLine(close);
             sb.AppendLine();
         }
 
-        sb.AppendLine(header);
+        sb.AppendLine(plain ? header : fmt.Bold(header));
         sb.AppendLine(new string('=', Math.Max(header.Length, 32)));
         sb.AppendLine();
 
@@ -1347,7 +1763,10 @@ public class CorpActivityViewModel : ReactiveObject
         AppendList("Project Contributors",  TopContributors);
         AppendList("Industry Tax",          TopIndustry);
 
-        return sb.ToString().TrimEnd();
+        var body = sb.ToString().TrimEnd();
+        // See BuildMonthlySummaryExport: Plain Text's Finalize also collapses runs of
+        // spaces, which would flatten the padded name column.
+        return plain ? body : fmt.Finalize(body);
     }
 
     private async Task SwitchTop10PeriodAsync(long corpId, CancellationToken ct)

@@ -423,6 +423,18 @@ public record EsiCorpRoleEntry(
     [property: JsonPropertyName("roles_at_other")] List<string>? RolesAtOther
 );
 
+// /corporations/{id}/membertracking/ — current values only; logon_date is the LAST logon,
+// not a history. See CorpMemberSession for how a dated history is accumulated from it.
+public record EsiMemberTrackingEntry(
+    [property: JsonPropertyName("character_id")] long            CharacterId,
+    [property: JsonPropertyName("start_date")]   DateTimeOffset? StartDate,
+    [property: JsonPropertyName("logon_date")]   DateTimeOffset? LogonDate,
+    [property: JsonPropertyName("logoff_date")]  DateTimeOffset? LogoffDate,
+    [property: JsonPropertyName("location_id")]  long?           LocationId,
+    [property: JsonPropertyName("ship_type_id")] int?            ShipTypeId,
+    [property: JsonPropertyName("base_id")]      long?           BaseId
+);
+
 public record EsiCorpTitleEntry(
     [property: JsonPropertyName("title_id")] int    TitleId,
     [property: JsonPropertyName("name")]     string Name

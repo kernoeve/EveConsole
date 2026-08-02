@@ -60,6 +60,8 @@ public class AppDbContext : DbContext
     // ── Polled corporation data ───────────────────────────────────────────
     public DbSet<CorpDivision>          EsiCorpDivisions         => Set<CorpDivision>();
     public DbSet<CorpMember>            EsiCorpMembers           => Set<CorpMember>();
+    public DbSet<CorpMemberTracking>    EsiCorpMemberTracking    => Set<CorpMemberTracking>();
+    public DbSet<CorpMemberSession>     EsiCorpMemberSessions    => Set<CorpMemberSession>();
     public DbSet<CorpMemberRole>        EsiCorpMemberRoles       => Set<CorpMemberRole>();
     public DbSet<CorpTitle>             EsiCorpTitles            => Set<CorpTitle>();
     public DbSet<CorpMedal>             EsiCorpMedals            => Set<CorpMedal>();
@@ -679,6 +681,18 @@ public class AppDbContext : DbContext
             e.Property(x => x.CorporationId).ValueGeneratedNever();
             e.Property(x => x.CharacterId).ValueGeneratedNever();
             e.ToTable("EsiCorpMembers"); });
+
+        mb.Entity<CorpMemberTracking>(e => {
+            e.HasKey(x => new { x.CorporationId, x.CharacterId });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.ToTable("EsiCorpMemberTracking"); });
+
+        mb.Entity<CorpMemberSession>(e => {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).ValueGeneratedOnAdd();
+            e.HasIndex(x => new { x.CorporationId, x.CharacterId, x.LogonDate }).IsUnique();
+            e.ToTable("EsiCorpMemberSessions"); });
 
         mb.Entity<CorpMemberRole>(e => {
             e.HasKey(x => new { x.CorporationId, x.CharacterId, x.Role, x.RoleType });

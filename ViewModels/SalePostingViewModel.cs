@@ -698,6 +698,7 @@ public class SalePostingViewModel : ReactiveObject
     private readonly SalePostingService _svc;
     private readonly BatchAddService?   _batchSvc;
     private readonly SlackService?      _slack;
+    private readonly ExportFormatSettings? _exportFormat;
 
     private List<SalePostingRow> _allPostings = [];
 
@@ -729,11 +730,18 @@ public class SalePostingViewModel : ReactiveObject
     }
 
     public IReadOnlyList<string> FormatOptions { get; } = OutputFormat.All.Select(f => f.Name).ToList();
-    private string _selectedFormat = "Plain Text";
+    // Shared with Corp Activity's Top 10 and Monthly Summary, and remembered across
+    // sessions — see ExportFormatSettings for why it is one setting rather than three.
+    private string _selectedFormat = ExportFormatSettings.Default;
     public string SelectedFormat
     {
         get => _selectedFormat;
-        set { this.RaiseAndSetIfChanged(ref _selectedFormat, value ?? "Plain Text"); _ = RenderSelectedAsync(); }
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedFormat, value ?? ExportFormatSettings.Default);
+            if (_exportFormat is not null) _exportFormat.Format = _selectedFormat;
+            _ = RenderSelectedAsync();
+        }
     }
 
     // Profit basis toggle (mirrors the Sales Tracker), default Build.
@@ -763,11 +771,16 @@ public class SalePostingViewModel : ReactiveObject
     public Action<int, string>?                                     OpenInItemBrowser;
 
     public SalePostingViewModel(SalePostingService svc, IDbContextFactory<AppDbContext> dbFactory,
-        BatchAddService? batchSvc = null, SlackService? slack = null)
+        BatchAddService? batchSvc = null, SlackService? slack = null,
+        ExportFormatSettings? exportFormat = null)
     {
-        _svc      = svc;
-        _batchSvc = batchSvc;
-        _slack    = slack;
+        _svc          = svc;
+        _batchSvc     = batchSvc;
+        _slack        = slack;
+        _exportFormat = exportFormat;
+
+        // Restored before the dropdown binds, so the saved choice is what the user sees.
+        if (exportFormat is not null) _selectedFormat = exportFormat.Format;
 
         AddPostingCommand         = ReactiveCommand.CreateFromTask(AddPostingAsync);
         RefreshCommand            = ReactiveCommand.CreateFromTask(RefreshAllAsync);
