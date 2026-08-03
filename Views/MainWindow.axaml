@@ -289,6 +289,9 @@
               <DataTemplate DataType="vm:StructureBrowserViewModel">
                 <views:StructureBrowserView />
               </DataTemplate>
+              <DataTemplate DataType="vm:UniverseViewModel">
+                <views:UniverseView />
+              </DataTemplate>
               <DataTemplate DataType="vm:MarketLevelViewModel">
                 <views:MarketLevelView />
               </DataTemplate>
