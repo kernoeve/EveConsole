@@ -18,7 +18,8 @@ public sealed record MapNode(
     bool   IsOutsideRegion = false,
     string RegionName = "",
     /// <summary>Zero on the universe map, where the nodes are regions.</summary>
-    int    ConstellationId = 0);
+    int    ConstellationId = 0,
+    string ConstellationName = "");
 
 /// <summary>An undirected jump between two nodes. Stored once per pair, low id first.</summary>
 public sealed record MapEdge(int FromId, int ToId);
@@ -197,6 +198,10 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
                   (s, r) => new { S = s, RegionName = r.Name })
             .ToListAsync(ct);
 
+        // The whole table is ~1,200 rows, so a lookup beats widening the join above.
+        var constellationNames = await db.SdeConstellations.AsNoTracking()
+            .ToDictionaryAsync(c => c.ConstellationId, c => c.Name, ct);
+
         var nodes = systems.Select(x => new MapNode(
             x.S.SolarSystemId, x.S.Name,
             // CCP's layout where it exists, otherwise the top-down projection. Mixing the two in
@@ -211,7 +216,8 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             x.S.Security, x.S.IsWormhole, x.S.FactionId, x.S.SecurityClass,
             IsOutsideRegion: x.S.RegionId != regionId,
             RegionName: x.RegionName,
-            ConstellationId: x.S.ConstellationId)).ToList();
+            ConstellationId: x.S.ConstellationId,
+            ConstellationName: constellationNames.GetValueOrDefault(x.S.ConstellationId, ""))).ToList();
 
         var present = nodes.Select(n => n.Id).ToHashSet();
         var edges = all

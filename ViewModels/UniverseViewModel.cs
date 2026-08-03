@@ -482,6 +482,9 @@ public class UniverseViewModel : ReactiveObject
         foreach (var n in g.Nodes)
             styles[n.Id] = new MapNodeStyle(
                 SecurityColor(n.Security),
+                // Two decimals: null-sec systems all sit just below zero, and one decimal
+                // collapses most of them onto an indistinguishable "-0.0".
+                Caption: n.Security.ToString("F2"),
                 Detail: $"Security {n.Security:F2}" + (byRegion ? " (region average)" : ""));
 
         // Every stop in the ramp, grouped by the band it belongs to, so the legend shows the
@@ -515,7 +518,15 @@ public class UniverseViewModel : ReactiveObject
                 // still reads as the subject of the map.
                 ? FromHsv(h, n.IsOutsideRegion ? 0.20 : 0.55, n.IsOutsideRegion ? 0.45 : 0.90)
                 : Color.Parse("#6a6a80");
-            styles[n.Id] = new MapNodeStyle(color, Detail: $"Security {n.Security:F2}");
+
+            styles[n.Id] = new MapNodeStyle(
+                color,
+                // Naming the constellation makes the grouping readable without having to trace
+                // which blobs of colour belong together.
+                Caption: byRegion ? null : n.ConstellationName,
+                Detail: byRegion
+                    ? $"Security {n.Security:F2} (region average)"
+                    : $"{n.ConstellationName} · security {n.Security:F2}");
         }
     }
 
@@ -533,7 +544,7 @@ public class UniverseViewModel : ReactiveObject
             var t = max > 0 && c > 0 ? Math.Log(1 + c) / Math.Log(1 + max) : 0;
             styles[n.Id] = new MapNodeStyle(
                 Lerp(cold, hot, t),
-                Badge: c > 0 ? c.ToString("N0") : null,
+                Caption: c > 0 ? c.ToString("N0") : "—",
                 Detail: $"{c:N0} {(c == 1 ? singular : plural)}");
         }
 

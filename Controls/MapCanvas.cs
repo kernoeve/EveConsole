@@ -9,9 +9,15 @@ using EveConsole.Services;
 
 namespace EveConsole.Controls;
 
-/// <summary>How one node should be painted. Supplied by the view model so the overlay logic
-/// (security, sovereignty, kill activity, ...) stays out of the control.</summary>
-public sealed record MapNodeStyle(Color Fill, string? Badge = null, string? Detail = null);
+/// <summary>
+/// How one node should be painted. Supplied by the view model so the overlay logic (security,
+/// sovereignty, kill activity, ...) stays out of the control.
+/// </summary>
+/// <param name="Fill">Node colour for the current overlay.</param>
+/// <param name="Caption">Second line inside the node box — whatever the current overlay is
+/// measuring (constellation, security, kill count). Shown under the dot at low zoom.</param>
+/// <param name="Detail">Longer text for the hover tooltip.</param>
+public sealed record MapNodeStyle(Color Fill, string? Caption = null, string? Detail = null);
 
 /// <summary>
 /// Pan/zoom node-and-link map, drawn directly rather than with one visual per node — a region
@@ -94,6 +100,12 @@ public class MapCanvas : Control
     private static readonly IBrush GateRegionBrush = new ImmutableSolidColorBrush(Color.Parse("#79b0d8"));
     private static readonly IPen   GateEdgePen     = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#3f5a6e")), 1);
 
+    private static readonly IBrush DarkInk      = new ImmutableSolidColorBrush(Color.Parse("#101018"));
+    private static readonly IBrush DarkInkSoft  = new ImmutableSolidColorBrush(Color.Parse("#99101018"));
+    private static readonly IBrush LightInk     = new ImmutableSolidColorBrush(Color.Parse("#f2f2f7"));
+    private static readonly IBrush LightInkSoft = new ImmutableSolidColorBrush(Color.Parse("#bbf2f2f7"));
+    private static readonly IPen   BoxPen       = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#66000000")), 1);
+
     private static readonly Typeface Face     = Typeface.Default;
     private static readonly Typeface BoldFace =
         new(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold);
@@ -101,6 +113,13 @@ public class MapCanvas : Control
     private const double NodeRadius = 5.0;
     private const double LabelSize  = 10.0;
     private const double HitRadius  = 9.0;
+
+    // Systems switch from dots to labelled boxes once there is room for the boxes, judged by
+    // how far apart neighbouring systems actually are on screen rather than by a fixed zoom
+    // level — that way a sparse region and a dense one both switch when they look ready.
+    private const double BoxFadeStart = 58;   // px between neighbours: boxes begin to appear
+    private const double BoxFadeEnd   = 94;   // px between neighbours: boxes fully replace dots
+    private const double DotLabelMin  = 26;   // px: below this even the dot labels are noise
 
     // ── View transform ───────────────────────────────────────────────────────
 
@@ -123,9 +142,22 @@ public class MapCanvas : Control
     /// <summary>System name and region name for each gateway node.</summary>
     private Dictionary<int, (FormattedText Sys, FormattedText Region)> _gateLabels = new();
 
+    /// <summary>Name and caption drawn inside each system box. Text colour depends on the fill,
+    /// so this is rebuilt whenever the overlay changes, not only when the graph does.</summary>
+    private Dictionary<int, (FormattedText Name, FormattedText? Caption)> _boxLabels = new();
+    private IReadOnlyDictionary<int, MapNodeStyle>? _builtOverlay;
+    private MapGraph?                               _builtBoxGraph;
+
+    /// <summary>Median distance from a node to its nearest neighbour, in world units. Multiplied
+    /// by the scale it gives on-screen spacing, which drives the dot/box crossfade.</summary>
+    private double _spacing = 1;
+
     /// <summary>Screen rectangles of the gateway boxes from the last paint, so hit-testing
     /// matches what is actually drawn instead of assuming a dot-sized target.</summary>
     private readonly Dictionary<int, Rect> _gateRects = new();
+
+    /// <summary>Same, for system boxes. Only populated while the boxes are being drawn.</summary>
+    private readonly Dictionary<int, Rect> _nodeRects = new();
 
     private Point ToScreen(double x, double y) =>
         new((x - _cx) * _scale + Bounds.Width / 2, (y - _cy) * _scale + Bounds.Height / 2);
@@ -199,6 +231,75 @@ public class MapCanvas : Control
         ));
 
         _gateRects.Clear();
+        _spacing = MedianNearestNeighbour(g.Nodes);
+    }
+
+    /// <summary>
+    /// Typical gap between adjacent nodes. The median of each node's nearest neighbour rather
+    /// than the average, so a couple of isolated systems cannot drag the estimate out and delay
+    /// the switch to boxes for the whole map.
+    /// </summary>
+    private static double MedianNearestNeighbour(IReadOnlyList<MapNode> nodes)
+    {
+        if (nodes.Count < 2) return 1;
+
+        var nearest = new List<double>(nodes.Count);
+        foreach (var a in nodes)
+        {
+            var best = double.MaxValue;
+            foreach (var b in nodes)
+            {
+                if (ReferenceEquals(a, b)) continue;
+                var dx = a.X - b.X;
+                var dy = a.Y - b.Y;
+                var d  = dx * dx + dy * dy;
+                if (d < best) best = d;
+            }
+            if (best is > 0 and < double.MaxValue) nearest.Add(Math.Sqrt(best));
+        }
+
+        if (nearest.Count == 0) return 1;
+        nearest.Sort();
+        return nearest[nearest.Count / 2];
+    }
+
+    /// <summary>Rebuilds the in-box text. Separate from the graph cache because the ink colour
+    /// is chosen against the overlay fill, so changing overlay alone invalidates it.</summary>
+    private void RebuildBoxLabels(MapGraph g, IReadOnlyDictionary<int, MapNodeStyle>? overlay)
+    {
+        _builtOverlay = overlay;
+        _boxLabels    = new Dictionary<int, (FormattedText, FormattedText?)>(g.Nodes.Count);
+
+        foreach (var n in g.Nodes)
+        {
+            if (n.IsOutsideRegion) continue;
+
+            var style = overlay is not null && overlay.TryGetValue(n.Id, out var s) ? s : null;
+            var ink   = PickInk(style?.Fill ?? DefaultFill);
+
+            var name = new FormattedText(n.Name, CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight, BoldFace, LabelSize, ink.Strong);
+
+            FormattedText? caption = null;
+            if (style?.Caption is { Length: > 0 } text)
+                caption = new FormattedText(text, CultureInfo.CurrentCulture,
+                    FlowDirection.LeftToRight, Face, LabelSize - 1.5, ink.Soft);
+
+            _boxLabels[n.Id] = (name, caption);
+        }
+    }
+
+    /// <summary>
+    /// Text colour for a given fill. The security ramp runs from cyan through green and yellow
+    /// to red, so a single fixed ink is unreadable at one end or the other — this picks dark
+    /// text on light fills and light text on dark ones.
+    /// </summary>
+    private static (IBrush Strong, IBrush Soft) PickInk(Color fill)
+    {
+        // Rec. 709 relative luminance, which tracks perceived brightness far better than a
+        // plain RGB average — yellow and blue of equal average look nothing alike.
+        var l = (0.2126 * fill.R + 0.7152 * fill.G + 0.0722 * fill.B) / 255.0;
+        return l > 0.55 ? (DarkInk, DarkInkSoft) : (LightInk, LightInkSoft);
     }
 
     public override void Render(DrawingContext ctx)
@@ -208,10 +309,15 @@ public class MapCanvas : Control
         var g = Graph;
         if (g is null || g.Nodes.Count == 0) return;
 
-        if (!ReferenceEquals(g, _built)) RebuildCaches(g);
-        if (_needsFit) Fit();
-
         var overlay = Overlay;
+
+        if (!ReferenceEquals(g, _built)) RebuildCaches(g);
+        if (!ReferenceEquals(g, _builtBoxGraph) || !ReferenceEquals(overlay, _builtOverlay))
+        {
+            _builtBoxGraph = g;
+            RebuildBoxLabels(g, overlay);
+        }
+        if (_needsFit) Fit();
 
         // Edges first so nodes sit on top of them.
         foreach (var e in g.Edges)
@@ -222,11 +328,16 @@ public class MapCanvas : Control
             ctx.DrawLine(a.IsOutsideRegion || b.IsOutsideRegion ? GateEdgePen : EdgePen, pa, pb);
         }
 
-        // Labels are only legible once the graph is framed or closer; below that they overlap
-        // into noise, so they are dropped rather than drawn on top of each other.
-        var showLabels = _scale >= _fitScale * 0.95;
+        // How much room neighbouring systems have on screen decides the representation: dots
+        // when they are packed together, labelled boxes once they are far enough apart, and a
+        // crossfade in between so zooming does not snap.
+        var spacingPx = _spacing * _scale;
+        var boxAlpha  = Smoothstep(spacingPx, BoxFadeStart, BoxFadeEnd);
+        var dotAlpha  = 1 - boxAlpha;
+        var showDotLabels = spacingPx >= DotLabelMin;
 
         _gateRects.Clear();
+        _nodeRects.Clear();
 
         foreach (var n in g.Nodes)
         {
@@ -234,30 +345,86 @@ public class MapCanvas : Control
 
             // Skip anything scrolled well outside the viewport — at high zoom this is most
             // of the graph.
-            if (p.X < -80 || p.Y < -80 || p.X > Bounds.Width + 80 || p.Y > Bounds.Height + 80) continue;
+            if (p.X < -90 || p.Y < -90 || p.X > Bounds.Width + 90 || p.Y > Bounds.Height + 90) continue;
 
             if (n.IsOutsideRegion) { DrawGateway(ctx, n, p); continue; }
 
             var style = overlay is not null && overlay.TryGetValue(n.Id, out var s) ? s : null;
-            var fill  = new ImmutableSolidColorBrush(style?.Fill ?? DefaultFill);
+            var fill  = style?.Fill ?? DefaultFill;
 
-            ctx.DrawEllipse(fill, NodePen, p, NodeRadius, NodeRadius);
-
-            if (n.Id == SelectedId)      ctx.DrawEllipse(null, SelectedPen, p, NodeRadius + 4, NodeRadius + 4);
-            else if (_hover?.Id == n.Id) ctx.DrawEllipse(null, HoverPen,    p, NodeRadius + 3, NodeRadius + 3);
-
-            if (showLabels && _labels.TryGetValue(n.Id, out var label))
-                ctx.DrawText(label, new Point(p.X + NodeRadius + 3, p.Y - label.Height / 2));
-
-            if (showLabels && style?.Badge is { Length: > 0 } badge)
+            if (dotAlpha > 0.01)
             {
-                var bt = new FormattedText(badge, CultureInfo.CurrentCulture,
-                    FlowDirection.LeftToRight, Face, LabelSize - 1.5, BadgeBrush);
-                ctx.DrawText(bt, new Point(p.X - bt.Width / 2, p.Y + NodeRadius + 1));
+                using (ctx.PushOpacity(dotAlpha))
+                    DrawDot(ctx, n, p, fill, style, showDotLabels);
+            }
+
+            if (boxAlpha > 0.01)
+            {
+                using (ctx.PushOpacity(boxAlpha))
+                    DrawSystemBox(ctx, n, p, fill);
             }
         }
 
         if (_hover is not null) DrawTooltip(ctx, _hover);
+    }
+
+    /// <summary>Smooth 0..1 ramp between two thresholds, so the crossfade eases rather than
+    /// running at a constant rate and popping at each end.</summary>
+    private static double Smoothstep(double v, double lo, double hi)
+    {
+        if (hi <= lo) return v >= hi ? 1 : 0;
+        var t = Math.Clamp((v - lo) / (hi - lo), 0, 1);
+        return t * t * (3 - 2 * t);
+    }
+
+    private void DrawDot(
+        DrawingContext ctx, MapNode n, Point p, Color fill, MapNodeStyle? style, bool labels)
+    {
+        ctx.DrawEllipse(new ImmutableSolidColorBrush(fill), NodePen, p, NodeRadius, NodeRadius);
+
+        if (n.Id == SelectedId)      ctx.DrawEllipse(null, SelectedPen, p, NodeRadius + 4, NodeRadius + 4);
+        else if (_hover?.Id == n.Id) ctx.DrawEllipse(null, HoverPen,    p, NodeRadius + 3, NodeRadius + 3);
+
+        if (!labels) return;
+
+        if (_labels.TryGetValue(n.Id, out var label))
+            ctx.DrawText(label, new Point(p.X + NodeRadius + 3, p.Y - label.Height / 2));
+
+        if (style?.Caption is { Length: > 0 } caption)
+        {
+            var bt = new FormattedText(caption, CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight, Face, LabelSize - 1.5, BadgeBrush);
+            ctx.DrawText(bt, new Point(p.X - bt.Width / 2, p.Y + NodeRadius + 1));
+        }
+    }
+
+    /// <summary>
+    /// The close-up form: a rounded box filled with the overlay colour, holding the system name
+    /// and whatever the current overlay is measuring.
+    /// </summary>
+    private void DrawSystemBox(DrawingContext ctx, MapNode n, Point p, Color fill)
+    {
+        if (!_boxLabels.TryGetValue(n.Id, out var text)) return;
+
+        const double padX = 6, padY = 3;
+        var w = Math.Max(text.Name.Width, text.Caption?.Width ?? 0) + padX * 2;
+        var h = text.Name.Height + (text.Caption?.Height ?? 0) + padY * 2;
+        var rect = new Rect(p.X - w / 2, p.Y - h / 2, w, h);
+
+        _nodeRects[n.Id] = rect;
+
+        var radius = Math.Min(7, h / 2);
+        ctx.DrawRectangle(new ImmutableSolidColorBrush(fill), BoxPen, new RoundedRect(rect, radius));
+
+        ctx.DrawText(text.Name, new Point(p.X - text.Name.Width / 2, rect.Y + padY));
+        if (text.Caption is not null)
+            ctx.DrawText(text.Caption,
+                new Point(p.X - text.Caption.Width / 2, rect.Y + padY + text.Name.Height));
+
+        if (n.Id == SelectedId)
+            ctx.DrawRectangle(null, SelectedPen, new RoundedRect(rect.Inflate(3), radius + 3));
+        else if (_hover?.Id == n.Id)
+            ctx.DrawRectangle(null, HoverPen, new RoundedRect(rect.Inflate(2), radius + 2));
     }
 
     /// <summary>
@@ -323,10 +490,13 @@ public class MapCanvas : Control
         var g = Graph;
         if (g is null) return null;
 
-        // Gateway boxes are much larger than a node dot, so they are tested against the
-        // rectangle actually painted. Checked first: a box may well cover a nearby system.
+        // Boxes are much larger than a node dot, so they are tested against the rectangle
+        // actually painted. Checked first: a box may well cover a nearby system's centre.
         foreach (var (id, rect) in _gateRects)
             if (rect.Contains(p) && _byId.TryGetValue(id, out var gate)) return gate;
+
+        foreach (var (id, rect) in _nodeRects)
+            if (rect.Contains(p) && _byId.TryGetValue(id, out var node)) return node;
 
         MapNode? best = null;
         var bestDist = HitRadius * HitRadius;
