@@ -252,7 +252,17 @@ public class MapStatsBackfillService(
             if (!settings.InitialBackfillDone)
             {
                 await BackfillAsync(settings.BackfillDays, ct);
-                if (!ct.IsCancellationRequested) settings.InitialBackfillDone = true;
+                if (ct.IsCancellationRequested) return;
+
+                settings.InitialBackfillDone = true;
+
+                // Roll up straight away rather than waiting for tomorrow's pass. The backfill
+                // walks a month of days, so by the time it finishes most of what it fetched is
+                // already past the hourly window — leaving several hundred MB of hourly jump
+                // and kill rows sitting around for a day for no reason.
+                await stats.RollUpAsync(settings.KeepHourlyDays, ct);
+                settings.LastRollUp = DateTime.UtcNow.ToString("yyyy-MM-dd");
+                StatusText = "Complete";
                 return;
             }
 
