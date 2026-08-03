@@ -11,17 +11,26 @@ public class MapStatsSettings(AppPreferencesService prefs)
         set => _ = prefs.SetBoolAsync("mapstats.enabled", value);
     }
 
-    /// <summary>How much history to pull on the first run.</summary>
+    /// <summary>
+    /// How much history to pull on the first run. Deliberately short: it keeps a new install's
+    /// first run to minutes rather than tens of minutes, and nothing is lost by starting small
+    /// — the archive goes back to 2017, so the window can be widened later and the missing days
+    /// fetched then.
+    /// </summary>
     public int BackfillDays
     {
-        get => (int)prefs.GetLong("mapstats.backfill_days", 30);
+        get => (int)prefs.GetLong("mapstats.backfill_days", 7);
         set => _ = prefs.SetLongAsync("mapstats.backfill_days", value);
     }
 
-    /// <summary>Days of hourly detail to keep before rolling up to daily totals.</summary>
+    /// <summary>
+    /// Days of hourly detail to keep before rolling up to daily totals. One day covers the
+    /// "last 24 hours" overlays, which is the only place the hour itself matters; longer
+    /// windows read the daily rollup, so raising this buys nothing but disk.
+    /// </summary>
     public int KeepHourlyDays
     {
-        get => (int)prefs.GetLong("mapstats.keep_hourly_days", 14);
+        get => (int)prefs.GetLong("mapstats.keep_hourly_days", 1);
         set => _ = prefs.SetLongAsync("mapstats.keep_hourly_days", value);
     }
 

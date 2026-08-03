@@ -135,15 +135,54 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
     public sealed record SystemActivity(int SystemId, int ShipJumps, int ShipKills, int PodKills, int NpcKills);
 
     /// <summary>
-    /// Totals per system over the last <paramref name="hours"/>, reading the hourly tables.
-    /// For windows longer than the hourly retention the daily rollup is used instead — see
-    /// <see cref="GetActivityByDayAsync"/>.
+    /// Totals per system over a window of days, drawing from both the hourly tables and the
+    /// daily rollup as needed.
+    ///
+    /// Callers should prefer this over the two single-source methods. Hourly rows only survive
+    /// the retention window — one day by default — so asking the hourly table for a week would
+    /// quietly return a day's worth and look like a real answer. The split point is the
+    /// earliest day actually present in the hourly tables, which keeps the two sources disjoint
+    /// even mid-rollup, when a day could otherwise appear in both and be counted twice.
     /// </summary>
-    public async Task<Dictionary<int, SystemActivity>> GetActivityAsync(
-        int hours, CancellationToken ct = default)
+    public async Task<Dictionary<int, SystemActivity>> GetActivityWindowAsync(
+        int days, CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();
-        var from = BucketOf(DateTimeOffset.UtcNow.AddHours(-hours));
+
+        var fromDay    = DateTimeOffset.UtcNow.AddDays(-days).ToString("yyyy-MM-dd");
+        var fromBucket = fromDay + " 00";
+
+        var earliestJump = await db.MapSystemJumps.AsNoTracking()
+            .OrderBy(j => j.Bucket).Select(j => j.Bucket).FirstOrDefaultAsync(ct);
+        var earliestKill = await db.MapSystemKills.AsNoTracking()
+            .OrderBy(k => k.Bucket).Select(k => k.Bucket).FirstOrDefaultAsync(ct);
+
+        var earliestHourly = new[] { earliestJump, earliestKill }
+            .Where(b => !string.IsNullOrEmpty(b))
+            .OrderBy(b => b)
+            .FirstOrDefault();
+
+        var hourly = await GetActivityAsync(fromBucket, ct);
+
+        // Days at or after the hourly floor are already covered above.
+        var dailyCeiling = earliestHourly is null ? null : earliestHourly[..10];
+        var daily = await GetActivityByDayAsync(fromDay, dailyCeiling, ct);
+
+        return Merge(
+            hourly.Values.Select(a => (a.SystemId, a.ShipJumps, a.ShipKills, a.PodKills, a.NpcKills)),
+            daily .Values.Select(a => (a.SystemId, a.ShipJumps, a.ShipKills, a.PodKills, a.NpcKills)));
+    }
+
+    /// <summary>
+    /// Totals per system from the hourly tables only, from <paramref name="fromBucket"/> onward.
+    /// Bounded by the hourly retention window — use <see cref="GetActivityWindowAsync"/> unless
+    /// the window is certain to fit inside it.
+    /// </summary>
+    public async Task<Dictionary<int, SystemActivity>> GetActivityAsync(
+        string fromBucket, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var from = fromBucket;
 
         var jumps = await db.MapSystemJumps.AsNoTracking()
             .Where(j => string.Compare(j.Bucket, from) >= 0)
@@ -168,15 +207,20 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
             kills.Select(k => (k.SystemId, 0, k.Ship, k.Pod, k.Npc)));
     }
 
-    /// <summary>Totals per system over the last N days, from the daily rollup.</summary>
+    /// <summary>
+    /// Totals per system from the daily rollup, over [<paramref name="fromDay"/>,
+    /// <paramref name="beforeDay"/>). The exclusive upper bound is how the caller avoids
+    /// double-counting days that also still have hourly rows.
+    /// </summary>
     public async Task<Dictionary<int, SystemActivity>> GetActivityByDayAsync(
-        int days, CancellationToken ct = default)
+        string fromDay, string? beforeDay = null, CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();
-        var from = DateTimeOffset.UtcNow.AddDays(-days).ToString("yyyy-MM-dd");
+        var from = fromDay;
 
         var rows = await db.MapSystemDailies.AsNoTracking()
-            .Where(d => string.Compare(d.Day, from) >= 0)
+            .Where(d => string.Compare(d.Day, from) >= 0
+                     && (beforeDay == null || string.Compare(d.Day, beforeDay) < 0))
             .GroupBy(d => d.SystemId)
             .Select(g => new
             {
