@@ -127,6 +127,17 @@ public class AppDbContext : DbContext
     public DbSet<SdeBlueprintMaterial>  SdeBlueprintMaterials  => Set<SdeBlueprintMaterial>();
     public DbSet<SdeBlueprintProduct>   SdeBlueprintProducts   => Set<SdeBlueprintProduct>();
     public DbSet<SdeBlueprintSkill>     SdeBlueprintSkills     => Set<SdeBlueprintSkill>();
+    // Map statistics — hourly buckets plus their daily rollup.
+    public DbSet<MapSystemJump>     MapSystemJumps     => Set<MapSystemJump>();
+    public DbSet<MapSystemKill>     MapSystemKills     => Set<MapSystemKill>();
+    public DbSet<MapSystemDaily>    MapSystemDailies   => Set<MapSystemDaily>();
+    public DbSet<MapSovereignty>    MapSovereignties   => Set<MapSovereignty>();
+    public DbSet<MapSovStructure>   MapSovStructures   => Set<MapSovStructure>();
+    public DbSet<MapIndustryIndex>  MapIndustryIndices => Set<MapIndustryIndex>();
+    public DbSet<MapFactionWarfare> MapFactionWarfares => Set<MapFactionWarfare>();
+    public DbSet<MapIncursion>      MapIncursions      => Set<MapIncursion>();
+    public DbSet<MapStatBucket>     MapStatBuckets     => Set<MapStatBucket>();
+
     public DbSet<SdeRegion>             SdeRegions             => Set<SdeRegion>();
     public DbSet<SdeConstellation>      SdeConstellations      => Set<SdeConstellation>();
     public DbSet<SdeSolarSystem>        SdeSolarSystems        => Set<SdeSolarSystem>();
@@ -321,6 +332,46 @@ public class AppDbContext : DbContext
         mb.Entity<SdeRegion>(e => {
             e.HasKey(x => x.RegionId);
             e.Property(x => x.RegionId).ValueGeneratedNever(); });
+
+        // Map statistics. Every hourly table is keyed by (Bucket, …) so that a row
+        // written by the live ESI poll and the same row recovered later from the EVE Ref
+        // archive collide on the primary key instead of duplicating.
+        mb.Entity<MapSystemJump>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId });
+            e.ToTable("MapSystemJumps"); });
+
+        mb.Entity<MapSystemKill>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId });
+            e.ToTable("MapSystemKills"); });
+
+        mb.Entity<MapSystemDaily>(e => {
+            e.HasKey(x => new { x.Day, x.SystemId });
+            e.ToTable("MapSystemDailies"); });
+
+        mb.Entity<MapSovereignty>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId });
+            e.ToTable("MapSovereignties"); });
+
+        mb.Entity<MapSovStructure>(e => {
+            e.HasKey(x => new { x.Bucket, x.StructureId });
+            e.HasIndex(x => x.SystemId);
+            e.ToTable("MapSovStructures"); });
+
+        mb.Entity<MapIndustryIndex>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId, x.Activity });
+            e.ToTable("MapIndustryIndices"); });
+
+        mb.Entity<MapFactionWarfare>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId });
+            e.ToTable("MapFactionWarfares"); });
+
+        mb.Entity<MapIncursion>(e => {
+            e.HasKey(x => new { x.Bucket, x.ConstellationId });
+            e.ToTable("MapIncursions"); });
+
+        mb.Entity<MapStatBucket>(e => {
+            e.HasKey(x => new { x.Dataset, x.Bucket });
+            e.ToTable("MapStatBuckets"); });
 
         mb.Entity<SdeConstellation>(e => {
             e.HasKey(x => x.ConstellationId);

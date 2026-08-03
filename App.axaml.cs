@@ -1697,6 +1697,118 @@ public class App : Application
             db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailDetails_KillMailTime" ON "KillMailDetails" ("KillMailTime")""");
             db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailAttackers_KillMailId" ON "KillMailAttackers" ("KillMailId")""");
             db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailItems_KillMailId" ON "KillMailItems" ("KillMailId")""");
+
+            // ── Map statistics — hourly buckets + daily rollup ──────────────────
+            // Keyed by the CCP hour bucket, not by fetch time, so a row from the live ESI
+            // poll and the same hour recovered later from the EVE Ref archive collide on the
+            // primary key rather than duplicating.
+            foreach (var sql in new[]
+            {
+                """
+                CREATE TABLE IF NOT EXISTS "MapSystemJumps" (
+                    "Bucket"    TEXT    NOT NULL,
+                    "SystemId"  INTEGER NOT NULL,
+                    "ShipJumps" INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("Bucket", "SystemId")
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "MapSystemKills" (
+                    "Bucket"    TEXT    NOT NULL,
+                    "SystemId"  INTEGER NOT NULL,
+                    "ShipKills" INTEGER NOT NULL DEFAULT 0,
+                    "PodKills"  INTEGER NOT NULL DEFAULT 0,
+                    "NpcKills"  INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("Bucket", "SystemId")
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "MapSystemDailies" (
+                    "Day"       TEXT    NOT NULL,
+                    "SystemId"  INTEGER NOT NULL,
+                    "ShipJumps" INTEGER NOT NULL DEFAULT 0,
+                    "ShipKills" INTEGER NOT NULL DEFAULT 0,
+                    "PodKills"  INTEGER NOT NULL DEFAULT 0,
+                    "NpcKills"  INTEGER NOT NULL DEFAULT 0,
+                    "Hours"     INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("Day", "SystemId")
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "MapSovereignties" (
+                    "Bucket"        TEXT    NOT NULL,
+                    "SystemId"      INTEGER NOT NULL,
+                    "FactionId"     INTEGER,
+                    "CorporationId" INTEGER,
+                    "AllianceId"    INTEGER,
+                    PRIMARY KEY ("Bucket", "SystemId")
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "MapSovStructures" (
+                    "Bucket"          TEXT    NOT NULL,
+                    "StructureId"     INTEGER NOT NULL,
+                    "SystemId"        INTEGER NOT NULL,
+                    "AllianceId"      INTEGER,
+                    "StructureTypeId" INTEGER NOT NULL DEFAULT 0,
+                    "Adm"             REAL,
+                    "VulnerableStart" TEXT,
+                    "VulnerableEnd"   TEXT,
+                    PRIMARY KEY ("Bucket", "StructureId")
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "MapIndustryIndices" (
+                    "Bucket"    TEXT    NOT NULL,
+                    "SystemId"  INTEGER NOT NULL,
+                    "Activity"  TEXT    NOT NULL,
+                    "CostIndex" REAL    NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("Bucket", "SystemId", "Activity")
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "MapFactionWarfares" (
+                    "Bucket"                 TEXT    NOT NULL,
+                    "SystemId"               INTEGER NOT NULL,
+                    "OwnerFactionId"         INTEGER NOT NULL DEFAULT 0,
+                    "OccupierFactionId"      INTEGER NOT NULL DEFAULT 0,
+                    "ContestedState"         TEXT    NOT NULL DEFAULT '',
+                    "VictoryPoints"          INTEGER NOT NULL DEFAULT 0,
+                    "VictoryPointsThreshold" INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("Bucket", "SystemId")
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "MapIncursions" (
+                    "Bucket"          TEXT    NOT NULL,
+                    "ConstellationId" INTEGER NOT NULL,
+                    "StagingSystemId" INTEGER NOT NULL DEFAULT 0,
+                    "FactionId"       INTEGER NOT NULL DEFAULT 0,
+                    "State"           TEXT    NOT NULL DEFAULT '',
+                    "Influence"       REAL    NOT NULL DEFAULT 0,
+                    "HasBoss"         INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("Bucket", "ConstellationId")
+                )
+                """,
+                // Records that a bucket was fetched at all. A quiet hour legitimately produces
+                // no stat rows, so without this an empty hour is indistinguishable from one we
+                // never had — and every gap-fill pass would re-download it forever.
+                """
+                CREATE TABLE IF NOT EXISTS "MapStatBuckets" (
+                    "Dataset"  TEXT    NOT NULL,
+                    "Bucket"   TEXT    NOT NULL,
+                    "StoredAt" TEXT    NOT NULL,
+                    "Source"   TEXT    NOT NULL DEFAULT '',
+                    "RowCount" INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("Dataset", "Bucket")
+                )
+                """,
+                """CREATE INDEX IF NOT EXISTS "IX_MapSystemJumps_Bucket"     ON "MapSystemJumps"    ("Bucket")""",
+                """CREATE INDEX IF NOT EXISTS "IX_MapSystemKills_Bucket"     ON "MapSystemKills"    ("Bucket")""",
+                """CREATE INDEX IF NOT EXISTS "IX_MapSystemDailies_Day"      ON "MapSystemDailies"  ("Day")""",
+                """CREATE INDEX IF NOT EXISTS "IX_MapSovereignties_Bucket"   ON "MapSovereignties"  ("Bucket")""",
+                """CREATE INDEX IF NOT EXISTS "IX_MapSovStructures_SystemId" ON "MapSovStructures"  ("SystemId")""",
+            }) { try { db.Database.ExecuteSqlRaw(sql); } catch { } }
         }
         }); // end Task.Run — schema migration complete
 
@@ -1736,6 +1848,12 @@ public class App : Application
         Services.GetRequiredService<EntityNameBackfillService>().Start();
         // Started early and independently: everything else consults its verdict.
         Services.GetRequiredService<EveServerStatusService>().Start();
+
+        // Map statistics for the Universe tool. Both loops write rows keyed by CCP's hour
+        // bucket, so the archive catch-up and the live poller cannot collide even when they
+        // run over the same hour at the same time.
+        Services.GetRequiredService<MapStatsBackfillService>().Start();
+        Services.GetRequiredService<MapStatsPollingService>().Start();
     }
 
     private static void PositionSplashOnLastMonitor(SplashWindow splash)
@@ -1872,6 +1990,22 @@ public class App : Application
         services.AddSingleton<ZkillboardFirehoseService>();
         services.AddSingleton<ZkillboardBackfillService>();
         services.AddSingleton<ZkillboardPostService>();
+
+        // Map statistics for the Universe tool. ESI serves only the current hour for these
+        // endpoints, so the EVE Ref archive is the backbone and the poller only keeps the
+        // newest bucket fresh — see MapStatsPollingService.
+        services.AddHttpClient("everef", c =>
+        {
+            c.BaseAddress = new Uri(EveRefArchiveClient.BaseUrl);
+            c.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (+https://github.com/kernoeve/EveConsole)");
+            c.Timeout = TimeSpan.FromSeconds(60);
+        });
+        services.AddSingleton<MapStatsSettings>();
+        services.AddSingleton<EveRefArchiveClient>();
+        services.AddSingleton<MapStatsService>();
+        services.AddSingleton<MapStatsBackfillService>();
+        services.AddSingleton<MapStatsPollingService>();
+
         services.AddSingleton<EntityNameBackfillService>();
         services.AddSingleton<EveServerStatusService>();
         services.AddSingleton<UiLinkSettings>();

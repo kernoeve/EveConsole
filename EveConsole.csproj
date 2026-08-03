@@ -27,6 +27,7 @@
 
     <!-- MVVM / Reactive -->
     <PackageReference Include="ReactiveUI" Version="20.1.1" />
+    <PackageReference Include="SharpCompress" Version="0.50.3" />
 
     <!-- HTTP / JSON -->
     <PackageReference Include="System.Net.Http.Json" Version="9.0.0" />
