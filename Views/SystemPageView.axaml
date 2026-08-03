@@ -84,20 +84,22 @@
         </StackPanel>
 
         <!-- Counters, mirroring dotlan's 1h / 24h pairing -->
-        <Grid Grid.Column="3" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
-              VerticalAlignment="Top">
+        <Grid Grid.Column="3" ColumnDefinitions="Auto,Auto"
+              RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" VerticalAlignment="Top">
           <TextBlock Grid.Row="0" Grid.Column="0" Classes="hlabel" Text="Planets"        Margin="0 0 12 2" />
           <TextBlock Grid.Row="0" Grid.Column="1" Classes="col"    Text="{Binding PlanetCount}" />
           <TextBlock Grid.Row="1" Grid.Column="0" Classes="hlabel" Text="Moons"          Margin="0 0 12 2" />
           <TextBlock Grid.Row="1" Grid.Column="1" Classes="col"    Text="{Binding MoonCount}" />
-          <TextBlock Grid.Row="2" Grid.Column="0" Classes="hlabel" Text="Jumps 1h / 24h" Margin="0 6 12 2" />
-          <TextBlock Grid.Row="2" Grid.Column="1" Classes="col"    Text="{Binding Jumps}" Margin="0 6 0 2" />
-          <TextBlock Grid.Row="3" Grid.Column="0" Classes="hlabel" Text="Ship kills"     Margin="0 0 12 2" />
-          <TextBlock Grid.Row="3" Grid.Column="1" Classes="col"    Text="{Binding ShipKills}" />
-          <TextBlock Grid.Row="4" Grid.Column="0" Classes="hlabel" Text="NPC kills"      Margin="0 0 12 2" />
-          <TextBlock Grid.Row="4" Grid.Column="1" Classes="col"    Text="{Binding NpcKills}" />
-          <TextBlock Grid.Row="5" Grid.Column="0" Classes="hlabel" Text="Pod kills"      Margin="0 0 12 2" />
-          <TextBlock Grid.Row="5" Grid.Column="1" Classes="col"    Text="{Binding PodKills}" />
+          <TextBlock Grid.Row="2" Grid.Column="0" Classes="hlabel" Text="Belts"          Margin="0 0 12 2" />
+          <TextBlock Grid.Row="2" Grid.Column="1" Classes="col"    Text="{Binding BeltCount}" />
+          <TextBlock Grid.Row="3" Grid.Column="0" Classes="hlabel" Text="Jumps 1h / 24h" Margin="0 6 12 2" />
+          <TextBlock Grid.Row="3" Grid.Column="1" Classes="col"    Text="{Binding Jumps}" Margin="0 6 0 2" />
+          <TextBlock Grid.Row="4" Grid.Column="0" Classes="hlabel" Text="Ship kills"     Margin="0 0 12 2" />
+          <TextBlock Grid.Row="4" Grid.Column="1" Classes="col"    Text="{Binding ShipKills}" />
+          <TextBlock Grid.Row="5" Grid.Column="0" Classes="hlabel" Text="NPC kills"      Margin="0 0 12 2" />
+          <TextBlock Grid.Row="5" Grid.Column="1" Classes="col"    Text="{Binding NpcKills}" />
+          <TextBlock Grid.Row="6" Grid.Column="0" Classes="hlabel" Text="Pod kills"      Margin="0 0 12 2" />
+          <TextBlock Grid.Row="6" Grid.Column="1" Classes="col"    Text="{Binding PodKills}" />
         </Grid>
       </Grid>
     </Border>

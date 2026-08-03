@@ -25,6 +25,8 @@ public class SystemViewService(
         string SecurityClass,
         int    Planets,
         int    Moons,
+        int    Belts,
+        int    IceBelts,
         int    Gates,
         long?  AllianceId,
         long?  CorporationId,
@@ -58,6 +60,13 @@ public class SystemViewService(
             .Select(g => new { g.Key, Count = g.Count() })
             .ToDictionaryAsync(g => g.Key, g => g.Count, ct);
 
+        // Ice belts are asteroid belts whose type says so — the SDE gives them no separate
+        // kind, so the type name is the only distinction available.
+        var iceBelts = await db.SdeCelestials.AsNoTracking()
+            .Where(c => c.SolarSystemId == systemId && c.Kind == 3)
+            .Join(db.SdeTypes.AsNoTracking(), c => c.TypeId, t => t.TypeId, (c, t) => t.Name)
+            .CountAsync(n => n.Contains("Ice"), ct);
+
         var sov = (await stats.GetLatestSovereigntyAsync(ct)).GetValueOrDefault(systemId);
 
         var names = new Dictionary<long, string>();
@@ -80,7 +89,8 @@ public class SystemViewService(
         return new SystemHeader(
             s.SolarSystemId, s.Name, region, s.RegionId, constellation, s.ConstellationId,
             s.Security, s.SecurityClass,
-            celestials.GetValueOrDefault(0), celestials.GetValueOrDefault(1), celestials.GetValueOrDefault(2),
+            celestials.GetValueOrDefault(0), celestials.GetValueOrDefault(1),
+            celestials.GetValueOrDefault(3), iceBelts, celestials.GetValueOrDefault(2),
             sov?.AllianceId, sov?.CorporationId,
             sov?.AllianceId is { } a ? names.GetValueOrDefault(a, $"Alliance {a}") : "",
             sov?.CorporationId is { } c ? names.GetValueOrDefault(c, $"Corporation {c}") : "",

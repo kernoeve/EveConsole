@@ -153,6 +153,9 @@ public class SystemPageViewModel : ReactiveObject
     private string _planetCount = "";
     public string PlanetCount { get => _planetCount; private set => this.RaiseAndSetIfChanged(ref _planetCount, value); }
 
+    private string _beltCount = "";
+    public string BeltCount { get => _beltCount; private set => this.RaiseAndSetIfChanged(ref _beltCount, value); }
+
     private string _moonCount = "";
     public string MoonCount { get => _moonCount; private set => this.RaiseAndSetIfChanged(ref _moonCount, value); }
 
@@ -234,6 +237,9 @@ public class SystemPageViewModel : ReactiveObject
 
             PlanetCount = header.Planets.ToString("N0");
             MoonCount   = header.Moons.ToString("N0");
+            BeltCount   = header.IceBelts > 0
+                ? $"{header.Belts:N0} / {header.IceBelts:N0} ice"
+                : header.Belts.ToString("N0");
             Jumps     = $"{header.Jumps1h:N0} / {header.Jumps24h:N0}";
             ShipKills = $"{header.ShipKills1h:N0} / {header.ShipKills24h:N0}";
             NpcKills  = $"{header.NpcKills1h:N0} / {header.NpcKills24h:N0}";

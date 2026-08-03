@@ -126,9 +126,15 @@
                       SelectedId="{Binding SelectedId, Mode=TwoWay}"
                       ActivateCommand="{Binding DrillDownCommand}" />
 
-      <!-- ── System page — replaces the map, since there is no graph at this level ── -->
-      <views:SystemPageView Grid.Column="0" IsVisible="{Binding IsSystemLevel}"
-                            DataContext="{Binding SystemPage}" />
+      <!-- ── System page — replaces the map, since there is no graph at this level ──
+           The visibility binding lives on the wrapper, not on SystemPageView itself: every
+           binding on an element resolves against that element's DataContext, so putting both
+           IsVisible and DataContext on the view made IsVisible look for IsSystemLevel on the
+           page's own view model, fail, and fall back to true — leaving the page permanently
+           on top of the map. -->
+      <ContentControl Grid.Column="0" IsVisible="{Binding IsSystemLevel}">
+        <views:SystemPageView DataContext="{Binding SystemPage}" />
+      </ContentControl>
 
 
       <Rectangle Grid.Column="1" Fill="#1e1e2a" />

@@ -626,6 +626,22 @@ public class SdeImportService
             if (planet.position is { } pp)
                 list.Add(new SdeCelestial { ItemId = pid, SolarSystemId = systemId, TypeId = planet.typeID,
                     Kind = 0, X = pp.x, Y = pp.y, Z = pp.z, Name = pName });
+            if (planet.asteroidBelts is not null)
+            {
+                var bi = 0;
+                foreach (var (bid, belt) in planet.asteroidBelts.OrderBy(kv => kv.Key))
+                {
+                    bi++;
+                    if (belt.position is { } bp)
+                        list.Add(new SdeCelestial
+                        {
+                            ItemId = bid, SolarSystemId = systemId, TypeId = belt.typeID,
+                            Kind = 3, X = bp.x, Y = bp.y, Z = bp.z,
+                            Name = $"{pName} - Asteroid Belt {bi}",
+                        });
+                }
+            }
+
             if (planet.moons is null) continue;
             int mi = 0;
             foreach (var (mid, moon) in planet.moons.OrderBy(kv => kv.Key))
@@ -778,8 +794,35 @@ public class SdeImportService
                         Name = $"{sysNames.GetValueOrDefault(mo.solarSystemID, "")} {RomanNumeral(mo.celestialIndex)} - Moon {mo.orbitIndex}".Trim() });
         }
 
+        // Asteroid belts. CCP has shipped these under more than one name across SDE revisions,
+        // so the candidates are tried in turn rather than assuming one — a missing file simply
+        // means no belts, which is also the correct outcome for an SDE that omits them.
+        Report(p, "Universe", "Parsing asteroid belts…", 0.845);
+        foreach (var candidate in AsteroidBeltFiles)
+        {
+            var beltEntry = zip.GetEntry($"{fsdRoot}{candidate}");
+            if (beltEntry is null) continue;
+
+            using var r = OpenEntry(beltEntry);
+            var raw = _yaml.Deserialize<Dictionary<int, MapAsteroidBeltYaml>>(r) ?? [];
+            foreach (var (bid, b) in raw)
+                if (b.position is { } bp)
+                    celestials.Add(new SdeCelestial
+                    {
+                        ItemId = bid, SolarSystemId = b.solarSystemID, TypeId = b.typeID,
+                        Kind = 3, X = bp.x, Y = bp.y, Z = bp.z,
+                        Name = $"{sysNames.GetValueOrDefault(b.solarSystemID, "")} " +
+                               $"{RomanNumeral(b.celestialIndex)} - Asteroid Belt {b.orbitIndex}".Trim(),
+                    });
+            break;
+        }
+
         await SaveBatchesAsync(db, db.SdeCelestials, celestials, "Celestials", celestials.Count, p, 0.85, 0.87, ct);
     }
+
+    /// <summary>Names CCP has used for the asteroid-belt file across SDE revisions.</summary>
+    private static readonly string[] AsteroidBeltFiles =
+        ["mapAsteroidBelts.yaml", "mapAsteroidbelts.yaml", "asteroidBelts.yaml"];
 
     private async Task ImportUniverseNestedAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
@@ -1346,13 +1389,24 @@ public class SdeImportService
         public int           typeID      { get; set; }
         public PositionYaml? position    { get; set; }
     }
-    // Nested universe (old SDE): planets carry their moons inline.
+    // Nested universe (old SDE): planets carry their moons and belts inline.
     private class PlanetYaml
     {
         public int           celestialIndex { get; set; }
         public int           typeID         { get; set; }
         public PositionYaml? position       { get; set; }
-        public Dictionary<int, MoonYaml>? moons { get; set; }
+        public Dictionary<int, MoonYaml>? moons         { get; set; }
+        public Dictionary<int, MoonYaml>? asteroidBelts { get; set; }
+    }
+
+    // Flat universe: asteroid belts alongside mapPlanets/mapMoons, same shape as a moon.
+    private class MapAsteroidBeltYaml
+    {
+        public int           celestialIndex { get; set; }
+        public int           orbitIndex     { get; set; }
+        public int           solarSystemID  { get; set; }
+        public int           typeID         { get; set; }
+        public PositionYaml? position       { get; set; }
     }
     private class MoonYaml
     {
