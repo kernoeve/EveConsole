@@ -288,6 +288,45 @@ public class SystemViewService(
         return points.Values.OrderBy(p => p.Day).ToList();
     }
 
+    public sealed record HourPoint(DateTimeOffset Hour, int Jumps, int ShipKills, int PodKills, int NpcKills);
+
+    /// <summary>
+    /// Hour-by-hour activity for the recent past, for the small charts on the Overview.
+    ///
+    /// Bounded by the hourly retention window rather than by the hours asked for: those rows are
+    /// rolled into daily totals and deleted once they age out, so a 48-hour chart only fills if
+    /// hourly detail is kept for at least two days.
+    /// </summary>
+    public async Task<List<HourPoint>> GetHourlyHistoryAsync(
+        int systemId, int hours = 48, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var from = MapStatsService.BucketOf(DateTimeOffset.UtcNow.AddHours(-hours));
+
+        var jumps = await db.MapSystemJumps.AsNoTracking()
+            .Where(j => j.SystemId == systemId && string.Compare(j.Bucket, from) >= 0)
+            .Select(j => new { j.Bucket, j.ShipJumps }).ToListAsync(ct);
+        var kills = await db.MapSystemKills.AsNoTracking()
+            .Where(k => k.SystemId == systemId && string.Compare(k.Bucket, from) >= 0)
+            .Select(k => new { k.Bucket, k.ShipKills, k.PodKills, k.NpcKills }).ToListAsync(ct);
+
+        var buckets = jumps.Select(j => j.Bucket).Concat(kills.Select(k => k.Bucket))
+                           .Distinct().OrderBy(b => b).ToList();
+
+        var jumpBy = jumps.ToDictionary(j => j.Bucket, j => j.ShipJumps);
+        var killBy = kills.ToDictionary(k => k.Bucket, k => k);
+
+        return buckets.Select(b => new HourPoint(
+            MapStatsService.ParseBucket(b),
+            jumpBy.GetValueOrDefault(b),
+            killBy.TryGetValue(b, out var k) ? k.ShipKills : 0,
+            k2(b, killBy, x => x.PodKills),
+            k2(b, killBy, x => x.NpcKills))).ToList();
+
+        static int k2<T>(string b, Dictionary<string, T> d, Func<T, int> pick) =>
+            d.TryGetValue(b, out var v) ? pick(v) : 0;
+    }
+
     // ── Celestials ───────────────────────────────────────────────────────────
 
     public sealed record CelestialRow(long ItemId, int TypeId, string Name, string TypeName, int Kind);

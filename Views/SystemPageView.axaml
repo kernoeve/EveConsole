@@ -113,6 +113,37 @@
         <ScrollViewer>
           <StackPanel Margin="16" Spacing="16">
 
+            <!-- Hourly activity at a glance, the way dotlan heads its overview. -->
+            <StackPanel>
+              <TextBlock Classes="note" Text="{Binding HourNote}" />
+              <Grid ColumnDefinitions="*,12,*,12,*,12,*">
+                <StackPanel Grid.Column="0">
+                  <TextBlock Classes="colhead" Text="JUMPS" />
+                  <lvc:CartesianChart Height="110" Series="{Binding HourJumpSeries}"
+                                      XAxes="{Binding HourXAxes}" YAxes="{Binding HourYAxes}"
+                                      EasingFunction="{x:Null}" Background="Transparent" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                  <TextBlock Classes="colhead" Text="NPC KILLS" />
+                  <lvc:CartesianChart Height="110" Series="{Binding HourNpcSeries}"
+                                      XAxes="{Binding HourXAxes}" YAxes="{Binding HourYAxes}"
+                                      EasingFunction="{x:Null}" Background="Transparent" />
+                </StackPanel>
+                <StackPanel Grid.Column="4">
+                  <TextBlock Classes="colhead" Text="SHIP KILLS" />
+                  <lvc:CartesianChart Height="110" Series="{Binding HourShipSeries}"
+                                      XAxes="{Binding HourXAxes}" YAxes="{Binding HourYAxes}"
+                                      EasingFunction="{x:Null}" Background="Transparent" />
+                </StackPanel>
+                <StackPanel Grid.Column="6">
+                  <TextBlock Classes="colhead" Text="POD KILLS" />
+                  <lvc:CartesianChart Height="110" Series="{Binding HourPodSeries}"
+                                      XAxes="{Binding HourXAxes}" YAxes="{Binding HourYAxes}"
+                                      EasingFunction="{x:Null}" Background="Transparent" />
+                </StackPanel>
+              </Grid>
+            </StackPanel>
+
             <StackPanel>
               <TextBlock Classes="colhead" Text="SOVEREIGNTY STRUCTURES" Margin="0 0 0 6" />
               <TextBlock Classes="note" Text="No sovereignty structures in this system."

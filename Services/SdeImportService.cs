@@ -742,17 +742,24 @@ public class SdeImportService
             await SaveBatchesAsync(db, db.SdeSolarSystems, rows, "Solar Systems", raw.Count, p, 0.80, 0.82, ct);
             foreach (var (sysId, sys) in raw) sysNames[sysId] = sys.name?.en ?? "";
 
-            // The star, as a celestial of its own kind. It sits at the origin of the system's
-            // coordinates, which is also what every other celestial's orbital radius is measured
-            // from, so the system view can head its celestial tree with it.
-            foreach (var (sysId, sys) in raw)
-                if (sys.star is { } star && star.typeID > 0)
-                    stars.Add(new SdeCelestial
-                    {
-                        ItemId = star.id, SolarSystemId = sysId, TypeId = star.typeID,
-                        Kind = 4, X = 0, Y = 0, Z = 0,
-                        Name = sysNames.GetValueOrDefault(sysId, ""),
-                    });
+            // Stars are their own top-level file, mapStars.yaml — not a field on the system,
+            // which is what an earlier attempt assumed and why no star was ever imported.
+            var starEntry = zip.GetEntry($"{fsdRoot}mapStars.yaml");
+            if (starEntry != null)
+            {
+                using var sr = OpenEntry(starEntry);
+                var starRaw = _yaml.Deserialize<Dictionary<long, MapStarYaml>>(sr) ?? [];
+                foreach (var (starId, st) in starRaw)
+                    if (st.typeID > 0)
+                        stars.Add(new SdeCelestial
+                        {
+                            ItemId = starId, SolarSystemId = st.solarSystemID, TypeId = st.typeID,
+                            // The star sits at the origin of its system's coordinates, which is
+                            // what every other celestial's orbital radius is measured from.
+                            Kind = 4, X = 0, Y = 0, Z = 0,
+                            Name = sysNames.GetValueOrDefault(st.solarSystemID, ""),
+                        });
+            }
         }
 
         Report(p, "Universe", "Parsing mapStargates.yaml…", 0.82);
@@ -1478,16 +1485,15 @@ public class SdeImportService
         public Position2DYaml?  position2D      { get; set; }
         public string?          securityClass   { get; set; }
         public double           radius          { get; set; }
-        public StarYaml?        star            { get; set; }
         public Dictionary<int, PlanetYaml>? planets { get; set; }
     }
 
-    /// <summary>The system's star. Its type is what gives the spectral class the system view
-    /// shows ("Sun K5 (Orange Bright)").</summary>
-    private class StarYaml
+    /// <summary>mapStars.yaml — keyed by star id, one per system. The type name carries the
+    /// spectral class the system view shows ("Sun K5 (Orange Bright)").</summary>
+    private class MapStarYaml
     {
-        public long id     { get; set; }
-        public int  typeID { get; set; }
+        public int solarSystemID { get; set; }
+        public int typeID        { get; set; }
     }
     private class MapStargateYaml
     {

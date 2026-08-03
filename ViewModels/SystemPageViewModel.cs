@@ -240,6 +240,29 @@ public class SystemPageViewModel : ReactiveObject
     private string _graphNote = "";
     public string GraphNote { get => _graphNote; private set => this.RaiseAndSetIfChanged(ref _graphNote, value); }
 
+    // ── Overview sparklines (hourly) ─────────────────────────────────────────
+
+    private ISeries[] _hourJumpSeries = [];
+    public ISeries[] HourJumpSeries { get => _hourJumpSeries; private set => this.RaiseAndSetIfChanged(ref _hourJumpSeries, value); }
+
+    private ISeries[] _hourNpcSeries = [];
+    public ISeries[] HourNpcSeries { get => _hourNpcSeries; private set => this.RaiseAndSetIfChanged(ref _hourNpcSeries, value); }
+
+    private ISeries[] _hourShipSeries = [];
+    public ISeries[] HourShipSeries { get => _hourShipSeries; private set => this.RaiseAndSetIfChanged(ref _hourShipSeries, value); }
+
+    private ISeries[] _hourPodSeries = [];
+    public ISeries[] HourPodSeries { get => _hourPodSeries; private set => this.RaiseAndSetIfChanged(ref _hourPodSeries, value); }
+
+    private Axis[] _hourXAxes = [];
+    public Axis[] HourXAxes { get => _hourXAxes; private set => this.RaiseAndSetIfChanged(ref _hourXAxes, value); }
+
+    private Axis[] _hourYAxes = [];
+    public Axis[] HourYAxes { get => _hourYAxes; private set => this.RaiseAndSetIfChanged(ref _hourYAxes, value); }
+
+    private string _hourNote = "";
+    public string HourNote { get => _hourNote; private set => this.RaiseAndSetIfChanged(ref _hourNote, value); }
+
     public string IntelNote =>
         "Intel channel reports will appear here once chat-log parsing is in place. " +
         "Reports will be recorded against the system they name, with the time and the reporter.";
@@ -266,6 +289,7 @@ public class SystemPageViewModel : ReactiveObject
         var gates      = await _svc.GetGatesAsync(systemId);
         var since      = await _svc.GetHistoryStartAsync();
         var history    = await _svc.GetHistoryAsync(systemId);
+        var hourly     = await _svc.GetHourlyHistoryAsync(systemId);
 
         // The kill list is the same query and the same row type the Kills tool uses, so the
         // formatting and icons match the rest of the app rather than being reinvented here.
@@ -305,6 +329,7 @@ public class SystemPageViewModel : ReactiveObject
                                    .Select(e => new SystemEventVm(e)));
             Fill(Celestials, tree.Select(n => new CelestialNodeVm(n)));
             BuildGraphs(history);
+            BuildSparklines(hourly);
             Fill(Structures, structures.Select(s => new SysStructureVm(s)));
             Fill(Kills, killPage.Rows.Select(r => new KillmailListRowVm(r)));
             Fill(Gates, gates.Select(g => new GateVm(g)));
@@ -349,6 +374,67 @@ public class SystemPageViewModel : ReactiveObject
             Task.WhenAll(Structures.Select(x => x.LoadIconAsync())),
             Task.WhenAll(Events.Take(40).Select(x => x.LoadIconAsync())),
             Task.WhenAll(Kills.Select(x => x.LoadImagesAsync())));
+    }
+
+    /// <summary>
+    /// The four small hourly charts on the Overview. Bounded by how much hourly detail is kept,
+    /// which is one day by default — so the span is stated rather than labelled "48h" when it
+    /// may hold less.
+    /// </summary>
+    private void BuildSparklines(List<SystemViewService.HourPoint> hourly)
+    {
+        if (hourly.Count == 0)
+        {
+            HourJumpSeries = HourNpcSeries = HourShipSeries = HourPodSeries = [];
+            HourNote = "No hourly history stored yet.";
+            return;
+        }
+
+        var span = (hourly[^1].Hour - hourly[0].Hour).TotalHours + 1;
+        HourNote = $"Last {span:F0} hours, hour by hour. " +
+                   "Raise \"keep hourly detail\" in Settings for a longer span.";
+
+        static ISeries[] Spark(IEnumerable<int> values, string hex) =>
+        [
+            new LineSeries<int>
+            {
+                Values         = values.ToArray(),
+                GeometrySize   = 0,
+                LineSmoothness = 0.2,
+                Stroke         = new SolidColorPaint(SKColor.Parse(hex)) { StrokeThickness = 1.6f },
+                Fill           = new SolidColorPaint(SKColor.Parse(hex).WithAlpha(40)),
+            },
+        ];
+
+        HourJumpSeries = Spark(hourly.Select(h => h.Jumps),     "#6FC8F0");
+        HourNpcSeries  = Spark(hourly.Select(h => h.NpcKills),  "#7FD070");
+        HourShipSeries = Spark(hourly.Select(h => h.ShipKills), "#FF6A3D");
+        HourPodSeries  = Spark(hourly.Select(h => h.PodKills),  "#F0D040");
+
+        // Hours back from now, like dotlan's "42h 36h … 0h", rather than wall-clock stamps
+        // that would be unreadable at this size.
+        var newest = hourly[^1].Hour;
+        HourXAxes =
+        [
+            new Axis
+            {
+                Labels      = hourly.Select(h => $"{(newest - h.Hour).TotalHours:F0}h").ToArray(),
+                LabelsPaint = new SolidColorPaint(SKColor.Parse("#55556A")),
+                TextSize    = 9,
+                MinStep     = Math.Max(1, hourly.Count / 6),
+                SeparatorsPaint = null,
+            },
+        ];
+        HourYAxes =
+        [
+            new Axis
+            {
+                LabelsPaint = new SolidColorPaint(SKColor.Parse("#55556A")),
+                TextSize    = 9,
+                MinLimit    = 0,
+                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#1A1A24")) { StrokeThickness = 1 },
+            },
+        ];
     }
 
     private void BuildGraphs(List<SystemViewService.HistoryPoint> history)
