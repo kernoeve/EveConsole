@@ -117,8 +117,9 @@ public class MapCanvas : Control
     // Systems switch from dots to labelled boxes once there is room for the boxes, judged by
     // how far apart neighbouring systems actually are on screen rather than by a fixed zoom
     // level — that way a sparse region and a dense one both switch when they look ready.
-    private const double BoxFadeStart = 58;   // px between neighbours: boxes begin to appear
-    private const double BoxFadeEnd   = 94;   // px between neighbours: boxes fully replace dots
+    // The switch is a clean cutover: crossfading the two forms meant a zoom level where every
+    // system was drawn twice, which just looked like a rendering fault.
+    private const double BoxThreshold = 76;   // px between neighbours: dots below, boxes above
     private const double DotLabelMin  = 26;   // px: below this even the dot labels are noise
 
     // ── View transform ───────────────────────────────────────────────────────
@@ -329,11 +330,10 @@ public class MapCanvas : Control
         }
 
         // How much room neighbouring systems have on screen decides the representation: dots
-        // when they are packed together, labelled boxes once they are far enough apart, and a
-        // crossfade in between so zooming does not snap.
-        var spacingPx = _spacing * _scale;
-        var boxAlpha  = Smoothstep(spacingPx, BoxFadeStart, BoxFadeEnd);
-        var dotAlpha  = 1 - boxAlpha;
+        // when they are packed together, labelled boxes once they are far enough apart. One or
+        // the other, never both.
+        var spacingPx     = _spacing * _scale;
+        var useBoxes      = spacingPx >= BoxThreshold;
         var showDotLabels = spacingPx >= DotLabelMin;
 
         _gateRects.Clear();
@@ -352,29 +352,11 @@ public class MapCanvas : Control
             var style = overlay is not null && overlay.TryGetValue(n.Id, out var s) ? s : null;
             var fill  = style?.Fill ?? DefaultFill;
 
-            if (dotAlpha > 0.01)
-            {
-                using (ctx.PushOpacity(dotAlpha))
-                    DrawDot(ctx, n, p, fill, style, showDotLabels);
-            }
-
-            if (boxAlpha > 0.01)
-            {
-                using (ctx.PushOpacity(boxAlpha))
-                    DrawSystemBox(ctx, n, p, fill);
-            }
+            if (useBoxes) DrawSystemBox(ctx, n, p, fill);
+            else          DrawDot(ctx, n, p, fill, style, showDotLabels);
         }
 
         if (_hover is not null) DrawTooltip(ctx, _hover);
-    }
-
-    /// <summary>Smooth 0..1 ramp between two thresholds, so the crossfade eases rather than
-    /// running at a constant rate and popping at each end.</summary>
-    private static double Smoothstep(double v, double lo, double hi)
-    {
-        if (hi <= lo) return v >= hi ? 1 : 0;
-        var t = Math.Clamp((v - lo) / (hi - lo), 0, 1);
-        return t * t * (3 - 2 * t);
     }
 
     private void DrawDot(
