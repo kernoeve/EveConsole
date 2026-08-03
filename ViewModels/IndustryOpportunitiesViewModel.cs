@@ -562,8 +562,9 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         var region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 
-        // NPC station: resolve via its solar system. (SdeStations.RegionId is not
-        // populated by the SDE import — join through SolarSystemId instead.)
+        // NPC station: resolve via its solar system. SdeStations.RegionId is populated now
+        // (by the importer, and by a startup repair for databases imported before that fix),
+        // but the join is kept deliberately — it is correct whatever state the column is in.
         cmd.CommandText = """
             SELECT ss."RegionId"
             FROM "SdeStations"     s
