@@ -433,6 +433,27 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
                       .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
     }
 
+    /// <summary>
+    /// Averages a per-system value up to its region, for showing a system-level measure on the
+    /// universe map. Only systems present in the input count toward the average, so a region
+    /// where most systems have no reading is not dragged down by treating absent as zero.
+    /// </summary>
+    public async Task<Dictionary<int, double>> GetRegionAveragesAsync(
+        IReadOnlyDictionary<int, double> bySystem, CancellationToken ct = default)
+    {
+        if (bySystem.Count == 0) return [];
+
+        using var db = dbFactory.CreateDbContext();
+        var regionOf = await db.SdeSolarSystems.AsNoTracking()
+            .Select(s => new { s.SolarSystemId, s.RegionId })
+            .ToDictionaryAsync(s => s.SolarSystemId, s => s.RegionId, ct);
+
+        return bySystem
+            .Where(kv => regionOf.ContainsKey(kv.Key))
+            .GroupBy(kv => regionOf[kv.Key])
+            .ToDictionary(g => g.Key, g => g.Average(kv => kv.Value));
+    }
+
     public sealed record SystemDetail(
         int    SystemId,
         string Name,

@@ -256,6 +256,63 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
     /// </summary>
     /// <summary>State tables kept at one snapshot per day beyond the current day. These back
     /// the daily-cadence datasets, which dominate storage — see MapDataset.DailyCadence.</summary>
+    /// <summary>Who holds a system and how well defended it is, for the sovereignty overlay.</summary>
+    public sealed record SovOverlayEntry(long? AllianceId, string Holder, double? Adm);
+
+    /// <summary>
+    /// Latest sovereignty snapshot joined to the newest ADM reading, with holder names resolved
+    /// from the entity-name cache where they are known.
+    /// </summary>
+    public async Task<Dictionary<int, SovOverlayEntry>> GetSovereigntyOverlayAsync(
+        CancellationToken ct = default)
+    {
+        var sov = await GetLatestSovereigntyAsync(ct);
+        if (sov.Count == 0) return [];
+
+        var adm = await GetLatestAdmAsync(ct);
+
+        using var db = dbFactory.CreateDbContext();
+        var ids = sov.Values.Where(s => s.AllianceId is not null)
+                            .Select(s => s.AllianceId!.Value).Distinct().ToList();
+
+        // Names come from the shared cache, which fills in as other features resolve entities.
+        // An unresolved alliance simply shows its id rather than blocking the overlay.
+        var names = await db.UniverseNames.AsNoTracking()
+            .Where(n => ids.Contains(n.EntityId))
+            .ToDictionaryAsync(n => n.EntityId, n => n.Name, ct);
+
+        return sov.ToDictionary(
+            kv => kv.Key,
+            kv =>
+            {
+                var s = kv.Value;
+                var holder = s.AllianceId is { } a
+                    ? names.GetValueOrDefault(a, $"Alliance {a}")
+                    : s.FactionId is { } f ? $"Faction {f}" : "Unclaimed";
+
+                // TryGetValue, not GetValueOrDefault: the latter yields 0.0 for a system with
+                // no sovereignty structure, which is a real ADM value and would print "0.0"
+                // under every high-sec system instead of leaving the caption empty.
+                double? admValue = adm.TryGetValue(kv.Key, out var found) ? found : null;
+                return new SovOverlayEntry(s.AllianceId, holder, admValue);
+            });
+    }
+
+    /// <summary>Most recent cost index per system for one industry activity.</summary>
+    public async Task<Dictionary<int, double>> GetLatestIndustryAsync(
+        string activity, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+
+        var latest = await db.MapIndustryIndices.AsNoTracking()
+            .OrderByDescending(i => i.Bucket).Select(i => i.Bucket).FirstOrDefaultAsync(ct);
+        if (latest is null) return [];
+
+        return await db.MapIndustryIndices.AsNoTracking()
+            .Where(i => i.Bucket == latest && i.Activity == activity)
+            .ToDictionaryAsync(i => i.SystemId, i => i.CostIndex, ct);
+    }
+
     public sealed record DatasetCoverage(
         string Dataset, int Buckets, int Days, string Earliest, string Latest);
 

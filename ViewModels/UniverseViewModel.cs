@@ -68,15 +68,20 @@ public class DetailRowVm(string label, string value)
 public class UniverseViewModel : ReactiveObject
 {
     private readonly UniverseMapService _map;
+    private readonly MapStatsService?   _stats;
 
-    public UniverseViewModel(UniverseMapService map)
+    public UniverseViewModel(UniverseMapService map, MapStatsService? stats = null)
     {
-        _map = map;
+        _map   = map;
+        _stats = stats;
 
         OverlayModes =
         [
             new("Security",      "security"),
             new("Constellation", "constellation"),   // regions, at universe level
+            new("Sovereignty",   "sovereignty"),
+            new("Industry — manufacturing", "industry:manufacturing"),
+            new("Industry — reactions",     "industry:reaction"),
             new("Kills (30d)",   "kills30"),
             new("Kills (7d)",    "kills7"),
             new("Kills (24h)",   "kills1"),
@@ -424,6 +429,14 @@ public class UniverseViewModel : ReactiveObject
                 BuildConstellationOverlay(g, styles, byRegion);
                 break;
 
+            case "sovereignty":
+                await BuildSovereigntyOverlayAsync(g, styles, legend, byRegion);
+                break;
+
+            case { } k when k.StartsWith("industry:"):
+                await BuildIndustryOverlayAsync(g, styles, legend, k[9..], byRegion);
+                break;
+
             case "stations":
             {
                 var counts = await _map.GetStationCountsAsync(byRegion);
@@ -528,6 +541,103 @@ public class UniverseViewModel : ReactiveObject
                     ? $"Security {n.Security:F2} (region average)"
                     : $"{n.ConstellationName} · security {n.Security:F2}");
         }
+    }
+
+    /// <summary>
+    /// Colours each system by who holds it, with the Activity Defense Multiplier as the caption
+    /// — the same pairing dotlan shows, and the reason the node box has a second line.
+    /// </summary>
+    private async Task BuildSovereigntyOverlayAsync(
+        MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend, bool byRegion)
+    {
+        if (_stats is null) return;
+
+        var sov = await _stats.GetSovereigntyOverlayAsync();
+
+        // A distinct hue per alliance, ordered by how much space they hold so the largest
+        // blocs get stable colours rather than shuffling as the map is redrawn.
+        var ranked = sov.Values
+            .Where(s => s.AllianceId is not null)
+            .GroupBy(s => s.AllianceId!.Value)
+            .OrderByDescending(x => x.Count()).ThenBy(x => x.Key)
+            .Select((x, i) => (Alliance: x.Key, Hue: i * 137.508 % 360))
+            .ToDictionary(x => x.Alliance, x => x.Hue);
+
+        var unclaimed = Color.Parse("#3a3a48");
+
+        foreach (var n in g.Nodes)
+        {
+            // At universe level a node is a region, which has no single holder — the overlay
+            // only means anything system by system.
+            if (byRegion)
+            {
+                styles[n.Id] = new MapNodeStyle(unclaimed, Detail: "Open a region to see sovereignty");
+                continue;
+            }
+
+            if (!sov.TryGetValue(n.Id, out var s) || s.AllianceId is null)
+            {
+                styles[n.Id] = new MapNodeStyle(
+                    unclaimed,
+                    Caption: sov.TryGetValue(n.Id, out var f) && f.Holder != "Unclaimed" ? f.Holder : null,
+                    Detail: sov.GetValueOrDefault(n.Id)?.Holder ?? "Unclaimed");
+                continue;
+            }
+
+            var color = FromHsv(ranked.GetValueOrDefault(s.AllianceId.Value), 0.55, 0.85);
+            styles[n.Id] = new MapNodeStyle(
+                color,
+                Caption: s.Adm is { } adm ? adm.ToString("F1") : null,
+                Detail: s.Adm is { } a ? $"{s.Holder} · ADM {a:F1}" : s.Holder);
+        }
+
+        var held = sov.Values.Count(s => s.AllianceId is not null);
+        legend.Add(new LegendEntryVm($"{ranked.Count:N0} alliances, {held:N0} systems",
+            ranked.Count > 0 ? FromHsv(ranked.Values.First(), 0.55, 0.85) : unclaimed));
+        legend.Add(new LegendEntryVm("Unclaimed / NPC", unclaimed));
+        legend.Add(new LegendEntryVm("Caption is the ADM", Color.Parse("#8a8a9a")));
+    }
+
+    /// <summary>
+    /// Colours by industry cost index for one activity. The index is a small fraction — a busy
+    /// manufacturing hub sits a few percent — so the ramp is scaled to the values actually
+    /// present rather than to a fixed 0-100%.
+    /// </summary>
+    private async Task BuildIndustryOverlayAsync(
+        MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend,
+        string activity, bool byRegion)
+    {
+        if (_stats is null) return;
+
+        var idx = await _stats.GetLatestIndustryAsync(activity);
+        var cold = Color.Parse("#22303a");
+        var hot  = Color.Parse("#5fd0a0");
+
+        // Regions have no index of their own; averaging their systems is the honest summary.
+        var values = byRegion ? new Dictionary<int, double>() : idx;
+        if (byRegion && idx.Count > 0)
+        {
+            var byRegionAvg = await _map.GetRegionAveragesAsync(idx);
+            values = byRegionAvg;
+        }
+
+        var max = values.Count == 0 ? 0 : values.Values.Max();
+
+        foreach (var n in g.Nodes)
+        {
+            var v = values.GetValueOrDefault(n.Id);
+            var t = max > 0 ? v / max : 0;
+            styles[n.Id] = new MapNodeStyle(
+                v > 0 ? Lerp(cold, hot, t) : cold,
+                Caption: v > 0 ? $"{v * 100:F2}%" : "—",
+                Detail: v > 0
+                    ? $"{activity.Replace('_', ' ')} index {v * 100:F2}%" +
+                      (byRegion ? " (region average)" : "")
+                    : "No index recorded");
+        }
+
+        legend.Add(new LegendEntryVm("lowest", cold));
+        legend.Add(new LegendEntryVm(max > 0 ? $"highest ({max * 100:F2}%)" : "no data", hot));
     }
 
     private static void BuildCountOverlay(

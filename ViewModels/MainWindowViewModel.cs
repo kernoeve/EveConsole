@@ -381,7 +381,7 @@ public class MainWindowViewModel : ReactiveObject
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
-        UniverseVm             = new UniverseViewModel(new UniverseMapService(dbFactory));
+        UniverseVm             = new UniverseViewModel(new UniverseMapService(dbFactory), mapStatsService);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
