@@ -257,9 +257,189 @@ public class SystemViewService(
         return first is null ? null : MapStatsService.ParseBucket(first);
     }
 
+    // ── Activity history ─────────────────────────────────────────────────────
+
+    public sealed record HistoryPoint(DateOnly Day, int Jumps, int ShipKills, int PodKills, int NpcKills);
+
+    /// <summary>
+    /// Daily activity for one system across the stored window.
+    ///
+    /// Comes from the daily rollup plus whatever hourly rows still exist for today, since the
+    /// hourly tables are trimmed to a day — today has not been rolled up yet, so reading only
+    /// the rollup would leave the newest point missing.
+    /// </summary>
+    public async Task<List<HistoryPoint>> GetHistoryAsync(int systemId, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+
+        var daily = await db.MapSystemDailies.AsNoTracking()
+            .Where(d => d.SystemId == systemId)
+            .Select(d => new { d.Day, d.ShipJumps, d.ShipKills, d.PodKills, d.NpcKills })
+            .ToListAsync(ct);
+
+        var points = daily.ToDictionary(
+            d => d.Day,
+            d => new HistoryPoint(DateOnly.Parse(d.Day), d.ShipJumps, d.ShipKills, d.PodKills, d.NpcKills));
+
+        var jumps = await db.MapSystemJumps.AsNoTracking()
+            .Where(j => j.SystemId == systemId)
+            .Select(j => new { j.Bucket, j.ShipJumps }).ToListAsync(ct);
+        var kills = await db.MapSystemKills.AsNoTracking()
+            .Where(k => k.SystemId == systemId)
+            .Select(k => new { k.Bucket, k.ShipKills, k.PodKills, k.NpcKills }).ToListAsync(ct);
+
+        foreach (var g in jumps.GroupBy(j => j.Bucket[..10]))
+        {
+            var cur = points.GetValueOrDefault(g.Key, new HistoryPoint(DateOnly.Parse(g.Key), 0, 0, 0, 0));
+            points[g.Key] = cur with { Jumps = cur.Jumps + g.Sum(x => x.ShipJumps) };
+        }
+        foreach (var g in kills.GroupBy(k => k.Bucket[..10]))
+        {
+            var cur = points.GetValueOrDefault(g.Key, new HistoryPoint(DateOnly.Parse(g.Key), 0, 0, 0, 0));
+            points[g.Key] = cur with
+            {
+                ShipKills = cur.ShipKills + g.Sum(x => x.ShipKills),
+                PodKills  = cur.PodKills  + g.Sum(x => x.PodKills),
+                NpcKills  = cur.NpcKills  + g.Sum(x => x.NpcKills),
+            };
+        }
+
+        return points.Values.OrderBy(p => p.Day).ToList();
+    }
+
     // ── Celestials ───────────────────────────────────────────────────────────
 
     public sealed record CelestialRow(long ItemId, int TypeId, string Name, string TypeName, int Kind);
+
+    /// <summary>
+    /// One line of the celestial tree. Depth drives the indent: 0 for things orbiting the star,
+    /// 1 for moons and belts of a planet, and one deeper again for anything docked at them.
+    /// </summary>
+    public sealed record CelestialNode(
+        int Depth, string Kind, string Name, string TypeName, int TypeId, string Owner);
+
+    /// <summary>
+    /// The system laid out as it is arranged in space rather than as separate lists: the star,
+    /// then the gates, then each planet in orbital order with its belts, moons and anything
+    /// docked at them nested beneath.
+    ///
+    /// Structures are placed two different ways because the two sources record location
+    /// differently. Player structures carry a nearest-celestial id, which is exact. NPC
+    /// stations carry none at all, but their names begin with the celestial they orbit
+    /// ("Jita IV - Moon 6 - Ytiri Storage"), so the longest celestial name that prefixes the
+    /// station name identifies it — matching longest-first, since "Jita IV" also prefixes
+    /// "Jita IV - Moon 6".
+    /// </summary>
+    public async Task<List<CelestialNode>> GetCelestialTreeAsync(
+        int systemId, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+
+        var celestials = await db.SdeCelestials.AsNoTracking()
+            .Where(c => c.SolarSystemId == systemId)
+            .Join(db.SdeTypes.AsNoTracking(), c => c.TypeId, t => t.TypeId,
+                  (c, t) => new { c.ItemId, c.TypeId, c.Name, TypeName = t.Name, c.Kind, c.X, c.Y, c.Z })
+            .ToListAsync(ct);
+        if (celestials.Count == 0) return [];
+
+        // Distance from the star, which is the origin of a system's own coordinates. This is
+        // what puts the planets in orbital order without needing the celestial index.
+        double Radius(double x, double y, double z) => Math.Sqrt(x * x + y * y + z * z);
+
+        var structures = await GetStructuresAsync(systemId, ct);
+
+        var players = await db.EsiStructureNames.AsNoTracking()
+            .Where(s => s.SolarSystemId == systemId && s.NearestCelestialId > 0)
+            .Select(s => new { s.StructureId, s.NearestCelestialId })
+            .ToListAsync(ct);
+        var celestialOfStructure = players.ToDictionary(p => p.StructureId, p => p.NearestCelestialId);
+
+        // Longest name first so a moon wins over its planet.
+        var byLongestName = celestials
+            .Where(c => c.Kind is 0 or 1 or 3)
+            .OrderByDescending(c => c.Name.Length)
+            .ToList();
+
+        var docked = new Dictionary<long, List<StructureRow>>();
+        foreach (var s in structures)
+        {
+            long host = 0;
+
+            if (!s.IsNpc && celestialOfStructure.TryGetValue(s.StructureId, out var cid))
+                host = cid;
+            else if (s.IsNpc)
+                host = byLongestName.FirstOrDefault(c =>
+                    s.Name.StartsWith(c.Name, StringComparison.OrdinalIgnoreCase))?.ItemId ?? 0;
+
+            if (host == 0) continue;
+            (docked.TryGetValue(host, out var list) ? list : docked[host] = []).Add(s);
+        }
+
+        var nodes = new List<CelestialNode>();
+
+        void AddStructures(long celestialId, int depth)
+        {
+            if (!docked.TryGetValue(celestialId, out var list)) return;
+            foreach (var s in list.OrderByDescending(s => s.IsNpc).ThenBy(s => s.Name))
+                nodes.Add(new CelestialNode(
+                    depth, s.IsNpc ? "Station" : "Structure", s.Name, s.TypeName, s.TypeId, s.Owner));
+        }
+
+        foreach (var star in celestials.Where(c => c.Kind == 4))
+            nodes.Add(new CelestialNode(0, "Star", star.Name, star.TypeName, star.TypeId, ""));
+
+        foreach (var gate in celestials.Where(c => c.Kind == 2)
+                     .OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            nodes.Add(new CelestialNode(0, "Stargate", gate.Name, gate.TypeName, gate.TypeId, ""));
+            AddStructures(gate.ItemId, 1);
+        }
+
+        foreach (var planet in celestials.Where(c => c.Kind == 0)
+                     .OrderBy(c => Radius(c.X, c.Y, c.Z)))
+        {
+            nodes.Add(new CelestialNode(0, "Planet", planet.Name, planet.TypeName, planet.TypeId, ""));
+            AddStructures(planet.ItemId, 1);
+
+            var children = celestials
+                .Where(c => c.Kind is 1 or 3
+                         && c.Name.StartsWith(planet.Name + " -", StringComparison.OrdinalIgnoreCase))
+                // Belts before moons, then by the trailing number so Moon 2 precedes Moon 10.
+                .OrderBy(c => c.Kind == 3 ? 0 : 1)
+                .ThenBy(c => TrailingNumber(c.Name))
+                .ToList();
+
+            foreach (var child in children)
+            {
+                nodes.Add(new CelestialNode(
+                    1, child.Kind == 3 ? "Belt" : "Moon", child.Name, child.TypeName, child.TypeId, ""));
+                AddStructures(child.ItemId, 2);
+            }
+        }
+
+        // Anything whose host could not be identified still belongs on the page — dropping it
+        // would quietly hide structures from a list that claims to show them all.
+        var placed = nodes.Count(n => n.Kind is "Station" or "Structure");
+        if (placed < structures.Count)
+        {
+            var placedNames = nodes.Where(n => n.Kind is "Station" or "Structure")
+                                   .Select(n => n.Name).ToHashSet();
+            foreach (var s in structures.Where(s => !placedNames.Contains(s.Name)))
+                nodes.Add(new CelestialNode(
+                    0, s.IsNpc ? "Station" : "Structure", s.Name, s.TypeName, s.TypeId, s.Owner));
+        }
+
+        return nodes;
+    }
+
+    /// <summary>Number at the end of a name, so "Moon 2" sorts before "Moon 10" rather than
+    /// after it as text ordering would have it.</summary>
+    private static int TrailingNumber(string name)
+    {
+        var i = name.Length;
+        while (i > 0 && char.IsDigit(name[i - 1])) i--;
+        return i < name.Length && int.TryParse(name[i..], out var n) ? n : 0;
+    }
 
     public async Task<List<CelestialRow>> GetCelestialsAsync(
         int systemId, CancellationToken ct = default)
@@ -281,7 +461,16 @@ public class SystemViewService(
     // ── Structures (NPC stations and player-owned) ───────────────────────────
 
     public sealed record StructureRow(
-        long StructureId, int TypeId, string Name, string TypeName, string Owner, bool IsNpc);
+        long StructureId, int TypeId, string Name, string TypeName,
+        string Corporation, string Alliance, string Location, bool IsNpc)
+    {
+        /// <summary>Corporation with its alliance after it — the alliance alone hides who
+        /// actually owns the structure, and many corporations are in no alliance at all.</summary>
+        public string Owner =>
+            string.IsNullOrEmpty(Alliance) ? Corporation
+            : string.IsNullOrEmpty(Corporation) ? Alliance
+            : $"{Corporation}  ·  {Alliance}";
+    }
 
     public async Task<List<StructureRow>> GetStructuresAsync(
         int systemId, CancellationToken ct = default)
@@ -302,8 +491,11 @@ public class SystemViewService(
             .Where(t => typeIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
+        // Both ids per structure: the corporation owns it and the alliance is shown beside it,
+        // so fetching only one leaves the other column permanently blank.
         var ownerIds = stations.Select(s => (long)(s.CorporationId ?? 0))
-            .Concat(player.Select(s => s.AllianceId > 0 ? s.AllianceId : s.OwnerId))
+            .Concat(player.Select(s => s.OwnerId))
+            .Concat(player.Select(s => s.AllianceId))
             .Where(i => i > 0).Distinct().ToList();
 
         var corpNames = await db.SdeNpcCorporations.AsNoTracking()
@@ -316,19 +508,33 @@ public class SystemViewService(
         string OwnerOf(long id) =>
             id <= 0 ? "" : corpNames.GetValueOrDefault(id) ?? universeNames.GetValueOrDefault(id, "");
 
-        var result = stations.Select(s => new StructureRow(
+        // Player structures record the celestial they sit at; NPC stations do not, but their
+        // name begins with it, so the part before the final " - " is the location.
+        static string StationLocation(string name)
+        {
+            var cut = name.LastIndexOf(" - ", StringComparison.Ordinal);
+            return cut > 0 ? name[..cut] : "";
+        }
+
+        // The stored NearestCelestial is sometimes the generic word "Stargate"; the id resolves
+        // to the actual celestial, so it is preferred where it matches something we hold.
+        var celestialNames = await db.SdeCelestials.AsNoTracking()
+            .Where(c => c.SolarSystemId == systemId)
+            .ToDictionaryAsync(c => c.ItemId, c => c.Name, ct);
+
+        return stations.Select(s => new StructureRow(
                 s.StationId, s.StationTypeId ?? 0, s.Name,
                 types.GetValueOrDefault(s.StationTypeId ?? 0, "Station"),
-                OwnerOf(s.CorporationId ?? 0), true))
+                OwnerOf(s.CorporationId ?? 0), "", StationLocation(s.Name), true))
             .Concat(player.Select(s => new StructureRow(
                 s.StructureId, s.TypeId,
                 string.IsNullOrEmpty(s.Name) ? $"Structure {s.StructureId}" : s.Name,
                 types.GetValueOrDefault(s.TypeId, "Unknown type"),
-                OwnerOf(s.AllianceId > 0 ? s.AllianceId : s.OwnerId), false)))
+                OwnerOf(s.OwnerId), OwnerOf(s.AllianceId),
+                celestialNames.GetValueOrDefault(s.NearestCelestialId, s.NearestCelestial),
+                false)))
             .OrderByDescending(r => r.IsNpc).ThenBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
-
-        return result;
     }
 
     // ── Gates ────────────────────────────────────────────────────────────────

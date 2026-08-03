@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using EveConsole.Services;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
 using ReactiveUI;
 
 namespace EveConsole.ViewModels;
@@ -62,14 +66,40 @@ public class CelestialVm(SystemViewService.CelestialRow r) : IconRowVm
 
 public class SysStructureVm(SystemViewService.StructureRow r) : IconRowVm
 {
-    public string Name     { get; } = r.Name;
-    public string TypeName { get; } = r.TypeName;
-    public string Owner    { get; } = r.Owner;
-    public string Kind     { get; } = r.IsNpc ? "NPC" : "Player";
-    public string KindColor { get; } = r.IsNpc ? "#6a7f99" : "#c8a84b";
+    public string Name        { get; } = r.Name;
+    public string TypeName    { get; } = r.TypeName;
+    public string Corporation { get; } = r.Corporation;
+    public string Alliance    { get; } = r.Alliance;
+    public string Location    { get; } = r.Location;
+    public string Kind        { get; } = r.IsNpc ? "NPC" : "Player";
+    public string KindColor   { get; } = r.IsNpc ? "#6a7f99" : "#c8a84b";
 
     protected override string? IconUrl =>
         r.TypeId > 0 ? $"https://images.evetech.net/types/{r.TypeId}/icon?size=32" : null;
+}
+
+/// <summary>One line of the celestial tree, indented by depth.</summary>
+public class CelestialNodeVm(SystemViewService.CelestialNode n) : IconRowVm
+{
+    public string    Name      { get; } = n.Name;
+    public string    TypeName  { get; } = n.TypeName;
+    public string    Kind      { get; } = n.Kind;
+    public string    Owner     { get; } = n.Owner;
+    public Avalonia.Thickness Indent { get; } = new(n.Depth * 22, 0, 0, 0);
+    public bool      IsHeading { get; } = n.Kind is "Star" or "Planet" or "Stargate";
+
+    public string NameColor { get; } = n.Kind switch
+    {
+        "Star"      => "#e0c060",
+        "Planet"    => "#d8d8e4",
+        "Stargate"  => "#7fb8d8",
+        "Structure" => "#c8a84b",
+        "Station"   => "#8fb0c8",
+        _           => "#9a9aaa",
+    };
+
+    protected override string? IconUrl =>
+        n.TypeId > 0 ? $"https://images.evetech.net/types/{n.TypeId}/icon?size=32" : null;
 }
 
 public class SystemEventVm(SystemViewService.SystemEvent e) : IconRowVm
@@ -176,14 +206,39 @@ public class SystemPageViewModel : ReactiveObject
     public ObservableCollection<SovStructureVm>   SovStructures { get; } = [];
     public ObservableCollection<SystemEventVm>    SovChanges    { get; } = [];
     public ObservableCollection<SystemEventVm>    Events        { get; } = [];
-    public ObservableCollection<CelestialVm>      Planets       { get; } = [];
-    public ObservableCollection<CelestialVm>      Moons         { get; } = [];
+    public ObservableCollection<CelestialNodeVm>  Celestials    { get; } = [];
     public ObservableCollection<SysStructureVm>   Structures    { get; } = [];
     public ObservableCollection<KillmailListRowVm> Kills        { get; } = [];
     public ObservableCollection<GateVm>           Gates         { get; } = [];
 
     private string _historyNote = "";
     public string HistoryNote { get => _historyNote; private set => this.RaiseAndSetIfChanged(ref _historyNote, value); }
+
+    // ── Graphs ───────────────────────────────────────────────────────────────
+    // Four separate charts rather than one with four series: jumps run in the thousands while
+    // ship and pod kills are single digits, so sharing an axis would flatten the kill lines
+    // onto zero.
+
+    private ISeries[] _jumpSeries = [];
+    public ISeries[] JumpSeries { get => _jumpSeries; private set => this.RaiseAndSetIfChanged(ref _jumpSeries, value); }
+
+    private ISeries[] _shipKillSeries = [];
+    public ISeries[] ShipKillSeries { get => _shipKillSeries; private set => this.RaiseAndSetIfChanged(ref _shipKillSeries, value); }
+
+    private ISeries[] _podKillSeries = [];
+    public ISeries[] PodKillSeries { get => _podKillSeries; private set => this.RaiseAndSetIfChanged(ref _podKillSeries, value); }
+
+    private ISeries[] _npcKillSeries = [];
+    public ISeries[] NpcKillSeries { get => _npcKillSeries; private set => this.RaiseAndSetIfChanged(ref _npcKillSeries, value); }
+
+    private Axis[] _historyXAxes = [];
+    public Axis[] HistoryXAxes { get => _historyXAxes; private set => this.RaiseAndSetIfChanged(ref _historyXAxes, value); }
+
+    private Axis[] _historyYAxes = [];
+    public Axis[] HistoryYAxes { get => _historyYAxes; private set => this.RaiseAndSetIfChanged(ref _historyYAxes, value); }
+
+    private string _graphNote = "";
+    public string GraphNote { get => _graphNote; private set => this.RaiseAndSetIfChanged(ref _graphNote, value); }
 
     public string IntelNote =>
         "Intel channel reports will appear here once chat-log parsing is in place. " +
@@ -206,10 +261,11 @@ public class SystemPageViewModel : ReactiveObject
 
         var sovStructs = await _svc.GetSovStructuresAsync(systemId);
         var events     = await _svc.GetEventsAsync(systemId);
-        var celestials = await _svc.GetCelestialsAsync(systemId);
+        var tree       = await _svc.GetCelestialTreeAsync(systemId);
         var structures = await _svc.GetStructuresAsync(systemId);
         var gates      = await _svc.GetGatesAsync(systemId);
         var since      = await _svc.GetHistoryStartAsync();
+        var history    = await _svc.GetHistoryAsync(systemId);
 
         // The kill list is the same query and the same row type the Kills tool uses, so the
         // formatting and icons match the rest of the app rather than being reinvented here.
@@ -249,8 +305,8 @@ public class SystemPageViewModel : ReactiveObject
             Fill(Events,     events.Select(e => new SystemEventVm(e)));
             Fill(SovChanges, events.Where(e => e.Kind.StartsWith("Sovereignty"))
                                    .Select(e => new SystemEventVm(e)));
-            Fill(Planets, celestials.Where(c => c.Kind == 0).Select(c => new CelestialVm(c)));
-            Fill(Moons,   celestials.Where(c => c.Kind == 1).Select(c => new CelestialVm(c)));
+            Fill(Celestials, tree.Select(n => new CelestialNodeVm(n)));
+            BuildGraphs(history);
             Fill(Structures, structures.Select(s => new SysStructureVm(s)));
             Fill(Kills, killPage.Rows.Select(r => new KillmailListRowVm(r)));
             Fill(Gates, gates.Select(g => new GateVm(g)));
@@ -291,10 +347,65 @@ public class SystemPageViewModel : ReactiveObject
         // fills in, rather than waiting on several hundred image requests.
         await Task.WhenAll(
             Task.WhenAll(SovStructures.Select(x => x.LoadIconAsync())),
-            Task.WhenAll(Planets.Select(x => x.LoadIconAsync())),
+            Task.WhenAll(Celestials.Where(c => c.Icon is null).Take(120).Select(x => x.LoadIconAsync())),
             Task.WhenAll(Structures.Select(x => x.LoadIconAsync())),
             Task.WhenAll(Events.Take(40).Select(x => x.LoadIconAsync())),
             Task.WhenAll(Kills.Select(x => x.LoadImagesAsync())));
+    }
+
+    private void BuildGraphs(List<SystemViewService.HistoryPoint> history)
+    {
+        if (history.Count == 0)
+        {
+            JumpSeries = ShipKillSeries = PodKillSeries = NpcKillSeries = [];
+            GraphNote  = "No activity history stored for this system yet.";
+            return;
+        }
+
+        GraphNote = $"Daily totals, {history[0].Day:yyyy-MM-dd} to {history[^1].Day:yyyy-MM-dd}. " +
+                    "Each point is a full UTC day; the last may be partial.";
+
+        static ISeries[] Line(string name, IEnumerable<int> values, string hex) =>
+        [
+            new LineSeries<int>
+            {
+                Name           = name,
+                Values         = values.ToArray(),
+                GeometrySize   = 0,
+                LineSmoothness = 0.3,
+                Stroke         = new SolidColorPaint(SKColor.Parse(hex)) { StrokeThickness = 2 },
+                Fill           = new SolidColorPaint(SKColor.Parse(hex).WithAlpha(36)),
+            },
+        ];
+
+        JumpSeries     = Line("Jumps",      history.Select(h => h.Jumps),     "#6FC8F0");
+        ShipKillSeries = Line("Ship kills", history.Select(h => h.ShipKills), "#FF6A3D");
+        PodKillSeries  = Line("Pod kills",  history.Select(h => h.PodKills),  "#F0D040");
+        NpcKillSeries  = Line("NPC kills",  history.Select(h => h.NpcKills),  "#7FD070");
+
+        var labels = history.Select(h => h.Day.ToString("MM-dd")).ToArray();
+        HistoryXAxes =
+        [
+            new Axis
+            {
+                Labels        = labels,
+                LabelsPaint   = new SolidColorPaint(SKColor.Parse("#6A6A7C")),
+                TextSize      = 10,
+                // A month of daily labels will not fit, so only every few days are drawn.
+                MinStep       = Math.Max(1, labels.Length / 10),
+                SeparatorsPaint = null,
+            },
+        ];
+        HistoryYAxes =
+        [
+            new Axis
+            {
+                LabelsPaint     = new SolidColorPaint(SKColor.Parse("#6A6A7C")),
+                TextSize        = 10,
+                MinLimit        = 0,
+                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#1E1E2A")) { StrokeThickness = 1 },
+            },
+        ];
     }
 
     private static void Fill<T>(ObservableCollection<T> target, IEnumerable<T> items)

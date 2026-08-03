@@ -713,6 +713,9 @@ public class SdeImportService
 
         Report(p, "Universe", "Parsing mapSolarSystems.yaml…", 0.80);
         var sysNames = new Dictionary<int, string>();
+        // Collected while the systems are parsed, but merged into the celestial list further
+        // down, which is where that list comes into existence.
+        var stars    = new List<SdeCelestial>();
         var sysEntry = zip.GetEntry($"{fsdRoot}mapSolarSystems.yaml");
         if (sysEntry != null)
         {
@@ -738,10 +741,23 @@ public class SdeImportService
             });
             await SaveBatchesAsync(db, db.SdeSolarSystems, rows, "Solar Systems", raw.Count, p, 0.80, 0.82, ct);
             foreach (var (sysId, sys) in raw) sysNames[sysId] = sys.name?.en ?? "";
+
+            // The star, as a celestial of its own kind. It sits at the origin of the system's
+            // coordinates, which is also what every other celestial's orbital radius is measured
+            // from, so the system view can head its celestial tree with it.
+            foreach (var (sysId, sys) in raw)
+                if (sys.star is { } star && star.typeID > 0)
+                    stars.Add(new SdeCelestial
+                    {
+                        ItemId = star.id, SolarSystemId = sysId, TypeId = star.typeID,
+                        Kind = 4, X = 0, Y = 0, Z = 0,
+                        Name = sysNames.GetValueOrDefault(sysId, ""),
+                    });
         }
 
         Report(p, "Universe", "Parsing mapStargates.yaml…", 0.82);
         var celestials = new List<SdeCelestial>();
+        celestials.AddRange(stars);
         var sgEntry = zip.GetEntry($"{fsdRoot}mapStargates.yaml");
         if (sgEntry != null)
         {
@@ -1462,7 +1478,16 @@ public class SdeImportService
         public Position2DYaml?  position2D      { get; set; }
         public string?          securityClass   { get; set; }
         public double           radius          { get; set; }
+        public StarYaml?        star            { get; set; }
         public Dictionary<int, PlanetYaml>? planets { get; set; }
+    }
+
+    /// <summary>The system's star. Its type is what gives the spectral class the system view
+    /// shows ("Sun K5 (Orange Bright)").</summary>
+    private class StarYaml
+    {
+        public long id     { get; set; }
+        public int  typeID { get; set; }
     }
     private class MapStargateYaml
     {

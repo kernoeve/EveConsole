@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.SystemPageView"
              x:DataType="vm:SystemPageViewModel"
              Background="#0b0b10">
@@ -190,37 +191,72 @@
       <!-- ── Celestials ────────────────────────────────────────────────── -->
       <TabItem Header="Celestials">
         <ScrollViewer>
-          <Grid Margin="16" ColumnDefinitions="*,16,*">
-            <StackPanel Grid.Column="0">
-              <TextBlock Classes="colhead" Text="PLANETS" Margin="0 0 0 6" />
-              <ItemsControl ItemsSource="{Binding Planets}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate DataType="vm:CelestialVm">
-                    <Border Classes="rowline">
-                      <Grid ColumnDefinitions="36,*,Auto">
-                        <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
-                        <TextBlock Grid.Column="1" Classes="col" Text="{Binding Name}" />
-                        <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding TypeName}" />
-                      </Grid>
-                    </Border>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
+          <StackPanel Margin="16">
+            <TextBlock Classes="note"
+                       Text="Laid out as the system is arranged in space: the star, the gates, then each planet in orbital order with its belts, moons and anything docked at them nested beneath." />
+            <Grid ColumnDefinitions="36,*,2*,Auto">
+              <TextBlock Grid.Column="1" Classes="colhead" Text="OBJECT" />
+              <TextBlock Grid.Column="2" Classes="colhead" Text="OWNER" />
+              <TextBlock Grid.Column="3" Classes="colhead" Text="TYPE" />
+            </Grid>
+            <ItemsControl ItemsSource="{Binding Celestials}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:CelestialNodeVm">
+                  <Border Classes="rowline">
+                    <Grid ColumnDefinitions="36,*,2*,Auto">
+                      <Image Grid.Column="0" Source="{Binding Icon}" Width="24" Height="24"
+                             Margin="{Binding Indent}" />
+                      <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="11.5"
+                                 Foreground="{Binding NameColor}" Margin="{Binding Indent}"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding Owner}"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding TypeName}" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- ── Graphs ────────────────────────────────────────────────────── -->
+      <TabItem Header="Graphs">
+        <ScrollViewer>
+          <StackPanel Margin="16" Spacing="14">
+            <TextBlock Classes="note" Text="{Binding GraphNote}" />
+
+            <!-- Separate charts, not one with four series: jumps run to thousands while ship
+                 and pod kills are single digits, so a shared axis flattens the kill lines. -->
+            <StackPanel Spacing="4">
+              <TextBlock Classes="colhead" Text="SHIP JUMPS" />
+              <lvc:CartesianChart Height="150" Series="{Binding JumpSeries}"
+                                  XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
+                                  EasingFunction="{x:Null}" Background="Transparent" />
             </StackPanel>
 
-            <StackPanel Grid.Column="2">
-              <TextBlock Classes="colhead" Text="MOONS" Margin="0 0 0 6" />
-              <ItemsControl ItemsSource="{Binding Moons}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate DataType="vm:CelestialVm">
-                    <Border Classes="rowline">
-                      <TextBlock Classes="col" Text="{Binding Name}" />
-                    </Border>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
+            <StackPanel Spacing="4">
+              <TextBlock Classes="colhead" Text="NPC KILLS" />
+              <lvc:CartesianChart Height="150" Series="{Binding NpcKillSeries}"
+                                  XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
+                                  EasingFunction="{x:Null}" Background="Transparent" />
             </StackPanel>
-          </Grid>
+
+            <StackPanel Spacing="4">
+              <TextBlock Classes="colhead" Text="SHIP KILLS" />
+              <lvc:CartesianChart Height="150" Series="{Binding ShipKillSeries}"
+                                  XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
+                                  EasingFunction="{x:Null}" Background="Transparent" />
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+              <TextBlock Classes="colhead" Text="POD KILLS" />
+              <lvc:CartesianChart Height="150" Series="{Binding PodKillSeries}"
+                                  XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
+                                  EasingFunction="{x:Null}" Background="Transparent" />
+            </StackPanel>
+          </StackPanel>
         </ScrollViewer>
       </TabItem>
 
@@ -232,22 +268,29 @@
                        Text="NPC stations come from the SDE. Player structures appear as they are seen through assets, jobs or contracts, so this is what is known rather than everything that exists." />
             <TextBlock Classes="note" Text="Nothing known in this system."
                        IsVisible="{Binding !Structures.Count}" />
-            <Grid ColumnDefinitions="36,3*,2*,2*,Auto" IsVisible="{Binding Structures.Count}">
+            <Grid ColumnDefinitions="36,3*,140,2*,140,2*,Auto" IsVisible="{Binding Structures.Count}">
               <TextBlock Grid.Column="1" Classes="colhead" Text="NAME" />
               <TextBlock Grid.Column="2" Classes="colhead" Text="TYPE" />
-              <TextBlock Grid.Column="3" Classes="colhead" Text="OWNER" />
-              <TextBlock Grid.Column="4" Classes="colhead" Text="SOURCE" />
+              <TextBlock Grid.Column="3" Classes="colhead" Text="CORPORATION" />
+              <TextBlock Grid.Column="4" Classes="colhead" Text="ALLIANCE" />
+              <TextBlock Grid.Column="5" Classes="colhead" Text="LOCATION" />
+              <TextBlock Grid.Column="6" Classes="colhead" Text="SOURCE" />
             </Grid>
             <ItemsControl ItemsSource="{Binding Structures}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:SysStructureVm">
                   <Border Classes="rowline">
-                    <Grid ColumnDefinitions="36,3*,2*,2*,Auto">
+                    <Grid ColumnDefinitions="36,3*,140,2*,140,2*,Auto">
                       <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
                       <TextBlock Grid.Column="1" Classes="col" Text="{Binding Name}" TextWrapping="Wrap" />
                       <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding TypeName}" />
-                      <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding Owner}" />
-                      <TextBlock Grid.Column="4" Classes="col" Text="{Binding Kind}"
+                      <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding Corporation}"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="4" Classes="colmuted" Text="{Binding Alliance}"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="5" Classes="colmuted" Text="{Binding Location}"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="6" Classes="col" Text="{Binding Kind}"
                                  Foreground="{Binding KindColor}" />
                     </Grid>
                   </Border>
