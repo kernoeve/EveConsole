@@ -130,12 +130,18 @@ public class UniverseViewModel : ReactiveObject
             .SelectMany(_ => Guarded(ReapplyOverlayAsync))
             .Subscribe();
 
-        // The jump box is an AutoCompleteBox, so it reports every keystroke; only act once the
-        // text is an exact region name, which is what picking a suggestion produces.
+        // Typing refreshes the suggestions; picking one navigates. Throttled because it hits
+        // the database on every keystroke.
         this.WhenAnyValue(x => x.RegionSearch)
             .Skip(1)
-            .Where(t => !string.IsNullOrWhiteSpace(t))
-            .SelectMany(t => Guarded(() => JumpToRegionAsync(t)))
+            .Throttle(TimeSpan.FromMilliseconds(180))
+            .SelectMany(t => Guarded(() => RefreshSuggestionsAsync(t)))
+            .Subscribe();
+
+        this.WhenAnyValue(x => x.SelectedPlace)
+            .Skip(1)
+            .Where(p => p is not null)
+            .SelectMany(p => Guarded(() => GoToPlaceAsync(p!)))
             .Subscribe();
 
         // Selecting a node just updates the detail pane; drilling down is a double-click.
@@ -240,8 +246,37 @@ public class UniverseViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _selectedOverlay, value);
     }
 
-    /// <summary>Region names for the jump-to box.</summary>
-    public ObservableCollection<string> RegionNames { get; } = [];
+    /// <summary>Suggestions for the jump box — regions and systems together.</summary>
+    public ObservableCollection<PlaceMatch> Places { get; } = [];
+
+    private PlaceMatch? _selectedPlace;
+    public PlaceMatch? SelectedPlace
+    {
+        get => _selectedPlace;
+        set => this.RaiseAndSetIfChanged(ref _selectedPlace, value);
+    }
+
+    private async Task RefreshSuggestionsAsync(string text)
+    {
+        var matches = await _map.SearchPlacesAsync(text);
+        await OnUiAsync(() => Replace(Places, matches));
+    }
+
+    /// <summary>A region opens its map; a system opens its page directly, which means the jump
+    /// box can reach any system without hunting for the right region first.</summary>
+    private async Task GoToPlaceAsync(PlaceMatch place)
+    {
+        if (place.SystemId > 0)
+        {
+            // The breadcrumb needs the region behind it, so that is established first.
+            if (_regionId != place.RegionId) await ShowRegionAsync(place.RegionId);
+            await ShowSystemAsync(place.SystemId);
+        }
+        else
+        {
+            await ShowRegionAsync(place.RegionId);
+        }
+    }
 
     private string _regionSearch = "";
     public string RegionSearch
@@ -286,10 +321,6 @@ public class UniverseViewModel : ReactiveObject
             Overlay    = styles;
             SelectedId = 0;
 
-            // Only regions the universe map actually plots, so the jump box cannot land you
-            // somewhere the breadcrumb trail has no route back from.
-            RegionNames.Clear();
-            foreach (var r in _regions.Where(r => r.IsKnownSpace)) RegionNames.Add(r.Name);
 
             Replace(Legend, legend);
             BuildCrumbs();

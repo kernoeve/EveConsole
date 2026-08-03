@@ -180,6 +180,9 @@ public class SystemPageViewModel : ReactiveObject
     private string _securityClass = "";
     public string SecurityClass { get => _securityClass; private set => this.RaiseAndSetIfChanged(ref _securityClass, value); }
 
+    private string _localPirates = "";
+    public string LocalPirates { get => _localPirates; private set => this.RaiseAndSetIfChanged(ref _localPirates, value); }
+
     private string _holder = "";
     public string Holder { get => _holder; private set => this.RaiseAndSetIfChanged(ref _holder, value); }
 
@@ -315,6 +318,7 @@ public class SystemPageViewModel : ReactiveObject
                 _      => "#d94848",
             };
             SecurityClass = header.SecurityClass;
+            LocalPirates  = header.LocalPirates;
             Holder = string.IsNullOrEmpty(header.AllianceName)
                 ? (string.IsNullOrEmpty(header.CorporationName) ? "Unclaimed" : header.CorporationName)
                 : string.IsNullOrEmpty(header.CorporationName)

@@ -26,6 +26,13 @@ public sealed record MapEdge(int FromId, int ToId);
 
 public sealed record MapGraph(IReadOnlyList<MapNode> Nodes, IReadOnlyList<MapEdge> Edges);
 
+/// <summary>A searchable place: a region or a system, with what is needed to navigate to it.
+/// SystemId is 0 for a region.</summary>
+public sealed record PlaceMatch(string Name, string Detail, int RegionId, int SystemId)
+{
+    public override string ToString() => Name;
+}
+
 public sealed record RegionSummary(
     int RegionId, string Name, bool IsWormhole, int SystemCount,
     /// <summary>False for Anoikis, abyssal and VR-* regions, which have no place on the map.</summary>
@@ -115,6 +122,44 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     {
         public int FromId { get; set; }
         public int ToId   { get; set; }
+    }
+
+    /// <summary>
+    /// Regions and systems in one list for the jump box. Systems carry their security and
+    /// region so near-identical names can be told apart, and matches that start with the typed
+    /// text rank above ones that merely contain it.
+    /// </summary>
+    public async Task<List<PlaceMatch>> SearchPlacesAsync(
+        string text, int limit = 30, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(text) || text.Length < 2) return [];
+        var q = text.Trim();
+
+        using var db = dbFactory.CreateDbContext();
+
+        var regions = await db.SdeRegions.AsNoTracking()
+            .Where(r => r.RegionId < MaxKnownSpaceRegionId && r.Name.Contains(q))
+            .Select(r => new { r.Name, r.RegionId })
+            .Take(limit)
+            .ToListAsync(ct);
+
+        var systems = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => s.Name.Contains(q))
+            .Join(db.SdeRegions.AsNoTracking(), s => s.RegionId, r => r.RegionId,
+                  (s, r) => new { s.Name, s.SolarSystemId, s.RegionId, Region = r.Name, s.Security })
+            .Take(limit * 2)
+            .ToListAsync(ct);
+
+        return regions
+            .Select(r => new PlaceMatch(r.Name, "Region", r.RegionId, 0))
+            .Concat(systems.Select(s => new PlaceMatch(
+                s.Name, $"{s.Security:F1}  ·  {s.Region}", s.RegionId, s.SolarSystemId)))
+            .OrderByDescending(p => p.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase))
+            .ThenBy(p => p.SystemId == 0 ? 0 : 1)   // regions before systems at equal rank
+            .ThenBy(p => p.Name.Length)
+            .ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
+            .Take(limit)
+            .ToList();
     }
 
     public async Task<List<RegionSummary>> GetRegionsAsync(CancellationToken ct = default)

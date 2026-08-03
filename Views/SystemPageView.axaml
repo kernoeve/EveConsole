@@ -81,6 +81,9 @@
           <StackPanel Orientation="Horizontal">
             <TextBlock Classes="hlabel" Text="Sovereignty" Margin="0 0 6 0" />
             <TextBlock Classes="hvalue" Text="{Binding Holder}" />
+            <TextBlock Classes="hlabel" Text="Local pirates" Margin="0 0 6 0"
+                       IsVisible="{Binding LocalPirates, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            <TextBlock Classes="hvalue" Text="{Binding LocalPirates}" Foreground="#c88a6a" />
           </StackPanel>
         </StackPanel>
 
