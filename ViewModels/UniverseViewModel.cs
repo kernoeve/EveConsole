@@ -106,6 +106,9 @@ public class UniverseViewModel : ReactiveObject
             new("Killmails held (7d)",  "kills7"),
             new("Killmails held (24h)", "kills1"),
             new("Stations",      "stations"),
+            new("Planets",       "cel:0"),
+            new("Moons",         "cel:1"),
+            new("Asteroid belts", "cel:3"),
         ];
         _selectedOverlay = OverlayModes[0];
 
@@ -536,6 +539,20 @@ public class UniverseViewModel : ReactiveObject
             {
                 var counts = await _map.GetStationCountsAsync(byRegion);
                 BuildCountOverlay(g, styles, legend, counts, "station", "stations");
+                break;
+            }
+
+            case { } k when k.StartsWith("cel:"):
+            {
+                var kind = int.Parse(k[4..]);
+                var (singular, plural) = kind switch
+                {
+                    0 => ("planet", "planets"),
+                    1 => ("moon",   "moons"),
+                    _ => ("asteroid belt", "asteroid belts"),
+                };
+                var counts = await _map.GetCelestialCountsAsync(kind, byRegion);
+                BuildCountOverlay(g, styles, legend, counts, singular, plural);
                 break;
             }
 

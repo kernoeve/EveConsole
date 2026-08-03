@@ -26,7 +26,6 @@ public class SystemViewService(
         int    Planets,
         int    Moons,
         int    Belts,
-        int    IceBelts,
         int    Gates,
         long?  AllianceId,
         long?  CorporationId,
@@ -60,12 +59,11 @@ public class SystemViewService(
             .Select(g => new { g.Key, Count = g.Count() })
             .ToDictionaryAsync(g => g.Key, g => g.Count, ct);
 
-        // Ice belts are asteroid belts whose type says so — the SDE gives them no separate
-        // kind, so the type name is the only distinction available.
-        var iceBelts = await db.SdeCelestials.AsNoTracking()
-            .Where(c => c.SolarSystemId == systemId && c.Kind == 3)
-            .Join(db.SdeTypes.AsNoTracking(), c => c.TypeId, t => t.TypeId, (c, t) => t.Name)
-            .CountAsync(n => n.Contains("Ice"), ct);
+        // No ice-belt count: modern ice belts are dynamic anomalies, not mapped celestials.
+        // The SDE does define an "Ice Field" and an "Ice Belt" type, but zero celestials use
+        // either — all 40,928 belts are the plain "Asteroid Belt" type — so a separate count
+        // could only ever read zero and would imply the system has none when in fact we
+        // cannot see them at all.
 
         var sov = (await stats.GetLatestSovereigntyAsync(ct)).GetValueOrDefault(systemId);
 
@@ -90,7 +88,7 @@ public class SystemViewService(
             s.SolarSystemId, s.Name, region, s.RegionId, constellation, s.ConstellationId,
             s.Security, s.SecurityClass,
             celestials.GetValueOrDefault(0), celestials.GetValueOrDefault(1),
-            celestials.GetValueOrDefault(3), iceBelts, celestials.GetValueOrDefault(2),
+            celestials.GetValueOrDefault(3), celestials.GetValueOrDefault(2),
             sov?.AllianceId, sov?.CorporationId,
             sov?.AllianceId is { } a ? names.GetValueOrDefault(a, $"Alliance {a}") : "",
             sov?.CorporationId is { } c ? names.GetValueOrDefault(c, $"Corporation {c}") : "",
@@ -183,8 +181,12 @@ public class SystemViewService(
         DateTimeOffset When, string Kind, string Summary, long? AllianceId);
 
     /// <summary>
-    /// Derives a system's history by diffing consecutive snapshots: a change of holder, and a
-    /// crossing of an ADM whole number.
+    /// Derives a system's history by diffing consecutive snapshots for a change of holder.
+    ///
+    /// ADM movement is deliberately not an event. It drifts continuously and crosses the same
+    /// whole number back and forth as activity rises and falls — one quiet system produced 14
+    /// "events" in a month purely from oscillating between 4 and 5, which buries the changes
+    /// that actually matter. Current ADM is on the Overview and its trend is on the graphs.
     ///
     /// ⚠️ This only reaches as far back as the stored snapshots — the backfill window, not the
     /// system's real history. dotlan shows years because it has been recording since long
@@ -204,12 +206,6 @@ public class SystemViewService(
 
         var allianceIds = sov.Where(s => s.AllianceId > 0).Select(s => s.AllianceId!.Value).Distinct().ToList();
 
-        var adm = await db.MapSovStructures.AsNoTracking()
-            .Where(m => m.SystemId == systemId && m.Adm != null)
-            .OrderBy(m => m.Bucket)
-            .Select(m => new { m.Bucket, Adm = m.Adm!.Value })
-            .ToListAsync(ct);
-
         var names = await db.UniverseNames.AsNoTracking()
             .Where(n => allianceIds.Contains(n.EntityId))
             .ToDictionaryAsync(n => n.EntityId, n => n.Name, ct);
@@ -228,21 +224,6 @@ public class SystemViewService(
                 cur.AllianceId is null ? "Sovereignty lost" : "Sovereignty gained",
                 $"{Named(prev.AllianceId)} → {Named(cur.AllianceId)}",
                 cur.AllianceId));
-        }
-
-        // Only whole-number crossings, because ADM drifts continuously and every hourly tick
-        // would otherwise be an "event".
-        for (var i = 1; i < adm.Count; i++)
-        {
-            var before = Math.Floor(adm[i - 1].Adm);
-            var after  = Math.Floor(adm[i].Adm);
-            if (Math.Abs(before - after) < 0.5) continue;
-
-            events.Add(new SystemEvent(
-                MapStatsService.ParseBucket(adm[i].Bucket),
-                after > before ? "ADM increased" : "ADM decreased",
-                $"{before:F0} → {after:F0}",
-                null));
         }
 
         return events.OrderByDescending(e => e.When).ToList();

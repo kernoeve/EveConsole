@@ -475,6 +475,28 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             .ToDictionary(g => g.Key, g => g.Sum(kv => kv.Value));
     }
 
+    /// <summary>
+    /// Celestials of one kind per system, or summed per region. Kind: 0 planet, 1 moon,
+    /// 2 stargate, 3 asteroid belt, 4 star.
+    /// </summary>
+    public async Task<Dictionary<int, int>> GetCelestialCountsAsync(
+        int kind, bool byRegion, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var q = db.SdeCelestials.AsNoTracking().Where(c => c.Kind == kind);
+
+        if (!byRegion)
+            return await q.GroupBy(c => c.SolarSystemId)
+                          .Select(g => new { g.Key, Total = g.Count() })
+                          .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+
+        return await q.Join(db.SdeSolarSystems.AsNoTracking(),
+                            c => c.SolarSystemId, s => s.SolarSystemId, (c, s) => s.RegionId)
+                      .GroupBy(rid => rid)
+                      .Select(g => new { g.Key, Total = g.Count() })
+                      .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+    }
+
     public sealed record SystemDetail(
         int    SystemId,
         string Name,

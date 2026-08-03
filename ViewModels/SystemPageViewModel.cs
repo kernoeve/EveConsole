@@ -293,9 +293,7 @@ public class SystemPageViewModel : ReactiveObject
 
             PlanetCount = header.Planets.ToString("N0");
             MoonCount   = header.Moons.ToString("N0");
-            BeltCount   = header.IceBelts > 0
-                ? $"{header.Belts:N0} / {header.IceBelts:N0} ice"
-                : header.Belts.ToString("N0");
+            BeltCount   = header.Belts.ToString("N0");
             Jumps     = $"{header.Jumps1h:N0} / {header.Jumps24h:N0}";
             ShipKills = $"{header.ShipKills1h:N0} / {header.ShipKills24h:N0}";
             NpcKills  = $"{header.NpcKills1h:N0} / {header.NpcKills24h:N0}";
