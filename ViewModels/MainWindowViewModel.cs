@@ -298,6 +298,7 @@ public class MainWindowViewModel : ReactiveObject
         MapStatsBackfillService         mapStatsBackfill,
         MapStatsPollingService          mapStatsPolling,
         MapStatsService                 mapStatsService,
+        SystemViewService               systemViewService,
         ZkillboardPostService           zkbPost,
         EntityNameBackfillService       entityNames,
         EveServerStatusService          serverStatus,
@@ -381,7 +382,9 @@ public class MainWindowViewModel : ReactiveObject
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
-        UniverseVm             = new UniverseViewModel(new UniverseMapService(dbFactory), mapStatsService);
+        UniverseVm             = new UniverseViewModel(
+            new UniverseMapService(dbFactory), mapStatsService,
+            new SystemPageViewModel(systemViewService, killmailBrowserService));
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");

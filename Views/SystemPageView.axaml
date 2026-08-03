@@ -1,0 +1,331 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.SystemPageView"
+             x:DataType="vm:SystemPageViewModel"
+             Background="#0b0b10">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.hlabel">
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="Foreground" Value="#6a6a7c" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.hvalue">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="#d8d8e4" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="0 0 18 0" />
+    </Style>
+    <Style Selector="TextBlock.col">
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Foreground" Value="#c8c8d8" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.colmuted">
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="Foreground" Value="#6a6a7c" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.colhead">
+      <Setter Property="FontSize" Value="9.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#55556a" />
+    </Style>
+    <Style Selector="TextBlock.note">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="#6a6a7c" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Margin" Value="0 0 0 8" />
+    </Style>
+    <Style Selector="Border.rowline">
+      <Setter Property="BorderBrush" Value="#16161f" />
+      <Setter Property="BorderThickness" Value="0 0 0 1" />
+      <Setter Property="Padding" Value="0 4" />
+    </Style>
+    <Style Selector="TabItem">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Padding" Value="12 6" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- ══ Header ═══════════════════════════════════════════════════════════ -->
+    <Border Grid.Row="0" Background="#101018" BorderBrush="#1e1e2a"
+            BorderThickness="0 0 0 1" Padding="16 12">
+      <Grid ColumnDefinitions="Auto,16,*,Auto">
+
+        <Border Grid.Column="0" Width="64" Height="64" Background="#16161f"
+                CornerRadius="4" VerticalAlignment="Top">
+          <Image Source="{Binding HolderLogo}" Width="64" Height="64" />
+        </Border>
+
+        <StackPanel Grid.Column="2" Spacing="6">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="{Binding Name}" FontSize="22" FontWeight="SemiBold" Foreground="#e8e8f2" />
+            <TextBlock Text="{Binding Security}" FontSize="14" FontWeight="SemiBold"
+                       Foreground="{Binding SecurityColor}" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding SecurityClass}" Classes="hlabel" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Classes="hlabel" Text="Region" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding Region}" />
+            <TextBlock Classes="hlabel" Text="Constellation" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding Constellation}" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Classes="hlabel" Text="Sovereignty" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding Holder}" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Counters, mirroring dotlan's 1h / 24h pairing -->
+        <Grid Grid.Column="3" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
+              VerticalAlignment="Top">
+          <TextBlock Grid.Row="0" Grid.Column="0" Classes="hlabel" Text="Planets"        Margin="0 0 12 2" />
+          <TextBlock Grid.Row="0" Grid.Column="1" Classes="col"    Text="{Binding PlanetCount}" />
+          <TextBlock Grid.Row="1" Grid.Column="0" Classes="hlabel" Text="Moons"          Margin="0 0 12 2" />
+          <TextBlock Grid.Row="1" Grid.Column="1" Classes="col"    Text="{Binding MoonCount}" />
+          <TextBlock Grid.Row="2" Grid.Column="0" Classes="hlabel" Text="Jumps 1h / 24h" Margin="0 6 12 2" />
+          <TextBlock Grid.Row="2" Grid.Column="1" Classes="col"    Text="{Binding Jumps}" Margin="0 6 0 2" />
+          <TextBlock Grid.Row="3" Grid.Column="0" Classes="hlabel" Text="Ship kills"     Margin="0 0 12 2" />
+          <TextBlock Grid.Row="3" Grid.Column="1" Classes="col"    Text="{Binding ShipKills}" />
+          <TextBlock Grid.Row="4" Grid.Column="0" Classes="hlabel" Text="NPC kills"      Margin="0 0 12 2" />
+          <TextBlock Grid.Row="4" Grid.Column="1" Classes="col"    Text="{Binding NpcKills}" />
+          <TextBlock Grid.Row="5" Grid.Column="0" Classes="hlabel" Text="Pod kills"      Margin="0 0 12 2" />
+          <TextBlock Grid.Row="5" Grid.Column="1" Classes="col"    Text="{Binding PodKills}" />
+        </Grid>
+      </Grid>
+    </Border>
+
+    <!-- ══ Tabs ═════════════════════════════════════════════════════════════ -->
+    <TabControl Grid.Row="1" Background="Transparent" Padding="0">
+
+      <!-- ── Overview ──────────────────────────────────────────────────── -->
+      <TabItem Header="Overview">
+        <ScrollViewer>
+          <StackPanel Margin="16" Spacing="16">
+
+            <StackPanel>
+              <TextBlock Classes="colhead" Text="SOVEREIGNTY STRUCTURES" Margin="0 0 0 6" />
+              <TextBlock Classes="note" Text="No sovereignty structures in this system."
+                         IsVisible="{Binding !SovStructures.Count}" />
+              <Grid ColumnDefinitions="36,2*,2*,Auto,Auto,3*" IsVisible="{Binding SovStructures.Count}">
+                <TextBlock Grid.Column="1" Classes="colhead" Text="TYPE" />
+                <TextBlock Grid.Column="2" Classes="colhead" Text="OWNER" />
+                <TextBlock Grid.Column="3" Classes="colhead" Text="ADM" Margin="0 0 14 0" />
+                <TextBlock Grid.Column="4" Classes="colhead" Text="STATE" Margin="0 0 14 0" />
+                <TextBlock Grid.Column="5" Classes="colhead" Text="VULNERABILITY WINDOW" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding SovStructures}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:SovStructureVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="36,2*,2*,Auto,Auto,3*">
+                        <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
+                        <TextBlock Grid.Column="1" Classes="col" Text="{Binding TypeName}" />
+                        <TextBlock Grid.Column="2" Classes="col" Text="{Binding Owner}" />
+                        <TextBlock Grid.Column="3" Classes="col" Text="{Binding Adm}" Margin="0 0 14 0" />
+                        <TextBlock Grid.Column="4" Classes="col" Text="{Binding State}"
+                                   Foreground="{Binding StateColor}" Margin="0 0 14 0" />
+                        <TextBlock Grid.Column="5" Classes="colmuted" Text="{Binding Window}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <StackPanel>
+              <TextBlock Classes="colhead" Text="SOVEREIGNTY CHANGES" Margin="0 0 0 6" />
+              <TextBlock Classes="note" Text="{Binding HistoryNote}" />
+              <TextBlock Classes="note" Text="No changes recorded in the stored window."
+                         IsVisible="{Binding !SovChanges.Count}" />
+              <ItemsControl ItemsSource="{Binding SovChanges}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:SystemEventVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="36,150,150,*">
+                        <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
+                        <TextBlock Grid.Column="1" Classes="colmuted" Text="{Binding When}" />
+                        <TextBlock Grid.Column="2" Classes="col" Text="{Binding Kind}"
+                                   Foreground="{Binding KindColor}" />
+                        <TextBlock Grid.Column="3" Classes="col" Text="{Binding Summary}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <StackPanel>
+              <TextBlock Classes="colhead" Text="GATES" Margin="0 0 0 6" />
+              <ItemsControl ItemsSource="{Binding Gates}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:GateVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="150,Auto,*">
+                        <TextBlock Grid.Column="0" Classes="col" Text="{Binding Name}" Foreground="#7fb8d8" />
+                        <TextBlock Grid.Column="1" Classes="col" Text="{Binding Security}"
+                                   Foreground="{Binding SecurityColor}" Margin="0 0 14 0" />
+                        <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding RegionName}"
+                                   IsVisible="{Binding OutOfRegion}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- ── Celestials ────────────────────────────────────────────────── -->
+      <TabItem Header="Celestials">
+        <ScrollViewer>
+          <Grid Margin="16" ColumnDefinitions="*,16,*">
+            <StackPanel Grid.Column="0">
+              <TextBlock Classes="colhead" Text="PLANETS" Margin="0 0 0 6" />
+              <ItemsControl ItemsSource="{Binding Planets}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:CelestialVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="36,*,Auto">
+                        <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
+                        <TextBlock Grid.Column="1" Classes="col" Text="{Binding Name}" />
+                        <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding TypeName}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2">
+              <TextBlock Classes="colhead" Text="MOONS" Margin="0 0 0 6" />
+              <ItemsControl ItemsSource="{Binding Moons}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:CelestialVm">
+                    <Border Classes="rowline">
+                      <TextBlock Classes="col" Text="{Binding Name}" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Grid>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- ── Structures ────────────────────────────────────────────────── -->
+      <TabItem Header="Structures">
+        <ScrollViewer>
+          <StackPanel Margin="16">
+            <TextBlock Classes="note"
+                       Text="NPC stations come from the SDE. Player structures appear as they are seen through assets, jobs or contracts, so this is what is known rather than everything that exists." />
+            <TextBlock Classes="note" Text="Nothing known in this system."
+                       IsVisible="{Binding !Structures.Count}" />
+            <Grid ColumnDefinitions="36,3*,2*,2*,Auto" IsVisible="{Binding Structures.Count}">
+              <TextBlock Grid.Column="1" Classes="colhead" Text="NAME" />
+              <TextBlock Grid.Column="2" Classes="colhead" Text="TYPE" />
+              <TextBlock Grid.Column="3" Classes="colhead" Text="OWNER" />
+              <TextBlock Grid.Column="4" Classes="colhead" Text="SOURCE" />
+            </Grid>
+            <ItemsControl ItemsSource="{Binding Structures}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:SysStructureVm">
+                  <Border Classes="rowline">
+                    <Grid ColumnDefinitions="36,3*,2*,2*,Auto">
+                      <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
+                      <TextBlock Grid.Column="1" Classes="col" Text="{Binding Name}" TextWrapping="Wrap" />
+                      <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding TypeName}" />
+                      <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding Owner}" />
+                      <TextBlock Grid.Column="4" Classes="col" Text="{Binding Kind}"
+                                 Foreground="{Binding KindColor}" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- ── Kills ─────────────────────────────────────────────────────── -->
+      <TabItem Header="Kills">
+        <ScrollViewer>
+          <StackPanel Margin="16">
+            <TextBlock Classes="note" Text="{Binding KillsNote}" />
+            <ItemsControl ItemsSource="{Binding Kills}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:KillmailListRowVm">
+                  <Border Classes="rowline">
+                    <Grid ColumnDefinitions="52,110,2*,32,2*,32,2*,Auto">
+                      <Image Grid.Column="0" Source="{Binding ShipRender}" Width="44" Height="44" />
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Classes="colmuted" Text="{Binding DateText}" />
+                        <TextBlock Classes="colmuted" Text="{Binding TimeText}" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="2" Classes="col" Text="{Binding ShipName}" />
+                      <Image Grid.Column="3" Source="{Binding VictimLogo}" Width="24" Height="24" />
+                      <StackPanel Grid.Column="4" VerticalAlignment="Center">
+                        <TextBlock Classes="col" Text="{Binding VictimName}" />
+                        <TextBlock Classes="colmuted" Text="{Binding VictimCorp}" />
+                      </StackPanel>
+                      <Image Grid.Column="5" Source="{Binding FbLogo}" Width="24" Height="24" />
+                      <StackPanel Grid.Column="6" VerticalAlignment="Center">
+                        <TextBlock Classes="col" Text="{Binding FbName}" />
+                        <TextBlock Classes="colmuted" Text="{Binding FbCorp}" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="7" Classes="col" Text="{Binding TotalIskText}"
+                                 Foreground="#c8a84b" HorizontalAlignment="Right" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- ── Events ────────────────────────────────────────────────────── -->
+      <TabItem Header="Events">
+        <ScrollViewer>
+          <StackPanel Margin="16">
+            <TextBlock Classes="note" Text="{Binding HistoryNote}" />
+            <TextBlock Classes="note" Text="No events recorded in the stored window."
+                       IsVisible="{Binding !Events.Count}" />
+            <ItemsControl ItemsSource="{Binding Events}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:SystemEventVm">
+                  <Border Classes="rowline">
+                    <Grid ColumnDefinitions="36,150,160,*">
+                      <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
+                      <TextBlock Grid.Column="1" Classes="colmuted" Text="{Binding When}" />
+                      <TextBlock Grid.Column="2" Classes="col" Text="{Binding Kind}"
+                                 Foreground="{Binding KindColor}" />
+                      <TextBlock Grid.Column="3" Classes="col" Text="{Binding Summary}" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- ── Intel ─────────────────────────────────────────────────────── -->
+      <TabItem Header="Intel">
+        <StackPanel Margin="16">
+          <TextBlock Classes="note" Text="{Binding IntelNote}" />
+        </StackPanel>
+      </TabItem>
+
+    </TabControl>
+  </Grid>
+</UserControl>

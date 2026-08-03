@@ -2009,6 +2009,7 @@ public class App : Application
         services.AddSingleton<MapStatsService>();
         services.AddSingleton<MapStatsBackfillService>();
         services.AddSingleton<MapStatsPollingService>();
+        services.AddSingleton<SystemViewService>();
 
         services.AddSingleton<EntityNameBackfillService>();
         services.AddSingleton<EveServerStatusService>();
