@@ -307,6 +307,49 @@
         </ScrollViewer>
       </TabItem>
 
+      <!-- ── Agents ────────────────────────────────────────────────────── -->
+      <TabItem Header="Agents">
+        <ScrollViewer>
+          <StackPanel Margin="16">
+            <TextBlock Classes="note" Text="{Binding AgentNote}" />
+            <Grid ColumnDefinitions="2*,2*,140,150,Auto,Auto" IsVisible="{Binding Agents.Count}">
+              <TextBlock Grid.Column="0" Classes="colhead" Text="NAME" />
+              <TextBlock Grid.Column="1" Classes="colhead" Text="CORPORATION" />
+              <TextBlock Grid.Column="2" Classes="colhead" Text="DIVISION" />
+              <TextBlock Grid.Column="3" Classes="colhead" Text="TYPE" />
+              <TextBlock Grid.Column="4" Classes="colhead" Text="LEVEL" Margin="0 0 12 0" />
+              <TextBlock Grid.Column="5" Classes="colhead" Text="LOCATOR" />
+            </Grid>
+            <ItemsControl ItemsSource="{Binding Agents}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:AgentVm">
+                  <Border Classes="rowline">
+                    <Grid ColumnDefinitions="2*,2*,140,150,Auto,Auto">
+                      <StackPanel Grid.Column="0">
+                        <TextBlock Classes="col" Text="{Binding Name}" />
+                        <!-- The station is on each row rather than as a group header, so the
+                             list stays sortable and copies out intact. -->
+                        <TextBlock Classes="colmuted" Text="{Binding Location}"
+                                   TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="1" Classes="colmuted" Text="{Binding Corporation}"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding Division}" />
+                      <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding AgentType}"
+                                 Foreground="#8a7fb0" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="4" Classes="col" Text="{Binding Level}"
+                                 Margin="0 0 12 0" />
+                      <TextBlock Grid.Column="5" Classes="colmuted" Text="{Binding Locator}"
+                                 Foreground="#6a9f7a" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
       <!-- ── Structures ────────────────────────────────────────────────── -->
       <TabItem Header="Structures">
         <ScrollViewer>

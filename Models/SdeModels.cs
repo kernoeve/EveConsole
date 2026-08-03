@@ -198,6 +198,36 @@ public class SdeStargate
 }
 
 /// <summary>
+/// An NPC agent. Agents live inside npcCharacters.yaml as a nested "agent" block on the
+/// character, rather than in a file of their own — a character with that block is an agent.
+/// </summary>
+public class SdeAgent
+{
+    public int    AgentId       { get; set; }
+    public string Name          { get; set; } = "";
+    public int    CorporationId { get; set; }
+    public long   LocationId    { get; set; }   // station, or a structure for a few
+    public int    AgentTypeId   { get; set; }
+    public int    DivisionId    { get; set; }
+    public int    Level         { get; set; }
+    public bool   IsLocator     { get; set; }
+}
+
+/// <summary>agentTypes.yaml — BasicAgent, ResearchAgent, StorylineMissionAgent and so on.</summary>
+public class SdeAgentType
+{
+    public int    AgentTypeId { get; set; }
+    public string Name        { get; set; } = "";
+}
+
+/// <summary>npcCorporationDivisions.yaml — Mining, Distribution, Security, R&amp;D, …</summary>
+public class SdeCorpDivision
+{
+    public int    DivisionId { get; set; }
+    public string Name       { get; set; } = "";
+}
+
+/// <summary>
 /// planetResources.yaml — the Equinox planetary production figures, per planet.
 ///
 /// The reagent is not named in the file; it is decided by the planet's type, and only two types

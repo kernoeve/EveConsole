@@ -667,6 +667,65 @@ public class SystemViewService(
             .ToList();
     }
 
+    // ── Agents ───────────────────────────────────────────────────────────────
+
+    public sealed record AgentRow(
+        string Location, string Name, string Corporation, string Division,
+        string AgentType, int Level, bool IsLocator);
+
+    /// <summary>
+    /// Agents stationed in a system, grouped by where they sit.
+    ///
+    /// Agent quality is not returned because CCP removed it years ago; dotlan still shows the
+    /// column but every value in it is a dash.
+    /// </summary>
+    public async Task<List<AgentRow>> GetAgentsAsync(int systemId, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+
+        // Agents sit at stations, and a few at other locations; matching on the station ids in
+        // this system covers everything the SDE places here.
+        var stations = await db.SdeStations.AsNoTracking()
+            .Where(s => s.SolarSystemId == systemId)
+            .Select(s => new { s.StationId, s.Name })
+            .ToListAsync(ct);
+        if (stations.Count == 0) return [];
+
+        var ids = stations.Select(s => (long)s.StationId).ToList();
+
+        var agents = await db.SdeAgents.AsNoTracking()
+            .Where(a => ids.Contains(a.LocationId))
+            .ToListAsync(ct);
+        if (agents.Count == 0) return [];
+
+        var corpIds = agents.Select(a => a.CorporationId).Distinct().ToList();
+        var corps = await db.SdeNpcCorporations.AsNoTracking()
+            .Where(c => corpIds.Contains(c.CorporationId))
+            .ToDictionaryAsync(c => c.CorporationId, c => c.Name, ct);
+
+        var divisions = await db.SdeCorpDivisions.AsNoTracking()
+            .ToDictionaryAsync(d => d.DivisionId, d => d.Name, ct);
+        var types = await db.SdeAgentTypes.AsNoTracking()
+            .ToDictionaryAsync(t => t.AgentTypeId, t => t.Name, ct);
+        var stationNames = stations.ToDictionary(s => (long)s.StationId, s => s.Name);
+
+        return agents
+            .Select(a => new AgentRow(
+                stationNames.GetValueOrDefault(a.LocationId, ""),
+                a.Name,
+                corps.GetValueOrDefault(a.CorporationId, ""),
+                divisions.GetValueOrDefault(a.DivisionId, ""),
+                // "BasicAgent" is the ordinary case and adds nothing next to the division, so
+                // only the notable types are worth naming.
+                types.GetValueOrDefault(a.AgentTypeId, "") is var t && t is "BasicAgent" or "" ? "" : t,
+                a.Level,
+                a.IsLocator))
+            .OrderBy(a => a.Location, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(a => a.Level)
+            .ThenBy(a => a.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
     // ── Gates ────────────────────────────────────────────────────────────────
 
     public sealed record GateRow(int SystemId, string Name, double Security, string RegionName, bool OutOfRegion);

@@ -108,6 +108,17 @@ public class CelestialNodeVm(SystemViewService.CelestialNode n) : IconRowVm
         n.TypeId > 0 ? $"https://images.evetech.net/types/{n.TypeId}/icon?size=32" : null;
 }
 
+public class AgentVm(SystemViewService.AgentRow a)
+{
+    public string Location    { get; } = a.Location;
+    public string Name        { get; } = a.Name;
+    public string Corporation { get; } = a.Corporation;
+    public string Division    { get; } = a.Division;
+    public string AgentType   { get; } = a.AgentType;
+    public string Level       { get; } = a.Level.ToString();
+    public string Locator     { get; } = a.IsLocator ? "Locator" : "";
+}
+
 public class SystemEventVm(SystemViewService.SystemEvent e) : IconRowVm
 {
     public string When    { get; } = e.When.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
@@ -219,6 +230,7 @@ public class SystemPageViewModel : ReactiveObject
     public ObservableCollection<SysStructureVm>   Structures    { get; } = [];
     public ObservableCollection<KillmailListRowVm> Kills        { get; } = [];
     public ObservableCollection<GateVm>           Gates         { get; } = [];
+    public ObservableCollection<AgentVm>          Agents        { get; } = [];
 
     private string _historyNote = "";
     public string HistoryNote { get => _historyNote; private set => this.RaiseAndSetIfChanged(ref _historyNote, value); }
@@ -269,6 +281,9 @@ public class SystemPageViewModel : ReactiveObject
     private Axis[] _hourYAxes = [];
     public Axis[] HourYAxes { get => _hourYAxes; private set => this.RaiseAndSetIfChanged(ref _hourYAxes, value); }
 
+    private string _agentNote = "";
+    public string AgentNote { get => _agentNote; private set => this.RaiseAndSetIfChanged(ref _agentNote, value); }
+
     private string _hourNote = "";
     public string HourNote { get => _hourNote; private set => this.RaiseAndSetIfChanged(ref _hourNote, value); }
 
@@ -299,6 +314,7 @@ public class SystemPageViewModel : ReactiveObject
         var since      = await _svc.GetHistoryStartAsync();
         var history    = await _svc.GetHistoryAsync(systemId);
         var hourly     = await _svc.GetHourlyHistoryAsync(systemId);
+        var agents     = await _svc.GetAgentsAsync(systemId);
 
         // The kill list is the same query and the same row type the Kills tool uses, so the
         // formatting and icons match the rest of the app rather than being reinvented here.
@@ -343,6 +359,10 @@ public class SystemPageViewModel : ReactiveObject
             Fill(Structures, structures.Select(s => new SysStructureVm(s)));
             Fill(Kills, killPage.Rows.Select(r => new KillmailListRowVm(r)));
             Fill(Gates, gates.Select(g => new GateVm(g)));
+            Fill(Agents, agents.Select(a => new AgentVm(a)));
+            AgentNote = agents.Count == 0
+                ? "No agents in this system."
+                : $"{agents.Count} agents across {agents.Select(a => a.Location).Distinct().Count()} stations.";
 
             // Stated plainly: the history only reaches back as far as the snapshots, and
             // without saying so an empty list reads as "nothing ever happened here".

@@ -143,6 +143,9 @@ public class AppDbContext : DbContext
     public DbSet<SdeSolarSystem>        SdeSolarSystems        => Set<SdeSolarSystem>();
     public DbSet<SdeStargate>           SdeStargates           => Set<SdeStargate>();
     public DbSet<SdePlanetResource>     SdePlanetResources     => Set<SdePlanetResource>();
+    public DbSet<SdeAgent>              SdeAgents              => Set<SdeAgent>();
+    public DbSet<SdeAgentType>          SdeAgentTypes          => Set<SdeAgentType>();
+    public DbSet<SdeCorpDivision>       SdeCorpDivisions       => Set<SdeCorpDivision>();
     public DbSet<SdeCelestial>          SdeCelestials          => Set<SdeCelestial>();
     public DbSet<SdeStation>            SdeStations            => Set<SdeStation>();
     public DbSet<SdeFaction>            SdeFactions            => Set<SdeFaction>();
@@ -381,6 +384,22 @@ public class AppDbContext : DbContext
         mb.Entity<SdeSolarSystem>(e => {
             e.HasKey(x => x.SolarSystemId);
             e.Property(x => x.SolarSystemId).ValueGeneratedNever(); });
+
+        mb.Entity<SdeAgent>(e => {
+            e.HasKey(x => x.AgentId);
+            e.Property(x => x.AgentId).ValueGeneratedNever();
+            e.HasIndex(x => x.LocationId);
+            e.ToTable("SdeAgents"); });
+
+        mb.Entity<SdeAgentType>(e => {
+            e.HasKey(x => x.AgentTypeId);
+            e.Property(x => x.AgentTypeId).ValueGeneratedNever();
+            e.ToTable("SdeAgentTypes"); });
+
+        mb.Entity<SdeCorpDivision>(e => {
+            e.HasKey(x => x.DivisionId);
+            e.Property(x => x.DivisionId).ValueGeneratedNever();
+            e.ToTable("SdeCorpDivisions"); });
 
         mb.Entity<SdePlanetResource>(e => {
             e.HasKey(x => x.PlanetId);

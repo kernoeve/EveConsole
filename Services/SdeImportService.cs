@@ -109,6 +109,7 @@ public class SdeImportService
             await ImportBlueprintsAsync(archive, fsdRoot, db, progress, ct);
             await ImportUniverseAsync(archive, fsdRoot, db, progress, ct);
             await ImportStationsAsync(archive, fsdRoot, db, progress, ct);
+            await ImportAgentsAsync(archive, fsdRoot, db, progress, ct);
             await ImportFactionsAsync(archive, fsdRoot, db, progress, ct);
             await ImportNpcCorporationsAsync(archive, fsdRoot, db, progress, ct);
             await ImportRacesAsync(archive, fsdRoot, db, progress, ct);
@@ -293,6 +294,10 @@ public class SdeImportService
             """CREATE TABLE IF NOT EXISTS "SdeStargates" ("StargateId" INTEGER NOT NULL PRIMARY KEY, "SolarSystemId" INTEGER NOT NULL, "DestinationStargateId" INTEGER NOT NULL)""",
             """CREATE TABLE IF NOT EXISTS "SdeCelestials" ("ItemId" INTEGER NOT NULL PRIMARY KEY, "SolarSystemId" INTEGER NOT NULL, "TypeId" INTEGER NOT NULL, "Kind" INTEGER NOT NULL, "X" REAL NOT NULL, "Y" REAL NOT NULL, "Z" REAL NOT NULL, "Name" TEXT NOT NULL)""",
             """CREATE INDEX IF NOT EXISTS "IX_SdeCelestials_System" ON "SdeCelestials" ("SolarSystemId")""",
+            """CREATE TABLE IF NOT EXISTS "SdeAgents" ("AgentId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '', "CorporationId" INTEGER NOT NULL DEFAULT 0, "LocationId" INTEGER NOT NULL DEFAULT 0, "AgentTypeId" INTEGER NOT NULL DEFAULT 0, "DivisionId" INTEGER NOT NULL DEFAULT 0, "Level" INTEGER NOT NULL DEFAULT 0, "IsLocator" INTEGER NOT NULL DEFAULT 0)""",
+            """CREATE INDEX IF NOT EXISTS "IX_SdeAgents_Location" ON "SdeAgents" ("LocationId")""",
+            """CREATE TABLE IF NOT EXISTS "SdeAgentTypes" ("AgentTypeId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
+            """CREATE TABLE IF NOT EXISTS "SdeCorpDivisions" ("DivisionId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
             """CREATE TABLE IF NOT EXISTS "SdePlanetResources" ("PlanetId" INTEGER NOT NULL PRIMARY KEY, "Power" INTEGER NOT NULL DEFAULT 0, "Workforce" INTEGER NOT NULL DEFAULT 0, "ReagentPerCycle" INTEGER NOT NULL DEFAULT 0, "ReagentCycleTime" INTEGER NOT NULL DEFAULT 0, "SecuredCapacity" INTEGER NOT NULL DEFAULT 0)""",
             """CREATE TABLE IF NOT EXISTS "SdeStations" ("StationId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "SolarSystemId" INTEGER NOT NULL, "ConstellationId" INTEGER NOT NULL, "RegionId" INTEGER NOT NULL, "CorporationId" INTEGER, "StationTypeId" INTEGER, "Security" REAL NOT NULL, "ReprocessingEfficiency" REAL NOT NULL, "ReprocessingTax" REAL NOT NULL)""",
             """CREATE TABLE IF NOT EXISTS "SdeFactions" ("FactionId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "Description" TEXT NOT NULL, "CorporationId" INTEGER, "MilitiaCorporationId" INTEGER, "SolarSystemId" INTEGER)""",
@@ -359,6 +364,8 @@ public class SdeImportService
             "DELETE FROM \"SdeBlueprintSkills\"",     "DELETE FROM \"SdeBlueprints\"",
             "DELETE FROM \"SdeStargates\"",           "DELETE FROM \"SdeStations\"",
             "DELETE FROM \"SdePlanetResources\"",
+            "DELETE FROM \"SdeAgents\"", "DELETE FROM \"SdeAgentTypes\"",
+            "DELETE FROM \"SdeCorpDivisions\"",
             "DELETE FROM \"SdeCelestials\"",
             "DELETE FROM \"SdeSolarSystems\"",        "DELETE FROM \"SdeConstellations\"",
             "DELETE FROM \"SdeRegions\"",             "DELETE FROM \"SdeTypes\"",
@@ -864,6 +871,96 @@ public class SdeImportService
             await SaveBatchesAsync(db, db.SdePlanetResources, rows, "Planet Resources",
                 raw.Count, p, 0.868, 0.87, ct);
         }
+    }
+
+    /// <summary>
+    /// Agents, their types, and the corporation divisions they work in.
+    ///
+    /// There is no agents file: an agent is an entry in npcCharacters.yaml carrying a nested
+    /// "agent" block, so the whole character file is read and everything without one is
+    /// discarded — roughly eleven thousand agents out of far more characters.
+    /// </summary>
+    private async Task ImportAgentsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
+        IProgress<SdeImportProgress> p, CancellationToken ct)
+    {
+        Report(p, "Agents", "Parsing agentTypes.yaml…", 0.872);
+        var typeEntry = zip.GetEntry($"{fsdRoot}agentTypes.yaml");
+        if (typeEntry != null)
+        {
+            using var r = OpenEntry(typeEntry);
+            var raw = _yaml.Deserialize<Dictionary<int, AgentTypeYaml>>(r) ?? [];
+            await SaveBatchesAsync(db, db.SdeAgentTypes,
+                raw.Select(kv => new SdeAgentType { AgentTypeId = kv.Key, Name = kv.Value.name ?? "" }),
+                "Agent Types", raw.Count, p, 0.872, 0.873, ct);
+        }
+
+        Report(p, "Agents", "Parsing npcCorporationDivisions.yaml…", 0.873);
+        var divEntry = zip.GetEntry($"{fsdRoot}npcCorporationDivisions.yaml");
+        if (divEntry != null)
+        {
+            using var r = OpenEntry(divEntry);
+            var raw = _yaml.Deserialize<Dictionary<int, CorpDivisionYaml>>(r) ?? [];
+            await SaveBatchesAsync(db, db.SdeCorpDivisions,
+                raw.Select(kv => new SdeCorpDivision
+                {
+                    DivisionId = kv.Key,
+                    // internalName is CCP's short form ("R&D"); the localised name reads better
+                    // where it exists.
+                    Name = kv.Value.name?.en ?? kv.Value.internalName ?? "",
+                }),
+                "Corp Divisions", raw.Count, p, 0.873, 0.874, ct);
+        }
+
+        Report(p, "Agents", "Parsing npcCharacters.yaml…", 0.874);
+        var charEntry = zip.GetEntry($"{fsdRoot}npcCharacters.yaml");
+        if (charEntry is null) return;
+
+        using var cr = OpenEntry(charEntry);
+        var chars = _yaml.Deserialize<Dictionary<int, NpcCharacterYaml>>(cr) ?? [];
+
+        var agents = chars
+            .Where(kv => kv.Value.agent is not null)
+            .Select(kv => new SdeAgent
+            {
+                AgentId       = kv.Key,
+                Name          = kv.Value.name?.en ?? "",
+                CorporationId = kv.Value.corporationID,
+                LocationId    = kv.Value.locationID,
+                AgentTypeId   = kv.Value.agent!.agentTypeID,
+                DivisionId    = kv.Value.agent.divisionID,
+                Level         = kv.Value.agent.level,
+                IsLocator     = kv.Value.agent.isLocator,
+            })
+            .ToList();
+
+        await SaveBatchesAsync(db, db.SdeAgents, agents, "Agents", agents.Count, p, 0.874, 0.88, ct);
+    }
+
+    private class AgentTypeYaml
+    {
+        public string? name { get; set; }
+    }
+
+    private class CorpDivisionYaml
+    {
+        public string?          internalName { get; set; }
+        public LocalizedString? name         { get; set; }
+    }
+
+    private class NpcCharacterYaml
+    {
+        public int              corporationID { get; set; }
+        public long             locationID    { get; set; }
+        public LocalizedString? name          { get; set; }
+        public NpcAgentYaml?    agent         { get; set; }
+    }
+
+    private class NpcAgentYaml
+    {
+        public int  agentTypeID { get; set; }
+        public int  divisionID  { get; set; }
+        public int  level       { get; set; }
+        public bool isLocator   { get; set; }
     }
 
     private class PlanetResourceYaml
