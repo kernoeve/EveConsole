@@ -225,24 +225,30 @@
           <StackPanel Margin="16">
             <TextBlock Classes="note"
                        Text="Laid out as the system is arranged in space: the star, the gates, then each planet in orbital order with its belts, moons and anything docked at them nested beneath." />
-            <Grid ColumnDefinitions="36,*,2*,Auto">
-              <TextBlock Grid.Column="1" Classes="colhead" Text="OBJECT" />
-              <TextBlock Grid.Column="2" Classes="colhead" Text="OWNER" />
-              <TextBlock Grid.Column="3" Classes="colhead" Text="TYPE" />
+            <Grid ColumnDefinitions="*,2*,180">
+              <TextBlock Grid.Column="0" Classes="colhead" Text="OBJECT" />
+              <TextBlock Grid.Column="1" Classes="colhead" Text="OWNER" />
+              <TextBlock Grid.Column="2" Classes="colhead" Text="TYPE" />
             </Grid>
             <ItemsControl ItemsSource="{Binding Celestials}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:CelestialNodeVm">
                   <Border Classes="rowline">
-                    <Grid ColumnDefinitions="36,*,2*,Auto">
-                      <Image Grid.Column="0" Source="{Binding Icon}" Width="24" Height="24"
-                             Margin="{Binding Indent}" />
-                      <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="11.5"
-                                 Foreground="{Binding NameColor}" Margin="{Binding Indent}"
-                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                      <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding Owner}"
+                    <Grid ColumnDefinitions="*,2*,180">
+                      <!-- Icon and name indent together in one panel. Indenting them in
+                           separate fixed columns pushed the icon out of its own column. -->
+                      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
+                                  Margin="{Binding Indent}" VerticalAlignment="Center">
+                        <Image Source="{Binding Icon}" Width="22" Height="22"
+                               Stretch="Uniform" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Name}" FontSize="11.5"
+                                   Foreground="{Binding NameColor}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="1" Classes="colmuted" Text="{Binding Owner}"
                                  TextTrimming="CharacterEllipsis" />
-                      <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding TypeName}" />
+                      <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding TypeName}"
+                                 TextTrimming="CharacterEllipsis" />
                     </Grid>
                   </Border>
                 </DataTemplate>
@@ -339,27 +345,60 @@
             <TextBlock Classes="note" Text="{Binding KillsNote}" />
             <ItemsControl ItemsSource="{Binding Kills}">
               <ItemsControl.ItemTemplate>
+                <!-- Same column widths as the Kills tool's own list. The identity columns are
+                     fixed at 160 there; leaving them proportional here stretched them across
+                     the width and left the row mostly gaps. Column 2 carries the ship instead
+                     of the system, which is the same for every row on this page. -->
                 <DataTemplate DataType="vm:KillmailListRowVm">
                   <Border Classes="rowline">
-                    <Grid ColumnDefinitions="52,110,2*,32,2*,32,2*,Auto">
-                      <Image Grid.Column="0" Source="{Binding ShipRender}" Width="44" Height="44" />
-                      <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Classes="colmuted" Text="{Binding DateText}" />
-                        <TextBlock Classes="colmuted" Text="{Binding TimeText}" />
+                    <Grid ColumnDefinitions="70,50,*,160,160" Margin="4">
+
+                      <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
+                        <TextBlock Text="{Binding DateText}" FontSize="10" Foreground="#888899" />
+                        <TextBlock Text="{Binding TimeText}" FontSize="10" Foreground="#c8c8d8"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding TotalIskText}" FontSize="10" Foreground="#c8a84b"
+                                   IsVisible="{Binding TotalIskText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                       </StackPanel>
-                      <TextBlock Grid.Column="2" Classes="col" Text="{Binding ShipName}" />
-                      <Image Grid.Column="3" Source="{Binding VictimLogo}" Width="24" Height="24" />
-                      <StackPanel Grid.Column="4" VerticalAlignment="Center">
-                        <TextBlock Classes="col" Text="{Binding VictimName}" />
-                        <TextBlock Classes="colmuted" Text="{Binding VictimCorp}" />
-                      </StackPanel>
-                      <Image Grid.Column="5" Source="{Binding FbLogo}" Width="24" Height="24" />
-                      <StackPanel Grid.Column="6" VerticalAlignment="Center">
-                        <TextBlock Classes="col" Text="{Binding FbName}" />
-                        <TextBlock Classes="colmuted" Text="{Binding FbCorp}" />
-                      </StackPanel>
-                      <TextBlock Grid.Column="7" Classes="col" Text="{Binding TotalIskText}"
-                                 Foreground="#c8a84b" HorizontalAlignment="Right" />
+
+                      <Image Grid.Column="1" Source="{Binding ShipRender}" Width="48" Height="48"
+                             Stretch="Uniform" VerticalAlignment="Center"
+                             ToolTip.Tip="{Binding ShipName}" Margin="0 0 6 0" />
+
+                      <TextBlock Grid.Column="2" Text="{Binding ShipName}" FontSize="10"
+                                 Foreground="#c8c8d8" FontWeight="SemiBold"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                 Margin="0 0 6 0" />
+
+                      <Grid Grid.Column="3" ColumnDefinitions="32,*" Margin="0 0 4 0">
+                        <Image Grid.Column="0" Source="{Binding VictimLogo}" Width="32" Height="32"
+                               Stretch="Uniform" VerticalAlignment="Center"
+                               ToolTip.Tip="{Binding VictimAlliance}" Margin="0 0 4 0" />
+                        <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding VictimName}" FontSize="10" Foreground="#c8c8d8"
+                                     FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding VictimCorp}" FontSize="9" Foreground="#888899"
+                                     TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding VictimAlliance}" FontSize="9" Foreground="#666677"
+                                     TextTrimming="CharacterEllipsis"
+                                     IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+                      </Grid>
+
+                      <Grid Grid.Column="4" ColumnDefinitions="32,*">
+                        <Image Grid.Column="0" Source="{Binding FbLogo}" Width="32" Height="32"
+                               Stretch="Uniform" VerticalAlignment="Center"
+                               ToolTip.Tip="{Binding FbAlliance}" Margin="0 0 4 0" />
+                        <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding FbName}" FontSize="10" Foreground="#c8c8d8"
+                                     FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding FbCorp}" FontSize="9" Foreground="#888899"
+                                     TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding FbAlliance}" FontSize="9" Foreground="#666677"
+                                     TextTrimming="CharacterEllipsis"
+                                     IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+                      </Grid>
                     </Grid>
                   </Border>
                 </DataTemplate>
