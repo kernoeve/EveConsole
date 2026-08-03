@@ -65,6 +65,14 @@ public class DetailRowVm(string label, string value)
     public string Value { get; } = value;
 }
 
+public class SysKillVm(int killMailId, DateTimeOffset when, string ship, string victim)
+{
+    public int    KillMailId { get; } = killMailId;
+    public string When       { get; } = when == default ? "" : when.UtcDateTime.ToString("MMM dd HH:mm");
+    public string Ship       { get; } = ship;
+    public string Victim     { get; } = victim;
+}
+
 public class UniverseViewModel : ReactiveObject
 {
     private readonly UniverseMapService _map;
@@ -100,6 +108,8 @@ public class UniverseViewModel : ReactiveObject
         _selectedOverlay = OverlayModes[0];
 
         DrillDownCommand  = ReactiveCommand.CreateFromTask<int>(DrillDownAsync);
+        OpenSystemCommand = ReactiveCommand.CreateFromTask<int>(ShowSystemAsync);
+        OpenSystemCommand.ThrownExceptions.Subscribe(ex => Status = $"Error: {ex.Message}");
         GoUniverseCommand = ReactiveCommand.CreateFromTask(ShowUniverseAsync);
         RefreshCommand    = ReactiveCommand.CreateFromTask(RefreshAsync);
 
@@ -165,8 +175,17 @@ public class UniverseViewModel : ReactiveObject
     public MapLevel Level
     {
         get => _level;
-        private set => this.RaiseAndSetIfChanged(ref _level, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _level, value);
+            // Drives which half of the view is showing, so it must follow every level change
+            // rather than only the ones that open a system.
+            this.RaisePropertyChanged(nameof(IsSystemLevel));
+            this.RaisePropertyChanged(nameof(IsMapLevel));
+        }
     }
+
+    public bool IsMapLevel => Level != MapLevel.System;
 
     private MapGraph? _graph;
     public MapGraph? Graph
@@ -227,12 +246,48 @@ public class UniverseViewModel : ReactiveObject
     }
 
     public ReactiveCommand<int,  Unit> DrillDownCommand  { get; }
+    public ReactiveCommand<int,  Unit> OpenSystemCommand { get; }
     public ReactiveCommand<Unit, Unit> GoUniverseCommand { get; }
     public ReactiveCommand<Unit, Unit> RefreshCommand    { get; }
 
     private int    _regionId;
     private string _regionName = "";
+    private int    _systemId;
+    private string _systemName = "";
     private List<RegionSummary> _regions = [];
+
+    // ── System page ──────────────────────────────────────────────────────────
+
+    public bool IsSystemLevel => Level == MapLevel.System;
+
+    private string _sysHeader = "";
+    public string SysHeader
+    {
+        get => _sysHeader;
+        private set => this.RaiseAndSetIfChanged(ref _sysHeader, value);
+    }
+
+    private string _sysSubHeader = "";
+    public string SysSubHeader
+    {
+        get => _sysSubHeader;
+        private set => this.RaiseAndSetIfChanged(ref _sysSubHeader, value);
+    }
+
+    public ObservableCollection<DetailRowVm>                     SysFacts      { get; } = [];
+    public ObservableCollection<DetailRowVm>                     SysActivity   { get; } = [];
+    public ObservableCollection<DetailRowVm>                     SysIndices    { get; } = [];
+    public ObservableCollection<UniverseMapService.NeighbourRow> SysNeighbours { get; } = [];
+    public ObservableCollection<UniverseMapService.StationRow>   SysStations   { get; } = [];
+    public ObservableCollection<UniverseMapService.StructureRow> SysStructures { get; } = [];
+    public ObservableCollection<SysKillVm>                       SysKills      { get; } = [];
+
+    /// <summary>
+    /// Placeholder until intel-channel parsing lands. Stated plainly rather than left as an
+    /// empty panel, so an absent feature does not read as "no reports in this system".
+    /// </summary>
+    public string SysIntelNote =>
+        "Intel channel reports will appear here once chat-log parsing is in place.";
 
     // ── Navigation ───────────────────────────────────────────────────────────
 
@@ -319,10 +374,97 @@ public class UniverseViewModel : ReactiveObject
             return;
         }
 
-        // Systems inside the current region have no deeper level yet — the system view is a
-        // later phase — so select it and show what the SDE knows.
-        await OnUiAsync(() => SelectedId = id);
-        await LoadDetailAsync();
+        await ShowSystemAsync(id);
+    }
+
+    /// <summary>
+    /// Opens the system page. The map is replaced rather than shown alongside: at this level
+    /// there is no graph left to draw, and the breadcrumb is what gets you back.
+    /// </summary>
+    public async Task ShowSystemAsync(int systemId)
+    {
+        await OnUiAsync(() => Status = "Loading system…");
+
+        var view = await _map.GetSystemViewAsync(systemId);
+        if (view is null)
+        {
+            await OnUiAsync(() => Status = "System not found");
+            return;
+        }
+
+        // Statistics live in the other service, so they are layered on here rather than
+        // dragging map-stats knowledge into the SDE service.
+        var sov      = _stats is null ? null : await _stats.GetSovereigntyOverlayAsync();
+        var indices  = new List<DetailRowVm>();
+        var activity = new List<DetailRowVm>();
+
+        if (_stats is not null)
+        {
+            foreach (var act in new[]
+                     {
+                         "manufacturing", "researching_time_efficiency",
+                         "researching_material_efficiency", "copying", "invention", "reaction",
+                     })
+            {
+                var idx = await _stats.GetLatestIndustryAsync(act);
+                if (idx.TryGetValue(systemId, out var v))
+                    indices.Add(new DetailRowVm(act.Replace('_', ' '), $"{v * 100:F2}%"));
+            }
+
+            var day  = await _stats.GetActivityWindowAsync(1);
+            var week = await _stats.GetActivityWindowAsync(7);
+            var d    = day.GetValueOrDefault(systemId);
+            var w    = week.GetValueOrDefault(systemId);
+
+            activity.Add(new DetailRowVm("Ship jumps (24h)", $"{d?.ShipJumps ?? 0:N0}"));
+            activity.Add(new DetailRowVm("Ship jumps (7d)",  $"{w?.ShipJumps ?? 0:N0}"));
+            activity.Add(new DetailRowVm("Ship kills (24h)", $"{d?.ShipKills ?? 0:N0}"));
+            activity.Add(new DetailRowVm("Ship kills (7d)",  $"{w?.ShipKills ?? 0:N0}"));
+            activity.Add(new DetailRowVm("Pod kills (7d)",   $"{w?.PodKills  ?? 0:N0}"));
+            activity.Add(new DetailRowVm("NPC kills (24h)",  $"{d?.NpcKills  ?? 0:N0}"));
+        }
+
+        var facts = new List<DetailRowVm>
+        {
+            new("Security",      view.Detail.Security.ToString("F2")),
+            new("Constellation", view.Detail.Constellation),
+            new("Region",        view.Detail.Region),
+        };
+        if (!string.IsNullOrEmpty(view.Detail.SecurityClass))
+            facts.Add(new DetailRowVm("Security class", view.Detail.SecurityClass));
+        foreach (var c in view.Celestials) facts.Add(new DetailRowVm(c.Kind, c.Count.ToString("N0")));
+        facts.Add(new DetailRowVm("Stargates", view.Detail.Gates.ToString("N0")));
+
+        var holder = sov?.GetValueOrDefault(systemId);
+        if (holder is not null)
+        {
+            facts.Add(new DetailRowVm("Sovereignty", holder.Holder));
+            if (holder.Adm is { } adm) facts.Add(new DetailRowVm("ADM", adm.ToString("F1")));
+        }
+
+        await OnUiAsync(() =>
+        {
+            _systemId   = systemId;
+            _systemName = view.Detail.Name;
+            Level       = MapLevel.System;
+            this.RaisePropertyChanged(nameof(IsSystemLevel));
+
+            SysHeader    = view.Detail.Name;
+            SysSubHeader = $"{view.Detail.Constellation} · {view.Detail.Region}";
+
+            Replace(SysFacts,      facts);
+            Replace(SysActivity,   activity);
+            Replace(SysIndices,    indices);
+            Replace(SysNeighbours, view.Neighbours);
+            Replace(SysStations,   view.Stations);
+            Replace(SysStructures, view.Structures);
+            Replace(SysKills, view.RecentKills
+                .Select(k => new SysKillVm(k.KillMailId, k.When, k.ShipName, k.VictimName)));
+
+            BuildCrumbs();
+            Status = $"{view.Detail.Name} · {view.Neighbours.Count} gates · " +
+                     $"{view.Stations.Count} stations · {view.Structures.Count} known structures";
+        });
     }
 
     private async Task RefreshAsync()
@@ -345,13 +487,17 @@ public class UniverseViewModel : ReactiveObject
     private void BuildCrumbs()
     {
         Crumbs.Clear();
-        var atUniverse = Level == MapLevel.Universe;
-        Crumbs.Add(new CrumbVm("Universe", atUniverse, ShowUniverseAsync));
-        if (!atUniverse)
-        {
-            var id = _regionId;
-            Crumbs.Add(new CrumbVm(_regionName, true, () => ShowRegionAsync(id)));
-        }
+        Crumbs.Add(new CrumbVm("Universe", Level == MapLevel.Universe, ShowUniverseAsync));
+
+        if (Level == MapLevel.Universe) return;
+
+        var regionId = _regionId;
+        Crumbs.Add(new CrumbVm(_regionName, Level == MapLevel.Region, () => ShowRegionAsync(regionId)));
+
+        if (Level != MapLevel.System) return;
+
+        var systemId = _systemId;
+        Crumbs.Add(new CrumbVm(_systemName, true, () => ShowSystemAsync(systemId)));
     }
 
     private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> items)

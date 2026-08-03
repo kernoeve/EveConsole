@@ -518,6 +518,129 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             celestials.GetValueOrDefault(0), celestials.GetValueOrDefault(1));
     }
 
+    // ── System view ──────────────────────────────────────────────────────────
+
+    public sealed record NeighbourRow(int SystemId, string Name, double Security, string RegionName, bool OutOfRegion);
+    public sealed record StationRow(long StationId, string Name, string TypeName);
+    public sealed record StructureRow(long StructureId, string Name, string TypeName, string Owner, string NearestCelestial);
+    public sealed record CelestialRow(string Kind, int Count);
+    public sealed record KillRow(int KillMailId, DateTimeOffset When, string ShipName, string VictimName);
+
+    public sealed record SystemView(
+        SystemDetail                  Detail,
+        IReadOnlyList<NeighbourRow>   Neighbours,
+        IReadOnlyList<StationRow>     Stations,
+        IReadOnlyList<StructureRow>   Structures,
+        IReadOnlyList<CelestialRow>   Celestials,
+        IReadOnlyList<KillRow>        RecentKills);
+
+    /// <summary>
+    /// Everything the system page shows that comes from the SDE and our own stored data.
+    /// Statistics (sovereignty, indices, activity) are layered on by the caller, which already
+    /// holds the map-stats service.
+    /// </summary>
+    public async Task<SystemView?> GetSystemViewAsync(int systemId, CancellationToken ct = default)
+    {
+        var detail = await GetSystemDetailAsync(systemId, ct);
+        if (detail is null) return null;
+
+        using var db = dbFactory.CreateDbContext();
+
+        var homeRegion = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => s.SolarSystemId == systemId)
+            .Select(s => s.RegionId).FirstOrDefaultAsync(ct);
+
+        // Neighbours come from the same gate self-join the maps use.
+        var neighbourIds = await db.Database.SqlQueryRaw<LinkRaw>(NeighbourSql, systemId).ToListAsync(ct);
+        var ids = neighbourIds.Select(l => l.ToId).Distinct().ToList();
+
+        var neighbours = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => ids.Contains(s.SolarSystemId))
+            .Join(db.SdeRegions.AsNoTracking(), s => s.RegionId, r => r.RegionId,
+                  (s, r) => new { s.SolarSystemId, s.Name, s.Security, s.RegionId, RegionName = r.Name })
+            .ToListAsync(ct);
+
+        var stations = await db.SdeStations.AsNoTracking()
+            .Where(s => s.SolarSystemId == systemId)
+            .Join(db.SdeTypes.AsNoTracking(), s => s.StationTypeId, t => t.TypeId,
+                  (s, t) => new { s.StationId, s.Name, TypeName = t.Name })
+            .ToListAsync(ct);
+
+        var structures = await db.EsiStructureNames.AsNoTracking()
+            .Where(s => s.SolarSystemId == systemId)
+            .ToListAsync(ct);
+
+        var typeNames = await db.SdeTypes.AsNoTracking()
+            .Where(t => structures.Select(s => s.TypeId).Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+
+        var ownerIds = structures.SelectMany(s => new[] { s.OwnerId, s.AllianceId })
+                                 .Where(id => id > 0).Distinct().ToList();
+        var ownerNames = await db.UniverseNames.AsNoTracking()
+            .Where(n => ownerIds.Contains(n.EntityId))
+            .ToDictionaryAsync(n => n.EntityId, n => n.Name, ct);
+
+        var celestials = await db.SdeCelestials.AsNoTracking()
+            .Where(c => c.SolarSystemId == systemId)
+            .GroupBy(c => c.Kind)
+            .Select(g => new { Kind = g.Key, Count = g.Count() })
+            .ToListAsync(ct);
+
+        var kills = await db.Database.SqlQueryRaw<KillRaw>(RecentKillsSql, systemId).ToListAsync(ct);
+
+        return new SystemView(
+            detail,
+            neighbours
+                .Select(n => new NeighbourRow(n.SolarSystemId, n.Name, n.Security, n.RegionName,
+                                              n.RegionId != homeRegion))
+                .OrderBy(n => n.Name).ToList(),
+            stations.Select(s => new StationRow(s.StationId, s.Name, s.TypeName))
+                    .OrderBy(s => s.Name).ToList(),
+            structures.Select(s => new StructureRow(
+                    s.StructureId,
+                    string.IsNullOrEmpty(s.Name) ? $"Structure {s.StructureId}" : s.Name,
+                    typeNames.GetValueOrDefault(s.TypeId, "Unknown type"),
+                    ownerNames.GetValueOrDefault(s.AllianceId > 0 ? s.AllianceId : s.OwnerId, ""),
+                    s.NearestCelestial))
+                .OrderBy(s => s.Name).ToList(),
+            celestials.Select(c => new CelestialRow(
+                    c.Kind switch { 0 => "Planets", 1 => "Moons", 2 => "Stargates", _ => "Other" },
+                    c.Count))
+                .OrderBy(c => c.Kind).ToList(),
+            kills.Select(k => new KillRow(
+                    k.KillMailId,
+                    DateTimeOffset.TryParse(k.KillMailTime, out var t) ? t : default,
+                    k.ShipName ?? "Unknown ship",
+                    k.VictimName ?? "NPC"))
+                .ToList());
+    }
+
+    private sealed class KillRaw
+    {
+        public int     KillMailId   { get; set; }
+        public string  KillMailTime { get; set; } = "";
+        public string? ShipName     { get; set; }
+        public string? VictimName   { get; set; }
+    }
+
+    private const string NeighbourSql = $$"""
+        SELECT DISTINCT a."SolarSystemId" AS "FromId", b."SolarSystemId" AS "ToId"
+        FROM "SdeStargates" a
+        JOIN "SdeStargates" b ON b."StargateId" = a."DestinationStargateId"
+        WHERE a."SolarSystemId" = {0}
+        """;
+
+    private const string RecentKillsSql = """
+        SELECT k."KillMailId", k."KillMailTime",
+               t."Name" AS "ShipName", u."Name" AS "VictimName"
+        FROM "KillMailDetails" k
+        LEFT JOIN "SdeTypes"      t ON t."TypeId"   = k."VictimShipTypeId"
+        LEFT JOIN "UniverseNames" u ON u."EntityId" = k."VictimCharId"
+        WHERE k."SolarSystemId" = {0}
+        ORDER BY k."KillMailTime" DESC
+        LIMIT 25
+        """;
+
     public sealed record RegionDetail(
         int    RegionId,
         string Name,

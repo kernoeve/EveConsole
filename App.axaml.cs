@@ -1808,6 +1808,10 @@ public class App : Application
                 """CREATE INDEX IF NOT EXISTS "IX_MapSystemDailies_Day"      ON "MapSystemDailies"  ("Day")""",
                 """CREATE INDEX IF NOT EXISTS "IX_MapSovereignties_Bucket"   ON "MapSovereignties"  ("Bucket")""",
                 """CREATE INDEX IF NOT EXISTS "IX_MapSovStructures_SystemId" ON "MapSovStructures"  ("SystemId")""",
+                // The system view lists recent kills for one system; without this it is a full
+                // scan of a table that is well past half a million rows.
+                """CREATE INDEX IF NOT EXISTS "IX_KillMailDetails_SolarSystemId" ON "KillMailDetails" ("SolarSystemId")""",
+                """CREATE INDEX IF NOT EXISTS "IX_EsiStructureNames_SolarSystemId" ON "EsiStructureNames" ("SolarSystemId")""",
             }) { try { db.Database.ExecuteSqlRaw(sql); } catch { } }
         }
         }); // end Task.Run — schema migration complete

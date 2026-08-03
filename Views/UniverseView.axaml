@@ -33,6 +33,30 @@
       <Setter Property="Foreground" Value="#c8c8d8" />
       <Setter Property="HorizontalAlignment" Value="Right" />
     </Style>
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="#101018" />
+      <Setter Property="BorderBrush" Value="#1e1e2a" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="12" />
+    </Style>
+    <Style Selector="TextBlock.cardtitle">
+      <Setter Property="FontSize" Value="9.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#55556a" />
+      <Setter Property="Margin" Value="0 0 0 4" />
+    </Style>
+    <Style Selector="Button.linkrow">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0 2" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.linkrow:pointerover">
+      <Setter Property="Background" Value="#181824" />
+    </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,1,Auto,1,*">
@@ -95,10 +119,176 @@
     <Grid Grid.Row="4" ColumnDefinitions="*,1,220">
 
       <ctrl:MapCanvas Grid.Column="0"
+                      IsVisible="{Binding IsMapLevel}"
                       Graph="{Binding Graph}"
                       Overlay="{Binding Overlay}"
                       SelectedId="{Binding SelectedId, Mode=TwoWay}"
                       ActivateCommand="{Binding DrillDownCommand}" />
+
+      <!-- ── System page — replaces the map, since there is no graph at this level ── -->
+      <ScrollViewer Grid.Column="0" IsVisible="{Binding IsSystemLevel}" Background="#0b0b10">
+        <StackPanel Margin="16" Spacing="14">
+
+          <StackPanel>
+            <TextBlock Text="{Binding SysHeader}" FontSize="20" FontWeight="SemiBold" Foreground="#e8e8f2" />
+            <TextBlock Text="{Binding SysSubHeader}" FontSize="12" Foreground="#7a7a8c" />
+          </StackPanel>
+
+          <Grid ColumnDefinitions="*,14,*">
+
+            <!-- Left column -->
+            <StackPanel Grid.Column="0" Spacing="14">
+
+              <Border Classes="card">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="cardtitle" Text="SYSTEM" />
+                  <ItemsControl ItemsSource="{Binding SysFacts}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate DataType="vm:DetailRowVm">
+                        <Grid ColumnDefinitions="*,Auto" Margin="0 2">
+                          <TextBlock Grid.Column="0" Classes="dlabel" Text="{Binding Label}" />
+                          <TextBlock Grid.Column="1" Classes="dvalue" Text="{Binding Value}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card" IsVisible="{Binding SysActivity.Count}">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="cardtitle" Text="ACTIVITY" />
+                  <ItemsControl ItemsSource="{Binding SysActivity}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate DataType="vm:DetailRowVm">
+                        <Grid ColumnDefinitions="*,Auto" Margin="0 2">
+                          <TextBlock Grid.Column="0" Classes="dlabel" Text="{Binding Label}" />
+                          <TextBlock Grid.Column="1" Classes="dvalue" Text="{Binding Value}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card" IsVisible="{Binding SysIndices.Count}">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="cardtitle" Text="INDUSTRY INDICES" />
+                  <ItemsControl ItemsSource="{Binding SysIndices}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate DataType="vm:DetailRowVm">
+                        <Grid ColumnDefinitions="*,Auto" Margin="0 2">
+                          <TextBlock Grid.Column="0" Classes="dlabel" Text="{Binding Label}" />
+                          <TextBlock Grid.Column="1" Classes="dvalue" Text="{Binding Value}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="cardtitle" Text="GATES" />
+                  <ItemsControl ItemsSource="{Binding SysNeighbours}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Button Classes="linkrow"
+                                Command="{Binding $parent[ItemsControl].((vm:UniverseViewModel)DataContext).OpenSystemCommand}"
+                                CommandParameter="{Binding SystemId}">
+                          <Grid ColumnDefinitions="Auto,*,Auto">
+                            <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11.5" Foreground="#7fb8d8" />
+                            <TextBlock Grid.Column="1" Text="{Binding RegionName}" FontSize="10.5"
+                                       Foreground="#55556a" Margin="8 0 0 0" VerticalAlignment="Center"
+                                       IsVisible="{Binding OutOfRegion}" />
+                            <TextBlock Grid.Column="2" Text="{Binding Security, StringFormat='{}{0:F2}'}"
+                                       FontSize="11" Foreground="#8a8a9a" />
+                          </Grid>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+            </StackPanel>
+
+            <!-- Right column -->
+            <StackPanel Grid.Column="2" Spacing="14">
+
+              <Border Classes="card">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="cardtitle" Text="NPC STATIONS" />
+                  <TextBlock Text="None" Classes="dlabel"
+                             IsVisible="{Binding !SysStations.Count}" />
+                  <ItemsControl ItemsSource="{Binding SysStations}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <StackPanel Margin="0 2">
+                          <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="#c8c8d8" TextWrapping="Wrap" />
+                          <TextBlock Text="{Binding TypeName}" FontSize="10.5" Foreground="#55556a" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="cardtitle" Text="KNOWN PLAYER STRUCTURES" />
+                  <TextBlock Classes="dlabel" TextWrapping="Wrap"
+                             IsVisible="{Binding !SysStructures.Count}"
+                             Text="None known. Structures appear as they are seen through assets, jobs or contracts." />
+                  <ItemsControl ItemsSource="{Binding SysStructures}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <StackPanel Margin="0 3">
+                          <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="#c8c8d8" TextWrapping="Wrap" />
+                          <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="{Binding TypeName}" FontSize="10.5" Foreground="#55556a" />
+                            <TextBlock Text="{Binding Owner}" FontSize="10.5" Foreground="#6a7f99" />
+                          </StackPanel>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="cardtitle" Text="INTEL REPORTS" />
+                  <TextBlock Text="{Binding SysIntelNote}" Classes="dlabel" TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="cardtitle" Text="RECENT KILLMAILS HELD" />
+                  <TextBlock Text="None stored for this system" Classes="dlabel"
+                             IsVisible="{Binding !SysKills.Count}" />
+                  <ItemsControl ItemsSource="{Binding SysKills}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate DataType="vm:SysKillVm">
+                        <Grid ColumnDefinitions="Auto,*,Auto" Margin="0 2">
+                          <TextBlock Grid.Column="0" Text="{Binding When}" FontSize="10.5"
+                                     Foreground="#55556a" Width="84" />
+                          <TextBlock Grid.Column="1" Text="{Binding Ship}" FontSize="11" Foreground="#c8c8d8"
+                                     TextTrimming="CharacterEllipsis" />
+                          <TextBlock Grid.Column="2" Text="{Binding Victim}" FontSize="10.5"
+                                     Foreground="#8a8a9a" Margin="8 0 0 0" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </ScrollViewer>
 
       <Rectangle Grid.Column="1" Fill="#1e1e2a" />
 
