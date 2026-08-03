@@ -85,6 +85,12 @@ public class CelestialNodeVm(SystemViewService.CelestialNode n) : IconRowVm
     public string    TypeName  { get; } = n.TypeName;
     public string    Kind      { get; } = n.Kind;
     public string    Owner     { get; } = n.Owner;
+    public string    Power     { get; } = n.Power > 0 ? n.Power.ToString("N0") : "";
+    public string    Workforce { get; } = n.Workforce > 0 ? n.Workforce.ToString("N0") : "";
+    /// <summary>Reagent yield per hour, named by planet type — Lava gives Magmatic Gas, Ice
+    /// gives Sublimated Ice. Blank on every other planet, which carries none.</summary>
+    public string    Reagent   { get; } = n.ReagentPerHour > 0 ? $"{n.ReagentPerHour:N0}/h {n.Reagent}" : "";
+    public string    ReagentColor { get; } = n.Reagent == "Sublimated Ice" ? "#7fc8e8" : "#e08a4a";
     public Avalonia.Thickness Indent { get; } = new(n.Depth * 22, 0, 0, 0);
     public bool      IsHeading { get; } = n.Kind is "Star" or "Planet" or "Stargate";
 

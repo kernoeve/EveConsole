@@ -225,16 +225,19 @@
           <StackPanel Margin="16">
             <TextBlock Classes="note"
                        Text="Laid out as the system is arranged in space: the star, the gates, then each planet in orbital order with its belts, moons and anything docked at them nested beneath." />
-            <Grid ColumnDefinitions="*,2*,180">
+            <Grid ColumnDefinitions="*,2*,180,70,80,150">
               <TextBlock Grid.Column="0" Classes="colhead" Text="OBJECT" />
               <TextBlock Grid.Column="1" Classes="colhead" Text="OWNER" />
               <TextBlock Grid.Column="2" Classes="colhead" Text="TYPE" />
+              <TextBlock Grid.Column="3" Classes="colhead" Text="POWER" />
+              <TextBlock Grid.Column="4" Classes="colhead" Text="WORKFORCE" />
+              <TextBlock Grid.Column="5" Classes="colhead" Text="REAGENT" />
             </Grid>
             <ItemsControl ItemsSource="{Binding Celestials}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:CelestialNodeVm">
                   <Border Classes="rowline">
-                    <Grid ColumnDefinitions="*,2*,180">
+                    <Grid ColumnDefinitions="*,2*,180,70,80,150">
                       <!-- Icon and name indent together in one panel. Indenting them in
                            separate fixed columns pushed the icon out of its own column. -->
                       <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
@@ -249,6 +252,10 @@
                                  TextTrimming="CharacterEllipsis" />
                       <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding TypeName}"
                                  TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding Power}" />
+                      <TextBlock Grid.Column="4" Classes="colmuted" Text="{Binding Workforce}" />
+                      <TextBlock Grid.Column="5" Text="{Binding Reagent}" FontSize="10.5"
+                                 Foreground="{Binding ReagentColor}" VerticalAlignment="Center" />
                     </Grid>
                   </Border>
                 </DataTemplate>

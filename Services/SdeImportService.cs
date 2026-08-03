@@ -293,6 +293,7 @@ public class SdeImportService
             """CREATE TABLE IF NOT EXISTS "SdeStargates" ("StargateId" INTEGER NOT NULL PRIMARY KEY, "SolarSystemId" INTEGER NOT NULL, "DestinationStargateId" INTEGER NOT NULL)""",
             """CREATE TABLE IF NOT EXISTS "SdeCelestials" ("ItemId" INTEGER NOT NULL PRIMARY KEY, "SolarSystemId" INTEGER NOT NULL, "TypeId" INTEGER NOT NULL, "Kind" INTEGER NOT NULL, "X" REAL NOT NULL, "Y" REAL NOT NULL, "Z" REAL NOT NULL, "Name" TEXT NOT NULL)""",
             """CREATE INDEX IF NOT EXISTS "IX_SdeCelestials_System" ON "SdeCelestials" ("SolarSystemId")""",
+            """CREATE TABLE IF NOT EXISTS "SdePlanetResources" ("PlanetId" INTEGER NOT NULL PRIMARY KEY, "Power" INTEGER NOT NULL DEFAULT 0, "Workforce" INTEGER NOT NULL DEFAULT 0, "ReagentPerCycle" INTEGER NOT NULL DEFAULT 0, "ReagentCycleTime" INTEGER NOT NULL DEFAULT 0, "SecuredCapacity" INTEGER NOT NULL DEFAULT 0)""",
             """CREATE TABLE IF NOT EXISTS "SdeStations" ("StationId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "SolarSystemId" INTEGER NOT NULL, "ConstellationId" INTEGER NOT NULL, "RegionId" INTEGER NOT NULL, "CorporationId" INTEGER, "StationTypeId" INTEGER, "Security" REAL NOT NULL, "ReprocessingEfficiency" REAL NOT NULL, "ReprocessingTax" REAL NOT NULL)""",
             """CREATE TABLE IF NOT EXISTS "SdeFactions" ("FactionId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "Description" TEXT NOT NULL, "CorporationId" INTEGER, "MilitiaCorporationId" INTEGER, "SolarSystemId" INTEGER)""",
             """CREATE TABLE IF NOT EXISTS "SdeNpcCorporations" ("CorporationId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "FactionId" INTEGER)""",
@@ -357,6 +358,7 @@ public class SdeImportService
             "DELETE FROM \"SdeBlueprintMaterials\"",  "DELETE FROM \"SdeBlueprintProducts\"",
             "DELETE FROM \"SdeBlueprintSkills\"",     "DELETE FROM \"SdeBlueprints\"",
             "DELETE FROM \"SdeStargates\"",           "DELETE FROM \"SdeStations\"",
+            "DELETE FROM \"SdePlanetResources\"",
             "DELETE FROM \"SdeCelestials\"",
             "DELETE FROM \"SdeSolarSystems\"",        "DELETE FROM \"SdeConstellations\"",
             "DELETE FROM \"SdeRegions\"",             "DELETE FROM \"SdeTypes\"",
@@ -841,6 +843,41 @@ public class SdeImportService
         }
 
         await SaveBatchesAsync(db, db.SdeCelestials, celestials, "Celestials", celestials.Count, p, 0.85, 0.87, ct);
+
+        // Equinox planetary production. The reagent is unnamed here — it is decided by the
+        // planet's type, Lava yielding Magmatic Gas and Ice yielding Sublimated Ice.
+        Report(p, "Universe", "Parsing planetResources.yaml…", 0.868);
+        var resEntry = zip.GetEntry($"{fsdRoot}planetResources.yaml");
+        if (resEntry != null)
+        {
+            using var r = OpenEntry(resEntry);
+            var raw = _yaml.Deserialize<Dictionary<long, PlanetResourceYaml>>(r) ?? [];
+            var rows = raw.Select(kv => new SdePlanetResource
+            {
+                PlanetId         = kv.Key,
+                Power            = kv.Value.power,
+                Workforce        = kv.Value.workforce,
+                ReagentPerCycle  = kv.Value.reagent?.amount_per_cycle  ?? 0,
+                ReagentCycleTime = kv.Value.reagent?.cycle_period      ?? 0,
+                SecuredCapacity  = kv.Value.reagent?.secured_capacity  ?? 0,
+            });
+            await SaveBatchesAsync(db, db.SdePlanetResources, rows, "Planet Resources",
+                raw.Count, p, 0.868, 0.87, ct);
+        }
+    }
+
+    private class PlanetResourceYaml
+    {
+        public int             power     { get; set; }
+        public int             workforce { get; set; }
+        public PlanetReagentYaml? reagent { get; set; }
+    }
+
+    private class PlanetReagentYaml
+    {
+        public int  amount_per_cycle { get; set; }
+        public int  cycle_period     { get; set; }
+        public long secured_capacity { get; set; }
     }
 
     /// <summary>Names CCP has used for the asteroid-belt file across SDE revisions.</summary>

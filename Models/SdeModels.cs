@@ -197,6 +197,28 @@ public class SdeStargate
     public int DestinationStargateId { get; set; }
 }
 
+/// <summary>
+/// planetResources.yaml — the Equinox planetary production figures, per planet.
+///
+/// The reagent is not named in the file; it is decided by the planet's type, and only two types
+/// carry one at all: Lava planets yield Magmatic Gas, Ice planets yield Sublimated Ice. Verified
+/// across every reagent-bearing planet in the SDE — exactly 2,337 Lava and 1,125 Ice, nothing
+/// else.
+///
+/// ⚠️ Sublimated Ice is a sovereignty reagent harvested from an ice planet. It is NOT an ice
+/// mining anomaly and must not be used to infer one: 54% of known-space systems hold an ice
+/// planet, far more than actually have ice belts.
+/// </summary>
+public class SdePlanetResource
+{
+    public long PlanetId         { get; set; }
+    public int  Power            { get; set; }
+    public int  Workforce        { get; set; }
+    public int  ReagentPerCycle  { get; set; }
+    public int  ReagentCycleTime { get; set; }   // seconds; 3600 throughout, so per hour
+    public long SecuredCapacity  { get; set; }
+}
+
 // In-system celestials (planets, moons, stargates) with their positions, used to label the nearest
 // point to a player structure. Populated from the universe SDE. Kind: 0 planet, 1 moon, 2 stargate.
 public class SdeCelestial

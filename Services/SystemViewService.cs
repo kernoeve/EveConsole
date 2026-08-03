@@ -336,7 +336,8 @@ public class SystemViewService(
     /// 1 for moons and belts of a planet, and one deeper again for anything docked at them.
     /// </summary>
     public sealed record CelestialNode(
-        int Depth, string Kind, string Name, string TypeName, int TypeId, string Owner);
+        int Depth, string Kind, string Name, string TypeName, int TypeId, string Owner,
+        int Power = 0, int Workforce = 0, int ReagentPerHour = 0, string Reagent = "");
 
     /// <summary>
     /// The system laid out as it is arranged in space rather than as separate lists: the star,
@@ -415,10 +416,29 @@ public class SystemViewService(
             AddStructures(gate.ItemId, 1);
         }
 
+        // Equinox production, per planet. Only Lava and Ice planets carry a reagent, and which
+        // one is decided entirely by that type — the file itself never names it.
+        var planetIds = celestials.Where(c => c.Kind == 0).Select(c => c.ItemId).ToList();
+        var resources = await db.SdePlanetResources.AsNoTracking()
+            .Where(r => planetIds.Contains(r.PlanetId))
+            .ToDictionaryAsync(r => r.PlanetId, r => r, ct);
+
         foreach (var planet in celestials.Where(c => c.Kind == 0)
                      .OrderBy(c => Radius(c.X, c.Y, c.Z)))
         {
-            nodes.Add(new CelestialNode(0, "Planet", planet.Name, planet.TypeName, planet.TypeId, ""));
+            resources.TryGetValue(planet.ItemId, out var res);
+            var reagent = res is null || res.ReagentPerCycle == 0 ? ""
+                : planet.TypeId == 2015 ? "Magmatic Gas"
+                : planet.TypeId == 12   ? "Sublimated Ice"
+                : "";
+            var perHour = res is null || res.ReagentCycleTime <= 0 ? 0
+                : (int)Math.Round(res.ReagentPerCycle * 3600.0 / res.ReagentCycleTime);
+
+            nodes.Add(new CelestialNode(
+                0, "Planet", planet.Name, planet.TypeName, planet.TypeId, "",
+                res?.Power ?? 0, res?.Workforce ?? 0,
+                string.IsNullOrEmpty(reagent) ? 0 : perHour, reagent));
+
             AddStructures(planet.ItemId, 1);
 
             var children = celestials
