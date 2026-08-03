@@ -91,6 +91,10 @@ public class UniverseViewModel : ReactiveObject
             new("Sovereignty ADM", "adm"),
             new("Industry — manufacturing", "industry:manufacturing"),
             new("Industry — reactions",     "industry:reaction"),
+            new("Industry — ME research",   "industry:researching_material_efficiency"),
+            new("Industry — TE research",   "industry:researching_time_efficiency"),
+            new("Industry — copying",       "industry:copying"),
+            new("Industry — invention",     "industry:invention"),
             new("Ship jumps (24h)",  "act:jumps:1"),
             new("Ship jumps (7d)",   "act:jumps:7"),
             new("Ship kills (24h)",  "act:ship:1"),
@@ -848,7 +852,9 @@ public class UniverseViewModel : ReactiveObject
             values = byRegionAvg;
         }
 
-        var max = values.Count == 0 ? 0 : values.Values.Max();
+        // Scaled to what is on screen, so a region's own spread is visible rather than being
+        // flattened against the universe-wide peak.
+        var max = VisibleMax(g, values);
 
         foreach (var n in g.Nodes)
         {
@@ -863,7 +869,8 @@ public class UniverseViewModel : ReactiveObject
                     : "No index recorded");
         }
 
-        AddHeatLegend(legend, "lowest", max > 0 ? $"highest ({max * 100:F2}%)" : "no data");
+        AddHeatLegend(legend, "lowest",
+            max > 0 ? $"{max * 100:F2}% — highest {(byRegion ? "region" : "system")} shown" : "no data");
     }
 
     /// <summary>
@@ -1033,11 +1040,40 @@ public class UniverseViewModel : ReactiveObject
         legend.Add(new LegendEntryVm("none", HeatNone));
     }
 
+    /// <summary>
+    /// Largest value among the nodes the map is actually about.
+    ///
+    /// Scaling to the whole universe made every region except the busiest look uniformly cold —
+    /// Tenerifis tops out at 6.4% manufacturing and rendered green-yellow because Jita sits at
+    /// 17%, using two colour bands across 81 systems instead of five. Anchoring to what is on
+    /// screen spreads the ramp across the map in front of you, and the legend names the value
+    /// it corresponds to so the absolute number is never lost.
+    ///
+    /// Gateway systems are excluded even though they are drawn: they belong to the neighbouring
+    /// region, and a single border system next to a trade hub would otherwise flatten the whole
+    /// region's scale — the very problem this is fixing. They clamp to the top of the ramp.
+    /// </summary>
+    private static double VisibleMax(MapGraph g, IReadOnlyDictionary<int, double> values)
+    {
+        double max = 0;
+        foreach (var n in g.Nodes)
+            if (!n.IsOutsideRegion && values.TryGetValue(n.Id, out var v) && v > max) max = v;
+        return max;
+    }
+
+    private static int VisibleMax(MapGraph g, IReadOnlyDictionary<int, int> values)
+    {
+        var max = 0;
+        foreach (var n in g.Nodes)
+            if (!n.IsOutsideRegion && values.TryGetValue(n.Id, out var v) && v > max) max = v;
+        return max;
+    }
+
     private static void BuildCountOverlay(
         MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend,
         Dictionary<int, int> counts, string singular, string plural)
     {
-        var max = counts.Count == 0 ? 0 : counts.Values.Max();
+        var max = VisibleMax(g, counts);
 
         foreach (var n in g.Nodes)
         {
@@ -1051,7 +1087,7 @@ public class UniverseViewModel : ReactiveObject
                 Detail: $"{c:N0} {(c == 1 ? singular : plural)}");
         }
 
-        AddHeatLegend(legend, "lowest", max > 0 ? $"highest ({max:N0})" : "no data");
+        AddHeatLegend(legend, "lowest", max > 0 ? $"{max:N0} — highest shown" : "no data");
     }
 
     private static Color Lerp(Color a, Color b, double t)
