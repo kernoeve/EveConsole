@@ -82,9 +82,19 @@ public class UniverseViewModel : ReactiveObject
             new("Sovereignty",   "sovereignty"),
             new("Industry — manufacturing", "industry:manufacturing"),
             new("Industry — reactions",     "industry:reaction"),
-            new("Kills (30d)",   "kills30"),
-            new("Kills (7d)",    "kills7"),
-            new("Kills (24h)",   "kills1"),
+            new("Ship jumps (24h)",  "act:jumps:1"),
+            new("Ship jumps (7d)",   "act:jumps:7"),
+            new("Ship kills (24h)",  "act:ship:1"),
+            new("Ship kills (7d)",   "act:ship:7"),
+            new("Pod kills (7d)",    "act:pod:7"),
+            new("NPC kills (24h)",   "act:npc:1"),
+            new("Faction warfare",   "fw"),
+            new("Incursions",        "incursions"),
+            // Distinguished from "Ship kills" above: these count the killmails this app has
+            // stored, whereas ship kills is CCP's own universe-wide tally.
+            new("Killmails held (30d)", "kills30"),
+            new("Killmails held (7d)",  "kills7"),
+            new("Killmails held (24h)", "kills1"),
             new("Stations",      "stations"),
         ];
         _selectedOverlay = OverlayModes[0];
@@ -437,6 +447,21 @@ public class UniverseViewModel : ReactiveObject
                 await BuildIndustryOverlayAsync(g, styles, legend, k[9..], byRegion);
                 break;
 
+            case { } k when k.StartsWith("act:"):
+            {
+                var parts = k.Split(':');
+                await BuildActivityOverlayAsync(g, styles, legend, parts[1], int.Parse(parts[2]), byRegion);
+                break;
+            }
+
+            case "fw":
+                await BuildFactionWarfareOverlayAsync(g, styles, legend, byRegion);
+                break;
+
+            case "incursions":
+                await BuildIncursionOverlayAsync(g, styles, legend, byRegion);
+                break;
+
             case "stations":
             {
                 var counts = await _map.GetStationCountsAsync(byRegion);
@@ -638,6 +663,145 @@ public class UniverseViewModel : ReactiveObject
 
         legend.Add(new LegendEntryVm("lowest", cold));
         legend.Add(new LegendEntryVm(max > 0 ? $"highest ({max * 100:F2}%)" : "no data", hot));
+    }
+
+    /// <summary>
+    /// Jumps and kills from CCP's own hourly counts. Distinct from the "Killmails held"
+    /// overlays, which count what this app has stored — these are the universe-wide tallies and
+    /// include NPC kills, which killmails do not cover at all.
+    /// </summary>
+    private async Task BuildActivityOverlayAsync(
+        MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend,
+        string measure, int days, bool byRegion)
+    {
+        if (_stats is null) return;
+
+        // Always through the windowed accessor: hourly rows survive only a day by default, so
+        // reading them directly for a 7-day window would return a day and look convincing.
+        var activity = await _stats.GetActivityWindowAsync(days);
+
+        var bySystem = activity.ToDictionary(
+            kv => kv.Key,
+            kv => measure switch
+            {
+                "jumps" => kv.Value.ShipJumps,
+                "ship"  => kv.Value.ShipKills,
+                "pod"   => kv.Value.PodKills,
+                _       => kv.Value.NpcKills,
+            });
+
+        var counts = byRegion
+            ? await _map.GetRegionSumsAsync(bySystem)
+            : bySystem;
+
+        var (cold, hot, singular, plural) = measure switch
+        {
+            "jumps" => (Color.Parse("#22303a"), Color.Parse("#6fc8f0"), "jump", "jumps"),
+            "ship"  => (Color.Parse("#2a2a38"), Color.Parse("#ff6a3d"), "ship kill", "ship kills"),
+            "pod"   => (Color.Parse("#2a2a38"), Color.Parse("#f0d040"), "pod kill", "pod kills"),
+            _       => (Color.Parse("#26302a"), Color.Parse("#7fd070"), "NPC kill", "NPC kills"),
+        };
+
+        BuildCountOverlay(g, styles, legend, counts, singular, plural, cold, hot);
+    }
+
+    /// <summary>
+    /// Faction warfare: colour by who holds the system, caption by how contested it is.
+    /// </summary>
+    private async Task BuildFactionWarfareOverlayAsync(
+        MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend, bool byRegion)
+    {
+        if (_stats is null) return;
+
+        var fw       = await _stats.GetLatestFactionWarfareAsync();
+        var factions = await _stats.GetFactionNamesAsync();
+        var neutral  = Color.Parse("#2e2e3a");
+
+        // Only four militias hold faction-warfare space, so fixed hues read better than
+        // generated ones and stay recognisable between sessions.
+        var hues = fw.Values.Select(f => f.OccupierFactionId).Distinct().OrderBy(x => x)
+            .Select((id, i) => (id, h: i * 90.0 + 15))
+            .ToDictionary(x => x.id, x => x.h);
+
+        foreach (var n in g.Nodes)
+        {
+            if (byRegion || !fw.TryGetValue(n.Id, out var f))
+            {
+                styles[n.Id] = new MapNodeStyle(neutral, Detail: byRegion
+                    ? "Open a region to see faction warfare"
+                    : "Not faction-warfare space");
+                continue;
+            }
+
+            var contested = f.VictoryPointsThreshold > 0
+                ? 100.0 * f.VictoryPoints / f.VictoryPointsThreshold
+                : 0;
+
+            // Contested systems are lifted toward full saturation so a fight stands out
+            // against quiet space held by the same militia.
+            var color = FromHsv(hues.GetValueOrDefault(f.OccupierFactionId),
+                                f.ContestedState == "contested" ? 0.75 : 0.35,
+                                f.ContestedState == "contested" ? 0.95 : 0.65);
+
+            styles[n.Id] = new MapNodeStyle(
+                color,
+                Caption: contested > 0 ? $"{contested:F0}%" : f.ContestedState,
+                Detail: $"{factions.GetValueOrDefault(f.OccupierFactionId, "Unknown")} · " +
+                        $"{f.ContestedState}" +
+                        (f.VictoryPointsThreshold > 0
+                            ? $" · {f.VictoryPoints:N0}/{f.VictoryPointsThreshold:N0} VP"
+                            : ""));
+        }
+
+        foreach (var (id, h) in hues)
+            legend.Add(new LegendEntryVm(factions.GetValueOrDefault(id, $"Faction {id}"),
+                FromHsv(h, 0.75, 0.95)));
+        legend.Add(new LegendEntryVm("Not FW space", neutral));
+    }
+
+    /// <summary>
+    /// Incursions are scoped to a constellation, not a system, so every system in an affected
+    /// constellation is coloured and the staging system is called out.
+    /// </summary>
+    private async Task BuildIncursionOverlayAsync(
+        MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend, bool byRegion)
+    {
+        if (_stats is null) return;
+
+        var inc     = await _stats.GetLatestIncursionsAsync();
+        var quiet   = Color.Parse("#2a2a34");
+        var staging = Color.Parse("#ff4f4f");
+
+        var stateColor = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["established"] = Color.Parse("#c8543f"),
+            ["mobilizing"]  = Color.Parse("#e0913c"),
+            ["withdrawing"] = Color.Parse("#9a7a5a"),
+        };
+
+        foreach (var n in g.Nodes)
+        {
+            if (byRegion || n.ConstellationId == 0 || !inc.TryGetValue(n.ConstellationId, out var i))
+            {
+                styles[n.Id] = new MapNodeStyle(quiet, Detail: byRegion
+                    ? "Open a region to see incursions"
+                    : "No incursion");
+                continue;
+            }
+
+            var isStaging = n.Id == i.StagingSystemId;
+            styles[n.Id] = new MapNodeStyle(
+                isStaging ? staging : stateColor.GetValueOrDefault(i.State, quiet),
+                Caption: isStaging ? "staging" : $"{i.Influence * 100:F0}%",
+                Detail: $"{i.State}" +
+                        (isStaging ? " · staging system" : "") +
+                        $" · influence {i.Influence * 100:F0}%" +
+                        (i.HasBoss ? " · boss up" : ""));
+        }
+
+        legend.Add(new LegendEntryVm("Staging system", staging));
+        foreach (var (state, c) in stateColor) legend.Add(new LegendEntryVm(state, c));
+        legend.Add(new LegendEntryVm($"{inc.Count} active", quiet));
     }
 
     private static void BuildCountOverlay(

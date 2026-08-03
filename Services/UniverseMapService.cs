@@ -454,6 +454,27 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             .ToDictionary(g => g.Key, g => g.Average(kv => kv.Value));
     }
 
+    /// <summary>
+    /// Totals a per-system count up to its region, for showing system activity on the universe
+    /// map. Summed rather than averaged — a region's activity is what happened across all of
+    /// it, unlike an index, which only makes sense as an average.
+    /// </summary>
+    public async Task<Dictionary<int, int>> GetRegionSumsAsync(
+        IReadOnlyDictionary<int, int> bySystem, CancellationToken ct = default)
+    {
+        if (bySystem.Count == 0) return [];
+
+        using var db = dbFactory.CreateDbContext();
+        var regionOf = await db.SdeSolarSystems.AsNoTracking()
+            .Select(s => new { s.SolarSystemId, s.RegionId })
+            .ToDictionaryAsync(s => s.SolarSystemId, s => s.RegionId, ct);
+
+        return bySystem
+            .Where(kv => regionOf.ContainsKey(kv.Key))
+            .GroupBy(kv => regionOf[kv.Key])
+            .ToDictionary(g => g.Key, g => g.Sum(kv => kv.Value));
+    }
+
     public sealed record SystemDetail(
         int    SystemId,
         string Name,

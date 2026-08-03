@@ -357,6 +357,42 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
             .ToDictionaryAsync(i => i.SystemId, i => i.CostIndex, ct);
     }
 
+    /// <summary>Latest faction-warfare state per system.</summary>
+    public async Task<Dictionary<int, MapFactionWarfare>> GetLatestFactionWarfareAsync(
+        CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var latest = await db.MapFactionWarfares.AsNoTracking()
+            .OrderByDescending(f => f.Bucket).Select(f => f.Bucket).FirstOrDefaultAsync(ct);
+        if (latest is null) return [];
+
+        return await db.MapFactionWarfares.AsNoTracking()
+            .Where(f => f.Bucket == latest)
+            .ToDictionaryAsync(f => f.SystemId, f => f, ct);
+    }
+
+    /// <summary>Latest incursions, keyed by constellation — which is how CCP scopes them.</summary>
+    public async Task<Dictionary<int, MapIncursion>> GetLatestIncursionsAsync(
+        CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var latest = await db.MapIncursions.AsNoTracking()
+            .OrderByDescending(i => i.Bucket).Select(i => i.Bucket).FirstOrDefaultAsync(ct);
+        if (latest is null) return [];
+
+        return await db.MapIncursions.AsNoTracking()
+            .Where(i => i.Bucket == latest)
+            .ToDictionaryAsync(i => i.ConstellationId, i => i, ct);
+    }
+
+    /// <summary>Faction id to name, from the SDE.</summary>
+    public async Task<Dictionary<int, string>> GetFactionNamesAsync(CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        return await db.SdeFactions.AsNoTracking()
+            .ToDictionaryAsync(f => f.FactionId, f => f.Name, ct);
+    }
+
     public sealed record DatasetCoverage(
         string Dataset, int Buckets, int Days, string Earliest, string Latest);
 
