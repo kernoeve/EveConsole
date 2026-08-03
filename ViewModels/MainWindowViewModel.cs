@@ -62,6 +62,7 @@ public class MainWindowViewModel : ReactiveObject
     public GameLogSettingsViewModel       GameLogSettingsVm      { get; }
     public ChatLogSettingsViewModel       ChatLogSettingsVm      { get; }
     public ZkillboardSettingsViewModel    ZkbSettingsVm          { get; }
+    public MapStatsSettingsViewModel      MapStatsSettingsVm     { get; }
     public SlackService                   Slack                  { get; }
     public TtsService                     TtsService             { get; }
     public SpeechInputService             SpeechInputService     { get; }
@@ -293,6 +294,10 @@ public class MainWindowViewModel : ReactiveObject
         ZkillboardPollingService        zkbPolling,
         ZkillboardFirehoseService       zkbFirehose,
         ZkillboardBackfillService       zkbBackfill,
+        MapStatsSettings                mapStatsSettings,
+        MapStatsBackfillService         mapStatsBackfill,
+        MapStatsPollingService          mapStatsPolling,
+        MapStatsService                 mapStatsService,
         ZkillboardPostService           zkbPost,
         EntityNameBackfillService       entityNames,
         EveServerStatusService          serverStatus,
@@ -308,6 +313,7 @@ public class MainWindowViewModel : ReactiveObject
         GameLogSettingsVm = new GameLogSettingsViewModel(monitoringSettings, gameLogImport);
         ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport);
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
+        MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService);
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());

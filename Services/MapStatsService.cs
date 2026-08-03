@@ -17,6 +17,22 @@ public static class MapDataset
 
     public static readonly string[] All =
         [Jumps, Kills, Sovereignty, SovStructures, Industry, FactionWar, Incursions];
+
+    /// <summary>
+    /// Datasets stored once per day of history rather than once per hour.
+    ///
+    /// These are slow-moving state, and storing every hour of it is almost pure duplication.
+    /// Measured on real data: sovereignty holdings were byte-identical across 8 consecutive
+    /// hours, and industry indices drifted 0.05% over the same span — far below what a daily
+    /// trend reads at. Industry alone at hourly cadence is 32,910 rows an hour, which is two
+    /// thirds of all map data and projected to 23.7M rows for a 30-day backfill.
+    ///
+    /// This is about history only. The live poller still refreshes them every hour, so the
+    /// current value stays current; it is the older hours that get thinned to one a day.
+    /// </summary>
+    public static readonly string[] DailyCadence = [Sovereignty, SovStructures, Industry];
+
+    public static bool IsDailyCadence(string dataset) => DailyCadence.Contains(dataset);
 }
 
 /// <summary>
@@ -238,9 +254,69 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
     /// Hours counts how many buckets fed each day, so an incomplete day stays identifiable:
     /// the archive itself occasionally lacks an hour.
     /// </summary>
-    private static readonly string[] ThinnedTables =
-        ["MapSovereignties", "MapSovStructures", "MapIndustryIndices",
-         "MapFactionWarfares", "MapIncursions"];
+    /// <summary>State tables kept at one snapshot per day beyond the current day. These back
+    /// the daily-cadence datasets, which dominate storage — see MapDataset.DailyCadence.</summary>
+    public sealed record DatasetCoverage(
+        string Dataset, int Buckets, int Days, string Earliest, string Latest);
+
+    /// <summary>
+    /// How much history is held per dataset. Read from the bucket markers rather than the data
+    /// tables, so a dataset whose hours were legitimately empty still reports its coverage.
+    /// </summary>
+    public async Task<List<DatasetCoverage>> GetCoverageAsync(CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var rows = await db.MapStatBuckets.AsNoTracking()
+            .GroupBy(b => b.Dataset)
+            .Select(g => new
+            {
+                Dataset  = g.Key,
+                Buckets  = g.Count(),
+                Earliest = g.Min(x => x.Bucket),
+                Latest   = g.Max(x => x.Bucket),
+            })
+            .ToListAsync(ct);
+
+        // Distinct days needs the bucket string trimmed, which SQLite will not group on
+        // through EF, so it is counted here instead.
+        var days = await db.MapStatBuckets.AsNoTracking()
+            .Select(b => new { b.Dataset, b.Bucket })
+            .ToListAsync(ct);
+
+        var dayCount = days
+            .GroupBy(x => x.Dataset)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Bucket[..10]).Distinct().Count());
+
+        return rows
+            // Min/Max come back nullable from the grouping even though a group always has rows.
+            .Select(r => new DatasetCoverage(
+                r.Dataset, r.Buckets, dayCount.GetValueOrDefault(r.Dataset),
+                r.Earliest ?? "", r.Latest ?? ""))
+            .OrderBy(r => r.Dataset)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Rebuilds the database file so deleted pages are actually released. SQLite keeps freed
+    /// pages for reuse otherwise, so a large delete does not shrink the file on disk. Cannot
+    /// run inside a transaction, and rewrites the whole file, so this is reserved for one-off
+    /// compactions rather than the daily rollup.
+    /// </summary>
+    public async Task VacuumAsync(CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        db.Database.SetCommandTimeout(TimeSpan.FromMinutes(20));
+        await db.Database.ExecuteSqlRawAsync("VACUUM", ct);
+    }
+
+    private static readonly string[] DailyThinnedTables =
+        ["MapSovereignties", "MapSovStructures", "MapIndustryIndices"];
+
+    /// <summary>Small state tables, thinned on the same schedule as the hourly counters.
+    /// Faction warfare is 160 rows an hour and incursions 3, so there is nothing to gain by
+    /// thinning them sooner.</summary>
+    private static readonly string[] SlowThinnedTables =
+        ["MapFactionWarfares", "MapIncursions"];
 
     public async Task<int> RollUpAsync(int keepHourlyDays, CancellationToken ct = default)
     {
@@ -282,12 +358,20 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
         await db.Database.ExecuteSqlAsync(
             $"""DELETE FROM "MapSystemKills" WHERE SUBSTR("Bucket", 1, 10) < {cutoff}""", ct);
 
-        // The rest are state snapshots rather than counters, so summing them would be
-        // meaningless — they are thinned to the first bucket of each day instead.
-        foreach (var table in ThinnedTables)
+        // State snapshots rather than counters, so summing them would be meaningless — they are
+        // thinned to the first bucket of each day instead.
+        //
+        // The daily-cadence tables are thinned from yesterday rather than from the retention
+        // window, because they are the ones that actually cost anything. Today keeps all its
+        // hours so the current value stays fresh.
+        var yesterday = DateTimeOffset.UtcNow.AddDays(-1).ToString("yyyy-MM-dd");
+
+        foreach (var (table, from) in
+                 DailyThinnedTables.Select(t => (t, yesterday))
+                     .Concat(SlowThinnedTables.Select(t => (t, cutoff))))
         {
-            // Table name is structural, so it cannot be a parameter; the list is a private
-            // constant, never anything user-supplied.
+            // Table name is structural, so it cannot be a parameter; both lists are private
+            // constants, never anything user-supplied.
             // $$ so {0} stays literal for the parameter placeholder and {{table}} interpolates.
             var sql = $$"""
                 DELETE FROM "{{table}}"
@@ -295,8 +379,21 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
                   AND "Bucket" NOT IN (
                       SELECT MIN("Bucket") FROM "{{table}}" GROUP BY SUBSTR("Bucket", 1, 10))
                 """;
-            await db.Database.ExecuteSqlRawAsync(sql, [cutoff], ct);
+            await db.Database.ExecuteSqlRawAsync(sql, [from], ct);
         }
+
+        // Bucket markers for hours whose rows have gone must go too, or gap-fill would see the
+        // hour as held and never notice it is empty. The surviving marker per day is kept so
+        // the day itself is not re-downloaded.
+        foreach (var dataset in MapDataset.DailyCadence)
+            await db.Database.ExecuteSqlRawAsync("""
+                DELETE FROM "MapStatBuckets"
+                WHERE "Dataset" = {0}
+                  AND SUBSTR("Bucket", 1, 10) < {1}
+                  AND "Bucket" NOT IN (
+                      SELECT MIN("Bucket") FROM "MapStatBuckets"
+                      WHERE "Dataset" = {0} GROUP BY SUBSTR("Bucket", 1, 10))
+                """, [dataset, yesterday], ct);
 
         await tx.CommitAsync(ct);
         return affected;

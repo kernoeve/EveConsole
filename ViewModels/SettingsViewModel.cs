@@ -21,6 +21,7 @@ public class SettingsViewModel : ReactiveObject
     public GameLogSettingsViewModel       GameLogVm       { get; }
     public ChatLogSettingsViewModel       ChatLogVm       { get; }
     public ZkillboardSettingsViewModel    ZkbVm           { get; }
+    public MapStatsSettingsViewModel      MapStatsVm      { get; }
     public OtherSettingsViewModel         OtherVm         { get; }
 
     public SettingsViewModel(
@@ -39,6 +40,7 @@ public class SettingsViewModel : ReactiveObject
         GameLogSettingsViewModel      gameLogVm,
         ChatLogSettingsViewModel      chatLogVm,
         ZkillboardSettingsViewModel   zkbVm,
+        MapStatsSettingsViewModel     mapStatsVm,
         OtherSettingsViewModel        otherVm,
         TtsService?                   tts     = null,
         SpeechInputService?           speech  = null,
@@ -48,6 +50,7 @@ public class SettingsViewModel : ReactiveObject
         GameLogVm      = gameLogVm;
         ChatLogVm      = chatLogVm;
         ZkbVm          = zkbVm;
+        MapStatsVm     = mapStatsVm;
         CharacterVm    = characterVm;
         SdeVm          = sdeVm;
         UpdateVm       = updateVm;

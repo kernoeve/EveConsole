@@ -37,6 +37,19 @@ public class MapStatsSettings(AppPreferencesService prefs)
         get => prefs.Get("mapstats.last_rollup") ?? "";
         set => _ = prefs.SetAsync("mapstats.last_rollup", value);
     }
+
+    /// <summary>
+    /// Bumped when a change makes already-stored data need reworking, so the compaction runs
+    /// once on upgrade instead of on every start. Version 1 thinned the daily-cadence datasets,
+    /// which had been stored hourly.
+    /// </summary>
+    public const int CurrentCompaction = 1;
+
+    public int CompactionDone
+    {
+        get => (int)prefs.GetLong("mapstats.compaction");
+        set => _ = prefs.SetLongAsync("mapstats.compaction", value);
+    }
 }
 
 /// <summary>
@@ -75,8 +88,10 @@ public class MapStatsBackfillService(
 
         _ = Task.Run(async () =>
         {
-            await CatchUpAsync(ct);
+            // Rollup first: on an upgrade it compacts data stored under the old cadence and
+            // reclaims the disk, which should happen before fetching anything more.
             await MaybeRollUpAsync(ct);
+            await CatchUpAsync(ct);
         }, ct);
     }
 
@@ -143,6 +158,13 @@ public class MapStatsBackfillService(
     {
         var files = await archive.ListDayAsync(dataset, day, ct);
         if (files.Count == 0) return 0;
+
+        // Slow-moving datasets keep one snapshot per day of history. Taking only the first file
+        // here means the other 23 are never downloaded either, so this saves the bandwidth as
+        // well as the rows — industry alone would otherwise be 23.7M rows over a 30-day
+        // backfill, two thirds of all map data, to record a value that drifts 0.05% in 8 hours.
+        if (MapDataset.IsDailyCadence(dataset) && day < DateOnly.FromDateTime(DateTime.UtcNow))
+            files = [files[0]];
 
         var from = MapStatsService.BucketOf(files[0].FileTime);
         var to   = MapStatsService.BucketOf(files[^1].FileTime);
@@ -245,13 +267,29 @@ public class MapStatsBackfillService(
     /// <summary>Rolls hourly rows past the retention window into daily totals, once a day.</summary>
     public async Task MaybeRollUpAsync(CancellationToken ct = default)
     {
-        var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
-        if (settings.LastRollUp == today) return;
+        var today   = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var upgrade = settings.CompactionDone < MapStatsSettings.CurrentCompaction;
+
+        // The upgrade pass has to run even if a rollup already happened today, because it is
+        // reworking data stored under the previous cadence rather than doing the daily job.
+        if (!upgrade && settings.LastRollUp == today) return;
 
         try
         {
+            if (upgrade) StatusText = "Compacting existing map data…";
+
             await stats.RollUpAsync(settings.KeepHourlyDays, ct);
             settings.LastRollUp = today;
+
+            if (upgrade)
+            {
+                // Deleting rows leaves the file the same size; only VACUUM gives the space
+                // back, and it cannot run inside the rollup's transaction.
+                StatusText = "Reclaiming disk space…";
+                await stats.VacuumAsync(ct);
+                settings.CompactionDone = MapStatsSettings.CurrentCompaction;
+                StatusText = "Compaction complete";
+            }
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) { errors?.Log("MapStats", "rollup", ex); }
