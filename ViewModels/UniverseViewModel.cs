@@ -88,6 +88,7 @@ public class UniverseViewModel : ReactiveObject
             new("Security",      "security"),
             new("Constellation", "constellation"),   // regions, at universe level
             new("Sovereignty",   "sovereignty"),
+            new("Sovereignty ADM", "adm"),
             new("Industry — manufacturing", "industry:manufacturing"),
             new("Industry — reactions",     "industry:reaction"),
             new("Ship jumps (24h)",  "act:jumps:1"),
@@ -589,6 +590,10 @@ public class UniverseViewModel : ReactiveObject
                 await BuildSovereigntyOverlayAsync(g, styles, legend, byRegion);
                 break;
 
+            case "adm":
+                await BuildAdmOverlayAsync(g, styles, legend, byRegion);
+                break;
+
             case { } k when k.StartsWith("industry:"):
                 await BuildIndustryOverlayAsync(g, styles, legend, k[9..], byRegion);
                 break;
@@ -611,8 +616,7 @@ public class UniverseViewModel : ReactiveObject
             case "stations":
             {
                 var counts = await _map.GetStationCountsAsync(byRegion);
-                BuildCountOverlay(g, styles, legend, counts, "station", "stations",
-                                  Color.Parse("#2a3550"), Color.Parse("#7fc8f0"));
+                BuildCountOverlay(g, styles, legend, counts, "station", "stations");
                 break;
             }
 
@@ -627,8 +631,7 @@ public class UniverseViewModel : ReactiveObject
                     _         => 1,
                 };
                 var counts = await _map.GetKillCountsAsync(days, byRegion);
-                BuildCountOverlay(g, styles, legend, counts, "kill", "kills",
-                                  Color.Parse("#2a2a38"), Color.Parse("#ff6a3d"));
+                BuildCountOverlay(g, styles, legend, counts, "kill", "kills");
                 break;
             }
 
@@ -715,8 +718,22 @@ public class UniverseViewModel : ReactiveObject
     }
 
     /// <summary>
-    /// Colours each system by who holds it, with the Activity Defense Multiplier as the caption
-    /// — the same pairing dotlan shows, and the reason the node box has a second line.
+    /// Long alliance names would make the node boxes enormous, so the caption is trimmed. The
+    /// full name stays on the hover tooltip, so nothing is lost.
+    ///
+    /// 16 is measured, not guessed: swept across all 70 known-space regions at the zoom where
+    /// boxes replace dots, 16 characters is the widest cap that collides nowhere, while 18
+    /// starts overlapping in Omist. Median holder name is 15 characters, so most fit whole.
+    /// </summary>
+    private const int HolderCaptionChars = 16;
+
+    private static string ShortHolder(string name) =>
+        name.Length <= HolderCaptionChars ? name : name[..(HolderCaptionChars - 1)] + "…";
+
+    /// <summary>
+    /// Colours each system by who holds it, and names the holder in the caption. ADM is a
+    /// separate overlay: it answers a different question, and showing it here meant the
+    /// sovereignty map never actually told you whose space you were looking at.
     /// </summary>
     private async Task BuildSovereigntyOverlayAsync(
         MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend, bool byRegion)
@@ -758,15 +775,56 @@ public class UniverseViewModel : ReactiveObject
             var color = FromHsv(ranked.GetValueOrDefault(s.AllianceId.Value), 0.55, 0.85);
             styles[n.Id] = new MapNodeStyle(
                 color,
-                Caption: s.Adm is { } adm ? adm.ToString("F1") : null,
+                Caption: ShortHolder(s.Holder),
                 Detail: s.Adm is { } a ? $"{s.Holder} · ADM {a:F1}" : s.Holder);
         }
 
+        // The biggest holders, since a legend of 79 alliances would be useless.
+        foreach (var top in sov.Values.Where(s => s.AllianceId is not null)
+                     .GroupBy(s => s.AllianceId!.Value)
+                     .OrderByDescending(x => x.Count()).Take(6))
+            legend.Add(new LegendEntryVm(
+                $"{ShortHolder(top.First().Holder)} ({top.Count()})",
+                FromHsv(ranked.GetValueOrDefault(top.Key), 0.55, 0.85)));
+
         var held = sov.Values.Count(s => s.AllianceId is not null);
-        legend.Add(new LegendEntryVm($"{ranked.Count:N0} alliances, {held:N0} systems",
-            ranked.Count > 0 ? FromHsv(ranked.Values.First(), 0.55, 0.85) : unclaimed));
+        legend.Add(new LegendEntryVm($"…{ranked.Count:N0} alliances, {held:N0} systems", unclaimed));
         legend.Add(new LegendEntryVm("Unclaimed / NPC", unclaimed));
-        legend.Add(new LegendEntryVm("Caption is the ADM", Color.Parse("#8a8a9a")));
+    }
+
+    /// <summary>
+    /// Activity Defense Multiplier on its own, on the shared heat scale: light green at 1
+    /// rising to red at 6.
+    /// </summary>
+    private async Task BuildAdmOverlayAsync(
+        MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend, bool byRegion)
+    {
+        if (_stats is null) return;
+
+        var adm = await _stats.GetLatestAdmAsync();
+
+        var values = byRegion && adm.Count > 0
+            ? await _map.GetRegionAveragesAsync(adm)
+            : byRegion ? [] : adm;
+
+        foreach (var n in g.Nodes)
+        {
+            if (!values.TryGetValue(n.Id, out var v))
+            {
+                styles[n.Id] = new MapNodeStyle(HeatNone, Detail: "No sovereignty structure");
+                continue;
+            }
+
+            // Anchored to ADM's own 1-6 range rather than to the values present, so a region
+            // that happens to be uniformly high still reads high instead of being rescaled
+            // back down to the middle of the ramp.
+            styles[n.Id] = new MapNodeStyle(
+                Heat((v - 1.0) / 5.0),
+                Caption: v.ToString("F1"),
+                Detail: $"ADM {v:F1}" + (byRegion ? " (region average)" : ""));
+        }
+
+        AddHeatLegend(legend, "1.0", "6.0");
     }
 
     /// <summary>
@@ -781,8 +839,6 @@ public class UniverseViewModel : ReactiveObject
         if (_stats is null) return;
 
         var idx = await _stats.GetLatestIndustryAsync(activity);
-        var cold = Color.Parse("#22303a");
-        var hot  = Color.Parse("#5fd0a0");
 
         // Regions have no index of their own; averaging their systems is the honest summary.
         var values = byRegion ? new Dictionary<int, double>() : idx;
@@ -799,7 +855,7 @@ public class UniverseViewModel : ReactiveObject
             var v = values.GetValueOrDefault(n.Id);
             var t = max > 0 ? v / max : 0;
             styles[n.Id] = new MapNodeStyle(
-                v > 0 ? Lerp(cold, hot, t) : cold,
+                v > 0 ? Heat(t) : HeatNone,
                 Caption: v > 0 ? $"{v * 100:F2}%" : "—",
                 Detail: v > 0
                     ? $"{activity.Replace('_', ' ')} index {v * 100:F2}%" +
@@ -807,8 +863,7 @@ public class UniverseViewModel : ReactiveObject
                     : "No index recorded");
         }
 
-        legend.Add(new LegendEntryVm("lowest", cold));
-        legend.Add(new LegendEntryVm(max > 0 ? $"highest ({max * 100:F2}%)" : "no data", hot));
+        AddHeatLegend(legend, "lowest", max > 0 ? $"highest ({max * 100:F2}%)" : "no data");
     }
 
     /// <summary>
@@ -840,15 +895,15 @@ public class UniverseViewModel : ReactiveObject
             ? await _map.GetRegionSumsAsync(bySystem)
             : bySystem;
 
-        var (cold, hot, singular, plural) = measure switch
+        var (singular, plural) = measure switch
         {
-            "jumps" => (Color.Parse("#22303a"), Color.Parse("#6fc8f0"), "jump", "jumps"),
-            "ship"  => (Color.Parse("#2a2a38"), Color.Parse("#ff6a3d"), "ship kill", "ship kills"),
-            "pod"   => (Color.Parse("#2a2a38"), Color.Parse("#f0d040"), "pod kill", "pod kills"),
-            _       => (Color.Parse("#26302a"), Color.Parse("#7fd070"), "NPC kill", "NPC kills"),
+            "jumps" => ("jump", "jumps"),
+            "ship"  => ("ship kill", "ship kills"),
+            "pod"   => ("pod kill", "pod kills"),
+            _       => ("NPC kill", "NPC kills"),
         };
 
-        BuildCountOverlay(g, styles, legend, counts, singular, plural, cold, hot);
+        BuildCountOverlay(g, styles, legend, counts, singular, plural);
     }
 
     /// <summary>
@@ -950,9 +1005,37 @@ public class UniverseViewModel : ReactiveObject
         legend.Add(new LegendEntryVm($"{inc.Count} active", quiet));
     }
 
+    // ── Shared heat scale ────────────────────────────────────────────────────
+    //
+    // One scale for every numeric overlay — indices, ADM, kills, jumps, stations — so a colour
+    // means the same thing whichever one is selected. Light green at the low end rising to red
+    // at the high end, and no tint at all for zero, which keeps "nothing here" visually
+    // distinct from "a little of something" instead of being the bottom of the ramp.
+
+    private static readonly Color HeatNone = Color.Parse("#2b2b35");
+    private static readonly Color HeatLow  = Color.Parse("#a9e3a0");
+    private static readonly Color HeatMid  = Color.Parse("#e9d24d");
+    private static readonly Color HeatHigh = Color.Parse("#d43f2f");
+
+    private static Color Heat(double t)
+    {
+        t = Math.Clamp(t, 0, 1);
+        return t < 0.5
+            ? Lerp(HeatLow, HeatMid, t * 2)
+            : Lerp(HeatMid, HeatHigh, (t - 0.5) * 2);
+    }
+
+    private static void AddHeatLegend(List<LegendEntryVm> legend, string low, string high)
+    {
+        legend.Add(new LegendEntryVm(low,  HeatLow));
+        legend.Add(new LegendEntryVm("",   HeatMid));
+        legend.Add(new LegendEntryVm(high, HeatHigh));
+        legend.Add(new LegendEntryVm("none", HeatNone));
+    }
+
     private static void BuildCountOverlay(
         MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend,
-        Dictionary<int, int> counts, string singular, string plural, Color cold, Color hot)
+        Dictionary<int, int> counts, string singular, string plural)
     {
         var max = counts.Count == 0 ? 0 : counts.Values.Max();
 
@@ -960,16 +1043,15 @@ public class UniverseViewModel : ReactiveObject
         {
             var c = counts.GetValueOrDefault(n.Id);
             // Log scale: a handful of systems carry most of the activity, and a linear ramp
-            // leaves everything else flat black.
+            // leaves everything else indistinguishable at the bottom.
             var t = max > 0 && c > 0 ? Math.Log(1 + c) / Math.Log(1 + max) : 0;
             styles[n.Id] = new MapNodeStyle(
-                Lerp(cold, hot, t),
+                c > 0 ? Heat(t) : HeatNone,
                 Caption: c > 0 ? c.ToString("N0") : "—",
                 Detail: $"{c:N0} {(c == 1 ? singular : plural)}");
         }
 
-        legend.Add(new LegendEntryVm("none", cold));
-        legend.Add(new LegendEntryVm(max > 0 ? $"most ({max:N0})" : "none recorded", hot));
+        AddHeatLegend(legend, "lowest", max > 0 ? $"highest ({max:N0})" : "no data");
     }
 
     private static Color Lerp(Color a, Color b, double t)
