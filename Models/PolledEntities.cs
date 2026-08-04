@@ -1053,3 +1053,49 @@ public class ChatMessage
     public string SourceFile { get; set; } = "";
     public long   LineNumber { get; set; }
 }
+
+/// <summary>
+/// One parsed sighting from an intel channel: who was seen where, and when.
+///
+/// ReportedAt is an ISO-8601 string for the same reason as ChatMessage.OccurredAt — EF Core's
+/// SQLite provider cannot translate DateTimeOffset comparisons in a LINQ Where.
+/// </summary>
+public class IntelReport
+{
+    public int    Id         { get; set; }
+    public string ReportedAt { get; set; } = "";
+
+    public string ChannelName  { get; set; } = "";
+    public string ReporterName { get; set; } = "";
+
+    public int    SystemId   { get; set; }
+    public string SystemName { get; set; } = "";
+
+    /// <summary>Named pilots plus any "+N" the reporter added. A line naming one pilot and
+    /// saying "+2" reports three.</summary>
+    public int PlayerCount { get; set; }
+
+    /// <summary>Whatever text was left after the system, the names and the count — ship types,
+    /// "nv", gate names. Kept because it is often the useful part for a human reader.</summary>
+    public string? Note { get; set; }
+
+    /// <summary>
+    /// Superseded by a later sighting of the same pilots elsewhere, or by a "clear" call on
+    /// this system. Set rather than deleted so the paths overlays can still trace where a
+    /// gang has been.
+    /// </summary>
+    public bool            Obsolete      { get; set; }
+    public DateTimeOffset? ObsoleteSetOn { get; set; }
+
+    /// <summary>The message this came from — provenance, and what makes re-parsing idempotent.</summary>
+    public int ChatMessageId { get; set; }
+}
+
+/// <summary>A pilot named on an intel report. Separate table because one line often drags in
+/// several, and because superseding works pilot by pilot.</summary>
+public class IntelReportCharacter
+{
+    public int    IntelReportId { get; set; }
+    public long   CharacterId   { get; set; }
+    public string CharacterName { get; set; } = "";
+}

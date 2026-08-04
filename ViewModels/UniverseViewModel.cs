@@ -110,6 +110,13 @@ public class UniverseViewModel : ReactiveObject
             new("Pod kills (24h)",   "km:pod:1"),
             new("Pod kills (7d)",    "km:pod:7"),
             new("Pod kills (30d)",   "km:pod:30"),
+            // Intel: the live one shows who is believed to be somewhere right now, so it drops
+            // sightings a later one has superseded. The paths keep those, which is what turns a
+            // gang's trail through several systems into something you can see.
+            new("Intel (15m)",         "intel:15"),
+            new("Intel paths (15m)",   "intelpath:15"),
+            new("Intel paths (1h)",    "intelpath:60"),
+            new("Intel paths (24h)",   "intelpath:1440"),
             new("Ship jumps (24h)",  "act:jumps:1"),
             new("Ship jumps (7d)",   "act:jumps:7"),
             new("NPC kills (24h)",   "act:npc:1"),
@@ -608,6 +615,16 @@ public class UniverseViewModel : ReactiveObject
                 };
                 var counts = await _map.GetCelestialCountsAsync(kind, byRegion);
                 BuildCountOverlay(g, styles, legend, counts, singular, plural);
+                break;
+            }
+
+            case { } k when k.StartsWith("intel:") || k.StartsWith("intelpath:"):
+            {
+                var paths   = k.StartsWith("intelpath:");
+                var minutes = int.Parse(k[(k.IndexOf(':') + 1)..]);
+                var counts  = await _map.GetIntelCountsAsync(minutes, paths, byRegion);
+                BuildCountOverlay(g, styles, legend, counts,
+                    paths ? "player reported" : "player", paths ? "players reported" : "players");
                 break;
             }
 

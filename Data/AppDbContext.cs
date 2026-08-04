@@ -103,6 +103,9 @@ public class AppDbContext : DbContext
     public DbSet<ChatLogFile>     ChatLogFiles      => Set<ChatLogFile>();
     public DbSet<ChatMessage>     ChatMessages      => Set<ChatMessage>();
 
+    public DbSet<IntelReport>          IntelReports          => Set<IntelReport>();
+    public DbSet<IntelReportCharacter> IntelReportCharacters => Set<IntelReportCharacter>();
+
     // ── Market pricing ───────────────────────────────────────────────
     public DbSet<MarketPricingConfig>   MarketPricingConfigs   => Set<MarketPricingConfig>();
     public DbSet<MarketItemPrice>       MarketItemPrices       => Set<MarketItemPrice>();
@@ -919,7 +922,20 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             e.HasIndex(x => new { x.SourceFile, x.LineNumber }).IsUnique();
             e.HasIndex(x => x.OccurredAt);
+            // Also what the import's duplicate check reads: the same conversation logged by a
+            // second character, or imported from another PC's folder, is found by channel and
+            // time rather than by file, which cannot see across files at all.
             e.HasIndex(x => new { x.ChannelName, x.OccurredAt }); });
+
+        mb.Entity<IntelReport>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.ChatMessageId).IsUnique();          // re-parsing cannot duplicate
+            e.HasIndex(x => new { x.SystemId, x.ReportedAt });    // the overlays' query
+            e.HasIndex(x => new { x.Obsolete, x.ReportedAt }); });
+
+        mb.Entity<IntelReportCharacter>(e => {
+            e.HasKey(x => new { x.IntelReportId, x.CharacterId });
+            e.HasIndex(x => x.CharacterId); });                   // "where was this pilot last seen"
 
         mb.Entity<MarketTypeHistory>(e => {
             e.HasKey(x => new { x.RegionId, x.TypeId, x.Date });

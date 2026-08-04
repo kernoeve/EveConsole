@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Linq;
 using EveConsole.Monitoring;
+using EveConsole.Services;
 using ReactiveUI;
 
 namespace EveConsole.ViewModels;
@@ -18,13 +19,35 @@ public class ChatChannelViewModel : ReactiveObject
     public bool IsSelected
     {
         get => _isSelected;
-        set { this.RaiseAndSetIfChanged(ref _isSelected, value); _onChanged(); }
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isSelected, value);
+            // A channel that is not stored has nothing to parse, so unticking it cannot leave
+            // it marked as intel.
+            if (!value && _isIntel) IsIntel = false;
+            _onChanged();
+        }
     }
 
-    public ChatChannelViewModel(string name, bool selected, Action onChanged)
+    private bool _isIntel;
+    /// <summary>Parse this channel's messages for sightings. Independent of storing it, except
+    /// that it cannot be set without storing.</summary>
+    public bool IsIntel
+    {
+        get => _isIntel;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isIntel, value);
+            if (value && !_isSelected) IsSelected = true;
+            _onChanged();
+        }
+    }
+
+    public ChatChannelViewModel(string name, bool selected, bool intel, Action onChanged)
     {
         Name        = name;
         _isSelected = selected;
+        _isIntel    = intel;
         _onChanged  = onChanged;
     }
 }
@@ -39,12 +62,15 @@ public class ChatLogSettingsViewModel : ReactiveObject
 {
     private readonly MonitoringSettings   _settings;
     private readonly ChatLogImportService _importer;
+    private readonly IntelService?        _intel;
     private bool _loading = true;
 
-    public ChatLogSettingsViewModel(MonitoringSettings settings, ChatLogImportService importer)
+    public ChatLogSettingsViewModel(
+        MonitoringSettings settings, ChatLogImportService importer, IntelService? intel = null)
     {
         _settings = settings;
         _importer = importer;
+        _intel    = intel;
 
         _enabled     = settings.ChatEnabled;
         _historyDays = settings.ChatHistoryDays;
@@ -58,6 +84,8 @@ public class ChatLogSettingsViewModel : ReactiveObject
         ImportHistoryCommand   = ReactiveCommand.CreateFromTask(() => _importer.ImportHistoryAsync(HistoryDays));
         CancelImportCommand    = ReactiveCommand.Create(() => _importer.CancelImport());
         SelectNoneCommand      = ReactiveCommand.Create(SelectNone);
+        ParseIntelHistoryCommand = ReactiveCommand.CreateFromTask(ParseIntelHistoryAsync);
+        ParseIntelHistoryCommand.ThrownExceptions.Subscribe(ex => IntelStatus = $"Error: {ex.Message}");
         AddDirectoryCommand    = ReactiveCommand.CreateFromTask(AddDirectoryAsync);
         RemoveDirectoryCommand = ReactiveCommand.CreateFromTask(RemoveDirectoryAsync);
         DetectDirectoryCommand = ReactiveCommand.CreateFromTask(DetectDirectoryAsync);
@@ -95,6 +123,7 @@ public class ChatLogSettingsViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ImportHistoryCommand { get; }
     public ReactiveCommand<Unit, Unit> CancelImportCommand  { get; }
     public ReactiveCommand<Unit, Unit> SelectNoneCommand    { get; }
+    public ReactiveCommand<Unit, Unit> ParseIntelHistoryCommand { get; }
 
     /// <summary>Directories to import from. May be UNC paths, same as game logs — that
     /// is how EVE clients on other machines are covered without installing anything
@@ -153,6 +182,7 @@ public class ChatLogSettingsViewModel : ReactiveObject
     private void LoadChannels()
     {
         var selected = _settings.ChatChannels.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var intel    = _settings.ChatIntelChannels.ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         // Show anything previously selected even if discovery hasn't run in this
         // session, so a saved allowlist is never invisible.
@@ -163,7 +193,8 @@ public class ChatLogSettingsViewModel : ReactiveObject
 
         Channels.Clear();
         foreach (var name in names)
-            Channels.Add(new ChatChannelViewModel(name, selected.Contains(name), SaveSelection));
+            Channels.Add(new ChatChannelViewModel(
+                name, selected.Contains(name), intel.Contains(name), SaveSelection));
 
         UpdateSelectionText();
     }
@@ -171,10 +202,48 @@ public class ChatLogSettingsViewModel : ReactiveObject
     private void SaveSelection()
     {
         if (_loading) return;
-        _settings.ChatChannels = Channels.Where(c => c.IsSelected).Select(c => c.Name).ToList();
+        _settings.ChatChannels      = Channels.Where(c => c.IsSelected).Select(c => c.Name).ToList();
+        _settings.ChatIntelChannels = Channels.Where(c => c.IsIntel).Select(c => c.Name).ToList();
         UpdateSelectionText();
         UpdateEstimate();
     }
+
+    /// <summary>
+    /// Parses the intel channels' stored history. Without this the overlays stay empty until
+    /// fresh intel is posted, when tens of thousands of usable messages may already be on disk.
+    /// </summary>
+    private async Task ParseIntelHistoryAsync()
+    {
+        if (_intel is null) return;
+
+        IsBusy = true;
+        try
+        {
+            var progress = new Progress<string>(s => IntelStatus = s);
+            var n = await _intel.BackfillAsync(progress);
+            IntelStatus = $"Parsed {n:N0} sighting(s) from stored history.";
+        }
+        catch (Exception ex)
+        {
+            IntelStatus = $"Intel parsing failed — {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private string _intelStatus = "";
+    public string IntelStatus
+    {
+        get => _intelStatus;
+        private set => this.RaiseAndSetIfChanged(ref _intelStatus, value);
+    }
+
+    public string IntelHelp =>
+        "Messages in the ticked channels are parsed into sightings: the system, how many " +
+        "were reported, and any pilots named. \"clr\" retires whatever was standing in that " +
+        "system. Sightings drive the Intel overlays on the Universe map.";
 
     private void SelectNone()
     {

@@ -290,6 +290,7 @@ public class MainWindowViewModel : ReactiveObject
         MonitoringSettings              monitoringSettings,
         GameLogImportService            gameLogImport,
         ChatLogImportService            chatLogImport,
+        IntelService                    intelService,
         ZkillboardSettings              zkillboardSettings,
         ZkillboardPollingService        zkbPolling,
         ZkillboardFirehoseService       zkbFirehose,
@@ -312,7 +313,7 @@ public class MainWindowViewModel : ReactiveObject
         Slack             = slackService;
         SlackSettingsVm   = new SlackSettingsViewModel(slackService);
         GameLogSettingsVm = new GameLogSettingsViewModel(monitoringSettings, gameLogImport);
-        ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport);
+        ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport, intelService);
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
         MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService);
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());

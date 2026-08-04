@@ -1090,14 +1090,25 @@
                           IsEnabled="{Binding !ChatLogVm.IsBusy}" Padding="14 4" />
                 </StackPanel>
 
+                <Grid ColumnDefinitions="*,70" Margin="8 0 8 0">
+                  <TextBlock Grid.Column="0" Text="CHANNEL" FontSize="9" FontWeight="SemiBold" Foreground="#666677" />
+                  <TextBlock Grid.Column="1" Text="INTEL"   FontSize="9" FontWeight="SemiBold" Foreground="#666677"
+                             HorizontalAlignment="Center" />
+                </Grid>
+
                 <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="3"
                         Background="#131320" MaxHeight="220">
                   <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding ChatLogVm.Channels}" Margin="8">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:ChatChannelViewModel">
-                          <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Name}"
-                                    Foreground="#ccc" FontSize="11" Margin="0 1" />
+                          <Grid ColumnDefinitions="*,70" Margin="0 1">
+                            <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" Content="{Binding Name}"
+                                      Foreground="#ccc" FontSize="11" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding IsIntel}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      ToolTip.Tip="Parse this channel for sightings" />
+                          </Grid>
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -1105,6 +1116,22 @@
                 </Border>
 
                 <TextBlock Text="{Binding ChatLogVm.SelectionText}" FontSize="11" Foreground="#888899" />
+
+                <!-- Intel parsing -->
+                <Border BorderBrush="#252530" BorderThickness="0 1 0 0" Padding="0 8 0 0">
+                  <StackPanel Spacing="6">
+                    <TextBlock Text="INTEL" FontSize="10" FontWeight="SemiBold" Foreground="#888899" />
+                    <TextBlock Text="{Binding ChatLogVm.IntelHelp}" FontSize="11" Foreground="#888"
+                               TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Button Content="Parse Stored History"
+                              Command="{Binding ChatLogVm.ParseIntelHistoryCommand}"
+                              IsEnabled="{Binding !ChatLogVm.IsBusy}" Padding="14 4" />
+                      <TextBlock Text="{Binding ChatLogVm.IntelStatus}" FontSize="11"
+                                 Foreground="#888899" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </StackPanel>
+                </Border>
               </StackPanel>
             </StackPanel>
           </Border>

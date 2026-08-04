@@ -23,6 +23,8 @@ public sealed class MonitoringSettings(AppPreferencesService prefs)
     public const string KeyChatDiscovered    = "chatlog.discovered_channels";
     public const string KeyChatHistoryDays   = "chatlog.history_days";
     public const string KeyChatDirs          = "chatlog.dirs";
+    public const string KeyChatIntelChannels = "chatlog.intel_channels";
+    public const string KeyIntelWatermark    = "intel.last_message_id";
 
     /// <summary>
     /// ON by default. The auto-detected local folder starts being read as soon as the
@@ -116,6 +118,27 @@ public sealed class MonitoringSettings(AppPreferencesService prefs)
         get => (prefs.Get(KeyChatChannels) ?? "")
                .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         set => _ = prefs.SetAsync(KeyChatChannels, value.Count == 0 ? null : string.Join('\n', value));
+    }
+
+    /// <summary>
+    /// Channels whose messages are parsed for intel. A subset of <see cref="ChatChannels"/> —
+    /// a channel that is not being stored has nothing to parse — and empty by default, so
+    /// intel parsing stays off until the user names a channel.
+    /// </summary>
+    public IReadOnlyList<string> ChatIntelChannels
+    {
+        get => (prefs.Get(KeyChatIntelChannels) ?? "")
+               .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        set => _ = prefs.SetAsync(KeyChatIntelChannels, value.Count == 0 ? null : string.Join('\n', value));
+    }
+
+    /// <summary>Highest ChatMessage.Id already considered for intel. A watermark rather than a
+    /// left join because "clear" lines and unparseable chatter produce no report, and would
+    /// otherwise be reconsidered on every pass forever.</summary>
+    public long IntelWatermark
+    {
+        get => prefs.GetLong(KeyIntelWatermark, 0);
+        set => _ = prefs.SetLongAsync(KeyIntelWatermark, value);
     }
 
     /// <summary>Channel names found by the last discovery scan. Cached because

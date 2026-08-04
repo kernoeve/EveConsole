@@ -611,6 +611,46 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     }
 
     /// <summary>
+    /// Players reported in each system by the intel channels.
+    ///
+    /// <paramref name="includeObsolete"/> is the difference between two questions. False asks
+    /// "who is there now": only sightings nothing has superseded, which is what the live
+    /// overlay wants. True asks "where has anyone been reported": every sighting in the window
+    /// including the retired ones, which traces the path a gang took as it was called through
+    /// system after system.
+    ///
+    /// Counts sum PlayerCount rather than counting reports, so a single "+8" call carries the
+    /// weight it should.
+    /// </summary>
+    public async Task<Dictionary<int, int>> GetIntelCountsAsync(
+        int minutes, bool includeObsolete, bool byRegion, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+
+        // ReportedAt is an ISO-8601 string, sortable, and compared as text for the same reason
+        // killmail times are — SQLite cannot translate a DateTimeOffset comparison.
+        var cutoff = DateTimeOffset.UtcNow.AddMinutes(-minutes)
+            .UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+        var q = db.IntelReports.AsNoTracking()
+            .Where(r => string.Compare(r.ReportedAt, cutoff) >= 0);
+
+        if (!includeObsolete) q = q.Where(r => !r.Obsolete);
+
+        if (!byRegion)
+            return await q.GroupBy(r => r.SystemId)
+                          .Select(g => new { g.Key, Total = g.Sum(x => x.PlayerCount) })
+                          .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+
+        return await q.Join(db.SdeSolarSystems.AsNoTracking(),
+                            r => r.SystemId, s => s.SolarSystemId,
+                            (r, s) => new { s.RegionId, r.PlayerCount })
+                      .GroupBy(x => x.RegionId)
+                      .Select(g => new { g.Key, Total = g.Sum(x => x.PlayerCount) })
+                      .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+    }
+
+    /// <summary>
     /// Planetary power or workforce, pooled per system or summed per region. Both are produced
     /// per planet but pooled per system — the pool is what sovereignty upgrades draw on — so
     /// the system total is the meaningful figure, not the per-planet one.

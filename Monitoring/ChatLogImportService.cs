@@ -50,6 +50,10 @@ public sealed class ChatLogImportService : ReactiveObject
         _errorLogger  = errorLogger;
     }
 
+    /// <summary>Run after each tail pass — intel parsing, wired at startup. Kept as a hook so
+    /// this service knows nothing about intel.</summary>
+    public Func<CancellationToken, Task>? AfterTail { get; set; }
+
     // ── Observable state ─────────────────────────────────────────────────────
 
     private string _statusText = "Chat logs: Disabled";
@@ -119,6 +123,19 @@ public sealed class ChatLogImportService : ReactiveObject
                 try
                 {
                     await TailAsync(ct);
+
+                    // Intel parsing runs on the same pass that stored the messages, so a
+                    // sighting reaches the map as soon as it is logged. It fails independently:
+                    // a parsing problem must not stop chat being imported.
+                    if (AfterTail is { } hook)
+                    {
+                        try { await hook(ct); }
+                        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+                        catch (Exception ex)
+                        {
+                            _errorLogger.Log(nameof(ChatLogImportService), "AfterTail", ex);
+                        }
+                    }
                 }
                 catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
                 catch (Exception ex)
@@ -453,6 +470,8 @@ public sealed class ChatLogImportService : ReactiveObject
 
         if (isNew) db.ChatLogFiles.Add(record);
 
+        rows = await DropAlreadyStoredAsync(db, record.ChannelName, rows, ct);
+
         for (var i = 0; i < rows.Count; i += InsertBatchSize)
         {
             db.ChatMessages.AddRange(rows.Skip(i).Take(InsertBatchSize));
@@ -465,6 +484,49 @@ public sealed class ChatLogImportService : ReactiveObject
         db.ChangeTracker.Clear();
 
         return rows.Count;
+    }
+
+    /// <summary>
+    /// Removes messages already stored from a different file.
+    ///
+    /// Two of the user's characters sitting in the same channel each write their own log, and
+    /// importing a second PC's folder brings the same channels again — so the same message
+    /// arrives several times under different filenames. The unique index on
+    /// (SourceFile, LineNumber) cannot see that, because the file genuinely differs.
+    ///
+    /// A message is the same message when the channel, timestamp, sender and text all match.
+    /// Only the chunk's own time span is queried, through the (ChannelName, OccurredAt) index,
+    /// so this stays cheap no matter how much history is already stored.
+    /// </summary>
+    private static async Task<List<ChatMessage>> DropAlreadyStoredAsync(
+        AppDbContext db, string channel, List<ChatMessage> rows, CancellationToken ct)
+    {
+        if (rows.Count == 0) return rows;
+
+        var from = rows.Min(r => r.OccurredAt);
+        var to   = rows.Max(r => r.OccurredAt);
+
+        var existing = await db.ChatMessages.AsNoTracking()
+            .Where(m => m.ChannelName == channel
+                     && string.Compare(m.OccurredAt, from) >= 0
+                     && string.Compare(m.OccurredAt, to)   <= 0)
+            .Select(m => new { m.OccurredAt, m.SenderName, m.Message })
+            .ToListAsync(ct);
+
+        var seen = new HashSet<string>(existing.Count + rows.Count);
+        foreach (var e in existing) seen.Add(Key(e.OccurredAt, e.SenderName, e.Message));
+
+        // Also guards against a single file repeating a line, which the in-batch check catches
+        // before SaveChanges rather than after.
+        var kept = new List<ChatMessage>(rows.Count);
+        foreach (var r in rows)
+            if (seen.Add(Key(r.OccurredAt, r.SenderName, r.Message))) kept.Add(r);
+
+        return kept;
+
+        // Separated by U+001F (unit separator), which cannot appear in a chat line, so a sender
+        // ending in the text's opening characters cannot collide with a different split.
+        static string Key(string at, string sender, string text) => $"{at}{sender}{text}";
     }
 
     private static string Truncate(string s, int max = 60) => s.Length <= max ? s : s[..max];
