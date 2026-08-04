@@ -464,7 +464,20 @@ public class OverviewViewModel : ReactiveObject
 
     private async Task LoadCoreAsync()
     {
-        LoadStatus = "Querying scope...";
+        // Section timings, logged once at the end. Added because "the Overview feels slow" was
+        // being diagnosed by reading code, and the last time this was measured instead the
+        // answer was a surprise — 664 database contexts building tooltips nobody had opened.
+        var sw      = System.Diagnostics.Stopwatch.StartNew();
+        var timings = new List<(string Step, long Ms)>();
+        var last    = 0L;
+        void Step(string name)
+        {
+            timings.Add((name, sw.ElapsedMilliseconds - last));
+            last = sw.ElapsedMilliseconds;
+            LoadStatus = name;
+        }
+
+        Step("Querying scope");
         try
         {
             await _alertSettings.LoadAsync();
@@ -503,7 +516,7 @@ public class OverviewViewModel : ReactiveObject
                                 .ToList();
 
             // ── Market transactions ────────────────────────────────────────────
-            LoadStatus = "Loading market transactions...";
+            Step("Loading market transactions");
             // Aggregate in SQL with date filter — avoids loading all rows and the
             // DateTimeOffset LINQ translation bug. UnitPrice stored as TEXT so CAST
             // to REAL for arithmetic; result arrives as double, converted to decimal.
@@ -537,7 +550,7 @@ public class OverviewViewModel : ReactiveObject
             MktBuyIsk    = FormatIsk(mktBuyTotal);
 
             // ── Active market orders ───────────────────────────────────────────
-            LoadStatus = "Loading market orders...";
+            Step("Loading market orders");
             var orders = new List<(bool IsBuy, int VolRemain, decimal Price)>();
             foreach (var (ot, oid) in owners)
                 orders.AddRange((await _db.EsiMarketOrders.AsNoTracking()
@@ -559,7 +572,7 @@ public class OverviewViewModel : ReactiveObject
             BuyOrderIsk    = FormatIsk(buyOrderIsk);
 
             // ── Contracts ─────────────────────────────────────────────────────
-            LoadStatus = "Loading contracts...";
+            Step("Loading contracts");
             var contracts = new List<string>();
             foreach (var (ot, oid) in owners)
                 contracts.AddRange(await _db.EsiContracts.AsNoTracking()
@@ -570,7 +583,7 @@ public class OverviewViewModel : ReactiveObject
             CtrActiveCount = contracts.Count(s => s == "outstanding").ToString("N0");
 
             // ── Industry jobs ──────────────────────────────────────────────────
-            LoadStatus = "Loading industry jobs...";
+            Step("Loading industry jobs");
             var jobs = new List<(string Status, DateTimeOffset? Completed)>();
             foreach (var (ot, oid) in owners)
                 jobs.AddRange((await _db.EsiIndustryJobs.AsNoTracking()
@@ -589,7 +602,7 @@ public class OverviewViewModel : ReactiveObject
             // where one of our characters is an attacker but not the victim. KillMailDetails
             // only exist for killmails we hold (from character OR corp refs), so two aggregate
             // queries replace the old per-character/per-corp loop (much faster).
-            LoadStatus = "Counting kills and losses...";
+            Step("Counting kills and losses");
             int totalKills = 0, totalLosses = 0;
             if (charIds.Count > 0)
             {
@@ -626,7 +639,7 @@ public class OverviewViewModel : ReactiveObject
             await LoadStandingProjectsAsync();
 
             // ── Wallet journal — pie chart categorisation ──────────────────────
-            LoadStatus = "Loading journal data...";
+            Step("Loading journal data");
             // Group by RefType in SQL with date filter — avoids loading all rows.
             // Amount stored as TEXT; CAST to REAL for SUM. Aggregated per RefType.
             var journalGroups = new List<(string RefType, decimal Total)>();
@@ -648,23 +661,30 @@ public class OverviewViewModel : ReactiveObject
                 .GroupBy(g => g.RefType, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.Total), StringComparer.OrdinalIgnoreCase);
 
-            LoadStatus = "Building charts...";
+            Step("Building charts");
             BuildPieCharts(WalletCategorizer.Categorize(journalByType));
 
-            LoadStatus = "Evaluating alerts...";
+            Step("Evaluating alerts");
             await EvaluateAlertsAsync(charIds);
 
-            LoadStatus = "Loading news...";
+            Step("Loading news");
             var newsItems = await newsTask;
             NewsItems.Clear();
             foreach (var item in newsItems) NewsItems.Add(new NewsItemVm(item));
             HasNews = NewsItems.Count > 0;
             this.RaisePropertyChanged(nameof(NoNews));
 
-            LoadStatus = "Loading notifications...";
+            Step("Loading notifications");
             await LoadNotificationsAsync();
 
-            LoadStatus = $"Loaded — {owners.Count} owner(s), period: {_selectedPeriod.Label}";
+            timings.Add(("Notifications", sw.ElapsedMilliseconds - last));
+            _errorLogger.Log("OverviewViewModel", "LoadTiming",
+                new Exception($"Overview load {sw.ElapsedMilliseconds:N0} ms — " +
+                    string.Join(", ", timings.Where(t => t.Ms >= 20)
+                                             .OrderByDescending(t => t.Ms)
+                                             .Select(t => $"{t.Step} {t.Ms:N0}ms"))));
+
+            LoadStatus = $"Loaded in {sw.ElapsedMilliseconds:N0} ms — {owners.Count} owner(s), period: {_selectedPeriod.Label}";
         }
         catch (Exception ex)
         {
