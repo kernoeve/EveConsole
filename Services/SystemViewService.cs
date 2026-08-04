@@ -409,9 +409,16 @@ public class SystemViewService(
             .Select(d => new { d.Day, d.ShipJumps, d.ShipKills, d.PodKills, d.NpcKills })
             .ToListAsync(ct);
 
+        // Ship and pod kills are deliberately NOT taken from the rollup. It sums CCP's hourly
+        // snapshots, which re-report the same kills across consecutive files, so those two
+        // columns come out roughly doubled — see UniverseMapService.GetKillCountsAsync for the
+        // evidence. They are counted from stored killmails below instead, which is what the map
+        // overlays and the header already use, so all three now agree.
+        //
+        // Jumps and NPC kills stay on the rollup because nothing else records them.
         var points = daily.ToDictionary(
             d => d.Day,
-            d => new HistoryPoint(DateOnly.Parse(d.Day), d.ShipJumps, d.ShipKills, d.PodKills, d.NpcKills));
+            d => new HistoryPoint(DateOnly.Parse(d.Day), d.ShipJumps, 0, 0, d.NpcKills));
 
         var jumps = await db.MapSystemJumps.AsNoTracking()
             .Where(j => j.SystemId == systemId)
@@ -428,12 +435,21 @@ public class SystemViewService(
         foreach (var g in kills.GroupBy(k => k.Bucket[..10]))
         {
             var cur = points.GetValueOrDefault(g.Key, new HistoryPoint(DateOnly.Parse(g.Key), 0, 0, 0, 0));
-            points[g.Key] = cur with
-            {
-                ShipKills = cur.ShipKills + g.Sum(x => x.ShipKills),
-                PodKills  = cur.PodKills  + g.Sum(x => x.PodKills),
-                NpcKills  = cur.NpcKills  + g.Sum(x => x.NpcKills),
-            };
+            // NPC kills only, for the reason above.
+            points[g.Key] = cur with { NpcKills = cur.NpcKills + g.Sum(x => x.NpcKills) };
+        }
+
+        // Ship and pod kills, counted from killmails. Each carries an exact timestamp, so a day
+        // is simply a day — there is no snapshot window to double count. Capsules are group 29
+        // alone; group 833 is Force Recon, which an earlier version wrongly counted as pods.
+        var killmails = await db.Database.SqlQueryRaw<DailyKillRaw>(DailyKillSql, systemId)
+            .ToListAsync(ct);
+
+        foreach (var k in killmails)
+        {
+            if (k.Day.Length < 10) continue;
+            var cur = points.GetValueOrDefault(k.Day, new HistoryPoint(DateOnly.Parse(k.Day), 0, 0, 0, 0));
+            points[k.Day] = cur with { ShipKills = k.Ships, PodKills = k.Pods };
         }
 
         return points.Values.OrderBy(p => p.Day).ToList();
@@ -526,6 +542,23 @@ public class SystemViewService(
                 r.Obsolete);
         }).ToList();
     }
+
+    private sealed class DailyKillRaw
+    {
+        public string Day   { get; set; } = "";
+        public int    Ships { get; set; }
+        public int    Pods  { get; set; }
+    }
+
+    private const string DailyKillSql = """
+        SELECT substr(k."KillMailTime", 1, 10) AS "Day",
+               SUM(CASE WHEN COALESCE(ty."GroupId", 0) = 29 THEN 0 ELSE 1 END) AS "Ships",
+               SUM(CASE WHEN COALESCE(ty."GroupId", 0) = 29 THEN 1 ELSE 0 END) AS "Pods"
+        FROM "KillMailDetails" k
+        LEFT JOIN "SdeTypes" ty ON ty."TypeId" = k."VictimShipTypeId"
+        WHERE k."SolarSystemId" = {0}
+        GROUP BY substr(k."KillMailTime", 1, 10)
+        """;
 
     public sealed record AdmPoint(DateOnly Day, double Adm);
 
