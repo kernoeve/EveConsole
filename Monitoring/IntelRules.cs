@@ -71,12 +71,15 @@ public static class IntelRules
     private static readonly HashSet<string> ClearWords =
         new(StringComparer.OrdinalIgnoreCase) { "clr", "clear", "cleared", "empty" };
 
+    /// <summary>A pilot named on a line, with the hull they were called in if one was given.</summary>
+    public sealed record SightedPilot(string Name, string? Ship);
+
     public sealed record ParsedIntel(
-        IntelKind             Kind,
-        string                SystemName,
-        int                   PlayerCount,
-        IReadOnlyList<string> CharacterNames,
-        string                Note);
+        IntelKind                    Kind,
+        string                       SystemName,
+        int                          PlayerCount,
+        IReadOnlyList<SightedPilot>  Pilots,
+        string                       Note);
 
     private static string Clean(string token) => token.Trim().Trim(Trim).Trim();
 
@@ -133,17 +136,26 @@ public static class IntelRules
     /// "clr" line, and a name with no system cannot be placed on the map.
     /// </summary>
     public static ParsedIntel? Parse(
-        string message, Func<string, bool> isSystem, Func<string, bool> isCharacter)
+        string message, Func<string, bool> isSystem, Func<string, bool> isCharacter,
+        Func<string, bool>? isShip = null)
     {
         if (string.IsNullOrWhiteSpace(message)) return null;
 
         var chunks = Chunks(message);
         if (chunks.Count == 0) return null;
 
+        isShip ??= _ => false;
+
         string? system = null;
-        var names = new List<string>();
-        var note  = new List<string>();
-        var plus  = 0;
+        var pilots = new List<SightedPilot>();
+        var names  = new List<string>();      // parallel, so the count logic reads unchanged
+        var ships  = new List<string?>();
+        var note   = new List<string>();
+        var plus   = 0;
+
+        // A hull named before any pilot — "Loki  Sevra", or a bare list of hulls — waits for the
+        // next pilot to attach to.
+        string? pendingShip = null;
 
         var sawClearWord = false;
 
@@ -159,7 +171,8 @@ public static class IntelRules
                 var matched = false;
 
                 // Longest run first, so "Zulu Delulu" wins over "Zulu", and a multi-word system
-                // such as "New Caldari" is not read as its first word alone.
+                // such as "New Caldari" is not read as its first word alone. Hulls can be three
+                // words too — "Scythe Fleet Issue".
                 for (var len = Math.Min(MaxNameTokens, chunk.Length - i); len >= 1 && !matched; len--)
                 {
                     var run = string.Join(' ', chunk.Skip(i).Take(len).Select(t => t.Clean));
@@ -173,9 +186,33 @@ public static class IntelRules
                         i      += len;
                         matched = true;
                     }
+
+                    // Hull BEFORE character, which is the opposite of what it looks like it
+                    // should be. 232 of the 423 published hulls are also somebody's character
+                    // name — Loki, Sabre, Heron, Astero, Buzzard — so checking characters first
+                    // reads every ship report as a pilot sighting. That inflated counts and, far
+                    // worse, chained the supersede logic across unrelated systems: a "Loki" here
+                    // retiring a "Loki" there. Ships are a closed set of 423 names and intel
+                    // channels are full of them, whereas a pilot genuinely named after a hull is
+                    // rare — so the cheaper mistake is to read that pilot as a ship.
+                    else if (isShip(run))
+                    {
+                        if (pilots.Count > 0 && ships[^1] is null)
+                        {
+                            ships[^1]  = run;                       // "Sevra (Loki)"
+                            pilots[^1] = pilots[^1] with { Ship = run };
+                        }
+                        else pendingShip ??= run;                   // "Loki  Sevra"
+
+                        i      += len;
+                        matched = true;
+                    }
                     else if (isCharacter(run))
                     {
                         names.Add(run);
+                        ships.Add(pendingShip);
+                        pilots.Add(new SightedPilot(run, pendingShip));
+                        pendingShip = null;
                         i      += len;
                         matched = true;
                     }
@@ -207,6 +244,6 @@ public static class IntelRules
                 : null;
 
         return new ParsedIntel(
-            IntelKind.Sighting, system, count, names, string.Join(' ', note).Trim());
+            IntelKind.Sighting, system, count, pilots, string.Join(' ', note).Trim());
     }
 }

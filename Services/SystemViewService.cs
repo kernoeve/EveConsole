@@ -473,11 +473,12 @@ public class SystemViewService(
         var ids    = reports.Select(r => r.Id).ToList();
         var pilots = await db.IntelReportCharacters.AsNoTracking()
             .Where(c => ids.Contains(c.IntelReportId))
-            .Select(c => new { c.IntelReportId, c.CharacterName })
+            .Select(c => new { c.IntelReportId, c.CharacterName, c.ShipName })
             .ToListAsync(ct);
 
         var byReport = pilots.GroupBy(p => p.IntelReportId)
-            .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(x => x.CharacterName)));
+            .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(
+                x => x.ShipName is null ? x.CharacterName : $"{x.CharacterName} ({x.ShipName})")));
 
         return reports.Select(r => new IntelRow(
             DateTimeOffset.TryParse(r.ReportedAt, out var t) ? t : default,

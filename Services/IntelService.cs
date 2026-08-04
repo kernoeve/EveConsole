@@ -61,6 +61,7 @@ public sealed class IntelService(
     private const int MessageBatch = 2_000;
 
     private Dictionary<string, int>? _systems;
+    private Dictionary<string, int>? _ships;
 
     /// <summary>Name → character id, or null for "asked, and it is not a character". Session
     /// lifetime: the positives are already persisted in UniverseNames, and the negatives are
@@ -97,8 +98,16 @@ public sealed class IntelService(
         var channels = settings.ChatIntelChannels;
         if (channels.Count == 0) return 0;
 
-        // From the beginning: the watermark is what "new" means, and a backfill is a request to
-        // reconsider everything.
+        // Discard what was derived before rather than resuming around it. Reports are wholly
+        // derived from chat, which is still there, and a re-parse is normally asked for because
+        // the rules changed — leaving the old rows would keep whatever the old rules got wrong,
+        // since the unique index on ChatMessageId makes the second pass skip them.
+        using (var db = dbFactory.CreateDbContext())
+        {
+            await db.IntelReportCharacters.ExecuteDeleteAsync(ct);
+            await db.IntelReports.ExecuteDeleteAsync(ct);
+        }
+
         settings.IntelWatermark = 0;
         return await RunAsync(channels, once: false, progress, ct);
     }
@@ -140,7 +149,9 @@ public sealed class IntelService(
                                   && !m.IsSystemMessage && m.Id > after, ct);
 
             var systems = await SystemsAsync(db, ct);
+            var ships   = await ShipsAsync(db, ct);
             bool IsSystem(string s) => systems.ContainsKey(s);
+            bool IsShip(string s)   => ships.ContainsKey(s);
 
             // One resolution pass for the whole batch, so a busy channel costs a handful of ESI
             // calls rather than one per line.
@@ -155,7 +166,7 @@ public sealed class IntelService(
 
             foreach (var m in batch)
             {
-                var parsed = IntelRules.Parse(m.Message, IsSystem, IsCharacter);
+                var parsed = IntelRules.Parse(m.Message, IsSystem, IsCharacter, IsShip);
                 if (parsed is null) continue;
 
                 if (parsed.Kind == IntelRules.IntelKind.Clear)
@@ -168,7 +179,7 @@ public sealed class IntelService(
                 if (!systems.TryGetValue(parsed.SystemName, out var systemId)) continue;
 
                 written += await WriteReportAsync(db, m.Id, m.OccurredAt, m.ChannelName,
-                                                  m.SenderName, systemId, parsed, ct);
+                                                  m.SenderName, systemId, parsed, ships, ct);
             }
 
             settings.IntelWatermark = batch[^1].Id;
@@ -216,7 +227,8 @@ public sealed class IntelService(
 
     private async Task<int> WriteReportAsync(
         AppDbContext db, int chatMessageId, string reportedAt, string channel, string reporter,
-        int systemId, IntelRules.ParsedIntel parsed, CancellationToken ct)
+        int systemId, IntelRules.ParsedIntel parsed, Dictionary<string, int> ships,
+        CancellationToken ct)
     {
         // The unique index on ChatMessageId makes re-parsing harmless, but checking first keeps
         // a re-run from throwing rather than skipping.
@@ -239,16 +251,18 @@ public sealed class IntelService(
         await db.SaveChangesAsync(ct);
 
         var ids = new List<long>();
-        foreach (var name in parsed.CharacterNames)
+        foreach (var pilot in parsed.Pilots)
         {
-            if (!_nameCache.TryGetValue(name, out var id) || id is null) continue;
+            if (!_nameCache.TryGetValue(pilot.Name, out var id) || id is null) continue;
             if (ids.Contains(id.Value)) continue;              // the same pilot named twice
             ids.Add(id.Value);
             db.IntelReportCharacters.Add(new IntelReportCharacter
             {
                 IntelReportId = report.Id,
                 CharacterId   = id.Value,
-                CharacterName = name,
+                CharacterName = pilot.Name,
+                ShipTypeId    = pilot.Ship is { } s && ships.TryGetValue(s, out var t) ? t : null,
+                ShipName      = pilot.Ship,
             });
         }
 
@@ -339,6 +353,26 @@ public sealed class IntelService(
     }
 
     // ── Lookups ──────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Published ship hulls, name → type id. A closed set of about 423, which is what makes it
+    /// safe to check before character names — see the ordering note in IntelRules.Parse.
+    /// </summary>
+    private async Task<Dictionary<string, int>> ShipsAsync(AppDbContext db, CancellationToken ct)
+    {
+        if (_ships is not null) return _ships;
+
+        var rows = await db.SdeTypes.AsNoTracking()
+            .Join(db.SdeGroups.AsNoTracking().Where(g => g.CategoryId == 6),
+                  t => t.GroupId, g => g.GroupId, (t, g) => t)
+            .Where(t => t.Published)
+            .Select(t => new { t.Name, t.TypeId })
+            .ToListAsync(ct);
+
+        _ships = new Dictionary<string, int>(rows.Count, StringComparer.OrdinalIgnoreCase);
+        foreach (var r in rows) _ships[r.Name] = r.TypeId;
+        return _ships;
+    }
 
     private async Task<Dictionary<string, int>> SystemsAsync(AppDbContext db, CancellationToken ct)
     {

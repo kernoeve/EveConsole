@@ -1846,6 +1846,8 @@ public class App : Application
 
                 """CREATE TABLE IF NOT EXISTS "IntelReportCharacters" ("IntelReportId" INTEGER NOT NULL, "CharacterId" INTEGER NOT NULL, "CharacterName" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("IntelReportId", "CharacterId"))""",
                 """CREATE INDEX IF NOT EXISTS "IX_IntelReportCharacters_CharacterId" ON "IntelReportCharacters" ("CharacterId")""",
+                """ALTER TABLE "IntelReportCharacters" ADD COLUMN "ShipTypeId" INTEGER NULL""",
+                """ALTER TABLE "IntelReportCharacters" ADD COLUMN "ShipName" TEXT NULL""",
             }) { try { db.Database.ExecuteSqlRaw(sql); } catch { } }
         }
         }); // end Task.Run — schema migration complete

@@ -1098,4 +1098,9 @@ public class IntelReportCharacter
     public int    IntelReportId { get; set; }
     public long   CharacterId   { get; set; }
     public string CharacterName { get; set; } = "";
+
+    /// <summary>Hull the pilot was called in, where the reporter gave one — "Sevra (Loki)",
+    /// "Levanin  Sabre". Null when only the pilot was named.</summary>
+    public int?    ShipTypeId { get; set; }
+    public string? ShipName   { get; set; }
 }
