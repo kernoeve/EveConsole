@@ -446,7 +446,21 @@ public class OverviewViewModel : ReactiveObject
             } while (_loadPending);
         }
         finally { IsLoading = false; }
+
+        // Only once everything else has finished. Task.Run rather than a bare call because an
+        // async method runs synchronously on its caller until it genuinely suspends, and this
+        // caller is the UI thread — SQLite's async is synchronous underneath, so a bare call
+        // would put those queries straight back onto it.
+        if (_pendingDetailFill is { } pending)
+        {
+            _pendingDetailFill = null;
+            _ = Task.Run(() => FillNotificationDetailAsync(pending));
+        }
     }
+
+    /// <summary>Notification rows whose body and icon still need filling in, held until the
+    /// Overview has finished loading so the two do not compete for the database.</summary>
+    private List<NotificationBoxVm>? _pendingDetailFill;
 
     private async Task LoadCoreAsync()
     {
@@ -757,13 +771,10 @@ public class OverviewViewModel : ReactiveObject
             // costs its own database context and several queries, so doing all of them inline
             // was the whole reason this section took so long to appear — for text that is only
             // read if the user hovers that particular row.
-            // Task.Run, not a bare call. This method runs on the UI thread, and an async method
-            // executes synchronously on its caller until it genuinely suspends — the first few
-            // items take the semaphore without waiting and carry straight on into FormatAsync,
-            // whose SQLite queries are synchronous however async the signature looks. Started
-            // bare, the "background" fill therefore ran several database queries on the UI
-            // thread before yielding, which is exactly the stall it was meant to remove.
-            _ = Task.Run(() => FillNotificationDetailAsync(boxes));
+            // Handed to LoadAsync rather than started here. This runs part-way through the
+            // Overview load, and four background readers competing with the queries still to
+            // come only slow down the very thing they were meant to get out of the way of.
+            _pendingDetailFill = boxes;
         }
         catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadNotifications", ex); }
     }
