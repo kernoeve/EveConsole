@@ -130,14 +130,14 @@ public static class IntelRules
         "pls", "5min", "ved",
 
         // Added from review of the parsed output
-        "were", "glimpse", "sat", "issues",
+        "were", "glimpse", "sat", "issues", "where", "nay", "ZD1",
 
         // ── Phrases ───────────────────────────────────────────────────────────
         // Multi-token matches were overwhelmingly REAL names — one player runs an Expanse-themed
         // alt fleet, so "Capt Amos Burton" and "Naomi Nagata" look like chatter and are not.
         // Only these six were actually phrases.
         "on the", "gate in", "gate camp", "drag bubble", "still here", "they are",
-        "all in", "look in", "how do",
+        "all in", "look in", "how do", "combat probes out",
     };
 
 
