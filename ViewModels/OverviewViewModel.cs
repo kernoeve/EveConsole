@@ -991,9 +991,9 @@ public class OverviewViewModel : ReactiveObject
         bool checkSafety   = _alertSettings.AssetSafety;
         bool checkInactive = _alertSettings.InactiveStandingProjects;
 
-        var characters = await _db.Characters.AsNoTracking()
+        var characters = await Off(() => _db.Characters.AsNoTracking()
             .Where(c => charIds.Contains(c.Id))
-            .ToListAsync();
+            .ToListAsync());
 
         int warnDays   = (int)Math.Max(1, _alertSettings.SkillQueueEmptyDays);
         var warnCutoff = DateTimeOffset.UtcNow.AddDays(warnDays);
@@ -1003,10 +1003,10 @@ public class OverviewViewModel : ReactiveObject
         {
             foreach (var ch in characters)
             {
-                var queue = await _db.EsiSkillQueue.AsNoTracking()
+                var queue = await Off(() => _db.EsiSkillQueue.AsNoTracking()
                     .Where(q => q.CharacterId == ch.Id && q.QueuePosition >= 0)
                     .OrderByDescending(q => q.QueuePosition)
-                    .ToListAsync();
+                    .ToListAsync());
 
                 var skillsNavCommand = NavigateToCharacterSkills is not null
                     ? ReactiveCommand.Create(() => NavigateToCharacterSkills!(ch.Name))
@@ -1062,16 +1062,16 @@ public class OverviewViewModel : ReactiveObject
 
         if (checkSafety)
         {
-            var dismissedIds = await _db.DismissedAlerts.AsNoTracking()
+            var dismissedIds = await Off(() => _db.DismissedAlerts.AsNoTracking()
                 .Where(d => charIds.Contains(d.CharacterId))
                 .Select(d => d.NotificationId)
-                .ToHashSetAsync();
+                .ToHashSetAsync());
 
-            var safetyNotifs = (await _db.EsiNotifications.AsNoTracking()
+            var safetyNotifs = (await Off(() => _db.EsiNotifications.AsNoTracking()
                 .Where(n => charIds.Contains(n.CharacterId) &&
                             n.Type == "StructureItemsMovedIntoSafety" &&
                             !dismissedIds.Contains(n.NotificationId))
-                .ToListAsync())
+                .ToListAsync()))
                 .OrderBy(n => n.Timestamp)
                 .ToList();
 
@@ -1112,10 +1112,10 @@ public class OverviewViewModel : ReactiveObject
         {
             // Scope to corps that actually have standing projects configured, not just
             // "personal" ones — the corp running standing projects may not be flagged personal.
-            var standingCorpIds = await _db.CorpStandingProjects.AsNoTracking()
+            var standingCorpIds = await Off(() => _db.CorpStandingProjects.AsNoTracking()
                 .Select(sp => sp.CorporationId)
                 .Distinct()
-                .ToListAsync();
+                .ToListAsync());
 
             int inactiveCount = 0;
             foreach (var corpId in standingCorpIds)
