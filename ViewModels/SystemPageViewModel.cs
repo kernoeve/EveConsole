@@ -137,6 +137,29 @@ public class SystemEventVm(SystemViewService.SystemEvent e) : IconRowVm
         e.AllianceId is { } a and > 0 ? $"https://images.evetech.net/alliances/{a}/logo?size=32" : null;
 }
 
+/// <summary>
+/// One intel sighting. Superseded reports are shown, dimmed, rather than hidden — a sighting
+/// being out of date is not the same as it never having happened, and the run of who came
+/// through a system is what the tab is for.
+/// </summary>
+public class IntelRowVm(SystemViewService.IntelRow r)
+{
+    public string When     { get; } = r.When.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
+    public string Count    { get; } = r.PlayerCount.ToString("N0");
+    public string Pilots   { get; } = r.Pilots;
+    public string Note     { get; } = r.Note;
+    public string Reporter { get; } = r.Reporter;
+    public string Channel  { get; } = r.Channel;
+
+    public bool   IsStanding { get; } = !r.Obsolete;
+    public string Status     { get; } = r.Obsolete ? "superseded" : "standing";
+
+    /// <summary>Standing sightings read at full strength; superseded ones recede.</summary>
+    public string RowOpacity => r.Obsolete ? "0.55" : "1.0";
+    public string CountColor => r.Obsolete ? "#7a7a8a" : r.PlayerCount >= 10 ? "#d43f2f"
+                                           : r.PlayerCount >= 4 ? "#e0913c" : "#c8c8d8";
+}
+
 public class GateVm(SystemViewService.GateRow r)
 {
     public int    SystemId    { get; } = r.SystemId;
@@ -346,9 +369,18 @@ public class SystemPageViewModel : ReactiveObject
     private string _hourNote = "";
     public string HourNote { get => _hourNote; private set => this.RaiseAndSetIfChanged(ref _hourNote, value); }
 
+    public ObservableCollection<IntelRowVm> Intel { get; } = [];
+
+    private string _intelSummary = "";
+    public string IntelSummary { get => _intelSummary; private set => this.RaiseAndSetIfChanged(ref _intelSummary, value); }
+
+    private bool _hasIntel;
+    public bool HasIntel { get => _hasIntel; private set => this.RaiseAndSetIfChanged(ref _hasIntel, value); }
+
     public string IntelNote =>
-        "Intel channel reports will appear here once chat-log parsing is in place. " +
-        "Reports will be recorded against the system they name, with the time and the reporter.";
+        "No intel recorded for this system. Reports are parsed from the channels ticked as " +
+        "Intel under Settings → Chat Logs; use \"Parse Stored History\" there to read the " +
+        "messages already on disk.";
 
     private string _killsNote = "";
     public string KillsNote { get => _killsNote; private set => this.RaiseAndSetIfChanged(ref _killsNote, value); }
@@ -382,6 +414,7 @@ public class SystemPageViewModel : ReactiveObject
         var admHist    = await _svc.GetAdmHistoryAsync(systemId);
         var indexHist  = await _svc.GetIndustryHistoryAsync(systemId);
         var agents     = await _svc.GetAgentsAsync(systemId);
+        var intel      = await _svc.GetIntelAsync(systemId);
 
         // The kill list is the same query and the same row type the Kills tool uses, so the
         // formatting and icons match the rest of the app rather than being reinvented here.
@@ -454,6 +487,12 @@ public class SystemPageViewModel : ReactiveObject
             Fill(Kills, killPage.Rows.Select(r => new KillmailListRowVm(r)));
             Fill(Gates, gates.Select(g => new GateVm(g)));
             Fill(Agents, agents.Select(a => new AgentVm(a)));
+            Fill(Intel, intel.Select(i => new IntelRowVm(i)));
+            HasIntel = intel.Count > 0;
+            IntelSummary = intel.Count == 0
+                ? ""
+                : $"{intel.Count:N0} report(s), {intel.Count(i => !i.Obsolete):N0} still standing. " +
+                  "Superseded reports are shown dimmed.";
             AgentNote = agents.Count == 0
                 ? "No agents in this system."
                 : $"{agents.Count} agents across {agents.Select(a => a.Location).Distinct().Count()} stations.";

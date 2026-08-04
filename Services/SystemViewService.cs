@@ -439,6 +439,56 @@ public class SystemViewService(
         return points.Values.OrderBy(p => p.Day).ToList();
     }
 
+    public sealed record IntelRow(
+        DateTimeOffset When,
+        int            PlayerCount,
+        string         Pilots,
+        string         Note,
+        string         Reporter,
+        string         Channel,
+        bool           Obsolete);
+
+    /// <summary>
+    /// Sightings reported in this system, newest first.
+    ///
+    /// Superseded reports are kept and marked rather than hidden: a sighting being out of date
+    /// is not the same as it never having happened, and the history of who came through a
+    /// system is the point of reading this tab at all.
+    /// </summary>
+    public async Task<List<IntelRow>> GetIntelAsync(
+        int systemId, int limit = 200, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+
+        var reports = await db.IntelReports.AsNoTracking()
+            .Where(r => r.SystemId == systemId)
+            .OrderByDescending(r => r.ReportedAt)
+            .Take(limit)
+            .Select(r => new { r.Id, r.ReportedAt, r.PlayerCount, r.Note,
+                               r.ReporterName, r.ChannelName, r.Obsolete })
+            .ToListAsync(ct);
+
+        if (reports.Count == 0) return [];
+
+        var ids    = reports.Select(r => r.Id).ToList();
+        var pilots = await db.IntelReportCharacters.AsNoTracking()
+            .Where(c => ids.Contains(c.IntelReportId))
+            .Select(c => new { c.IntelReportId, c.CharacterName })
+            .ToListAsync(ct);
+
+        var byReport = pilots.GroupBy(p => p.IntelReportId)
+            .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(x => x.CharacterName)));
+
+        return reports.Select(r => new IntelRow(
+            DateTimeOffset.TryParse(r.ReportedAt, out var t) ? t : default,
+            r.PlayerCount,
+            byReport.GetValueOrDefault(r.Id, ""),
+            r.Note ?? "",
+            r.ReporterName,
+            r.ChannelName,
+            r.Obsolete)).ToList();
+    }
+
     public sealed record AdmPoint(DateOnly Day, double Adm);
 
     /// <summary>

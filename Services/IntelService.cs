@@ -41,14 +41,21 @@ public sealed class IntelService(
 
     // ── Public API ───────────────────────────────────────────────────────────
 
-    /// <summary>Parses everything that has arrived since the last pass. Cheap when idle: one
-    /// indexed query that usually returns nothing.</summary>
+    /// <summary>
+    /// Parses everything that has arrived since the last pass.
+    ///
+    /// Drains rather than doing a single batch. A batch-per-tick looks cheaper but never
+    /// catches up from a cold start: with a backlog of several hundred thousand messages and
+    /// 2,000 taken per tick, the watermark crawls through year-old history for days while the
+    /// overlays — which only look at the last 15 minutes to 24 hours — stay empty the whole
+    /// time. Idle cost is unchanged: one indexed query that returns nothing.
+    /// </summary>
     public async Task<int> ProcessNewAsync(CancellationToken ct = default)
     {
         var channels = settings.ChatIntelChannels;
         if (channels.Count == 0) return 0;
 
-        return await RunAsync(channels, once: true, null, ct);
+        return await RunAsync(channels, once: false, null, ct);
     }
 
     /// <summary>

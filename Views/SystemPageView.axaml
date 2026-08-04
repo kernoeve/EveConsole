@@ -533,9 +533,53 @@
 
       <!-- ── Intel ─────────────────────────────────────────────────────── -->
       <TabItem Header="Intel">
-        <StackPanel Margin="16">
-          <TextBlock Classes="note" Text="{Binding IntelNote}" />
-        </StackPanel>
+        <ScrollViewer>
+          <StackPanel Margin="16" Spacing="8">
+            <TextBlock Classes="note" Text="{Binding IntelNote}"
+                       IsVisible="{Binding !HasIntel}" />
+            <TextBlock Classes="note" Text="{Binding IntelSummary}"
+                       IsVisible="{Binding HasIntel}" />
+
+            <Grid ColumnDefinitions="120,50,2*,3*,140,110" IsVisible="{Binding HasIntel}">
+              <TextBlock Grid.Column="0" Classes="colhead" Text="WHEN (UTC)" />
+              <TextBlock Grid.Column="1" Classes="colhead" Text="N" />
+              <TextBlock Grid.Column="2" Classes="colhead" Text="PILOTS" />
+              <TextBlock Grid.Column="3" Classes="colhead" Text="NOTE" />
+              <TextBlock Grid.Column="4" Classes="colhead" Text="REPORTED BY" />
+              <TextBlock Grid.Column="5" Classes="colhead" Text="STATUS" />
+            </Grid>
+
+            <ItemsControl ItemsSource="{Binding Intel}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:IntelRowVm">
+                  <Border Background="#12121a" CornerRadius="3" Padding="6 4" Margin="0 0 0 3"
+                          Opacity="{Binding RowOpacity}">
+                    <Grid ColumnDefinitions="120,50,2*,3*,140,110">
+                      <TextBlock Grid.Column="0" Text="{Binding When}" FontSize="11"
+                                 Foreground="#8a8a9a" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Text="{Binding Count}" FontSize="12"
+                                 FontWeight="SemiBold" Foreground="{Binding CountColor}"
+                                 VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="2" Text="{Binding Pilots}" FontSize="11"
+                                 Foreground="#d8d8e4" TextTrimming="CharacterEllipsis"
+                                 ToolTip.Tip="{Binding Pilots}" Margin="0 0 8 0"
+                                 VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="3" Text="{Binding Note}" FontSize="11"
+                                 Foreground="#7a7a8a" TextTrimming="CharacterEllipsis"
+                                 ToolTip.Tip="{Binding Note}" Margin="0 0 8 0"
+                                 VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="4" Text="{Binding Reporter}" FontSize="11"
+                                 Foreground="#8a8a9a" TextTrimming="CharacterEllipsis"
+                                 ToolTip.Tip="{Binding Channel}" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="5" Text="{Binding Status}" FontSize="10"
+                                 Foreground="#6a6a7c" VerticalAlignment="Center" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
       </TabItem>
 
     </TabControl>
