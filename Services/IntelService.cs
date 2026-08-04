@@ -173,6 +173,20 @@ public sealed class IntelService(
 
             var seenCharacters = new List<long>();
 
+            // Already-parsed messages, asked once for the batch rather than once per report.
+            var batchIds = batch.Select(m => m.Id).ToList();
+            var already  = (await db.IntelReports.AsNoTracking()
+                .Where(r => batchIds.Contains(r.ChatMessageId))
+                .Select(r => r.ChatMessageId)
+                .ToListAsync(ct)).ToHashSet();
+
+            var pending = new List<(IntelReport Report, List<IntelReportCharacter> Pilots)>();
+
+            // A clear obsoletes everything in its system older than itself, so only the newest
+            // clear per system in this batch needs applying — an earlier one can only ever
+            // retire a subset of what the later one does.
+            var clears = new Dictionary<int, string>();
+
             foreach (var m in batch)
             {
                 var parsed = IntelRules.Parse(m.Message, IsSystem, IsCharacter, IsShip);
@@ -180,20 +194,35 @@ public sealed class IntelService(
 
                 if (parsed.Kind == IntelRules.IntelKind.Clear)
                 {
-                    if (systems.TryGetValue(parsed.SystemName, out var clearedId))
-                        await MarkSystemClearAsync(db, clearedId, m.OccurredAt, ct);
+                    if (systems.TryGetValue(parsed.SystemName, out var clearedId) &&
+                        (!clears.TryGetValue(clearedId, out var prev) ||
+                         string.CompareOrdinal(m.OccurredAt, prev) > 0))
+                        clears[clearedId] = m.OccurredAt;
                     continue;
                 }
 
                 if (!systems.TryGetValue(parsed.SystemName, out var systemId)) continue;
+                if (already.Contains(m.Id)) continue;
 
-                written += await WriteReportAsync(db, m.Id, m.OccurredAt, m.ChannelName,
-                                                  m.SenderName, systemId, m.Message, parsed, ships,
-                                                  seenCharacters, ct);
+                var built = BuildReport(m.Id, m.OccurredAt, m.ChannelName, m.SenderName,
+                                        systemId, m.Message, parsed, ships);
+                if (built is null) continue;
+
+                pending.Add(built.Value);
+                seenCharacters.AddRange(built.Value.Pilots.Select(p => p.CharacterId));
+                if (built.Value.Report.ReporterCharacterId is { } rid) seenCharacters.Add(rid);
             }
+
+            written += await FlushAsync(db, pending, ct);
+            await ApplyClearsAsync(db, clears, ct);
 
             // One affiliation pass for the whole batch rather than one per report.
             await EnsureAffiliationsAsync(db, seenCharacters, ct);
+
+            // Keeps the write-ahead log from running away over a long backfill. Left to grow it
+            // reached 1.18 GB, at which point every read had to search it and the periodic
+            // automatic checkpoint became a multi-second stall.
+            await CheckpointAsync(db, ct);
 
             settings.IntelWatermark = batch[^1].Id;
             seen += batch.Count;
@@ -211,6 +240,18 @@ public sealed class IntelService(
             progress?.Report(StatusText);
 
             if (once || batch.Count < MessageBatch) break;
+        }
+
+        // Superseding is applied once, at the end, rather than per report. It is a property of
+        // the whole set — a sighting is stale when a newer one names the same pilot — so it can
+        // be derived in a single statement instead of maintained incrementally with an update
+        // per report. Only ever sets the flag, never clears it, so running it repeatedly is
+        // safe and an interrupted pass simply recomputes on the next one.
+        if (written > 0)
+        {
+            using var db = dbFactory.CreateDbContext();
+            await SupersedeAllAsync(db, ct);
+            await CheckpointAsync(db, ct);
         }
 
         return written;
@@ -243,15 +284,12 @@ public sealed class IntelService(
 
     // ── Writing ──────────────────────────────────────────────────────────────
 
-    private async Task<int> WriteReportAsync(
-        AppDbContext db, int chatMessageId, string reportedAt, string channel, string reporter,
-        int systemId, string message, IntelRules.ParsedIntel parsed, Dictionary<string, int> ships,
-        List<long> seenCharacters, CancellationToken ct)
+    /// <summary>Builds a report and its pilots in memory. No database access — the caller
+    /// writes a whole batch at once.</summary>
+    private (IntelReport Report, List<IntelReportCharacter> Pilots)? BuildReport(
+        int chatMessageId, string reportedAt, string channel, string reporter,
+        int systemId, string message, IntelRules.ParsedIntel parsed, Dictionary<string, int> ships)
     {
-        // The unique index on ChatMessageId makes re-parsing harmless, but checking first keeps
-        // a re-run from throwing rather than skipping.
-        if (await db.IntelReports.AnyAsync(r => r.ChatMessageId == chatMessageId, ct)) return 0;
-
         var report = new IntelReport
         {
             ReportedAt    = reportedAt,
@@ -268,18 +306,14 @@ public sealed class IntelService(
             ChatMessageId = chatMessageId,
         };
 
-        db.IntelReports.Add(report);
-        await db.SaveChangesAsync(ct);
-
-        var ids = new List<long>();
+        var pilots = new List<IntelReportCharacter>();
+        var ids    = new HashSet<long>();
         foreach (var pilot in parsed.Pilots)
         {
             if (!_nameCache.TryGetValue(pilot.Name, out var id) || id is null) continue;
-            if (ids.Contains(id.Value)) continue;              // the same pilot named twice
-            ids.Add(id.Value);
-            db.IntelReportCharacters.Add(new IntelReportCharacter
+            if (!ids.Add(id.Value)) continue;                  // the same pilot named twice
+            pilots.Add(new IntelReportCharacter
             {
-                IntelReportId = report.Id,
                 CharacterId   = id.Value,
                 CharacterName = pilot.Name,
                 ShipTypeId    = pilot.Ship is { } s && ships.TryGetValue(s, out var t) ? t : null,
@@ -287,21 +321,95 @@ public sealed class IntelService(
             });
         }
 
-        if (ids.Count > 0)
+        return (report, pilots);
+    }
+
+    /// <summary>
+    /// Writes a batch: two saves rather than two per report.
+    ///
+    /// The previous version saved each report, saved its pilots, then issued an update to
+    /// supersede — on the order of a hundred thousand write transactions across a full parse,
+    /// which drove the write-ahead log to 1.18 GB and made the app stall for seconds at a time.
+    ///
+    /// Reports go first because the pilot rows need their generated ids.
+    /// </summary>
+    private static async Task<int> FlushAsync(
+        AppDbContext db, List<(IntelReport Report, List<IntelReportCharacter> Pilots)> pending,
+        CancellationToken ct)
+    {
+        if (pending.Count == 0) return 0;
+
+        db.IntelReports.AddRange(pending.Select(p => p.Report));
+        await db.SaveChangesAsync(ct);
+
+        foreach (var (report, pilots) in pending)
+            foreach (var p in pilots)
+                p.IntelReportId = report.Id;
+
+        var all = pending.SelectMany(p => p.Pilots).ToList();
+        if (all.Count > 0)
         {
+            db.IntelReportCharacters.AddRange(all);
             await db.SaveChangesAsync(ct);
-            await SupersedeAsync(db, report.Id, ids, reportedAt, ct);
         }
 
         db.ChangeTracker.Clear();
+        return pending.Count;
+    }
 
-        // Collected for the caller to resolve once per batch. Doing it here would mean a query,
-        // and possibly an ESI round trip, for every single report — which is what turned the
-        // re-parse into a crawl.
-        seenCharacters.AddRange(ids);
-        if (report.ReporterCharacterId is { } r) seenCharacters.Add(r);
+    /// <summary>Applies the newest clear per system, one statement each rather than one per
+    /// clear line.</summary>
+    private static async Task ApplyClearsAsync(
+        AppDbContext db, Dictionary<int, string> clears, CancellationToken ct)
+    {
+        if (clears.Count == 0) return;
 
-        return 1;
+        var now = DateTimeOffset.UtcNow;
+        foreach (var (systemId, at) in clears)
+            await db.IntelReports
+                .Where(r => r.SystemId == systemId && !r.Obsolete
+                         && string.Compare(r.ReportedAt, at) < 0)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.Obsolete, true)
+                                          .SetProperty(r => r.ObsoleteSetOn, now), ct);
+    }
+
+    /// <summary>
+    /// Marks every sighting that a later one has superseded, in one statement.
+    ///
+    /// Derived from the whole set rather than maintained report by report, which is both far
+    /// cheaper and immune to the ordering problem the incremental version had: reports do not
+    /// arrive chronologically, so "retire what came before me" needed a matching "and am I
+    /// already out of date" check. Asking the question of the finished set answers both.
+    ///
+    /// Ties on ReportedAt fall to the higher Id, since chat timestamps are only accurate to the
+    /// second and a pilot really does get called in two systems within one.
+    /// </summary>
+    private static Task SupersedeAllAsync(AppDbContext db, CancellationToken ct) =>
+        db.Database.ExecuteSqlRawAsync(SupersedeSql, [DateTimeOffset.UtcNow.ToString("O")], ct);
+
+    private const string SupersedeSql = """
+        UPDATE "IntelReports"
+        SET "Obsolete" = 1, "ObsoleteSetOn" = {0}
+        WHERE "Obsolete" = 0
+          AND EXISTS (
+            SELECT 1
+            FROM "IntelReportCharacters" c1
+            JOIN "IntelReportCharacters" c2 ON c2."CharacterId" = c1."CharacterId"
+            JOIN "IntelReports" r2        ON r2."Id" = c2."IntelReportId"
+            WHERE c1."IntelReportId" = "IntelReports"."Id"
+              AND r2."Id" <> "IntelReports"."Id"
+              AND (r2."ReportedAt" > "IntelReports"."ReportedAt"
+                OR (r2."ReportedAt" = "IntelReports"."ReportedAt"
+                    AND r2."Id" > "IntelReports"."Id")))
+        """;
+
+    /// <summary>Drains the write-ahead log into the database. TRUNCATE rather than PASSIVE so
+    /// the file is actually reclaimed; failure is ignored because a checkpoint blocked by a
+    /// concurrent reader is normal and the next one will get it.</summary>
+    private static async Task CheckpointAsync(AppDbContext db, CancellationToken ct)
+    {
+        try { await db.Database.ExecuteSqlRawAsync("PRAGMA wal_checkpoint(TRUNCATE)", ct); }
+        catch { }
     }
 
     /// <summary>
@@ -349,82 +457,6 @@ public sealed class IntelService(
         {
             errorLogger.Log(nameof(IntelService), nameof(EnsureAffiliationsAsync), ex);
         }
-    }
-
-    /// <summary>
-    /// Retires earlier sightings of the same pilots. A gang gets called in system after system
-    /// as it moves, and every one of those calls is true when made — what makes the older ones
-    /// wrong is a newer one somewhere else.
-    ///
-    /// Compares on ReportedAt rather than on insertion order, so a backfill that walks history
-    /// out of order still ends with the newest sighting standing.
-    ///
-    /// Chat timestamps are only accurate to the second, and a pilot really does get called in
-    /// two systems within one second — by two reporters at once, or by one posting a burst.
-    /// Without a tie-break neither of those supersedes the other and the pilot stands in both
-    /// places at once, which is exactly what the flag exists to prevent. Ties therefore fall to
-    /// the higher Id, which is the one written later.
-    /// </summary>
-    private static async Task SupersedeAsync(
-        AppDbContext db, int newReportId, List<long> characterIds, string reportedAt,
-        CancellationToken ct)
-    {
-        var now = DateTimeOffset.UtcNow;
-
-        // Reports do not arrive in chronological order. Messages are processed by ChatMessage
-        // id, which is insertion order — and a backfill reads whole files at a time, so one
-        // channel's July can be stored after another's September. A sighting can therefore be
-        // written when the same pilot already has a NEWER one standing, in which case the new
-        // row is the stale one and is born obsolete. Without this the pilot stands in both
-        // places, which is what the flag exists to prevent.
-        var supersededOnArrival = await db.IntelReportCharacters.AsNoTracking()
-            .Where(c => characterIds.Contains(c.CharacterId))
-            .Join(db.IntelReports.Where(r => !r.Obsolete
-                                          && r.Id != newReportId
-                                          && (string.Compare(r.ReportedAt, reportedAt) > 0
-                                           || (r.ReportedAt == reportedAt && r.Id > newReportId))),
-                  c => c.IntelReportId, r => r.Id, (c, r) => r.Id)
-            .AnyAsync(ct);
-
-        if (supersededOnArrival)
-        {
-            await db.IntelReports.Where(r => r.Id == newReportId)
-                .ExecuteUpdateAsync(s => s.SetProperty(r => r.Obsolete, true)
-                                          .SetProperty(r => r.ObsoleteSetOn, now), ct);
-            return;
-        }
-
-        var stale = await db.IntelReportCharacters.AsNoTracking()
-            .Where(c => characterIds.Contains(c.CharacterId))
-            .Join(db.IntelReports.Where(r => !r.Obsolete
-                                          && r.Id != newReportId
-                                          && (string.Compare(r.ReportedAt, reportedAt) < 0
-                                           || (r.ReportedAt == reportedAt && r.Id < newReportId))),
-                  c => c.IntelReportId, r => r.Id, (c, r) => r.Id)
-            .Distinct()
-            .ToListAsync(ct);
-
-        if (stale.Count == 0) return;
-
-        await db.IntelReports.Where(r => stale.Contains(r.Id))
-            .ExecuteUpdateAsync(s => s.SetProperty(r => r.Obsolete, true)
-                                      .SetProperty(r => r.ObsoleteSetOn, now), ct);
-    }
-
-    /// <summary>
-    /// A "clear" call retires everything standing in that system: somebody has looked and
-    /// nobody is there. Only sightings older than the call, so a clear cannot retire a sighting
-    /// made after it.
-    /// </summary>
-    private static async Task MarkSystemClearAsync(
-        AppDbContext db, int systemId, string reportedAt, CancellationToken ct)
-    {
-        var now = DateTimeOffset.UtcNow;
-        await db.IntelReports
-            .Where(r => r.SystemId == systemId && !r.Obsolete
-                     && string.Compare(r.ReportedAt, reportedAt) < 0)
-            .ExecuteUpdateAsync(s => s.SetProperty(r => r.Obsolete, true)
-                                      .SetProperty(r => r.ObsoleteSetOn, now), ct);
     }
 
     // ── Lookups ──────────────────────────────────────────────────────────────
