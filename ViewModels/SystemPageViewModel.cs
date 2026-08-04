@@ -145,28 +145,31 @@ public class SystemEventVm(SystemViewService.SystemEvent e) : IconRowVm
 public class IntelFaceVm : ReactiveObject
 {
     private readonly long _charId, _corpId, _allianceId;
+    private readonly int  _shipTypeId;
 
     public string  Name    { get; }
     public string  Ship    { get; }
     public bool    HasShip { get; }
 
-    public IntelFaceVm(long charId, string name, string? ship, long corpId, long allianceId)
+    public IntelFaceVm(long charId, string name, string? ship, int shipTypeId, long corpId, long allianceId)
     {
-        _charId = charId; _corpId = corpId; _allianceId = allianceId;
+        _charId = charId; _corpId = corpId; _allianceId = allianceId; _shipTypeId = shipTypeId;
         Name    = name;
         Ship    = ship ?? "";
         HasShip = !string.IsNullOrEmpty(ship);
     }
 
-    private Bitmap? _portrait, _corpLogo, _allianceLogo;
+    private Bitmap? _portrait, _corpLogo, _allianceLogo, _shipIcon;
     public Bitmap? Portrait     { get => _portrait;     private set => this.RaiseAndSetIfChanged(ref _portrait, value); }
     public Bitmap? CorpLogo     { get => _corpLogo;     private set => this.RaiseAndSetIfChanged(ref _corpLogo, value); }
     public Bitmap? AllianceLogo { get => _allianceLogo; private set => this.RaiseAndSetIfChanged(ref _allianceLogo, value); }
+    public Bitmap? ShipIcon     { get => _shipIcon;     private set => this.RaiseAndSetIfChanged(ref _shipIcon, value); }
 
     public Task LoadIconsAsync() => Task.WhenAll(
         Fetch(_charId     > 0 ? $"https://images.evetech.net/characters/{_charId}/portrait?size=32"   : null, b => Portrait = b),
         Fetch(_corpId     > 0 ? $"https://images.evetech.net/corporations/{_corpId}/logo?size=32"     : null, b => CorpLogo = b),
-        Fetch(_allianceId > 0 ? $"https://images.evetech.net/alliances/{_allianceId}/logo?size=32"    : null, b => AllianceLogo = b));
+        Fetch(_allianceId > 0 ? $"https://images.evetech.net/alliances/{_allianceId}/logo?size=32"    : null, b => AllianceLogo = b),
+        Fetch(_shipTypeId > 0 ? $"https://images.evetech.net/types/{_shipTypeId}/icon?size=32"       : null, b => ShipIcon = b));
 
     private static async Task Fetch(string? url, Action<Bitmap?> set)
     {
@@ -190,11 +193,11 @@ public class IntelRowVm(SystemViewService.IntelRow r)
     public string Channel  { get; } = r.Channel;
 
     public List<IntelFaceVm> Pilots { get; } =
-        [.. r.Pilots.Select(p => new IntelFaceVm(p.CharacterId, p.Name, p.Ship, p.CorporationId, p.AllianceId))];
+        [.. r.Pilots.Select(p => new IntelFaceVm(p.CharacterId, p.Name, p.Ship, p.ShipTypeId, p.CorporationId, p.AllianceId))];
 
     /// <summary>The reporter, shown the same way as the pilots they called.</summary>
     public IntelFaceVm ReportedBy { get; } =
-        new(r.ReporterId, r.Reporter, null, r.ReporterCorpId, r.ReporterAllianceId);
+        new(r.ReporterId, r.Reporter, null, 0, r.ReporterCorpId, r.ReporterAllianceId);
 
     public Task LoadIconsAsync() =>
         Task.WhenAll(Pilots.Select(p => p.LoadIconsAsync()).Append(ReportedBy.LoadIconsAsync()));

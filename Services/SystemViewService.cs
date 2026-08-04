@@ -442,7 +442,7 @@ public class SystemViewService(
     /// <summary>A pilot named on a report, with the ids needed to show their portrait, corp and
     /// alliance. Zero where we do not know.</summary>
     public sealed record IntelPilot(
-        long CharacterId, string Name, string? Ship,
+        long CharacterId, string Name, string? Ship, int ShipTypeId,
         long CorporationId, long AllianceId);
 
     public sealed record IntelRow(
@@ -482,7 +482,7 @@ public class SystemViewService(
         var ids    = reports.Select(r => r.Id).ToList();
         var pilots = await db.IntelReportCharacters.AsNoTracking()
             .Where(c => ids.Contains(c.IntelReportId))
-            .Select(c => new { c.IntelReportId, c.CharacterId, c.CharacterName, c.ShipName })
+            .Select(c => new { c.IntelReportId, c.CharacterId, c.CharacterName, c.ShipName, c.ShipTypeId })
             .ToListAsync(ct);
 
         // One lookup for every character on the page — the pilots named and the reporters both,
@@ -500,7 +500,7 @@ public class SystemViewService(
             g => (IReadOnlyList<IntelPilot>)g.Select(x =>
             {
                 var a = affiliation.GetValueOrDefault(x.CharacterId);
-                return new IntelPilot(x.CharacterId, x.CharacterName, x.ShipName,
+                return new IntelPilot(x.CharacterId, x.CharacterName, x.ShipName, x.ShipTypeId ?? 0,
                                       a?.CorporationId ?? 0, a?.AllianceId ?? 0);
             }).ToList());
 
