@@ -462,6 +462,20 @@ public class OverviewViewModel : ReactiveObject
     /// Overview has finished loading so the two do not compete for the database.</summary>
     private List<NotificationBoxVm>? _pendingDetailFill;
 
+    /// <summary>
+    /// Runs a database query on the threadpool.
+    ///
+    /// Microsoft.Data.Sqlite has no real async I/O: ToListAsync and its siblings block the
+    /// calling thread for the whole query however async the signature looks. This view model is
+    /// driven from the UI thread — including a 60-second auto-refresh — so every one of those
+    /// awaits froze the window for its duration. Measured at 5,351 ms across ten sections, with
+    /// no single query at fault; it was simply all of it, on the wrong thread.
+    ///
+    /// The continuation still resumes on the UI thread, so assignments and collection updates
+    /// after the await stay exactly as they were.
+    /// </summary>
+    private static Task<T> Off<T>(Func<Task<T>> query) => Task.Run(query);
+
     private async Task LoadCoreAsync()
     {
         // Section timings, logged once at the end. Added because "the Overview feels slow" was
@@ -484,17 +498,17 @@ public class OverviewViewModel : ReactiveObject
 
             // ── Scope ─────────────────────────────────────────────────────────
             // Only characters we have auth tokens for (i.e. authenticated characters).
-            var charIds = await _db.Characters.AsNoTracking()
+            var charIds = await Off(() => _db.Characters.AsNoTracking()
                 .Where(c => c.RefreshToken != "")
                 .Select(c => c.Id)
-                .ToListAsync();
+                .ToListAsync());
 
             // Only personal corporations (IsPersonal = true). Corp data is stored
             // with OwnerType = "corporation" (not "corp").
-            var corpIds = await _db.Corporations.AsNoTracking()
+            var corpIds = await Off(() => _db.Corporations.AsNoTracking()
                 .Where(c => c.IsPersonal)
                 .Select(c => (long)c.Id)
-                .ToListAsync();
+                .ToListAsync());
 
             if (charIds.Count == 0 && corpIds.Count == 0)
             {
@@ -524,7 +538,7 @@ public class OverviewViewModel : ReactiveObject
             int     mktSellCnt   = 0,  mktBuyCnt   = 0;
             foreach (var (ot, oid) in owners)
             {
-                var s = await _db.Database.SqlQuery<TxnSummary>(
+                var s = await Off(() => _db.Database.SqlQuery<TxnSummary>(
                     $"""
                     SELECT
                         COALESCE(SUM(CASE WHEN "IsBuy" = 0 THEN "Quantity" * CAST("UnitPrice" AS REAL) ELSE 0.0 END), 0.0) AS "SellTotal",
@@ -534,7 +548,7 @@ public class OverviewViewModel : ReactiveObject
                     FROM "EsiWalletTransactions"
                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                     """
-                ).FirstOrDefaultAsync();
+                ).FirstOrDefaultAsync());
 
                 if (s != null)
                 {
@@ -553,10 +567,10 @@ public class OverviewViewModel : ReactiveObject
             Step("Loading market orders");
             var orders = new List<(bool IsBuy, int VolRemain, decimal Price)>();
             foreach (var (ot, oid) in owners)
-                orders.AddRange((await _db.EsiMarketOrders.AsNoTracking()
+                orders.AddRange((await Off(() => _db.EsiMarketOrders.AsNoTracking()
                     .Where(o => !o.IsHistory && o.OwnerType == ot && o.OwnerId == oid)
                     .Select(o => new { o.IsBuyOrder, o.VolumeRemain, o.Price })
-                    .ToListAsync())
+                    .ToListAsync()))
                     .Select(o => (o.IsBuyOrder, o.VolumeRemain, o.Price)));
 
             decimal sellOrderIsk = 0m, buyOrderIsk = 0m;
@@ -575,10 +589,10 @@ public class OverviewViewModel : ReactiveObject
             Step("Loading contracts");
             var contracts = new List<string>();
             foreach (var (ot, oid) in owners)
-                contracts.AddRange(await _db.EsiContracts.AsNoTracking()
+                contracts.AddRange(await Off(() => _db.EsiContracts.AsNoTracking()
                     .Where(c => c.OwnerType == ot && c.OwnerId == oid)
                     .Select(c => c.Status)
-                    .ToListAsync());
+                    .ToListAsync()));
 
             CtrActiveCount = contracts.Count(s => s == "outstanding").ToString("N0");
 
@@ -586,10 +600,10 @@ public class OverviewViewModel : ReactiveObject
             Step("Loading industry jobs");
             var jobs = new List<(string Status, DateTimeOffset? Completed)>();
             foreach (var (ot, oid) in owners)
-                jobs.AddRange((await _db.EsiIndustryJobs.AsNoTracking()
+                jobs.AddRange((await Off(() => _db.EsiIndustryJobs.AsNoTracking()
                     .Where(j => j.OwnerType == ot && j.OwnerId == oid)
                     .Select(j => new { j.Status, j.CompletedDate })
-                    .ToListAsync())
+                    .ToListAsync()))
                     .Select(j => (j.Status, j.CompletedDate)));
 
             ActiveJobCount    = jobs.Count(j => j.Status == "active").ToString("N0");
@@ -610,22 +624,22 @@ public class OverviewViewModel : ReactiveObject
                     .UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
                 var charIdList = string.Join(",", charIds);
 #pragma warning disable EF1002
-                totalLosses = await _db.Database.SqlQueryRaw<int>($"""
+                totalLosses = await Off(() => _db.Database.SqlQueryRaw<int>($"""
                     SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
                     FROM "KillMailDetails" d
                     WHERE d."KillMailTime" >= '{cutoffStr}' AND d."VictimCharId" IN ({charIdList})
-                    """).FirstAsync();
+                    """).FirstAsync());
                 // Non-correlated IN-subquery: computes the attacker killmail set once. A
                 // correlated EXISTS here scans the 100k-row attackers table per killmail
                 // (~26s); this is ~20ms.
-                totalKills = await _db.Database.SqlQueryRaw<int>($"""
+                totalKills = await Off(() => _db.Database.SqlQueryRaw<int>($"""
                     SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
                     FROM "KillMailDetails" d
                     WHERE d."KillMailTime" >= '{cutoffStr}'
                       AND d."VictimCharId" NOT IN ({charIdList})
                       AND d."KillMailId" IN (SELECT a."KillMailId" FROM "KillMailAttackers" a
                                              WHERE a."CharacterId" IN ({charIdList}))
-                    """).FirstAsync();
+                    """).FirstAsync());
 #pragma warning restore EF1002
             }
 
@@ -645,14 +659,14 @@ public class OverviewViewModel : ReactiveObject
             var journalGroups = new List<(string RefType, decimal Total)>();
             foreach (var (ot, oid) in owners)
             {
-                var rows = await _db.Database.SqlQuery<JournalGroup>(
+                var rows = await Off(() => _db.Database.SqlQuery<JournalGroup>(
                     $"""
                     SELECT "RefType", COALESCE(SUM(CAST("Amount" AS REAL)), 0.0) AS "TotalAmount"
                     FROM "EsiWalletJournal"
                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                     GROUP BY "RefType"
                     """
-                ).ToListAsync();
+                ).ToListAsync());
                 journalGroups.AddRange(rows.Select(r => (r.RefType, (decimal)r.TotalAmount)));
             }
 
