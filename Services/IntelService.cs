@@ -188,7 +188,7 @@ public sealed class IntelService(
                 if (!systems.TryGetValue(parsed.SystemName, out var systemId)) continue;
 
                 written += await WriteReportAsync(db, m.Id, m.OccurredAt, m.ChannelName,
-                                                  m.SenderName, systemId, parsed, ships,
+                                                  m.SenderName, systemId, m.Message, parsed, ships,
                                                   seenCharacters, ct);
             }
 
@@ -245,7 +245,7 @@ public sealed class IntelService(
 
     private async Task<int> WriteReportAsync(
         AppDbContext db, int chatMessageId, string reportedAt, string channel, string reporter,
-        int systemId, IntelRules.ParsedIntel parsed, Dictionary<string, int> ships,
+        int systemId, string message, IntelRules.ParsedIntel parsed, Dictionary<string, int> ships,
         List<long> seenCharacters, CancellationToken ct)
     {
         // The unique index on ChatMessageId makes re-parsing harmless, but checking first keeps
@@ -261,6 +261,7 @@ public sealed class IntelService(
             SystemName    = parsed.SystemName,
             PlayerCount   = parsed.PlayerCount,
             Note          = string.IsNullOrWhiteSpace(parsed.Note) ? null : parsed.Note,
+            Message       = message,
             NoVisual      = parsed.NoVisual,
             Obsolete      = false,
             ReporterCharacterId = _nameCache.TryGetValue(reporter, out var rid) ? rid : null,
@@ -476,6 +477,13 @@ public sealed class IntelService(
 
         foreach (var k in known) _nameCache[k.Name] = k.EntityId;
 
+        // Then the names already asked about and found not to be characters. Without this a
+        // re-parse asks ESI again about every ship type, gate name and stray word in the
+        // channel history, which is the bulk of what a re-parse costs.
+        var misses = await db.NameLookupMisses.AsNoTracking()
+            .Where(m => unknown.Contains(m.Name)).Select(m => m.Name).ToListAsync(ct);
+        foreach (var m in misses) _nameCache[m] = null;
+
         var stillUnknown = unknown.Where(u => !_nameCache.ContainsKey(u)).ToList();
         if (stillUnknown.Count == 0) return;
 
@@ -494,9 +502,12 @@ public sealed class IntelService(
 
                 // Everything in the slice that came back as nothing, or as a corporation or an
                 // alliance, is recorded as "not a character" so it is never asked about again.
-                foreach (var s in slice) _nameCache.TryAdd(s, null);
+                var missed = new List<string>();
+                foreach (var s in slice)
+                    if (_nameCache.TryAdd(s, null)) missed.Add(s);
 
                 await CacheNamesAsync(db, found, ct);
+                await RecordMissesAsync(db, missed, ct);
             }
             catch (Exception ex)
             {
@@ -504,6 +515,34 @@ public sealed class IntelService(
                 return;   // leave the rest unresolved rather than hammering a failing endpoint
             }
         }
+    }
+
+    /// <summary>
+    /// Remembers names ESI said are not characters.
+    ///
+    /// These are recorded per name and never expired. A character created later under a name
+    /// already recorded as a miss would stay unrecognised — accepted deliberately, since the
+    /// alternative is asking ESI about "nv", "gate" and every ship type on every pass forever.
+    /// Clearing the table forces a fresh look.
+    /// </summary>
+    private static async Task RecordMissesAsync(
+        AppDbContext db, List<string> names, CancellationToken ct)
+    {
+        if (names.Count == 0) return;
+
+        var existing = await db.NameLookupMisses.AsNoTracking()
+            .Where(m => names.Contains(m.Name)).Select(m => m.Name).ToListAsync(ct);
+
+        var fresh = names.Except(existing, StringComparer.Ordinal)
+            .Distinct(StringComparer.Ordinal)
+            .Select(n => new NameLookupMiss { Name = n, CheckedAt = DateTimeOffset.UtcNow })
+            .ToList();
+
+        if (fresh.Count == 0) return;
+
+        db.NameLookupMisses.AddRange(fresh);
+        await db.SaveChangesAsync(ct);
+        db.ChangeTracker.Clear();
     }
 
     /// <summary>Writes newly learned names into the shared cache, so the next run — and every

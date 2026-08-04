@@ -1087,6 +1087,11 @@ public class IntelReport
     public bool            Obsolete      { get; set; }
     public DateTimeOffset? ObsoleteSetOn { get; set; }
 
+    /// <summary>The line exactly as posted. Kept so the tab can show what was actually said
+    /// alongside what we made of it — the parse is a best effort, and seeing the original is how
+    /// a wrong one gets noticed.</summary>
+    public string Message { get; set; } = "";
+
     /// <summary>The reporter said "no visual" — they know someone is there but cannot see
     /// them, usually cloaked or off grid. Its own field rather than noise in the note.</summary>
     public bool NoVisual { get; set; }
@@ -1113,6 +1118,18 @@ public class CharacterAffiliation
     public long CorporationId { get; set; }
     public long AllianceId    { get; set; }
     public DateTimeOffset PulledAt { get; set; }
+}
+
+/// <summary>
+/// A name asked about and found NOT to be a character. Positives already persist in
+/// UniverseNames; without recording the negatives too, every re-parse asks ESI again about the
+/// same thousands of ship types, gate names and stray words, which is most of what a re-parse
+/// spends its time on.
+/// </summary>
+public class NameLookupMiss
+{
+    public string Name      { get; set; } = "";
+    public DateTimeOffset CheckedAt { get; set; }
 }
 
 public class IntelReportCharacter

@@ -202,6 +202,10 @@ public class IntelRowVm(SystemViewService.IntelRow r)
     public Task LoadIconsAsync() =>
         Task.WhenAll(Pilots.Select(p => p.LoadIconsAsync()).Append(ReportedBy.LoadIconsAsync()));
 
+    /// <summary>The line exactly as posted, shown on hover. The parse is a best effort, and
+    /// seeing the original beside it is how a wrong one gets noticed.</summary>
+    public string Message  { get; } = r.Message;
+
     /// <summary>"No visual": someone is there but the reporter could not see them.</summary>
     public string NoVisual   { get; } = r.NoVisual ? "NV" : "";
 

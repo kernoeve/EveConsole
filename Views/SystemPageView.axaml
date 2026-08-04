@@ -556,7 +556,8 @@
                 <DataTemplate x:DataType="vm:IntelRowVm">
                   <Border Background="#12121a" CornerRadius="3" Padding="6 4" Margin="0 0 0 3"
                           Opacity="{Binding RowOpacity}">
-                    <Grid ColumnDefinitions="120,40,34,3*,150,2*,190,80">
+                    <Grid ColumnDefinitions="120,40,34,3*,150,2*,190,80"
+                          ToolTip.Tip="{Binding Message}">
                       <TextBlock Grid.Column="0" Text="{Binding When}" FontSize="11"
                                  Foreground="#8a8a9a" VerticalAlignment="Center" />
                       <TextBlock Grid.Column="1" Text="{Binding Count}" FontSize="11"
