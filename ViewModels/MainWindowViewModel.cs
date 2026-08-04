@@ -402,6 +402,13 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("items");
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
         };
+        if (UniverseVm.SystemPage is { } sysPage)
+            sysPage.NavigateToItemAction = typeId =>
+            {
+                OpenTool("items");
+                _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
+            };
+
         KillmailBrowserVm.NavigateToSystemAction = systemId =>
         {
             OpenTool("universe");

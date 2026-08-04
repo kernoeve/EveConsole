@@ -145,15 +145,17 @@ public class SystemEventVm(SystemViewService.SystemEvent e) : IconRowVm
 public class IntelFaceVm : ReactiveObject
 {
     private readonly long _charId, _corpId, _allianceId;
-    private readonly int  _shipTypeId;
 
-    public string  Name    { get; }
-    public string  Ship    { get; }
-    public bool    HasShip { get; }
+    public string  Name       { get; }
+    public string  Ship       { get; }
+    public bool    HasShip    { get; }
+    /// <summary>Bound as the command parameter for opening the hull in the Item Browser.</summary>
+    public int     ShipTypeId { get; }
 
     public IntelFaceVm(long charId, string name, string? ship, int shipTypeId, long corpId, long allianceId)
     {
-        _charId = charId; _corpId = corpId; _allianceId = allianceId; _shipTypeId = shipTypeId;
+        _charId = charId; _corpId = corpId; _allianceId = allianceId;
+        ShipTypeId = shipTypeId;
         Name    = name;
         Ship    = ship ?? "";
         HasShip = !string.IsNullOrEmpty(ship);
@@ -169,7 +171,7 @@ public class IntelFaceVm : ReactiveObject
         Fetch(_charId     > 0 ? $"https://images.evetech.net/characters/{_charId}/portrait?size=32"   : null, b => Portrait = b),
         Fetch(_corpId     > 0 ? $"https://images.evetech.net/corporations/{_corpId}/logo?size=32"     : null, b => CorpLogo = b),
         Fetch(_allianceId > 0 ? $"https://images.evetech.net/alliances/{_allianceId}/logo?size=32"    : null, b => AllianceLogo = b),
-        Fetch(_shipTypeId > 0 ? $"https://images.evetech.net/types/{_shipTypeId}/icon?size=32"       : null, b => ShipIcon = b));
+        Fetch(ShipTypeId  > 0 ? $"https://images.evetech.net/types/{ShipTypeId}/icon?size=32"        : null, b => ShipIcon = b));
 
     private static async Task Fetch(string? url, Action<Bitmap?> set)
     {
@@ -264,6 +266,10 @@ public class SystemPageViewModel : ReactiveObject
     {
         _svc   = svc;
         _kills = kills;
+
+        OpenInItemBrowserCommand = ReactiveCommand.Create<int>(
+            typeId => { if (typeId > 0) NavigateToItemAction?.Invoke(typeId); });
+        OpenInItemBrowserCommand.ThrownExceptions.Subscribe(_ => { });
     }
 
     // ── Header ───────────────────────────────────────────────────────────────
@@ -463,6 +469,11 @@ public class SystemPageViewModel : ReactiveObject
     public Func<int, Task>? NavigateToSystem { get; set; }
 
     public ReactiveCommand<int, Unit>? OpenGateCommand { get; set; }
+
+    /// <summary>Set by the shell so a hull named in intel opens in the Item Browser.</summary>
+    public Action<int>? NavigateToItemAction { get; set; }
+
+    public ReactiveCommand<int, Unit> OpenInItemBrowserCommand { get; }
 
     // ── Load ─────────────────────────────────────────────────────────────────
 

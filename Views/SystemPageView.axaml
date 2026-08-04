@@ -594,10 +594,16 @@
                             <StackPanel Orientation="Horizontal" Spacing="3" Margin="0 1" Height="18">
                               <Image Source="{Binding ShipIcon}" Width="16" Height="16"
                                      VerticalAlignment="Center" />
-                              <TextBlock Text="{Binding Ship}" FontSize="11" Foreground="#9ab8e0"
-                                         VerticalAlignment="Center"
-                                         TextTrimming="CharacterEllipsis"
-                                         ToolTip.Tip="{Binding Ship}" />
+                              <Button Command="{Binding $parent[UserControl].DataContext.OpenInItemBrowserCommand}"
+                                      CommandParameter="{Binding ShipTypeId}"
+                                      Background="Transparent" BorderThickness="0" Padding="0"
+                                      HorizontalContentAlignment="Left" Cursor="Hand"
+                                      VerticalAlignment="Center"
+                                      ToolTip.Tip="Open in the Item Browser">
+                                <TextBlock Text="{Binding Ship}" FontSize="11" Foreground="#9ab8e0"
+                                           TextDecorations="Underline"
+                                           TextTrimming="CharacterEllipsis" />
+                              </Button>
                             </StackPanel>
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
