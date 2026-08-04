@@ -557,8 +557,8 @@
                     <Grid ColumnDefinitions="120,50,2*,3*,140,110">
                       <TextBlock Grid.Column="0" Text="{Binding When}" FontSize="11"
                                  Foreground="#8a8a9a" VerticalAlignment="Center" />
-                      <TextBlock Grid.Column="1" Text="{Binding Count}" FontSize="12"
-                                 FontWeight="SemiBold" Foreground="{Binding CountColor}"
+                      <TextBlock Grid.Column="1" Text="{Binding Count}" FontSize="11"
+                                 Foreground="{Binding CountColor}"
                                  VerticalAlignment="Center" />
                       <TextBlock Grid.Column="2" Text="{Binding Pilots}" FontSize="11"
                                  Foreground="#d8d8e4" TextTrimming="CharacterEllipsis"

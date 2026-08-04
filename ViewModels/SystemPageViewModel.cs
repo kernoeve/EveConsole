@@ -154,10 +154,26 @@ public class IntelRowVm(SystemViewService.IntelRow r)
     public bool   IsStanding { get; } = !r.Obsolete;
     public string Status     { get; } = r.Obsolete ? "superseded" : "standing";
 
-    /// <summary>Standing sightings read at full strength; superseded ones recede.</summary>
-    public string RowOpacity => r.Obsolete ? "0.55" : "1.0";
-    public string CountColor => r.Obsolete ? "#7a7a8a" : r.PlayerCount >= 10 ? "#d43f2f"
-                                           : r.PlayerCount >= 4 ? "#e0913c" : "#c8c8d8";
+    /// <summary>
+    /// Whether standing-versus-superseded is worth drawing attention to.
+    ///
+    /// It says something about a sighting from the last couple of hours — somebody may still be
+    /// there. On one from last October it says nothing: everything that old is superseded or
+    /// simply stale, and emphasising the handful that happen not to be superseded highlights an
+    /// accident of which pilots were seen again rather than anything about the report.
+    /// </summary>
+    private bool IsRecent { get; } = DateTimeOffset.UtcNow - r.When < TimeSpan.FromHours(2);
+
+    /// <summary>Uniform: the grid is a log of past activity, and dimming most of it made the
+    /// few rows nothing had superseded look significant when they were not.</summary>
+    public string RowOpacity => "1.0";
+
+    /// <summary>Graded only while the report is current. On historical rows the count is just a
+    /// number, and colouring it implied a severity the age had already made moot.</summary>
+    public string CountColor => !IsRecent ? "#c8c8d8"
+                              : r.PlayerCount >= 10 ? "#d43f2f"
+                              : r.PlayerCount >= 4  ? "#e0913c"
+                              : "#c8c8d8";
 }
 
 public class GateVm(SystemViewService.GateRow r)
