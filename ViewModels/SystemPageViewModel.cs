@@ -617,11 +617,13 @@ public class SystemPageViewModel : ReactiveObject
                 str   = [.. Structures];
                 evt   = [.. Events.Take(40)];
                 kills = [.. Kills];
-                // Only the rows that fit on screen. Each intel row wants four images per pilot
-                // named plus three for the reporter, so the full 200 runs to well over a
-                // thousand — and asking for the ones nobody has scrolled to yet only delays the
-                // ones they are looking at. Same reasoning as the celestials cap above.
-                intel = [.. Intel.Take(40)];
+                // Every row, not just the first screenful. This was capped at 40 back when all
+                // image requests were fired at once and a cap was the only thing stopping a
+                // system page launching a thousand of them together — but the cap is precisely
+                // what made icons stop partway down the list. EveImageCache now allows twelve at
+                // a time and serves waiters in order, so the visible rows still resolve first
+                // and the rest fill in behind them rather than never arriving.
+                intel = [.. Intel];
             });
 
             if (generation != _loadGeneration) return;
