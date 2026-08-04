@@ -133,12 +133,32 @@ public static class IntelRules
         "were", "glimpse", "sat", "issues", "where", "nay", "ZD1",
         "entered", "well", "wel", "pipe", "update", "of",
 
+        // Ships, structures and groups named in passing
+        "destroyer", "keepstar", "tuskers", "prob", "sabe", "nano", "prot", "grid",
+        "W-I", "88A", "yorb",
+        // Shortened hull names the SDE does not carry: it lists "Imperial Navy Slicer", so
+        // "navy slicer" fails the ship match and the second word falls through to pilot names.
+        "slicer",
+
+        // Chat and commentary
+        "fighting", "info", "tea", "meme", "bunch", "sos", "guys", "plz", "getting",
+        "ambushed", "menny", "strip", "outside", "established", "currently", "stufff",
+        "reported", "which", "200", "safe", "intel",
+
+        // Connectives, so the all-words rule covers combinations of listed words without
+        // every pairing having to be written out — "in the", "gang on", "a hole", "did not"
+        // and "gate is camped" all fall out of these plus words already above.
+        "in", "is", "a", "on", "up", "did", "coming", "big", "under", "attack",
+        "moon", "planet", "x", "how",
+
         // ── Phrases ───────────────────────────────────────────────────────────
         // Multi-token matches were overwhelmingly REAL names — one player runs an Expanse-themed
         // alt fleet, so "Capt Amos Burton" and "Naomi Nagata" look like chatter and are not.
         // Only these six were actually phrases.
         "on the", "gate in", "gate camp", "drag bubble", "still here", "they are",
         "all in", "look in", "how do", "combat probes out",
+        // Phrases whose parts are not all listed on their own
+        "big spike", "navy slicer", "eni on", "moon 1", "planet V", "15 x", "bubble up",
     };
 
 
