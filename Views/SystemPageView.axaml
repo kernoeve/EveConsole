@@ -540,7 +540,7 @@
             <TextBlock Classes="note" Text="{Binding IntelSummary}"
                        IsVisible="{Binding HasIntel}" />
 
-            <Grid ColumnDefinitions="110,34,30,3*,130,2*,3*,150,70" IsVisible="{Binding HasIntel}">
+            <Grid ColumnDefinitions="120,40,34,3*,150,2*,190,80" IsVisible="{Binding HasIntel}">
               <TextBlock Grid.Column="0" Classes="colhead" Text="WHEN (UTC)" />
               <TextBlock Grid.Column="1" Classes="colhead" Text="N" />
               <TextBlock Grid.Column="2" Classes="colhead" Text="NV" />
@@ -556,7 +556,7 @@
                 <DataTemplate x:DataType="vm:IntelRowVm">
                   <Border Background="#12121a" CornerRadius="3" Padding="6 4" Margin="0 0 0 3"
                           Opacity="{Binding RowOpacity}">
-                    <Grid ColumnDefinitions="110,34,30,3*,130,2*,3*,150,70"
+                    <Grid ColumnDefinitions="120,40,34,3*,150,2*,190,80"
                           ToolTip.Tip="{Binding Message}">
                       <TextBlock Grid.Column="0" Text="{Binding When}" FontSize="11"
                                  Foreground="#8a8a9a" VerticalAlignment="Center" />
@@ -609,18 +609,11 @@
                         </ItemsControl.ItemTemplate>
                       </ItemsControl>
 
-                      <!-- The line exactly as posted, beside what we made of it — the parse is a
-                           best effort and this is how a wrong reading gets noticed. -->
-                      <TextBlock Grid.Column="6" Text="{Binding Message}" FontSize="10.5"
-                                 Foreground="#66667a" TextTrimming="CharacterEllipsis"
-                                 ToolTip.Tip="{Binding Message}" Margin="0 0 8 0"
-                                 VerticalAlignment="Center" />
-
                       <TextBlock Grid.Column="5" Text="{Binding Note}" FontSize="11"
                                  Foreground="#7a7a8a" TextTrimming="CharacterEllipsis"
                                  ToolTip.Tip="{Binding Note}" Margin="0 0 8 0"
                                  VerticalAlignment="Center" />
-                      <StackPanel Grid.Column="7" Orientation="Horizontal" Spacing="3"
+                      <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="3"
                                   VerticalAlignment="Center" ToolTip.Tip="{Binding Channel}">
                         <Image Source="{Binding ReportedBy.Portrait}"     Width="18" Height="18" />
                         <Image Source="{Binding ReportedBy.CorpLogo}"     Width="14" Height="14"
@@ -631,7 +624,7 @@
                                    TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
                                    Margin="2 0 0 0" />
                       </StackPanel>
-                      <TextBlock Grid.Column="8" Text="{Binding Status}" FontSize="10"
+                      <TextBlock Grid.Column="7" Text="{Binding Status}" FontSize="10"
                                  Foreground="#6a6a7c" VerticalAlignment="Center" />
                     </Grid>
                   </Border>
