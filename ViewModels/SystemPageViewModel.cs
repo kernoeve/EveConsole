@@ -407,9 +407,12 @@ public class SystemPageViewModel : ReactiveObject
                 not null => "#d94848",
                 _        => "#8a8a9a",
             };
-            // Cost indices are fractions in the API; players talk in percent.
-            HasIndustryIndex = header.ManufacturingIndex > 0;
-            IndustryIndex    = $"{header.ManufacturingIndex * 100:F2}%";
+            // Cost indices are fractions in the API; players talk in percent. All six are shown
+            // rather than manufacturing alone — a system can be cheap to build in and expensive
+            // to invent in, and only one of those was visible before.
+            HasIndustryIndex = header.Industry.Count > 0;
+            IndustryIndex    = string.Join("   ",
+                header.Industry.Select(i => $"{i.ShortName} {i.Index * 100:F2}%"));
 
             var bits = new List<string>();
             if (header.Power > 0)                bits.Add($"{header.Power:N0} power");

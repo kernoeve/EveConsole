@@ -90,9 +90,9 @@
           </StackPanel>
 
           <StackPanel Orientation="Horizontal" IsVisible="{Binding HasIndustryIndex}">
-            <TextBlock Classes="hlabel" Text="Industry index" Margin="0 0 6 0" />
-            <TextBlock Classes="hvalue" Text="{Binding IndustryIndex}" Foreground="#9ab8e0" />
-            <TextBlock Classes="hlabel" Text="manufacturing" Margin="0 0 6 0" />
+            <TextBlock Classes="hlabel" Text="Industry indices" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding IndustryIndex}" Foreground="#9ab8e0"
+                       ToolTip.Tip="Manufacturing · time efficiency · material efficiency · copying · invention · reactions" />
           </StackPanel>
 
           <StackPanel Orientation="Horizontal" IsVisible="{Binding HasProduction}">

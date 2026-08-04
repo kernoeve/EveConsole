@@ -14,6 +14,23 @@ public class SystemViewService(
 {
     // ── Header ───────────────────────────────────────────────────────────────
 
+    /// <summary>One industry cost index, in the order the industry window lists them.</summary>
+    public sealed record IndexReading(string Activity, string ShortName, double Index);
+
+    /// <summary>
+    /// The six activities, in a fixed order so the header reads the same on every system, with
+    /// the abbreviations the client itself uses.
+    /// </summary>
+    private static readonly (string Activity, string Short)[] IndexOrder =
+    [
+        ("manufacturing",                   "Mfg"),
+        ("researching_time_efficiency",     "TE"),
+        ("researching_material_efficiency", "ME"),
+        ("copying",                         "Copy"),
+        ("invention",                       "Inv"),
+        ("reaction",                        "Rxn"),
+    ];
+
     public sealed record SystemHeader(
         int    SystemId,
         string Name,
@@ -35,7 +52,7 @@ public class SystemViewService(
         int    Power,
         int    Workforce,
         double? Adm,
-        double  ManufacturingIndex,
+        IReadOnlyList<IndexReading> Industry,
         int    MagmaticGasPerHour,
         int    SublimatedIcePerHour,
         int    Jumps1h,
@@ -107,7 +124,20 @@ public class SystemViewService(
 
         var adm = (await stats.GetLatestAdmAsync(ct)).TryGetValue(systemId, out var admV)
             ? admV : (double?)null;
-        var mfg = (await stats.GetLatestIndustryAsync("manufacturing", ct)).GetValueOrDefault(systemId);
+        // All six activities from the newest bucket, in the fixed display order. Read in one
+        // query for this system rather than six universe-wide dictionaries.
+        var newestIndexBucket = await db.MapIndustryIndices.AsNoTracking()
+            .OrderByDescending(i => i.Bucket).Select(i => i.Bucket).FirstOrDefaultAsync(ct);
+        var indices = newestIndexBucket is null
+            ? []
+            : await db.MapIndustryIndices.AsNoTracking()
+                .Where(i => i.Bucket == newestIndexBucket && i.SystemId == systemId)
+                .ToDictionaryAsync(i => i.Activity, i => i.CostIndex, ct);
+
+        var industry = IndexOrder
+            .Where(o => indices.ContainsKey(o.Activity))
+            .Select(o => new IndexReading(o.Activity, o.Short, indices[o.Activity]))
+            .ToList();
 
         var pirates = await GetLocalPiratesAsync(ct);
 
@@ -125,7 +155,7 @@ public class SystemViewService(
             sov?.CorporationId is { } c ? names.GetValueOrDefault(c, $"Corporation {c}") : "",
             pirates.GetValueOrDefault(s.RegionId, ""),
             res.Sum(r => r.Power), res.Sum(r => r.Workforce),
-            adm, mfg,
+            adm, industry,
             PerHour(2015), PerHour(12),
             last?.ShipJumps ?? 0, day?.ShipJumps ?? 0,
             last?.ShipKills ?? 0, day?.ShipKills ?? 0,

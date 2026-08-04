@@ -105,7 +105,9 @@ public class UniverseViewModel : ReactiveObject
             new("Killmails held (30d)", "kills30"),
             new("Killmails held (7d)",  "kills7"),
             new("Killmails held (24h)", "kills1"),
-            new("Stations",      "stations"),
+            new("Planetary power",     "prod:power"),
+            new("Planetary workforce", "prod:workforce"),
+            new("Stations (NPC/player)", "stations"),
             new("Planets",       "cel:0"),
             new("Moons",         "cel:1"),
             new("Asteroid belts", "cel:3"),
@@ -572,11 +574,8 @@ public class UniverseViewModel : ReactiveObject
                 break;
 
             case "stations":
-            {
-                var counts = await _map.GetStationCountsAsync(byRegion);
-                BuildCountOverlay(g, styles, legend, counts, "station", "stations");
+                await BuildStationOverlayAsync(g, styles, legend, byRegion);
                 break;
-            }
 
             case { } k when k.StartsWith("cel:"):
             {
@@ -589,6 +588,15 @@ public class UniverseViewModel : ReactiveObject
                 };
                 var counts = await _map.GetCelestialCountsAsync(kind, byRegion);
                 BuildCountOverlay(g, styles, legend, counts, singular, plural);
+                break;
+            }
+
+            case { } k when k.StartsWith("prod:"):
+            {
+                var workforce = k == "prod:workforce";
+                var totals    = await _map.GetProductionTotalsAsync(workforce, byRegion);
+                BuildCountOverlay(g, styles, legend, totals,
+                    workforce ? "workforce" : "power", workforce ? "workforce" : "power");
                 break;
             }
 
@@ -1035,6 +1043,47 @@ public class UniverseViewModel : ReactiveObject
         foreach (var n in g.Nodes)
             if (!n.IsOutsideRegion && values.TryGetValue(n.Id, out var v) && v > max) max = v;
         return max;
+    }
+
+    /// <summary>
+    /// Docking infrastructure, split into the two kinds because they are known to very different
+    /// degrees: the SDE lists every NPC station, while player structures are only those this app
+    /// has actually seen through an authenticated request. Showing one total would hide that.
+    /// The heat follows the combined count; the caption gives both.
+    /// </summary>
+    private async Task BuildStationOverlayAsync(
+        MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend, bool byRegion)
+    {
+        var npc     = await _map.GetStationCountsAsync(byRegion);
+        var players = await _map.GetPlayerStructureCountsAsync(byRegion);
+
+        var totals = new Dictionary<int, int>();
+        foreach (var n in g.Nodes)
+        {
+            var t = npc.GetValueOrDefault(n.Id) + players.GetValueOrDefault(n.Id);
+            if (t > 0) totals[n.Id] = t;
+        }
+
+        var max = VisibleMax(g, totals);
+
+        foreach (var n in g.Nodes)
+        {
+            var s = npc.GetValueOrDefault(n.Id);
+            var p = players.GetValueOrDefault(n.Id);
+            var t = s + p;
+            var heat = max > 0 && t > 0 ? Math.Log(1 + t) / Math.Log(1 + max) : 0;
+
+            styles[n.Id] = new MapNodeStyle(
+                t > 0 ? Heat(heat) : HeatNone,
+                Caption: t > 0 ? $"{s}/{p}" : "—",
+                Detail: t > 0
+                    ? $"{s:N0} NPC {(s == 1 ? "station" : "stations")} · " +
+                      $"{p:N0} known player {(p == 1 ? "structure" : "structures")}"
+                    : "No stations or known structures");
+        }
+
+        AddHeatLegend(legend, "NPC/player",
+            max > 0 ? $"{max:N0} — most shown" : "no data");
     }
 
     private static void BuildCountOverlay(

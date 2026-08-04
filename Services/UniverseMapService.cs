@@ -479,6 +479,29 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     }
 
     /// <summary>
+    /// Player-owned structures per system or region, as far as this app knows them: the names
+    /// cache only holds structures we have actually seen through an authenticated request, so
+    /// this is a floor, not a census. Unlike NPC stations, which the SDE lists in full.
+    /// </summary>
+    public async Task<Dictionary<int, int>> GetPlayerStructureCountsAsync(
+        bool byRegion, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var q = db.EsiStructureNames.AsNoTracking().Where(s => s.SolarSystemId > 0);
+
+        if (!byRegion)
+            return await q.GroupBy(s => s.SolarSystemId)
+                          .Select(g => new { g.Key, Total = g.Count() })
+                          .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+
+        return await q.Join(db.SdeSolarSystems.AsNoTracking(),
+                            st => st.SolarSystemId, s => s.SolarSystemId, (st, s) => s.RegionId)
+                      .GroupBy(rid => rid)
+                      .Select(g => new { g.Key, Total = g.Count() })
+                      .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+    }
+
+    /// <summary>
     /// Averages a per-system value up to its region, for showing a system-level measure on the
     /// universe map. Only systems present in the input count toward the average, so a region
     /// where most systems have no reading is not dragged down by treating absent as zero.
@@ -539,6 +562,40 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
                             c => c.SolarSystemId, s => s.SolarSystemId, (c, s) => s.RegionId)
                       .GroupBy(rid => rid)
                       .Select(g => new { g.Key, Total = g.Count() })
+                      .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+    }
+
+    /// <summary>
+    /// Planetary power or workforce, pooled per system or summed per region. Both are produced
+    /// per planet but pooled per system — the pool is what sovereignty upgrades draw on — so
+    /// the system total is the meaningful figure, not the per-planet one.
+    ///
+    /// Reads zero everywhere until an SDE import has run since planetary resources were added.
+    /// </summary>
+    public async Task<Dictionary<int, int>> GetProductionTotalsAsync(
+        bool workforce, bool byRegion, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+
+        // Joined through the celestial rather than trusting the resource row to know its system:
+        // SdePlanetResources is keyed by planet id alone.
+        var q = db.SdePlanetResources.AsNoTracking()
+            .Join(db.SdeCelestials.AsNoTracking().Where(c => c.Kind == 0),
+                  r => r.PlanetId, c => c.ItemId,
+                  (r, c) => new { c.SolarSystemId, Value = workforce ? r.Workforce : r.Power });
+
+        if (!byRegion)
+            return await q.GroupBy(x => x.SolarSystemId)
+                          .Select(g => new { g.Key, Total = g.Sum(x => x.Value) })
+                          .Where(g => g.Total > 0)
+                          .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+
+        return await q.Join(db.SdeSolarSystems.AsNoTracking(),
+                            x => x.SolarSystemId, s => s.SolarSystemId,
+                            (x, s) => new { s.RegionId, x.Value })
+                      .GroupBy(x => x.RegionId)
+                      .Select(g => new { g.Key, Total = g.Sum(x => x.Value) })
+                      .Where(g => g.Total > 0)
                       .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
     }
 
