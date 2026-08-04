@@ -136,6 +136,20 @@ public static class IntelRules
         "on the", "gate in", "gate camp", "drag bubble", "still here", "they are",
     };
 
+
+    /// <summary>
+    /// Whether a run should never be taken as a pilot: either it is listed outright, or every
+    /// one of its words is.
+    ///
+    /// The second test is what catches combinations nobody enumerated. "the" and "gate" were
+    /// both listed, yet "the gate" still matched a character and was recorded as a sighting of
+    /// them — and the same would hold for any other pairing of listed words.
+    /// </summary>
+    private static bool IsStopRun(string run) =>
+        StopWords.Contains(run) ||
+        run.Split(' ', StringSplitOptions.RemoveEmptyEntries) is { Length: > 1 } parts
+            && parts.All(StopWords.Contains);
+
     /// <summary>A pilot named on a line, with the hull they were called in if one was given.</summary>
     public sealed record SightedPilot(string Name, string? Ship);
 
@@ -187,7 +201,7 @@ public static class IntelRules
                 {
                     var run = string.Join(' ', chunk.Skip(start).Take(len).Select(t => t.Clean));
                     if (run.Length is 0 or > 37)      continue;   // EVE's own name limit
-                    if (StopWords.Contains(run))     continue;   // never asked about at all
+                    if (IsStopRun(run))              continue;   // never asked about at all
                     if (PlusValue(run) is not null)   continue;
                     if (isSystem(run))                continue;
                     seen.Add(run);
@@ -283,7 +297,7 @@ public static class IntelRules
                         i      += len;
                         matched = true;
                     }
-                    else if (!StopWords.Contains(run) && isCharacter(run))
+                    else if (!IsStopRun(run) && isCharacter(run))
                     {
                         names.Add(run);
                         ships.Add(pendingShip);
