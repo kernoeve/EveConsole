@@ -119,6 +119,7 @@ public sealed class IntelService(
     {
         var written = 0;
         var seen    = 0;
+        var total   = 0;
         IsRunning   = true;
 
         try
@@ -141,10 +142,11 @@ public sealed class IntelService(
                 break;
             }
 
-            // Counted once per pass, not per batch: it is a progress figure, not a precise one,
-            // and asking for it every 2,000 rows would cost more than it tells anyone.
+            // Counted from the database once per pass — asking every 2,000 rows would cost more
+            // than it tells anyone — and then decremented as batches are consumed, so the figure
+            // counts down rather than sitting at whatever it was when the pass began.
             if (seen == 0)
-                Backlog = await db.ChatMessages.AsNoTracking()
+                total = await db.ChatMessages.AsNoTracking()
                     .CountAsync(m => channels.Contains(m.ChannelName)
                                   && !m.IsSystemMessage && m.Id > after, ct);
 
@@ -185,8 +187,13 @@ public sealed class IntelService(
             settings.IntelWatermark = batch[^1].Id;
             seen += batch.Count;
 
+            // One figure, published once, so the two rows in Background Processes cannot
+            // disagree — which is what they did while Backlog held the pass's opening count and
+            // the status line quietly counted down from it.
+            Backlog = Math.Max(0, total - seen);
+
             var day  = batch[^1].OccurredAt.Length >= 10 ? batch[^1].OccurredAt[..10] : "";
-            var left = Math.Max(0, Backlog - seen);
+            var left = Backlog;
             StatusText = left > 0
                 ? $"Intel: parsing {day} — {written:N0} sightings, {left:N0} messages to go"
                 : $"Intel: parsing {day} — {written:N0} sightings";
