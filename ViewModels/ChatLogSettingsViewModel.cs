@@ -330,6 +330,14 @@ public class ChatLogSettingsViewModel : ReactiveObject
         return Task.CompletedTask;
     }
 
+    private void MirrorIntelStatus()
+    {
+        // The live pass runs off the chat importer with no UI of its own, so its status is
+        // pulled in here rather than pushed: the manual backfill writes IntelStatus directly
+        // and must not be overwritten while it is running.
+        if (_intel is not null && !IsBusy) IntelStatus = _intel.StatusText;
+    }
+
     private void Refresh()
     {
         Status          = _importer.StatusText;

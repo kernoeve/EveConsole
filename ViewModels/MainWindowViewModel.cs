@@ -321,7 +321,8 @@ public class MainWindowViewModel : ReactiveObject
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
-                                                     zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost, entityNames);
+                                                     zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost,
+                                                     intelService, monitoringSettings, entityNames);
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);

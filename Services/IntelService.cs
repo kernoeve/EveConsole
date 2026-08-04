@@ -3,6 +3,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Monitoring;
 using Microsoft.EntityFrameworkCore;
+using ReactiveUI;
 
 namespace EveConsole.Services;
 
@@ -23,8 +24,35 @@ public sealed class IntelService(
     IDbContextFactory<AppDbContext> dbFactory,
     EsiClient                       esi,
     MonitoringSettings              settings,
-    AppErrorLogger                  errorLogger)
+    AppErrorLogger                  errorLogger) : ReactiveObject
 {
+    // ── Observable state ─────────────────────────────────────────────────────
+    // This runs off the chat importer's loop with no UI of its own, so without these it is
+    // invisible: there is no way to tell a long backlog apart from a feature that is not
+    // working. Surfaced in Settings → Chat Logs and on the Chat Log viewer.
+
+    private string _statusText = "Intel: idle";
+    public string StatusText
+    {
+        get => _statusText;
+        private set => this.RaiseAndSetIfChanged(ref _statusText, value);
+    }
+
+    private bool _isRunning;
+    public bool IsRunning
+    {
+        get => _isRunning;
+        private set => this.RaiseAndSetIfChanged(ref _isRunning, value);
+    }
+
+    /// <summary>Messages left to consider, so a backlog reads as progress rather than a stall.</summary>
+    private int _backlog;
+    public int Backlog
+    {
+        get => _backlog;
+        private set => this.RaiseAndSetIfChanged(ref _backlog, value);
+    }
+
     /// <summary>ESI takes a list; keeping it modest avoids a long stall on one request.</summary>
     private const int LookupBatch = 100;
 
@@ -81,7 +109,11 @@ public sealed class IntelService(
         IReadOnlyList<string> channels, bool once, IProgress<string>? progress, CancellationToken ct)
     {
         var written = 0;
+        var seen    = 0;
+        IsRunning   = true;
 
+        try
+        {
         while (!ct.IsCancellationRequested)
         {
             using var db = dbFactory.CreateDbContext();
@@ -94,7 +126,18 @@ public sealed class IntelService(
                 .Select(m => new { m.Id, m.OccurredAt, m.ChannelName, m.SenderName, m.Message })
                 .ToListAsync(ct);
 
-            if (batch.Count == 0) break;
+            if (batch.Count == 0)
+            {
+                Backlog = 0;
+                break;
+            }
+
+            // Counted once per pass, not per batch: it is a progress figure, not a precise one,
+            // and asking for it every 2,000 rows would cost more than it tells anyone.
+            if (seen == 0)
+                Backlog = await db.ChatMessages.AsNoTracking()
+                    .CountAsync(m => channels.Contains(m.ChannelName)
+                                  && !m.IsSystemMessage && m.Id > after, ct);
 
             var systems = await SystemsAsync(db, ct);
             bool IsSystem(string s) => systems.ContainsKey(s);
@@ -129,12 +172,44 @@ public sealed class IntelService(
             }
 
             settings.IntelWatermark = batch[^1].Id;
-            progress?.Report($"{written:N0} sightings from {batch[^1].OccurredAt[..10]}…");
+            seen += batch.Count;
+
+            var day  = batch[^1].OccurredAt.Length >= 10 ? batch[^1].OccurredAt[..10] : "";
+            var left = Math.Max(0, Backlog - seen);
+            StatusText = left > 0
+                ? $"Intel: parsing {day} — {written:N0} sightings, {left:N0} messages to go"
+                : $"Intel: parsing {day} — {written:N0} sightings";
+            progress?.Report(StatusText);
 
             if (once || batch.Count < MessageBatch) break;
         }
 
         return written;
+        }
+        finally
+        {
+            IsRunning = false;
+            Backlog   = 0;
+            if (written > 0 || StatusText == "Intel: idle")
+                StatusText = await SummaryAsync(ct);
+        }
+    }
+
+    /// <summary>What the status line says when nothing is running.</summary>
+    private async Task<string> SummaryAsync(CancellationToken ct)
+    {
+        try
+        {
+            using var db = dbFactory.CreateDbContext();
+            var total = await db.IntelReports.CountAsync(ct);
+            if (total == 0) return "Intel: nothing parsed yet";
+
+            var newest = await db.IntelReports.AsNoTracking()
+                .OrderByDescending(r => r.ReportedAt).Select(r => r.ReportedAt).FirstAsync(ct);
+
+            return $"Intel: up to date — {total:N0} sightings, newest {newest.Replace('T', ' ').TrimEnd('Z')}";
+        }
+        catch { return "Intel: up to date"; }
     }
 
     // ── Writing ──────────────────────────────────────────────────────────────
