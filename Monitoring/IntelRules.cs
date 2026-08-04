@@ -131,6 +131,7 @@ public static class IntelRules
 
         // Added from review of the parsed output
         "were", "glimpse", "sat", "issues", "where", "nay", "ZD1",
+        "entered", "well", "wel", "pipe", "update", "of",
 
         // ── Phrases ───────────────────────────────────────────────────────────
         // Multi-token matches were overwhelmingly REAL names — one player runs an Expanse-themed
@@ -226,6 +227,12 @@ public static class IntelRules
     {
         if (string.IsNullOrWhiteSpace(message)) return null;
 
+        // A question is a request for intel, not a report of it — "C-FD0D* Update?" asks whether
+        // anyone has eyes on a system, and reads to the parser exactly like a sighting with no
+        // one in it. Only a count rescues it: "ZD1-Z2 +3?" is someone unsure of the number, and
+        // that is still a sighting.
+        var isQuestion = message.TrimEnd().EndsWith('?');
+
         var chunks = Chunks(message);
         if (chunks.Count == 0) return null;
 
@@ -319,6 +326,10 @@ public static class IntelRules
         }
 
         if (system is null) return null;
+
+        // Asked, not reported. Checked before the count so a question naming a pilot — "ZD1-Z2
+        // Sevra?" — is dropped too; that is somebody wondering whether Sevra is still there.
+        if (isQuestion && plus == 0) return null;
 
         // A named pilot counts as one; "+3" means three more on top of whoever was named, and on
         // its own means three unnamed.
