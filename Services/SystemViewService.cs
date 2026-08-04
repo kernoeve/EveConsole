@@ -32,6 +32,12 @@ public class SystemViewService(
         string AllianceName,
         string CorporationName,
         string LocalPirates,
+        int    Power,
+        int    Workforce,
+        double? Adm,
+        double  ManufacturingIndex,
+        int    MagmaticGasPerHour,
+        int    SublimatedIcePerHour,
         int    Jumps1h,
         int    Jumps24h,
         int    ShipKills1h,
@@ -81,6 +87,28 @@ public class SystemViewService(
         // "1h" is the newest hourly bucket — the same granularity CCP publishes — and "24h" is
         // the rolling day, which has to come through the windowed accessor because hourly rows
         // are retained for only a day.
+        // Power and workforce are produced per planet but pooled per system — that pool is what
+        // sovereignty upgrades draw on, so the total belongs in the header while the per-planet
+        // breakdown stays on the celestials tree.
+        var planets = await db.SdeCelestials.AsNoTracking()
+            .Where(c => c.SolarSystemId == systemId && c.Kind == 0)
+            .Select(c => new { c.ItemId, c.TypeId })
+            .ToListAsync(ct);
+        var planetIds = planets.Select(x => x.ItemId).ToList();
+        var res = await db.SdePlanetResources.AsNoTracking()
+            .Where(r => planetIds.Contains(r.PlanetId))
+            .ToListAsync(ct);
+        var byPlanet = res.ToDictionary(r => r.PlanetId, r => r);
+
+        int PerHour(int typeId) => planets
+            .Where(pl => pl.TypeId == typeId && byPlanet.ContainsKey(pl.ItemId))
+            .Sum(pl => byPlanet[pl.ItemId] is var r && r.ReagentCycleTime > 0
+                ? (int)Math.Round(r.ReagentPerCycle * 3600.0 / r.ReagentCycleTime) : 0);
+
+        var adm = (await stats.GetLatestAdmAsync(ct)).TryGetValue(systemId, out var admV)
+            ? admV : (double?)null;
+        var mfg = (await stats.GetLatestIndustryAsync("manufacturing", ct)).GetValueOrDefault(systemId);
+
         var pirates = await GetLocalPiratesAsync(ct);
 
         var hour = await LatestHourAsync(db, ct);
@@ -96,6 +124,9 @@ public class SystemViewService(
             sov?.AllianceId is { } a ? names.GetValueOrDefault(a, $"Alliance {a}") : "",
             sov?.CorporationId is { } c ? names.GetValueOrDefault(c, $"Corporation {c}") : "",
             pirates.GetValueOrDefault(s.RegionId, ""),
+            res.Sum(r => r.Power), res.Sum(r => r.Workforce),
+            adm, mfg,
+            PerHour(2015), PerHour(12),
             last?.ShipJumps ?? 0, day?.ShipJumps ?? 0,
             last?.ShipKills ?? 0, day?.ShipKills ?? 0,
             last?.NpcKills  ?? 0, day?.NpcKills  ?? 0,
@@ -376,6 +407,53 @@ public class SystemViewService(
         }
 
         return points.Values.OrderBy(p => p.Day).ToList();
+    }
+
+    public sealed record AdmPoint(DateOnly Day, double Adm);
+
+    /// <summary>
+    /// Daily ADM for a system. The highest reading of each day, since a system can hold more
+    /// than one sovereignty structure and the defended value is the one that matters.
+    /// </summary>
+    public async Task<List<AdmPoint>> GetAdmHistoryAsync(int systemId, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+
+        var rows = await db.MapSovStructures.AsNoTracking()
+            .Where(m => m.SystemId == systemId && m.Adm != null)
+            .Select(m => new { m.Bucket, Adm = m.Adm!.Value })
+            .ToListAsync(ct);
+
+        return rows
+            .GroupBy(r => r.Bucket[..10])
+            .Select(g => new AdmPoint(DateOnly.Parse(g.Key), g.Max(x => x.Adm)))
+            .OrderBy(p => p.Day)
+            .ToList();
+    }
+
+    public sealed record IndexSeries(string Activity, List<(DateOnly Day, double Index)> Points);
+
+    /// <summary>Daily cost index per activity, one line per activity for the graph.</summary>
+    public async Task<List<IndexSeries>> GetIndustryHistoryAsync(
+        int systemId, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+
+        var rows = await db.MapIndustryIndices.AsNoTracking()
+            .Where(i => i.SystemId == systemId)
+            .Select(i => new { i.Bucket, i.Activity, i.CostIndex })
+            .ToListAsync(ct);
+
+        return rows
+            .GroupBy(r => r.Activity)
+            .Select(g => new IndexSeries(
+                g.Key,
+                g.GroupBy(r => r.Bucket[..10])
+                 .Select(d => (Day: DateOnly.Parse(d.Key), Index: d.Average(x => x.CostIndex)))
+                 .OrderBy(p => p.Day)
+                 .ToList()))
+            .OrderBy(s => s.Activity, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
     public sealed record HourPoint(DateTimeOffset Hour, int Jumps, int ShipKills, int PodKills, int NpcKills);

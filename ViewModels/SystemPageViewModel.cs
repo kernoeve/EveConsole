@@ -191,6 +191,31 @@ public class SystemPageViewModel : ReactiveObject
     private string _securityClass = "";
     public string SecurityClass { get => _securityClass; private set => this.RaiseAndSetIfChanged(ref _securityClass, value); }
 
+    private string _production = "";
+    /// <summary>Power, workforce and reagent yields pooled across the system — the totals
+    /// sovereignty upgrades actually draw on, as opposed to the per-planet breakdown.</summary>
+    public string Production { get => _production; private set => this.RaiseAndSetIfChanged(ref _production, value); }
+
+    private bool _hasProduction;
+    public bool HasProduction { get => _hasProduction; private set => this.RaiseAndSetIfChanged(ref _hasProduction, value); }
+
+    private string _adm = "";
+    /// <summary>Current activity defense multiplier, blank where the system has no sovereignty
+    /// structure — 0.0 would read as a real reading rather than "not applicable".</summary>
+    public string Adm { get => _adm; private set => this.RaiseAndSetIfChanged(ref _adm, value); }
+
+    private bool _hasAdm;
+    public bool HasAdm { get => _hasAdm; private set => this.RaiseAndSetIfChanged(ref _hasAdm, value); }
+
+    private string _admColor = "#8a8a9a";
+    public string AdmColor { get => _admColor; private set => this.RaiseAndSetIfChanged(ref _admColor, value); }
+
+    private string _industryIndex = "";
+    public string IndustryIndex { get => _industryIndex; private set => this.RaiseAndSetIfChanged(ref _industryIndex, value); }
+
+    private bool _hasIndustryIndex;
+    public bool HasIndustryIndex { get => _hasIndustryIndex; private set => this.RaiseAndSetIfChanged(ref _hasIndustryIndex, value); }
+
     private string _localPirates = "";
     public string LocalPirates { get => _localPirates; private set => this.RaiseAndSetIfChanged(ref _localPirates, value); }
 
@@ -261,6 +286,40 @@ public class SystemPageViewModel : ReactiveObject
     private string _graphNote = "";
     public string GraphNote { get => _graphNote; private set => this.RaiseAndSetIfChanged(ref _graphNote, value); }
 
+    private ISeries[] _admSeries = [];
+    public ISeries[] AdmSeries { get => _admSeries; private set => this.RaiseAndSetIfChanged(ref _admSeries, value); }
+
+    private Axis[] _admXAxes = [];
+    public Axis[] AdmXAxes { get => _admXAxes; private set => this.RaiseAndSetIfChanged(ref _admXAxes, value); }
+
+    private Axis[] _admYAxes = [];
+    public Axis[] AdmYAxes { get => _admYAxes; private set => this.RaiseAndSetIfChanged(ref _admYAxes, value); }
+
+    private string _admNote = "";
+    public string AdmNote { get => _admNote; private set => this.RaiseAndSetIfChanged(ref _admNote, value); }
+
+    private bool _hasAdmGraph;
+    public bool HasAdmGraph { get => _hasAdmGraph; private set => this.RaiseAndSetIfChanged(ref _hasAdmGraph, value); }
+
+    private ISeries[] _indexSeries = [];
+    public ISeries[] IndexSeries { get => _indexSeries; private set => this.RaiseAndSetIfChanged(ref _indexSeries, value); }
+
+    private Axis[] _indexXAxes = [];
+    public Axis[] IndexXAxes { get => _indexXAxes; private set => this.RaiseAndSetIfChanged(ref _indexXAxes, value); }
+
+    private Axis[] _indexYAxes = [];
+    public Axis[] IndexYAxes { get => _indexYAxes; private set => this.RaiseAndSetIfChanged(ref _indexYAxes, value); }
+
+    /// <summary>The chart legend defaults to black-on-white, which is unreadable on this theme.</summary>
+    public SolidColorPaint LegendPaint     { get; } = new(SKColor.Parse("#9A9AAE"));
+    public SolidColorPaint LegendBackPaint { get; } = new(SKColor.Parse("#101018"));
+
+    private string _indexNote = "";
+    public string IndexNote { get => _indexNote; private set => this.RaiseAndSetIfChanged(ref _indexNote, value); }
+
+    private bool _hasIndexGraph;
+    public bool HasIndexGraph { get => _hasIndexGraph; private set => this.RaiseAndSetIfChanged(ref _hasIndexGraph, value); }
+
     // ── Overview sparklines (hourly) ─────────────────────────────────────────
 
     private ISeries[] _hourJumpSeries = [];
@@ -314,6 +373,8 @@ public class SystemPageViewModel : ReactiveObject
         var since      = await _svc.GetHistoryStartAsync();
         var history    = await _svc.GetHistoryAsync(systemId);
         var hourly     = await _svc.GetHourlyHistoryAsync(systemId);
+        var admHist    = await _svc.GetAdmHistoryAsync(systemId);
+        var indexHist  = await _svc.GetIndustryHistoryAsync(systemId);
         var agents     = await _svc.GetAgentsAsync(systemId);
 
         // The kill list is the same query and the same row type the Kills tool uses, so the
@@ -335,6 +396,28 @@ public class SystemPageViewModel : ReactiveObject
             };
             SecurityClass = header.SecurityClass;
             LocalPirates  = header.LocalPirates;
+
+            HasAdm = header.Adm is not null;
+            Adm    = header.Adm is { } adm ? adm.ToString("F1") : "";
+            // The same reading the sovereignty overlay uses: 6 is fully defended, 1 undefended.
+            AdmColor = header.Adm switch
+            {
+                >= 5.0 => "#4fc07a",
+                >= 3.0 => "#e0913c",
+                not null => "#d94848",
+                _        => "#8a8a9a",
+            };
+            // Cost indices are fractions in the API; players talk in percent.
+            HasIndustryIndex = header.ManufacturingIndex > 0;
+            IndustryIndex    = $"{header.ManufacturingIndex * 100:F2}%";
+
+            var bits = new List<string>();
+            if (header.Power > 0)                bits.Add($"{header.Power:N0} power");
+            if (header.Workforce > 0)            bits.Add($"{header.Workforce:N0} workforce");
+            if (header.MagmaticGasPerHour > 0)   bits.Add($"{header.MagmaticGasPerHour:N0}/h magmatic gas");
+            if (header.SublimatedIcePerHour > 0) bits.Add($"{header.SublimatedIcePerHour:N0}/h sublimated ice");
+            Production    = string.Join("  ·  ", bits);
+            HasProduction = bits.Count > 0;
             Holder = string.IsNullOrEmpty(header.AllianceName)
                 ? (string.IsNullOrEmpty(header.CorporationName) ? "Unclaimed" : header.CorporationName)
                 : string.IsNullOrEmpty(header.CorporationName)
@@ -356,6 +439,8 @@ public class SystemPageViewModel : ReactiveObject
             Fill(Celestials, tree.Select(n => new CelestialNodeVm(n)));
             BuildGraphs(history);
             BuildSparklines(hourly);
+            BuildAdmGraph(admHist);
+            BuildIndexGraph(indexHist);
             Fill(Structures, structures.Select(s => new SysStructureVm(s)));
             Fill(Kills, killPage.Rows.Select(r => new KillmailListRowVm(r)));
             Fill(Gates, gates.Select(g => new GateVm(g)));
@@ -521,6 +606,131 @@ public class SystemPageViewModel : ReactiveObject
             },
         ];
     }
+
+    /// <summary>
+    /// ADM over time. Its own chart with a fixed 0–6 axis: the value only ever moves between 1
+    /// and 6, and an autoscaled axis would turn the routine drift between 5.8 and 6.0 into a
+    /// dramatic-looking collapse.
+    /// </summary>
+    private void BuildAdmGraph(List<SystemViewService.AdmPoint> points)
+    {
+        HasAdmGraph = points.Count > 0;
+        if (!HasAdmGraph)
+        {
+            AdmSeries = [];
+            AdmNote   = "No ADM history: this system holds no sovereignty structure.";
+            return;
+        }
+
+        AdmNote = $"Daily peak ADM, {points[0].Day:yyyy-MM-dd} to {points[^1].Day:yyyy-MM-dd}.";
+
+        AdmSeries =
+        [
+            new LineSeries<double>
+            {
+                Name           = "ADM",
+                Values         = points.Select(p => p.Adm).ToArray(),
+                GeometrySize   = 0,
+                LineSmoothness = 0.3,
+                Stroke         = new SolidColorPaint(SKColor.Parse("#7FD070")) { StrokeThickness = 2 },
+                Fill           = new SolidColorPaint(SKColor.Parse("#7FD070").WithAlpha(36)),
+            },
+        ];
+
+        var labels = points.Select(p => p.Day.ToString("MM-dd")).ToArray();
+        AdmXAxes   = [DayAxis(labels)];
+        AdmYAxes   =
+        [
+            new Axis
+            {
+                LabelsPaint     = new SolidColorPaint(SKColor.Parse("#6A6A7C")),
+                TextSize        = 10,
+                MinLimit        = 0,
+                MaxLimit        = 6,
+                MinStep         = 1,
+                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#1E1E2A")) { StrokeThickness = 1 },
+            },
+        ];
+    }
+
+    /// <summary>Colours per activity, so the same activity keeps its colour between systems.</summary>
+    private static readonly Dictionary<string, string> IndexColors = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["manufacturing"]           = "#6FC8F0",
+        ["researching_time_efficiency"]     = "#7FD070",
+        ["researching_material_efficiency"] = "#F0D040",
+        ["copying"]                 = "#C89AE0",
+        ["invention"]               = "#FF6A3D",
+        ["reaction"]                = "#E06A9A",
+    };
+
+    private static string PrettyActivity(string a) => a switch
+    {
+        "researching_time_efficiency"     => "Time efficiency",
+        "researching_material_efficiency" => "Material efficiency",
+        _ => char.ToUpperInvariant(a[0]) + a[1..].Replace('_', ' '),
+    };
+
+    /// <summary>
+    /// All six cost indices on one chart — unlike jumps versus kills these share a scale, and
+    /// seeing them together is the point: a system's manufacturing index rising while reactions
+    /// stay flat says something the separate charts would not.
+    /// </summary>
+    private void BuildIndexGraph(List<SystemViewService.IndexSeries> series)
+    {
+        HasIndexGraph = series.Count > 0 && series.Any(s => s.Points.Count > 0);
+        if (!HasIndexGraph)
+        {
+            IndexSeries = [];
+            IndexNote   = "No industry cost index history stored for this system yet.";
+            return;
+        }
+
+        // Each activity is stored independently, so pad against the union of days rather than
+        // assuming they all start together — otherwise a late-arriving activity would be drawn
+        // shifted left against the others.
+        var days = series.SelectMany(s => s.Points.Select(p => p.Day)).Distinct().OrderBy(d => d).ToList();
+
+        IndexNote = $"Daily cost index, {days[0]:yyyy-MM-dd} to {days[^1]:yyyy-MM-dd}. " +
+                    "Shown as a percentage, as the industry window does.";
+
+        IndexSeries = series.Select(s =>
+        {
+            var byDay = s.Points.ToDictionary(p => p.Day, p => p.Index);
+            var hex   = IndexColors.GetValueOrDefault(s.Activity, "#8A8A9A");
+            return (ISeries)new LineSeries<double?>
+            {
+                Name           = PrettyActivity(s.Activity),
+                Values         = days.Select(d => byDay.TryGetValue(d, out var v) ? v * 100 : (double?)null).ToArray(),
+                GeometrySize   = 0,
+                LineSmoothness = 0.3,
+                Stroke         = new SolidColorPaint(SKColor.Parse(hex)) { StrokeThickness = 2 },
+                Fill           = null,
+            };
+        }).ToArray();
+
+        IndexXAxes = [DayAxis(days.Select(d => d.ToString("MM-dd")).ToArray())];
+        IndexYAxes =
+        [
+            new Axis
+            {
+                Labeler         = v => $"{v:0.##}%",
+                LabelsPaint     = new SolidColorPaint(SKColor.Parse("#6A6A7C")),
+                TextSize        = 10,
+                MinLimit        = 0,
+                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#1E1E2A")) { StrokeThickness = 1 },
+            },
+        ];
+    }
+
+    private static Axis DayAxis(string[] labels) => new()
+    {
+        Labels          = labels,
+        LabelsPaint     = new SolidColorPaint(SKColor.Parse("#6A6A7C")),
+        TextSize        = 10,
+        MinStep         = Math.Max(1, labels.Length / 10),
+        SeparatorsPaint = null,
+    };
 
     private static void Fill<T>(ObservableCollection<T> target, IEnumerable<T> items)
     {

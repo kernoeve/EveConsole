@@ -84,6 +84,20 @@
             <TextBlock Classes="hlabel" Text="Local pirates" Margin="0 0 6 0"
                        IsVisible="{Binding LocalPirates, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             <TextBlock Classes="hvalue" Text="{Binding LocalPirates}" Foreground="#c88a6a" />
+            <TextBlock Classes="hlabel" Text="ADM" Margin="0 0 6 0" IsVisible="{Binding HasAdm}" />
+            <TextBlock Classes="hvalue" Text="{Binding Adm}" IsVisible="{Binding HasAdm}"
+                       Foreground="{Binding AdmColor}" FontWeight="SemiBold" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" IsVisible="{Binding HasIndustryIndex}">
+            <TextBlock Classes="hlabel" Text="Industry index" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding IndustryIndex}" Foreground="#9ab8e0" />
+            <TextBlock Classes="hlabel" Text="manufacturing" Margin="0 0 6 0" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" IsVisible="{Binding HasProduction}">
+            <TextBlock Classes="hlabel" Text="Production" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding Production}" Foreground="#8fc8a8" />
           </StackPanel>
         </StackPanel>
 
@@ -151,7 +165,7 @@
               <TextBlock Classes="colhead" Text="SOVEREIGNTY STRUCTURES" Margin="0 0 0 6" />
               <TextBlock Classes="note" Text="No sovereignty structures in this system."
                          IsVisible="{Binding !SovStructures.Count}" />
-              <Grid ColumnDefinitions="36,2*,2*,Auto,Auto,3*" IsVisible="{Binding SovStructures.Count}">
+              <Grid ColumnDefinitions="36,2*,2*,60,110,3*" IsVisible="{Binding SovStructures.Count}">
                 <TextBlock Grid.Column="1" Classes="colhead" Text="TYPE" />
                 <TextBlock Grid.Column="2" Classes="colhead" Text="OWNER" />
                 <TextBlock Grid.Column="3" Classes="colhead" Text="ADM" Margin="0 0 14 0" />
@@ -162,7 +176,7 @@
                 <ItemsControl.ItemTemplate>
                   <DataTemplate DataType="vm:SovStructureVm">
                     <Border Classes="rowline">
-                      <Grid ColumnDefinitions="36,2*,2*,Auto,Auto,3*">
+                      <Grid ColumnDefinitions="36,2*,2*,60,110,3*">
                         <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
                         <TextBlock Grid.Column="1" Classes="col" Text="{Binding TypeName}" />
                         <TextBlock Grid.Column="2" Classes="col" Text="{Binding Owner}" />
@@ -303,6 +317,31 @@
                                   XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
                                   EasingFunction="{x:Null}" Background="Transparent" />
             </StackPanel>
+
+            <!-- ADM keeps a fixed 0–6 axis: autoscaling would turn routine drift between 5.8
+                 and 6.0 into a dramatic-looking collapse. -->
+            <StackPanel Spacing="4">
+              <TextBlock Classes="colhead" Text="ACTIVITY DEFENSE MULTIPLIER" />
+              <TextBlock Classes="note" Text="{Binding AdmNote}" />
+              <lvc:CartesianChart Height="150" Series="{Binding AdmSeries}"
+                                  IsVisible="{Binding HasAdmGraph}"
+                                  XAxes="{Binding AdmXAxes}" YAxes="{Binding AdmYAxes}"
+                                  EasingFunction="{x:Null}" Background="Transparent" />
+            </StackPanel>
+
+            <!-- All six indices share one chart: they share a scale, and reading them against
+                 each other is the point. -->
+            <StackPanel Spacing="4">
+              <TextBlock Classes="colhead" Text="INDUSTRY COST INDICES" />
+              <TextBlock Classes="note" Text="{Binding IndexNote}" />
+              <lvc:CartesianChart Height="190" Series="{Binding IndexSeries}"
+                                  IsVisible="{Binding HasIndexGraph}"
+                                  XAxes="{Binding IndexXAxes}" YAxes="{Binding IndexYAxes}"
+                                  LegendPosition="Bottom" LegendTextSize="11"
+                                  LegendTextPaint="{Binding LegendPaint}"
+                                  LegendBackgroundPaint="{Binding LegendBackPaint}"
+                                  EasingFunction="{x:Null}" Background="Transparent" />
+            </StackPanel>
           </StackPanel>
         </ScrollViewer>
       </TabItem>
@@ -312,7 +351,7 @@
         <ScrollViewer>
           <StackPanel Margin="16">
             <TextBlock Classes="note" Text="{Binding AgentNote}" />
-            <Grid ColumnDefinitions="2*,2*,140,150,Auto,Auto" IsVisible="{Binding Agents.Count}">
+            <Grid ColumnDefinitions="2*,2*,140,190,60,70" IsVisible="{Binding Agents.Count}">
               <TextBlock Grid.Column="0" Classes="colhead" Text="NAME" />
               <TextBlock Grid.Column="1" Classes="colhead" Text="CORPORATION" />
               <TextBlock Grid.Column="2" Classes="colhead" Text="DIVISION" />
@@ -324,7 +363,7 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:AgentVm">
                   <Border Classes="rowline">
-                    <Grid ColumnDefinitions="2*,2*,140,150,Auto,Auto">
+                    <Grid ColumnDefinitions="2*,2*,140,190,60,70">
                       <StackPanel Grid.Column="0">
                         <TextBlock Classes="col" Text="{Binding Name}" />
                         <!-- The station is on each row rather than as a group header, so the
@@ -336,7 +375,8 @@
                                  TextTrimming="CharacterEllipsis" />
                       <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding Division}" />
                       <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding AgentType}"
-                                 Foreground="#8a7fb0" TextTrimming="CharacterEllipsis" />
+                                 Foreground="#8a7fb0" TextTrimming="CharacterEllipsis"
+                                 Margin="0 0 10 0" ToolTip.Tip="{Binding AgentType}" />
                       <TextBlock Grid.Column="4" Classes="col" Text="{Binding Level}"
                                  Margin="0 0 12 0" />
                       <TextBlock Grid.Column="5" Classes="colmuted" Text="{Binding Locator}"
@@ -358,7 +398,7 @@
                        Text="NPC stations come from the SDE. Player structures appear as they are seen through assets, jobs or contracts, so this is what is known rather than everything that exists." />
             <TextBlock Classes="note" Text="Nothing known in this system."
                        IsVisible="{Binding !Structures.Count}" />
-            <Grid ColumnDefinitions="36,3*,140,2*,140,2*,Auto" IsVisible="{Binding Structures.Count}">
+            <Grid ColumnDefinitions="36,3*,140,2*,140,2*,70" IsVisible="{Binding Structures.Count}">
               <TextBlock Grid.Column="1" Classes="colhead" Text="NAME" />
               <TextBlock Grid.Column="2" Classes="colhead" Text="TYPE" />
               <TextBlock Grid.Column="3" Classes="colhead" Text="CORPORATION" />
@@ -370,7 +410,7 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:SysStructureVm">
                   <Border Classes="rowline">
-                    <Grid ColumnDefinitions="36,3*,140,2*,140,2*,Auto">
+                    <Grid ColumnDefinitions="36,3*,140,2*,140,2*,70">
                       <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
                       <TextBlock Grid.Column="1" Classes="col" Text="{Binding Name}" TextWrapping="Wrap" />
                       <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding TypeName}" />
