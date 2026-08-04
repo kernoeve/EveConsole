@@ -171,6 +171,8 @@ public sealed class IntelService(
 
             bool IsCharacter(string s) => _nameCache.TryGetValue(s, out var id) && id is not null;
 
+            var seenCharacters = new List<long>();
+
             foreach (var m in batch)
             {
                 var parsed = IntelRules.Parse(m.Message, IsSystem, IsCharacter, IsShip);
@@ -186,8 +188,12 @@ public sealed class IntelService(
                 if (!systems.TryGetValue(parsed.SystemName, out var systemId)) continue;
 
                 written += await WriteReportAsync(db, m.Id, m.OccurredAt, m.ChannelName,
-                                                  m.SenderName, systemId, parsed, ships, ct);
+                                                  m.SenderName, systemId, parsed, ships,
+                                                  seenCharacters, ct);
             }
+
+            // One affiliation pass for the whole batch rather than one per report.
+            await EnsureAffiliationsAsync(db, seenCharacters, ct);
 
             settings.IntelWatermark = batch[^1].Id;
             seen += batch.Count;
@@ -240,7 +246,7 @@ public sealed class IntelService(
     private async Task<int> WriteReportAsync(
         AppDbContext db, int chatMessageId, string reportedAt, string channel, string reporter,
         int systemId, IntelRules.ParsedIntel parsed, Dictionary<string, int> ships,
-        CancellationToken ct)
+        List<long> seenCharacters, CancellationToken ct)
     {
         // The unique index on ChatMessageId makes re-parsing harmless, but checking first keeps
         // a re-run from throwing rather than skipping.
@@ -287,9 +293,11 @@ public sealed class IntelService(
 
         db.ChangeTracker.Clear();
 
-        var toAffiliate = new List<long>(ids);
-        if (report.ReporterCharacterId is { } r) toAffiliate.Add(r);
-        await EnsureAffiliationsAsync(db, toAffiliate, ct);
+        // Collected for the caller to resolve once per batch. Doing it here would mean a query,
+        // and possibly an ESI round trip, for every single report — which is what turned the
+        // re-parse into a crawl.
+        seenCharacters.AddRange(ids);
+        if (report.ReporterCharacterId is { } r) seenCharacters.Add(r);
 
         return 1;
     }

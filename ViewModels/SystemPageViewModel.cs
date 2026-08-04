@@ -629,6 +629,7 @@ public class SystemPageViewModel : ReactiveObject
                 Task.WhenAll(cel  .Select(x => x.LoadIconAsync())),
                 Task.WhenAll(str  .Select(x => x.LoadIconAsync())),
                 Task.WhenAll(evt  .Select(x => x.LoadIconAsync())),
+                Task.WhenAll(intel.Select(x => x.LoadIconsAsync())),
                 Task.WhenAll(kills.Select(x => x.LoadImagesAsync())));
         }
         catch
