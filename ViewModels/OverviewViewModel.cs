@@ -143,18 +143,50 @@ public class AlertRowVm : ReactiveObject
 
 // A recent notification rendered in the in-game style: icon + one-liner + age,
 // with the full detail in a tooltip.
-public class NotificationBoxVm
+public class NotificationBoxVm : ReactiveObject
 {
     public string OneLiner    { get; init; } = "";
     public string AgeText     { get; init; } = "";
-    public string TooltipText { get; init; } = "";
     public bool   IsUnread    { get; init; }
     public string UnreadDot   => IsUnread ? "●" : "";
 
-    public Bitmap? Icon          { get; init; }
+    /// <summary>
+    /// The header of the tooltip — type, time, recipients, sender — which is cheap and built
+    /// with the row. The notification's own body is appended later by
+    /// <see cref="AppendBody"/>, because formatting it costs a database context and several
+    /// queries EACH, and the tooltip is not read for most rows.
+    /// </summary>
+    private string _tooltipText = "";
+    public string TooltipText
+    {
+        get => _tooltipText;
+        set => this.RaiseAndSetIfChanged(ref _tooltipText, value);
+    }
+
+    public void AppendBody(string body)
+    {
+        if (!string.IsNullOrEmpty(body)) TooltipText = $"{_tooltipText}\n\n{body}";
+    }
+
+    private Bitmap? _icon;
+    public Bitmap? Icon
+    {
+        get => _icon;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _icon, value);
+            this.RaisePropertyChanged(nameof(HasIcon));
+            this.RaisePropertyChanged(nameof(NoIcon));
+        }
+    }
+
     public string  FallbackGlyph { get; init; } = "✉";
     public bool HasIcon => Icon is not null;
     public bool NoIcon  => Icon is null;
+
+    /// <summary>Carried so the body and icon can be filled in after the list is on screen.</summary>
+    public string? RawText  { get; init; }
+    public string? IconPath { get; init; }
 }
 
 public class OverviewViewModel : ReactiveObject
@@ -691,7 +723,6 @@ public class OverviewViewModel : ReactiveObject
                 var f        = parsed[r.NotificationId];
                 var oneLiner = NotificationSummary.OneLiner(r.Type, f, names, structNames);
                 var (iconPath, glyph) = NotificationSummary.Icon(r.Type, r.SenderId, r.SenderType, f);
-                var icon     = iconPath is null ? null : await GetImageAsync(iconPath);
 
                 var chars = recipientsByNotif.TryGetValue(r.NotificationId, out var cids)
                     ? string.Join(", ", cids.Select(id => names.TryGetValue(id, out var cn) && cn.Length > 0 ? cn : $"ID {id}").OrderBy(s => s))
@@ -699,14 +730,11 @@ public class OverviewViewModel : ReactiveObject
                 var sender = r.SenderId > 0
                     ? (names.TryGetValue(r.SenderId, out var sn) && sn.Length > 0 ? sn : $"ID {r.SenderId}")
                     : "—";
-                var body = await NotificationFormatter.FormatAsync(r.Text, _names, _dbFactory);
-
                 var tip = new StringBuilder();
                 tip.Append(NotificationFormatter.Humanize(r.Type)).Append('\n');
                 tip.Append(r.Timestamp.ToLocalTime().ToString("MMM d, yyyy HH:mm"));
                 if (chars.Length > 0) tip.Append("\nTo: ").Append(chars);
                 if (sender != "—")    tip.Append("\nFrom: ").Append(sender);
-                if (body.Length > 0)  tip.Append("\n\n").Append(body);
 
                 boxes.Add(new NotificationBoxVm
                 {
@@ -714,8 +742,9 @@ public class OverviewViewModel : ReactiveObject
                     AgeText       = NotificationSummary.Age(r.Timestamp),
                     TooltipText   = tip.ToString(),
                     IsUnread      = !r.IsRead,
-                    Icon          = icon,
                     FallbackGlyph = glyph,
+                    RawText       = r.Text,
+                    IconPath      = iconPath,
                 });
             }
 
@@ -723,8 +752,51 @@ public class OverviewViewModel : ReactiveObject
             foreach (var b in boxes) RecentNotifications.Add(b);
             HasNotifications = RecentNotifications.Count > 0;
             this.RaisePropertyChanged(nameof(NoNotifications));
+
+            // Bodies and icons after the list is on screen, not before it. Formatting one body
+            // costs its own database context and several queries, so doing all of them inline
+            // was the whole reason this section took so long to appear — for text that is only
+            // read if the user hovers that particular row.
+            _ = FillNotificationDetailAsync(boxes);
         }
         catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadNotifications", ex); }
+    }
+
+    /// <summary>
+    /// Fills in each notification's icon and formatted body once the list is already showing.
+    ///
+    /// Four at a time: every body opens its own database context, so letting several hundred
+    /// run at once would trade a slow load for a stalled one.
+    /// </summary>
+    private async Task FillNotificationDetailAsync(List<NotificationBoxVm> boxes)
+    {
+        if (_names is null || _dbFactory is null) return;
+
+        using var gate = new SemaphoreSlim(4, 4);
+        try
+        {
+            await Task.WhenAll(boxes.Select(async box =>
+            {
+                await gate.WaitAsync();
+                try
+                {
+                    var icon = box.IconPath is null ? null : await GetImageAsync(box.IconPath);
+                    var body = await NotificationFormatter.FormatAsync(box.RawText, _names, _dbFactory);
+
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        if (icon is not null)        box.Icon = icon;
+                        if (body.Length > 0)         box.AppendBody(body);
+                    });
+                }
+                finally { gate.Release(); }
+            }));
+        }
+        catch (Exception ex)
+        {
+            // A tooltip that will not format is not worth surfacing, and nothing awaits this.
+            _errorLogger.Log("OverviewViewModel", "FillNotificationDetail", ex);
+        }
     }
 
     // ── Personal killmails ────────────────────────────────────────────────────
