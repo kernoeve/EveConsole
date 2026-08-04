@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:ctrl="clr-namespace:EveConsole.Controls"
+             xmlns:views="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.UniverseView"
              x:DataType="vm:UniverseViewModel"
              Background="#0d0d12">
@@ -33,6 +34,30 @@
       <Setter Property="Foreground" Value="#c8c8d8" />
       <Setter Property="HorizontalAlignment" Value="Right" />
     </Style>
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="#101018" />
+      <Setter Property="BorderBrush" Value="#1e1e2a" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="12" />
+    </Style>
+    <Style Selector="TextBlock.cardtitle">
+      <Setter Property="FontSize" Value="9.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#55556a" />
+      <Setter Property="Margin" Value="0 0 0 4" />
+    </Style>
+    <Style Selector="Button.linkrow">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0 2" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.linkrow:pointerover">
+      <Setter Property="Background" Value="#181824" />
+    </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,1,Auto,1,*">
@@ -47,12 +72,25 @@
                   SelectedItem="{Binding SelectedOverlay}"
                   FontSize="11" MinWidth="140" />
 
-        <TextBlock Grid.Column="2" Text="GO TO REGION" Classes="flabel"
+        <TextBlock Grid.Column="2" Text="GO TO" Classes="flabel"
                    VerticalAlignment="Center" Margin="16 0 6 0" />
+        <!-- Filtering is done by the query, not by the box, so FilterMode is None; otherwise
+             it would filter the already-filtered results again on the display string. -->
         <AutoCompleteBox Grid.Column="3" Text="{Binding RegionSearch}"
-                         ItemsSource="{Binding RegionNames}"
-                         FilterMode="Contains" MinimumPrefixLength="1"
-                         Watermark="region name" FontSize="11" MinWidth="170" />
+                         ItemsSource="{Binding Places}"
+                         SelectedItem="{Binding SelectedPlace}"
+                         FilterMode="None" MinimumPrefixLength="2"
+                         Watermark="region or system" FontSize="11" MinWidth="210">
+          <AutoCompleteBox.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="#c8c8d8" />
+                <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="#6a6a7c"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+            </DataTemplate>
+          </AutoCompleteBox.ItemTemplate>
+        </AutoCompleteBox>
 
         <Button Grid.Column="4" Command="{Binding RefreshCommand}" Content="Refresh"
                 Background="#1a1a28" Foreground="#5599aa" BorderBrush="#2a3a44"
@@ -95,10 +133,22 @@
     <Grid Grid.Row="4" ColumnDefinitions="*,1,220">
 
       <ctrl:MapCanvas Grid.Column="0"
+                      IsVisible="{Binding IsMapLevel}"
                       Graph="{Binding Graph}"
                       Overlay="{Binding Overlay}"
                       SelectedId="{Binding SelectedId, Mode=TwoWay}"
                       ActivateCommand="{Binding DrillDownCommand}" />
+
+      <!-- ── System page — replaces the map, since there is no graph at this level ──
+           The visibility binding lives on the wrapper, not on SystemPageView itself: every
+           binding on an element resolves against that element's DataContext, so putting both
+           IsVisible and DataContext on the view made IsVisible look for IsSystemLevel on the
+           page's own view model, fail, and fall back to true — leaving the page permanently
+           on top of the map. -->
+      <ContentControl Grid.Column="0" IsVisible="{Binding IsSystemLevel}">
+        <views:SystemPageView DataContext="{Binding SystemPage}" />
+      </ContentControl>
+
 
       <Rectangle Grid.Column="1" Fill="#1e1e2a" />
 

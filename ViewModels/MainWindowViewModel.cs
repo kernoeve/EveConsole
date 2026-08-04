@@ -62,6 +62,7 @@ public class MainWindowViewModel : ReactiveObject
     public GameLogSettingsViewModel       GameLogSettingsVm      { get; }
     public ChatLogSettingsViewModel       ChatLogSettingsVm      { get; }
     public ZkillboardSettingsViewModel    ZkbSettingsVm          { get; }
+    public MapStatsSettingsViewModel      MapStatsSettingsVm     { get; }
     public SlackService                   Slack                  { get; }
     public TtsService                     TtsService             { get; }
     public SpeechInputService             SpeechInputService     { get; }
@@ -289,10 +290,16 @@ public class MainWindowViewModel : ReactiveObject
         MonitoringSettings              monitoringSettings,
         GameLogImportService            gameLogImport,
         ChatLogImportService            chatLogImport,
+        IntelService                    intelService,
         ZkillboardSettings              zkillboardSettings,
         ZkillboardPollingService        zkbPolling,
         ZkillboardFirehoseService       zkbFirehose,
         ZkillboardBackfillService       zkbBackfill,
+        MapStatsSettings                mapStatsSettings,
+        MapStatsBackfillService         mapStatsBackfill,
+        MapStatsPollingService          mapStatsPolling,
+        MapStatsService                 mapStatsService,
+        SystemViewService               systemViewService,
         ZkillboardPostService           zkbPost,
         EntityNameBackfillService       entityNames,
         EveServerStatusService          serverStatus,
@@ -306,14 +313,16 @@ public class MainWindowViewModel : ReactiveObject
         Slack             = slackService;
         SlackSettingsVm   = new SlackSettingsViewModel(slackService);
         GameLogSettingsVm = new GameLogSettingsViewModel(monitoringSettings, gameLogImport);
-        ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport);
+        ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport, intelService);
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
+        MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService);
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
-                                                     zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost, entityNames);
+                                                     zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost,
+                                                     intelService, monitoringSettings, entityNames);
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
@@ -375,7 +384,9 @@ public class MainWindowViewModel : ReactiveObject
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
-        UniverseVm             = new UniverseViewModel(new UniverseMapService(dbFactory));
+        UniverseVm             = new UniverseViewModel(
+            new UniverseMapService(dbFactory), mapStatsService,
+            new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
@@ -390,6 +401,20 @@ public class MainWindowViewModel : ReactiveObject
         {
             OpenTool("items");
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
+        };
+        if (UniverseVm.SystemPage is { } sysPage)
+            sysPage.NavigateToItemAction = typeId =>
+            {
+                OpenTool("items");
+                _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
+            };
+
+        KillmailBrowserVm.NavigateToSystemAction = systemId =>
+        {
+            OpenTool("universe");
+            // Through the command rather than the method directly: it already routes failures
+            // to the map's status line instead of leaving an unobserved task exception.
+            _ = UniverseVm.OpenSystemCommand.Execute(systemId).Subscribe();
         };
 
         using var tmpDb      = dbFactory.CreateDbContext();

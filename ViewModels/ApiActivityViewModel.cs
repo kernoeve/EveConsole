@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using EveConsole.Data;
 using EveConsole.Models;
+using EveConsole.Monitoring;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -97,6 +98,8 @@ public class ApiActivityViewModel : ReactiveObject
     private readonly ZkillboardFirehoseService   _zkbFirehose;
     private readonly ZkillboardBackfillService   _zkbBackfill;
     private readonly ZkillboardPostService       _zkbPost;
+    private readonly IntelService                _intel;
+    private readonly MonitoringSettings          _monitoring;
     private readonly EntityNameBackfillService   _nameCache;
 
     public ObservableCollection<ActivityEntry>       Entries        { get; }
@@ -157,6 +160,8 @@ public class ApiActivityViewModel : ReactiveObject
         ZkillboardFirehoseService zkbFirehose,
         ZkillboardBackfillService zkbBackfill,
         ZkillboardPostService     zkbPost,
+        IntelService              intel,
+        MonitoringSettings        monitoring,
         EntityNameBackfillService nameCache)
     {
         Entries        = log.Entries;
@@ -171,6 +176,8 @@ public class ApiActivityViewModel : ReactiveObject
         _zkbFirehose   = zkbFirehose;
         _zkbBackfill   = zkbBackfill;
         _zkbPost       = zkbPost;
+        _intel         = intel;
+        _monitoring    = monitoring;
         _nameCache     = nameCache;
 
         InFlight.CollectionChanged += (_, _) => HasNoInFlight = InFlight.Count == 0;
@@ -203,6 +210,18 @@ public class ApiActivityViewModel : ReactiveObject
     private string _nameCacheState = "";
     public string NameCacheState { get => _nameCacheState; private set => this.RaiseAndSetIfChanged(ref _nameCacheState, value); }
 
+    private string _intelState = "—";
+    public string IntelState { get => _intelState; private set => this.RaiseAndSetIfChanged(ref _intelState, value); }
+
+    private string _intelChannelsText = "—";
+    public string IntelChannelsText { get => _intelChannelsText; private set => this.RaiseAndSetIfChanged(ref _intelChannelsText, value); }
+
+    private string _intelDetail = "—";
+    public string IntelDetail { get => _intelDetail; private set => this.RaiseAndSetIfChanged(ref _intelDetail, value); }
+
+    private string _intelBacklogText = "—";
+    public string IntelBacklogText { get => _intelBacklogText; private set => this.RaiseAndSetIfChanged(ref _intelBacklogText, value); }
+
     private string _nameCacheCountText = "—";
     public string NameCacheCountText { get => _nameCacheCountText; private set => this.RaiseAndSetIfChanged(ref _nameCacheCountText, value); }
 
@@ -225,6 +244,23 @@ public class ApiActivityViewModel : ReactiveObject
         ZkbCoverageText  = _zkbSettings.LastFullDay is { } d
             ? $"Daily dumps imported through {d:yyyy-MM-dd}"
             : "No daily dump imported yet";
+
+        // Intel. Chat import is the gate — parsing runs off its loop, so with chat off nothing
+        // reaches the parser however many channels are ticked.
+        var intelChannels = _monitoring.ChatIntelChannels;
+        IntelState = !_monitoring.ChatEnabled
+            ? "○ Disabled — chat log import is switched off"
+            : intelChannels.Count == 0
+                ? "○ No intel channels — tick one under Settings → Chat Logs"
+                : _intel.IsRunning
+                    ? "● Parsing intel channels"
+                    : "● Watching intel channels";
+
+        IntelChannelsText = intelChannels.Count == 0 ? "none" : string.Join(", ", intelChannels);
+        IntelDetail       = _intel.StatusText;
+        IntelBacklogText  = _intel.Backlog > 0
+            ? $"{_intel.Backlog:N0} message(s) still to consider"
+            : "Caught up";
 
         NameCacheState = _nameCache.StatusText;
     }

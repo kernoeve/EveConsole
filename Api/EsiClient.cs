@@ -180,6 +180,33 @@ public class EsiClient
         catch { return []; }
     }
 
+    private sealed record EsiAffiliationRaw(
+        [property: JsonPropertyName("character_id")]   long  CharacterId,
+        [property: JsonPropertyName("corporation_id")] long  CorporationId,
+        [property: JsonPropertyName("alliance_id")]    long? AllianceId);
+
+    /// <summary>
+    /// Who a character flies for, via the public POST /characters/affiliation/ endpoint — no
+    /// auth, and up to 1,000 ids per call. Returns nothing rather than throwing, since every
+    /// caller treats an unknown affiliation as simply unknown.
+    /// </summary>
+    public async Task<List<(long CharacterId, long CorporationId, long? AllianceId)>>
+        GetAffiliationsAsync(IReadOnlyList<long> ids, CancellationToken ct = default)
+    {
+        if (ids.Count == 0) return [];
+        try
+        {
+            var response = await _http.PostAsJsonAsync("characters/affiliation/", ids, JsonOptions, ct);
+            if (!response.IsSuccessStatusCode) return [];
+
+            var result = await response.Content
+                .ReadFromJsonAsync<List<EsiAffiliationRaw>>(JsonOptions, ct);
+
+            return result?.Select(r => (r.CharacterId, r.CorporationId, r.AllianceId)).ToList() ?? [];
+        }
+        catch { return []; }
+    }
+
     public async Task<List<int>> SearchCharacterIdsAsync(long charId, string name, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(name)) return [];

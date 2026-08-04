@@ -348,6 +348,37 @@
       </ScrollViewer>
     </TabItem>
 
+    <TabItem Header="Intel">
+      <ScrollViewer Margin="10 12 10 0">
+        <StackPanel Spacing="14">
+
+          <TextBlock Text="{Binding IntelState}" FontSize="12"
+                     FontWeight="SemiBold" Foreground="#c8a84b" TextWrapping="Wrap" />
+
+          <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Channels"
+                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding IntelChannelsText}"
+                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Parsing"
+                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding IntelDetail}"
+                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Backlog"
+                       FontSize="12" FontWeight="SemiBold" Foreground="#889" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding IntelBacklogText}"
+                       FontSize="12" Foreground="#886" TextWrapping="Wrap" />
+          </Grid>
+
+          <TextBlock FontSize="11" Foreground="#667" TextWrapping="Wrap"
+                     Text="Parsing runs straight after each chat log tail, so a sighting reaches the map on the same pass that stored the message. Channels are chosen under Settings → Chat Logs, where there is also a button to parse the history already on disk." />
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
     <!-- ══ Tab 6: Name Cache ═════════════════════════════════════════════════ -->
     <TabItem Header="Name Cache">
       <ScrollViewer Margin="10 12 10 0">

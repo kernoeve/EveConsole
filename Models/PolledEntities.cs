@@ -1053,3 +1053,93 @@ public class ChatMessage
     public string SourceFile { get; set; } = "";
     public long   LineNumber { get; set; }
 }
+
+/// <summary>
+/// One parsed sighting from an intel channel: who was seen where, and when.
+///
+/// ReportedAt is an ISO-8601 string for the same reason as ChatMessage.OccurredAt — EF Core's
+/// SQLite provider cannot translate DateTimeOffset comparisons in a LINQ Where.
+/// </summary>
+public class IntelReport
+{
+    public int    Id         { get; set; }
+    public string ReportedAt { get; set; } = "";
+
+    public string ChannelName  { get; set; } = "";
+    public string ReporterName { get; set; } = "";
+
+    public int    SystemId   { get; set; }
+    public string SystemName { get; set; } = "";
+
+    /// <summary>Named pilots plus any "+N" the reporter added. A line naming one pilot and
+    /// saying "+2" reports three.</summary>
+    public int PlayerCount { get; set; }
+
+    /// <summary>Whatever text was left after the system, the names and the count — ship types,
+    /// "nv", gate names. Kept because it is often the useful part for a human reader.</summary>
+    public string? Note { get; set; }
+
+    /// <summary>
+    /// Superseded by a later sighting of the same pilots elsewhere, or by a "clear" call on
+    /// this system. Set rather than deleted so the paths overlays can still trace where a
+    /// gang has been.
+    /// </summary>
+    public bool            Obsolete      { get; set; }
+    public DateTimeOffset? ObsoleteSetOn { get; set; }
+
+    /// <summary>The line exactly as posted. Kept so the tab can show what was actually said
+    /// alongside what we made of it — the parse is a best effort, and seeing the original is how
+    /// a wrong one gets noticed.</summary>
+    public string Message { get; set; } = "";
+
+    /// <summary>The reporter said "no visual" — they know someone is there but cannot see
+    /// them, usually cloaked or off grid. Its own field rather than noise in the note.</summary>
+    public bool NoVisual { get; set; }
+
+    /// <summary>The reporter resolved to a character, where the name is known — so their
+    /// portrait and corp can be shown beside what they called.</summary>
+    public long? ReporterCharacterId { get; set; }
+
+    /// <summary>The message this came from — provenance, and what makes re-parsing idempotent.</summary>
+    public int ChatMessageId { get; set; }
+}
+
+/// <summary>A pilot named on an intel report. Separate table because one line often drags in
+/// several, and because superseding works pilot by pilot.</summary>
+/// <summary>
+/// Who a character flies for, cached from ESI. Affiliations change, so PulledAt is kept — but
+/// nothing expires them today: for reading old intel, the corp someone was in is roughly as
+/// useful as the one they are in now, and refetching thousands of pilots to chase that would
+/// cost far more than it is worth.
+/// </summary>
+public class CharacterAffiliation
+{
+    public long CharacterId   { get; set; }
+    public long CorporationId { get; set; }
+    public long AllianceId    { get; set; }
+    public DateTimeOffset PulledAt { get; set; }
+}
+
+/// <summary>
+/// A name asked about and found NOT to be a character. Positives already persist in
+/// UniverseNames; without recording the negatives too, every re-parse asks ESI again about the
+/// same thousands of ship types, gate names and stray words, which is most of what a re-parse
+/// spends its time on.
+/// </summary>
+public class NameLookupMiss
+{
+    public string Name      { get; set; } = "";
+    public DateTimeOffset CheckedAt { get; set; }
+}
+
+public class IntelReportCharacter
+{
+    public int    IntelReportId { get; set; }
+    public long   CharacterId   { get; set; }
+    public string CharacterName { get; set; } = "";
+
+    /// <summary>Hull the pilot was called in, where the reporter gave one — "Sevra (Loki)",
+    /// "Levanin  Sabre". Null when only the pilot was named.</summary>
+    public int?    ShipTypeId { get; set; }
+    public string? ShipName   { get; set; }
+}

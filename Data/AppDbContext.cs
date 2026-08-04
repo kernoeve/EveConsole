@@ -103,6 +103,11 @@ public class AppDbContext : DbContext
     public DbSet<ChatLogFile>     ChatLogFiles      => Set<ChatLogFile>();
     public DbSet<ChatMessage>     ChatMessages      => Set<ChatMessage>();
 
+    public DbSet<IntelReport>          IntelReports          => Set<IntelReport>();
+    public DbSet<IntelReportCharacter> IntelReportCharacters => Set<IntelReportCharacter>();
+    public DbSet<CharacterAffiliation> CharacterAffiliations  => Set<CharacterAffiliation>();
+    public DbSet<NameLookupMiss>       NameLookupMisses       => Set<NameLookupMiss>();
+
     // ── Market pricing ───────────────────────────────────────────────
     public DbSet<MarketPricingConfig>   MarketPricingConfigs   => Set<MarketPricingConfig>();
     public DbSet<MarketItemPrice>       MarketItemPrices       => Set<MarketItemPrice>();
@@ -127,10 +132,25 @@ public class AppDbContext : DbContext
     public DbSet<SdeBlueprintMaterial>  SdeBlueprintMaterials  => Set<SdeBlueprintMaterial>();
     public DbSet<SdeBlueprintProduct>   SdeBlueprintProducts   => Set<SdeBlueprintProduct>();
     public DbSet<SdeBlueprintSkill>     SdeBlueprintSkills     => Set<SdeBlueprintSkill>();
+    // Map statistics — hourly buckets plus their daily rollup.
+    public DbSet<MapSystemJump>     MapSystemJumps     => Set<MapSystemJump>();
+    public DbSet<MapSystemKill>     MapSystemKills     => Set<MapSystemKill>();
+    public DbSet<MapSystemDaily>    MapSystemDailies   => Set<MapSystemDaily>();
+    public DbSet<MapSovereignty>    MapSovereignties   => Set<MapSovereignty>();
+    public DbSet<MapSovStructure>   MapSovStructures   => Set<MapSovStructure>();
+    public DbSet<MapIndustryIndex>  MapIndustryIndices => Set<MapIndustryIndex>();
+    public DbSet<MapFactionWarfare> MapFactionWarfares => Set<MapFactionWarfare>();
+    public DbSet<MapIncursion>      MapIncursions      => Set<MapIncursion>();
+    public DbSet<MapStatBucket>     MapStatBuckets     => Set<MapStatBucket>();
+
     public DbSet<SdeRegion>             SdeRegions             => Set<SdeRegion>();
     public DbSet<SdeConstellation>      SdeConstellations      => Set<SdeConstellation>();
     public DbSet<SdeSolarSystem>        SdeSolarSystems        => Set<SdeSolarSystem>();
     public DbSet<SdeStargate>           SdeStargates           => Set<SdeStargate>();
+    public DbSet<SdePlanetResource>     SdePlanetResources     => Set<SdePlanetResource>();
+    public DbSet<SdeAgent>              SdeAgents              => Set<SdeAgent>();
+    public DbSet<SdeAgentType>          SdeAgentTypes          => Set<SdeAgentType>();
+    public DbSet<SdeCorpDivision>       SdeCorpDivisions       => Set<SdeCorpDivision>();
     public DbSet<SdeCelestial>          SdeCelestials          => Set<SdeCelestial>();
     public DbSet<SdeStation>            SdeStations            => Set<SdeStation>();
     public DbSet<SdeFaction>            SdeFactions            => Set<SdeFaction>();
@@ -322,6 +342,46 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.RegionId);
             e.Property(x => x.RegionId).ValueGeneratedNever(); });
 
+        // Map statistics. Every hourly table is keyed by (Bucket, …) so that a row
+        // written by the live ESI poll and the same row recovered later from the EVE Ref
+        // archive collide on the primary key instead of duplicating.
+        mb.Entity<MapSystemJump>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId });
+            e.ToTable("MapSystemJumps"); });
+
+        mb.Entity<MapSystemKill>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId });
+            e.ToTable("MapSystemKills"); });
+
+        mb.Entity<MapSystemDaily>(e => {
+            e.HasKey(x => new { x.Day, x.SystemId });
+            e.ToTable("MapSystemDailies"); });
+
+        mb.Entity<MapSovereignty>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId });
+            e.ToTable("MapSovereignties"); });
+
+        mb.Entity<MapSovStructure>(e => {
+            e.HasKey(x => new { x.Bucket, x.StructureId });
+            e.HasIndex(x => x.SystemId);
+            e.ToTable("MapSovStructures"); });
+
+        mb.Entity<MapIndustryIndex>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId, x.Activity });
+            e.ToTable("MapIndustryIndices"); });
+
+        mb.Entity<MapFactionWarfare>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId });
+            e.ToTable("MapFactionWarfares"); });
+
+        mb.Entity<MapIncursion>(e => {
+            e.HasKey(x => new { x.Bucket, x.ConstellationId });
+            e.ToTable("MapIncursions"); });
+
+        mb.Entity<MapStatBucket>(e => {
+            e.HasKey(x => new { x.Dataset, x.Bucket });
+            e.ToTable("MapStatBuckets"); });
+
         mb.Entity<SdeConstellation>(e => {
             e.HasKey(x => x.ConstellationId);
             e.Property(x => x.ConstellationId).ValueGeneratedNever(); });
@@ -329,6 +389,27 @@ public class AppDbContext : DbContext
         mb.Entity<SdeSolarSystem>(e => {
             e.HasKey(x => x.SolarSystemId);
             e.Property(x => x.SolarSystemId).ValueGeneratedNever(); });
+
+        mb.Entity<SdeAgent>(e => {
+            e.HasKey(x => x.AgentId);
+            e.Property(x => x.AgentId).ValueGeneratedNever();
+            e.HasIndex(x => x.LocationId);
+            e.ToTable("SdeAgents"); });
+
+        mb.Entity<SdeAgentType>(e => {
+            e.HasKey(x => x.AgentTypeId);
+            e.Property(x => x.AgentTypeId).ValueGeneratedNever();
+            e.ToTable("SdeAgentTypes"); });
+
+        mb.Entity<SdeCorpDivision>(e => {
+            e.HasKey(x => x.DivisionId);
+            e.Property(x => x.DivisionId).ValueGeneratedNever();
+            e.ToTable("SdeCorpDivisions"); });
+
+        mb.Entity<SdePlanetResource>(e => {
+            e.HasKey(x => x.PlanetId);
+            e.Property(x => x.PlanetId).ValueGeneratedNever();
+            e.ToTable("SdePlanetResources"); });
 
         mb.Entity<SdeStargate>(e => {
             e.HasKey(x => x.StargateId);
@@ -843,7 +924,28 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             e.HasIndex(x => new { x.SourceFile, x.LineNumber }).IsUnique();
             e.HasIndex(x => x.OccurredAt);
+            // Also what the import's duplicate check reads: the same conversation logged by a
+            // second character, or imported from another PC's folder, is found by channel and
+            // time rather than by file, which cannot see across files at all.
             e.HasIndex(x => new { x.ChannelName, x.OccurredAt }); });
+
+        mb.Entity<IntelReport>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.ChatMessageId).IsUnique();          // re-parsing cannot duplicate
+            e.HasIndex(x => new { x.SystemId, x.ReportedAt });    // the overlays' query
+            e.HasIndex(x => new { x.Obsolete, x.ReportedAt }); });
+
+        mb.Entity<NameLookupMiss>(e => {
+            e.HasKey(x => x.Name);
+            e.Property(x => x.Name).ValueGeneratedNever(); });
+
+        mb.Entity<CharacterAffiliation>(e => {
+            e.HasKey(x => x.CharacterId);
+            e.Property(x => x.CharacterId).ValueGeneratedNever(); });
+
+        mb.Entity<IntelReportCharacter>(e => {
+            e.HasKey(x => new { x.IntelReportId, x.CharacterId });
+            e.HasIndex(x => x.CharacterId); });                   // "where was this pilot last seen"
 
         mb.Entity<MarketTypeHistory>(e => {
             e.HasKey(x => new { x.RegionId, x.TypeId, x.Date });

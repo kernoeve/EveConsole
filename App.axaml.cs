@@ -72,6 +72,11 @@ public class App : Application
             gameLogs      = Services.GetRequiredService<GameLogImportService>();
             chatLogs      = Services.GetRequiredService<ChatLogImportService>();
             zkbPolling    = Services.GetRequiredService<ZkillboardPollingService>();
+
+            // Intel is parsed straight after each chat tail, so a sighting reaches the map on
+            // the same pass that stored the message rather than on a timer of its own.
+            var intel = Services.GetRequiredService<IntelService>();
+            chatLogs.AfterTail = ct => intel.ProcessNewAsync(ct);
             zkbFirehose   = Services.GetRequiredService<ZkillboardFirehoseService>();
             zkbBackfill   = Services.GetRequiredService<ZkillboardBackfillService>();
             zkbPost       = Services.GetRequiredService<ZkillboardPostService>();
@@ -1698,6 +1703,157 @@ public class App : Application
             db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailAttackers_KillMailId" ON "KillMailAttackers" ("KillMailId")""");
             db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailItems_KillMailId" ON "KillMailItems" ("KillMailId")""");
 
+            // ── Map statistics — hourly buckets + daily rollup ──────────────────
+            // Keyed by the CCP hour bucket, not by fetch time, so a row from the live ESI
+            // poll and the same hour recovered later from the EVE Ref archive collide on the
+            // primary key rather than duplicating.
+            foreach (var sql in new[]
+            {
+                """
+                CREATE TABLE IF NOT EXISTS "MapSystemJumps" (
+                    "Bucket"    TEXT    NOT NULL,
+                    "SystemId"  INTEGER NOT NULL,
+                    "ShipJumps" INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("Bucket", "SystemId")
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "MapSystemKills" (
+                    "Bucket"    TEXT    NOT NULL,
+                    "SystemId"  INTEGER NOT NULL,
+                    "ShipKills" INTEGER NOT NULL DEFAULT 0,
+                    "PodKills"  INTEGER NOT NULL DEFAULT 0,
+                    "NpcKills"  INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("Bucket", "SystemId")
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "MapSystemDailies" (
+                    "Day"       TEXT    NOT NULL,
+                    "SystemId"  INTEGER NOT NULL,
+                    "ShipJumps" INTEGER NOT NULL DEFAULT 0,
+                    "ShipKills" INTEGER NOT NULL DEFAULT 0,
+                    "PodKills"  INTEGER NOT NULL DEFAULT 0,
+                    "NpcKills"  INTEGER NOT NULL DEFAULT 0,
+                    "Hours"     INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("Day", "SystemId")
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "MapSovereignties" (
+                    "Bucket"        TEXT    NOT NULL,
+                    "SystemId"      INTEGER NOT NULL,
+                    "FactionId"     INTEGER,
+                    "CorporationId" INTEGER,
+                    "AllianceId"    INTEGER,
+                    PRIMARY KEY ("Bucket", "SystemId")
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "MapSovStructures" (
+                    "Bucket"          TEXT    NOT NULL,
+                    "StructureId"     INTEGER NOT NULL,
+                    "SystemId"        INTEGER NOT NULL,
+                    "AllianceId"      INTEGER,
+                    "StructureTypeId" INTEGER NOT NULL DEFAULT 0,
+                    "Adm"             REAL,
+                    "VulnerableStart" TEXT,
+                    "VulnerableEnd"   TEXT,
+                    PRIMARY KEY ("Bucket", "StructureId")
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "MapIndustryIndices" (
+                    "Bucket"    TEXT    NOT NULL,
+                    "SystemId"  INTEGER NOT NULL,
+                    "Activity"  TEXT    NOT NULL,
+                    "CostIndex" REAL    NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("Bucket", "SystemId", "Activity")
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "MapFactionWarfares" (
+                    "Bucket"                 TEXT    NOT NULL,
+                    "SystemId"               INTEGER NOT NULL,
+                    "OwnerFactionId"         INTEGER NOT NULL DEFAULT 0,
+                    "OccupierFactionId"      INTEGER NOT NULL DEFAULT 0,
+                    "ContestedState"         TEXT    NOT NULL DEFAULT '',
+                    "VictoryPoints"          INTEGER NOT NULL DEFAULT 0,
+                    "VictoryPointsThreshold" INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("Bucket", "SystemId")
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "MapIncursions" (
+                    "Bucket"          TEXT    NOT NULL,
+                    "ConstellationId" INTEGER NOT NULL,
+                    "StagingSystemId" INTEGER NOT NULL DEFAULT 0,
+                    "FactionId"       INTEGER NOT NULL DEFAULT 0,
+                    "State"           TEXT    NOT NULL DEFAULT '',
+                    "Influence"       REAL    NOT NULL DEFAULT 0,
+                    "HasBoss"         INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("Bucket", "ConstellationId")
+                )
+                """,
+                // Records that a bucket was fetched at all. A quiet hour legitimately produces
+                // no stat rows, so without this an empty hour is indistinguishable from one we
+                // never had — and every gap-fill pass would re-download it forever.
+                """
+                CREATE TABLE IF NOT EXISTS "MapStatBuckets" (
+                    "Dataset"  TEXT    NOT NULL,
+                    "Bucket"   TEXT    NOT NULL,
+                    "StoredAt" TEXT    NOT NULL,
+                    "Source"   TEXT    NOT NULL DEFAULT '',
+                    "RowCount" INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("Dataset", "Bucket")
+                )
+                """,
+                """CREATE INDEX IF NOT EXISTS "IX_MapSystemJumps_Bucket"     ON "MapSystemJumps"    ("Bucket")""",
+                """CREATE INDEX IF NOT EXISTS "IX_MapSystemKills_Bucket"     ON "MapSystemKills"    ("Bucket")""",
+                """CREATE INDEX IF NOT EXISTS "IX_MapSystemDailies_Day"      ON "MapSystemDailies"  ("Day")""",
+                """CREATE INDEX IF NOT EXISTS "IX_MapSovereignties_Bucket"   ON "MapSovereignties"  ("Bucket")""",
+                """CREATE INDEX IF NOT EXISTS "IX_MapSovStructures_SystemId" ON "MapSovStructures"  ("SystemId")""",
+                // The system view lists recent kills for one system; without this it is a full
+                // scan of a table that is well past half a million rows.
+                """CREATE INDEX IF NOT EXISTS "IX_KillMailDetails_SolarSystemId" ON "KillMailDetails" ("SolarSystemId")""",
+                """CREATE INDEX IF NOT EXISTS "IX_EsiStructureNames_SolarSystemId" ON "EsiStructureNames" ("SolarSystemId")""",
+
+                // ── SDE tables added after this database was last imported ──────────
+                // The SDE importer creates its own tables, but only while an import runs. A
+                // database imported before one of these was introduced therefore has code
+                // querying a table that does not exist yet, which throws rather than returning
+                // nothing — the Universe tool died on "no such table: SdePlanetResources".
+                // Creating them empty here means the feature is simply blank until the next
+                // import instead of breaking the page.
+                """CREATE TABLE IF NOT EXISTS "SdePlanetResources" ("PlanetId" INTEGER NOT NULL PRIMARY KEY, "Power" INTEGER NOT NULL DEFAULT 0, "Workforce" INTEGER NOT NULL DEFAULT 0, "ReagentPerCycle" INTEGER NOT NULL DEFAULT 0, "ReagentCycleTime" INTEGER NOT NULL DEFAULT 0, "SecuredCapacity" INTEGER NOT NULL DEFAULT 0)""",
+                """CREATE TABLE IF NOT EXISTS "SdeAgents" ("AgentId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '', "CorporationId" INTEGER NOT NULL DEFAULT 0, "LocationId" INTEGER NOT NULL DEFAULT 0, "AgentTypeId" INTEGER NOT NULL DEFAULT 0, "DivisionId" INTEGER NOT NULL DEFAULT 0, "Level" INTEGER NOT NULL DEFAULT 0, "IsLocator" INTEGER NOT NULL DEFAULT 0)""",
+                """CREATE INDEX IF NOT EXISTS "IX_SdeAgents_Location" ON "SdeAgents" ("LocationId")""",
+                """CREATE TABLE IF NOT EXISTS "SdeAgentTypes" ("AgentTypeId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
+                """CREATE TABLE IF NOT EXISTS "SdeCorpDivisions" ("DivisionId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
+
+                // ── Intel channels ──────────────────────────────────────────────
+                // One-time removal of chat already stored twice — the same conversation logged
+                // by two of the user's characters, or imported from a second PC's log folder.
+                // The unique index on (SourceFile, LineNumber) only ever stopped one file being
+                // read twice; it cannot see that two files hold the same messages. Keeps the
+                // lowest Id of each group, so provenance points at whichever arrived first.
+                """DELETE FROM "ChatMessages" WHERE "Id" IN (SELECT "Id" FROM (SELECT "Id", ROW_NUMBER() OVER (PARTITION BY "ChannelName", "OccurredAt", "SenderName", "Message" ORDER BY "Id") AS rn FROM "ChatMessages") WHERE rn > 1)""",
+
+                """CREATE TABLE IF NOT EXISTS "IntelReports" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "ReportedAt" TEXT NOT NULL DEFAULT '', "ChannelName" TEXT NOT NULL DEFAULT '', "ReporterName" TEXT NOT NULL DEFAULT '', "SystemId" INTEGER NOT NULL DEFAULT 0, "SystemName" TEXT NOT NULL DEFAULT '', "PlayerCount" INTEGER NOT NULL DEFAULT 0, "Note" TEXT NULL, "Obsolete" INTEGER NOT NULL DEFAULT 0, "ObsoleteSetOn" TEXT NULL, "ChatMessageId" INTEGER NOT NULL DEFAULT 0)""",
+                """CREATE UNIQUE INDEX IF NOT EXISTS "IX_IntelReports_ChatMessageId" ON "IntelReports" ("ChatMessageId")""",
+                """CREATE INDEX IF NOT EXISTS "IX_IntelReports_System_Time" ON "IntelReports" ("SystemId", "ReportedAt")""",
+                """CREATE INDEX IF NOT EXISTS "IX_IntelReports_Obsolete_Time" ON "IntelReports" ("Obsolete", "ReportedAt")""",
+
+                """CREATE TABLE IF NOT EXISTS "IntelReportCharacters" ("IntelReportId" INTEGER NOT NULL, "CharacterId" INTEGER NOT NULL, "CharacterName" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("IntelReportId", "CharacterId"))""",
+                """CREATE INDEX IF NOT EXISTS "IX_IntelReportCharacters_CharacterId" ON "IntelReportCharacters" ("CharacterId")""",
+                """ALTER TABLE "IntelReportCharacters" ADD COLUMN "ShipTypeId" INTEGER NULL""",
+                """ALTER TABLE "IntelReportCharacters" ADD COLUMN "ShipName" TEXT NULL""",
+                """ALTER TABLE "IntelReports" ADD COLUMN "ReporterCharacterId" INTEGER NULL""",
+                """ALTER TABLE "IntelReports" ADD COLUMN "NoVisual" INTEGER NOT NULL DEFAULT 0""",
+                """ALTER TABLE "IntelReports" ADD COLUMN "Message" TEXT NOT NULL DEFAULT ''""",
+                """CREATE TABLE IF NOT EXISTS "NameLookupMisses" ("Name" TEXT NOT NULL PRIMARY KEY, "CheckedAt" TEXT NULL)""",
+                """CREATE TABLE IF NOT EXISTS "CharacterAffiliations" ("CharacterId" INTEGER NOT NULL PRIMARY KEY, "CorporationId" INTEGER NOT NULL DEFAULT 0, "AllianceId" INTEGER NOT NULL DEFAULT 0, "PulledAt" TEXT NULL)""",
+            }) { try { db.Database.ExecuteSqlRaw(sql); } catch { } }
             // Repairs stations imported before ConstellationId/RegionId/Security were populated
             // from the solar system. The importer now fills them, but an existing install only
             // gets correct values on its next SDE import, which may be months away — and a zero
@@ -1759,6 +1915,12 @@ public class App : Application
         Services.GetRequiredService<EntityNameBackfillService>().Start();
         // Started early and independently: everything else consults its verdict.
         Services.GetRequiredService<EveServerStatusService>().Start();
+
+        // Map statistics for the Universe tool. Both loops write rows keyed by CCP's hour
+        // bucket, so the archive catch-up and the live poller cannot collide even when they
+        // run over the same hour at the same time.
+        Services.GetRequiredService<MapStatsBackfillService>().Start();
+        Services.GetRequiredService<MapStatsPollingService>().Start();
     }
 
     private static void PositionSplashOnLastMonitor(SplashWindow splash)
@@ -1884,6 +2046,7 @@ public class App : Application
         // Chat import is off by default and additionally gated on a per-channel
         // allowlist — it stores other people's messages.
         services.AddSingleton<ChatLogImportService>();
+        services.AddSingleton<IntelService>();
 
         // zKillboard integration — optional supplement to the ESI-based kill pull (see
         // ZkillboardPollingService/ZkillboardFirehoseService for why the "Mine + Corp"
@@ -1895,6 +2058,23 @@ public class App : Application
         services.AddSingleton<ZkillboardFirehoseService>();
         services.AddSingleton<ZkillboardBackfillService>();
         services.AddSingleton<ZkillboardPostService>();
+
+        // Map statistics for the Universe tool. ESI serves only the current hour for these
+        // endpoints, so the EVE Ref archive is the backbone and the poller only keeps the
+        // newest bucket fresh — see MapStatsPollingService.
+        services.AddHttpClient("everef", c =>
+        {
+            c.BaseAddress = new Uri(EveRefArchiveClient.BaseUrl);
+            c.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (+https://github.com/kernoeve/EveConsole)");
+            c.Timeout = TimeSpan.FromSeconds(60);
+        });
+        services.AddSingleton<MapStatsSettings>();
+        services.AddSingleton<EveRefArchiveClient>();
+        services.AddSingleton<MapStatsService>();
+        services.AddSingleton<MapStatsBackfillService>();
+        services.AddSingleton<MapStatsPollingService>();
+        services.AddSingleton<SystemViewService>();
+
         services.AddSingleton<EntityNameBackfillService>();
         services.AddSingleton<EveServerStatusService>();
         services.AddSingleton<UiLinkSettings>();

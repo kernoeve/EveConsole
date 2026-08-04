@@ -26,6 +26,13 @@ public sealed record MapEdge(int FromId, int ToId);
 
 public sealed record MapGraph(IReadOnlyList<MapNode> Nodes, IReadOnlyList<MapEdge> Edges);
 
+/// <summary>A searchable place: a region or a system, with what is needed to navigate to it.
+/// SystemId is 0 for a region.</summary>
+public sealed record PlaceMatch(string Name, string Detail, int RegionId, int SystemId)
+{
+    public override string ToString() => Name;
+}
+
 public sealed record RegionSummary(
     int RegionId, string Name, bool IsWormhole, int SystemCount,
     /// <summary>False for Anoikis, abyssal and VR-* regions, which have no place on the map.</summary>
@@ -96,25 +103,92 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             WHERE a."RegionId" = {0} AND b."RegionId" <> {0})
         """;
 
-    private const string KillsByRegionSql = """
-        SELECT s."RegionId" AS "Key", COUNT(*) AS "Total"
-        FROM "KillMailDetails" k
-        JOIN "SdeSolarSystems" s ON s."SolarSystemId" = k."SolarSystemId"
-        WHERE k."KillMailTime" >= {0}
-        GROUP BY s."RegionId"
-        """;
+    /// <summary>Which victim hulls to count.</summary>
+    public enum KillKind { All, Ships, Pods }
 
-    private const string KillsBySystemSql = """
-        SELECT k."SolarSystemId" AS "Key", COUNT(*) AS "Total"
-        FROM "KillMailDetails" k
-        WHERE k."KillMailTime" >= {0}
-        GROUP BY k."SolarSystemId"
-        """;
+    /// <summary>
+    /// Capsules. Both capsule hulls — the standard one and the Genolution 'Auroral' variant —
+    /// sit in this one group, so ships and pods split cleanly on a single id. Verified against
+    /// the SDE rather than assumed: no other group in it carries a podded victim.
+    /// </summary>
+    private const int CapsuleGroupId = 29;
+
+    private static string KillCountSql(bool byRegion, KillKind kind)
+    {
+        // The hull join is only worth its cost when a kind is actually being filtered on.
+        var join = kind == KillKind.All
+            ? ""
+            : """LEFT JOIN "SdeTypes" ty ON ty."TypeId" = k."VictimShipTypeId" """;
+
+        // COALESCE, and a left join, so a hull the SDE has not heard of yet counts as a ship
+        // rather than vanishing from both overlays.
+        var filter = kind switch
+        {
+            KillKind.Pods  => $$"""AND COALESCE(ty."GroupId", 0) =  {{CapsuleGroupId}}""",
+            KillKind.Ships => $$"""AND COALESCE(ty."GroupId", 0) <> {{CapsuleGroupId}}""",
+            _              => "",
+        };
+
+        return byRegion
+            ? $$"""
+                SELECT s."RegionId" AS "Key", COUNT(*) AS "Total"
+                FROM "KillMailDetails" k
+                JOIN "SdeSolarSystems" s ON s."SolarSystemId" = k."SolarSystemId"
+                {{join}}
+                WHERE k."KillMailTime" >= {0} {{filter}}
+                GROUP BY s."RegionId"
+                """
+            : $$"""
+                SELECT k."SolarSystemId" AS "Key", COUNT(*) AS "Total"
+                FROM "KillMailDetails" k
+                {{join}}
+                WHERE k."KillMailTime" >= {0} {{filter}}
+                GROUP BY k."SolarSystemId"
+                """;
+    }
 
     private sealed class LinkRaw
     {
         public int FromId { get; set; }
         public int ToId   { get; set; }
+    }
+
+    /// <summary>
+    /// Regions and systems in one list for the jump box. Systems carry their security and
+    /// region so near-identical names can be told apart, and matches that start with the typed
+    /// text rank above ones that merely contain it.
+    /// </summary>
+    public async Task<List<PlaceMatch>> SearchPlacesAsync(
+        string text, int limit = 30, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(text) || text.Length < 2) return [];
+        var q = text.Trim();
+
+        using var db = dbFactory.CreateDbContext();
+
+        var regions = await db.SdeRegions.AsNoTracking()
+            .Where(r => r.RegionId < MaxKnownSpaceRegionId && r.Name.Contains(q))
+            .Select(r => new { r.Name, r.RegionId })
+            .Take(limit)
+            .ToListAsync(ct);
+
+        var systems = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => s.Name.Contains(q))
+            .Join(db.SdeRegions.AsNoTracking(), s => s.RegionId, r => r.RegionId,
+                  (s, r) => new { s.Name, s.SolarSystemId, s.RegionId, Region = r.Name, s.Security })
+            .Take(limit * 2)
+            .ToListAsync(ct);
+
+        return regions
+            .Select(r => new PlaceMatch(r.Name, "Region", r.RegionId, 0))
+            .Concat(systems.Select(s => new PlaceMatch(
+                s.Name, $"{s.Security:F1}  ·  {s.Region}", s.RegionId, s.SolarSystemId)))
+            .OrderByDescending(p => p.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase))
+            .ThenBy(p => p.SystemId == 0 ? 0 : 1)   // regions before systems at equal rank
+            .ThenBy(p => p.Name.Length)
+            .ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
+            .Take(limit)
+            .ToList();
     }
 
     public async Task<List<RegionSummary>> GetRegionsAsync(CancellationToken ct = default)
@@ -388,11 +462,23 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
 
     /// <summary>
     /// Killmails per system (or per region) over the last <paramref name="days"/> days, from our
-    /// own stored kills — so it reflects whatever the zKillboard/ESI pipeline has captured, not
-    /// a universe-wide truth.
+    /// own stored kills, optionally split into ships and pods.
+    ///
+    /// This is the accurate source for ship and pod kills, and CCP's system_kills counter is
+    /// not. That endpoint is documented as "the last hour ending at Last-Modified", but it
+    /// demonstrably re-reports the same kills across consecutive hourly snapshots — C-FD0D on
+    /// 2026-08-03 had one burst of 14 ship kills inside hour 15, reported as 12 at 15:44 and a
+    /// further 15 at 16:44, summing to 31 for a day zKillboard and our own killmails both put
+    /// at 18. Any multi-hour total built from those snapshots is therefore inflated, roughly
+    /// doubled, and no fixed divisor corrects it.
+    ///
+    /// The trade here is coverage rather than accuracy: a loss nobody publishes never reaches
+    /// zKillboard, so this undercounts where CCP's counter would not — chiefly solo high-sec
+    /// losses to NPCs. Measured against CCP's own figure once its overlap is accounted for,
+    /// that gap runs around 17%.
     /// </summary>
     public async Task<Dictionary<int, int>> GetKillCountsAsync(
-        int days, bool byRegion, CancellationToken ct = default)
+        int days, bool byRegion, KillKind kind = KillKind.All, CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();
 
@@ -400,8 +486,12 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         // throws "could not be translated". The stored format is sortable, so compare as text.
         var cutoff = DateTimeOffset.UtcNow.AddDays(-days).ToString("yyyy-MM-dd HH:mm:ss+00:00");
 
+        // Built into a variable rather than interpolated at the call: SqlQueryRaw warns (EF1002)
+        // on an interpolated argument. The only interpolated part is a compile-time constant.
+        var sql = KillCountSql(byRegion, kind);
+
         var rows = await db.Database
-            .SqlQueryRaw<CountRaw>(byRegion ? KillsByRegionSql : KillsBySystemSql, cutoff)
+            .SqlQueryRaw<CountRaw>(sql, cutoff)
             .ToListAsync(ct);
 
         return rows.ToDictionary(r => r.Key, r => r.Total);
@@ -435,6 +525,167 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
                       .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
     }
 
+    /// <summary>
+    /// Player-owned structures per system or region, as far as this app knows them: the names
+    /// cache only holds structures we have actually seen through an authenticated request, so
+    /// this is a floor, not a census. Unlike NPC stations, which the SDE lists in full.
+    /// </summary>
+    public async Task<Dictionary<int, int>> GetPlayerStructureCountsAsync(
+        bool byRegion, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var q = db.EsiStructureNames.AsNoTracking().Where(s => s.SolarSystemId > 0);
+
+        if (!byRegion)
+            return await q.GroupBy(s => s.SolarSystemId)
+                          .Select(g => new { g.Key, Total = g.Count() })
+                          .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+
+        return await q.Join(db.SdeSolarSystems.AsNoTracking(),
+                            st => st.SolarSystemId, s => s.SolarSystemId, (st, s) => s.RegionId)
+                      .GroupBy(rid => rid)
+                      .Select(g => new { g.Key, Total = g.Count() })
+                      .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+    }
+
+    /// <summary>
+    /// Averages a per-system value up to its region, for showing a system-level measure on the
+    /// universe map. Only systems present in the input count toward the average, so a region
+    /// where most systems have no reading is not dragged down by treating absent as zero.
+    /// </summary>
+    public async Task<Dictionary<int, double>> GetRegionAveragesAsync(
+        IReadOnlyDictionary<int, double> bySystem, CancellationToken ct = default)
+    {
+        if (bySystem.Count == 0) return [];
+
+        using var db = dbFactory.CreateDbContext();
+        var regionOf = await db.SdeSolarSystems.AsNoTracking()
+            .Select(s => new { s.SolarSystemId, s.RegionId })
+            .ToDictionaryAsync(s => s.SolarSystemId, s => s.RegionId, ct);
+
+        return bySystem
+            .Where(kv => regionOf.ContainsKey(kv.Key))
+            .GroupBy(kv => regionOf[kv.Key])
+            .ToDictionary(g => g.Key, g => g.Average(kv => kv.Value));
+    }
+
+    /// <summary>
+    /// Totals a per-system count up to its region, for showing system activity on the universe
+    /// map. Summed rather than averaged — a region's activity is what happened across all of
+    /// it, unlike an index, which only makes sense as an average.
+    /// </summary>
+    public async Task<Dictionary<int, int>> GetRegionSumsAsync(
+        IReadOnlyDictionary<int, int> bySystem, CancellationToken ct = default)
+    {
+        if (bySystem.Count == 0) return [];
+
+        using var db = dbFactory.CreateDbContext();
+        var regionOf = await db.SdeSolarSystems.AsNoTracking()
+            .Select(s => new { s.SolarSystemId, s.RegionId })
+            .ToDictionaryAsync(s => s.SolarSystemId, s => s.RegionId, ct);
+
+        return bySystem
+            .Where(kv => regionOf.ContainsKey(kv.Key))
+            .GroupBy(kv => regionOf[kv.Key])
+            .ToDictionary(g => g.Key, g => g.Sum(kv => kv.Value));
+    }
+
+    /// <summary>
+    /// Celestials of one kind per system, or summed per region. Kind: 0 planet, 1 moon,
+    /// 2 stargate, 3 asteroid belt, 4 star.
+    /// </summary>
+    public async Task<Dictionary<int, int>> GetCelestialCountsAsync(
+        int kind, bool byRegion, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var q = db.SdeCelestials.AsNoTracking().Where(c => c.Kind == kind);
+
+        if (!byRegion)
+            return await q.GroupBy(c => c.SolarSystemId)
+                          .Select(g => new { g.Key, Total = g.Count() })
+                          .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+
+        return await q.Join(db.SdeSolarSystems.AsNoTracking(),
+                            c => c.SolarSystemId, s => s.SolarSystemId, (c, s) => s.RegionId)
+                      .GroupBy(rid => rid)
+                      .Select(g => new { g.Key, Total = g.Count() })
+                      .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+    }
+
+    /// <summary>
+    /// Players reported in each system by the intel channels.
+    ///
+    /// <paramref name="includeObsolete"/> is the difference between two questions. False asks
+    /// "who is there now": only sightings nothing has superseded, which is what the live
+    /// overlay wants. True asks "where has anyone been reported": every sighting in the window
+    /// including the retired ones, which traces the path a gang took as it was called through
+    /// system after system.
+    ///
+    /// Counts sum PlayerCount rather than counting reports, so a single "+8" call carries the
+    /// weight it should.
+    /// </summary>
+    public async Task<Dictionary<int, int>> GetIntelCountsAsync(
+        int minutes, bool includeObsolete, bool byRegion, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+
+        // ReportedAt is an ISO-8601 string, sortable, and compared as text for the same reason
+        // killmail times are — SQLite cannot translate a DateTimeOffset comparison.
+        var cutoff = DateTimeOffset.UtcNow.AddMinutes(-minutes)
+            .UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+        var q = db.IntelReports.AsNoTracking()
+            .Where(r => string.Compare(r.ReportedAt, cutoff) >= 0);
+
+        if (!includeObsolete) q = q.Where(r => !r.Obsolete);
+
+        if (!byRegion)
+            return await q.GroupBy(r => r.SystemId)
+                          .Select(g => new { g.Key, Total = g.Sum(x => x.PlayerCount) })
+                          .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+
+        return await q.Join(db.SdeSolarSystems.AsNoTracking(),
+                            r => r.SystemId, s => s.SolarSystemId,
+                            (r, s) => new { s.RegionId, r.PlayerCount })
+                      .GroupBy(x => x.RegionId)
+                      .Select(g => new { g.Key, Total = g.Sum(x => x.PlayerCount) })
+                      .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+    }
+
+    /// <summary>
+    /// Planetary power or workforce, pooled per system or summed per region. Both are produced
+    /// per planet but pooled per system — the pool is what sovereignty upgrades draw on — so
+    /// the system total is the meaningful figure, not the per-planet one.
+    ///
+    /// Reads zero everywhere until an SDE import has run since planetary resources were added.
+    /// </summary>
+    public async Task<Dictionary<int, int>> GetProductionTotalsAsync(
+        bool workforce, bool byRegion, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+
+        // Joined through the celestial rather than trusting the resource row to know its system:
+        // SdePlanetResources is keyed by planet id alone.
+        var q = db.SdePlanetResources.AsNoTracking()
+            .Join(db.SdeCelestials.AsNoTracking().Where(c => c.Kind == 0),
+                  r => r.PlanetId, c => c.ItemId,
+                  (r, c) => new { c.SolarSystemId, Value = workforce ? r.Workforce : r.Power });
+
+        if (!byRegion)
+            return await q.GroupBy(x => x.SolarSystemId)
+                          .Select(g => new { g.Key, Total = g.Sum(x => x.Value) })
+                          .Where(g => g.Total > 0)
+                          .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+
+        return await q.Join(db.SdeSolarSystems.AsNoTracking(),
+                            x => x.SolarSystemId, s => s.SolarSystemId,
+                            (x, s) => new { s.RegionId, x.Value })
+                      .GroupBy(x => x.RegionId)
+                      .Select(g => new { g.Key, Total = g.Sum(x => x.Value) })
+                      .Where(g => g.Total > 0)
+                      .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+    }
+
     public sealed record SystemDetail(
         int    SystemId,
         string Name,
@@ -442,6 +693,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         string SecurityClass,
         string Constellation,
         string Region,
+        int    RegionId,
         int    Gates,
         int    Stations,
         int    Planets,
@@ -474,9 +726,132 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
 
         return new SystemDetail(
             s.SolarSystemId, s.Name, s.Security, s.SecurityClass,
-            constellation, region, gates, stations,
+            constellation, region, s.RegionId, gates, stations,
             celestials.GetValueOrDefault(0), celestials.GetValueOrDefault(1));
     }
+
+    // ── System view ──────────────────────────────────────────────────────────
+
+    public sealed record NeighbourRow(int SystemId, string Name, double Security, string RegionName, bool OutOfRegion);
+    public sealed record StationRow(long StationId, string Name, string TypeName);
+    public sealed record StructureRow(long StructureId, string Name, string TypeName, string Owner, string NearestCelestial);
+    public sealed record CelestialRow(string Kind, int Count);
+    public sealed record KillRow(int KillMailId, DateTimeOffset When, string ShipName, string VictimName);
+
+    public sealed record SystemView(
+        SystemDetail                  Detail,
+        IReadOnlyList<NeighbourRow>   Neighbours,
+        IReadOnlyList<StationRow>     Stations,
+        IReadOnlyList<StructureRow>   Structures,
+        IReadOnlyList<CelestialRow>   Celestials,
+        IReadOnlyList<KillRow>        RecentKills);
+
+    /// <summary>
+    /// Everything the system page shows that comes from the SDE and our own stored data.
+    /// Statistics (sovereignty, indices, activity) are layered on by the caller, which already
+    /// holds the map-stats service.
+    /// </summary>
+    public async Task<SystemView?> GetSystemViewAsync(int systemId, CancellationToken ct = default)
+    {
+        var detail = await GetSystemDetailAsync(systemId, ct);
+        if (detail is null) return null;
+
+        using var db = dbFactory.CreateDbContext();
+
+        var homeRegion = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => s.SolarSystemId == systemId)
+            .Select(s => s.RegionId).FirstOrDefaultAsync(ct);
+
+        // Neighbours come from the same gate self-join the maps use.
+        var neighbourIds = await db.Database.SqlQueryRaw<LinkRaw>(NeighbourSql, systemId).ToListAsync(ct);
+        var ids = neighbourIds.Select(l => l.ToId).Distinct().ToList();
+
+        var neighbours = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => ids.Contains(s.SolarSystemId))
+            .Join(db.SdeRegions.AsNoTracking(), s => s.RegionId, r => r.RegionId,
+                  (s, r) => new { s.SolarSystemId, s.Name, s.Security, s.RegionId, RegionName = r.Name })
+            .ToListAsync(ct);
+
+        var stations = await db.SdeStations.AsNoTracking()
+            .Where(s => s.SolarSystemId == systemId)
+            .Join(db.SdeTypes.AsNoTracking(), s => s.StationTypeId, t => t.TypeId,
+                  (s, t) => new { s.StationId, s.Name, TypeName = t.Name })
+            .ToListAsync(ct);
+
+        var structures = await db.EsiStructureNames.AsNoTracking()
+            .Where(s => s.SolarSystemId == systemId)
+            .ToListAsync(ct);
+
+        var typeNames = await db.SdeTypes.AsNoTracking()
+            .Where(t => structures.Select(s => s.TypeId).Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+
+        var ownerIds = structures.SelectMany(s => new[] { s.OwnerId, s.AllianceId })
+                                 .Where(id => id > 0).Distinct().ToList();
+        var ownerNames = await db.UniverseNames.AsNoTracking()
+            .Where(n => ownerIds.Contains(n.EntityId))
+            .ToDictionaryAsync(n => n.EntityId, n => n.Name, ct);
+
+        var celestials = await db.SdeCelestials.AsNoTracking()
+            .Where(c => c.SolarSystemId == systemId)
+            .GroupBy(c => c.Kind)
+            .Select(g => new { Kind = g.Key, Count = g.Count() })
+            .ToListAsync(ct);
+
+        var kills = await db.Database.SqlQueryRaw<KillRaw>(RecentKillsSql, systemId).ToListAsync(ct);
+
+        return new SystemView(
+            detail,
+            neighbours
+                .Select(n => new NeighbourRow(n.SolarSystemId, n.Name, n.Security, n.RegionName,
+                                              n.RegionId != homeRegion))
+                .OrderBy(n => n.Name).ToList(),
+            stations.Select(s => new StationRow(s.StationId, s.Name, s.TypeName))
+                    .OrderBy(s => s.Name).ToList(),
+            structures.Select(s => new StructureRow(
+                    s.StructureId,
+                    string.IsNullOrEmpty(s.Name) ? $"Structure {s.StructureId}" : s.Name,
+                    typeNames.GetValueOrDefault(s.TypeId, "Unknown type"),
+                    ownerNames.GetValueOrDefault(s.AllianceId > 0 ? s.AllianceId : s.OwnerId, ""),
+                    s.NearestCelestial))
+                .OrderBy(s => s.Name).ToList(),
+            celestials.Select(c => new CelestialRow(
+                    c.Kind switch { 0 => "Planets", 1 => "Moons", 2 => "Stargates", _ => "Other" },
+                    c.Count))
+                .OrderBy(c => c.Kind).ToList(),
+            kills.Select(k => new KillRow(
+                    k.KillMailId,
+                    DateTimeOffset.TryParse(k.KillMailTime, out var t) ? t : default,
+                    k.ShipName ?? "Unknown ship",
+                    k.VictimName ?? "NPC"))
+                .ToList());
+    }
+
+    private sealed class KillRaw
+    {
+        public int     KillMailId   { get; set; }
+        public string  KillMailTime { get; set; } = "";
+        public string? ShipName     { get; set; }
+        public string? VictimName   { get; set; }
+    }
+
+    private const string NeighbourSql = $$"""
+        SELECT DISTINCT a."SolarSystemId" AS "FromId", b."SolarSystemId" AS "ToId"
+        FROM "SdeStargates" a
+        JOIN "SdeStargates" b ON b."StargateId" = a."DestinationStargateId"
+        WHERE a."SolarSystemId" = {0}
+        """;
+
+    private const string RecentKillsSql = """
+        SELECT k."KillMailId", k."KillMailTime",
+               t."Name" AS "ShipName", u."Name" AS "VictimName"
+        FROM "KillMailDetails" k
+        LEFT JOIN "SdeTypes"      t ON t."TypeId"   = k."VictimShipTypeId"
+        LEFT JOIN "UniverseNames" u ON u."EntityId" = k."VictimCharId"
+        WHERE k."SolarSystemId" = {0}
+        ORDER BY k."KillMailTime" DESC
+        LIMIT 25
+        """;
 
     public sealed record RegionDetail(
         int    RegionId,

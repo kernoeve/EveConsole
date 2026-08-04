@@ -23,6 +23,7 @@ public class KillmailListRowVm : ReactiveObject
     public string         TimeText          { get; }
     public string         TotalIskText      { get; }
     public string         ShipName          { get; }
+    public int            SystemId          { get; }
     public string         SystemName        { get; }
     public string         ConstellationName { get; }
     public string         RegionName        { get; }
@@ -50,6 +51,7 @@ public class KillmailListRowVm : ReactiveObject
         TimeText          = r.KillMailTime.UtcDateTime.ToString("HH:mm");
         TotalIskText      = r.TotalIsk > 0 ? FmtIsk(r.TotalIsk) : "";
         ShipName          = r.ShipName;
+        SystemId          = r.SystemId;
         SystemName        = r.SystemName;
         ConstellationName = r.ConstellationName;
         RegionName        = r.RegionName;
@@ -255,6 +257,7 @@ public class KillmailDetailVm : ReactiveObject
     public string VictimCorp      { get; }
     public string VictimAlliance  { get; }
     public string TimeText        { get; }
+    public int    SystemId        { get; }
     public string SystemText      { get; }
     public string LocationText    { get; }
     public string DamageTakenText { get; }
@@ -286,6 +289,7 @@ public class KillmailDetailVm : ReactiveObject
         VictimCorp     = d.VictimCorp;
         VictimAlliance = d.VictimAlliance;
         TimeText       = d.KillMailTime.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+        SystemId       = d.SystemId;
         SystemText     = string.IsNullOrEmpty(d.RegionName)
             ? d.SystemName : $"{d.SystemName}  ({d.RegionName})";
         LocationText   = d.LocationText;
@@ -426,7 +430,11 @@ public class KillmailBrowserViewModel : ReactiveObject
     /// given type id, same wiring as ProductionCalculatorViewModel/
     /// CharacterViewerViewModel's identical property.</summary>
     public Action<int>? NavigateToItemAction { get; set; }
+
+    /// <summary>Set by the shell so a system name opens that system on the Universe map.</summary>
+    public Action<int>? NavigateToSystemAction { get; set; }
     public ReactiveUI.ReactiveCommand<int, System.Reactive.Unit> OpenInItemBrowserCommand { get; }
+    public ReactiveUI.ReactiveCommand<int, System.Reactive.Unit> OpenSystemMapCommand     { get; }
 
     // Paging — the underlying table can now hold 100K+ rows (zKillboard backfill/firehose),
     // so the browser loads a page at a time instead of one hard-capped query.
@@ -449,6 +457,7 @@ public class KillmailBrowserViewModel : ReactiveObject
         LoadMoreCommand.ThrownExceptions.Subscribe(_ => { });
 
         OpenInItemBrowserCommand = ReactiveUI.ReactiveCommand.Create<int>(typeId => NavigateToItemAction?.Invoke(typeId));
+        OpenSystemMapCommand     = ReactiveUI.ReactiveCommand.Create<int>(id => { if (id > 0) NavigateToSystemAction?.Invoke(id); });
 
         ClearFiltersCommand = ReactiveUI.ReactiveCommand.Create(() =>
         {
