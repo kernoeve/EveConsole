@@ -610,7 +610,11 @@ public class SystemPageViewModel : ReactiveObject
                 str   = [.. Structures];
                 evt   = [.. Events.Take(40)];
                 kills = [.. Kills];
-                intel = [.. Intel];
+                // Only the rows that fit on screen. Each intel row wants four images per pilot
+                // named plus three for the reporter, so the full 200 runs to well over a
+                // thousand — and asking for the ones nobody has scrolled to yet only delays the
+                // ones they are looking at. Same reasoning as the celestials cap above.
+                intel = [.. Intel.Take(40)];
             });
 
             if (generation != _loadGeneration) return;
