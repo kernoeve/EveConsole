@@ -500,10 +500,12 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     /// <summary>
     /// NPC station count per system (or per region).
     ///
-    /// ⚠️ Region is resolved by joining through the solar system rather than reading
-    /// <c>SdeStations.RegionId</c>: the SDE importer leaves that column (and ConstellationId)
-    /// at 0 on every row, so grouping by it silently yields an empty result rather than an
-    /// error. Only SolarSystemId is populated.
+    /// Region comes from joining through the solar system rather than from
+    /// <c>SdeStations.RegionId</c>. That column is populated now — by the importer, and by a
+    /// startup repair for databases imported before the fix — but the join is kept because it
+    /// is correct whatever state the column is in. Reading it directly is what made the
+    /// original bug invisible: a zero there is a legitimate-looking id, so grouping on it
+    /// returned an empty result instead of failing.
     /// </summary>
     public async Task<Dictionary<int, int>> GetStationCountsAsync(
         bool byRegion, CancellationToken ct = default)

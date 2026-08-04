@@ -480,9 +480,10 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
         using var cmd = conn.CreateCommand();
 
-        // NPC station: resolve via the station's solar system. (SdeStations.RegionId is
-        // not populated by the SDE import — it is 0 for every row — so we must not read
-        // it directly; join through SolarSystemId instead.)
+        // NPC station: resolve via the station's solar system. SdeStations.RegionId is
+        // populated now (by the importer, and by a startup repair for databases imported
+        // before that fix), but the join is kept deliberately — it is correct whatever
+        // state the column is in.
         cmd.CommandText = """
             SELECT ss."RegionId"
             FROM "SdeStations"     s

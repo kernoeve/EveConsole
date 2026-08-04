@@ -1854,6 +1854,28 @@ public class App : Application
                 """CREATE TABLE IF NOT EXISTS "NameLookupMisses" ("Name" TEXT NOT NULL PRIMARY KEY, "CheckedAt" TEXT NULL)""",
                 """CREATE TABLE IF NOT EXISTS "CharacterAffiliations" ("CharacterId" INTEGER NOT NULL PRIMARY KEY, "CorporationId" INTEGER NOT NULL DEFAULT 0, "AllianceId" INTEGER NOT NULL DEFAULT 0, "PulledAt" TEXT NULL)""",
             }) { try { db.Database.ExecuteSqlRaw(sql); } catch { } }
+            // Repairs stations imported before ConstellationId/RegionId/Security were populated
+            // from the solar system. The importer now fills them, but an existing install only
+            // gets correct values on its next SDE import, which may be months away — and a zero
+            // here reads as a legitimate id, so queries grouping on it silently return nothing
+            // rather than failing. Restricted to rows that still need it, so it costs nothing
+            // once done and is safe to run on every start.
+            try
+            {
+                db.Database.ExecuteSqlRaw("""
+                    UPDATE "SdeStations"
+                    SET "ConstellationId" = (SELECT s."ConstellationId" FROM "SdeSolarSystems" s
+                                             WHERE s."SolarSystemId" = "SdeStations"."SolarSystemId"),
+                        "RegionId"        = (SELECT s."RegionId"        FROM "SdeSolarSystems" s
+                                             WHERE s."SolarSystemId" = "SdeStations"."SolarSystemId"),
+                        "Security"        = (SELECT s."Security"        FROM "SdeSolarSystems" s
+                                             WHERE s."SolarSystemId" = "SdeStations"."SolarSystemId")
+                    WHERE ("ConstellationId" = 0 OR "RegionId" = 0)
+                      AND EXISTS (SELECT 1 FROM "SdeSolarSystems" s
+                                  WHERE s."SolarSystemId" = "SdeStations"."SolarSystemId")
+                    """);
+            }
+            catch { /* nothing to repair on a database that has never had an SDE import */ }
         }
         }); // end Task.Run — schema migration complete
 

@@ -1085,20 +1085,34 @@ public class SdeImportService
             Report(p, "Stations", "Parsing npcStations.yaml…", 0.87);
             using var reader = OpenEntry(newEntry);
             var raw = _yaml.Deserialize<Dictionary<int, NpcStationYaml>>(reader) ?? [];
+
+            // npcStations.yaml carries only the solar system, unlike the old staStations.yaml
+            // which also gave constellation, region and security. Those three are resolved from
+            // the systems imported moments ago by ImportUniverseAsync rather than left at zero:
+            // a zero here is indistinguishable from a real id, so anything grouping or filtering
+            // on the column silently returns nothing instead of failing.
+            var systems = await db.SdeSolarSystems.AsNoTracking()
+                .Select(s => new { s.SolarSystemId, s.ConstellationId, s.RegionId, s.Security })
+                .ToDictionaryAsync(s => s.SolarSystemId, ct);
+
             Report(p, "Stations", $"Fetching {raw.Count:N0} station names from ESI…", 0.875);
             var names = await FetchEsiNamesAsync(raw.Keys.ToList(), "station", ct);
-            var rows = raw.Select(kv => new SdeStation
+            var rows = raw.Select(kv =>
             {
-                StationId              = kv.Key,
-                Name                   = names.GetValueOrDefault(kv.Key, ""),
-                SolarSystemId          = kv.Value.solarSystemID,
-                ConstellationId        = 0,   // not in npcStations.yaml; resolvable via join to SdeSolarSystems
-                RegionId               = 0,
-                CorporationId          = kv.Value.ownerID,
-                StationTypeId          = kv.Value.typeID,
-                Security               = 0,
-                ReprocessingEfficiency = kv.Value.reprocessingEfficiency,
-                ReprocessingTax        = kv.Value.reprocessingStationsTake,
+                systems.TryGetValue(kv.Value.solarSystemID, out var sys);
+                return new SdeStation
+                {
+                    StationId              = kv.Key,
+                    Name                   = names.GetValueOrDefault(kv.Key, ""),
+                    SolarSystemId          = kv.Value.solarSystemID,
+                    ConstellationId        = sys?.ConstellationId ?? 0,
+                    RegionId               = sys?.RegionId ?? 0,
+                    CorporationId          = kv.Value.ownerID,
+                    StationTypeId          = kv.Value.typeID,
+                    Security               = sys?.Security ?? 0,
+                    ReprocessingEfficiency = kv.Value.reprocessingEfficiency,
+                    ReprocessingTax        = kv.Value.reprocessingStationsTake,
+                };
             });
             await SaveBatchesAsync(db, db.SdeStations, rows, "Stations", raw.Count, p, 0.875, 0.89, ct);
             return;
