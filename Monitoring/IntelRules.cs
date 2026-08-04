@@ -77,6 +77,104 @@ public static class IntelRules
     private static readonly HashSet<string> NoVisualWords =
         new(StringComparer.OrdinalIgnoreCase) { "nv", "n/v", "novis" };
 
+    /// <summary>
+    /// Words never treated as a pilot, however well they match a character name.
+    ///
+    /// Real players are called things like "gate", "status", "and", "hole" and "Kill", and once
+    /// ESI confirms such a name it goes into the shared entity-name cache — after which every
+    /// reporter who types that ordinary word is recorded as having seen that person. Across the
+    /// stored history this produced ~6,900 phantom pilot rows, inflating headcounts and dragging
+    /// unrelated systems into one pilot's supersede chain.
+    ///
+    /// Chosen from this user's own channels, by taking every single-token match that appears in
+    /// 8 or more systems and has NEVER appeared on a killmail — vocabulary scatters across the
+    /// map and never dies, whereas a real pilot concentrates and eventually shows up on a kill.
+    /// That candidate set was then filtered: the English entries are those matching the 10,000
+    /// most common English words, and the EVE entries were picked by hand, because a plain
+    /// dictionary knows nothing of "dscan" or "ansiblex".
+    ///
+    /// ⚠ Deliberately conservative. A missed stop word costs one bogus row; a wrongly listed one
+    /// means a genuine hostile stops being tracked. Anything that reads like a name was left off
+    /// even where the numbers looked suspicious — "cyberanarchist" and "Niceee" among them.
+    /// </summary>
+    private static readonly HashSet<string> StopWords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // ── Common English ────────────────────────────────────────────────────
+        "about", "active", "again", "all", "also", "and", "anyone", "are", "around", "atm",
+        "back", "bank", "being", "blue", "bridge", "bubble", "but", "came", "camp", "camping",
+        "clearing", "core", "enemy", "eyes", "fleet", "for", "fort", "from", "gang", "gate",
+        "gates", "get", "going", "gone", "got", "group", "has", "have", "heading", "here",
+        "him", "hole", "hot", "hunting", "into", "issue", "jump", "jumping", "just", "keep",
+        "kill", "killing", "large", "last", "left", "likely", "linked", "logged", "male",
+        "max", "maybe", "might", "min", "mobile", "more", "mostly", "navy", "near", "not",
+        "off", "only", "other", "out", "please", "plus", "pod", "possible", "probably", "red",
+        "rest", "saw", "scan", "ship", "ships", "shuttle", "sitting", "small", "solar",
+        "sorry", "status", "still", "system", "test", "that", "the", "theft", "them", "there",
+        "they", "this", "through", "was", "went", "what", "with",
+
+        // ── EVE vocabulary a dictionary does not know ─────────────────────────
+        // Ships, by slang or abbreviation
+        "retri", "kiki", "stilleto", "stilletto", "saber", "lokis", "hecates", "dictor",
+        "VNI", "CNI", "SFI", "ENI", "ONI", "shuttles",
+        // Mechanics and structures
+        "ESS", "ANSI", "ansiblex", "spike", "neut", "neuts", "blops", "dscan", "cyno",
+        "filament", "skyhook", "gatecamp", "wormhole", "probes",
+        // Bubbles, including the common misspelling
+        "bubbled", "bubbles", "bubbling", "buble",
+        // States and actions
+        "camped", "jumped", "cloaked", "anchored", "docked", "robbing", "stealing",
+        "hostile", "hostiles", "reds", "dropper",
+        // Alliance tickers reporters type as words
+        "Horde", "init", "FRT",
+        // Chat shorthand
+        "pls", "5min", "ved",
+
+        // Added from review of the parsed output
+        "were", "glimpse", "sat", "issues", "where", "nay", "ZD1",
+        "entered", "well", "wel", "pipe", "update", "of",
+
+        // Ships, structures and groups named in passing
+        "destroyer", "keepstar", "tuskers", "prob", "sabe", "nano", "prot", "grid",
+        "W-I", "88A", "yorb",
+        // Shortened hull names the SDE does not carry: it lists "Imperial Navy Slicer", so
+        // "navy slicer" fails the ship match and the second word falls through to pilot names.
+        "slicer",
+
+        // Chat and commentary
+        "fighting", "info", "tea", "meme", "bunch", "sos", "guys", "plz", "getting",
+        "ambushed", "menny", "strip", "outside", "established", "currently", "stufff",
+        "reported", "which", "200", "safe", "intel",
+
+        // Connectives, so the all-words rule covers combinations of listed words without
+        // every pairing having to be written out — "in the", "gang on", "a hole", "did not"
+        // and "gate is camped" all fall out of these plus words already above.
+        "in", "is", "a", "on", "up", "did", "coming", "big", "under", "attack",
+        "moon", "planet", "x", "how",
+
+        // ── Phrases ───────────────────────────────────────────────────────────
+        // Multi-token matches were overwhelmingly REAL names — one player runs an Expanse-themed
+        // alt fleet, so "Capt Amos Burton" and "Naomi Nagata" look like chatter and are not.
+        // Only these six were actually phrases.
+        "on the", "gate in", "gate camp", "drag bubble", "still here", "they are",
+        "all in", "look in", "how do", "combat probes out",
+        // Phrases whose parts are not all listed on their own
+        "big spike", "navy slicer", "eni on", "moon 1", "planet V", "15 x", "bubble up",
+    };
+
+
+    /// <summary>
+    /// Whether a run should never be taken as a pilot: either it is listed outright, or every
+    /// one of its words is.
+    ///
+    /// The second test is what catches combinations nobody enumerated. "the" and "gate" were
+    /// both listed, yet "the gate" still matched a character and was recorded as a sighting of
+    /// them — and the same would hold for any other pairing of listed words.
+    /// </summary>
+    private static bool IsStopRun(string run) =>
+        StopWords.Contains(run) ||
+        run.Split(' ', StringSplitOptions.RemoveEmptyEntries) is { Length: > 1 } parts
+            && parts.All(StopWords.Contains);
+
     /// <summary>A pilot named on a line, with the hull they were called in if one was given.</summary>
     public sealed record SightedPilot(string Name, string? Ship);
 
@@ -128,6 +226,7 @@ public static class IntelRules
                 {
                     var run = string.Join(' ', chunk.Skip(start).Take(len).Select(t => t.Clean));
                     if (run.Length is 0 or > 37)      continue;   // EVE's own name limit
+                    if (IsStopRun(run))              continue;   // never asked about at all
                     if (PlusValue(run) is not null)   continue;
                     if (isSystem(run))                continue;
                     seen.Add(run);
@@ -147,6 +246,12 @@ public static class IntelRules
         Func<string, bool>? isShip = null)
     {
         if (string.IsNullOrWhiteSpace(message)) return null;
+
+        // A question is a request for intel, not a report of it — "C-FD0D* Update?" asks whether
+        // anyone has eyes on a system, and reads to the parser exactly like a sighting with no
+        // one in it. Only a count rescues it: "ZD1-Z2 +3?" is someone unsure of the number, and
+        // that is still a sighting.
+        var isQuestion = message.TrimEnd().EndsWith('?');
 
         var chunks = Chunks(message);
         if (chunks.Count == 0) return null;
@@ -223,7 +328,7 @@ public static class IntelRules
                         i      += len;
                         matched = true;
                     }
-                    else if (isCharacter(run))
+                    else if (!IsStopRun(run) && isCharacter(run))
                     {
                         names.Add(run);
                         ships.Add(pendingShip);
@@ -241,6 +346,10 @@ public static class IntelRules
         }
 
         if (system is null) return null;
+
+        // Asked, not reported. Checked before the count so a question naming a pilot — "ZD1-Z2
+        // Sevra?" — is dropped too; that is somebody wondering whether Sevra is still there.
+        if (isQuestion && plus == 0) return null;
 
         // A named pilot counts as one; "+3" means three more on top of whoever was named, and on
         // its own means three unnamed.
