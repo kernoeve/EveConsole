@@ -384,7 +384,7 @@ public class MainWindowViewModel : ReactiveObject
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
         UniverseVm             = new UniverseViewModel(
             new UniverseMapService(dbFactory), mapStatsService,
-            new SystemPageViewModel(systemViewService, killmailBrowserService));
+            new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");

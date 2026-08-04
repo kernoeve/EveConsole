@@ -68,16 +68,23 @@ public class DetailRowVm(string label, string value)
 
 public class UniverseViewModel : ReactiveObject
 {
-    private readonly UniverseMapService _map;
-    private readonly MapStatsService?   _stats;
+    private readonly UniverseMapService     _map;
+    private readonly MapStatsService?       _stats;
+    private readonly AppPreferencesService? _prefs;
+
+    /// <summary>Remembers the overlay across sessions — the tool is normally opened to look at
+    /// the same thing as last time, not to be reset to Security.</summary>
+    private const string OverlayPrefKey = "universe.overlay";
 
     public UniverseViewModel(
-        UniverseMapService   map,
-        MapStatsService?     stats     = null,
-        SystemPageViewModel? systemPage = null)
+        UniverseMapService     map,
+        MapStatsService?       stats      = null,
+        SystemPageViewModel?   systemPage = null,
+        AppPreferencesService? prefs      = null)
     {
         _map       = map;
         _stats     = stats;
+        _prefs     = prefs;
         SystemPage = systemPage;
 
         OverlayModes =
@@ -112,7 +119,10 @@ public class UniverseViewModel : ReactiveObject
             new("Moons",         "cel:1"),
             new("Asteroid belts", "cel:3"),
         ];
-        _selectedOverlay = OverlayModes[0];
+        // An overlay that has since been renamed or removed falls back to the first one rather
+        // than leaving the selection empty.
+        var savedKey = prefs?.Get(OverlayPrefKey);
+        _selectedOverlay = OverlayModes.FirstOrDefault(m => m.Key == savedKey) ?? OverlayModes[0];
 
         DrillDownCommand  = ReactiveCommand.CreateFromTask<int>(DrillDownAsync);
         OpenSystemCommand = ReactiveCommand.CreateFromTask<int>(ShowSystemAsync);
@@ -126,10 +136,17 @@ public class UniverseViewModel : ReactiveObject
         GoUniverseCommand.ThrownExceptions.Subscribe(ex => Status = $"Error: {ex.Message}");
         RefreshCommand   .ThrownExceptions.Subscribe(ex => Status = $"Error: {ex.Message}");
 
-        // Re-paint on overlay change without refetching geometry.
+        // Re-paint on overlay change without refetching geometry, and remember the choice.
         this.WhenAnyValue(x => x.SelectedOverlay)
             .Skip(1)
-            .SelectMany(_ => Guarded(ReapplyOverlayAsync))
+            .SelectMany(m => Guarded(async () =>
+            {
+                // Saved before the repaint, so a repaint that fails does not also lose the
+                // choice the user just made.
+                if (_prefs is not null && m is not null)
+                    await _prefs.SetAsync(OverlayPrefKey, m.Key);
+                await ReapplyOverlayAsync();
+            }))
             .Subscribe();
 
         // Typing refreshes the suggestions; picking one navigates. Throttled because it hits
