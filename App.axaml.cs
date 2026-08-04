@@ -2,6 +2,7 @@
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using EveConsole.Agent;
+using EveConsole.Alarms;
 using EveConsole.Data;
 using EveConsole.Views;
 using EveConsole.ViewModels;
@@ -1853,6 +1854,26 @@ public class App : Application
                 """ALTER TABLE "IntelReports" ADD COLUMN "Message" TEXT NOT NULL DEFAULT ''""",
                 """CREATE TABLE IF NOT EXISTS "NameLookupMisses" ("Name" TEXT NOT NULL PRIMARY KEY, "CheckedAt" TEXT NULL)""",
                 """CREATE TABLE IF NOT EXISTS "CharacterAffiliations" ("CharacterId" INTEGER NOT NULL PRIMARY KEY, "CorporationId" INTEGER NOT NULL DEFAULT 0, "AllianceId" INTEGER NOT NULL DEFAULT 0, "PulledAt" TEXT NULL)""",
+
+                // ── Alarms ───────────────────────────────────────────────────
+                // NB: braces are doubled. ExecuteSqlRaw runs the statement through string.Format,
+                // so a literal '{}' default is read as a format placeholder and throws — and
+                // since this loop swallows exceptions, the table would simply never be created.
+                """CREATE TABLE IF NOT EXISTS "Alarms" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "Name" TEXT NOT NULL DEFAULT '', "Enabled" INTEGER NOT NULL DEFAULT 1, "ConditionType" TEXT NOT NULL DEFAULT '', "ConditionJson" TEXT NOT NULL DEFAULT '{{}}', "Repeat" INTEGER NOT NULL DEFAULT 1, "PollSeconds" INTEGER NOT NULL DEFAULT 60, "CooldownSeconds" INTEGER NOT NULL DEFAULT 0, "Primed" INTEGER NOT NULL DEFAULT 0, "CreatedBy" TEXT NOT NULL DEFAULT 'user', "CreatedAt" TEXT NOT NULL DEFAULT '', "LastCheckedAt" TEXT NULL, "LastFiredAt" TEXT NULL, "FireCount" INTEGER NOT NULL DEFAULT 0, "LastError" TEXT NULL)""",
+                """CREATE INDEX IF NOT EXISTS "IX_Alarms_Enabled" ON "Alarms" ("Enabled")""",
+
+                """CREATE TABLE IF NOT EXISTS "AlarmActions" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "Kind" INTEGER NOT NULL DEFAULT 0, "ConfigJson" TEXT NOT NULL DEFAULT '{{}}', "Ordinal" INTEGER NOT NULL DEFAULT 0)""",
+                """CREATE INDEX IF NOT EXISTS "IX_AlarmActions_AlarmId" ON "AlarmActions" ("AlarmId")""",
+
+                // The ledger that stops an alarm re-announcing what it has already announced.
+                """CREATE TABLE IF NOT EXISTS "AlarmSeenKeys" ("AlarmId" INTEGER NOT NULL, "MatchKey" TEXT NOT NULL, "FirstSeenAt" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("AlarmId", "MatchKey"))""",
+                """CREATE INDEX IF NOT EXISTS "IX_AlarmSeenKeys_Alarm_Seen" ON "AlarmSeenKeys" ("AlarmId", "FirstSeenAt")""",
+
+                """CREATE TABLE IF NOT EXISTS "AlarmEvents" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "FiredAt" TEXT NOT NULL DEFAULT '', "Summary" TEXT NOT NULL DEFAULT '', "DetailJson" TEXT NULL, "MatchCount" INTEGER NOT NULL DEFAULT 0)""",
+                """CREATE INDEX IF NOT EXISTS "IX_AlarmEvents_Alarm_Fired" ON "AlarmEvents" ("AlarmId", "FiredAt")""",
+
+                """CREATE TABLE IF NOT EXISTS "AlarmAlerts" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "AlarmEventId" INTEGER NOT NULL DEFAULT 0, "CreatedAt" TEXT NOT NULL DEFAULT '', "Title" TEXT NOT NULL DEFAULT '', "Body" TEXT NULL, "Dismissed" INTEGER NOT NULL DEFAULT 0, "DismissedAt" TEXT NULL)""",
+                """CREATE INDEX IF NOT EXISTS "IX_AlarmAlerts_Dismissed_Created" ON "AlarmAlerts" ("Dismissed", "CreatedAt")""",
             }) { try { db.Database.ExecuteSqlRaw(sql); } catch { } }
             // Repairs stations imported before ConstellationId/RegionId/Security were populated
             // from the solar system. The importer now fills them, but an existing install only
@@ -1921,6 +1942,9 @@ public class App : Application
         // run over the same hour at the same time.
         Services.GetRequiredService<MapStatsBackfillService>().Start();
         Services.GetRequiredService<MapStatsPollingService>().Start();
+
+        // Cheap when idle: the loop only touches the database for alarms whose interval is up.
+        Services.GetRequiredService<AlarmService>().Start();
     }
 
     private static void PositionSplashOnLastMonitor(SplashWindow splash)
@@ -2074,6 +2098,24 @@ public class App : Application
         services.AddSingleton<MapStatsBackfillService>();
         services.AddSingleton<MapStatsPollingService>();
         services.AddSingleton<SystemViewService>();
+
+        // Alarms. Nothing is defined out of the box — every alarm is one the user (or the agent
+        // on their behalf) creates. See AlarmService for why firing is keyed on match identity
+        // rather than on a condition merely being true.
+        services.AddSingleton<AlarmSoundService>();
+        services.AddSingleton(_ => AlarmConditionRegistry.CreateDefault());
+        services.AddSingleton<AlarmActionRunner>();
+        services.AddSingleton(sp =>
+        {
+            var factory = sp.GetRequiredService<IDbContextFactory<AppDbContext>>();
+            using var db = factory.CreateDbContext();
+            return new AlarmService(
+                factory,
+                db.Database.GetConnectionString()!,
+                sp.GetRequiredService<AlarmConditionRegistry>(),
+                sp.GetRequiredService<AlarmActionRunner>(),
+                sp.GetRequiredService<AppErrorLogger>());
+        });
 
         services.AddSingleton<EntityNameBackfillService>();
         services.AddSingleton<EveServerStatusService>();

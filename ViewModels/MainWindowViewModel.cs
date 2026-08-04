@@ -38,6 +38,8 @@ public class MainWindowViewModel : ReactiveObject
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
     public StructureBrowserViewModel      StructureBrowserVm     { get; }
     public UniverseViewModel              UniverseVm             { get; }
+    public AlarmsViewModel                AlarmsVm               { get; }
+    public AlarmActionRunner              AlarmActions           { get; }
     public WalletViewModel                WalletVm               { get; }
     public ContractsViewModel             ContractsVm            { get; }
     public NotificationsViewModel         NotificationsVm        { get; }
@@ -183,6 +185,7 @@ public class MainWindowViewModel : ReactiveObject
             "price_overrides" => ("Price Overrides", PriceOverrideVm,     true),
             "structure_browser" => ("Structure Browser", StructureBrowserVm, true),
             "universe"        => ("Universe",        UniverseVm,        true),
+            "alarms"          => ("Alarms",          AlarmsVm,          true),
             "trade"           => ("Trade",           TradeOpportunitiesVm,     true),
             "industry_opps"   => ("Industry Opps",   IndustryOpportunitiesVm,  true),
             "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
@@ -211,6 +214,10 @@ public class MainWindowViewModel : ReactiveObject
         var tab = new ToolTab(toolId, title, vm, canClose);
         OpenTabs.Add(tab);
         SelectedTab = tab;
+
+        // Loaded on open rather than at construction — nothing else needs the alarm list, and
+        // a fresh read also picks up anything the agent created since the tab was last shown.
+        if (toolId == "alarms") _ = AlarmsVm.LoadAsync();
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
         if (navItem is not null) navItem.IsOpen = true;
@@ -304,8 +311,12 @@ public class MainWindowViewModel : ReactiveObject
         EntityNameBackfillService       entityNames,
         EveServerStatusService          serverStatus,
         UiLinkSettings                  uiLinks,
-        ExportFormatSettings            exportFormat)
+        ExportFormatSettings            exportFormat,
+        AlarmService                    alarmService,
+        AlarmSoundService               alarmSounds,
+        AlarmActionRunner               alarmActions)
     {
+        AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
         OtherSettingsVm = new OtherSettingsViewModel(uiLinks);
         BindServerStatus(serverStatus);
@@ -322,7 +333,7 @@ public class MainWindowViewModel : ReactiveObject
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
                                                      zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost,
-                                                     intelService, monitoringSettings, entityNames);
+                                                     intelService, monitoringSettings, entityNames, alarmService);
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
@@ -387,6 +398,7 @@ public class MainWindowViewModel : ReactiveObject
         UniverseVm             = new UniverseViewModel(
             new UniverseMapService(dbFactory), mapStatsService,
             new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
+        AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
@@ -507,6 +519,7 @@ public class MainWindowViewModel : ReactiveObject
             new("Tools",
             [
                 new NavItem("universe", "Universe Map"),
+                new NavItem("alarms", "Alarms"),
                 new NavItem("data", "ESI Explorer"),
                 new NavItem("error_log", "Error Log"),
                 new NavItem("game_log", "Game Log"),

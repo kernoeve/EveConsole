@@ -101,6 +101,7 @@ public class ApiActivityViewModel : ReactiveObject
     private readonly IntelService                _intel;
     private readonly MonitoringSettings          _monitoring;
     private readonly EntityNameBackfillService   _nameCache;
+    private readonly AlarmService                _alarms;
 
     public ObservableCollection<ActivityEntry>       Entries        { get; }
     public ObservableCollection<InFlightCall>        InFlight       { get; }
@@ -162,7 +163,8 @@ public class ApiActivityViewModel : ReactiveObject
         ZkillboardPostService     zkbPost,
         IntelService              intel,
         MonitoringSettings        monitoring,
-        EntityNameBackfillService nameCache)
+        EntityNameBackfillService nameCache,
+        AlarmService              alarms)
     {
         Entries        = log.Entries;
         InFlight       = log.InFlightCalls;
@@ -179,6 +181,7 @@ public class ApiActivityViewModel : ReactiveObject
         _intel         = intel;
         _monitoring    = monitoring;
         _nameCache     = nameCache;
+        _alarms        = alarms;
 
         InFlight.CollectionChanged += (_, _) => HasNoInFlight = InFlight.Count == 0;
     }
@@ -225,6 +228,18 @@ public class ApiActivityViewModel : ReactiveObject
     private string _nameCacheCountText = "—";
     public string NameCacheCountText { get => _nameCacheCountText; private set => this.RaiseAndSetIfChanged(ref _nameCacheCountText, value); }
 
+    private string _alarmState = "—";
+    public string AlarmState { get => _alarmState; private set => this.RaiseAndSetIfChanged(ref _alarmState, value); }
+
+    private string _alarmDetail = "—";
+    public string AlarmDetail { get => _alarmDetail; private set => this.RaiseAndSetIfChanged(ref _alarmDetail, value); }
+
+    private string _alarmNextText = "—";
+    public string AlarmNextText { get => _alarmNextText; private set => this.RaiseAndSetIfChanged(ref _alarmNextText, value); }
+
+    private string _alarmLastFireText = "—";
+    public string AlarmLastFireText { get => _alarmLastFireText; private set => this.RaiseAndSetIfChanged(ref _alarmLastFireText, value); }
+
     /// <summary>Cheap, in-memory only — safe to call on the window's 2s tick.</summary>
     public void SyncBackgroundProcesses()
     {
@@ -263,6 +278,20 @@ public class ApiActivityViewModel : ReactiveObject
             : "Caught up";
 
         NameCacheState = _nameCache.StatusText;
+
+        // Alarms. Nothing is defined out of the box, so "no alarms" is the normal resting
+        // state rather than a fault.
+        AlarmState = _alarms.ArmedCount == 0
+            ? "○ No alarms armed — create one in the Alarms tool"
+            : $"● Watching {_alarms.ArmedCount} alarm(s)";
+
+        AlarmDetail   = _alarms.StatusText;
+        AlarmNextText = _alarms.NextDueAt is { } due
+            ? due.ToLocalTime().ToString("HH:mm:ss")
+            : "—";
+        AlarmLastFireText = _alarms.LastFireAt is { } fired
+            ? fired.ToLocalTime().ToString("d MMM HH:mm:ss")
+            : "Nothing has fired this session";
     }
 
     /// <summary>Hits the DB for the cached-name total, so it runs on the slower tick.</summary>

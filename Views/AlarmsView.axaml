@@ -1,0 +1,318 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.AlarmsView"
+             x:DataType="vm:AlarmsViewModel"
+             Background="#0d0d12">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize" Value="9.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Margin" Value="2 0 0 2" />
+    </Style>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#5599aa" />
+      <Setter Property="Margin" Value="0 0 0 6" />
+    </Style>
+    <Style Selector="Button.tool">
+      <Setter Property="Background" Value="#1a1a28" />
+      <Setter Property="Foreground" Value="#5599aa" />
+      <Setter Property="BorderBrush" Value="#2a3a44" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="12 4" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,1,*">
+
+    <!-- ── Toolbar ──────────────────────────────────────────────────────── -->
+    <Border Grid.Row="0" Background="#12121a" Padding="12 8"
+            BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
+        <Button Grid.Column="0" Classes="tool" Command="{Binding NewCommand}" Content="New Alarm" />
+        <Button Grid.Column="1" Classes="tool" Command="{Binding RefreshCommand}"
+                Content="Refresh" Margin="8 0 0 0" />
+        <TextBlock Grid.Column="3" Text="{Binding StatusText}" FontSize="11" Foreground="#666677"
+                   VerticalAlignment="Center" Margin="16 0 0 0" TextTrimming="CharacterEllipsis" />
+        <TextBlock Grid.Column="4" Text="{Binding Service.StatusText}" FontSize="10.5"
+                   Foreground="#4a4a5a" VerticalAlignment="Center" Margin="12 0 0 0" />
+      </Grid>
+    </Border>
+
+    <Rectangle Grid.Row="1" Fill="#1e1e2a" />
+
+    <Grid Grid.Row="2" ColumnDefinitions="360,1,*">
+
+      <!-- ── Left: alarm list, then open alerts ─────────────────────────── -->
+      <Grid Grid.Column="0" RowDefinitions="*,Auto">
+
+        <ListBox Grid.Row="0" ItemsSource="{Binding Alarms}"
+                 SelectedItem="{Binding SelectedAlarm}"
+                 Background="#0b0b10" BorderThickness="0">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:AlarmRowVm">
+              <Grid ColumnDefinitions="Auto,*" Margin="0 3">
+                <CheckBox Grid.Column="0" IsChecked="{Binding Enabled}" IsHitTestVisible="False"
+                          VerticalAlignment="Top" Margin="0 2 6 0" />
+                <StackPanel Grid.Column="1" Spacing="1">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#ddd"
+                               FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <Border Background="#1e2a33" CornerRadius="2" Padding="4 0"
+                            IsVisible="{Binding IsAgentCreated}" VerticalAlignment="Center">
+                      <TextBlock Text="agent" FontSize="8.5" Foreground="#5599aa" />
+                    </Border>
+                  </StackPanel>
+                  <TextBlock Text="{Binding Condition}" FontSize="10.5" Foreground="#7a7a8a"
+                             TextTrimming="CharacterEllipsis" />
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="{Binding StatusText}" FontSize="10" Foreground="#556" />
+                    <TextBlock Text="{Binding LastFiredText}" FontSize="10" Foreground="#445" />
+                  </StackPanel>
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Border Grid.Row="1" Background="#0b0b10" BorderThickness="0 1 0 0" BorderBrush="#1e1e2a"
+                Padding="10 8" MaxHeight="260"
+                IsVisible="{Binding HasAlerts}">
+          <StackPanel Spacing="6">
+            <TextBlock Classes="section" Text="OPEN ALERTS" />
+            <ItemsControl ItemsSource="{Binding Alerts}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:AlarmAlertVm">
+                  <Border Background="#16161d" CornerRadius="3" Padding="8 6" Margin="0 0 0 4">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Grid.Column="0" Spacing="1">
+                        <TextBlock Text="{Binding Title}" FontSize="11" Foreground="#c8a84b"
+                                   FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Body}" FontSize="10.5" Foreground="#999"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding WhenText}" FontSize="9.5" Foreground="#556" />
+                      </StackPanel>
+                      <Button Grid.Column="1" Content="✕" Command="{Binding DismissCommand}"
+                              Background="Transparent" BorderThickness="0" Foreground="#667"
+                              Padding="6 0" VerticalAlignment="Top" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <Rectangle Grid.Column="1" Fill="#1e1e2a" />
+
+      <!-- ── Right: editor over history ──────────────────────────────────── -->
+      <Grid Grid.Column="2" RowDefinitions="*,1,Auto">
+
+        <ScrollViewer Grid.Row="0" IsVisible="{Binding HasEditor}" Padding="16 14">
+          <StackPanel Spacing="14" MaxWidth="720" HorizontalAlignment="Left">
+
+            <!-- Name / enabled -->
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Grid.Column="0">
+                <TextBlock Classes="flabel" Text="NAME" />
+                <TextBox Text="{Binding Name}" Watermark="What is this alarm for?" />
+              </StackPanel>
+              <CheckBox Grid.Column="1" IsChecked="{Binding Enabled}" Content="Enabled"
+                        FontSize="11" Foreground="#999" VerticalAlignment="Bottom"
+                        Margin="14 0 0 4" />
+            </Grid>
+
+            <!-- Condition -->
+            <StackPanel Spacing="8">
+              <TextBlock Classes="section" Text="WHEN" />
+
+              <StackPanel>
+                <TextBlock Classes="flabel" Text="CHECK" />
+                <ComboBox ItemsSource="{Binding Conditions}"
+                          SelectedItem="{Binding SelectedCondition}"
+                          HorizontalAlignment="Stretch" FontSize="11">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding DisplayName}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock Text="{Binding SelectedCondition.Description}" FontSize="10" Foreground="#667"
+                           TextWrapping="Wrap" Margin="2 4 0 0" />
+              </StackPanel>
+
+              <!-- Schema-derived parameter fields -->
+              <ItemsControl ItemsSource="{Binding Fields}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:AlarmFieldVm">
+                    <StackPanel Margin="0 0 0 8">
+                      <TextBlock Classes="flabel" Text="{Binding Label}" />
+
+                      <TextBox Text="{Binding Text}" IsVisible="{Binding IsText}"
+                               AcceptsReturn="{Binding IsMultiline}"
+                               MinHeight="{Binding MinHeight}" />
+
+                      <CheckBox IsChecked="{Binding Flag}" IsVisible="{Binding IsBoolean}"
+                                FontSize="11" Foreground="#999" />
+
+                      <ComboBox ItemsSource="{Binding Options}" SelectedItem="{Binding Text}"
+                                IsVisible="{Binding IsEnum}" HorizontalAlignment="Stretch"
+                                FontSize="11" />
+
+                      <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsDateTime}">
+                        <DatePicker SelectedDate="{Binding Date}" />
+                        <TimePicker SelectedTime="{Binding Time}" ClockIdentifier="24HourClock" />
+                      </StackPanel>
+
+                      <TextBlock Text="{Binding Description}" FontSize="9.5" Foreground="#556"
+                                 TextWrapping="Wrap" Margin="2 3 0 0" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <Grid ColumnDefinitions="*,*,*">
+                <StackPanel Grid.Column="0" Margin="0 0 5 0">
+                  <TextBlock Classes="flabel" Text="AFTER FIRING" />
+                  <ComboBox ItemsSource="{Binding RepeatModes}" SelectedItem="{Binding Repeat}"
+                            HorizontalAlignment="Stretch" FontSize="11" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="5 0">
+                  <TextBlock Classes="flabel" Text="CHECK EVERY (SEC)" />
+                  <TextBox Text="{Binding PollSeconds}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Margin="5 0 0 0">
+                  <TextBlock Classes="flabel" Text="COOLDOWN (SEC)" />
+                  <TextBox Text="{Binding CooldownSeconds}" />
+                </StackPanel>
+              </Grid>
+
+              <TextBlock FontSize="9.5" Foreground="#556" TextWrapping="Wrap"
+                         Text="An alarm only announces things it has not announced before, so a condition that stays true does not repeat. Continuous stays armed until you disable it; One shot disables itself after firing once. Cooldown adds a minimum gap on top." />
+            </StackPanel>
+
+            <!-- Actions -->
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Classes="section" Text="THEN" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="tool" Content="Add Action"
+                        Command="{Binding AddActionCommand}" />
+              </Grid>
+
+              <ItemsControl ItemsSource="{Binding Actions}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:AlarmActionVm">
+                    <Border Background="#0b0b10" BorderBrush="#1e1e2a" BorderThickness="1"
+                            CornerRadius="3" Padding="10 8" Margin="0 0 0 6">
+                      <StackPanel Spacing="8">
+
+                        <Grid ColumnDefinitions="220,*,Auto">
+                          <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableKinds}"
+                                    SelectedItem="{Binding Kind}" FontSize="11"
+                                    HorizontalAlignment="Stretch" />
+                          <Button Grid.Column="2" Content="Remove" FontSize="10.5"
+                                  Background="Transparent" BorderThickness="0" Foreground="#775"
+                                  Command="{Binding $parent[ItemsControl].((vm:AlarmsViewModel)DataContext).RemoveActionCommand}"
+                                  CommandParameter="{Binding}" />
+                        </Grid>
+
+                        <!-- Sound -->
+                        <Grid ColumnDefinitions="*,90,Auto" IsVisible="{Binding IsSound}">
+                          <StackPanel Grid.Column="0" Margin="0 0 8 0">
+                            <TextBlock Classes="flabel" Text="SOUND" />
+                            <ComboBox ItemsSource="{Binding AvailableSounds}" SelectedItem="{Binding Sound}"
+                                      HorizontalAlignment="Stretch" FontSize="11" />
+                          </StackPanel>
+                          <StackPanel Grid.Column="1" Margin="0 0 8 0">
+                            <TextBlock Classes="flabel" Text="VOLUME" />
+                            <TextBox Text="{Binding Volume}" />
+                          </StackPanel>
+                          <Button Grid.Column="2" Classes="tool" Content="▶ Preview"
+                                  Command="{Binding PreviewCommand}" VerticalAlignment="Bottom" />
+                        </Grid>
+
+                        <!-- Agent -->
+                        <StackPanel IsVisible="{Binding IsAgent}">
+                          <TextBlock Classes="flabel" Text="EXTRA INSTRUCTION FOR THE AGENT (OPTIONAL)" />
+                          <TextBox Text="{Binding Instruction}"
+                                   Watermark="e.g. mention which system, and keep it short" />
+                          <TextBlock FontSize="9.5" Foreground="#556" TextWrapping="Wrap" Margin="2 3 0 0"
+                                     Text="The agent is told what fired and phrases it itself. It will speak aloud if you have text-to-speech configured; if the agent is not set up, this is recorded as an alert instead." />
+                        </StackPanel>
+
+                        <!-- Alert / Dialog -->
+                        <StackPanel Spacing="6" IsVisible="{Binding HasText}">
+                          <StackPanel>
+                            <TextBlock Classes="flabel" Text="TITLE" />
+                            <TextBox Text="{Binding Title}" Watermark="{}{alarm}" />
+                          </StackPanel>
+                          <StackPanel>
+                            <TextBlock Classes="flabel" Text="MESSAGE" />
+                            <TextBox Text="{Binding Body}" AcceptsReturn="True" MinHeight="54"
+                                     Watermark="{}{summary}" />
+                          </StackPanel>
+                          <TextBlock FontSize="9.5" Foreground="#556" TextWrapping="Wrap"
+                                     Text="Placeholders: {alarm} {summary} {count} {time} {date}" />
+                        </StackPanel>
+
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <!-- Save / delete -->
+            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0 4 0 20">
+              <Button Classes="tool" Content="Save" Command="{Binding SaveCommand}" />
+              <Button Classes="tool" Content="Test Sounds" Command="{Binding TestFireCommand}" />
+              <Button Content="Delete" Command="{Binding DeleteCommand}"
+                      Background="#1a1a28" Foreground="#aa5555" BorderBrush="#442a2a"
+                      BorderThickness="1" Padding="12 4" FontSize="11" />
+            </StackPanel>
+
+          </StackPanel>
+        </ScrollViewer>
+
+        <TextBlock Grid.Row="0" IsVisible="{Binding !HasEditor}"
+                   Text="Select an alarm, or create one."
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   FontSize="12" Foreground="#445" />
+
+        <Rectangle Grid.Row="1" Fill="#1e1e2a" />
+
+        <!-- History -->
+        <Border Grid.Row="2" Background="#0b0b10" Padding="12 10" MaxHeight="200">
+          <StackPanel Spacing="6">
+            <TextBlock Classes="section" Text="RECENT FIRINGS" />
+            <ScrollViewer MaxHeight="150">
+              <ItemsControl ItemsSource="{Binding History}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:AlarmEventVm">
+                    <Grid ColumnDefinitions="130,180,*" Margin="0 1">
+                      <TextBlock Grid.Column="0" Text="{Binding WhenText}" FontSize="10.5" Foreground="#667" />
+                      <TextBlock Grid.Column="1" Text="{Binding AlarmName}" FontSize="10.5" Foreground="#99a"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="2" Text="{Binding Summary}" FontSize="10.5" Foreground="#889"
+                                 TextTrimming="CharacterEllipsis" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </StackPanel>
+        </Border>
+
+      </Grid>
+    </Grid>
+  </Grid>
+</UserControl>

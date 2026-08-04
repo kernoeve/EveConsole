@@ -292,6 +292,9 @@
               <DataTemplate DataType="vm:UniverseViewModel">
                 <views:UniverseView />
               </DataTemplate>
+              <DataTemplate DataType="vm:AlarmsViewModel">
+                <views:AlarmsView />
+              </DataTemplate>
               <DataTemplate DataType="vm:MarketLevelViewModel">
                 <views:MarketLevelView />
               </DataTemplate>

@@ -261,6 +261,27 @@ public sealed class AgentPanelViewModel : ReactiveObject
         IsOpen = !IsOpen;
     }
 
+    /// <summary>
+    /// Pushes a message into the conversation on the app's behalf — used by the AgentNotify
+    /// alarm action, so a fired alarm is phrased by the agent and spoken aloud when TTS is on.
+    /// Waits briefly for an in-flight reply rather than dropping the notification.
+    /// </summary>
+    public async Task NotifyAsync(string message)
+    {
+        if (!_isAgentEnabled || string.IsNullOrWhiteSpace(message)) return;
+
+        for (var i = 0; i < 60 && IsBusy; i++)
+            await Task.Delay(500);
+        if (IsBusy) return;
+
+        await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            IsOpen = true;
+            Input  = message;
+            await SendAsync();
+        });
+    }
+
     // Window names the local intent detector recognises — must match open_window enum values.
     private static readonly (string[] Keywords, string Window)[] _navPatterns =
     [
