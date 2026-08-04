@@ -288,60 +288,64 @@
           <StackPanel Margin="16" Spacing="14">
             <TextBlock Classes="note" Text="{Binding GraphNote}" />
 
-            <!-- Separate charts, not one with four series: jumps run to thousands while ship
-                 and pod kills are single digits, so a shared axis flattens the kill lines. -->
-            <StackPanel Spacing="4">
-              <TextBlock Classes="colhead" Text="SHIP JUMPS" />
-              <lvc:CartesianChart Height="150" Series="{Binding JumpSeries}"
-                                  XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
-                                  EasingFunction="{x:Null}" Background="Transparent" />
-            </StackPanel>
+            <!-- Two columns of three. Each measure keeps its own chart rather than sharing one:
+                 jumps run to thousands while ship and pod kills are single digits, so a shared
+                 axis flattens the kill lines onto zero. -->
+            <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,14,Auto,14,Auto">
 
-            <StackPanel Spacing="4">
-              <TextBlock Classes="colhead" Text="NPC KILLS" />
-              <lvc:CartesianChart Height="150" Series="{Binding NpcKillSeries}"
-                                  XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
-                                  EasingFunction="{x:Null}" Background="Transparent" />
-            </StackPanel>
+              <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                <TextBlock Classes="colhead" Text="SHIP JUMPS" />
+                <lvc:CartesianChart Height="170" Series="{Binding JumpSeries}"
+                                    XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
+                                    EasingFunction="{x:Null}" Background="Transparent" />
+              </StackPanel>
 
-            <StackPanel Spacing="4">
-              <TextBlock Classes="colhead" Text="SHIP KILLS" />
-              <lvc:CartesianChart Height="150" Series="{Binding ShipKillSeries}"
-                                  XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
-                                  EasingFunction="{x:Null}" Background="Transparent" />
-            </StackPanel>
+              <StackPanel Grid.Row="0" Grid.Column="2" Spacing="4">
+                <TextBlock Classes="colhead" Text="NPC KILLS" />
+                <lvc:CartesianChart Height="170" Series="{Binding NpcKillSeries}"
+                                    XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
+                                    EasingFunction="{x:Null}" Background="Transparent" />
+              </StackPanel>
 
-            <StackPanel Spacing="4">
-              <TextBlock Classes="colhead" Text="POD KILLS" />
-              <lvc:CartesianChart Height="150" Series="{Binding PodKillSeries}"
-                                  XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
-                                  EasingFunction="{x:Null}" Background="Transparent" />
-            </StackPanel>
+              <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">
+                <TextBlock Classes="colhead" Text="SHIP KILLS" />
+                <lvc:CartesianChart Height="170" Series="{Binding ShipKillSeries}"
+                                    XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
+                                    EasingFunction="{x:Null}" Background="Transparent" />
+              </StackPanel>
 
-            <!-- ADM keeps a fixed 0–6 axis: autoscaling would turn routine drift between 5.8
-                 and 6.0 into a dramatic-looking collapse. -->
-            <StackPanel Spacing="4">
-              <TextBlock Classes="colhead" Text="ACTIVITY DEFENSE MULTIPLIER" />
-              <TextBlock Classes="note" Text="{Binding AdmNote}" />
-              <lvc:CartesianChart Height="150" Series="{Binding AdmSeries}"
-                                  IsVisible="{Binding HasAdmGraph}"
-                                  XAxes="{Binding AdmXAxes}" YAxes="{Binding AdmYAxes}"
-                                  EasingFunction="{x:Null}" Background="Transparent" />
-            </StackPanel>
+              <StackPanel Grid.Row="2" Grid.Column="2" Spacing="4">
+                <TextBlock Classes="colhead" Text="POD KILLS" />
+                <lvc:CartesianChart Height="170" Series="{Binding PodKillSeries}"
+                                    XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
+                                    EasingFunction="{x:Null}" Background="Transparent" />
+              </StackPanel>
 
-            <!-- All six indices share one chart: they share a scale, and reading them against
-                 each other is the point. -->
-            <StackPanel Spacing="4">
-              <TextBlock Classes="colhead" Text="INDUSTRY COST INDICES" />
-              <TextBlock Classes="note" Text="{Binding IndexNote}" />
-              <lvc:CartesianChart Height="190" Series="{Binding IndexSeries}"
-                                  IsVisible="{Binding HasIndexGraph}"
-                                  XAxes="{Binding IndexXAxes}" YAxes="{Binding IndexYAxes}"
-                                  LegendPosition="Bottom" LegendTextSize="11"
-                                  LegendTextPaint="{Binding LegendPaint}"
-                                  LegendBackgroundPaint="{Binding LegendBackPaint}"
-                                  EasingFunction="{x:Null}" Background="Transparent" />
-            </StackPanel>
+              <!-- ADM keeps a fixed 0–6 axis: autoscaling would turn routine drift between 5.8
+                   and 6.0 into a dramatic-looking collapse. -->
+              <StackPanel Grid.Row="4" Grid.Column="0" Spacing="4">
+                <TextBlock Classes="colhead" Text="ACTIVITY DEFENSE MULTIPLIER" />
+                <TextBlock Classes="note" Text="{Binding AdmNote}" />
+                <lvc:CartesianChart Height="170" Series="{Binding AdmSeries}"
+                                    IsVisible="{Binding HasAdmGraph}"
+                                    XAxes="{Binding AdmXAxes}" YAxes="{Binding AdmYAxes}"
+                                    EasingFunction="{x:Null}" Background="Transparent" />
+              </StackPanel>
+
+              <!-- All six indices share one chart: they share a scale, and reading them against
+                   each other is the point. -->
+              <StackPanel Grid.Row="4" Grid.Column="2" Spacing="4">
+                <TextBlock Classes="colhead" Text="INDUSTRY COST INDICES" />
+                <TextBlock Classes="note" Text="{Binding IndexNote}" />
+                <lvc:CartesianChart Height="170" Series="{Binding IndexSeries}"
+                                    IsVisible="{Binding HasIndexGraph}"
+                                    XAxes="{Binding IndexXAxes}" YAxes="{Binding IndexYAxes}"
+                                    LegendPosition="Bottom" LegendTextSize="11"
+                                    LegendTextPaint="{Binding LegendPaint}"
+                                    LegendBackgroundPaint="{Binding LegendBackPaint}"
+                                    EasingFunction="{x:Null}" Background="Transparent" />
+              </StackPanel>
+            </Grid>
           </StackPanel>
         </ScrollViewer>
       </TabItem>

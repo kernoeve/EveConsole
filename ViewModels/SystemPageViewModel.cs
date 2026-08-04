@@ -360,8 +360,14 @@ public class SystemPageViewModel : ReactiveObject
 
     // ── Load ─────────────────────────────────────────────────────────────────
 
+    /// <summary>Bumped per load so background icon fetches from a previous system can tell
+    /// they are stale and drop their results.</summary>
+    private int _loadGeneration;
+
     public async Task LoadAsync(int systemId)
     {
+        var generation = ++_loadGeneration;
+
         var header    = await _svc.GetHeaderAsync(systemId);
         if (header is null) return;
 
@@ -464,34 +470,67 @@ public class SystemPageViewModel : ReactiveObject
                 : $"{killPage.Rows.Count} most recent" + (killPage.HasMore ? " (more exist)" : "");
         });
 
-        await LoadImagesAsync(header);
+        // Deliberately not awaited. The caller reveals the page as soon as this method returns,
+        // so awaiting the icons kept the whole page off screen behind several hundred image
+        // requests — on a cold cache that is by far the largest part of opening a system, while
+        // the data above is a few hundred milliseconds.
+        _ = LoadImagesAsync(header, generation);
     }
 
-    private async Task LoadImagesAsync(SystemViewService.SystemHeader header)
+    /// <summary>
+    /// Fills in icons after the page is already on screen.
+    ///
+    /// <paramref name="generation"/> guards against a second system being opened while these
+    /// are still in flight: without it a slow logo from the previous system could land on top
+    /// of the new one.
+    /// </summary>
+    private async Task LoadImagesAsync(SystemViewService.SystemHeader header, int generation)
     {
-        if (header.AllianceId is { } a and > 0)
+        try
         {
-            var bmp = await EveImageCache.GetAsync($"https://images.evetech.net/alliances/{a}/logo?size=64");
-            await Dispatcher.UIThread.InvokeAsync(() => HolderLogo = bmp);
-        }
-        else if (header.CorporationId is { } c and > 0)
-        {
-            var bmp = await EveImageCache.GetAsync($"https://images.evetech.net/corporations/{c}/logo?size=64");
-            await Dispatcher.UIThread.InvokeAsync(() => HolderLogo = bmp);
-        }
-        else
-        {
-            await Dispatcher.UIThread.InvokeAsync(() => HolderLogo = null);
-        }
+            // Snapshot on the UI thread. These are ObservableCollections that opening another
+            // system clears and refills, and enumerating one mid-change throws.
+            SovStructureVm[]    sov    = [];
+            CelestialNodeVm[]   cel    = [];
+            SysStructureVm[]    str    = [];
+            SystemEventVm[]     evt    = [];
+            KillmailListRowVm[] kills  = [];
 
-        // Icons are fetched after the lists are on screen so the page appears immediately and
-        // fills in, rather than waiting on several hundred image requests.
-        await Task.WhenAll(
-            Task.WhenAll(SovStructures.Select(x => x.LoadIconAsync())),
-            Task.WhenAll(Celestials.Where(c => c.Icon is null).Take(120).Select(x => x.LoadIconAsync())),
-            Task.WhenAll(Structures.Select(x => x.LoadIconAsync())),
-            Task.WhenAll(Events.Take(40).Select(x => x.LoadIconAsync())),
-            Task.WhenAll(Kills.Select(x => x.LoadImagesAsync())));
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                sov   = [.. SovStructures];
+                cel   = [.. Celestials.Where(c => c.Icon is null).Take(120)];
+                str   = [.. Structures];
+                evt   = [.. Events.Take(40)];
+                kills = [.. Kills];
+            });
+
+            if (generation != _loadGeneration) return;
+
+            var url = header.AllianceId is { } a and > 0
+                ? $"https://images.evetech.net/alliances/{a}/logo?size=64"
+                : header.CorporationId is { } c and > 0
+                    ? $"https://images.evetech.net/corporations/{c}/logo?size=64"
+                    : null;
+
+            var logo = url is null ? null : await EveImageCache.GetAsync(url);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (generation == _loadGeneration) HolderLogo = logo;
+            });
+
+            await Task.WhenAll(
+                Task.WhenAll(sov  .Select(x => x.LoadIconAsync())),
+                Task.WhenAll(cel  .Select(x => x.LoadIconAsync())),
+                Task.WhenAll(str  .Select(x => x.LoadIconAsync())),
+                Task.WhenAll(evt  .Select(x => x.LoadIconAsync())),
+                Task.WhenAll(kills.Select(x => x.LoadImagesAsync())));
+        }
+        catch
+        {
+            // An icon that will not load is not worth surfacing, and must not reach the
+            // unobserved-task handler now that nothing awaits this.
+        }
     }
 
     /// <summary>
