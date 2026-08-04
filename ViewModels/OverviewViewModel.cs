@@ -757,7 +757,13 @@ public class OverviewViewModel : ReactiveObject
             // costs its own database context and several queries, so doing all of them inline
             // was the whole reason this section took so long to appear — for text that is only
             // read if the user hovers that particular row.
-            _ = FillNotificationDetailAsync(boxes);
+            // Task.Run, not a bare call. This method runs on the UI thread, and an async method
+            // executes synchronously on its caller until it genuinely suspends — the first few
+            // items take the semaphore without waiting and carry straight on into FormatAsync,
+            // whose SQLite queries are synchronous however async the signature looks. Started
+            // bare, the "background" fill therefore ran several database queries on the UI
+            // thread before yielding, which is exactly the stall it was meant to remove.
+            _ = Task.Run(() => FillNotificationDetailAsync(boxes));
         }
         catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadNotifications", ex); }
     }
