@@ -295,28 +295,28 @@
 
               <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
                 <TextBlock Classes="colhead" Text="SHIP JUMPS" />
-                <lvc:CartesianChart Height="170" Series="{Binding JumpSeries}"
+                <lvc:CartesianChart Height="255" Series="{Binding JumpSeries}"
                                     XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
                                     EasingFunction="{x:Null}" Background="Transparent" />
               </StackPanel>
 
               <StackPanel Grid.Row="0" Grid.Column="2" Spacing="4">
                 <TextBlock Classes="colhead" Text="NPC KILLS" />
-                <lvc:CartesianChart Height="170" Series="{Binding NpcKillSeries}"
+                <lvc:CartesianChart Height="255" Series="{Binding NpcKillSeries}"
                                     XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
                                     EasingFunction="{x:Null}" Background="Transparent" />
               </StackPanel>
 
               <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">
                 <TextBlock Classes="colhead" Text="SHIP KILLS" />
-                <lvc:CartesianChart Height="170" Series="{Binding ShipKillSeries}"
+                <lvc:CartesianChart Height="255" Series="{Binding ShipKillSeries}"
                                     XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
                                     EasingFunction="{x:Null}" Background="Transparent" />
               </StackPanel>
 
               <StackPanel Grid.Row="2" Grid.Column="2" Spacing="4">
                 <TextBlock Classes="colhead" Text="POD KILLS" />
-                <lvc:CartesianChart Height="170" Series="{Binding PodKillSeries}"
+                <lvc:CartesianChart Height="255" Series="{Binding PodKillSeries}"
                                     XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
                                     EasingFunction="{x:Null}" Background="Transparent" />
               </StackPanel>
@@ -326,7 +326,7 @@
               <StackPanel Grid.Row="4" Grid.Column="0" Spacing="4">
                 <TextBlock Classes="colhead" Text="ACTIVITY DEFENSE MULTIPLIER" />
                 <TextBlock Classes="note" Text="{Binding AdmNote}" />
-                <lvc:CartesianChart Height="170" Series="{Binding AdmSeries}"
+                <lvc:CartesianChart Height="255" Series="{Binding AdmSeries}"
                                     IsVisible="{Binding HasAdmGraph}"
                                     XAxes="{Binding AdmXAxes}" YAxes="{Binding AdmYAxes}"
                                     EasingFunction="{x:Null}" Background="Transparent" />
@@ -337,7 +337,7 @@
               <StackPanel Grid.Row="4" Grid.Column="2" Spacing="4">
                 <TextBlock Classes="colhead" Text="INDUSTRY COST INDICES" />
                 <TextBlock Classes="note" Text="{Binding IndexNote}" />
-                <lvc:CartesianChart Height="170" Series="{Binding IndexSeries}"
+                <lvc:CartesianChart Height="255" Series="{Binding IndexSeries}"
                                     IsVisible="{Binding HasIndexGraph}"
                                     XAxes="{Binding IndexXAxes}" YAxes="{Binding IndexYAxes}"
                                     LegendPosition="Bottom" LegendTextSize="11"
