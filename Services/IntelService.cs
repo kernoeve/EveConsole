@@ -159,8 +159,13 @@ public sealed class IntelService(
             // calls rather than one per line.
             var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var m in batch)
+            {
                 foreach (var c in IntelRules.NameCandidates(m.Message, IsSystem))
                     candidates.Add(c);
+                // The reporter too: their name comes from the log header rather than the text,
+                // so it is never a parse candidate, but it is a character all the same.
+                if (!string.IsNullOrWhiteSpace(m.SenderName)) candidates.Add(m.SenderName);
+            }
 
             await ResolveAsync(db, candidates, ct);
 
@@ -251,6 +256,7 @@ public sealed class IntelService(
             PlayerCount   = parsed.PlayerCount,
             Note          = string.IsNullOrWhiteSpace(parsed.Note) ? null : parsed.Note,
             Obsolete      = false,
+            ReporterCharacterId = _nameCache.TryGetValue(reporter, out var rid) ? rid : null,
             ChatMessageId = chatMessageId,
         };
 
@@ -280,7 +286,59 @@ public sealed class IntelService(
         }
 
         db.ChangeTracker.Clear();
+
+        var toAffiliate = new List<long>(ids);
+        if (report.ReporterCharacterId is { } r) toAffiliate.Add(r);
+        await EnsureAffiliationsAsync(db, toAffiliate, ct);
+
         return 1;
+    }
+
+    /// <summary>
+    /// Fills the affiliation cache for pilots we have just recorded, so the intel list can show
+    /// who they fly for without a lookup per row at render time.
+    ///
+    /// Only ever asks about characters it has never seen. Affiliations do change, but nothing
+    /// re-checks them: for reading intel, the corp somebody was in is about as useful as the one
+    /// they are in now, and re-fetching thousands of pilots to chase that would cost far more
+    /// than it is worth.
+    /// </summary>
+    private async Task EnsureAffiliationsAsync(
+        AppDbContext db, List<long> characterIds, CancellationToken ct)
+    {
+        if (characterIds.Count == 0) return;
+
+        var wanted = characterIds.Where(i => i > 0).Distinct().ToList();
+        if (wanted.Count == 0) return;
+
+        var known = await db.CharacterAffiliations.AsNoTracking()
+            .Where(a => wanted.Contains(a.CharacterId))
+            .Select(a => a.CharacterId)
+            .ToListAsync(ct);
+
+        var missing = wanted.Except(known).ToList();
+        if (missing.Count == 0) return;
+
+        try
+        {
+            var found = await esi.GetAffiliationsAsync(missing, ct);
+            if (found.Count == 0) return;
+
+            db.CharacterAffiliations.AddRange(found.Select(f => new CharacterAffiliation
+            {
+                CharacterId   = f.CharacterId,
+                CorporationId = f.CorporationId,
+                AllianceId    = f.AllianceId ?? 0,
+                PulledAt      = DateTimeOffset.UtcNow,
+            }));
+
+            await db.SaveChangesAsync(ct);
+            db.ChangeTracker.Clear();
+        }
+        catch (Exception ex)
+        {
+            errorLogger.Log(nameof(IntelService), nameof(EnsureAffiliationsAsync), ex);
+        }
     }
 
     /// <summary>

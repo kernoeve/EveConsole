@@ -540,7 +540,7 @@
             <TextBlock Classes="note" Text="{Binding IntelSummary}"
                        IsVisible="{Binding HasIntel}" />
 
-            <Grid ColumnDefinitions="120,50,2*,3*,140,110" IsVisible="{Binding HasIntel}">
+            <Grid ColumnDefinitions="120,40,3*,2*,200,90" IsVisible="{Binding HasIntel}">
               <TextBlock Grid.Column="0" Classes="colhead" Text="WHEN (UTC)" />
               <TextBlock Grid.Column="1" Classes="colhead" Text="N" />
               <TextBlock Grid.Column="2" Classes="colhead" Text="PILOTS" />
@@ -554,23 +554,45 @@
                 <DataTemplate x:DataType="vm:IntelRowVm">
                   <Border Background="#12121a" CornerRadius="3" Padding="6 4" Margin="0 0 0 3"
                           Opacity="{Binding RowOpacity}">
-                    <Grid ColumnDefinitions="120,50,2*,3*,140,110">
+                    <Grid ColumnDefinitions="120,40,3*,2*,200,90">
                       <TextBlock Grid.Column="0" Text="{Binding When}" FontSize="11"
                                  Foreground="#8a8a9a" VerticalAlignment="Center" />
                       <TextBlock Grid.Column="1" Text="{Binding Count}" FontSize="11"
                                  Foreground="{Binding CountColor}"
                                  VerticalAlignment="Center" />
-                      <TextBlock Grid.Column="2" Text="{Binding Pilots}" FontSize="11"
-                                 Foreground="#d8d8e4" TextTrimming="CharacterEllipsis"
-                                 ToolTip.Tip="{Binding Pilots}" Margin="0 0 8 0"
-                                 VerticalAlignment="Center" />
+                      <ItemsControl Grid.Column="2" ItemsSource="{Binding Pilots}" Margin="0 0 8 0"
+                                    VerticalAlignment="Center">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:IntelFaceVm">
+                            <StackPanel Orientation="Horizontal" Spacing="3" Margin="0 1">
+                              <Image Source="{Binding Portrait}"     Width="18" Height="18" />
+                              <Image Source="{Binding CorpLogo}"     Width="14" Height="14"
+                                     VerticalAlignment="Center" />
+                              <Image Source="{Binding AllianceLogo}" Width="14" Height="14"
+                                     VerticalAlignment="Center" />
+                              <TextBlock Text="{Binding Name}" FontSize="11" Foreground="#d8d8e4"
+                                         VerticalAlignment="Center" Margin="2 0 0 0" />
+                              <TextBlock Text="{Binding Ship}" FontSize="10" Foreground="#8a8a9a"
+                                         IsVisible="{Binding HasShip}" VerticalAlignment="Center" />
+                            </StackPanel>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
                       <TextBlock Grid.Column="3" Text="{Binding Note}" FontSize="11"
                                  Foreground="#7a7a8a" TextTrimming="CharacterEllipsis"
                                  ToolTip.Tip="{Binding Note}" Margin="0 0 8 0"
                                  VerticalAlignment="Center" />
-                      <TextBlock Grid.Column="4" Text="{Binding Reporter}" FontSize="11"
-                                 Foreground="#8a8a9a" TextTrimming="CharacterEllipsis"
-                                 ToolTip.Tip="{Binding Channel}" VerticalAlignment="Center" />
+                      <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="3"
+                                  VerticalAlignment="Center" ToolTip.Tip="{Binding Channel}">
+                        <Image Source="{Binding ReportedBy.Portrait}"     Width="18" Height="18" />
+                        <Image Source="{Binding ReportedBy.CorpLogo}"     Width="14" Height="14"
+                               VerticalAlignment="Center" />
+                        <Image Source="{Binding ReportedBy.AllianceLogo}" Width="14" Height="14"
+                               VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Reporter}" FontSize="11" Foreground="#8a8a9a"
+                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                   Margin="2 0 0 0" />
+                      </StackPanel>
                       <TextBlock Grid.Column="5" Text="{Binding Status}" FontSize="10"
                                  Foreground="#6a6a7c" VerticalAlignment="Center" />
                     </Grid>

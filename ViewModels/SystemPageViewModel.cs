@@ -138,18 +138,66 @@ public class SystemEventVm(SystemViewService.SystemEvent e) : IconRowVm
 }
 
 /// <summary>
-/// One intel sighting. Superseded reports are shown, dimmed, rather than hidden — a sighting
-/// being out of date is not the same as it never having happened, and the run of who came
-/// through a system is what the tab is for.
+/// A character shown with their portrait, corp and alliance. Each image is fetched from the
+/// shared cache only when the row is built, so a page of intel costs three small requests per
+/// distinct pilot on first view and none thereafter.
+/// </summary>
+public class IntelFaceVm : ReactiveObject
+{
+    private readonly long _charId, _corpId, _allianceId;
+
+    public string  Name    { get; }
+    public string  Ship    { get; }
+    public bool    HasShip { get; }
+
+    public IntelFaceVm(long charId, string name, string? ship, long corpId, long allianceId)
+    {
+        _charId = charId; _corpId = corpId; _allianceId = allianceId;
+        Name    = name;
+        Ship    = ship ?? "";
+        HasShip = !string.IsNullOrEmpty(ship);
+    }
+
+    private Bitmap? _portrait, _corpLogo, _allianceLogo;
+    public Bitmap? Portrait     { get => _portrait;     private set => this.RaiseAndSetIfChanged(ref _portrait, value); }
+    public Bitmap? CorpLogo     { get => _corpLogo;     private set => this.RaiseAndSetIfChanged(ref _corpLogo, value); }
+    public Bitmap? AllianceLogo { get => _allianceLogo; private set => this.RaiseAndSetIfChanged(ref _allianceLogo, value); }
+
+    public Task LoadIconsAsync() => Task.WhenAll(
+        Fetch(_charId     > 0 ? $"https://images.evetech.net/characters/{_charId}/portrait?size=32"   : null, b => Portrait = b),
+        Fetch(_corpId     > 0 ? $"https://images.evetech.net/corporations/{_corpId}/logo?size=32"     : null, b => CorpLogo = b),
+        Fetch(_allianceId > 0 ? $"https://images.evetech.net/alliances/{_allianceId}/logo?size=32"    : null, b => AllianceLogo = b));
+
+    private static async Task Fetch(string? url, Action<Bitmap?> set)
+    {
+        if (url is null) return;
+        var bmp = await EveImageCache.GetAsync(url);
+        Dispatcher.UIThread.Post(() => set(bmp));
+    }
+}
+
+/// <summary>
+/// One intel sighting. Superseded reports are shown rather than hidden — a sighting being out
+/// of date is not the same as it never having happened, and the run of who came through a
+/// system is what the tab is for.
 /// </summary>
 public class IntelRowVm(SystemViewService.IntelRow r)
 {
     public string When     { get; } = r.When.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
     public string Count    { get; } = r.PlayerCount.ToString("N0");
-    public string Pilots   { get; } = r.Pilots;
     public string Note     { get; } = r.Note;
     public string Reporter { get; } = r.Reporter;
     public string Channel  { get; } = r.Channel;
+
+    public List<IntelFaceVm> Pilots { get; } =
+        [.. r.Pilots.Select(p => new IntelFaceVm(p.CharacterId, p.Name, p.Ship, p.CorporationId, p.AllianceId))];
+
+    /// <summary>The reporter, shown the same way as the pilots they called.</summary>
+    public IntelFaceVm ReportedBy { get; } =
+        new(r.ReporterId, r.Reporter, null, r.ReporterCorpId, r.ReporterAllianceId);
+
+    public Task LoadIconsAsync() =>
+        Task.WhenAll(Pilots.Select(p => p.LoadIconsAsync()).Append(ReportedBy.LoadIconsAsync()));
 
     public bool   IsStanding { get; } = !r.Obsolete;
     public string Status     { get; } = r.Obsolete ? "superseded" : "standing";
@@ -550,6 +598,7 @@ public class SystemPageViewModel : ReactiveObject
             SysStructureVm[]    str    = [];
             SystemEventVm[]     evt    = [];
             KillmailListRowVm[] kills  = [];
+            IntelRowVm[]        intel  = [];
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -558,6 +607,7 @@ public class SystemPageViewModel : ReactiveObject
                 str   = [.. Structures];
                 evt   = [.. Events.Take(40)];
                 kills = [.. Kills];
+                intel = [.. Intel];
             });
 
             if (generation != _loadGeneration) return;

@@ -1087,12 +1087,30 @@ public class IntelReport
     public bool            Obsolete      { get; set; }
     public DateTimeOffset? ObsoleteSetOn { get; set; }
 
+    /// <summary>The reporter resolved to a character, where the name is known — so their
+    /// portrait and corp can be shown beside what they called.</summary>
+    public long? ReporterCharacterId { get; set; }
+
     /// <summary>The message this came from — provenance, and what makes re-parsing idempotent.</summary>
     public int ChatMessageId { get; set; }
 }
 
 /// <summary>A pilot named on an intel report. Separate table because one line often drags in
 /// several, and because superseding works pilot by pilot.</summary>
+/// <summary>
+/// Who a character flies for, cached from ESI. Affiliations change, so PulledAt is kept — but
+/// nothing expires them today: for reading old intel, the corp someone was in is roughly as
+/// useful as the one they are in now, and refetching thousands of pilots to chase that would
+/// cost far more than it is worth.
+/// </summary>
+public class CharacterAffiliation
+{
+    public long CharacterId   { get; set; }
+    public long CorporationId { get; set; }
+    public long AllianceId    { get; set; }
+    public DateTimeOffset PulledAt { get; set; }
+}
+
 public class IntelReportCharacter
 {
     public int    IntelReportId { get; set; }

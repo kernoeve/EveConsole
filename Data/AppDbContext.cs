@@ -105,6 +105,7 @@ public class AppDbContext : DbContext
 
     public DbSet<IntelReport>          IntelReports          => Set<IntelReport>();
     public DbSet<IntelReportCharacter> IntelReportCharacters => Set<IntelReportCharacter>();
+    public DbSet<CharacterAffiliation> CharacterAffiliations  => Set<CharacterAffiliation>();
 
     // ── Market pricing ───────────────────────────────────────────────
     public DbSet<MarketPricingConfig>   MarketPricingConfigs   => Set<MarketPricingConfig>();
@@ -932,6 +933,10 @@ public class AppDbContext : DbContext
             e.HasIndex(x => x.ChatMessageId).IsUnique();          // re-parsing cannot duplicate
             e.HasIndex(x => new { x.SystemId, x.ReportedAt });    // the overlays' query
             e.HasIndex(x => new { x.Obsolete, x.ReportedAt }); });
+
+        mb.Entity<CharacterAffiliation>(e => {
+            e.HasKey(x => x.CharacterId);
+            e.Property(x => x.CharacterId).ValueGeneratedNever(); });
 
         mb.Entity<IntelReportCharacter>(e => {
             e.HasKey(x => new { x.IntelReportId, x.CharacterId });

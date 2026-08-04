@@ -439,14 +439,23 @@ public class SystemViewService(
         return points.Values.OrderBy(p => p.Day).ToList();
     }
 
+    /// <summary>A pilot named on a report, with the ids needed to show their portrait, corp and
+    /// alliance. Zero where we do not know.</summary>
+    public sealed record IntelPilot(
+        long CharacterId, string Name, string? Ship,
+        long CorporationId, long AllianceId);
+
     public sealed record IntelRow(
-        DateTimeOffset When,
-        int            PlayerCount,
-        string         Pilots,
-        string         Note,
-        string         Reporter,
-        string         Channel,
-        bool           Obsolete);
+        DateTimeOffset            When,
+        int                       PlayerCount,
+        IReadOnlyList<IntelPilot> Pilots,
+        string                    Note,
+        string                    Reporter,
+        long                      ReporterId,
+        long                      ReporterCorpId,
+        long                      ReporterAllianceId,
+        string                    Channel,
+        bool                      Obsolete);
 
     /// <summary>
     /// Sightings reported in this system, newest first.
@@ -465,7 +474,7 @@ public class SystemViewService(
             .OrderByDescending(r => r.ReportedAt)
             .Take(limit)
             .Select(r => new { r.Id, r.ReportedAt, r.PlayerCount, r.Note,
-                               r.ReporterName, r.ChannelName, r.Obsolete })
+                               r.ReporterName, r.ReporterCharacterId, r.ChannelName, r.Obsolete })
             .ToListAsync(ct);
 
         if (reports.Count == 0) return [];
@@ -473,21 +482,45 @@ public class SystemViewService(
         var ids    = reports.Select(r => r.Id).ToList();
         var pilots = await db.IntelReportCharacters.AsNoTracking()
             .Where(c => ids.Contains(c.IntelReportId))
-            .Select(c => new { c.IntelReportId, c.CharacterName, c.ShipName })
+            .Select(c => new { c.IntelReportId, c.CharacterId, c.CharacterName, c.ShipName })
             .ToListAsync(ct);
 
-        var byReport = pilots.GroupBy(p => p.IntelReportId)
-            .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(
-                x => x.ShipName is null ? x.CharacterName : $"{x.CharacterName} ({x.ShipName})")));
+        // One lookup for every character on the page — the pilots named and the reporters both,
+        // since a reporter is a pilot like any other and is often named on other reports anyway.
+        var everyone = pilots.Select(p => p.CharacterId)
+            .Concat(reports.Select(r => r.ReporterCharacterId ?? 0))
+            .Where(i => i > 0).Distinct().ToList();
 
-        return reports.Select(r => new IntelRow(
-            DateTimeOffset.TryParse(r.ReportedAt, out var t) ? t : default,
-            r.PlayerCount,
-            byReport.GetValueOrDefault(r.Id, ""),
-            r.Note ?? "",
-            r.ReporterName,
-            r.ChannelName,
-            r.Obsolete)).ToList();
+        var affiliation = await db.CharacterAffiliations.AsNoTracking()
+            .Where(a => everyone.Contains(a.CharacterId))
+            .ToDictionaryAsync(a => a.CharacterId, a => a, ct);
+
+        var byReport = pilots.GroupBy(p => p.IntelReportId).ToDictionary(
+            g => g.Key,
+            g => (IReadOnlyList<IntelPilot>)g.Select(x =>
+            {
+                var a = affiliation.GetValueOrDefault(x.CharacterId);
+                return new IntelPilot(x.CharacterId, x.CharacterName, x.ShipName,
+                                      a?.CorporationId ?? 0, a?.AllianceId ?? 0);
+            }).ToList());
+
+        return reports.Select(r =>
+        {
+            var rid = r.ReporterCharacterId ?? 0;
+            var ra  = rid > 0 ? affiliation.GetValueOrDefault(rid) : null;
+
+            return new IntelRow(
+                DateTimeOffset.TryParse(r.ReportedAt, out var t) ? t : default,
+                r.PlayerCount,
+                byReport.GetValueOrDefault(r.Id, []),
+                r.Note ?? "",
+                r.ReporterName,
+                rid,
+                ra?.CorporationId ?? 0,
+                ra?.AllianceId ?? 0,
+                r.ChannelName,
+                r.Obsolete);
+        }).ToList();
     }
 
     public sealed record AdmPoint(DateOnly Day, double Adm);
