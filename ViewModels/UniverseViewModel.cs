@@ -415,6 +415,11 @@ public class UniverseViewModel : ReactiveObject
         {
             _systemId   = systemId;
             _systemName = name.Name;
+            // The system may have been reached without passing through its region — from search,
+            // or from another tool — so the region crumb is set from the system rather than left
+            // pointing at whatever region was last browsed.
+            _regionId   = name.RegionId;
+            _regionName = name.Region;
             Level       = MapLevel.System;
             BuildCrumbs();
             Status = $"{name.Name} · {name.Region}";

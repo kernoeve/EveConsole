@@ -121,9 +121,17 @@
                       <TextBlock Text="{Binding SecurityText}"
                                  FontSize="10" FontWeight="SemiBold"
                                  Foreground="{Binding SecurityColor}" />
-                      <TextBlock Text="{Binding SystemName}"
-                                 FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
-                                 TextTrimming="CharacterEllipsis" />
+                      <!-- The system name opens that system on the Universe map. -->
+                      <Button Command="{Binding $parent[UserControl].DataContext.OpenSystemMapCommand}"
+                              CommandParameter="{Binding SystemId}"
+                              Background="Transparent" BorderThickness="0" Padding="0"
+                              HorizontalContentAlignment="Left" Cursor="Hand"
+                              ToolTip.Tip="Open on the Universe map">
+                        <TextBlock Text="{Binding SystemName}"
+                                   FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                   TextDecorations="Underline"
+                                   TextTrimming="CharacterEllipsis" />
+                      </Button>
                     </StackPanel>
                     <TextBlock Text="{Binding ConstellationName}"
                                FontSize="9" Foreground="#888899"
@@ -267,11 +275,18 @@
                            FontSize="10" Foreground="#666677" />
                 <TextBlock Text="{Binding Detail.VictimAlliance}"
                            FontSize="10" Foreground="#555566" />
-                <TextBlock FontSize="10" Foreground="#444455" Margin="0 2 0 0">
-                  <Run Text="{Binding Detail.TimeText}" />
-                  <Run Text="  ·  " />
-                  <Run Text="{Binding Detail.SystemText}" />
-                </TextBlock>
+                <StackPanel Orientation="Horizontal" Spacing="0" Margin="0 2 0 0">
+                  <TextBlock Text="{Binding Detail.TimeText}" FontSize="10" Foreground="#444455" />
+                  <TextBlock Text="  ·  " FontSize="10" Foreground="#444455" />
+                  <Button Command="{Binding $parent[UserControl].DataContext.OpenSystemMapCommand}"
+                          CommandParameter="{Binding Detail.SystemId}"
+                          Background="Transparent" BorderThickness="0" Padding="0"
+                          HorizontalContentAlignment="Left" Cursor="Hand"
+                          ToolTip.Tip="Open on the Universe map">
+                    <TextBlock Text="{Binding Detail.SystemText}" FontSize="10"
+                               Foreground="#666677" TextDecorations="Underline" />
+                  </Button>
+                </StackPanel>
                 <TextBlock Text="{Binding Detail.LocationText}" FontSize="10" Foreground="#666677"
                            IsVisible="{Binding Detail.LocationText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
               </StackPanel>

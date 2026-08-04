@@ -400,6 +400,13 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("items");
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
         };
+        KillmailBrowserVm.NavigateToSystemAction = systemId =>
+        {
+            OpenTool("universe");
+            // Through the command rather than the method directly: it already routes failures
+            // to the map's status line instead of leaving an unobserved task exception.
+            _ = UniverseVm.OpenSystemCommand.Execute(systemId).Subscribe();
+        };
 
         using var tmpDb      = dbFactory.CreateDbContext();
         var connString       = tmpDb.Database.GetConnectionString()!;

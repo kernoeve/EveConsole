@@ -8,7 +8,7 @@ namespace EveConsole.Services;
 public sealed record KillmailListRow(
     int KillMailId, DateTimeOffset KillMailTime,
     int VictimShipTypeId, string ShipName,
-    string SystemName, string ConstellationName, string RegionName,
+    int SystemId, string SystemName, string ConstellationName, string RegionName,
     double SecurityStatus, double TotalIsk,
     long VictimCorpId, long VictimAllianceId,
     string VictimName, string VictimCorp, string VictimAlliance,
@@ -17,7 +17,7 @@ public sealed record KillmailListRow(
 
 public sealed record KillmailDetailData(
     int KillMailId, DateTimeOffset KillMailTime,
-    string ShipName, string SystemName, string RegionName, string LocationText,
+    string ShipName, int SystemId, string SystemName, string RegionName, string LocationText,
     long VictimCharId, long VictimCorpId, long VictimAllianceId, int VictimShipTypeId,
     string VictimName, string VictimCorp, string VictimAlliance,
     int VictimDamageTaken,
@@ -286,6 +286,7 @@ public class KillmailBrowserService(
                 d.KillMailId, d.KillMailTime,
                 d.VictimShipTypeId,
                 shipNames.TryGetValue(d.VictimShipTypeId, out var sn) ? sn : d.VictimShipTypeId.ToString(),
+                d.SolarSystemId,
                 sys?.Name ?? d.SolarSystemId.ToString(), constellationName, regionName,
                 sys?.Security ?? 0.0, isk,
                 d.VictimCorpId, d.VictimAllianceId ?? 0L,
@@ -549,6 +550,7 @@ public class KillmailBrowserService(
         return new KillmailDetailData(
             detail.KillMailId, detail.KillMailTime,
             shipName,
+            detail.SolarSystemId,
             system?.Name ?? detail.SolarSystemId.ToString(),
             region?.Name ?? "",
             locationText,

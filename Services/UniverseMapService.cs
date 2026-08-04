@@ -549,6 +549,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         string SecurityClass,
         string Constellation,
         string Region,
+        int    RegionId,
         int    Gates,
         int    Stations,
         int    Planets,
@@ -581,7 +582,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
 
         return new SystemDetail(
             s.SolarSystemId, s.Name, s.Security, s.SecurityClass,
-            constellation, region, gates, stations,
+            constellation, region, s.RegionId, gates, stations,
             celestials.GetValueOrDefault(0), celestials.GetValueOrDefault(1));
     }
 
