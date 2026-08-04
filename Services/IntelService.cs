@@ -261,6 +261,7 @@ public sealed class IntelService(
             SystemName    = parsed.SystemName,
             PlayerCount   = parsed.PlayerCount,
             Note          = string.IsNullOrWhiteSpace(parsed.Note) ? null : parsed.Note,
+            NoVisual      = parsed.NoVisual,
             Obsolete      = false,
             ReporterCharacterId = _nameCache.TryGetValue(reporter, out var rid) ? rid : null,
             ChatMessageId = chatMessageId,

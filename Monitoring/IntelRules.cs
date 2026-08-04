@@ -71,6 +71,12 @@ public static class IntelRules
     private static readonly HashSet<string> ClearWords =
         new(StringComparer.OrdinalIgnoreCase) { "clr", "clear", "cleared", "empty" };
 
+    /// <summary>"No visual" — the reporter knows someone is there but cannot see them, usually
+    /// because they are cloaked or off grid. Common enough to be worth its own field rather than
+    /// being left as noise in the note.</summary>
+    private static readonly HashSet<string> NoVisualWords =
+        new(StringComparer.OrdinalIgnoreCase) { "nv", "n/v", "novis" };
+
     /// <summary>A pilot named on a line, with the hull they were called in if one was given.</summary>
     public sealed record SightedPilot(string Name, string? Ship);
 
@@ -79,6 +85,7 @@ public static class IntelRules
         string                       SystemName,
         int                          PlayerCount,
         IReadOnlyList<SightedPilot>  Pilots,
+        bool                         NoVisual,
         string                       Note);
 
     private static string Clean(string token) => token.Trim().Trim(Trim).Trim();
@@ -158,6 +165,7 @@ public static class IntelRules
         string? pendingShip = null;
 
         var sawClearWord = false;
+        var noVisual     = false;
 
         foreach (var chunk in chunks)
         {
@@ -167,6 +175,14 @@ public static class IntelRules
                 // A count binds to nothing in particular — reporters put it before the system,
                 // after the names, or on its own — so it is simply summed wherever it appears.
                 if (PlusValue(chunk[i].Clean) is { } n) { plus += n; i++; continue; }
+
+                // Control words are consumed before any name matching, because several of them
+                // are also real character names: "clr" is an actual pilot, and resolving it once
+                // put it in the shared name cache, after which every "SYSTEM clr" was read as a
+                // sighting of somebody called clr rather than as a system being called clear.
+                // A reporter typing one of these means the word, not the person.
+                if (ClearWords.Contains(chunk[i].Clean))    { sawClearWord = true; i++; continue; }
+                if (NoVisualWords.Contains(chunk[i].Clean)) { noVisual     = true; i++; continue; }
 
                 var matched = false;
 
@@ -220,12 +236,7 @@ public static class IntelRules
 
                 // Nothing matched at this position: drop the token to the note and move on, which
                 // is what turns "Naga, Flycatcher, Malediction" and "nv" into free text.
-                if (!matched)
-                {
-                    if (ClearWords.Contains(chunk[i].Clean)) sawClearWord = true;
-                    note.Add(chunk[i].Raw);
-                    i++;
-                }
+                if (!matched) { note.Add(chunk[i].Raw); i++; }
             }
         }
 
@@ -240,10 +251,10 @@ public static class IntelRules
         // looked, and whoever was there has gone.
         if (count == 0)
             return sawClearWord
-                ? new ParsedIntel(IntelKind.Clear, system, 0, [], string.Join(' ', note).Trim())
+                ? new ParsedIntel(IntelKind.Clear, system, 0, [], noVisual, string.Join(' ', note).Trim())
                 : null;
 
         return new ParsedIntel(
-            IntelKind.Sighting, system, count, pilots, string.Join(' ', note).Trim());
+            IntelKind.Sighting, system, count, pilots, noVisual, string.Join(' ', note).Trim());
     }
 }

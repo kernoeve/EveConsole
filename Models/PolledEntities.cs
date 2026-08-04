@@ -1087,6 +1087,10 @@ public class IntelReport
     public bool            Obsolete      { get; set; }
     public DateTimeOffset? ObsoleteSetOn { get; set; }
 
+    /// <summary>The reporter said "no visual" — they know someone is there but cannot see
+    /// them, usually cloaked or off grid. Its own field rather than noise in the note.</summary>
+    public bool NoVisual { get; set; }
+
     /// <summary>The reporter resolved to a character, where the name is known — so their
     /// portrait and corp can be shown beside what they called.</summary>
     public long? ReporterCharacterId { get; set; }

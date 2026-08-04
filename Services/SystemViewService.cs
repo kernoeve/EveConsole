@@ -455,6 +455,7 @@ public class SystemViewService(
         long                      ReporterCorpId,
         long                      ReporterAllianceId,
         string                    Channel,
+        bool                      NoVisual,
         bool                      Obsolete);
 
     /// <summary>
@@ -474,7 +475,7 @@ public class SystemViewService(
             .OrderByDescending(r => r.ReportedAt)
             .Take(limit)
             .Select(r => new { r.Id, r.ReportedAt, r.PlayerCount, r.Note,
-                               r.ReporterName, r.ReporterCharacterId, r.ChannelName, r.Obsolete })
+                               r.ReporterName, r.ReporterCharacterId, r.ChannelName, r.NoVisual, r.Obsolete })
             .ToListAsync(ct);
 
         if (reports.Count == 0) return [];
@@ -519,6 +520,7 @@ public class SystemViewService(
                 ra?.CorporationId ?? 0,
                 ra?.AllianceId ?? 0,
                 r.ChannelName,
+                r.NoVisual,
                 r.Obsolete);
         }).ToList();
     }

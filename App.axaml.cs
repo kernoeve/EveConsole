@@ -1849,6 +1849,7 @@ public class App : Application
                 """ALTER TABLE "IntelReportCharacters" ADD COLUMN "ShipTypeId" INTEGER NULL""",
                 """ALTER TABLE "IntelReportCharacters" ADD COLUMN "ShipName" TEXT NULL""",
                 """ALTER TABLE "IntelReports" ADD COLUMN "ReporterCharacterId" INTEGER NULL""",
+                """ALTER TABLE "IntelReports" ADD COLUMN "NoVisual" INTEGER NOT NULL DEFAULT 0""",
                 """CREATE TABLE IF NOT EXISTS "CharacterAffiliations" ("CharacterId" INTEGER NOT NULL PRIMARY KEY, "CorporationId" INTEGER NOT NULL DEFAULT 0, "AllianceId" INTEGER NOT NULL DEFAULT 0, "PulledAt" TEXT NULL)""",
             }) { try { db.Database.ExecuteSqlRaw(sql); } catch { } }
         }

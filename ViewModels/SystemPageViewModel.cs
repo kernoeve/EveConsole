@@ -202,6 +202,9 @@ public class IntelRowVm(SystemViewService.IntelRow r)
     public Task LoadIconsAsync() =>
         Task.WhenAll(Pilots.Select(p => p.LoadIconsAsync()).Append(ReportedBy.LoadIconsAsync()));
 
+    /// <summary>"No visual": someone is there but the reporter could not see them.</summary>
+    public string NoVisual   { get; } = r.NoVisual ? "NV" : "";
+
     public bool   IsStanding { get; } = !r.Obsolete;
     public string Status     { get; } = r.Obsolete ? "superseded" : "standing";
 
