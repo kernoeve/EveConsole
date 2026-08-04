@@ -481,17 +481,22 @@ public class OverviewViewModel : ReactiveObject
         // Section timings, logged once at the end. Added because "the Overview feels slow" was
         // being diagnosed by reading code, and the last time this was measured instead the
         // answer was a surprise — 664 database contexts building tooltips nobody had opened.
+        // Each entry closes out the section that just FINISHED, not the one being started —
+        // the first version of this recorded elapsed time against the incoming label, which
+        // shifted every reading by one and made a 15-second section look like the one after it.
         var sw      = System.Diagnostics.Stopwatch.StartNew();
         var timings = new List<(string Step, long Ms)>();
         var last    = 0L;
-        void Step(string name)
+        var current = "Querying scope";
+        void Step(string next)
         {
-            timings.Add((name, sw.ElapsedMilliseconds - last));
-            last = sw.ElapsedMilliseconds;
-            LoadStatus = name;
+            timings.Add((current, sw.ElapsedMilliseconds - last));
+            last    = sw.ElapsedMilliseconds;
+            current = next;
+            LoadStatus = next;
         }
 
-        Step("Querying scope");
+        LoadStatus = current;
         try
         {
             await _alertSettings.LoadAsync();
@@ -647,9 +652,11 @@ public class OverviewViewModel : ReactiveObject
             ShipLossCount = totalLosses.ToString("N0");
 
             // ── Personal killmails section (bound to the same period) ───────────
+            Step("Personal killmails");
             await LoadPersonalKillsAsync(charIds, Math.Max(1, SelectedPeriod.Hours / 24));
 
             // ── Standing projects section ───────────────────────────────────────
+            Step("Standing projects");
             await LoadStandingProjectsAsync();
 
             // ── Wallet journal — pie chart categorisation ──────────────────────
@@ -691,7 +698,7 @@ public class OverviewViewModel : ReactiveObject
             Step("Loading notifications");
             await LoadNotificationsAsync();
 
-            timings.Add(("Notifications", sw.ElapsedMilliseconds - last));
+            timings.Add((current, sw.ElapsedMilliseconds - last));
             _errorLogger.Log("OverviewViewModel", "LoadTiming",
                 new Exception($"Overview load {sw.ElapsedMilliseconds:N0} ms — " +
                     string.Join(", ", timings.Where(t => t.Ms >= 20)
