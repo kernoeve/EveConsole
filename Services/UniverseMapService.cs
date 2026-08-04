@@ -103,20 +103,49 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             WHERE a."RegionId" = {0} AND b."RegionId" <> {0})
         """;
 
-    private const string KillsByRegionSql = """
-        SELECT s."RegionId" AS "Key", COUNT(*) AS "Total"
-        FROM "KillMailDetails" k
-        JOIN "SdeSolarSystems" s ON s."SolarSystemId" = k."SolarSystemId"
-        WHERE k."KillMailTime" >= {0}
-        GROUP BY s."RegionId"
-        """;
+    /// <summary>Which victim hulls to count.</summary>
+    public enum KillKind { All, Ships, Pods }
 
-    private const string KillsBySystemSql = """
-        SELECT k."SolarSystemId" AS "Key", COUNT(*) AS "Total"
-        FROM "KillMailDetails" k
-        WHERE k."KillMailTime" >= {0}
-        GROUP BY k."SolarSystemId"
-        """;
+    /// <summary>
+    /// Capsules. Both capsule hulls — the standard one and the Genolution 'Auroral' variant —
+    /// sit in this one group, so ships and pods split cleanly on a single id. Verified against
+    /// the SDE rather than assumed: no other group in it carries a podded victim.
+    /// </summary>
+    private const int CapsuleGroupId = 29;
+
+    private static string KillCountSql(bool byRegion, KillKind kind)
+    {
+        // The hull join is only worth its cost when a kind is actually being filtered on.
+        var join = kind == KillKind.All
+            ? ""
+            : """LEFT JOIN "SdeTypes" ty ON ty."TypeId" = k."VictimShipTypeId" """;
+
+        // COALESCE, and a left join, so a hull the SDE has not heard of yet counts as a ship
+        // rather than vanishing from both overlays.
+        var filter = kind switch
+        {
+            KillKind.Pods  => $$"""AND COALESCE(ty."GroupId", 0) =  {{CapsuleGroupId}}""",
+            KillKind.Ships => $$"""AND COALESCE(ty."GroupId", 0) <> {{CapsuleGroupId}}""",
+            _              => "",
+        };
+
+        return byRegion
+            ? $$"""
+                SELECT s."RegionId" AS "Key", COUNT(*) AS "Total"
+                FROM "KillMailDetails" k
+                JOIN "SdeSolarSystems" s ON s."SolarSystemId" = k."SolarSystemId"
+                {{join}}
+                WHERE k."KillMailTime" >= {0} {{filter}}
+                GROUP BY s."RegionId"
+                """
+            : $$"""
+                SELECT k."SolarSystemId" AS "Key", COUNT(*) AS "Total"
+                FROM "KillMailDetails" k
+                {{join}}
+                WHERE k."KillMailTime" >= {0} {{filter}}
+                GROUP BY k."SolarSystemId"
+                """;
+    }
 
     private sealed class LinkRaw
     {
@@ -433,11 +462,23 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
 
     /// <summary>
     /// Killmails per system (or per region) over the last <paramref name="days"/> days, from our
-    /// own stored kills — so it reflects whatever the zKillboard/ESI pipeline has captured, not
-    /// a universe-wide truth.
+    /// own stored kills, optionally split into ships and pods.
+    ///
+    /// This is the accurate source for ship and pod kills, and CCP's system_kills counter is
+    /// not. That endpoint is documented as "the last hour ending at Last-Modified", but it
+    /// demonstrably re-reports the same kills across consecutive hourly snapshots — C-FD0D on
+    /// 2026-08-03 had one burst of 14 ship kills inside hour 15, reported as 12 at 15:44 and a
+    /// further 15 at 16:44, summing to 31 for a day zKillboard and our own killmails both put
+    /// at 18. Any multi-hour total built from those snapshots is therefore inflated, roughly
+    /// doubled, and no fixed divisor corrects it.
+    ///
+    /// The trade here is coverage rather than accuracy: a loss nobody publishes never reaches
+    /// zKillboard, so this undercounts where CCP's counter would not — chiefly solo high-sec
+    /// losses to NPCs. Measured against CCP's own figure once its overlap is accounted for,
+    /// that gap runs around 17%.
     /// </summary>
     public async Task<Dictionary<int, int>> GetKillCountsAsync(
-        int days, bool byRegion, CancellationToken ct = default)
+        int days, bool byRegion, KillKind kind = KillKind.All, CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();
 
@@ -445,8 +486,12 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         // throws "could not be translated". The stored format is sortable, so compare as text.
         var cutoff = DateTimeOffset.UtcNow.AddDays(-days).ToString("yyyy-MM-dd HH:mm:ss+00:00");
 
+        // Built into a variable rather than interpolated at the call: SqlQueryRaw warns (EF1002)
+        // on an interpolated argument. The only interpolated part is a compile-time constant.
+        var sql = KillCountSql(byRegion, kind);
+
         var rows = await db.Database
-            .SqlQueryRaw<CountRaw>(byRegion ? KillsByRegionSql : KillsBySystemSql, cutoff)
+            .SqlQueryRaw<CountRaw>(sql, cutoff)
             .ToListAsync(ct);
 
         return rows.ToDictionary(r => r.Key, r => r.Total);

@@ -99,19 +99,22 @@ public class UniverseViewModel : ReactiveObject
             new("Industry — TE research",   "industry:researching_time_efficiency"),
             new("Industry — copying",       "industry:copying"),
             new("Industry — invention",     "industry:invention"),
+            // Ship and pod kills are counted from stored killmails, not from CCP's system_kills
+            // tally. That endpoint re-reports the same kills in consecutive hourly snapshots, so
+            // every window summed from it comes out roughly double — see GetKillCountsAsync.
+            // Jumps and NPC kills stay on CCP's figures: NPC kills generate no killmails at all,
+            // and there is no second source for jumps.
+            new("Ship kills (24h)",  "km:ship:1"),
+            new("Ship kills (7d)",   "km:ship:7"),
+            new("Ship kills (30d)",  "km:ship:30"),
+            new("Pod kills (24h)",   "km:pod:1"),
+            new("Pod kills (7d)",    "km:pod:7"),
+            new("Pod kills (30d)",   "km:pod:30"),
             new("Ship jumps (24h)",  "act:jumps:1"),
             new("Ship jumps (7d)",   "act:jumps:7"),
-            new("Ship kills (24h)",  "act:ship:1"),
-            new("Ship kills (7d)",   "act:ship:7"),
-            new("Pod kills (7d)",    "act:pod:7"),
             new("NPC kills (24h)",   "act:npc:1"),
             new("Faction warfare",   "fw"),
             new("Incursions",        "incursions"),
-            // Distinguished from "Ship kills" above: these count the killmails this app has
-            // stored, whereas ship kills is CCP's own universe-wide tally.
-            new("Killmails held (30d)", "kills30"),
-            new("Killmails held (7d)",  "kills7"),
-            new("Killmails held (24h)", "kills1"),
             new("Planetary power",     "prod:power"),
             new("Planetary workforce", "prod:workforce"),
             new("Stations (NPC/player)", "stations"),
@@ -617,18 +620,16 @@ public class UniverseViewModel : ReactiveObject
                 break;
             }
 
-            case "kills30":
-            case "kills7":
-            case "kills1":
+            case { } k when k.StartsWith("km:"):
             {
-                var days = SelectedOverlay.Key switch
-                {
-                    "kills30" => 30,
-                    "kills7"  => 7,
-                    _         => 1,
-                };
-                var counts = await _map.GetKillCountsAsync(days, byRegion);
-                BuildCountOverlay(g, styles, legend, counts, "kill", "kills");
+                var parts = k.Split(':');                       // km:ship:7
+                var pods  = parts[1] == "pod";
+                var kind  = pods ? UniverseMapService.KillKind.Pods
+                                 : UniverseMapService.KillKind.Ships;
+                var counts = await _map.GetKillCountsAsync(int.Parse(parts[2]), byRegion, kind);
+                BuildCountOverlay(g, styles, legend, counts,
+                    pods ? "pod kill"  : "ship kill",
+                    pods ? "pod kills" : "ship kills");
                 break;
             }
 
@@ -867,9 +868,16 @@ public class UniverseViewModel : ReactiveObject
     }
 
     /// <summary>
-    /// Jumps and kills from CCP's own hourly counts. Distinct from the "Killmails held"
-    /// overlays, which count what this app has stored — these are the universe-wide tallies and
-    /// include NPC kills, which killmails do not cover at all.
+    /// Jumps and NPC kills, from CCP's own hourly counts.
+    ///
+    /// Only these two measures are served from here. Ship and pod kills used to be as well, but
+    /// CCP's snapshots overlap — the same kills appear in consecutive hourly files — so summing
+    /// a window from them roughly doubles the real figure. Those two now come from stored
+    /// killmails instead (UniverseMapService.GetKillCountsAsync, which documents the evidence).
+    ///
+    /// The same overlap almost certainly affects these two as well; there is simply no second
+    /// source to cross-check them against. NPC kills produce no killmails at all, and nobody
+    /// publishes jump counts. Read them as relative activity, not as exact totals.
     /// </summary>
     private async Task BuildActivityOverlayAsync(
         MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend,
@@ -881,29 +889,19 @@ public class UniverseViewModel : ReactiveObject
         // reading them directly for a 7-day window would return a day and look convincing.
         var activity = await _stats.GetActivityWindowAsync(days);
 
+        var jumps = measure == "jumps";
+
         var bySystem = activity.ToDictionary(
             kv => kv.Key,
-            kv => measure switch
-            {
-                "jumps" => kv.Value.ShipJumps,
-                "ship"  => kv.Value.ShipKills,
-                "pod"   => kv.Value.PodKills,
-                _       => kv.Value.NpcKills,
-            });
+            kv => jumps ? kv.Value.ShipJumps : kv.Value.NpcKills);
 
         var counts = byRegion
             ? await _map.GetRegionSumsAsync(bySystem)
             : bySystem;
 
-        var (singular, plural) = measure switch
-        {
-            "jumps" => ("jump", "jumps"),
-            "ship"  => ("ship kill", "ship kills"),
-            "pod"   => ("pod kill", "pod kills"),
-            _       => ("NPC kill", "NPC kills"),
-        };
-
-        BuildCountOverlay(g, styles, legend, counts, singular, plural);
+        BuildCountOverlay(g, styles, legend, counts,
+            jumps ? "jump"  : "NPC kill",
+            jumps ? "jumps" : "NPC kills");
     }
 
     /// <summary>
