@@ -618,12 +618,17 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // Walk the subtree for each final product, summing only raw-material costs
         // (IsBought=true) and all job costs. Summing job.MaterialCost directly would
         // double-count intermediates that have market prices but are also produced.
+        var leftoverValueByType = intermediates
+            .Where(i => i.Leftover > 0)
+            .ToDictionary(i => i.TypeId, i => i.LeftoverValue);
+
         var finalProducts = requests.Select(req =>
         {
             var rootJob = jobPool.GetValueOrDefault(req.TypeId);
             var seen    = new HashSet<int>();
-            decimal subtreeRawMat = 0;
-            decimal subtreeJobCost = 0;
+            decimal subtreeRawMat   = 0;
+            decimal subtreeJobCost  = 0;
+            decimal subtreeLeftover = 0;
 
             void WalkSubtree(int tid)
             {
@@ -631,12 +636,20 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 subtreeJobCost += j.JobCost;
                 foreach (var mat in j.Materials)
                     if (mat.IsBought) subtreeRawMat += mat.TotalQty * mat.UnitPrice;
+
+                // Over-production of a sub-component is stock, not cost. Excludes the product
+                // itself, whose surplus is counted as produced units rather than as leftovers.
+                if (tid != req.TypeId && leftoverValueByType.TryGetValue(tid, out var lv))
+                    subtreeLeftover += lv;
+
                 foreach (var childId in j.ChildTypeIds)
                     WalkSubtree(childId);
             }
             if (rootJob is not null) WalkSubtree(req.TypeId);
 
-            decimal totalCost = subtreeRawMat + subtreeJobCost;
+            // Net of leftovers, matching the Cost Summary's Net Cost. Charging the gross would
+            // bill this run for components it did not consume and still has on the shelf.
+            decimal totalCost = subtreeRawMat + subtreeJobCost - subtreeLeftover;
             int     produced  = rootJob?.QuantityProduced ?? req.Quantity;
             return new PlanFinalProduct
             {
