@@ -114,11 +114,14 @@
 
       <Rectangle Grid.Column="1" Fill="#1e1e2a" />
 
-      <!-- ── Right: editor over history ──────────────────────────────────── -->
-      <Grid Grid.Column="2" RowDefinitions="*,1,Auto">
+      <!-- ── Right: editor, a fixed action bar, then history ─────────────── -->
+      <Grid Grid.Column="2" RowDefinitions="*,Auto,1,Auto">
 
-        <ScrollViewer Grid.Row="0" IsVisible="{Binding HasEditor}" Padding="16 14">
-          <StackPanel Spacing="14" MaxWidth="720" HorizontalAlignment="Left">
+        <!-- Margin on the content rather than Padding on the ScrollViewer: padding is not
+             counted in the scrollable extent, so the last thing in the panel stays clipped
+             however far down you scroll. -->
+        <ScrollViewer Grid.Row="0" IsVisible="{Binding HasEditor}">
+          <StackPanel Spacing="14" MaxWidth="720" HorizontalAlignment="Left" Margin="16 14 16 14">
 
             <!-- Name / enabled -->
             <Grid ColumnDefinitions="*,Auto">
@@ -160,6 +163,16 @@
                       <TextBox Text="{Binding Text}" IsVisible="{Binding IsText}"
                                AcceptsReturn="{Binding IsMultiline}"
                                MinHeight="{Binding MinHeight}" />
+
+                      <AutoCompleteBox IsVisible="{Binding IsItem}"
+                                       Text="{Binding Text}"
+                                       AsyncPopulator="{Binding Populator}"
+                                       FilterMode="None"
+                                       MinimumPrefixLength="2"
+                                       MinimumPopulateDelay="0:0:0.2"
+                                       MaxDropDownHeight="260"
+                                       FontSize="11"
+                                       Watermark="start typing an item name…" />
 
                       <CheckBox IsChecked="{Binding Flag}" IsVisible="{Binding IsBoolean}"
                                 FontSize="11" Foreground="#999" />
@@ -264,17 +277,26 @@
 
                         <!-- Alert / Dialog -->
                         <StackPanel Spacing="6" IsVisible="{Binding HasText}">
-                          <StackPanel>
-                            <TextBlock Classes="flabel" Text="TITLE" />
-                            <TextBox Text="{Binding Title}" Watermark="{}{alarm}" />
-                          </StackPanel>
-                          <StackPanel>
-                            <TextBlock Classes="flabel" Text="MESSAGE" />
-                            <TextBox Text="{Binding Body}" AcceptsReturn="True" MinHeight="54"
-                                     Watermark="{}{summary}" />
-                          </StackPanel>
+                          <CheckBox IsChecked="{Binding UseDefaultText}"
+                                    Content="Use the default wording for this check"
+                                    FontSize="11" Foreground="#999" />
                           <TextBlock FontSize="9.5" Foreground="#556" TextWrapping="Wrap"
-                                     Text="Placeholders: {alarm} {summary} {count} {time} {date}" />
+                                     IsVisible="{Binding UseDefaultText}"
+                                     Text="{Binding DefaultTextPreview}" />
+
+                          <StackPanel Spacing="6" IsVisible="{Binding !UseDefaultText}">
+                            <StackPanel>
+                              <TextBlock Classes="flabel" Text="TITLE" />
+                              <TextBox Text="{Binding Title}" Watermark="{}{alarm}" />
+                            </StackPanel>
+                            <StackPanel>
+                              <TextBlock Classes="flabel" Text="MESSAGE" />
+                              <TextBox Text="{Binding Body}" AcceptsReturn="True" MinHeight="54"
+                                       Watermark="{}{summary}" />
+                            </StackPanel>
+                            <TextBlock FontSize="9.5" Foreground="#556" TextWrapping="Wrap"
+                                       Text="Placeholders: {alarm} {summary} {count} {time} {date}" />
+                          </StackPanel>
                         </StackPanel>
 
                       </StackPanel>
@@ -282,15 +304,6 @@
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
-            </StackPanel>
-
-            <!-- Save / delete -->
-            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0 4 0 20">
-              <Button Classes="tool" Content="Save" Command="{Binding SaveCommand}" />
-              <Button Classes="tool" Content="Test Sounds" Command="{Binding TestFireCommand}" />
-              <Button Content="Delete" Command="{Binding DeleteCommand}"
-                      Background="#1a1a28" Foreground="#aa5555" BorderBrush="#442a2a"
-                      BorderThickness="1" Padding="12 4" FontSize="11" />
             </StackPanel>
 
           </StackPanel>
@@ -301,10 +314,24 @@
                    HorizontalAlignment="Center" VerticalAlignment="Center"
                    FontSize="12" Foreground="#445" />
 
-        <Rectangle Grid.Row="1" Fill="#1e1e2a" />
+        <!-- Action bar. Outside the scroll region on purpose: Save must not be something you
+             have to scroll to find, and it was being clipped by the history panel below. -->
+        <Border Grid.Row="1" IsVisible="{Binding HasEditor}"
+                Background="#101018" Padding="16 8"
+                BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button Classes="tool" Content="Save" Command="{Binding SaveCommand}" />
+            <Button Classes="tool" Content="Test Sounds" Command="{Binding TestFireCommand}" />
+            <Button Content="Delete" Command="{Binding DeleteCommand}"
+                    Background="#1a1a28" Foreground="#aa5555" BorderBrush="#442a2a"
+                    BorderThickness="1" Padding="12 4" FontSize="11" />
+          </StackPanel>
+        </Border>
+
+        <Rectangle Grid.Row="2" Fill="#1e1e2a" />
 
         <!-- History -->
-        <Border Grid.Row="2" Background="#0b0b10" Padding="12 10" MaxHeight="200">
+        <Border Grid.Row="3" Background="#0b0b10" Padding="12 10" MaxHeight="200">
           <StackPanel Spacing="6">
             <TextBlock Classes="section" Text="RECENT FIRINGS (EVE TIME)" />
             <ScrollViewer MaxHeight="150">

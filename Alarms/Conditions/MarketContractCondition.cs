@@ -39,6 +39,7 @@ public sealed class MarketContractCondition : IAlarmCondition
             item = new
             {
                 type        = "string",
+                format      = "item-name",     // makes the editor offer a type-ahead picker
                 description = "Exact item name, e.g. \"Sigil\" or \"Imperial Navy Slicer\". Must match " +
                               "the type name exactly; a name that does not resolve matches nothing.",
             },
@@ -95,6 +96,25 @@ public sealed class MarketContractCondition : IAlarmCondition
 
         var amount = qty > 1 ? $"{qty}+ " : "";
         return $"{amount}{item} at or below {price.Value:N0} ISK {where}";
+    }
+
+    public (string Title, string Body) DefaultText(
+        string alarmName, JsonElement config, IReadOnlyList<AlarmMatch> matches)
+    {
+        var item = ReadString(config, "item") ?? "Item";
+
+        // The cheapest offer is the reason to look, so it leads.
+        var best = matches
+            .Select(m => m.Detail is { } d && d.TryGetValue("unit_price", out var p) && p is not null
+                ? Convert.ToDouble(p) : double.MaxValue)
+            .DefaultIfEmpty(double.MaxValue)
+            .Min();
+
+        var title = best < double.MaxValue
+            ? $"{item} from {best:N0} ISK"
+            : $"{item} available";
+
+        return (title, IAlarmCondition.JoinSummaries(matches));
     }
 
     public async Task<IReadOnlyList<AlarmMatch>> EvaluateAsync(

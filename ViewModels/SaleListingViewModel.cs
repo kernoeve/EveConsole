@@ -37,7 +37,11 @@ public class SaleListingRowVm
         OwnerType = s.OwnerType; OwnerId = s.OwnerId; OwnerIsPersonal = s.OwnerIsPersonal; Kind = s.Kind;
         AmountRaw = s.TotalRaw; Amount = MarketFmt.Isk(s.TotalRaw);
 
-        var cost = basis == SaleCostBasis.BuildCost ? s.BuildOrNull : s.MarketOrNull;
+        // Same fallback as the Sales Tracker: a mineral or a meta module has no build cost, and
+        // without this the build-basis listing simply omits everything that is not manufactured.
+        var cost = basis == SaleCostBasis.BuildCost
+            ? s.BuildOrNull ?? s.MarketOrNull
+            : s.MarketOrNull;
         if (cost is double c)
         {
             var profit = s.TotalRaw - c;

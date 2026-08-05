@@ -36,6 +36,26 @@ public interface IAlarmCondition
     string Describe(JsonElement config);
 
     /// <summary>
+    /// Title and body for an Alert or Dialog when the user has not written their own. Each
+    /// check knows what is worth saying about its own matches, so the wording follows the
+    /// check rather than being one generic sentence for all of them.
+    /// </summary>
+    (string Title, string Body) DefaultText(
+        string alarmName, JsonElement config, IReadOnlyList<AlarmMatch> matches)
+        => (alarmName, JoinSummaries(matches));
+
+    /// <summary>Shared body-building for the default text: the matches, one per line, capped.</summary>
+    protected static string JoinSummaries(IReadOnlyList<AlarmMatch> matches, int max = 6)
+    {
+        if (matches.Count == 0) return "";
+
+        var body = string.Join("\n", matches.Take(max).Select(m => "• " + m.Summary));
+        return matches.Count > max
+            ? body + $"\n• …and {matches.Count - max} more"
+            : body;
+    }
+
+    /// <summary>
     /// When true, a key that stops appearing is forgotten, so the same key becomes news again
     /// if it comes back.
     ///

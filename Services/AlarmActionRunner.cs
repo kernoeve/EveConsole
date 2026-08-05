@@ -38,11 +38,16 @@ public sealed class AlarmActionRunner
     /// <summary>True when the agent is configured well enough for AgentNotify to reach the user.</summary>
     public Func<bool>? AgentAvailable { get; set; }
 
+    /// <param name="defaults">
+    /// Title and body supplied by the condition, used wherever the user has not written their
+    /// own. Resolved by the caller, which is what holds the registry.
+    /// </param>
     public async Task RunAsync(
         Alarm                        alarm,
         IReadOnlyList<AlarmAction>   actions,
         AlarmEvent                   evt,
         IReadOnlyList<AlarmMatch>    matches,
+        (string Title, string Body)  defaults,
         CancellationToken            ct = default)
     {
         foreach (var action in actions)
@@ -66,11 +71,11 @@ public sealed class AlarmActionRunner
                         break;
 
                     case AlarmActionKind.Alert:
-                        await RunAlertAsync(alarm, evt, cfg, ct);
+                        await RunAlertAsync(alarm, evt, cfg, defaults, ct);
                         break;
 
                     case AlarmActionKind.Dialog:
-                        RunDialog(alarm, evt, cfg);
+                        RunDialog(alarm, evt, cfg, defaults);
                         break;
                 }
             }
@@ -140,10 +145,13 @@ public sealed class AlarmActionRunner
             evt.Summary + "\n\n(The agent is not configured, so this was recorded as an alert.)", ct);
     }
 
-    private Task RunAlertAsync(Alarm alarm, AlarmEvent evt, JsonElement cfg, CancellationToken ct)
+    private Task RunAlertAsync(
+        Alarm alarm, AlarmEvent evt, JsonElement cfg, (string Title, string Body) defaults, CancellationToken ct)
     {
-        var title = Expand(Str(cfg, "title") ?? alarm.Name, alarm, evt);
-        var body  = Expand(Str(cfg, "body")  ?? evt.Summary, alarm, evt);
+        // Absent config means "use the default", which is what the editor writes when the
+        // capsuleer leaves the box ticked.
+        var title = Expand(Str(cfg, "title") ?? defaults.Title, alarm, evt);
+        var body  = Expand(Str(cfg, "body")  ?? defaults.Body,  alarm, evt);
         return WriteAlertAsync(alarm, evt, title, body, ct);
     }
 
@@ -161,12 +169,12 @@ public sealed class AlarmActionRunner
         await db.SaveChangesAsync(ct);
     }
 
-    private void RunDialog(Alarm alarm, AlarmEvent evt, JsonElement cfg)
+    private void RunDialog(Alarm alarm, AlarmEvent evt, JsonElement cfg, (string Title, string Body) defaults)
     {
         if (ShowDialogCallback is not { } show) return;
 
-        var title   = Expand(Str(cfg, "title")   ?? "Alarm", alarm, evt);
-        var message = Expand(Str(cfg, "message") ?? evt.Summary, alarm, evt);
+        var title   = Expand(Str(cfg, "title")   ?? defaults.Title, alarm, evt);
+        var message = Expand(Str(cfg, "message") ?? defaults.Body,  alarm, evt);
 
         Dispatcher.UIThread.Post(() =>
         {

@@ -97,6 +97,30 @@ public sealed class IntelCondition : IAlarmCondition
         return minimum > 1 ? $"Intel in {where}, {minimum}+ pilots" : $"Intel in {where}";
     }
 
+    public (string Title, string Body) DefaultText(
+        string alarmName, JsonElement config, IReadOnlyList<AlarmMatch> matches)
+    {
+        // Where matters more than how many, so the systems go in the title — that is what is
+        // readable at a glance on a dialog that has just appeared over the game.
+        var systems = matches
+            .Select(m => m.Detail?.TryGetValue("system", out var s) == true ? s?.ToString() : null)
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct()
+            .Take(3)
+            .ToList();
+
+        var where = systems.Count switch
+        {
+            0 => "",
+            _ => " — " + string.Join(", ", systems) +
+                 (matches.Select(m => m.Detail?["system"]?.ToString()).Distinct().Count() > 3 ? ", …" : ""),
+        };
+
+        var headline = matches.Count == 1 ? "Hostile reported" : $"{matches.Count} hostile reports";
+
+        return ($"{headline}{where}", IAlarmCondition.JoinSummaries(matches));
+    }
+
     public async Task<IReadOnlyList<AlarmMatch>> EvaluateAsync(
         JsonElement config, AlarmEvaluationContext ctx, CancellationToken ct = default)
     {

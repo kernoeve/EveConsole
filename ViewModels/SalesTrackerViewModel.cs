@@ -110,7 +110,13 @@ public class SaleRowVm : ReactiveObject
     // ProfitPct/ProfitBrush and the rollups read ProfitRaw/ProfitPctRaw.
     public void ApplyBasis(SaleCostBasis basis)
     {
-        var cost   = basis == SaleCostBasis.BuildCost ? BuildOrNull : MarketOrNull;
+        // On the build basis, anything without a build cost falls back to market value.
+        // Minerals, ore, gas, isotopes and meta modules are not manufactured, so they have no
+        // build cost at all — and leaving them at "—" quietly dropped them out of every profit
+        // figure, which for a trader is most of what they sell.
+        var cost = basis == SaleCostBasis.BuildCost
+            ? BuildOrNull ?? MarketOrNull
+            : MarketOrNull;
         var profit = cost is double c ? TotalRaw - c : (double?)null;
         ProfitRaw = profit ?? double.MinValue;
         Profit    = profit is double p ? MarketFmt.Isk(p) : "—";

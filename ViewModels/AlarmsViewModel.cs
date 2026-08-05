@@ -127,6 +127,12 @@ public sealed class AlarmFieldVm : ReactiveObject
     public bool IsDateTime => Kind == "datetime";
     public bool IsEnum     => Kind == "enum";
 
+    /// <summary>An item name, offered as a type-ahead over the SDE rather than typed blind.</summary>
+    public bool IsItem => Kind == "item";
+
+    /// <summary>Supplies type-ahead suggestions. Set by the parent for item fields.</summary>
+    public Func<string?, CancellationToken, Task<IEnumerable<object>>>? Populator { get; set; }
+
     /// <summary>A SQL field needs room to breathe; everything else is a single line.</summary>
     public bool IsMultiline => Kind == "string" && Name.Contains("sql", StringComparison.OrdinalIgnoreCase);
     public double MinHeight => IsMultiline ? 96 : 0;
@@ -147,6 +153,12 @@ public sealed class AlarmActionVm : ReactiveObject
         _sounds         = sounds;
         AvailableSounds = catalog;      // shared, so an imported file shows up in every picker
         _kind           = kind;
+
+        // No title or body stored means the alarm was saved on the default wording — which is
+        // also the state a brand-new action starts in.
+        _useDefaultText = Str(cfg, "title") is null
+                       && Str(cfg, "body") is null
+                       && Str(cfg, "message") is null;
 
         var soundKey = Str(cfg, "sound") ?? AlarmSoundService.DefaultKey;
         _sound       = catalog.FirstOrDefault(s => s.Key == soundKey) ?? catalog.FirstOrDefault();
@@ -185,6 +197,26 @@ public sealed class AlarmActionVm : ReactiveObject
     {
         get => _importError;
         private set => this.RaiseAndSetIfChanged(ref _importError, value);
+    }
+
+    /// <summary>
+    /// When set, no title or body is stored and the condition supplies the wording at firing
+    /// time — so an intel alert names the systems and a price alert names the item and price,
+    /// without anyone writing a template.
+    /// </summary>
+    private bool _useDefaultText = true;
+    public bool UseDefaultText
+    {
+        get => _useDefaultText;
+        set => this.RaiseAndSetIfChanged(ref _useDefaultText, value);
+    }
+
+    /// <summary>Describes the wording the selected check would use. Set by the parent.</summary>
+    private string _defaultTextPreview = "";
+    public string DefaultTextPreview
+    {
+        get => _defaultTextPreview;
+        set => this.RaiseAndSetIfChanged(ref _defaultTextPreview, value);
     }
 
     private AlarmActionKind _kind;
@@ -243,13 +275,21 @@ public sealed class AlarmActionVm : ReactiveObject
             case AlarmActionKind.AgentNotify:
                 if (!string.IsNullOrWhiteSpace(Instruction)) o["instruction"] = Instruction;
                 break;
+            // Nothing written means "use the condition's own wording" — the absence is the
+            // instruction, so the default follows the check even if it changes later.
             case AlarmActionKind.Alert:
-                if (!string.IsNullOrWhiteSpace(Title)) o["title"] = Title;
-                if (!string.IsNullOrWhiteSpace(Body))  o["body"]  = Body;
+                if (!UseDefaultText)
+                {
+                    if (!string.IsNullOrWhiteSpace(Title)) o["title"] = Title;
+                    if (!string.IsNullOrWhiteSpace(Body))  o["body"]  = Body;
+                }
                 break;
             case AlarmActionKind.Dialog:
-                if (!string.IsNullOrWhiteSpace(Title)) o["title"]   = Title;
-                if (!string.IsNullOrWhiteSpace(Body))  o["message"] = Body;
+                if (!UseDefaultText)
+                {
+                    if (!string.IsNullOrWhiteSpace(Title)) o["title"]   = Title;
+                    if (!string.IsNullOrWhiteSpace(Body))  o["message"] = Body;
+                }
                 break;
         }
         return o.ToJsonString();
@@ -515,6 +555,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         Actions.Clear();
         Actions.Add(NewActionVm(AlarmActionKind.Sound, default));
         HasEditor = true;
+        UpdateDefaultTextPreview();
     }
 
     private async Task LoadEditorAsync(long id)
@@ -555,6 +596,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         }
 
         HasEditor = true;
+        UpdateDefaultTextPreview();
     }
 
     /// <summary>
@@ -601,6 +643,7 @@ public sealed class AlarmsViewModel : ReactiveObject
 
             var kind = options is not null   ? "enum"
                      : format == "date-time" ? "datetime"
+                     : format == "item-name" ? "item"
                      : type == "boolean"     ? "boolean"
                      : type == "integer"     ? "integer"
                      : type == "number"      ? "number"
@@ -628,8 +671,63 @@ public sealed class AlarmsViewModel : ReactiveObject
                 field.Time = soon.TimeOfDay;
             }
 
+            if (kind == "item") field.Populator = SearchItemNamesAsync;
+
             Fields.Add(field);
         }
+
+        UpdateDefaultTextPreview();
+    }
+
+    /// <summary>
+    /// Type-ahead over published item names. Exact matches first, then names starting with what
+    /// was typed, then the rest — so "Sigil" leads with the Sigil rather than the Sigil Blueprint.
+    /// </summary>
+    private async Task<IEnumerable<object>> SearchItemNamesAsync(string? text, CancellationToken ct)
+    {
+        var term = text?.Trim() ?? "";
+        if (term.Length < 2) return [];
+
+        return await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+            var hits = await db.SdeTypes.AsNoTracking()
+                .Where(t => t.Published && t.Name.Contains(term))
+                .Select(t => t.Name)
+                .Take(200)
+                .ToListAsync(ct);
+
+            return hits
+                .OrderBy(n => string.Equals(n, term, StringComparison.OrdinalIgnoreCase) ? 0
+                            : n.StartsWith(term, StringComparison.OrdinalIgnoreCase) ? 1 : 2)
+                .ThenBy(n => n.Length)
+                .ThenBy(n => n)
+                .Take(50)
+                .Cast<object>()
+                .ToList();
+        }, ct);
+    }
+
+    /// <summary>Shows what the default alert wording would look like for the chosen check.</summary>
+    private void UpdateDefaultTextPreview()
+    {
+        string preview;
+        try
+        {
+            var sample = new[] { new AlarmMatch("preview", "…the matching detail goes here") };
+            var cfg    = JsonDocument.Parse(BuildConfigJson()).RootElement;
+            var (title, _) = SelectedCondition?.DefaultText(
+                string.IsNullOrWhiteSpace(Name) ? "This alarm" : Name, cfg, sample)
+                ?? ("", "");
+
+            preview = string.IsNullOrWhiteSpace(title)
+                ? "The check will supply the wording."
+                : $"e.g. \"{title}\", then the matches beneath it.";
+        }
+        catch { preview = "The check will supply the wording."; }
+
+        foreach (var a in Actions) a.DefaultTextPreview = preview;
     }
 
     private void ApplyConfig(JsonElement config)
@@ -733,6 +831,25 @@ public sealed class AlarmsViewModel : ReactiveObject
     {
         if (SelectedCondition is null) { StatusText = "Pick a condition first."; return; }
         if (string.IsNullOrWhiteSpace(Name)) { StatusText = "Give the alarm a name."; return; }
+
+        // An item name that does not resolve makes an alarm that can never match, and says so
+        // nowhere. Refuse the save instead, while the field is still in front of the user.
+        foreach (var field in Fields.Where(f => f.IsItem && !string.IsNullOrWhiteSpace(f.Text)))
+        {
+            var typed = field.Text.Trim();
+            var known = await Task.Run(async () =>
+            {
+                await using var db = await _dbFactory.CreateDbContextAsync();
+                return await db.SdeTypes.AsNoTracking()
+                    .AnyAsync(t => t.Name.ToUpper() == typed.ToUpper());
+            });
+
+            if (!known)
+            {
+                StatusText = $"\"{typed}\" is not an item — pick one from the list.";
+                return;
+            }
+        }
 
         var conditionType = SelectedCondition.TypeKey;
         var conditionJson = BuildConfigJson();

@@ -384,7 +384,11 @@ public sealed class AlarmService : ReactiveObject
             .OrderBy(a => a.Ordinal)
             .ToListAsync(ct);
 
-        await _actions.RunAsync(alarm, actions, evt, fresh, ct);
+        // The condition supplies wording for any Alert or Dialog left on its default, so what
+        // the capsuleer reads reflects what was actually being watched for.
+        var defaults = condition.DefaultText(alarm.Name, config, fresh);
+
+        await _actions.RunAsync(alarm, actions, evt, fresh, defaults, ct);
         return true;
     }
 
