@@ -122,7 +122,7 @@ public sealed class AlarmFieldVm : ReactiveObject
         }
     }
 
-    public bool IsText     => Kind is "string" or "integer";
+    public bool IsText     => Kind is "string" or "integer" or "number";
     public bool IsBoolean  => Kind == "boolean";
     public bool IsDateTime => Kind == "datetime";
     public bool IsEnum     => Kind == "enum";
@@ -599,11 +599,12 @@ public sealed class AlarmsViewModel : ReactiveObject
 
             var format = spec.TryGetProperty("format", out var f) ? f.GetString() : null;
 
-            var kind = options is not null            ? "enum"
-                     : format == "date-time"          ? "datetime"
-                     : type == "boolean"              ? "boolean"
-                     : type is "integer" or "number"  ? "integer"
-                                                      : "string";
+            var kind = options is not null   ? "enum"
+                     : format == "date-time" ? "datetime"
+                     : type == "boolean"     ? "boolean"
+                     : type == "integer"     ? "integer"
+                     : type == "number"      ? "number"
+                                             : "string";
 
             var field = new AlarmFieldVm
             {
@@ -646,7 +647,10 @@ public sealed class AlarmsViewModel : ReactiveObject
                     break;
 
                 case "integer":
-                    field.Text = v.ValueKind == JsonValueKind.Number ? v.GetRawText() : "";
+                case "number":
+                    field.Text = v.ValueKind == JsonValueKind.Number
+                        ? v.GetRawText()
+                        : v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : "";
                     break;
 
                 case "datetime":
@@ -686,8 +690,16 @@ public sealed class AlarmsViewModel : ReactiveObject
                     o[field.Name] = field.Flag;
                     break;
 
+                // long, not int: an ISK price runs well past 2.1 billion, and int.TryParse
+                // would simply fail and drop the field, leaving an alarm that matches nothing.
                 case "integer":
-                    if (int.TryParse(field.Text, out var i)) o[field.Name] = i;
+                    if (long.TryParse(field.Text?.Replace(",", ""), out var i)) o[field.Name] = i;
+                    break;
+
+                case "number":
+                    if (double.TryParse(field.Text?.Replace(",", ""),
+                            NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+                        o[field.Name] = d;
                     break;
 
                 case "datetime":
