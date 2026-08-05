@@ -447,6 +447,9 @@ public class MainWindowViewModel : ReactiveObject
         TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
         IndustryOpportunitiesVm = new IndustryOpportunitiesViewModel(connString, historyService, batchAddService);
 
+        agentService.AlarmToolFactory =
+            () => new EveConsole.Agent.Tools.Actions.ManageAlarmsTool(
+                dbFactory, alarmService.Registry, alarmService);
         agentService.Initialize(connString);
         TtsService         = ttsService;
         SpeechInputService = speechInputService;

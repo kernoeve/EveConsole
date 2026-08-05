@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using Avalonia.Threading;
 using EveConsole.Alarms;
@@ -61,7 +62,7 @@ public sealed class AlarmActionRunner
                         break;
 
                     case AlarmActionKind.AgentNotify:
-                        await RunAgentNotifyAsync(alarm, evt, cfg, ct);
+                        await RunAgentNotifyAsync(alarm, evt, matches, cfg, ct);
                         break;
 
                     case AlarmActionKind.Alert:
@@ -89,20 +90,42 @@ public sealed class AlarmActionRunner
         await _sounds.PlayAsync(key, volume, ct);
     }
 
-    private async Task RunAgentNotifyAsync(Alarm alarm, AlarmEvent evt, JsonElement cfg, CancellationToken ct)
+    private async Task RunAgentNotifyAsync(
+        Alarm alarm, AlarmEvent evt, IReadOnlyList<AlarmMatch> matches, JsonElement cfg, CancellationToken ct)
     {
         var extra = Str(cfg, "instruction");
 
+        // The detail of each match goes over too, not just the count. Without it the agent can
+        // only say "something happened"; with it, it can say which pilot, in which ship, where.
+        var detail = new StringBuilder();
+        foreach (var m in matches.Take(10))
+        {
+            detail.Append("- ").Append(m.Summary);
+            if (m.Detail is { Count: > 0 })
+            {
+                detail.Append(" [")
+                      .Append(string.Join(", ", m.Detail
+                          .Where(kv => kv.Value is not null)
+                          .Select(kv => $"{kv.Key}: {kv.Value}")))
+                      .Append(']');
+            }
+            detail.AppendLine();
+        }
+        if (matches.Count > 10) detail.AppendLine($"- (+{matches.Count - 10} more)");
+
         var message =
             $"""
-             An alarm you set for the capsuleer has just fired.
+             ALARM FIRED — this is the prompt, not a request to look something up.
 
              Alarm: {alarm.Name}
-             What happened: {evt.Summary}
-             Matches: {evt.MatchCount}
-
-             Tell the capsuleer about this in one or two sentences, in your own words.
-             {(string.IsNullOrWhiteSpace(extra) ? "" : $"\nAdditional instruction from the capsuleer: {extra}")}
+             Summary: {evt.Summary}
+             Matches ({evt.MatchCount}):
+             {detail}
+             Tell the capsuleer what happened, in one or two sentences, in your own words, using
+             the detail above. Do not call any tools to confirm it — the alarm already did the
+             checking, and everything you need is in this message. Do not ask a follow-up
+             question; just report it.
+             {(string.IsNullOrWhiteSpace(extra) ? "" : $"\nStanding instruction from the capsuleer for this alarm: {extra}")}
              """;
 
         if (NotifyAgentCallback is { } notify && AgentAvailable?.Invoke() != false)

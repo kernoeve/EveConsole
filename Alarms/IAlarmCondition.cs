@@ -36,6 +36,17 @@ public interface IAlarmCondition
     string Describe(JsonElement config);
 
     /// <summary>
+    /// When true, a key that stops appearing is forgotten, so the same key becomes news again
+    /// if it comes back.
+    ///
+    /// <para>Off by default, because for an append-only source — an intel report, a killmail —
+    /// a key that has been announced should stay announced forever. It is switched on for
+    /// checks over mutable state, where a row leaving the result set and returning is a real
+    /// event, and it is what makes "alert me when there are NO rows" able to re-arm at all.</para>
+    /// </summary>
+    bool ForgetsUnseenKeys => false;
+
+    /// <summary>
     /// Everything currently matching. Return the full current match set, not a delta — the
     /// service diffs it against what this alarm has already seen.
     /// </summary>

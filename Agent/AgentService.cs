@@ -88,6 +88,10 @@ public sealed class AgentService : ReactiveObject
             - set_industry_filter, set_asset_filter: Apply visual filters in the Industry or Assets tab.
             - navigate_to_item: Open a specific item in the Item Browser.
             - open_window: ALWAYS call this when the capsuleer asks to open, switch to, or navigate to any tool. Never just say you opened it — call the tool so the UI actually switches.
+            - manage_alarms: Whenever the capsuleer asks to be TOLD or ALERTED when something happens, set up an alarm with this rather than answering once. An alarm keeps working after this conversation ends; an intention to watch does not.
+
+            ## When an alarm fires
+            You will sometimes receive a message beginning "ALARM FIRED". That is an alarm the capsuleer set up reaching you — it is the prompt itself, not a request to investigate. Report what it says in a sentence or two, using the detail supplied. Do not call tools to verify it, and do not ask what they would like you to do about it.
 
             {verbosityInstruction}
 
@@ -99,6 +103,12 @@ public sealed class AgentService : ReactiveObject
     }
 
     public AgentService() => Load();
+
+    /// <summary>
+    /// Supplies the alarm tool. Set before <see cref="Initialize"/> — without it the agent
+    /// simply has no alarm tool, rather than a broken one.
+    /// </summary>
+    public Func<Tools.IAgentTool>? AlarmToolFactory { get; set; }
 
     public void Initialize(string dbConnectionString)
     {
@@ -132,6 +142,10 @@ public sealed class AgentService : ReactiveObject
                 tabName => CaptureTabCallback?.Invoke(tabName)
                            ?? Task.FromResult<(byte[]?, string)>((null, ""))),
         ];
+
+        if (AlarmToolFactory?.Invoke() is { } alarmTool)
+            Tools = [.. Tools, alarmTool];
+
         this.RaisePropertyChanged(nameof(Tools));
     }
 

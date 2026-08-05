@@ -279,6 +279,12 @@ public sealed class AlarmService : ReactiveObject
             return false;
         }
 
+        // Checks over mutable state forget keys that have gone away, so the same key can be
+        // news again if it returns. Runs before the empty-set exit, because an empty result IS
+        // the signal that re-arms an "alert me when there are no rows" alarm.
+        if (condition.ForgetsUnseenKeys)
+            await ForgetVanishedKeysAsync(db, alarm.Id, matches, ct);
+
         if (matches.Count == 0) return false;
 
         var seen = await db.AlarmSeenKeys.AsNoTracking()
@@ -330,6 +336,39 @@ public sealed class AlarmService : ReactiveObject
 
         await _actions.RunAsync(alarm, actions, evt, fresh, ct);
         return true;
+    }
+
+    /// <summary>
+    /// Drops banked keys that are no longer in the current match set, for conditions that opt
+    /// in. Written as one statement rather than a load-and-diff because the ledger for a busy
+    /// alarm is the one thing here that can get large.
+    /// </summary>
+    private static async Task ForgetVanishedKeysAsync(
+        AppDbContext db, long alarmId, IReadOnlyList<AlarmMatch> current, CancellationToken ct)
+    {
+        if (current.Count == 0)
+        {
+            await db.Database.ExecuteSqlRawAsync(
+                """DELETE FROM "AlarmSeenKeys" WHERE "AlarmId" = {0}""", [alarmId], ct);
+            return;
+        }
+
+        var parameters = new List<object> { alarmId };
+        var slots      = new List<string>(current.Count);
+        foreach (var m in current)
+        {
+            slots.Add($"{{{parameters.Count}}}");
+            parameters.Add(m.Key);
+        }
+
+        // Only placeholder text is interpolated — "{1}", "{2}" and so on. Every actual value,
+        // including keys that came from a user-written query, travels in `parameters`.
+        // $$ so a lone {0} stays literal and {{ }} interpolates.
+#pragma warning disable EF1002 // interpolated values are placeholders, not data
+        await db.Database.ExecuteSqlRawAsync(
+            $$"""DELETE FROM "AlarmSeenKeys" WHERE "AlarmId" = {0} AND "MatchKey" NOT IN ({{string.Join(",", slots)}})""",
+            parameters, ct);
+#pragma warning restore EF1002
     }
 
     private static void BankKeys(AppDbContext db, long alarmId, IEnumerable<AlarmMatch> matches, DateTimeOffset now)

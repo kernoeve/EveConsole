@@ -23,6 +23,7 @@ public sealed class AlarmConditionRegistry
     [
         new TimerCondition(),
         new IntelCondition(graph),
+        new SqlCondition(),
     ]);
 
     public IReadOnlyList<IAlarmCondition> All { get; }
