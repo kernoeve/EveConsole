@@ -125,6 +125,15 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _alarmLightRing, value);
     }
 
+    /// <summary>The gleam on the dome dims with the lamp — a bright highlight on a dark dome
+    /// reads as a lit bulb that is not lit.</summary>
+    private double _alarmGleamOpacity = 0.18;
+    public double AlarmGleamOpacity
+    {
+        get => _alarmGleamOpacity;
+        private set => this.RaiseAndSetIfChanged(ref _alarmGleamOpacity, value);
+    }
+
     private string _alarmsTip = "Alarms";
     public string AlarmsTip
     {
@@ -144,8 +153,9 @@ public class MainWindowViewModel : ReactiveObject
                 ActiveAlarmCount = count;
                 HasActiveAlarms  = count > 0;
 
-                AlarmLightColor = count > 0 ? "#c0392b" : "#2a2a34";
-                AlarmLightRing  = count > 0 ? "#e05a4a" : "#3a3a48";
+                AlarmLightColor   = count > 0 ? "#c0392b" : "#2a2a34";
+                AlarmLightRing    = count > 0 ? "#e05a4a" : "#3a3a48";
+                AlarmGleamOpacity = count > 0 ? 0.55 : 0.18;
 
                 AlarmsTip = count switch
                 {

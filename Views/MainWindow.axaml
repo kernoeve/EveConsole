@@ -89,19 +89,42 @@
                   Padding="6 4" VerticalAlignment="Center"
                   ToolTip.Tip="{Binding AlarmsTip}"
                   Click="OnAlarmsClick">
-            <Grid Width="22" Height="20">
-              <Ellipse Width="14" Height="14"
-                       HorizontalAlignment="Left" VerticalAlignment="Center"
-                       Fill="{Binding AlarmLightColor}"
-                       Stroke="{Binding AlarmLightRing}" StrokeThickness="1" />
+            <Grid Width="29" Height="22">
+              <!-- A beacon: dome on a stacked base, with light thrown off it while armed.
+                   Drawn on a 24x22 canvas so the pieces line up at any size. -->
+              <Canvas Width="24" Height="22" HorizontalAlignment="Left" VerticalAlignment="Center">
+
+                <!-- Light rays. Only present when something is actually armed. -->
+                <Canvas IsVisible="{Binding HasActiveAlarms}">
+                  <Path Data="M 12,7.2 L 12,3.0"     Stroke="{Binding AlarmLightRing}" StrokeThickness="1.7" StrokeLineCap="Round" />
+                  <Path Data="M 7.4,8.9 L 4.4,5.6"   Stroke="{Binding AlarmLightRing}" StrokeThickness="1.5" StrokeLineCap="Round" />
+                  <Path Data="M 16.6,8.9 L 19.6,5.6" Stroke="{Binding AlarmLightRing}" StrokeThickness="1.5" StrokeLineCap="Round" />
+                  <Path Data="M 5.2,13.4 L 1.2,12.6" Stroke="{Binding AlarmLightRing}" StrokeThickness="1.5" StrokeLineCap="Round" />
+                  <Path Data="M 18.8,13.4 L 22.8,12.6" Stroke="{Binding AlarmLightRing}" StrokeThickness="1.5" StrokeLineCap="Round" />
+                </Canvas>
+
+                <!-- Dome -->
+                <Path Data="M 6,16.2 A 6,6 0 0 1 18,16.2 Z" Fill="{Binding AlarmLightColor}" />
+
+                <!-- Glass highlight, the curved gleam on the left of the dome -->
+                <Path Data="M 8.7,15.4 A 4.3,4.3 0 0 1 10.9,11.5"
+                      Stroke="#ffffff" StrokeThickness="1.3" StrokeLineCap="Round"
+                      Opacity="{Binding AlarmGleamOpacity}" />
+
+                <!-- Housing: two stacked tiers, the lower one wider -->
+                <Rectangle Canvas.Left="4.6" Canvas.Top="16.2" Width="14.8" Height="2.5"
+                           RadiusX="0.7" RadiusY="0.7" Fill="#23232c" />
+                <Rectangle Canvas.Left="3.0" Canvas.Top="18.7" Width="18.0" Height="2.7"
+                           RadiusX="0.9" RadiusY="0.9" Fill="#16161d" />
+              </Canvas>
 
               <Border IsVisible="{Binding HasActiveAlarms}"
                       HorizontalAlignment="Right" VerticalAlignment="Top"
-                      Background="#12121a" CornerRadius="7"
-                      BorderBrush="#2a2a3a" BorderThickness="1"
-                      MinWidth="14" Height="14" Padding="3 0">
+                      Background="#12121a" CornerRadius="6"
+                      BorderBrush="#3a3a4a" BorderThickness="1"
+                      MinWidth="12" Height="12" Padding="2 0">
                 <TextBlock Text="{Binding ActiveAlarmCount}"
-                           FontSize="9" FontWeight="SemiBold"
+                           FontSize="8" FontWeight="SemiBold"
                            Foreground="#d8d8e4"
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
