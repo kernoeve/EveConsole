@@ -137,14 +137,19 @@ public sealed class AlarmActionVm : ReactiveObject
 {
     private readonly AlarmSoundService _sounds;
 
-    public AlarmActionVm(AlarmSoundService sounds, AlarmActionKind kind, JsonElement cfg)
+    public AlarmActionVm(
+        AlarmSoundService                 sounds,
+        ObservableCollection<AlarmSound>  catalog,
+        Func<Task<string?>>               pickFile,
+        AlarmActionKind                   kind,
+        JsonElement                       cfg)
     {
-        _sounds     = sounds;
-        AvailableSounds = sounds.List();
-        _kind       = kind;
+        _sounds         = sounds;
+        AvailableSounds = catalog;      // shared, so an imported file shows up in every picker
+        _kind           = kind;
 
         var soundKey = Str(cfg, "sound") ?? AlarmSoundService.DefaultKey;
-        _sound       = AvailableSounds.FirstOrDefault(s => s.Key == soundKey) ?? AvailableSounds.FirstOrDefault();
+        _sound       = catalog.FirstOrDefault(s => s.Key == soundKey) ?? catalog.FirstOrDefault();
         _volume      = Int(cfg, "volume") ?? 100;
         _title       = Str(cfg, "title") ?? "";
         _body        = Str(cfg, "body") ?? Str(cfg, "message") ?? "";
@@ -154,6 +159,32 @@ public sealed class AlarmActionVm : ReactiveObject
         {
             if (Sound is { } s) await _sounds.PlayAsync(s.Key, Volume);
         });
+
+        AddSoundCommand = ReactiveCommand.CreateFromTask(async () =>
+        {
+            var path = await pickFile();
+            if (path is null) return;
+
+            // Copied into the app data folder rather than referenced where it sits, so the
+            // alarm keeps working if the original is moved or deleted.
+            var added = sounds.AddCustomSound(path);
+            if (added is null)
+            {
+                ImportError = "That file type is not supported.";
+                return;
+            }
+
+            ImportError = "";
+            if (catalog.All(s => s.Key != added.Key)) catalog.Add(added);
+            Sound = catalog.FirstOrDefault(s => s.Key == added.Key);
+        });
+    }
+
+    private string _importError = "";
+    public string ImportError
+    {
+        get => _importError;
+        private set => this.RaiseAndSetIfChanged(ref _importError, value);
     }
 
     private AlarmActionKind _kind;
@@ -174,7 +205,7 @@ public sealed class AlarmActionVm : ReactiveObject
     public IReadOnlyList<AlarmActionKind> AvailableKinds { get; } =
         [AlarmActionKind.Sound, AlarmActionKind.AgentNotify, AlarmActionKind.Alert, AlarmActionKind.Dialog];
 
-    public IReadOnlyList<AlarmSound> AvailableSounds { get; }
+    public ObservableCollection<AlarmSound> AvailableSounds { get; }
 
     private AlarmSound? _sound;
     public AlarmSound? Sound { get => _sound; set => this.RaiseAndSetIfChanged(ref _sound, value); }
@@ -197,7 +228,8 @@ public sealed class AlarmActionVm : ReactiveObject
     public bool IsDialog => Kind == AlarmActionKind.Dialog;
     public bool HasText  => IsAlert || IsDialog;
 
-    public ReactiveCommand<Unit, Unit> PreviewCommand { get; }
+    public ReactiveCommand<Unit, Unit> PreviewCommand  { get; }
+    public ReactiveCommand<Unit, Unit> AddSoundCommand { get; }
 
     public string ToConfigJson()
     {
@@ -273,6 +305,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         _sounds    = sounds;
 
         Conditions = service.Registry.All.ToList();
+        foreach (var s in sounds.List()) SoundCatalog.Add(s);
 
         NewCommand    = ReactiveCommand.Create(NewAlarm);
         SaveCommand   = ReactiveCommand.CreateFromTask(SaveAsync);
@@ -300,6 +333,20 @@ public sealed class AlarmsViewModel : ReactiveObject
     public ObservableCollection<AlarmAlertVm>  Alerts  { get; } = [];
     public ObservableCollection<AlarmFieldVm>  Fields  { get; } = [];
     public ObservableCollection<AlarmActionVm> Actions { get; } = [];
+
+    /// <summary>Shared by every sound picker, so an imported file appears in all of them at once.</summary>
+    public ObservableCollection<AlarmSound> SoundCatalog { get; } = [];
+
+    /// <summary>
+    /// Opens a file picker and returns the chosen path. Set by the view, which is the only
+    /// thing with a TopLevel to hang a dialog off.
+    /// </summary>
+    public Func<Task<string?>>? PickSoundFileCallback { get; set; }
+
+    private AlarmActionVm NewActionVm(AlarmActionKind kind, JsonElement cfg) =>
+        new(_sounds, SoundCatalog,
+            () => PickSoundFileCallback?.Invoke() ?? Task.FromResult<string?>(null),
+            kind, cfg);
 
     public IReadOnlyList<AlarmRepeat> RepeatModes { get; } = [AlarmRepeat.Continuous, AlarmRepeat.OneShot];
 
@@ -354,7 +401,7 @@ public sealed class AlarmsViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> TestFireCommand { get; }
 
     public ReactiveCommand<Unit, Unit> AddActionCommand => ReactiveCommand.Create(() =>
-        Actions.Add(new AlarmActionVm(_sounds, AlarmActionKind.Sound, default)));
+        Actions.Add(NewActionVm(AlarmActionKind.Sound, default)));
 
     public ReactiveCommand<AlarmActionVm, Unit> RemoveActionCommand =>
         ReactiveCommand.Create<AlarmActionVm>(a => Actions.Remove(a));
@@ -466,7 +513,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         RebuildFields();
 
         Actions.Clear();
-        Actions.Add(new AlarmActionVm(_sounds, AlarmActionKind.Sound, default));
+        Actions.Add(NewActionVm(AlarmActionKind.Sound, default));
         HasEditor = true;
     }
 
@@ -504,7 +551,7 @@ public sealed class AlarmsViewModel : ReactiveObject
             JsonElement cfg;
             try { cfg = JsonDocument.Parse(a.ConfigJson ?? "{}").RootElement.Clone(); }
             catch { cfg = default; }
-            Actions.Add(new AlarmActionVm(_sounds, a.Kind, cfg));
+            Actions.Add(NewActionVm(a.Kind, cfg));
         }
 
         HasEditor = true;

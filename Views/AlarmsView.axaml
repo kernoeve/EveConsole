@@ -233,19 +233,25 @@
                         </Grid>
 
                         <!-- Sound -->
-                        <Grid ColumnDefinitions="*,90,Auto" IsVisible="{Binding IsSound}">
-                          <StackPanel Grid.Column="0" Margin="0 0 8 0">
-                            <TextBlock Classes="flabel" Text="SOUND" />
-                            <ComboBox ItemsSource="{Binding AvailableSounds}" SelectedItem="{Binding Sound}"
-                                      HorizontalAlignment="Stretch" FontSize="11" />
-                          </StackPanel>
-                          <StackPanel Grid.Column="1" Margin="0 0 8 0">
-                            <TextBlock Classes="flabel" Text="VOLUME" />
-                            <TextBox Text="{Binding Volume}" />
-                          </StackPanel>
-                          <Button Grid.Column="2" Classes="tool" Content="▶ Preview"
-                                  Command="{Binding PreviewCommand}" VerticalAlignment="Bottom" />
-                        </Grid>
+                        <StackPanel IsVisible="{Binding IsSound}" Spacing="3">
+                          <Grid ColumnDefinitions="*,80,Auto,Auto">
+                            <StackPanel Grid.Column="0" Margin="0 0 8 0">
+                              <TextBlock Classes="flabel" Text="SOUND" />
+                              <ComboBox ItemsSource="{Binding AvailableSounds}" SelectedItem="{Binding Sound}"
+                                        HorizontalAlignment="Stretch" FontSize="11" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="0 0 8 0">
+                              <TextBlock Classes="flabel" Text="VOLUME" />
+                              <TextBox Text="{Binding Volume}" />
+                            </StackPanel>
+                            <Button Grid.Column="2" Classes="tool" Content="▶ Preview"
+                                    Command="{Binding PreviewCommand}" VerticalAlignment="Bottom" />
+                            <Button Grid.Column="3" Classes="tool" Content="Add Sound…"
+                                    Command="{Binding AddSoundCommand}" VerticalAlignment="Bottom"
+                                    Margin="6 0 0 0" />
+                          </Grid>
+                          <TextBlock Text="{Binding ImportError}" FontSize="9.5" Foreground="#aa5555" />
+                        </StackPanel>
 
                         <!-- Agent -->
                         <StackPanel IsVisible="{Binding IsAgent}">

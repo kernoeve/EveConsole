@@ -2103,7 +2103,9 @@ public class App : Application
         // on their behalf) creates. See AlarmService for why firing is keyed on match identity
         // rather than on a condition merely being true.
         services.AddSingleton<AlarmSoundService>();
-        services.AddSingleton(_ => AlarmConditionRegistry.CreateDefault());
+        services.AddSingleton<SystemGraph>();
+        services.AddSingleton(sp => AlarmConditionRegistry.CreateDefault(
+            sp.GetRequiredService<SystemGraph>()));
         services.AddSingleton<AlarmActionRunner>();
         services.AddSingleton(sp =>
         {

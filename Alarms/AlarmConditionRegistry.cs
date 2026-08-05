@@ -1,4 +1,5 @@
 using EveConsole.Alarms.Conditions;
+using EveConsole.Services;
 
 namespace EveConsole.Alarms;
 
@@ -18,9 +19,10 @@ public sealed class AlarmConditionRegistry
     }
 
     /// <summary>The built-in set, in the order they should appear in the editor.</summary>
-    public static AlarmConditionRegistry CreateDefault() => new(
+    public static AlarmConditionRegistry CreateDefault(SystemGraph graph) => new(
     [
         new TimerCondition(),
+        new IntelCondition(graph),
     ]);
 
     public IReadOnlyList<IAlarmCondition> All { get; }

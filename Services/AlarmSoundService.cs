@@ -30,17 +30,25 @@ public sealed class AlarmSoundService
 
     public static bool IsAvailable => _vlc is not null;
 
-    /// <summary>The chimes shipped with the app, in the order they appear in the picker.</summary>
+    /// <summary>
+    /// The sounds shipped with the app, in picker order: the quiet ones first, then the ones
+    /// meant to be impossible to ignore.
+    /// </summary>
     private static readonly (string Key, string Name)[] Bundled =
     [
-        ("chime-soft",   "Chime — soft"),
-        ("chime-triad",  "Chime — triad"),
-        ("ping-glass",   "Ping — glass"),
-        ("bell-brass",   "Bell — brass"),
-        ("bell-deep",    "Bell — deep"),
-        ("gong-low",     "Gong — low"),
-        ("alert-double", "Alert — double"),
-        ("alarm-urgent", "Alarm — urgent"),
+        ("chime-soft",        "Chime — soft"),
+        ("chime-triad",       "Chime — triad"),
+        ("ping-glass",        "Ping — glass"),
+        ("bell-brass",        "Bell — brass"),
+        ("bell-deep",         "Bell — deep"),
+        ("gong-low",          "Gong — low"),
+        ("alert-double",      "Alert — double"),
+        ("alarm-urgent",      "Alarm — urgent"),
+        ("two-tone-alert",    "Warning — two-tone"),
+        ("klaxon-industrial", "Warning — klaxon"),
+        ("buzzer-harsh",      "Warning — buzzer"),
+        ("siren-sweep",       "Warning — siren"),
+        ("horn-low",          "Warning — horn"),
     ];
 
     /// <summary>
@@ -79,6 +87,31 @@ public sealed class AlarmSoundService
     }
 
     public static string DefaultKey => Bundled[0].Key;
+
+    public static readonly string[] SupportedExtensions = [".wav", ".mp3", ".ogg", ".flac", ".m4a"];
+
+    /// <summary>
+    /// Copies a file the user picked into the custom sounds folder and returns it, so it is
+    /// available on every later run rather than depending on wherever they browsed to. A name
+    /// collision gets a numeric suffix instead of overwriting.
+    /// </summary>
+    public AlarmSound? AddCustomSound(string sourcePath)
+    {
+        if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath)) return null;
+
+        var ext = Path.GetExtension(sourcePath);
+        if (!SupportedExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase)) return null;
+
+        Directory.CreateDirectory(CustomSoundDir);
+
+        var baseName = Path.GetFileNameWithoutExtension(sourcePath);
+        var target   = Path.Combine(CustomSoundDir, baseName + ext);
+        for (var i = 2; File.Exists(target); i++)
+            target = Path.Combine(CustomSoundDir, $"{baseName} ({i}){ext}");
+
+        File.Copy(sourcePath, target);
+        return new AlarmSound(target, Path.GetFileNameWithoutExtension(target), true);
+    }
 
     /// <summary>
     /// Resolves a stored key to a playable file. A key containing a directory separator is
