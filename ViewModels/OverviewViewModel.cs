@@ -478,25 +478,14 @@ public class OverviewViewModel : ReactiveObject
 
     private async Task LoadCoreAsync()
     {
-        // Section timings, logged once at the end. Added because "the Overview feels slow" was
-        // being diagnosed by reading code, and the last time this was measured instead the
-        // answer was a surprise — 664 database contexts building tooltips nobody had opened.
-        // Each entry closes out the section that just FINISHED, not the one being started —
-        // the first version of this recorded elapsed time against the incoming label, which
-        // shifted every reading by one and made a 15-second section look like the one after it.
-        var sw      = System.Diagnostics.Stopwatch.StartNew();
-        var timings = new List<(string Step, long Ms)>();
-        var last    = 0L;
-        var current = "Querying scope";
-        void Step(string next)
-        {
-            timings.Add((current, sw.ElapsedMilliseconds - last));
-            last    = sw.ElapsedMilliseconds;
-            current = next;
-            LoadStatus = next;
-        }
+        // Step() names the section under way, which shows as progress text while the Overview
+        // builds. The per-section timings this used to log to the error log are gone — they had
+        // served their purpose (664 database contexts building tooltips nobody had opened) and
+        // were filling the log on every refresh.
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        void Step(string next) => LoadStatus = next;
 
-        LoadStatus = current;
+        LoadStatus = "Querying scope";
         try
         {
             await _alertSettings.LoadAsync();
@@ -697,13 +686,6 @@ public class OverviewViewModel : ReactiveObject
 
             Step("Loading notifications");
             await LoadNotificationsAsync();
-
-            timings.Add((current, sw.ElapsedMilliseconds - last));
-            _errorLogger.Log("OverviewViewModel", "LoadTiming",
-                new Exception($"Overview load {sw.ElapsedMilliseconds:N0} ms — " +
-                    string.Join(", ", timings.Where(t => t.Ms >= 20)
-                                             .OrderByDescending(t => t.Ms)
-                                             .Select(t => $"{t.Step} {t.Ms:N0}ms"))));
 
             LoadStatus = $"Loaded in {sw.ElapsedMilliseconds:N0} ms — {owners.Count} owner(s), period: {_selectedPeriod.Label}";
         }
