@@ -75,9 +75,16 @@ public class App : Application
             zkbPolling    = Services.GetRequiredService<ZkillboardPollingService>();
 
             // Intel is parsed straight after each chat tail, so a sighting reaches the map on
-            // the same pass that stored the message rather than on a timer of its own.
+            // the same pass that stored the message rather than on a timer of its own — and any
+            // intel alarm is then evaluated immediately rather than at its next interval, which
+            // is the difference between hearing about a hostile in a second and in a minute.
             var intel = Services.GetRequiredService<IntelService>();
-            chatLogs.AfterTail = ct => intel.ProcessNewAsync(ct);
+            chatLogs.AfterTail = async ct =>
+            {
+                var written = await intel.ProcessNewAsync(ct);
+                if (written > 0)
+                    await Services.GetRequiredService<AlarmService>().TriggerAsync("intel", ct);
+            };
             zkbFirehose   = Services.GetRequiredService<ZkillboardFirehoseService>();
             zkbBackfill   = Services.GetRequiredService<ZkillboardBackfillService>();
             zkbPost       = Services.GetRequiredService<ZkillboardPostService>();
@@ -1883,6 +1890,15 @@ public class App : Application
 
                 """CREATE TABLE IF NOT EXISTS "AlarmAlerts" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "AlarmEventId" INTEGER NOT NULL DEFAULT 0, "CreatedAt" TEXT NOT NULL DEFAULT '', "Title" TEXT NOT NULL DEFAULT '', "Body" TEXT NULL, "Dismissed" INTEGER NOT NULL DEFAULT 0, "DismissedAt" TEXT NULL)""",
                 """CREATE INDEX IF NOT EXISTS "IX_AlarmAlerts_Dismissed_Created" ON "AlarmAlerts" ("Dismissed", "CreatedAt")""",
+
+                // Intel alarm keys used to be the report's row id, which changes whenever a chat
+                // log is re-read — so old sightings kept looking new. They are now content-based
+                // and contain a '|'. Re-prime any alarm still holding the old style so the
+                // switch banks what is currently visible instead of announcing all of it, then
+                // drop those keys. Both statements no-op once there are no old keys left, so
+                // this is safe to run on every start.
+                """UPDATE "Alarms" SET "Primed" = 0 WHERE "ConditionType" = 'intel' AND EXISTS (SELECT 1 FROM "AlarmSeenKeys" k WHERE k."AlarmId" = "Alarms"."Id" AND k."MatchKey" LIKE 'intel:%' AND k."MatchKey" NOT LIKE '%|%')""",
+                """DELETE FROM "AlarmSeenKeys" WHERE "MatchKey" LIKE 'intel:%' AND "MatchKey" NOT LIKE '%|%'""",
             }) { try { db.Database.ExecuteSqlRaw(sql); } catch { } }
             // Repairs stations imported before ConstellationId/RegionId/Security were populated
             // from the solar system. The importer now fills them, but an existing install only

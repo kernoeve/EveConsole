@@ -130,11 +130,12 @@ public sealed class IntelCondition : IAlarmCondition
 
         var idList = string.Join(",", watched);
 
-        var reports = new List<(long Id, string System, int Count, string Reporter, string? Note, DateTime At)>();
+        var reports = new List<(long Id, string System, int Count, string Reporter, string? Note,
+                               DateTime At, int SystemId)>();
         await using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = $"""
-                SELECT "Id", "SystemName", "PlayerCount", "ReporterName", "Note", "ReportedAt"
+                SELECT "Id", "SystemName", "PlayerCount", "ReporterName", "Note", "ReportedAt", "SystemId"
                 FROM "IntelReports"
                 WHERE "ReportedAt" >= $cutoff
                   AND "SystemId" IN ({idList})
@@ -154,7 +155,8 @@ public sealed class IntelCondition : IAlarmCondition
                     r.IsDBNull(2) ? 0 : r.GetInt32(2),
                     r.IsDBNull(3) ? "" : r.GetString(3),
                     r.IsDBNull(4) ? null : r.GetString(4),
-                    r.IsDBNull(5) ? default : r.GetDateTime(5)));
+                    r.IsDBNull(5) ? default : r.GetDateTime(5),
+                    r.IsDBNull(6) ? 0 : r.GetInt32(6)));
         }
 
         if (reports.Count == 0) return [];
@@ -190,8 +192,13 @@ public sealed class IntelCondition : IAlarmCondition
 
             var headline = rep.Count == 1 ? "1 pilot" : $"{rep.Count} pilots";
 
+            // Keyed on what identifies the sighting — when, who said it, where — and NOT on the
+            // report's row id. A chat log re-read (routine on a synced share, where the file
+            // length appears to go backwards) deletes and re-inserts every report with a fresh
+            // id, and an id-based key would make hours-old sightings look new every time that
+            // happened. That is what produced the same nine alerts three times over.
             matches.Add(new AlarmMatch(
-                $"intel:{rep.Id}",
+                $"intel:{rep.At:yyyy-MM-ddTHH:mm:ss}|{rep.Reporter}|{rep.SystemId}",
                 $"{headline} in {rep.System}{who} (reported by {rep.Reporter})")
             {
                 Detail = new Dictionary<string, object?>

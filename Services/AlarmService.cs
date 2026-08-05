@@ -20,10 +20,14 @@ namespace EveConsole.Services;
 public sealed class AlarmService : ReactiveObject
 {
     /// <summary>Nothing is evaluated faster than this regardless of what an alarm asks for.</summary>
-    private const int MinPollSeconds = 10;
+    private const int MinPollSeconds = 5;
 
-    /// <summary>How often the loop wakes to see whether any alarm is due.</summary>
-    private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(5);
+    /// <summary>
+    /// How often the loop wakes to see whether any alarm is due. Cheap: a tick with nothing due
+    /// costs one small query, and checks that matter are usually driven by
+    /// <see cref="TriggerAsync"/> rather than by waiting for this.
+    /// </summary>
+    private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(2);
 
     private static readonly TimeSpan SeenKeyRetention = TimeSpan.FromDays(30);
     private static readonly TimeSpan PruneInterval    = TimeSpan.FromHours(6);
@@ -38,6 +42,9 @@ public sealed class AlarmService : ReactiveObject
     private readonly CancellationTokenSource _cts = new();
     private Task?          _loop;
     private DateTimeOffset _lastPrune = DateTimeOffset.MinValue;
+
+    /// <summary>One evaluation pass at a time — the timer loop and a trigger must not overlap.</summary>
+    private readonly SemaphoreSlim _passGate = new(1, 1);
 
     /// <summary>Next-due times, kept in memory so a tick costs nothing when nothing is due.</summary>
     private readonly Dictionary<long, DateTimeOffset> _nextDue = [];
@@ -108,6 +115,44 @@ public sealed class AlarmService : ReactiveObject
     }
 
     /// <summary>
+    /// Re-evaluates every alarm of a given condition type right now, rather than at its next
+    /// interval. Called by whatever produced the data — for intel, the parser calls this the
+    /// moment it has written new sightings, so the alarm fires within a second of the post
+    /// instead of waiting out a poll it has no way of knowing is pointless.
+    ///
+    /// <para>A fixed interval is the fallback for sources that cannot say when they changed,
+    /// which is most of them; anything that can say so should.</para>
+    /// </summary>
+    public async Task TriggerAsync(string conditionType, CancellationToken ct = default)
+    {
+        try
+        {
+            List<long> ids;
+            await using (var db = await _dbFactory.CreateDbContextAsync(ct))
+            {
+                ids = await db.Alarms
+                    .Where(a => a.Enabled && a.ConditionType == conditionType)
+                    .Select(a => a.Id)
+                    .ToListAsync(ct);
+            }
+
+            if (ids.Count == 0) return;
+
+            lock (_nextDue)
+                foreach (var id in ids) _nextDue.Remove(id);
+
+            // Evaluate immediately rather than waiting for the next tick, but never on top of a
+            // pass already running — the seen-key diff is read-then-write and two overlapping
+            // passes could each decide the same match was new.
+            if (!await _passGate.WaitAsync(0, ct)) return;
+            try { await TickAsync(ct); }
+            finally { _passGate.Release(); }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { _errors.Log("AlarmService", $"trigger {conditionType}", ex); }
+    }
+
+    /// <summary>
     /// Banks an alarm's already-matching state at the moment it is saved, rather than leaving
     /// it for the first tick. Closes a narrow but real gap: an alarm saved just before it comes
     /// due would otherwise be primed *after* the fact, and its one occurrence banked as history
@@ -153,7 +198,12 @@ public sealed class AlarmService : ReactiveObject
         using var timer = new PeriodicTimer(TickInterval);
         while (!ct.IsCancellationRequested)
         {
-            try { await TickAsync(ct); }
+            try
+            {
+                await _passGate.WaitAsync(ct);
+                try { await TickAsync(ct); }
+                finally { _passGate.Release(); }
+            }
             catch (OperationCanceledException) { break; }
             catch (Exception ex) { _errors.Log("AlarmService", "tick", ex); }
 
