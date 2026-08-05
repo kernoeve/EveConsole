@@ -168,9 +168,16 @@
                                 IsVisible="{Binding IsEnum}" HorizontalAlignment="Stretch"
                                 FontSize="11" />
 
-                      <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsDateTime}">
-                        <DatePicker SelectedDate="{Binding Date}" />
-                        <TimePicker SelectedTime="{Binding Time}" ClockIdentifier="24HourClock" />
+                      <StackPanel IsVisible="{Binding IsDateTime}" Spacing="3">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                          <DatePicker SelectedDate="{Binding Date}" />
+                          <TimePicker SelectedTime="{Binding Time}" ClockIdentifier="24HourClock" />
+                          <ComboBox ItemsSource="{Binding ZoneOptions}" SelectedItem="{Binding SelectedZone}"
+                                    IsVisible="{Binding HasZone}" FontSize="11" MinWidth="110"
+                                    VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding EquivalentText}" FontSize="9.5" Foreground="#667"
+                                   Margin="2 0 0 0" />
                       </StackPanel>
 
                       <TextBlock Text="{Binding Description}" FontSize="9.5" Foreground="#556"
@@ -293,7 +300,7 @@
         <!-- History -->
         <Border Grid.Row="2" Background="#0b0b10" Padding="12 10" MaxHeight="200">
           <StackPanel Spacing="6">
-            <TextBlock Classes="section" Text="RECENT FIRINGS" />
+            <TextBlock Classes="section" Text="RECENT FIRINGS (EVE TIME)" />
             <ScrollViewer MaxHeight="150">
               <ItemsControl ItemsSource="{Binding History}">
                 <ItemsControl.ItemTemplate>

@@ -44,6 +44,15 @@ public sealed class TimerCondition : IAlarmCondition
                 type        = "integer",
                 description = "Optional. Repeat this often after the first firing. Omit or 0 for a one-time timer.",
             },
+            zone = new
+            {
+                type        = "string",
+                @enum       = new[] { "eve", "local" },
+                description = "Which clock 'at' is written on when it carries no offset, and which " +
+                              "one to show it on. 'eve' is EVE time (UTC) and is the default — it is " +
+                              "what the header clock shows and what structure timers and fleet ops " +
+                              "are set in. 'local' is the machine's own clock.",
+            },
         },
         required = new[] { "at" },
     };
@@ -52,12 +61,23 @@ public sealed class TimerCondition : IAlarmCondition
     {
         if (!TryReadAt(config, out var at)) return "Timer (not configured)";
 
-        var when   = at.ToLocalTime().ToString("ddd d MMM yyyy HH:mm", CultureInfo.CurrentCulture);
-        var every  = ReadRepeatSeconds(config);
+        var useEve = UsesEveTime(config);
+        var shown  = useEve ? at.ToUniversalTime() : at.ToLocalTime();
+        var when   = shown.ToString("ddd d MMM yyyy HH:mm", CultureInfo.CurrentCulture)
+                   + (useEve ? " EVE" : " local");
+
+        var every = ReadRepeatSeconds(config);
         return every > 0
             ? $"At {when}, then every {DescribeInterval(every)}"
             : $"At {when}";
     }
+
+    /// <summary>Defaults to EVE time, matching the app's header clock.</summary>
+    private static bool UsesEveTime(JsonElement config) =>
+        config.ValueKind != JsonValueKind.Object
+        || !config.TryGetProperty("zone", out var z)
+        || z.ValueKind != JsonValueKind.String
+        || !string.Equals(z.GetString(), "local", StringComparison.OrdinalIgnoreCase);
 
     public Task<IReadOnlyList<AlarmMatch>> EvaluateAsync(
         JsonElement config, AlarmEvaluationContext ctx, CancellationToken ct = default)
@@ -65,13 +85,14 @@ public sealed class TimerCondition : IAlarmCondition
         if (!TryReadAt(config, out var at))
             return Task.FromResult<IReadOnlyList<AlarmMatch>>([]);
 
-        var now   = ctx.Now;
-        var every = ReadRepeatSeconds(config);
+        var now    = ctx.Now;
+        var every  = ReadRepeatSeconds(config);
+        var useEve = UsesEveTime(config);
 
         if (every <= 0)
         {
             return Task.FromResult<IReadOnlyList<AlarmMatch>>(
-                now >= at ? [Occurrence(at)] : []);
+                now >= at ? [Occurrence(at, useEve)] : []);
         }
 
         if (now < at) return Task.FromResult<IReadOnlyList<AlarmMatch>>([]);
@@ -88,17 +109,23 @@ public sealed class TimerCondition : IAlarmCondition
         {
             var occurrence = at + TimeSpan.FromTicks(interval.Ticks * k);
             if (occurrence < earliest) break;
-            matches.Add(Occurrence(occurrence));
+            matches.Add(Occurrence(occurrence, useEve));
         }
 
         return Task.FromResult<IReadOnlyList<AlarmMatch>>(matches);
     }
 
-    private static AlarmMatch Occurrence(DateTimeOffset at)
+    private static AlarmMatch Occurrence(DateTimeOffset at, bool useEve)
     {
+        // The key is always UTC, so the identity of an occurrence does not change if the machine
+        // moves timezone or crosses a daylight-saving boundary — that would make an already
+        // announced occurrence look new and fire it a second time.
         var stamp = at.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-        return new AlarmMatch($"timer:{stamp}",
-            $"Timer due {at.ToLocalTime():ddd d MMM HH:mm}")
+        var shown = useEve
+            ? $"{at.ToUniversalTime():ddd d MMM HH:mm} EVE"
+            : $"{at.ToLocalTime():ddd d MMM HH:mm} local";
+
+        return new AlarmMatch($"timer:{stamp}", $"Timer due {shown}")
         {
             Detail = new Dictionary<string, object?> { ["due"] = stamp },
         };
@@ -113,10 +140,14 @@ public sealed class TimerCondition : IAlarmCondition
         var raw = p.GetString();
         if (string.IsNullOrWhiteSpace(raw)) return false;
 
-        // A bare local time carries no offset, so DateTimeOffset.TryParse would attach the
-        // machine's *current* offset — correct here, since that is what the user typed.
-        return DateTimeOffset.TryParse(raw, CultureInfo.InvariantCulture,
-            DateTimeStyles.AssumeLocal, out at);
+        // The editor always writes an explicit offset, so parsing is unambiguous for anything
+        // it produced. The assumption below only matters for a bare time — which is what the
+        // agent is most likely to hand over — and there the zone decides: EVE time means UTC.
+        var style = UsesEveTime(config)
+            ? DateTimeStyles.AssumeUniversal
+            : DateTimeStyles.AssumeLocal;
+
+        return DateTimeOffset.TryParse(raw, CultureInfo.InvariantCulture, style, out at);
     }
 
     private static int ReadRepeatSeconds(JsonElement config)

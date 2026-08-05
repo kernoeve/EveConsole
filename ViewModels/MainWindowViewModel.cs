@@ -171,7 +171,14 @@ public class MainWindowViewModel : ReactiveObject
     public void OpenTool(string toolId)
     {
         var existing = OpenTabs.FirstOrDefault(t => t.Id == toolId);
-        if (existing is not null) { SelectedTab = existing; return; }
+        if (existing is not null)
+        {
+            SelectedTab = existing;
+            // Returning to an already-open tab has to refresh too, or an alarm that fired while
+            // the tab sat in the background shows nothing until something else triggers a load.
+            if (toolId == "alarms") _ = AlarmsVm.LoadAsync();
+            return;
+        }
 
         var (title, vm, canClose) = toolId switch
         {

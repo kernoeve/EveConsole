@@ -39,7 +39,7 @@ public sealed class AlarmRowVm : ReactiveObject
                                                : "Armed";
 
     public string LastFiredText => LastFiredAt is { } t
-        ? t.ToLocalTime().ToString("d MMM HH:mm", CultureInfo.CurrentCulture)
+        ? t.ToUniversalTime().ToString("d MMM HH:mm", CultureInfo.CurrentCulture) + " EVE"
         : "—";
 
     public bool IsAgentCreated => string.Equals(CreatedBy, "agent", StringComparison.OrdinalIgnoreCase);
@@ -65,10 +65,62 @@ public sealed class AlarmFieldVm : ReactiveObject
     public bool Flag { get => _flag; set => this.RaiseAndSetIfChanged(ref _flag, value); }
 
     private DateTimeOffset? _date;
-    public DateTimeOffset? Date { get => _date; set => this.RaiseAndSetIfChanged(ref _date, value); }
+    public DateTimeOffset? Date
+    {
+        get => _date;
+        set { this.RaiseAndSetIfChanged(ref _date, value); this.RaisePropertyChanged(nameof(EquivalentText)); }
+    }
 
     private TimeSpan _time;
-    public TimeSpan Time { get => _time; set => this.RaiseAndSetIfChanged(ref _time, value); }
+    public TimeSpan Time
+    {
+        get => _time;
+        set { this.RaiseAndSetIfChanged(ref _time, value); this.RaisePropertyChanged(nameof(EquivalentText)); }
+    }
+
+    /// <summary>
+    /// True when the pickers mean EVE time (UTC). Set on the date-time field itself rather than
+    /// standing as its own row, because "a wall-clock time, and which clock it means" is one
+    /// decision — and every later condition that takes a time will want the same pairing.
+    /// </summary>
+    private bool _useEveTime = true;
+    public bool UseEveTime
+    {
+        get => _useEveTime;
+        set { this.RaiseAndSetIfChanged(ref _useEveTime, value); this.RaisePropertyChanged(nameof(EquivalentText)); }
+    }
+
+    /// <summary>Set when the condition's schema declares a zone alongside this date-time.</summary>
+    public bool HasZone { get; set; }
+
+    public IReadOnlyList<string> ZoneOptions { get; } = ["EVE time", "Local time"];
+
+    public string SelectedZone
+    {
+        get => UseEveTime ? "EVE time" : "Local time";
+        set => UseEveTime = value != "Local time";
+    }
+
+    /// <summary>
+    /// The same instant on the other clock. EVE Console shows EVE time in its header and the
+    /// machine clock everywhere else, so an unlabelled time is genuinely ambiguous — this spells
+    /// out both rather than leaving the user to do the arithmetic.
+    /// </summary>
+    public string EquivalentText
+    {
+        get
+        {
+            if (!IsDateTime || Date is not { } d) return "";
+
+            var offset  = UseEveTime ? TimeSpan.Zero : TimeZoneInfo.Local.GetUtcOffset(d.DateTime);
+            var instant = new DateTimeOffset(d.Year, d.Month, d.Day,
+                Time.Hours, Time.Minutes, Time.Seconds, offset);
+
+            return UseEveTime
+                ? $"= {instant.ToLocalTime():ddd d MMM HH:mm} local"
+                : $"= {instant.ToUniversalTime():ddd d MMM HH:mm} EVE";
+        }
+    }
 
     public bool IsText     => Kind is "string" or "integer";
     public bool IsBoolean  => Kind == "boolean";
@@ -188,7 +240,8 @@ public sealed class AlarmEventVm
     public required string         Summary    { get; init; }
     public required int            MatchCount { get; init; }
 
-    public string WhenText => FiredAt.ToLocalTime().ToString("d MMM HH:mm:ss", CultureInfo.CurrentCulture);
+    /// <summary>Shown in EVE time, matching the header clock and the alarm editor's default.</summary>
+    public string WhenText => FiredAt.ToUniversalTime().ToString("d MMM HH:mm:ss", CultureInfo.CurrentCulture);
 }
 
 /// <summary>An outstanding alert raised by the Alert action.</summary>
@@ -481,8 +534,14 @@ public sealed class AlarmsViewModel : ReactiveObject
             foreach (var r in req.EnumerateArray())
                 if (r.GetString() is { } s) required.Add(s);
 
+        // A "zone" property is not a field of its own — it belongs to the date-time it qualifies,
+        // and is attached to that field below.
+        var declaresZone = props.EnumerateObject().Any(p => p.Name == "zone");
+
         foreach (var prop in props.EnumerateObject())
         {
+            if (prop.Name == "zone") continue;
+
             var spec = prop.Value;
             var type = spec.TryGetProperty("type", out var t) ? t.GetString() ?? "string" : "string";
             var desc = spec.TryGetProperty("description", out var d) ? d.GetString() : null;
@@ -511,9 +570,12 @@ public sealed class AlarmsViewModel : ReactiveObject
 
             // A date-time field with nothing in it is more useful pointing at the near future
             // than at 01/01/0001 — the overwhelmingly common case is "remind me shortly".
+            // Defaults to EVE time, matching the header clock and how in-game timers are set.
             if (kind == "datetime")
             {
-                var soon = DateTimeOffset.Now.AddMinutes(5);
+                field.HasZone    = declaresZone;
+                field.UseEveTime = true;
+                var soon = DateTimeOffset.UtcNow.AddMinutes(5);
                 field.Date = soon.Date;
                 field.Time = soon.TimeOfDay;
             }
@@ -545,9 +607,17 @@ public sealed class AlarmsViewModel : ReactiveObject
                         && DateTimeOffset.TryParse(v.GetString(), CultureInfo.InvariantCulture,
                                DateTimeStyles.AssumeLocal, out var dto))
                     {
-                        var local = dto.ToLocalTime();
-                        field.Date = local.Date;
-                        field.Time = local.TimeOfDay;
+                        // Prefer the recorded zone; fall back to reading it off the stored
+                        // offset, which keeps alarms saved before the toggle existed correct.
+                        var useEve = config.TryGetProperty("zone", out var z)
+                                  && z.ValueKind == JsonValueKind.String
+                            ? !string.Equals(z.GetString(), "local", StringComparison.OrdinalIgnoreCase)
+                            : dto.Offset == TimeSpan.Zero;
+
+                        field.UseEveTime = useEve;
+                        var shown = useEve ? dto.ToUniversalTime() : dto.ToLocalTime();
+                        field.Date = shown.Date;
+                        field.Time = shown.TimeOfDay;
                     }
                     break;
 
@@ -576,13 +646,19 @@ public sealed class AlarmsViewModel : ReactiveObject
                 case "datetime":
                     if (field.Date is { } date)
                     {
-                        // Compose in local time and keep the offset, so an alarm set for 18:00
-                        // means 18:00 here rather than 18:00 UTC.
-                        var local = new DateTimeOffset(
+                        // The offset is always written out explicitly, so the stored instant is
+                        // unambiguous whatever the machine's timezone does later. The zone is
+                        // recorded alongside only so the editor reopens on the clock it was set on.
+                        var offset = field.UseEveTime
+                            ? TimeSpan.Zero
+                            : TimeZoneInfo.Local.GetUtcOffset(date.DateTime);
+
+                        var instant = new DateTimeOffset(
                             date.Year, date.Month, date.Day,
-                            field.Time.Hours, field.Time.Minutes, field.Time.Seconds,
-                            TimeZoneInfo.Local.GetUtcOffset(date.DateTime));
-                        o[field.Name] = local.ToString("yyyy-MM-ddTHH:mm:sszzz", CultureInfo.InvariantCulture);
+                            field.Time.Hours, field.Time.Minutes, field.Time.Seconds, offset);
+
+                        o[field.Name] = instant.ToString("yyyy-MM-ddTHH:mm:sszzz", CultureInfo.InvariantCulture);
+                        if (field.HasZone) o["zone"] = field.UseEveTime ? "eve" : "local";
                     }
                     break;
 

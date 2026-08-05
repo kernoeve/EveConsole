@@ -1133,6 +1133,49 @@ public class OverviewViewModel : ReactiveObject
                 });
         }
 
+        // Alerts raised by the user's own alarms. Listed first and unconditionally: unlike the
+        // checks above there is nothing to enable, because the user asked for each of these
+        // explicitly when they built the alarm.
+        var alarmAlerts = await Off(() => _db.AlarmAlerts.AsNoTracking()
+            .Where(a => !a.Dismissed)
+            .OrderByDescending(a => a.Id)
+            .Take(50)
+            .ToListAsync());
+
+        var alarmRows = new List<AlertRowVm>();
+        foreach (var alert in alarmAlerts)
+        {
+            var alertId = alert.Id;
+            var text    = string.IsNullOrWhiteSpace(alert.Body)
+                ? alert.Title
+                : $"{alert.Title} — {alert.Body}";
+
+            AlertRowVm? row = null;
+            row = new AlertRowVm
+            {
+                Message       = text,
+                IsDismissible = true,
+                DismissCommand = ReactiveCommand.CreateFromTask(async () =>
+                {
+                    await _db.Database.ExecuteSqlInterpolatedAsync($"""
+                        UPDATE "AlarmAlerts" SET "Dismissed" = 1, "DismissedAt" = {DateTimeOffset.UtcNow}
+                        WHERE "Id" = {alertId}
+                        """);
+                    var toRemove = Alerts.FirstOrDefault(a => ReferenceEquals(a, row));
+                    if (toRemove is not null)
+                    {
+                        Alerts.Remove(toRemove);
+                        HasAlerts = Alerts.Count > 0;
+                        this.RaisePropertyChanged(nameof(NoAlerts));
+                    }
+                }),
+            };
+            alarmRows.Add(row);
+        }
+
+        // Inserted as a block so the newest alarm alert stays at the top of the box.
+        newAlerts.InsertRange(0, alarmRows);
+
         Alerts.Clear();
         foreach (var a in newAlerts) Alerts.Add(a);
         HasAlerts = Alerts.Count > 0;
