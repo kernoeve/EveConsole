@@ -541,6 +541,10 @@ public class OverviewViewModel : ReactiveObject
                         COALESCE(SUM(CASE WHEN "IsBuy" = 1 THEN 1 ELSE 0 END), 0)                                          AS "BuyCount"
                     FROM "EsiWalletTransactions"
                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
+                      -- Sales marked "not for profit" in the Sales Tracker are left out of
+                      -- every figure that reckons trading performance, including this one.
+                      AND NOT EXISTS (SELECT 1 FROM "SaleExclusions" x
+                                      WHERE x."Kind" = 'Market' AND x."SaleId" = "TransactionId")
                     """
                 ).FirstOrDefaultAsync());
 

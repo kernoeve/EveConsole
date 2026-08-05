@@ -139,7 +139,7 @@ internal static class SalesQuery
                 OwnerName(m.OwnerId, m.OwnerType), m.Location ?? "", BuyerName(m.BuyerId),
                 TypeName(m.TypeId), m.Quantity.ToString("N0"), m.Quantity * m.UnitPrice,
                 bu is double b ? b * m.Quantity : null, mv is double v ? v * m.Quantity : null,
-                m.TypeId, GroupTwoUp(m.TypeId)));
+                m.TypeId, GroupTwoUp(m.TypeId), m.SaleId));
         }
 
         foreach (var c in contracts)
@@ -157,8 +157,20 @@ internal static class SalesQuery
                 when, "Contract", c.OwnerType, c.OwnerId, IsPersonal(c.OwnerId, c.OwnerType),
                 OwnerName(c.OwnerId, c.OwnerType), c.Location ?? "", BuyerName(c.BuyerId),
                 namesText, units, c.Price, build, mkt,
-                firstType, firstType > 0 ? GroupTwoUp(firstType) : "—"));
+                firstType, firstType > 0 ? GroupTwoUp(firstType) : "—", c.SaleId));
         }
+
+        // Rows the user has marked as not for profit. Loaded as a flag rather than filtered out
+        // here, because the Sales Tracker grid can still be asked to show them; every consumer
+        // that reckons profit filters on it.
+        var excluded = (await db.SaleExclusions.AsNoTracking()
+                .Select(x => new { x.Kind, x.SaleId }).ToListAsync())
+            .Select(x => (x.Kind, x.SaleId))
+            .ToHashSet();
+
+        if (excluded.Count > 0)
+            foreach (var r in rows)
+                if (excluded.Contains((r.Kind, r.SaleId))) r.NotForProfit = true;
 
         return new SalesLoadResult(
             rows.OrderByDescending(r => r.WhenSort).ToList(),

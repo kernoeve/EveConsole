@@ -208,6 +208,9 @@ public class AppDbContext : DbContext
     public DbSet<BuildCost>              BuildCosts              => Set<BuildCost>();
     public DbSet<ReprocessingItemValue>  ReprocessingItemValues  => Set<ReprocessingItemValue>();
 
+    // ── Sales ────────────────────────────────────────────────────────────────
+    public DbSet<SaleExclusion> SaleExclusions => Set<SaleExclusion>();
+
     // ── Alarms ───────────────────────────────────────────────────────────────
     public DbSet<Alarm>        Alarms        => Set<Alarm>();
     public DbSet<AlarmAction>  AlarmActions  => Set<AlarmAction>();
@@ -953,6 +956,9 @@ public class AppDbContext : DbContext
         mb.Entity<IntelReportCharacter>(e => {
             e.HasKey(x => new { x.IntelReportId, x.CharacterId });
             e.HasIndex(x => x.CharacterId); });                   // "where was this pilot last seen"
+
+        mb.Entity<SaleExclusion>(e => {
+            e.HasKey(x => new { x.Kind, x.SaleId }); });
 
         mb.Entity<Alarm>(e => {
             e.HasKey(x => x.Id);

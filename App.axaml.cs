@@ -1871,6 +1871,8 @@ public class App : Application
                 """CREATE TABLE IF NOT EXISTS "NameLookupMisses" ("Name" TEXT NOT NULL PRIMARY KEY, "CheckedAt" TEXT NULL)""",
                 """CREATE TABLE IF NOT EXISTS "CharacterAffiliations" ("CharacterId" INTEGER NOT NULL PRIMARY KEY, "CorporationId" INTEGER NOT NULL DEFAULT 0, "AllianceId" INTEGER NOT NULL DEFAULT 0, "PulledAt" TEXT NULL)""",
 
+                """CREATE TABLE IF NOT EXISTS "SaleExclusions" ("Kind" TEXT NOT NULL, "SaleId" INTEGER NOT NULL, "MarkedAt" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("Kind", "SaleId"))""",
+
                 // ── Alarms ───────────────────────────────────────────────────
                 // NB: braces are doubled. ExecuteSqlRaw runs the statement through string.Format,
                 // so a literal '{}' default is read as a format placeholder and throws — and

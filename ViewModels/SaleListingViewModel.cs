@@ -151,7 +151,10 @@ public class SaleListingViewModel : ReactiveObject
             var result = await SalesQuery.LoadAsync(_dbFactory, _names, _errorLogger);
             BuildOwnerOptions(result.Chars, result.Corps);
             _all.Clear();
-            _all.AddRange(result.Rows);
+
+            // These tools price future listings off past margins, so a sale the user has said
+            // was not for profit has no business in them.
+            _all.AddRange(result.Rows.Where(r => !r.NotForProfit));
             ApplyFilters();
         }
         catch (Exception ex)
