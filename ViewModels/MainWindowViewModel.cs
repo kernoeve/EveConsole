@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
+using Avalonia.Threading;
 using EveConsole.Agent;
 using EveConsole.Data;
 using EveConsole.Api;
@@ -92,6 +93,104 @@ public class MainWindowViewModel : ReactiveObject
             Avalonia.Threading.Dispatcher.UIThread.Post(
                 () => EveTimeText = DateTimeOffset.UtcNow.ToString("HH:mm:ss"));
         timer.Start();
+    }
+
+    // ── My characters online (shown beside the EVE clock) ───────────────────────
+
+    private string _onlineCharactersText = "";
+    public string OnlineCharactersText
+    {
+        get => _onlineCharactersText;
+        private set => this.RaiseAndSetIfChanged(ref _onlineCharactersText, value);
+    }
+
+    private string _onlineCharactersTip = "";
+    public string OnlineCharactersTip
+    {
+        get => _onlineCharactersTip;
+        private set => this.RaiseAndSetIfChanged(ref _onlineCharactersTip, value);
+    }
+
+    /// <summary>Green while anyone is online, grey otherwise — same convention as the TQ dot.</summary>
+    private string _onlineCharactersColor = "#444455";
+    public string OnlineCharactersColor
+    {
+        get => _onlineCharactersColor;
+        private set => this.RaiseAndSetIfChanged(ref _onlineCharactersColor, value);
+    }
+
+    /// <summary>
+    /// Reads the online/location/ship state the poller keeps in CharacterStatuses. On its own
+    /// timer rather than the clock's, because it costs a query — and off the UI thread, since
+    /// SQLite has no real async I/O and awaiting it here would freeze the window.
+    /// </summary>
+    private void StartOnlineCharactersWatch(IDbContextFactory<AppDbContext> dbFactory)
+    {
+        _ = RefreshOnlineCharactersAsync(dbFactory);
+
+        var timer = new System.Timers.Timer(TimeSpan.FromSeconds(30)) { AutoReset = true };
+        timer.Elapsed += (_, _) => _ = RefreshOnlineCharactersAsync(dbFactory);
+        timer.Start();
+    }
+
+    private async Task RefreshOnlineCharactersAsync(IDbContextFactory<AppDbContext> dbFactory)
+    {
+        try
+        {
+            var rows = await Task.Run(async () =>
+            {
+                await using var db = await dbFactory.CreateDbContextAsync();
+
+                // Left joins throughout: a character who has just logged in may not have had a
+                // location or ship poll yet, and should still be counted as online.
+                return await (
+                    from s in db.CharacterStatuses.AsNoTracking()
+                    join c in db.Characters.AsNoTracking() on s.CharacterId equals c.Id
+                    from sys in db.SdeSolarSystems.AsNoTracking()
+                        .Where(x => x.SolarSystemId == s.SolarSystemId).DefaultIfEmpty()
+                    from ship in db.SdeTypes.AsNoTracking()
+                        .Where(x => x.TypeId == s.ShipTypeId).DefaultIfEmpty()
+                    select new
+                    {
+                        c.Name,
+                        s.Online,
+                        System   = sys != null ? sys.Name : null,
+                        Hull     = ship != null ? ship.Name : null,
+                        s.ShipName,
+                    }).ToListAsync();
+            });
+
+            var online = rows.Where(r => r.Online).OrderBy(r => r.Name).ToList();
+
+            var text = $"{online.Count} of {rows.Count} Online";
+
+            var tip = online.Count == 0
+                ? "None of your characters are online."
+                : string.Join("\n", online.Select(r =>
+                {
+                    var where = string.IsNullOrWhiteSpace(r.System) ? "location unknown" : r.System;
+
+                    // The hull is what the ship IS; ShipName is what the pilot called it. Show
+                    // both only when the pilot bothered to rename it.
+                    var ship = string.IsNullOrWhiteSpace(r.Hull) ? "ship unknown" : r.Hull;
+                    if (!string.IsNullOrWhiteSpace(r.ShipName)
+                        && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
+                        ship = $"{r.Hull} \"{r.ShipName}\"";
+
+                    return $"{r.Name} — {where} — {ship}";
+                }));
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                OnlineCharactersText  = text;
+                OnlineCharactersTip   = tip;
+                OnlineCharactersColor = online.Count > 0 ? "#70ad47" : "#444455";
+            });
+        }
+        catch
+        {
+            // A header ornament must never be the thing that takes the window down.
+        }
     }
 
     /// <summary>Where clicking the EVE clock goes. Read at click time rather than cached,
@@ -466,6 +565,7 @@ public class MainWindowViewModel : ReactiveObject
         AgentVm = new AgentPanelViewModel(agentService, ttsService, speechInputService, hotkeyService);
 
         StartEveTimeClock();
+        StartOnlineCharactersWatch(dbFactory);
 
         _pollingService
             .WhenAnyValue(p => p.StatusText)

@@ -1852,6 +1852,15 @@ public class App : Application
                 """ALTER TABLE "IntelReports" ADD COLUMN "ReporterCharacterId" INTEGER NULL""",
                 """ALTER TABLE "IntelReports" ADD COLUMN "NoVisual" INTEGER NOT NULL DEFAULT 0""",
                 """ALTER TABLE "IntelReports" ADD COLUMN "Message" TEXT NOT NULL DEFAULT ''""",
+                // Intel whose chat message no longer exists. Only two things ever delete a chat
+                // message — the dedupe above, and a log file being re-read after its length
+                // appeared to go backwards — and in both cases the surviving copy of the message
+                // has been re-parsed into a fresh report. So these are duplicates of a report
+                // that is already present, and they show as repeated sightings in the UI.
+                // Nothing purges chat messages on age, so this cannot reach real history.
+                """DELETE FROM "IntelReportCharacters" WHERE "IntelReportId" IN (SELECT "Id" FROM "IntelReports" r WHERE NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = r."ChatMessageId"))""",
+                """DELETE FROM "IntelReports" WHERE NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = "IntelReports"."ChatMessageId")""",
+
                 """CREATE TABLE IF NOT EXISTS "NameLookupMisses" ("Name" TEXT NOT NULL PRIMARY KEY, "CheckedAt" TEXT NULL)""",
                 """CREATE TABLE IF NOT EXISTS "CharacterAffiliations" ("CharacterId" INTEGER NOT NULL PRIMARY KEY, "CorporationId" INTEGER NOT NULL DEFAULT 0, "AllianceId" INTEGER NOT NULL DEFAULT 0, "PulledAt" TEXT NULL)""",
 
