@@ -70,6 +70,21 @@ public class BuildCostService
 
     public string StatusText { get; private set; } = "Build costs: not yet calculated";
 
+    /// <summary>
+    /// Cost the whole chain through the Production Calculator rather than this service's own
+    /// walk. On by default: the old walk costs each branch separately, so a component several
+    /// parents need is built in several partial batches each rounded up to whole runs, and it
+    /// credits nothing back for the resulting over-production. Both inflate the stored cost —
+    /// for a Revelation, by 61.2M and 188.1M respectively.
+    ///
+    /// <para>OFF for now. Routing straight through the calculator produces NEGATIVE costs on
+    /// 1,522 items, because the calculator values leftovers at build cost and build cost is what
+    /// this method is in the middle of computing — it reads the previous, inflated figures from
+    /// BuildCosts and over-credits against them. The circularity has to be broken before this
+    /// can be switched on; the flag exists so both paths can be run against each other.</para>
+    /// </summary>
+    public bool UseSharedChainCost { get; set; }
+
     // Fired after each RecalculateAllAsync completes; MarketPricingService subscribes to
     // re-run the price-gap fill so fresh build costs are immediately reflected in prices.
     public event Func<CancellationToken, Task>? AfterRecalculate;
@@ -568,6 +583,7 @@ public class BuildCostService
         // sub-material, not 2 × ceil(4.5) = 10. See RecomputeFullChain at the end.
         var recOutputQty = new Dictionary<int, int>();               // units produced per run
         var recMeFactor  = new Dictionary<int, double>();            // material factor used to build it
+        var recMeLevel   = new Dictionary<int, int>();               // the ME level behind that factor
         var recJobPerRun = new Dictionary<int, decimal>();           // job fee for one run
         var recBpcPerRun = new Dictionary<int, decimal>();           // BPC contract cost per run (0 if none)
         var recMaterials = new Dictionary<int, List<(int Mat, int Qty)>>();
@@ -671,6 +687,7 @@ public class BuildCostService
             // Capture the recipe for the full-chain recompute (quantities rounded per whole job).
             recOutputQty[typeId] = outputQty;
             recMeFactor[typeId]  = usedMeFactor;
+            recMeLevel[typeId]   = defaultMe;
             recJobPerRun[typeId] = thisJobRun;
             recBpcPerRun[typeId] = bpcRun;
             recMaterials[typeId] = materials.Select(m => (m.MaterialTypeId, m.Quantity)).ToList();
@@ -782,14 +799,62 @@ public class BuildCostService
             finally { inProgress.Remove(type); }
         }
 
-        foreach (var typeId in productMap.Keys)
+        if (UseSharedChainCost)
         {
-            if (boughtTypes.Contains(typeId) || !recMaterials.ContainsKey(typeId)) continue;
-            int outQ = recOutputQty.TryGetValue(typeId, out var oq) ? Math.Max(1, oq) : 1;
-            var (raw, job) = ObtainCost(typeId, outQ);   // cost of one run, spread over its output
-            rawMatCosts[typeId]   = raw / outQ;
-            totalJobCosts[typeId] = job / outQ;
-            unitCosts[typeId]     = (raw + job) / outQ;
+            // Cost every item through the Production Calculator itself, so the stored figure and
+            // what the calculator shows cannot drift apart. The context is loaded once — it is
+            // the same for every item and is nearly all of a plan's cost, so paying it per item
+            // would turn a minute into twenty.
+            var calc = new ProductionCalculatorService(
+                scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>());
+            var planContext = await calc.LoadContextAsync(defaultPark.Id, ct);
+
+            foreach (var typeId in productMap.Keys)
+            {
+                if (boughtTypes.Contains(typeId) || !recMaterials.ContainsKey(typeId)) continue;
+
+                int outQ = recOutputQty.TryGetValue(typeId, out var oq) ? Math.Max(1, oq) : 1;
+                var me   = recMeLevel.TryGetValue(typeId, out var m) ? m : 10;
+
+                try
+                {
+                    // One run's worth, then per unit — matching how the old walk expressed it.
+                    var plan = calc.Calculate(
+                        [new ProductionQueueEntry { TypeId = typeId, Quantity = outQ, MeLevel = me }],
+                        planContext);
+
+                    var produced = Math.Max(1, plan.FinalProducts.Count > 0
+                        ? plan.FinalProducts[0].QuantityProduced
+                        : outQ);
+
+                    // Net of leftovers: over-produced sub-components are stock, not cost.
+                    rawMatCosts[typeId]   = plan.TotalRawMaterialCost / produced;
+                    totalJobCosts[typeId] = plan.TotalJobCost / produced;
+                    unitCosts[typeId]     = plan.NetCost / produced;
+                }
+                catch (Exception ex)
+                {
+                    // One unplannable item must not lose the whole recalculation; fall back to
+                    // the old walk for it alone.
+                    _errorLogger.Log("BuildCostService", $"chain cost for type {typeId}", ex);
+                    var (raw, job) = ObtainCost(typeId, outQ);
+                    rawMatCosts[typeId]   = raw / outQ;
+                    totalJobCosts[typeId] = job / outQ;
+                    unitCosts[typeId]     = (raw + job) / outQ;
+                }
+            }
+        }
+        else
+        {
+            foreach (var typeId in productMap.Keys)
+            {
+                if (boughtTypes.Contains(typeId) || !recMaterials.ContainsKey(typeId)) continue;
+                int outQ = recOutputQty.TryGetValue(typeId, out var oq) ? Math.Max(1, oq) : 1;
+                var (raw, job) = ObtainCost(typeId, outQ);   // cost of one run, spread over its output
+                rawMatCosts[typeId]   = raw / outQ;
+                totalJobCosts[typeId] = job / outQ;
+                unitCosts[typeId]     = (raw + job) / outQ;
+            }
         }
 
         // ── Persist results ───────────────────────────────────────────────────

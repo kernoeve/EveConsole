@@ -30,11 +30,12 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         return Math.Max(runs, (int)Math.Ceiling(total));
     }
 
-    public async Task<ProductionPlan> CalculateAsync(
-        List<ProductionQueueEntry> requests,
-        int parkId,
-        bool includeBpcCost = false,
-        CancellationToken ct = default)
+    /// <summary>
+    /// Loads a plan once and reuses it. Identical for every item and responsible for nearly all
+    /// of a plan's cost, so a caller costing thousands of items should load it once and pass it
+    /// to <see cref="Calculate"/> rather than going through <see cref="CalculateAsync"/> each time.
+    /// </summary>
+    public async Task<ProductionContext> LoadContextAsync(int parkId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
@@ -82,20 +83,19 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 .Select(p => new { p.TypeId, p.ProductTypeId }).ToListAsync(ct))
             .Where(r => marketBlueprints.Contains(r.TypeId))
             .Select(r => r.ProductTypeId).ToHashSet();
-        bool BlueprintIsBpoSourced(int bpTypeId) =>
-            marketBlueprints.Contains(bpTypeId) || inventedFromMarket.Contains(bpTypeId);
-
         // ── Type names and group/category info ─────────────────────────────
         var typeNames = await db.SdeTypes.AsNoTracking()
             .Select(t => new { t.TypeId, t.Name })
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
+        // Named record structs rather than anonymous types: these have to survive being returned
+        // from this method, which an anonymous type cannot do.
         var typeGroupMap = await db.SdeTypes.AsNoTracking()
-            .Select(t => new { t.TypeId, t.GroupId })
+            .Select(t => new ProductionContext.TypeGroup(t.TypeId, t.GroupId))
             .ToDictionaryAsync(t => t.TypeId, ct);
 
         var groupCatMap = await db.SdeGroups.AsNoTracking()
-            .Select(g => new { g.GroupId, g.CategoryId, g.Name })
+            .Select(g => new ProductionContext.GroupCat(g.GroupId, g.CategoryId, g.Name))
             .ToDictionaryAsync(g => g.GroupId, ct);
 
         // Classification for the default-ME rule (shared with BuildCostService via IndustryMe).
@@ -175,28 +175,6 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             id => id,
             id => rigTypeNames.TryGetValue(id, out var n) ? RigCategoryFromName(n) : "");
 
-        double SecMult(IndyStructure s, int rigTypeId) => s.SecurityClass switch
-        {
-            "lowsec"   => rigLowsecMultAttr.TryGetValue(rigTypeId, out var lm) ? lm : 1.9,
-            "nullsec"  => rigNullsecMultAttr.TryGetValue(rigTypeId, out var nm) ? nm : 2.1,
-            "wormhole" => rigNullsecMultAttr.TryGetValue(rigTypeId, out var wm) ? wm : 2.1,
-            _          => 1.0,
-        };
-
-        double RigBonus(IndyStructure? s, string itemCategoryKey, Dictionary<int, double> bonusAttr)
-        {
-            if (s is null) return 0;
-            bool isReactionCat = itemCategoryKey.StartsWith("react_");
-            return rigs.Where(r =>
-                {
-                    if (r.StructureId != s.Id || r.RigTypeId == 0) return false;
-                    var rigCat = rigCategoryKeys.GetValueOrDefault(r.RigTypeId);
-                    // "biochemical_reactions" is the generic reactor rig key — it matches all react_* items.
-                    return rigCat == itemCategoryKey || (isReactionCat && rigCat == "biochemical_reactions");
-                })
-                .Sum(r => bonusAttr.TryGetValue(r.RigTypeId, out var b) ? b * SecMult(s, r.RigTypeId) : 0.0);
-        }
-
         // ── Per-structure cost indices ─────────────────────────────────────
         var systemNames = structures.Select(s => s.SystemName).Distinct().ToList();
         var systemIds   = await db.SdeSolarSystems.AsNoTracking()
@@ -206,13 +184,6 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         var costIndices = await db.IndustryCostIndices.AsNoTracking().ToListAsync(ct);
         var ciLookup    = costIndices.GroupBy(c => c.SolarSystemId)
             .ToDictionary(g => g.Key, g => g.ToDictionary(c => c.Activity, c => c.CostIndex));
-
-        double GetCostIndex(IndyStructure? s, string activity)
-        {
-            if (s is null) return 0;
-            if (!systemIds.TryGetValue(s.SystemName, out var sysId)) return 0;
-            return ciLookup.TryGetValue(sysId, out var ci) && ci.TryGetValue(activity, out var idx) ? idx : 0;
-        }
 
         // ── Category → structure mapping ────────────────────────────────────
         var structByCategory = assignments
@@ -242,13 +213,6 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             .GroupBy(x => x.TypeId)
             .ToDictionary(g => g.Key, g => g.Select(x => (Me: x.Me, PerRun: x.Price!.Value)).ToList());
 
-        decimal BpcPerRunAt(int bpTypeId, int me)
-        {
-            if (!bpcPerRun.TryGetValue(bpTypeId, out var opts) || opts.Count == 0) return 0m;
-            foreach (var (m, p) in opts) if (m == me) return p;   // exact ME, else the cheapest available
-            return opts.Min(o => o.PerRun);
-        }
-
         // Items the build-cost calc found cheaper to BUY than build — buy them here too (raw material,
         // no job) so the two calcs agree.
         var boughtSet = (await db.BuildCosts.AsNoTracking().Where(b => b.Bought)
@@ -258,9 +222,152 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // price; build → pin the item as a fixed-value leaf (not expanded) at the given cost, unless
         // it was cheaper to buy (already in boughtSet, priced at market). These mirror the overlays
         // BuildCostService applies so both calculators agree.
+        // Applied per queue rather than here: which overrides bite depends on what was requested
+        // (a requested final product's build-cost pin is skipped), so this is done in Calculate.
         var overrides   = await db.PriceOverrides.AsNoTracking().ToDictionaryAsync(o => o.TypeId, ct);
+
+        // ── Adjusted prices (for EIV / job cost) ──────────────────────────
+        var adjPrices = await db.EsiAdjustedPrices.AsNoTracking()
+            .ToDictionaryAsync(p => p.TypeId, p => p.AdjustedPrice, ct);
+
+        // ── Pre-computed build costs (used for leftover valuation and missing-price fallback) ─
+        var buildCostLookup = await db.BuildCosts.AsNoTracking()
+            .ToDictionaryAsync(b => b.TypeId, b => b.TotalCost, ct);
+
+        return new ProductionContext
+        {
+            ParkId             = parkId,
+            BpProducts         = bpProducts,
+            BpTypeIds          = bpTypeIds,
+            BlueprintByProduct = blueprintByProduct,
+            MaterialsByBp      = materialsByBp,
+            MarketBlueprints   = marketBlueprints,
+            InventedFromMarket = inventedFromMarket,
+            TypeNames          = typeNames,
+            TypeGroupMap       = typeGroupMap,
+            GroupCatMap        = groupCatMap,
+            T2TypeIds          = t2TypeIds,
+            TitanKeepstarIds   = titanKeepstarIds,
+            Structures         = structures,
+            Rigs               = rigs,
+            Assignments        = assignments,
+            ItemOverrides      = itemOverrides,
+            StructByCategory   = structByCategory,
+            MfgRigBonusAttr    = mfgRigBonusAttr,
+            RxnRigBonusAttr    = rxnRigBonusAttr,
+            RigLowsecMultAttr  = rigLowsecMultAttr,
+            RigNullsecMultAttr = rigNullsecMultAttr,
+            RigCategoryKeys    = rigCategoryKeys,
+            SystemIds          = systemIds,
+            CiLookup           = ciLookup,
+            MarkupFactor       = markupFactor,
+            UnitCosts          = unitCosts,
+            BpcPerRun          = bpcPerRun,
+            BoughtSet          = boughtSet,
+            Overrides          = overrides,
+            AdjPrices          = adjPrices,
+            BuildCostLookup    = buildCostLookup,
+        };
+    }
+
+    /// <summary>Loads a context and calculates in one go — the everyday entry point.</summary>
+    public async Task<ProductionPlan> CalculateAsync(
+        List<ProductionQueueEntry> requests,
+        int parkId,
+        bool includeBpcCost = false,
+        CancellationToken ct = default)
+        => Calculate(requests, await LoadContextAsync(parkId, ct), includeBpcCost);
+
+    /// <summary>
+    /// Plans a queue against an already-loaded context. Pure computation — no database access —
+    /// so a caller with many items to cost pays the loading cost once.
+    /// </summary>
+    public ProductionPlan Calculate(
+        List<ProductionQueueEntry> requests,
+        ProductionContext ctx,
+        bool includeBpcCost = false)
+    {
+        // Bound back to the names the body below already uses, so the planning logic is the same
+        // code it was when it and the loading lived in one method.
+        var bpProducts         = ctx.BpProducts;
+        var bpTypeIds          = ctx.BpTypeIds;
+        var blueprintByProduct = ctx.BlueprintByProduct;
+        var materialsByBp      = ctx.MaterialsByBp;
+        var marketBlueprints   = ctx.MarketBlueprints;
+        var inventedFromMarket = ctx.InventedFromMarket;
+        var typeNames          = ctx.TypeNames;
+        var typeGroupMap       = ctx.TypeGroupMap;
+        var groupCatMap        = ctx.GroupCatMap;
+        var t2TypeIds          = ctx.T2TypeIds;
+        var titanKeepstarIds   = ctx.TitanKeepstarIds;
+        var structures         = ctx.Structures;
+        var rigs               = ctx.Rigs;
+        var assignments        = ctx.Assignments;
+        var itemOverrides      = ctx.ItemOverrides;
+        var structByCategory   = ctx.StructByCategory;
+        var mfgRigBonusAttr    = ctx.MfgRigBonusAttr;
+        var rxnRigBonusAttr    = ctx.RxnRigBonusAttr;
+        var rigLowsecMultAttr  = ctx.RigLowsecMultAttr;
+        var rigNullsecMultAttr = ctx.RigNullsecMultAttr;
+        var rigCategoryKeys    = ctx.RigCategoryKeys;
+        var systemIds          = ctx.SystemIds;
+        var ciLookup           = ctx.CiLookup;
+        var markupFactor       = ctx.MarkupFactor;
+        var boughtSet          = ctx.BoughtSet;
+        var overrides          = ctx.Overrides;
+        var adjPrices          = ctx.AdjPrices;
+        var buildCostLookup    = ctx.BuildCostLookup;
+
+        bool BlueprintIsBpoSourced(int bpTypeId) =>
+            marketBlueprints.Contains(bpTypeId) || inventedFromMarket.Contains(bpTypeId);
+
+        double SecMult(IndyStructure s, int rigTypeId) => s.SecurityClass switch
+        {
+            "lowsec"   => rigLowsecMultAttr.TryGetValue(rigTypeId, out var lm) ? lm : 1.9,
+            "nullsec"  => rigNullsecMultAttr.TryGetValue(rigTypeId, out var nm) ? nm : 2.1,
+            "wormhole" => rigNullsecMultAttr.TryGetValue(rigTypeId, out var wm) ? wm : 2.1,
+            _          => 1.0,
+        };
+
+        double RigBonus(IndyStructure? s, string itemCategoryKey, Dictionary<int, double> bonusAttr)
+        {
+            if (s is null) return 0;
+            bool isReactionCat = itemCategoryKey.StartsWith("react_");
+            return rigs.Where(r =>
+                {
+                    if (r.StructureId != s.Id || r.RigTypeId == 0) return false;
+                    var rigCat = rigCategoryKeys.GetValueOrDefault(r.RigTypeId);
+                    // "biochemical_reactions" is the generic reactor rig key — it matches all react_* items.
+                    return rigCat == itemCategoryKey || (isReactionCat && rigCat == "biochemical_reactions");
+                })
+                .Sum(r => bonusAttr.TryGetValue(r.RigTypeId, out var b) ? b * SecMult(s, r.RigTypeId) : 0.0);
+        }
+
+        double GetCostIndex(IndyStructure? s, string activity)
+        {
+            if (s is null) return 0;
+            if (!systemIds.TryGetValue(s.SystemName, out var sysId)) return 0;
+            return ciLookup.TryGetValue(sysId, out var ci) && ci.TryGetValue(activity, out var idx) ? idx : 0;
+        }
+
+        // Copied, because the override pass below rewrites them and the context is shared with
+        // every other plan calculated from it.
+        var unitCosts = new Dictionary<int, decimal>(ctx.UnitCosts);
+        var bpcPerRun = ctx.BpcPerRun.ToDictionary(kv => kv.Key, kv => kv.Value.ToList());
+
+        decimal BpcPerRunAt(int bpTypeId, int me)
+        {
+            if (!bpcPerRun.TryGetValue(bpTypeId, out var opts) || opts.Count == 0) return 0m;
+            foreach (var (m, p) in opts) if (m == me) return p;   // exact ME, else the cheapest available
+            return opts.Min(o => o.PerRun);
+        }
+
+        // User price overrides. Market → the item's price (PriceOf); contract → the per-run BPC
+        // price; build → pin the item as a fixed-value leaf (not expanded) at the given cost, unless
+        // it was cheaper to buy (already in boughtSet, priced at market). These mirror the overlays
+        // BuildCostService applies so both calculators agree.
         var requestedIds = requests.Select(r => r.TypeId).ToHashSet();
-        var pinnedBuild = new HashSet<int>();
+        var pinnedBuild  = new HashSet<int>();
         foreach (var o in overrides.Values)
         {
             if (o.MarketValue.HasValue)   unitCosts[o.TypeId] = o.MarketValue.Value;
@@ -273,14 +380,6 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 pinnedBuild.Add(o.TypeId);
             }
         }
-
-        // ── Adjusted prices (for EIV / job cost) ──────────────────────────
-        var adjPrices = await db.EsiAdjustedPrices.AsNoTracking()
-            .ToDictionaryAsync(p => p.TypeId, p => p.AdjustedPrice, ct);
-
-        // ── Pre-computed build costs (used for leftover valuation and missing-price fallback) ─
-        var buildCostLookup = await db.BuildCosts.AsNoTracking()
-            .ToDictionaryAsync(b => b.TypeId, b => b.TotalCost, ct);
 
         // Returns the market price for a type, falling back to build cost × markup when no
         // market order exists for it. Returns 0 only when both market and build cost are absent.
