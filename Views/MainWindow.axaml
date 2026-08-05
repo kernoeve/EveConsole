@@ -82,6 +82,32 @@
                   IsVisible="{Binding AgentVm.IsAgentEnabled}"
                   Click="OnAgentToggleClick" />
 
+          <!-- Alarm light. Lit while anything is armed, with the count of armed alarms in the
+               corner. Drawn rather than set as a glyph so the colour is ours to control. -->
+          <Button x:Name="AlarmButton"
+                  Background="Transparent" BorderThickness="0"
+                  Padding="6 4" VerticalAlignment="Center"
+                  ToolTip.Tip="{Binding AlarmsTip}"
+                  Click="OnAlarmsClick">
+            <Grid Width="22" Height="20">
+              <Ellipse Width="14" Height="14"
+                       HorizontalAlignment="Left" VerticalAlignment="Center"
+                       Fill="{Binding AlarmLightColor}"
+                       Stroke="{Binding AlarmLightRing}" StrokeThickness="1" />
+
+              <Border IsVisible="{Binding HasActiveAlarms}"
+                      HorizontalAlignment="Right" VerticalAlignment="Top"
+                      Background="#12121a" CornerRadius="7"
+                      BorderBrush="#2a2a3a" BorderThickness="1"
+                      MinWidth="14" Height="14" Padding="3 0">
+                <TextBlock Text="{Binding ActiveAlarmCount}"
+                           FontSize="9" FontWeight="SemiBold"
+                           Foreground="#d8d8e4"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+            </Grid>
+          </Button>
+
           <Button x:Name="GearButton" Content="⚙" FontSize="18"
                   Background="Transparent" BorderThickness="0"
                   Foreground="#888" Padding="8 4" VerticalAlignment="Center"

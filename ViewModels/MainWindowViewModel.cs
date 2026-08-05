@@ -95,6 +95,67 @@ public class MainWindowViewModel : ReactiveObject
         timer.Start();
     }
 
+    // ── Alarm light (shown beside the settings gear) ────────────────────────────
+
+    private int _activeAlarmCount;
+    public int ActiveAlarmCount
+    {
+        get => _activeAlarmCount;
+        private set => this.RaiseAndSetIfChanged(ref _activeAlarmCount, value);
+    }
+
+    private bool _hasActiveAlarms;
+    public bool HasActiveAlarms
+    {
+        get => _hasActiveAlarms;
+        private set => this.RaiseAndSetIfChanged(ref _hasActiveAlarms, value);
+    }
+
+    private string _alarmLightColor = "#2a2a34";
+    public string AlarmLightColor
+    {
+        get => _alarmLightColor;
+        private set => this.RaiseAndSetIfChanged(ref _alarmLightColor, value);
+    }
+
+    private string _alarmLightRing = "#3a3a48";
+    public string AlarmLightRing
+    {
+        get => _alarmLightRing;
+        private set => this.RaiseAndSetIfChanged(ref _alarmLightRing, value);
+    }
+
+    private string _alarmsTip = "Alarms";
+    public string AlarmsTip
+    {
+        get => _alarmsTip;
+        private set => this.RaiseAndSetIfChanged(ref _alarmsTip, value);
+    }
+
+    /// <summary>
+    /// The light follows the alarm loop's own armed count, which it republishes on every tick,
+    /// so this needs no timer of its own and no query.
+    /// </summary>
+    private void BindAlarmLight(AlarmService alarms)
+    {
+        alarms.WhenAnyValue(x => x.ArmedCount)
+            .Subscribe(count => Dispatcher.UIThread.Post(() =>
+            {
+                ActiveAlarmCount = count;
+                HasActiveAlarms  = count > 0;
+
+                AlarmLightColor = count > 0 ? "#c0392b" : "#2a2a34";
+                AlarmLightRing  = count > 0 ? "#e05a4a" : "#3a3a48";
+
+                AlarmsTip = count switch
+                {
+                    0 => "Alarms — none armed",
+                    1 => "Alarms — 1 armed",
+                    _ => $"Alarms — {count} armed",
+                };
+            }));
+    }
+
     // ── My characters online (shown beside the EVE clock) ───────────────────────
 
     private string _onlineCharactersText = "";
@@ -566,6 +627,7 @@ public class MainWindowViewModel : ReactiveObject
 
         StartEveTimeClock();
         StartOnlineCharactersWatch(dbFactory);
+        BindAlarmLight(alarmService);
 
         _pollingService
             .WhenAnyValue(p => p.StatusText)
@@ -628,8 +690,9 @@ public class MainWindowViewModel : ReactiveObject
             ]),
             new("Tools",
             [
+                // Alarms is reached from the alarm light beside the settings gear, not from
+                // here — it is a status indicator first and a tool second.
                 new NavItem("universe", "Universe Map"),
-                new NavItem("alarms", "Alarms"),
                 new NavItem("data", "ESI Explorer"),
                 new NavItem("error_log", "Error Log"),
                 new NavItem("game_log", "Game Log"),

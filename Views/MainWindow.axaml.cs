@@ -374,6 +374,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         await new AboutWindow().ShowDialog(this);
     }
 
+    private void OnAlarmsClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) vm.OpenTool("alarms");
+    }
+
     private async void OnGearClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm)
