@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
+using Avalonia.Threading;
 using EveConsole.Agent;
 using EveConsole.Data;
 using EveConsole.Api;
@@ -38,6 +39,8 @@ public class MainWindowViewModel : ReactiveObject
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
     public StructureBrowserViewModel      StructureBrowserVm     { get; }
     public UniverseViewModel              UniverseVm             { get; }
+    public AlarmsViewModel                AlarmsVm               { get; }
+    public AlarmActionRunner              AlarmActions           { get; }
     public WalletViewModel                WalletVm               { get; }
     public ContractsViewModel             ContractsVm            { get; }
     public NotificationsViewModel         NotificationsVm        { get; }
@@ -90,6 +93,175 @@ public class MainWindowViewModel : ReactiveObject
             Avalonia.Threading.Dispatcher.UIThread.Post(
                 () => EveTimeText = DateTimeOffset.UtcNow.ToString("HH:mm:ss"));
         timer.Start();
+    }
+
+    // ── Alarm light (shown beside the settings gear) ────────────────────────────
+
+    private int _activeAlarmCount;
+    public int ActiveAlarmCount
+    {
+        get => _activeAlarmCount;
+        private set => this.RaiseAndSetIfChanged(ref _activeAlarmCount, value);
+    }
+
+    private bool _hasActiveAlarms;
+    public bool HasActiveAlarms
+    {
+        get => _hasActiveAlarms;
+        private set => this.RaiseAndSetIfChanged(ref _hasActiveAlarms, value);
+    }
+
+    private string _alarmLightColor = "#2a2a34";
+    public string AlarmLightColor
+    {
+        get => _alarmLightColor;
+        private set => this.RaiseAndSetIfChanged(ref _alarmLightColor, value);
+    }
+
+    private string _alarmLightRing = "#3a3a48";
+    public string AlarmLightRing
+    {
+        get => _alarmLightRing;
+        private set => this.RaiseAndSetIfChanged(ref _alarmLightRing, value);
+    }
+
+    /// <summary>The gleam on the dome dims with the lamp — a bright highlight on a dark dome
+    /// reads as a lit bulb that is not lit.</summary>
+    private double _alarmGleamOpacity = 0.18;
+    public double AlarmGleamOpacity
+    {
+        get => _alarmGleamOpacity;
+        private set => this.RaiseAndSetIfChanged(ref _alarmGleamOpacity, value);
+    }
+
+    private string _alarmsTip = "Alarms";
+    public string AlarmsTip
+    {
+        get => _alarmsTip;
+        private set => this.RaiseAndSetIfChanged(ref _alarmsTip, value);
+    }
+
+    /// <summary>
+    /// The light follows the alarm loop's own armed count, which it republishes on every tick,
+    /// so this needs no timer of its own and no query.
+    /// </summary>
+    private void BindAlarmLight(AlarmService alarms)
+    {
+        alarms.WhenAnyValue(x => x.ArmedCount)
+            .Subscribe(count => Dispatcher.UIThread.Post(() =>
+            {
+                ActiveAlarmCount = count;
+                HasActiveAlarms  = count > 0;
+
+                AlarmLightColor   = count > 0 ? "#c0392b" : "#2a2a34";
+                AlarmLightRing    = count > 0 ? "#e05a4a" : "#3a3a48";
+                AlarmGleamOpacity = count > 0 ? 0.55 : 0.18;
+
+                AlarmsTip = count switch
+                {
+                    0 => "Alarms — none armed",
+                    1 => "Alarms — 1 armed",
+                    _ => $"Alarms — {count} armed",
+                };
+            }));
+    }
+
+    // ── My characters online (shown beside the EVE clock) ───────────────────────
+
+    private string _onlineCharactersText = "";
+    public string OnlineCharactersText
+    {
+        get => _onlineCharactersText;
+        private set => this.RaiseAndSetIfChanged(ref _onlineCharactersText, value);
+    }
+
+    private string _onlineCharactersTip = "";
+    public string OnlineCharactersTip
+    {
+        get => _onlineCharactersTip;
+        private set => this.RaiseAndSetIfChanged(ref _onlineCharactersTip, value);
+    }
+
+    /// <summary>Green while anyone is online, grey otherwise — same convention as the TQ dot.</summary>
+    private string _onlineCharactersColor = "#444455";
+    public string OnlineCharactersColor
+    {
+        get => _onlineCharactersColor;
+        private set => this.RaiseAndSetIfChanged(ref _onlineCharactersColor, value);
+    }
+
+    /// <summary>
+    /// Reads the online/location/ship state the poller keeps in CharacterStatuses. On its own
+    /// timer rather than the clock's, because it costs a query — and off the UI thread, since
+    /// SQLite has no real async I/O and awaiting it here would freeze the window.
+    /// </summary>
+    private void StartOnlineCharactersWatch(IDbContextFactory<AppDbContext> dbFactory)
+    {
+        _ = RefreshOnlineCharactersAsync(dbFactory);
+
+        var timer = new System.Timers.Timer(TimeSpan.FromSeconds(30)) { AutoReset = true };
+        timer.Elapsed += (_, _) => _ = RefreshOnlineCharactersAsync(dbFactory);
+        timer.Start();
+    }
+
+    private async Task RefreshOnlineCharactersAsync(IDbContextFactory<AppDbContext> dbFactory)
+    {
+        try
+        {
+            var rows = await Task.Run(async () =>
+            {
+                await using var db = await dbFactory.CreateDbContextAsync();
+
+                // Left joins throughout: a character who has just logged in may not have had a
+                // location or ship poll yet, and should still be counted as online.
+                return await (
+                    from s in db.CharacterStatuses.AsNoTracking()
+                    join c in db.Characters.AsNoTracking() on s.CharacterId equals c.Id
+                    from sys in db.SdeSolarSystems.AsNoTracking()
+                        .Where(x => x.SolarSystemId == s.SolarSystemId).DefaultIfEmpty()
+                    from ship in db.SdeTypes.AsNoTracking()
+                        .Where(x => x.TypeId == s.ShipTypeId).DefaultIfEmpty()
+                    select new
+                    {
+                        c.Name,
+                        s.Online,
+                        System   = sys != null ? sys.Name : null,
+                        Hull     = ship != null ? ship.Name : null,
+                        s.ShipName,
+                    }).ToListAsync();
+            });
+
+            var online = rows.Where(r => r.Online).OrderBy(r => r.Name).ToList();
+
+            var text = $"{online.Count} of {rows.Count} Online";
+
+            var tip = online.Count == 0
+                ? "None of your characters are online."
+                : string.Join("\n", online.Select(r =>
+                {
+                    var where = string.IsNullOrWhiteSpace(r.System) ? "location unknown" : r.System;
+
+                    // The hull is what the ship IS; ShipName is what the pilot called it. Show
+                    // both only when the pilot bothered to rename it.
+                    var ship = string.IsNullOrWhiteSpace(r.Hull) ? "ship unknown" : r.Hull;
+                    if (!string.IsNullOrWhiteSpace(r.ShipName)
+                        && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
+                        ship = $"{r.Hull} \"{r.ShipName}\"";
+
+                    return $"{r.Name} — {where} — {ship}";
+                }));
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                OnlineCharactersText  = text;
+                OnlineCharactersTip   = tip;
+                OnlineCharactersColor = online.Count > 0 ? "#70ad47" : "#444455";
+            });
+        }
+        catch
+        {
+            // A header ornament must never be the thing that takes the window down.
+        }
     }
 
     /// <summary>Where clicking the EVE clock goes. Read at click time rather than cached,
@@ -169,7 +341,14 @@ public class MainWindowViewModel : ReactiveObject
     public void OpenTool(string toolId)
     {
         var existing = OpenTabs.FirstOrDefault(t => t.Id == toolId);
-        if (existing is not null) { SelectedTab = existing; return; }
+        if (existing is not null)
+        {
+            SelectedTab = existing;
+            // Returning to an already-open tab has to refresh too, or an alarm that fired while
+            // the tab sat in the background shows nothing until something else triggers a load.
+            if (toolId == "alarms") _ = AlarmsVm.LoadAsync();
+            return;
+        }
 
         var (title, vm, canClose) = toolId switch
         {
@@ -183,6 +362,7 @@ public class MainWindowViewModel : ReactiveObject
             "price_overrides" => ("Price Overrides", PriceOverrideVm,     true),
             "structure_browser" => ("Structure Browser", StructureBrowserVm, true),
             "universe"        => ("Universe",        UniverseVm,        true),
+            "alarms"          => ("Alarms",          AlarmsVm,          true),
             "trade"           => ("Trade",           TradeOpportunitiesVm,     true),
             "industry_opps"   => ("Industry Opps",   IndustryOpportunitiesVm,  true),
             "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
@@ -211,6 +391,10 @@ public class MainWindowViewModel : ReactiveObject
         var tab = new ToolTab(toolId, title, vm, canClose);
         OpenTabs.Add(tab);
         SelectedTab = tab;
+
+        // Loaded on open rather than at construction — nothing else needs the alarm list, and
+        // a fresh read also picks up anything the agent created since the tab was last shown.
+        if (toolId == "alarms") _ = AlarmsVm.LoadAsync();
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
         if (navItem is not null) navItem.IsOpen = true;
@@ -304,8 +488,12 @@ public class MainWindowViewModel : ReactiveObject
         EntityNameBackfillService       entityNames,
         EveServerStatusService          serverStatus,
         UiLinkSettings                  uiLinks,
-        ExportFormatSettings            exportFormat)
+        ExportFormatSettings            exportFormat,
+        AlarmService                    alarmService,
+        AlarmSoundService               alarmSounds,
+        AlarmActionRunner               alarmActions)
     {
+        AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
         OtherSettingsVm = new OtherSettingsViewModel(uiLinks);
         BindServerStatus(serverStatus);
@@ -322,7 +510,7 @@ public class MainWindowViewModel : ReactiveObject
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
                                                      zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost,
-                                                     intelService, monitoringSettings, entityNames);
+                                                     intelService, monitoringSettings, entityNames, alarmService);
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
@@ -387,6 +575,7 @@ public class MainWindowViewModel : ReactiveObject
         UniverseVm             = new UniverseViewModel(
             new UniverseMapService(dbFactory), mapStatsService,
             new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
+        AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
@@ -428,6 +617,9 @@ public class MainWindowViewModel : ReactiveObject
         TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
         IndustryOpportunitiesVm = new IndustryOpportunitiesViewModel(connString, historyService, batchAddService);
 
+        agentService.AlarmToolFactory =
+            () => new EveConsole.Agent.Tools.Actions.ManageAlarmsTool(
+                dbFactory, alarmService.Registry, alarmService);
         agentService.Initialize(connString);
         TtsService         = ttsService;
         SpeechInputService = speechInputService;
@@ -444,6 +636,8 @@ public class MainWindowViewModel : ReactiveObject
         AgentVm = new AgentPanelViewModel(agentService, ttsService, speechInputService, hotkeyService);
 
         StartEveTimeClock();
+        StartOnlineCharactersWatch(dbFactory);
+        BindAlarmLight(alarmService);
 
         _pollingService
             .WhenAnyValue(p => p.StatusText)
@@ -506,6 +700,8 @@ public class MainWindowViewModel : ReactiveObject
             ]),
             new("Tools",
             [
+                // Alarms is reached from the alarm light beside the settings gear, not from
+                // here — it is a status indicator first and a tool second.
                 new NavItem("universe", "Universe Map"),
                 new NavItem("data", "ESI Explorer"),
                 new NavItem("error_log", "Error Log"),

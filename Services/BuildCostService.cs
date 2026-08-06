@@ -568,6 +568,8 @@ public class BuildCostService
         // sub-material, not 2 × ceil(4.5) = 10. See RecomputeFullChain at the end.
         var recOutputQty = new Dictionary<int, int>();               // units produced per run
         var recMeFactor  = new Dictionary<int, double>();            // material factor used to build it
+        var recMeLevel   = new Dictionary<int, int>();               // the ME level behind that factor
+        var recIsReaction = new HashSet<int>();                      // made by a reaction, not a job
         var recJobPerRun = new Dictionary<int, decimal>();           // job fee for one run
         var recBpcPerRun = new Dictionary<int, decimal>();           // BPC contract cost per run (0 if none)
         var recMaterials = new Dictionary<int, List<(int Mat, int Qty)>>();
@@ -671,6 +673,8 @@ public class BuildCostService
             // Capture the recipe for the full-chain recompute (quantities rounded per whole job).
             recOutputQty[typeId] = outputQty;
             recMeFactor[typeId]  = usedMeFactor;
+            recMeLevel[typeId]   = defaultMe;
+            if (isReaction) recIsReaction.Add(typeId);
             recJobPerRun[typeId] = thisJobRun;
             recBpcPerRun[typeId] = bpcRun;
             recMaterials[typeId] = materials.Select(m => (m.MaterialTypeId, m.Quantity)).ToList();
@@ -726,70 +730,211 @@ public class BuildCostService
         }
 
         // ── Full-chain recompute ──────────────────────────────────────────────
-        // The per-unit pass above sizes each sub-material at ceil(base × ME) for a single run and
-        // lets parents multiply by an integer count — which over-counts when a batch rounds down
-        // (2 items needing 9 of a material, not 2 × ceil(4.5) = 10). Re-cost every built item by
-        // walking its whole chain with job-level rounding (JobMaterialTotal), so stored build costs
-        // match the Production Calculator. The pass's decisions (bought / BPC-ME / overrides) stand.
-        var obtainMemo = new Dictionary<(int Type, int Qty), (decimal Raw, decimal Job)>();
-
-        // Types currently being costed further up this recursion. EVE's material graph is not
-        // guaranteed acyclic — a chain can lead back to an ancestor — and re-entering one
-        // recurses until the stack dies. This was previously masked rather than handled: an
-        // item inside a cycle was normally uncostable, so it picked up a market price, landed
-        // in boughtTypes, and hit the buy-leaf branch below, which terminates. Clearing those
-        // prices removed that accidental terminator and turned it into a StackOverflow at
-        // roughly 1,100 frames. The memo cannot serve as the guard because it is only written
-        // after a call completes, so a cycle re-enters before any entry exists.
-        var inProgress = new HashSet<int>();
-
-        (decimal Raw, decimal Job) ObtainCost(int type, int qty)
         {
-            if (qty <= 0) return (0m, 0m);
-            if (obtainMemo.TryGetValue((type, qty), out var cached)) return cached;
+            // Cost every item through the Production Calculator itself, so the stored figure and
+            // what the calculator shows cannot drift apart. The context is loaded once — it is
+            // the same for every item and is nearly all of a plan's cost, so paying it per item
+            // would turn a minute into twenty.
+            var calc = new ProductionCalculatorService(
+                scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>());
+            var planContext = await calc.LoadContextAsync(defaultPark.Id, ct);
 
-            // Cycle hit: cost this type as a purchased leaf using the per-unit estimate from
-            // the pass above and stop descending. Deliberately not memoised — the value is
-            // only valid for the branch that closed the loop, not for the type generally.
-            if (!inProgress.Add(type))
-                return (qty * (unitCosts.TryGetValue(type, out var cyc) ? cyc : 0m), 0m);
+            // ── Batch size ────────────────────────────────────────────────────
+            // Costing one run at a time charges every unit for a whole run's worth of rounding,
+            // and leaves a big surplus that then has to be credited back at a per-unit figure
+            // computed the same inflated way — which compounds down the chain.
+            //
+            // Reactions and components are built in batches in practice, so they are costed at
+            // 100 runs and divided by what that yields. The saving is the ceil() on material
+            // quantities being applied once to the batch rather than once per run, so it
+            // amortises: nearly all of it appears in the first handful of runs and 100 versus
+            // 200 barely moves the per-unit figure.
+            var marketGroups = await db.SdeMarketGroups.AsNoTracking()
+                .Select(g => new { g.MarketGroupId, g.ParentGroupId, g.Name })
+                .ToListAsync(ct);
+            var mgById = marketGroups.ToDictionary(g => g.MarketGroupId);
 
-            try
+            // The parts of the market tree whose items are built in batches in practice.
+            // Anything beneath one of these paths is costed as a batch.
+            string[][] batchPaths =
+            [
+                // "Manufacture & Research", not "Manufacturing" — the SDE's name, and getting it
+                // wrong silently batched none of the components.
+                ["Manufacture & Research", "Components"],
+                ["Drones"],
+                ["Ammunition & Charges"],
+                ["Ship and Module Modifications"],
+                ["Ship Equipment"],
+                ["Structure Equipment"],
+                ["Ships", "Shuttles"],
+                ["Ships", "Frigates"],
+                ["Ships", "Destroyers"],
+            ];
+
+            var childrenOf = marketGroups
+                .Where(g => g.ParentGroupId != null)
+                .GroupBy(g => g.ParentGroupId!.Value)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.MarketGroupId).ToList());
+
+            var batchGroupIds = new HashSet<int>();
+            foreach (var path in batchPaths)
             {
-                (decimal Raw, decimal Job) result;
-                if (recOverride.TryGetValue(type, out var ovc) && !boughtTypes.Contains(type))
-                    result = (qty * ovc, 0m);                                 // pinned fixed-value leaf
-                else if (boughtTypes.Contains(type) || !recMaterials.TryGetValue(type, out var mats))
-                    result = (qty * (unitCosts.TryGetValue(type, out var pr) ? pr : 0m), 0m);  // buy leaf
-                else
-                {
-                    int    outQ = recOutputQty.TryGetValue(type, out var oq) ? Math.Max(1, oq) : 1;
-                    int    runs = (int)Math.Ceiling((double)qty / outQ);
-                    double mf   = recMeFactor.TryGetValue(type, out var f) ? f : 1.0;
-                    decimal raw = (recBpcPerRun.TryGetValue(type, out var bpc) ? bpc : 0m) * runs;
-                    decimal job = (recJobPerRun.TryGetValue(type, out var jp) ? jp : 0m) * runs;
-                    foreach (var (matType, baseQty) in mats)
-                    {
-                        int need = JobMaterialTotal(baseQty, mf, runs);
-                        var (cr, cj) = ObtainCost(matType, need);
-                        raw += cr; job += cj;
-                    }
-                    result = (raw, job);
-                }
-                obtainMemo[(type, qty)] = result;
-                return result;
-            }
-            finally { inProgress.Remove(type); }
-        }
+                // Walk the named path down from a top-level group, then take everything under it.
+                var current = marketGroups
+                    .Where(g => g.ParentGroupId == null && g.Name == path[0])
+                    .Select(g => g.MarketGroupId)
+                    .ToList();
 
-        foreach (var typeId in productMap.Keys)
-        {
-            if (boughtTypes.Contains(typeId) || !recMaterials.ContainsKey(typeId)) continue;
-            int outQ = recOutputQty.TryGetValue(typeId, out var oq) ? Math.Max(1, oq) : 1;
-            var (raw, job) = ObtainCost(typeId, outQ);   // cost of one run, spread over its output
-            rawMatCosts[typeId]   = raw / outQ;
-            totalJobCosts[typeId] = job / outQ;
-            unitCosts[typeId]     = (raw + job) / outQ;
+                foreach (var segment in path.Skip(1))
+                    current = current
+                        .SelectMany(id => childrenOf.GetValueOrDefault(id, []))
+                        .Where(id => mgById[id].Name == segment)
+                        .ToList();
+
+                if (current.Count == 0)
+                {
+                    _errorLogger.Log("BuildCostService", "batch groups",
+                        $"market group path \"{string.Join(" > ", path)}\" matched nothing — " +
+                        "its items will be costed one run at a time.");
+                    continue;
+                }
+
+                var stack = new Stack<int>(current);
+                while (stack.Count > 0)
+                {
+                    var id = stack.Pop();
+                    if (!batchGroupIds.Add(id)) continue;      // also guards a malformed cycle
+                    foreach (var child in childrenOf.GetValueOrDefault(id, []))
+                        stack.Push(child);
+                }
+            }
+
+            var componentTypes = (await db.SdeTypes.AsNoTracking()
+                    .Where(t => t.MarketGroupId != null)
+                    .Select(t => new { t.TypeId, MarketGroupId = t.MarketGroupId!.Value })
+                    .ToListAsync(ct))
+                .Where(t => batchGroupIds.Contains(t.MarketGroupId))
+                .Select(t => t.TypeId)
+                .ToHashSet();
+
+            // Named exceptions: not things anyone builds a hundred of at a time.
+            var batchByName = new Dictionary<string, int>
+            {
+                ["Enhanced Neurolink Protection Cell"] = 1,
+                ["Neurolink Protection Cell"]          = 10,
+                ["Capital Core Temperature Regulator"] = 10,
+            };
+            var batchExceptions = typeNames
+                .Where(kv => batchByName.ContainsKey(kv.Value))
+                .ToDictionary(kv => kv.Key, kv => batchByName[kv.Value]);
+
+            // A blueprint cannot be run more times than it allows. Some cap well below 100 —
+            // asking for more would plan a batch nobody could actually install.
+            var maxRunsByBlueprint = await db.SdeBlueprints.AsNoTracking()
+                .Where(b => b.MaxProductionLimit > 0)
+                .ToDictionaryAsync(b => b.TypeId, b => b.MaxProductionLimit, ct);
+
+            int BatchRuns(int typeId)
+            {
+                var wanted =
+                    batchExceptions.TryGetValue(typeId, out var runs) ? runs
+                  : recIsReaction.Contains(typeId) || componentTypes.Contains(typeId) ? 100
+                  : 1;
+
+                if (wanted <= 1) return 1;
+
+                return productMap.TryGetValue(typeId, out var prod)
+                    && maxRunsByBlueprint.TryGetValue(prod.TypeId, out var max)
+                    && max > 0
+                        ? Math.Min(wanted, max)
+                        : wanted;
+            }
+
+            // Order matters, and it is what makes crediting leftovers possible at all.
+            //
+            // The calculator values leftover sub-components at their build cost. Costing items in
+            // arbitrary order means reading the PREVIOUS pass's figures — the inflated ones this
+            // is replacing — and over-crediting against them, which drove 1,522 items negative.
+            //
+            // Costing a component before anything that consumes it means every leftover is valued
+            // at a figure already recomputed in this same pass. Leftovers only arise where a
+            // blueprint yields more than one unit per run, and those outputs always sit strictly
+            // below their consumers in the material graph, so such an order exists.
+            var builtTypes = productMap.Keys
+                .Where(t => !boughtTypes.Contains(t) && recMaterials.ContainsKey(t))
+                .ToHashSet();
+
+            var consumers = new Dictionary<int, List<int>>();
+            var remaining = builtTypes.ToDictionary(t => t, _ => 0);
+            foreach (var t in builtTypes)
+                foreach (var (mat, _) in recMaterials[t])
+                    if (builtTypes.Contains(mat))
+                    {
+                        if (!consumers.TryGetValue(mat, out var list)) consumers[mat] = list = [];
+                        list.Add(t);
+                        remaining[t]++;
+                    }
+
+            var ready = new Queue<int>(remaining.Where(kv => kv.Value == 0).Select(kv => kv.Key));
+            var order = new List<int>(builtTypes.Count);
+            while (ready.Count > 0)
+            {
+                var t = ready.Dequeue();
+                order.Add(t);
+                if (!consumers.TryGetValue(t, out var cons)) continue;
+                foreach (var c in cons)
+                    if (--remaining[c] == 0) ready.Enqueue(c);
+            }
+
+            // Whatever is left sits in a cycle. EVE's material graph is not guaranteed acyclic,
+            // and composite reactions consuming intermediate reaction products are exactly where
+            // that shows up. Cost them last; their leftovers fall back on the previous figure,
+            // which is the best available when a thing transitively depends on itself.
+            var ordered = order.ToHashSet();
+            var cyclic  = builtTypes.Where(t => !ordered.Contains(t)).ToList();
+            order.AddRange(cyclic);
+            if (cyclic.Count > 0)
+                _errorLogger.Log("BuildCostService", "chain order",
+                    $"{cyclic.Count} item(s) sit in a dependency cycle and were costed last.");
+
+            foreach (var typeId in order)
+            {
+                int outQ = recOutputQty.TryGetValue(typeId, out var oq) ? Math.Max(1, oq) : 1;
+                var me   = recMeLevel.TryGetValue(typeId, out var m) ? m : 10;
+
+                try
+                {
+                    // Cost a realistic batch, then divide by what it yields.
+                    var plan = calc.Calculate(
+                        [new ProductionQueueEntry
+                        {
+                            TypeId   = typeId,
+                            Quantity = outQ * BatchRuns(typeId),
+                            MeLevel  = me,
+                        }],
+                        planContext);
+
+                    var produced = Math.Max(1, plan.FinalProducts.Count > 0
+                        ? plan.FinalProducts[0].QuantityProduced
+                        : outQ * BatchRuns(typeId));
+
+                    // Net of leftovers: over-produced sub-components are stock, not cost.
+                    rawMatCosts[typeId]   = plan.TotalRawMaterialCost / produced;
+                    totalJobCosts[typeId] = plan.TotalJobCost / produced;
+                    unitCosts[typeId]     = plan.NetCost / produced;
+
+                    // Publish it into the context, so everything costed after this — which, by
+                    // the ordering above, is everything that consumes it — values leftovers of
+                    // this component at the figure just computed rather than the stale one.
+                    planContext.BuildCostLookup[typeId] = unitCosts[typeId];
+                }
+                catch (Exception ex)
+                {
+                    // One unplannable item must not lose the whole recalculation. It keeps the
+                    // per-unit estimate from the pass above rather than getting no cost at all.
+                    _errorLogger.Log("BuildCostService", $"chain cost for type {typeId}", ex);
+                }
+            }
         }
 
         // ── Persist results ───────────────────────────────────────────────────

@@ -25,6 +25,29 @@ public class SaleRowVm : ReactiveObject
     public long   WhenSort { get; }
     public string WhenText { get; }
     public string Kind      { get; }   // "Market" or "Contract"
+
+    /// <summary>Wallet transaction id for a market sale, contract id for a contract sale.
+    /// Unique only together with <see cref="Kind"/>.</summary>
+    public long SaleId { get; }
+
+    /// <summary>
+    /// Marked by the user as not a profit-making sale. Such rows are left out of every profit
+    /// figure — the rollups here, the Sale Listing tools, the Overview — and appear in the grid
+    /// below only when it is asked to show them.
+    /// </summary>
+    private bool _notForProfit;
+    public bool NotForProfit
+    {
+        get => _notForProfit;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _notForProfit, value);
+            this.RaisePropertyChanged(nameof(NotForProfitMark));
+        }
+    }
+
+    /// <summary>A marker in the grid's first column, so a shown-but-not-counted row is obvious.</summary>
+    public string NotForProfitMark => NotForProfit ? "∅" : "";
     public string OwnerType { get; }   // "character" or "corporation" (for filtering)
     public long   OwnerId   { get; }
     public bool   OwnerIsPersonal { get; }
@@ -56,8 +79,9 @@ public class SaleRowVm : ReactiveObject
     public SaleRowVm(DateTimeOffset when, string kind, string ownerType, long ownerId, bool ownerIsPersonal,
         string owner, string location, string buyer,
         string items, string units, double total, double? build, double? market,
-        int typeId = 0, string marketGroup = "—")
+        int typeId = 0, string marketGroup = "—", long saleId = 0)
     {
+        SaleId      = saleId;
         TypeId      = typeId;
         MarketGroup = marketGroup;
         When     = when;
@@ -86,7 +110,13 @@ public class SaleRowVm : ReactiveObject
     // ProfitPct/ProfitBrush and the rollups read ProfitRaw/ProfitPctRaw.
     public void ApplyBasis(SaleCostBasis basis)
     {
-        var cost   = basis == SaleCostBasis.BuildCost ? BuildOrNull : MarketOrNull;
+        // On the build basis, anything without a build cost falls back to market value.
+        // Minerals, ore, gas, isotopes and meta modules are not manufactured, so they have no
+        // build cost at all — and leaving them at "—" quietly dropped them out of every profit
+        // figure, which for a trader is most of what they sell.
+        var cost = basis == SaleCostBasis.BuildCost
+            ? BuildOrNull ?? MarketOrNull
+            : MarketOrNull;
         var profit = cost is double c ? TotalRaw - c : (double?)null;
         ProfitRaw = profit ?? double.MinValue;
         Profit    = profit is double p ? MarketFmt.Isk(p) : "—";
@@ -228,6 +258,62 @@ public class SalesTrackerViewModel : ReactiveObject
         _ = LoadAsync();
     }
 
+    /// <summary>
+    /// Whether the grid lists sales marked as not for profit. Off by default, and it only ever
+    /// affects this grid — the rollups exclude them either way.
+    /// </summary>
+    private bool _showNotForProfit;
+    public bool ShowNotForProfit
+    {
+        get => _showNotForProfit;
+        set { this.RaiseAndSetIfChanged(ref _showNotForProfit, value); ApplyFilters(); }
+    }
+
+    /// <summary>
+    /// Marks or unmarks sales, persisting the change and refreshing every derived figure.
+    /// Takes the rows the user actually selected, so a multi-row selection is one action.
+    /// </summary>
+    public async Task SetNotForProfitAsync(IReadOnlyList<SaleRowVm> rows, bool notForProfit)
+    {
+        if (rows.Count == 0) return;
+
+        var keys = rows.Select(r => (r.Kind, r.SaleId)).Distinct().ToList();
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+
+            foreach (var (kind, saleId) in keys)
+            {
+                if (notForProfit)
+                {
+                    // INSERT OR IGNORE: marking something already marked is not an error, and
+                    // a selection can legitimately contain a mix.
+                    await db.Database.ExecuteSqlAsync(
+                        $"""INSERT OR IGNORE INTO "SaleExclusions" ("Kind","SaleId","MarkedAt") VALUES ({kind},{saleId},{DateTimeOffset.UtcNow})""");
+                }
+                else
+                {
+                    await db.Database.ExecuteSqlAsync(
+                        $"""DELETE FROM "SaleExclusions" WHERE "Kind" = {kind} AND "SaleId" = {saleId}""");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(SalesTrackerViewModel), nameof(SetNotForProfitAsync), ex);
+            return;
+        }
+
+        // Update every loaded row with the same identity, not just the selected instances — the
+        // same sale can appear in more than one place once the grid is re-filtered.
+        var changed = keys.ToHashSet();
+        foreach (var r in _all)
+            if (changed.Contains((r.Kind, r.SaleId))) r.NotForProfit = notForProfit;
+
+        ApplyFilters();
+    }
+
     private void ApplyFilters()
     {
         IEnumerable<SaleRowVm> q = _all;
@@ -245,14 +331,29 @@ public class SalesTrackerViewModel : ReactiveObject
         if (TryDate(_dateFrom, out var from)) q = q.Where(r => r.When.UtcDateTime.Date >= from);
         if (TryDate(_dateThru, out var thru)) q = q.Where(r => r.When.UtcDateTime.Date <= thru);
 
-        var list = q.ToList();
+        var matched = q.ToList();
+
+        // Sales marked as not for profit never reach the rollups — that is the point of the
+        // mark. The grid can be asked to show them, so it is filtered separately.
+        var forProfit = matched.Where(r => !r.NotForProfit).ToList();
+        var excluded  = matched.Count - forProfit.Count;
+        var list      = ShowNotForProfit ? matched : forProfit;
+
         Rows.Clear();
         foreach (var r in list) Rows.Add(r);
-        StatusText = list.Count == 0 ? "No sales match the filters." : $"{list.Count:N0} sale(s)";
 
-        FillGroup(TopBuyers,          list, r => r.Buyer);
-        FillProfitGroup(MarketGroups, list, r => r.MarketGroup);
-        FillProfitGroup(TopItems,     list, r => r.Items);
+        StatusText = list.Count == 0
+            ? "No sales match the filters."
+            : $"{list.Count:N0} sale(s)" +
+              (excluded > 0
+                  ? ShowNotForProfit
+                      ? $" · {excluded:N0} not for profit, shown but not counted"
+                      : $" · {excluded:N0} not for profit, hidden"
+                  : "");
+
+        FillGroup(TopBuyers,          forProfit, r => r.Buyer);
+        FillProfitGroup(MarketGroups, forProfit, r => r.MarketGroup);
+        FillProfitGroup(TopItems,     forProfit, r => r.Items);
     }
 
     private static void FillGroup(ObservableCollection<GroupRowVm> target, List<SaleRowVm> rows, Func<SaleRowVm, string> key)

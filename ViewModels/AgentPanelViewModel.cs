@@ -261,6 +261,30 @@ public sealed class AgentPanelViewModel : ReactiveObject
         IsOpen = !IsOpen;
     }
 
+    /// <summary>
+    /// Pushes a message into the conversation on the app's behalf — used by the AgentNotify
+    /// alarm action, so a fired alarm is phrased by the agent and spoken aloud when TTS is on.
+    /// Waits briefly for an in-flight reply rather than dropping the notification.
+    /// </summary>
+    public async Task NotifyAsync(string message)
+    {
+        if (!_isAgentEnabled || string.IsNullOrWhiteSpace(message)) return;
+
+        for (var i = 0; i < 60 && IsBusy; i++)
+            await Task.Delay(500);
+        if (IsBusy) return;
+
+        await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            IsOpen = true;
+            Input  = message;
+
+            // Not shown: the capsuleer did not write it and does not need to read the
+            // instructions the alarm gave. They see the agent's reply, which is the point.
+            await SendAsync(showUserMessage: false);
+        });
+    }
+
     // Window names the local intent detector recognises — must match open_window enum values.
     private static readonly (string[] Keywords, string Window)[] _navPatterns =
     [
@@ -289,7 +313,14 @@ public sealed class AgentPanelViewModel : ReactiveObject
         }
     }
 
-    public async Task SendAsync()
+    public Task SendAsync() => SendAsync(showUserMessage: true);
+
+    /// <param name="showUserMessage">
+    /// False when the app is speaking on the capsuleer's behalf — an alarm handing over
+    /// something to report. The text still goes to the model, since the reply is meaningless
+    /// without it, but the panel shows only the reply.
+    /// </param>
+    private async Task SendAsync(bool showUserMessage)
     {
         var text = Input.Trim();
         if (string.IsNullOrEmpty(text) || IsBusy) return;
@@ -318,9 +349,9 @@ public sealed class AgentPanelViewModel : ReactiveObject
         }
         _summarizationTask = null;
 
-        var userMsg = new AgentMessage(MessageRole.User, text);
+        var userMsg = new AgentMessage(MessageRole.User, text) { ShowInChat = showUserMessage };
         _history.Add(userMsg);
-        Messages.Add(userMsg);
+        if (userMsg.ShowInChat) Messages.Add(userMsg);
 
         _cts.Cancel();
         _cts = new CancellationTokenSource();
@@ -440,7 +471,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
         {
             Messages.Clear();
             Messages.Add(summary);
-            foreach (var m in recentMessages)
+            foreach (var m in recentMessages.Where(m => m.ShowInChat))
                 Messages.Add(m);
         });
 
@@ -456,8 +487,9 @@ public sealed class AgentPanelViewModel : ReactiveObject
             var messages = JsonSerializer.Deserialize<List<AgentMessage>>(
                 File.ReadAllText(HistoryPath), _jsonOpts);
             if (messages is null || messages.Count == 0) return;
+            // The whole history goes back to the model; only the visible part goes on screen.
             _history.AddRange(messages);
-            foreach (var m in messages)
+            foreach (var m in messages.Where(m => m.ShowInChat))
                 Messages.Add(m);
         }
         catch { /* corrupt file — start fresh */ }

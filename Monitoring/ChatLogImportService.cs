@@ -414,9 +414,29 @@ public sealed class ChatLogImportService : ReactiveObject
         };
 
         // Shorter than what we already consumed means truncation or a reused filename.
+        //
+        // The re-read gives every line a new ChatMessages row with a new id, so anything derived
+        // from the old rows has to go with them. Without this the intel parsed from the deleted
+        // messages survives as orphans and the re-read parses the same lines again — the same
+        // sighting twice, distinguishable only by a chat id that no longer resolves. It happens
+        // routinely when the logs sit on a synced or network share, where the reported length
+        // goes backwards for reasons that have nothing to do with the file being truncated.
         if (fi.Length < record.LastOffset)
         {
             var path = record.Path;
+
+            await db.Database.ExecuteSqlRawAsync("""
+                DELETE FROM "IntelReportCharacters" WHERE "IntelReportId" IN (
+                  SELECT r."Id" FROM "IntelReports" r
+                  JOIN "ChatMessages" m ON m."Id" = r."ChatMessageId"
+                  WHERE m."SourceFile" = {0})
+                """, [path], ct);
+
+            await db.Database.ExecuteSqlRawAsync("""
+                DELETE FROM "IntelReports" WHERE "ChatMessageId" IN (
+                  SELECT "Id" FROM "ChatMessages" WHERE "SourceFile" = {0})
+                """, [path], ct);
+
             await db.ChatMessages.Where(m => m.SourceFile == path).ExecuteDeleteAsync(ct);
             record.LastOffset     = 0;
             record.LastLineNumber = 0;

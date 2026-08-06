@@ -79,6 +79,11 @@ public sealed class TtsService : IDisposable
     {
         if (_muted) return;
 
+        // Say system names the way capsuleers do — "C-FD0D" as "C tac F D zero D" — rather than
+        // however the engine guesses. Done here, on the way out, so the text shown on screen is
+        // unaffected.
+        text = EvePronunciation.Expand(text);
+
         switch (_provider)
         {
             case TtsProvider.OpenAi:

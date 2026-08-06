@@ -2,6 +2,7 @@
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using EveConsole.Agent;
+using EveConsole.Alarms;
 using EveConsole.Data;
 using EveConsole.Views;
 using EveConsole.ViewModels;
@@ -74,9 +75,16 @@ public class App : Application
             zkbPolling    = Services.GetRequiredService<ZkillboardPollingService>();
 
             // Intel is parsed straight after each chat tail, so a sighting reaches the map on
-            // the same pass that stored the message rather than on a timer of its own.
+            // the same pass that stored the message rather than on a timer of its own — and any
+            // intel alarm is then evaluated immediately rather than at its next interval, which
+            // is the difference between hearing about a hostile in a second and in a minute.
             var intel = Services.GetRequiredService<IntelService>();
-            chatLogs.AfterTail = ct => intel.ProcessNewAsync(ct);
+            chatLogs.AfterTail = async ct =>
+            {
+                var written = await intel.ProcessNewAsync(ct);
+                if (written > 0)
+                    await Services.GetRequiredService<AlarmService>().TriggerAsync("intel", ct);
+            };
             zkbFirehose   = Services.GetRequiredService<ZkillboardFirehoseService>();
             zkbBackfill   = Services.GetRequiredService<ZkillboardBackfillService>();
             zkbPost       = Services.GetRequiredService<ZkillboardPostService>();
@@ -1851,8 +1859,48 @@ public class App : Application
                 """ALTER TABLE "IntelReports" ADD COLUMN "ReporterCharacterId" INTEGER NULL""",
                 """ALTER TABLE "IntelReports" ADD COLUMN "NoVisual" INTEGER NOT NULL DEFAULT 0""",
                 """ALTER TABLE "IntelReports" ADD COLUMN "Message" TEXT NOT NULL DEFAULT ''""",
+                // Intel whose chat message no longer exists. Only two things ever delete a chat
+                // message — the dedupe above, and a log file being re-read after its length
+                // appeared to go backwards — and in both cases the surviving copy of the message
+                // has been re-parsed into a fresh report. So these are duplicates of a report
+                // that is already present, and they show as repeated sightings in the UI.
+                // Nothing purges chat messages on age, so this cannot reach real history.
+                """DELETE FROM "IntelReportCharacters" WHERE "IntelReportId" IN (SELECT "Id" FROM "IntelReports" r WHERE NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = r."ChatMessageId"))""",
+                """DELETE FROM "IntelReports" WHERE NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = "IntelReports"."ChatMessageId")""",
+
                 """CREATE TABLE IF NOT EXISTS "NameLookupMisses" ("Name" TEXT NOT NULL PRIMARY KEY, "CheckedAt" TEXT NULL)""",
                 """CREATE TABLE IF NOT EXISTS "CharacterAffiliations" ("CharacterId" INTEGER NOT NULL PRIMARY KEY, "CorporationId" INTEGER NOT NULL DEFAULT 0, "AllianceId" INTEGER NOT NULL DEFAULT 0, "PulledAt" TEXT NULL)""",
+
+                """CREATE TABLE IF NOT EXISTS "SaleExclusions" ("Kind" TEXT NOT NULL, "SaleId" INTEGER NOT NULL, "MarkedAt" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("Kind", "SaleId"))""",
+
+                // ── Alarms ───────────────────────────────────────────────────
+                // NB: braces are doubled. ExecuteSqlRaw runs the statement through string.Format,
+                // so a literal '{}' default is read as a format placeholder and throws — and
+                // since this loop swallows exceptions, the table would simply never be created.
+                """CREATE TABLE IF NOT EXISTS "Alarms" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "Name" TEXT NOT NULL DEFAULT '', "Enabled" INTEGER NOT NULL DEFAULT 1, "ConditionType" TEXT NOT NULL DEFAULT '', "ConditionJson" TEXT NOT NULL DEFAULT '{{}}', "Repeat" INTEGER NOT NULL DEFAULT 1, "PollSeconds" INTEGER NOT NULL DEFAULT 60, "CooldownSeconds" INTEGER NOT NULL DEFAULT 0, "Primed" INTEGER NOT NULL DEFAULT 0, "CreatedBy" TEXT NOT NULL DEFAULT 'user', "CreatedAt" TEXT NOT NULL DEFAULT '', "LastCheckedAt" TEXT NULL, "LastFiredAt" TEXT NULL, "FireCount" INTEGER NOT NULL DEFAULT 0, "LastError" TEXT NULL)""",
+                """CREATE INDEX IF NOT EXISTS "IX_Alarms_Enabled" ON "Alarms" ("Enabled")""",
+
+                """CREATE TABLE IF NOT EXISTS "AlarmActions" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "Kind" INTEGER NOT NULL DEFAULT 0, "ConfigJson" TEXT NOT NULL DEFAULT '{{}}', "Ordinal" INTEGER NOT NULL DEFAULT 0)""",
+                """CREATE INDEX IF NOT EXISTS "IX_AlarmActions_AlarmId" ON "AlarmActions" ("AlarmId")""",
+
+                // The ledger that stops an alarm re-announcing what it has already announced.
+                """CREATE TABLE IF NOT EXISTS "AlarmSeenKeys" ("AlarmId" INTEGER NOT NULL, "MatchKey" TEXT NOT NULL, "FirstSeenAt" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("AlarmId", "MatchKey"))""",
+                """CREATE INDEX IF NOT EXISTS "IX_AlarmSeenKeys_Alarm_Seen" ON "AlarmSeenKeys" ("AlarmId", "FirstSeenAt")""",
+
+                """CREATE TABLE IF NOT EXISTS "AlarmEvents" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "FiredAt" TEXT NOT NULL DEFAULT '', "Summary" TEXT NOT NULL DEFAULT '', "DetailJson" TEXT NULL, "MatchCount" INTEGER NOT NULL DEFAULT 0)""",
+                """CREATE INDEX IF NOT EXISTS "IX_AlarmEvents_Alarm_Fired" ON "AlarmEvents" ("AlarmId", "FiredAt")""",
+
+                """CREATE TABLE IF NOT EXISTS "AlarmAlerts" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "AlarmEventId" INTEGER NOT NULL DEFAULT 0, "CreatedAt" TEXT NOT NULL DEFAULT '', "Title" TEXT NOT NULL DEFAULT '', "Body" TEXT NULL, "Dismissed" INTEGER NOT NULL DEFAULT 0, "DismissedAt" TEXT NULL)""",
+                """CREATE INDEX IF NOT EXISTS "IX_AlarmAlerts_Dismissed_Created" ON "AlarmAlerts" ("Dismissed", "CreatedAt")""",
+
+                // Intel alarm keys used to be the report's row id, which changes whenever a chat
+                // log is re-read — so old sightings kept looking new. They are now content-based
+                // and contain a '|'. Re-prime any alarm still holding the old style so the
+                // switch banks what is currently visible instead of announcing all of it, then
+                // drop those keys. Both statements no-op once there are no old keys left, so
+                // this is safe to run on every start.
+                """UPDATE "Alarms" SET "Primed" = 0 WHERE "ConditionType" = 'intel' AND EXISTS (SELECT 1 FROM "AlarmSeenKeys" k WHERE k."AlarmId" = "Alarms"."Id" AND k."MatchKey" LIKE 'intel:%' AND k."MatchKey" NOT LIKE '%|%')""",
+                """DELETE FROM "AlarmSeenKeys" WHERE "MatchKey" LIKE 'intel:%' AND "MatchKey" NOT LIKE '%|%'""",
             }) { try { db.Database.ExecuteSqlRaw(sql); } catch { } }
             // Repairs stations imported before ConstellationId/RegionId/Security were populated
             // from the solar system. The importer now fills them, but an existing install only
@@ -1921,6 +1969,9 @@ public class App : Application
         // run over the same hour at the same time.
         Services.GetRequiredService<MapStatsBackfillService>().Start();
         Services.GetRequiredService<MapStatsPollingService>().Start();
+
+        // Cheap when idle: the loop only touches the database for alarms whose interval is up.
+        Services.GetRequiredService<AlarmService>().Start();
     }
 
     private static void PositionSplashOnLastMonitor(SplashWindow splash)
@@ -2074,6 +2125,26 @@ public class App : Application
         services.AddSingleton<MapStatsBackfillService>();
         services.AddSingleton<MapStatsPollingService>();
         services.AddSingleton<SystemViewService>();
+
+        // Alarms. Nothing is defined out of the box — every alarm is one the user (or the agent
+        // on their behalf) creates. See AlarmService for why firing is keyed on match identity
+        // rather than on a condition merely being true.
+        services.AddSingleton<AlarmSoundService>();
+        services.AddSingleton<SystemGraph>();
+        services.AddSingleton(sp => AlarmConditionRegistry.CreateDefault(
+            sp.GetRequiredService<SystemGraph>()));
+        services.AddSingleton<AlarmActionRunner>();
+        services.AddSingleton(sp =>
+        {
+            var factory = sp.GetRequiredService<IDbContextFactory<AppDbContext>>();
+            using var db = factory.CreateDbContext();
+            return new AlarmService(
+                factory,
+                db.Database.GetConnectionString()!,
+                sp.GetRequiredService<AlarmConditionRegistry>(),
+                sp.GetRequiredService<AlarmActionRunner>(),
+                sp.GetRequiredService<AppErrorLogger>());
+        });
 
         services.AddSingleton<EntityNameBackfillService>();
         services.AddSingleton<EveServerStatusService>();

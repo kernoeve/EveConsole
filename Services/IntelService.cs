@@ -180,6 +180,21 @@ public sealed class IntelService(
                 .Select(r => r.ChatMessageId)
                 .ToListAsync(ct)).ToHashSet();
 
+            // The chat message id is not enough on its own. A log file that is re-read from the
+            // start — which happens whenever its length appears to go backwards, routine on a
+            // synced share — gives every line a brand-new id, and a new id is indistinguishable
+            // from a genuinely new post. So also key on what actually identifies a report: what
+            // was said, by whom, about where, and when. Doubles as the within-batch guard.
+            var minAt = batch.Min(m => m.OccurredAt) ?? "";
+            var maxAt = batch.Max(m => m.OccurredAt) ?? "";
+            var seenContent = (await db.Database.SqlQueryRaw<string>(
+                    """
+                    SELECT "ReportedAt" || '|' || "ReporterName" || '|' || "SystemId" || '|' || "Message" AS "Value"
+                    FROM "IntelReports" WHERE "ReportedAt" >= {0} AND "ReportedAt" <= {1}
+                    """, minAt, maxAt)
+                .ToListAsync(ct))
+                .ToHashSet(StringComparer.Ordinal);
+
             var pending = new List<(IntelReport Report, List<IntelReportCharacter> Pilots)>();
 
             // A clear obsoletes everything in its system older than itself, so only the newest
@@ -203,6 +218,11 @@ public sealed class IntelService(
 
                 if (!systems.TryGetValue(parsed.SystemName, out var systemId)) continue;
                 if (already.Contains(m.Id)) continue;
+
+                // Add returns false when this exact report is already stored, or has already
+                // been built earlier in this same batch.
+                if (!seenContent.Add($"{m.OccurredAt}|{m.SenderName}|{systemId}|{m.Message}"))
+                    continue;
 
                 var built = BuildReport(m.Id, m.OccurredAt, m.ChannelName, m.SenderName,
                                         systemId, m.Message, parsed, ships);

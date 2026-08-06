@@ -18,6 +18,9 @@ namespace EveConsole.Views;
 public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewModel>
 {
     private record FilterRowUi(ComboBox ColPicker, ComboBox OpPicker, TextBox ValBox, StackPanel Row);
+
+    /// <summary>What the first filter row starts on. Must be a value from FilterableColumns.</summary>
+    private const string DefaultFilterColumn = "Type Name";
     private readonly List<FilterRowUi> _filterControls = [];
 
     private bool _handlersAdded;
@@ -438,6 +441,11 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
             ItemsSource       = AssetBrowserViewModel.FilterableColumns,
             PlaceholderText   = "column…",
             MaxDropDownHeight = 300,
+
+            // The first row starts on Type Name — searching for an item is what this tool is
+            // opened for. Added rows start empty instead: they exist to narrow a search that is
+            // already running, so repeating the first row's column would only be in the way.
+            SelectedItem      = withRemove ? null : DefaultFilterColumn,
         };
 
         var opPicker = new ComboBox
@@ -506,7 +514,9 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         }
         if (_filterControls.Count > 0)
         {
-            _filterControls[0].ColPicker.SelectedItem = null;
+            // Back to the starting state, which includes the default column — clearing to an
+            // empty picker would leave the tool needing one more click than a fresh open.
+            _filterControls[0].ColPicker.SelectedItem = DefaultFilterColumn;
             _filterControls[0].OpPicker.SelectedIndex  = 0;
             _filterControls[0].ValBox.Text              = "";
         }

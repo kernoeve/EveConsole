@@ -1,0 +1,75 @@
+using System.Text.Json;
+using EveConsole.Data;
+using EveConsole.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace EveConsole.Alarms;
+
+/// <summary>What a check is handed when it runs.</summary>
+public sealed class AlarmEvaluationContext
+{
+    public required IDbContextFactory<AppDbContext> DbFactory        { get; init; }
+    public required string                          ConnectionString { get; init; }
+    public required Alarm                           Alarm            { get; init; }
+    public required DateTimeOffset                  Now              { get; init; }
+}
+
+/// <summary>
+/// A kind of thing an alarm can watch for. Implementations are stateless: everything they need
+/// comes from the JSON config and the context, and whether a match is *new* is decided by the
+/// service against the seen-key ledger. That keeps adding a condition to a single file.
+/// </summary>
+public interface IAlarmCondition
+{
+    /// <summary>Stored in <see cref="Alarm.ConditionType"/>. Never change once shipped.</summary>
+    string TypeKey { get; }
+
+    string DisplayName { get; }
+
+    /// <summary>Shown in the editor and handed to the agent so it can pick the right check.</summary>
+    string Description { get; }
+
+    /// <summary>JSON Schema for the config blob. Drives both the agent tool and validation.</summary>
+    object ParameterSchema { get; }
+
+    /// <summary>One-line human summary of a configured instance, for the alarm list.</summary>
+    string Describe(JsonElement config);
+
+    /// <summary>
+    /// Title and body for an Alert or Dialog when the user has not written their own. Each
+    /// check knows what is worth saying about its own matches, so the wording follows the
+    /// check rather than being one generic sentence for all of them.
+    /// </summary>
+    (string Title, string Body) DefaultText(
+        string alarmName, JsonElement config, IReadOnlyList<AlarmMatch> matches)
+        => (alarmName, JoinSummaries(matches));
+
+    /// <summary>Shared body-building for the default text: the matches, one per line, capped.</summary>
+    protected static string JoinSummaries(IReadOnlyList<AlarmMatch> matches, int max = 6)
+    {
+        if (matches.Count == 0) return "";
+
+        var body = string.Join("\n", matches.Take(max).Select(m => "• " + m.Summary));
+        return matches.Count > max
+            ? body + $"\n• …and {matches.Count - max} more"
+            : body;
+    }
+
+    /// <summary>
+    /// When true, a key that stops appearing is forgotten, so the same key becomes news again
+    /// if it comes back.
+    ///
+    /// <para>Off by default, because for an append-only source — an intel report, a killmail —
+    /// a key that has been announced should stay announced forever. It is switched on for
+    /// checks over mutable state, where a row leaving the result set and returning is a real
+    /// event, and it is what makes "alert me when there are NO rows" able to re-arm at all.</para>
+    /// </summary>
+    bool ForgetsUnseenKeys => false;
+
+    /// <summary>
+    /// Everything currently matching. Return the full current match set, not a delta — the
+    /// service diffs it against what this alarm has already seen.
+    /// </summary>
+    Task<IReadOnlyList<AlarmMatch>> EvaluateAsync(
+        JsonElement config, AlarmEvaluationContext ctx, CancellationToken ct = default);
+}

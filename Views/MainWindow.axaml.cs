@@ -135,6 +135,15 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         agentService.DataRefreshRequested += ()   => Dispatcher.UIThread.Post(() => vm.ForceResolveNamesAsync());
         agentService.ContextProvider       = () => BuildAgentContext(vm);
 
+        // Alarm actions that need the UI. The dialog is deliberately owner-less and top-most —
+        // an alarm is usually wanted precisely when EVE Console is behind the game client.
+        vm.AlarmActions.ShowDialogCallback = (title, message) =>
+            new Views.AlarmDialogWindow(title, message).Show();
+
+        vm.AlarmActions.NotifyAgentCallback = message => vm.AgentVm.NotifyAsync(message);
+        vm.AlarmActions.AgentAvailable      =
+            () => agentService.Settings.Enabled && agentService.Provider is { IsConfigured: true };
+
         agentService.NavigateItemCallback = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {
@@ -363,6 +372,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private async void OnAboutClick(object? sender, RoutedEventArgs e)
     {
         await new AboutWindow().ShowDialog(this);
+    }
+
+    private void OnAlarmsClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) vm.OpenTool("alarms");
     }
 
     private async void OnGearClick(object? sender, RoutedEventArgs e)

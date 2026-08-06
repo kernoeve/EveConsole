@@ -208,6 +208,16 @@ public class AppDbContext : DbContext
     public DbSet<BuildCost>              BuildCosts              => Set<BuildCost>();
     public DbSet<ReprocessingItemValue>  ReprocessingItemValues  => Set<ReprocessingItemValue>();
 
+    // ── Sales ────────────────────────────────────────────────────────────────
+    public DbSet<SaleExclusion> SaleExclusions => Set<SaleExclusion>();
+
+    // ── Alarms ───────────────────────────────────────────────────────────────
+    public DbSet<Alarm>        Alarms        => Set<Alarm>();
+    public DbSet<AlarmAction>  AlarmActions  => Set<AlarmAction>();
+    public DbSet<AlarmSeenKey> AlarmSeenKeys => Set<AlarmSeenKey>();
+    public DbSet<AlarmEvent>   AlarmEvents   => Set<AlarmEvent>();
+    public DbSet<AlarmAlert>   AlarmAlerts   => Set<AlarmAlert>();
+
     // ── App settings ─────────────────────────────────────────────────────────
     public DbSet<AlertSettings>      AlertSettings       => Set<AlertSettings>();
     public DbSet<AppPreference>      AppPreferences      => Set<AppPreference>();
@@ -946,6 +956,30 @@ public class AppDbContext : DbContext
         mb.Entity<IntelReportCharacter>(e => {
             e.HasKey(x => new { x.IntelReportId, x.CharacterId });
             e.HasIndex(x => x.CharacterId); });                   // "where was this pilot last seen"
+
+        mb.Entity<SaleExclusion>(e => {
+            e.HasKey(x => new { x.Kind, x.SaleId }); });
+
+        mb.Entity<Alarm>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.Enabled); });
+
+        mb.Entity<AlarmAction>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.AlarmId); });
+
+        mb.Entity<AlarmSeenKey>(e => {
+            e.HasKey(x => new { x.AlarmId, x.MatchKey });
+            // Pruning walks the ledger oldest-first per alarm.
+            e.HasIndex(x => new { x.AlarmId, x.FirstSeenAt }); });
+
+        mb.Entity<AlarmEvent>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.AlarmId, x.FiredAt }); });
+
+        mb.Entity<AlarmAlert>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.Dismissed, x.CreatedAt }); });
 
         mb.Entity<MarketTypeHistory>(e => {
             e.HasKey(x => new { x.RegionId, x.TypeId, x.Date });

@@ -56,6 +56,9 @@
           <ComboBox ItemsSource="{Binding SaleTypeOptions}" SelectedItem="{Binding SelectedType}" MinWidth="110" />
           <TextBlock Classes="fl" Text="Profit based on" Margin="8 0 0 0" />
           <ComboBox ItemsSource="{Binding ProfitBasisOptions}" SelectedItem="{Binding SelectedProfitBasis}" MinWidth="90" />
+          <CheckBox IsChecked="{Binding ShowNotForProfit}" Content="Show not for profit"
+                    FontSize="11" Foreground="#999" Margin="12 0 0 0" VerticalAlignment="Center"
+                    ToolTip.Tip="List sales marked as not for profit. They are never counted in the summaries above, shown or not." />
         </StackPanel>
       </StackPanel>
     </Border>
@@ -109,11 +112,20 @@
 
     </Grid>
 
-    <DataGrid Grid.Row="2" ItemsSource="{Binding Rows}"
+    <DataGrid Grid.Row="2" x:Name="SalesGrid" ItemsSource="{Binding Rows}"
               AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+              SelectionMode="Extended"
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
               Background="#0d0d12">
+      <DataGrid.ContextMenu>
+        <ContextMenu>
+          <MenuItem Header="Mark as not for profit" Click="OnMarkNotForProfit" />
+          <MenuItem Header="Restore to profit"      Click="OnRestoreToProfit" />
+        </ContextMenu>
+      </DataGrid.ContextMenu>
       <DataGrid.Columns>
+        <DataGridTextColumn Header="" Binding="{Binding NotForProfitMark}" Width="24"
+                            CanUserSort="False" />
         <DataGridTextColumn Header="Date / Time"  Binding="{Binding WhenText}" SortMemberPath="WhenSort" Width="130" />
         <DataGridTextColumn Header="Type"         Binding="{Binding Kind}"     Width="80" />
         <DataGridTextColumn Header="Owner"        Binding="{Binding Owner}"    Width="150" />

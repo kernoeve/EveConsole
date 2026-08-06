@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveConsole.Views.AlarmDialogWindow"
+        Width="460"
+        MinWidth="360"
+        WindowStartupLocation="CenterScreen"
+        Background="#0d0d12"
+        CanResize="False"
+        ShowInTaskbar="True"
+        Topmost="True"
+        SizeToContent="Height">
+
+  <Grid RowDefinitions="Auto,*,Auto">
+
+    <Border Grid.Row="0" Background="#16161d" Padding="20 14">
+      <StackPanel Orientation="Horizontal" Spacing="12">
+        <TextBlock Text="&#x23F0;" FontSize="20" VerticalAlignment="Center" />
+        <TextBlock x:Name="TitleText"
+                   FontSize="15"
+                   FontWeight="SemiBold"
+                   Foreground="#e8e8ef"
+                   TextWrapping="Wrap"
+                   VerticalAlignment="Center" />
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer Grid.Row="1" MaxHeight="320" VerticalScrollBarVisibility="Auto">
+      <TextBlock x:Name="MessageText"
+                 TextWrapping="Wrap"
+                 Foreground="#ccc"
+                 FontSize="13"
+                 Margin="20 18 20 16" />
+    </ScrollViewer>
+
+    <Border Grid.Row="2" Background="#0d0d12" Padding="16 12">
+      <StackPanel Orientation="Horizontal"
+                  HorizontalAlignment="Right"
+                  Spacing="10">
+        <Button Content="Dismiss" Click="OnDismiss" Padding="24 5" IsDefault="True" />
+      </StackPanel>
+    </Border>
+
+  </Grid>
+</Window>
