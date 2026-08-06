@@ -836,7 +836,9 @@ public class BuildCostService
             // Anything beneath one of these paths is costed as a batch.
             string[][] batchPaths =
             [
-                ["Manufacturing & Research", "Components"],
+                // "Manufacture & Research", not "Manufacturing" — the SDE's name, and getting it
+                // wrong silently batched none of the components.
+                ["Manufacture & Research", "Components"],
                 ["Drones"],
                 ["Ammunition & Charges"],
                 ["Ship and Module Modifications"],
