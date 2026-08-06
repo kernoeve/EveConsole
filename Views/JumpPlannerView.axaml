@@ -92,14 +92,22 @@
           <ItemsControl ItemsSource="{Binding Waypoints}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:WaypointVm">
-                <Border Background="#12121a" CornerRadius="3" Padding="8 5" Margin="0 0 0 4">
-                  <Grid ColumnDefinitions="*,Auto">
-                    <StackPanel Grid.Column="0" Spacing="1">
+                <Border Background="#12121a" CornerRadius="3" Padding="8 5" Margin="0 0 0 4"
+                        Cursor="Hand"
+                        PointerPressed="OnWaypointPressed"
+                        DragDrop.AllowDrop="True"
+                        DragDrop.DragOver="OnWaypointDragOver"
+                        DragDrop.Drop="OnWaypointDrop">
+                  <Grid ColumnDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Column="0" Text="⋮⋮" FontSize="11" Foreground="#445"
+                               VerticalAlignment="Center" Margin="0 0 8 0"
+                               ToolTip.Tip="Drag to reorder" />
+                    <StackPanel Grid.Column="1" Spacing="1">
                       <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="#ddd"
                                  FontWeight="SemiBold" />
                       <TextBlock Text="{Binding Detail}" FontSize="9.5" Foreground="#7a7a8a" />
                     </StackPanel>
-                    <Button Grid.Column="1" Content="✕" FontSize="11"
+                    <Button Grid.Column="2" Content="✕" FontSize="11"
                             Background="Transparent" BorderThickness="0" Foreground="#667"
                             Padding="6 0" VerticalAlignment="Center"
                             Command="{Binding $parent[ItemsControl].((vm:JumpPlannerViewModel)DataContext).RemoveWaypointCommand}"

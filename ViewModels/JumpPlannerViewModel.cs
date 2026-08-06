@@ -179,6 +179,23 @@ public sealed class JumpPlannerViewModel : ReactiveObject
 
     private void RenumberWaypoints() { /* order is the collection order; nothing to renumber yet */ }
 
+    /// <summary>
+    /// Drops one waypoint onto another, taking its place. The route already planned is left on
+    /// screen but is now stale, so the status line says so rather than quietly showing jumps
+    /// that no longer match the order.
+    /// </summary>
+    public void MoveWaypoint(WaypointVm source, WaypointVm target)
+    {
+        var from = Waypoints.IndexOf(source);
+        var to   = Waypoints.IndexOf(target);
+        if (from < 0 || to < 0 || from == to) return;
+
+        Waypoints.Move(from, to);
+        StatusText = Legs.Count > 0
+            ? "Waypoint order changed — plan again to update the route."
+            : "Ready to plan.";
+    }
+
     private async Task PlanAsync()
     {
         if (SelectedShip is not { } ship) { StatusText = "Pick a ship."; return; }
