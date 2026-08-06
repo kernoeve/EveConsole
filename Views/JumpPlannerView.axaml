@@ -1,0 +1,153 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.JumpPlannerView"
+             x:DataType="vm:JumpPlannerViewModel"
+             Background="#0d0d12">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize" Value="9.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Margin" Value="2 0 0 2" />
+    </Style>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#5599aa" />
+      <Setter Property="Margin" Value="0 0 0 6" />
+    </Style>
+    <Style Selector="Button.tool">
+      <Setter Property="Background" Value="#1a1a28" />
+      <Setter Property="Foreground" Value="#5599aa" />
+      <Setter Property="BorderBrush" Value="#2a3a44" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="12 4" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="TextBox">   <Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="ComboBox">  <Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="Foreground" Value="#7788aa" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="330,1,*">
+
+    <!-- ── Setup ────────────────────────────────────────────────────────── -->
+    <ScrollViewer Grid.Column="0" Background="#0b0b10" Padding="12 12">
+      <StackPanel Spacing="14">
+
+        <TextBlock Classes="section" Text="SHIP" />
+        <StackPanel Spacing="8">
+          <StackPanel>
+            <TextBlock Classes="flabel" Text="HULL" />
+            <ComboBox ItemsSource="{Binding Ships}" SelectedItem="{Binding SelectedShip}"
+                      HorizontalAlignment="Stretch" MaxDropDownHeight="360" />
+          </StackPanel>
+
+          <Grid ColumnDefinitions="*,*">
+            <StackPanel Grid.Column="0" Margin="0 0 5 0">
+              <TextBlock Classes="flabel" Text="JUMP DRIVE CALIBRATION" />
+              <ComboBox ItemsSource="{Binding SkillLevels}" SelectedItem="{Binding JdcLevel}"
+                        HorizontalAlignment="Stretch" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="5 0 0 0">
+              <TextBlock Classes="flabel" Text="JUMP FUEL CONSERVATION" />
+              <ComboBox ItemsSource="{Binding SkillLevels}" SelectedItem="{Binding JfcLevel}"
+                        HorizontalAlignment="Stretch" />
+            </StackPanel>
+          </Grid>
+
+          <TextBlock Text="{Binding RangeText}" FontSize="10.5" Foreground="#c8a84b" />
+
+          <StackPanel>
+            <TextBlock Classes="flabel" Text="JUMP THROUGH" />
+            <ComboBox ItemsSource="{Binding MidpointOptions}" SelectedItem="{Binding SelectedMidpoints}"
+                      HorizontalAlignment="Stretch" />
+            <TextBlock FontSize="9.5" Foreground="#556" TextWrapping="Wrap" Margin="2 3 0 0"
+                       Text="Limits where the route may stop, not where it may start or end. Keepstars are only those whose structures have been resolved." />
+          </StackPanel>
+        </StackPanel>
+
+        <TextBlock Classes="section" Text="WAYPOINTS" />
+        <StackPanel Spacing="6">
+          <Grid ColumnDefinitions="*,Auto">
+            <AutoCompleteBox Grid.Column="0"
+                             Text="{Binding SystemSearch}"
+                             AsyncPopulator="{Binding SystemPopulator}"
+                             FilterMode="None"
+                             MinimumPrefixLength="2"
+                             MinimumPopulateDelay="0:0:0.2"
+                             MaxDropDownHeight="260"
+                             FontSize="11"
+                             Watermark="system name…" />
+            <Button Grid.Column="1" Classes="tool" Content="Add" Margin="6 0 0 0"
+                    Command="{Binding AddWaypointCommand}" />
+          </Grid>
+
+          <ItemsControl ItemsSource="{Binding Waypoints}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:WaypointVm">
+                <Border Background="#12121a" CornerRadius="3" Padding="8 5" Margin="0 0 0 4">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="1">
+                      <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="#ddd"
+                                 FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Detail}" FontSize="9.5" Foreground="#7a7a8a" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="✕" FontSize="11"
+                            Background="Transparent" BorderThickness="0" Foreground="#667"
+                            Padding="6 0" VerticalAlignment="Center"
+                            Command="{Binding $parent[ItemsControl].((vm:JumpPlannerViewModel)DataContext).RemoveWaypointCommand}"
+                            CommandParameter="{Binding}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Classes="tool" Content="Plan Route" Command="{Binding PlanCommand}"
+                  IsEnabled="{Binding !IsBusy}" />
+          <Button Classes="tool" Content="Clear" Command="{Binding ClearCommand}" />
+        </StackPanel>
+
+        <TextBlock Text="{Binding StatusText}" FontSize="10.5" Foreground="#8899aa"
+                   TextWrapping="Wrap" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <Rectangle Grid.Column="1" Fill="#1e1e2a" />
+
+    <!-- ── Route ────────────────────────────────────────────────────────── -->
+    <Grid Grid.Column="2" RowDefinitions="Auto,1,*">
+
+      <Border Grid.Row="0" Background="#12121a" Padding="12 8">
+        <TextBlock Text="{Binding TotalsText}" FontSize="12" FontWeight="SemiBold"
+                   Foreground="#c8a84b" VerticalAlignment="Center" />
+      </Border>
+
+      <Rectangle Grid.Row="1" Fill="#1e1e2a" />
+
+      <DataGrid Grid.Row="2" ItemsSource="{Binding Legs}"
+                AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+                CanUserReorderColumns="False" CanUserSortColumns="False"
+                Background="#0d0d12">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="#"        Binding="{Binding Number}"       Width="44" />
+          <DataGridTextColumn Header="From"     Binding="{Binding From}"         Width="130" />
+          <DataGridTextColumn Header="Jump to"  Binding="{Binding To}"           Width="130" />
+          <DataGridTextColumn Header="Region"   Binding="{Binding ToRegion}"     Width="160" />
+          <DataGridTextColumn Header="Sec"      Binding="{Binding SecurityText}" Width="70" />
+          <DataGridTextColumn Header="Distance" Binding="{Binding DistanceText}" Width="110" />
+          <DataGridTextColumn Header="Fuel"     Binding="{Binding FuelText}"     Width="110" />
+        </DataGrid.Columns>
+      </DataGrid>
+    </Grid>
+  </Grid>
+</UserControl>

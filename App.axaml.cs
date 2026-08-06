@@ -2129,6 +2129,9 @@ public class App : Application
         // Alarms. Nothing is defined out of the box — every alarm is one the user (or the agent
         // on their behalf) creates. See AlarmService for why firing is keyed on match identity
         // rather than on a condition merely being true.
+        // Jump planning. Holds the reachable-system list once loaded, so it is a singleton.
+        services.AddSingleton<JumpPlannerService>();
+
         services.AddSingleton<AlarmSoundService>();
         services.AddSingleton<SystemGraph>();
         services.AddSingleton(sp => AlarmConditionRegistry.CreateDefault(

@@ -355,6 +355,9 @@
               <DataTemplate DataType="vm:AlarmsViewModel">
                 <views:AlarmsView />
               </DataTemplate>
+              <DataTemplate DataType="vm:JumpPlannerViewModel">
+                <views:JumpPlannerView />
+              </DataTemplate>
               <DataTemplate DataType="vm:MarketLevelViewModel">
                 <views:MarketLevelView />
               </DataTemplate>

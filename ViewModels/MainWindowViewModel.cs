@@ -40,6 +40,7 @@ public class MainWindowViewModel : ReactiveObject
     public StructureBrowserViewModel      StructureBrowserVm     { get; }
     public UniverseViewModel              UniverseVm             { get; }
     public AlarmsViewModel                AlarmsVm               { get; }
+    public JumpPlannerViewModel           JumpPlannerVm          { get; }
     public AlarmActionRunner              AlarmActions           { get; }
     public WalletViewModel                WalletVm               { get; }
     public ContractsViewModel             ContractsVm            { get; }
@@ -363,6 +364,7 @@ public class MainWindowViewModel : ReactiveObject
             "structure_browser" => ("Structure Browser", StructureBrowserVm, true),
             "universe"        => ("Universe",        UniverseVm,        true),
             "alarms"          => ("Alarms",          AlarmsVm,          true),
+            "jump_planner"    => ("Jump Planner",    JumpPlannerVm,     true),
             "trade"           => ("Trade",           TradeOpportunitiesVm,     true),
             "industry_opps"   => ("Industry Opps",   IndustryOpportunitiesVm,  true),
             "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
@@ -491,7 +493,8 @@ public class MainWindowViewModel : ReactiveObject
         ExportFormatSettings            exportFormat,
         AlarmService                    alarmService,
         AlarmSoundService               alarmSounds,
-        AlarmActionRunner               alarmActions)
+        AlarmActionRunner               alarmActions,
+        JumpPlannerService              jumpPlanner)
     {
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
@@ -576,6 +579,7 @@ public class MainWindowViewModel : ReactiveObject
             new UniverseMapService(dbFactory), mapStatsService,
             new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds);
+        JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
@@ -703,6 +707,7 @@ public class MainWindowViewModel : ReactiveObject
                 // Alarms is reached from the alarm light beside the settings gear, not from
                 // here — it is a status indicator first and a tool second.
                 new NavItem("universe", "Universe Map"),
+                new NavItem("jump_planner", "Jump Planner"),
                 new NavItem("data", "ESI Explorer"),
                 new NavItem("error_log", "Error Log"),
                 new NavItem("game_log", "Game Log"),
