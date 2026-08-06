@@ -15,6 +15,22 @@ public sealed record JumpShip(
     public override string ToString() => Name;
 }
 
+/// <summary>
+/// Which systems a route is allowed to stop in. The endpoints are never filtered — you jump
+/// from where you are — only the midpoints chosen for you.
+/// </summary>
+public enum JumpMidpoints
+{
+    /// <summary>Anywhere a jump drive can go.</summary>
+    Any,
+
+    /// <summary>Only systems with an NPC station, so the ship can dock between jumps.</summary>
+    StationSystems,
+
+    /// <summary>Only systems with a known Keepstar. Usually collapses the route to one path.</summary>
+    KeepstarSystems,
+}
+
 /// <summary>One jump in a planned route.</summary>
 public sealed record JumpLeg(
     int    FromSystemId,
@@ -181,6 +197,68 @@ public sealed class JumpPlannerService
             .ToList();
     }
 
+    /// <summary>
+    /// Systems allowed as midpoints under a given restriction. Keepstars come from structures
+    /// we have actually seen, so this is only as complete as the structure data — a Keepstar
+    /// nobody has resolved a name for is invisible here, which narrows routes rather than
+    /// inventing them.
+    /// </summary>
+    private async Task<HashSet<int>?> MidpointSetAsync(JumpMidpoints restriction, CancellationToken ct)
+    {
+        if (restriction == JumpMidpoints.Any) return null;   // null means "no restriction"
+
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+        if (restriction == JumpMidpoints.StationSystems)
+        {
+            return (await db.SdeStations.AsNoTracking()
+                .Select(s => s.SolarSystemId).Distinct().ToListAsync(ct)).ToHashSet();
+        }
+
+        var keepstarTypeIds = await db.SdeTypes.AsNoTracking()
+            .Where(t => t.Name == "Keepstar")
+            .Select(t => t.TypeId)
+            .ToListAsync(ct);
+
+        return (await db.EsiStructureNames.AsNoTracking()
+            .Where(s => keepstarTypeIds.Contains(s.TypeId))
+            .Select(s => s.SolarSystemId).Distinct().ToListAsync(ct)).ToHashSet();
+    }
+
+    /// <summary>
+    /// Other systems that could stand in for a midpoint — reachable from the leg before it and
+    /// from the leg after, so swapping one in leaves the rest of the route intact. This is what
+    /// backs picking an alternative jump point by hand.
+    /// </summary>
+    public async Task<List<(int Id, string Name, string Region, double Security, double InLy, double OutLy)>>
+        AlternativesAsync(int previousSystemId, int nextSystemId, double maxRangeLy,
+                          JumpMidpoints restriction = JumpMidpoints.Any, CancellationToken ct = default)
+    {
+        var nodes    = await SystemsAsync(ct);
+        var allowed  = await MidpointSetAsync(restriction, ct);
+        var byId     = nodes.ToDictionary(n => n.Id);
+
+        if (!byId.TryGetValue(previousSystemId, out var prev) ||
+            !byId.TryGetValue(nextSystemId, out var next)) return [];
+
+        var result = new List<(int, string, string, double, double, double)>();
+        foreach (var n in nodes)
+        {
+            if (n.Id == prev.Id || n.Id == next.Id) continue;
+            if (allowed is not null && !allowed.Contains(n.Id)) continue;
+
+            var inLy = DistanceLy(prev, n);
+            if (inLy > maxRangeLy) continue;
+
+            var outLy = DistanceLy(n, next);
+            if (outLy > maxRangeLy) continue;
+
+            result.Add((n.Id, n.Name, n.Region, n.Security, inLy, outLy));
+        }
+
+        return result.OrderBy(r => r.Item5 + r.Item6).ToList();
+    }
+
     private static double DistanceLy(Node a, Node b)
     {
         var dx = a.X - b.X;
@@ -200,11 +278,13 @@ public sealed class JumpPlannerService
     /// </summary>
     public async Task<JumpRoute> PlanAsync(
         int fromSystemId, int toSystemId, JumpShip ship, int jdcLevel, int jfcLevel,
+        JumpMidpoints midpoints = JumpMidpoints.Any,
         CancellationToken ct = default)
     {
-        var range = MaxRange(ship.BaseRangeLy, jdcLevel);
-        var nodes = await SystemsAsync(ct);
-        var byId  = nodes.ToDictionary(n => n.Id);
+        var range   = MaxRange(ship.BaseRangeLy, jdcLevel);
+        var nodes   = await SystemsAsync(ct);
+        var allowed = await MidpointSetAsync(midpoints, ct);
+        var byId    = nodes.ToDictionary(n => n.Id);
 
         if (!byId.TryGetValue(fromSystemId, out var start))
             return Empty(range, ship, "The starting system cannot be reached by jump drive — high security space is closed to capitals.");
@@ -232,6 +312,12 @@ public sealed class JumpPlannerService
                 foreach (var candidate in nodes)
                 {
                     if (candidate.Id == node.Id) continue;
+
+                    // Restrictions apply to stopping places, not to the destination: a route
+                    // may end anywhere even when its midpoints must have a station.
+                    if (allowed is not null
+                        && candidate.Id != goal.Id
+                        && !allowed.Contains(candidate.Id)) continue;
 
                     var d = DistanceLy(node, candidate);
                     if (d > range) continue;
@@ -261,8 +347,17 @@ public sealed class JumpPlannerService
         }
 
         if (!cameFrom.ContainsKey(goal.Id))
-            return Empty(range, ship,
-                $"No route within {range:N2} ly per jump. A longer-ranged hull or more Jump Drive Calibration would be needed.");
+            return Empty(range, ship, midpoints switch
+            {
+                JumpMidpoints.KeepstarSystems =>
+                    $"No route within {range:N2} ly per jump using only known Keepstar systems. " +
+                    "Widening the midpoints, or resolving more structures, would be needed.",
+                JumpMidpoints.StationSystems =>
+                    $"No route within {range:N2} ly per jump using only station systems.",
+                _ =>
+                    $"No route within {range:N2} ly per jump. A longer-ranged hull or more " +
+                    "Jump Drive Calibration would be needed.",
+            });
 
         // Walk the chain back to the start.
         var path = new List<int> { goal.Id };
