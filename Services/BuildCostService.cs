@@ -82,15 +82,14 @@ public class BuildCostService
     /// is published as it is produced. Costing in arbitrary order reads the previous, inflated
     /// figures and over-credits against them, which drove 1,522 items negative.</para>
     ///
-    /// <para>Still OFF. Ordering fixed the negatives and made capitals agree with the calculator
-    /// to the ISK, but it exposed the deeper question: a plan credits leftovers because THAT RUN
-    /// ends up holding them, whereas a per-unit standing cost should not be reduced by stock the
-    /// builder never wanted. Components whose sub-parts come in large batches — a T2 armour plate
-    /// at 15.2M — collapse to almost nothing once those batches are credited back.</para>
+    /// <para>Leftovers ARE credited: the surplus from a run is a real asset, and the next build
+    /// of that item uses it instead of running the job again. What has to be right is the value
+    /// put on the credit — which is why items are costed in dependency order, and why reactions
+    /// and components are costed as a batch rather than one run at a time.</para>
     ///
     /// <para>Kept switchable so both paths can be run against each other.</para>
     /// </summary>
-    public bool UseSharedChainCost { get; set; }
+    public bool UseSharedChainCost { get; set; } = true;
 
     // Fired after each RecalculateAllAsync completes; MarketPricingService subscribes to
     // re-run the price-gap fill so fresh build costs are immediately reflected in prices.
@@ -591,6 +590,7 @@ public class BuildCostService
         var recOutputQty = new Dictionary<int, int>();               // units produced per run
         var recMeFactor  = new Dictionary<int, double>();            // material factor used to build it
         var recMeLevel   = new Dictionary<int, int>();               // the ME level behind that factor
+        var recIsReaction = new HashSet<int>();                      // made by a reaction, not a job
         var recJobPerRun = new Dictionary<int, decimal>();           // job fee for one run
         var recBpcPerRun = new Dictionary<int, decimal>();           // BPC contract cost per run (0 if none)
         var recMaterials = new Dictionary<int, List<(int Mat, int Qty)>>();
@@ -695,6 +695,7 @@ public class BuildCostService
             recOutputQty[typeId] = outputQty;
             recMeFactor[typeId]  = usedMeFactor;
             recMeLevel[typeId]   = defaultMe;
+            if (isReaction) recIsReaction.Add(typeId);
             recJobPerRun[typeId] = thisJobRun;
             recBpcPerRun[typeId] = bpcRun;
             recMaterials[typeId] = materials.Select(m => (m.MaterialTypeId, m.Quantity)).ToList();
@@ -816,6 +817,63 @@ public class BuildCostService
                 scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>());
             var planContext = await calc.LoadContextAsync(defaultPark.Id, ct);
 
+            // ── Batch size ────────────────────────────────────────────────────
+            // Costing one run at a time charges every unit for a whole run's worth of rounding,
+            // and leaves a big surplus that then has to be credited back at a per-unit figure
+            // computed the same inflated way — which compounds down the chain.
+            //
+            // Reactions and components are built in batches in practice, so they are costed at
+            // 100 runs and divided by what that yields. The saving is the ceil() on material
+            // quantities being applied once to the batch rather than once per run, so it
+            // amortises: nearly all of it appears in the first handful of runs and 100 versus
+            // 200 barely moves the per-unit figure.
+            var marketGroups = await db.SdeMarketGroups.AsNoTracking()
+                .Select(g => new { g.MarketGroupId, g.ParentGroupId, g.Name })
+                .ToListAsync(ct);
+            var mgById = marketGroups.ToDictionary(g => g.MarketGroupId);
+
+            // "Components" as the market tree defines it: Manufacturing & Research > Components,
+            // and everything beneath it.
+            bool UnderComponents(int? marketGroupId)
+            {
+                var seen = new HashSet<int>();
+                var cur  = marketGroupId;
+                while (cur is int id && mgById.TryGetValue(id, out var g) && seen.Add(id))
+                {
+                    if (g.Name == "Components"
+                        && g.ParentGroupId is int pid
+                        && mgById.TryGetValue(pid, out var parent)
+                        && parent.Name == "Manufacturing & Research")
+                        return true;
+                    cur = g.ParentGroupId;
+                }
+                return false;
+            }
+
+            var componentTypes = (await db.SdeTypes.AsNoTracking()
+                    .Where(t => t.MarketGroupId != null)
+                    .Select(t => new { t.TypeId, t.MarketGroupId })
+                    .ToListAsync(ct))
+                .Where(t => UnderComponents(t.MarketGroupId))
+                .Select(t => t.TypeId)
+                .ToHashSet();
+
+            // Named exceptions: not things anyone builds a hundred of at a time.
+            var batchByName = new Dictionary<string, int>
+            {
+                ["Enhanced Neurolink Protection Cell"] = 1,
+                ["Neurolink Protection Cell"]          = 10,
+                ["Capital Core Temperature Regulator"] = 10,
+            };
+            var batchExceptions = typeNames
+                .Where(kv => batchByName.ContainsKey(kv.Value))
+                .ToDictionary(kv => kv.Key, kv => batchByName[kv.Value]);
+
+            int BatchRuns(int typeId) =>
+                batchExceptions.TryGetValue(typeId, out var runs) ? runs
+              : recIsReaction.Contains(typeId) || componentTypes.Contains(typeId) ? 100
+              : 1;
+
             // Order matters, and it is what makes crediting leftovers possible at all.
             //
             // The calculator values leftover sub-components at their build cost. Costing items in
@@ -870,14 +928,19 @@ public class BuildCostService
 
                 try
                 {
-                    // One run's worth, then per unit — matching how the old walk expressed it.
+                    // Cost a realistic batch, then divide by what it yields.
                     var plan = calc.Calculate(
-                        [new ProductionQueueEntry { TypeId = typeId, Quantity = outQ, MeLevel = me }],
+                        [new ProductionQueueEntry
+                        {
+                            TypeId   = typeId,
+                            Quantity = outQ * BatchRuns(typeId),
+                            MeLevel  = me,
+                        }],
                         planContext);
 
                     var produced = Math.Max(1, plan.FinalProducts.Count > 0
                         ? plan.FinalProducts[0].QuantityProduced
-                        : outQ);
+                        : outQ * BatchRuns(typeId));
 
                     // Net of leftovers: over-produced sub-components are stock, not cost.
                     rawMatCosts[typeId]   = plan.TotalRawMaterialCost / produced;
@@ -894,7 +957,8 @@ public class BuildCostService
                     // One unplannable item must not lose the whole recalculation; fall back to
                     // the old walk for it alone.
                     _errorLogger.Log("BuildCostService", $"chain cost for type {typeId}", ex);
-                    var (raw, job) = ObtainCost(typeId, outQ);
+                    int outQFallback = outQ;
+                    var (raw, job) = ObtainCost(typeId, outQFallback);
                     rawMatCosts[typeId]   = raw / outQ;
                     totalJobCosts[typeId] = job / outQ;
                     unitCosts[typeId]     = (raw + job) / outQ;
