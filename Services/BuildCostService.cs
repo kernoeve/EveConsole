@@ -832,29 +832,64 @@ public class BuildCostService
                 .ToListAsync(ct);
             var mgById = marketGroups.ToDictionary(g => g.MarketGroupId);
 
-            // "Components" as the market tree defines it: Manufacturing & Research > Components,
-            // and everything beneath it.
-            bool UnderComponents(int? marketGroupId)
+            // The parts of the market tree whose items are built in batches in practice.
+            // Anything beneath one of these paths is costed as a batch.
+            string[][] batchPaths =
+            [
+                ["Manufacturing & Research", "Components"],
+                ["Drones"],
+                ["Ammunition & Charges"],
+                ["Ship and Module Modifications"],
+                ["Ship Equipment"],
+                ["Structure Equipment"],
+                ["Ships", "Shuttles"],
+                ["Ships", "Frigates"],
+                ["Ships", "Destroyers"],
+            ];
+
+            var childrenOf = marketGroups
+                .Where(g => g.ParentGroupId != null)
+                .GroupBy(g => g.ParentGroupId!.Value)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.MarketGroupId).ToList());
+
+            var batchGroupIds = new HashSet<int>();
+            foreach (var path in batchPaths)
             {
-                var seen = new HashSet<int>();
-                var cur  = marketGroupId;
-                while (cur is int id && mgById.TryGetValue(id, out var g) && seen.Add(id))
+                // Walk the named path down from a top-level group, then take everything under it.
+                var current = marketGroups
+                    .Where(g => g.ParentGroupId == null && g.Name == path[0])
+                    .Select(g => g.MarketGroupId)
+                    .ToList();
+
+                foreach (var segment in path.Skip(1))
+                    current = current
+                        .SelectMany(id => childrenOf.GetValueOrDefault(id, []))
+                        .Where(id => mgById[id].Name == segment)
+                        .ToList();
+
+                if (current.Count == 0)
                 {
-                    if (g.Name == "Components"
-                        && g.ParentGroupId is int pid
-                        && mgById.TryGetValue(pid, out var parent)
-                        && parent.Name == "Manufacturing & Research")
-                        return true;
-                    cur = g.ParentGroupId;
+                    _errorLogger.Log("BuildCostService", "batch groups",
+                        $"market group path \"{string.Join(" > ", path)}\" matched nothing — " +
+                        "its items will be costed one run at a time.");
+                    continue;
                 }
-                return false;
+
+                var stack = new Stack<int>(current);
+                while (stack.Count > 0)
+                {
+                    var id = stack.Pop();
+                    if (!batchGroupIds.Add(id)) continue;      // also guards a malformed cycle
+                    foreach (var child in childrenOf.GetValueOrDefault(id, []))
+                        stack.Push(child);
+                }
             }
 
             var componentTypes = (await db.SdeTypes.AsNoTracking()
                     .Where(t => t.MarketGroupId != null)
-                    .Select(t => new { t.TypeId, t.MarketGroupId })
+                    .Select(t => new { t.TypeId, MarketGroupId = t.MarketGroupId!.Value })
                     .ToListAsync(ct))
-                .Where(t => UnderComponents(t.MarketGroupId))
+                .Where(t => batchGroupIds.Contains(t.MarketGroupId))
                 .Select(t => t.TypeId)
                 .ToHashSet();
 
@@ -869,10 +904,27 @@ public class BuildCostService
                 .Where(kv => batchByName.ContainsKey(kv.Value))
                 .ToDictionary(kv => kv.Key, kv => batchByName[kv.Value]);
 
-            int BatchRuns(int typeId) =>
-                batchExceptions.TryGetValue(typeId, out var runs) ? runs
-              : recIsReaction.Contains(typeId) || componentTypes.Contains(typeId) ? 100
-              : 1;
+            // A blueprint cannot be run more times than it allows. Some cap well below 100 —
+            // asking for more would plan a batch nobody could actually install.
+            var maxRunsByBlueprint = await db.SdeBlueprints.AsNoTracking()
+                .Where(b => b.MaxProductionLimit > 0)
+                .ToDictionaryAsync(b => b.TypeId, b => b.MaxProductionLimit, ct);
+
+            int BatchRuns(int typeId)
+            {
+                var wanted =
+                    batchExceptions.TryGetValue(typeId, out var runs) ? runs
+                  : recIsReaction.Contains(typeId) || componentTypes.Contains(typeId) ? 100
+                  : 1;
+
+                if (wanted <= 1) return 1;
+
+                return productMap.TryGetValue(typeId, out var prod)
+                    && maxRunsByBlueprint.TryGetValue(prod.TypeId, out var max)
+                    && max > 0
+                        ? Math.Min(wanted, max)
+                        : wanted;
+            }
 
             // Order matters, and it is what makes crediting leftovers possible at all.
             //
