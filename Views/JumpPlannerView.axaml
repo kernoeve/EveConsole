@@ -1,6 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:svc="clr-namespace:EveConsole.Services"
+             xmlns:ctl="clr-namespace:EveConsole.Controls"
              x:Class="EveConsole.Views.JumpPlannerView"
              x:DataType="vm:JumpPlannerViewModel"
              Background="#0d0d12">
@@ -133,7 +135,7 @@
     <Rectangle Grid.Column="1" Fill="#1e1e2a" />
 
     <!-- ── Route ────────────────────────────────────────────────────────── -->
-    <Grid Grid.Column="2" RowDefinitions="Auto,1,*">
+    <Grid Grid.Column="2" RowDefinitions="Auto,1,*,4,220">
 
       <Border Grid.Row="0" Background="#12121a" Padding="12 8">
         <TextBlock Text="{Binding TotalsText}" FontSize="12" FontWeight="SemiBold"
@@ -142,7 +144,46 @@
 
       <Rectangle Grid.Row="1" Fill="#1e1e2a" />
 
-      <DataGrid Grid.Row="2" ItemsSource="{Binding Legs}"
+      <!-- Map, with the alternatives picker laid over its right edge -->
+      <Grid Grid.Row="2">
+        <ctl:JumpMapCanvas Route="{Binding MapRoute}"
+                           Dots="{Binding MapDots}"
+                           NodeClickedCommand="{Binding NodeClickedCommand}"
+                           NodeMovedCommand="{Binding NodeMovedCommand}" />
+
+        <Border IsVisible="{Binding IsPickingAlternative}"
+                HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                Width="250" Margin="0 10 10 10"
+                Background="#f012121a" BorderBrush="#2a3a44" BorderThickness="1" CornerRadius="3">
+          <Grid RowDefinitions="Auto,*,Auto" Margin="10">
+            <TextBlock Grid.Row="0" Text="{Binding AlternativesTitle}" Classes="section" />
+
+            <ListBox Grid.Row="1" ItemsSource="{Binding Alternatives}"
+                     SelectedItem="{Binding SelectedAlternative}"
+                     Background="Transparent" BorderThickness="0">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="svc:JumpAlternative">
+                  <StackPanel Spacing="1" Margin="0 1">
+                    <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="#ddd"
+                               FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding Detail}" FontSize="9.5" Foreground="#7a7a8a" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6" Margin="0 8 0 0">
+              <Button Classes="tool" Content="Use" Command="{Binding ApplyAlternativeCommand}" />
+              <Button Classes="tool" Content="Cancel" Command="{Binding CancelAlternativeCommand}" />
+            </StackPanel>
+          </Grid>
+        </Border>
+      </Grid>
+
+      <GridSplitter Grid.Row="3" Height="4" Background="#1e1e2a"
+                    HorizontalAlignment="Stretch" ResizeDirection="Rows" />
+
+      <DataGrid Grid.Row="4" ItemsSource="{Binding Legs}"
                 AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                 CanUserReorderColumns="False" CanUserSortColumns="False"
                 Background="#0d0d12">

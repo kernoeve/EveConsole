@@ -44,6 +44,18 @@ public sealed record JumpLeg(
     double DistanceLy,
     double Fuel);
 
+/// <summary>A system's place on CCP's 2D map layout, already flipped for screen coordinates.</summary>
+public sealed record MapPoint(int Id, double X, double Y, double Security);
+
+/// <summary>A system that could replace a midpoint, with how far it is either side of it.</summary>
+public sealed record JumpAlternative(
+    int Id, string Name, string Region, double Security,
+    double InLy, double OutLy, double MapX, double MapY)
+{
+    public string Detail => $"{Region} · in {InLy:N2} ly · out {OutLy:N2} ly";
+    public override string ToString() => Name;
+}
+
 public sealed record JumpRoute(
     IReadOnlyList<JumpLeg> Legs,
     double TotalDistanceLy,
@@ -89,6 +101,7 @@ public sealed class JumpPlannerService
     private sealed record Node(int Id, string Name, string Region, double Security, double X, double Y, double Z);
 
     private List<Node>? _systems;
+    private Dictionary<int, MapPoint>? _mapPoints;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
     public static double MaxRange(double baseRangeLy, int jdcLevel) =>
@@ -226,22 +239,55 @@ public sealed class JumpPlannerService
     }
 
     /// <summary>
+    /// Where each system sits on CCP's published 2D map layout — the arrangement the in-game map
+    /// draws — for plotting a route. Y is negated because position2D grows northward while screen
+    /// Y grows downward, matching what <c>UniverseMapService</c> does for the same reason.
+    ///
+    /// <para>Positions only. Jump distances are true 3D and are never taken from here.</para>
+    /// </summary>
+    public async Task<IReadOnlyDictionary<int, MapPoint>> MapPointsAsync(CancellationToken ct = default)
+    {
+        if (_mapPoints is { } cached) return cached;
+
+        await _gate.WaitAsync(ct);
+        try
+        {
+            if (_mapPoints is { } raced) return raced;
+
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var rows = await db.SdeSolarSystems.AsNoTracking()
+                .Where(s => s.X2D != null && s.Y2D != null)
+                .Select(s => new { s.SolarSystemId, s.X2D, s.Y2D, s.Security })
+                .ToListAsync(ct);
+
+            _mapPoints = rows.ToDictionary(
+                r => r.SolarSystemId,
+                r => new MapPoint(r.SolarSystemId, r.X2D!.Value, -r.Y2D!.Value, r.Security));
+
+            return _mapPoints;
+        }
+        finally { _gate.Release(); }
+    }
+
+    /// <summary>
     /// Other systems that could stand in for a midpoint — reachable from the leg before it and
     /// from the leg after, so swapping one in leaves the rest of the route intact. This is what
-    /// backs picking an alternative jump point by hand.
+    /// backs picking an alternative jump point by hand, and what a midpoint dragged on the map
+    /// is snapped to.
     /// </summary>
-    public async Task<List<(int Id, string Name, string Region, double Security, double InLy, double OutLy)>>
-        AlternativesAsync(int previousSystemId, int nextSystemId, double maxRangeLy,
-                          JumpMidpoints restriction = JumpMidpoints.Any, CancellationToken ct = default)
+    public async Task<List<JumpAlternative>> AlternativesAsync(
+        int previousSystemId, int nextSystemId, double maxRangeLy,
+        JumpMidpoints restriction = JumpMidpoints.Any, CancellationToken ct = default)
     {
         var nodes    = await SystemsAsync(ct);
         var allowed  = await MidpointSetAsync(restriction, ct);
+        var points   = await MapPointsAsync(ct);
         var byId     = nodes.ToDictionary(n => n.Id);
 
         if (!byId.TryGetValue(previousSystemId, out var prev) ||
             !byId.TryGetValue(nextSystemId, out var next)) return [];
 
-        var result = new List<(int, string, string, double, double, double)>();
+        var result = new List<JumpAlternative>();
         foreach (var n in nodes)
         {
             if (n.Id == prev.Id || n.Id == next.Id) continue;
@@ -253,10 +299,12 @@ public sealed class JumpPlannerService
             var outLy = DistanceLy(n, next);
             if (outLy > maxRangeLy) continue;
 
-            result.Add((n.Id, n.Name, n.Region, n.Security, inLy, outLy));
+            var p = points.GetValueOrDefault(n.Id);
+            result.Add(new JumpAlternative(n.Id, n.Name, n.Region, n.Security, inLy, outLy,
+                                           p?.X ?? 0, p?.Y ?? 0));
         }
 
-        return result.OrderBy(r => r.Item5 + r.Item6).ToList();
+        return result.OrderBy(r => r.InLy + r.OutLy).ToList();
     }
 
     private static double DistanceLy(Node a, Node b)

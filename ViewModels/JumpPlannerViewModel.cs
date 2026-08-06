@@ -1,31 +1,45 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive;
+using EveConsole.Controls;
 using EveConsole.Services;
 using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
 /// <summary>A stop on the route the user asked for, as opposed to one the planner filled in.</summary>
-public sealed class WaypointVm(int id, string name, string region, double security) : ReactiveObject
+public sealed class WaypointVm(int id, string name, string region, double security, bool isPinned = false)
+    : ReactiveObject
 {
     public int    Id       { get; } = id;
     public string Name     { get; } = name;
     public string Region   { get; } = region;
     public double Security { get; } = security;
 
+    /// <summary>A midpoint the user chose by hand in place of the one the planner picked. It is
+    /// routed through like any other stop, but stays movable on the map and can be dropped to go
+    /// back to automatic routing.</summary>
+    public bool IsPinned { get; } = isPinned;
+
     public string SecurityText => Security.ToString("N2", CultureInfo.InvariantCulture);
 
     /// <summary>Jump drives cannot enter high security space, so such a waypoint cannot be flown to.</summary>
     public bool   Unreachable => Security >= 0.45;
-    public string Detail      => Unreachable ? $"{Region} · {SecurityText} · high sec" : $"{Region} · {SecurityText}";
+
+    public string Detail => Unreachable
+        ? $"{Region} · {SecurityText} · high sec"
+        : IsPinned ? $"{Region} · {SecurityText} · chosen midpoint"
+                   : $"{Region} · {SecurityText}";
 }
 
 /// <summary>One jump on the planned route.</summary>
 public sealed class JumpLegVm
 {
     public required int    Number     { get; init; }
+    public required int    FromSystemId { get; init; }
     public required string From       { get; init; }
+    public required string FromRegion { get; init; }
+    public required int    ToSystemId { get; init; }
     public required string To         { get; init; }
     public required string ToRegion   { get; init; }
     public required double ToSecurity { get; init; }
@@ -56,6 +70,10 @@ public sealed class JumpPlannerViewModel : ReactiveObject
         {
             Waypoints.Clear();
             Legs.Clear();
+            Alternatives.Clear();
+            IsPickingAlternative = false;
+            MapRoute   = null;
+            MapDots    = null;
             TotalsText = "";
             StatusText = "Add a start and a destination.";
         });
@@ -64,6 +82,17 @@ public sealed class JumpPlannerViewModel : ReactiveObject
         {
             Waypoints.Remove(w);
             RenumberWaypoints();
+        });
+
+        NodeClickedCommand = ReactiveCommand.CreateFromTask<JumpMapNode>(ShowAlternativesAsync);
+        NodeMovedCommand   = ReactiveCommand.CreateFromTask<JumpMapDrop>(SnapMidpointAsync);
+
+        ApplyAlternativeCommand  = ReactiveCommand.CreateFromTask(ApplyAlternativeAsync);
+        CancelAlternativeCommand = ReactiveCommand.Create(() =>
+        {
+            IsPickingAlternative = false;
+            Alternatives.Clear();
+            _pickingFor = null;
         });
 
         _ = LoadShipsAsync();
@@ -128,6 +157,54 @@ public sealed class JumpPlannerViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit>       AddWaypointCommand    { get; }
     public ReactiveCommand<Unit, Unit>       ClearCommand          { get; }
     public ReactiveCommand<WaypointVm, Unit> RemoveWaypointCommand { get; }
+
+    public ReactiveCommand<JumpMapNode, Unit> NodeClickedCommand { get; }
+    public ReactiveCommand<JumpMapDrop, Unit> NodeMovedCommand   { get; }
+    public ReactiveCommand<Unit, Unit>        ApplyAlternativeCommand  { get; }
+    public ReactiveCommand<Unit, Unit>        CancelAlternativeCommand { get; }
+
+    // ── Map ──────────────────────────────────────────────────────────────────
+
+    private IReadOnlyList<JumpMapNode>? _mapRoute;
+    public IReadOnlyList<JumpMapNode>? MapRoute
+    {
+        get => _mapRoute;
+        private set => this.RaiseAndSetIfChanged(ref _mapRoute, value);
+    }
+
+    private IReadOnlyList<JumpMapDot>? _mapDots;
+    public IReadOnlyList<JumpMapDot>? MapDots
+    {
+        get => _mapDots;
+        private set => this.RaiseAndSetIfChanged(ref _mapDots, value);
+    }
+
+    /// <summary>Candidate replacements for the midpoint the user clicked.</summary>
+    public ObservableCollection<JumpAlternative> Alternatives { get; } = [];
+
+    private JumpAlternative? _selectedAlternative;
+    public JumpAlternative? SelectedAlternative
+    {
+        get => _selectedAlternative;
+        set => this.RaiseAndSetIfChanged(ref _selectedAlternative, value);
+    }
+
+    private bool _isPickingAlternative;
+    public bool IsPickingAlternative
+    {
+        get => _isPickingAlternative;
+        private set => this.RaiseAndSetIfChanged(ref _isPickingAlternative, value);
+    }
+
+    private string _alternativesTitle = "";
+    public string AlternativesTitle
+    {
+        get => _alternativesTitle;
+        private set => this.RaiseAndSetIfChanged(ref _alternativesTitle, value);
+    }
+
+    /// <summary>The midpoint whose alternatives are on screen.</summary>
+    private JumpMapNode? _pickingFor;
 
     /// <summary>
     /// Type-ahead over system names. Exposed as a property rather than a method: AutoCompleteBox
@@ -196,6 +273,164 @@ public sealed class JumpPlannerViewModel : ReactiveObject
             : "Ready to plan.";
     }
 
+    /// <summary>Range of the last planned route, needed to find alternatives for its midpoints.</summary>
+    private double _maxRangeLy;
+
+    /// <summary>Same nodes as <see cref="MapRoute"/>, kept as a list so their order can be looked
+    /// up — a read-only list has no index-of.</summary>
+    private List<JumpMapNode> _mapNodes = [];
+
+    /// <summary>
+    /// Lays the planned legs out on CCP's 2D map layout, plus a faint scatter of the systems
+    /// around the corridor so the route reads as a path through space rather than a bare
+    /// zig-zag. Context is limited to the route's own bounding box: drawing all of New Eden
+    /// would bury the route in dots that carry no information about it.
+    /// </summary>
+    private async Task BuildMapAsync()
+    {
+        if (Legs.Count == 0) { MapRoute = null; MapDots = null; return; }
+
+        var points = await _planner.MapPointsAsync();
+        var pinned = Waypoints.Where(w => w.IsPinned).Select(w => w.Id).ToHashSet();
+        var asked  = Waypoints.Where(w => !w.IsPinned).Select(w => w.Id).ToHashSet();
+
+        var nodes = new List<JumpMapNode>();
+
+        void Add(int id, string name, string region, string caption)
+        {
+            if (!points.TryGetValue(id, out var p)) return;   // outside the published layout
+            nodes.Add(new JumpMapNode(id, name, p.X, p.Y, nodes.Count,
+                                      asked.Contains(id), caption, pinned.Contains(id)));
+        }
+
+        var first = Legs[0];
+        Add(first.FromSystemId, first.From, first.FromRegion, first.FromRegion);
+        foreach (var leg in Legs)
+            Add(leg.ToSystemId, leg.To, leg.ToRegion, $"{leg.ToRegion} · {leg.DistanceLy:N2} ly");
+
+        _mapNodes = nodes;
+        MapRoute  = nodes;
+
+        if (nodes.Count == 0) { MapDots = null; return; }
+
+        double minX = nodes.Min(n => n.X), maxX = nodes.Max(n => n.X);
+        double minY = nodes.Min(n => n.Y), maxY = nodes.Max(n => n.Y);
+        var padX = Math.Max((maxX - minX) * 0.25, 3e16);
+        var padY = Math.Max((maxY - minY) * 0.25, 3e16);
+
+        var onRoute = nodes.Select(n => n.Id).ToHashSet();
+        MapDots = points.Values
+            .Where(p => !onRoute.Contains(p.Id) &&
+                        p.X >= minX - padX && p.X <= maxX + padX &&
+                        p.Y >= minY - padY && p.Y <= maxY + padY)
+            .Select(p => new JumpMapDot(p.Id, p.X, p.Y, p.Security))
+            .ToList();
+    }
+
+    /// <summary>
+    /// The stops either side of a midpoint on the drawn route. Both are needed to ask for
+    /// alternatives: a replacement has to be within range of the leg before it and the leg after.
+    /// </summary>
+    private (JumpMapNode? Prev, JumpMapNode? Next) NeighboursOf(JumpMapNode node)
+    {
+        var i = _mapNodes.IndexOf(node);
+        if (i <= 0 || i >= _mapNodes.Count - 1) return (null, null);
+        return (_mapNodes[i - 1], _mapNodes[i + 1]);
+    }
+
+    private async Task<List<JumpAlternative>> AlternativesFor(JumpMapNode node)
+    {
+        var (prev, next) = NeighboursOf(node);
+        if (prev is null || next is null || _maxRangeLy <= 0) return [];
+
+        var restriction = SelectedMidpoints?.Value ?? JumpMidpoints.Any;
+        return await _planner.AlternativesAsync(prev.Id, next.Id, _maxRangeLy, restriction);
+    }
+
+    private async Task ShowAlternativesAsync(JumpMapNode node)
+    {
+        if (node.IsWaypoint) return;   // a stop the user asked for is not the planner's to change
+
+        Alternatives.Clear();
+        SelectedAlternative = null;
+        _pickingFor         = node;
+        AlternativesTitle   = $"Instead of {node.Name}";
+        IsPickingAlternative = true;
+
+        var options = await AlternativesFor(node);
+        foreach (var o in options.Where(o => o.Id != node.Id).Take(200)) Alternatives.Add(o);
+
+        StatusText = Alternatives.Count == 0
+            ? $"No other system reaches both sides of {node.Name} at this range."
+            : $"{Alternatives.Count} system{(Alternatives.Count == 1 ? "" : "s")} could replace {node.Name}.";
+    }
+
+    private async Task ApplyAlternativeAsync()
+    {
+        if (_pickingFor is not { } node || SelectedAlternative is not { } pick) return;
+
+        IsPickingAlternative = false;
+        Alternatives.Clear();
+        _pickingFor = null;
+
+        await PinMidpointAsync(node, pick);
+    }
+
+    /// <summary>
+    /// A midpoint dropped somewhere on the map snaps to the nearest system that could actually
+    /// stand in for it — dropping on empty space, or on a system out of range of either side,
+    /// would otherwise produce a route that cannot be flown.
+    /// </summary>
+    private async Task SnapMidpointAsync(JumpMapDrop drop)
+    {
+        if (drop.Node.IsWaypoint) return;
+
+        var options = await AlternativesFor(drop.Node);
+        if (options.Count == 0)
+        {
+            StatusText = $"Nothing within range could replace {drop.Node.Name}.";
+            await BuildMapAsync();   // put the marker back where it was
+            return;
+        }
+
+        var nearest = options
+            .OrderBy(o => (o.MapX - drop.X) * (o.MapX - drop.X) + (o.MapY - drop.Y) * (o.MapY - drop.Y))
+            .First();
+
+        await PinMidpointAsync(drop.Node, nearest);
+    }
+
+    /// <summary>
+    /// Fixes a chosen system in place of a filled-in midpoint by making it a real stop, then
+    /// re-plans. Routing through it falls out of the existing waypoint machinery rather than
+    /// needing a second notion of "route must pass here".
+    /// </summary>
+    private async Task PinMidpointAsync(JumpMapNode node, JumpAlternative pick)
+    {
+        var replacement = new WaypointVm(pick.Id, pick.Name, pick.Region, pick.Security, isPinned: true);
+
+        var existing = Waypoints.FirstOrDefault(w => w.Id == node.Id);
+        if (existing is not null)
+        {
+            // Moving a midpoint that was already pinned: swap it where it stands.
+            Waypoints[Waypoints.IndexOf(existing)] = replacement;
+        }
+        else
+        {
+            // Count the stops ahead of it on the route to find which pair of waypoints it lies
+            // between, and insert it there.
+            var at    = _mapNodes.IndexOf(node);
+            var ahead = 0;
+            for (var i = 0; i < at && i < _mapNodes.Count; i++)
+                if (Waypoints.Any(w => w.Id == _mapNodes[i].Id)) ahead++;
+
+            Waypoints.Insert(Math.Clamp(ahead, 0, Waypoints.Count), replacement);
+        }
+
+        StatusText = $"Routing through {pick.Name}.";
+        await PlanAsync();
+    }
+
     private async Task PlanAsync()
     {
         if (SelectedShip is not { } ship) { StatusText = "Pick a ship."; return; }
@@ -248,10 +483,13 @@ public sealed class JumpPlannerViewModel : ReactiveObject
             foreach (var (leg, endsWaypoint) in all)
                 Legs.Add(new JumpLegVm
                 {
-                    Number     = n++,
-                    From       = leg.FromSystem,
-                    To         = leg.ToSystem,
-                    ToRegion   = leg.ToRegion,
+                    Number       = n++,
+                    FromSystemId = leg.FromSystemId,
+                    From         = leg.FromSystem,
+                    FromRegion   = leg.FromRegion,
+                    ToSystemId   = leg.ToSystemId,
+                    To           = leg.ToSystem,
+                    ToRegion     = leg.ToRegion,
                     ToSecurity = leg.ToSecurity,
                     DistanceLy = leg.DistanceLy,
                     Fuel       = leg.Fuel,
@@ -261,6 +499,9 @@ public sealed class JumpPlannerViewModel : ReactiveObject
             TotalsText = $"{all.Count} jump{(all.Count == 1 ? "" : "s")} · {dist:N3} ly · " +
                          $"{fuel:N0} {fuelName} · {range:N2} ly range";
             StatusText = "Route planned.";
+
+            _maxRangeLy = range;
+            await BuildMapAsync();
         }
         catch (Exception ex)
         {
