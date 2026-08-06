@@ -70,27 +70,6 @@ public class BuildCostService
 
     public string StatusText { get; private set; } = "Build costs: not yet calculated";
 
-    /// <summary>
-    /// Cost the whole chain through the Production Calculator rather than this service's own
-    /// walk. On by default: the old walk costs each branch separately, so a component several
-    /// parents need is built in several partial batches each rounded up to whole runs, and it
-    /// credits nothing back for the resulting over-production. Both inflate the stored cost —
-    /// for a Revelation, by 61.2M and 188.1M respectively.
-    ///
-    /// <para>Leftovers are valued at build cost, which is what this method is computing — so
-    /// items are costed in dependency order, components before their consumers, and each result
-    /// is published as it is produced. Costing in arbitrary order reads the previous, inflated
-    /// figures and over-credits against them, which drove 1,522 items negative.</para>
-    ///
-    /// <para>Leftovers ARE credited: the surplus from a run is a real asset, and the next build
-    /// of that item uses it instead of running the job again. What has to be right is the value
-    /// put on the credit — which is why items are costed in dependency order, and why reactions
-    /// and components are costed as a batch rather than one run at a time.</para>
-    ///
-    /// <para>Kept switchable so both paths can be run against each other.</para>
-    /// </summary>
-    public bool UseSharedChainCost { get; set; } = true;
-
     // Fired after each RecalculateAllAsync completes; MarketPricingService subscribes to
     // re-run the price-gap fill so fresh build costs are immediately reflected in prices.
     public event Func<CancellationToken, Task>? AfterRecalculate;
@@ -751,63 +730,6 @@ public class BuildCostService
         }
 
         // ── Full-chain recompute ──────────────────────────────────────────────
-        // The per-unit pass above sizes each sub-material at ceil(base × ME) for a single run and
-        // lets parents multiply by an integer count — which over-counts when a batch rounds down
-        // (2 items needing 9 of a material, not 2 × ceil(4.5) = 10). Re-cost every built item by
-        // walking its whole chain with job-level rounding (JobMaterialTotal), so stored build costs
-        // match the Production Calculator. The pass's decisions (bought / BPC-ME / overrides) stand.
-        var obtainMemo = new Dictionary<(int Type, int Qty), (decimal Raw, decimal Job)>();
-
-        // Types currently being costed further up this recursion. EVE's material graph is not
-        // guaranteed acyclic — a chain can lead back to an ancestor — and re-entering one
-        // recurses until the stack dies. This was previously masked rather than handled: an
-        // item inside a cycle was normally uncostable, so it picked up a market price, landed
-        // in boughtTypes, and hit the buy-leaf branch below, which terminates. Clearing those
-        // prices removed that accidental terminator and turned it into a StackOverflow at
-        // roughly 1,100 frames. The memo cannot serve as the guard because it is only written
-        // after a call completes, so a cycle re-enters before any entry exists.
-        var inProgress = new HashSet<int>();
-
-        (decimal Raw, decimal Job) ObtainCost(int type, int qty)
-        {
-            if (qty <= 0) return (0m, 0m);
-            if (obtainMemo.TryGetValue((type, qty), out var cached)) return cached;
-
-            // Cycle hit: cost this type as a purchased leaf using the per-unit estimate from
-            // the pass above and stop descending. Deliberately not memoised — the value is
-            // only valid for the branch that closed the loop, not for the type generally.
-            if (!inProgress.Add(type))
-                return (qty * (unitCosts.TryGetValue(type, out var cyc) ? cyc : 0m), 0m);
-
-            try
-            {
-                (decimal Raw, decimal Job) result;
-                if (recOverride.TryGetValue(type, out var ovc) && !boughtTypes.Contains(type))
-                    result = (qty * ovc, 0m);                                 // pinned fixed-value leaf
-                else if (boughtTypes.Contains(type) || !recMaterials.TryGetValue(type, out var mats))
-                    result = (qty * (unitCosts.TryGetValue(type, out var pr) ? pr : 0m), 0m);  // buy leaf
-                else
-                {
-                    int    outQ = recOutputQty.TryGetValue(type, out var oq) ? Math.Max(1, oq) : 1;
-                    int    runs = (int)Math.Ceiling((double)qty / outQ);
-                    double mf   = recMeFactor.TryGetValue(type, out var f) ? f : 1.0;
-                    decimal raw = (recBpcPerRun.TryGetValue(type, out var bpc) ? bpc : 0m) * runs;
-                    decimal job = (recJobPerRun.TryGetValue(type, out var jp) ? jp : 0m) * runs;
-                    foreach (var (matType, baseQty) in mats)
-                    {
-                        int need = JobMaterialTotal(baseQty, mf, runs);
-                        var (cr, cj) = ObtainCost(matType, need);
-                        raw += cr; job += cj;
-                    }
-                    result = (raw, job);
-                }
-                obtainMemo[(type, qty)] = result;
-                return result;
-            }
-            finally { inProgress.Remove(type); }
-        }
-
-        if (UseSharedChainCost)
         {
             // Cost every item through the Production Calculator itself, so the stored figure and
             // what the calculator shows cannot drift apart. The context is loaded once — it is
@@ -1008,27 +930,10 @@ public class BuildCostService
                 }
                 catch (Exception ex)
                 {
-                    // One unplannable item must not lose the whole recalculation; fall back to
-                    // the old walk for it alone.
+                    // One unplannable item must not lose the whole recalculation. It keeps the
+                    // per-unit estimate from the pass above rather than getting no cost at all.
                     _errorLogger.Log("BuildCostService", $"chain cost for type {typeId}", ex);
-                    int outQFallback = outQ;
-                    var (raw, job) = ObtainCost(typeId, outQFallback);
-                    rawMatCosts[typeId]   = raw / outQ;
-                    totalJobCosts[typeId] = job / outQ;
-                    unitCosts[typeId]     = (raw + job) / outQ;
                 }
-            }
-        }
-        else
-        {
-            foreach (var typeId in productMap.Keys)
-            {
-                if (boughtTypes.Contains(typeId) || !recMaterials.ContainsKey(typeId)) continue;
-                int outQ = recOutputQty.TryGetValue(typeId, out var oq) ? Math.Max(1, oq) : 1;
-                var (raw, job) = ObtainCost(typeId, outQ);   // cost of one run, spread over its output
-                rawMatCosts[typeId]   = raw / outQ;
-                totalJobCosts[typeId] = job / outQ;
-                unitCosts[typeId]     = (raw + job) / outQ;
             }
         }
 
