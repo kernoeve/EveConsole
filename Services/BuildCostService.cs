@@ -77,11 +77,18 @@ public class BuildCostService
     /// credits nothing back for the resulting over-production. Both inflate the stored cost —
     /// for a Revelation, by 61.2M and 188.1M respectively.
     ///
-    /// <para>OFF for now. Routing straight through the calculator produces NEGATIVE costs on
-    /// 1,522 items, because the calculator values leftovers at build cost and build cost is what
-    /// this method is in the middle of computing — it reads the previous, inflated figures from
-    /// BuildCosts and over-credits against them. The circularity has to be broken before this
-    /// can be switched on; the flag exists so both paths can be run against each other.</para>
+    /// <para>Leftovers are valued at build cost, which is what this method is computing — so
+    /// items are costed in dependency order, components before their consumers, and each result
+    /// is published as it is produced. Costing in arbitrary order reads the previous, inflated
+    /// figures and over-credits against them, which drove 1,522 items negative.</para>
+    ///
+    /// <para>Still OFF. Ordering fixed the negatives and made capitals agree with the calculator
+    /// to the ISK, but it exposed the deeper question: a plan credits leftovers because THAT RUN
+    /// ends up holding them, whereas a per-unit standing cost should not be reduced by stock the
+    /// builder never wanted. Components whose sub-parts come in large batches — a T2 armour plate
+    /// at 15.2M — collapse to almost nothing once those batches are credited back.</para>
+    ///
+    /// <para>Kept switchable so both paths can be run against each other.</para>
     /// </summary>
     public bool UseSharedChainCost { get; set; }
 
@@ -809,10 +816,55 @@ public class BuildCostService
                 scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>());
             var planContext = await calc.LoadContextAsync(defaultPark.Id, ct);
 
-            foreach (var typeId in productMap.Keys)
-            {
-                if (boughtTypes.Contains(typeId) || !recMaterials.ContainsKey(typeId)) continue;
+            // Order matters, and it is what makes crediting leftovers possible at all.
+            //
+            // The calculator values leftover sub-components at their build cost. Costing items in
+            // arbitrary order means reading the PREVIOUS pass's figures — the inflated ones this
+            // is replacing — and over-crediting against them, which drove 1,522 items negative.
+            //
+            // Costing a component before anything that consumes it means every leftover is valued
+            // at a figure already recomputed in this same pass. Leftovers only arise where a
+            // blueprint yields more than one unit per run, and those outputs always sit strictly
+            // below their consumers in the material graph, so such an order exists.
+            var builtTypes = productMap.Keys
+                .Where(t => !boughtTypes.Contains(t) && recMaterials.ContainsKey(t))
+                .ToHashSet();
 
+            var consumers = new Dictionary<int, List<int>>();
+            var remaining = builtTypes.ToDictionary(t => t, _ => 0);
+            foreach (var t in builtTypes)
+                foreach (var (mat, _) in recMaterials[t])
+                    if (builtTypes.Contains(mat))
+                    {
+                        if (!consumers.TryGetValue(mat, out var list)) consumers[mat] = list = [];
+                        list.Add(t);
+                        remaining[t]++;
+                    }
+
+            var ready = new Queue<int>(remaining.Where(kv => kv.Value == 0).Select(kv => kv.Key));
+            var order = new List<int>(builtTypes.Count);
+            while (ready.Count > 0)
+            {
+                var t = ready.Dequeue();
+                order.Add(t);
+                if (!consumers.TryGetValue(t, out var cons)) continue;
+                foreach (var c in cons)
+                    if (--remaining[c] == 0) ready.Enqueue(c);
+            }
+
+            // Whatever is left sits in a cycle. EVE's material graph is not guaranteed acyclic,
+            // and composite reactions consuming intermediate reaction products are exactly where
+            // that shows up. Cost them last; their leftovers fall back on the previous figure,
+            // which is the best available when a thing transitively depends on itself.
+            var ordered = order.ToHashSet();
+            var cyclic  = builtTypes.Where(t => !ordered.Contains(t)).ToList();
+            order.AddRange(cyclic);
+            if (cyclic.Count > 0)
+                _errorLogger.Log("BuildCostService", "chain order",
+                    $"{cyclic.Count} item(s) sit in a dependency cycle and were costed last.");
+
+            foreach (var typeId in order)
+            {
                 int outQ = recOutputQty.TryGetValue(typeId, out var oq) ? Math.Max(1, oq) : 1;
                 var me   = recMeLevel.TryGetValue(typeId, out var m) ? m : 10;
 
@@ -831,6 +883,11 @@ public class BuildCostService
                     rawMatCosts[typeId]   = plan.TotalRawMaterialCost / produced;
                     totalJobCosts[typeId] = plan.TotalJobCost / produced;
                     unitCosts[typeId]     = plan.NetCost / produced;
+
+                    // Publish it into the context, so everything costed after this — which, by
+                    // the ordering above, is everything that consumes it — values leftovers of
+                    // this component at the figure just computed rather than the stale one.
+                    planContext.BuildCostLookup[typeId] = unitCosts[typeId];
                 }
                 catch (Exception ex)
                 {
