@@ -65,7 +65,15 @@
         <DataGridTextColumn Header="Best bid"   Binding="{Binding Price}"        Width="140" />
         <DataGridTextColumn Header="Remaining"  Binding="{Binding Remaining}"    Width="150" />
         <DataGridTextColumn Header="%"          Binding="{Binding RemainingPct}" Width="70"  />
-        <DataGridTextColumn Header="Note"       Binding="{Binding Note}"         Width="300" />
+        <DataGridTemplateColumn Header="Expires" Width="180" SortMemberPath="Expiry">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+              <TextBlock Text="{Binding Expiry}" FontSize="11"
+                         Foreground="{Binding ExpiryColor}" VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTextColumn Header="Note"       Binding="{Binding Note}"         Width="320" />
       </DataGrid.Columns>
     </DataGrid>
 

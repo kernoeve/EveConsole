@@ -19,7 +19,11 @@ public sealed record StandingBuyOrderRow(
     string RemainingText,
     string RemainingPercentText,
     double RemainingPercentValue,  // percent of the original volume still on the order; -1 when unmatched
-    bool   IsLow);                 // remaining has fallen below the top-up threshold
+    bool   IsLow,                  // remaining volume has fallen below the top-up threshold
+    DateTimeOffset? ExpiresAt,     // earliest expiry across the matching orders
+    string ExpiryText,
+    double TimeRemainingPercentValue, // percent of the order's duration still to run; -1 when unmatched
+    bool   IsExpiringSoon);
 
 /// <summary>
 /// Standing buy orders: the user declares a buy order they intend to keep up at a
@@ -38,6 +42,12 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
     /// <summary>An order this far below its original volume wants topping up.
     /// Matches the threshold used for standing projects.</summary>
     public const double LowRemainingThresholdPercent = 10.0;
+
+    /// <summary>An order with this little of its duration left wants renewing.
+    /// Measured against the order's own duration, so a 90-day order gets 18 days'
+    /// warning while a 7-day order gets a day and a half — the warning scales with
+    /// how long the order was meant to run.</summary>
+    public const double LowTimeThresholdPercent = 20.0;
 
     // ── CRUD ─────────────────────────────────────────────────────────────────
 
@@ -106,7 +116,8 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
             .AsNoTracking()
             .Where(o => o.IsBuyOrder && !o.IsHistory)
             .Select(o => new { o.OwnerId, o.OwnerType, o.TypeId, o.LocationId,
-                               o.Price, o.VolumeRemain, o.VolumeTotal })
+                               o.Price, o.VolumeRemain, o.VolumeTotal,
+                               o.Issued, o.Duration })
             .ToListAsync(ct);
 
         var byKey = live
@@ -144,7 +155,11 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
                     RemainingText        : "",
                     RemainingPercentText : "",
                     RemainingPercentValue: -1,
-                    IsLow                : false));
+                    IsLow                : false,
+                    ExpiresAt            : null,
+                    ExpiryText           : "",
+                    TimeRemainingPercentValue: -1,
+                    IsExpiringSoon       : false));
                 continue;
             }
 
@@ -163,6 +178,26 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
                 ? OwnerName(matches[0].OwnerId, matches[0].OwnerType)
                 : $"{matches.Select(m => m.OwnerId).Distinct().Count()} owners";
 
+            // Expiry. Where several orders back one declaration, the earliest is what
+            // matters — it is the one that lapses first and leaves a gap.
+            var now = DateTimeOffset.UtcNow;
+            var soonest = matches
+                .Select(m => new
+                {
+                    Expires  = m.Issued.AddDays(m.Duration),
+                    Duration = m.Duration,
+                })
+                .OrderBy(x => x.Expires)
+                .First();
+
+            var expiresAt = soonest.Expires;
+            var timePct   = soonest.Duration > 0
+                ? Math.Max(0.0, (expiresAt - now).TotalDays / soonest.Duration * 100.0)
+                : -1.0;
+
+            var expiryText = FormatExpiry(expiresAt, now);
+            if (matches.Count > 1) expiryText += " (first)";
+
             rows.Add(new StandingBuyOrderRow(
                 DbId                 : sbo.Id,
                 TypeId               : sbo.TypeId,
@@ -177,17 +212,36 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
                 RemainingText        : $"{remain:N0} / {total:N0}",
                 RemainingPercentText : pct >= 0 ? $"{pct:N1}%" : "",
                 RemainingPercentValue: pct,
-                IsLow                : pct >= 0 && pct < LowRemainingThresholdPercent));
+                IsLow                : pct >= 0 && pct < LowRemainingThresholdPercent,
+                ExpiresAt            : expiresAt,
+                ExpiryText           : expiryText,
+                TimeRemainingPercentValue: timePct,
+                IsExpiringSoon       : timePct >= 0 && timePct < LowTimeThresholdPercent));
         }
 
         return rows;
     }
 
-    /// <summary>Standing orders that are missing or nearly exhausted — the count worth
-    /// surfacing elsewhere, as CountInactiveStandingProjectsAsync does for projects.</summary>
+    /// <summary>Absolute date plus how long is left, since "2026-08-14" alone doesn't
+    /// say whether that is urgent.</summary>
+    private static string FormatExpiry(DateTimeOffset expires, DateTimeOffset now)
+    {
+        var left = expires - now;
+        if (left <= TimeSpan.Zero) return $"{expires.ToLocalTime():yyyy-MM-dd}  (expired)";
+
+        var span = left.TotalDays >= 1
+            ? $"{(int)left.TotalDays}d"
+            : $"{(int)left.TotalHours}h";
+
+        return $"{expires.ToLocalTime():yyyy-MM-dd}  ({span} left)";
+    }
+
+    /// <summary>Standing orders that are missing, nearly exhausted or nearly expired —
+    /// the count worth surfacing elsewhere, as CountInactiveStandingProjectsAsync does
+    /// for projects.</summary>
     public async Task<int> CountNeedingAttentionAsync(CancellationToken ct = default)
     {
         var rows = await BuildGridRowsAsync(ct);
-        return rows.Count(r => r.MatchStatus == "missing" || r.IsLow);
+        return rows.Count(r => r.MatchStatus == "missing" || r.IsLow || r.IsExpiringSoon);
     }
 }

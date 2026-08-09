@@ -17,28 +17,44 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     public string Price        { get; } = r.PriceText;
     public string Remaining    { get; } = r.RemainingText;
     public string RemainingPct { get; } = r.RemainingPercentText;
+    public string Expiry       { get; } = r.ExpiryText;
 
     public string Status { get; } = r.MatchStatus == "matched" ? "Active" : "Missing";
 
     /// <summary>Colour cue: red when the order isn't there at all, amber when it is
-    /// but has nearly run out, muted otherwise.</summary>
+    /// but is running out — either of volume or of time — green otherwise.</summary>
     public string StatusColor { get; } = r.MatchStatus switch
     {
-        "matched" when r.IsLow => "#c8a84b",
-        "matched"              => "#6a9a6a",
-        _                      => "#cc6666",
+        "matched" when r.IsLow || r.IsExpiringSoon => "#c8a84b",
+        "matched"                                  => "#6a9a6a",
+        _                                          => "#cc6666",
     };
 
-    public bool IsLow    { get; } = r.IsLow;
-    public bool IsMissing{ get; } = r.MatchStatus != "matched";
+    /// <summary>Expiry gets its own colour so a healthy-volume order that is about to
+    /// lapse is visible in the column that explains why.</summary>
+    public string ExpiryColor { get; } = r.IsExpiringSoon ? "#c8a84b" : "#999999";
 
-    /// <summary>Shown in the row so the reason for the highlight is explicit rather
-    /// than left to the colour alone.</summary>
-    public string Note { get; } = r.MatchStatus != "matched"
-        ? "No live buy order at this location"
-        : r.IsLow
-            ? $"Below {StandingBuyOrderService.LowRemainingThresholdPercent:N0}% of original volume — needs topping up"
-            : "";
+    public bool IsLow          { get; } = r.IsLow;
+    public bool IsExpiringSoon { get; } = r.IsExpiringSoon;
+    public bool IsMissing      { get; } = r.MatchStatus != "matched";
+
+    /// <summary>Written out so the reason for a highlight never depends on reading
+    /// colour. Both conditions can apply at once, so they are combined rather than
+    /// one shadowing the other.</summary>
+    public string Note { get; } = BuildNote(r);
+
+    private static string BuildNote(StandingBuyOrderRow r)
+    {
+        if (r.MatchStatus != "matched") return "No live buy order at this location";
+
+        var parts = new List<string>();
+        if (r.IsLow)
+            parts.Add($"Below {StandingBuyOrderService.LowRemainingThresholdPercent:N0}% of original volume");
+        if (r.IsExpiringSoon)
+            parts.Add($"Under {StandingBuyOrderService.LowTimeThresholdPercent:N0}% of its duration left");
+
+        return parts.Count == 0 ? "" : string.Join("; ", parts) + " — needs attention";
+    }
 }
 
 /// <summary>
@@ -119,12 +135,14 @@ public class StandingBuyOrdersViewModel : ReactiveObject
             return;
         }
 
-        var missing = rows.Count(r => r.MatchStatus != "matched");
-        var low     = rows.Count(r => r.IsLow);
-        var parts   = new List<string> { $"{rows.Count:N0} defined" };
-        if (missing > 0) parts.Add($"{missing:N0} missing");
-        if (low > 0)     parts.Add($"{low:N0} running low");
-        if (missing == 0 && low == 0) parts.Add("all healthy");
+        var missing  = rows.Count(r => r.MatchStatus != "matched");
+        var low      = rows.Count(r => r.IsLow);
+        var expiring = rows.Count(r => r.IsExpiringSoon);
+        var parts    = new List<string> { $"{rows.Count:N0} defined" };
+        if (missing > 0)  parts.Add($"{missing:N0} missing");
+        if (low > 0)      parts.Add($"{low:N0} running low");
+        if (expiring > 0) parts.Add($"{expiring:N0} expiring soon");
+        if (missing == 0 && low == 0 && expiring == 0) parts.Add("all healthy");
 
         StatusText = string.Join("  ·  ", parts);
     }
