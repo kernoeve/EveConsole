@@ -49,6 +49,7 @@ public class MainWindowViewModel : ReactiveObject
     public SaleListingViewModel           SaleListingBuildVm     { get; }
     public SaleListingViewModel           SaleListingMarketVm    { get; }
     public OrderTrackerViewModel          OrderTrackerVm         { get; }
+    public StandingBuyOrdersViewModel     StandingBuyOrdersVm    { get; }
     public MarketSettingsViewModel        MarketVm               { get; }
     public TimerSettingsViewModel         TimerVm                { get; }
     public AgentPanelViewModel            AgentVm                { get; }
@@ -377,6 +378,7 @@ public class MainWindowViewModel : ReactiveObject
             "sale_list_build"  => ("Sale Listing (Build)",  SaleListingBuildVm,  true),
             "sale_list_market" => ("Sale Listing (Market)", SaleListingMarketVm, true),
             "order_tracker"  => ("Order Tracker",   OrderTrackerVm,    true),
+            "standing_buy_orders" => ("Standing Buy Orders", StandingBuyOrdersVm, true),
             "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
             "killmails"      => ("Killmails",      KillmailBrowserVm, true),
             "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
@@ -452,6 +454,7 @@ public class MainWindowViewModel : ReactiveObject
         SalePostingService              salePostingService,
         BatchAddService                 batchAddService,
         CorpActivityService             corpActivityService,
+        StandingBuyOrderService         standingBuyOrderService,
         KillmailBrowserService          killmailBrowserService,
         BuildCostService                buildCostService,
         ProductionCalculatorService     prodCalcService,
@@ -569,6 +572,7 @@ public class MainWindowViewModel : ReactiveObject
         SaleListingBuildVm.OpenSalesTracker  = () => OpenTool("sales_tracker");
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
+        StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
@@ -679,6 +683,7 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("sales_tracker", "Sales Tracker"),
                 new NavItem("sale_posting",  "Sale Posting"),
                 new NavItem("order_tracker", "Order Tracker"),
+                new NavItem("standing_buy_orders", "Standing Buy Orders"),
                 new NavItem("trade",         "Trade Opportunities"),
                 new NavItem("contracts",     "Contracts"),
             ]),

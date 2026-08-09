@@ -1412,6 +1412,23 @@ public class App : Application
                 )
                 """);
 
+            // ── Standing buy orders ──────────────────────────────────────────
+            // User-declared intent; the live counterpart lives in EsiMarketOrders.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "StandingBuyOrders" (
+                    "Id"           INTEGER NOT NULL CONSTRAINT "PK_StandingBuyOrders" PRIMARY KEY AUTOINCREMENT,
+                    "TypeId"       INTEGER NOT NULL DEFAULT 0,
+                    "TypeName"     TEXT    NOT NULL DEFAULT '',
+                    "LocationId"   INTEGER NOT NULL DEFAULT 0,
+                    "LocationName" TEXT    NOT NULL DEFAULT '',
+                    "CreatedAt"    TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_StandingBuyOrders_TypeId_LocationId"
+                ON "StandingBuyOrders" ("TypeId", "LocationId")
+                """);
+
             // ── Client activity monitoring ───────────────────────────────────
             // Live session state per character, refreshed by the char.online /
             // char.location / char.ship polling endpoints.
@@ -2089,6 +2106,7 @@ public class App : Application
         services.AddSingleton<CorpActivityService>();
         services.AddSingleton<KillmailBrowserService>();
         services.AddSingleton<CorpTop10ExcludeService>();
+        services.AddSingleton<StandingBuyOrderService>();
 
         // Game log import — reads EVE's own logs into GameLogEvents for tools to
         // query. Read-only; nothing is ever written back to an EVE-owned file.
