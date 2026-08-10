@@ -130,6 +130,9 @@ public static class IndyRigMatching
             //     3585 Mangled Sansha Data Analyzer
             _ when typeId == 29202                                  => "ammo_charges",
             //     29202 Modified Augumene Antidote
+            _ when typeId is >= 88172 and <= 88177                  => "adv_components",
+            //     88172-88177 Narrow/Mid/Wideband Emission Amplifiers and Limiters.
+            //     A contiguous block holding exactly those six and nothing else.
             (8, _)          => "ammo_charges",
             (18, _) or (87, _)                                                       => "drones_fighters",
             _ when groupId == 1136                                                   => "structure_ammo", // Fuel Blocks

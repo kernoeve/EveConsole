@@ -522,6 +522,9 @@ public class BuildCostService
                 _ when typeId is 76203 or 76204 or 29226                => "structure_ammo",
                 _ when typeId == 3585                                   => "modules_equipment",
                 _ when typeId == 29202                                  => "ammo_charges",
+                // 88172-88177 Narrow/Mid/Wideband Emission Amplifiers and Limiters —
+                // a contiguous block holding exactly those six and nothing else.
+                _ when typeId is >= 88172 and <= 88177                  => "adv_components",
                 (8, _)          => "ammo_charges",
                 (18, _) or (87, _)                                                          => "drones_fighters",
                 _ when tg.GroupId == 1136                                  => "structure_ammo",   // Fuel Blocks
