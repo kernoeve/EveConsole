@@ -115,6 +115,19 @@ public static class IndyRigMatching
             // mutaplasmids with a blueprint ever reach here, so the "manufacturable ones"
             // qualifier takes care of itself.
             (17, "Mutaplasmids")                                    => "modules_equipment",
+            // Abyssal, jump and warp matrix filaments. Four groups all named "… Filaments";
+            // the other filament groups in category 17 have no manufacturable members, so
+            // the name match cannot reach them.
+            (17, var fil) when fil.Contains("Filament")             => "modules_equipment",
+            // Individually classified. These sit in category 17's junk-drawer groups —
+            // "Miscellaneous" runs to thousands of unrelated items and "Commodities" mixes
+            // industry inputs with trinkets — so the type id is the only thing precise
+            // enough to match on.
+            _ when typeId is 76203 or 76204 or 29226                => "structure_ammo",
+            //     76203 Stellar Transmuter Datacore, 76204 Transport Relay Datacore,
+            //     29226 Basic Robotics
+            _ when typeId == 3585                                   => "modules_equipment",
+            //     3585 Mangled Sansha Data Analyzer
             (8, _)          => "ammo_charges",
             (18, _) or (87, _)                                                       => "drones_fighters",
             _ when groupId == 1136                                                   => "structure_ammo", // Fuel Blocks

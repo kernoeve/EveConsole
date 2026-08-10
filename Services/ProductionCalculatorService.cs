@@ -453,6 +453,15 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 // Mutaplasmids. Matched by group, not category — category 17 also holds
                 // fuel blocks and capital components, which have their own rigs below.
                 (17, "Mutaplasmids")                                    => "modules_equipment",
+                // Abyssal, jump and warp matrix filaments. The other filament groups in
+                // category 17 have no manufacturable members, so this cannot reach them.
+                (17, var fil) when fil.Contains("Filament")             => "modules_equipment",
+                // Individually classified — these sit in category 17's junk-drawer groups,
+                // so the type id is the only thing precise enough to match on.
+                // 76203 Stellar Transmuter Datacore, 76204 Transport Relay Datacore,
+                // 29226 Basic Robotics, 3585 Mangled Sansha Data Analyzer.
+                _ when typeId is 76203 or 76204 or 29226                => "structure_ammo",
+                _ when typeId == 3585                                   => "modules_equipment",
                 (8, _)          => "ammo_charges",
                 (18 or 87, _)   => "drones_fighters",
                 _ when tg.GroupId == 1136                                 => "structure_ammo",   // Fuel Blocks
