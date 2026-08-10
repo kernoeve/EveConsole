@@ -132,6 +132,50 @@ public class ProductionCalculatorViewModel : ReactiveObject
     private bool _includeBpcCost;
     public bool IncludeBpcCost { get => _includeBpcCost; set => this.RaiseAndSetIfChanged(ref _includeBpcCost, value); }
 
+    // ── Missing-stock mode (Raw Materials tab) ────────────────────────────
+    // Station mode asks "what do I still have to haul in", asset mode asks "what do I
+    // have to buy at all". The choice sticks between sessions because a given player
+    // almost always wants the same one.
+    private const string RawMissingModeKey = "prodcalc.raw_missing_by_station";
+
+    private readonly AppPreferencesService? _prefs;
+
+    private bool _rawMissingByStation;
+    public bool RawMissingByStation
+    {
+        get => _rawMissingByStation;
+        set
+        {
+            if (_rawMissingByStation == value) return;
+            this.RaiseAndSetIfChanged(ref _rawMissingByStation, value);
+            this.RaisePropertyChanged(nameof(MissingModeDescription));
+            _ = OnMissingModeChangedAsync();
+        }
+    }
+
+    public string MissingModeDescription => RawMissingByStation
+        ? "Missing counts stock at each job's linked facility"
+        : "Missing counts every asset you own, anywhere";
+
+    private ProductionCalculatorService.MissingMode CurrentMissingMode =>
+        RawMissingByStation
+            ? ProductionCalculatorService.MissingMode.Station
+            : ProductionCalculatorService.MissingMode.Assets;
+
+    private async Task OnMissingModeChangedAsync()
+    {
+        if (_prefs is not null)
+            await _prefs.SetBoolAsync(RawMissingModeKey, _rawMissingByStation);
+
+        // Recompute in place. The raw material rows notify, so the grid updates without
+        // reassigning Plan — which would rebuild and collapse the Jobs tree.
+        if (_plan is not null)
+        {
+            try { await _service.ApplyAvailabilityAsync(_plan, CurrentMissingMode); }
+            catch (Exception ex) { Status = $"Error: {ex.Message}"; }
+        }
+    }
+
     // ── Results ───────────────────────────────────────────────────────────
     private ProductionPlan? _plan;
     public ProductionPlan? Plan
@@ -206,10 +250,13 @@ public class ProductionCalculatorViewModel : ReactiveObject
 
     public ProductionCalculatorViewModel(
         IDbContextFactory<AppDbContext> dbFactory,
-        ProductionCalculatorService     service)
+        ProductionCalculatorService     service,
+        AppPreferencesService?          prefs = null)
     {
         _dbFactory = dbFactory;
         _service   = service;
+        _prefs     = prefs;
+        _rawMissingByStation = prefs?.GetBool(RawMissingModeKey, true) ?? true;
 
         var canAdd  = this.WhenAnyValue(x => x.CanAdd);
         var canCalc = this.WhenAnyValue(x => x.IsBusy, x => x.Queue.Count, (b, c) => !b && c > 0);
@@ -354,6 +401,9 @@ public class ProductionCalculatorViewModel : ReactiveObject
             }).ToList();
 
             var plan = await _service.CalculateAsync(requests, SelectedPark.Id, IncludeBpcCost);
+            // Before assigning, so the job rows arrive with their Missing values already
+            // filled — PlanJobMaterial has no change notification.
+            await _service.ApplyAvailabilityAsync(plan, CurrentMissingMode);
             Plan   = plan;
             Status = $"Done — {plan.AllJobs.Count} jobs, {plan.RawMaterials.Count} raw materials";
         }

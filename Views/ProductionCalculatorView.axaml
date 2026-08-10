@@ -203,9 +203,21 @@
               <TextBlock Grid.Column="0" FontSize="11" Foreground="#555566" VerticalAlignment="Center"
                          Text="{Binding Plan.RawMaterials.Count, StringFormat='{}{0} items to purchase — double-click row to open in Item Browser'}"/>
               <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                <!-- Station vs assets changes what Missing means, so the choice sits beside
+                     the column it governs rather than in settings. It is remembered. -->
+                <TextBlock Text="Missing vs:" FontSize="11" Foreground="#555566" VerticalAlignment="Center"/>
+                <RadioButton Content="Station" GroupName="MissingMode" FontSize="11" VerticalAlignment="Center"
+                             IsChecked="{Binding RawMissingByStation}"
+                             ToolTip.Tip="Compare against stock at each job's linked facility, summing the demand of every job sharing that structure"/>
+                <RadioButton Content="All assets" GroupName="MissingMode" FontSize="11" VerticalAlignment="Center"
+                             IsChecked="{Binding !RawMissingByStation}"
+                             ToolTip.Tip="Compare against everything you own, wherever it sits"/>
                 <Button Content="Shopping List" Click="OnShoppingListClick"
                         Padding="8 3" FontSize="11"
                         ToolTip.Tip="Copy item name and quantity (tab-separated) to clipboard"/>
+                <Button Content="Shopping List (Missing)" Click="OnShoppingListMissingClick"
+                        Padding="8 3" FontSize="11"
+                        ToolTip.Tip="Copy only the items short of the plan's needs, at the quantity short"/>
                 <DropDownButton Content="Export" Padding="8 3" FontSize="11"
                                 ToolTip.Tip="Export all columns to clipboard or file">
                   <DropDownButton.Flyout>
@@ -229,6 +241,15 @@
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">
                       <TextBlock Text="{Binding Quantity, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Missing" Width="90" SortMemberPath="Missing">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanRawMaterial">
+                      <TextBlock Text="{Binding MissingDisplay}" FontSize="10"
+                                 Foreground="{Binding MissingColor}"
                                  TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
@@ -483,11 +504,18 @@
                             <TextBlock Text="{Binding Job.StructureDisplay}" FontSize="11" Foreground="#555566"/>
                           </StackPanel>
                         </StackPanel>
-                        <ToggleButton Grid.Column="1"
-                                      IsChecked="{Binding ShowMaterials}"
-                                      Content="Materials"
-                                      VerticalAlignment="Top"
-                                      Padding="6 3" FontSize="11" Margin="8 0 0 0"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                                    VerticalAlignment="Top" Margin="8 0 0 0">
+                          <ToggleButton IsChecked="{Binding ShowMaterials}"
+                                        Content="Materials"
+                                        Padding="6 3" FontSize="11"/>
+                          <Button Content="Shopping List" Click="OnJobShoppingListClick"
+                                  Padding="6 3" FontSize="11"
+                                  ToolTip.Tip="Copy every bought material for this job (name and quantity, tab-separated)"/>
+                          <Button Content="Shopping List (Missing)" Click="OnJobShoppingListMissingClick"
+                                  Padding="6 3" FontSize="11"
+                                  ToolTip.Tip="Copy only the bought materials short at this job's linked facility"/>
+                        </StackPanel>
                       </Grid>
 
                       <!-- Expandable materials section -->
@@ -498,19 +526,21 @@
                           <TextBlock Text="{Binding Job.ModifierDisplay}"
                                      FontSize="10" Foreground="#888" Margin="0 0 0 4"
                                      FontStyle="Italic"/>
-                          <Grid ColumnDefinitions="*,70,60,70,90,60,*">
+                          <Grid ColumnDefinitions="*,70,60,70,70,90,60,*">
                             <TextBlock Grid.Column="0" Text="Material"   FontSize="10" Foreground="#555566"/>
                             <TextBlock Grid.Column="1" Text="Base/Run"   FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
                             <TextBlock Grid.Column="2" Text="Eff/Run"    FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
                             <TextBlock Grid.Column="3" Text="Total"      FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
-                            <TextBlock Grid.Column="4" Text="Cost"       FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
-                            <TextBlock Grid.Column="5" Text="Source"     FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
-                            <TextBlock Grid.Column="6" Text="Formula (SDE base → result)" FontSize="10" Foreground="#555566" Margin="8 0 0 0"/>
+                            <TextBlock Grid.Column="4" Text="Missing"    FontSize="10" Foreground="#555566" HorizontalAlignment="Right"
+                                       ToolTip.Tip="Shortfall against stock at this job's linked facility. Em dash means the park structure has no facility linked."/>
+                            <TextBlock Grid.Column="5" Text="Cost"       FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="6" Text="Source"     FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="7" Text="Formula (SDE base → result)" FontSize="10" Foreground="#555566" Margin="8 0 0 0"/>
                           </Grid>
                           <ItemsControl ItemsSource="{Binding Job.Materials}">
                             <ItemsControl.ItemTemplate>
                               <DataTemplate>
-                                <Grid ColumnDefinitions="*,70,60,70,90,60,*" Margin="0 1">
+                                <Grid ColumnDefinitions="*,70,60,70,70,90,60,*" Margin="0 1">
                                   <Button Grid.Column="0" Content="{Binding TypeName}"
                                           Command="{Binding $parent[UserControl].DataContext.OpenInItemBrowserCommand}"
                                           CommandParameter="{Binding MaterialTypeId}"
@@ -521,9 +551,13 @@
                                   <TextBlock Grid.Column="1" Text="{Binding BaseQtyPerRun, StringFormat=N0}" FontSize="11" Foreground="#888" HorizontalAlignment="Right"/>
                                   <TextBlock Grid.Column="2" Text="{Binding EffQtyPerRun,  StringFormat=N0}" FontSize="11" Foreground="#ccc"  HorizontalAlignment="Right"/>
                                   <TextBlock Grid.Column="3" Text="{Binding TotalQty,      StringFormat=N0}" FontSize="11" Foreground="#ccc"  HorizontalAlignment="Right"/>
-                                  <TextBlock Grid.Column="4" Text="{Binding TotalCost,     StringFormat=N0}" FontSize="11" Foreground="#c8a84b" HorizontalAlignment="Right"/>
-                                  <TextBlock Grid.Column="5" Text="{Binding Source}"       FontSize="11" Foreground="#555566" HorizontalAlignment="Right"/>
-                                  <TextBlock Grid.Column="6" Text="{Binding FormulaDisplay}" FontSize="10" Foreground="#444" Margin="8 0 0 0" VerticalAlignment="Center"/>
+                                  <!-- Orange only when something is genuinely short; a zero or an
+                                       unknown em dash stays quiet. -->
+                                  <TextBlock Grid.Column="4" Text="{Binding MissingDisplay}" FontSize="11"
+                                             Foreground="{Binding MissingColor}" HorizontalAlignment="Right"/>
+                                  <TextBlock Grid.Column="5" Text="{Binding TotalCost,     StringFormat=N0}" FontSize="11" Foreground="#c8a84b" HorizontalAlignment="Right"/>
+                                  <TextBlock Grid.Column="6" Text="{Binding Source}"       FontSize="11" Foreground="#555566" HorizontalAlignment="Right"/>
+                                  <TextBlock Grid.Column="7" Text="{Binding FormulaDisplay}" FontSize="10" Foreground="#444" Margin="8 0 0 0" VerticalAlignment="Center"/>
                                 </Grid>
                               </DataTemplate>
                             </ItemsControl.ItemTemplate>
