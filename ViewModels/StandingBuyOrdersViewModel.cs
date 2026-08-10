@@ -34,9 +34,9 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     /// sellers fill their order instead of ours. Amber rather than red: like low volume
     /// and near expiry, it is a standing order that needs adjusting, not one that is
     /// absent. Red stays reserved for an order that isn't there at all.</summary>
-    public string PriceColor { get; } = r.IsOutbid ? "#c8a84b" : "#c8c8d8";
+    public string PriceColor { get; } = r.IsOutbid ? "#e0902e" : "#c8c8d8";
 
-    public string StationBidColor { get; } = r.IsOutbid ? "#c8a84b"
+    public string StationBidColor { get; } = r.IsOutbid ? "#e0902e"
                                            : r.IsLocationTracked ? "#c8c8d8" : "#555566";
 
     public string? PriceTooltip { get; } = !r.IsLocationTracked
@@ -62,14 +62,20 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     /// outbid, running low, nearing expiry. Red means the order does not exist.</summary>
     public string StatusColor { get; } = r.MatchStatus switch
     {
-        "matched" when r.IsOutbid || r.IsLow || r.IsExpiringSoon => "#c8a84b",
+        "matched" when r.IsOutbid || r.IsLow || r.IsExpiringSoon => "#e0902e",
         "matched"                                               => "#6a9a6a",
         _                                                       => "#cc6666",
     };
 
     /// <summary>Expiry gets its own colour so a healthy-volume order that is about to
     /// lapse is visible in the column that explains why.</summary>
-    public string ExpiryColor { get; } = r.IsExpiringSoon ? "#c8a84b" : "#999999";
+    public string ExpiryColor { get; } = r.IsExpiringSoon ? "#e0902e" : "#999999";
+
+    /// <summary>Sort key tracking the status colour — red, then orange, then healthy.
+    /// Derived here rather than in the caller so it cannot drift from StatusColor.</summary>
+    public int SeverityRank { get; } = r.MatchStatus != "matched"                ? 0   // red
+                                     : r.IsOutbid || r.IsLow || r.IsExpiringSoon ? 1   // orange
+                                     : 2;                                              // green
 
     public bool IsLow          { get; } = r.IsLow;
     public bool IsExpiringSoon { get; } = r.IsExpiringSoon;
