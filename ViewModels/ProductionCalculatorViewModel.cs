@@ -220,9 +220,32 @@ public class ProductionCalculatorViewModel : ReactiveObject
                 .Select(BuildNode)
                 .ToList();
 
-            // Append shared multi-parent jobs at root level, sorted by name
+            // Append shared multi-parent jobs at root level, sorted by name.
+            //
+            // Through BuildNode, not as a bare node: a shared job has its own sub-jobs, and
+            // creating the node directly left them rendered nowhere at all. Their single
+            // parent was this shared job, so hoisting it out of the tree took them with it —
+            // a reaction like Pressurized Oxidizers appeared with its materials marked
+            // "Build" and no job anywhere that built them. They were always in the plan and
+            // in the cost totals; only the tree dropped them.
             foreach (var id in sharedIds.OrderBy(id => jobIndex[id].OutputTypeName))
-                roots.Add(new JobTreeNode { Job = jobIndex[id], NavigateCommand = OpenInItemBrowserCommand });
+                roots.Add(BuildNode(id));
+
+            // Safety net. The tree is walked over ChildTypeIds from RootTypeIds, so a job
+            // reachable by neither would vanish silently — which is exactly how the bug
+            // above went unnoticed. Anything left over is shown rather than lost.
+            var rendered = new HashSet<int>();
+            void Collect(JobTreeNode n)
+            {
+                rendered.Add(n.Job.OutputTypeId);
+                foreach (var c in n.Children) Collect(c);
+            }
+            foreach (var r in roots) Collect(r);
+
+            foreach (var job in _plan.AllJobs
+                         .Where(j => !rendered.Contains(j.OutputTypeId))
+                         .OrderBy(j => j.OutputTypeName))
+                roots.Add(new JobTreeNode { Job = job, NavigateCommand = OpenInItemBrowserCommand });
 
             return roots;
         }
