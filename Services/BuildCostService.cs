@@ -499,6 +499,18 @@ public class BuildCostService
                 // T3 subsystems — Loki/Tengu/Legion/Proteus. Previously unmapped, so every
                 // subsystem threw "cannot be assigned to a structure" and lost its chain cost.
                 (32, _)         => "modules_equipment",
+                // Implants and boosters (20), starbase structures and POS modules (23),
+                // and sovereignty / infrastructure hub upgrades (39). Each category holds
+                // nothing but its own kind, so matching the whole category is safe.
+                (20, _)         => "modules_equipment",
+                (23, _)         => "modules_equipment",
+                (39, _)         => "modules_equipment",
+                // Category 2 (Celestial) is a junk drawer — planets, suns, wrecks, 1,697
+                // non-interactable objects. Only its container groups are manufacturable.
+                (2, var celestial) when celestial.Contains("Container") => "modules_equipment",
+                // Mutaplasmids. Matched by group, not category — category 17 also holds
+                // fuel blocks and capital components, which have their own rigs below.
+                (17, "Mutaplasmids")                                    => "modules_equipment",
                 (8, _)          => "ammo_charges",
                 (18, _) or (87, _)                                                          => "drones_fighters",
                 _ when tg.GroupId == 1136                                  => "structure_ammo",   // Fuel Blocks
