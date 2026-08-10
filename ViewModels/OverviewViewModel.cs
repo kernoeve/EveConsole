@@ -923,8 +923,23 @@ public class OverviewViewModel : ReactiveObject
             foreach (var corpId in corpIds)
                 rows.AddRange(await _corpActivity!.BuildMaintainGridRowsAsync(corpId));
 
+            // Problems first, same as the Standing Buy Orders panel. "no_systems"
+            // leads because it means the definition can never match — a permanent
+            // configuration fault, where "not_active" is just a project nobody is
+            // running right now.
+            var ordered = rows
+                .OrderBy(r => r.MatchStatus switch
+                {
+                    "no_systems" => 0,
+                    "matched"    => 2,
+                    _            => 1,   // not_active
+                })
+                .ThenBy(r => r.TypeDisplay)
+                .ThenBy(r => r.TargetDisplay)
+                .ToList();
+
             StandingProjects.Clear();
-            foreach (var r in rows)
+            foreach (var r in ordered)
                 StandingProjects.Add(new StandingProjectRowVm(r, _ => { }, _ => { }));
             HasStandingProjects = StandingProjects.Count > 0;
             this.RaisePropertyChanged(nameof(NoStandingProjects));
