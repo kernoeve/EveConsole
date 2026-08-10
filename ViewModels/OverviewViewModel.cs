@@ -923,8 +923,23 @@ public class OverviewViewModel : ReactiveObject
             foreach (var corpId in corpIds)
                 rows.AddRange(await _corpActivity!.BuildMaintainGridRowsAsync(corpId));
 
+            // Problems first, same as the Standing Buy Orders panel. "no_systems"
+            // leads because it means the definition can never match — a permanent
+            // configuration fault, where "not_active" is just a project nobody is
+            // running right now.
+            var ordered = rows
+                .OrderBy(r => r.MatchStatus switch
+                {
+                    "no_systems" => 0,
+                    "matched"    => 2,
+                    _            => 1,   // not_active
+                })
+                .ThenBy(r => r.TypeDisplay)
+                .ThenBy(r => r.TargetDisplay)
+                .ToList();
+
             StandingProjects.Clear();
-            foreach (var r in rows)
+            foreach (var r in ordered)
                 StandingProjects.Add(new StandingProjectRowVm(r, _ => { }, _ => { }));
             HasStandingProjects = StandingProjects.Count > 0;
             this.RaisePropertyChanged(nameof(NoStandingProjects));
@@ -953,7 +968,10 @@ public class OverviewViewModel : ReactiveObject
             // nearly expired, then the healthy ones. A panel this size is only worth
             // the space if the problems are the part you can see without scrolling.
             var ordered = rows
-                .OrderBy(r => r.MatchStatus == "matched" ? (r.IsLow || r.IsExpiringSoon ? 1 : 2) : 0)
+                .OrderBy(r => r.MatchStatus != "matched" ? 0        // absent entirely
+                            : r.IsOutbid                 ? 1        // present but winning no fills
+                            : r.IsLow || r.IsExpiringSoon ? 2       // running out
+                            : 3)
                 .ThenBy(r => r.TypeName)
                 .ToList();
 
@@ -1163,6 +1181,41 @@ public class OverviewViewModel : ReactiveObject
                         ? ReactiveCommand.Create(NavigateToStandingProjects)
                         : null
                 });
+        }
+
+        // Standing buy orders that are missing, nearly exhausted or nearly expired.
+        if (_alertSettings.StandingBuyOrdersAttention && _standingBuyOrders is not null)
+        {
+            try
+            {
+                var sboRows = await _standingBuyOrders.BuildGridRowsAsync();
+
+                var missing  = sboRows.Count(r => r.MatchStatus != "matched");
+                var outbid   = sboRows.Count(r => r.MatchStatus == "matched" && r.IsOutbid);
+                // Each order is reported once, under its most urgent reason, so the
+                // numbers add up to the number of orders rather than double-counting.
+                var low      = sboRows.Count(r => r.MatchStatus == "matched" && !r.IsOutbid && r.IsLow);
+                var expiring = sboRows.Count(r => r.MatchStatus == "matched" && !r.IsOutbid && !r.IsLow && r.IsExpiringSoon);
+
+                // Broken out rather than a single total: "3 need attention" doesn't say
+                // whether to place an order, raise a price, top one up or renew one, and
+                // those are different jobs.
+                var reasons = new List<string>();
+                if (missing > 0)  reasons.Add(missing == 1  ? "1 is missing"          : $"{missing} are missing");
+                if (outbid > 0)   reasons.Add(outbid == 1   ? "1 is outbid"           : $"{outbid} are outbid");
+                if (low > 0)      reasons.Add(low == 1      ? "1 is nearly bought out": $"{low} are nearly bought out");
+                if (expiring > 0) reasons.Add(expiring == 1 ? "1 is close to expiry"  : $"{expiring} are close to expiry");
+
+                if (reasons.Count > 0)
+                    newAlerts.Add(new AlertRowVm
+                    {
+                        Message = "Standing buy orders: " + string.Join(", ", reasons) + ".",
+                        NavigateCommand = NavigateToStandingBuyOrders is not null
+                            ? ReactiveCommand.Create(NavigateToStandingBuyOrders)
+                            : null
+                    });
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "StandingBuyOrderAlert", ex); }
         }
 
         // Alerts raised by the user's own alarms. Listed first and unconditionally: unlike the

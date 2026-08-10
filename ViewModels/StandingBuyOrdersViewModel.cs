@@ -24,15 +24,47 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     public string RemainingPct { get; } = r.RemainingPercentText;
     public string Expiry       { get; } = r.ExpiryText;
 
-    public string Status { get; } = r.MatchStatus == "matched" ? "Active" : "Missing";
+    /// <summary>Highest competing bid at the same station, or "—" when the station
+    /// isn't a tracked market source.</summary>
+    public string StationBid { get; } = r.CompetingBidText;
+
+    public bool IsOutbid { get; } = r.IsOutbid;
+
+    /// <summary>Our price goes amber when someone is paying more — until it is raised,
+    /// sellers fill their order instead of ours. Amber rather than red: like low volume
+    /// and near expiry, it is a standing order that needs adjusting, not one that is
+    /// absent. Red stays reserved for an order that isn't there at all.</summary>
+    public string PriceColor { get; } = r.IsOutbid ? "#c8a84b" : "#c8c8d8";
+
+    public string StationBidColor { get; } = r.IsOutbid ? "#c8a84b"
+                                           : r.IsLocationTracked ? "#c8c8d8" : "#555566";
+
+    public string? PriceTooltip { get; } = !r.IsLocationTracked
+        ? "This station isn't a configured market source, so competing bids are unknown. Add it under Settings → Market."
+        : r.IsOutbid
+            ? $"Outbid by {r.OutbidBy:N2} ISK — the station's best bid is {r.CompetingBestBid:N2}."
+            : r.CompetingBestBid is null
+                ? "No other buy orders for this item here."
+                : null;
+
+    /// <summary>"Outbid" beats "Active" because it is the more actionable truth: the
+    /// order is live, but nothing will fill it until the price moves. It also carries
+    /// that state onto the Overview panel, which has no price column of its own.
+    /// Volume and expiry stay out of here — those are already shown as their own
+    /// columns, whereas the competing bid is not.</summary>
+    public string Status { get; } = r.MatchStatus != "matched" ? "Missing"
+                                  : r.IsOutbid                 ? "Outbid"
+                                  : "Active";
 
     /// <summary>Colour cue: red when the order isn't there at all, amber when it is
     /// but is running out — either of volume or of time — green otherwise.</summary>
+    /// <summary>Amber covers every "the order is there but wants adjusting" case —
+    /// outbid, running low, nearing expiry. Red means the order does not exist.</summary>
     public string StatusColor { get; } = r.MatchStatus switch
     {
-        "matched" when r.IsLow || r.IsExpiringSoon => "#c8a84b",
-        "matched"                                  => "#6a9a6a",
-        _                                          => "#cc6666",
+        "matched" when r.IsOutbid || r.IsLow || r.IsExpiringSoon => "#c8a84b",
+        "matched"                                               => "#6a9a6a",
+        _                                                       => "#cc6666",
     };
 
     /// <summary>Expiry gets its own colour so a healthy-volume order that is about to
@@ -53,6 +85,10 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
         if (r.MatchStatus != "matched") return "No live buy order at this location";
 
         var parts = new List<string>();
+        // Outbid leads: the other two mean the order is running out, this one means it
+        // is not working at all.
+        if (r.IsOutbid)
+            parts.Add($"Outbid by {r.OutbidBy:N2} ISK (station best {r.CompetingBestBid:N2})");
         if (r.IsLow)
             parts.Add($"Below {StandingBuyOrderService.LowRemainingThresholdPercent:N0}% of original volume");
         if (r.IsExpiringSoon)
@@ -140,14 +176,21 @@ public class StandingBuyOrdersViewModel : ReactiveObject
             return;
         }
 
+        // Counted per condition, not partitioned: one order can be both outbid and
+        // running low, and each is a separate thing to go and fix. So these can sum
+        // to more than the number of rows, unlike the Overview alert, which reports
+        // each order once under its most urgent reason.
         var missing  = rows.Count(r => r.MatchStatus != "matched");
+        var outbid   = rows.Count(r => r.IsOutbid);
         var low      = rows.Count(r => r.IsLow);
         var expiring = rows.Count(r => r.IsExpiringSoon);
-        var parts    = new List<string> { $"{rows.Count:N0} defined" };
+
+        var parts = new List<string> { $"{rows.Count:N0} defined" };
         if (missing > 0)  parts.Add($"{missing:N0} missing");
+        if (outbid > 0)   parts.Add($"{outbid:N0} outbid");
         if (low > 0)      parts.Add($"{low:N0} running low");
         if (expiring > 0) parts.Add($"{expiring:N0} expiring soon");
-        if (missing == 0 && low == 0 && expiring == 0) parts.Add("all healthy");
+        if (missing == 0 && outbid == 0 && low == 0 && expiring == 0) parts.Add("all healthy");
 
         StatusText = string.Join("  ·  ", parts);
     }

@@ -15,6 +15,7 @@ public class AlertSettingsViewModel : ReactiveObject
     private decimal _skillQueueEmptyDays   = 30;
     private bool    _assetSafety                = true;
     private bool    _inactiveStandingProjects   = true;
+    private bool    _standingBuyOrdersAttention = true;
     private string  _status                    = "";
 
     public bool SkillQueueEmpty
@@ -54,6 +55,12 @@ public class AlertSettingsViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _inactiveStandingProjects, value);
     }
 
+    public bool StandingBuyOrdersAttention
+    {
+        get => _standingBuyOrdersAttention;
+        set => this.RaiseAndSetIfChanged(ref _standingBuyOrdersAttention, value);
+    }
+
     public string Status
     {
         get => _status;
@@ -79,6 +86,7 @@ public class AlertSettingsViewModel : ReactiveObject
         SkillQueueEmptyDays   = s.SkillQueueEmptyDays;
         AssetSafety                = s.AssetSafety;
         InactiveStandingProjects   = s.InactiveStandingProjects;
+        StandingBuyOrdersAttention = s.StandingBuyOrdersAttention;
     }
 
     private async Task SaveAsync()
@@ -89,18 +97,20 @@ public class AlertSettingsViewModel : ReactiveObject
         int emptyDay  = SkillQueueEmptyInDays       ? 1 : 0;
         int safety    = AssetSafety                 ? 1 : 0;
         int inactive  = InactiveStandingProjects    ? 1 : 0;
+        int buyOrders = StandingBuyOrdersAttention  ? 1 : 0;
 
         await _db.Database.ExecuteSqlInterpolatedAsync($"""
             INSERT INTO "AlertSettings"
-                ("Id","SkillQueueEmpty","SkillQueuePaused","SkillQueueEmptyInDays","SkillQueueEmptyDays","AssetSafety","InactiveStandingProjects")
-            VALUES (1,{empty},{paused},{emptyDay},{days},{safety},{inactive})
+                ("Id","SkillQueueEmpty","SkillQueuePaused","SkillQueueEmptyInDays","SkillQueueEmptyDays","AssetSafety","InactiveStandingProjects","StandingBuyOrdersAttention")
+            VALUES (1,{empty},{paused},{emptyDay},{days},{safety},{inactive},{buyOrders})
             ON CONFLICT("Id") DO UPDATE SET
                 "SkillQueueEmpty"             = excluded."SkillQueueEmpty",
                 "SkillQueuePaused"            = excluded."SkillQueuePaused",
                 "SkillQueueEmptyInDays"       = excluded."SkillQueueEmptyInDays",
                 "SkillQueueEmptyDays"         = excluded."SkillQueueEmptyDays",
                 "AssetSafety"                 = excluded."AssetSafety",
-                "InactiveStandingProjects"    = excluded."InactiveStandingProjects"
+                "InactiveStandingProjects"    = excluded."InactiveStandingProjects",
+                "StandingBuyOrdersAttention"  = excluded."StandingBuyOrdersAttention"
             """);
 
         Status = "Saved.";

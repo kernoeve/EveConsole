@@ -24,7 +24,13 @@ public sealed record StandingBuyOrderRow(
     DateTimeOffset? ExpiresAt,     // earliest expiry across the matching orders
     string ExpiryText,
     double TimeRemainingPercentValue, // percent of the order's duration still to run; -1 when unmatched
-    bool   IsExpiringSoon);
+    bool   IsExpiringSoon,
+    decimal? OurBestPrice,         // highest of our own bids here
+    decimal? CompetingBestBid,     // highest OTHER buy order at this station; null when nobody else is bidding
+    bool   IsLocationTracked,      // false when this station isn't a configured market source
+    string CompetingBidText,
+    bool   IsOutbid,
+    decimal? OutbidBy);
 
 /// <summary>
 /// Standing buy orders: the user declares a buy order they intend to keep up at a
@@ -138,6 +144,41 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
             .GroupBy(o => (o.TypeId, o.LocationId))
             .ToDictionary(g => g.Key, g => g.ToList());
 
+        // ── Competing bids from the public order book ────────────────────────
+        //
+        // Being outbid is invisible from our own orders alone: the order is present,
+        // full and in date, and still gets no fills because someone is paying more.
+        //
+        // MarketRawOrders is the public book, and only covers locations set up as
+        // market sources (Settings → Market). Somewhere untracked has to read as
+        // "unknown", not "nobody is bidding" — the second would be a lie that reads
+        // as good news.
+        //
+        // Our own orders are in the public book too, so they must be excluded or
+        // every row would compare against itself and never look outbid.
+        var typeIds = standing.Select(s => s.TypeId).Distinct().ToList();
+        var locIds  = standing.Select(s => s.LocationId).Distinct().ToList();
+        var ourOrderIds = live.Select(o => o.OrderId).ToHashSet();
+
+        var bookRows = await db.MarketRawOrders.AsNoTracking()
+            .Where(m => m.IsBuyOrder && typeIds.Contains(m.TypeId) && locIds.Contains(m.LocationId))
+            .Select(m => new { m.OrderId, m.TypeId, m.LocationId, m.Price })
+            .ToListAsync(ct);
+
+        var competingBest = bookRows
+            .Where(m => !ourOrderIds.Contains(m.OrderId))
+            .GroupBy(m => (m.TypeId, m.LocationId))
+            .ToDictionary(g => g.Key, g => (decimal)g.Max(m => m.Price));
+
+        // A location with any book rows at all is being tracked, even if this
+        // particular item has no other bidder.
+        var trackedLocations = await db.MarketRawOrders.AsNoTracking()
+            .Where(m => locIds.Contains(m.LocationId))
+            .Select(m => m.LocationId)
+            .Distinct()
+            .ToListAsync(ct);
+        var trackedSet = trackedLocations.ToHashSet();
+
         var charNames = await db.Characters.AsNoTracking()
             .ToDictionaryAsync(c => c.Id, c => c.Name, ct);
         // Corporation.Id is int while MarketOrder.OwnerId is long, so widen the key
@@ -155,6 +196,16 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
 
         foreach (var sbo in standing)
         {
+            var tracked  = trackedSet.Contains(sbo.LocationId);
+            var rivalBid = competingBest.TryGetValue((sbo.TypeId, sbo.LocationId), out var rb)
+                ? rb : (decimal?)null;
+
+            // Shown even when our order is missing: knowing what the station is paying
+            // is exactly what you need in order to place one.
+            var rivalText = !tracked
+                ? "—"
+                : rivalBid is { } v ? $"{v:N2}" : "no other bids";
+
             if (!byKey.TryGetValue((sbo.TypeId, sbo.LocationId), out var matches) || matches.Count == 0)
             {
                 rows.Add(new StandingBuyOrderRow(
@@ -176,7 +227,13 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
                     ExpiresAt            : null,
                     ExpiryText           : "",
                     TimeRemainingPercentValue: -1,
-                    IsExpiringSoon       : false));
+                    IsExpiringSoon       : false,
+                    OurBestPrice         : null,
+                    CompetingBestBid     : rivalBid,
+                    IsLocationTracked    : tracked,
+                    CompetingBidText     : rivalText,
+                    IsOutbid             : false,
+                    OutbidBy             : null));
                 continue;
             }
 
@@ -254,7 +311,13 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
                 ExpiresAt            : expiresAt,
                 ExpiryText           : expiryText,
                 TimeRemainingPercentValue: timePct,
-                IsExpiringSoon       : timePct >= 0 && timePct < LowTimeThresholdPercent));
+                IsExpiringSoon       : timePct >= 0 && timePct < LowTimeThresholdPercent,
+                OurBestPrice         : bestPrice,
+                CompetingBestBid     : rivalBid,
+                IsLocationTracked    : tracked,
+                CompetingBidText     : rivalText,
+                IsOutbid             : rivalBid is { } rival && bestPrice < rival,
+                OutbidBy             : rivalBid is { } r2 && bestPrice < r2 ? r2 - bestPrice : null));
         }
 
         return rows;
@@ -274,12 +337,12 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
         return $"{expires.ToLocalTime():yyyy-MM-dd}  ({span} left)";
     }
 
-    /// <summary>Standing orders that are missing, nearly exhausted or nearly expired —
-    /// the count worth surfacing elsewhere, as CountInactiveStandingProjectsAsync does
-    /// for projects.</summary>
+    /// <summary>Standing orders that are missing, nearly exhausted, nearly expired or
+    /// outbid — the count worth surfacing elsewhere, as CountInactiveStandingProjectsAsync
+    /// does for projects.</summary>
     public async Task<int> CountNeedingAttentionAsync(CancellationToken ct = default)
     {
         var rows = await BuildGridRowsAsync(ct);
-        return rows.Count(r => r.MatchStatus == "missing" || r.IsLow || r.IsExpiringSoon);
+        return rows.Count(r => r.MatchStatus == "missing" || r.IsLow || r.IsExpiringSoon || r.IsOutbid);
     }
 }
