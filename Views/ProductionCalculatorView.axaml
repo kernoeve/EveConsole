@@ -572,13 +572,6 @@
           </ScrollViewer>
         </TabItem>
 
-        <!-- ── Flow ───────────────────────────────────────────────────────── -->
-        <TabItem Header="Flow">
-          <TextBlock Text="Flow visualization coming soon."
-                     HorizontalAlignment="Center" VerticalAlignment="Center"
-                     Foreground="#555566" FontSize="14"/>
-        </TabItem>
-
       </TabControl>
     </Grid>
   </Grid>
