@@ -70,7 +70,22 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTextColumn Header="Best bid"   Binding="{Binding Price}"        Width="140" />
+        <DataGridTemplateColumn Header="Our bid" Width="150" SortMemberPath="Price">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+              <TextBlock Text="{Binding Price}" FontSize="11" Foreground="{Binding PriceColor}"
+                         VerticalAlignment="Center" ToolTip.Tip="{Binding PriceTooltip}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTemplateColumn Header="Station best bid" Width="150" SortMemberPath="StationBid">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+              <TextBlock Text="{Binding StationBid}" FontSize="11" Foreground="{Binding StationBidColor}"
+                         VerticalAlignment="Center" ToolTip.Tip="{Binding PriceTooltip}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="Remaining"  Binding="{Binding Remaining}"    Width="150" />
         <DataGridTextColumn Header="%"          Binding="{Binding RemainingPct}" Width="70"  />
         <DataGridTemplateColumn Header="Expires" Width="180" SortMemberPath="Expiry">

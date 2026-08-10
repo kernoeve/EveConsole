@@ -646,8 +646,17 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Remaining" Binding="{Binding RemainingPct}" Width="80" />
-                  <DataGridTemplateColumn Header="Expires" Width="150">
+                  <DataGridTemplateColumn Header="Our bid" Width="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+                        <TextBlock Text="{Binding Price}" Foreground="{Binding PriceColor}"
+                                   FontSize="11" VerticalAlignment="Center" Padding="6 0"
+                                   TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding PriceTooltip}" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Rem." Binding="{Binding RemainingPct}" Width="70" />
+                  <DataGridTemplateColumn Header="Expires" Width="140">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
                         <TextBlock Text="{Binding Expiry}" Foreground="{Binding ExpiryColor}"

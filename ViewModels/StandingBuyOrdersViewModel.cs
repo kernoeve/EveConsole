@@ -24,12 +24,37 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     public string RemainingPct { get; } = r.RemainingPercentText;
     public string Expiry       { get; } = r.ExpiryText;
 
+    /// <summary>Highest competing bid at the same station, or "—" when the station
+    /// isn't a tracked market source.</summary>
+    public string StationBid { get; } = r.CompetingBidText;
+
+    public bool IsOutbid { get; } = r.IsOutbid;
+
+    /// <summary>Our price goes red when someone is paying more — until it is raised,
+    /// sellers fill their order instead of ours.</summary>
+    public string PriceColor { get; } = r.IsOutbid ? "#cc6666" : "#c8c8d8";
+
+    public string StationBidColor { get; } = r.IsOutbid ? "#cc6666"
+                                           : r.IsLocationTracked ? "#c8c8d8" : "#555566";
+
+    public string? PriceTooltip { get; } = !r.IsLocationTracked
+        ? "This station isn't a configured market source, so competing bids are unknown. Add it under Settings → Market."
+        : r.IsOutbid
+            ? $"Outbid by {r.OutbidBy:N2} ISK — the station's best bid is {r.CompetingBestBid:N2}."
+            : r.CompetingBestBid is null
+                ? "No other buy orders for this item here."
+                : null;
+
     public string Status { get; } = r.MatchStatus == "matched" ? "Active" : "Missing";
 
     /// <summary>Colour cue: red when the order isn't there at all, amber when it is
     /// but is running out — either of volume or of time — green otherwise.</summary>
     public string StatusColor { get; } = r.MatchStatus switch
     {
+        // Outbid is red rather than amber: the order exists and looks healthy, but
+        // it is not getting filled at all, which is the same practical outcome as
+        // not having one.
+        "matched" when r.IsOutbid                  => "#cc6666",
         "matched" when r.IsLow || r.IsExpiringSoon => "#c8a84b",
         "matched"                                  => "#6a9a6a",
         _                                          => "#cc6666",
@@ -53,6 +78,10 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
         if (r.MatchStatus != "matched") return "No live buy order at this location";
 
         var parts = new List<string>();
+        // Outbid leads: the other two mean the order is running out, this one means it
+        // is not working at all.
+        if (r.IsOutbid)
+            parts.Add($"Outbid by {r.OutbidBy:N2} ISK (station best {r.CompetingBestBid:N2})");
         if (r.IsLow)
             parts.Add($"Below {StandingBuyOrderService.LowRemainingThresholdPercent:N0}% of original volume");
         if (r.IsExpiringSoon)

@@ -2158,7 +2158,10 @@
                       FontSize="12" Foreground="#ccccdd" />
 
             <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#888899"
-                       Text="Triggers when a standing buy order (Market / Trade → Standing Buy Orders) has no matching live order, has fallen below 10% of its original volume, or has under 20% of its duration left. The alert says which of the three, since placing an order, topping one up and renewing one are different jobs. Re-evaluated each time the Overview refreshes." />
+                       Text="Triggers when a standing buy order (Market / Trade → Standing Buy Orders) has no matching live order, has been outbid at that station, has fallen below 10% of its original volume, or has under 20% of its duration left. The alert says which, since placing an order, raising a price, topping one up and renewing one are different jobs. Re-evaluated each time the Overview refreshes." />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#666"
+                       Text="Outbid detection compares against the public order book, which only covers stations and structures configured as market sources under Settings → Market. Anywhere else shows a dash rather than claiming there is no competition." />
           </StackPanel>
         </Border>
 
