@@ -559,7 +559,7 @@ public class MainWindowViewModel : ReactiveObject
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
         CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);
         ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService);
-        IndyParksVm            = new IndyParksViewModel(dbFactory);
+        IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);

@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:services="clr-namespace:EveConsole.Services"
              x:Class="EveConsole.Views.IndyParksView"
              x:DataType="vm:IndyParksViewModel"
              Background="#0d0d12">
@@ -123,7 +124,7 @@
                 <DataTemplate x:DataType="vm:StructureVm">
                   <Border Background="#12121a" CornerRadius="4" Padding="14 12"
                           Margin="0 0 0 8" BorderBrush="#1e1e2a" BorderThickness="1">
-                    <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto">
 
                       <!-- Row 0: Name + Type + Remove button -->
                       <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0 0 0 10">
@@ -175,8 +176,64 @@
                                    VerticalAlignment="Center" />
                       </StackPanel>
 
-                      <!-- Row 3: Rig slots -->
-                      <StackPanel Grid.Row="3" Spacing="6">
+                      <!-- Row 3: Link to the real in-game facility.
+                           Set by hand — nothing is inferred. Industry jobs running at
+                           the linked facility are checked against the rigs below. -->
+                      <StackPanel Grid.Row="3" Spacing="4" Margin="0 0 0 10">
+                        <TextBlock Text="ACTUAL FACILITY" FontSize="10" FontWeight="SemiBold"
+                                   Foreground="#444455" LetterSpacing="1" />
+
+                        <Grid ColumnDefinitions="*,Auto">
+                          <TextBlock Grid.Column="0" Text="{Binding FacilityLinkText}"
+                                     FontSize="11" VerticalAlignment="Center"
+                                     TextTrimming="CharacterEllipsis"
+                                     Foreground="#aaaabc" />
+                          <Button Grid.Column="1" x:CompileBindings="False"
+                                  Command="{Binding $parent[UserControl].DataContext.UnlinkFacilityCommand}"
+                                  CommandParameter="{Binding}"
+                                  Content="Unlink" FontSize="10" Padding="8 2" Margin="8 0 0 0"
+                                  Background="#1a1a2a" Foreground="#888899"
+                                  BorderBrush="#2a2a3a" BorderThickness="1"
+                                  IsVisible="{Binding RealStructureId, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                          <TextBox Grid.Column="0" Text="{Binding FacilitySearch}"
+                                   Watermark="Search station or structure to link…"
+                                   Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                                   CornerRadius="3" Foreground="#ccccdd" CaretBrush="#c8a84b"
+                                   FontSize="11" Padding="8 4" />
+                          <Button Grid.Column="1" x:CompileBindings="False"
+                                  Command="{Binding $parent[UserControl].DataContext.SearchFacilityCommand}"
+                                  CommandParameter="{Binding}"
+                                  Content="Search" FontSize="10" Padding="10 3" Margin="8 0 0 0"
+                                  Background="#1a1a2a" Foreground="#888899"
+                                  BorderBrush="#2a2a3a" BorderThickness="1" />
+                        </Grid>
+
+                        <Border Background="#0f0f18" CornerRadius="3" BorderBrush="#1e1e2a"
+                                BorderThickness="1" MaxHeight="120"
+                                IsVisible="{Binding FacilityResults.Count}">
+                          <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding FacilityResults}">
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="services:SdeStationResult">
+                                  <Button x:CompileBindings="False"
+                                          Command="{Binding $parent[UserControl].DataContext.LinkFacilityCommand}"
+                                          CommandParameter="{Binding}"
+                                          HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                          Background="Transparent" BorderThickness="0" Padding="8 3">
+                                    <TextBlock Text="{Binding Name}" FontSize="11" Foreground="#c8c8d8" />
+                                  </Button>
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                          </ScrollViewer>
+                        </Border>
+                      </StackPanel>
+
+                      <!-- Row 4: Rig slots -->
+                      <StackPanel Grid.Row="4" Spacing="6">
                         <TextBlock Text="RIGS" FontSize="10" FontWeight="SemiBold"
                                    Foreground="#444455" LetterSpacing="1" />
                         <ItemsControl ItemsSource="{Binding RigSlots}">

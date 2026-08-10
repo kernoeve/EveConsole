@@ -1310,9 +1310,14 @@ public class App : Application
                     "StructureTypeKey" TEXT    NOT NULL DEFAULT 'raitaru',
                     "SystemName"       TEXT    NOT NULL DEFAULT '',
                     "SecurityClass"    TEXT    NOT NULL DEFAULT 'nullsec',
-                    "FacilityTax"      REAL    NOT NULL DEFAULT 1.0
+                    "FacilityTax"      REAL    NOT NULL DEFAULT 1.0,
+                    "RealStructureId"   INTEGER,
+                    "RealStructureName" TEXT NOT NULL DEFAULT ''
                 )
                 """);
+            // Existing parks predate the link to a real in-game facility.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IndyStructures" ADD COLUMN "RealStructureId" INTEGER"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IndyStructures" ADD COLUMN "RealStructureName" TEXT NOT NULL DEFAULT ''"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "IndyStructureRigs" (
                     "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

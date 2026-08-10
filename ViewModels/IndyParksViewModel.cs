@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using System.Text.Json;
 using EveConsole.Data;
 using EveConsole.Models;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
@@ -129,16 +130,52 @@ public class StructureVm : ReactiveObject
 
     public string DisplayHeader => string.IsNullOrWhiteSpace(DisplayName) ? StructureTypeLabel : DisplayName;
 
-    public StructureVm(int id, int parkId, string displayName, string structureTypeKey,
-                       string systemName, string securityClass, decimal facilityTax = 1m)
+    // ── Link to a real in-game facility ──────────────────────────────────────
+    // Set by hand: the user says which actual structure this park entry describes.
+    // Nothing is inferred or name-matched. Without a link, industry jobs running at
+    // that facility are reported as unknown rather than unrigged.
+
+    private long? _realStructureId;
+    public long? RealStructureId
     {
-        Id                = id;
-        ParkId            = parkId;
-        _displayName      = displayName;
-        _structureTypeKey = structureTypeKey;
-        _systemName       = systemName;
-        _securityClass    = securityClass;
-        _facilityTax      = facilityTax;
+        get => _realStructureId;
+        set { this.RaiseAndSetIfChanged(ref _realStructureId, value); this.RaisePropertyChanged(nameof(FacilityLinkText)); }
+    }
+
+    private string _realStructureName = "";
+    public string RealStructureName
+    {
+        get => _realStructureName;
+        set { this.RaiseAndSetIfChanged(ref _realStructureName, value); this.RaisePropertyChanged(nameof(FacilityLinkText)); }
+    }
+
+    public string FacilityLinkText => RealStructureId is null
+        ? "Not linked — jobs here won't be rig-checked"
+        : RealStructureName;
+
+    /// <summary>Search results while picking; not persisted.</summary>
+    public ObservableCollection<SdeStationResult> FacilityResults { get; } = [];
+
+    private string _facilitySearch = "";
+    public string FacilitySearch
+    {
+        get => _facilitySearch;
+        set => this.RaiseAndSetIfChanged(ref _facilitySearch, value);
+    }
+
+    public StructureVm(int id, int parkId, string displayName, string structureTypeKey,
+                       string systemName, string securityClass, decimal facilityTax = 1m,
+                       long? realStructureId = null, string realStructureName = "")
+    {
+        Id                 = id;
+        ParkId             = parkId;
+        _displayName       = displayName;
+        _structureTypeKey  = structureTypeKey;
+        _systemName        = systemName;
+        _securityClass     = securityClass;
+        _facilityTax       = facilityTax;
+        _realStructureId   = realStructureId;
+        _realStructureName = realStructureName;
     }
 }
 
@@ -319,6 +356,9 @@ public class IndyParksViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit>             AddStructureCommand         { get; }
     public ReactiveCommand<StructureVm, Unit>      RemoveStructureCommand      { get; }
     public ReactiveCommand<StructureVm, Unit>      SaveStructureCommand        { get; }
+    public ReactiveCommand<StructureVm, Unit>      SearchFacilityCommand       { get; }
+    public ReactiveCommand<SdeStationResult, Unit> LinkFacilityCommand         { get; }
+    public ReactiveCommand<StructureVm, Unit>      UnlinkFacilityCommand       { get; }
     public ReactiveCommand<ItemSearchResult, Unit> AddItemExceptionCommand     { get; }
     public ReactiveCommand<ItemExceptionVm, Unit>  RemoveItemExceptionCommand  { get; }
 
@@ -329,9 +369,18 @@ public class IndyParksViewModel : ReactiveObject
 
     // ── Constructor ───────────────────────────────────────────────────────
 
-    public IndyParksViewModel(IDbContextFactory<AppDbContext> dbFactory)
+    /// <summary>Used only to search real stations and structures for the facility link.
+    /// Optional so the designer and any test construction still work.</summary>
+    private readonly CorpActivityService? _corpActivity;
+    private readonly AppErrorLogger?      _errorLogger;
+
+    public IndyParksViewModel(IDbContextFactory<AppDbContext> dbFactory,
+                              CorpActivityService? corpActivity = null,
+                              AppErrorLogger? errorLogger = null)
     {
-        _dbFactory = dbFactory;
+        _dbFactory    = dbFactory;
+        _corpActivity = corpActivity;
+        _errorLogger  = errorLogger;
 
         LoadRigsFromSde();
 
@@ -341,6 +390,9 @@ public class IndyParksViewModel : ReactiveObject
         AddStructureCommand       = ReactiveCommand.CreateFromTask(AddStructureAsync);
         RemoveStructureCommand    = ReactiveCommand.CreateFromTask<StructureVm>(RemoveStructureAsync);
         SaveStructureCommand      = ReactiveCommand.CreateFromTask<StructureVm>(SaveStructureAsync);
+        SearchFacilityCommand     = ReactiveCommand.CreateFromTask<StructureVm>(SearchFacilityAsync);
+        LinkFacilityCommand       = ReactiveCommand.CreateFromTask<SdeStationResult>(LinkFacilityAsync);
+        UnlinkFacilityCommand     = ReactiveCommand.CreateFromTask<StructureVm>(UnlinkFacilityAsync);
         AddItemExceptionCommand   = ReactiveCommand.CreateFromTask<ItemSearchResult>(AddItemExceptionAsync);
         RemoveItemExceptionCommand = ReactiveCommand.CreateFromTask<ItemExceptionVm>(RemoveItemExceptionAsync);
 
@@ -538,7 +590,54 @@ public class IndyParksViewModel : ReactiveObject
     }
 
     private StructureVm BuildStructureVm(IndyStructure s)
-        => new(s.Id, s.ParkId, s.DisplayName, s.StructureTypeKey, s.SystemName, s.SecurityClass, s.FacilityTax);
+        => new(s.Id, s.ParkId, s.DisplayName, s.StructureTypeKey, s.SystemName, s.SecurityClass,
+               s.FacilityTax, s.RealStructureId, s.RealStructureName);
+
+    /// <summary>Which structure the visible search results belong to. The results list
+    /// renders SdeStationResult rows, so the pick alone can't say what it links to.</summary>
+    private StructureVm? _facilitySearchTarget;
+
+    /// <summary>Search real stations and structures for the facility link. Reuses the
+    /// same helper the standing-project and standing-buy-order dialogs use, so NPC
+    /// stations, player structures and corp structures are all reachable.</summary>
+    public async Task SearchFacilityAsync(StructureVm vm)
+    {
+        // Only one result list is meaningful at a time; clear any other structure's.
+        if (_facilitySearchTarget is not null && !ReferenceEquals(_facilitySearchTarget, vm))
+            _facilitySearchTarget.FacilityResults.Clear();
+        _facilitySearchTarget = vm;
+
+        var text = vm.FacilitySearch?.Trim() ?? "";
+        vm.FacilityResults.Clear();
+        if (text.Length < 2 || _corpActivity is null) return;
+
+        try
+        {
+            foreach (var r in await _corpActivity.SearchSdeStationsAsync(text))
+                vm.FacilityResults.Add(r);
+        }
+        catch (Exception ex) { _errorLogger?.Log(nameof(IndyParksViewModel), "SearchFacility", ex); }
+    }
+
+    public async Task LinkFacilityAsync(SdeStationResult pick)
+    {
+        var vm = _facilitySearchTarget;
+        if (vm is null) return;
+
+        vm.RealStructureId   = pick.StationId;
+        vm.RealStructureName = pick.Name;
+        vm.FacilityResults.Clear();
+        vm.FacilitySearch = "";
+        _facilitySearchTarget = null;
+        await SaveStructureDbAsync(vm);
+    }
+
+    public async Task UnlinkFacilityAsync(StructureVm vm)
+    {
+        vm.RealStructureId   = null;
+        vm.RealStructureName = "";
+        await SaveStructureDbAsync(vm);
+    }
 
     private void WireStructureVm(StructureVm vm)
     {
@@ -697,7 +796,9 @@ public class IndyParksViewModel : ReactiveObject
         entity.StructureTypeKey = vm.StructureTypeKey;
         entity.SystemName       = vm.SystemName;
         entity.SecurityClass    = vm.SecurityClass;
-        entity.FacilityTax      = vm.FacilityTax;
+        entity.FacilityTax        = vm.FacilityTax;
+        entity.RealStructureId    = vm.RealStructureId;
+        entity.RealStructureName  = vm.RealStructureName;
         await db.SaveChangesAsync();
     }
 
