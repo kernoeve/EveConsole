@@ -12,6 +12,7 @@ public sealed record StandingBuyOrderRow(
     string LocationName,
     string MatchStatus,            // "matched" | "missing"
     string OwnerDisplay,
+    string OwnerTooltip,           // per-order breakdown; empty when there is only one
     int    OrderCount,
     string PriceText,
     long   VolumeRemain,
@@ -115,12 +116,25 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
         var live = await db.EsiMarketOrders
             .AsNoTracking()
             .Where(o => o.IsBuyOrder && !o.IsHistory)
-            .Select(o => new { o.OwnerId, o.OwnerType, o.TypeId, o.LocationId,
+            .Select(o => new { o.OrderId, o.OwnerId, o.OwnerType, o.TypeId, o.LocationId,
                                o.Price, o.VolumeRemain, o.VolumeTotal,
                                o.Issued, o.Duration })
             .ToListAsync(ct);
 
-        var byKey = live
+        // ⚠ One ESI order can be stored twice. EsiMarketOrders is keyed on
+        // (OwnerId, OwnerType, OrderId, IsHistory), and a corp order placed by one of
+        // the user's characters comes back from BOTH characters/{id}/orders/ and the
+        // corp endpoint — same OrderId, same price, same volume, same issue time.
+        // Summing both would double every quantity, so dedupe on OrderId first.
+        //
+        // The corporation row wins where both exist: it is a corp order, and that is
+        // the entity whose wallet holds the escrow.
+        var deduped = live
+            .GroupBy(o => o.OrderId)
+            .Select(g => g.FirstOrDefault(o => o.OwnerType == "corporation") ?? g.First())
+            .ToList();
+
+        var byKey = deduped
             .GroupBy(o => (o.TypeId, o.LocationId))
             .ToDictionary(g => g.Key, g => g.ToList());
 
@@ -131,7 +145,9 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
         var corpNames = await db.Corporations.AsNoTracking()
             .ToDictionaryAsync(c => (long)c.Id, c => c.Name, ct);
 
-        string OwnerName(long id, string type) => type == "corp"
+        // The poller writes "corporation", not "corp" — getting this wrong silently
+        // renders every corp order's owner as an unresolved id.
+        string OwnerName(long id, string type) => type == "corporation"
             ? corpNames.GetValueOrDefault(id, $"Corp {id}")
             : charNames.GetValueOrDefault(id, $"#{id}");
 
@@ -148,6 +164,7 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
                     LocationName         : sbo.LocationName,
                     MatchStatus          : "missing",
                     OwnerDisplay         : "",
+                    OwnerTooltip         : "",
                     OrderCount           : 0,
                     PriceText            : "",
                     VolumeRemain         : 0,
@@ -174,9 +191,29 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
                 ? $"{bestPrice:N2}"
                 : $"{bestPrice:N2} (max of {matches.Count})";
 
-            var owner = matches.Count == 1
-                ? OwnerName(matches[0].OwnerId, matches[0].OwnerType)
-                : $"{matches.Select(m => m.OwnerId).Distinct().Count()} owners";
+            // Count distinct owners, not orders — one owner can hold several orders for
+            // the same item at the same station, and reporting that as "2 owners" would
+            // be wrong.
+            var distinctOwners = matches
+                .Select(m => (m.OwnerId, m.OwnerType))
+                .Distinct()
+                .ToList();
+
+            var owner = distinctOwners.Count == 1
+                ? OwnerName(distinctOwners[0].OwnerId, distinctOwners[0].OwnerType)
+                  + (matches.Count > 1 ? $" ({matches.Count} orders)" : "")
+                : $"{distinctOwners.Count} owners";
+
+            // Per-order breakdown, so an aggregated row can be unpacked without
+            // leaving the grid.
+            var tooltip = matches.Count <= 1
+                ? ""
+                : string.Join("\n", matches
+                    .OrderByDescending(m => m.Price)
+                    .Select(m =>
+                        $"{OwnerName(m.OwnerId, m.OwnerType)} — {m.Price:N2} ISK, "
+                      + $"{m.VolumeRemain:N0}/{m.VolumeTotal:N0}, "
+                      + $"expires {m.Issued.AddDays(m.Duration).ToLocalTime():yyyy-MM-dd}"));
 
             // Expiry. Where several orders back one declaration, the earliest is what
             // matters — it is the one that lapses first and leaves a gap.
@@ -205,6 +242,7 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
                 LocationName         : sbo.LocationName,
                 MatchStatus          : "matched",
                 OwnerDisplay         : owner,
+                OwnerTooltip         : tooltip,
                 OrderCount           : matches.Count,
                 PriceText            : priceText,
                 VolumeRemain         : remain,

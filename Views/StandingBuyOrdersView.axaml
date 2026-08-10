@@ -61,7 +61,15 @@
         </DataGridTemplateColumn>
         <DataGridTextColumn Header="Item"       Binding="{Binding TypeName}"     Width="220" />
         <DataGridTextColumn Header="Location"   Binding="{Binding LocationName}" Width="*"   />
-        <DataGridTextColumn Header="Held by"    Binding="{Binding Owner}"        Width="150" />
+        <DataGridTemplateColumn Header="Held by" Width="180" SortMemberPath="Owner">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+              <TextBlock Text="{Binding Owner}" FontSize="11" Foreground="#c8c8d8"
+                         VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                         ToolTip.Tip="{Binding OwnerTooltip}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="Best bid"   Binding="{Binding Price}"        Width="140" />
         <DataGridTextColumn Header="Remaining"  Binding="{Binding Remaining}"    Width="150" />
         <DataGridTextColumn Header="%"          Binding="{Binding RemainingPct}" Width="70"  />

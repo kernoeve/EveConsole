@@ -14,6 +14,11 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     public string TypeName     { get; } = r.TypeName;
     public string LocationName { get; } = r.LocationName;
     public string Owner        { get; } = r.OwnerDisplay;
+
+    /// <summary>Per-order breakdown for aggregated rows; null so Avalonia shows no
+    /// tooltip at all rather than an empty box on single-order rows.</summary>
+    public string? OwnerTooltip { get; } =
+        string.IsNullOrWhiteSpace(r.OwnerTooltip) ? null : r.OwnerTooltip;
     public string Price        { get; } = r.PriceText;
     public string Remaining    { get; } = r.RemainingText;
     public string RemainingPct { get; } = r.RemainingPercentText;
