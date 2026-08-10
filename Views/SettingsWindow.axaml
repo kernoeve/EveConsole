@@ -2146,6 +2146,22 @@
           </StackPanel>
         </Border>
 
+        <!-- Standing Buy Orders alerts -->
+        <Border Background="#161620" BorderBrush="#252530" BorderThickness="1"
+                CornerRadius="4" Padding="14 12">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Standing Buy Orders" FontWeight="SemiBold"
+                       Foreground="#c8a84b" FontSize="12" Margin="0 0 0 4" />
+
+            <CheckBox Content="Alert when standing buy orders need attention"
+                      IsChecked="{Binding AlertsVm.StandingBuyOrdersAttention}"
+                      FontSize="12" Foreground="#ccccdd" />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#888899"
+                       Text="Triggers when a standing buy order (Market / Trade → Standing Buy Orders) has no matching live order, has fallen below 10% of its original volume, or has under 20% of its duration left. The alert says which of the three, since placing an order, topping one up and renewing one are different jobs. Re-evaluated each time the Overview refreshes." />
+          </StackPanel>
+        </Border>
+
       </StackPanel>
     </ScrollViewer>
   </TabItem>

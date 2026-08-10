@@ -1563,9 +1563,12 @@ public class App : Application
                     "SkillQueueEmptyInDays" INTEGER NOT NULL DEFAULT 1,
                     "SkillQueueEmptyDays"   INTEGER NOT NULL DEFAULT 30,
                     "AssetSafety"                INTEGER NOT NULL DEFAULT 1,
-                    "InactiveStandingProjects"   INTEGER NOT NULL DEFAULT 1
+                    "InactiveStandingProjects"   INTEGER NOT NULL DEFAULT 1,
+                    "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1
                 )
                 """);
+            // Existing installs predate the standing-buy-order alert.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 INSERT OR IGNORE INTO "AlertSettings" ("Id") VALUES (1)
                 """);

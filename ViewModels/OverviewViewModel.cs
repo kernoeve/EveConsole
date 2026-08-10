@@ -1165,6 +1165,37 @@ public class OverviewViewModel : ReactiveObject
                 });
         }
 
+        // Standing buy orders that are missing, nearly exhausted or nearly expired.
+        if (_alertSettings.StandingBuyOrdersAttention && _standingBuyOrders is not null)
+        {
+            try
+            {
+                var sboRows = await _standingBuyOrders.BuildGridRowsAsync();
+
+                var missing  = sboRows.Count(r => r.MatchStatus != "matched");
+                var low      = sboRows.Count(r => r.MatchStatus == "matched" && r.IsLow);
+                var expiring = sboRows.Count(r => r.MatchStatus == "matched" && r.IsExpiringSoon && !r.IsLow);
+
+                // Broken out rather than a single total: "3 need attention" doesn't say
+                // whether to place an order, top one up or renew one, and those are
+                // different jobs.
+                var reasons = new List<string>();
+                if (missing > 0)  reasons.Add(missing == 1  ? "1 is missing"          : $"{missing} are missing");
+                if (low > 0)      reasons.Add(low == 1      ? "1 is nearly bought out": $"{low} are nearly bought out");
+                if (expiring > 0) reasons.Add(expiring == 1 ? "1 is close to expiry"  : $"{expiring} are close to expiry");
+
+                if (reasons.Count > 0)
+                    newAlerts.Add(new AlertRowVm
+                    {
+                        Message = "Standing buy orders: " + string.Join(", ", reasons) + ".",
+                        NavigateCommand = NavigateToStandingBuyOrders is not null
+                            ? ReactiveCommand.Create(NavigateToStandingBuyOrders)
+                            : null
+                    });
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "StandingBuyOrderAlert", ex); }
+        }
+
         // Alerts raised by the user's own alarms. Listed first and unconditionally: unlike the
         // checks above there is nothing to enable, because the user asked for each of these
         // explicitly when they built the alarm.
