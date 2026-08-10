@@ -5,6 +5,20 @@ public class IndyPark
     public int    Id        { get; set; }
     public string Name      { get; set; } = "New Park";
     public bool   IsDefault { get; set; }
+
+    /// <summary>
+    /// Catch-all facility for items no category assignment covers — either an item type
+    /// the rig rules don't classify, or a category with no structure assigned in this park.
+    ///
+    /// Those jobs used to abort the whole calculation. They now land here instead and are
+    /// reported as warnings on the plan. No rig bonus applies (that is the point — the
+    /// facility is not rigged for them), but the structure's role bonus, tax and system
+    /// cost index do, so the figure is a real one rather than a hole.
+    ///
+    /// Null is allowed: the job then plans with no structure at all and no bonuses. The
+    /// calculation still completes.
+    /// </summary>
+    public int?   DefaultStructureId { get; set; }
 }
 
 public class IndyStructure

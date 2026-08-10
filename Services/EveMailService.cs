@@ -151,39 +151,66 @@ public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient
             }
         }
 
+        // Persist the mail itself before going near name resolution. That call reaches a
+        // separate endpoint that can fail on its own, and it used to throw from here with
+        // the whole batch still unsaved — so nine characters silently stopped recording new
+        // mail entirely. A missing display name is cosmetic; a missing mail is not.
+        await db.SaveChangesAsync(ct);
+
         // Resolve From and Recipient names in bulk so the UI shows names, not numeric IDs.
+        //
+        // /universe/names/ rejects the ENTIRE batch with 404 if any single id is
+        // unresolvable, so mailing lists are dropped first — they are a legitimate
+        // recipient type with ids that endpoint cannot resolve, and one of them poisons
+        // every name in the request.
+        //
+        // The long overload is used deliberately: character ids are already within a few
+        // percent of int.MaxValue, and the int cast this replaced would silently truncate
+        // rather than fail once they pass it.
         var fromIds = (r.Data ?? [])
-            .Select(h => (int)h.From).Where(id => id > 0).Distinct().ToList();
+            .Select(h => h.From).Where(id => id > 0).Distinct().ToList();
         var recIds = (r.Data ?? [])
             .SelectMany(h => h.Recipients ?? [])
-            .Select(rc => (int)rc.RecipientId).Where(id => id > 0).Distinct().ToList();
+            .Where(rc => rc.RecipientType != "mailing_list")
+            .Select(rc => rc.RecipientId).Where(id => id > 0).Distinct().ToList();
         var allIds = fromIds.Concat(recIds).Distinct().ToList();
 
         if (allIds.Count > 0)
         {
-            var names    = await esi.GetNamesAsync(allIds, ct);
-            var nameMap  = names.ToDictionary(n => (long)n.Id, n => n.Name);
+            try
+            {
+                var names   = await esi.GetNamesAsync(allIds, ct);
+                var nameMap = names.ToDictionary(n => n.Id, n => n.Name);
 
-            var fromIdsLong = fromIds.Select(f => (long)f).ToList();
-            var hdrsNoName  = await db.EsiMailHeaders
-                .Where(h => h.CharacterId == charId
-                         && fromIdsLong.Contains(h.FromId)
-                         && h.FromName == "")
-                .ToListAsync(ct);
-            foreach (var hdr in hdrsNoName)
-                if (nameMap.TryGetValue(hdr.FromId, out var name))
-                    hdr.FromName = name;
+                var hdrsNoName = await db.EsiMailHeaders
+                    .Where(h => h.CharacterId == charId
+                             && fromIds.Contains(h.FromId)
+                             && h.FromName == "")
+                    .ToListAsync(ct);
+                foreach (var hdr in hdrsNoName)
+                    if (nameMap.TryGetValue(hdr.FromId, out var name))
+                        hdr.FromName = name;
 
-            var mailIds    = (r.Data ?? []).Select(h => h.MailId).ToList();
-            var recsNoName = await db.EsiMailRecipients
-                .Where(rc => mailIds.Contains(rc.MailId) && rc.RecipientName == "")
-                .ToListAsync(ct);
-            foreach (var rec in recsNoName)
-                if (nameMap.TryGetValue(rec.RecipientId, out var name))
-                    rec.RecipientName = name;
+                var mailIds    = (r.Data ?? []).Select(h => h.MailId).ToList();
+                var recsNoName = await db.EsiMailRecipients
+                    .Where(rc => mailIds.Contains(rc.MailId) && rc.RecipientName == "")
+                    .ToListAsync(ct);
+                foreach (var rec in recsNoName)
+                    if (nameMap.TryGetValue(rec.RecipientId, out var name))
+                        rec.RecipientName = name;
+
+                await db.SaveChangesAsync(ct);
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex)
+            {
+                // Best effort. An id this endpoint won't resolve — a biomassed character,
+                // a deleted corp — leaves those rows showing a numeric id, which the next
+                // poll retries. It must not cost us the mail.
+                errorLogger.Log("EveMailService", $"resolve names charId={charId}", ex);
+            }
         }
 
-        await db.SaveChangesAsync(ct);
         return FromResult(r);
     }
 

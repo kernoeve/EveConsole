@@ -3,13 +3,16 @@ namespace EveConsole.Services;
 /// <summary>
 /// Which structure rigs bonus which items.
 ///
-/// ⚠ These rules also exist, character for character, inside BuildCostService and
-/// ProductionCalculatorService as local functions. They were verified identical when
-/// this class was written. Those two were deliberately not switched over in the same
-/// change that introduced this file — they drive build costing, which cannot be
-/// functionally verified without running the app, and a silent error there is worse
-/// than the duplication. Consolidating them is a worthwhile follow-up; if you change
-/// a rule here, change it in all three.
+/// ⚠ These rules also exist inside BuildCostService and ProductionCalculatorService as
+/// local functions. Those two were deliberately not switched over in the same change that
+/// introduced this file — they drive build costing, which cannot be functionally verified
+/// without running the app, and a silent error there is worse than the duplication.
+///
+/// The three copies have already drifted once: the R.A.M. tools / Data Interfaces rule
+/// existed in both originals but was missed here at extraction time, so the rig check
+/// skipped those jobs until it was restored. Treat "they are identical" as something to
+/// re-check, not to assume. If you change a rule here, change it in all three.
+/// Consolidating them remains the real fix.
 /// </summary>
 public static class IndyRigMatching
 {
@@ -93,6 +96,43 @@ public static class IndyRigMatching
             // Structure Modules — service modules and structure rigs — are built at
             // engineering complexes like equipment.
             (66, _)         => "modules_equipment",
+            // T3 subsystems — Loki/Tengu/Legion/Proteus. Previously unmapped, so every
+            // subsystem threw "cannot be assigned to a structure" and lost its chain cost.
+            (32, _)         => "modules_equipment",
+            // Implants and boosters (20), starbase structures and POS modules (23), and
+            // sovereignty / infrastructure hub upgrades (39). Each of these categories
+            // holds nothing but its own kind, so matching the whole category is safe.
+            (20, _)         => "modules_equipment",
+            (23, _)         => "modules_equipment",
+            (39, _)         => "modules_equipment",
+            // Category 2 (Celestial) is a junk drawer — planets, suns, wrecks, wormholes,
+            // 1,697 non-interactable objects. Only its container groups are manufacturable,
+            // so match those by name rather than blanketing the category and quietly
+            // classifying anything CCP makes buildable there in future.
+            (2, var celestial) when celestial.Contains("Container") => "modules_equipment",
+            // Mutaplasmids. Matched by group rather than category — category 17 also holds
+            // fuel blocks and capital components, which have their own rigs below. Only
+            // mutaplasmids with a blueprint ever reach here, so the "manufacturable ones"
+            // qualifier takes care of itself.
+            (17, "Mutaplasmids")                                    => "modules_equipment",
+            // Abyssal, jump and warp matrix filaments. Four groups all named "… Filaments";
+            // the other filament groups in category 17 have no manufacturable members, so
+            // the name match cannot reach them.
+            (17, var fil) when fil.Contains("Filament")             => "modules_equipment",
+            // Individually classified. These sit in category 17's junk-drawer groups —
+            // "Miscellaneous" runs to thousands of unrelated items and "Commodities" mixes
+            // industry inputs with trinkets — so the type id is the only thing precise
+            // enough to match on.
+            _ when typeId is 76203 or 76204 or 29226                => "structure_ammo",
+            //     76203 Stellar Transmuter Datacore, 76204 Transport Relay Datacore,
+            //     29226 Basic Robotics
+            _ when typeId == 3585                                   => "modules_equipment",
+            //     3585 Mangled Sansha Data Analyzer
+            _ when typeId == 29202                                  => "ammo_charges",
+            //     29202 Modified Augumene Antidote
+            _ when typeId is >= 88172 and <= 88177                  => "adv_components",
+            //     88172-88177 Narrow/Mid/Wideband Emission Amplifiers and Limiters.
+            //     A contiguous block holding exactly those six and nothing else.
             (8, _)          => "ammo_charges",
             (18, _) or (87, _)                                                       => "drones_fighters",
             _ when groupId == 1136                                                   => "structure_ammo", // Fuel Blocks
@@ -109,6 +149,11 @@ public static class IndyRigMatching
                                                && !gc.Name.Contains("Advanced")       => "capital_components",
             _ when gc.Name.Contains("Component")                                     => "adv_components",
             _ when gc.CategoryId is 22 or 65                                         => "structure_ammo",
+            // R.A.M. tools and Data Interfaces are built at standard facilities. This rule
+            // was present in both other copies but missing here, so the rig check treated
+            // those jobs as uncheckable rather than comparing them against the equipment
+            // rig. See the header note on divergence.
+            (17, "Tool" or "Data Interfaces")                                        => "modules_equipment",
             _                                                                        => "",
         };
     }

@@ -496,6 +496,35 @@ public class BuildCostService
                 // Structure Modules — service modules and all structure rigs — are built at
                 // engineering complexes like equipment.
                 (66, _)         => "modules_equipment",
+                // T3 subsystems — Loki/Tengu/Legion/Proteus. Previously unmapped, so every
+                // subsystem threw "cannot be assigned to a structure" and lost its chain cost.
+                (32, _)         => "modules_equipment",
+                // Implants and boosters (20), starbase structures and POS modules (23),
+                // and sovereignty / infrastructure hub upgrades (39). Each category holds
+                // nothing but its own kind, so matching the whole category is safe.
+                (20, _)         => "modules_equipment",
+                (23, _)         => "modules_equipment",
+                (39, _)         => "modules_equipment",
+                // Category 2 (Celestial) is a junk drawer — planets, suns, wrecks, 1,697
+                // non-interactable objects. Only its container groups are manufacturable.
+                (2, var celestial) when celestial.Contains("Container") => "modules_equipment",
+                // Mutaplasmids. Matched by group, not category — category 17 also holds
+                // fuel blocks and capital components, which have their own rigs below.
+                (17, "Mutaplasmids")                                    => "modules_equipment",
+                // Abyssal, jump and warp matrix filaments. The other filament groups in
+                // category 17 have no manufacturable members, so this cannot reach them.
+                (17, var fil) when fil.Contains("Filament")             => "modules_equipment",
+                // Individually classified — these sit in category 17's junk-drawer groups,
+                // so the type id is the only thing precise enough to match on.
+                // 76203 Stellar Transmuter Datacore, 76204 Transport Relay Datacore,
+                // 29226 Basic Robotics, 3585 Mangled Sansha Data Analyzer,
+                // 29202 Modified Augumene Antidote.
+                _ when typeId is 76203 or 76204 or 29226                => "structure_ammo",
+                _ when typeId == 3585                                   => "modules_equipment",
+                _ when typeId == 29202                                  => "ammo_charges",
+                // 88172-88177 Narrow/Mid/Wideband Emission Amplifiers and Limiters —
+                // a contiguous block holding exactly those six and nothing else.
+                _ when typeId is >= 88172 and <= 88177                  => "adv_components",
                 (8, _)          => "ammo_charges",
                 (18, _) or (87, _)                                                          => "drones_fighters",
                 _ when tg.GroupId == 1136                                  => "structure_ammo",   // Fuel Blocks
@@ -919,6 +948,15 @@ public class BuildCostService
                             MeLevel  = me,
                         }],
                         planContext);
+
+                    // Unclassified items no longer abort the plan, so they arrive as
+                    // warnings instead of an exception. Still logged — a gap in the rig
+                    // rules is worth knowing about — but the cost below is now real
+                    // rather than a stale estimate from the previous pass.
+                    if (plan.Warnings.Count > 0)
+                        _errorLogger.Log("BuildCostService", $"chain cost for type {typeId}",
+                            string.Join("; ", plan.Warnings.Take(5))
+                            + (plan.Warnings.Count > 5 ? $"; …and {plan.Warnings.Count - 5} more" : ""));
 
                     var produced = Math.Max(1, plan.FinalProducts.Count > 0
                         ? plan.FinalProducts[0].QuantityProduced

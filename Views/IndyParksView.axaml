@@ -126,8 +126,8 @@
                           Margin="0 0 0 8" BorderBrush="#1e1e2a" BorderThickness="1">
                     <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto">
 
-                      <!-- Row 0: Name + Type + Remove button -->
-                      <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0 0 0 10">
+                      <!-- Row 0: Name + Type + Default + Remove button -->
+                      <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 0 0 10">
                         <TextBox Grid.Column="0" Text="{Binding DisplayName}"
                                  Watermark="Structure name…"
                                  Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
@@ -138,7 +138,11 @@
                                   ItemsSource="{x:Static vm:IndyParksViewModel.StructureTypeLabels}"
                                   MinWidth="120" Margin="8 0 0 0" FontSize="12"
                                   Background="#131320" BorderBrush="#2a2a3a" Foreground="#c8c8d8" />
-                        <Button Grid.Column="2" x:CompileBindings="False"
+                        <CheckBox Grid.Column="2" IsChecked="{Binding IsDefaultFacility}"
+                                  Content="Default" FontSize="11" Foreground="#c8c8d8"
+                                  VerticalAlignment="Center" Margin="10 0 0 0"
+                                  ToolTip.Tip="Catch-all facility. Items no category assignment covers are planned here with no rig bonus, so the calculation completes instead of failing. Only one facility per park." />
+                        <Button Grid.Column="3" x:CompileBindings="False"
                                 Command="{Binding $parent[UserControl].DataContext.RemoveStructureCommand}"
                                 CommandParameter="{Binding}"
                                 Content="✕" Background="#2a1010" Foreground="#aa4444"

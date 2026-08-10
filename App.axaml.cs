@@ -1299,7 +1299,8 @@ public class App : Application
                 CREATE TABLE IF NOT EXISTS "IndyParks" (
                     "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     "Name"      TEXT    NOT NULL DEFAULT 'New Park',
-                    "IsDefault" INTEGER NOT NULL DEFAULT 0
+                    "IsDefault" INTEGER NOT NULL DEFAULT 0,
+                    "DefaultStructureId" INTEGER NULL
                 )
                 """);
             db.Database.ExecuteSqlRaw("""
@@ -1865,6 +1866,11 @@ public class App : Application
                 """CREATE INDEX IF NOT EXISTS "IX_SdeAgents_Location" ON "SdeAgents" ("LocationId")""",
                 """CREATE TABLE IF NOT EXISTS "SdeAgentTypes" ("AgentTypeId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
                 """CREATE TABLE IF NOT EXISTS "SdeCorpDivisions" ("DivisionId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
+
+                // ── Indy Parks: catch-all facility ──────────────────────────────────
+                // Where jobs go when no category assignment covers the item. Before this
+                // existed such an item aborted the whole calculation.
+                """ALTER TABLE "IndyParks" ADD COLUMN "DefaultStructureId" INTEGER NULL""",
 
                 // ── SDE COLUMNS added after this database was last imported ─────────
                 // Same problem as the tables above, one level down. SdeImportService adds

@@ -163,6 +163,18 @@ public class StructureVm : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _facilitySearch, value);
     }
 
+    /// <summary>
+    /// This facility is the park's catch-all — where items no category assignment covers
+    /// get planned, with no rig bonus. Exactly one facility per park carries it; checking
+    /// one clears the rest. Stored as a single id on the park, so two cannot both be set.
+    /// </summary>
+    private bool _isDefaultFacility;
+    public bool IsDefaultFacility
+    {
+        get => _isDefaultFacility;
+        set => this.RaiseAndSetIfChanged(ref _isDefaultFacility, value);
+    }
+
     public StructureVm(int id, int parkId, string displayName, string structureTypeKey,
                        string systemName, string securityClass, decimal facilityTax = 1m,
                        long? realStructureId = null, string realStructureName = "")
@@ -582,6 +594,16 @@ public class IndyParksViewModel : ReactiveObject
                 Structures.Add(vm);
             }
 
+            // Exactly one facility carries the catch-all. Fall back to the first when the
+            // park has none recorded — parks predating this setting, and every park whose
+            // default facility was since deleted, would otherwise plan unclassified items
+            // with no structure at all.
+            var marked = Structures.FirstOrDefault(v => v.Id == park.DefaultStructureId)
+                      ?? Structures.FirstOrDefault();
+            foreach (var v in Structures) v.IsDefaultFacility = ReferenceEquals(v, marked);
+            if (marked is not null && park.DefaultStructureId != marked.Id)
+                _ = PersistDefaultStructureAsync(id, marked.Id);
+
             RebuildAssignments(assignments);
             RebuildItemExceptions(exceptions);
 
@@ -658,6 +680,15 @@ public class IndyParksViewModel : ReactiveObject
             .Skip(1)
             .Throttle(TimeSpan.FromMilliseconds(400))
             .Subscribe(async _ => await SaveStructureDbAsync(vm));
+
+        // Radio-group behaviour from a checkbox. Only a tick does anything; unticking the
+        // current catch-all puts it straight back, since a park must always have one.
+        vm.WhenAnyValue(x => x.IsDefaultFacility).Skip(1).Subscribe(async isDefault =>
+        {
+            if (_suppressSave) return;
+            if (isDefault) await SetDefaultStructureAsync(vm);
+            else if (!Structures.Any(s => s.IsDefaultFacility)) vm.IsDefaultFacility = true;
+        });
 
         foreach (var slot in vm.RigSlots)
             WireRigSlot(vm, slot);
@@ -756,6 +787,8 @@ public class IndyParksViewModel : ReactiveObject
                 vm.RigSlots.Add(new RigSlotVm(slot, rigs, null));
             WireStructureVm(vm);
             Structures.Add(vm);
+            // The first facility in a park becomes its catch-all.
+            if (Structures.Count == 1) vm.IsDefaultFacility = true;
             RefreshAssignmentOptions();
         });
     }
@@ -770,6 +803,8 @@ public class IndyParksViewModel : ReactiveObject
         await db.IndyStructures.Where(s => s.Id == vm.Id).ExecuteDeleteAsync();
         await db.SaveChangesAsync();
 
+        bool wasDefault = vm.IsDefaultFacility;
+
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
             Structures.Remove(vm);
@@ -779,11 +814,52 @@ public class IndyParksViewModel : ReactiveObject
                 if (e.Selected?.Id == vm.Id) e.Selected = null;
             RefreshAssignmentOptions();
         });
+
+        // Deleting the catch-all would leave the park without one, and every unclassified
+        // item would then plan with no structure. Hand it to whatever is left.
+        if (wasDefault)
+        {
+            var successor = Structures.FirstOrDefault();
+            if (successor is not null)
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(
+                    () => successor.IsDefaultFacility = true);
+            else
+                await PersistDefaultStructureAsync(vm.ParkId, null);
+        }
     }
 
     private async Task SaveStructureAsync(StructureVm vm)
     {
         await SaveStructureDbAsync(vm);
+    }
+
+    // ── Catch-all facility ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Makes one facility the park's catch-all and clears the rest. Bound to a checkbox per
+    /// facility rather than a dropdown, but it behaves as a radio group — unchecking the
+    /// current one re-checks it, because a park with no catch-all silently loses the
+    /// structure for every unclassified item.
+    /// </summary>
+    private async Task SetDefaultStructureAsync(StructureVm vm)
+    {
+        if (_suppressSave || _selectedPark is null) return;
+
+        _suppressSave = true;
+        foreach (var other in Structures)
+            other.IsDefaultFacility = ReferenceEquals(other, vm);
+        _suppressSave = false;
+
+        await PersistDefaultStructureAsync(_selectedPark.Id, vm.Id);
+    }
+
+    private async Task PersistDefaultStructureAsync(int parkId, int? structureId)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var park = await db.IndyParks.FindAsync(parkId);
+        if (park is null) return;
+        park.DefaultStructureId = structureId;
+        await db.SaveChangesAsync();
     }
 
     private async Task SaveStructureDbAsync(StructureVm vm)
