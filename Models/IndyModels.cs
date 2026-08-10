@@ -16,6 +16,20 @@ public class IndyStructure
     public string  SystemName       { get; set; } = "";
     public string  SecurityClass    { get; set; } = "nullsec";
     public decimal FacilityTax      { get; set; } = 1m; // percent (1 = 1%, stored as-is, divide by 100 when calculating)
+
+    /// <summary>
+    /// Optional link to the real in-game structure this models.
+    ///
+    /// Parks are otherwise hypothetical — a planned loadout used to cost jobs. Linking
+    /// one to an actual facility lets a running industry job be checked against the
+    /// rigs configured here, which is the only route to knowing a structure's rigs at
+    /// all: ESI exposes no structure-fitting endpoint.
+    ///
+    /// Null means unlinked, and a job at an unlinked facility is reported as unknown
+    /// rather than unrigged.
+    /// </summary>
+    public long?   RealStructureId   { get; set; }
+    public string  RealStructureName { get; set; } = "";
 }
 
 public class IndyStructureRig

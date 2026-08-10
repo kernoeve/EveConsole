@@ -97,6 +97,21 @@ internal sealed class CellSelectionService
 
 // Data cell.  "Time Remaining" cells also subscribe to ClockService and
 // recompute their value live every second without mutating the GridRow.
+/// <summary>
+/// Marks a grid row as needing attention. The view model sets the column to "1" and
+/// every cell in that row renders orange.
+///
+/// Orange matches the standing-projects and standing-buy-order panels — the row is
+/// telling you something is worth fixing, not that it has failed.
+/// </summary>
+internal static class GridWarning
+{
+    /// <summary>Hidden column; not listed in DisplayColumns, so it never renders.</summary>
+    public const string ColumnName = "Row Warning";
+
+    public static readonly IBrush Brush = new SolidColorBrush(Color.Parse("#e0902e"));
+}
+
 internal sealed class SelectableCell : Border
 {
     private static readonly IBrush SelectionBrush =
@@ -147,6 +162,19 @@ internal sealed class SelectableCell : Border
         _tb.Text = _isTimeRemaining && row is not null
             ? TimeRemainingHelper.Compute(row)
             : row?[_col] ?? "";
+
+        // A flagged row paints all of its text, not just the cell that explains why.
+        // Every cell in the row reads the same GridRow, so setting it here is enough.
+        //
+        // ⚠ Clear the property rather than assigning null. Avalonia treats a null
+        // Foreground as a local value of "no brush", which renders the text invisible;
+        // it does not fall back to the inherited colour. Assigning null here blanked
+        // the entire grid.
+        if (row is not null && row[GridWarning.ColumnName] == "1")
+            _tb.Foreground = GridWarning.Brush;
+        else
+            _tb.ClearValue(TextBlock.ForegroundProperty);
+
         Background = _svc.IsSelected(_grid, row, _col) ? SelectionBrush : null;
     }
 }

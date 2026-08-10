@@ -132,6 +132,50 @@ public class ProductionCalculatorViewModel : ReactiveObject
     private bool _includeBpcCost;
     public bool IncludeBpcCost { get => _includeBpcCost; set => this.RaiseAndSetIfChanged(ref _includeBpcCost, value); }
 
+    // ── Missing-stock mode (Raw Materials tab) ────────────────────────────
+    // Station mode asks "what do I still have to haul in", asset mode asks "what do I
+    // have to buy at all". The choice sticks between sessions because a given player
+    // almost always wants the same one.
+    private const string RawMissingModeKey = "prodcalc.raw_missing_by_station";
+
+    private readonly AppPreferencesService? _prefs;
+
+    private bool _rawMissingByStation;
+    public bool RawMissingByStation
+    {
+        get => _rawMissingByStation;
+        set
+        {
+            if (_rawMissingByStation == value) return;
+            this.RaiseAndSetIfChanged(ref _rawMissingByStation, value);
+            this.RaisePropertyChanged(nameof(MissingModeDescription));
+            _ = OnMissingModeChangedAsync();
+        }
+    }
+
+    public string MissingModeDescription => RawMissingByStation
+        ? "Missing counts stock at each job's linked facility"
+        : "Missing counts every asset you own, anywhere";
+
+    private ProductionCalculatorService.MissingMode CurrentMissingMode =>
+        RawMissingByStation
+            ? ProductionCalculatorService.MissingMode.Station
+            : ProductionCalculatorService.MissingMode.Assets;
+
+    private async Task OnMissingModeChangedAsync()
+    {
+        if (_prefs is not null)
+            await _prefs.SetBoolAsync(RawMissingModeKey, _rawMissingByStation);
+
+        // Recompute in place. The raw material rows notify, so the grid updates without
+        // reassigning Plan — which would rebuild and collapse the Jobs tree.
+        if (_plan is not null)
+        {
+            try { await _service.ApplyAvailabilityAsync(_plan, CurrentMissingMode); }
+            catch (Exception ex) { Status = $"Error: {ex.Message}"; }
+        }
+    }
+
     // ── Results ───────────────────────────────────────────────────────────
     private ProductionPlan? _plan;
     public ProductionPlan? Plan
@@ -176,9 +220,32 @@ public class ProductionCalculatorViewModel : ReactiveObject
                 .Select(BuildNode)
                 .ToList();
 
-            // Append shared multi-parent jobs at root level, sorted by name
+            // Append shared multi-parent jobs at root level, sorted by name.
+            //
+            // Through BuildNode, not as a bare node: a shared job has its own sub-jobs, and
+            // creating the node directly left them rendered nowhere at all. Their single
+            // parent was this shared job, so hoisting it out of the tree took them with it —
+            // a reaction like Pressurized Oxidizers appeared with its materials marked
+            // "Build" and no job anywhere that built them. They were always in the plan and
+            // in the cost totals; only the tree dropped them.
             foreach (var id in sharedIds.OrderBy(id => jobIndex[id].OutputTypeName))
-                roots.Add(new JobTreeNode { Job = jobIndex[id], NavigateCommand = OpenInItemBrowserCommand });
+                roots.Add(BuildNode(id));
+
+            // Safety net. The tree is walked over ChildTypeIds from RootTypeIds, so a job
+            // reachable by neither would vanish silently — which is exactly how the bug
+            // above went unnoticed. Anything left over is shown rather than lost.
+            var rendered = new HashSet<int>();
+            void Collect(JobTreeNode n)
+            {
+                rendered.Add(n.Job.OutputTypeId);
+                foreach (var c in n.Children) Collect(c);
+            }
+            foreach (var r in roots) Collect(r);
+
+            foreach (var job in _plan.AllJobs
+                         .Where(j => !rendered.Contains(j.OutputTypeId))
+                         .OrderBy(j => j.OutputTypeName))
+                roots.Add(new JobTreeNode { Job = job, NavigateCommand = OpenInItemBrowserCommand });
 
             return roots;
         }
@@ -206,10 +273,13 @@ public class ProductionCalculatorViewModel : ReactiveObject
 
     public ProductionCalculatorViewModel(
         IDbContextFactory<AppDbContext> dbFactory,
-        ProductionCalculatorService     service)
+        ProductionCalculatorService     service,
+        AppPreferencesService?          prefs = null)
     {
         _dbFactory = dbFactory;
         _service   = service;
+        _prefs     = prefs;
+        _rawMissingByStation = prefs?.GetBool(RawMissingModeKey, true) ?? true;
 
         var canAdd  = this.WhenAnyValue(x => x.CanAdd);
         var canCalc = this.WhenAnyValue(x => x.IsBusy, x => x.Queue.Count, (b, c) => !b && c > 0);
@@ -354,6 +424,9 @@ public class ProductionCalculatorViewModel : ReactiveObject
             }).ToList();
 
             var plan = await _service.CalculateAsync(requests, SelectedPark.Id, IncludeBpcCost);
+            // Before assigning, so the job rows arrive with their Missing values already
+            // filled — PlanJobMaterial has no change notification.
+            await _service.ApplyAvailabilityAsync(plan, CurrentMissingMode);
             Plan   = plan;
             Status = $"Done — {plan.AllJobs.Count} jobs, {plan.RawMaterials.Count} raw materials";
         }

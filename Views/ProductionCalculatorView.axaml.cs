@@ -46,6 +46,39 @@ public partial class ProductionCalculatorView : UserControl
         await CopyToClipboardAsync(sb.ToString());
     }
 
+    private async void OnShoppingListMissingClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ProductionCalculatorViewModel vm || vm.Plan is null) return;
+        // Rows whose availability is unknown are skipped rather than listed at full
+        // quantity — an unlinked structure is a gap in the answer, not a shortfall.
+        var sb = new StringBuilder();
+        foreach (var mat in vm.Plan.RawMaterials.Where(m => m.AvailabilityKnown && m.Missing > 0))
+            sb.Append(mat.TypeName).Append('\t').AppendLine(mat.Missing.ToString());
+        await CopyToClipboardAsync(sb.ToString());
+    }
+
+    // ── Per-job shopping lists ────────────────────────────────────────────
+    // Buy items only. A material this job builds rather than buys has its own job in the
+    // tree, and listing it here would double-count against that job's own inputs.
+
+    private async void OnJobShoppingListClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is not JobTreeNode node) return;
+        var sb = new StringBuilder();
+        foreach (var mat in node.Job.Materials.Where(m => m.IsBought))
+            sb.Append(mat.TypeName).Append('\t').AppendLine(mat.TotalQty.ToString());
+        await CopyToClipboardAsync(sb.ToString());
+    }
+
+    private async void OnJobShoppingListMissingClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is not JobTreeNode node) return;
+        var sb = new StringBuilder();
+        foreach (var mat in node.Job.Materials.Where(m => m.IsBought && m.AvailabilityKnown && m.Missing > 0))
+            sb.Append(mat.TypeName).Append('\t').AppendLine(mat.Missing.ToString());
+        await CopyToClipboardAsync(sb.ToString());
+    }
+
     private async void OnExportClipboardClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not ProductionCalculatorViewModel vm || vm.Plan is null) return;

@@ -1310,9 +1310,14 @@ public class App : Application
                     "StructureTypeKey" TEXT    NOT NULL DEFAULT 'raitaru',
                     "SystemName"       TEXT    NOT NULL DEFAULT '',
                     "SecurityClass"    TEXT    NOT NULL DEFAULT 'nullsec',
-                    "FacilityTax"      REAL    NOT NULL DEFAULT 1.0
+                    "FacilityTax"      REAL    NOT NULL DEFAULT 1.0,
+                    "RealStructureId"   INTEGER,
+                    "RealStructureName" TEXT NOT NULL DEFAULT ''
                 )
                 """);
+            // Existing parks predate the link to a real in-game facility.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IndyStructures" ADD COLUMN "RealStructureId" INTEGER"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IndyStructures" ADD COLUMN "RealStructureName" TEXT NOT NULL DEFAULT ''"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "IndyStructureRigs" (
                     "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -1564,11 +1569,13 @@ public class App : Application
                     "SkillQueueEmptyDays"   INTEGER NOT NULL DEFAULT 30,
                     "AssetSafety"                INTEGER NOT NULL DEFAULT 1,
                     "InactiveStandingProjects"   INTEGER NOT NULL DEFAULT 1,
-                    "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1
+                    "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1,
+                    "UnriggedIndustryJobs"       INTEGER NOT NULL DEFAULT 1
                 )
                 """);
-            // Existing installs predate the standing-buy-order alert.
+            // Existing installs predate these alerts.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "UnriggedIndustryJobs" INTEGER NOT NULL DEFAULT 1"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 INSERT OR IGNORE INTO "AlertSettings" ("Id") VALUES (1)
                 """);
@@ -1859,6 +1866,34 @@ public class App : Application
                 """CREATE TABLE IF NOT EXISTS "SdeAgentTypes" ("AgentTypeId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
                 """CREATE TABLE IF NOT EXISTS "SdeCorpDivisions" ("DivisionId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
 
+                // ── SDE COLUMNS added after this database was last imported ─────────
+                // Same problem as the tables above, one level down. SdeImportService adds
+                // these with ALTER, but only while an import runs, so a database imported
+                // before a column existed has EF querying a column the table lacks — and
+                // that throws on the whole entity, not just the missing value. The
+                // Production Calculator died on "no such column: s.Radius" this way.
+                // Mirror of the alters list in SdeImportService.EnsureSdeSchemaAsync;
+                // keep the two in step.
+                """ALTER TABLE "SdeGroups"         ADD COLUMN "Anchorable" INTEGER NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeGroups"         ADD COLUMN "Anchored"   INTEGER NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeTypes"          ADD COLUMN "GraphicId"  INTEGER""",
+                """ALTER TABLE "SdeTypes"          ADD COLUMN "FactionId"  INTEGER""",
+                """ALTER TABLE "SdeTypes"          ADD COLUMN "RaceId"     INTEGER""",
+                """ALTER TABLE "SdeTypes"          ADD COLUMN "MetaGroupId" INTEGER""",
+                """ALTER TABLE "SdeRegions"        ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeRegions"        ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeRegions"        ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeConstellations" ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeConstellations" ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeConstellations" ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "X2D" REAL""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Y2D" REAL""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "SecurityClass" TEXT NOT NULL DEFAULT ''""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Radius" REAL NOT NULL DEFAULT 0""",
+
                 // ── Intel channels ──────────────────────────────────────────────
                 // One-time removal of chat already stored twice — the same conversation logged
                 // by two of the user's characters, or imported from a second PC's log folder.
@@ -2110,6 +2145,7 @@ public class App : Application
         services.AddSingleton<KillmailBrowserService>();
         services.AddSingleton<CorpTop10ExcludeService>();
         services.AddSingleton<StandingBuyOrderService>();
+        services.AddSingleton<IndyFacilityCheckService>();
 
         // Game log import — reads EVE's own logs into GameLogEvents for tools to
         // query. Read-only; nothing is ever written back to an EVE-owned file.

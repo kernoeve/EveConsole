@@ -455,6 +455,7 @@ public class MainWindowViewModel : ReactiveObject
         BatchAddService                 batchAddService,
         CorpActivityService             corpActivityService,
         StandingBuyOrderService         standingBuyOrderService,
+        IndyFacilityCheckService        indyFacilityCheck,
         KillmailBrowserService          killmailBrowserService,
         BuildCostService                buildCostService,
         ProductionCalculatorService     prodCalcService,
@@ -508,7 +509,7 @@ public class MainWindowViewModel : ReactiveObject
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
         MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService);
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
-        OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService);
+        OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService, indyFacilityCheck);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
@@ -545,6 +546,7 @@ public class MainWindowViewModel : ReactiveObject
             CorpActivityVm.ShowStandingProjectsTab();
         };
         OverviewVm.NavigateToStandingBuyOrders = () => OpenTool("standing_buy_orders");
+        OverviewVm.NavigateToIndustryJobs      = () => OpenTool("industry");
         OverviewVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");
@@ -559,7 +561,7 @@ public class MainWindowViewModel : ReactiveObject
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
         CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);
         ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService);
-        IndyParksVm            = new IndyParksViewModel(dbFactory);
+        IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
@@ -574,7 +576,7 @@ public class MainWindowViewModel : ReactiveObject
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
-        ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
+        ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
         UniverseVm             = new UniverseViewModel(
@@ -618,7 +620,7 @@ public class MainWindowViewModel : ReactiveObject
         GameLogViewerVm      = new GameLogViewerViewModel(dbFactory, errorLogger);
         ChatLogViewerVm      = new ChatLogViewerViewModel(dbFactory, errorLogger, monitoringSettings);
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
-        IndustryBrowserVm    = new IndustryBrowserViewModel(connString);
+        IndustryBrowserVm    = new IndustryBrowserViewModel(connString, indyFacilityCheck);
         TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
         IndustryOpportunitiesVm = new IndustryOpportunitiesViewModel(connString, historyService, batchAddService);
 

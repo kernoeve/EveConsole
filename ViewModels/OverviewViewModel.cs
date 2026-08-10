@@ -340,13 +340,15 @@ public class OverviewViewModel : ReactiveObject
     private const string PeriodPrefKey = "overview.period_hours";
     private readonly AppPreferencesService? _prefs;
     private readonly CorpActivityService?     _corpActivity;
-    private readonly StandingBuyOrderService? _standingBuyOrders;
+    private readonly StandingBuyOrderService?  _standingBuyOrders;
+    private readonly IndyFacilityCheckService? _indyFacilityCheck;
 
     // Wired by MainWindowViewModel after construction — lets alert rows jump to the
     // relevant UI (character skills tab, corp activity standing projects tab).
     public Action<string>? NavigateToCharacterSkills               { get; set; }
     public Action?          NavigateToStandingProjects              { get; set; }
     public Action?          NavigateToStandingBuyOrders             { get; set; }
+    public Action?          NavigateToIndustryJobs                  { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
     public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
     public Action?          OpenAlertSettingsRequested              { get; set; }  // Settings ▸ Alerts
@@ -402,8 +404,10 @@ public class OverviewViewModel : ReactiveObject
                              CorpActivityService? corpActivity = null,
                              IDbContextFactory<AppDbContext>? dbFactory = null,
                              EsiClient? esi = null,
-                             StandingBuyOrderService? standingBuyOrders = null)
+                             StandingBuyOrderService? standingBuyOrders = null,
+                             IndyFacilityCheckService? indyFacilityCheck = null)
     {
+        _indyFacilityCheck = indyFacilityCheck;
         _db             = db;
         _alertSettings  = alertSettings;
         _errorLogger    = errorLogger;
@@ -923,24 +927,19 @@ public class OverviewViewModel : ReactiveObject
             foreach (var corpId in corpIds)
                 rows.AddRange(await _corpActivity!.BuildMaintainGridRowsAsync(corpId));
 
-            // Problems first, same as the Standing Buy Orders panel. "no_systems"
-            // leads because it means the definition can never match — a permanent
-            // configuration fault, where "not_active" is just a project nobody is
-            // running right now.
+            // Sorted by SeverityRank, matching the Standing Buy Orders panel: red
+            // first, orange second, then grey, then healthy. The rank is derived
+            // alongside the status colour so the order always follows what is on
+            // screen — an inactive project that is also nearly complete shows orange,
+            // and sorts as orange.
             var ordered = rows
-                .OrderBy(r => r.MatchStatus switch
-                {
-                    "no_systems" => 0,
-                    "matched"    => 2,
-                    _            => 1,   // not_active
-                })
-                .ThenBy(r => r.TypeDisplay)
-                .ThenBy(r => r.TargetDisplay)
+                .Select(r => new StandingProjectRowVm(r, _ => { }, _ => { }))
+                .OrderBy(v => v.SeverityRank)
+                .ThenBy(v => v.DescriptionText)
                 .ToList();
 
             StandingProjects.Clear();
-            foreach (var r in ordered)
-                StandingProjects.Add(new StandingProjectRowVm(r, _ => { }, _ => { }));
+            foreach (var vm in ordered) StandingProjects.Add(vm);
             HasStandingProjects = StandingProjects.Count > 0;
             this.RaisePropertyChanged(nameof(NoStandingProjects));
         }
@@ -967,16 +966,17 @@ public class OverviewViewModel : ReactiveObject
             // Anything wrong floats to the top: missing first, then running low or
             // nearly expired, then the healthy ones. A panel this size is only worth
             // the space if the problems are the part you can see without scrolling.
+            // Sorted by SeverityRank, which the row view model derives alongside its
+            // status colour — red first, orange second, healthy last. Ordering the
+            // view models rather than the records keeps sort and colour from drifting.
             var ordered = rows
-                .OrderBy(r => r.MatchStatus != "matched" ? 0        // absent entirely
-                            : r.IsOutbid                 ? 1        // present but winning no fills
-                            : r.IsLow || r.IsExpiringSoon ? 2       // running out
-                            : 3)
-                .ThenBy(r => r.TypeName)
+                .Select(r => new StandingBuyOrderRowVm(r))
+                .OrderBy(v => v.SeverityRank)
+                .ThenBy(v => v.TypeName)
                 .ToList();
 
             StandingBuyOrders.Clear();
-            foreach (var r in ordered) StandingBuyOrders.Add(new StandingBuyOrderRowVm(r));
+            foreach (var vm in ordered) StandingBuyOrders.Add(vm);
             HasStandingBuyOrders = StandingBuyOrders.Count > 0;
             this.RaisePropertyChanged(nameof(NoStandingBuyOrders));
         }
@@ -1216,6 +1216,27 @@ public class OverviewViewModel : ReactiveObject
                     });
             }
             catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "StandingBuyOrderAlert", ex); }
+        }
+
+        // Running jobs in a facility with no rig bonus for them. Active only — a
+        // finished job cannot be moved, so flagging it is noise rather than a task.
+        if (_alertSettings.UnriggedIndustryJobs && _indyFacilityCheck is not null)
+        {
+            try
+            {
+                var unrigged = await _indyFacilityCheck.CountUnriggedRunningAsync();
+                if (unrigged > 0)
+                    newAlerts.Add(new AlertRowVm
+                    {
+                        Message = unrigged == 1
+                            ? "1 running job is using a facility not rigged for it."
+                            : $"{unrigged} running jobs are using a facility not rigged for them.",
+                        NavigateCommand = NavigateToIndustryJobs is not null
+                            ? ReactiveCommand.Create(NavigateToIndustryJobs)
+                            : null
+                    });
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "UnriggedJobAlert", ex); }
         }
 
         // Alerts raised by the user's own alarms. Listed first and unconditionally: unlike the

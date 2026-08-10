@@ -441,7 +441,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 (8, _)          => "ammo_charges",
                 (18 or 87, _)   => "drones_fighters",
                 _ when tg.GroupId == 1136                                 => "structure_ammo",   // Fuel Blocks
-                _ when gc.Name.Contains("Capital") && gc.CategoryId == 4  => "capital_components",
+                // Capital Construction Components (group 873) are category 17, not 4 —
+                // the old guard matched nothing, so capital parts were assigned to the
+                // advanced-component structure. "Advanced" is excluded because group 913
+                // is genuinely bonused by the advanced rig. See IndyRigMatching.
+                _ when gc.Name.Contains("Capital") && gc.Name.Contains("Component")
+                                                   && !gc.Name.Contains("Advanced")
+                                                                          => "capital_components",
                 _ when gc.Name.Contains("Component")                       => "adv_components",
                 _ when gc.CategoryId is 22 or 65                          => "structure_ammo",
                 // R.A.M. items and Data Interfaces are manufactured at standard facilities
@@ -573,6 +579,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     IsFinalProduct = isFinal,
                     StructureName  = structure?.DisplayName ?? "",
                     SystemName     = structure?.SystemName  ?? "",
+                    // Only set when the park structure has been linked to a real facility.
+                    // Left null otherwise, which the availability pass reports as unknown.
+                    StationId      = structure?.RealStructureId,
+                    StationName    = structure?.RealStructureName ?? "",
                     MeReductionPct = meLevel,
                     RigBonusPct    = rigBonus * 100.0,
                     RoleBonusPct   = matRoleBonus * 100.0,
@@ -948,5 +958,122 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         return rawPool.ToDictionary(
             kv => kv.Key,
             kv => (kv.Value, names.GetValueOrDefault(kv.Key, $"Type {kv.Key}")));
+    }
+
+    // ── Stock availability ────────────────────────────────────────────────────
+
+    /// <summary>How the Raw Materials tab decides what is missing.</summary>
+    public enum MissingMode
+    {
+        /// <summary>Compare against stock at each job's linked facility. Jobs sharing a
+        /// structure share its pile, so their demand is summed before comparing.</summary>
+        Station,
+
+        /// <summary>Compare against every asset owned, wherever it sits.</summary>
+        Assets,
+    }
+
+    /// <summary>
+    /// Fills the availability fields on a finished plan from current asset holdings.
+    ///
+    /// Job rows are always station-based: a job's materials are compared against stock at
+    /// the facility its park structure is linked to, independently of every other job —
+    /// the question a job row answers is "can I start this one now".
+    ///
+    /// Raw material rows answer a different question — "what do I have to buy" — so there
+    /// the same stock cannot be promised to two jobs. In <see cref="MissingMode.Station"/>
+    /// demand is summed per structure and each structure's shortfall added up; ten jobs in
+    /// one Raitaru compete for one pile. In <see cref="MissingMode.Assets"/> the plan total
+    /// is compared against everything owned.
+    ///
+    /// Anything that cannot be answered is left unknown rather than guessed: a job whose
+    /// park structure has no linked facility has no station whose stock could be counted,
+    /// and reporting its full requirement as "missing" would be a fabricated number.
+    /// </summary>
+    public async Task ApplyAvailabilityAsync(
+        ProductionPlan plan,
+        MissingMode rawMode,
+        CancellationToken ct = default)
+    {
+        var typeIds = plan.AllJobs.SelectMany(j => j.Materials).Select(m => m.MaterialTypeId)
+            .Concat(plan.RawMaterials.Select(r => r.TypeId))
+            .Distinct().ToList();
+        if (typeIds.Count == 0) return;
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        // RootLocationId is the terminal station reached by walking the container chain, so
+        // this counts materials sitting in cans and ship holds at the station too.
+        var rows = await db.EsiAssets.AsNoTracking()
+            .Where(a => typeIds.Contains(a.TypeId))
+            .Select(a => new { a.TypeId, a.RootLocationId, a.Quantity })
+            .ToListAsync(ct);
+
+        var byStation = rows
+            .GroupBy(a => (a.RootLocationId, a.TypeId))
+            .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
+        var everywhere = rows
+            .GroupBy(a => a.TypeId)
+            .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
+
+        static int Clamp(long v) => (int)Math.Min(v, int.MaxValue);
+
+        int StockAt(long stationId, int typeId) =>
+            byStation.TryGetValue((stationId, typeId), out var q) ? Clamp(q) : 0;
+
+        // ── Job rows ─────────────────────────────────────────────────────────
+        foreach (var job in plan.AllJobs)
+        foreach (var mat in job.Materials)
+        {
+            mat.AvailabilityKnown = job.StationId.HasValue;
+            mat.Available = job.StationId.HasValue ? StockAt(job.StationId.Value, mat.MaterialTypeId) : 0;
+        }
+
+        // ── Raw material rows ────────────────────────────────────────────────
+        if (rawMode == MissingMode.Assets)
+        {
+            foreach (var raw in plan.RawMaterials)
+            {
+                raw.AvailabilityKnown = true;
+                raw.Available = everywhere.TryGetValue(raw.TypeId, out var q) ? Clamp(q) : 0;
+                raw.Missing   = Math.Max(0, raw.Quantity - raw.Available);
+            }
+            return;
+        }
+
+        // Station mode. Demand is rebuilt from the jobs rather than taken from the raw
+        // material totals, because the shortfall has to be worked out structure by
+        // structure before it can be added up.
+        var demand = new Dictionary<(long Station, int TypeId), long>();
+        var unlinked = new HashSet<int>();   // materials with demand from an unlinked job
+
+        foreach (var job in plan.AllJobs)
+        foreach (var mat in job.Materials.Where(m => m.IsBought))
+        {
+            if (!job.StationId.HasValue) { unlinked.Add(mat.MaterialTypeId); continue; }
+            var key = (job.StationId.Value, mat.MaterialTypeId);
+            demand[key] = demand.GetValueOrDefault(key) + mat.TotalQty;
+        }
+
+        var shortfall = new Dictionary<int, long>();
+        var onHand    = new Dictionary<int, long>();
+        foreach (var ((station, typeId), needed) in demand)
+        {
+            long stock = StockAt(station, typeId);
+            shortfall[typeId] = shortfall.GetValueOrDefault(typeId) + Math.Max(0, needed - stock);
+            // Only the part actually usable against this structure's demand, so the
+            // Available column never claims more stock than the shortfall accounts for.
+            onHand[typeId]    = onHand.GetValueOrDefault(typeId) + Math.Min(needed, stock);
+        }
+
+        foreach (var raw in plan.RawMaterials)
+        {
+            // Unknown as soon as any job needing this material has no linked facility —
+            // its share of the demand cannot be checked against anything, so a total that
+            // silently omitted it would read as more complete than it is.
+            raw.AvailabilityKnown = !unlinked.Contains(raw.TypeId);
+            raw.Available = raw.AvailabilityKnown ? Clamp(onHand.GetValueOrDefault(raw.TypeId))    : 0;
+            raw.Missing   = raw.AvailabilityKnown ? Clamp(shortfall.GetValueOrDefault(raw.TypeId)) : 0;
+        }
     }
 }
