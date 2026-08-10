@@ -128,6 +128,8 @@ public static class IndyRigMatching
             //     29226 Basic Robotics
             _ when typeId == 3585                                   => "modules_equipment",
             //     3585 Mangled Sansha Data Analyzer
+            _ when typeId == 29202                                  => "ammo_charges",
+            //     29202 Modified Augumene Antidote
             (8, _)          => "ammo_charges",
             (18, _) or (87, _)                                                       => "drones_fighters",
             _ when groupId == 1136                                                   => "structure_ammo", // Fuel Blocks

@@ -517,9 +517,11 @@ public class BuildCostService
                 // Individually classified — these sit in category 17's junk-drawer groups,
                 // so the type id is the only thing precise enough to match on.
                 // 76203 Stellar Transmuter Datacore, 76204 Transport Relay Datacore,
-                // 29226 Basic Robotics, 3585 Mangled Sansha Data Analyzer.
+                // 29226 Basic Robotics, 3585 Mangled Sansha Data Analyzer,
+                // 29202 Modified Augumene Antidote.
                 _ when typeId is 76203 or 76204 or 29226                => "structure_ammo",
                 _ when typeId == 3585                                   => "modules_equipment",
+                _ when typeId == 29202                                  => "ammo_charges",
                 (8, _)          => "ammo_charges",
                 (18, _) or (87, _)                                                          => "drones_fighters",
                 _ when tg.GroupId == 1136                                  => "structure_ammo",   // Fuel Blocks
