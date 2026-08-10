@@ -499,7 +499,13 @@ public class BuildCostService
                 (8, _)          => "ammo_charges",
                 (18, _) or (87, _)                                                          => "drones_fighters",
                 _ when tg.GroupId == 1136                                  => "structure_ammo",   // Fuel Blocks
-                _ when gc.Name.Contains("Capital") && gc.CategoryId == 4   => "capital_components",
+                // Capital Construction Components (group 873) are category 17, not 4 —
+                // the old guard matched nothing, so capital parts were costed with the
+                // advanced-component rig. "Advanced" is excluded because group 913 is
+                // genuinely bonused by the advanced rig. See IndyRigMatching.
+                _ when gc.Name.Contains("Capital") && gc.Name.Contains("Component")
+                                                   && !gc.Name.Contains("Advanced")
+                                                                           => "capital_components",
                 _ when gc.Name.Contains("Component")                        => "adv_components",
                 _ when gc.CategoryId is 22 or 65                           => "structure_ammo",
                 // R.A.M. items and Data Interfaces are manufactured at standard facilities

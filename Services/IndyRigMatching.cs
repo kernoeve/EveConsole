@@ -96,7 +96,17 @@ public static class IndyRigMatching
             (8, _)          => "ammo_charges",
             (18, _) or (87, _)                                                       => "drones_fighters",
             _ when groupId == 1136                                                   => "structure_ammo", // Fuel Blocks
-            _ when gc.Name.Contains("Capital") && gc.CategoryId == 4                 => "capital_components",
+            // Group 873 "Capital Construction Components" — Capital Propulsion Engine,
+            // Armor Plates and the rest of the T1 capital parts, covered by the
+            // "Basic Capital Component" rig. They sit in category 17 (Commodity), so
+            // the old `CategoryId == 4` guard matched no group at all and every one
+            // fell through to the generic Component rule below.
+            //
+            // "Advanced" is excluded on purpose: group 913 "Advanced Capital
+            // Construction Components" is bonused by the "Advanced Component" rig,
+            // not the capital one, so it belongs in adv_components with group 334.
+            _ when gc.Name.Contains("Capital") && gc.Name.Contains("Component")
+                                               && !gc.Name.Contains("Advanced")       => "capital_components",
             _ when gc.Name.Contains("Component")                                     => "adv_components",
             _ when gc.CategoryId is 22 or 65                                         => "structure_ammo",
             _                                                                        => "",
