@@ -1143,3 +1143,28 @@ public class IntelReportCharacter
     public int?    ShipTypeId { get; set; }
     public string? ShipName   { get; set; }
 }
+
+// ── Standing buy orders ───────────────────────────────────────────────────────
+
+/// <summary>
+/// A buy order the user intends to keep standing at a particular station or
+/// structure. Purely a declaration of intent — the live counterpart lives in
+/// EsiMarketOrders and is matched at display time on (TypeId, LocationId).
+///
+/// Modelled on CorpStandingProject, which does the same thing for corp projects:
+/// define what should exist, then report whether it actually does.
+/// </summary>
+public class StandingBuyOrder
+{
+    public long Id { get; set; }
+
+    public int    TypeId   { get; set; }
+    public string TypeName { get; set; } = "";
+
+    /// <summary>NPC station, player structure or corp structure — all three are
+    /// searchable through CorpActivityService.SearchSdeStationsAsync.</summary>
+    public long   LocationId   { get; set; }
+    public string LocationName { get; set; } = "";
+
+    public DateTimeOffset CreatedAt { get; set; }
+}

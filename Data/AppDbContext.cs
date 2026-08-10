@@ -93,6 +93,9 @@ public class AppDbContext : DbContext
     // ── Order Tracker (user-entered) ─────────────────────────────────────
     public DbSet<TrackedOrder> TrackedOrders => Set<TrackedOrder>();
 
+    // ── Standing buy orders (user-defined intent) ────────────────────────
+    public DbSet<StandingBuyOrder> StandingBuyOrders => Set<StandingBuyOrder>();
+
     // ── Application error log ────────────────────────────────────────────
     public DbSet<AppErrorEntry> AppErrors => Set<AppErrorEntry>();
 
@@ -909,6 +912,12 @@ public class AppDbContext : DbContext
         mb.Entity<AppErrorEntry>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("AppErrorLog"); });
+
+        mb.Entity<StandingBuyOrder>(e => {
+            e.HasKey(x => x.Id);
+            // One standing order per type per location — a second would just be a
+            // duplicate row matching the same live orders.
+            e.HasIndex(x => new { x.TypeId, x.LocationId }).IsUnique(); });
 
         mb.Entity<CharacterStatus>(e => {
             e.HasKey(x => x.CharacterId);

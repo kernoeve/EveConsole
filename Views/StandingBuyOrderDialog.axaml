@@ -1,0 +1,114 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveConsole.Views.StandingBuyOrderDialog"
+        Title="Standing Buy Order"
+        Width="480" Height="470"
+        MinWidth="480" MinHeight="400"
+        CanResize="True"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <Grid RowDefinitions="*,Auto" Margin="20">
+
+    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="14">
+
+        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#888"
+                   Text="Declare a buy order you intend to keep standing. EVE Console will report whether a matching live buy order exists at this location, and how much of it is left." />
+
+        <!-- Item type -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="ITEM TYPE" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <TextBox x:Name="ItemSearchBox"
+                   Watermark="Search for item type…"
+                   Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                   CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                   FontSize="12" Padding="8 5"
+                   TextChanged="OnItemSearchChanged" />
+          <Border x:Name="ItemResultsBorder"
+                  Background="#12121a" CornerRadius="3"
+                  BorderBrush="#1e1e2a" BorderThickness="1"
+                  IsVisible="False" MaxHeight="160">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+              <ListBox x:Name="ItemResultsList"
+                       Background="Transparent" BorderThickness="0"
+                       SelectionChanged="OnItemSelected">
+                <ListBox.Styles>
+                  <Style Selector="ListBoxItem">
+                    <Setter Property="Padding" Value="10 5" />
+                  </Style>
+                  <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                    <Setter Property="Background" Value="#1a2030" />
+                  </Style>
+                </ListBox.Styles>
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Name}" FontSize="11" Foreground="#c8c8d8" />
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </ScrollViewer>
+          </Border>
+          <TextBlock x:Name="ItemSelectedLabel" IsVisible="False"
+                     FontSize="11" Foreground="#c8a84b" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <!-- Station / structure -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="STATION / STRUCTURE" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <TextBox x:Name="StationSearchBox"
+                   Watermark="Search for station or structure…"
+                   Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                   CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                   FontSize="12" Padding="8 5"
+                   TextChanged="OnStationSearchChanged" />
+          <Border x:Name="StationResultsBorder"
+                  Background="#12121a" CornerRadius="3"
+                  BorderBrush="#1e1e2a" BorderThickness="1"
+                  IsVisible="False" MaxHeight="160">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+              <ListBox x:Name="StationResultsList"
+                       Background="Transparent" BorderThickness="0"
+                       SelectionChanged="OnStationSelected">
+                <ListBox.Styles>
+                  <Style Selector="ListBoxItem">
+                    <Setter Property="Padding" Value="10 5" />
+                  </Style>
+                  <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                    <Setter Property="Background" Value="#1a2030" />
+                  </Style>
+                </ListBox.Styles>
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Name}" FontSize="11" Foreground="#c8c8d8" />
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </ScrollViewer>
+          </Border>
+          <TextBlock x:Name="StationSelectedLabel" IsVisible="False"
+                     FontSize="11" Foreground="#c8a84b" TextWrapping="Wrap" />
+          <TextBlock FontSize="10" Foreground="#666" TextWrapping="Wrap"
+                     Text="NPC stations, player structures and your corp's structures are all searchable." />
+        </StackPanel>
+
+        <TextBlock x:Name="ErrorLabel" IsVisible="False"
+                   FontSize="11" Foreground="#cc6666" TextWrapping="Wrap" />
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right"
+                Spacing="10" Margin="0 16 0 0">
+      <Button Content="Cancel" Click="OnCancel" Padding="18 6"
+              Background="#1a1a2a" Foreground="#888899"
+              BorderBrush="#2a2a3a" BorderThickness="1" />
+      <Button x:Name="SaveButton" Content="Save" Click="OnSave" Padding="18 6"
+              Background="#2a2418" Foreground="#c8a84b"
+              BorderBrush="#4a3a20" BorderThickness="1" />
+    </StackPanel>
+
+  </Grid>
+</Window>

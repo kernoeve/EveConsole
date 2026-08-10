@@ -328,18 +328,25 @@ public class OverviewViewModel : ReactiveObject
     public bool HasStandingProjects { get => _hasStandingProjects; private set => this.RaiseAndSetIfChanged(ref _hasStandingProjects, value); }
     public bool NoStandingProjects  => !HasStandingProjects;
 
+    public ObservableCollection<StandingBuyOrderRowVm> StandingBuyOrders { get; } = [];
+    private bool _hasStandingBuyOrders;
+    public bool HasStandingBuyOrders { get => _hasStandingBuyOrders; private set => this.RaiseAndSetIfChanged(ref _hasStandingBuyOrders, value); }
+    public bool NoStandingBuyOrders  => !HasStandingBuyOrders;
+
     // ── Loading state ─────────────────────────────────────────────────────────
     private bool _isLoading;
     public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
 
     private const string PeriodPrefKey = "overview.period_hours";
     private readonly AppPreferencesService? _prefs;
-    private readonly CorpActivityService?   _corpActivity;
+    private readonly CorpActivityService?     _corpActivity;
+    private readonly StandingBuyOrderService? _standingBuyOrders;
 
     // Wired by MainWindowViewModel after construction — lets alert rows jump to the
     // relevant UI (character skills tab, corp activity standing projects tab).
     public Action<string>? NavigateToCharacterSkills               { get; set; }
     public Action?          NavigateToStandingProjects              { get; set; }
+    public Action?          NavigateToStandingBuyOrders             { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
     public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
     public Action?          OpenAlertSettingsRequested              { get; set; }  // Settings ▸ Alerts
@@ -394,7 +401,8 @@ public class OverviewViewModel : ReactiveObject
                              AppPreferencesService? prefs = null,
                              CorpActivityService? corpActivity = null,
                              IDbContextFactory<AppDbContext>? dbFactory = null,
-                             EsiClient? esi = null)
+                             EsiClient? esi = null,
+                             StandingBuyOrderService? standingBuyOrders = null)
     {
         _db             = db;
         _alertSettings  = alertSettings;
@@ -402,6 +410,7 @@ public class OverviewViewModel : ReactiveObject
         _newsService    = newsService;
         _prefs          = prefs;
         _corpActivity   = corpActivity;
+        _standingBuyOrders = standingBuyOrders;
         _dbFactory      = dbFactory;
         _layout         = OverviewLayout.FromJsonOrDefault(prefs?.Get(LayoutPrefKey));
         if (dbFactory is not null && esi is not null)
@@ -651,6 +660,10 @@ public class OverviewViewModel : ReactiveObject
             // ── Standing projects section ───────────────────────────────────────
             Step("Standing projects");
             await LoadStandingProjectsAsync();
+
+            // ── Standing buy orders section ─────────────────────────────────────
+            Step("Standing buy orders");
+            await LoadStandingBuyOrdersAsync();
 
             // ── Wallet journal — pie chart categorisation ──────────────────────
             Step("Loading journal data");
@@ -917,6 +930,39 @@ public class OverviewViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(NoStandingProjects));
         }
         catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadStandingProjects", ex); }
+    }
+
+    // ── Standing buy orders ───────────────────────────────────────────────────
+    private async Task LoadStandingBuyOrdersAsync()
+    {
+        bool enabled = _standingBuyOrders is not null
+                    && _layout.Sections.Any(s => s.Key == "StandingBuyOrders" && s.Enabled);
+        if (!enabled)
+        {
+            StandingBuyOrders.Clear();
+            HasStandingBuyOrders = false;
+            this.RaisePropertyChanged(nameof(NoStandingBuyOrders));
+            return;
+        }
+
+        try
+        {
+            var rows = await _standingBuyOrders!.BuildGridRowsAsync();
+
+            // Anything wrong floats to the top: missing first, then running low or
+            // nearly expired, then the healthy ones. A panel this size is only worth
+            // the space if the problems are the part you can see without scrolling.
+            var ordered = rows
+                .OrderBy(r => r.MatchStatus == "matched" ? (r.IsLow || r.IsExpiringSoon ? 1 : 2) : 0)
+                .ThenBy(r => r.TypeName)
+                .ToList();
+
+            StandingBuyOrders.Clear();
+            foreach (var r in ordered) StandingBuyOrders.Add(new StandingBuyOrderRowVm(r));
+            HasStandingBuyOrders = StandingBuyOrders.Count > 0;
+            this.RaisePropertyChanged(nameof(NoStandingBuyOrders));
+        }
+        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadStandingBuyOrders", ex); }
     }
 
     // ── DTOs for raw SQL results ──────────────────────────────────────────────
