@@ -47,7 +47,14 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
                 ? "No other buy orders for this item here."
                 : null;
 
-    public string Status { get; } = r.MatchStatus == "matched" ? "Active" : "Missing";
+    /// <summary>"Outbid" beats "Active" because it is the more actionable truth: the
+    /// order is live, but nothing will fill it until the price moves. It also carries
+    /// that state onto the Overview panel, which has no price column of its own.
+    /// Volume and expiry stay out of here — those are already shown as their own
+    /// columns, whereas the competing bid is not.</summary>
+    public string Status { get; } = r.MatchStatus != "matched" ? "Missing"
+                                  : r.IsOutbid                 ? "Outbid"
+                                  : "Active";
 
     /// <summary>Colour cue: red when the order isn't there at all, amber when it is
     /// but is running out — either of volume or of time — green otherwise.</summary>
