@@ -183,6 +183,13 @@ public class ProductionPlan
     public List<PlanIntermediate> Intermediates { get; set; } = [];
     public List<PlanFinalProduct> FinalProducts { get; set; } = [];
     public List<PlanLeftoverItem> Leftovers     { get; set; } = [];
+    /// <summary>
+    /// Items no category assignment covered. They were planned against the park's catch-all
+    /// facility with no rig bonus rather than aborting the calculation, so the plan is
+    /// complete but these figures carry no rig benefit they might be entitled to.
+    /// </summary>
+    public List<string> Warnings { get; set; } = [];
+
     public decimal TotalRawMaterialCost { get; set; }
     public decimal TotalJobCost         { get; set; }
     public decimal TotalLeftoverValue   { get; set; }

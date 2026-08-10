@@ -110,6 +110,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         var rigs        = await db.IndyStructureRigs.AsNoTracking()
             .Where(r => structures.Select(s => s.Id).Contains(r.StructureId))
             .ToListAsync(ct);
+        var park          = await db.IndyParks.AsNoTracking().FirstOrDefaultAsync(p => p.Id == parkId, ct);
+        var defaultStruct = park?.DefaultStructureId is { } dsId
+            ? structures.FirstOrDefault(s => s.Id == dsId)
+            : null;
         var assignments   = await db.IndyCategoryAssignments.AsNoTracking().Where(a => a.ParkId == parkId).ToListAsync(ct);
         var itemExceptions = await db.IndyItemExceptions.AsNoTracking().Where(e => e.ParkId == parkId).ToListAsync(ct);
         var itemOverrides  = itemExceptions
@@ -253,6 +257,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             Assignments        = assignments,
             ItemOverrides      = itemOverrides,
             StructByCategory   = structByCategory,
+            DefaultStructure   = defaultStruct,
             MfgRigBonusAttr    = mfgRigBonusAttr,
             RxnRigBonusAttr    = rxnRigBonusAttr,
             RigLowsecMultAttr  = rigLowsecMultAttr,
@@ -485,15 +490,24 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             };
         }
 
-        // Returns null when the category is unknown or not configured in this park.
-        // Item-level overrides take precedence over category assignments.
-        // Callers must NOT fall back to a default — missing assignments are caught after expansion.
+        // Item-level overrides take precedence over category assignments; anything neither
+        // covers falls through to the park's catch-all facility.
+        //
+        // The fallback is what keeps the calculation alive. A job here gets the structure's
+        // role bonus, tax and system cost index but no rig bonus — RigBonus resolves the
+        // item's own category against the rigs actually fitted, so an unclassified item
+        // (empty key) matches nothing and scores zero. That is the intended reading of
+        // "a facility not rigged for it", not a special case.
+        //
+        // Still null when the park nominates no catch-all, which plans with no structure
+        // and no bonuses. Either way the caller records a warning rather than aborting.
         IndyStructure? StructureFor(string catKey, int typeId)
         {
             if (itemOverrides.TryGetValue(typeId, out var overrideStruct))
                 return overrideStruct;
-            if (string.IsNullOrEmpty(catKey)) return null;
-            return structByCategory.TryGetValue(catKey, out var s) ? s : null;
+            if (!string.IsNullOrEmpty(catKey) && structByCategory.TryGetValue(catKey, out var s))
+                return s;
+            return ctx.DefaultStructure;
         }
 
         // ── Expansion state ────────────────────────────────────────────────
@@ -525,19 +539,25 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             bool   isReaction = activity == RxnActivity;
             string catKey     = ItemCategoryKey(typeId, isReaction);
 
-            // Detect misconfigured items early — collect rather than silently wrong-assigning.
+            // Report items no assignment covers. They are still planned — against the park's
+            // catch-all facility, with no rig bonus — so this surfaces a gap in the rules or
+            // the park setup without costing the user the rest of the plan.
             // Item-level overrides satisfy the requirement regardless of category status.
             if (!itemOverrides.ContainsKey(typeId))
             {
+                var whereItWent = ctx.DefaultStructure is { } fb
+                    ? $"planned in {fb.DisplayName} with no rig bonus"
+                    : "planned with no structure and no bonuses — set a catch-all facility on this park";
+
                 if (string.IsNullOrEmpty(catKey))
                 {
                     var name = typeNames.GetValueOrDefault(typeId, $"TypeId {typeId}");
-                    unmappedItems.Add($"{name} (unrecognized type — update ItemCategoryKey)");
+                    unmappedItems.Add($"{name} (unrecognized type — update ItemCategoryKey; {whereItWent})");
                 }
                 else if (!structByCategory.ContainsKey(catKey))
                 {
                     var name = typeNames.GetValueOrDefault(typeId, $"TypeId {typeId}");
-                    unmappedItems.Add($"{name} (category '{catKey}' not assigned in this park)");
+                    unmappedItems.Add($"{name} (category '{catKey}' not assigned in this park; {whereItWent})");
                 }
             }
 
@@ -665,13 +685,11 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         foreach (var req in requests)
             ExpandItem(req.TypeId, req.Quantity, true);
 
-        if (unmappedItems.Count > 0)
-        {
-            var sample = string.Join("\n  • ", unmappedItems.Take(10));
-            var suffix = unmappedItems.Count > 10 ? $"\n  … and {unmappedItems.Count - 10} more" : "";
-            throw new InvalidOperationException(
-                $"{unmappedItems.Count} item(s) cannot be assigned to a structure in this park:\n  • {sample}{suffix}");
-        }
+        // Reported, not thrown. An item the rig rules don't cover is a gap in the rules,
+        // not a reason to refuse the other several hundred jobs in the plan — and throwing
+        // is what left BuildCostService falling back to stale estimates for 446 types.
+        // These jobs were planned against the park's catch-all facility with no rig bonus.
+        var planWarnings = unmappedItems.ToList();
 
         // ── Wire parent/child relationships ────────────────────────────────
         foreach (var job in jobPool.Values)
@@ -843,6 +861,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         {
             AllJobs              = jobPool.Values.OrderByDescending(j => j.IsFinalProduct).ThenBy(j => j.OutputTypeName).ToList(),
             RootTypeIds          = requests.Where(r => jobPool.ContainsKey(r.TypeId)).Select(r => r.TypeId).ToList(),
+            Warnings             = planWarnings,
             RawMaterials         = rawMaterials,
             Intermediates        = intermediates,
             FinalProducts        = finalProducts,

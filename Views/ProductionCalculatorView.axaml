@@ -127,6 +127,29 @@
         <TabItem Header="Summary">
           <ScrollViewer Padding="16">
             <StackPanel Spacing="12" Margin="0 0 0 16">
+
+              <!-- Items no category assignment covered. The plan is complete — these were
+                   costed in the park's catch-all facility — but without a rig bonus they
+                   may be entitled to, so the figures read high. -->
+              <Border IsVisible="{Binding HasPlanWarnings}"
+                      Background="#231a0d" BorderBrush="#e0902e" BorderThickness="1"
+                      CornerRadius="4" Padding="10 8">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="{Binding PlanWarningHeader}"
+                             Foreground="#e0902e" FontSize="12" FontWeight="SemiBold"/>
+                  <TextBlock Text="Planned in the park's default facility with no rig bonus, so these costs may be overstated."
+                             Foreground="#a89070" FontSize="11" TextWrapping="Wrap"/>
+                  <ItemsControl ItemsSource="{Binding Plan.Warnings}" Margin="0 2 0 0">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding}" Foreground="#c8b090" FontSize="11"
+                                   TextWrapping="Wrap" Margin="0 1"/>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
               <TextBlock Text="Cost Summary" FontWeight="SemiBold" Foreground="#c8a84b" FontSize="13"/>
               <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Raw Materials:"  Foreground="#888" FontSize="12"/>

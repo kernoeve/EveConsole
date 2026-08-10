@@ -186,8 +186,16 @@ public class ProductionCalculatorViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _plan, value);
             this.RaisePropertyChanged(nameof(HasResults));
             this.RaisePropertyChanged(nameof(JobTreeRoots));
+            this.RaisePropertyChanged(nameof(HasPlanWarnings));
+            this.RaisePropertyChanged(nameof(PlanWarningHeader));
         }
     }
+
+    public bool HasPlanWarnings => _plan?.Warnings.Count > 0;
+
+    public string PlanWarningHeader => _plan is null || _plan.Warnings.Count == 0
+        ? ""
+        : $"{_plan.Warnings.Count} item(s) had no structure assignment in this park";
 
     public bool HasResults => _plan is not null;
 

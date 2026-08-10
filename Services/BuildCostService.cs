@@ -949,6 +949,15 @@ public class BuildCostService
                         }],
                         planContext);
 
+                    // Unclassified items no longer abort the plan, so they arrive as
+                    // warnings instead of an exception. Still logged — a gap in the rig
+                    // rules is worth knowing about — but the cost below is now real
+                    // rather than a stale estimate from the previous pass.
+                    if (plan.Warnings.Count > 0)
+                        _errorLogger.Log("BuildCostService", $"chain cost for type {typeId}",
+                            string.Join("; ", plan.Warnings.Take(5))
+                            + (plan.Warnings.Count > 5 ? $"; …and {plan.Warnings.Count - 5} more" : ""));
+
                     var produced = Math.Max(1, plan.FinalProducts.Count > 0
                         ? plan.FinalProducts[0].QuantityProduced
                         : outQ * BatchRuns(typeId));
