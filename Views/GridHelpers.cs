@@ -165,11 +165,15 @@ internal sealed class SelectableCell : Border
 
         // A flagged row paints all of its text, not just the cell that explains why.
         // Every cell in the row reads the same GridRow, so setting it here is enough.
-        // Null restores inheritance from the grid rather than hard-coding the normal
-        // colour, which would drift from the theme.
-        _tb.Foreground = row is not null && row[GridWarning.ColumnName] == "1"
-            ? GridWarning.Brush
-            : null;
+        //
+        // ⚠ Clear the property rather than assigning null. Avalonia treats a null
+        // Foreground as a local value of "no brush", which renders the text invisible;
+        // it does not fall back to the inherited colour. Assigning null here blanked
+        // the entire grid.
+        if (row is not null && row[GridWarning.ColumnName] == "1")
+            _tb.Foreground = GridWarning.Brush;
+        else
+            _tb.ClearValue(TextBlock.ForegroundProperty);
 
         Background = _svc.IsSelected(_grid, row, _col) ? SelectionBrush : null;
     }
