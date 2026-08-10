@@ -438,6 +438,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 // Structure Modules — service modules and all structure rigs — are built at
                 // engineering complexes like equipment.
                 (66, _)         => "modules_equipment",
+                // T3 subsystems — Loki/Tengu/Legion/Proteus. Previously unmapped, so every
+                // subsystem threw "cannot be assigned to a structure" and lost its chain cost.
+                (32, _)         => "modules_equipment",
                 (8, _)          => "ammo_charges",
                 (18 or 87, _)   => "drones_fighters",
                 _ when tg.GroupId == 1136                                 => "structure_ammo",   // Fuel Blocks
