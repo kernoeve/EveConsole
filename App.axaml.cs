@@ -1864,6 +1864,34 @@ public class App : Application
                 """CREATE TABLE IF NOT EXISTS "SdeAgentTypes" ("AgentTypeId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
                 """CREATE TABLE IF NOT EXISTS "SdeCorpDivisions" ("DivisionId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
 
+                // ── SDE COLUMNS added after this database was last imported ─────────
+                // Same problem as the tables above, one level down. SdeImportService adds
+                // these with ALTER, but only while an import runs, so a database imported
+                // before a column existed has EF querying a column the table lacks — and
+                // that throws on the whole entity, not just the missing value. The
+                // Production Calculator died on "no such column: s.Radius" this way.
+                // Mirror of the alters list in SdeImportService.EnsureSdeSchemaAsync;
+                // keep the two in step.
+                """ALTER TABLE "SdeGroups"         ADD COLUMN "Anchorable" INTEGER NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeGroups"         ADD COLUMN "Anchored"   INTEGER NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeTypes"          ADD COLUMN "GraphicId"  INTEGER""",
+                """ALTER TABLE "SdeTypes"          ADD COLUMN "FactionId"  INTEGER""",
+                """ALTER TABLE "SdeTypes"          ADD COLUMN "RaceId"     INTEGER""",
+                """ALTER TABLE "SdeTypes"          ADD COLUMN "MetaGroupId" INTEGER""",
+                """ALTER TABLE "SdeRegions"        ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeRegions"        ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeRegions"        ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeConstellations" ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeConstellations" ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeConstellations" ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "X2D" REAL""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Y2D" REAL""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "SecurityClass" TEXT NOT NULL DEFAULT ''""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Radius" REAL NOT NULL DEFAULT 0""",
+
                 // ── Intel channels ──────────────────────────────────────────────
                 // One-time removal of chat already stored twice — the same conversation logged
                 // by two of the user's characters, or imported from a second PC's log folder.

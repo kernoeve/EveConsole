@@ -863,10 +863,19 @@ public class IndyParksViewModel : ReactiveObject
         }
         await using var db = await _dbFactory.CreateDbContextAsync();
         var lower = text.ToLower();
+        // Ranked, not just alphabetical. A plain A-Z ordering buries the thing being
+        // searched for: "Hel" matches Shield, Helium, Sheltered and hundreds more, and
+        // the ship itself sorts past the cut. Exact match first, then names starting
+        // with the term, then the rest; shorter names win ties, so "Hel" beats
+        // "Hel Blueprint".
         var results = await db.SdeTypes
             .Where(t => t.Published && t.Name.ToLower().Contains(lower))
-            .OrderBy(t => t.Name)
-            .Take(20)
+            .OrderBy(t => t.Name.ToLower() == lower            ? 0
+                        : t.Name.ToLower().StartsWith(lower)   ? 1
+                        : 2)
+            .ThenBy(t => t.Name.Length)
+            .ThenBy(t => t.Name)
+            .Take(200)
             .Select(t => new ItemSearchResult(t.TypeId, t.Name))
             .ToListAsync();
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
