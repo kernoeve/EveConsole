@@ -402,10 +402,35 @@ public class ContractsService : ReactiveObject
             return status is 400 or 403 or 404;
         }
 
-        if (items.Count > 0) db.EsiContractItems.AddRange(items);
-        await db.SaveChangesAsync(ct);
-        db.ChangeTracker.Clear();   // don't let saved items accumulate across the sweep
-        return true;
+        // Dedupe by RecordId. ESI has been observed returning the same record twice inside
+        // one contract's paged item list, and EF rejects the pair on the (ContractId,
+        // RecordId) key before anything reaches the database. The method comment above has
+        // always claimed this happened; it did not, which is the whole bug.
+        var deduped = items.Count > 1
+            ? items.GroupBy(i => i.RecordId).Select(g => g.First()).ToList()
+            : items;
+
+        try
+        {
+            if (deduped.Count > 0) db.EsiContractItems.AddRange(deduped);
+            await db.SaveChangesAsync(ct);
+            return true;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            // Retried next sweep rather than marked pulled — but not at the cost of the
+            // rest of this one.
+            _errorLogger.Log("ContractsService", $"items contract={contractId} owner={ownerType}", ex);
+            return false;
+        }
+        finally
+        {
+            // Must clear on failure too, not just success. A rejected SaveChanges leaves the
+            // offending entities in the tracker, so every later contract in the same sweep
+            // throws the same conflict — which is how one bad contract took out whole passes.
+            db.ChangeTracker.Clear();
+        }
     }
 
     // ── Contract pricing (single-item-type sells) ───────────────────────────────
