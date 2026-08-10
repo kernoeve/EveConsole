@@ -10,4 +10,5 @@ public class AlertSettings
     public bool AssetSafety                { get; set; } = true;
     public bool InactiveStandingProjects   { get; set; } = true;
     public bool StandingBuyOrdersAttention { get; set; } = true;
+    public bool UnriggedIndustryJobs       { get; set; } = true;
 }

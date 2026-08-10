@@ -2165,6 +2165,25 @@
           </StackPanel>
         </Border>
 
+        <!-- Industry facility alerts -->
+        <Border Background="#161620" BorderBrush="#252530" BorderThickness="1"
+                CornerRadius="4" Padding="14 12">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Industry Facilities" FontWeight="SemiBold"
+                       Foreground="#c8a84b" FontSize="12" Margin="0 0 0 4" />
+
+            <CheckBox Content="Alert when running jobs are in a facility not rigged for them"
+                      IsChecked="{Binding AlertsVm.UnriggedIndustryJobs}"
+                      FontSize="12" Foreground="#ccccdd" />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#888899"
+                       Text="Counts active manufacturing and reaction jobs whose facility has no rig bonusing that kind of work. Research, copying and invention are not counted — they use rigs this check does not model." />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#666"
+                       Text="Only facilities linked to an Indy Parks structure can be judged: ESI cannot report what rigs a structure has fitted, so the rigs are whatever you described in Indy Parks. Link a structure to a real facility there to include it. Unlinked facilities are ignored rather than reported as unrigged." />
+          </StackPanel>
+        </Border>
+
       </StackPanel>
     </ScrollViewer>
   </TabItem>

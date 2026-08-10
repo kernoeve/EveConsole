@@ -340,13 +340,15 @@ public class OverviewViewModel : ReactiveObject
     private const string PeriodPrefKey = "overview.period_hours";
     private readonly AppPreferencesService? _prefs;
     private readonly CorpActivityService?     _corpActivity;
-    private readonly StandingBuyOrderService? _standingBuyOrders;
+    private readonly StandingBuyOrderService?  _standingBuyOrders;
+    private readonly IndyFacilityCheckService? _indyFacilityCheck;
 
     // Wired by MainWindowViewModel after construction — lets alert rows jump to the
     // relevant UI (character skills tab, corp activity standing projects tab).
     public Action<string>? NavigateToCharacterSkills               { get; set; }
     public Action?          NavigateToStandingProjects              { get; set; }
     public Action?          NavigateToStandingBuyOrders             { get; set; }
+    public Action?          NavigateToIndustryJobs                  { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
     public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
     public Action?          OpenAlertSettingsRequested              { get; set; }  // Settings ▸ Alerts
@@ -402,8 +404,10 @@ public class OverviewViewModel : ReactiveObject
                              CorpActivityService? corpActivity = null,
                              IDbContextFactory<AppDbContext>? dbFactory = null,
                              EsiClient? esi = null,
-                             StandingBuyOrderService? standingBuyOrders = null)
+                             StandingBuyOrderService? standingBuyOrders = null,
+                             IndyFacilityCheckService? indyFacilityCheck = null)
     {
+        _indyFacilityCheck = indyFacilityCheck;
         _db             = db;
         _alertSettings  = alertSettings;
         _errorLogger    = errorLogger;
@@ -1212,6 +1216,27 @@ public class OverviewViewModel : ReactiveObject
                     });
             }
             catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "StandingBuyOrderAlert", ex); }
+        }
+
+        // Running jobs in a facility with no rig bonus for them. Active only — a
+        // finished job cannot be moved, so flagging it is noise rather than a task.
+        if (_alertSettings.UnriggedIndustryJobs && _indyFacilityCheck is not null)
+        {
+            try
+            {
+                var unrigged = await _indyFacilityCheck.CountUnriggedRunningAsync();
+                if (unrigged > 0)
+                    newAlerts.Add(new AlertRowVm
+                    {
+                        Message = unrigged == 1
+                            ? "1 running job is using a facility not rigged for it."
+                            : $"{unrigged} running jobs are using a facility not rigged for them.",
+                        NavigateCommand = NavigateToIndustryJobs is not null
+                            ? ReactiveCommand.Create(NavigateToIndustryJobs)
+                            : null
+                    });
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "UnriggedJobAlert", ex); }
         }
 
         // Alerts raised by the user's own alarms. Listed first and unconditionally: unlike the
