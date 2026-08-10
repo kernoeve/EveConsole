@@ -61,6 +61,7 @@ public partial class CharacterView : UserControl
         "ExpensePie"        => SectionExpensePie,
         "IncomeExpense"     => SectionIncomeExpense,
         "StandingProjects"  => SectionStandingProjects,
+        "StandingBuyOrders" => SectionStandingBuyOrders,
         _                   => null,
     };
 
@@ -149,6 +150,9 @@ public partial class CharacterView : UserControl
 
     private void OnOpenStandingProjects(object? sender, RoutedEventArgs e)
         => _vm?.NavigateToStandingProjects?.Invoke();
+
+    private void OnOpenStandingBuyOrders(object? sender, RoutedEventArgs e)
+        => _vm?.NavigateToStandingBuyOrders?.Invoke();
 
     private Window GetWindow() => (TopLevel.GetTopLevel(this) as Window)!;
 }

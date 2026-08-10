@@ -508,7 +508,7 @@ public class MainWindowViewModel : ReactiveObject
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
         MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService);
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
-        OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi);
+        OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
@@ -544,6 +544,7 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("corp_activity");
             CorpActivityVm.ShowStandingProjectsTab();
         };
+        OverviewVm.NavigateToStandingBuyOrders = () => OpenTool("standing_buy_orders");
         OverviewVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");
