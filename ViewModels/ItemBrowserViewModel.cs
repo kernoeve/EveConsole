@@ -56,6 +56,33 @@ public class TypeSearchResult
 
 // ── Item display models ────────────────────────────────────────────────────────
 
+/// <summary>
+/// One LP store offer for the item on screen. <paramref name="LpHeld"/> is the largest
+/// balance any of the logged-in characters has with that corporation — the offer is only
+/// actionable if one character can cover it, so the max is the meaningful figure rather
+/// than the sum.
+/// </summary>
+public record LpOfferVm(
+    string CorporationName,
+    int    Quantity,
+    int    LpCost,
+    long   IskCost,
+    int    AkCost,
+    int    LpHeld,
+    IReadOnlyList<string> RequiredItems)
+{
+    public string QuantityText = Quantity > 1 ? $"{Quantity:N0} ×" : "";
+    public string LpText       => $"{LpCost:N0} LP";
+    public string IskText      => IskCost > 0 ? $"{IskCost:N0} ISK" : "—";
+    public string AkText       => AkCost  > 0 ? $"{AkCost:N0} AK"   : "";
+    public string RequiredText => RequiredItems.Count == 0 ? "—" : string.Join(", ", RequiredItems);
+
+    public bool   CanAfford    => LpHeld >= LpCost;
+    public string HeldText     => LpHeld > 0 ? $"{LpHeld:N0} LP" : "none";
+    /// <summary>Green when a character can cover it today, muted when they cannot.</summary>
+    public string HeldColor    => CanAfford ? "#4caf50" : "#555566";
+}
+
 public record AttrDisplayVm(string Name, string ValueText);
 public record AttrGroupVm(string CategoryName, IReadOnlyList<AttrDisplayVm> Attrs);
 public record BlueprintMatVm(string MaterialName, int MaterialTypeId, int Quantity);
@@ -191,6 +218,14 @@ public class ItemDisplayVm : ReactiveObject
 public class ItemBrowserViewModel : ReactiveObject
 {
     private readonly AppDbContext _db;
+
+    /// <summary>
+    /// Used by loads that run alongside another one. The tab loads fire together and an
+    /// EF context handles a single operation at a time, so anything sharing _db with
+    /// LoadOrdersAsync would intermittently throw "a second operation was started on this
+    /// context". A short-lived context of its own avoids the race entirely.
+    /// </summary>
+    private readonly IDbContextFactory<AppDbContext>? _dbFactory;
     private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(10) };
     private static readonly Regex _tagRegex = new(@"<[^>]+>", RegexOptions.Compiled);
     private const int SkillCategoryId = 16;
@@ -315,6 +350,85 @@ public class ItemBrowserViewModel : ReactiveObject
             return $"No price-history region matching '{name}'. Available: {string.Join(", ", HistoryRegions.Select(r => r.RegionName))}.";
         SelectedHistoryRegion = match;
         return $"Price-history region set to {match.RegionName}.";
+    }
+
+    // ── LP Store tab ──────────────────────────────────────────────────────────
+    // Hidden unless some NPC corporation sells this item. Plenty of items are offered by
+    // several corporations at different prices, so every offer is listed rather than a
+    // best-of — which corporation you have LP with decides the one that matters to you.
+    public ObservableCollection<LpOfferVm> LpOffers { get; } = [];
+    public bool HasLpOffers => LpOffers.Count > 0;
+
+    private async Task LoadLpOffersAsync(int typeId, CancellationToken ct)
+    {
+        try
+        {
+            // Own context: this runs concurrently with LoadOrdersAsync, which uses _db.
+            await using var owned = _dbFactory is null ? null : await _dbFactory.CreateDbContextAsync(ct);
+            var db = owned ?? _db;
+
+            var offers = await db.EsiLpStoreOffers.AsNoTracking()
+                .Where(o => o.TypeId == typeId)
+                .ToListAsync(ct);
+            if (offers.Count == 0)
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    LpOffers.Clear();
+                    this.RaisePropertyChanged(nameof(HasLpOffers));
+                });
+                return;
+            }
+
+            var offerIds = offers.Select(o => o.OfferId).ToList();
+            var reqs = await db.EsiLpStoreOfferItems.AsNoTracking()
+                .Where(i => offerIds.Contains(i.OfferId))
+                .ToListAsync(ct);
+
+            var corpIds = offers.Select(o => o.CorporationId).Distinct().ToList();
+            var corpNames = await db.SdeNpcCorporations.AsNoTracking()
+                .Where(c => corpIds.Contains(c.CorporationId))
+                .ToDictionaryAsync(c => c.CorporationId, c => c.Name, ct);
+
+            var reqTypeIds = reqs.Select(i => i.TypeId).Distinct().ToList();
+            var reqNames = reqTypeIds.Count == 0
+                ? []
+                : await db.SdeTypes.AsNoTracking()
+                    .Where(t => reqTypeIds.Contains(t.TypeId))
+                    .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+
+            // LP the logged-in characters actually hold with each corporation, so the list
+            // can say whether an offer is reachable rather than only what it costs.
+            var lpHeld = (await db.EsiLoyaltyPoints.AsNoTracking()
+                    .Where(l => corpIds.Contains(l.CorporationId))
+                    .ToListAsync(ct))
+                .GroupBy(l => l.CorporationId)
+                .ToDictionary(g => g.Key, g => g.Max(l => l.Points));
+
+            var rows = offers
+                .Select(o => new LpOfferVm(
+                    corpNames.GetValueOrDefault(o.CorporationId, $"Corp {o.CorporationId}"),
+                    o.Quantity, o.LpCost, o.IskCost, o.AkCost,
+                    lpHeld.GetValueOrDefault(o.CorporationId),
+                    reqs.Where(i => i.OfferId == o.OfferId)
+                        .Select(i => $"{i.Quantity:N0} × {reqNames.GetValueOrDefault(i.TypeId, $"Type {i.TypeId}")}")
+                        .ToList()))
+                .OrderByDescending(r => r.LpHeld >= r.LpCost)   // affordable first
+                .ThenBy(r => r.LpCost)
+                .ToList();
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                LpOffers.Clear();
+                foreach (var r in rows) LpOffers.Add(r);
+                this.RaisePropertyChanged(nameof(HasLpOffers));
+            });
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => Status = $"LP store: {ex.Message}");
+        }
     }
 
     // ── Market Orders tab ─────────────────────────────────────────────────────
@@ -557,9 +671,11 @@ public class ItemBrowserViewModel : ReactiveObject
     // Navigates to any item (blueprint or product) by type ID
     public ReactiveCommand<int, System.Reactive.Unit> NavigateToItemCommand { get; }
 
-    public ItemBrowserViewModel(AppDbContext db, MarketHistoryService? historyService = null)
+    public ItemBrowserViewModel(AppDbContext db, MarketHistoryService? historyService = null,
+                                IDbContextFactory<AppDbContext>? dbFactory = null)
     {
         _db             = db;
+        _dbFactory      = dbFactory;
         _historyService = historyService;
         _selectedPeriod = PeriodOptions[0]; // All Time
         _selectedDerivedPeriod = PeriodOptions[0]; // All Time
@@ -1288,6 +1404,7 @@ public class ItemBrowserViewModel : ReactiveObject
                 if (HasPriceHistoryRegions)
                     _ = LoadPriceHistoryAsync();
                 _ = LoadDerivedHistoryAsync();
+                _ = LoadLpOffersAsync(typeId, ct);
             });
 
             // Load icon asynchronously
