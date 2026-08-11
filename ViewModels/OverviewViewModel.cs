@@ -652,8 +652,13 @@ public class OverviewViewModel : ReactiveObject
                     WHERE d."KillMailTime" >= '{cutoffStr}' AND d."VictimCharId" IN ({charIdList})
                     """).FirstAsync());
                 // Non-correlated IN-subquery: computes the attacker killmail set once. A
-                // correlated EXISTS here scans the 100k-row attackers table per killmail
-                // (~26s); this is ~20ms.
+                // correlated EXISTS here scans the attackers table per killmail (~26s at the
+                // 100k rows it had then).
+                //
+                // That table is now 7.8M rows, and the sub-query below was itself a full scan
+                // costing ~600 ms on every 60-second refresh until
+                // IX_KillMailAttackers_CharacterId (CharacterId, KillMailId) was added — it
+                // covers this query outright, taking it under a millisecond.
                 totalKills = await Off(() => _db.Database.SqlQueryRaw<int>($"""
                     SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
                     FROM "KillMailDetails" d

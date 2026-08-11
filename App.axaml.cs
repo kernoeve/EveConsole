@@ -1716,6 +1716,14 @@ public class App : Application
             db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailAttackers_KillMailId" ON "KillMailAttackers" ("KillMailId")""");
             db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailItems_KillMailId" ON "KillMailItems" ("KillMailId")""");
 
+            // "Which killmails was this character an attacker on" — the Overview's kill count,
+            // and the one direction the KillMailId index above cannot serve. At 7.8M attacker
+            // rows it was a full SCAN taking ~600 ms, repeated on every 60-second Overview
+            // refresh. Both columns are in the index so the sub-query is answered from the
+            // index alone: measured 599 ms -> under 1 ms, plan SCAN -> SEARCH USING COVERING
+            // INDEX. Worth its disk on a table this size.
+            db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailAttackers_CharacterId" ON "KillMailAttackers" ("CharacterId", "KillMailId")""");
+
             // ── Map statistics — hourly buckets + daily rollup ──────────────────
             // Keyed by the CCP hour bucket, not by fetch time, so a row from the live ESI
             // poll and the same hour recovered later from the EVE Ref archive collide on the
