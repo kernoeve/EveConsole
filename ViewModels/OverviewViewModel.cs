@@ -483,7 +483,27 @@ public class OverviewViewModel : ReactiveObject
         // served their purpose (664 database contexts building tooltips nobody had opened) and
         // were filling the log on every refresh.
         var sw = System.Diagnostics.Stopwatch.StartNew();
-        void Step(string next) => LoadStatus = next;
+
+        // Section timing, reinstated but quiet: only a section that is slow enough to be felt
+        // gets logged, so this cannot fill the error log the way the old per-section timings did.
+        // The queries themselves are already on the threadpool via Off(); what these measure is
+        // the work BETWEEN the awaits, which resumes on the UI thread and is what freezes it.
+        const int SlowSectionMs = 250;
+        var sectionAt   = 0L;
+        var sectionName = "Querying scope";
+
+        void Step(string next)
+        {
+            var now  = sw.ElapsedMilliseconds;
+            var took = now - sectionAt;
+            if (took >= SlowSectionMs)
+                _errorLogger.Log(nameof(OverviewViewModel), "Slow Overview section",
+                    $"\"{sectionName}\" held the UI thread for {took:N0} ms.");
+
+            sectionAt   = now;
+            sectionName = next;
+            LoadStatus  = next;
+        }
 
         LoadStatus = "Querying scope";
         try
@@ -691,6 +711,7 @@ public class OverviewViewModel : ReactiveObject
             Step("Loading notifications");
             await LoadNotificationsAsync();
 
+            Step("done");   // closes out the last section so it is timed like the rest
             LoadStatus = $"Loaded in {sw.ElapsedMilliseconds:N0} ms — {owners.Count} owner(s), period: {_selectedPeriod.Label}";
         }
         catch (Exception ex)
@@ -701,9 +722,23 @@ public class OverviewViewModel : ReactiveObject
     }
 
     // ── Notifications (one per NotificationId, within the selected period) ─────────
-    private async Task LoadNotificationsAsync()
+    /// <summary>Identifies the notification set last put on screen, so an unchanged refresh can
+    /// skip rebuilding it. On a 60-second auto-refresh most passes change nothing.</summary>
+    private string _notificationSignature = "";
+
+    /// <summary>
+    /// ⚠️ Threadpool only. Everything here — both queries, name resolution and the whole
+    /// formatting loop — used to run on the UI thread, because this section is awaited directly
+    /// rather than through <see cref="Off"/>. SQLite's async is synchronous underneath, and the
+    /// loop formats up to a thousand rows, so the cost landed on the UI thread in full and froze
+    /// the window for seconds on every refresh.
+    ///
+    /// <para>Returns null when there is nothing to do: not wired, failed, or the same
+    /// notifications as last time.</para>
+    /// </summary>
+    private async Task<List<NotificationBoxVm>?> BuildNotificationBoxesAsync()
     {
-        if (_names is null || _dbFactory is null) return;   // not wired for name resolution/formatting
+        if (_names is null || _dbFactory is null) return null;   // not wired for name resolution/formatting
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
@@ -724,6 +759,12 @@ public class OverviewViewModel : ReactiveObject
                     "WHERE Timestamp >= {0} " +
                     "GROUP BY NotificationId ORDER BY Timestamp DESC LIMIT 1000", cutoff)
                 .AsNoTracking().ToListAsync();
+
+            // Nothing new? Then neither the formatting below nor the collection rebuild that
+            // follows it is worth doing. Read state is included so marking one read still shows.
+            var signature = string.Join(',', rows.Select(r => $"{r.NotificationId}:{(r.IsRead ? 1 : 0)}"));
+            if (signature == _notificationSignature) return null;
+            _notificationSignature = signature;
 
             var ids = rows.Select(r => r.NotificationId).ToList();
             var recipients = ids.Count == 0
@@ -789,21 +830,40 @@ public class OverviewViewModel : ReactiveObject
                 });
             }
 
-            RecentNotifications.Clear();
-            foreach (var b in boxes) RecentNotifications.Add(b);
-            HasNotifications = RecentNotifications.Count > 0;
-            this.RaisePropertyChanged(nameof(NoNotifications));
-
-            // Bodies and icons after the list is on screen, not before it. Formatting one body
-            // costs its own database context and several queries, so doing all of them inline
-            // was the whole reason this section took so long to appear — for text that is only
-            // read if the user hovers that particular row.
-            // Handed to LoadAsync rather than started here. This runs part-way through the
-            // Overview load, and four background readers competing with the queries still to
-            // come only slow down the very thing they were meant to get out of the way of.
-            _pendingDetailFill = boxes;
+            return boxes;
         }
-        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadNotifications", ex); }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("OverviewViewModel", "LoadNotifications", ex);
+
+            // A failed pass must not leave the signature claiming the screen is up to date.
+            _notificationSignature = "";
+            return null;
+        }
+    }
+
+    private async Task LoadNotificationsAsync()
+    {
+        // Task.Run, not a bare call: an async method runs on its caller until it genuinely
+        // suspends, and SQLite's async suspends for nothing — a bare call would put the queries
+        // and the formatting straight back onto the UI thread. Same reasoning as Off().
+        var boxes = await Task.Run(BuildNotificationBoxesAsync);
+        if (boxes is null) return;   // nothing to do, or unchanged since last refresh
+
+        // The only part that must be here. Everything above it is off the UI thread now.
+        RecentNotifications.Clear();
+        foreach (var b in boxes) RecentNotifications.Add(b);
+        HasNotifications = RecentNotifications.Count > 0;
+        this.RaisePropertyChanged(nameof(NoNotifications));
+
+        // Bodies and icons after the list is on screen, not before it. Formatting one body
+        // costs its own database context and several queries, so doing all of them inline
+        // was the whole reason this section took so long to appear — for text that is only
+        // read if the user hovers that particular row.
+        // Handed to LoadAsync rather than started here. This runs part-way through the
+        // Overview load, and four background readers competing with the queries still to
+        // come only slow down the very thing they were meant to get out of the way of.
+        _pendingDetailFill = boxes;
     }
 
     /// <summary>
@@ -903,12 +963,15 @@ public class OverviewViewModel : ReactiveObject
 
         try
         {
-            var corpIds = await _db.CorpStandingProjects.AsNoTracking()
-                .Select(sp => sp.CorporationId).Distinct().ToListAsync();
+            // Off() like every other query in this view model: awaited directly, SQLite's
+            // synchronous-underneath async would run both this and the per-corp grid builds on
+            // the UI thread.
+            var corpIds = await Off(() => _db.CorpStandingProjects.AsNoTracking()
+                .Select(sp => sp.CorporationId).Distinct().ToListAsync());
 
             var rows = new List<StandingProjectGridRow>();
             foreach (var corpId in corpIds)
-                rows.AddRange(await _corpActivity!.BuildMaintainGridRowsAsync(corpId));
+                rows.AddRange(await Off(() => _corpActivity!.BuildMaintainGridRowsAsync(corpId)));
 
             StandingProjects.Clear();
             foreach (var r in rows)
