@@ -484,10 +484,14 @@ public class OverviewViewModel : ReactiveObject
         // were filling the log on every refresh.
         var sw = System.Diagnostics.Stopwatch.StartNew();
 
-        // Section timing, reinstated but quiet: only a section that is slow enough to be felt
-        // gets logged, so this cannot fill the error log the way the old per-section timings did.
-        // The queries themselves are already on the threadpool via Off(); what these measure is
-        // the work BETWEEN the awaits, which resumes on the UI thread and is what freezes it.
+        // Section timing, reinstated but quiet: only a slow section is logged, so this cannot
+        // fill the error log the way the old per-section timings did.
+        //
+        // ⚠️ This is WALL CLOCK for the section, not UI-thread blocking: it includes time spent
+        // awaiting queries that Off() put on the threadpool, during which the UI thread is free.
+        // A slow section here is a lead, not a verdict — UiStallMonitor is what says whether the
+        // window actually froze. Worded accordingly, because reading it the other way sends you
+        // hunting for a freeze that isn't there.
         const int SlowSectionMs = 250;
         var sectionAt   = 0L;
         var sectionName = "Querying scope";
@@ -498,7 +502,7 @@ public class OverviewViewModel : ReactiveObject
             var took = now - sectionAt;
             if (took >= SlowSectionMs)
                 _errorLogger.Log(nameof(OverviewViewModel), "Slow Overview section",
-                    $"\"{sectionName}\" held the UI thread for {took:N0} ms.");
+                    $"\"{sectionName}\" took {took:N0} ms (wall clock, background queries included).");
 
             sectionAt   = now;
             sectionName = next;
