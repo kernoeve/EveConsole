@@ -857,26 +857,39 @@ public class App : Application
 
             // ── LP store ────────────────────────────────────────────────────────
             // Offers are public and exist nowhere in the SDE, so ESI is the only source.
+            //
+            // Keyed on (CorporationId, OfferId). Offer ids are NOT unique across
+            // corporations — id 3414 is the same offer in Perkone's, Lai Dai's and Federal
+            // Navy Academy's stores — and the first cut of these tables keyed on OfferId
+            // alone, which aborted the sweep on the second corporation with a UNIQUE
+            // violation. SQLite cannot alter a primary key, so the tables are dropped and
+            // rebuilt. They hold nothing but a re-fetchable cache, refreshed daily.
+            db.Database.ExecuteSqlRaw("""DROP TABLE IF EXISTS "EsiLpStoreOfferItems" """);
+            db.Database.ExecuteSqlRaw("""DROP TABLE IF EXISTS "EsiLpStoreOffers" """);
+            db.Database.ExecuteSqlRaw("""DELETE FROM "EsiLpStoreCorps" """);
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiLpStoreOffers" (
-                    "OfferId"       INTEGER NOT NULL PRIMARY KEY,
-                    "CorporationId" INTEGER NOT NULL DEFAULT 0,
+                    "CorporationId" INTEGER NOT NULL,
+                    "OfferId"       INTEGER NOT NULL,
                     "TypeId"        INTEGER NOT NULL DEFAULT 0,
                     "Quantity"      INTEGER NOT NULL DEFAULT 0,
                     "LpCost"        INTEGER NOT NULL DEFAULT 0,
                     "IskCost"       INTEGER NOT NULL DEFAULT 0,
                     "AkCost"        INTEGER NOT NULL DEFAULT 0,
-                    "UpdatedAt"     TEXT    NOT NULL DEFAULT ''
+                    "UpdatedAt"     TEXT    NOT NULL DEFAULT '',
+                    PRIMARY KEY ("CorporationId", "OfferId")
                 )
                 """);
+            // The Item Browser looks these up by type, not by corporation.
             db.Database.ExecuteSqlRaw(
-                """CREATE INDEX IF NOT EXISTS "IX_EsiLpStoreOffers_Corp" ON "EsiLpStoreOffers" ("CorporationId")""");
+                """CREATE INDEX IF NOT EXISTS "IX_EsiLpStoreOffers_Type" ON "EsiLpStoreOffers" ("TypeId")""");
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiLpStoreOfferItems" (
-                    "OfferId"  INTEGER NOT NULL,
-                    "TypeId"   INTEGER NOT NULL,
-                    "Quantity" INTEGER NOT NULL DEFAULT 0,
-                    PRIMARY KEY ("OfferId", "TypeId")
+                    "CorporationId" INTEGER NOT NULL,
+                    "OfferId"       INTEGER NOT NULL,
+                    "TypeId"        INTEGER NOT NULL,
+                    "Quantity"      INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("CorporationId", "OfferId", "TypeId")
                 )
                 """);
             db.Database.ExecuteSqlRaw("""

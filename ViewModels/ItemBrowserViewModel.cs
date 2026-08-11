@@ -380,12 +380,15 @@ public class ItemBrowserViewModel : ReactiveObject
                 return;
             }
 
-            var offerIds = offers.Select(o => o.OfferId).ToList();
+            var corpIds  = offers.Select(o => o.CorporationId).Distinct().ToList();
+            var offerIds = offers.Select(o => o.OfferId).Distinct().ToList();
+
+            // Both halves of the key. Offer ids repeat across corporations, so matching on
+            // the id alone would attach another store's required items to this offer.
             var reqs = await db.EsiLpStoreOfferItems.AsNoTracking()
-                .Where(i => offerIds.Contains(i.OfferId))
+                .Where(i => offerIds.Contains(i.OfferId) && corpIds.Contains(i.CorporationId))
                 .ToListAsync(ct);
 
-            var corpIds = offers.Select(o => o.CorporationId).Distinct().ToList();
             var corpNames = await db.SdeNpcCorporations.AsNoTracking()
                 .Where(c => corpIds.Contains(c.CorporationId))
                 .ToDictionaryAsync(c => c.CorporationId, c => c.Name, ct);
@@ -410,7 +413,7 @@ public class ItemBrowserViewModel : ReactiveObject
                     corpNames.GetValueOrDefault(o.CorporationId, $"Corp {o.CorporationId}"),
                     o.Quantity, o.LpCost, o.IskCost, o.AkCost,
                     lpHeld.GetValueOrDefault(o.CorporationId),
-                    reqs.Where(i => i.OfferId == o.OfferId)
+                    reqs.Where(i => i.OfferId == o.OfferId && i.CorporationId == o.CorporationId)
                         .Select(i => $"{i.Quantity:N0} × {reqNames.GetValueOrDefault(i.TypeId, $"Type {i.TypeId}")}")
                         .ToList()))
                 .OrderByDescending(r => r.LpHeld >= r.LpCost)   // affordable first

@@ -753,12 +753,12 @@ public class AppDbContext : DbContext
             e.ToTable("EsiLoyaltyPoints"); });
 
         mb.Entity<LpStoreOffer>(e => {
-            e.HasKey(x => x.OfferId);
+            e.HasKey(x => new { x.CorporationId, x.OfferId });
             e.Property(x => x.OfferId).ValueGeneratedNever();
             e.ToTable("EsiLpStoreOffers"); });
 
         mb.Entity<LpStoreOfferItem>(e => {
-            e.HasKey(x => new { x.OfferId, x.TypeId });
+            e.HasKey(x => new { x.CorporationId, x.OfferId, x.TypeId });
             e.Property(x => x.OfferId).ValueGeneratedNever();
             e.ToTable("EsiLpStoreOfferItems"); });
 

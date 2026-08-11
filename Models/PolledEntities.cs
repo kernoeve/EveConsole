@@ -494,6 +494,10 @@ public class LoyaltyPoint
 /// <summary>
 /// One LP store offer. Public data from /loyalty/stores/{corp}/offers/ — the only source
 /// there is: CCP does not ship loyalty store offers in the SDE.
+///
+/// Keyed on (CorporationId, OfferId), not OfferId alone. Offer ids are reused across
+/// corporations: id 3414 is the same 5,250 LP offer in Perkone's, Lai Dai's and Federal
+/// Navy Academy's stores, and all 132 of Perkone's ids also appear in Lai Dai's.
 /// </summary>
 public class LpStoreOffer
 {
@@ -515,9 +519,12 @@ public class LpStoreOffer
 /// </summary>
 public class LpStoreOfferItem
 {
-    public int OfferId  { get; set; }
-    public int TypeId   { get; set; }
-    public int Quantity { get; set; }
+    /// <summary>Part of the key — see <see cref="LpStoreOffer"/> on why OfferId alone
+    /// is not unique.</summary>
+    public int CorporationId { get; set; }
+    public int OfferId       { get; set; }
+    public int TypeId        { get; set; }
+    public int Quantity      { get; set; }
 }
 
 /// <summary>

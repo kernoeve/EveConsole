@@ -222,13 +222,9 @@ public class LpStoreService : ReactiveObject
     private static async Task ReplaceOffersAsync(
         AppDbContext db, int corpId, List<EsiLpStoreOffer> data, DateTime now, CancellationToken ct)
     {
-        var oldIds = await db.EsiLpStoreOffers
-            .Where(o => o.CorporationId == corpId)
-            .Select(o => o.OfferId)
-            .ToListAsync(ct);
-
-        if (oldIds.Count > 0)
-            await db.EsiLpStoreOfferItems.Where(i => oldIds.Contains(i.OfferId)).ExecuteDeleteAsync(ct);
+        // Scoped by corporation, which is half the key — an offer id on its own belongs to
+        // no single store.
+        await db.EsiLpStoreOfferItems.Where(i => i.CorporationId == corpId).ExecuteDeleteAsync(ct);
         await db.EsiLpStoreOffers.Where(o => o.CorporationId == corpId).ExecuteDeleteAsync(ct);
 
         // One offer id can appear twice in a response; the key would reject the pair.
@@ -236,8 +232,8 @@ public class LpStoreService : ReactiveObject
         {
             db.EsiLpStoreOffers.Add(new LpStoreOffer
             {
-                OfferId       = o.OfferId,
                 CorporationId = corpId,
+                OfferId       = o.OfferId,
                 TypeId        = o.TypeId,
                 Quantity      = o.Quantity,
                 LpCost        = o.LpCost,
@@ -249,9 +245,10 @@ public class LpStoreService : ReactiveObject
             foreach (var req in (o.RequiredItems ?? []).GroupBy(i => i.TypeId).Select(g => g.First()))
                 db.EsiLpStoreOfferItems.Add(new LpStoreOfferItem
                 {
-                    OfferId  = o.OfferId,
-                    TypeId   = req.TypeId,
-                    Quantity = req.Quantity,
+                    CorporationId = corpId,
+                    OfferId       = o.OfferId,
+                    TypeId        = req.TypeId,
+                    Quantity      = req.Quantity,
                 });
         }
 
