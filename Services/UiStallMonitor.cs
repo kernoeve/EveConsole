@@ -49,6 +49,19 @@ public sealed class UiStallMonitor(AppErrorLogger errorLogger)
             _pending = true;
             var sent = Stopwatch.GetTimestamp();
 
+            // Snapshot the two things that stall a UI thread without it running any code of
+            // ours, so the log can tell the three causes apart rather than leaving it to
+            // inference:
+            //   • a blocking GC suspends every thread, including this one — if the pause time
+            //     grew by about the stall, the UI thread was not busy, it was frozen;
+            //   • thread pool starvation delays the dispatcher's own continuations — if work
+            //     items are queued with no free workers, the blockage is elsewhere and the UI
+            //     is only its most visible victim.
+            // If neither moved, the UI thread genuinely ran our code for that long.
+            var gcPause = GC.GetTotalPauseDuration();
+            var gen2    = GC.CollectionCount(2);
+            ThreadPool.GetAvailableThreads(out var freeWorkersBefore, out _);
+
             // Background priority on purpose: it must queue behind real UI work, so what it
             // measures is the thread being genuinely busy rather than this jumping the queue.
             Dispatcher.UIThread.Post(() =>
@@ -61,9 +74,24 @@ public sealed class UiStallMonitor(AppErrorLogger errorLogger)
                 StallCount++;
                 if (waited > WorstStallMs) WorstStallMs = waited;
 
-                errorLogger.Log(nameof(UiStallMonitor), "UI thread stalled",
-                    $"The UI thread was busy for {waited:N0} ms " +
-                    $"(stall {StallCount} this session, worst {WorstStallMs:N0} ms).");
+                var gcMs      = (int)(GC.GetTotalPauseDuration() - gcPause).TotalMilliseconds;
+                var gen2Runs  = GC.CollectionCount(2) - gen2;
+                ThreadPool.GetAvailableThreads(out var freeWorkers, out _);
+                var queued    = ThreadPool.PendingWorkItemCount;
+
+                // Name the cause in the message itself, so the log is readable without having
+                // to reason about the numbers every time.
+                var cause =
+                    gcMs > waited / 2         ? "GC pause"
+                  : freeWorkers == 0          ? "thread pool starved"
+                  : queued > 50               ? "thread pool backlog"
+                  :                             "UI thread ran code";
+
+                errorLogger.Log(nameof(UiStallMonitor), $"UI stalled — {cause}",
+                    $"Blocked {waited:N0} ms. GC paused {gcMs:N0} ms ({gen2Runs} gen2). " +
+                    $"Pool: {freeWorkers} free workers (was {freeWorkersBefore}), " +
+                    $"{queued:N0} queued. " +
+                    $"Stall {StallCount} this session, worst {WorstStallMs:N0} ms.");
             }, DispatcherPriority.Background);
         };
 
