@@ -1972,6 +1972,10 @@ public class App : Application
 
         // Cheap when idle: the loop only touches the database for alarms whose interval is up.
         Services.GetRequiredService<AlarmService>().Start();
+
+        // Writes to the error log only when the UI thread actually freezes, so a healthy
+        // session records nothing.
+        Services.GetRequiredService<UiStallMonitor>().Start();
     }
 
     private static void PositionSplashOnLastMonitor(SplashWindow splash)
@@ -2061,6 +2065,7 @@ public class App : Application
         services.AddSingleton<HoboImportService>();
         services.AddSingleton<ApiActivityLog>();
         services.AddSingleton<AppErrorLogger>();
+        services.AddSingleton<UiStallMonitor>();
         services.AddSingleton<TimerSettingsService>();
         services.AddSingleton<AppPreferencesService>();
         services.AddSingleton<SlackAuthService>();

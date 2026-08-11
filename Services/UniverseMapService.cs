@@ -164,16 +164,21 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         if (string.IsNullOrWhiteSpace(text) || text.Length < 2) return [];
         var q = text.Trim();
 
+        // ⚠️ Lower-cased on both sides: string.Contains becomes SQLite's instr(), which is
+        // case-sensitive, so "jita" would find nothing while "Jita" found the system. Not a LIKE,
+        // so the % and _ wildcards are never exposed to what the user typed.
+        var needle = q.ToLowerInvariant();
+
         using var db = dbFactory.CreateDbContext();
 
         var regions = await db.SdeRegions.AsNoTracking()
-            .Where(r => r.RegionId < MaxKnownSpaceRegionId && r.Name.Contains(q))
+            .Where(r => r.RegionId < MaxKnownSpaceRegionId && r.Name.ToLower().Contains(needle))
             .Select(r => new { r.Name, r.RegionId })
             .Take(limit)
             .ToListAsync(ct);
 
         var systems = await db.SdeSolarSystems.AsNoTracking()
-            .Where(s => s.Name.Contains(q))
+            .Where(s => s.Name.ToLower().Contains(needle))
             .Join(db.SdeRegions.AsNoTracking(), s => s.RegionId, r => r.RegionId,
                   (s, r) => new { s.Name, s.SolarSystemId, s.RegionId, Region = r.Name, s.Security })
             .Take(limit * 2)
