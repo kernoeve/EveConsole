@@ -1902,6 +1902,9 @@ public class App : Application
                 """CREATE INDEX IF NOT EXISTS "IX_SdeAgents_Location" ON "SdeAgents" ("LocationId")""",
                 """CREATE TABLE IF NOT EXISTS "SdeAgentTypes" ("AgentTypeId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
                 """CREATE TABLE IF NOT EXISTS "SdeCorpDivisions" ("DivisionId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
+                """CREATE TABLE IF NOT EXISTS "SdeStationServices" ("ServiceId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
+                """CREATE TABLE IF NOT EXISTS "SdeStationOperations" ("OperationId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
+                """CREATE TABLE IF NOT EXISTS "SdeStationOperationServices" ("OperationId" INTEGER NOT NULL, "ServiceId" INTEGER NOT NULL, PRIMARY KEY ("OperationId", "ServiceId"))""",
 
                 // ── Indy Parks: catch-all facility ──────────────────────────────────
                 // Where jobs go when no category assignment covers the item. Before this
@@ -1916,6 +1919,7 @@ public class App : Application
                 // Production Calculator died on "no such column: s.Radius" this way.
                 // Mirror of the alters list in SdeImportService.EnsureSdeSchemaAsync;
                 // keep the two in step.
+                """ALTER TABLE "SdeStations"       ADD COLUMN "OperationId" INTEGER""",
                 """ALTER TABLE "SdeGroups"         ADD COLUMN "Anchorable" INTEGER NOT NULL DEFAULT 0""",
                 """ALTER TABLE "SdeGroups"         ADD COLUMN "Anchored"   INTEGER NOT NULL DEFAULT 0""",
                 """ALTER TABLE "SdeTypes"          ADD COLUMN "GraphicId"  INTEGER""",

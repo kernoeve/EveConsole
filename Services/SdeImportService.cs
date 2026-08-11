@@ -192,7 +192,7 @@ public class SdeImportService
             "dogmaAttributeCategories.yaml", "races.yaml", "certificates.yaml",
             "typeMaterials.yaml", "planetSchematics.yaml",
             "dogmaUnits.yaml", "icons.yaml", "graphics.yaml", "skins.yaml", "skinLicenses.yaml",
-            "npcStations.yaml",
+            "npcStations.yaml", "stationServices.yaml", "stationOperations.yaml",
         };
         var missingOptional = optional.Where(f => archive.GetEntry($"{fsdRoot}{f}") is null).ToList();
         if (missingOptional.Count > 0)
@@ -300,6 +300,9 @@ public class SdeImportService
             """CREATE TABLE IF NOT EXISTS "SdeCorpDivisions" ("DivisionId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
             """CREATE TABLE IF NOT EXISTS "SdePlanetResources" ("PlanetId" INTEGER NOT NULL PRIMARY KEY, "Power" INTEGER NOT NULL DEFAULT 0, "Workforce" INTEGER NOT NULL DEFAULT 0, "ReagentPerCycle" INTEGER NOT NULL DEFAULT 0, "ReagentCycleTime" INTEGER NOT NULL DEFAULT 0, "SecuredCapacity" INTEGER NOT NULL DEFAULT 0)""",
             """CREATE TABLE IF NOT EXISTS "SdeStations" ("StationId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "SolarSystemId" INTEGER NOT NULL, "ConstellationId" INTEGER NOT NULL, "RegionId" INTEGER NOT NULL, "CorporationId" INTEGER, "StationTypeId" INTEGER, "Security" REAL NOT NULL, "ReprocessingEfficiency" REAL NOT NULL, "ReprocessingTax" REAL NOT NULL)""",
+            """CREATE TABLE IF NOT EXISTS "SdeStationServices" ("ServiceId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
+            """CREATE TABLE IF NOT EXISTS "SdeStationOperations" ("OperationId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
+            """CREATE TABLE IF NOT EXISTS "SdeStationOperationServices" ("OperationId" INTEGER NOT NULL, "ServiceId" INTEGER NOT NULL, PRIMARY KEY ("OperationId", "ServiceId"))""",
             """CREATE TABLE IF NOT EXISTS "SdeFactions" ("FactionId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "Description" TEXT NOT NULL, "CorporationId" INTEGER, "MilitiaCorporationId" INTEGER, "SolarSystemId" INTEGER)""",
             """CREATE TABLE IF NOT EXISTS "SdeNpcCorporations" ("CorporationId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "FactionId" INTEGER)""",
             """CREATE TABLE IF NOT EXISTS "SdeRaces" ("RaceId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "Description" TEXT NOT NULL)""",
@@ -323,6 +326,7 @@ public class SdeImportService
         // SQLite ALTER TABLE does not support IF NOT EXISTS, so we catch the duplicate-column error.
         var alters = new[]
         {
+            """ALTER TABLE "SdeStations" ADD COLUMN "OperationId" INTEGER""",
             """ALTER TABLE "SdeGroups" ADD COLUMN "Anchorable" INTEGER NOT NULL DEFAULT 0""",
             """ALTER TABLE "SdeGroups" ADD COLUMN "Anchored"   INTEGER NOT NULL DEFAULT 0""",
             """ALTER TABLE "SdeTypes"  ADD COLUMN "GraphicId"  INTEGER""",
@@ -363,6 +367,8 @@ public class SdeImportService
             "DELETE FROM \"SdeBlueprintMaterials\"",  "DELETE FROM \"SdeBlueprintProducts\"",
             "DELETE FROM \"SdeBlueprintSkills\"",     "DELETE FROM \"SdeBlueprints\"",
             "DELETE FROM \"SdeStargates\"",           "DELETE FROM \"SdeStations\"",
+            "DELETE FROM \"SdeStationServices\"",     "DELETE FROM \"SdeStationOperations\"",
+            "DELETE FROM \"SdeStationOperationServices\"",
             "DELETE FROM \"SdePlanetResources\"",
             "DELETE FROM \"SdeAgents\"", "DELETE FROM \"SdeAgentTypes\"",
             "DELETE FROM \"SdeCorpDivisions\"",
@@ -1112,9 +1118,11 @@ public class SdeImportService
                     Security               = sys?.Security ?? 0,
                     ReprocessingEfficiency = kv.Value.reprocessingEfficiency,
                     ReprocessingTax        = kv.Value.reprocessingStationsTake,
+                    OperationId            = kv.Value.operationID,
                 };
             });
             await SaveBatchesAsync(db, db.SdeStations, rows, "Stations", raw.Count, p, 0.875, 0.89, ct);
+            await ImportStationServicesAsync(zip, fsdRoot, db, p, ct);
             return;
         }
 
@@ -1665,6 +1673,69 @@ public class SdeImportService
         public double  security                 { get; set; }
         public double  reprocessingEfficiency   { get; set; }
         public double  reprocessingStationsTake { get; set; }
+    }
+
+    /// <summary>
+    /// Station services, and which operation provides which.
+    ///
+    /// Services hang off the operation, not the station: a station names an operationID, and
+    /// the operation lists its service ids. That indirection is the whole reason this import
+    /// exists — without it "does this station have a market / an LP store / a factory" can
+    /// only be guessed at from the owning corporation, which is an approximation.
+    /// </summary>
+    private async Task ImportStationServicesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
+                                                  IProgress<SdeImportProgress> p, CancellationToken ct)
+    {
+        var svcEntry = zip.GetEntry($"{fsdRoot}stationServices.yaml");
+        if (svcEntry is not null)
+        {
+            Report(p, "Station services", "Parsing stationServices.yaml…", 0.89);
+            using var reader = OpenEntry(svcEntry);
+            var raw = _yaml.Deserialize<Dictionary<int, StationServiceYaml>>(reader) ?? [];
+            db.SdeStationServices.AddRange(raw.Select(kv => new SdeStationService
+            {
+                ServiceId = kv.Key,
+                Name      = kv.Value.serviceName?.en ?? $"Service {kv.Key}",
+            }));
+            await db.SaveChangesAsync(ct);
+            db.ChangeTracker.Clear();
+            Report(p, "Station services", $"{raw.Count:N0} services", 0.892);
+        }
+        else Report(p, "Station services", "stationServices.yaml NOT FOUND — skipped", 0.892);
+
+        var opEntry = zip.GetEntry($"{fsdRoot}stationOperations.yaml");
+        if (opEntry is null)
+        {
+            Report(p, "Station operations", "stationOperations.yaml NOT FOUND — skipped", 0.895);
+            return;
+        }
+
+        Report(p, "Station operations", "Parsing stationOperations.yaml…", 0.893);
+        using var opReader = OpenEntry(opEntry);
+        var ops = _yaml.Deserialize<Dictionary<int, StationOperationYaml>>(opReader) ?? [];
+
+        db.SdeStationOperations.AddRange(ops.Select(kv => new SdeStationOperation
+        {
+            OperationId = kv.Key,
+            Name        = kv.Value.operationName?.en ?? $"Operation {kv.Key}",
+        }));
+
+        // Distinct guards against an operation listing the same service twice, which the
+        // composite key would reject for the whole batch.
+        db.SdeStationOperationServices.AddRange(ops
+            .SelectMany(kv => (kv.Value.services ?? []).Distinct()
+                .Select(sid => new SdeStationOperationService { OperationId = kv.Key, ServiceId = sid })));
+
+        await db.SaveChangesAsync(ct);
+        db.ChangeTracker.Clear();
+        Report(p, "Station operations", $"{ops.Count:N0} operations", 0.895);
+    }
+
+    private class StationServiceYaml   { public LocalizedString? serviceName   { get; set; } }
+    private class StationOperationYaml
+    {
+        public LocalizedString? operationName { get; set; }
+        public List<int>?       services      { get; set; }
     }
 
     // New npcStations.yaml DTO (dict format, no station name)

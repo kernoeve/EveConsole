@@ -159,6 +159,9 @@ public class AppDbContext : DbContext
     public DbSet<SdeCorpDivision>       SdeCorpDivisions       => Set<SdeCorpDivision>();
     public DbSet<SdeCelestial>          SdeCelestials          => Set<SdeCelestial>();
     public DbSet<SdeStation>            SdeStations            => Set<SdeStation>();
+    public DbSet<SdeStationService>          SdeStationServices          => Set<SdeStationService>();
+    public DbSet<SdeStationOperation>        SdeStationOperations        => Set<SdeStationOperation>();
+    public DbSet<SdeStationOperationService> SdeStationOperationServices => Set<SdeStationOperationService>();
     public DbSet<SdeFaction>            SdeFactions            => Set<SdeFaction>();
     public DbSet<SdeNpcCorporation>     SdeNpcCorporations     => Set<SdeNpcCorporation>();
     public DbSet<SdeRace>               SdeRaces               => Set<SdeRace>();
@@ -439,6 +442,18 @@ public class AppDbContext : DbContext
         mb.Entity<SdeStation>(e => {
             e.HasKey(x => x.StationId);
             e.Property(x => x.StationId).ValueGeneratedNever(); });
+
+        mb.Entity<SdeStationService>(e => {
+            e.HasKey(x => x.ServiceId);
+            e.Property(x => x.ServiceId).ValueGeneratedNever(); });
+
+        mb.Entity<SdeStationOperation>(e => {
+            e.HasKey(x => x.OperationId);
+            e.Property(x => x.OperationId).ValueGeneratedNever(); });
+
+        mb.Entity<SdeStationOperationService>(e => {
+            e.HasKey(x => new { x.OperationId, x.ServiceId });
+            e.Property(x => x.OperationId).ValueGeneratedNever(); });
 
         mb.Entity<SdeFaction>(e => {
             e.HasKey(x => x.FactionId);
