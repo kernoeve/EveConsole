@@ -340,6 +340,22 @@ public record EsiAgentResearch(
 
 // ── Loyalty points ────────────────────────────────────────────────────────────
 
+// LP store offer (/loyalty/stores/{corporation_id}/offers/) — public, no token.
+public record EsiLpStoreOffer(
+    [property: JsonPropertyName("offer_id")]       int    OfferId,
+    [property: JsonPropertyName("type_id")]        int    TypeId,
+    [property: JsonPropertyName("quantity")]       int    Quantity,
+    [property: JsonPropertyName("lp_cost")]        int    LpCost,
+    [property: JsonPropertyName("isk_cost")]       long   IskCost,
+    [property: JsonPropertyName("ak_cost")]        int?   AkCost,
+    [property: JsonPropertyName("required_items")] List<EsiLpRequiredItem>? RequiredItems
+);
+
+public record EsiLpRequiredItem(
+    [property: JsonPropertyName("type_id")]  int TypeId,
+    [property: JsonPropertyName("quantity")] int Quantity
+);
+
 public record EsiLoyaltyPoint(
     [property: JsonPropertyName("corporation_id")]  int CorporationId,
     [property: JsonPropertyName("loyalty_points")]  int LoyaltyPoints

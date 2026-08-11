@@ -51,6 +51,7 @@ public class App : Application
         MarketPricingService? marketPricing = null;
         MarketHistoryService? marketHistory = null;
         ContractsService?     contracts     = null;
+        LpStoreService?       lpStore       = null;
         GameLogImportService?       gameLogs      = null;
         ChatLogImportService?       chatLogs      = null;
         ZkillboardPollingService?   zkbPolling    = null;
@@ -70,6 +71,7 @@ public class App : Application
             marketPricing = Services.GetRequiredService<MarketPricingService>();
             marketHistory = Services.GetRequiredService<MarketHistoryService>();
             contracts     = Services.GetRequiredService<ContractsService>();
+            lpStore       = Services.GetRequiredService<LpStoreService>();
             gameLogs      = Services.GetRequiredService<GameLogImportService>();
             chatLogs      = Services.GetRequiredService<ChatLogImportService>();
             zkbPolling    = Services.GetRequiredService<ZkillboardPollingService>();
@@ -111,6 +113,7 @@ public class App : Application
                 if (marketPricing is not null) tasks.Add(marketPricing.StopAsync());
                 if (marketHistory is not null) tasks.Add(marketHistory.StopAsync());
                 if (contracts     is not null) tasks.Add(contracts.StopAsync());
+                if (lpStore       is not null) tasks.Add(lpStore.StopAsync());
                 if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
                 if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
                 await Task.WhenAll(tasks);
@@ -849,6 +852,39 @@ public class App : Application
                     "CorporationId" INTEGER NOT NULL,
                     "Points"        INTEGER NOT NULL DEFAULT 0,
                     PRIMARY KEY ("CharacterId", "CorporationId")
+                )
+                """);
+
+            // ── LP store ────────────────────────────────────────────────────────
+            // Offers are public and exist nowhere in the SDE, so ESI is the only source.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "EsiLpStoreOffers" (
+                    "OfferId"       INTEGER NOT NULL PRIMARY KEY,
+                    "CorporationId" INTEGER NOT NULL DEFAULT 0,
+                    "TypeId"        INTEGER NOT NULL DEFAULT 0,
+                    "Quantity"      INTEGER NOT NULL DEFAULT 0,
+                    "LpCost"        INTEGER NOT NULL DEFAULT 0,
+                    "IskCost"       INTEGER NOT NULL DEFAULT 0,
+                    "AkCost"        INTEGER NOT NULL DEFAULT 0,
+                    "UpdatedAt"     TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw(
+                """CREATE INDEX IF NOT EXISTS "IX_EsiLpStoreOffers_Corp" ON "EsiLpStoreOffers" ("CorporationId")""");
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "EsiLpStoreOfferItems" (
+                    "OfferId"  INTEGER NOT NULL,
+                    "TypeId"   INTEGER NOT NULL,
+                    "Quantity" INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("OfferId", "TypeId")
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "EsiLpStoreCorps" (
+                    "CorporationId" INTEGER NOT NULL PRIMARY KEY,
+                    "HasStore"      INTEGER NOT NULL DEFAULT 0,
+                    "OfferCount"    INTEGER NOT NULL DEFAULT 0,
+                    "LastCheckedAt" TEXT    NULL
                 )
                 """);
 
@@ -2014,6 +2050,7 @@ public class App : Application
         marketPricing?.Start();
         marketHistory?.Start();
         contracts?.Start();
+        lpStore?.Start();
         Services.GetRequiredService<DatabaseBackupService>().Start();
         gameLogs?.Start();
         chatLogs?.Start();
@@ -2133,6 +2170,7 @@ public class App : Application
         services.AddSingleton<MarketPricingService>();
         services.AddSingleton<MarketHistoryService>();
         services.AddSingleton<ContractsService>();
+        services.AddSingleton<LpStoreService>();
         services.AddSingleton<BuildCostService>();
         services.AddSingleton<ReprocessingValueService>();
         services.AddSingleton<ProductionCalculatorService>();

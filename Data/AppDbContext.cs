@@ -50,6 +50,9 @@ public class AppDbContext : DbContext
     public DbSet<PlanetaryColony>            EsiPlanetaryColonies    => Set<PlanetaryColony>();
     public DbSet<AgentResearch>              EsiAgentResearch        => Set<AgentResearch>();
     public DbSet<LoyaltyPoint>               EsiLoyaltyPoints        => Set<LoyaltyPoint>();
+    public DbSet<LpStoreOffer>               EsiLpStoreOffers        => Set<LpStoreOffer>();
+    public DbSet<LpStoreOfferItem>           EsiLpStoreOfferItems    => Set<LpStoreOfferItem>();
+    public DbSet<LpStoreCorp>                EsiLpStoreCorps         => Set<LpStoreCorp>();
     public DbSet<CharacterMedal>             EsiMedals               => Set<CharacterMedal>();
     public DbSet<StandingEntry>              EsiStandings            => Set<StandingEntry>();
     public DbSet<CharacterTitle>             EsiTitles               => Set<CharacterTitle>();
@@ -733,6 +736,21 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.CharacterId, x.CorporationId });
             e.Property(x => x.CharacterId).ValueGeneratedNever();
             e.ToTable("EsiLoyaltyPoints"); });
+
+        mb.Entity<LpStoreOffer>(e => {
+            e.HasKey(x => x.OfferId);
+            e.Property(x => x.OfferId).ValueGeneratedNever();
+            e.ToTable("EsiLpStoreOffers"); });
+
+        mb.Entity<LpStoreOfferItem>(e => {
+            e.HasKey(x => new { x.OfferId, x.TypeId });
+            e.Property(x => x.OfferId).ValueGeneratedNever();
+            e.ToTable("EsiLpStoreOfferItems"); });
+
+        mb.Entity<LpStoreCorp>(e => {
+            e.HasKey(x => x.CorporationId);
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.ToTable("EsiLpStoreCorps"); });
 
         mb.Entity<CharacterMedal>(e => {
             e.HasKey(x => x.Id);

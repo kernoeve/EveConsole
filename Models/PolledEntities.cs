@@ -491,6 +491,48 @@ public class LoyaltyPoint
     public int  Points        { get; set; }
 }
 
+/// <summary>
+/// One LP store offer. Public data from /loyalty/stores/{corp}/offers/ — the only source
+/// there is: CCP does not ship loyalty store offers in the SDE.
+/// </summary>
+public class LpStoreOffer
+{
+    public int      OfferId       { get; set; }
+    public int      CorporationId { get; set; }
+    public int      TypeId        { get; set; }
+    public int      Quantity      { get; set; }
+    public int      LpCost        { get; set; }
+    public long     IskCost       { get; set; }
+    /// <summary>Analysis Kredits. Zero for all but a handful of offers.</summary>
+    public int      AkCost        { get; set; }
+    public DateTime UpdatedAt     { get; set; }
+}
+
+/// <summary>
+/// An item the offer consumes in addition to LP and ISK. Most offers have none; the ones
+/// that do are usually the interesting ones, since the required item's market value is
+/// what decides whether the trade is worth making.
+/// </summary>
+public class LpStoreOfferItem
+{
+    public int OfferId  { get; set; }
+    public int TypeId   { get; set; }
+    public int Quantity { get; set; }
+}
+
+/// <summary>
+/// Per-corporation sweep state. Most NPC corporations have no LP store and answer 404;
+/// recording that means the next sweep skips them instead of firing a hundred 404s into
+/// ESI's global error limit every time.
+/// </summary>
+public class LpStoreCorp
+{
+    public int       CorporationId { get; set; }
+    public bool      HasStore      { get; set; }
+    public int       OfferCount    { get; set; }
+    public DateTime? LastCheckedAt { get; set; }
+}
+
 public class CharacterMedal
 {
     public int    Id            { get; set; }  // auto-increment
