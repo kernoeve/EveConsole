@@ -495,7 +495,8 @@ public class MainWindowViewModel : ReactiveObject
         ExportFormatSettings            exportFormat,
         AlarmService                    alarmService,
         AlarmSoundService               alarmSounds,
-        AlarmActionRunner               alarmActions)
+        AlarmActionRunner               alarmActions,
+        LpStoreService                  lpStoreService)
     {
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
@@ -514,7 +515,7 @@ public class MainWindowViewModel : ReactiveObject
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
                                                      zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost,
-                                                     intelService, monitoringSettings, entityNames, alarmService);
+                                                     intelService, monitoringSettings, entityNames, alarmService, lpStoreService);
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);

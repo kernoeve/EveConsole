@@ -63,6 +63,25 @@ public class LpStoreService : ReactiveObject
         _timerSettings = timerSettings;
     }
 
+    /// <summary>Live sweep progress for the Background Processes window.</summary>
+    public record LpStoreStatus(
+        int CorpsTotal, int CorpsChecked, int CorpsWithStore, int Offers, bool Running,
+        DateTime? LastCheckedAt);
+
+    private volatile bool _running;
+
+    public async Task<LpStoreStatus> GetStatusAsync(CancellationToken ct = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        return new LpStoreStatus(
+            CorpsTotal:     await db.SdeNpcCorporations.CountAsync(ct),
+            CorpsChecked:   await db.EsiLpStoreCorps.CountAsync(ct),
+            CorpsWithStore: await db.EsiLpStoreCorps.CountAsync(c => c.HasStore, ct),
+            Offers:         await db.EsiLpStoreOffers.CountAsync(ct),
+            Running:        _running,
+            LastCheckedAt:  await db.EsiLpStoreCorps.MaxAsync(c => (DateTime?)c.LastCheckedAt, ct));
+    }
+
     public void Start() =>
         _loop = Task.Run(() => RunLoopAsync("lpstore.offers", 86400, SweepAsync, _cts.Token));
 
@@ -96,6 +115,13 @@ public class LpStoreService : ReactiveObject
     }
 
     public async Task SweepAsync(CancellationToken ct = default)
+    {
+        _running = true;
+        try { await SweepCoreAsync(ct); }
+        finally { _running = false; }
+    }
+
+    private async Task SweepCoreAsync(CancellationToken ct)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
