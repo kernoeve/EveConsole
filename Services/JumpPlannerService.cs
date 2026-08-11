@@ -194,11 +194,17 @@ public sealed class JumpPlannerService
     {
         if (string.IsNullOrWhiteSpace(term) || term.Length < 2) return [];
 
+        // ⚠️ Lower-cased on both sides deliberately. string.Contains translates to SQLite's
+        // instr(), which is case-sensitive — "UALX" found the system and "ualx" found nothing.
+        // Lowering both makes it instr(lower(Name), lower(term)), which is case-insensitive
+        // without exposing LIKE's % and _ wildcards to whatever the user typed.
+        var needle = term.ToLowerInvariant();
+
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
         var hits = await (
             from s in db.SdeSolarSystems.AsNoTracking()
             join r in db.SdeRegions.AsNoTracking() on s.RegionId equals r.RegionId
-            where s.Name.Contains(term)
+            where s.Name.ToLower().Contains(needle)
             select new { s.SolarSystemId, s.Name, Region = r.Name, s.Security })
             .Take(60).ToListAsync(ct);
 
