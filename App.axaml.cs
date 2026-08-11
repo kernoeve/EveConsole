@@ -36,6 +36,11 @@ public class App : Application
 
         // Wire up global exception handlers so truly unhandled failures are persisted
         var errorLogger = Services.GetRequiredService<AppErrorLogger>();
+
+        // Installed here, before any view model exists: ObserveOn captures the scheduler when a
+        // subscription is created, so anything wired earlier would never be measured.
+        ReactiveUI.RxApp.MainThreadScheduler =
+            new TimedMainThreadScheduler(ReactiveUI.RxApp.MainThreadScheduler, errorLogger);
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
             if (e.ExceptionObject is Exception ex)
