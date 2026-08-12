@@ -18,7 +18,7 @@
     </Style>
   </UserControl.Styles>
 
-  <Grid RowDefinitions="Auto,1,Auto,1,*">
+  <Grid RowDefinitions="Auto,1,Auto,1,*,4,320">
 
     <!-- ── Toolbar ──────────────────────────────────────────────────── -->
     <Border Grid.Row="0" Background="#12121a" Padding="12 8"
@@ -88,6 +88,7 @@
                 AutoGenerateColumns="False"
                 CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="True"
                 IsReadOnly="True"
+                SelectedItem="{Binding Selected, Mode=TwoWay}"
                 Background="#0d0d12" RowBackground="#0d0d12"
                 GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
                 HeadersVisibility="Column" FontSize="11" RowHeight="24" BorderThickness="0">
@@ -118,5 +119,127 @@
           <DataGridTextColumn Header="Status" Binding="{Binding StatusText}" Width="Auto" />
         </DataGrid.Columns>
       </DataGrid>
+
+    <GridSplitter Grid.Row="5" Height="4" Background="#1e1e2a"
+                  HorizontalAlignment="Stretch" ResizeDirection="Rows" />
+
+    <!-- ── Viewer for the selected structure ─────────────────────────── -->
+    <Border Grid.Row="6" Background="#0b0b10" BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
+
+      <Panel>
+        <TextBlock Text="Select a structure above to view and edit it."
+                   FontSize="11.5" Foreground="#556"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   IsVisible="{Binding !HasSelection}" />
+
+        <Grid RowDefinitions="Auto,*" IsVisible="{Binding HasSelection}" Margin="12 8">
+
+          <!-- Header: identity and provenance -->
+          <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+            <StackPanel Grid.Column="0" Spacing="1">
+              <TextBlock Text="{Binding Selected.Name}" FontSize="13"
+                         FontWeight="SemiBold" Foreground="#ddd" />
+              <TextBlock FontSize="10" Foreground="#667">
+                <Run Text="Location ID" /><Run Text=" " />
+                <Run Text="{Binding Selected.StructureId}" />
+                <Run Text="  ·  " />
+                <Run Text="{Binding Provenance}" />
+              </TextBlock>
+            </StackPanel>
+            <TextBlock Grid.Column="1" Text="{Binding DetailStatus}"
+                       FontSize="10.5" Foreground="#7a8896" VerticalAlignment="Center" />
+          </Grid>
+
+          <TabControl Grid.Row="1">
+
+            <!-- ── Details: the editable record ────────────────────── -->
+            <TabItem Header="Details">
+              <ScrollViewer Margin="4 8 4 0">
+                <StackPanel Spacing="8" MaxWidth="620" HorizontalAlignment="Left">
+
+                  <StackPanel>
+                    <TextBlock Classes="flabel" Text="NAME" />
+                    <TextBox Text="{Binding EditName}" FontSize="11.5" />
+                  </StackPanel>
+
+                  <Grid ColumnDefinitions="*,*">
+                    <StackPanel Grid.Column="0" Margin="0 0 6 0">
+                      <TextBlock Classes="flabel" Text="SYSTEM" />
+                      <TextBox Text="{Binding EditSystem}" FontSize="11.5" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="6 0 0 0">
+                      <TextBlock Classes="flabel" Text="TYPE" />
+                      <TextBox Text="{Binding EditType}" FontSize="11.5" />
+                    </StackPanel>
+                  </Grid>
+
+                  <StackPanel>
+                    <TextBlock Classes="flabel" Text="NOTES" />
+                    <TextBox Text="{Binding EditNotes}" FontSize="11.5"
+                             AcceptsReturn="True" TextWrapping="Wrap" Height="80"
+                             Watermark="Access notes, who to ask for a docking invite — anything ESI will never carry." />
+                  </StackPanel>
+
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Save" Click="OnSaveDetail"
+                            Background="#1a1a28" Foreground="#5599aa" BorderBrush="#2a3a44"
+                            BorderThickness="1" Padding="16 4" FontSize="11" />
+                    <TextBlock Text="Location ID cannot be changed — it is the structure's identity."
+                               FontSize="10" Foreground="#556" VerticalAlignment="Center" />
+                  </StackPanel>
+
+                </StackPanel>
+              </ScrollViewer>
+            </TabItem>
+
+            <!-- ── Fitting ─────────────────────────────────────────── -->
+            <TabItem Header="Fitting">
+              <DataGrid ItemsSource="{Binding Fitting}" AutoGenerateColumns="False"
+                        IsReadOnly="True" FontSize="11" RowHeight="22"
+                        Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Slot"   Binding="{Binding Slot}"     Width="120" />
+                  <DataGridTextColumn Header="Module" Binding="{Binding TypeName}" Width="*" />
+                  <DataGridTextColumn Header="Known from" Binding="{Binding Source}" Width="100" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </TabItem>
+
+            <!-- ── Assets ──────────────────────────────────────────── -->
+            <TabItem Header="Assets">
+              <DataGrid ItemsSource="{Binding Assets}" AutoGenerateColumns="False"
+                        IsReadOnly="True" FontSize="11" RowHeight="22"
+                        Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Item"     Binding="{Binding TypeName}" Width="*" />
+                  <DataGridTextColumn Header="Where"    Binding="{Binding Location}" Width="140" />
+                  <DataGridTextColumn Header="Qty"      Binding="{Binding Quantity}" Width="90" />
+                  <DataGridTextColumn Header="Owner"    Binding="{Binding Owner}"    Width="110" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </TabItem>
+
+            <!-- ── Industry jobs ───────────────────────────────────── -->
+            <TabItem Header="Industry Jobs">
+              <DataGrid ItemsSource="{Binding Jobs}" AutoGenerateColumns="False"
+                        IsReadOnly="True" FontSize="11" RowHeight="22"
+                        Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Activity" Binding="{Binding Activity}" Width="130" />
+                  <DataGridTextColumn Header="Product"  Binding="{Binding Product}"  Width="*" />
+                  <DataGridTextColumn Header="Runs"     Binding="{Binding Runs}"     Width="70" />
+                  <DataGridTextColumn Header="Status"   Binding="{Binding Status}"   Width="100" />
+                  <DataGridTextColumn Header="Ends"     Binding="{Binding EndDate}"  Width="140" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </TabItem>
+
+          </TabControl>
+        </Grid>
+      </Panel>
+    </Border>
   </Grid>
 </UserControl>
