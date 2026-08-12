@@ -1,0 +1,101 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:svc="clr-namespace:EveConsole.Services"
+             x:Class="EveConsole.Views.PlayerEntitiesView"
+             x:DataType="vm:PlayerEntitiesViewModel">
+
+  <TabControl SelectedIndex="{Binding SelectedTabIndex}" Padding="0" Background="Transparent">
+
+    <!-- ── Pilots ──────────────────────────────────────────────────────────── -->
+    <TabItem Header="Pilots">
+      <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
+        <TextBox Grid.Row="0" Text="{Binding PilotSearch}" Watermark="Search pilots by name…"
+                 Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1" CornerRadius="3"
+                 Foreground="#e8e8f0" CaretBrush="#c8a84b" FontSize="12" Padding="8 5"/>
+        <TextBlock Grid.Row="1" Text="{Binding PilotStatus}" FontSize="11" Foreground="#555566"
+                   TextWrapping="Wrap" Margin="0 6 0 6"/>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Pilots}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                  DoubleTapped="OnPilotDoubleTapped">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Pilot" Binding="{Binding Name}" Width="*"/>
+            <DataGridTemplateColumn Header="Yours" Width="60" SortMemberPath="IsOurs">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="svc:PilotRow">
+                  <TextBlock Text="{Binding IsOurs, Converter={x:Static vm:EntityConverters.YesBlank}}"
+                             FontSize="11" Foreground="#4caf50" HorizontalAlignment="Center"
+                             VerticalAlignment="Center"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Kills"  Binding="{Binding Kills}"    Width="90"/>
+            <DataGridTextColumn Header="Losses" Binding="{Binding Losses}"   Width="90"/>
+            <DataGridTextColumn Header="ID"     Binding="{Binding EntityId}" Width="120"/>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
+    <!-- ── Corporations ────────────────────────────────────────────────────── -->
+    <TabItem Header="Corporations">
+      <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
+        <TextBox Grid.Row="0" Text="{Binding CorpSearch}" Watermark="Search corporations by name…"
+                 Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1" CornerRadius="3"
+                 Foreground="#e8e8f0" CaretBrush="#c8a84b" FontSize="12" Padding="8 5"/>
+        <TextBlock Grid.Row="1" Text="{Binding CorpStatus}" FontSize="11" Foreground="#555566"
+                   TextWrapping="Wrap" Margin="0 6 0 6"/>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Corps}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                  DoubleTapped="OnCorpDoubleTapped">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Corporation" Binding="{Binding Name}" Width="*"/>
+            <DataGridTemplateColumn Header="Yours" Width="60" SortMemberPath="IsOurs">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="svc:PlayerCorpRow">
+                  <TextBlock Text="{Binding IsOurs, Converter={x:Static vm:EntityConverters.YesBlank}}"
+                             FontSize="11" Foreground="#4caf50" HorizontalAlignment="Center"
+                             VerticalAlignment="Center"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Pilots Seen" Binding="{Binding Pilots}"   Width="110"
+                                x:DataType="svc:PlayerCorpRow"/>
+            <DataGridTextColumn Header="Kills"       Binding="{Binding Kills}"    Width="90"/>
+            <DataGridTextColumn Header="Losses"      Binding="{Binding Losses}"   Width="90"/>
+            <DataGridTextColumn Header="ID"          Binding="{Binding EntityId}" Width="120"/>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
+    <!-- ── Alliances ───────────────────────────────────────────────────────── -->
+    <TabItem Header="Alliances">
+      <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
+        <TextBox Grid.Row="0" Text="{Binding AllianceSearch}" Watermark="Search alliances by name…"
+                 Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1" CornerRadius="3"
+                 Foreground="#e8e8f0" CaretBrush="#c8a84b" FontSize="12" Padding="8 5"/>
+        <TextBlock Grid.Row="1" Text="{Binding AllianceStatus}" FontSize="11" Foreground="#555566"
+                   TextWrapping="Wrap" Margin="0 6 0 6"/>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Alliances}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                  DoubleTapped="OnAllianceDoubleTapped">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Alliance"   Binding="{Binding Name}"     Width="*"/>
+            <DataGridTextColumn Header="Corps Seen" Binding="{Binding Corps}"    Width="110"/>
+            <DataGridTextColumn Header="Kills"      Binding="{Binding Kills}"    Width="90"/>
+            <DataGridTextColumn Header="Losses"     Binding="{Binding Losses}"   Width="90"/>
+            <DataGridTextColumn Header="ID"         Binding="{Binding EntityId}" Width="120"/>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
+  </TabControl>
+</UserControl>

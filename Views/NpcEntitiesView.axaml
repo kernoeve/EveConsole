@@ -1,0 +1,104 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:svc="clr-namespace:EveConsole.Services"
+             x:Class="EveConsole.Views.NpcEntitiesView"
+             x:DataType="vm:NpcEntitiesViewModel">
+
+  <TabControl SelectedIndex="{Binding SelectedTabIndex}" Padding="0" Background="Transparent">
+
+    <!-- ── Agents ──────────────────────────────────────────────────────────── -->
+    <TabItem Header="Agents">
+      <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
+        <TextBox Grid.Row="0" Text="{Binding AgentSearch}"
+                 Watermark="Search agents by name, corporation or station…"
+                 Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1" CornerRadius="3"
+                 Foreground="#e8e8f0" CaretBrush="#c8a84b" FontSize="12" Padding="8 5"/>
+        <TextBlock Grid.Row="1" Text="{Binding AgentStatus}" FontSize="11" Foreground="#555566"
+                   TextWrapping="Wrap" Margin="0 6 0 6"/>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Agents}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Agent"       Binding="{Binding Name}"        Width="180"/>
+            <DataGridTextColumn Header="Lvl"         Binding="{Binding Level}"       Width="50"/>
+            <DataGridTextColumn Header="Division"    Binding="{Binding Division}"    Width="130"/>
+            <DataGridTextColumn Header="Type"        Binding="{Binding AgentType}"   Width="130"/>
+            <DataGridTextColumn Header="Corporation" Binding="{Binding Corporation}" Width="200"/>
+            <DataGridTextColumn Header="Station"     Binding="{Binding Station}"     Width="*"/>
+            <DataGridTemplateColumn Header="Locator" Width="70" SortMemberPath="IsLocator">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="svc:AgentRow">
+                  <TextBlock Text="{Binding IsLocator, Converter={x:Static vm:EntityConverters.YesBlank}}"
+                             FontSize="11" Foreground="#4caf50" HorizontalAlignment="Center"
+                             VerticalAlignment="Center"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
+    <!-- ── Corporations ────────────────────────────────────────────────────── -->
+    <TabItem Header="Corporations">
+      <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
+        <TextBox Grid.Row="0" Text="{Binding CorpSearch}"
+                 Watermark="Search NPC corporations by name or faction…"
+                 Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1" CornerRadius="3"
+                 Foreground="#e8e8f0" CaretBrush="#c8a84b" FontSize="12" Padding="8 5"/>
+        <TextBlock Grid.Row="1" Text="{Binding CorpStatus}" FontSize="11" Foreground="#555566"
+                   TextWrapping="Wrap" Margin="0 6 0 6"/>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Corps}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Corporation" Binding="{Binding Name}"          Width="*"/>
+            <DataGridTextColumn Header="Faction"     Binding="{Binding Faction}"       Width="200"/>
+            <DataGridTextColumn Header="Stations"    Binding="{Binding Stations}"      Width="90"/>
+            <DataGridTextColumn Header="LP Offers"   Binding="{Binding LpOffers}"      Width="100"/>
+            <DataGridTemplateColumn Header="Your LP" Width="110" SortMemberPath="LpHeld">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="svc:NpcCorpRow">
+                  <!-- Blank rather than "0" — most corporations you have never flown for,
+                       and a column of zeroes buries the handful you have. -->
+                  <TextBlock Text="{Binding LpHeld, Converter={x:Static vm:EntityConverters.CountOrBlank}}"
+                             FontSize="11" Foreground="#4caf50" TextAlignment="Right"
+                             Margin="0 0 6 0" VerticalAlignment="Center"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="ID" Binding="{Binding CorporationId}" Width="110"/>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
+    <!-- ── Factions ────────────────────────────────────────────────────────── -->
+    <TabItem Header="Factions">
+      <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
+        <TextBox Grid.Row="0" Text="{Binding FactionSearch}" Watermark="Search factions by name…"
+                 Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1" CornerRadius="3"
+                 Foreground="#e8e8f0" CaretBrush="#c8a84b" FontSize="12" Padding="8 5"/>
+        <TextBlock Grid.Row="1" Text="{Binding FactionStatus}" FontSize="11" Foreground="#555566"
+                   TextWrapping="Wrap" Margin="0 6 0 6"/>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Factions}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Faction"      Binding="{Binding Name}"         Width="220"/>
+            <DataGridTextColumn Header="Militia Corp" Binding="{Binding MilitiaCorp}"  Width="200"/>
+            <DataGridTextColumn Header="Home System"  Binding="{Binding HomeSystem}"   Width="140"/>
+            <DataGridTextColumn Header="Corps"        Binding="{Binding Corporations}" Width="80"/>
+            <DataGridTextColumn Header="ID"           Binding="{Binding FactionId}"    Width="90"/>
+            <DataGridTextColumn Header="Description"  Binding="{Binding Description}"  Width="*"/>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
+  </TabControl>
+</UserControl>

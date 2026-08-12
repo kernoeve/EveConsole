@@ -52,6 +52,8 @@ public class MainWindowViewModel : ReactiveObject
     public OrderTrackerViewModel          OrderTrackerVm         { get; }
     public StandingBuyOrdersViewModel     StandingBuyOrdersVm    { get; }
     public LpMarketValuesViewModel        LpMarketValuesVm       { get; }
+    public PlayerEntitiesViewModel        PlayerEntitiesVm       { get; }
+    public NpcEntitiesViewModel           NpcEntitiesVm          { get; }
     public MarketSettingsViewModel        MarketVm               { get; }
     public TimerSettingsViewModel         TimerVm                { get; }
     public AgentPanelViewModel            AgentVm                { get; }
@@ -383,6 +385,8 @@ public class MainWindowViewModel : ReactiveObject
             "order_tracker"  => ("Order Tracker",   OrderTrackerVm,    true),
             "standing_buy_orders" => ("Standing Buy Orders", StandingBuyOrdersVm, true),
             "lp_market_values" => ("LP Market Values", LpMarketValuesVm, true),
+            "player_entities"  => ("Player Entities", PlayerEntitiesVm, true),
+            "npc_entities"     => ("NPC Entities",    NpcEntitiesVm,    true),
             "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
             "killmails"      => ("Killmails",      KillmailBrowserVm, true),
             "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
@@ -584,6 +588,9 @@ public class MainWindowViewModel : ReactiveObject
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
+        var entityBrowser      = new EntityBrowserService(dbFactory);
+        PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser);
+        NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
@@ -606,6 +613,15 @@ public class MainWindowViewModel : ReactiveObject
         {
             OpenTool("items");
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
+        };
+        PlayerEntitiesVm.NavigateToKillmailsAction = (kind, name) =>
+        {
+            OpenTool("killmails");
+            // Set one filter and clear the other, so a second lookup does not silently
+            // intersect with the first.
+            KillmailBrowserVm.FilterChar = kind == KillmailFilterKind.Character ? name : "";
+            KillmailBrowserVm.FilterCorp = kind == KillmailFilterKind.Corporation ? name : "";
+            _ = KillmailBrowserVm.RefreshCommand.Execute().Subscribe();
         };
         KillmailBrowserVm.NavigateToItemAction = typeId =>
         {
@@ -715,6 +731,8 @@ public class MainWindowViewModel : ReactiveObject
             [
                 new NavItem("corp_activity", "Corp Activity"),
                 new NavItem("killmails",     "Killmails"),
+                new NavItem("player_entities", "Player Entities"),
+                new NavItem("npc_entities",    "NPC Entities"),
             ]),
             new("Communication",
             [
