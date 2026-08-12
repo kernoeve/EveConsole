@@ -1,0 +1,98 @@
+namespace EveConsole.Models;
+
+/// <summary>Who last wrote a structure record. Stamped on every write so a hand-entered value is
+/// distinguishable from one ESI supplied.</summary>
+public static class StructureSource
+{
+    /// <summary>Written by the polling sync from what ESI returned.</summary>
+    public const string Esi = "esi";
+
+    /// <summary>Typed by the user in the Structure Browser. Overwritten by the next successful
+    /// ESI refresh for structures we can read — which is expected, and is the whole reason the
+    /// source is recorded rather than guessed at.</summary>
+    public const string User = "user";
+}
+
+/// <summary>
+/// The app's own record of a player structure, and the one the Structure Browser reads and writes.
+///
+/// <para>⚠️ Distinct from <see cref="StructureName"/> on purpose. That table is ESI's: the polling
+/// service owns every row and rewrites it on each resolve, so editing it would mean the UI writing
+/// into polled data and losing the edit without trace. This table is fed FROM it and is free to
+/// hold values ESI never gave us — which is what lets a structure we have no access to be described
+/// by hand, and what lets a row exist here with no ESI counterpart at all.</para>
+///
+/// <para><see cref="StructureId"/> is the in-game location id and is never editable: it is the
+/// identity of the thing, and the only field that cannot be re-derived or corrected.</para>
+/// </summary>
+public class Structure
+{
+    public long   StructureId        { get; set; }
+    public string Name               { get; set; } = "";
+    public int    SolarSystemId      { get; set; }
+    public int    TypeId             { get; set; }
+    public long   OwnerId            { get; set; }
+    public long   AllianceId         { get; set; }
+    public double X                  { get; set; }
+    public double Y                  { get; set; }
+    public double Z                  { get; set; }
+    public long   NearestCelestialId { get; set; }
+    public string NearestCelestial   { get; set; } = "";
+
+    /// <summary>Mirrors <see cref="StructureStatus"/> for rows that came from ESI. A row created
+    /// by hand for a structure we cannot read keeps whatever the lookup last said, so the browser
+    /// can still show why it is not refreshing.</summary>
+    public int Status { get; set; }
+
+    /// <summary>Free text the user can attach — access notes, who to ask for a docking invite,
+    /// anything ESI will never carry. Never touched by the sync.</summary>
+    public string Notes { get; set; } = "";
+
+    /// <summary><see cref="StructureSource"/>. Which side wrote the row last.</summary>
+    public string UpdatedBy { get; set; } = StructureSource.Esi;
+
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
+/// <summary>
+/// A service module the user says is fitted to a structure. Zero or more per structure.
+///
+/// <para>Always user-supplied: ESI publishes a structure's name, owner, position and type, and
+/// nothing about what is fitted inside it. Even for our own corp's structures the services array
+/// is not stored today, so there is nothing to sync against and no risk of a refresh clobbering
+/// this.</para>
+/// </summary>
+public class StructureServiceModule
+{
+    public int  Id          { get; set; }
+    public long StructureId { get; set; }
+
+    /// <summary>SDE type id of the module, e.g. Standup Cloning Center I (35894).</summary>
+    public int TypeId { get; set; }
+}
+
+/// <summary>
+/// A rig fitted to a structure, in one of three slots. Mirrors <c>IndyStructureRigs</c>, which
+/// already models rigs this way for Indy Parks — same shape so the two can be pushed between.
+/// </summary>
+public class StructureRig
+{
+    public int  Id          { get; set; }
+    public long StructureId { get; set; }
+
+    /// <summary>0, 1 or 2. Structures have three rig slots.</summary>
+    public int SlotIndex { get; set; }
+
+    public int RigTypeId { get; set; }
+}
+
+/// <summary>A service module on an Indy Parks structure. Separate from
+/// <see cref="StructureServiceModule"/> because a park entry describes a planned or hypothetical
+/// structure that need not correspond to a real one — only those with a RealStructureId can be
+/// pushed across.</summary>
+public class IndyStructureService
+{
+    public int Id          { get; set; }
+    public int StructureId { get; set; }   // IndyStructures.Id
+    public int TypeId      { get; set; }
+}

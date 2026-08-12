@@ -32,6 +32,7 @@ public class EsiPollingService : ReactiveObject
     private readonly NetWorthService         _netWorth;
     private readonly AppPreferencesService   _prefs;
     private readonly EveMailService          _mailService;
+    private readonly StructureSyncService    _structureSync;
 
     private static readonly HashSet<string> s_netWorthCharEndpoints = [
         "char.wallet.balance", "char.industry.jobs", "char.orders.active", "char.assets", "char.contracts"
@@ -134,7 +135,7 @@ public class EsiPollingService : ReactiveObject
         ["contract.items"]        = "Contract Items",
     };
 
-    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService)
+    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService, StructureSyncService structureSync)
     {
         _scopeFactory       = scopeFactory;
         _esi                = esi;
@@ -145,6 +146,7 @@ public class EsiPollingService : ReactiveObject
         _killMailService    = killMailService;
         _prefs              = prefs;
         _mailService        = mailService;
+        _structureSync      = structureSync;
         _characterEndpoints = BuildEndpoints();
         _corpEndpoints      = BuildCorpEndpoints();
         CharacterEndpointInfos = _characterEndpoints
@@ -2710,6 +2712,12 @@ public class EsiPollingService : ReactiveObject
             await SweepPublicStructuresAsync(db, ct);
 
             await BackfillNearestCelestialsAsync(db, ct);
+
+            // Copy what ESI resolved into the app's own table, which is what the Structure Browser
+            // reads and edits. One direction only — nothing the user types can travel back into
+            // the polled table.
+            await _structureSync.SyncAsync(ct);
+
             StatusText = structureIds.Count == 0
                 ? "Polling: No structure IDs found in assets"
                 : $"Polling: Structure names resolved ({structureIds.Count} IDs)";

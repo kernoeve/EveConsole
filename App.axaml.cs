@@ -1845,6 +1845,58 @@ public class App : Application
             db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailAttackers_KillMailId" ON "KillMailAttackers" ("KillMailId")""");
             db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailItems_KillMailId" ON "KillMailItems" ("KillMailId")""");
 
+            // ── Structures — the app's own editable record ──────────────────────
+            // Fed from EsiStructureNames by the polling sync, but never written by it: the UI
+            // edits this table, so ESI-owned data stays ESI-owned. StructureId is the in-game
+            // location id and is the primary key, which is what makes a hand-added row and a
+            // polled row the same record.
+            foreach (var sql in new[]
+            {
+                """
+                CREATE TABLE IF NOT EXISTS "Structures" (
+                    "StructureId"        INTEGER NOT NULL PRIMARY KEY,
+                    "Name"               TEXT    NOT NULL DEFAULT '',
+                    "SolarSystemId"      INTEGER NOT NULL DEFAULT 0,
+                    "TypeId"             INTEGER NOT NULL DEFAULT 0,
+                    "OwnerId"            INTEGER NOT NULL DEFAULT 0,
+                    "AllianceId"         INTEGER NOT NULL DEFAULT 0,
+                    "X"                  REAL    NOT NULL DEFAULT 0,
+                    "Y"                  REAL    NOT NULL DEFAULT 0,
+                    "Z"                  REAL    NOT NULL DEFAULT 0,
+                    "NearestCelestialId" INTEGER NOT NULL DEFAULT 0,
+                    "NearestCelestial"   TEXT    NOT NULL DEFAULT '',
+                    "Status"             INTEGER NOT NULL DEFAULT 0,
+                    "Notes"              TEXT    NOT NULL DEFAULT '',
+                    "UpdatedBy"          TEXT    NOT NULL DEFAULT 'esi',
+                    "UpdatedAt"          TEXT    NOT NULL DEFAULT '2000-01-01 00:00:00+00:00')
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS "StructureServiceModules" (
+                    "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "StructureId" INTEGER NOT NULL,
+                    "TypeId"      INTEGER NOT NULL DEFAULT 0)
+                """,
+                """CREATE INDEX IF NOT EXISTS "IX_StructureServiceModules_StructureId" ON "StructureServiceModules" ("StructureId")""",
+                """
+                CREATE TABLE IF NOT EXISTS "StructureRigs" (
+                    "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "StructureId" INTEGER NOT NULL,
+                    "SlotIndex"   INTEGER NOT NULL DEFAULT 0,
+                    "RigTypeId"   INTEGER NOT NULL DEFAULT 0)
+                """,
+                """CREATE INDEX IF NOT EXISTS "IX_StructureRigs_StructureId" ON "StructureRigs" ("StructureId")""",
+                """
+                CREATE TABLE IF NOT EXISTS "IndyStructureServices" (
+                    "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "StructureId" INTEGER NOT NULL,
+                    "TypeId"      INTEGER NOT NULL DEFAULT 0)
+                """,
+                """CREATE INDEX IF NOT EXISTS "IX_IndyStructureServices_StructureId" ON "IndyStructureServices" ("StructureId")""",
+            })
+            {
+                try { db.Database.ExecuteSqlRaw(sql); } catch { /* already present */ }
+            }
+
             // "Which killmails was this character an attacker on" — the Overview's kill count,
             // and the one direction the KillMailId index above cannot serve. At 7.8M attacker
             // rows it was a full SCAN taking ~600 ms, repeated on every 60-second Overview
@@ -2254,6 +2306,7 @@ public class App : Application
         services.AddSingleton<ApiActivityLog>();
         services.AddSingleton<AppErrorLogger>();
         services.AddSingleton<UiStallMonitor>();
+        services.AddSingleton<StructureSyncService>();
         services.AddSingleton<TimerSettingsService>();
         services.AddSingleton<AppPreferencesService>();
         services.AddSingleton<SlackAuthService>();

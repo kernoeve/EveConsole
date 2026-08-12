@@ -212,6 +212,14 @@ public class AppDbContext : DbContext
     public DbSet<IndyStructureRig>       IndyStructureRigs       => Set<IndyStructureRig>();
     public DbSet<IndyCategoryAssignment> IndyCategoryAssignments => Set<IndyCategoryAssignment>();
     public DbSet<IndyItemException>      IndyItemExceptions      => Set<IndyItemException>();
+    public DbSet<IndyStructureService>   IndyStructureServices   => Set<IndyStructureService>();
+
+    // ── Structures ───────────────────────────────────────────────────────────
+    // The app's own record, fed from EsiStructureNames and editable. Deliberately separate from
+    // that table so the UI never writes into polled data.
+    public DbSet<Structure>              Structures              => Set<Structure>();
+    public DbSet<StructureServiceModule> StructureServiceModules => Set<StructureServiceModule>();
+    public DbSet<StructureRig>           StructureRigs           => Set<StructureRig>();
 
     // ── Build cost calculation ───────────────────────────────────────────────
     public DbSet<EsiAdjustedPrice>   EsiAdjustedPrices   => Set<EsiAdjustedPrice>();
@@ -866,6 +874,28 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.StructureId);
             e.Property(x => x.StructureId).ValueGeneratedNever();
             e.ToTable("EsiStructureNameFailures"); });
+
+        // The app's own structure record. StructureId is the in-game location id, so it is never
+        // generated — a row's identity is the structure it describes.
+        mb.Entity<Structure>(e => {
+            e.HasKey(x => x.StructureId);
+            e.Property(x => x.StructureId).ValueGeneratedNever();
+            e.ToTable("Structures"); });
+
+        mb.Entity<StructureServiceModule>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.StructureId);
+            e.ToTable("StructureServiceModules"); });
+
+        mb.Entity<StructureRig>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.StructureId);
+            e.ToTable("StructureRigs"); });
+
+        mb.Entity<IndyStructureService>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.StructureId);
+            e.ToTable("IndyStructureServices"); });
 
         mb.Entity<CorpStarbase>(e => {
             e.HasKey(x => new { x.CorporationId, x.StarbaseId });
