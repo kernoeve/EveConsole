@@ -87,7 +87,12 @@ public record LpOfferVm(
                                  : IskPerLp.Value < 0 ? "#aa4444"
                                  : "#4caf50";
 
-    public string QuantityText = Quantity > 1 ? $"{Quantity:N0} ×" : "";
+    /// <summary>
+    /// Always shown, including for a single unit. This was a field rather than a property,
+    /// which bindings cannot read at all, so the column was blank for every offer — and it
+    /// also hid the quantity when it was 1, which reads the same as missing data.
+    /// </summary>
+    public string QuantityText => Quantity.ToString("N0");
     public string LpText       => $"{LpCost:N0} LP";
     public string IskText      => IskCost > 0 ? $"{IskCost:N0} ISK" : "—";
     public string AkText       => AkCost  > 0 ? $"{AkCost:N0} AK"   : "";
