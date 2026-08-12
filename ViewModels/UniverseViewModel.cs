@@ -340,8 +340,9 @@ public class UniverseViewModel : ReactiveObject
         await OnUiAsync(() => Status = "Loading universe…");
 
         if (_regions.Count == 0) _regions = await _map.GetRegionsAsync();
-        var graph = await _map.GetUniverseGraphAsync();
-        var (styles, legend) = await BuildOverlayAsync(graph, byRegion: true);
+
+        var graph = await _map.GetContinuousGraphAsync();
+        var (styles, legend) = await BuildContinuousOverlayAsync(graph);
 
         await OnUiAsync(() =>
         {
@@ -350,14 +351,15 @@ public class UniverseViewModel : ReactiveObject
             Overlay    = styles;
             SelectedId = 0;
 
-
             Replace(Legend, legend);
             BuildCrumbs();
             DetailTitle = "";
             DetailRows.Clear();
 
-            Status = $"{graph.Nodes.Count} regions · {graph.Edges.Count} region links · " +
-                     "double-click a region to open it";
+            var regions = graph.Nodes.Count(n => n.Tier == 0);
+            var systems = graph.Nodes.Count - regions;
+            Status = $"{regions} regions · {systems:N0} systems · " +
+                     "zoom in to open the regions · double-click a system for detail";
         });
     }
 
@@ -397,21 +399,32 @@ public class UniverseViewModel : ReactiveObject
 
     private async Task DrillDownAsync(int id)
     {
-        // The universe map's nodes are regions, so a double-click there opens that region.
-        // Inside a region the nodes are systems; double-clicking one that belongs to another
-        // region jumps to that region, which is how the border systems act as exits.
-        if (Level == MapLevel.Universe)
+        var node = Graph?.Nodes.FirstOrDefault(n => n.Id == id);
+
+        // A region on the continuous map is a label for territory you reach by zooming, not a
+        // door to a separate map — there is nowhere to drill down to that is not already on
+        // screen.
+        if (node is { Tier: 0 })
         {
-            await ShowRegionAsync(id);
+            await OnUiAsync(() => Status = $"{node.Name} — zoom in to see its systems");
             return;
         }
 
-        var node = Graph?.Nodes.FirstOrDefault(n => n.Id == id);
+        // Retained for the region map, which the system page still returns to.
         if (node is { IsOutsideRegion: true })
         {
             var target = _regions.FirstOrDefault(r => r.Name == node.RegionName);
             if (target is not null) await ShowRegionAsync(target.RegionId);
             return;
+        }
+
+        // Remember which region the system sits in, so the breadcrumb can offer it on the way
+        // back even though the route down never passed through a region map.
+        if (node is { RegionName.Length: > 0 } &&
+            _regions.FirstOrDefault(r => r.Name == node.RegionName) is { } home)
+        {
+            _regionId   = home.RegionId;
+            _regionName = home.Name;
         }
 
         await ShowSystemAsync(id);
@@ -479,8 +492,15 @@ public class UniverseViewModel : ReactiveObject
 
         if (Level == MapLevel.Universe) return;
 
-        var regionId = _regionId;
-        Crumbs.Add(new CrumbVm(_regionName, Level == MapLevel.Region, () => ShowRegionAsync(regionId)));
+        // The region map is no longer a step on the way down — the continuous map goes straight
+        // from cluster to system — but it remains a useful place to go back to from a system, so
+        // the crumb appears only once a region is actually known.
+        if (_regionName.Length > 0)
+        {
+            var regionId = _regionId;
+            Crumbs.Add(new CrumbVm(_regionName, Level == MapLevel.Region,
+                                   () => ShowRegionAsync(regionId)));
+        }
 
         if (Level != MapLevel.System) return;
 
@@ -551,12 +571,42 @@ public class UniverseViewModel : ReactiveObject
         var graph = Graph;
         if (graph is null) return;
 
-        var (styles, legend) = await BuildOverlayAsync(graph, Level == MapLevel.Universe);
+        var (styles, legend) = graph.IsContinuous
+            ? await BuildContinuousOverlayAsync(graph)
+            : await BuildOverlayAsync(graph, Level == MapLevel.Universe);
+
         await OnUiAsync(() =>
         {
             Overlay = styles;
             Replace(Legend, legend);
         });
+    }
+
+    /// <summary>
+    /// Styles for a graph carrying both zoom tiers.
+    ///
+    /// <para>Every overlay builder takes a whole-graph "these nodes are regions" flag, which a
+    /// continuous graph cannot answer — it holds both. Rather than rewrite eight builders to ask
+    /// per node, the graph is split by tier and each half goes through the existing path with the
+    /// flag it expects. The two style maps then merge without collision, because region ids and
+    /// system ids occupy disjoint ranges.</para>
+    ///
+    /// <para>The legend comes from the system half when it has one: a region-level legend is
+    /// often empty (sovereignty has no meaning for a whole region) and the system half is what
+    /// the user is reading by the time the detail matters.</para>
+    /// </summary>
+    private async Task<(Dictionary<int, MapNodeStyle> Styles, List<LegendEntryVm> Legend)>
+        BuildContinuousOverlayAsync(MapGraph g)
+    {
+        var regionOnly = new MapGraph(g.Nodes.Where(n => n.Tier == 0).ToList(), []);
+        var systemOnly = new MapGraph(g.Nodes.Where(n => n.Tier == 1).ToList(), []);
+
+        var (regionStyles, regionLegend) = await BuildOverlayAsync(regionOnly, byRegion: true);
+        var (systemStyles, systemLegend) = await BuildOverlayAsync(systemOnly, byRegion: false);
+
+        foreach (var (id, style) in systemStyles) regionStyles[id] = style;
+
+        return (regionStyles, systemLegend.Count > 0 ? systemLegend : regionLegend);
     }
 
     /// <summary>Pure: builds the style map and legend without touching bound state, so the

@@ -153,6 +153,18 @@ public class MapCanvas : Control
     /// by the scale it gives on-screen spacing, which drives the dot/box crossfade.</summary>
     private double _spacing = 1;
 
+    /// <summary>Spacing within each zoom tier of a continuous graph, kept apart because the two
+    /// are orders of magnitude different and one figure cannot drive both.</summary>
+    private double _spacingTier0 = 1, _spacingTier1 = 1;
+
+    /// <summary>Tier currently being drawn: 0 regions, 1 systems. Always 0 for a single-tier graph.</summary>
+    private int _activeTier;
+
+    /// <summary>On-screen gap between systems, in pixels, at which the map stops showing regions
+    /// and starts showing the systems inside them. Below this the systems would be an unreadable
+    /// smear; above it the region boxes are just covering them up.</summary>
+    private const double TierSwitchPx = 16;
+
     /// <summary>Screen rectangles of the gateway boxes from the last paint, so hit-testing
     /// matches what is actually drawn instead of assuming a dot-sized target.</summary>
     private readonly Dictionary<int, Rect> _gateRects = new();
@@ -177,7 +189,13 @@ public class MapCanvas : Control
     /// needs the final bounds, which are not known when the graph is assigned.</summary>
     private void Fit()
     {
-        var nodes = Graph?.Nodes;
+        var g = Graph;
+        // On a continuous map, frame the regions: their extent is the cluster, and fitting to
+        // every system would open at a zoom where the system tier is already showing.
+        var nodes = g is { IsContinuous: true }
+            ? g.Nodes.Where(n => n.Tier == 0).ToList()
+            : g?.Nodes;
+
         if (nodes is null || nodes.Count == 0 || Bounds.Width <= 0 || Bounds.Height <= 0) return;
 
         double minX = double.MaxValue, maxX = double.MinValue;
@@ -232,7 +250,41 @@ public class MapCanvas : Control
         ));
 
         _gateRects.Clear();
-        _spacing = MedianNearestNeighbour(g.Nodes);
+        if (g.IsContinuous)
+        {
+            _spacingTier0 = MedianNearestNeighbour(g.Nodes.Where(n => n.Tier == 0).ToList());
+
+            // ⚠️ Area estimate, not the median, for the system tier. MedianNearestNeighbour is
+            // O(n²) and that tier is every system in known space — thirty million distance tests
+            // on the UI thread each time the graph is set. The estimate is coarser than the map
+            // can show and costs one pass.
+            _spacingTier1 = EstimateSpacing(g.Nodes.Where(n => n.Tier == 1).ToList());
+            _spacing      = _spacingTier0;
+        }
+        else
+        {
+            _spacing = MedianNearestNeighbour(g.Nodes);
+        }
+    }
+
+    /// <summary>Spacing from the area the nodes cover and how many there are — O(n), for node
+    /// counts where the exact median is not worth its cost.</summary>
+    private static double EstimateSpacing(IReadOnlyList<MapNode> nodes)
+    {
+        if (nodes.Count < 2) return 1;
+
+        double minX = double.MaxValue, maxX = double.MinValue;
+        double minY = double.MaxValue, maxY = double.MinValue;
+        foreach (var n in nodes)
+        {
+            if (n.X < minX) minX = n.X;
+            if (n.X > maxX) maxX = n.X;
+            if (n.Y < minY) minY = n.Y;
+            if (n.Y > maxY) maxY = n.Y;
+        }
+
+        var area = (maxX - minX) * (maxY - minY);
+        return area > 0 ? Math.Sqrt(area / nodes.Count) : 1;
     }
 
     /// <summary>
@@ -264,30 +316,41 @@ public class MapCanvas : Control
         return nearest[nearest.Count / 2];
     }
 
-    /// <summary>Rebuilds the in-box text. Separate from the graph cache because the ink colour
-    /// is chosen against the overlay fill, so changing overlay alone invalidates it.</summary>
+    /// <summary>
+    /// Drops the in-box text so it is rebuilt on demand. Separate from the graph cache because
+    /// the ink colour is chosen against the overlay fill, so changing overlay alone invalidates
+    /// it.
+    ///
+    /// <para>⚠️ Cleared rather than rebuilt. Building every label up front meant laying out text
+    /// for every node in the graph, which on the continuous map is every system in known space —
+    /// thousands of FormattedText objects on the UI thread, for the handful that are both zoomed
+    /// in far enough to be boxes and inside the viewport. They are now made as they are first
+    /// drawn.</para>
+    /// </summary>
     private void RebuildBoxLabels(MapGraph g, IReadOnlyDictionary<int, MapNodeStyle>? overlay)
     {
         _builtOverlay = overlay;
-        _boxLabels    = new Dictionary<int, (FormattedText, FormattedText?)>(g.Nodes.Count);
+        _boxLabels    = new Dictionary<int, (FormattedText, FormattedText?)>();
+    }
 
-        foreach (var n in g.Nodes)
-        {
-            if (n.IsOutsideRegion) continue;
+    /// <summary>The label pair for a node, laid out on first use and kept until the graph or the
+    /// overlay changes.</summary>
+    private (FormattedText Name, FormattedText? Caption) BoxLabel(MapNode n, MapNodeStyle? style)
+    {
+        if (_boxLabels.TryGetValue(n.Id, out var cached)) return cached;
 
-            var style = overlay is not null && overlay.TryGetValue(n.Id, out var s) ? s : null;
-            var ink   = PickInk(style?.Fill ?? DefaultFill);
+        var ink  = PickInk(style?.Fill ?? DefaultFill);
+        var name = new FormattedText(n.Name, CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight, BoldFace, LabelSize, ink.Strong);
 
-            var name = new FormattedText(n.Name, CultureInfo.CurrentCulture,
-                FlowDirection.LeftToRight, BoldFace, LabelSize, ink.Strong);
+        FormattedText? caption = null;
+        if (style?.Caption is { Length: > 0 } text)
+            caption = new FormattedText(text, CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight, Face, LabelSize - 1.5, ink.Soft);
 
-            FormattedText? caption = null;
-            if (style?.Caption is { Length: > 0 } text)
-                caption = new FormattedText(text, CultureInfo.CurrentCulture,
-                    FlowDirection.LeftToRight, Face, LabelSize - 1.5, ink.Soft);
-
-            _boxLabels[n.Id] = (name, caption);
-        }
+        var pair = (name, caption);
+        _boxLabels[n.Id] = pair;
+        return pair;
     }
 
     /// <summary>
@@ -320,19 +383,35 @@ public class MapCanvas : Control
         }
         if (_needsFit) Fit();
 
+        // On a continuous map the zoom decides which tier is on screen: regions until the
+        // systems inside them have room to be told apart, systems from then on. One or the
+        // other, never both — overlapping tiers read as a rendering fault rather than as detail.
+        _activeTier = g.IsContinuous && _spacingTier1 * _scale >= TierSwitchPx ? 1 : 0;
+
+        var spacing = g.IsContinuous
+            ? (_activeTier == 1 ? _spacingTier1 : _spacingTier0)
+            : _spacing;
+
         // Edges first so nodes sit on top of them.
         foreach (var e in g.Edges)
         {
+            if (g.IsContinuous && e.Tier != _activeTier) continue;
             if (!_byId.TryGetValue(e.FromId, out var a) || !_byId.TryGetValue(e.ToId, out var b)) continue;
             var pa = ToScreen(a.X, a.Y);
             var pb = ToScreen(b.X, b.Y);
+
+            // Both ends off screen means the line cannot cross it either.
+            if ((pa.X < -90 && pb.X < -90) || (pa.Y < -90 && pb.Y < -90) ||
+                (pa.X > Bounds.Width + 90 && pb.X > Bounds.Width + 90) ||
+                (pa.Y > Bounds.Height + 90 && pb.Y > Bounds.Height + 90)) continue;
+
             ctx.DrawLine(a.IsOutsideRegion || b.IsOutsideRegion ? GateEdgePen : EdgePen, pa, pb);
         }
 
         // How much room neighbouring systems have on screen decides the representation: dots
         // when they are packed together, labelled boxes once they are far enough apart. One or
         // the other, never both.
-        var spacingPx     = _spacing * _scale;
+        var spacingPx     = spacing * _scale;
         var useBoxes      = spacingPx >= BoxThreshold;
         var showDotLabels = spacingPx >= DotLabelMin;
 
@@ -341,6 +420,8 @@ public class MapCanvas : Control
 
         foreach (var n in g.Nodes)
         {
+            if (g.IsContinuous && n.Tier != _activeTier) continue;
+
             var p = ToScreen(n.X, n.Y);
 
             // Skip anything scrolled well outside the viewport — at high zoom this is most
@@ -352,7 +433,7 @@ public class MapCanvas : Control
             var style = overlay is not null && overlay.TryGetValue(n.Id, out var s) ? s : null;
             var fill  = style?.Fill ?? DefaultFill;
 
-            if (useBoxes) DrawSystemBox(ctx, n, p, fill);
+            if (useBoxes) DrawSystemBox(ctx, n, p, fill, style);
             else          DrawDot(ctx, n, p, fill, style, showDotLabels);
         }
 
@@ -384,9 +465,9 @@ public class MapCanvas : Control
     /// The close-up form: a rounded box filled with the overlay colour, holding the system name
     /// and whatever the current overlay is measuring.
     /// </summary>
-    private void DrawSystemBox(DrawingContext ctx, MapNode n, Point p, Color fill)
+    private void DrawSystemBox(DrawingContext ctx, MapNode n, Point p, Color fill, MapNodeStyle? style)
     {
-        if (!_boxLabels.TryGetValue(n.Id, out var text)) return;
+        var text = BoxLabel(n, style);
 
         const double padX = 6, padY = 3;
         var w = Math.Max(text.Name.Width, text.Caption?.Width ?? 0) + padX * 2;
@@ -485,6 +566,10 @@ public class MapCanvas : Control
         foreach (var n in g.Nodes)
         {
             if (n.IsOutsideRegion) continue;
+
+            // Only what is actually on screen can be hit — otherwise a hidden system's centre
+            // could win over the region box drawn on top of it.
+            if (g.IsContinuous && n.Tier != _activeTier) continue;
 
             var s  = ToScreen(n.X, n.Y);
             var dx = s.X - p.X;
