@@ -165,6 +165,7 @@
         <ctl:JumpMapCanvas Route="{Binding MapRoute}"
                            Dots="{Binding MapDots}"
                            Links="{Binding MapLinks}"
+                           RegionHues="{Binding RegionHues}"
                            Candidates="{Binding MapCandidates}"
                            NodeClickedCommand="{Binding NodeClickedCommand}"
                            NodeMovedCommand="{Binding NodeMovedCommand}"

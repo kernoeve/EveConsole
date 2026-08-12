@@ -21,7 +21,8 @@ public sealed record JumpMapNode(
     int    Index,
     bool   IsWaypoint,
     string Caption,
-    bool   IsPinned = false);
+    bool   IsPinned = false,
+    string Region   = "");
 
 /// <summary>
 /// A system drawn for context around the route. Carries what a pilot needs to judge it as a
@@ -66,6 +67,15 @@ public class JumpMapCanvas : Control
 
     public static readonly StyledProperty<IReadOnlyList<JumpMapLink>?> LinksProperty =
         AvaloniaProperty.Register<JumpMapCanvas, IReadOnlyList<JumpMapLink>?>(nameof(Links));
+
+    public static readonly StyledProperty<IReadOnlyDictionary<string, double>?> RegionHuesProperty =
+        AvaloniaProperty.Register<JumpMapCanvas, IReadOnlyDictionary<string, double>?>(nameof(RegionHues));
+
+    public IReadOnlyDictionary<string, double>? RegionHues
+    {
+        get => GetValue(RegionHuesProperty);
+        set => SetValue(RegionHuesProperty, value);
+    }
 
     /// <summary>
     /// Systems the midpoint being dragged could be dropped on. Set when a drag starts and
@@ -131,7 +141,7 @@ public class JumpMapCanvas : Control
     }
 
     static JumpMapCanvas() => AffectsRender<JumpMapCanvas>(
-        RouteProperty, DotsProperty, LinksProperty, CandidatesProperty);
+        RouteProperty, DotsProperty, LinksProperty, CandidatesProperty, RegionHuesProperty);
 
     public JumpMapCanvas()
     {
@@ -231,6 +241,33 @@ public class JumpMapCanvas : Control
             _hoverDot   = null;
             _dotSpacing = EstimateSpacing(Dots);
         }
+        else if (change.Property == RegionHuesProperty)
+        {
+            _regionBrushes.Clear();
+        }
+    }
+
+    /// <summary>Brush per region, built from <see cref="RegionHues"/> as regions are first drawn.</summary>
+    private readonly Dictionary<string, IBrush> _regionBrushes = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Hue per region name, supplied by the planner, which assigns them against the real
+    /// adjacency graph so bordering regions land far apart on the wheel. A region with no hue
+    /// here simply draws in the neutral label colour — a wrong colour would be worse than none,
+    /// because the whole signal is "different colour means different region".
+    /// </summary>
+    private IBrush RegionBrush(string region)
+    {
+        if (region.Length == 0) return DotLabelBrush;
+        if (_regionBrushes.TryGetValue(region, out var found)) return found;
+
+        if (RegionHues?.TryGetValue(region, out var hue) != true) return DotLabelBrush;
+
+        // Only the hue varies. Saturation and lightness are fixed at values that stay legible on
+        // the dark background, so no region can come out unreadable.
+        var brush = new ImmutableSolidColorBrush(new HslColor(1.0, hue, 0.45, 0.70).ToRgb());
+        _regionBrushes[region] = brush;
+        return brush;
     }
 
     private static double EstimateSpacing(IReadOnlyList<JumpMapDot>? dots)
@@ -500,8 +537,7 @@ public class JumpMapCanvas : Control
                 if (showDotNames || isCandidate)
                 {
                     var t = new FormattedText(d.Name, System.Globalization.CultureInfo.CurrentCulture,
-                        FlowDirection.LeftToRight, Face, 9,
-                        isCandidate ? LabelBrush : DotLabelBrush);
+                        FlowDirection.LeftToRight, Face, 9, RegionBrush(d.Region));
                     ctx.DrawText(t, new Point(s.X + (isCandidate ? 7 : 4), s.Y - t.Height / 2));
                 }
             }
@@ -552,9 +588,12 @@ public class JumpMapCanvas : Control
             var s    = ReferenceEquals(n, _drag) ? ToScreen(n.X, n.Y) : PointFor(n);
             var name = new FormattedText(n.Name, System.Globalization.CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight, BoldFace, 11, LabelBrush);
+            // Caption carries the region, so it takes the region's colour — the same code the
+            // context system names use, which is what makes a route crossing a border legible.
             var cap = n.Caption.Length > 0
                 ? new FormattedText(n.Caption, System.Globalization.CultureInfo.CurrentCulture,
-                    FlowDirection.LeftToRight, Face, 9.5, CaptionBrush)
+                    FlowDirection.LeftToRight, Face, 9.5,
+                    n.Region.Length > 0 ? RegionBrush(n.Region) : CaptionBrush)
                 : null;
 
             var w  = Math.Max(name.Width, cap?.Width ?? 0);

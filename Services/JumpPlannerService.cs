@@ -333,6 +333,118 @@ public sealed class JumpPlannerService
         finally { _facilityGate.Release(); }
     }
 
+    private Dictionary<string, double>? _regionHues;
+    private readonly SemaphoreSlim _hueGate = new(1, 1);
+
+    /// <summary>
+    /// A hue per region, chosen so that regions sharing a border are far apart on the colour
+    /// wheel. Used to colour system names on the map, where the point is to make a border
+    /// visible without having to already know where it is.
+    ///
+    /// <para>⚠️ Assigned against the actual adjacency graph, NOT hashed from the name. Hashing
+    /// is stable and cheap but blind: measured over the 161 adjacent region pairs it put 24 of
+    /// them within 25° of each other, including Stain/Period Basis on an identical hue and
+    /// Esoteria/Paragon Soul one degree apart — every one of them a border the colour exists to
+    /// show. Greedy assignment in name order is deterministic, so the palette is still stable
+    /// between launches.</para>
+    /// </summary>
+    public async Task<IReadOnlyDictionary<string, double>> RegionHuesAsync(CancellationToken ct = default)
+    {
+        if (_regionHues is { } cached) return cached;
+
+        await _hueGate.WaitAsync(ct);
+        try
+        {
+            if (_regionHues is { } raced) return raced;
+
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+            var borders = await db.Database.SqlQueryRaw<RegionBorder>("""
+                SELECT DISTINCT sa."RegionId" AS "FromId", sb."RegionId" AS "ToId"
+                FROM "SdeStargates" a
+                JOIN "SdeStargates"   b  ON b."StargateId"    = a."DestinationStargateId"
+                JOIN "SdeSolarSystems" sa ON sa."SolarSystemId" = a."SolarSystemId"
+                JOIN "SdeSolarSystems" sb ON sb."SolarSystemId" = b."SolarSystemId"
+                WHERE sa."RegionId" <> sb."RegionId"
+                """).ToListAsync(ct);
+
+            var names = await db.SdeRegions.AsNoTracking()
+                .Select(r => new { r.RegionId, r.Name })
+                .ToListAsync(ct);
+
+            var nameById = names.ToDictionary(r => r.RegionId, r => r.Name);
+
+            var neighbours = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+            foreach (var b in borders)
+            {
+                if (!nameById.TryGetValue(b.FromId, out var a) ||
+                    !nameById.TryGetValue(b.ToId,   out var c)) continue;
+
+                (neighbours.TryGetValue(a, out var la) ? la : neighbours[a] = []).Add(c);
+                (neighbours.TryGetValue(c, out var lc) ? lc : neighbours[c] = []).Add(a);
+            }
+
+            // Name order, so the result is identical every run regardless of query ordering.
+            var ordered = names.Select(r => r.Name)
+                               .Distinct(StringComparer.Ordinal)
+                               .OrderBy(n => n, StringComparer.Ordinal)
+                               .ToList();
+
+            var hues = new Dictionary<string, double>(StringComparer.Ordinal);
+            foreach (var region in ordered)
+            {
+                var taken = neighbours.GetValueOrDefault(region, [])
+                    .Where(hues.ContainsKey)
+                    .Select(n => hues[n])
+                    .ToList();
+
+                if (taken.Count == 0) { hues[region] = HueFor(region); continue; }
+
+                // The hue furthest from every neighbour already placed. Whole-degree steps are
+                // finer than the eye needs and cost nothing at 70 regions.
+                double best = 0, bestGap = -1;
+                for (var h = 0; h < 360; h++)
+                {
+                    var gap = taken.Min(t => HueGap(h, t));
+                    if (gap > bestGap) { bestGap = gap; best = h; }
+                }
+
+                hues[region] = best;
+            }
+
+            _regionHues = hues;
+            return hues;
+        }
+        finally { _hueGate.Release(); }
+    }
+
+    /// <summary>Shortest way round the colour wheel between two hues, in degrees.</summary>
+    private static double HueGap(double a, double b)
+    {
+        var d = Math.Abs(a - b) % 360;
+        return Math.Min(d, 360 - d);
+    }
+
+    /// <summary>Starting hue for a region with no already-placed neighbours. FNV-1a rather than
+    /// string.GetHashCode(), which .NET randomises per process — that would repaint the map on
+    /// every launch.</summary>
+    private static double HueFor(string region)
+    {
+        uint hash = 2166136261;
+        foreach (var ch in region)
+        {
+            hash ^= ch;
+            hash *= 16777619;
+        }
+        return hash % 360;
+    }
+
+    private sealed class RegionBorder
+    {
+        public int FromId { get; set; }
+        public int ToId   { get; set; }
+    }
+
     private Dictionary<int, (string Name, string Region)>? _systemNames;
     private readonly SemaphoreSlim _nameGate = new(1, 1);
 

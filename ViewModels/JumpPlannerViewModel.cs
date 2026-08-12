@@ -190,6 +190,15 @@ public sealed class JumpPlannerViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _mapLinks, value);
     }
 
+    /// <summary>Hue per region for the map's system names, assigned by the planner against the
+    /// real adjacency graph so that bordering regions never look alike.</summary>
+    private IReadOnlyDictionary<string, double>? _regionHues;
+    public IReadOnlyDictionary<string, double>? RegionHues
+    {
+        get => _regionHues;
+        private set => this.RaiseAndSetIfChanged(ref _regionHues, value);
+    }
+
     /// <summary>Legal drop targets for the midpoint currently being dragged. Null when no drag
     /// is in progress, which is what clears the highlight on the map.</summary>
     private IReadOnlyDictionary<int, JumpMapCandidate>? _mapCandidates;
@@ -326,7 +335,7 @@ public sealed class JumpPlannerViewModel : ReactiveObject
         {
             if (!points.TryGetValue(id, out var p)) return;   // outside the published layout
             nodes.Add(new JumpMapNode(id, name, p.X, p.Y, nodes.Count,
-                                      asked.Contains(id), caption, pinned.Contains(id)));
+                                      asked.Contains(id), caption, pinned.Contains(id), region));
         }
 
         var first = Legs[0];
@@ -352,6 +361,8 @@ public sealed class JumpPlannerViewModel : ReactiveObject
 
         var facilities = await _planner.FacilitiesAsync();
         var named      = await _planner.SystemNamesAsync();
+
+        RegionHues ??= await _planner.RegionHuesAsync();
 
         MapDots = inWindow
             .Where(p => !onRoute.Contains(p.Id))
