@@ -182,6 +182,15 @@ public class EsiPollingService : ReactiveObject
     // periodic sweep folds in contracts, market, wallet, and industry, and re-checks structures whose
     // 30-day freshness has lapsed (catching unanchors → 404 → Unanchored status).
     private static readonly TimeSpan StructureSweepInterval = TimeSpan.FromHours(1);
+
+    /// <summary>
+    /// How long after startup the first sweep runs. Short, because an hour of uptime before the
+    /// app notices a structure is a long time to sit waiting — but not zero: the first poll cycle
+    /// should land first, so the sweep has the new assets and contracts to work from and is not
+    /// competing with the busiest moment of startup.
+    /// </summary>
+    private static readonly TimeSpan StructureSweepStartupDelay = TimeSpan.FromMinutes(3);
+
     private DateTimeOffset _lastStructureSweepUtc = DateTimeOffset.MinValue;
 
     // ── Structure sweep, reported to Background Processes ────────────────────
@@ -229,8 +238,12 @@ public class EsiPollingService : ReactiveObject
         await LoadCharacterTokensAsync(ct);
         await LoadCorpTokensAsync(ct);
         StatusText = "Polling: Running";
-        // The app already kicks a sweep at startup; delay the first loop-driven one by a full interval.
-        _lastStructureSweepUtc = DateTimeOffset.UtcNow;
+
+        // ⚠️ Backdated so the first sweep is due StructureSweepStartupDelay from now, not a full
+        // hour. This used to be set to UtcNow with a comment claiming the app kicked a sweep at
+        // startup — nothing did, so a fresh launch went an hour before noticing any new structure.
+        _lastStructureSweepUtc =
+            DateTimeOffset.UtcNow - StructureSweepInterval + StructureSweepStartupDelay;
 
         while (!ct.IsCancellationRequested)
         {
