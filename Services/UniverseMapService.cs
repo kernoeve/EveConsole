@@ -71,19 +71,10 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     /// </summary>
     private const int MaxKnownSpaceRegionId = 11_000_000;
 
-    /// <summary>
-    /// The three Jove regions. They sit below <see cref="MaxKnownSpaceRegionId"/> and look like
-    /// ordinary known space in the SDE — 230 systems and 145 NPC stations between them — but no
-    /// stargate has ever connected them to the cluster and no player has been there.
-    ///
-    /// <para>⚠️ Excluded by id rather than by "has no gate leaving the region", because Pochven
-    /// matches that test too: it is equally gate-isolated and reached by filament instead. The
-    /// distinction is not visible in the topology, so it cannot be derived from it.</para>
-    ///
-    /// <para>J7HZ-F and A821-A are flagged Jove Empire; UUA-F4 carries no faction at all, which
-    /// is why faction alone will not do either.</para>
-    /// </summary>
-    private static readonly HashSet<int> JoveRegionIds = [10_000_004, 10_000_017, 10_000_019];
+    // The three Jove regions (UUA-F4, J7HZ-F, A821-A) are drawn like any others, and float
+    // unconnected because no stargate has ever reached them. That is what they are, so the map
+    // shows it. The jump planner excludes them separately — there, routing through one would
+    // produce a route nobody can fly.
 
     /// <summary>Gates point at the gate on the far side, so joining a gate to its destination
     /// gate yields the system pair. There is no separate adjacency table.</summary>
@@ -252,12 +243,10 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     {
         using var db = dbFactory.CreateDbContext();
 
-        var regions = (await db.SdeRegions.AsNoTracking()
+        var regions = await db.SdeRegions.AsNoTracking()
             .Where(r => r.RegionId < MaxKnownSpaceRegionId)
             .Select(r => new { r.RegionId, r.Name, r.IsWormhole, r.FactionId, r.X, r.Z })
-            .ToListAsync(ct))
-            .Where(r => !JoveRegionIds.Contains(r.RegionId))
-            .ToList();
+            .ToListAsync(ct);
 
         var systemSecurity = await db.SdeSolarSystems.AsNoTracking()
             .GroupBy(s => s.RegionId)
@@ -311,9 +300,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
                 s.Security, s.IsWormhole, s.FactionId, s.SecurityClass,
                 X = s.X2D!.Value, Y = s.Y2D!.Value,
                 RegionName = r.Name,
-            }).ToListAsync(ct))
-            .Where(s => !JoveRegionIds.Contains(s.RegionId))
-            .ToList();
+            }).ToListAsync(ct)).ToList();
 
         var constellationNames = await db.SdeConstellations.AsNoTracking()
             .ToDictionaryAsync(c => c.ConstellationId, c => c.Name, ct);
@@ -327,12 +314,10 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             ConstellationName: constellationNames.GetValueOrDefault(s.ConstellationId, ""),
             Tier: 1)).ToList();
 
-        var regionMeta = (await db.SdeRegions.AsNoTracking()
+        var regionMeta = await db.SdeRegions.AsNoTracking()
             .Where(r => r.RegionId < MaxKnownSpaceRegionId)
             .Select(r => new { r.RegionId, r.Name, r.IsWormhole, r.FactionId })
-            .ToListAsync(ct))
-            .Where(r => !JoveRegionIds.Contains(r.RegionId))
-            .ToList();
+            .ToListAsync(ct);
 
         var regionNodes = regionMeta
             .Select(r =>

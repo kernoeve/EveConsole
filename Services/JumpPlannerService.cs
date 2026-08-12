@@ -106,8 +106,19 @@ public sealed class JumpPlannerService
 
     private sealed record Node(int Id, string Name, string Region, double Security, double X, double Y, double Z);
 
-    /// <summary>The three Jove regions — 230 systems no stargate reaches and no player has ever
-    /// entered. They read as ordinary null sec in the SDE, so nothing else filters them out.</summary>
+    /// <summary>
+    /// The three Jove regions — UUA-F4, J7HZ-F and A821-A — 230 systems no stargate reaches and
+    /// no player has ever entered. They read as ordinary null sec in the SDE, so nothing else
+    /// filters them out.
+    ///
+    /// <para>⚠️ Listed by id rather than derived from "no gate leaves the region", because
+    /// Pochven matches that test too: equally gate-isolated, but reached by filament. The
+    /// difference is not present in the topology. Faction will not serve either — J7HZ-F and
+    /// A821-A are flagged Jove Empire, UUA-F4 carries no faction at all.</para>
+    ///
+    /// <para>The universe map deliberately still draws them: showing space that exists but
+    /// cannot be reached is honest cartography. Routing through it is not.</para>
+    /// </summary>
     private static readonly HashSet<int> JoveRegionIds = [10_000_004, 10_000_017, 10_000_019];
 
     private List<Node>? _systems;
