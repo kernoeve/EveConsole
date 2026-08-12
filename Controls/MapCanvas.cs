@@ -54,6 +54,20 @@ public class MapCanvas : Control
         set => SetValue(FocusBoundsProperty, value);
     }
 
+    /// <summary>
+    /// What each system offers, drawn beside its box. Deliberately separate from
+    /// <see cref="Overlay"/>: these are facts about the place, and switching what the map is
+    /// colouring for must not take them away.
+    /// </summary>
+    public static readonly StyledProperty<IReadOnlyDictionary<int, MapBadges>?> BadgesProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapBadges>?>(nameof(Badges));
+
+    public IReadOnlyDictionary<int, MapBadges>? Badges
+    {
+        get => GetValue(BadgesProperty);
+        set => SetValue(BadgesProperty, value);
+    }
+
     public static readonly StyledProperty<ICommand?> ActivateCommandProperty =
         AvaloniaProperty.Register<MapCanvas, ICommand?>(nameof(ActivateCommand));
 
@@ -83,7 +97,7 @@ public class MapCanvas : Control
 
     static MapCanvas()
     {
-        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty);
+        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty);
     }
 
     public MapCanvas()
@@ -549,6 +563,51 @@ public class MapCanvas : Control
             ctx.DrawRectangle(null, SelectedPen, new RoundedRect(rect.Inflate(3), radius + 3));
         else if (_hover?.Id == n.Id)
             ctx.DrawRectangle(null, HoverPen, new RoundedRect(rect.Inflate(2), radius + 2));
+
+        if (Badges?.TryGetValue(n.Id, out var badges) == true && badges.Any)
+            DrawBadges(ctx, badges, rect);
+    }
+
+    // Badge colours. Docking capability leads, because it is the one that decides whether you can
+    // bring the ship you are flying: gold for a Keepstar (supers and titans), orange for anything
+    // else a capital can dock at, grey-blue for a subcap-only citadel.
+    private static readonly IBrush BadgeKeepstar = new ImmutableSolidColorBrush(Color.Parse("#e8c86a"));
+    private static readonly IBrush BadgeCapital  = new ImmutableSolidColorBrush(Color.Parse("#e08a3c"));
+    private static readonly IBrush BadgeSubcap   = new ImmutableSolidColorBrush(Color.Parse("#7f93a8"));
+    private static readonly IBrush BadgeIndustry = new ImmutableSolidColorBrush(Color.Parse("#5fa8d3"));
+    private static readonly IBrush BadgeRefinery = new ImmutableSolidColorBrush(Color.Parse("#6bbf8a"));
+    private static readonly IPen   BadgePen      = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#0b0b10")), 1);
+
+    /// <summary>
+    /// A column of small squares against the right edge of the system box, in the manner of the
+    /// in-game and Dotlan maps. Drawn from the box rectangle rather than the node point so they
+    /// sit against the box whatever its width, and outside it so they never cover the name.
+    /// </summary>
+    private void DrawBadges(DrawingContext ctx, MapBadges b, Rect box)
+    {
+        const double size = 5, gap = 1.5;
+
+        var marks = new List<IBrush>(4);
+
+        // One docking mark, the best available — three separate marks for a system with all
+        // three would say less, not more.
+        if (b.Keepstar)                       marks.Add(BadgeKeepstar);
+        else if (b.Fortizar || b.NpcStation)  marks.Add(BadgeCapital);
+        else if (b.Astrahus)                  marks.Add(BadgeSubcap);
+
+        if (b.EngineeringComplex) marks.Add(BadgeIndustry);
+        if (b.Refinery)           marks.Add(BadgeRefinery);
+        if (marks.Count == 0) return;
+
+        var totalH = marks.Count * size + (marks.Count - 1) * gap;
+        var x = box.Right + 3;
+        var y = box.Y + (box.Height - totalH) / 2;
+
+        foreach (var brush in marks)
+        {
+            ctx.DrawRectangle(brush, BadgePen, new Rect(x, y, size, size));
+            y += size + gap;
+        }
     }
 
     /// <summary>

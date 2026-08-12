@@ -25,6 +25,33 @@ public sealed record MapNode(
     /// than navigating to a different map.</summary>
     int    Tier = 0);
 
+/// <summary>
+/// What a system offers, drawn on its box whatever the overlay is showing. Facts about the place
+/// rather than a reading of it, which is why they are not part of <see cref="MapNodeStyle"/> —
+/// changing overlay must not take them away.
+///
+/// <para>The docking flags are the point of this: an NPC station and a Fortizar take capitals, an
+/// Astrahus does not, and only a Keepstar takes a super or a titan. That decides whether a system
+/// is somewhere you can actually bring the ship you fly.</para>
+/// </summary>
+public sealed record MapBadges(
+    bool NpcStation,
+    bool Astrahus,
+    bool Fortizar,
+    bool Keepstar,
+    bool EngineeringComplex,
+    bool Refinery)
+{
+    /// <summary>Anything a capital can dock at.</summary>
+    public bool CapitalDock => NpcStation || Fortizar || Keepstar;
+
+    /// <summary>Only a Keepstar takes a super or a titan.</summary>
+    public bool SuperDock => Keepstar;
+
+    public bool Any => NpcStation || Astrahus || Fortizar || Keepstar
+                    || EngineeringComplex || Refinery;
+}
+
 /// <summary>An undirected jump between two nodes. Stored once per pair, low id first.</summary>
 public sealed record MapEdge(int FromId, int ToId, int Tier = 0);
 
@@ -270,6 +297,65 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             .ToList();
 
         return new MapGraph(nodes, edges);
+    }
+
+    /// <summary>
+    /// What each system offers, for the badges on its box.
+    ///
+    /// <para>⚠️ Player structures are classified by TYPE, which is all anyone can know about
+    /// someone else's structure: ESI publishes a structure's name, owner, position and type, and
+    /// nothing about its fitted services. The type is enough for the question that matters most —
+    /// what can dock — and it is honest about the rest rather than guessing.</para>
+    ///
+    /// <para>Structures come from the ones this app has resolved a name for, so a system with a
+    /// citadel nobody here has seen shows nothing. Under-reporting, never inventing.</para>
+    /// </summary>
+    public async Task<Dictionary<int, MapBadges>> GetSystemBadgesAsync(CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+
+        var npc = (await db.SdeStations.AsNoTracking()
+            .Select(s => s.SolarSystemId).Distinct().ToListAsync(ct)).ToHashSet();
+
+        // Grouped by name within the structure groups, so faction Fortizars come along and a
+        // wreck or blueprint that happens to share a word does not.
+        var types = await (
+            from t in db.SdeTypes.AsNoTracking()
+            join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
+            where g.Name == "Citadel" || g.Name == "Engineering Complex" || g.Name == "Refinery"
+            select new { t.TypeId, t.Name, GroupName = g.Name }).ToListAsync(ct);
+
+        var astrahus = types.Where(t => t.Name.Contains("Astrahus")).Select(t => t.TypeId).ToHashSet();
+        var fortizar = types.Where(t => t.Name.Contains("Fortizar")).Select(t => t.TypeId).ToHashSet();
+        var keepstar = types.Where(t => t.Name.Contains("Keepstar")).Select(t => t.TypeId).ToHashSet();
+        var engineer = types.Where(t => t.GroupName == "Engineering Complex").Select(t => t.TypeId).ToHashSet();
+        var refinery = types.Where(t => t.GroupName == "Refinery").Select(t => t.TypeId).ToHashSet();
+
+        var structures = await db.EsiStructureNames.AsNoTracking()
+            .Select(s => new { s.SolarSystemId, s.TypeId })
+            .ToListAsync(ct);
+
+        var badges = new Dictionary<int, MapBadges>();
+
+        foreach (var systemId in npc)
+            badges[systemId] = new MapBadges(true, false, false, false, false, false);
+
+        foreach (var group in structures.GroupBy(s => s.SolarSystemId))
+        {
+            var existing = badges.GetValueOrDefault(group.Key)
+                           ?? new MapBadges(false, false, false, false, false, false);
+
+            badges[group.Key] = existing with
+            {
+                Astrahus           = existing.Astrahus           || group.Any(s => astrahus.Contains(s.TypeId)),
+                Fortizar           = existing.Fortizar           || group.Any(s => fortizar.Contains(s.TypeId)),
+                Keepstar           = existing.Keepstar           || group.Any(s => keepstar.Contains(s.TypeId)),
+                EngineeringComplex = existing.EngineeringComplex || group.Any(s => engineer.Contains(s.TypeId)),
+                Refinery           = existing.Refinery           || group.Any(s => refinery.Contains(s.TypeId)),
+            };
+        }
+
+        return badges;
     }
 
     /// <summary>

@@ -344,12 +344,14 @@ public class UniverseViewModel : ReactiveObject
 
         var graph = await _map.GetContinuousGraphAsync();
         var (styles, legend) = await BuildContinuousOverlayAsync(graph);
+        var badges = _badges ?? await _map.GetSystemBadgesAsync();
 
         await OnUiAsync(() =>
         {
             Level      = MapLevel.Universe;
             Graph      = graph;
             Overlay    = styles;
+            Badges     = badges;
             SelectedId = 0;
 
             Replace(Legend, legend);
@@ -396,6 +398,15 @@ public class UniverseViewModel : ReactiveObject
             Status = $"{name}: {inside} systems" +
                      (outside > 0 ? $" · {outside} adjacent systems in neighbouring regions" : "");
         });
+    }
+
+    /// <summary>What each system offers, drawn on its box whatever the overlay is showing.
+    /// Loaded once — stations and structure types do not change between refreshes.</summary>
+    private IReadOnlyDictionary<int, MapBadges>? _badges;
+    public IReadOnlyDictionary<int, MapBadges>? Badges
+    {
+        get => _badges;
+        private set => this.RaiseAndSetIfChanged(ref _badges, value);
     }
 
     /// <summary>Area of the map to zoom to, consumed by the canvas and reset to null.</summary>
