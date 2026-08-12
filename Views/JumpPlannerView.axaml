@@ -78,15 +78,31 @@
         <TextBlock Classes="section" Text="WAYPOINTS" />
         <StackPanel Spacing="6">
           <Grid ColumnDefinitions="*,Auto">
+            <!-- ValueMemberBinding keeps the text box holding just the system name, so the
+                 region shown beside it in the list never ends up in the box (and never has to
+                 be stripped back off before the name is looked up). -->
             <AutoCompleteBox Grid.Column="0"
                              Text="{Binding SystemSearch}"
                              AsyncPopulator="{Binding SystemPopulator}"
+                             ValueMemberBinding="{Binding Name}"
                              FilterMode="None"
                              MinimumPrefixLength="2"
                              MinimumPopulateDelay="0:0:0.2"
                              MaxDropDownHeight="260"
                              FontSize="11"
-                             Watermark="system name…" />
+                             Watermark="system name…">
+              <AutoCompleteBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:SystemMatch">
+                  <Grid ColumnDefinitions="*,Auto" MinWidth="240">
+                    <TextBlock Grid.Column="0" Text="{Binding Name}"
+                               FontSize="11.5" Foreground="#ddd" />
+                    <TextBlock Grid.Column="1" Text="{Binding Region}"
+                               FontSize="10" Foreground="#7a8896" Margin="10 0 0 0"
+                               VerticalAlignment="Center" />
+                  </Grid>
+                </DataTemplate>
+              </AutoCompleteBox.ItemTemplate>
+            </AutoCompleteBox>
             <Button Grid.Column="1" Classes="tool" Content="Add" Margin="6 0 0 0"
                     Command="{Binding AddWaypointCommand}" />
           </Grid>

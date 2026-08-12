@@ -229,12 +229,18 @@ public sealed class JumpPlannerViewModel : ReactiveObject
     /// <summary>
     /// Type-ahead over system names. Exposed as a property rather than a method: AutoCompleteBox
     /// binds its populator, and a binding resolves properties only.
+    ///
+    /// <para>Returns objects rather than strings so the drop-down can show the region beside each
+    /// name — EVE has a great many systems whose names differ by one character, and the name
+    /// alone is not enough to tell them apart. The text box still receives only the name, via the
+    /// view's ValueMemberBinding.</para>
     /// </summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> SystemPopulator =>
         async (text, ct) =>
         {
             var hits = await _planner.SearchSystemsAsync(text ?? "", ct);
-            return hits.Select(h => (object)h.Name).ToList();
+            return hits.Select(h => (object)new SystemMatch(h.Id, h.Name, h.Region, h.Security))
+                       .ToList();
         };
 
     private async Task LoadShipsAsync()
@@ -604,4 +610,13 @@ public sealed class JumpPlannerViewModel : ReactiveObject
 public sealed record MidpointOption(string Label, JumpMidpoints Value)
 {
     public override string ToString() => Label;
+}
+
+/// <summary>One row of the system type-ahead. ToString is the bare name, so anything that falls
+/// back to it (rather than the view's ValueMemberBinding) still puts a searchable name in the
+/// box rather than a formatted line.</summary>
+public sealed record SystemMatch(int Id, string Name, string Region, double Security)
+{
+    public string SecurityText => Security.ToString("N1", CultureInfo.InvariantCulture);
+    public override string ToString() => Name;
 }
