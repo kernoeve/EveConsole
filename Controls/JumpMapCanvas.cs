@@ -47,8 +47,12 @@ public sealed record JumpMapLink(double X1, double Y1, double X2, double Y2);
 /// </summary>
 public sealed record JumpMapCandidate(int Id, string CostText);
 
-/// <summary>Where a dragged midpoint was dropped, in map coordinates.</summary>
-public sealed record JumpMapDrop(JumpMapNode Node, double X, double Y);
+/// <summary>
+/// Where a dragged midpoint was released. <paramref name="OnSystemId"/> is the system actually
+/// under the pointer, or null if it was let go over empty space — which means cancel, not
+/// "pick something close", so the caller can tell the two apart.
+/// </summary>
+public sealed record JumpMapDrop(JumpMapNode Node, double X, double Y, int? OnSystemId);
 
 /// <summary>
 /// The planned route drawn over CCP's published 2D map layout — the same arrangement the in-game
@@ -446,7 +450,7 @@ public class JumpMapCanvas : Control
             if (_dragMoved)
             {
                 var (wx, wy) = ToWorld(p);
-                var drop = new JumpMapDrop(node, wx, wy);
+                var drop = new JumpMapDrop(node, wx, wy, DotAt(p)?.Id);
                 if (NodeMovedCommand?.CanExecute(drop) == true) NodeMovedCommand.Execute(drop);
             }
             else if (NodeClickedCommand?.CanExecute(node) == true)

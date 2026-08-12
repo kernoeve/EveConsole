@@ -483,28 +483,36 @@ public sealed class JumpPlannerViewModel : ReactiveObject
     }
 
     /// <summary>
-    /// A midpoint dropped somewhere on the map snaps to the nearest system that could actually
-    /// stand in for it — dropping on empty space, or on a system out of range of either side,
-    /// would otherwise produce a route that cannot be flown.
+    /// Takes a dragged midpoint to the system it was dropped on.
+    ///
+    /// <para>⚠️ The system under the pointer, never the nearest one to it. Snapping to the
+    /// nearest meant a release over empty space still chose something — and since the dragged
+    /// system is itself in range of both its own neighbours, "nearest" was usually the system
+    /// you started from, which then got pinned into the waypoint list. Letting go over nothing
+    /// is a cancel.</para>
     /// </summary>
     private async Task SnapMidpointAsync(JumpMapDrop drop)
     {
         MapCandidates = null;   // the drag is over; the highlight goes with it
         if (drop.Node.IsWaypoint) return;
 
-        var options = await AlternativesFor(drop.Node);
-        if (options.Count == 0)
+        if (drop.OnSystemId is not { } target || target == drop.Node.Id)
         {
-            StatusText = $"Nothing within range could replace {drop.Node.Name}.";
-            await BuildMapAsync();   // put the marker back where it was
+            StatusText = "Move cancelled — drop onto one of the highlighted systems.";
             return;
         }
 
-        var nearest = options
-            .OrderBy(o => (o.MapX - drop.X) * (o.MapX - drop.X) + (o.MapY - drop.Y) * (o.MapY - drop.Y))
-            .First();
+        var options = await AlternativesFor(drop.Node);
+        var pick    = options.FirstOrDefault(o => o.Id == target);
 
-        await PinMidpointAsync(drop.Node, nearest);
+        if (pick is null)
+        {
+            StatusText = $"{drop.Node.Name} cannot be moved there — that system is out of range " +
+                          "of one side of the jump.";
+            return;
+        }
+
+        await PinMidpointAsync(drop.Node, pick);
     }
 
     /// <summary>
