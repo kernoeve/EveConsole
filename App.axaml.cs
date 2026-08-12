@@ -864,9 +864,28 @@ public class App : Application
             // alone, which aborted the sweep on the second corporation with a UNIQUE
             // violation. SQLite cannot alter a primary key, so the tables are dropped and
             // rebuilt. They hold nothing but a re-fetchable cache, refreshed daily.
-            db.Database.ExecuteSqlRaw("""DROP TABLE IF EXISTS "EsiLpStoreOfferItems" """);
-            db.Database.ExecuteSqlRaw("""DROP TABLE IF EXISTS "EsiLpStoreOffers" """);
-            db.Database.ExecuteSqlRaw("""DELETE FROM "EsiLpStoreCorps" """);
+            // Guarded so it happens once, on a database still carrying the old key. Written
+            // unguarded at first, it wiped the catalogue on every launch and forced a fresh
+            // sweep each start — the tab vanished after every restart until the sweep caught
+            // up again.
+            int legacyLpSchema = 0;
+            try
+            {
+                legacyLpSchema = db.Database.SqlQueryRaw<int>("""
+                    SELECT COUNT(*) AS "Value" FROM sqlite_master
+                    WHERE type = 'table'
+                      AND name = 'EsiLpStoreOfferItems'
+                      AND sql NOT LIKE '%CorporationId%'
+                    """).AsEnumerable().First();
+            }
+            catch { /* table absent on a fresh database — nothing to migrate */ }
+
+            if (legacyLpSchema > 0)
+            {
+                db.Database.ExecuteSqlRaw("""DROP TABLE IF EXISTS "EsiLpStoreOfferItems" """);
+                db.Database.ExecuteSqlRaw("""DROP TABLE IF EXISTS "EsiLpStoreOffers" """);
+                try { db.Database.ExecuteSqlRaw("""DELETE FROM "EsiLpStoreCorps" """); } catch { }
+            }
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiLpStoreOffers" (
                     "CorporationId" INTEGER NOT NULL,

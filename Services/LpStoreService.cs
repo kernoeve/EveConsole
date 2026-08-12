@@ -222,6 +222,13 @@ public class LpStoreService : ReactiveObject
     private static async Task ReplaceOffersAsync(
         AppDbContext db, int corpId, List<EsiLpStoreOffer> data, DateTime now, CancellationToken ct)
     {
+        // One transaction, so the replace is never observable as a gap. ExecuteDeleteAsync
+        // commits on its own otherwise, leaving this corporation with no catalogue at all
+        // until the inserts land — a reader in that window sees the item as unsold rather
+        // than as being refreshed. An update should overwrite what is there, never blank it
+        // first.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
         // Scoped by corporation, which is half the key — an offer id on its own belongs to
         // no single store.
         await db.EsiLpStoreOfferItems.Where(i => i.CorporationId == corpId).ExecuteDeleteAsync(ct);
@@ -253,6 +260,7 @@ public class LpStoreService : ReactiveObject
         }
 
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         db.ChangeTracker.Clear();
     }
 
