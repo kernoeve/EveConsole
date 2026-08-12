@@ -444,11 +444,12 @@ public class UniverseViewModel : ReactiveObject
         var node = Graph?.Nodes.FirstOrDefault(n => n.Id == id);
 
         // A region on the continuous map is a label for territory you reach by zooming, not a
-        // door to a separate map — there is nowhere to drill down to that is not already on
-        // screen.
+        // door to a separate map — so opening one zooms to it rather than navigating anywhere.
+        // Deliberately the same framing the breadcrumb uses, so arriving at a region and
+        // returning to it leave the map in the same place.
         if (node is { Tier: 0 })
         {
-            await OnUiAsync(() => Status = $"{node.Name} — zoom in to see its systems");
+            await FocusRegionAsync(node.Name);
             return;
         }
 

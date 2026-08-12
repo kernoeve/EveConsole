@@ -138,6 +138,14 @@ public class MapCanvas : Control
     private const double BoxThreshold = 88;   // px between neighbours: dots below, boxes above
     private const double DotLabelMin  = 52;   // px: below this even the dot labels are noise
 
+    /// <summary>
+    /// The same crossover for the region tier, and much lower on purpose. There are 70 regions
+    /// rather than five thousand systems, and their names are the entire point of the zoomed-out
+    /// view — a cluster of unlabelled dots says nothing. Low enough that the regions are already
+    /// boxed at the zoom the map opens at, and stay boxed some way further out.
+    /// </summary>
+    private const double RegionBoxThreshold = 34;
+
     // ── View transform ───────────────────────────────────────────────────────
 
     private double _scale = 1;      // screen pixels per world unit
@@ -464,8 +472,9 @@ public class MapCanvas : Control
         // when they are packed together, labelled boxes once they are far enough apart. One or
         // the other, never both.
         var spacingPx     = spacing * _scale;
-        var useBoxes      = spacingPx >= BoxThreshold;
-        var showDotLabels = spacingPx >= DotLabelMin;
+        var onRegionTier  = g.IsContinuous && _activeTier == 0;
+        var useBoxes      = spacingPx >= (onRegionTier ? RegionBoxThreshold : BoxThreshold);
+        var showDotLabels = spacingPx >= (onRegionTier ? RegionBoxThreshold : DotLabelMin);
 
         _gateRects.Clear();
         _nodeRects.Clear();
