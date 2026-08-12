@@ -2690,6 +2690,11 @@ public class EsiPollingService : ReactiveObject
                 .Where(s => s.Status != (int)StructureStatus.Resolved)
                 .Select(s => s.StructureId).ToListAsync(ct)) ids.Add(id);
 
+            // Drop anything our own assets identify as something other than a structure before it
+            // is seeded. The heuristic above cannot catch a ship whose own asset row arrived on a
+            // different page, and an Asset Safety Wrap almost always does.
+            ids = (await _structureSync.RejectNonStructuresAsync(db, ids, ct)).ToHashSet();
+
             // Seed placeholder rows so newly-seen structures appear in the browser (as Pending)
             // even before their details resolve.
             var existing = new HashSet<long>(await db.EsiStructureNames.Select(s => s.StructureId).ToListAsync(ct));
@@ -2712,6 +2717,14 @@ public class EsiPollingService : ReactiveObject
             await SweepPublicStructuresAsync(db, ct);
 
             await BackfillNearestCelestialsAsync(db, ct);
+
+            // Clear out anything already in the table that our assets identify as not a structure,
+            // before the sync copies it into the table the user is about to curate by hand.
+            var purged = await _structureSync.PurgeNonStructuresAsync(ct);
+            if (purged > 0)
+                _errorLogger.Log(nameof(EsiPollingService), "Structure hygiene",
+                    $"Removed {purged:N0} row(s) our assets identify as ships, containers or " +
+                     "asset-safety wraps rather than structures.");
 
             // Copy what ESI resolved into the app's own table, which is what the Structure Browser
             // reads and edits. One direction only — nothing the user types can travel back into
