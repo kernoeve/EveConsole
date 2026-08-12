@@ -12,6 +12,11 @@ public partial class LpMarketValuesView : ReactiveUserControl<LpMarketValuesView
         InitializeComponent();
     }
 
+    private void OnRecalculateClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is LpMarketValuesViewModel vm) _ = vm.RecalculateAsync();
+    }
+
     /// <summary>Double-clicking a corporation opens its history rather than making the user
     /// find it again in the dropdown.</summary>
     private void OnCorpDoubleTapped(object? sender, TappedEventArgs e)

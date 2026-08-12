@@ -12,7 +12,14 @@
       <Grid RowDefinitions="Auto,*" Margin="14 12">
 
         <StackPanel Grid.Row="0" Spacing="4" Margin="0 0 0 8">
-          <TextBlock Text="{Binding Status}" FontSize="12" Foreground="#c8a84b"/>
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="{Binding Status}" FontSize="12" Foreground="#c8a84b"
+                       VerticalAlignment="Center" TextWrapping="Wrap"/>
+            <Button Grid.Column="1" Content="Recalculate" Click="OnRecalculateClick"
+                    IsEnabled="{Binding CanRecalculate}"
+                    Padding="10 4" FontSize="11" Margin="10 0 0 0"
+                    ToolTip.Tip="Re-price every offer against current market and contract prices. Happens automatically when market prices refresh; this runs it now."/>
+          </Grid>
           <TextBlock FontSize="11" Foreground="#555566" TextWrapping="Wrap"
                      Text="ISK per loyalty point across every offer in each store that could be priced. The median leads because a store can hold offers demanding tens of millions in tags, and vanity items carrying single billion-ISK asks — either kind drags a mean somewhere no real offer sits. Corporations you hold LP with are listed first. Double-click a row for its history."/>
         </StackPanel>

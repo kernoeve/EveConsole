@@ -498,7 +498,8 @@ public class MainWindowViewModel : ReactiveObject
         AlarmService                    alarmService,
         AlarmSoundService               alarmSounds,
         AlarmActionRunner               alarmActions,
-        LpStoreService                  lpStoreService)
+        LpStoreService                  lpStoreService,
+        LpValueService                  lpValueService)
     {
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
@@ -579,7 +580,7 @@ public class MainWindowViewModel : ReactiveObject
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
-        LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory);
+        LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);

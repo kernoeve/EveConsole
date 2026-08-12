@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using EveConsole.Data;
 using EveConsole.Models;
+using EveConsole.Services;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView;
@@ -75,6 +76,7 @@ public record LpHistoryPeriod(string Label, int Days);   // Days = -1 → all ti
 public class LpMarketValuesViewModel : ReactiveObject
 {
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
+    private readonly LpValueService?                 _valueService;
 
     public ObservableCollection<LpCorpValueVm> Corps { get; } = [];
 
@@ -86,11 +88,49 @@ public class LpMarketValuesViewModel : ReactiveObject
         new("All Time",      -1),
     ];
 
-    public LpMarketValuesViewModel(IDbContextFactory<AppDbContext> dbFactory)
+    public LpMarketValuesViewModel(IDbContextFactory<AppDbContext> dbFactory,
+                                   LpValueService? valueService = null)
     {
-        _dbFactory = dbFactory;
+        _dbFactory      = dbFactory;
+        _valueService   = valueService;
         _selectedPeriod = Periods[2];        // Past 365 Days
         _ = LoadAsync();
+    }
+
+    // ── Manual recalculation ──────────────────────────────────────────────────
+    // Values otherwise only rebuild when market prices refresh, which can be hours away.
+    // The work is a few seconds over the whole catalogue, so there is no reason to make
+    // someone wait for the scheduled run just to see the effect of a price change.
+
+    private bool _isRecalculating;
+    public bool IsRecalculating
+    {
+        get => _isRecalculating;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _isRecalculating, value);
+            this.RaisePropertyChanged(nameof(CanRecalculate));
+        }
+    }
+
+    public bool CanRecalculate => _valueService is not null && !IsRecalculating;
+
+    public async Task RecalculateAsync()
+    {
+        if (_valueService is null || IsRecalculating) return;
+
+        IsRecalculating = true;
+        Status = "Recalculating LP values…";
+        try
+        {
+            await _valueService.RecalculateAsync();
+            await LoadAsync();
+            // Whatever corporation is on the History tab needs its series rebuilt too, or
+            // it keeps showing the figures from before the run.
+            await LoadHistoryAsync();
+        }
+        catch (Exception ex) { Status = $"Recalculation failed: {ex.Message}"; }
+        finally { IsRecalculating = false; }
     }
 
     private int _selectedTabIndex;
