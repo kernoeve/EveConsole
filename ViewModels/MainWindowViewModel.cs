@@ -50,6 +50,7 @@ public class MainWindowViewModel : ReactiveObject
     public SaleListingViewModel           SaleListingMarketVm    { get; }
     public OrderTrackerViewModel          OrderTrackerVm         { get; }
     public StandingBuyOrdersViewModel     StandingBuyOrdersVm    { get; }
+    public LpMarketValuesViewModel        LpMarketValuesVm       { get; }
     public MarketSettingsViewModel        MarketVm               { get; }
     public TimerSettingsViewModel         TimerVm                { get; }
     public AgentPanelViewModel            AgentVm                { get; }
@@ -379,6 +380,7 @@ public class MainWindowViewModel : ReactiveObject
             "sale_list_market" => ("Sale Listing (Market)", SaleListingMarketVm, true),
             "order_tracker"  => ("Order Tracker",   OrderTrackerVm,    true),
             "standing_buy_orders" => ("Standing Buy Orders", StandingBuyOrdersVm, true),
+            "lp_market_values" => ("LP Market Values", LpMarketValuesVm, true),
             "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
             "killmails"      => ("Killmails",      KillmailBrowserVm, true),
             "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
@@ -495,7 +497,9 @@ public class MainWindowViewModel : ReactiveObject
         ExportFormatSettings            exportFormat,
         AlarmService                    alarmService,
         AlarmSoundService               alarmSounds,
-        AlarmActionRunner               alarmActions)
+        AlarmActionRunner               alarmActions,
+        LpStoreService                  lpStoreService,
+        LpValueService                  lpValueService)
     {
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
@@ -514,7 +518,7 @@ public class MainWindowViewModel : ReactiveObject
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
                                                      zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost,
-                                                     intelService, monitoringSettings, entityNames, alarmService);
+                                                     intelService, monitoringSettings, entityNames, alarmService, lpStoreService);
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
@@ -560,7 +564,7 @@ public class MainWindowViewModel : ReactiveObject
         PriceHistorySettingsVm = new PriceHistorySettingsViewModel(dbFactory.CreateDbContext());
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
         CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);
-        ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService);
+        ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService, dbFactory);
         IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
@@ -576,6 +580,7 @@ public class MainWindowViewModel : ReactiveObject
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
+        LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
@@ -589,6 +594,11 @@ public class MainWindowViewModel : ReactiveObject
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
         };
         CharacterViewerVm.NavigateToItemAction = typeId =>
+        {
+            OpenTool("items");
+            _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
+        };
+        LpMarketValuesVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
@@ -687,6 +697,7 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("sale_posting",  "Sale Posting"),
                 new NavItem("order_tracker", "Order Tracker"),
                 new NavItem("standing_buy_orders", "Standing Buy Orders"),
+                new NavItem("lp_market_values", "LP Market Values"),
                 new NavItem("trade",         "Trade Opportunities"),
                 new NavItem("contracts",     "Contracts"),
             ]),

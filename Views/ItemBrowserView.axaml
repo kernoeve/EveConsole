@@ -602,6 +602,69 @@
               </ScrollViewer>
             </TabItem>
 
+            <!-- LP Store tab — hidden unless some NPC corporation sells this item -->
+            <TabItem Header="LP Store" IsVisible="{Binding HasLpOffers}">
+              <Grid RowDefinitions="Auto,8,*" Margin="16 12">
+
+                <TextBlock Grid.Row="0" FontSize="11" Foreground="#555566" TextWrapping="Wrap"
+                           Text="Offered by the loyalty point stores below. An item can be sold by several corporations at different rates — the one worth using is whichever you hold LP with. Your balance is the highest any single character holds."/>
+
+                <DataGrid Grid.Row="2" ItemsSource="{Binding LpOffers}"
+                          IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                          Background="Transparent" GridLinesVisibility="None"
+                          RowBackground="Transparent">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Corporation" Binding="{Binding CorporationName}" Width="220"/>
+                    <DataGridTemplateColumn Header="Qty" Width="60" SortMemberPath="Quantity">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:LpOfferVm">
+                          <TextBlock Text="{Binding QuantityText}" FontSize="11" Foreground="#ccc"
+                                     TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="LP Cost" Width="110" SortMemberPath="LpCost">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:LpOfferVm">
+                          <TextBlock Text="{Binding LpText}" FontSize="11" Foreground="#c8a84b"
+                                     TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="ISK Cost" Width="140" SortMemberPath="IskCost">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:LpOfferVm">
+                          <TextBlock Text="{Binding IskText}" FontSize="11" Foreground="#ccc"
+                                     TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Your LP" Width="110" SortMemberPath="LpHeld">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:LpOfferVm">
+                          <TextBlock Text="{Binding HeldText}" FontSize="11"
+                                     Foreground="{Binding HeldColor}"
+                                     TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="LP Est. Value" Width="130" SortMemberPath="IskPerLp">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:LpOfferVm">
+                          <TextBlock Text="{Binding IskPerLpText}" FontSize="11"
+                                     Foreground="{Binding IskPerLpColor}"
+                                     TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"
+                                     ToolTip.Tip="Item value less ISK and required items, per LP, both reduced to a single unit."/>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Required Items" Binding="{Binding RequiredText}" Width="*"/>
+                    <DataGridTextColumn Header="AK" Binding="{Binding AkText}" Width="80"/>
+                  </DataGrid.Columns>
+                </DataGrid>
+              </Grid>
+            </TabItem>
+
             <!-- Market Orders tab -->
             <TabItem Header="Market Orders">
               <Grid RowDefinitions="Auto,8,*,8,*" Margin="16 12">

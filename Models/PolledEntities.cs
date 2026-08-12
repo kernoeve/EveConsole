@@ -491,6 +491,96 @@ public class LoyaltyPoint
     public int  Points        { get; set; }
 }
 
+/// <summary>
+/// One LP store offer. Public data from /loyalty/stores/{corp}/offers/ — the only source
+/// there is: CCP does not ship loyalty store offers in the SDE.
+///
+/// Keyed on (CorporationId, OfferId), not OfferId alone. Offer ids are reused across
+/// corporations: id 3414 is the same 5,250 LP offer in Perkone's, Lai Dai's and Federal
+/// Navy Academy's stores, and all 132 of Perkone's ids also appear in Lai Dai's.
+/// </summary>
+public class LpStoreOffer
+{
+    public int      OfferId       { get; set; }
+    public int      CorporationId { get; set; }
+    public int      TypeId        { get; set; }
+    public int      Quantity      { get; set; }
+    public int      LpCost        { get; set; }
+    public long     IskCost       { get; set; }
+    /// <summary>Analysis Kredits. Zero for all but a handful of offers.</summary>
+    public int      AkCost        { get; set; }
+    public DateTime UpdatedAt     { get; set; }
+}
+
+/// <summary>
+/// An item the offer consumes in addition to LP and ISK. Most offers have none; the ones
+/// that do are usually the interesting ones, since the required item's market value is
+/// what decides whether the trade is worth making.
+/// </summary>
+public class LpStoreOfferItem
+{
+    /// <summary>Part of the key — see <see cref="LpStoreOffer"/> on why OfferId alone
+    /// is not unique.</summary>
+    public int CorporationId { get; set; }
+    public int OfferId       { get; set; }
+    public int TypeId        { get; set; }
+    public int Quantity      { get; set; }
+}
+
+/// <summary>
+/// Per-corporation sweep state. Most NPC corporations have no LP store and answer 404;
+/// recording that means the next sweep skips them instead of firing a hundred 404s into
+/// ESI's global error limit every time.
+/// </summary>
+/// <summary>
+/// What a loyalty point is worth at one corporation right now — the mean ISK/LP across
+/// every offer in its store that could be valued.
+///
+/// Double throughout, deliberately. A single LP is worth on the order of 1,000 ISK, but
+/// plenty of offers land in the tens or hundredths, and decimal rounding at those
+/// magnitudes loses the distinction between a poor offer and a worthless one.
+/// </summary>
+public class LpCorpValue
+{
+    public int      CorporationId { get; set; }
+    /// <summary>Mean across the store. Kept, but see the median — a few tag-heavy offers
+    /// or one billion-ISK vanity ask can put the mean where no real offer sits.</summary>
+    public double   IskPerLp      { get; set; }
+    /// <summary>Middle offer. The robust figure, and what the tool leads with.</summary>
+    public double   MedianIskPerLp { get; set; }
+    /// <summary>Offers that could be valued — both the output and every required item had
+    /// a price.</summary>
+    public int      ValuedOffers  { get; set; }
+    /// <summary>Offers in the store, valued or not. The gap between the two says how much
+    /// of the catalogue the average actually rests on.</summary>
+    public int      TotalOffers   { get; set; }
+    public double   BestIskPerLp  { get; set; }
+    public int      BestTypeId    { get; set; }
+    public DateTimeOffset ComputedAt { get; set; }
+}
+
+/// <summary>
+/// Daily snapshot of <see cref="LpCorpValue"/>. LP value drifts with the market, so the
+/// trend is the useful part — the same reason build costs and type prices are snapshotted.
+/// </summary>
+public class LpCorpValueSnapshot
+{
+    public int      CorporationId { get; set; }
+    public string   Date          { get; set; } = "";   // "yyyy-MM-dd" UTC
+    public double   IskPerLp      { get; set; }
+    public double   MedianIskPerLp { get; set; }
+    public int      ValuedOffers  { get; set; }
+    public DateTimeOffset ComputedAt { get; set; }
+}
+
+public class LpStoreCorp
+{
+    public int       CorporationId { get; set; }
+    public bool      HasStore      { get; set; }
+    public int       OfferCount    { get; set; }
+    public DateTime? LastCheckedAt { get; set; }
+}
+
 public class CharacterMedal
 {
     public int    Id            { get; set; }  // auto-increment

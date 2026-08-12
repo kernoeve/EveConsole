@@ -92,6 +92,7 @@ public class ApiActivityViewModel : ReactiveObject
     private readonly TimerSettingsService _timerSettings;
     private readonly MarketHistoryService _history;
     private readonly ContractsService     _contracts;
+    private readonly LpStoreService       _lpStore;
 
     private readonly ZkillboardSettings         _zkbSettings;
     private readonly ZkillboardPollingService    _zkbPolling;
@@ -164,7 +165,8 @@ public class ApiActivityViewModel : ReactiveObject
         IntelService              intel,
         MonitoringSettings        monitoring,
         EntityNameBackfillService nameCache,
-        AlarmService              alarms)
+        AlarmService              alarms,
+        LpStoreService            lpStore)
     {
         Entries        = log.Entries;
         InFlight       = log.InFlightCalls;
@@ -173,6 +175,7 @@ public class ApiActivityViewModel : ReactiveObject
         _timerSettings = timerSettings;
         _history       = history;
         _contracts     = contracts;
+        _lpStore       = lpStore;
         _zkbSettings   = zkbSettings;
         _zkbPolling    = zkbPolling;
         _zkbFirehose   = zkbFirehose;
@@ -326,6 +329,49 @@ public class ApiActivityViewModel : ReactiveObject
             : (pubQueue + ownedQueue) > 0
                 ? $"○ Idle — {pubQueue + ownedQueue:N0} contracts queued for items"
                 : "○ Idle — all item pulls complete";
+    }
+
+    // ── LP store monitor ────────────────────────────────────────────────────────
+
+    private string _lpStoreState = "";
+    public string LpStoreState { get => _lpStoreState; private set => this.RaiseAndSetIfChanged(ref _lpStoreState, value); }
+
+    private string _lpStoreProgressText = "—";
+    public string LpStoreProgressText { get => _lpStoreProgressText; private set => this.RaiseAndSetIfChanged(ref _lpStoreProgressText, value); }
+
+    private string _lpStoreOffersText = "—";
+    public string LpStoreOffersText { get => _lpStoreOffersText; private set => this.RaiseAndSetIfChanged(ref _lpStoreOffersText, value); }
+
+    private string _lpStoreLastText = "—";
+    public string LpStoreLastText { get => _lpStoreLastText; private set => this.RaiseAndSetIfChanged(ref _lpStoreLastText, value); }
+
+    private string _lpStoreDetail = "";
+    public string LpStoreDetail { get => _lpStoreDetail; private set => this.RaiseAndSetIfChanged(ref _lpStoreDetail, value); }
+
+    public async Task RefreshLpStoreAsync()
+    {
+        LpStoreService.LpStoreStatus s;
+        try { s = await _lpStore.GetStatusAsync(); }
+        catch { return; /* best-effort monitor */ }
+
+        int remaining = Math.Max(0, s.CorpsTotal - s.CorpsChecked);
+
+        LpStoreProgressText = $"{s.CorpsChecked:N0} / {s.CorpsTotal:N0} corporations checked · {remaining:N0} to go";
+        LpStoreOffersText   = $"{s.Offers:N0} offer(s) from {s.CorpsWithStore:N0} store(s)";
+        LpStoreLastText     = s.LastCheckedAt is { } t
+            ? t.ToLocalTime().ToString("d MMM HH:mm:ss")
+            : "never";
+        LpStoreDetail       = _lpStore.StatusText;
+
+        // The first pass is the one worth watching: until it finishes, an item with no LP
+        // tab is indistinguishable from one that simply has not been fetched yet.
+        LpStoreState = s.Running
+            ? $"● Sweeping — {remaining:N0} corporation(s) still to check"
+            : s.CorpsChecked == 0
+                ? "○ Idle — no corporation checked yet; the first sweep starts shortly after launch"
+                : remaining > 0
+                    ? $"○ Idle — {remaining:N0} corporation(s) not yet checked, catalogue incomplete"
+                    : "○ Idle — every corporation checked";
     }
 
     // ── Price-history sweep monitor ─────────────────────────────────────────────

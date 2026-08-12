@@ -275,6 +275,51 @@ public class SdeStation
     public double Security               { get; set; }
     public double ReprocessingEfficiency { get; set; }
     public double ReprocessingTax        { get; set; }
+
+    /// <summary>
+    /// Station operation. Services are a property of the operation, not of the station, so
+    /// this is the join to what the station actually offers — market, factory, LP store and
+    /// the rest. See <see cref="SdeStationOperationService"/>.
+    /// </summary>
+    public int?   OperationId            { get; set; }
+}
+
+/// <summary>A station service: Market, Factory, Loyalty Point Store, Repair Facilities…</summary>
+public class SdeStationService
+{
+    public int    ServiceId { get; set; }
+    public string Name      { get; set; } = "";
+}
+
+/// <summary>A station operation type — Plantation, Trading Post, Refinery and so on.</summary>
+public class SdeStationOperation
+{
+    public int    OperationId { get; set; }
+    public string Name        { get; set; } = "";
+}
+
+/// <summary>
+/// Which services an operation provides. Stations reach their services through this:
+/// SdeStations.OperationId → OperationId → ServiceId.
+/// </summary>
+public class SdeStationOperationService
+{
+    public int OperationId { get; set; }
+    public int ServiceId   { get; set; }
+}
+
+/// <summary>Service ids worth referring to by name rather than magic number.</summary>
+public static class StationServiceIds
+{
+    public const int Market            = 7;
+    public const int Factory           = 14;
+    public const int Laboratory        = 15;
+    public const int ReprocessingPlant = 5;
+    public const int RepairFacilities  = 13;
+    public const int Fitting           = 17;
+    public const int OfficeRental      = 23;
+    public const int JumpCloneFacility = 24;
+    public const int LoyaltyPointStore = 25;
 }
 
 public class SdeFaction
