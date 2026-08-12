@@ -177,6 +177,13 @@ public class LpValueService(IDbContextFactory<AppDbContext> dbFactory, AppErrorL
             var iskPerLp = IskPerLp(unitValue, o.IskCost, o.Quantity, o.LpCost, cost - o.IskCost);
             if (iskPerLp is null) continue;
 
+            // Offers worth nothing or less are excluded from the corporation's figures.
+            // Nobody spends LP on them, so they say nothing about what LP is worth here —
+            // they only drag the number toward a rate no one would ever accept. They are
+            // still shown per offer in the Item Browser, where the question is what this
+            // particular trade is worth rather than what the store is worth.
+            if (iskPerLp.Value <= 0) continue;
+
             if (!perCorp.TryGetValue(o.CorporationId, out var list))
                 perCorp[o.CorporationId] = list = [];
             list.Add((iskPerLp.Value, o.TypeId));
@@ -186,13 +193,24 @@ public class LpValueService(IDbContextFactory<AppDbContext> dbFactory, AppErrorL
         var now   = DateTimeOffset.UtcNow;
         var today = DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
+        // Every corporation with a store gets a row, including one whose whole catalogue
+        // came out at or below zero. A corporation quietly missing from the list would read
+        // as "not fetched"; a row saying 0 of 294 offers counted says what actually
+        // happened.
+        foreach (var corpId in totals.Keys)
+            perCorp.TryAdd(corpId, []);
+
         var rowsOut = perCorp.Select(kv =>
         {
-            var best = kv.Value.OrderByDescending(v => v.IskPerLp).First();
+            var best = kv.Value.Count > 0
+                ? kv.Value.OrderByDescending(v => v.IskPerLp).First()
+                : (IskPerLp: 0d, TypeId: 0);
             return new LpCorpValue
             {
                 CorporationId    = kv.Key,
-                IskPerLp         = kv.Value.Average(v => v.IskPerLp),
+                // Not Average() — it throws on an empty sequence, which is exactly the case
+                // for a corporation whose whole store priced out at or below zero.
+                IskPerLp         = kv.Value.Count > 0 ? kv.Value.Average(v => v.IskPerLp) : 0,
                 MedianIskPerLp   = Median(kv.Value.Select(v => v.IskPerLp)),
                 ValuedOffers     = kv.Value.Count,
                 TotalOffers      = totals.GetValueOrDefault(kv.Key),
