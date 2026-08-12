@@ -71,7 +71,7 @@
             <ComboBox ItemsSource="{Binding MidpointOptions}" SelectedItem="{Binding SelectedMidpoints}"
                       HorizontalAlignment="Stretch" />
             <TextBlock FontSize="9.5" Foreground="#556" TextWrapping="Wrap" Margin="2 3 0 0"
-                       Text="Limits where the route may stop, not where it may start or end. Keepstars are only those whose structures have been resolved." />
+                       Text="Limits where the route may stop, not where it may start or end. Station systems means anywhere dockable — NPC station or player structure. Player structures are only those this app has resolved a name for, so both options under-report rather than guess." />
           </StackPanel>
         </StackPanel>
 

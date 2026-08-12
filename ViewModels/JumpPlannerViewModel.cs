@@ -126,9 +126,9 @@ public sealed class JumpPlannerViewModel : ReactiveObject
 
     public IReadOnlyList<MidpointOption> MidpointOptions { get; } =
     [
-        new("Anywhere",         JumpMidpoints.Any),
-        new("Station systems",  JumpMidpoints.StationSystems),
-        new("Keepstar systems", JumpMidpoints.KeepstarSystems),
+        new("Anywhere",                     JumpMidpoints.Any),
+        new("Stations & structures",        JumpMidpoints.StationSystems),
+        new("Keepstar systems",             JumpMidpoints.KeepstarSystems),
     ];
 
     private MidpointOption? _selectedMidpoints;

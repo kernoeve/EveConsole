@@ -27,7 +27,8 @@ public enum JumpMidpoints
     /// <summary>Only systems with an NPC station, so the ship can dock between jumps.</summary>
     StationSystems,
 
-    /// <summary>Only systems with a known Keepstar. Usually collapses the route to one path.</summary>
+    /// <summary>Only systems with a known Keepstar. A subset of <see cref="StationSystems"/>,
+    /// and usually collapses the route to one path.</summary>
     KeepstarSystems,
 }
 
@@ -222,26 +223,30 @@ public sealed class JumpPlannerService
     /// nobody has resolved a name for is invisible here, which narrows routes rather than
     /// inventing them.
     /// </summary>
+    /// <summary>
+    /// Systems a route is allowed to stop at, or null for no restriction.
+    ///
+    /// <para>⚠️ "Station systems" means somewhere you can dock — NPC station OR player structure.
+    /// It was NPC stations only, which made it a strict subset of the Keepstar option and gave the
+    /// nonsense result that a route could be found through Keepstars but not through "stations":
+    /// sov null has few NPC stations and a great many citadels. Both options now read from the
+    /// same facility lookup, so Keepstar systems are necessarily a subset of station systems.</para>
+    /// </summary>
     private async Task<HashSet<int>?> MidpointSetAsync(JumpMidpoints restriction, CancellationToken ct)
     {
         if (restriction == JumpMidpoints.Any) return null;   // null means "no restriction"
 
-        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var facilities = await FacilitiesAsync(ct);
 
-        if (restriction == JumpMidpoints.StationSystems)
+        return restriction switch
         {
-            return (await db.SdeStations.AsNoTracking()
-                .Select(s => s.SolarSystemId).Distinct().ToListAsync(ct)).ToHashSet();
-        }
+            JumpMidpoints.StationSystems =>
+                facilities.Where(kv => kv.Value.NpcStation || kv.Value.PlayerStructures > 0)
+                          .Select(kv => kv.Key).ToHashSet(),
 
-        var keepstarTypeIds = await db.SdeTypes.AsNoTracking()
-            .Where(t => t.Name == "Keepstar")
-            .Select(t => t.TypeId)
-            .ToListAsync(ct);
-
-        return (await db.EsiStructureNames.AsNoTracking()
-            .Where(s => keepstarTypeIds.Contains(s.TypeId))
-            .Select(s => s.SolarSystemId).Distinct().ToListAsync(ct)).ToHashSet();
+            _ => facilities.Where(kv => kv.Value.Keepstar)
+                           .Select(kv => kv.Key).ToHashSet(),
+        };
     }
 
     /// <summary>
