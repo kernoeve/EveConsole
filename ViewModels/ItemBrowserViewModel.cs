@@ -804,12 +804,22 @@ public class ItemBrowserViewModel : ReactiveObject
         try
         {
             var groups = await _db.SdeMarketGroups.AsNoTracking().ToListAsync();
-            var types  = await _db.SdeTypes.AsNoTracking()
-                .Where(t => t.Published && t.MarketGroupId != null)
+
+            // Everything published, market group or not. Search runs off this list, and
+            // restricting it to items with a market group made a large class of real items
+            // unfindable by name — faction and LP store blueprints, and anything else CCP
+            // never put on the market. Those items open fine when reached by type id from
+            // another tool, which is what made the gap look arbitrary.
+            var allPublished = await _db.SdeTypes.AsNoTracking()
+                .Where(t => t.Published)
                 .Select(t => new TypeSummary(t.TypeId, t.Name, t.MarketGroupId))
                 .ToListAsync();
 
-            _allTypes = types;
+            _allTypes = allPublished;
+
+            // The tree is a market-group hierarchy, so it can only carry the items that
+            // belong to one.
+            var types = allPublished.Where(t => t.GroupId.HasValue).ToList();
             _parentMap = groups.ToDictionary(g => g.MarketGroupId, g => g.ParentGroupId);
             _groupNameMap = groups.ToDictionary(g => g.MarketGroupId,
                 g => g.Name.Length > 0 ? g.Name : $"#{g.MarketGroupId}");

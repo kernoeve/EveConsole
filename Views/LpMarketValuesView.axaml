@@ -62,7 +62,19 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTextColumn Header="Best Item" Binding="{Binding BestOfferName}" Width="*"/>
+            <DataGridTemplateColumn Header="Best Item" Width="*" SortMemberPath="BestOfferName">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:LpCorpValueVm">
+                  <Button Content="{Binding BestOfferName}"
+                          Command="{Binding $parent[UserControl].((vm:LpMarketValuesViewModel)DataContext).OpenInItemBrowserCommand}"
+                          CommandParameter="{Binding BestTypeId}"
+                          Background="Transparent" BorderThickness="0" Padding="0"
+                          FontSize="11" Foreground="#c8a84b" Cursor="Hand"
+                          HorizontalContentAlignment="Left" VerticalAlignment="Center"
+                          ToolTip.Tip="Open in Item Browser"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
 
             <DataGridTemplateColumn Header="Counted" Width="90" SortMemberPath="ValuedOffers">
               <DataGridTemplateColumn.CellTemplate>

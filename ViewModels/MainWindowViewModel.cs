@@ -598,6 +598,11 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("items");
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
         };
+        LpMarketValuesVm.NavigateToItemAction = typeId =>
+        {
+            OpenTool("items");
+            _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
+        };
         KillmailBrowserVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Reactive;
 using Avalonia.Threading;
 using EveConsole.Data;
 using EveConsole.Models;
@@ -22,6 +23,7 @@ public record LpCorpValueVm(
     int    ValuedOffers,
     int    TotalOffers,
     double BestIskPerLp,
+    int    BestTypeId,
     string BestOfferName,
     int    LpHeld,
     DateTimeOffset ComputedAt)
@@ -94,6 +96,11 @@ public class LpMarketValuesViewModel : ReactiveObject
         _dbFactory      = dbFactory;
         _valueService   = valueService;
         _selectedPeriod = Periods[2];        // Past 365 Days
+
+        // Resolved when invoked, not when constructed — MainWindowViewModel assigns the
+        // action after this view model exists.
+        OpenInItemBrowserCommand = ReactiveCommand.Create<int>(id => NavigateToItemAction?.Invoke(id));
+
         _ = LoadAsync();
     }
 
@@ -132,6 +139,11 @@ public class LpMarketValuesViewModel : ReactiveObject
         catch (Exception ex) { Status = $"Recalculation failed: {ex.Message}"; }
         finally { IsRecalculating = false; }
     }
+
+    /// <summary>Set by MainWindowViewModel — opens the Item Browser on a type.</summary>
+    public Action<int>? NavigateToItemAction { get; set; }
+
+    public ReactiveCommand<int, Unit> OpenInItemBrowserCommand { get; }
 
     private int _selectedTabIndex;
     public int SelectedTabIndex
@@ -186,7 +198,7 @@ public class LpMarketValuesViewModel : ReactiveObject
                     v.CorporationId,
                     names.GetValueOrDefault(v.CorporationId, $"Corp {v.CorporationId}"),
                     v.IskPerLp, v.MedianIskPerLp, v.ValuedOffers, v.TotalOffers, v.BestIskPerLp,
-                    typeNames.GetValueOrDefault(v.BestTypeId, ""),
+                    v.BestTypeId, typeNames.GetValueOrDefault(v.BestTypeId, ""),
                     held.GetValueOrDefault(v.CorporationId),
                     v.ComputedAt))
                 // Corporations you hold LP with first — those are the rates that can be
