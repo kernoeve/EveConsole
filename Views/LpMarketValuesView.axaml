@@ -21,7 +21,7 @@
                     ToolTip.Tip="Re-price every offer against current market and contract prices. Happens automatically when market prices refresh; this runs it now."/>
           </Grid>
           <TextBlock FontSize="11" Foreground="#555566" TextWrapping="Wrap"
-                     Text="ISK per loyalty point across the offers in each store that price out above zero — offers worth nothing or less are shown per item in the Item Browser but are not averaged here, since nobody spends LP on them. The median leads because a store can hold offers demanding tens of millions in tags, and vanity items carrying single billion-ISK asks — either kind drags a mean somewhere no real offer sits. Corporations you hold LP with are listed first. Double-click a row for its history."/>
+                     Text="Mean ISK per loyalty point across the offers in each store that price out above zero. Offers worth nothing or less are shown per item in the Item Browser but are not counted here, since nobody spends LP on them; the median covers exactly the same offers. Corporations you hold LP with are listed first. Double-click a row for its history."/>
         </StackPanel>
 
         <DataGrid Grid.Row="1" x:Name="CorpGrid"
@@ -32,23 +32,23 @@
           <DataGrid.Columns>
             <DataGridTextColumn Header="Corporation" Binding="{Binding CorporationName}" Width="240"/>
 
-            <DataGridTemplateColumn Header="ISK / LP (median)" Width="140" SortMemberPath="MedianIskPerLp">
+            <DataGridTemplateColumn Header="ISK / LP" Width="130" SortMemberPath="IskPerLp">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:LpCorpValueVm">
-                  <TextBlock Text="{Binding MedianText}" FontSize="11" Foreground="#c8a84b"
+                  <TextBlock Text="{Binding IskPerLpText}" FontSize="11" Foreground="#c8a84b"
                              TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"
-                             ToolTip.Tip="The middle offer in the store. Used in preference to the mean, which a few extreme offers can move a long way."/>
+                             ToolTip.Tip="Mean ISK per LP across the offers counted for this corporation."/>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="Mean" Width="120" SortMemberPath="IskPerLp">
+            <DataGridTemplateColumn Header="Median" Width="120" SortMemberPath="MedianIskPerLp">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:LpCorpValueVm">
-                  <TextBlock Text="{Binding IskPerLpText}" FontSize="11"
-                             Foreground="{Binding MeanColor}"
+                  <TextBlock Text="{Binding MedianText}" FontSize="11"
+                             Foreground="{Binding MedianColor}"
                              TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"
-                             ToolTip.Tip="Average across the store. Highlighted when it diverges sharply from the median — a sign of tag-heavy offers or an illiquid, extreme market price."/>
+                             ToolTip.Tip="The middle offer, over the same counted offers as the mean. Highlighted when it sits well below the mean, which means a few very high offers are lifting the average above what a typical offer returns."/>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
