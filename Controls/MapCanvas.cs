@@ -40,6 +40,20 @@ public class MapCanvas : Control
             nameof(SelectedId), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
     /// <summary>Invoked with the node id when a node is double-clicked — the drill-down gesture.</summary>
+    /// <summary>
+    /// A rectangle in map coordinates to zoom and centre on. Consumed once and reset to null, so
+    /// the same area can be asked for again later — and so panning away afterwards is not undone
+    /// on the next repaint.
+    /// </summary>
+    public static readonly StyledProperty<Rect?> FocusBoundsProperty =
+        AvaloniaProperty.Register<MapCanvas, Rect?>(nameof(FocusBounds));
+
+    public Rect? FocusBounds
+    {
+        get => GetValue(FocusBoundsProperty);
+        set => SetValue(FocusBoundsProperty, value);
+    }
+
     public static readonly StyledProperty<ICommand?> ActivateCommandProperty =
         AvaloniaProperty.Register<MapCanvas, ICommand?>(nameof(ActivateCommand));
 
@@ -119,8 +133,10 @@ public class MapCanvas : Control
     // level — that way a sparse region and a dense one both switch when they look ready.
     // The switch is a clean cutover: crossfading the two forms meant a zoom level where every
     // system was drawn twice, which just looked like a rendering fault.
-    private const double BoxThreshold = 76;   // px between neighbours: dots below, boxes above
-    private const double DotLabelMin  = 26;   // px: below this even the dot labels are noise
+    // Three thresholds on the same measure — pixels between neighbouring systems — so the map
+    // gains detail in steps rather than all at once: bare dots, then names, then boxes.
+    private const double BoxThreshold = 88;   // px between neighbours: dots below, boxes above
+    private const double DotLabelMin  = 52;   // px: below this even the dot labels are noise
 
     // ── View transform ───────────────────────────────────────────────────────
 
@@ -160,10 +176,15 @@ public class MapCanvas : Control
     /// <summary>Tier currently being drawn: 0 regions, 1 systems. Always 0 for a single-tier graph.</summary>
     private int _activeTier;
 
-    /// <summary>On-screen gap between systems, in pixels, at which the map stops showing regions
-    /// and starts showing the systems inside them. Below this the systems would be an unreadable
-    /// smear; above it the region boxes are just covering them up.</summary>
-    private const double TierSwitchPx = 16;
+    /// <summary>
+    /// On-screen gap between systems, in pixels, at which the map stops showing regions and
+    /// starts showing the systems inside them.
+    ///
+    /// <para>Sits below <see cref="DotLabelMin"/> on purpose, so systems arrive as bare dots and
+    /// only gain names once there is room for them — three steps rather than a single change
+    /// from labelled regions to labelled systems.</para>
+    /// </summary>
+    private const double TierSwitchPx = 40;
 
     /// <summary>Screen rectangles of the gateway boxes from the last paint, so hit-testing
     /// matches what is actually drawn instead of assuming a dot-sized target.</summary>
@@ -183,6 +204,36 @@ public class MapCanvas : Control
             _needsFit = true;
             _hover    = null;
         }
+        else if (change.Property == FocusBoundsProperty && FocusBounds is { } area)
+        {
+            // Held rather than applied here: framing needs the control's final bounds, which are
+            // not known when the property is set.
+            _pendingFocus = area;
+            _needsFit     = false;
+            InvalidateVisual();
+        }
+    }
+
+    /// <summary>Area waiting to be framed on the next paint.</summary>
+    private Rect? _pendingFocus;
+
+    /// <summary>Centres on an area and zooms so it fills most of the view.</summary>
+    private void ApplyFocus(Rect area)
+    {
+        if (Bounds.Width <= 0 || Bounds.Height <= 0) return;
+
+        _cx = area.X + area.Width  / 2;
+        _cy = area.Y + area.Height / 2;
+
+        var sx = area.Width  > 0 ? Bounds.Width  * 0.80 / area.Width  : double.MaxValue;
+        var sy = area.Height > 0 ? Bounds.Height * 0.80 / area.Height : double.MaxValue;
+
+        var scale = Math.Min(sx, sy);
+        if (!double.IsInfinity(scale) && scale > 0 && scale != double.MaxValue) _scale = scale;
+
+        // Cleared so the same region can be asked for again, and so a later pan is not snapped
+        // back on the next repaint.
+        SetCurrentValue(FocusBoundsProperty, null);
     }
 
     /// <summary>Frames the entire graph with a small margin. Deferred to render time because it
@@ -381,7 +432,8 @@ public class MapCanvas : Control
             _builtBoxGraph = g;
             RebuildBoxLabels(g, overlay);
         }
-        if (_needsFit) Fit();
+        if (_pendingFocus is { } area) { ApplyFocus(area); _pendingFocus = null; }
+        else if (_needsFit) Fit();
 
         // On a continuous map the zoom decides which tier is on screen: regions until the
         // systems inside them have room to be told apart, systems from then on. One or the

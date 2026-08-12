@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Media;
 using Avalonia.Threading;
 using EveConsole.Controls;
@@ -397,6 +398,47 @@ public class UniverseViewModel : ReactiveObject
         });
     }
 
+    /// <summary>Area of the map to zoom to, consumed by the canvas and reset to null.</summary>
+    private Rect? _focusBounds;
+    public Rect? FocusBounds
+    {
+        get => _focusBounds;
+        set => this.RaiseAndSetIfChanged(ref _focusBounds, value);
+    }
+
+    /// <summary>
+    /// Returns to the universe map framed on one region, rather than opening a separate map of
+    /// it. Bounds come from where that region's systems actually are, so the framing matches the
+    /// territory instead of a fixed zoom around a centre point.
+    /// </summary>
+    public async Task FocusRegionAsync(string regionName)
+    {
+        if (Level != MapLevel.Universe || Graph is not { IsContinuous: true })
+            await ShowUniverseAsync();
+
+        if (Graph is not { } g) return;
+
+        var members = g.Nodes.Where(n => n.Tier == 1 && n.RegionName == regionName).ToList();
+        if (members.Count == 0) return;
+
+        double minX = members.Min(n => n.X), maxX = members.Max(n => n.X);
+        double minY = members.Min(n => n.Y), maxY = members.Max(n => n.Y);
+
+        // A hair of padding, and a floor so a one-system region still gets a sane zoom rather
+        // than an infinite one.
+        var w = Math.Max(maxX - minX, 1e15);
+        var h = Math.Max(maxY - minY, 1e15);
+
+        await OnUiAsync(() =>
+        {
+            // Cleared first so asking for the same region twice still moves the map: the canvas
+            // resets the property when it consumes it, but this side would otherwise not change.
+            FocusBounds = null;
+            FocusBounds = new Rect(minX, minY, w, h);
+            Status      = $"{regionName} — {members.Count} systems";
+        });
+    }
+
     private async Task DrillDownAsync(int id)
     {
         var node = Graph?.Nodes.FirstOrDefault(n => n.Id == id);
@@ -492,14 +534,13 @@ public class UniverseViewModel : ReactiveObject
 
         if (Level == MapLevel.Universe) return;
 
-        // The region map is no longer a step on the way down — the continuous map goes straight
-        // from cluster to system — but it remains a useful place to go back to from a system, so
-        // the crumb appears only once a region is actually known.
+        // The region map is no longer a step on the way down, and the crumb no longer opens one.
+        // It returns to the single universe map, zoomed to that region — going back should undo
+        // the zoom that got you here, not swap you onto a different map of the same place.
         if (_regionName.Length > 0)
         {
-            var regionId = _regionId;
-            Crumbs.Add(new CrumbVm(_regionName, Level == MapLevel.Region,
-                                   () => ShowRegionAsync(regionId)));
+            var name = _regionName;
+            Crumbs.Add(new CrumbVm(name, Level == MapLevel.Region, () => FocusRegionAsync(name)));
         }
 
         if (Level != MapLevel.System) return;
