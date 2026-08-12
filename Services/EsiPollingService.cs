@@ -184,6 +184,45 @@ public class EsiPollingService : ReactiveObject
     private static readonly TimeSpan StructureSweepInterval = TimeSpan.FromHours(1);
     private DateTimeOffset _lastStructureSweepUtc = DateTimeOffset.MinValue;
 
+    // ── Structure sweep, reported to Background Processes ────────────────────
+    // Structure work runs as a side task of the polling loop rather than as a declared endpoint,
+    // so it appears in neither the call schedule nor the activity log except during the brief
+    // bursts when it is actually resolving. These make it visible.
+
+    private DateTimeOffset? _structureSweepAt;
+    /// <summary>When the structure sweep last completed. Null before the first one.</summary>
+    public DateTimeOffset? StructureSweepAt
+    {
+        get => _structureSweepAt;
+        private set => this.RaiseAndSetIfChanged(ref _structureSweepAt, value);
+    }
+
+    /// <summary>When the next loop-driven sweep is due.</summary>
+    public DateTimeOffset StructureSweepNextAt => _lastStructureSweepUtc == DateTimeOffset.MinValue
+        ? DateTimeOffset.UtcNow
+        : _lastStructureSweepUtc + StructureSweepInterval;
+
+    private string _structureSweepSummary = "Not run yet this session";
+    public string StructureSweepSummary
+    {
+        get => _structureSweepSummary;
+        private set => this.RaiseAndSetIfChanged(ref _structureSweepSummary, value);
+    }
+
+    private string _publicStructureSummary = "Not run yet";
+    public string PublicStructureSummary
+    {
+        get => _publicStructureSummary;
+        private set => this.RaiseAndSetIfChanged(ref _publicStructureSummary, value);
+    }
+
+    private bool _structureSweepRunning;
+    public bool StructureSweepRunning
+    {
+        get => _structureSweepRunning;
+        private set => this.RaiseAndSetIfChanged(ref _structureSweepRunning, value);
+    }
+
     private async Task RunPollingLoopAsync(CancellationToken ct)
     {
         await LoadLastCallTimesAsync(ct);
@@ -2414,6 +2453,11 @@ public class EsiPollingService : ReactiveObject
             .Where(id => !known.Contains(id) && !recentlyFailed.Contains(id))
             .Take(PublicStructureBatch)
             .ToList();
+
+        PublicStructureSummary =
+            $"{ids.Count:N0} listed · {ids.Count(known.Contains):N0} already known · " +
+            $"{unknown.Count:N0} new to resolve";
+
         if (unknown.Count == 0) return;
 
         StatusText = $"Polling: Resolving {unknown.Count} public structure(s)…";
@@ -2640,6 +2684,7 @@ public class EsiPollingService : ReactiveObject
     public async Task ForceResolveStructureNamesAsync(CancellationToken ct = default)
     {
         StatusText = "Resolving structure names…";
+        StructureSweepRunning = true;
         try
         {
             using var scope = _scopeFactory.CreateScope();
@@ -2729,7 +2774,18 @@ public class EsiPollingService : ReactiveObject
             // Copy what ESI resolved into the app's own table, which is what the Structure Browser
             // reads and edits. One direction only — nothing the user types can travel back into
             // the polled table.
-            await _structureSync.SyncAsync(ct);
+            var synced = await _structureSync.SyncAsync(ct);
+
+            // Counted after the work, from the table itself, so the figures describe what is
+            // actually there rather than what this pass happened to touch.
+            var total    = await db.Structures.CountAsync(ct);
+            var resolved = await db.Structures.CountAsync(s => s.TypeId != 0, ct);
+
+            StructureSweepSummary =
+                $"{structureIds.Count:N0} id(s) checked · {synced:N0} synced · " +
+                $"{purged:N0} purged · {total:N0} structures held, {resolved:N0} identified";
+
+            StructureSweepAt = DateTimeOffset.UtcNow;
 
             StatusText = structureIds.Count == 0
                 ? "Polling: No structure IDs found in assets"
@@ -2739,8 +2795,10 @@ public class EsiPollingService : ReactiveObject
         catch (Exception ex)
         {
             StatusText = "Polling: Structure name resolve failed";
+            StructureSweepSummary = $"Failed — {ex.Message}";
             _errorLogger.Log("EsiPollingService", "ForceResolveStructureNamesAsync", ex);
         }
+        finally { StructureSweepRunning = false; }
     }
 
     private async Task<PollingResult> FetchCorpStructuresAsync(long corpId, AppDbContext db, CancellationToken ct)
