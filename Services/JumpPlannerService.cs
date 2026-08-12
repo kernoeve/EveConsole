@@ -27,7 +27,12 @@ public enum JumpMidpoints
     /// <summary>Only systems with an NPC station, so the ship can dock between jumps.</summary>
     StationSystems,
 
-    /// <summary>Only systems with a known Keepstar. A subset of <see cref="StationSystems"/>,
+    /// <summary>Systems with a known Fortizar or Keepstar — the structures big enough to dock a
+    /// capital and worth staging out of. Between <see cref="StationSystems"/> and
+    /// <see cref="KeepstarSystems"/> in strictness, and a subset of the former.</summary>
+    CitadelSystems,
+
+    /// <summary>Only systems with a known Keepstar. A subset of <see cref="CitadelSystems"/>,
     /// and usually collapses the route to one path.</summary>
     KeepstarSystems,
 }
@@ -244,6 +249,10 @@ public sealed class JumpPlannerService
                 facilities.Where(kv => kv.Value.NpcStation || kv.Value.PlayerStructures > 0)
                           .Select(kv => kv.Key).ToHashSet(),
 
+            JumpMidpoints.CitadelSystems =>
+                facilities.Where(kv => kv.Value.Fortizar || kv.Value.Keepstar)
+                          .Select(kv => kv.Key).ToHashSet(),
+
             _ => facilities.Where(kv => kv.Value.Keepstar)
                            .Select(kv => kv.Key).ToHashSet(),
         };
@@ -298,16 +307,31 @@ public sealed class JumpPlannerService
             var npc = (await db.SdeStations.AsNoTracking()
                 .Select(s => s.SolarSystemId).Distinct().ToListAsync(ct)).ToHashSet();
 
-            // Structure type ids by name, so "Fortizar" also picks up the faction variants
-            // ("Draccous Fortizar" and friends) without listing every one.
+            // ⚠️ Scoped to the Citadel group FIRST, then matched by name. Matching on name alone
+            // also catches "Fortizar Wreck", "Fortizar Blueprint", "Fortizar Upwell Quantum Core"
+            // and a BPC token — 23 type ids where only 9 are structures anyone can dock at. None
+            // of the junk happens to appear in EsiStructureNames today, so this changes no count;
+            // it stops one appearing from silently marking a system as staging-capable.
+            //
+            // The group is resolved through Keepstar rather than hard-coded, and holds Astrahus,
+            // Fortizar with its five faction variants, Keepstar and the Palatine. Astrahus is
+            // deliberately neither: it still counts as a player structure, just not as a place to
+            // stage a capital.
+            var citadelGroup = await db.SdeTypes.AsNoTracking()
+                .Where(t => t.Name == "Keepstar")
+                .Select(t => t.GroupId)
+                .FirstOrDefaultAsync(ct);
+
             var citadelTypes = await db.SdeTypes.AsNoTracking()
-                .Where(t => t.Name.Contains("Fortizar") || t.Name == "Keepstar")
+                .Where(t => t.GroupId == citadelGroup)
                 .Select(t => new { t.TypeId, t.Name })
                 .ToListAsync(ct);
 
             var fortTypes = citadelTypes.Where(t => t.Name.Contains("Fortizar"))
                                         .Select(t => t.TypeId).ToHashSet();
-            var keepTypes = citadelTypes.Where(t => t.Name == "Keepstar")
+
+            // Contains, not equals: the Palatine Keepstar is one too.
+            var keepTypes = citadelTypes.Where(t => t.Name.Contains("Keepstar"))
                                         .Select(t => t.TypeId).ToHashSet();
 
             var structures = await db.EsiStructureNames.AsNoTracking()

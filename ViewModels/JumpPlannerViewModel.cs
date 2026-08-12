@@ -126,8 +126,10 @@ public sealed class JumpPlannerViewModel : ReactiveObject
 
     public IReadOnlyList<MidpointOption> MidpointOptions { get; } =
     [
+        // Ordered from most permissive to least, each a subset of the one above it.
         new("Anywhere",                     JumpMidpoints.Any),
         new("Stations & structures",        JumpMidpoints.StationSystems),
+        new("Fortizar / Keepstar systems",  JumpMidpoints.CitadelSystems),
         new("Keepstar systems",             JumpMidpoints.KeepstarSystems),
     ];
 
