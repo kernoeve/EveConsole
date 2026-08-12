@@ -925,6 +925,7 @@ public class App : Application
                 CREATE TABLE IF NOT EXISTS "LpCorpValues" (
                     "CorporationId" INTEGER NOT NULL PRIMARY KEY,
                     "IskPerLp"      REAL    NOT NULL DEFAULT 0,
+                    "MedianIskPerLp" REAL   NOT NULL DEFAULT 0,
                     "ValuedOffers"  INTEGER NOT NULL DEFAULT 0,
                     "TotalOffers"   INTEGER NOT NULL DEFAULT 0,
                     "BestIskPerLp"  REAL    NOT NULL DEFAULT 0,
@@ -937,6 +938,7 @@ public class App : Application
                     "CorporationId" INTEGER NOT NULL,
                     "Date"          TEXT    NOT NULL,
                     "IskPerLp"      REAL    NOT NULL DEFAULT 0,
+                    "MedianIskPerLp" REAL   NOT NULL DEFAULT 0,
                     "ValuedOffers"  INTEGER NOT NULL DEFAULT 0,
                     "ComputedAt"    TEXT    NOT NULL DEFAULT '',
                     PRIMARY KEY ("CorporationId", "Date")

@@ -448,9 +448,20 @@ public class ItemBrowserViewModel : ReactiveObject
                 .Where(x => x.Price is > 0m)
                 .ToDictionary(x => x.TypeId, x => (double)x.Price!.Value);
 
+            // Blueprint copies trade by contract, never on the market, so their price is in
+            // ContractBpcPrices — per run, per ME. Lowest ME, since LP store blueprints are
+            // unresearched. Without this every BPC offer showed no estimate at all.
+            var bpcPx = (await db.ContractBpcPrices.AsNoTracking()
+                    .Where(b => priceIds.Contains(b.TypeId)).ToListAsync(ct))
+                .Select(b => new { b.TypeId, b.Me, Price = ContractPricing.EffectivePerRun(b) })
+                .Where(x => x.Price is > 0m)
+                .GroupBy(x => x.TypeId)
+                .ToDictionary(g => g.Key, g => (double)g.OrderBy(x => x.Me).First().Price!.Value);
+
             double? ValueOf(int id) =>
                 market.TryGetValue(id, out var m) ? m
                 : contractPx.TryGetValue(id, out var c) ? c
+                : bpcPx.TryGetValue(id, out var b) ? b
                 : null;
 
             var unitValue = ValueOf(typeId);

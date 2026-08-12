@@ -543,7 +543,11 @@ public class LpStoreOfferItem
 public class LpCorpValue
 {
     public int      CorporationId { get; set; }
+    /// <summary>Mean across the store. Kept, but see the median — a few tag-heavy offers
+    /// or one billion-ISK vanity ask can put the mean where no real offer sits.</summary>
     public double   IskPerLp      { get; set; }
+    /// <summary>Middle offer. The robust figure, and what the tool leads with.</summary>
+    public double   MedianIskPerLp { get; set; }
     /// <summary>Offers that could be valued — both the output and every required item had
     /// a price.</summary>
     public int      ValuedOffers  { get; set; }
@@ -564,6 +568,7 @@ public class LpCorpValueSnapshot
     public int      CorporationId { get; set; }
     public string   Date          { get; set; } = "";   // "yyyy-MM-dd" UTC
     public double   IskPerLp      { get; set; }
+    public double   MedianIskPerLp { get; set; }
     public int      ValuedOffers  { get; set; }
     public DateTimeOffset ComputedAt { get; set; }
 }

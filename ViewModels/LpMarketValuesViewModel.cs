@@ -17,6 +17,7 @@ public record LpCorpValueVm(
     int    CorporationId,
     string CorporationName,
     double IskPerLp,
+    double MedianIskPerLp,
     int    ValuedOffers,
     int    TotalOffers,
     double BestIskPerLp,
@@ -25,7 +26,14 @@ public record LpCorpValueVm(
     DateTimeOffset ComputedAt)
 {
     public string IskPerLpText => Format(IskPerLp);
+    public string MedianText   => Format(MedianIskPerLp);
     public string BestText     => Format(BestIskPerLp);
+
+    /// <summary>The mean is dimmed when it disagrees sharply with the median — that gap is
+    /// the signature of a store with a few extreme offers rather than a bad rate.</summary>
+    public string MeanColor =>
+        Math.Abs(IskPerLp - MedianIskPerLp) > Math.Max(50, Math.Abs(MedianIskPerLp))
+            ? "#aa7744" : "#889";
 
     /// <summary>Values span several orders of magnitude between corporations, so the
     /// precision follows the number rather than being fixed.</summary>
@@ -46,9 +54,11 @@ public record LpCorpValueVm(
     public string HeldText  => LpHeld > 0 ? $"{LpHeld:N0}" : "—";
     public string HeldColor => LpHeld > 0 ? "#4caf50" : "#555566";
 
-    /// <summary>What the balance is worth at this corporation's average rate.</summary>
-    public string HoldingValueText => LpHeld > 0 && IskPerLp > 0
-        ? $"{LpHeld * IskPerLp:N0} ISK"
+    /// <summary>What the balance is worth at the median rate. The median, not the mean —
+    /// valuing a holding off a figure a handful of freak offers moved would be the least
+    /// useful place to use it.</summary>
+    public string HoldingValueText => LpHeld > 0 && MedianIskPerLp > 0
+        ? $"{LpHeld * MedianIskPerLp:N0} ISK"
         : "—";
 
     public string UpdatedText => ComputedAt == default
@@ -135,14 +145,14 @@ public class LpMarketValuesViewModel : ReactiveObject
                 .Select(v => new LpCorpValueVm(
                     v.CorporationId,
                     names.GetValueOrDefault(v.CorporationId, $"Corp {v.CorporationId}"),
-                    v.IskPerLp, v.ValuedOffers, v.TotalOffers, v.BestIskPerLp,
+                    v.IskPerLp, v.MedianIskPerLp, v.ValuedOffers, v.TotalOffers, v.BestIskPerLp,
                     typeNames.GetValueOrDefault(v.BestTypeId, ""),
                     held.GetValueOrDefault(v.CorporationId),
                     v.ComputedAt))
                 // Corporations you hold LP with first — those are the rates that can be
                 // acted on — then by value.
                 .OrderByDescending(r => r.LpHeld > 0)
-                .ThenByDescending(r => r.IskPerLp)
+                .ThenByDescending(r => r.MedianIskPerLp)
                 .ToList();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
@@ -244,7 +254,7 @@ public class LpMarketValuesViewModel : ReactiveObject
 
                 var points = rows
                     .Select(r => new DateTimePoint(
-                        DateTime.TryParse(r.Date, out var d) ? d : DateTime.MinValue, r.IskPerLp))
+                        DateTime.TryParse(r.Date, out var d) ? d : DateTime.MinValue, r.MedianIskPerLp))
                     .ToList();
 
                 Series =
@@ -281,8 +291,8 @@ public class LpMarketValuesViewModel : ReactiveObject
                     },
                 ];
 
-                HistoryStatus = $"{rows.Count:N0} day(s) — {rows.Min(r => r.IskPerLp):N2} to "
-                              + $"{rows.Max(r => r.IskPerLp):N2} ISK/LP";
+                HistoryStatus = $"{rows.Count:N0} day(s), median — {rows.Min(r => r.MedianIskPerLp):N2} to "
+                              + $"{rows.Max(r => r.MedianIskPerLp):N2} ISK/LP";
             });
         }
         catch (Exception ex)

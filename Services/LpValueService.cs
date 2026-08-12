@@ -51,6 +51,21 @@ public class LpValueService(IDbContextFactory<AppDbContext> dbFactory, AppErrorL
         return double.IsNaN(result) || double.IsInfinity(result) ? null : result;
     }
 
+    /// <summary>
+    /// Middle value of the set. Reported alongside the mean because an LP store's offers
+    /// are not a well-behaved distribution: a handful demand tens of millions in tags for a
+    /// cheap module and score thousands negative, while vanity apparel carries single asks
+    /// in the billions and scores hundreds of thousands positive. Either kind drags a mean
+    /// somewhere no actual offer sits. The median says what a typical offer is worth.
+    /// </summary>
+    private static double Median(IEnumerable<double> values)
+    {
+        var sorted = values.OrderBy(v => v).ToList();
+        if (sorted.Count == 0) return 0;
+        int mid = sorted.Count / 2;
+        return sorted.Count % 2 == 1 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2.0;
+    }
+
     private string _statusText = "LP values: never calculated";
     public string StatusText
     {
@@ -106,11 +121,27 @@ public class LpValueService(IDbContextFactory<AppDbContext> dbFactory, AppErrorL
             .Where(x => x.Price is > 0m)
             .ToDictionary(x => x.TypeId, x => (double)x.Price!.Value);
 
-        // Market first, contract as the fallback. Null means genuinely unpriced, which is
-        // different from zero and has to stay distinguishable.
+        // Blueprint copies are never on the market — they trade by contract — so their
+        // price lives in ContractBpcPrices, per run and per ME, not in ContractPrices.
+        // Build costing already falls back to it and this has to as well, or every BPC
+        // offer goes unvalued. The lowest ME on record is used: LP store blueprints are
+        // unresearched, so a researched copy's price would be the wrong comparison.
+        //
+        // The per-run price is taken as the price of the copy. ESI does not say how many
+        // runs an LP store blueprint carries, and these are single-run in practice; a
+        // multi-run copy would be undervalued here rather than overvalued.
+        var bpc = (await db.ContractBpcPrices.AsNoTracking().ToListAsync(ct))
+            .Select(b => new { b.TypeId, b.Me, Price = ContractPricing.EffectivePerRun(b) })
+            .Where(x => x.Price is > 0m)
+            .GroupBy(x => x.TypeId)
+            .ToDictionary(g => g.Key, g => (double)g.OrderBy(x => x.Me).First().Price!.Value);
+
+        // Market, then contract, then blueprint-copy contract. Null means genuinely
+        // unpriced, which is different from zero and has to stay distinguishable.
         double? ValueOf(int typeId) =>
             market.TryGetValue(typeId, out var m) ? m
             : contract.TryGetValue(typeId, out var c) ? c
+            : bpc.TryGetValue(typeId, out var b) ? b
             : null;
 
         var required = (await db.EsiLpStoreOfferItems.AsNoTracking().ToListAsync(ct))
@@ -160,13 +191,14 @@ public class LpValueService(IDbContextFactory<AppDbContext> dbFactory, AppErrorL
             var best = kv.Value.OrderByDescending(v => v.IskPerLp).First();
             return new LpCorpValue
             {
-                CorporationId = kv.Key,
-                IskPerLp      = kv.Value.Average(v => v.IskPerLp),
-                ValuedOffers  = kv.Value.Count,
-                TotalOffers   = totals.GetValueOrDefault(kv.Key),
-                BestIskPerLp  = best.IskPerLp,
-                BestTypeId    = best.TypeId,
-                ComputedAt    = now,
+                CorporationId    = kv.Key,
+                IskPerLp         = kv.Value.Average(v => v.IskPerLp),
+                MedianIskPerLp   = Median(kv.Value.Select(v => v.IskPerLp)),
+                ValuedOffers     = kv.Value.Count,
+                TotalOffers      = totals.GetValueOrDefault(kv.Key),
+                BestIskPerLp     = best.IskPerLp,
+                BestTypeId       = best.TypeId,
+                ComputedAt       = now,
             };
         }).ToList();
 
@@ -191,13 +223,15 @@ public class LpValueService(IDbContextFactory<AppDbContext> dbFactory, AppErrorL
                 db.LpCorpValueSnapshots.Add(new LpCorpValueSnapshot
                 {
                     CorporationId = r.CorporationId, Date = today,
-                    IskPerLp = r.IskPerLp, ValuedOffers = r.ValuedOffers, ComputedAt = now,
+                    IskPerLp = r.IskPerLp, MedianIskPerLp = r.MedianIskPerLp,
+                    ValuedOffers = r.ValuedOffers, ComputedAt = now,
                 });
             else
             {
-                existing.IskPerLp     = r.IskPerLp;
-                existing.ValuedOffers = r.ValuedOffers;
-                existing.ComputedAt   = now;
+                existing.IskPerLp       = r.IskPerLp;
+                existing.MedianIskPerLp = r.MedianIskPerLp;
+                existing.ValuedOffers   = r.ValuedOffers;
+                existing.ComputedAt     = now;
             }
         }
         await db.SaveChangesAsync(ct);
