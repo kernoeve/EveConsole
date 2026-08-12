@@ -25,9 +25,17 @@ public class StructureSyncService(IDbContextFactory<AppDbContext> dbFactory, App
     /// <summary>
     /// Brings <c>Structures</c> up to date with <c>EsiStructureNames</c>.
     ///
-    /// <para>Only rows ESI has actually resolved are copied: a Pending or NoAccess row carries no
-    /// information the user does not already have, and copying its blanks over a description
-    /// someone typed by hand would be the one thing this must never do.</para>
+    /// <para>Insert and update are deliberately different rules:</para>
+    /// <list type="bullet">
+    /// <item>EVERY structure id we have seen gets a row here, resolved or not. A structure we
+    /// cannot read is exactly the one worth describing by hand, so it has to be present to be
+    /// edited — an empty row is an invitation, and its absence would mean the user has to add by
+    /// id something the app already knows exists.</item>
+    /// <item>An EXISTING row is only overwritten from a resolved lookup. Copying the blanks of a
+    /// Pending or NoAccess row over a description someone typed is the one thing this must never
+    /// do — and the case it would happen in, a structure we lost access to, is precisely when the
+    /// hand-written version is all that is left.</item>
+    /// </list>
     /// </summary>
     public async Task<int> SyncAsync(CancellationToken ct = default)
     {
@@ -35,28 +43,29 @@ public class StructureSyncService(IDbContextFactory<AppDbContext> dbFactory, App
         {
             await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-            var resolved = await db.EsiStructureNames.AsNoTracking()
-                .Where(s => s.Status == (int)StructureStatus.Resolved)
-                .ToListAsync(ct);
-
-            if (resolved.Count == 0) { LastSynced = 0; return 0; }
+            var all = await db.EsiStructureNames.AsNoTracking().ToListAsync(ct);
+            if (all.Count == 0) { LastSynced = 0; return 0; }
 
             var existing = await db.Structures.ToDictionaryAsync(s => s.StructureId, ct);
             var now      = DateTimeOffset.UtcNow;
             var written  = 0;
 
-            foreach (var s in resolved)
+            foreach (var s in all)
             {
+                var isResolved = s.Status == (int)StructureStatus.Resolved;
+
                 if (!existing.TryGetValue(s.StructureId, out var row))
                 {
+                    // New to us. Seed it whatever its state — an unresolved row still carries the
+                    // one fact that matters, that this structure exists and has this location id.
                     row = new Structure { StructureId = s.StructureId };
                     db.Structures.Add(row);
                 }
-                else if (Unchanged(row, s))
+                else if (!isResolved || Unchanged(row, s))
                 {
-                    // Nothing ESI owns has moved. Leaving the row alone keeps UpdatedBy/UpdatedAt
-                    // honest — a sync that rewrote every row each cycle would erase the record of
-                    // who last actually changed something.
+                    // Either ESI has nothing to say, or nothing it owns has moved. Leaving the row
+                    // alone keeps UpdatedBy/UpdatedAt honest — a sync that rewrote every row each
+                    // cycle would erase the record of who last actually changed something.
                     continue;
                 }
 
