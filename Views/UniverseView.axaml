@@ -136,7 +136,9 @@
                       IsVisible="{Binding IsMapLevel}"
                       Graph="{Binding Graph}"
                       Overlay="{Binding Overlay}"
+                      Badges="{Binding Badges}"
                       SelectedId="{Binding SelectedId, Mode=TwoWay}"
+                      FocusBounds="{Binding FocusBounds, Mode=TwoWay}"
                       ActivateCommand="{Binding DrillDownCommand}" />
 
       <!-- ── System page — replaces the map, since there is no graph at this level ──

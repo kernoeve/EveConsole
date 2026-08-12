@@ -36,6 +36,11 @@ public class App : Application
 
         // Wire up global exception handlers so truly unhandled failures are persisted
         var errorLogger = Services.GetRequiredService<AppErrorLogger>();
+
+        // Installed here, before any view model exists: ObserveOn captures the scheduler when a
+        // subscription is created, so anything wired earlier would never be measured.
+        ReactiveUI.RxApp.MainThreadScheduler =
+            new TimedMainThreadScheduler(ReactiveUI.RxApp.MainThreadScheduler, errorLogger);
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
             if (e.ExceptionObject is Exception ex)
@@ -1840,6 +1845,14 @@ public class App : Application
             db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailAttackers_KillMailId" ON "KillMailAttackers" ("KillMailId")""");
             db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailItems_KillMailId" ON "KillMailItems" ("KillMailId")""");
 
+            // "Which killmails was this character an attacker on" — the Overview's kill count,
+            // and the one direction the KillMailId index above cannot serve. At 7.8M attacker
+            // rows it was a full SCAN taking ~600 ms, repeated on every 60-second Overview
+            // refresh. Both columns are in the index so the sub-query is answered from the
+            // index alone: measured 599 ms -> under 1 ms, plan SCAN -> SEARCH USING COVERING
+            // INDEX. Worth its disk on a table this size.
+            db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailAttackers_CharacterId" ON "KillMailAttackers" ("CharacterId", "KillMailId")""");
+
             // ── Map statistics — hourly buckets + daily rollup ──────────────────
             // Keyed by the CCP hour bucket, not by fetch time, so a row from the live ESI
             // poll and the same hour recovered later from the EVE Ref archive collide on the
@@ -2147,6 +2160,10 @@ public class App : Application
 
         // Cheap when idle: the loop only touches the database for alarms whose interval is up.
         Services.GetRequiredService<AlarmService>().Start();
+
+        // Writes to the error log only when the UI thread actually freezes, so a healthy
+        // session records nothing.
+        Services.GetRequiredService<UiStallMonitor>().Start();
     }
 
     private static void PositionSplashOnLastMonitor(SplashWindow splash)
@@ -2236,6 +2253,7 @@ public class App : Application
         services.AddSingleton<HoboImportService>();
         services.AddSingleton<ApiActivityLog>();
         services.AddSingleton<AppErrorLogger>();
+        services.AddSingleton<UiStallMonitor>();
         services.AddSingleton<TimerSettingsService>();
         services.AddSingleton<AppPreferencesService>();
         services.AddSingleton<SlackAuthService>();
@@ -2308,6 +2326,9 @@ public class App : Application
         // Alarms. Nothing is defined out of the box — every alarm is one the user (or the agent
         // on their behalf) creates. See AlarmService for why firing is keyed on match identity
         // rather than on a condition merely being true.
+        // Jump planning. Holds the reachable-system list once loaded, so it is a singleton.
+        services.AddSingleton<JumpPlannerService>();
+
         services.AddSingleton<AlarmSoundService>();
         services.AddSingleton<SystemGraph>();
         services.AddSingleton(sp => AlarmConditionRegistry.CreateDefault(

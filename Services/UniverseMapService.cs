@@ -19,12 +19,48 @@ public sealed record MapNode(
     string RegionName = "",
     /// <summary>Zero on the universe map, where the nodes are regions.</summary>
     int    ConstellationId = 0,
-    string ConstellationName = "");
+    string ConstellationName = "",
+    /// <summary>Which zoom tier this node belongs to on a continuous map: 0 draws when zoomed
+    /// out, 1 when zoomed in. Both tiers live in one graph so zooming reveals detail rather
+    /// than navigating to a different map.</summary>
+    int    Tier = 0);
+
+/// <summary>
+/// What a system offers, drawn on its box whatever the overlay is showing. Facts about the place
+/// rather than a reading of it, which is why they are not part of <see cref="MapNodeStyle"/> —
+/// changing overlay must not take them away.
+///
+/// <para>The docking flags are the point of this: an NPC station and a Fortizar take capitals, an
+/// Astrahus does not, and only a Keepstar takes a super or a titan. That decides whether a system
+/// is somewhere you can actually bring the ship you fly.</para>
+/// </summary>
+public sealed record MapBadges(
+    bool NpcStation,
+    bool Astrahus,
+    bool Fortizar,
+    bool Keepstar,
+    bool EngineeringComplex,
+    bool Refinery)
+{
+    /// <summary>Anything a capital can dock at.</summary>
+    public bool CapitalDock => NpcStation || Fortizar || Keepstar;
+
+    /// <summary>Only a Keepstar takes a super or a titan.</summary>
+    public bool SuperDock => Keepstar;
+
+    public bool Any => NpcStation || Astrahus || Fortizar || Keepstar
+                    || EngineeringComplex || Refinery;
+}
 
 /// <summary>An undirected jump between two nodes. Stored once per pair, low id first.</summary>
-public sealed record MapEdge(int FromId, int ToId);
+public sealed record MapEdge(int FromId, int ToId, int Tier = 0);
 
-public sealed record MapGraph(IReadOnlyList<MapNode> Nodes, IReadOnlyList<MapEdge> Edges);
+public sealed record MapGraph(IReadOnlyList<MapNode> Nodes, IReadOnlyList<MapEdge> Edges)
+{
+    /// <summary>True when the graph carries both zoom tiers, so the canvas should switch between
+    /// them on zoom instead of drawing everything.</summary>
+    public bool IsContinuous { get; init; }
+}
 
 /// <summary>A searchable place: a region or a system, with what is needed to navigate to it.
 /// SystemId is 0 for a region.</summary>
@@ -61,6 +97,11 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     /// on it still lets the abyssal and VR-* regions through.
     /// </summary>
     private const int MaxKnownSpaceRegionId = 11_000_000;
+
+    // The three Jove regions (UUA-F4, J7HZ-F, A821-A) are drawn like any others, and float
+    // unconnected because no stargate has ever reached them. That is what they are, so the map
+    // shows it. The jump planner excludes them separately — there, routing through one would
+    // produce a route nobody can fly.
 
     /// <summary>Gates point at the gate on the far side, so joining a gate to its destination
     /// gate yields the system pair. There is no separate adjacency table.</summary>
@@ -164,16 +205,21 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         if (string.IsNullOrWhiteSpace(text) || text.Length < 2) return [];
         var q = text.Trim();
 
+        // ⚠️ Lower-cased on both sides: string.Contains becomes SQLite's instr(), which is
+        // case-sensitive, so "jita" would find nothing while "Jita" found the system. Not a LIKE,
+        // so the % and _ wildcards are never exposed to what the user typed.
+        var needle = q.ToLowerInvariant();
+
         using var db = dbFactory.CreateDbContext();
 
         var regions = await db.SdeRegions.AsNoTracking()
-            .Where(r => r.RegionId < MaxKnownSpaceRegionId && r.Name.Contains(q))
+            .Where(r => r.RegionId < MaxKnownSpaceRegionId && r.Name.ToLower().Contains(needle))
             .Select(r => new { r.Name, r.RegionId })
             .Take(limit)
             .ToListAsync(ct);
 
         var systems = await db.SdeSolarSystems.AsNoTracking()
-            .Where(s => s.Name.Contains(q))
+            .Where(s => s.Name.ToLower().Contains(needle))
             .Join(db.SdeRegions.AsNoTracking(), s => s.RegionId, r => r.RegionId,
                   (s, r) => new { s.Name, s.SolarSystemId, s.RegionId, Region = r.Name, s.Security })
             .Take(limit * 2)
@@ -251,6 +297,145 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             .ToList();
 
         return new MapGraph(nodes, edges);
+    }
+
+    /// <summary>
+    /// What each system offers, for the badges on its box.
+    ///
+    /// <para>⚠️ Player structures are classified by TYPE, which is all anyone can know about
+    /// someone else's structure: ESI publishes a structure's name, owner, position and type, and
+    /// nothing about its fitted services. The type is enough for the question that matters most —
+    /// what can dock — and it is honest about the rest rather than guessing.</para>
+    ///
+    /// <para>Structures come from the ones this app has resolved a name for, so a system with a
+    /// citadel nobody here has seen shows nothing. Under-reporting, never inventing.</para>
+    /// </summary>
+    public async Task<Dictionary<int, MapBadges>> GetSystemBadgesAsync(CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+
+        var npc = (await db.SdeStations.AsNoTracking()
+            .Select(s => s.SolarSystemId).Distinct().ToListAsync(ct)).ToHashSet();
+
+        // Grouped by name within the structure groups, so faction Fortizars come along and a
+        // wreck or blueprint that happens to share a word does not.
+        var types = await (
+            from t in db.SdeTypes.AsNoTracking()
+            join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
+            where g.Name == "Citadel" || g.Name == "Engineering Complex" || g.Name == "Refinery"
+            select new { t.TypeId, t.Name, GroupName = g.Name }).ToListAsync(ct);
+
+        var astrahus = types.Where(t => t.Name.Contains("Astrahus")).Select(t => t.TypeId).ToHashSet();
+        var fortizar = types.Where(t => t.Name.Contains("Fortizar")).Select(t => t.TypeId).ToHashSet();
+        var keepstar = types.Where(t => t.Name.Contains("Keepstar")).Select(t => t.TypeId).ToHashSet();
+        var engineer = types.Where(t => t.GroupName == "Engineering Complex").Select(t => t.TypeId).ToHashSet();
+        var refinery = types.Where(t => t.GroupName == "Refinery").Select(t => t.TypeId).ToHashSet();
+
+        var structures = await db.EsiStructureNames.AsNoTracking()
+            .Select(s => new { s.SolarSystemId, s.TypeId })
+            .ToListAsync(ct);
+
+        var badges = new Dictionary<int, MapBadges>();
+
+        foreach (var systemId in npc)
+            badges[systemId] = new MapBadges(true, false, false, false, false, false);
+
+        foreach (var group in structures.GroupBy(s => s.SolarSystemId))
+        {
+            var existing = badges.GetValueOrDefault(group.Key)
+                           ?? new MapBadges(false, false, false, false, false, false);
+
+            badges[group.Key] = existing with
+            {
+                Astrahus           = existing.Astrahus           || group.Any(s => astrahus.Contains(s.TypeId)),
+                Fortizar           = existing.Fortizar           || group.Any(s => fortizar.Contains(s.TypeId)),
+                Keepstar           = existing.Keepstar           || group.Any(s => keepstar.Contains(s.TypeId)),
+                EngineeringComplex = existing.EngineeringComplex || group.Any(s => engineer.Contains(s.TypeId)),
+                Refinery           = existing.Refinery           || group.Any(s => refinery.Contains(s.TypeId)),
+            };
+        }
+
+        return badges;
+    }
+
+    /// <summary>
+    /// The whole cluster as one map: regions to read when zoomed out, every system when zoomed
+    /// in, in a single coordinate space so zooming reveals detail instead of navigating.
+    ///
+    /// <para>⚠️ Regions are placed at the CENTROID OF THEIR SYSTEMS in CCP's published 2D layout,
+    /// not by the galactic (X, -Z) projection <see cref="GetUniverseGraphAsync"/> uses. The two
+    /// are different spaces, and mixing them would put a region's box somewhere its own systems
+    /// are not. Measured across the 70 known-space regions, region extents in this layout overlap
+    /// in only 12 of 2,415 pairs and never by more than 8% of a region's area, so regions still
+    /// read as distinct territory — which is what makes the shared space usable.</para>
+    ///
+    /// <para>Region ids and system ids occupy disjoint ranges, so one overlay dictionary keyed by
+    /// node id serves both tiers without collision.</para>
+    /// </summary>
+    public async Task<MapGraph> GetContinuousGraphAsync(CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+
+        var systems = (await (
+            from s in db.SdeSolarSystems.AsNoTracking()
+            join r in db.SdeRegions.AsNoTracking() on s.RegionId equals r.RegionId
+            where s.RegionId < MaxKnownSpaceRegionId && s.X2D != null && s.Y2D != null
+            select new
+            {
+                s.SolarSystemId, s.Name, s.RegionId, s.ConstellationId,
+                s.Security, s.IsWormhole, s.FactionId, s.SecurityClass,
+                X = s.X2D!.Value, Y = s.Y2D!.Value,
+                RegionName = r.Name,
+            }).ToListAsync(ct)).ToList();
+
+        var constellationNames = await db.SdeConstellations.AsNoTracking()
+            .ToDictionaryAsync(c => c.ConstellationId, c => c.Name, ct);
+
+        // Y negated for the same reason everywhere else: position2D grows northward, screen Y
+        // grows downward.
+        var systemNodes = systems.Select(s => new MapNode(
+            s.SolarSystemId, s.Name, s.X, -s.Y, s.Security, s.IsWormhole, s.FactionId,
+            s.SecurityClass, IsOutsideRegion: false, RegionName: s.RegionName,
+            ConstellationId: s.ConstellationId,
+            ConstellationName: constellationNames.GetValueOrDefault(s.ConstellationId, ""),
+            Tier: 1)).ToList();
+
+        var regionMeta = await db.SdeRegions.AsNoTracking()
+            .Where(r => r.RegionId < MaxKnownSpaceRegionId)
+            .Select(r => new { r.RegionId, r.Name, r.IsWormhole, r.FactionId })
+            .ToListAsync(ct);
+
+        var regionNodes = regionMeta
+            .Select(r =>
+            {
+                var members = systems.Where(s => s.RegionId == r.RegionId).ToList();
+                if (members.Count == 0) return null;
+
+                return new MapNode(
+                    r.RegionId, r.Name,
+                    members.Average(s => s.X), -members.Average(s => s.Y),
+                    members.Average(s => s.Security), r.IsWormhole, r.FactionId,
+                    Tier: 0);
+            })
+            .OfType<MapNode>()
+            .ToList();
+
+        var systemIds = systemNodes.Select(n => n.Id).ToHashSet();
+        var regionIds = regionNodes.Select(n => n.Id).ToHashSet();
+
+        var systemLinks = await db.Database.SqlQueryRaw<LinkRaw>(LinkSql).ToListAsync(ct);
+        var regionLinks = await db.Database.SqlQueryRaw<LinkRaw>(RegionLinksSql).ToListAsync(ct);
+
+        var edges = regionLinks
+            .Where(l => regionIds.Contains(l.FromId) && regionIds.Contains(l.ToId))
+            .Select(l => new MapEdge(l.FromId, l.ToId, 0))
+            .Concat(systemLinks
+                .Where(l => systemIds.Contains(l.FromId) && systemIds.Contains(l.ToId))
+                .Select(l => new MapEdge(l.FromId, l.ToId, 1)))
+            .Distinct()
+            .ToList();
+
+        return new MapGraph([.. regionNodes, .. systemNodes], edges) { IsContinuous = true };
     }
 
     /// <summary>

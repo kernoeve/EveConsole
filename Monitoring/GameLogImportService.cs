@@ -183,9 +183,7 @@ public sealed class GameLogImportService : ReactiveObject
             try
             {
                 if (!Directory.Exists(dir)) { unreachable++; continue; }
-                files = new DirectoryInfo(dir).EnumerateFiles("*.txt")
-                            .Where(f => f.LastWriteTimeUtc >= cutoff)
-                            .ToList();
+                files = LogFileCursor.RecentFiles(dir, cutoff);
             }
             catch (Exception ex)
             {

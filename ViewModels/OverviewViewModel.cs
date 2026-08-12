@@ -384,6 +384,17 @@ public class OverviewViewModel : ReactiveObject
     private OverviewLayout _layout = OverviewLayout.Default();
     public OverviewLayout Layout => _layout;
 
+    /// <summary>
+    /// Whether a section is actually on the Overview grid.
+    ///
+    /// <para>Sections not placed by the user are disabled, and the default layout leaves four of
+    /// the eleven off — so the load was querying for panels nobody could see. Every section below
+    /// is gated on this. Safe because <see cref="ApplyLayoutAsync"/> reloads when the layout
+    /// changes, so enabling a section fills it immediately rather than showing blanks until the
+    /// next refresh.</para>
+    /// </summary>
+    private bool Shown(string key) => _layout.Sections.Any(s => s.Key == key && s.Enabled);
+
     // Raised when the layout changes; the view rebuilds its section grid in response.
     public event Action? LayoutChanged;
 
@@ -496,12 +507,36 @@ public class OverviewViewModel : ReactiveObject
         // served their purpose (664 database contexts building tooltips nobody had opened) and
         // were filling the log on every refresh.
         var sw = System.Diagnostics.Stopwatch.StartNew();
-        void Step(string next) => LoadStatus = next;
+
+        // Section timing, reinstated but quiet: only a slow section is logged, so this cannot
+        // fill the error log the way the old per-section timings did.
+        //
+        // ⚠️ This is WALL CLOCK for the section, not UI-thread blocking: it includes time spent
+        // awaiting queries that Off() put on the threadpool, during which the UI thread is free.
+        // A slow section here is a lead, not a verdict — UiStallMonitor is what says whether the
+        // window actually froze. Worded accordingly, because reading it the other way sends you
+        // hunting for a freeze that isn't there.
+        const int SlowSectionMs = 250;
+        var sectionAt   = 0L;
+        var sectionName = "Querying scope";
+
+        void Step(string next)
+        {
+            var now  = sw.ElapsedMilliseconds;
+            var took = now - sectionAt;
+            if (took >= SlowSectionMs)
+                _errorLogger.Log(nameof(OverviewViewModel), "Slow Overview section",
+                    $"\"{sectionName}\" took {took:N0} ms (wall clock, background queries included).");
+
+            sectionAt   = now;
+            sectionName = next;
+            LoadStatus  = next;
+        }
 
         LoadStatus = "Querying scope";
         try
         {
-            await _alertSettings.LoadAsync();
+            if (Shown("Alerts")) await _alertSettings.LoadAsync();
 
             // ── Scope ─────────────────────────────────────────────────────────
             // Only characters we have auth tokens for (i.e. authenticated characters).
@@ -528,13 +563,22 @@ public class OverviewViewModel : ReactiveObject
 
             // Start news fetch in the background immediately — it hits the network and is
             // the slowest step. We await it last so everything else renders first.
-            var newsTask = _newsService.GetNewsAsync();
+            var newsTask = Shown("News") ? _newsService.GetNewsAsync() : null;
 
             // Per-owner list — avoids List<long>.Contains() which EF Core 9 SQLite
             // fails to translate. Corp OwnerType must be "corporation" to match the DB.
             var owners = charIds.Select(id => ("character", id))
                                 .Concat(corpIds.Select(id => ("corporation", id)))
                                 .ToList();
+
+            // Which owners each group of sections should query. Empty when the panel that
+            // consumes them is not on the grid, which makes every per-owner loop below a no-op
+            // and leaves its aggregate at zero — no restructuring, and nothing queried for a
+            // panel nobody can see. Both are among the sections the default layout leaves off.
+            List<(string, long)> activityOwners =
+                Shown("ActivitySummary") ? owners : [];
+            List<(string, long)> pieOwners =
+                Shown("IncomePie") || Shown("ExpensePie") ? owners : [];
 
             // ── Market transactions ────────────────────────────────────────────
             Step("Loading market transactions");
@@ -543,7 +587,7 @@ public class OverviewViewModel : ReactiveObject
             // to REAL for arithmetic; result arrives as double, converted to decimal.
             decimal mktSellTotal = 0m, mktBuyTotal = 0m;
             int     mktSellCnt   = 0,  mktBuyCnt   = 0;
-            foreach (var (ot, oid) in owners)
+            foreach (var (ot, oid) in activityOwners)
             {
                 var s = await Off(() => _db.Database.SqlQuery<TxnSummary>(
                     $"""
@@ -577,7 +621,7 @@ public class OverviewViewModel : ReactiveObject
             // ── Active market orders ───────────────────────────────────────────
             Step("Loading market orders");
             var orders = new List<(bool IsBuy, int VolRemain, decimal Price)>();
-            foreach (var (ot, oid) in owners)
+            foreach (var (ot, oid) in activityOwners)
                 orders.AddRange((await Off(() => _db.EsiMarketOrders.AsNoTracking()
                     .Where(o => !o.IsHistory && o.OwnerType == ot && o.OwnerId == oid)
                     .Select(o => new { o.IsBuyOrder, o.VolumeRemain, o.Price })
@@ -599,7 +643,7 @@ public class OverviewViewModel : ReactiveObject
             // ── Contracts ─────────────────────────────────────────────────────
             Step("Loading contracts");
             var contracts = new List<string>();
-            foreach (var (ot, oid) in owners)
+            foreach (var (ot, oid) in activityOwners)
                 contracts.AddRange(await Off(() => _db.EsiContracts.AsNoTracking()
                     .Where(c => c.OwnerType == ot && c.OwnerId == oid)
                     .Select(c => c.Status)
@@ -610,7 +654,7 @@ public class OverviewViewModel : ReactiveObject
             // ── Industry jobs ──────────────────────────────────────────────────
             Step("Loading industry jobs");
             var jobs = new List<(string Status, DateTimeOffset? Completed)>();
-            foreach (var (ot, oid) in owners)
+            foreach (var (ot, oid) in activityOwners)
                 jobs.AddRange((await Off(() => _db.EsiIndustryJobs.AsNoTracking()
                     .Where(j => j.OwnerType == ot && j.OwnerId == oid)
                     .Select(j => new { j.Status, j.CompletedDate })
@@ -629,7 +673,7 @@ public class OverviewViewModel : ReactiveObject
             // queries replace the old per-character/per-corp loop (much faster).
             Step("Counting kills and losses");
             int totalKills = 0, totalLosses = 0;
-            if (charIds.Count > 0)
+            if (activityOwners.Count > 0 && charIds.Count > 0)
             {
                 var cutoffStr  = DateTimeOffset.UtcNow.AddHours(-SelectedPeriod.Hours)
                     .UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
@@ -641,8 +685,13 @@ public class OverviewViewModel : ReactiveObject
                     WHERE d."KillMailTime" >= '{cutoffStr}' AND d."VictimCharId" IN ({charIdList})
                     """).FirstAsync());
                 // Non-correlated IN-subquery: computes the attacker killmail set once. A
-                // correlated EXISTS here scans the 100k-row attackers table per killmail
-                // (~26s); this is ~20ms.
+                // correlated EXISTS here scans the attackers table per killmail (~26s at the
+                // 100k rows it had then).
+                //
+                // That table is now 7.8M rows, and the sub-query below was itself a full scan
+                // costing ~600 ms on every 60-second refresh until
+                // IX_KillMailAttackers_CharacterId (CharacterId, KillMailId) was added — it
+                // covers this query outright, taking it under a millisecond.
                 totalKills = await Off(() => _db.Database.SqlQueryRaw<int>($"""
                     SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
                     FROM "KillMailDetails" d
@@ -674,7 +723,7 @@ public class OverviewViewModel : ReactiveObject
             // Group by RefType in SQL with date filter — avoids loading all rows.
             // Amount stored as TEXT; CAST to REAL for SUM. Aggregated per RefType.
             var journalGroups = new List<(string RefType, decimal Total)>();
-            foreach (var (ot, oid) in owners)
+            foreach (var (ot, oid) in pieOwners)
             {
                 var rows = await Off(() => _db.Database.SqlQuery<JournalGroup>(
                     $"""
@@ -696,18 +745,22 @@ public class OverviewViewModel : ReactiveObject
             BuildPieCharts(WalletCategorizer.Categorize(journalByType));
 
             Step("Evaluating alerts");
-            await EvaluateAlertsAsync(charIds);
+            if (Shown("Alerts")) await EvaluateAlertsAsync(charIds);
 
             Step("Loading news");
-            var newsItems = await newsTask;
-            NewsItems.Clear();
-            foreach (var item in newsItems) NewsItems.Add(new NewsItemVm(item));
-            HasNews = NewsItems.Count > 0;
-            this.RaisePropertyChanged(nameof(NoNews));
+            if (newsTask is not null)
+            {
+                var newsItems = await newsTask;
+                NewsItems.Clear();
+                foreach (var item in newsItems) NewsItems.Add(new NewsItemVm(item));
+                HasNews = NewsItems.Count > 0;
+                this.RaisePropertyChanged(nameof(NoNews));
+            }
 
             Step("Loading notifications");
-            await LoadNotificationsAsync();
+            if (Shown("Notifications")) await LoadNotificationsAsync();
 
+            Step("done");   // closes out the last section so it is timed like the rest
             LoadStatus = $"Loaded in {sw.ElapsedMilliseconds:N0} ms — {owners.Count} owner(s), period: {_selectedPeriod.Label}";
         }
         catch (Exception ex)
@@ -718,9 +771,23 @@ public class OverviewViewModel : ReactiveObject
     }
 
     // ── Notifications (one per NotificationId, within the selected period) ─────────
-    private async Task LoadNotificationsAsync()
+    /// <summary>Identifies the notification set last put on screen, so an unchanged refresh can
+    /// skip rebuilding it. On a 60-second auto-refresh most passes change nothing.</summary>
+    private string _notificationSignature = "";
+
+    /// <summary>
+    /// ⚠️ Threadpool only. Everything here — both queries, name resolution and the whole
+    /// formatting loop — used to run on the UI thread, because this section is awaited directly
+    /// rather than through <see cref="Off"/>. SQLite's async is synchronous underneath, and the
+    /// loop formats up to a thousand rows, so the cost landed on the UI thread in full and froze
+    /// the window for seconds on every refresh.
+    ///
+    /// <para>Returns null when there is nothing to do: not wired, failed, or the same
+    /// notifications as last time.</para>
+    /// </summary>
+    private async Task<List<NotificationBoxVm>?> BuildNotificationBoxesAsync()
     {
-        if (_names is null || _dbFactory is null) return;   // not wired for name resolution/formatting
+        if (_names is null || _dbFactory is null) return null;   // not wired for name resolution/formatting
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
@@ -741,6 +808,12 @@ public class OverviewViewModel : ReactiveObject
                     "WHERE Timestamp >= {0} " +
                     "GROUP BY NotificationId ORDER BY Timestamp DESC LIMIT 1000", cutoff)
                 .AsNoTracking().ToListAsync();
+
+            // Nothing new? Then neither the formatting below nor the collection rebuild that
+            // follows it is worth doing. Read state is included so marking one read still shows.
+            var signature = string.Join(',', rows.Select(r => $"{r.NotificationId}:{(r.IsRead ? 1 : 0)}"));
+            if (signature == _notificationSignature) return null;
+            _notificationSignature = signature;
 
             var ids = rows.Select(r => r.NotificationId).ToList();
             var recipients = ids.Count == 0
@@ -806,21 +879,40 @@ public class OverviewViewModel : ReactiveObject
                 });
             }
 
-            RecentNotifications.Clear();
-            foreach (var b in boxes) RecentNotifications.Add(b);
-            HasNotifications = RecentNotifications.Count > 0;
-            this.RaisePropertyChanged(nameof(NoNotifications));
-
-            // Bodies and icons after the list is on screen, not before it. Formatting one body
-            // costs its own database context and several queries, so doing all of them inline
-            // was the whole reason this section took so long to appear — for text that is only
-            // read if the user hovers that particular row.
-            // Handed to LoadAsync rather than started here. This runs part-way through the
-            // Overview load, and four background readers competing with the queries still to
-            // come only slow down the very thing they were meant to get out of the way of.
-            _pendingDetailFill = boxes;
+            return boxes;
         }
-        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadNotifications", ex); }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("OverviewViewModel", "LoadNotifications", ex);
+
+            // A failed pass must not leave the signature claiming the screen is up to date.
+            _notificationSignature = "";
+            return null;
+        }
+    }
+
+    private async Task LoadNotificationsAsync()
+    {
+        // Task.Run, not a bare call: an async method runs on its caller until it genuinely
+        // suspends, and SQLite's async suspends for nothing — a bare call would put the queries
+        // and the formatting straight back onto the UI thread. Same reasoning as Off().
+        var boxes = await Task.Run(BuildNotificationBoxesAsync);
+        if (boxes is null) return;   // nothing to do, or unchanged since last refresh
+
+        // The only part that must be here. Everything above it is off the UI thread now.
+        RecentNotifications.Clear();
+        foreach (var b in boxes) RecentNotifications.Add(b);
+        HasNotifications = RecentNotifications.Count > 0;
+        this.RaisePropertyChanged(nameof(NoNotifications));
+
+        // Bodies and icons after the list is on screen, not before it. Formatting one body
+        // costs its own database context and several queries, so doing all of them inline
+        // was the whole reason this section took so long to appear — for text that is only
+        // read if the user hovers that particular row.
+        // Handed to LoadAsync rather than started here. This runs part-way through the
+        // Overview load, and four background readers competing with the queries still to
+        // come only slow down the very thing they were meant to get out of the way of.
+        _pendingDetailFill = boxes;
     }
 
     /// <summary>
@@ -864,8 +956,7 @@ public class OverviewViewModel : ReactiveObject
     private async Task LoadPersonalKillsAsync(List<long> charIds, int days)
     {
         // Skip the (heavier) listing query entirely unless the section is on the grid.
-        bool sectionEnabled = _layout.Sections.Any(s => s.Key == "PersonalKillmails" && s.Enabled);
-        if (!sectionEnabled || _corpActivity is null || charIds.Count == 0)
+        if (!Shown("PersonalKillmails") || _corpActivity is null || charIds.Count == 0)
         {
             _lastPersonalKillIds = [];
             PersonalKills.Clear();
@@ -908,9 +999,7 @@ public class OverviewViewModel : ReactiveObject
     // ── Standing projects ─────────────────────────────────────────────────────
     private async Task LoadStandingProjectsAsync()
     {
-        bool enabled = _corpActivity is not null
-                    && _layout.Sections.Any(s => s.Key == "StandingProjects" && s.Enabled);
-        if (!enabled)
+        if (_corpActivity is null || !Shown("StandingProjects"))
         {
             StandingProjects.Clear();
             HasStandingProjects = false;
@@ -920,12 +1009,15 @@ public class OverviewViewModel : ReactiveObject
 
         try
         {
-            var corpIds = await _db.CorpStandingProjects.AsNoTracking()
-                .Select(sp => sp.CorporationId).Distinct().ToListAsync();
+            // Off() like every other query in this view model: awaited directly, SQLite's
+            // synchronous-underneath async would run both this and the per-corp grid builds on
+            // the UI thread.
+            var corpIds = await Off(() => _db.CorpStandingProjects.AsNoTracking()
+                .Select(sp => sp.CorporationId).Distinct().ToListAsync());
 
             var rows = new List<StandingProjectGridRow>();
             foreach (var corpId in corpIds)
-                rows.AddRange(await _corpActivity!.BuildMaintainGridRowsAsync(corpId));
+                rows.AddRange(await Off(() => _corpActivity!.BuildMaintainGridRowsAsync(corpId)));
 
             // Sorted by SeverityRank, matching the Standing Buy Orders panel: red
             // first, orange second, then grey, then healthy. The rank is derived
@@ -1051,12 +1143,20 @@ public class OverviewViewModel : ReactiveObject
 
         if (checkEmpty || checkPaused || checkDays)
         {
+            // Every character's queue in one query, grouped here. It was one query per
+            // character, run sequentially, each with its own hop back to the UI thread — at 18
+            // authenticated characters that was 18 round trips for what the database can answer
+            // once. Ordering moves in-memory for the same reason.
+            var queuesByChar = (await Off(() => _db.EsiSkillQueue.AsNoTracking()
+                    .Where(q => charIds.Contains(q.CharacterId) && q.QueuePosition >= 0)
+                    .ToListAsync()))
+                .GroupBy(q => q.CharacterId)
+                .ToDictionary(g => g.Key,
+                              g => g.OrderByDescending(q => q.QueuePosition).ToList());
+
             foreach (var ch in characters)
             {
-                var queue = await Off(() => _db.EsiSkillQueue.AsNoTracking()
-                    .Where(q => q.CharacterId == ch.Id && q.QueuePosition >= 0)
-                    .OrderByDescending(q => q.QueuePosition)
-                    .ToListAsync());
+                if (!queuesByChar.TryGetValue(ch.Id, out var queue)) queue = [];
 
                 var skillsNavCommand = NavigateToCharacterSkills is not null
                     ? ReactiveCommand.Create(() => NavigateToCharacterSkills!(ch.Name))

@@ -313,8 +313,13 @@ public class KillmailBrowserService(
     {
         var trimmed = nameFragment.Trim();
 
+        // ⚠️ Lower-cased both sides: string.Contains becomes SQLite's instr(), which is
+        // case-sensitive, so a lower-case fragment matched nobody locally and fell through to
+        // an ESI search that need not have happened.
+        var needle = trimmed.ToLowerInvariant();
+
         var localIds = await db.Characters
-            .Where(c => c.Name.Contains(trimmed))
+            .Where(c => c.Name.ToLower().Contains(needle))
             .Select(c => c.Id)
             .ToListAsync(ct);
         if (localIds.Count > 0) return localIds;
@@ -335,9 +340,10 @@ public class KillmailBrowserService(
         AppDbContext db, string nameFragment, CancellationToken ct)
     {
         var trimmed = nameFragment.Trim();
+        var needle  = trimmed.ToLowerInvariant();   // see ResolveCharacterIdsAsync
 
         var localIds = await db.Corporations
-            .Where(c => c.Name.Contains(trimmed))
+            .Where(c => c.Name.ToLower().Contains(needle))
             .Select(c => (long)c.Id)
             .ToListAsync(ct);
         if (localIds.Count > 0) return localIds;

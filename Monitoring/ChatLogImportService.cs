@@ -250,8 +250,7 @@ public sealed class ChatLogImportService : ReactiveObject
             try
             {
                 if (!Directory.Exists(dir)) continue;
-                files = new DirectoryInfo(dir).EnumerateFiles("*.txt")
-                            .Where(f => f.LastWriteTimeUtc >= cutoff)
+                files = LogFileCursor.RecentFiles(dir, cutoff)
                             // Allowlist applied on the FILENAME, so a channel that is
                             // not selected is never opened.
                             .Where(f => IsAllowed(ChatLogRules.ChannelNameFromFile(f.FullName)))
