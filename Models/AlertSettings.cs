@@ -9,4 +9,6 @@ public class AlertSettings
     public int  SkillQueueEmptyDays   { get; set; } = 30;
     public bool AssetSafety                { get; set; } = true;
     public bool InactiveStandingProjects   { get; set; } = true;
+    public bool StandingBuyOrdersAttention { get; set; } = true;
+    public bool UnriggedIndustryJobs       { get; set; } = true;
 }

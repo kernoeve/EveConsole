@@ -309,6 +309,40 @@
       </Grid>
     </TabItem>
 
+    <TabItem Header="LP Store">
+      <Grid RowDefinitions="Auto,Auto" Margin="10 12 10 0">
+
+        <TextBlock Grid.Row="0" Text="{Binding LpStoreState}" FontSize="12"
+                   FontWeight="SemiBold" Foreground="#c8a84b" Margin="0 0 0 12" />
+
+        <Grid Grid.Row="1" ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Sweep progress"
+                     FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Center" Margin="0 0 0 8" />
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding LpStoreProgressText}"
+                     FontSize="12" Foreground="#aab" VerticalAlignment="Center" Margin="0 0 0 8" />
+
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="Catalogue"
+                     FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Center" Margin="0 0 0 8" />
+          <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LpStoreOffersText}"
+                     FontSize="12" Foreground="#aab" VerticalAlignment="Center" Margin="0 0 0 8" />
+
+          <TextBlock Grid.Row="2" Grid.Column="0" Text="Last corporation"
+                     FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Center" Margin="0 0 0 8" />
+          <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding LpStoreLastText}"
+                     FontSize="12" Foreground="#aab" VerticalAlignment="Center" Margin="0 0 0 8" />
+
+          <TextBlock Grid.Row="3" Grid.Column="0" Text="Detail"
+                     FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Center" Margin="0 0 0 8" />
+          <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding LpStoreDetail}"
+                     FontSize="12" Foreground="#aab" VerticalAlignment="Center" Margin="0 0 0 8" TextWrapping="Wrap" />
+
+          <TextBlock Grid.Row="4" Grid.ColumnSpan="2" FontSize="11" Foreground="#886" TextWrapping="Wrap"
+                     Text="LP store catalogues come from a public ESI endpoint, one call per NPC corporation, swept daily. Until the first pass finishes an item's LP Store tab stays hidden whether or not anyone sells it — an incomplete catalogue and a genuine absence look the same." />
+        </Grid>
+
+      </Grid>
+    </TabItem>
+
     <!-- ══ Tab 5: zKillboard ═════════════════════════════════════════════════ -->
     <TabItem Header="zKillboard">
       <ScrollViewer Margin="10 12 10 0">

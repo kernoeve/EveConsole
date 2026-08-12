@@ -56,6 +56,54 @@ public class TypeSearchResult
 
 // ── Item display models ────────────────────────────────────────────────────────
 
+/// <summary>
+/// One LP store offer for the item on screen. <paramref name="LpHeld"/> is the largest
+/// balance any of the logged-in characters has with that corporation — the offer is only
+/// actionable if one character can cover it, so the max is the meaningful figure rather
+/// than the sum.
+/// </summary>
+public record LpOfferVm(
+    string CorporationName,
+    int    Quantity,
+    int    LpCost,
+    long   IskCost,
+    int    AkCost,
+    int    LpHeld,
+    IReadOnlyList<string> RequiredItems,
+    double? IskPerLp)
+{
+    /// <summary>Blank when the offer could not be valued — no price on the item itself, or
+    /// on something it consumes. Zero would read as "worthless", which is a different
+    /// claim from "unknown".</summary>
+    public string IskPerLpText => IskPerLp is null
+        ? "—"
+        : IskPerLp.Value >= 100 ? $"{IskPerLp.Value:N0} ISK/LP"
+        : IskPerLp.Value >= 1   ? $"{IskPerLp.Value:N2} ISK/LP"
+                                : $"{IskPerLp.Value:N4} ISK/LP";
+
+    /// <summary>Red below zero — the offer costs more than the item fetches, so the LP is
+    /// doing nothing for you.</summary>
+    public string IskPerLpColor => IskPerLp is null ? "#555566"
+                                 : IskPerLp.Value < 0 ? "#aa4444"
+                                 : "#4caf50";
+
+    /// <summary>
+    /// Always shown, including for a single unit. This was a field rather than a property,
+    /// which bindings cannot read at all, so the column was blank for every offer — and it
+    /// also hid the quantity when it was 1, which reads the same as missing data.
+    /// </summary>
+    public string QuantityText => Quantity.ToString("N0");
+    public string LpText       => $"{LpCost:N0} LP";
+    public string IskText      => IskCost > 0 ? $"{IskCost:N0} ISK" : "—";
+    public string AkText       => AkCost  > 0 ? $"{AkCost:N0} AK"   : "";
+    public string RequiredText => RequiredItems.Count == 0 ? "—" : string.Join(", ", RequiredItems);
+
+    public bool   CanAfford    => LpHeld >= LpCost;
+    public string HeldText     => LpHeld > 0 ? $"{LpHeld:N0} LP" : "none";
+    /// <summary>Green when a character can cover it today, muted when they cannot.</summary>
+    public string HeldColor    => CanAfford ? "#4caf50" : "#555566";
+}
+
 public record AttrDisplayVm(string Name, string ValueText);
 public record AttrGroupVm(string CategoryName, IReadOnlyList<AttrDisplayVm> Attrs);
 public record BlueprintMatVm(string MaterialName, int MaterialTypeId, int Quantity);
@@ -191,6 +239,14 @@ public class ItemDisplayVm : ReactiveObject
 public class ItemBrowserViewModel : ReactiveObject
 {
     private readonly AppDbContext _db;
+
+    /// <summary>
+    /// Used by loads that run alongside another one. The tab loads fire together and an
+    /// EF context handles a single operation at a time, so anything sharing _db with
+    /// LoadOrdersAsync would intermittently throw "a second operation was started on this
+    /// context". A short-lived context of its own avoids the race entirely.
+    /// </summary>
+    private readonly IDbContextFactory<AppDbContext>? _dbFactory;
     private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(10) };
     private static readonly Regex _tagRegex = new(@"<[^>]+>", RegexOptions.Compiled);
     private const int SkillCategoryId = 16;
@@ -315,6 +371,150 @@ public class ItemBrowserViewModel : ReactiveObject
             return $"No price-history region matching '{name}'. Available: {string.Join(", ", HistoryRegions.Select(r => r.RegionName))}.";
         SelectedHistoryRegion = match;
         return $"Price-history region set to {match.RegionName}.";
+    }
+
+    // ── LP Store tab ──────────────────────────────────────────────────────────
+    // Hidden unless some NPC corporation sells this item. Plenty of items are offered by
+    // several corporations at different prices, so every offer is listed rather than a
+    // best-of — which corporation you have LP with decides the one that matters to you.
+    public ObservableCollection<LpOfferVm> LpOffers { get; } = [];
+    public bool HasLpOffers => LpOffers.Count > 0;
+
+    private async Task LoadLpOffersAsync(int typeId, CancellationToken ct)
+    {
+        try
+        {
+            // Own context: this runs concurrently with LoadOrdersAsync, which uses _db.
+            await using var owned = _dbFactory is null ? null : await _dbFactory.CreateDbContextAsync(ct);
+            var db = owned ?? _db;
+
+            var offers = await db.EsiLpStoreOffers.AsNoTracking()
+                .Where(o => o.TypeId == typeId)
+                .ToListAsync(ct);
+            if (offers.Count == 0)
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    LpOffers.Clear();
+                    this.RaisePropertyChanged(nameof(HasLpOffers));
+                });
+                return;
+            }
+
+            var corpIds  = offers.Select(o => o.CorporationId).Distinct().ToList();
+            var offerIds = offers.Select(o => o.OfferId).Distinct().ToList();
+
+            // Both halves of the key. Offer ids repeat across corporations, so matching on
+            // the id alone would attach another store's required items to this offer.
+            var reqs = await db.EsiLpStoreOfferItems.AsNoTracking()
+                .Where(i => offerIds.Contains(i.OfferId) && corpIds.Contains(i.CorporationId))
+                .ToListAsync(ct);
+
+            var corpNames = await db.SdeNpcCorporations.AsNoTracking()
+                .Where(c => corpIds.Contains(c.CorporationId))
+                .ToDictionaryAsync(c => c.CorporationId, c => c.Name, ct);
+
+            var reqTypeIds = reqs.Select(i => i.TypeId).Distinct().ToList();
+            var reqNames = reqTypeIds.Count == 0
+                ? []
+                : await db.SdeTypes.AsNoTracking()
+                    .Where(t => reqTypeIds.Contains(t.TypeId))
+                    .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+
+            // LP the logged-in characters actually hold with each corporation, so the list
+            // can say whether an offer is reachable rather than only what it costs.
+            var lpHeld = (await db.EsiLoyaltyPoints.AsNoTracking()
+                    .Where(l => corpIds.Contains(l.CorporationId))
+                    .ToListAsync(ct))
+                .GroupBy(l => l.CorporationId)
+                .ToDictionary(g => g.Key, g => g.Max(l => l.Points));
+
+            // Prices for the ISK/LP estimate: the item itself and everything an offer also
+            // consumes. Same asset-value configuration the corporation averages use, so a
+            // row here and the tool's average are the same measurement.
+            var settings  = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(s => s.Id == 1, ct);
+            var priceType = settings?.AssetValuePriceType ?? "Midpoint";
+            var priceIds  = reqTypeIds.Append(typeId).Distinct().ToList();
+
+            var market = new Dictionary<int, double>();
+            if (settings?.AssetValueConfigId is { } cfg)
+                foreach (var p in await db.MarketItemPrices.AsNoTracking()
+                             .Where(p => p.ConfigId == cfg && priceIds.Contains(p.TypeId))
+                             .Select(p => new { p.TypeId, p.BuyPrice, p.SellPrice, p.Midpoint })
+                             .ToListAsync(ct))
+                {
+                    double v = priceType switch { "Buy" => p.BuyPrice, "Sell" => p.SellPrice, _ => p.Midpoint };
+                    if (v > 0) market[p.TypeId] = v;
+                }
+
+            var contractPx = (await db.ContractPrices.AsNoTracking()
+                    .Where(c => priceIds.Contains(c.TypeId)).ToListAsync(ct))
+                .Select(cp => new { cp.TypeId, Price = ContractPricing.EffectivePrice(cp) })
+                .Where(x => x.Price is > 0m)
+                .ToDictionary(x => x.TypeId, x => (double)x.Price!.Value);
+
+            // Blueprint copies trade by contract, never on the market, so their price is in
+            // ContractBpcPrices — per run, per ME. Lowest ME, since LP store blueprints are
+            // unresearched. Without this every BPC offer showed no estimate at all.
+            var bpcPx = (await db.ContractBpcPrices.AsNoTracking()
+                    .Where(b => priceIds.Contains(b.TypeId)).ToListAsync(ct))
+                .Select(b => new { b.TypeId, b.Me, Price = ContractPricing.EffectivePerRun(b) })
+                .Where(x => x.Price is > 0m)
+                .GroupBy(x => x.TypeId)
+                .ToDictionary(g => g.Key, g => (double)g.OrderBy(x => x.Me).First().Price!.Value);
+
+            double? ValueOf(int id) =>
+                market.TryGetValue(id, out var m) ? m
+                : contractPx.TryGetValue(id, out var c) ? c
+                : bpcPx.TryGetValue(id, out var b) ? b
+                : null;
+
+            var unitValue = ValueOf(typeId);
+
+            var rows = offers
+                .Select(o =>
+                {
+                    var mine = reqs
+                        .Where(i => i.OfferId == o.OfferId && i.CorporationId == o.CorporationId)
+                        .ToList();
+
+                    // One unpriced required item makes the whole estimate wrong rather than
+                    // approximate, so the row shows nothing instead.
+                    double reqValue = 0;
+                    bool   priced   = true;
+                    foreach (var i in mine)
+                    {
+                        var v = ValueOf(i.TypeId);
+                        if (v is null) { priced = false; break; }
+                        reqValue += v.Value * i.Quantity;
+                    }
+
+                    return new LpOfferVm(
+                        corpNames.GetValueOrDefault(o.CorporationId, $"Corp {o.CorporationId}"),
+                        o.Quantity, o.LpCost, o.IskCost, o.AkCost,
+                        lpHeld.GetValueOrDefault(o.CorporationId),
+                        mine.Select(i => $"{i.Quantity:N0} × {reqNames.GetValueOrDefault(i.TypeId, $"Type {i.TypeId}")}")
+                            .ToList(),
+                        priced
+                            ? LpValueService.IskPerLp(unitValue, o.IskCost, o.Quantity, o.LpCost, reqValue)
+                            : null);
+                })
+                .OrderByDescending(r => r.LpHeld >= r.LpCost)   // affordable first
+                .ThenBy(r => r.LpCost)
+                .ToList();
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                LpOffers.Clear();
+                foreach (var r in rows) LpOffers.Add(r);
+                this.RaisePropertyChanged(nameof(HasLpOffers));
+            });
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => Status = $"LP store: {ex.Message}");
+        }
     }
 
     // ── Market Orders tab ─────────────────────────────────────────────────────
@@ -557,9 +757,11 @@ public class ItemBrowserViewModel : ReactiveObject
     // Navigates to any item (blueprint or product) by type ID
     public ReactiveCommand<int, System.Reactive.Unit> NavigateToItemCommand { get; }
 
-    public ItemBrowserViewModel(AppDbContext db, MarketHistoryService? historyService = null)
+    public ItemBrowserViewModel(AppDbContext db, MarketHistoryService? historyService = null,
+                                IDbContextFactory<AppDbContext>? dbFactory = null)
     {
         _db             = db;
+        _dbFactory      = dbFactory;
         _historyService = historyService;
         _selectedPeriod = PeriodOptions[0]; // All Time
         _selectedDerivedPeriod = PeriodOptions[0]; // All Time
@@ -602,12 +804,22 @@ public class ItemBrowserViewModel : ReactiveObject
         try
         {
             var groups = await _db.SdeMarketGroups.AsNoTracking().ToListAsync();
-            var types  = await _db.SdeTypes.AsNoTracking()
-                .Where(t => t.Published && t.MarketGroupId != null)
+
+            // Everything published, market group or not. Search runs off this list, and
+            // restricting it to items with a market group made a large class of real items
+            // unfindable by name — faction and LP store blueprints, and anything else CCP
+            // never put on the market. Those items open fine when reached by type id from
+            // another tool, which is what made the gap look arbitrary.
+            var allPublished = await _db.SdeTypes.AsNoTracking()
+                .Where(t => t.Published)
                 .Select(t => new TypeSummary(t.TypeId, t.Name, t.MarketGroupId))
                 .ToListAsync();
 
-            _allTypes = types;
+            _allTypes = allPublished;
+
+            // The tree is a market-group hierarchy, so it can only carry the items that
+            // belong to one.
+            var types = allPublished.Where(t => t.GroupId.HasValue).ToList();
             _parentMap = groups.ToDictionary(g => g.MarketGroupId, g => g.ParentGroupId);
             _groupNameMap = groups.ToDictionary(g => g.MarketGroupId,
                 g => g.Name.Length > 0 ? g.Name : $"#{g.MarketGroupId}");
@@ -1288,6 +1500,7 @@ public class ItemBrowserViewModel : ReactiveObject
                 if (HasPriceHistoryRegions)
                     _ = LoadPriceHistoryAsync();
                 _ = LoadDerivedHistoryAsync();
+                _ = LoadLpOffersAsync(typeId, ct);
             });
 
             // Load icon asynchronously

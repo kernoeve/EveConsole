@@ -328,18 +328,27 @@ public class OverviewViewModel : ReactiveObject
     public bool HasStandingProjects { get => _hasStandingProjects; private set => this.RaiseAndSetIfChanged(ref _hasStandingProjects, value); }
     public bool NoStandingProjects  => !HasStandingProjects;
 
+    public ObservableCollection<StandingBuyOrderRowVm> StandingBuyOrders { get; } = [];
+    private bool _hasStandingBuyOrders;
+    public bool HasStandingBuyOrders { get => _hasStandingBuyOrders; private set => this.RaiseAndSetIfChanged(ref _hasStandingBuyOrders, value); }
+    public bool NoStandingBuyOrders  => !HasStandingBuyOrders;
+
     // ── Loading state ─────────────────────────────────────────────────────────
     private bool _isLoading;
     public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
 
     private const string PeriodPrefKey = "overview.period_hours";
     private readonly AppPreferencesService? _prefs;
-    private readonly CorpActivityService?   _corpActivity;
+    private readonly CorpActivityService?     _corpActivity;
+    private readonly StandingBuyOrderService?  _standingBuyOrders;
+    private readonly IndyFacilityCheckService? _indyFacilityCheck;
 
     // Wired by MainWindowViewModel after construction — lets alert rows jump to the
     // relevant UI (character skills tab, corp activity standing projects tab).
     public Action<string>? NavigateToCharacterSkills               { get; set; }
     public Action?          NavigateToStandingProjects              { get; set; }
+    public Action?          NavigateToStandingBuyOrders             { get; set; }
+    public Action?          NavigateToIndustryJobs                  { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
     public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
     public Action?          OpenAlertSettingsRequested              { get; set; }  // Settings ▸ Alerts
@@ -405,14 +414,18 @@ public class OverviewViewModel : ReactiveObject
                              AppPreferencesService? prefs = null,
                              CorpActivityService? corpActivity = null,
                              IDbContextFactory<AppDbContext>? dbFactory = null,
-                             EsiClient? esi = null)
+                             EsiClient? esi = null,
+                             StandingBuyOrderService? standingBuyOrders = null,
+                             IndyFacilityCheckService? indyFacilityCheck = null)
     {
+        _indyFacilityCheck = indyFacilityCheck;
         _db             = db;
         _alertSettings  = alertSettings;
         _errorLogger    = errorLogger;
         _newsService    = newsService;
         _prefs          = prefs;
         _corpActivity   = corpActivity;
+        _standingBuyOrders = standingBuyOrders;
         _dbFactory      = dbFactory;
         _layout         = OverviewLayout.FromJsonOrDefault(prefs?.Get(LayoutPrefKey));
         if (dbFactory is not null && esi is not null)
@@ -700,6 +713,10 @@ public class OverviewViewModel : ReactiveObject
             // ── Standing projects section ───────────────────────────────────────
             Step("Standing projects");
             await LoadStandingProjectsAsync();
+
+            // ── Standing buy orders section ─────────────────────────────────────
+            Step("Standing buy orders");
+            await LoadStandingBuyOrdersAsync();
 
             // ── Wallet journal — pie chart categorisation ──────────────────────
             Step("Loading journal data");
@@ -1002,13 +1019,60 @@ public class OverviewViewModel : ReactiveObject
             foreach (var corpId in corpIds)
                 rows.AddRange(await Off(() => _corpActivity!.BuildMaintainGridRowsAsync(corpId)));
 
+            // Sorted by SeverityRank, matching the Standing Buy Orders panel: red
+            // first, orange second, then grey, then healthy. The rank is derived
+            // alongside the status colour so the order always follows what is on
+            // screen — an inactive project that is also nearly complete shows orange,
+            // and sorts as orange.
+            var ordered = rows
+                .Select(r => new StandingProjectRowVm(r, _ => { }, _ => { }))
+                .OrderBy(v => v.SeverityRank)
+                .ThenBy(v => v.DescriptionText)
+                .ToList();
+
             StandingProjects.Clear();
-            foreach (var r in rows)
-                StandingProjects.Add(new StandingProjectRowVm(r, _ => { }, _ => { }));
+            foreach (var vm in ordered) StandingProjects.Add(vm);
             HasStandingProjects = StandingProjects.Count > 0;
             this.RaisePropertyChanged(nameof(NoStandingProjects));
         }
         catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadStandingProjects", ex); }
+    }
+
+    // ── Standing buy orders ───────────────────────────────────────────────────
+    private async Task LoadStandingBuyOrdersAsync()
+    {
+        bool enabled = _standingBuyOrders is not null
+                    && _layout.Sections.Any(s => s.Key == "StandingBuyOrders" && s.Enabled);
+        if (!enabled)
+        {
+            StandingBuyOrders.Clear();
+            HasStandingBuyOrders = false;
+            this.RaisePropertyChanged(nameof(NoStandingBuyOrders));
+            return;
+        }
+
+        try
+        {
+            var rows = await _standingBuyOrders!.BuildGridRowsAsync();
+
+            // Anything wrong floats to the top: missing first, then running low or
+            // nearly expired, then the healthy ones. A panel this size is only worth
+            // the space if the problems are the part you can see without scrolling.
+            // Sorted by SeverityRank, which the row view model derives alongside its
+            // status colour — red first, orange second, healthy last. Ordering the
+            // view models rather than the records keeps sort and colour from drifting.
+            var ordered = rows
+                .Select(r => new StandingBuyOrderRowVm(r))
+                .OrderBy(v => v.SeverityRank)
+                .ThenBy(v => v.TypeName)
+                .ToList();
+
+            StandingBuyOrders.Clear();
+            foreach (var vm in ordered) StandingBuyOrders.Add(vm);
+            HasStandingBuyOrders = StandingBuyOrders.Count > 0;
+            this.RaisePropertyChanged(nameof(NoStandingBuyOrders));
+        }
+        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadStandingBuyOrders", ex); }
     }
 
     // ── DTOs for raw SQL results ──────────────────────────────────────────────
@@ -1217,6 +1281,62 @@ public class OverviewViewModel : ReactiveObject
                         ? ReactiveCommand.Create(NavigateToStandingProjects)
                         : null
                 });
+        }
+
+        // Standing buy orders that are missing, nearly exhausted or nearly expired.
+        if (_alertSettings.StandingBuyOrdersAttention && _standingBuyOrders is not null)
+        {
+            try
+            {
+                var sboRows = await _standingBuyOrders.BuildGridRowsAsync();
+
+                var missing  = sboRows.Count(r => r.MatchStatus != "matched");
+                var outbid   = sboRows.Count(r => r.MatchStatus == "matched" && r.IsOutbid);
+                // Each order is reported once, under its most urgent reason, so the
+                // numbers add up to the number of orders rather than double-counting.
+                var low      = sboRows.Count(r => r.MatchStatus == "matched" && !r.IsOutbid && r.IsLow);
+                var expiring = sboRows.Count(r => r.MatchStatus == "matched" && !r.IsOutbid && !r.IsLow && r.IsExpiringSoon);
+
+                // Broken out rather than a single total: "3 need attention" doesn't say
+                // whether to place an order, raise a price, top one up or renew one, and
+                // those are different jobs.
+                var reasons = new List<string>();
+                if (missing > 0)  reasons.Add(missing == 1  ? "1 is missing"          : $"{missing} are missing");
+                if (outbid > 0)   reasons.Add(outbid == 1   ? "1 is outbid"           : $"{outbid} are outbid");
+                if (low > 0)      reasons.Add(low == 1      ? "1 is nearly bought out": $"{low} are nearly bought out");
+                if (expiring > 0) reasons.Add(expiring == 1 ? "1 is close to expiry"  : $"{expiring} are close to expiry");
+
+                if (reasons.Count > 0)
+                    newAlerts.Add(new AlertRowVm
+                    {
+                        Message = "Standing buy orders: " + string.Join(", ", reasons) + ".",
+                        NavigateCommand = NavigateToStandingBuyOrders is not null
+                            ? ReactiveCommand.Create(NavigateToStandingBuyOrders)
+                            : null
+                    });
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "StandingBuyOrderAlert", ex); }
+        }
+
+        // Running jobs in a facility with no rig bonus for them. Active only — a
+        // finished job cannot be moved, so flagging it is noise rather than a task.
+        if (_alertSettings.UnriggedIndustryJobs && _indyFacilityCheck is not null)
+        {
+            try
+            {
+                var unrigged = await _indyFacilityCheck.CountUnriggedRunningAsync();
+                if (unrigged > 0)
+                    newAlerts.Add(new AlertRowVm
+                    {
+                        Message = unrigged == 1
+                            ? "1 running job is using a facility not rigged for it."
+                            : $"{unrigged} running jobs are using a facility not rigged for them.",
+                        NavigateCommand = NavigateToIndustryJobs is not null
+                            ? ReactiveCommand.Create(NavigateToIndustryJobs)
+                            : null
+                    });
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "UnriggedJobAlert", ex); }
         }
 
         // Alerts raised by the user's own alarms. Listed first and unconditionally: unlike the

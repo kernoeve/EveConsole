@@ -110,6 +110,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         var rigs        = await db.IndyStructureRigs.AsNoTracking()
             .Where(r => structures.Select(s => s.Id).Contains(r.StructureId))
             .ToListAsync(ct);
+        var park          = await db.IndyParks.AsNoTracking().FirstOrDefaultAsync(p => p.Id == parkId, ct);
+        var defaultStruct = park?.DefaultStructureId is { } dsId
+            ? structures.FirstOrDefault(s => s.Id == dsId)
+            : null;
         var assignments   = await db.IndyCategoryAssignments.AsNoTracking().Where(a => a.ParkId == parkId).ToListAsync(ct);
         var itemExceptions = await db.IndyItemExceptions.AsNoTracking().Where(e => e.ParkId == parkId).ToListAsync(ct);
         var itemOverrides  = itemExceptions
@@ -253,6 +257,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             Assignments        = assignments,
             ItemOverrides      = itemOverrides,
             StructByCategory   = structByCategory,
+            DefaultStructure   = defaultStruct,
             MfgRigBonusAttr    = mfgRigBonusAttr,
             RxnRigBonusAttr    = rxnRigBonusAttr,
             RigLowsecMultAttr  = rigLowsecMultAttr,
@@ -438,10 +443,45 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 // Structure Modules — service modules and all structure rigs — are built at
                 // engineering complexes like equipment.
                 (66, _)         => "modules_equipment",
+                // T3 subsystems — Loki/Tengu/Legion/Proteus. Previously unmapped, so every
+                // subsystem threw "cannot be assigned to a structure" and lost its chain cost.
+                (32, _)         => "modules_equipment",
+                // Implants and boosters (20), starbase structures and POS modules (23),
+                // and sovereignty / infrastructure hub upgrades (39). Each category holds
+                // nothing but its own kind, so matching the whole category is safe.
+                (20, _)         => "modules_equipment",
+                (23, _)         => "modules_equipment",
+                (39, _)         => "modules_equipment",
+                // Category 2 (Celestial) is a junk drawer — planets, suns, wrecks, 1,697
+                // non-interactable objects. Only its container groups are manufacturable.
+                (2, var celestial) when celestial.Contains("Container") => "modules_equipment",
+                // Mutaplasmids. Matched by group, not category — category 17 also holds
+                // fuel blocks and capital components, which have their own rigs below.
+                (17, "Mutaplasmids")                                    => "modules_equipment",
+                // Abyssal, jump and warp matrix filaments. The other filament groups in
+                // category 17 have no manufacturable members, so this cannot reach them.
+                (17, var fil) when fil.Contains("Filament")             => "modules_equipment",
+                // Individually classified — these sit in category 17's junk-drawer groups,
+                // so the type id is the only thing precise enough to match on.
+                // 76203 Stellar Transmuter Datacore, 76204 Transport Relay Datacore,
+                // 29226 Basic Robotics, 3585 Mangled Sansha Data Analyzer,
+                // 29202 Modified Augumene Antidote.
+                _ when typeId is 76203 or 76204 or 29226                => "structure_ammo",
+                _ when typeId == 3585                                   => "modules_equipment",
+                _ when typeId == 29202                                  => "ammo_charges",
+                // 88172-88177 Narrow/Mid/Wideband Emission Amplifiers and Limiters —
+                // a contiguous block holding exactly those six and nothing else.
+                _ when typeId is >= 88172 and <= 88177                  => "adv_components",
                 (8, _)          => "ammo_charges",
                 (18 or 87, _)   => "drones_fighters",
                 _ when tg.GroupId == 1136                                 => "structure_ammo",   // Fuel Blocks
-                _ when gc.Name.Contains("Capital") && gc.CategoryId == 4  => "capital_components",
+                // Capital Construction Components (group 873) are category 17, not 4 —
+                // the old guard matched nothing, so capital parts were assigned to the
+                // advanced-component structure. "Advanced" is excluded because group 913
+                // is genuinely bonused by the advanced rig. See IndyRigMatching.
+                _ when gc.Name.Contains("Capital") && gc.Name.Contains("Component")
+                                                   && !gc.Name.Contains("Advanced")
+                                                                          => "capital_components",
                 _ when gc.Name.Contains("Component")                       => "adv_components",
                 _ when gc.CategoryId is 22 or 65                          => "structure_ammo",
                 // R.A.M. items and Data Interfaces are manufactured at standard facilities
@@ -450,15 +490,24 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             };
         }
 
-        // Returns null when the category is unknown or not configured in this park.
-        // Item-level overrides take precedence over category assignments.
-        // Callers must NOT fall back to a default — missing assignments are caught after expansion.
+        // Item-level overrides take precedence over category assignments; anything neither
+        // covers falls through to the park's catch-all facility.
+        //
+        // The fallback is what keeps the calculation alive. A job here gets the structure's
+        // role bonus, tax and system cost index but no rig bonus — RigBonus resolves the
+        // item's own category against the rigs actually fitted, so an unclassified item
+        // (empty key) matches nothing and scores zero. That is the intended reading of
+        // "a facility not rigged for it", not a special case.
+        //
+        // Still null when the park nominates no catch-all, which plans with no structure
+        // and no bonuses. Either way the caller records a warning rather than aborting.
         IndyStructure? StructureFor(string catKey, int typeId)
         {
             if (itemOverrides.TryGetValue(typeId, out var overrideStruct))
                 return overrideStruct;
-            if (string.IsNullOrEmpty(catKey)) return null;
-            return structByCategory.TryGetValue(catKey, out var s) ? s : null;
+            if (!string.IsNullOrEmpty(catKey) && structByCategory.TryGetValue(catKey, out var s))
+                return s;
+            return ctx.DefaultStructure;
         }
 
         // ── Expansion state ────────────────────────────────────────────────
@@ -490,19 +539,25 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             bool   isReaction = activity == RxnActivity;
             string catKey     = ItemCategoryKey(typeId, isReaction);
 
-            // Detect misconfigured items early — collect rather than silently wrong-assigning.
+            // Report items no assignment covers. They are still planned — against the park's
+            // catch-all facility, with no rig bonus — so this surfaces a gap in the rules or
+            // the park setup without costing the user the rest of the plan.
             // Item-level overrides satisfy the requirement regardless of category status.
             if (!itemOverrides.ContainsKey(typeId))
             {
+                var whereItWent = ctx.DefaultStructure is { } fb
+                    ? $"planned in {fb.DisplayName} with no rig bonus"
+                    : "planned with no structure and no bonuses — set a catch-all facility on this park";
+
                 if (string.IsNullOrEmpty(catKey))
                 {
                     var name = typeNames.GetValueOrDefault(typeId, $"TypeId {typeId}");
-                    unmappedItems.Add($"{name} (unrecognized type — update ItemCategoryKey)");
+                    unmappedItems.Add($"{name} (unrecognized type — update ItemCategoryKey; {whereItWent})");
                 }
                 else if (!structByCategory.ContainsKey(catKey))
                 {
                     var name = typeNames.GetValueOrDefault(typeId, $"TypeId {typeId}");
-                    unmappedItems.Add($"{name} (category '{catKey}' not assigned in this park)");
+                    unmappedItems.Add($"{name} (category '{catKey}' not assigned in this park; {whereItWent})");
                 }
             }
 
@@ -573,6 +628,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     IsFinalProduct = isFinal,
                     StructureName  = structure?.DisplayName ?? "",
                     SystemName     = structure?.SystemName  ?? "",
+                    // Only set when the park structure has been linked to a real facility.
+                    // Left null otherwise, which the availability pass reports as unknown.
+                    StationId      = structure?.RealStructureId,
+                    StationName    = structure?.RealStructureName ?? "",
                     MeReductionPct = meLevel,
                     RigBonusPct    = rigBonus * 100.0,
                     RoleBonusPct   = matRoleBonus * 100.0,
@@ -626,13 +685,11 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         foreach (var req in requests)
             ExpandItem(req.TypeId, req.Quantity, true);
 
-        if (unmappedItems.Count > 0)
-        {
-            var sample = string.Join("\n  • ", unmappedItems.Take(10));
-            var suffix = unmappedItems.Count > 10 ? $"\n  … and {unmappedItems.Count - 10} more" : "";
-            throw new InvalidOperationException(
-                $"{unmappedItems.Count} item(s) cannot be assigned to a structure in this park:\n  • {sample}{suffix}");
-        }
+        // Reported, not thrown. An item the rig rules don't cover is a gap in the rules,
+        // not a reason to refuse the other several hundred jobs in the plan — and throwing
+        // is what left BuildCostService falling back to stale estimates for 446 types.
+        // These jobs were planned against the park's catch-all facility with no rig bonus.
+        var planWarnings = unmappedItems.ToList();
 
         // ── Wire parent/child relationships ────────────────────────────────
         foreach (var job in jobPool.Values)
@@ -804,6 +861,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         {
             AllJobs              = jobPool.Values.OrderByDescending(j => j.IsFinalProduct).ThenBy(j => j.OutputTypeName).ToList(),
             RootTypeIds          = requests.Where(r => jobPool.ContainsKey(r.TypeId)).Select(r => r.TypeId).ToList(),
+            Warnings             = planWarnings,
             RawMaterials         = rawMaterials,
             Intermediates        = intermediates,
             FinalProducts        = finalProducts,
@@ -948,5 +1006,122 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         return rawPool.ToDictionary(
             kv => kv.Key,
             kv => (kv.Value, names.GetValueOrDefault(kv.Key, $"Type {kv.Key}")));
+    }
+
+    // ── Stock availability ────────────────────────────────────────────────────
+
+    /// <summary>How the Raw Materials tab decides what is missing.</summary>
+    public enum MissingMode
+    {
+        /// <summary>Compare against stock at each job's linked facility. Jobs sharing a
+        /// structure share its pile, so their demand is summed before comparing.</summary>
+        Station,
+
+        /// <summary>Compare against every asset owned, wherever it sits.</summary>
+        Assets,
+    }
+
+    /// <summary>
+    /// Fills the availability fields on a finished plan from current asset holdings.
+    ///
+    /// Job rows are always station-based: a job's materials are compared against stock at
+    /// the facility its park structure is linked to, independently of every other job —
+    /// the question a job row answers is "can I start this one now".
+    ///
+    /// Raw material rows answer a different question — "what do I have to buy" — so there
+    /// the same stock cannot be promised to two jobs. In <see cref="MissingMode.Station"/>
+    /// demand is summed per structure and each structure's shortfall added up; ten jobs in
+    /// one Raitaru compete for one pile. In <see cref="MissingMode.Assets"/> the plan total
+    /// is compared against everything owned.
+    ///
+    /// Anything that cannot be answered is left unknown rather than guessed: a job whose
+    /// park structure has no linked facility has no station whose stock could be counted,
+    /// and reporting its full requirement as "missing" would be a fabricated number.
+    /// </summary>
+    public async Task ApplyAvailabilityAsync(
+        ProductionPlan plan,
+        MissingMode rawMode,
+        CancellationToken ct = default)
+    {
+        var typeIds = plan.AllJobs.SelectMany(j => j.Materials).Select(m => m.MaterialTypeId)
+            .Concat(plan.RawMaterials.Select(r => r.TypeId))
+            .Distinct().ToList();
+        if (typeIds.Count == 0) return;
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        // RootLocationId is the terminal station reached by walking the container chain, so
+        // this counts materials sitting in cans and ship holds at the station too.
+        var rows = await db.EsiAssets.AsNoTracking()
+            .Where(a => typeIds.Contains(a.TypeId))
+            .Select(a => new { a.TypeId, a.RootLocationId, a.Quantity })
+            .ToListAsync(ct);
+
+        var byStation = rows
+            .GroupBy(a => (a.RootLocationId, a.TypeId))
+            .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
+        var everywhere = rows
+            .GroupBy(a => a.TypeId)
+            .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
+
+        static int Clamp(long v) => (int)Math.Min(v, int.MaxValue);
+
+        int StockAt(long stationId, int typeId) =>
+            byStation.TryGetValue((stationId, typeId), out var q) ? Clamp(q) : 0;
+
+        // ── Job rows ─────────────────────────────────────────────────────────
+        foreach (var job in plan.AllJobs)
+        foreach (var mat in job.Materials)
+        {
+            mat.AvailabilityKnown = job.StationId.HasValue;
+            mat.Available = job.StationId.HasValue ? StockAt(job.StationId.Value, mat.MaterialTypeId) : 0;
+        }
+
+        // ── Raw material rows ────────────────────────────────────────────────
+        if (rawMode == MissingMode.Assets)
+        {
+            foreach (var raw in plan.RawMaterials)
+            {
+                raw.AvailabilityKnown = true;
+                raw.Available = everywhere.TryGetValue(raw.TypeId, out var q) ? Clamp(q) : 0;
+                raw.Missing   = Math.Max(0, raw.Quantity - raw.Available);
+            }
+            return;
+        }
+
+        // Station mode. Demand is rebuilt from the jobs rather than taken from the raw
+        // material totals, because the shortfall has to be worked out structure by
+        // structure before it can be added up.
+        var demand = new Dictionary<(long Station, int TypeId), long>();
+        var unlinked = new HashSet<int>();   // materials with demand from an unlinked job
+
+        foreach (var job in plan.AllJobs)
+        foreach (var mat in job.Materials.Where(m => m.IsBought))
+        {
+            if (!job.StationId.HasValue) { unlinked.Add(mat.MaterialTypeId); continue; }
+            var key = (job.StationId.Value, mat.MaterialTypeId);
+            demand[key] = demand.GetValueOrDefault(key) + mat.TotalQty;
+        }
+
+        var shortfall = new Dictionary<int, long>();
+        var onHand    = new Dictionary<int, long>();
+        foreach (var ((station, typeId), needed) in demand)
+        {
+            long stock = StockAt(station, typeId);
+            shortfall[typeId] = shortfall.GetValueOrDefault(typeId) + Math.Max(0, needed - stock);
+            // Only the part actually usable against this structure's demand, so the
+            // Available column never claims more stock than the shortfall accounts for.
+            onHand[typeId]    = onHand.GetValueOrDefault(typeId) + Math.Min(needed, stock);
+        }
+
+        foreach (var raw in plan.RawMaterials)
+        {
+            // Unknown as soon as any job needing this material has no linked facility —
+            // its share of the demand cannot be checked against anything, so a total that
+            // silently omitted it would read as more complete than it is.
+            raw.AvailabilityKnown = !unlinked.Contains(raw.TypeId);
+            raw.Available = raw.AvailabilityKnown ? Clamp(onHand.GetValueOrDefault(raw.TypeId))    : 0;
+            raw.Missing   = raw.AvailabilityKnown ? Clamp(shortfall.GetValueOrDefault(raw.TypeId)) : 0;
+        }
     }
 }

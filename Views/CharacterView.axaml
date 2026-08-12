@@ -607,6 +607,69 @@
             <views:IncomeExpenseView DataContext="{Binding IncomeExpense}" />
           </Border>
 
+          <!-- ════ Standing Buy Orders ══════════════════════════════════ -->
+          <Border x:Name="SectionStandingBuyOrders" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Standing Buy Orders" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="newslink" Click="OnOpenStandingBuyOrders" VerticalAlignment="Center">
+                  <TextBlock Text="Standing Buy Orders →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                </Button>
+              </Grid>
+
+              <TextBlock Grid.Row="1" IsVisible="{Binding NoStandingBuyOrders}"
+                         Text="No standing buy orders." FontSize="12" Foreground="#444455" FontStyle="Italic"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+              <DataGrid Grid.Row="1" IsVisible="{Binding HasStandingBuyOrders}"
+                        ItemsSource="{Binding StandingBuyOrders}"
+                        AutoGenerateColumns="False" IsReadOnly="True" RowHeight="22"
+                        CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                        Background="Transparent">
+                <DataGrid.Styles>
+                  <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+                  <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                    <Setter Property="FontSize" Value="10" /><Setter Property="FontWeight" Value="SemiBold" />
+                    <Setter Property="Padding" Value="6 5 2 5" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Item" Binding="{Binding TypeName}" Width="*" />
+                  <DataGridTemplateColumn Header="Status" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+                        <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
+                                   FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" Padding="6 0" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Our bid" Width="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+                        <TextBlock Text="{Binding Price}" Foreground="{Binding PriceColor}"
+                                   FontSize="11" VerticalAlignment="Center" Padding="6 0"
+                                   TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding PriceTooltip}" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Rem." Binding="{Binding RemainingPct}" Width="70" />
+                  <DataGridTemplateColumn Header="Expires" Width="140">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+                        <TextBlock Text="{Binding Expiry}" Foreground="{Binding ExpiryColor}"
+                                   FontSize="11" VerticalAlignment="Center" Padding="6 0"
+                                   TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Note}" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
+
           <!-- ════ Standing Projects ════════════════════════════════════ -->
           <Border x:Name="SectionStandingProjects" Background="#12121a" BorderBrush="#1e1e2a"
                   BorderThickness="1" CornerRadius="4" Padding="14 12">

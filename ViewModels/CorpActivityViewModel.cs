@@ -233,6 +233,7 @@ public sealed class StandingProjectRowVm
     public string LocationText      { get; }
     public string ProjectStatusText { get; }
     public string ProjectStatusColor { get; }
+    public int    SeverityRank       { get; }
     public string RemainingText        { get; }
     public string RemainingPayoutText  { get; }
     public string RemainingPercentText { get; }
@@ -270,6 +271,18 @@ public sealed class StandingProjectRowVm
             _            => "project not active",
         };
         ProjectStatusColor = IsLowRemaining ? "#e0902e" : statusColor;
+
+        // Sort key tracking the colour above — red, then orange, then grey, then green.
+        // Low-remaining wins because that is what the colour shows, even on a row whose
+        // match status would otherwise be red.
+        SeverityRank = IsLowRemaining
+            ? 1
+            : row.MatchStatus switch
+            {
+                "matched"    => 3,   // green
+                "no_systems" => 2,   // grey
+                _            => 0,   // red — project not active
+            };
 
         RemainingText        = row.RemainingText;
         RemainingPayoutText  = row.RemainingPayoutText;

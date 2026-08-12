@@ -56,6 +56,7 @@ public class App : Application
         MarketPricingService? marketPricing = null;
         MarketHistoryService? marketHistory = null;
         ContractsService?     contracts     = null;
+        LpStoreService?       lpStore       = null;
         GameLogImportService?       gameLogs      = null;
         ChatLogImportService?       chatLogs      = null;
         ZkillboardPollingService?   zkbPolling    = null;
@@ -75,6 +76,7 @@ public class App : Application
             marketPricing = Services.GetRequiredService<MarketPricingService>();
             marketHistory = Services.GetRequiredService<MarketHistoryService>();
             contracts     = Services.GetRequiredService<ContractsService>();
+            lpStore       = Services.GetRequiredService<LpStoreService>();
             gameLogs      = Services.GetRequiredService<GameLogImportService>();
             chatLogs      = Services.GetRequiredService<ChatLogImportService>();
             zkbPolling    = Services.GetRequiredService<ZkillboardPollingService>();
@@ -105,8 +107,18 @@ public class App : Application
                 await typePriceHistory.RecalculateAsync(ct);
             };
             buildCostService.AfterRecalculate += ct => reprService.RecalculateAllAsync(ct);
-            // Contract prices refresh on their own loop — re-snapshot when they do.
+
+            // LP values are priced off the market, so they follow the same trigger as build
+            // costs — and run after the gap fill above, so they see final prices rather than
+            // the holes it just closed.
+            var lpValues = Services.GetRequiredService<LpValueService>();
+            buildCostService.AfterRecalculate += ct => lpValues.RecalculateAsync(ct);
+
+            // Contract prices refresh on their own loop — re-snapshot when they do. LP
+            // valuation falls back to contract prices where an item has no market price, so
+            // it has the same reason to re-run.
             contracts.AfterPricing += ct => typePriceHistory.RecalculateAsync(ct);
+            contracts.AfterPricing += ct => lpValues.RecalculateAsync(ct);
 
             desktop.ShutdownRequested += async (_, e) =>
             {
@@ -116,6 +128,7 @@ public class App : Application
                 if (marketPricing is not null) tasks.Add(marketPricing.StopAsync());
                 if (marketHistory is not null) tasks.Add(marketHistory.StopAsync());
                 if (contracts     is not null) tasks.Add(contracts.StopAsync());
+                if (lpStore       is not null) tasks.Add(lpStore.StopAsync());
                 if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
                 if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
                 await Task.WhenAll(tasks);
@@ -857,6 +870,94 @@ public class App : Application
                 )
                 """);
 
+            // ── LP store ────────────────────────────────────────────────────────
+            // Offers are public and exist nowhere in the SDE, so ESI is the only source.
+            //
+            // Keyed on (CorporationId, OfferId). Offer ids are NOT unique across
+            // corporations — id 3414 is the same offer in Perkone's, Lai Dai's and Federal
+            // Navy Academy's stores — and the first cut of these tables keyed on OfferId
+            // alone, which aborted the sweep on the second corporation with a UNIQUE
+            // violation. SQLite cannot alter a primary key, so the tables are dropped and
+            // rebuilt. They hold nothing but a re-fetchable cache, refreshed daily.
+            // Guarded so it happens once, on a database still carrying the old key. Written
+            // unguarded at first, it wiped the catalogue on every launch and forced a fresh
+            // sweep each start — the tab vanished after every restart until the sweep caught
+            // up again.
+            int legacyLpSchema = 0;
+            try
+            {
+                legacyLpSchema = db.Database.SqlQueryRaw<int>("""
+                    SELECT COUNT(*) AS "Value" FROM sqlite_master
+                    WHERE type = 'table'
+                      AND name = 'EsiLpStoreOfferItems'
+                      AND sql NOT LIKE '%CorporationId%'
+                    """).AsEnumerable().First();
+            }
+            catch { /* table absent on a fresh database — nothing to migrate */ }
+
+            if (legacyLpSchema > 0)
+            {
+                db.Database.ExecuteSqlRaw("""DROP TABLE IF EXISTS "EsiLpStoreOfferItems" """);
+                db.Database.ExecuteSqlRaw("""DROP TABLE IF EXISTS "EsiLpStoreOffers" """);
+                try { db.Database.ExecuteSqlRaw("""DELETE FROM "EsiLpStoreCorps" """); } catch { }
+            }
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "EsiLpStoreOffers" (
+                    "CorporationId" INTEGER NOT NULL,
+                    "OfferId"       INTEGER NOT NULL,
+                    "TypeId"        INTEGER NOT NULL DEFAULT 0,
+                    "Quantity"      INTEGER NOT NULL DEFAULT 0,
+                    "LpCost"        INTEGER NOT NULL DEFAULT 0,
+                    "IskCost"       INTEGER NOT NULL DEFAULT 0,
+                    "AkCost"        INTEGER NOT NULL DEFAULT 0,
+                    "UpdatedAt"     TEXT    NOT NULL DEFAULT '',
+                    PRIMARY KEY ("CorporationId", "OfferId")
+                )
+                """);
+            // The Item Browser looks these up by type, not by corporation.
+            db.Database.ExecuteSqlRaw(
+                """CREATE INDEX IF NOT EXISTS "IX_EsiLpStoreOffers_Type" ON "EsiLpStoreOffers" ("TypeId")""");
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "EsiLpStoreOfferItems" (
+                    "CorporationId" INTEGER NOT NULL,
+                    "OfferId"       INTEGER NOT NULL,
+                    "TypeId"        INTEGER NOT NULL,
+                    "Quantity"      INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY ("CorporationId", "OfferId", "TypeId")
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "LpCorpValues" (
+                    "CorporationId" INTEGER NOT NULL PRIMARY KEY,
+                    "IskPerLp"      REAL    NOT NULL DEFAULT 0,
+                    "MedianIskPerLp" REAL   NOT NULL DEFAULT 0,
+                    "ValuedOffers"  INTEGER NOT NULL DEFAULT 0,
+                    "TotalOffers"   INTEGER NOT NULL DEFAULT 0,
+                    "BestIskPerLp"  REAL    NOT NULL DEFAULT 0,
+                    "BestTypeId"    INTEGER NOT NULL DEFAULT 0,
+                    "ComputedAt"    TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "LpCorpValueSnapshots" (
+                    "CorporationId" INTEGER NOT NULL,
+                    "Date"          TEXT    NOT NULL,
+                    "IskPerLp"      REAL    NOT NULL DEFAULT 0,
+                    "MedianIskPerLp" REAL   NOT NULL DEFAULT 0,
+                    "ValuedOffers"  INTEGER NOT NULL DEFAULT 0,
+                    "ComputedAt"    TEXT    NOT NULL DEFAULT '',
+                    PRIMARY KEY ("CorporationId", "Date")
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "EsiLpStoreCorps" (
+                    "CorporationId" INTEGER NOT NULL PRIMARY KEY,
+                    "HasStore"      INTEGER NOT NULL DEFAULT 0,
+                    "OfferCount"    INTEGER NOT NULL DEFAULT 0,
+                    "LastCheckedAt" TEXT    NULL
+                )
+                """);
+
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "EsiMedals" (
                     "Id"            INTEGER NOT NULL CONSTRAINT "PK_EsiMedals" PRIMARY KEY AUTOINCREMENT,
@@ -1304,7 +1405,8 @@ public class App : Application
                 CREATE TABLE IF NOT EXISTS "IndyParks" (
                     "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     "Name"      TEXT    NOT NULL DEFAULT 'New Park',
-                    "IsDefault" INTEGER NOT NULL DEFAULT 0
+                    "IsDefault" INTEGER NOT NULL DEFAULT 0,
+                    "DefaultStructureId" INTEGER NULL
                 )
                 """);
             db.Database.ExecuteSqlRaw("""
@@ -1315,9 +1417,14 @@ public class App : Application
                     "StructureTypeKey" TEXT    NOT NULL DEFAULT 'raitaru',
                     "SystemName"       TEXT    NOT NULL DEFAULT '',
                     "SecurityClass"    TEXT    NOT NULL DEFAULT 'nullsec',
-                    "FacilityTax"      REAL    NOT NULL DEFAULT 1.0
+                    "FacilityTax"      REAL    NOT NULL DEFAULT 1.0,
+                    "RealStructureId"   INTEGER,
+                    "RealStructureName" TEXT NOT NULL DEFAULT ''
                 )
                 """);
+            // Existing parks predate the link to a real in-game facility.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IndyStructures" ADD COLUMN "RealStructureId" INTEGER"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IndyStructures" ADD COLUMN "RealStructureName" TEXT NOT NULL DEFAULT ''"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "IndyStructureRigs" (
                     "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -1415,6 +1522,23 @@ public class App : Application
                     "Message"      TEXT    NOT NULL DEFAULT '',
                     "InnerMessage" TEXT
                 )
+                """);
+
+            // ── Standing buy orders ──────────────────────────────────────────
+            // User-declared intent; the live counterpart lives in EsiMarketOrders.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "StandingBuyOrders" (
+                    "Id"           INTEGER NOT NULL CONSTRAINT "PK_StandingBuyOrders" PRIMARY KEY AUTOINCREMENT,
+                    "TypeId"       INTEGER NOT NULL DEFAULT 0,
+                    "TypeName"     TEXT    NOT NULL DEFAULT '',
+                    "LocationId"   INTEGER NOT NULL DEFAULT 0,
+                    "LocationName" TEXT    NOT NULL DEFAULT '',
+                    "CreatedAt"    TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_StandingBuyOrders_TypeId_LocationId"
+                ON "StandingBuyOrders" ("TypeId", "LocationId")
                 """);
 
             // ── Client activity monitoring ───────────────────────────────────
@@ -1551,9 +1675,14 @@ public class App : Application
                     "SkillQueueEmptyInDays" INTEGER NOT NULL DEFAULT 1,
                     "SkillQueueEmptyDays"   INTEGER NOT NULL DEFAULT 30,
                     "AssetSafety"                INTEGER NOT NULL DEFAULT 1,
-                    "InactiveStandingProjects"   INTEGER NOT NULL DEFAULT 1
+                    "InactiveStandingProjects"   INTEGER NOT NULL DEFAULT 1,
+                    "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1,
+                    "UnriggedIndustryJobs"       INTEGER NOT NULL DEFAULT 1
                 )
                 """);
+            // Existing installs predate these alerts.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "UnriggedIndustryJobs" INTEGER NOT NULL DEFAULT 1"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 INSERT OR IGNORE INTO "AlertSettings" ("Id") VALUES (1)
                 """);
@@ -1851,6 +1980,51 @@ public class App : Application
                 """CREATE INDEX IF NOT EXISTS "IX_SdeAgents_Location" ON "SdeAgents" ("LocationId")""",
                 """CREATE TABLE IF NOT EXISTS "SdeAgentTypes" ("AgentTypeId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
                 """CREATE TABLE IF NOT EXISTS "SdeCorpDivisions" ("DivisionId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
+                """CREATE TABLE IF NOT EXISTS "SdeStationServices" ("ServiceId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
+                """CREATE TABLE IF NOT EXISTS "SdeStationOperations" ("OperationId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
+                """CREATE TABLE IF NOT EXISTS "SdeStationOperationServices" ("OperationId" INTEGER NOT NULL, "ServiceId" INTEGER NOT NULL, PRIMARY KEY ("OperationId", "ServiceId"))""",
+
+                // ── LP values: median alongside the mean ────────────────────────────
+                // Added to the CREATE TABLE after those tables already existed, and
+                // CREATE TABLE IF NOT EXISTS does not alter an existing table — so every
+                // database that had already run the LP valuation was missing the column
+                // and the tool failed with "no such column: l.MedianIskPerLp".
+                """ALTER TABLE "LpCorpValues"         ADD COLUMN "MedianIskPerLp" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "LpCorpValueSnapshots" ADD COLUMN "MedianIskPerLp" REAL NOT NULL DEFAULT 0""",
+
+                // ── Indy Parks: catch-all facility ──────────────────────────────────
+                // Where jobs go when no category assignment covers the item. Before this
+                // existed such an item aborted the whole calculation.
+                """ALTER TABLE "IndyParks" ADD COLUMN "DefaultStructureId" INTEGER NULL""",
+
+                // ── SDE COLUMNS added after this database was last imported ─────────
+                // Same problem as the tables above, one level down. SdeImportService adds
+                // these with ALTER, but only while an import runs, so a database imported
+                // before a column existed has EF querying a column the table lacks — and
+                // that throws on the whole entity, not just the missing value. The
+                // Production Calculator died on "no such column: s.Radius" this way.
+                // Mirror of the alters list in SdeImportService.EnsureSdeSchemaAsync;
+                // keep the two in step.
+                """ALTER TABLE "SdeStations"       ADD COLUMN "OperationId" INTEGER""",
+                """ALTER TABLE "SdeGroups"         ADD COLUMN "Anchorable" INTEGER NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeGroups"         ADD COLUMN "Anchored"   INTEGER NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeTypes"          ADD COLUMN "GraphicId"  INTEGER""",
+                """ALTER TABLE "SdeTypes"          ADD COLUMN "FactionId"  INTEGER""",
+                """ALTER TABLE "SdeTypes"          ADD COLUMN "RaceId"     INTEGER""",
+                """ALTER TABLE "SdeTypes"          ADD COLUMN "MetaGroupId" INTEGER""",
+                """ALTER TABLE "SdeRegions"        ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeRegions"        ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeRegions"        ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeConstellations" ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeConstellations" ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeConstellations" ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "X2D" REAL""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Y2D" REAL""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "SecurityClass" TEXT NOT NULL DEFAULT ''""",
+                """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Radius" REAL NOT NULL DEFAULT 0""",
 
                 // ── Intel channels ──────────────────────────────────────────────
                 // One-time removal of chat already stored twice — the same conversation logged
@@ -1966,6 +2140,7 @@ public class App : Application
         marketPricing?.Start();
         marketHistory?.Start();
         contracts?.Start();
+        lpStore?.Start();
         Services.GetRequiredService<DatabaseBackupService>().Start();
         gameLogs?.Start();
         chatLogs?.Start();
@@ -2090,6 +2265,8 @@ public class App : Application
         services.AddSingleton<MarketPricingService>();
         services.AddSingleton<MarketHistoryService>();
         services.AddSingleton<ContractsService>();
+        services.AddSingleton<LpStoreService>();
+        services.AddSingleton<LpValueService>();
         services.AddSingleton<BuildCostService>();
         services.AddSingleton<ReprocessingValueService>();
         services.AddSingleton<ProductionCalculatorService>();
@@ -2107,6 +2284,8 @@ public class App : Application
         services.AddSingleton<CorpActivityService>();
         services.AddSingleton<KillmailBrowserService>();
         services.AddSingleton<CorpTop10ExcludeService>();
+        services.AddSingleton<StandingBuyOrderService>();
+        services.AddSingleton<IndyFacilityCheckService>();
 
         // Game log import — reads EVE's own logs into GameLogEvents for tools to
         // query. Read-only; nothing is ever written back to an EVE-owned file.

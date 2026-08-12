@@ -40,6 +40,13 @@ public sealed class ProductionContext
     public required Dictionary<int, IndyStructure?>      ItemOverrides    { get; init; }
     public required Dictionary<string, IndyStructure?>   StructByCategory { get; init; }
 
+    /// <summary>
+    /// Catch-all facility for items no category assignment covers. Null when the park has
+    /// not nominated one, in which case such jobs plan with no structure and no bonuses.
+    /// Either way the calculation completes — it never aborts over an unclassified item.
+    /// </summary>
+    public IndyStructure? DefaultStructure { get; init; }
+
     public required Dictionary<int, double> MfgRigBonusAttr    { get; init; }
     public required Dictionary<int, double> RxnRigBonusAttr    { get; init; }
     public required Dictionary<int, double> RigLowsecMultAttr  { get; init; }

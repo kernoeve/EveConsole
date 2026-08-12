@@ -39,6 +39,7 @@ public sealed class OverviewLayout
         ("ExpensePie",        "Expenses (Pie)"),
         ("IncomeExpense",     "Income & Expense"),
         ("StandingProjects",  "Standing Projects"),
+        ("StandingBuyOrders", "Standing Buy Orders"),
     ];
 
     // Default layout: Sale Listing (Build) / Income & Expense / Personal Killmails across the top

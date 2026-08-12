@@ -13,6 +13,11 @@ public class GridRow
     public GridRow(Dictionary<string, string> data) => _data = data;
     public string this[string col] => _data.TryGetValue(col, out var v) ? v : "";
     public IEnumerable<string> Keys => _data.Keys;
+
+    /// <summary>Add or replace a value after construction. Used for columns that come
+    /// from somewhere other than the query — the Industry Jobs rig note, for one,
+    /// which needs an async lookup the synchronous reader loop can't do.</summary>
+    public void Set(string col, string value) => _data[col] = value;
 }
 
 public class FilterOp(string label, string sql, bool useLike = false)

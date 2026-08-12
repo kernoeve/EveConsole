@@ -78,6 +78,12 @@ public class TimerSettingsViewModel : ReactiveObject
             new EndpointInfo("contract.items", "Contract Items Pull", 120, 600),
             timerSettings, pollingService));
 
+        // One public call per NPC corporation. Catalogues only change on patch boundaries,
+        // so a day between sweeps is already generous.
+        OtherRows.Add(new TimerRowVm(
+            new EndpointInfo("lpstore.offers", "LP Store Offers (all NPC corps)", 3600, 86400),
+            timerSettings, pollingService));
+
         OtherRows.Add(new TimerRowVm(
             new EndpointInfo("contract.pricing", "Contract Pricing Rebuild", 300, 1800),
             timerSettings, pollingService));

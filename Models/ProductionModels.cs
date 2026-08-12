@@ -21,6 +21,12 @@ public class PlanJob
     public int     Leftover         => QuantityProduced - QuantityNeeded;
     public string  StructureName   { get; set; } = "";
     public string  SystemName      { get; set; } = "";
+
+    /// <summary>Real in-game facility this job's park structure is linked to, if the
+    /// user has set one (Indy Parks → Actual facility). Null means stock here cannot
+    /// be counted, which is reported as unknown rather than as everything missing.</summary>
+    public long?   StationId       { get; set; }
+    public string  StationName     { get; set; } = "";
     public string  StructureDisplay => StructureName.Length > 0 && SystemName.Length > 0
         ? $"{StructureName} @ {SystemName}"
         : StructureName.Length > 0 ? StructureName : SystemName;
@@ -53,15 +59,82 @@ public class PlanJobMaterial
     public string  Source         => IsBought ? "Buy" : "Build";
     // Full formula string for UI debugging, e.g. "ceil(2,631 × 0.8536) = 2,247"
     public string  FormulaDisplay { get; set; } = "";
+
+    // ── Stock at the job's station ───────────────────────────────────────────
+    // Per job and independent of other jobs: two jobs in the same structure both
+    // compare against the full pile, because the question here is "can I start this
+    // one". The Raw Materials tab is where competing demand is summed.
+
+    /// <summary>False when the job's park structure has no linked facility, so there
+    /// is no station whose stock could be counted.</summary>
+    public bool AvailabilityKnown { get; set; }
+
+    /// <summary>Units of this material already at the job's station.</summary>
+    public int  Available         { get; set; }
+
+    public int  Missing => AvailabilityKnown ? Math.Max(0, TotalQty - Available) : 0;
+
+    /// <summary>Em dash when unknown — a blank cell reads as "none missing", which is
+    /// the opposite of what an unlinked structure means.</summary>
+    public string MissingDisplay => AvailabilityKnown ? Missing.ToString("N0") : "—";
+
+    /// <summary>Orange only for a real shortfall. Zero and unknown stay muted so the
+    /// colour means "act on this" rather than "this column exists".</summary>
+    public string MissingColor => AvailabilityKnown && Missing > 0 ? "#e0902e" : "#555566";
 }
 
-public class PlanRawMaterial
+/// <summary>
+/// Raw material row. Notifies on the availability fields alone: the missing mode toggle
+/// recomputes them in place on a plan that is already on screen, and reassigning the plan
+/// to force a rebind would collapse the Jobs tree the user had expanded.
+/// </summary>
+public class PlanRawMaterial : System.ComponentModel.INotifyPropertyChanged
 {
+    public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+
+    private void Raise(string name) =>
+        PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
+
     public int     TypeId    { get; set; }
     public string  TypeName  { get; set; } = "";
     public int     Quantity  { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal TotalCost { get; set; }
+
+    // ── Availability ─────────────────────────────────────────────────────────
+    // Unlike a job row, this is summed demand: every job needing this material
+    // competes for the same stock. In station mode the sum is taken per structure —
+    // ten jobs in one Raitaru draw on one pile — and the shortfalls are then added
+    // up. In asset mode it is compared against everything owned, anywhere.
+
+    private bool _availabilityKnown;
+    private int  _available;
+    private int  _missing;
+
+    public bool AvailabilityKnown
+    {
+        get => _availabilityKnown;
+        set
+        {
+            _availabilityKnown = value;
+            Raise(nameof(AvailabilityKnown)); Raise(nameof(MissingDisplay)); Raise(nameof(MissingColor));
+        }
+    }
+
+    public int Available
+    {
+        get => _available;
+        set { _available = value; Raise(nameof(Available)); }
+    }
+
+    public int Missing
+    {
+        get => _missing;
+        set { _missing = value; Raise(nameof(Missing)); Raise(nameof(MissingDisplay)); Raise(nameof(MissingColor)); }
+    }
+
+    public string MissingDisplay => AvailabilityKnown ? Missing.ToString("N0") : "—";
+    public string MissingColor   => AvailabilityKnown && Missing > 0 ? "#e0902e" : "#555566";
 }
 
 public class PlanIntermediate
@@ -110,6 +183,13 @@ public class ProductionPlan
     public List<PlanIntermediate> Intermediates { get; set; } = [];
     public List<PlanFinalProduct> FinalProducts { get; set; } = [];
     public List<PlanLeftoverItem> Leftovers     { get; set; } = [];
+    /// <summary>
+    /// Items no category assignment covered. They were planned against the park's catch-all
+    /// facility with no rig bonus rather than aborting the calculation, so the plan is
+    /// complete but these figures carry no rig benefit they might be entitled to.
+    /// </summary>
+    public List<string> Warnings { get; set; } = [];
+
     public decimal TotalRawMaterialCost { get; set; }
     public decimal TotalJobCost         { get; set; }
     public decimal TotalLeftoverValue   { get; set; }

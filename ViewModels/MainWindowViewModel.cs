@@ -50,6 +50,8 @@ public class MainWindowViewModel : ReactiveObject
     public SaleListingViewModel           SaleListingBuildVm     { get; }
     public SaleListingViewModel           SaleListingMarketVm    { get; }
     public OrderTrackerViewModel          OrderTrackerVm         { get; }
+    public StandingBuyOrdersViewModel     StandingBuyOrdersVm    { get; }
+    public LpMarketValuesViewModel        LpMarketValuesVm       { get; }
     public MarketSettingsViewModel        MarketVm               { get; }
     public TimerSettingsViewModel         TimerVm                { get; }
     public AgentPanelViewModel            AgentVm                { get; }
@@ -379,6 +381,8 @@ public class MainWindowViewModel : ReactiveObject
             "sale_list_build"  => ("Sale Listing (Build)",  SaleListingBuildVm,  true),
             "sale_list_market" => ("Sale Listing (Market)", SaleListingMarketVm, true),
             "order_tracker"  => ("Order Tracker",   OrderTrackerVm,    true),
+            "standing_buy_orders" => ("Standing Buy Orders", StandingBuyOrdersVm, true),
+            "lp_market_values" => ("LP Market Values", LpMarketValuesVm, true),
             "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
             "killmails"      => ("Killmails",      KillmailBrowserVm, true),
             "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
@@ -454,6 +458,8 @@ public class MainWindowViewModel : ReactiveObject
         SalePostingService              salePostingService,
         BatchAddService                 batchAddService,
         CorpActivityService             corpActivityService,
+        StandingBuyOrderService         standingBuyOrderService,
+        IndyFacilityCheckService        indyFacilityCheck,
         KillmailBrowserService          killmailBrowserService,
         BuildCostService                buildCostService,
         ProductionCalculatorService     prodCalcService,
@@ -494,7 +500,9 @@ public class MainWindowViewModel : ReactiveObject
         AlarmService                    alarmService,
         AlarmSoundService               alarmSounds,
         AlarmActionRunner               alarmActions,
-        JumpPlannerService              jumpPlanner)
+        JumpPlannerService              jumpPlanner,
+        LpStoreService                  lpStoreService,
+        LpValueService                  lpValueService)
     {
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
@@ -508,12 +516,12 @@ public class MainWindowViewModel : ReactiveObject
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
         MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService);
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
-        OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi);
+        OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService, indyFacilityCheck);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
                                                      zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost,
-                                                     intelService, monitoringSettings, entityNames, alarmService);
+                                                     intelService, monitoringSettings, entityNames, alarmService, lpStoreService);
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
@@ -544,6 +552,8 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("corp_activity");
             CorpActivityVm.ShowStandingProjectsTab();
         };
+        OverviewVm.NavigateToStandingBuyOrders = () => OpenTool("standing_buy_orders");
+        OverviewVm.NavigateToIndustryJobs      = () => OpenTool("industry");
         OverviewVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");
@@ -557,8 +567,8 @@ public class MainWindowViewModel : ReactiveObject
         PriceHistorySettingsVm = new PriceHistorySettingsViewModel(dbFactory.CreateDbContext());
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
         CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);
-        ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService);
-        IndyParksVm            = new IndyParksViewModel(dbFactory);
+        ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService, dbFactory);
+        IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
@@ -572,7 +582,9 @@ public class MainWindowViewModel : ReactiveObject
         SaleListingBuildVm.OpenSalesTracker  = () => OpenTool("sales_tracker");
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
-        ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService);
+        StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
+        LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
+        ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
         UniverseVm             = new UniverseViewModel(
@@ -586,6 +598,11 @@ public class MainWindowViewModel : ReactiveObject
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
         };
         CharacterViewerVm.NavigateToItemAction = typeId =>
+        {
+            OpenTool("items");
+            _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
+        };
+        LpMarketValuesVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
@@ -617,7 +634,7 @@ public class MainWindowViewModel : ReactiveObject
         GameLogViewerVm      = new GameLogViewerViewModel(dbFactory, errorLogger);
         ChatLogViewerVm      = new ChatLogViewerViewModel(dbFactory, errorLogger, monitoringSettings);
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
-        IndustryBrowserVm    = new IndustryBrowserViewModel(connString);
+        IndustryBrowserVm    = new IndustryBrowserViewModel(connString, indyFacilityCheck);
         TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
         IndustryOpportunitiesVm = new IndustryOpportunitiesViewModel(connString, historyService, batchAddService);
 
@@ -683,6 +700,8 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("sales_tracker", "Sales Tracker"),
                 new NavItem("sale_posting",  "Sale Posting"),
                 new NavItem("order_tracker", "Order Tracker"),
+                new NavItem("standing_buy_orders", "Standing Buy Orders"),
+                new NavItem("lp_market_values", "LP Market Values"),
                 new NavItem("trade",         "Trade Opportunities"),
                 new NavItem("contracts",     "Contracts"),
             ]),

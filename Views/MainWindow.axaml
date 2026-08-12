@@ -18,7 +18,11 @@
       <Grid ColumnDefinitions="*,Auto,Auto">
 
         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-          <Image Source="avares://EveConsole/Assets/logo.png"
+          <!-- logo_mark.png, not logo.png: the full logo has the "EVE Console"
+               wordmark composited into its bottom eighth, which at 30px is under
+               four pixels tall — illegible, and redundant beside the text label
+               to its right. This is the same emblem as the app icon. -->
+          <Image Source="avares://EveConsole/Assets/logo_mark.png"
                  Width="30" Height="30"
                  RenderOptions.BitmapInterpolationMode="HighQuality" />
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -414,6 +418,12 @@
               </DataTemplate>
               <DataTemplate DataType="vm:ErrorLogViewModel">
                 <views:ErrorLogView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:StandingBuyOrdersViewModel">
+                <views:StandingBuyOrdersView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:LpMarketValuesViewModel">
+                <views:LpMarketValuesView />
               </DataTemplate>
               <DataTemplate DataType="vm:GameLogViewerViewModel">
                 <views:GameLogViewerView />

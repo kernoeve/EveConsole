@@ -37,6 +37,7 @@ public partial class ApiActivityWindow : Window
         // copy the service's live counts every 2s. Runs on the UI thread only while open.
         _ = vm.RefreshHistorySweepAsync();
         _ = vm.RefreshContractsAsync();
+        _ = vm.RefreshLpStoreAsync();
         _ = vm.RefreshNameCacheAsync();
         vm.SyncBackgroundProcesses();
         _historyTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
@@ -52,6 +53,7 @@ public partial class ApiActivityWindow : Window
                 {
                     await vm.RefreshHistorySweepAsync();
                     await vm.RefreshContractsAsync();
+                    await vm.RefreshLpStoreAsync();
                     await vm.RefreshNameCacheAsync();
                 }
                 else vm.SyncHistorySweep();

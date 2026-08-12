@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using System.Text.Json;
 using EveConsole.Data;
 using EveConsole.Models;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
@@ -129,16 +130,64 @@ public class StructureVm : ReactiveObject
 
     public string DisplayHeader => string.IsNullOrWhiteSpace(DisplayName) ? StructureTypeLabel : DisplayName;
 
-    public StructureVm(int id, int parkId, string displayName, string structureTypeKey,
-                       string systemName, string securityClass, decimal facilityTax = 1m)
+    // ── Link to a real in-game facility ──────────────────────────────────────
+    // Set by hand: the user says which actual structure this park entry describes.
+    // Nothing is inferred or name-matched. Without a link, industry jobs running at
+    // that facility are reported as unknown rather than unrigged.
+
+    private long? _realStructureId;
+    public long? RealStructureId
     {
-        Id                = id;
-        ParkId            = parkId;
-        _displayName      = displayName;
-        _structureTypeKey = structureTypeKey;
-        _systemName       = systemName;
-        _securityClass    = securityClass;
-        _facilityTax      = facilityTax;
+        get => _realStructureId;
+        set { this.RaiseAndSetIfChanged(ref _realStructureId, value); this.RaisePropertyChanged(nameof(FacilityLinkText)); }
+    }
+
+    private string _realStructureName = "";
+    public string RealStructureName
+    {
+        get => _realStructureName;
+        set { this.RaiseAndSetIfChanged(ref _realStructureName, value); this.RaisePropertyChanged(nameof(FacilityLinkText)); }
+    }
+
+    public string FacilityLinkText => RealStructureId is null
+        ? "Not linked — jobs here won't be rig-checked"
+        : RealStructureName;
+
+    /// <summary>Search results while picking; not persisted.</summary>
+    public ObservableCollection<SdeStationResult> FacilityResults { get; } = [];
+
+    private string _facilitySearch = "";
+    public string FacilitySearch
+    {
+        get => _facilitySearch;
+        set => this.RaiseAndSetIfChanged(ref _facilitySearch, value);
+    }
+
+    /// <summary>
+    /// This facility is the park's catch-all — where items no category assignment covers
+    /// get planned, with no rig bonus. Exactly one facility per park carries it; checking
+    /// one clears the rest. Stored as a single id on the park, so two cannot both be set.
+    /// </summary>
+    private bool _isDefaultFacility;
+    public bool IsDefaultFacility
+    {
+        get => _isDefaultFacility;
+        set => this.RaiseAndSetIfChanged(ref _isDefaultFacility, value);
+    }
+
+    public StructureVm(int id, int parkId, string displayName, string structureTypeKey,
+                       string systemName, string securityClass, decimal facilityTax = 1m,
+                       long? realStructureId = null, string realStructureName = "")
+    {
+        Id                 = id;
+        ParkId             = parkId;
+        _displayName       = displayName;
+        _structureTypeKey  = structureTypeKey;
+        _systemName        = systemName;
+        _securityClass     = securityClass;
+        _facilityTax       = facilityTax;
+        _realStructureId   = realStructureId;
+        _realStructureName = realStructureName;
     }
 }
 
@@ -319,6 +368,9 @@ public class IndyParksViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit>             AddStructureCommand         { get; }
     public ReactiveCommand<StructureVm, Unit>      RemoveStructureCommand      { get; }
     public ReactiveCommand<StructureVm, Unit>      SaveStructureCommand        { get; }
+    public ReactiveCommand<StructureVm, Unit>      SearchFacilityCommand       { get; }
+    public ReactiveCommand<SdeStationResult, Unit> LinkFacilityCommand         { get; }
+    public ReactiveCommand<StructureVm, Unit>      UnlinkFacilityCommand       { get; }
     public ReactiveCommand<ItemSearchResult, Unit> AddItemExceptionCommand     { get; }
     public ReactiveCommand<ItemExceptionVm, Unit>  RemoveItemExceptionCommand  { get; }
 
@@ -329,9 +381,18 @@ public class IndyParksViewModel : ReactiveObject
 
     // ── Constructor ───────────────────────────────────────────────────────
 
-    public IndyParksViewModel(IDbContextFactory<AppDbContext> dbFactory)
+    /// <summary>Used only to search real stations and structures for the facility link.
+    /// Optional so the designer and any test construction still work.</summary>
+    private readonly CorpActivityService? _corpActivity;
+    private readonly AppErrorLogger?      _errorLogger;
+
+    public IndyParksViewModel(IDbContextFactory<AppDbContext> dbFactory,
+                              CorpActivityService? corpActivity = null,
+                              AppErrorLogger? errorLogger = null)
     {
-        _dbFactory = dbFactory;
+        _dbFactory    = dbFactory;
+        _corpActivity = corpActivity;
+        _errorLogger  = errorLogger;
 
         LoadRigsFromSde();
 
@@ -341,6 +402,9 @@ public class IndyParksViewModel : ReactiveObject
         AddStructureCommand       = ReactiveCommand.CreateFromTask(AddStructureAsync);
         RemoveStructureCommand    = ReactiveCommand.CreateFromTask<StructureVm>(RemoveStructureAsync);
         SaveStructureCommand      = ReactiveCommand.CreateFromTask<StructureVm>(SaveStructureAsync);
+        SearchFacilityCommand     = ReactiveCommand.CreateFromTask<StructureVm>(SearchFacilityAsync);
+        LinkFacilityCommand       = ReactiveCommand.CreateFromTask<SdeStationResult>(LinkFacilityAsync);
+        UnlinkFacilityCommand     = ReactiveCommand.CreateFromTask<StructureVm>(UnlinkFacilityAsync);
         AddItemExceptionCommand   = ReactiveCommand.CreateFromTask<ItemSearchResult>(AddItemExceptionAsync);
         RemoveItemExceptionCommand = ReactiveCommand.CreateFromTask<ItemExceptionVm>(RemoveItemExceptionAsync);
 
@@ -530,6 +594,16 @@ public class IndyParksViewModel : ReactiveObject
                 Structures.Add(vm);
             }
 
+            // Exactly one facility carries the catch-all. Fall back to the first when the
+            // park has none recorded — parks predating this setting, and every park whose
+            // default facility was since deleted, would otherwise plan unclassified items
+            // with no structure at all.
+            var marked = Structures.FirstOrDefault(v => v.Id == park.DefaultStructureId)
+                      ?? Structures.FirstOrDefault();
+            foreach (var v in Structures) v.IsDefaultFacility = ReferenceEquals(v, marked);
+            if (marked is not null && park.DefaultStructureId != marked.Id)
+                _ = PersistDefaultStructureAsync(id, marked.Id);
+
             RebuildAssignments(assignments);
             RebuildItemExceptions(exceptions);
 
@@ -538,7 +612,54 @@ public class IndyParksViewModel : ReactiveObject
     }
 
     private StructureVm BuildStructureVm(IndyStructure s)
-        => new(s.Id, s.ParkId, s.DisplayName, s.StructureTypeKey, s.SystemName, s.SecurityClass, s.FacilityTax);
+        => new(s.Id, s.ParkId, s.DisplayName, s.StructureTypeKey, s.SystemName, s.SecurityClass,
+               s.FacilityTax, s.RealStructureId, s.RealStructureName);
+
+    /// <summary>Which structure the visible search results belong to. The results list
+    /// renders SdeStationResult rows, so the pick alone can't say what it links to.</summary>
+    private StructureVm? _facilitySearchTarget;
+
+    /// <summary>Search real stations and structures for the facility link. Reuses the
+    /// same helper the standing-project and standing-buy-order dialogs use, so NPC
+    /// stations, player structures and corp structures are all reachable.</summary>
+    public async Task SearchFacilityAsync(StructureVm vm)
+    {
+        // Only one result list is meaningful at a time; clear any other structure's.
+        if (_facilitySearchTarget is not null && !ReferenceEquals(_facilitySearchTarget, vm))
+            _facilitySearchTarget.FacilityResults.Clear();
+        _facilitySearchTarget = vm;
+
+        var text = vm.FacilitySearch?.Trim() ?? "";
+        vm.FacilityResults.Clear();
+        if (text.Length < 2 || _corpActivity is null) return;
+
+        try
+        {
+            foreach (var r in await _corpActivity.SearchSdeStationsAsync(text))
+                vm.FacilityResults.Add(r);
+        }
+        catch (Exception ex) { _errorLogger?.Log(nameof(IndyParksViewModel), "SearchFacility", ex); }
+    }
+
+    public async Task LinkFacilityAsync(SdeStationResult pick)
+    {
+        var vm = _facilitySearchTarget;
+        if (vm is null) return;
+
+        vm.RealStructureId   = pick.StationId;
+        vm.RealStructureName = pick.Name;
+        vm.FacilityResults.Clear();
+        vm.FacilitySearch = "";
+        _facilitySearchTarget = null;
+        await SaveStructureDbAsync(vm);
+    }
+
+    public async Task UnlinkFacilityAsync(StructureVm vm)
+    {
+        vm.RealStructureId   = null;
+        vm.RealStructureName = "";
+        await SaveStructureDbAsync(vm);
+    }
 
     private void WireStructureVm(StructureVm vm)
     {
@@ -559,6 +680,15 @@ public class IndyParksViewModel : ReactiveObject
             .Skip(1)
             .Throttle(TimeSpan.FromMilliseconds(400))
             .Subscribe(async _ => await SaveStructureDbAsync(vm));
+
+        // Radio-group behaviour from a checkbox. Only a tick does anything; unticking the
+        // current catch-all puts it straight back, since a park must always have one.
+        vm.WhenAnyValue(x => x.IsDefaultFacility).Skip(1).Subscribe(async isDefault =>
+        {
+            if (_suppressSave) return;
+            if (isDefault) await SetDefaultStructureAsync(vm);
+            else if (!Structures.Any(s => s.IsDefaultFacility)) vm.IsDefaultFacility = true;
+        });
 
         foreach (var slot in vm.RigSlots)
             WireRigSlot(vm, slot);
@@ -657,6 +787,8 @@ public class IndyParksViewModel : ReactiveObject
                 vm.RigSlots.Add(new RigSlotVm(slot, rigs, null));
             WireStructureVm(vm);
             Structures.Add(vm);
+            // The first facility in a park becomes its catch-all.
+            if (Structures.Count == 1) vm.IsDefaultFacility = true;
             RefreshAssignmentOptions();
         });
     }
@@ -671,6 +803,8 @@ public class IndyParksViewModel : ReactiveObject
         await db.IndyStructures.Where(s => s.Id == vm.Id).ExecuteDeleteAsync();
         await db.SaveChangesAsync();
 
+        bool wasDefault = vm.IsDefaultFacility;
+
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
             Structures.Remove(vm);
@@ -680,11 +814,52 @@ public class IndyParksViewModel : ReactiveObject
                 if (e.Selected?.Id == vm.Id) e.Selected = null;
             RefreshAssignmentOptions();
         });
+
+        // Deleting the catch-all would leave the park without one, and every unclassified
+        // item would then plan with no structure. Hand it to whatever is left.
+        if (wasDefault)
+        {
+            var successor = Structures.FirstOrDefault();
+            if (successor is not null)
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(
+                    () => successor.IsDefaultFacility = true);
+            else
+                await PersistDefaultStructureAsync(vm.ParkId, null);
+        }
     }
 
     private async Task SaveStructureAsync(StructureVm vm)
     {
         await SaveStructureDbAsync(vm);
+    }
+
+    // ── Catch-all facility ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Makes one facility the park's catch-all and clears the rest. Bound to a checkbox per
+    /// facility rather than a dropdown, but it behaves as a radio group — unchecking the
+    /// current one re-checks it, because a park with no catch-all silently loses the
+    /// structure for every unclassified item.
+    /// </summary>
+    private async Task SetDefaultStructureAsync(StructureVm vm)
+    {
+        if (_suppressSave || _selectedPark is null) return;
+
+        _suppressSave = true;
+        foreach (var other in Structures)
+            other.IsDefaultFacility = ReferenceEquals(other, vm);
+        _suppressSave = false;
+
+        await PersistDefaultStructureAsync(_selectedPark.Id, vm.Id);
+    }
+
+    private async Task PersistDefaultStructureAsync(int parkId, int? structureId)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var park = await db.IndyParks.FindAsync(parkId);
+        if (park is null) return;
+        park.DefaultStructureId = structureId;
+        await db.SaveChangesAsync();
     }
 
     private async Task SaveStructureDbAsync(StructureVm vm)
@@ -697,7 +872,9 @@ public class IndyParksViewModel : ReactiveObject
         entity.StructureTypeKey = vm.StructureTypeKey;
         entity.SystemName       = vm.SystemName;
         entity.SecurityClass    = vm.SecurityClass;
-        entity.FacilityTax      = vm.FacilityTax;
+        entity.FacilityTax        = vm.FacilityTax;
+        entity.RealStructureId    = vm.RealStructureId;
+        entity.RealStructureName  = vm.RealStructureName;
         await db.SaveChangesAsync();
     }
 
@@ -762,10 +939,19 @@ public class IndyParksViewModel : ReactiveObject
         }
         await using var db = await _dbFactory.CreateDbContextAsync();
         var lower = text.ToLower();
+        // Ranked, not just alphabetical. A plain A-Z ordering buries the thing being
+        // searched for: "Hel" matches Shield, Helium, Sheltered and hundreds more, and
+        // the ship itself sorts past the cut. Exact match first, then names starting
+        // with the term, then the rest; shorter names win ties, so "Hel" beats
+        // "Hel Blueprint".
         var results = await db.SdeTypes
             .Where(t => t.Published && t.Name.ToLower().Contains(lower))
-            .OrderBy(t => t.Name)
-            .Take(20)
+            .OrderBy(t => t.Name.ToLower() == lower            ? 0
+                        : t.Name.ToLower().StartsWith(lower)   ? 1
+                        : 2)
+            .ThenBy(t => t.Name.Length)
+            .ThenBy(t => t.Name)
+            .Take(200)
             .Select(t => new ItemSearchResult(t.TypeId, t.Name))
             .ToListAsync();
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
