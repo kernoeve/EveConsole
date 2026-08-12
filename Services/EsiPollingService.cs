@@ -2343,6 +2343,77 @@ public class EsiPollingService : ReactiveObject
         return FromResult(r);
     }
 
+    /// <summary>How many newly-discovered public structures to resolve per sweep. Each one is its
+    /// own authenticated call, so the backlog is spread over several days rather than fired at
+    /// ESI in a single burst. Anything not reached stays unknown and is picked up next time.</summary>
+    private const int PublicStructureBatch = 150;
+
+    /// <summary>Between sweeps. The public list changes on the order of days, not minutes.</summary>
+    private static readonly TimeSpan PublicStructureSweepEvery = TimeSpan.FromHours(24);
+
+    /// <summary>
+    /// Walks the public structure list and hands anything unknown to the normal resolver.
+    ///
+    /// <para>Every other source of structures is incidental — a killmail, a contract, an asset
+    /// location — so what we know stops where our characters have been. This is the one source
+    /// that is not about us, and it is where the structures on the map come from for space nobody
+    /// here has visited.</para>
+    ///
+    /// <para>⚠️ Public is not the same as accessible, in either direction. A structure we can dock
+    /// at but whose owner has not made it public will not appear, and a public structure may still
+    /// refuse the name lookup — which the resolver already records as a failure with a 30-day
+    /// backoff, so a refusal costs one call a month rather than one a cycle.</para>
+    /// </summary>
+    private async Task SweepPublicStructuresAsync(AppDbContext db, CancellationToken ct)
+    {
+        var lastSwept = _prefs.GetLong(AppPreferencesService.PublicStructureSweepKey, 0);
+        var now       = DateTimeOffset.UtcNow;
+
+        if (lastSwept > 0 &&
+            now - DateTimeOffset.FromUnixTimeSeconds(lastSwept) < PublicStructureSweepEvery)
+            return;
+
+        var ids = await _esi.GetPublicStructureIdsAsync(ct);
+        if (ids is null || ids.Count == 0) return;
+
+        // Stamp the sweep even when the batch below only covers part of the backlog: the point of
+        // the timer is to keep the daily cadence, and the remainder is picked up tomorrow.
+        await _prefs.SetLongAsync(AppPreferencesService.PublicStructureSweepKey,
+                                  now.ToUnixTimeSeconds());
+
+        // Only ones we have never resolved at all. The resolver filters again itself, but doing
+        // it here is what keeps the batch to structures that are genuinely new rather than
+        // handing it 885 ids it will mostly discard.
+        var known = (await db.EsiStructureNames
+            .Select(s => s.StructureId).ToListAsync(ct)).ToHashSet();
+
+        // ⚠️ Recent failures are excluded HERE as well as in the resolver. A public structure can
+        // still refuse the lookup, and those refusals never produce a row in EsiStructureNames —
+        // so without this they would look "unknown" forever and fill the daily batch with the
+        // same doomed ids, starving the ones that would actually resolve.
+        var failBackoff = DateTimeOffset.UtcNow.AddDays(-30);
+        var recentlyFailed = (await db.EsiStructureNameFailures
+            .Select(f => new { f.StructureId, f.FailedAt })
+            .ToListAsync(ct))
+            .Where(f => f.FailedAt > failBackoff)
+            .Select(f => f.StructureId)
+            .ToHashSet();
+
+        var unknown = ids
+            .Where(id => !known.Contains(id) && !recentlyFailed.Contains(id))
+            .Take(PublicStructureBatch)
+            .ToList();
+        if (unknown.Count == 0) return;
+
+        StatusText = $"Polling: Resolving {unknown.Count} public structure(s)…";
+
+        var primary = await db.Characters
+            .Where(c => c.RefreshToken != "")
+            .Select(c => c.Id).FirstOrDefaultAsync(ct);
+
+        await ResolveNewStructureNamesAsync(primary, unknown, db, ct);
+    }
+
     // Fetches and caches names for structure IDs missing from EsiStructureNames or older than 30 days.
     // Tries primaryAuthCharId first, then falls back to any other character in the DB.
     // ESI requires esi-universe.read_structures.v1 and docking access to the structure.
@@ -2623,6 +2694,12 @@ public class EsiPollingService : ReactiveObject
             var structureIds = ids.ToList();
             StatusText = $"Polling: Resolving {structureIds.Count} structure(s)…";
             await ResolveNewStructureNamesAsync(0, structureIds, db, ct);
+
+            // Last, and on its own daily timer: everything above is a structure we have touched,
+            // this is the one source that finds structures we have not. Kept after the others so
+            // a large public backlog never delays resolving the ones we actually use.
+            await SweepPublicStructuresAsync(db, ct);
+
             await BackfillNearestCelestialsAsync(db, ct);
             StatusText = structureIds.Count == 0
                 ? "Polling: No structure IDs found in assets"
