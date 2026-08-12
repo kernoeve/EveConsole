@@ -154,6 +154,8 @@ public class JumpMapCanvas : Control
     private static readonly IBrush MidpointFill = new ImmutableSolidColorBrush(Color.Parse("#5599aa"));
     private static readonly IBrush PinnedFill   = new ImmutableSolidColorBrush(Color.Parse("#8fd06a"));
     private static readonly IPen   HoverPen     = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#7fb8d8")), 1.5);
+    private static readonly IPen   GhostPen     = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#66788a")), 1,
+                                                                  new ImmutableDashStyle([2, 2], 0));
 
     private static readonly IBrush LabelBrush  = new ImmutableSolidColorBrush(Color.Parse("#ccccd8"));
     private static readonly IBrush CaptionBrush = new ImmutableSolidColorBrush(Color.Parse("#7a8896"));
@@ -528,6 +530,12 @@ public class JumpMapCanvas : Control
             var s = PointFor(n);
             var r = n.IsWaypoint ? WaypointRadius : MidpointRadius;
 
+            // Where the midpoint being dragged actually still is. Without it the marker and its
+            // name travel with the pointer and there is nothing left showing what is being
+            // moved, or how far it has been moved from.
+            if (ReferenceEquals(n, _drag) && _dragMoved)
+                ctx.DrawEllipse(null, GhostPen, ToScreen(n.X, n.Y), r, r);
+
             if (ReferenceEquals(n, _hover) || ReferenceEquals(n, _drag))
                 ctx.DrawEllipse(null, HoverPen, s, r + 4, r + 4);
 
@@ -538,7 +546,10 @@ public class JumpMapCanvas : Control
         // Labels last, so no marker paints over them.
         foreach (var n in route)
         {
-            var s    = PointFor(n);
+            // ⚠️ The dragged node's label stays at the system it still occupies, rather than
+            // riding the pointer. Moving with the marker meant the one name you needed while
+            // choosing a replacement — the one you are replacing — was the one that ran away.
+            var s    = ReferenceEquals(n, _drag) ? ToScreen(n.X, n.Y) : PointFor(n);
             var name = new FormattedText(n.Name, System.Globalization.CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight, BoldFace, 11, LabelBrush);
             var cap = n.Caption.Length > 0
