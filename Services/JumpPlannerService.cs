@@ -106,6 +106,10 @@ public sealed class JumpPlannerService
 
     private sealed record Node(int Id, string Name, string Region, double Security, double X, double Y, double Z);
 
+    /// <summary>The three Jove regions — 230 systems no stargate reaches and no player has ever
+    /// entered. They read as ordinary null sec in the SDE, so nothing else filters them out.</summary>
+    private static readonly HashSet<int> JoveRegionIds = [10_000_004, 10_000_017, 10_000_019];
+
     private List<Node>? _systems;
     private Dictionary<int, MapPoint>? _mapPoints;
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -181,10 +185,16 @@ public sealed class JumpPlannerService
                 from s in db.SdeSolarSystems.AsNoTracking()
                 join r in db.SdeRegions.AsNoTracking() on s.RegionId equals r.RegionId
                 where !s.IsWormhole && s.Security < HighSecFloor
-                select new { s.SolarSystemId, s.Name, Region = r.Name, s.Security, s.X, s.Y, s.Z })
+                select new { s.SolarSystemId, s.Name, s.RegionId, Region = r.Name,
+                             s.Security, s.X, s.Y, s.Z })
                 .ToListAsync(ct);
 
+            // ⚠️ Jove space is excluded here and nowhere else would catch it. Routing is by 3D
+            // distance and ignores gates entirely, so the 230 Jove systems — sitting inside the
+            // cluster at null-sec security, with no gate in or out — were perfectly good
+            // midpoints as far as the search was concerned, and no player can go there.
             _systems = rows
+                .Where(r => !JoveRegionIds.Contains(r.RegionId))
                 .Select(r => new Node(r.SolarSystemId, r.Name, r.Region, r.Security, r.X, r.Y, r.Z))
                 .ToList();
 
