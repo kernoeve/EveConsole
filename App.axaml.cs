@@ -1971,6 +1971,14 @@ public class App : Application
                 """CREATE TABLE IF NOT EXISTS "SdeStationOperations" ("OperationId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '')""",
                 """CREATE TABLE IF NOT EXISTS "SdeStationOperationServices" ("OperationId" INTEGER NOT NULL, "ServiceId" INTEGER NOT NULL, PRIMARY KEY ("OperationId", "ServiceId"))""",
 
+                // ── LP values: median alongside the mean ────────────────────────────
+                // Added to the CREATE TABLE after those tables already existed, and
+                // CREATE TABLE IF NOT EXISTS does not alter an existing table — so every
+                // database that had already run the LP valuation was missing the column
+                // and the tool failed with "no such column: l.MedianIskPerLp".
+                """ALTER TABLE "LpCorpValues"         ADD COLUMN "MedianIskPerLp" REAL NOT NULL DEFAULT 0""",
+                """ALTER TABLE "LpCorpValueSnapshots" ADD COLUMN "MedianIskPerLp" REAL NOT NULL DEFAULT 0""",
+
                 // ── Indy Parks: catch-all facility ──────────────────────────────────
                 // Where jobs go when no category assignment covers the item. Before this
                 // existed such an item aborted the whole calculation.
