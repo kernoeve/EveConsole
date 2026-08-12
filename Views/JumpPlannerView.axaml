@@ -148,8 +148,11 @@
       <Grid Grid.Row="2">
         <ctl:JumpMapCanvas Route="{Binding MapRoute}"
                            Dots="{Binding MapDots}"
+                           Links="{Binding MapLinks}"
+                           Candidates="{Binding MapCandidates}"
                            NodeClickedCommand="{Binding NodeClickedCommand}"
-                           NodeMovedCommand="{Binding NodeMovedCommand}" />
+                           NodeMovedCommand="{Binding NodeMovedCommand}"
+                           DragStartedCommand="{Binding DragStartedCommand}" />
 
         <Border IsVisible="{Binding IsPickingAlternative}"
                 HorizontalAlignment="Right" VerticalAlignment="Stretch"

@@ -245,6 +245,166 @@ public sealed class JumpPlannerService
     }
 
     /// <summary>
+    /// What a system offers to a capital pilot picking a midpoint. NPC stations can always be
+    /// docked at; a player structure may or may not let you in, but its presence still matters —
+    /// and a Fortizar or Keepstar is what makes a system a real staging option.
+    /// </summary>
+    public sealed record SystemFacilities(
+        bool NpcStation, int PlayerStructures, bool Fortizar, bool Keepstar)
+    {
+        /// <summary>Compact badge line for the map tooltip. Empty when the system has nothing.</summary>
+        public string Badges
+        {
+            get
+            {
+                var parts = new List<string>(4);
+                if (Keepstar)         parts.Add("Keepstar");
+                if (Fortizar)         parts.Add("Fortizar");
+                if (NpcStation)       parts.Add("NPC station");
+                if (PlayerStructures > 0 && !Keepstar && !Fortizar)
+                    parts.Add($"{PlayerStructures} player structure{(PlayerStructures == 1 ? "" : "s")}");
+                else if (PlayerStructures > 1)
+                    parts.Add($"+{PlayerStructures - 1} more");
+                return string.Join(" · ", parts);
+            }
+        }
+    }
+
+    private Dictionary<int, SystemFacilities>? _facilities;
+    private readonly SemaphoreSlim _facilityGate = new(1, 1);
+
+    /// <summary>
+    /// Docking and staging options per system. Player structures come from the ones we have
+    /// resolved names for, so this under-reports rather than inventing: a structure nobody in the
+    /// app has ever seen is not known to exist.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<int, SystemFacilities>> FacilitiesAsync(
+        CancellationToken ct = default)
+    {
+        if (_facilities is { } cached) return cached;
+
+        await _facilityGate.WaitAsync(ct);
+        try
+        {
+            if (_facilities is { } raced) return raced;
+
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+            var npc = (await db.SdeStations.AsNoTracking()
+                .Select(s => s.SolarSystemId).Distinct().ToListAsync(ct)).ToHashSet();
+
+            // Structure type ids by name, so "Fortizar" also picks up the faction variants
+            // ("Draccous Fortizar" and friends) without listing every one.
+            var citadelTypes = await db.SdeTypes.AsNoTracking()
+                .Where(t => t.Name.Contains("Fortizar") || t.Name == "Keepstar")
+                .Select(t => new { t.TypeId, t.Name })
+                .ToListAsync(ct);
+
+            var fortTypes = citadelTypes.Where(t => t.Name.Contains("Fortizar"))
+                                        .Select(t => t.TypeId).ToHashSet();
+            var keepTypes = citadelTypes.Where(t => t.Name == "Keepstar")
+                                        .Select(t => t.TypeId).ToHashSet();
+
+            var structures = await db.EsiStructureNames.AsNoTracking()
+                .Select(s => new { s.SolarSystemId, s.TypeId })
+                .ToListAsync(ct);
+
+            var bySystem = structures.GroupBy(s => s.SolarSystemId)
+                .ToDictionary(g => g.Key, g => (
+                    Count: g.Count(),
+                    Fort:  g.Any(s => fortTypes.Contains(s.TypeId)),
+                    Keep:  g.Any(s => keepTypes.Contains(s.TypeId))));
+
+            var all = new Dictionary<int, SystemFacilities>();
+            foreach (var id in npc.Concat(bySystem.Keys).Distinct())
+            {
+                var s = bySystem.GetValueOrDefault(id);
+                all[id] = new SystemFacilities(npc.Contains(id), s.Count, s.Fort, s.Keep);
+            }
+
+            _facilities = all;
+            return all;
+        }
+        finally { _facilityGate.Release(); }
+    }
+
+    private Dictionary<int, (string Name, string Region)>? _systemNames;
+    private readonly SemaphoreSlim _nameGate = new(1, 1);
+
+    /// <summary>
+    /// Name and region for every system, including the high-sec ones a jump drive cannot enter —
+    /// those are still drawn on the map as context and still worth identifying under the pointer.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<int, (string Name, string Region)>> SystemNamesAsync(
+        CancellationToken ct = default)
+    {
+        if (_systemNames is { } cached) return cached;
+
+        await _nameGate.WaitAsync(ct);
+        try
+        {
+            if (_systemNames is { } raced) return raced;
+
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var rows = await (
+                from s in db.SdeSolarSystems.AsNoTracking()
+                join r in db.SdeRegions.AsNoTracking() on s.RegionId equals r.RegionId
+                select new { s.SolarSystemId, s.Name, Region = r.Name })
+                .ToListAsync(ct);
+
+            _systemNames = rows.ToDictionary(r => r.SolarSystemId, r => (r.Name, r.Region));
+            return _systemNames;
+        }
+        finally { _nameGate.Release(); }
+    }
+
+    private List<(int A, int B)>? _links;
+    private readonly SemaphoreSlim _linkGate = new(1, 1);
+
+    /// <summary>
+    /// Stargate connections, one entry per pair. Drawn faintly under a jump route so the gate
+    /// network is visible behind it — a jump ignores gates, but seeing them is how you tell
+    /// where a midpoint actually sits in the cluster.
+    /// </summary>
+    public async Task<IReadOnlyList<(int A, int B)>> StargateLinksAsync(CancellationToken ct = default)
+    {
+        if (_links is { } cached) return cached;
+
+        await _linkGate.WaitAsync(ct);
+        try
+        {
+            if (_links is { } raced) return raced;
+
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+            var pairs = await db.Database.SqlQueryRaw<StargateLink>("""
+                SELECT a."SolarSystemId" AS "FromId", b."SolarSystemId" AS "ToId"
+                FROM "SdeStargates" a
+                JOIN "SdeStargates" b ON b."StargateId" = a."DestinationStargateId"
+                """).ToListAsync(ct);
+
+            // Each gate is published from both ends; keep one edge per pair.
+            var seen = new HashSet<(int, int)>();
+            var list = new List<(int A, int B)>(pairs.Count / 2);
+            foreach (var p in pairs)
+            {
+                var key = p.FromId < p.ToId ? (p.FromId, p.ToId) : (p.ToId, p.FromId);
+                if (seen.Add(key)) list.Add(key);
+            }
+
+            _links = list;
+            return list;
+        }
+        finally { _linkGate.Release(); }
+    }
+
+    private sealed class StargateLink
+    {
+        public int FromId { get; set; }
+        public int ToId   { get; set; }
+    }
+
+    /// <summary>
     /// Where each system sits on CCP's published 2D map layout — the arrangement the in-game map
     /// draws — for plotting a route. Y is negated because position2D grows northward while screen
     /// Y grows downward, matching what <c>UniverseMapService</c> does for the same reason.

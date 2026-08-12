@@ -72,9 +72,11 @@ public sealed class JumpPlannerViewModel : ReactiveObject
             Legs.Clear();
             Alternatives.Clear();
             IsPickingAlternative = false;
-            MapRoute   = null;
-            MapDots    = null;
-            TotalsText = "";
+            MapRoute      = null;
+            MapDots       = null;
+            MapLinks      = null;
+            MapCandidates = null;
+            TotalsText    = "";
             StatusText = "Add a start and a destination.";
         });
 
@@ -86,6 +88,7 @@ public sealed class JumpPlannerViewModel : ReactiveObject
 
         NodeClickedCommand = ReactiveCommand.CreateFromTask<JumpMapNode>(ShowAlternativesAsync);
         NodeMovedCommand   = ReactiveCommand.CreateFromTask<JumpMapDrop>(SnapMidpointAsync);
+        DragStartedCommand = ReactiveCommand.CreateFromTask<JumpMapNode>(LightCandidatesAsync);
 
         ApplyAlternativeCommand  = ReactiveCommand.CreateFromTask(ApplyAlternativeAsync);
         CancelAlternativeCommand = ReactiveCommand.Create(() =>
@@ -160,6 +163,7 @@ public sealed class JumpPlannerViewModel : ReactiveObject
 
     public ReactiveCommand<JumpMapNode, Unit> NodeClickedCommand { get; }
     public ReactiveCommand<JumpMapDrop, Unit> NodeMovedCommand   { get; }
+    public ReactiveCommand<JumpMapNode, Unit> DragStartedCommand { get; }
     public ReactiveCommand<Unit, Unit>        ApplyAlternativeCommand  { get; }
     public ReactiveCommand<Unit, Unit>        CancelAlternativeCommand { get; }
 
@@ -177,6 +181,22 @@ public sealed class JumpPlannerViewModel : ReactiveObject
     {
         get => _mapDots;
         private set => this.RaiseAndSetIfChanged(ref _mapDots, value);
+    }
+
+    private IReadOnlyList<JumpMapLink>? _mapLinks;
+    public IReadOnlyList<JumpMapLink>? MapLinks
+    {
+        get => _mapLinks;
+        private set => this.RaiseAndSetIfChanged(ref _mapLinks, value);
+    }
+
+    /// <summary>Legal drop targets for the midpoint currently being dragged. Null when no drag
+    /// is in progress, which is what clears the highlight on the map.</summary>
+    private IReadOnlyDictionary<int, JumpMapCandidate>? _mapCandidates;
+    public IReadOnlyDictionary<int, JumpMapCandidate>? MapCandidates
+    {
+        get => _mapCandidates;
+        private set => this.RaiseAndSetIfChanged(ref _mapCandidates, value);
     }
 
     /// <summary>Candidate replacements for the midpoint the user clicked.</summary>
@@ -318,12 +338,34 @@ public sealed class JumpPlannerViewModel : ReactiveObject
         var padX = Math.Max((maxX - minX) * 0.25, 3e16);
         var padY = Math.Max((maxY - minY) * 0.25, 3e16);
 
-        var onRoute = nodes.Select(n => n.Id).ToHashSet();
-        MapDots = points.Values
-            .Where(p => !onRoute.Contains(p.Id) &&
-                        p.X >= minX - padX && p.X <= maxX + padX &&
+        var onRoute   = nodes.Select(n => n.Id).ToHashSet();
+        var inWindow  = points.Values
+            .Where(p => p.X >= minX - padX && p.X <= maxX + padX &&
                         p.Y >= minY - padY && p.Y <= maxY + padY)
-            .Select(p => new JumpMapDot(p.Id, p.X, p.Y, p.Security))
+            .ToList();
+
+        var facilities = await _planner.FacilitiesAsync();
+        var named      = await _planner.SystemNamesAsync();
+
+        MapDots = inWindow
+            .Where(p => !onRoute.Contains(p.Id))
+            .Select(p =>
+            {
+                var (name, region) = named.GetValueOrDefault(p.Id, ("", ""));
+                var f = facilities.GetValueOrDefault(p.Id);
+                return new JumpMapDot(p.Id, name, region, p.X, p.Y, p.Security, f?.Badges ?? "");
+            })
+            .Where(d => d.Name.Length > 0)
+            .ToList();
+
+        // Gate links, limited to systems on screen at both ends — the whole cluster's topology
+        // is far more line than the corridor around one route can carry.
+        var shown = inWindow.ToDictionary(p => p.Id);
+        var links = await _planner.StargateLinksAsync();
+
+        MapLinks = links
+            .Where(l => shown.ContainsKey(l.A) && shown.ContainsKey(l.B))
+            .Select(l => new JumpMapLink(shown[l.A].X, shown[l.A].Y, shown[l.B].X, shown[l.B].Y))
             .ToList();
     }
 
@@ -347,8 +389,55 @@ public sealed class JumpPlannerViewModel : ReactiveObject
         return await _planner.AlternativesAsync(prev.Id, next.Id, _maxRangeLy, restriction);
     }
 
+    /// <summary>
+    /// Lights every system the dragged midpoint could legally land on, each labelled with what
+    /// choosing it would cost against the midpoint being replaced. Which systems are eligible is
+    /// the whole difficulty of picking one by hand and nothing on the map implies it, so it is
+    /// shown the moment the drag begins rather than discovered by dropping and being refused.
+    /// </summary>
+    private async Task LightCandidatesAsync(JumpMapNode node)
+    {
+        MapCandidates = null;
+        if (node.IsWaypoint) return;
+
+        var options = await AlternativesFor(node);
+        if (options.Count == 0) return;
+
+        // The leg pair being replaced, to express each option as a difference rather than an
+        // absolute nobody can weigh at a glance.
+        var (prev, next) = NeighboursOf(node);
+        var current = prev is null || next is null
+            ? null
+            : Legs.FirstOrDefault(l => l.FromSystemId == prev.Id && l.ToSystemId == node.Id) is { } inLeg
+              && Legs.FirstOrDefault(l => l.FromSystemId == node.Id && l.ToSystemId == next.Id) is { } outLeg
+                ? (Ly: inLeg.DistanceLy + outLeg.DistanceLy, Fuel: inLeg.Fuel + outLeg.Fuel)
+                : ((double Ly, double Fuel)?)null;
+
+        var fuelPerLy = SelectedShip?.FuelPerLy ?? 0;
+
+        MapCandidates = options.ToDictionary(
+            o => o.Id,
+            o =>
+            {
+                var ly   = o.InLy + o.OutLy;
+                var fuel = JumpPlannerService.FuelFor(ly, fuelPerLy, JfcLevel);
+
+                if (current is not { } c)
+                    return new JumpMapCandidate(o.Id, $"{ly:N2} ly · {fuel:N0} fuel");
+
+                var dLy   = ly   - c.Ly;
+                var dFuel = fuel - c.Fuel;
+                return new JumpMapCandidate(o.Id,
+                    $"{Signed(dLy, "N2")} ly · {Signed(dFuel, "N0")} fuel vs {node.Name}");
+            });
+
+        static string Signed(double v, string format) =>
+            (v > 0 ? "+" : "") + v.ToString(format, CultureInfo.InvariantCulture);
+    }
+
     private async Task ShowAlternativesAsync(JumpMapNode node)
     {
+        MapCandidates = null;          // a press-and-release is still the end of a drag
         if (node.IsWaypoint) return;   // a stop the user asked for is not the planner's to change
 
         Alternatives.Clear();
@@ -383,6 +472,7 @@ public sealed class JumpPlannerViewModel : ReactiveObject
     /// </summary>
     private async Task SnapMidpointAsync(JumpMapDrop drop)
     {
+        MapCandidates = null;   // the drag is over; the highlight goes with it
         if (drop.Node.IsWaypoint) return;
 
         var options = await AlternativesFor(drop.Node);
