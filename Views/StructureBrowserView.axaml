@@ -16,9 +16,26 @@
       <Setter Property="Foreground" Value="#555566" />
       <Setter Property="Margin" Value="2 0 0 1" />
     </Style>
+
+    <!-- Applied at this level so the viewer's grids match the list rather than each grid
+         restating it — the cells inherit a much larger default otherwise. -->
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="Background" Value="#12121a" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding" Value="6 6 2 6" />
+      <Setter Property="BorderBrush" Value="#1e1e2a" />
+      <Setter Property="BorderThickness" Value="0 0 1 1" />
+    </Style>
+    <Style Selector="DataGridCell">
+      <Setter Property="Padding" Value="6 0" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
   </UserControl.Styles>
 
-  <Grid RowDefinitions="Auto,1,Auto,1,*,4,320">
+  <!-- List and viewer share the vertical space evenly; the splitter moves it. -->
+  <Grid RowDefinitions="Auto,1,Auto,1,*,4,*">
 
     <!-- ── Toolbar ──────────────────────────────────────────────────── -->
     <Border Grid.Row="0" Background="#12121a" Padding="12 8"

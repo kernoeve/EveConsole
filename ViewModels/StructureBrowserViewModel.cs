@@ -364,28 +364,65 @@ public class StructureBrowserViewModel : ReactiveObject
             }
 
             // ── Assets stored here ───────────────────────────────────────────
+            // Fitted modules are excluded: they are the Fitting tab's subject, and listing them
+            // here again as though they were cargo misrepresents what is actually stored.
             var assets = await db.EsiAssets.AsNoTracking()
-                .Where(a => a.LocationId == row.StructureId)
-                .Select(a => new { a.TypeId, a.Quantity, a.LocationFlag, a.OwnerType })
+                .Where(a => a.LocationId == row.StructureId && !a.LocationFlag.Contains("Slot"))
+                .Select(a => new { a.TypeId, a.Quantity, a.LocationFlag, a.OwnerId, a.OwnerType })
                 .Take(2000)
                 .ToListAsync();
+
+            // Owner names rather than "character"/"corporation", which said nothing useful.
+            var charNames = await db.Characters.AsNoTracking()
+                .ToDictionaryAsync(c => (long)c.Id, c => c.Name);
+            var corpNames = await db.Corporations.AsNoTracking()
+                .ToDictionaryAsync(c => (long)c.Id, c => c.Name);
+
+            string OwnerName(long id, string type) => type == "corporation"
+                ? corpNames.GetValueOrDefault(id, $"Corp {id}")
+                : charNames.GetValueOrDefault(id, $"Character {id}");
+
+            // Corp hangar divisions are named by the corp, and the name is the only thing that
+            // says what a division is for — "CorpSAG3" tells you nothing, "Reactions" tells you
+            // everything. Keyed by corp because two corps number their divisions differently.
+            var divisions = (await db.EsiCorpDivisions.AsNoTracking()
+                .Where(d => d.DivisionType == "hangar")
+                .ToListAsync())
+                .ToDictionary(d => (d.CorporationId, d.Division), d => d.Name);
+
+            string WhereFrom(long ownerId, string ownerType, string flag)
+            {
+                // CorpSAG1..7 map to hangar divisions 1..7.
+                if (ownerType == "corporation" && flag.StartsWith("CorpSAG") &&
+                    int.TryParse(flag[7..], out var div) &&
+                    divisions.TryGetValue((ownerId, div), out var name) &&
+                    name.Length > 0)
+                    return $"{name} (div {div})";
+
+                return flag;
+            }
 
             foreach (var a in assets.OrderBy(a => a.LocationFlag))
                 Assets.Add(new StructureAssetRow
                 {
                     TypeName = typeNames.GetValueOrDefault(a.TypeId, $"Type {a.TypeId}"),
-                    Location = a.LocationFlag,
+                    Location = WhereFrom(a.OwnerId, a.OwnerType, a.LocationFlag),
                     Quantity = a.Quantity,
-                    Owner    = a.OwnerType,
+                    Owner    = OwnerName(a.OwnerId, a.OwnerType),
                 });
 
             // ── Industry jobs run here ───────────────────────────────────────
-            var jobs = await db.EsiIndustryJobs.AsNoTracking()
+            // ⚠️ Ordered in memory. EF Core's SQLite provider cannot translate a DateTimeOffset
+            // into an ORDER BY and throws rather than degrading — the same trap that bites any
+            // date comparison against these tables. Jobs at one structure are few enough that
+            // fetching them all and sorting here costs nothing.
+            var jobs = (await db.EsiIndustryJobs.AsNoTracking()
                 .Where(j => j.StationId == row.StructureId)
+                .Select(j => new { j.ActivityId, j.ProductTypeId, j.Runs, j.Status, j.EndDate })
+                .ToListAsync())
                 .OrderByDescending(j => j.EndDate)
                 .Take(500)
-                .Select(j => new { j.ActivityId, j.ProductTypeId, j.Runs, j.Status, j.EndDate })
-                .ToListAsync();
+                .ToList();
 
             foreach (var j in jobs)
                 Jobs.Add(new StructureJobRow
