@@ -2343,10 +2343,18 @@ public class EsiPollingService : ReactiveObject
         return FromResult(r);
     }
 
-    /// <summary>How many newly-discovered public structures to resolve per sweep. Each one is its
-    /// own authenticated call, so the backlog is spread over several days rather than fired at
-    /// ESI in a single burst. Anything not reached stays unknown and is picked up next time.</summary>
-    private const int PublicStructureBatch = 150;
+    /// <summary>
+    /// Ceiling on newly-discovered public structures per sweep. A guard rail against some future
+    /// world where the list is enormous, NOT the pacing mechanism — the resolver's own 200 ms
+    /// gap between structures is that, and it is already slower per call than the contract poll's
+    /// 100-150 ms. High enough to clear a normal backlog in one sweep: the 744 unknown at the
+    /// time of writing cost about two and a half minutes, against a structure sweep that is
+    /// already the longest thing polling does.
+    ///
+    /// <para>The real safety is elsewhere and does not depend on this number: refusals count
+    /// toward ESI's error limit, and the resolve loop stops the moment that limit is blocked.</para>
+    /// </summary>
+    private const int PublicStructureBatch = 1000;
 
     /// <summary>Between sweeps. The public list changes on the order of days, not minutes.</summary>
     private static readonly TimeSpan PublicStructureSweepEvery = TimeSpan.FromHours(24);
@@ -2376,8 +2384,9 @@ public class EsiPollingService : ReactiveObject
         var ids = await _esi.GetPublicStructureIdsAsync(ct);
         if (ids is null || ids.Count == 0) return;
 
-        // Stamp the sweep even when the batch below only covers part of the backlog: the point of
-        // the timer is to keep the daily cadence, and the remainder is picked up tomorrow.
+        // Stamp the sweep even if the batch below is capped or the resolve loop stops early on
+        // the error limit: the timer's job is the daily cadence, and any remainder is picked up
+        // on the next sweep.
         await _prefs.SetLongAsync(AppPreferencesService.PublicStructureSweepKey,
                                   now.ToUnixTimeSeconds());
 
