@@ -419,6 +419,9 @@
               <DataTemplate DataType="vm:StandingBuyOrdersViewModel">
                 <views:StandingBuyOrdersView />
               </DataTemplate>
+              <DataTemplate DataType="vm:LpMarketValuesViewModel">
+                <views:LpMarketValuesView />
+              </DataTemplate>
               <DataTemplate DataType="vm:GameLogViewerViewModel">
                 <views:GameLogViewerView />
               </DataTemplate>

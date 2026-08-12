@@ -53,6 +53,8 @@ public class AppDbContext : DbContext
     public DbSet<LpStoreOffer>               EsiLpStoreOffers        => Set<LpStoreOffer>();
     public DbSet<LpStoreOfferItem>           EsiLpStoreOfferItems    => Set<LpStoreOfferItem>();
     public DbSet<LpStoreCorp>                EsiLpStoreCorps         => Set<LpStoreCorp>();
+    public DbSet<LpCorpValue>                LpCorpValues            => Set<LpCorpValue>();
+    public DbSet<LpCorpValueSnapshot>        LpCorpValueSnapshots    => Set<LpCorpValueSnapshot>();
     public DbSet<CharacterMedal>             EsiMedals               => Set<CharacterMedal>();
     public DbSet<StandingEntry>              EsiStandings            => Set<StandingEntry>();
     public DbSet<CharacterTitle>             EsiTitles               => Set<CharacterTitle>();
@@ -766,6 +768,16 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.CorporationId);
             e.Property(x => x.CorporationId).ValueGeneratedNever();
             e.ToTable("EsiLpStoreCorps"); });
+
+        mb.Entity<LpCorpValue>(e => {
+            e.HasKey(x => x.CorporationId);
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.ToTable("LpCorpValues"); });
+
+        mb.Entity<LpCorpValueSnapshot>(e => {
+            e.HasKey(x => new { x.CorporationId, x.Date });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.ToTable("LpCorpValueSnapshots"); });
 
         mb.Entity<CharacterMedal>(e => {
             e.HasKey(x => x.Id);

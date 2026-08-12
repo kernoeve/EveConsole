@@ -69,8 +69,24 @@ public record LpOfferVm(
     long   IskCost,
     int    AkCost,
     int    LpHeld,
-    IReadOnlyList<string> RequiredItems)
+    IReadOnlyList<string> RequiredItems,
+    double? IskPerLp)
 {
+    /// <summary>Blank when the offer could not be valued — no price on the item itself, or
+    /// on something it consumes. Zero would read as "worthless", which is a different
+    /// claim from "unknown".</summary>
+    public string IskPerLpText => IskPerLp is null
+        ? "—"
+        : IskPerLp.Value >= 100 ? $"{IskPerLp.Value:N0} ISK/LP"
+        : IskPerLp.Value >= 1   ? $"{IskPerLp.Value:N2} ISK/LP"
+                                : $"{IskPerLp.Value:N4} ISK/LP";
+
+    /// <summary>Red below zero — the offer costs more than the item fetches, so the LP is
+    /// doing nothing for you.</summary>
+    public string IskPerLpColor => IskPerLp is null ? "#555566"
+                                 : IskPerLp.Value < 0 ? "#aa4444"
+                                 : "#4caf50";
+
     public string QuantityText = Quantity > 1 ? $"{Quantity:N0} ×" : "";
     public string LpText       => $"{LpCost:N0} LP";
     public string IskText      => IskCost > 0 ? $"{IskCost:N0} ISK" : "—";
@@ -408,14 +424,65 @@ public class ItemBrowserViewModel : ReactiveObject
                 .GroupBy(l => l.CorporationId)
                 .ToDictionary(g => g.Key, g => g.Max(l => l.Points));
 
+            // Prices for the ISK/LP estimate: the item itself and everything an offer also
+            // consumes. Same asset-value configuration the corporation averages use, so a
+            // row here and the tool's average are the same measurement.
+            var settings  = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(s => s.Id == 1, ct);
+            var priceType = settings?.AssetValuePriceType ?? "Midpoint";
+            var priceIds  = reqTypeIds.Append(typeId).Distinct().ToList();
+
+            var market = new Dictionary<int, double>();
+            if (settings?.AssetValueConfigId is { } cfg)
+                foreach (var p in await db.MarketItemPrices.AsNoTracking()
+                             .Where(p => p.ConfigId == cfg && priceIds.Contains(p.TypeId))
+                             .Select(p => new { p.TypeId, p.BuyPrice, p.SellPrice, p.Midpoint })
+                             .ToListAsync(ct))
+                {
+                    double v = priceType switch { "Buy" => p.BuyPrice, "Sell" => p.SellPrice, _ => p.Midpoint };
+                    if (v > 0) market[p.TypeId] = v;
+                }
+
+            var contractPx = (await db.ContractPrices.AsNoTracking()
+                    .Where(c => priceIds.Contains(c.TypeId)).ToListAsync(ct))
+                .Select(cp => new { cp.TypeId, Price = ContractPricing.EffectivePrice(cp) })
+                .Where(x => x.Price is > 0m)
+                .ToDictionary(x => x.TypeId, x => (double)x.Price!.Value);
+
+            double? ValueOf(int id) =>
+                market.TryGetValue(id, out var m) ? m
+                : contractPx.TryGetValue(id, out var c) ? c
+                : null;
+
+            var unitValue = ValueOf(typeId);
+
             var rows = offers
-                .Select(o => new LpOfferVm(
-                    corpNames.GetValueOrDefault(o.CorporationId, $"Corp {o.CorporationId}"),
-                    o.Quantity, o.LpCost, o.IskCost, o.AkCost,
-                    lpHeld.GetValueOrDefault(o.CorporationId),
-                    reqs.Where(i => i.OfferId == o.OfferId && i.CorporationId == o.CorporationId)
-                        .Select(i => $"{i.Quantity:N0} × {reqNames.GetValueOrDefault(i.TypeId, $"Type {i.TypeId}")}")
-                        .ToList()))
+                .Select(o =>
+                {
+                    var mine = reqs
+                        .Where(i => i.OfferId == o.OfferId && i.CorporationId == o.CorporationId)
+                        .ToList();
+
+                    // One unpriced required item makes the whole estimate wrong rather than
+                    // approximate, so the row shows nothing instead.
+                    double reqValue = 0;
+                    bool   priced   = true;
+                    foreach (var i in mine)
+                    {
+                        var v = ValueOf(i.TypeId);
+                        if (v is null) { priced = false; break; }
+                        reqValue += v.Value * i.Quantity;
+                    }
+
+                    return new LpOfferVm(
+                        corpNames.GetValueOrDefault(o.CorporationId, $"Corp {o.CorporationId}"),
+                        o.Quantity, o.LpCost, o.IskCost, o.AkCost,
+                        lpHeld.GetValueOrDefault(o.CorporationId),
+                        mine.Select(i => $"{i.Quantity:N0} × {reqNames.GetValueOrDefault(i.TypeId, $"Type {i.TypeId}")}")
+                            .ToList(),
+                        priced
+                            ? LpValueService.IskPerLp(unitValue, o.IskCost, o.Quantity, o.LpCost, reqValue)
+                            : null);
+                })
                 .OrderByDescending(r => r.LpHeld >= r.LpCost)   // affordable first
                 .ThenBy(r => r.LpCost)
                 .ToList();

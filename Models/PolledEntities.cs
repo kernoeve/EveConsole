@@ -532,6 +532,42 @@ public class LpStoreOfferItem
 /// recording that means the next sweep skips them instead of firing a hundred 404s into
 /// ESI's global error limit every time.
 /// </summary>
+/// <summary>
+/// What a loyalty point is worth at one corporation right now — the mean ISK/LP across
+/// every offer in its store that could be valued.
+///
+/// Double throughout, deliberately. A single LP is worth on the order of 1,000 ISK, but
+/// plenty of offers land in the tens or hundredths, and decimal rounding at those
+/// magnitudes loses the distinction between a poor offer and a worthless one.
+/// </summary>
+public class LpCorpValue
+{
+    public int      CorporationId { get; set; }
+    public double   IskPerLp      { get; set; }
+    /// <summary>Offers that could be valued — both the output and every required item had
+    /// a price.</summary>
+    public int      ValuedOffers  { get; set; }
+    /// <summary>Offers in the store, valued or not. The gap between the two says how much
+    /// of the catalogue the average actually rests on.</summary>
+    public int      TotalOffers   { get; set; }
+    public double   BestIskPerLp  { get; set; }
+    public int      BestTypeId    { get; set; }
+    public DateTimeOffset ComputedAt { get; set; }
+}
+
+/// <summary>
+/// Daily snapshot of <see cref="LpCorpValue"/>. LP value drifts with the market, so the
+/// trend is the useful part — the same reason build costs and type prices are snapshotted.
+/// </summary>
+public class LpCorpValueSnapshot
+{
+    public int      CorporationId { get; set; }
+    public string   Date          { get; set; } = "";   // "yyyy-MM-dd" UTC
+    public double   IskPerLp      { get; set; }
+    public int      ValuedOffers  { get; set; }
+    public DateTimeOffset ComputedAt { get; set; }
+}
+
 public class LpStoreCorp
 {
     public int       CorporationId { get; set; }

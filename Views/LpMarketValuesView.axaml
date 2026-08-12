@@ -1,0 +1,115 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="EveConsole.Views.LpMarketValuesView"
+             x:DataType="vm:LpMarketValuesViewModel">
+
+  <TabControl SelectedIndex="{Binding SelectedTabIndex}" Padding="0" Background="Transparent">
+
+    <!-- ── Current Values ──────────────────────────────────────────────────── -->
+    <TabItem Header="Current Values">
+      <Grid RowDefinitions="Auto,*" Margin="14 12">
+
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0 0 0 8">
+          <TextBlock Text="{Binding Status}" FontSize="12" Foreground="#c8a84b"/>
+          <TextBlock FontSize="11" Foreground="#555566" TextWrapping="Wrap"
+                     Text="Average ISK per loyalty point across every offer in each store that could be priced. Corporations you hold LP with are listed first. Double-click a row for its history."/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1" x:Name="CorpGrid"
+                  ItemsSource="{Binding Corps}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                  DoubleTapped="OnCorpDoubleTapped">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Corporation" Binding="{Binding CorporationName}" Width="240"/>
+
+            <DataGridTemplateColumn Header="ISK / LP" Width="120" SortMemberPath="IskPerLp">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:LpCorpValueVm">
+                  <TextBlock Text="{Binding IskPerLpText}" FontSize="11" Foreground="#c8a84b"
+                             TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTemplateColumn Header="Best Offer" Width="110" SortMemberPath="BestIskPerLp">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:LpCorpValueVm">
+                  <TextBlock Text="{Binding BestText}" FontSize="11" Foreground="#4caf50"
+                             TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTextColumn Header="Best Item" Binding="{Binding BestOfferName}" Width="*"/>
+
+            <DataGridTemplateColumn Header="Priced" Width="90" SortMemberPath="ValuedOffers">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:LpCorpValueVm">
+                  <TextBlock Text="{Binding CoverageText}" FontSize="11"
+                             Foreground="{Binding CoverageColor}"
+                             TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"
+                             ToolTip.Tip="Offers that could be priced, out of the store's total. A low ratio means the average rests on a small slice of the catalogue."/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTemplateColumn Header="Your LP" Width="110" SortMemberPath="LpHeld">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:LpCorpValueVm">
+                  <TextBlock Text="{Binding HeldText}" FontSize="11" Foreground="{Binding HeldColor}"
+                             TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTextColumn Header="Holding Worth" Binding="{Binding HoldingValueText}" Width="150"/>
+            <DataGridTextColumn Header="Updated"       Binding="{Binding UpdatedText}"      Width="130"/>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
+    <!-- ── History ─────────────────────────────────────────────────────────── -->
+    <TabItem Header="History">
+      <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
+          <TextBlock Text="Corporation:" FontSize="12" Foreground="#666677" VerticalAlignment="Center"/>
+          <ComboBox ItemsSource="{Binding HistoryCorps}"
+                    SelectedItem="{Binding SelectedHistoryCorp}"
+                    MinWidth="240" FontSize="12">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:LpCorpValueVm">
+                <TextBlock Text="{Binding CorporationName}"/>
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+
+          <TextBlock Text="Period:" FontSize="12" Foreground="#666677" VerticalAlignment="Center" Margin="10 0 0 0"/>
+          <ComboBox ItemsSource="{x:Static vm:LpMarketValuesViewModel.Periods}"
+                    SelectedItem="{Binding SelectedPeriod}"
+                    MinWidth="150" FontSize="12">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:LpHistoryPeriod">
+                <TextBlock Text="{Binding Label}"/>
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </StackPanel>
+
+        <TextBlock Grid.Row="1" Text="{Binding HistoryStatus}" FontSize="11"
+                   Foreground="#555566" TextWrapping="Wrap" Margin="0 0 0 8"/>
+
+        <lvc:CartesianChart Grid.Row="2"
+                            Series="{Binding Series}"
+                            XAxes="{Binding XAxes}"
+                            YAxes="{Binding YAxes}"
+                            TooltipPosition="Top"/>
+      </Grid>
+    </TabItem>
+
+  </TabControl>
+</UserControl>

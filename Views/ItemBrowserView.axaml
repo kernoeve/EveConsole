@@ -648,6 +648,16 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="LP Est. Value" Width="130" SortMemberPath="IskPerLp">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:LpOfferVm">
+                          <TextBlock Text="{Binding IskPerLpText}" FontSize="11"
+                                     Foreground="{Binding IskPerLpColor}"
+                                     TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"
+                                     ToolTip.Tip="Item value less ISK and required items, per LP, both reduced to a single unit."/>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTextColumn Header="Required Items" Binding="{Binding RequiredText}" Width="*"/>
                     <DataGridTextColumn Header="AK" Binding="{Binding AkText}" Width="80"/>
                   </DataGrid.Columns>

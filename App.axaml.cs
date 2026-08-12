@@ -102,8 +102,18 @@ public class App : Application
                 await typePriceHistory.RecalculateAsync(ct);
             };
             buildCostService.AfterRecalculate += ct => reprService.RecalculateAllAsync(ct);
-            // Contract prices refresh on their own loop — re-snapshot when they do.
+
+            // LP values are priced off the market, so they follow the same trigger as build
+            // costs — and run after the gap fill above, so they see final prices rather than
+            // the holes it just closed.
+            var lpValues = Services.GetRequiredService<LpValueService>();
+            buildCostService.AfterRecalculate += ct => lpValues.RecalculateAsync(ct);
+
+            // Contract prices refresh on their own loop — re-snapshot when they do. LP
+            // valuation falls back to contract prices where an item has no market price, so
+            // it has the same reason to re-run.
             contracts.AfterPricing += ct => typePriceHistory.RecalculateAsync(ct);
+            contracts.AfterPricing += ct => lpValues.RecalculateAsync(ct);
 
             desktop.ShutdownRequested += async (_, e) =>
             {
@@ -909,6 +919,27 @@ public class App : Application
                     "TypeId"        INTEGER NOT NULL,
                     "Quantity"      INTEGER NOT NULL DEFAULT 0,
                     PRIMARY KEY ("CorporationId", "OfferId", "TypeId")
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "LpCorpValues" (
+                    "CorporationId" INTEGER NOT NULL PRIMARY KEY,
+                    "IskPerLp"      REAL    NOT NULL DEFAULT 0,
+                    "ValuedOffers"  INTEGER NOT NULL DEFAULT 0,
+                    "TotalOffers"   INTEGER NOT NULL DEFAULT 0,
+                    "BestIskPerLp"  REAL    NOT NULL DEFAULT 0,
+                    "BestTypeId"    INTEGER NOT NULL DEFAULT 0,
+                    "ComputedAt"    TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "LpCorpValueSnapshots" (
+                    "CorporationId" INTEGER NOT NULL,
+                    "Date"          TEXT    NOT NULL,
+                    "IskPerLp"      REAL    NOT NULL DEFAULT 0,
+                    "ValuedOffers"  INTEGER NOT NULL DEFAULT 0,
+                    "ComputedAt"    TEXT    NOT NULL DEFAULT '',
+                    PRIMARY KEY ("CorporationId", "Date")
                 )
                 """);
             db.Database.ExecuteSqlRaw("""
@@ -2207,6 +2238,7 @@ public class App : Application
         services.AddSingleton<MarketHistoryService>();
         services.AddSingleton<ContractsService>();
         services.AddSingleton<LpStoreService>();
+        services.AddSingleton<LpValueService>();
         services.AddSingleton<BuildCostService>();
         services.AddSingleton<ReprocessingValueService>();
         services.AddSingleton<ProductionCalculatorService>();

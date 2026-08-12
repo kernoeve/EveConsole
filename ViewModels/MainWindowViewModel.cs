@@ -50,6 +50,7 @@ public class MainWindowViewModel : ReactiveObject
     public SaleListingViewModel           SaleListingMarketVm    { get; }
     public OrderTrackerViewModel          OrderTrackerVm         { get; }
     public StandingBuyOrdersViewModel     StandingBuyOrdersVm    { get; }
+    public LpMarketValuesViewModel        LpMarketValuesVm       { get; }
     public MarketSettingsViewModel        MarketVm               { get; }
     public TimerSettingsViewModel         TimerVm                { get; }
     public AgentPanelViewModel            AgentVm                { get; }
@@ -379,6 +380,7 @@ public class MainWindowViewModel : ReactiveObject
             "sale_list_market" => ("Sale Listing (Market)", SaleListingMarketVm, true),
             "order_tracker"  => ("Order Tracker",   OrderTrackerVm,    true),
             "standing_buy_orders" => ("Standing Buy Orders", StandingBuyOrdersVm, true),
+            "lp_market_values" => ("LP Market Values", LpMarketValuesVm, true),
             "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
             "killmails"      => ("Killmails",      KillmailBrowserVm, true),
             "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
@@ -577,6 +579,7 @@ public class MainWindowViewModel : ReactiveObject
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
+        LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
@@ -688,6 +691,7 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("sale_posting",  "Sale Posting"),
                 new NavItem("order_tracker", "Order Tracker"),
                 new NavItem("standing_buy_orders", "Standing Buy Orders"),
+                new NavItem("lp_market_values", "LP Market Values"),
                 new NavItem("trade",         "Trade Opportunities"),
                 new NavItem("contracts",     "Contracts"),
             ]),
