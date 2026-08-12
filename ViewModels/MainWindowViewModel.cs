@@ -614,15 +614,6 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("items");
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
         };
-        PlayerEntitiesVm.NavigateToKillmailsAction = (kind, name) =>
-        {
-            OpenTool("killmails");
-            // Set one filter and clear the other, so a second lookup does not silently
-            // intersect with the first.
-            KillmailBrowserVm.FilterChar = kind == KillmailFilterKind.Character ? name : "";
-            KillmailBrowserVm.FilterCorp = kind == KillmailFilterKind.Corporation ? name : "";
-            _ = KillmailBrowserVm.RefreshCommand.Execute().Subscribe();
-        };
         KillmailBrowserVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
