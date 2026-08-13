@@ -259,8 +259,8 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Low Price"  Binding="{Binding LowText}"  FontSize="10" Width="110"/>
-                  <DataGridTextColumn Header="High Price" Binding="{Binding HighText}" FontSize="10" Width="110"/>
+                  <DataGridTextColumn Header="Low Price"  Binding="{Binding LowText}"  SortMemberPath="LowPrice"  FontSize="10" Width="110"/>
+                  <DataGridTextColumn Header="High Price" Binding="{Binding HighText}" SortMemberPath="HighPrice" FontSize="10" Width="110"/>
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -285,8 +285,8 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Low Price"  Binding="{Binding LowText}"  FontSize="10" Width="110"/>
-                  <DataGridTextColumn Header="High Price" Binding="{Binding HighText}" FontSize="10" Width="110"/>
+                  <DataGridTextColumn Header="Low Price"  Binding="{Binding LowText}"  SortMemberPath="LowPrice"  FontSize="10" Width="110"/>
+                  <DataGridTextColumn Header="High Price" Binding="{Binding HighText}" SortMemberPath="HighPrice" FontSize="10" Width="110"/>
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -330,12 +330,23 @@
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="System"    Binding="{Binding System}" FontSize="10"    Width="150"/>
-              <DataGridTextColumn Header="Region"    Binding="{Binding Region}" FontSize="10"    Width="170"/>
-              <DataGridTextColumn Header="Role"      Binding="{Binding Role}" FontSize="10"      Width="90"/>
-              <DataGridTextColumn Header="Contested" Binding="{Binding Contested}" FontSize="10" Width="110"/>
-              <DataGridTextColumn Header="Points"    Binding="{Binding Points}" FontSize="10"    Width="90"/>
-              <DataGridTextColumn Header="Threshold" Binding="{Binding Threshold}" FontSize="10" Width="*"/>
+              <DataGridTextColumn Header="System"    Binding="{Binding System}" FontSize="10"    Width="140"/>
+              <DataGridTextColumn Header="Region"    Binding="{Binding Region}" FontSize="10"    Width="150"/>
+              <DataGridTextColumn Header="Role"      Binding="{Binding Role}" FontSize="10"      Width="80"/>
+              <DataGridTextColumn Header="Owner"     Binding="{Binding Owner}" FontSize="10"     Width="150"/>
+              <!-- Red when it differs from the owner: the system has been taken and not reset. -->
+              <DataGridTemplateColumn Header="Held By" SortMemberPath="Occupier" Width="150">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="svc:FactionWarfareRow">
+                    <TextBlock Text="{Binding Occupier}" Foreground="{Binding OccupierColor}"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Contested" Binding="{Binding Contested}" FontSize="10" Width="100"/>
+              <DataGridTextColumn Header="%"         Binding="{Binding ContestedPercent}" SortMemberPath="Points" FontSize="10" Width="70"/>
+              <DataGridTextColumn Header="Points"    Binding="{Binding PointsText}"    SortMemberPath="Points"    FontSize="10" Width="90"/>
+              <DataGridTextColumn Header="Threshold" Binding="{Binding ThresholdText}" SortMemberPath="Threshold" FontSize="10" Width="*"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>

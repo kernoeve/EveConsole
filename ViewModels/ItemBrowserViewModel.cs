@@ -1625,11 +1625,33 @@ public class ItemBrowserViewModel : ReactiveObject
             var stationNames = stations.ToDictionary(s => (long)s.StationId, s => s.Name);
             var stationSec   = stations.ToDictionary(s => (long)s.StationId, s => s.Security);
 
-            // Player structures carry no security of their own — it belongs to the system they
-            // are anchored in, which the order itself records.
+            // Structures resolve from the name cache the app already fills. Falling back to the
+            // config's own name only works when the source *is* that structure — a region source
+            // returns orders from every public structure in it, and labelling them all
+            // "Player Structure" hides which one each order is actually in.
+            var structureIds = orders
+                .Select(o => o.LocationId)
+                .Where(id => id >= 1_000_000_000_000L)
+                .Distinct().ToList();
+
+            var structures = structureIds.Count > 0
+                ? await _db.EsiStructureNames.AsNoTracking()
+                    .Where(s => structureIds.Contains(s.StructureId))
+                    .Select(s => new { s.StructureId, s.Name, s.SolarSystemId })
+                    .ToListAsync(ct)
+                : [];
+
+            var structureNames = structures.ToDictionary(s => s.StructureId, s => s.Name);
+
+            // A structure carries no security of its own — it belongs to the system the
+            // structure is anchored in, with the order's own system id as the fallback.
+            var structureSystemOf = structures
+                .Where(s => s.SolarSystemId > 0)
+                .ToDictionary(s => s.StructureId, s => s.SolarSystemId);
+
             var structureSystems = orders
                 .Where(o => o.LocationId >= 1_000_000_000_000L)
-                .Select(o => o.SystemId)
+                .Select(o => structureSystemOf.TryGetValue(o.LocationId, out var sid) ? sid : o.SystemId)
                 .Where(id => id > 0)
                 .Distinct().ToList();
 
@@ -1641,17 +1663,20 @@ public class ItemBrowserViewModel : ReactiveObject
 
             if (ct.IsCancellationRequested) return;
 
-            double? GetSecurity(MarketRawOrder o) =>
-                stationSec.TryGetValue(o.LocationId, out var ss) ? ss :
-                systemSec.TryGetValue(o.SystemId, out var sy)    ? sy :
-                null;
+            double? GetSecurity(MarketRawOrder o)
+            {
+                if (stationSec.TryGetValue(o.LocationId, out var ss)) return ss;
+                var sysId = structureSystemOf.TryGetValue(o.LocationId, out var sid) ? sid : o.SystemId;
+                return systemSec.TryGetValue(sysId, out var sy) ? sy : null;
+            }
 
-            string structureName = config.Method == MarketMethod.PlayerStructure
+            string configStructureName = config.Method == MarketMethod.PlayerStructure
                 ? config.LocationName : "Player Structure";
 
             string GetLocation(long locId) =>
                 stationNames.TryGetValue(locId, out var n) ? n :
-                locId >= 1_000_000_000_000L ? structureName :
+                structureNames.TryGetValue(locId, out var sn) && !string.IsNullOrWhiteSpace(sn) ? sn :
+                locId >= 1_000_000_000_000L ? configStructureName :
                 $"Station {locId}";
 
             await Dispatcher.UIThread.InvokeAsync(() =>

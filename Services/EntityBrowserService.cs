@@ -58,7 +58,18 @@ public record NpcOrderItemRow(bool IsBuyOrder, int TypeId, string Item,
     public string HighText => HighPrice.ToString("N2");
 }
 public record LpOfferRow(string Item, int TypeId, int Quantity, string LpCost, string IskCost, string Required);
-public record FactionWarfareRow(string System, string Region, string Contested, int Points, int Threshold, string Role);
+public record FactionWarfareRow(string System, string Region, string Contested, int Points, int Threshold,
+                                string Role, string Owner, string Occupier)
+{
+    /// <summary>Progress toward a flip. The raw pair means little without the ratio.</summary>
+    public string ContestedPercent => Threshold > 0 ? $"{(double)Points / Threshold * 100:0.#}%" : "";
+    public string PointsText       => Points.ToString("N0");
+    public string ThresholdText    => Threshold.ToString("N0");
+
+    /// <summary>A system held by someone other than its owner has been taken and not reset.</summary>
+    public bool   IsOccupied    => Occupier.Length > 0 && Owner.Length > 0 && Occupier != Owner;
+    public string OccupierColor => IsOccupied ? "#c85a5a" : "#7a8896";
+}
 
 public record IntelSightingRow(string When, string System, string Channel, string Ship, string Reporter);
 
@@ -641,18 +652,27 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     public async Task<List<FactionWarfareRow>> FactionWarfareAsync(long factionId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
+        // MapFactionWarfares is a time series — one row per system per hourly bucket — so an
+        // unqualified query returns every snapshot ever taken and the same system appears once
+        // per hour with a different point total. This wants current standings, so it reads the
+        // newest bucket only.
         return await db.Database.SqlQueryRaw<FactionWarfareRow>("""
             SELECT COALESCE(ss."Name", 'System ' || fw."SystemId") AS "System",
                    COALESCE(r."Name",'')       AS "Region",
                    fw."ContestedState"          AS "Contested",
                    fw."VictoryPoints"           AS "Points",
                    fw."VictoryPointsThreshold"  AS "Threshold",
-                   CASE WHEN fw."OwnerFactionId" = @id THEN 'Owner' ELSE 'Occupier' END AS "Role"
+                   CASE WHEN fw."OwnerFactionId" = @id THEN 'Owner' ELSE 'Occupier' END AS "Role",
+                   COALESCE(fo."Name",'')       AS "Owner",
+                   COALESCE(fc."Name",'')       AS "Occupier"
             FROM "MapFactionWarfares" fw
             LEFT JOIN "SdeSolarSystems" ss ON ss."SolarSystemId"   = fw."SystemId"
             LEFT JOIN "SdeConstellations" c ON c."ConstellationId" = ss."ConstellationId"
             LEFT JOIN "SdeRegions" r        ON r."RegionId"        = c."RegionId"
-            WHERE fw."OwnerFactionId" = @id OR fw."OccupierFactionId" = @id
+            LEFT JOIN "SdeFactions" fo      ON fo."FactionId"      = fw."OwnerFactionId"
+            LEFT JOIN "SdeFactions" fc      ON fc."FactionId"      = fw."OccupierFactionId"
+            WHERE fw."Bucket" = (SELECT MAX("Bucket") FROM "MapFactionWarfares")
+              AND (fw."OwnerFactionId" = @id OR fw."OccupierFactionId" = @id)
             ORDER BY CASE WHEN fw."ContestedState" IN ('contested','captured') THEN 0 ELSE 1 END,
                      r."Name", ss."Name"
             """, new SqliteParameter("@id", factionId)).ToListAsync(ct);
