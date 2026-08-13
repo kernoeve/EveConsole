@@ -51,13 +51,16 @@ public class FittingRow : ReactiveObject
     public string Source => FromAssets ? "assets" : "manual";
 }
 
-/// <summary>An asset sitting in the selected structure.</summary>
+/// <summary>An asset sitting in the selected structure, at any depth.</summary>
 public class StructureAssetRow
 {
-    public string TypeName { get; init; } = "";
-    public string Location { get; init; } = "";
-    public long   Quantity { get; init; }
-    public string Owner    { get; init; } = "";
+    public string TypeName  { get; init; } = "";
+    public string Location  { get; init; } = "";
+    /// <summary>The container it is inside, empty when it sits directly in the structure. Without
+    /// this a hangar full of cans reads as one flat list and there is no telling what is where.</summary>
+    public string Container { get; init; } = "";
+    public long   Quantity  { get; init; }
+    public string Owner     { get; init; } = "";
 }
 
 /// <summary>An industry job run at the selected structure.</summary>
@@ -139,9 +142,19 @@ public class StructureBrowserViewModel : ReactiveObject
     /// <summary>Who last wrote this row and when — the reason UpdatedBy exists.</summary>
     public string Provenance { get => _provenance; private set => this.RaiseAndSetIfChanged(ref _provenance, value); }
 
-    public ObservableCollection<FittingRow>       Fitting { get; } = [];
+    public ObservableCollection<FittingRow>        Fitting { get; } = [];
     public ObservableCollection<StructureAssetRow> Assets  { get; } = [];
+    public ObservableCollection<StructureAssetRow> Cargo   { get; } = [];
+    public ObservableCollection<StructureAssetRow> Fuel    { get; } = [];
     public ObservableCollection<StructureJobRow>   Jobs    { get; } = [];
+
+    private Avalonia.Media.Imaging.Bitmap? _typeRender;
+    /// <summary>Render of the structure's hull, refreshed whenever the selected type changes.</summary>
+    public Avalonia.Media.Imaging.Bitmap? TypeRender
+    {
+        get => _typeRender;
+        private set => this.RaiseAndSetIfChanged(ref _typeRender, value);
+    }
 
     private string _detailStatus = "";
     public string DetailStatus { get => _detailStatus; private set => this.RaiseAndSetIfChanged(ref _detailStatus, value); }
@@ -292,9 +305,13 @@ public class StructureBrowserViewModel : ReactiveObject
     {
         Fitting.Clear();
         Assets.Clear();
+        Cargo.Clear();
+        Fuel.Clear();
         Jobs.Clear();
 
-        if (row is null) { DetailStatus = ""; Provenance = ""; return; }
+        if (row is null) { DetailStatus = ""; Provenance = ""; TypeRender = null; return; }
+
+        _ = LoadTypeRenderAsync(row.TypeId);
 
         try
         {
@@ -364,13 +381,20 @@ public class StructureBrowserViewModel : ReactiveObject
             }
 
             // ── Assets stored here ───────────────────────────────────────────
-            // Fitted modules are excluded: they are the Fitting tab's subject, and listing them
-            // here again as though they were cargo misrepresents what is actually stored.
+            // ⚠️ RootLocationId, not LocationId. An item inside a container has the CONTAINER as
+            // its LocationId, so matching on that alone shows only what sits loose in the
+            // structure and silently hides everything packed away. RootLocationId is the
+            // structure however deep the item is nested.
             var assets = await db.EsiAssets.AsNoTracking()
-                .Where(a => a.LocationId == row.StructureId && !a.LocationFlag.Contains("Slot"))
-                .Select(a => new { a.TypeId, a.Quantity, a.LocationFlag, a.OwnerId, a.OwnerType })
-                .Take(2000)
+                .Where(a => (a.RootLocationId == row.StructureId || a.LocationId == row.StructureId)
+                            && !a.LocationFlag.Contains("Slot"))
+                .Select(a => new { a.ItemId, a.TypeId, a.Quantity, a.LocationId, a.LocationFlag,
+                                   a.OwnerId, a.OwnerType })
+                .Take(5000)
                 .ToListAsync();
+
+            // Containers are themselves assets, so their name comes from the same list.
+            var containerTypes = assets.ToDictionary(a => a.ItemId, a => a.TypeId);
 
             // Owner names rather than "character"/"corporation", which said nothing useful.
             var charNames = await db.Characters.AsNoTracking()
@@ -403,21 +427,35 @@ public class StructureBrowserViewModel : ReactiveObject
             }
 
             foreach (var a in assets.OrderBy(a => a.LocationFlag))
-                Assets.Add(new StructureAssetRow
+            {
+                var vm = new StructureAssetRow
                 {
-                    TypeName = typeNames.GetValueOrDefault(a.TypeId, $"Type {a.TypeId}"),
-                    Location = WhereFrom(a.OwnerId, a.OwnerType, a.LocationFlag),
-                    Quantity = a.Quantity,
-                    Owner    = OwnerName(a.OwnerId, a.OwnerType),
-                });
+                    TypeName  = typeNames.GetValueOrDefault(a.TypeId, $"Type {a.TypeId}"),
+                    Location  = WhereFrom(a.OwnerId, a.OwnerType, a.LocationFlag),
+                    Container = a.LocationId != row.StructureId
+                                  && containerTypes.TryGetValue(a.LocationId, out var ct)
+                                    ? typeNames.GetValueOrDefault(ct, $"Type {ct}")
+                                    : "",
+                    Quantity  = a.Quantity,
+                    Owner     = OwnerName(a.OwnerId, a.OwnerType),
+                };
+
+                // Cargo and fuel get their own tabs: a fuel bay is a running cost and a ship's
+                // cargo is in transit, neither of which belongs in a list of what is stored.
+                if (a.LocationFlag == "StructureFuel") Fuel.Add(vm);
+                else if (a.LocationFlag == "Cargo")    Cargo.Add(vm);
+                else                                   Assets.Add(vm);
+            }
 
             // ── Industry jobs run here ───────────────────────────────────────
             // ⚠️ Ordered in memory. EF Core's SQLite provider cannot translate a DateTimeOffset
             // into an ORDER BY and throws rather than degrading — the same trap that bites any
             // date comparison against these tables. Jobs at one structure are few enough that
             // fetching them all and sorting here costs nothing.
+            // ⚠️ FacilityId, not StationId. StationId is 0 on every row we hold — measured across
+            // 1,470 jobs, FacilityId matched a structure 1,320 times and StationId never once.
             var jobs = (await db.EsiIndustryJobs.AsNoTracking()
-                .Where(j => j.StationId == row.StructureId)
+                .Where(j => j.FacilityId == row.StructureId)
                 .Select(j => new { j.ActivityId, j.ProductTypeId, j.Runs, j.Status, j.EndDate })
                 .ToListAsync())
                 .OrderByDescending(j => j.EndDate)
@@ -437,9 +475,46 @@ public class StructureBrowserViewModel : ReactiveObject
                     EndDate  = j.EndDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),
                 });
 
-            DetailStatus = $"{Fitting.Count} fitted · {Assets.Count:N0} asset(s) · {Jobs.Count:N0} job(s)";
+            DetailStatus =
+                $"{Fitting.Count} fitted · {Assets.Count:N0} stored · {Cargo.Count:N0} cargo · " +
+                $"{Fuel.Count:N0} fuel · {Jobs.Count:N0} job(s)";
         }
         catch (Exception ex) { DetailStatus = $"Detail load failed: {ex.Message}"; }
+    }
+
+    /// <summary>Renders of structure hulls, kept for the session — they are a few hundred KB each
+    /// and the same handful of types recur constantly as the user moves down the list.</summary>
+    private static readonly Dictionary<int, Avalonia.Media.Imaging.Bitmap?> _renderCache = new();
+    private static readonly HttpClient _renderHttp = new() { Timeout = TimeSpan.FromSeconds(20) };
+
+    /// <summary>
+    /// Fetches the hull render for a structure type. Follows the selected row rather than the
+    /// stored type, so changing the type on the Details tab changes the picture with it.
+    /// </summary>
+    private async Task LoadTypeRenderAsync(long typeId)
+    {
+        if (typeId <= 0) { TypeRender = null; return; }
+
+        var id = (int)typeId;
+        if (_renderCache.TryGetValue(id, out var cached)) { TypeRender = cached; return; }
+
+        try
+        {
+            var bytes = await _renderHttp.GetByteArrayAsync(
+                $"https://images.evetech.net/types/{id}/render?size=256");
+
+            using var ms = new MemoryStream(bytes);
+            var bmp = new Avalonia.Media.Imaging.Bitmap(ms);
+            _renderCache[id] = bmp;
+
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => TypeRender = bmp);
+        }
+        catch
+        {
+            // Not every type has a render, and a missing picture is not worth a visible error.
+            _renderCache[id] = null;
+            TypeRender = null;
+        }
     }
 
     private static string ActivityName(int activityId) => activityId switch

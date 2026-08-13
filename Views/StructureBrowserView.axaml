@@ -172,7 +172,17 @@
             <!-- ── Details: the editable record ────────────────────── -->
             <TabItem Header="Details">
               <ScrollViewer Margin="4 8 4 0">
-                <StackPanel Spacing="8" MaxWidth="620" HorizontalAlignment="Left">
+                <Grid ColumnDefinitions="Auto,*">
+
+                <!-- Hull render, so the type is recognisable at a glance rather than read. -->
+                <Border Grid.Column="0" Width="200" Height="200" Margin="0 0 18 0"
+                        Background="#0d0d12" CornerRadius="4"
+                        BorderBrush="#1e1e2a" BorderThickness="1"
+                        VerticalAlignment="Top">
+                  <Image Source="{Binding TypeRender}" Stretch="Uniform" Margin="6" />
+                </Border>
+
+                <StackPanel Grid.Column="1" Spacing="8" MaxWidth="620" HorizontalAlignment="Left">
 
                   <StackPanel>
                     <TextBlock Classes="flabel" Text="NAME" />
@@ -206,6 +216,7 @@
                   </StackPanel>
 
                 </StackPanel>
+                </Grid>
               </ScrollViewer>
             </TabItem>
 
@@ -226,14 +237,44 @@
             <!-- ── Assets ──────────────────────────────────────────── -->
             <TabItem Header="Assets">
               <DataGrid ItemsSource="{Binding Assets}" AutoGenerateColumns="False"
-                        IsReadOnly="True" FontSize="11" RowHeight="22"
+                        IsReadOnly="True" RowHeight="22"
                         Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Item"     Binding="{Binding TypeName}" Width="*" />
-                  <DataGridTextColumn Header="Where"    Binding="{Binding Location}" Width="140" />
-                  <DataGridTextColumn Header="Qty"      Binding="{Binding Quantity}" Width="90" />
-                  <DataGridTextColumn Header="Owner"    Binding="{Binding Owner}"    Width="110" />
+                  <DataGridTextColumn Header="Item"      Binding="{Binding TypeName}"  Width="*" />
+                  <DataGridTextColumn Header="Container" Binding="{Binding Container}" Width="200" />
+                  <DataGridTextColumn Header="Where"     Binding="{Binding Location}"  Width="170" />
+                  <DataGridTextColumn Header="Qty"       Binding="{Binding Quantity}"  Width="90" />
+                  <DataGridTextColumn Header="Owner"     Binding="{Binding Owner}"     Width="130" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </TabItem>
+
+            <!-- ── Cargo ───────────────────────────────────────────── -->
+            <TabItem Header="Cargo">
+              <DataGrid ItemsSource="{Binding Cargo}" AutoGenerateColumns="False"
+                        IsReadOnly="True" RowHeight="22"
+                        Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Item"      Binding="{Binding TypeName}"  Width="*" />
+                  <DataGridTextColumn Header="Container" Binding="{Binding Container}" Width="200" />
+                  <DataGridTextColumn Header="Qty"       Binding="{Binding Quantity}"  Width="90" />
+                  <DataGridTextColumn Header="Owner"     Binding="{Binding Owner}"     Width="130" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </TabItem>
+
+            <!-- ── Fuel ────────────────────────────────────────────── -->
+            <TabItem Header="Fuel">
+              <DataGrid ItemsSource="{Binding Fuel}" AutoGenerateColumns="False"
+                        IsReadOnly="True" RowHeight="22"
+                        Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Item"  Binding="{Binding TypeName}" Width="*" />
+                  <DataGridTextColumn Header="Qty"   Binding="{Binding Quantity}" Width="120" />
+                  <DataGridTextColumn Header="Owner" Binding="{Binding Owner}"    Width="130" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
