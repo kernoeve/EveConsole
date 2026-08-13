@@ -425,6 +425,12 @@
               <DataTemplate DataType="vm:LpMarketValuesViewModel">
                 <views:LpMarketValuesView />
               </DataTemplate>
+              <DataTemplate DataType="vm:PlayerEntitiesViewModel">
+                <views:PlayerEntitiesView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:NpcEntitiesViewModel">
+                <views:NpcEntitiesView />
+              </DataTemplate>
               <DataTemplate DataType="vm:GameLogViewerViewModel">
                 <views:GameLogViewerView />
               </DataTemplate>

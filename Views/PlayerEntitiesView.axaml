@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
+             x:Class="EveConsole.Views.PlayerEntitiesView"
+             x:DataType="vm:PlayerEntitiesViewModel">
+  <TabControl SelectedIndex="{Binding SelectedTabIndex}" Padding="0" Background="Transparent">
+    <TabItem Header="Pilots">
+      <views:EntityTabView DataContext="{Binding Pilots}"/>
+    </TabItem>
+    <TabItem Header="Corporations">
+      <views:EntityTabView DataContext="{Binding Corps}"/>
+    </TabItem>
+    <TabItem Header="Alliances">
+      <views:EntityTabView DataContext="{Binding Alliances}"/>
+    </TabItem>
+  </TabControl>
+</UserControl>

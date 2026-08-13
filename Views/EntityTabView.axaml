@@ -1,0 +1,407 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:svc="clr-namespace:EveConsole.Services"
+             x:Class="EveConsole.Views.EntityTabView"
+             x:DataType="vm:EntityTabViewModel">
+
+  <UserControl.Styles>
+    <!-- Cells and headers both, matching the Chat Log viewer. A DataGrid does not pass its
+         FontSize down to either, so setting it on the grid alone left them at the default. -->
+    <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="10" /></Style>
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="Background" Value="#12121a" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding"    Value="6 5 2 5" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="14 12">
+
+    <!-- Search. Nothing is listed until something is typed: there are 57,000 known
+         characters, and an opening page of them would be noise. Unknown names fall
+         through to an ESI search and are cached on the way back. -->
+    <AutoCompleteBox Grid.Row="0"
+                     Text="{Binding SearchText}"
+                     SelectedItem="{Binding SelectedMatch}"
+                     AsyncPopulator="{Binding Populator}"
+                     ValueMemberBinding="{Binding Name}"
+                     FilterMode="None"
+                     MinimumPrefixLength="2"
+                     MinimumPopulateDelay="0:0:0.35"
+                     MaxDropDownHeight="320"
+                     FontSize="12"
+                     Watermark="Type at least two characters to search…">
+      <AutoCompleteBox.ItemTemplate>
+        <DataTemplate x:DataType="svc:EntityMatch">
+          <Grid ColumnDefinitions="*,Auto" MinWidth="380">
+            <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11.5" Foreground="#ddd"/>
+            <TextBlock Grid.Column="1" Text="{Binding Subtitle}" FontSize="10" Foreground="#7a8896"
+                       Margin="12 0 0 0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                       MaxWidth="320"/>
+          </Grid>
+        </DataTemplate>
+      </AutoCompleteBox.ItemTemplate>
+    </AutoCompleteBox>
+
+    <TextBlock Grid.Row="1" Text="{Binding SearchNote}" FontSize="10" Foreground="#aa7744"
+               TextWrapping="Wrap" Margin="0 5 0 0"
+               IsVisible="{Binding SearchNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+    <TextBlock Grid.Row="3" IsVisible="{Binding NoSelection}"
+               Text="Search above and pick an entity to see its details."
+               FontSize="12" Foreground="#555566"
+               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+    <!-- ── General info: above the sub-tabs, so it stays visible on all of them ── -->
+    <Border Grid.Row="2" IsVisible="{Binding HasSelection}"
+            Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="4"
+            Padding="12 10" Margin="0 8 0 0">
+      <Grid ColumnDefinitions="Auto,*">
+
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0 0 14 0" VerticalAlignment="Top">
+          <Border Width="96" Height="96"
+                  Background="#0d0d14" BorderBrush="#252530" BorderThickness="1" CornerRadius="3">
+            <Image Source="{Binding Image}" Stretch="Uniform"/>
+          </Border>
+
+          <!-- Corp over alliance at half height, the same stack the killmail rows use. -->
+          <StackPanel Margin="4 0 0 0" IsVisible="{Binding HasAffiliation}">
+            <Border Width="46" Height="46" Background="#0d0d14" BorderBrush="#252530"
+                    BorderThickness="1" CornerRadius="3" Margin="0 0 0 4">
+              <Image Source="{Binding CorpLogo}" Stretch="Uniform"/>
+            </Border>
+            <Border Width="46" Height="46" Background="#0d0d14" BorderBrush="#252530"
+                    BorderThickness="1" CornerRadius="3">
+              <Image Source="{Binding AllianceLogo}" Stretch="Uniform"/>
+            </Border>
+          </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Spacing="3">
+          <TextBlock Text="{Binding Name}"     FontSize="15" FontWeight="SemiBold" Foreground="#c8a84b"/>
+          <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="#7a8896" Margin="0 0 0 4"/>
+
+          <!-- Facts wrap into columns so a tall list does not push the sub-tabs off screen. -->
+          <ItemsControl ItemsSource="{Binding Facts}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="svc:EntityFact">
+                <StackPanel Orientation="Horizontal" Width="300" Margin="0 2 14 2">
+                  <TextBlock Text="{Binding Label}" FontSize="10" Foreground="#666677"
+                             Width="105" TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Text="{Binding Value}" FontSize="10" Foreground="#ccc"
+                             IsVisible="{Binding IsPlain}"
+                             TextTrimming="CharacterEllipsis" MaxWidth="190"/>
+                  <Button Content="{Binding Value}"
+                          IsVisible="{Binding !IsPlain}"
+                          Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenFactCommand}"
+                          CommandParameter="{Binding}"
+                          Background="Transparent" BorderThickness="0" Padding="0"
+                          FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                          HorizontalContentAlignment="Left" MaxWidth="190"/>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- ── Sub-tabs ───────────────────────────────────────────────────────── -->
+    <TabControl Grid.Row="3" IsVisible="{Binding HasSelection}" Margin="0 8 0 0"
+                Padding="0" Background="Transparent">
+
+      <!-- Multi-line, so it gets a tab of its own rather than crowding the header. -->
+      <TabItem Header="Description" IsVisible="{Binding HasDescription}">
+        <ScrollViewer Padding="6 10">
+          <TextBlock Text="{Binding Description}" FontSize="11" Foreground="#bbc"
+                     TextWrapping="Wrap"/>
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="Kills / Losses" IsVisible="{Binding HasKills}">
+        <Grid RowDefinitions="Auto,*" Margin="0 6">
+          <TextBlock Grid.Row="0" Text="{Binding KillsStatus}" FontSize="10" Foreground="#555566"
+                     Margin="4 0 0 6"/>
+          <!-- The Killmail Browser's own row, from the shared template — same layout,
+               ship render, logos and security colouring. -->
+          <ListBox Grid.Row="1" ItemsSource="{Binding Kills}"
+                   Background="Transparent" BorderThickness="0"
+                   ItemTemplate="{StaticResource KillmailRowTemplate}"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                   DoubleTapped="OnKillmailDoubleTapped">
+            <ListBox.Styles>
+              <Style Selector="ListBoxItem">
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin"  Value="0" />
+              </Style>
+              <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                <Setter Property="Background" Value="#141420" />
+              </Style>
+            </ListBox.Styles>
+          </ListBox>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="{Binding MembersHeader}" IsVisible="{Binding HasMembers}">
+        <Grid RowDefinitions="Auto,*" Margin="4 6">
+          <TextBlock Grid.Row="0" Text="{Binding MembersStatus}" FontSize="10" Foreground="#555566"
+                     TextWrapping="Wrap" Margin="0 0 0 6"/>
+          <DataGrid Grid.Row="1" ItemsSource="{Binding Members}" x:Name="MembersGrid"
+                    IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                    DoubleTapped="OnMemberDoubleTapped">
+            <DataGrid.Columns>
+              <DataGridTemplateColumn Header="Name" Width="320" SortMemberPath="Name">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="svc:EntityMemberRow">
+                    <Button Content="{Binding Name}"
+                            Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenMemberCommand}"
+                            CommandParameter="{Binding}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Details"  Binding="{Binding Subtitle}" FontSize="10" Width="*"
+                                  IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowMemberSubtitle}"/>
+              <DataGridTextColumn Header="Lvl"      Binding="{Binding Level}"    FontSize="10" Width="55"
+                                  IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentColumns}"/>
+              <DataGridTextColumn Header="Division" Binding="{Binding Division}" FontSize="10" Width="140"
+                                  IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentColumns}"/>
+              <DataGridTemplateColumn Header="Station" Width="*" SortMemberPath="Station"
+                                      IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentStation}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="svc:EntityMemberRow">
+                    <Button Content="{Binding Station}"
+                            Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenStationCommand}"
+                            CommandParameter="{Binding StationId}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"
+                            ToolTip.Tip="Open in the Stations tab"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="ID"      Binding="{Binding Id}" FontSize="10"       Width="110"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="{Binding HistoryHeader}" IsVisible="{Binding HasHistory}">
+        <Grid RowDefinitions="Auto,*" Margin="4 6">
+          <TextBlock Grid.Row="0" Text="{Binding HistoryStatus}" FontSize="10" Foreground="#555566"
+                     TextWrapping="Wrap" Margin="0 0 0 6"/>
+          <DataGrid Grid.Row="1" ItemsSource="{Binding History}"
+                    IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                    DoubleTapped="OnHistoryDoubleTapped">
+            <DataGrid.Columns>
+              <DataGridTemplateColumn Width="*" SortMemberPath="Alliance"
+                  Header="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).HistoryEntityHeader}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="svc:EntityHistoryRow">
+                    <Button Content="{Binding Alliance}"
+                            Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenHistoryCommand}"
+                            CommandParameter="{Binding}"
+                            IsEnabled="{Binding LinkId}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="From"     Binding="{Binding From}" FontSize="10"     Width="130"/>
+              <DataGridTextColumn Header="Until"    Binding="{Binding Until}" FontSize="10"    Width="130"/>
+              <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" FontSize="10" Width="130"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Stations" IsVisible="{Binding HasStations}">
+        <Grid RowDefinitions="Auto,*" Margin="4 6">
+          <TextBlock Grid.Row="0" Text="{Binding StationsStatus}" FontSize="10" Foreground="#555566" Margin="0 0 0 6"/>
+          <DataGrid Grid.Row="1" ItemsSource="{Binding Stations}"
+                    IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+            <DataGrid.Columns>
+              <DataGridTemplateColumn Header="Station" Width="*" SortMemberPath="Name">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="svc:EntityStationRow">
+                    <Button Content="{Binding Name}"
+                            Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenStationCommand}"
+                            CommandParameter="{Binding StationId}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"
+                            ToolTip.Tip="Open in the Stations tab"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="System"   Binding="{Binding System}" FontSize="10"   Width="130"/>
+              <DataGridTextColumn Header="Region"   Binding="{Binding Region}" FontSize="10"   Width="150"/>
+              <DataGridTemplateColumn Header="Sec" Width="60" SortMemberPath="Security">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="svc:EntityStationRow">
+                    <TextBlock Text="{Binding SecurityText}" Foreground="{Binding SecurityColor}"
+                               ToolTip.Tip="{Binding SecurityTip}"
+                               FontWeight="SemiBold" VerticalAlignment="Center"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Agents"   Binding="{Binding Agents}" FontSize="10"   Width="70"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+      <!-- Sells and buys are separate questions — "what can I get here" versus "what will they
+           take off me" — so they get a grid each rather than a side column to scan past. -->
+      <TabItem Header="Orders" IsVisible="{Binding HasOrders}">
+        <Grid RowDefinitions="Auto,*" Margin="4 6">
+          <TextBlock Grid.Row="0" Text="{Binding OrdersStatus}" FontSize="10" Foreground="#555566" Margin="0 0 0 6"/>
+          <Grid Grid.Row="1" ColumnDefinitions="*,10,*">
+            <Grid Grid.Column="0" RowDefinitions="Auto,*">
+              <TextBlock Grid.Row="0" Text="Sells" FontSize="11" FontWeight="SemiBold"
+                         Foreground="#c8a84b" Margin="0 0 0 4"/>
+              <DataGrid Grid.Row="1" ItemsSource="{Binding Sells}"
+                        IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="svc:NpcOrderItemRow">
+                        <Button Content="{Binding Item}"
+                                Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenItemCommand}"
+                                CommandParameter="{Binding TypeId}"
+                                Background="Transparent" BorderThickness="0" Padding="0"
+                                FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                                HorizontalContentAlignment="Left" VerticalAlignment="Center"
+                                ToolTip.Tip="Open in Item Browser"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Low Price"  Binding="{Binding LowText}"  SortMemberPath="LowPrice"  FontSize="10" Width="110"/>
+                  <DataGridTextColumn Header="High Price" Binding="{Binding HighText}" SortMemberPath="HighPrice" FontSize="10" Width="110"/>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+
+            <Grid Grid.Column="2" RowDefinitions="Auto,*">
+              <TextBlock Grid.Row="0" Text="Buys" FontSize="11" FontWeight="SemiBold"
+                         Foreground="#5aa469" Margin="0 0 0 4"/>
+              <DataGrid Grid.Row="1" ItemsSource="{Binding Buys}"
+                        IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="svc:NpcOrderItemRow">
+                        <Button Content="{Binding Item}"
+                                Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenItemCommand}"
+                                CommandParameter="{Binding TypeId}"
+                                Background="Transparent" BorderThickness="0" Padding="0"
+                                FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                                HorizontalContentAlignment="Left" VerticalAlignment="Center"
+                                ToolTip.Tip="Open in Item Browser"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Low Price"  Binding="{Binding LowText}"  SortMemberPath="LowPrice"  FontSize="10" Width="110"/>
+                  <DataGridTextColumn Header="High Price" Binding="{Binding HighText}" SortMemberPath="HighPrice" FontSize="10" Width="110"/>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Grid>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="LP Offers" IsVisible="{Binding HasLpOffers}">
+        <Grid RowDefinitions="Auto,*" Margin="4 6">
+          <TextBlock Grid.Row="0" Text="{Binding LpOffersStatus}" FontSize="10" Foreground="#555566" Margin="0 0 0 6"/>
+          <DataGrid Grid.Row="1" ItemsSource="{Binding LpOffers}"
+                    IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+            <DataGrid.Columns>
+              <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="svc:LpOfferRow">
+                    <Button Content="{Binding Item}"
+                            Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenItemCommand}"
+                            CommandParameter="{Binding TypeId}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"
+                            ToolTip.Tip="Open in Item Browser"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Qty"      Binding="{Binding Quantity}" FontSize="10" Width="80"/>
+              <DataGridTextColumn Header="LP"       Binding="{Binding LpCost}" FontSize="10"   Width="110"/>
+              <DataGridTextColumn Header="ISK"      Binding="{Binding IskCost}" FontSize="10"  Width="130"/>
+              <DataGridTextColumn Header="Requires" Binding="{Binding Required}" FontSize="10" Width="300"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Faction Warfare" IsVisible="{Binding HasWarfare}">
+        <Grid RowDefinitions="Auto,*" Margin="4 6">
+          <TextBlock Grid.Row="0" Text="{Binding WarfareStatus}" FontSize="10" Foreground="#555566" Margin="0 0 0 6"/>
+          <DataGrid Grid.Row="1" ItemsSource="{Binding Warfare}"
+                    IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="System"    Binding="{Binding System}" FontSize="10"    Width="140"/>
+              <DataGridTextColumn Header="Region"    Binding="{Binding Region}" FontSize="10"    Width="150"/>
+              <DataGridTextColumn Header="Role"      Binding="{Binding Role}" FontSize="10"      Width="80"/>
+              <DataGridTextColumn Header="Owner"     Binding="{Binding Owner}" FontSize="10"     Width="150"/>
+              <!-- Red when it differs from the owner: the system has been taken and not reset. -->
+              <DataGridTemplateColumn Header="Held By" SortMemberPath="Occupier" Width="150">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="svc:FactionWarfareRow">
+                    <TextBlock Text="{Binding Occupier}" Foreground="{Binding OccupierColor}"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Contested" Binding="{Binding Contested}" FontSize="10" Width="100"/>
+              <DataGridTextColumn Header="%"         Binding="{Binding ContestedPercent}" SortMemberPath="Points" FontSize="10" Width="70"/>
+              <DataGridTextColumn Header="Points"    Binding="{Binding PointsText}"    SortMemberPath="Points"    FontSize="10" Width="90"/>
+              <DataGridTextColumn Header="Threshold" Binding="{Binding ThresholdText}" SortMemberPath="Threshold" FontSize="10" Width="*"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Intel Reports" IsVisible="{Binding HasIntel}">
+        <Grid RowDefinitions="Auto,*" Margin="4 6">
+          <TextBlock Grid.Row="0" Text="{Binding IntelStatus}" FontSize="10" Foreground="#555566"
+                     TextWrapping="Wrap" Margin="0 0 0 6"/>
+          <DataGrid Grid.Row="1" ItemsSource="{Binding Intel}"
+                    IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="When"     Binding="{Binding When}" FontSize="10"     Width="130"/>
+              <DataGridTextColumn Header="System"   Binding="{Binding System}" FontSize="10"   Width="130"/>
+              <DataGridTextColumn Header="Ship"     Binding="{Binding Ship}" FontSize="10"     Width="160"/>
+              <DataGridTextColumn Header="Channel"  Binding="{Binding Channel}" FontSize="10"  Width="140"/>
+              <DataGridTextColumn Header="Reporter" Binding="{Binding Reporter}" FontSize="10" Width="*"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+    </TabControl>
+  </Grid>
+</UserControl>

@@ -2206,6 +2206,13 @@ public class App : Application
         {
             client.BaseAddress = new Uri("https://esi.evetech.net/latest/");
             client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
+
+            // Pins the ESI schema version. Without it the API answers as of its own default
+            // date and newer fields are simply absent from the payload — achievement_score
+            // on /characters/{id}/ is the case that surfaced this. Raise it deliberately
+            // when adopting a newer field, having checked nothing else in that release
+            // changes shape underneath us.
+            client.DefaultRequestHeaders.Add("X-Compatibility-Date", "2026-08-01");
         });
 
         // Separate client for the public /status/ check. Kept apart from "esi" on purpose:

@@ -718,6 +718,16 @@
                                           Binding="{ReflectionBinding LocationName}"
                                           SortMemberPath="LocationName"
                                           Width="*" />
+                      <DataGridTemplateColumn Header="Sec" SortMemberPath="Security" Width="55">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate>
+                            <TextBlock Text="{ReflectionBinding SecurityText}"
+                                       Foreground="{ReflectionBinding SecurityColor}"
+                                       ToolTip.Tip="{ReflectionBinding SecurityTip}"
+                                       FontWeight="SemiBold" VerticalAlignment="Center" />
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
                       <DataGridTextColumn Header="Expires"
                                           Binding="{ReflectionBinding ExpiresText}"
                                           SortMemberPath="Expires"
@@ -765,6 +775,16 @@
                                           Binding="{ReflectionBinding LocationName}"
                                           SortMemberPath="LocationName"
                                           Width="*" />
+                      <DataGridTemplateColumn Header="Sec" SortMemberPath="Security" Width="55">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate>
+                            <TextBlock Text="{ReflectionBinding SecurityText}"
+                                       Foreground="{ReflectionBinding SecurityColor}"
+                                       ToolTip.Tip="{ReflectionBinding SecurityTip}"
+                                       FontWeight="SemiBold" VerticalAlignment="Center" />
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
                       <DataGridTextColumn Header="Expires"
                                           Binding="{ReflectionBinding ExpiresText}"
                                           SortMemberPath="Expires"
