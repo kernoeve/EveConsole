@@ -5,6 +5,19 @@
              x:Class="EveConsole.Views.EntityTabView"
              x:DataType="vm:EntityTabViewModel">
 
+  <UserControl.Styles>
+    <!-- Cells and headers both, matching the Chat Log viewer. A DataGrid does not pass its
+         FontSize down to either, so setting it on the grid alone left them at the default. -->
+    <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="10" /></Style>
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="Background" Value="#12121a" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding"    Value="6 5 2 5" />
+    </Style>
+  </UserControl.Styles>
+
   <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="14 12">
 
     <!-- Search. Nothing is listed until something is typed: there are 57,000 known
@@ -145,9 +158,20 @@
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                     DoubleTapped="OnMemberDoubleTapped">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Name"    Binding="{Binding Name}"     Width="320"/>
-              <DataGridTextColumn Header="Details" Binding="{Binding Subtitle}" Width="*"/>
-              <DataGridTextColumn Header="ID"      Binding="{Binding Id}"       Width="110"/>
+              <DataGridTemplateColumn Header="Name" Width="320" SortMemberPath="Name">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="svc:EntityMemberRow">
+                    <Button Content="{Binding Name}"
+                            Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenMemberCommand}"
+                            CommandParameter="{Binding}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Details" Binding="{Binding Subtitle}" FontSize="10" Width="*"/>
+              <DataGridTextColumn Header="ID"      Binding="{Binding Id}" FontSize="10"       Width="110"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>
@@ -162,11 +186,23 @@
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                     DoubleTapped="OnHistoryDoubleTapped">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).HistoryEntityHeader}"
-                                  Binding="{Binding Alliance}" Width="*"/>
-              <DataGridTextColumn Header="From"     Binding="{Binding From}"     Width="130"/>
-              <DataGridTextColumn Header="Until"    Binding="{Binding Until}"    Width="130"/>
-              <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="130"/>
+              <DataGridTemplateColumn Width="*" SortMemberPath="Alliance"
+                  Header="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).HistoryEntityHeader}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="svc:EntityHistoryRow">
+                    <Button Content="{Binding Alliance}"
+                            Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenHistoryCommand}"
+                            CommandParameter="{Binding}"
+                            IsEnabled="{Binding LinkId}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="From"     Binding="{Binding From}" FontSize="10"     Width="130"/>
+              <DataGridTextColumn Header="Until"    Binding="{Binding Until}" FontSize="10"    Width="130"/>
+              <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" FontSize="10" Width="130"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>
@@ -179,11 +215,11 @@
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Station"  Binding="{Binding Name}"     Width="*"/>
-              <DataGridTextColumn Header="System"   Binding="{Binding System}"   Width="130"/>
-              <DataGridTextColumn Header="Region"   Binding="{Binding Region}"   Width="150"/>
-              <DataGridTextColumn Header="Sec"      Binding="{Binding Security}" Width="60"/>
-              <DataGridTextColumn Header="Agents"   Binding="{Binding Agents}"   Width="70"/>
+              <DataGridTextColumn Header="Station"  Binding="{Binding Name}" FontSize="10"     Width="*"/>
+              <DataGridTextColumn Header="System"   Binding="{Binding System}" FontSize="10"   Width="130"/>
+              <DataGridTextColumn Header="Region"   Binding="{Binding Region}" FontSize="10"   Width="150"/>
+              <DataGridTextColumn Header="Sec"      Binding="{Binding Security}" FontSize="10" Width="60"/>
+              <DataGridTextColumn Header="Agents"   Binding="{Binding Agents}" FontSize="10"   Width="70"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>
@@ -196,11 +232,23 @@
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Item"     Binding="{Binding Item}"     Width="*"/>
-              <DataGridTextColumn Header="Qty"      Binding="{Binding Quantity}" Width="80"/>
-              <DataGridTextColumn Header="LP"       Binding="{Binding LpCost}"   Width="110"/>
-              <DataGridTextColumn Header="ISK"      Binding="{Binding IskCost}"  Width="130"/>
-              <DataGridTextColumn Header="Requires" Binding="{Binding Required}" Width="300"/>
+              <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="svc:LpOfferRow">
+                    <Button Content="{Binding Item}"
+                            Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenItemCommand}"
+                            CommandParameter="{Binding TypeId}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"
+                            ToolTip.Tip="Open in Item Browser"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Qty"      Binding="{Binding Quantity}" FontSize="10" Width="80"/>
+              <DataGridTextColumn Header="LP"       Binding="{Binding LpCost}" FontSize="10"   Width="110"/>
+              <DataGridTextColumn Header="ISK"      Binding="{Binding IskCost}" FontSize="10"  Width="130"/>
+              <DataGridTextColumn Header="Requires" Binding="{Binding Required}" FontSize="10" Width="300"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>
@@ -213,12 +261,12 @@
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="System"    Binding="{Binding System}"    Width="150"/>
-              <DataGridTextColumn Header="Region"    Binding="{Binding Region}"    Width="170"/>
-              <DataGridTextColumn Header="Role"      Binding="{Binding Role}"      Width="90"/>
-              <DataGridTextColumn Header="Contested" Binding="{Binding Contested}" Width="110"/>
-              <DataGridTextColumn Header="Points"    Binding="{Binding Points}"    Width="90"/>
-              <DataGridTextColumn Header="Threshold" Binding="{Binding Threshold}" Width="*"/>
+              <DataGridTextColumn Header="System"    Binding="{Binding System}" FontSize="10"    Width="150"/>
+              <DataGridTextColumn Header="Region"    Binding="{Binding Region}" FontSize="10"    Width="170"/>
+              <DataGridTextColumn Header="Role"      Binding="{Binding Role}" FontSize="10"      Width="90"/>
+              <DataGridTextColumn Header="Contested" Binding="{Binding Contested}" FontSize="10" Width="110"/>
+              <DataGridTextColumn Header="Points"    Binding="{Binding Points}" FontSize="10"    Width="90"/>
+              <DataGridTextColumn Header="Threshold" Binding="{Binding Threshold}" FontSize="10" Width="*"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>
@@ -232,11 +280,11 @@
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="When"     Binding="{Binding When}"     Width="130"/>
-              <DataGridTextColumn Header="System"   Binding="{Binding System}"   Width="130"/>
-              <DataGridTextColumn Header="Ship"     Binding="{Binding Ship}"     Width="160"/>
-              <DataGridTextColumn Header="Channel"  Binding="{Binding Channel}"  Width="140"/>
-              <DataGridTextColumn Header="Reporter" Binding="{Binding Reporter}" Width="*"/>
+              <DataGridTextColumn Header="When"     Binding="{Binding When}" FontSize="10"     Width="130"/>
+              <DataGridTextColumn Header="System"   Binding="{Binding System}" FontSize="10"   Width="130"/>
+              <DataGridTextColumn Header="Ship"     Binding="{Binding Ship}" FontSize="10"     Width="160"/>
+              <DataGridTextColumn Header="Channel"  Binding="{Binding Channel}" FontSize="10"  Width="140"/>
+              <DataGridTextColumn Header="Reporter" Binding="{Binding Reporter}" FontSize="10" Width="*"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>

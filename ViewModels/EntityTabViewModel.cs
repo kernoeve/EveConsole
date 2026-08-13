@@ -33,7 +33,10 @@ public class EntityTabViewModel : ReactiveObject
         _service   = service;
         _killmails = killmails;
         Kind       = kind;
-        OpenFactCommand = ReactiveCommand.Create<EntityFact>(OpenFact);
+        OpenFactCommand    = ReactiveCommand.Create<EntityFact>(OpenFact);
+        OpenMemberCommand  = ReactiveCommand.Create<EntityMemberRow>(r => Open(MemberLinkKind, r.Id));
+        OpenHistoryCommand = ReactiveCommand.Create<EntityHistoryRow>(r => Open(HistoryLinkKind, r.LinkId));
+        OpenItemCommand    = ReactiveCommand.Create<int>(id => NavigateToItemAction?.Invoke(id));
     }
 
     // ── Search ────────────────────────────────────────────────────────────────
@@ -64,6 +67,9 @@ public class EntityTabViewModel : ReactiveObject
     private string _searchNote = "";
     public string SearchNote { get => _searchNote; private set => this.RaiseAndSetIfChanged(ref _searchNote, value); }
 
+    /// <summary>What is on screen. Guards against reloading the same entity.</summary>
+    private long _loadedId;
+
     private object? _selectedMatch;
     public object? SelectedMatch
     {
@@ -71,7 +77,11 @@ public class EntityTabViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _selectedMatch, value);
-            if (value is EntityMatch m) _ = LoadAsync(m.Id);
+
+            // Switching tabs re-attaches the AutoCompleteBox, which pushes this binding
+            // through again with whatever was last picked. Without the id guard that
+            // re-load overwrote an entity a link had just opened.
+            if (value is EntityMatch m && m.Id != _loadedId) _ = LoadAsync(m.Id);
         }
     }
 
@@ -159,7 +169,13 @@ public class EntityTabViewModel : ReactiveObject
     private bool _hasAffiliation;
     public bool HasAffiliation { get => _hasAffiliation; private set => this.RaiseAndSetIfChanged(ref _hasAffiliation, value); }
 
-    public ReactiveCommand<EntityFact, System.Reactive.Unit> OpenFactCommand { get; }
+    public ReactiveCommand<EntityFact, System.Reactive.Unit>        OpenFactCommand    { get; }
+    public ReactiveCommand<EntityMemberRow, System.Reactive.Unit>  OpenMemberCommand  { get; }
+    public ReactiveCommand<EntityHistoryRow, System.Reactive.Unit> OpenHistoryCommand { get; }
+    public ReactiveCommand<int, System.Reactive.Unit>              OpenItemCommand    { get; }
+
+    /// <summary>Set by MainWindowViewModel — opens the Item Browser on a type.</summary>
+    public Action<int>? NavigateToItemAction { get; set; }
 
     public void OpenFact(EntityFact fact)
     {
@@ -239,6 +255,15 @@ public class EntityTabViewModel : ReactiveObject
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                _loadedId = id;
+
+                // Keep the picker in step with what a link loaded, so the box does not
+                // still read the previous entity.
+                _selectedMatch = new EntityMatch(id, detail.Name, "");
+                this.RaisePropertyChanged(nameof(SelectedMatch));
+                _searchText = detail.Name;
+                this.RaisePropertyChanged(nameof(SearchText));
+
                 Name        = detail.Name;
                 Subtitle    = detail.Subtitle;
                 Description = detail.Description;

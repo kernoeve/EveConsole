@@ -144,6 +144,17 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         vm.AlarmActions.AgentAvailable      =
             () => agentService.Settings.Enabled && agentService.Provider is { IsConfigured: true };
 
+        agentService.NavigateEntityCallback = (kind, id, _) =>
+            Dispatcher.UIThread.Post(() =>
+            {
+                var player = kind is EveConsole.Services.EntityKind.Pilot
+                                  or EveConsole.Services.EntityKind.PlayerCorp
+                                  or EveConsole.Services.EntityKind.Alliance;
+                vm.OpenTool(player ? "player_entities" : "npc_entities");
+                if (player) vm.PlayerEntitiesVm.Open(kind, id);
+                else        vm.NpcEntitiesVm.Open(kind, id);
+            });
+
         agentService.NavigateItemCallback = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {

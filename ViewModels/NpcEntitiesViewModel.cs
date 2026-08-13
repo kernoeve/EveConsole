@@ -17,8 +17,14 @@ public class NpcEntitiesViewModel : ReactiveObject
         Factions = new EntityTabViewModel(service, killmails, EntityKind.Faction);
 
         foreach (var tab in new[] { Agents, Corps, Factions })
+        {
             tab.NavigateTo = Open;
+            tab.NavigateToItemAction = id => NavigateToItem?.Invoke(id);
+        }
     }
+
+    /// <summary>Set by MainWindowViewModel — opens the Item Browser.</summary>
+    public Action<int>? NavigateToItem { get; set; }
 
     public void Open(EntityKind kind, long id)
     {
