@@ -450,6 +450,21 @@ public class UniverseViewModel : ReactiveObject
         });
     }
 
+    /// <summary>
+    /// <see cref="FocusRegionAsync"/> for callers that hold a region id rather than its name —
+    /// a killmail row, an agent tool. The graph is keyed by region name, so the id is resolved
+    /// here rather than making every caller do it.
+    /// </summary>
+    public async Task FocusRegionAsync(int regionId)
+    {
+        if (_regions.Count == 0) _regions = await _map.GetRegionsAsync();
+
+        var region = _regions.FirstOrDefault(r => r.RegionId == regionId);
+        if (region is null) return;
+
+        await FocusRegionAsync(region.Name);
+    }
+
     private async Task DrillDownAsync(int id)
     {
         var node = Graph?.Nodes.FirstOrDefault(n => n.Id == id);

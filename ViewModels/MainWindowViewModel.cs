@@ -603,7 +603,10 @@ public class MainWindowViewModel : ReactiveObject
         EntityNavigator.Instance.OpenSystem   = id => { OpenTool("universe"); _ = UniverseVm.OpenSystemCommand.Execute(id).Subscribe(); };
         EntityNavigator.Instance.OpenItem     = id => { OpenTool("items"); _ = ItemBrowserVm.NavigateToItemCommand.Execute(id).Subscribe(); };
         EntityNavigator.Instance.OpenKillmail = id => { OpenTool("killmails"); KillmailBrowserVm.SelectById(id); };
-        EntityNavigator.Instance.OpenRegion   = id => { OpenTool("universe"); _ = UniverseVm.ShowRegionAsync(id); };
+        // FocusRegionAsync, not ShowRegionAsync: the separate per-region map is legacy — only
+        // the system page still returns to it. A region is now territory you zoom to on the
+        // one continuous universe map.
+        EntityNavigator.Instance.OpenRegion   = id => { OpenTool("universe"); _ = UniverseVm.FocusRegionAsync(id); };
 
         // Resolve the overlay here rather than in the agent tool: this is the list's home, so
         // an overlay added to the map is reachable by name without touching the tool.
