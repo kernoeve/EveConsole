@@ -1637,11 +1637,19 @@ public class ItemBrowserViewModel : ReactiveObject
             var structures = structureIds.Count > 0
                 ? await _db.EsiStructureNames.AsNoTracking()
                     .Where(s => structureIds.Contains(s.StructureId))
-                    .Select(s => new { s.StructureId, s.Name, s.SolarSystemId })
+                    .Select(s => new { s.StructureId, s.Name, s.SolarSystemId, s.Status })
                     .ToListAsync(ct)
                 : [];
 
-            var structureNames = structures.ToDictionary(s => s.StructureId, s => s.Name);
+            var structureNames = structures
+                .Where(s => !string.IsNullOrWhiteSpace(s.Name))
+                .ToDictionary(s => s.StructureId, s => s.Name);
+
+            // A structure we have no docking rights to (403) cannot be named — ESI only tells
+            // you what a structure is called if you can dock there. That is permanent, not a
+            // gap waiting to fill, so say so rather than leaving a generic label that reads
+            // like a bug.
+            var structureStatus = structures.ToDictionary(s => s.StructureId, s => s.Status);
 
             // A structure carries no security of its own — it belongs to the system the
             // structure is anchored in, with the order's own system id as the fallback.
@@ -1655,11 +1663,15 @@ public class ItemBrowserViewModel : ReactiveObject
                 .Where(id => id > 0)
                 .Distinct().ToList();
 
-            var systemSec = structureSystems.Count > 0
+            var systems = structureSystems.Count > 0
                 ? await _db.SdeSolarSystems.AsNoTracking()
                     .Where(s => structureSystems.Contains(s.SolarSystemId))
-                    .ToDictionaryAsync(s => s.SolarSystemId, s => s.Security, ct)
+                    .Select(s => new { s.SolarSystemId, s.Name, s.Security })
+                    .ToListAsync(ct)
                 : [];
+
+            var systemSec   = systems.ToDictionary(s => s.SolarSystemId, s => s.Security);
+            var systemNames = systems.ToDictionary(s => s.SolarSystemId, s => s.Name);
 
             if (ct.IsCancellationRequested) return;
 
@@ -1671,13 +1683,37 @@ public class ItemBrowserViewModel : ReactiveObject
             }
 
             string configStructureName = config.Method == MarketMethod.PlayerStructure
-                ? config.LocationName : "Player Structure";
+                ? config.LocationName : "";
 
-            string GetLocation(long locId) =>
-                stationNames.TryGetValue(locId, out var n) ? n :
-                structureNames.TryGetValue(locId, out var sn) && !string.IsNullOrWhiteSpace(sn) ? sn :
-                locId >= 1_000_000_000_000L ? configStructureName :
-                $"Station {locId}";
+            // Falls through name → the config's own name (only right when the source *is* that
+            // structure) → a label naming the system and saying why there is no name.
+            string UnnamedStructure(long locId, int sysId)
+            {
+                if (configStructureName.Length > 0) return configStructureName;
+
+                var reason = structureStatus.TryGetValue(locId, out var st)
+                    ? (StructureStatus)st switch
+                    {
+                        StructureStatus.NoAccess => "Private Structure",
+                        StructureStatus.NotFound => "Unanchored Structure",
+                        _                        => "Player Structure",
+                    }
+                    : "Player Structure";
+
+                return systemNames.TryGetValue(sysId, out var sysName) && sysName.Length > 0
+                    ? $"{sysName} - {reason}"
+                    : reason;
+            }
+
+            string GetLocation(MarketRawOrder o)
+            {
+                if (stationNames.TryGetValue(o.LocationId, out var n)) return n;
+                if (structureNames.TryGetValue(o.LocationId, out var sn)) return sn;
+                if (o.LocationId < 1_000_000_000_000L) return $"Station {o.LocationId}";
+
+                var sysId = structureSystemOf.TryGetValue(o.LocationId, out var sid) ? sid : o.SystemId;
+                return UnnamedStructure(o.LocationId, sysId);
+            }
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -1692,7 +1728,7 @@ public class ItemBrowserViewModel : ReactiveObject
                         VolumeTotal  = o.VolumeTotal,
                         MinVolume    = o.MinVolume,
                         Range        = o.Range,
-                        LocationName = GetLocation(o.LocationId),
+                        LocationName = GetLocation(o),
                         Security     = GetSecurity(o),
                         Expires      = o.Issued.AddDays(o.Duration),
                     });
@@ -1705,7 +1741,7 @@ public class ItemBrowserViewModel : ReactiveObject
                         VolumeTotal  = o.VolumeTotal,
                         MinVolume    = o.MinVolume,
                         Range        = o.Range,
-                        LocationName = GetLocation(o.LocationId),
+                        LocationName = GetLocation(o),
                         Security     = GetSecurity(o),
                         Expires      = o.Issued.AddDays(o.Duration),
                     });
