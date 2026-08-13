@@ -177,8 +177,20 @@
                                   IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentColumns}"/>
               <DataGridTextColumn Header="Division" Binding="{Binding Division}" FontSize="10" Width="140"
                                   IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentColumns}"/>
-              <DataGridTextColumn Header="Station"  Binding="{Binding Station}"  FontSize="10" Width="*"
-                                  IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentColumns}"/>
+              <DataGridTemplateColumn Header="Station" Width="*" SortMemberPath="Station"
+                                      IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentStation}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="svc:EntityMemberRow">
+                    <Button Content="{Binding Station}"
+                            Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenStationCommand}"
+                            CommandParameter="{Binding StationId}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"
+                            ToolTip.Tip="Open in the Stations tab"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTextColumn Header="ID"      Binding="{Binding Id}" FontSize="10"       Width="110"/>
             </DataGrid.Columns>
           </DataGrid>
@@ -223,7 +235,19 @@
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Station"  Binding="{Binding Name}" FontSize="10"     Width="*"/>
+              <DataGridTemplateColumn Header="Station" Width="*" SortMemberPath="Name">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="svc:EntityStationRow">
+                    <Button Content="{Binding Name}"
+                            Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenStationCommand}"
+                            CommandParameter="{Binding StationId}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"
+                            ToolTip.Tip="Open in the Stations tab"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTextColumn Header="System"   Binding="{Binding System}" FontSize="10"   Width="130"/>
               <DataGridTextColumn Header="Region"   Binding="{Binding Region}" FontSize="10"   Width="150"/>
               <DataGridTextColumn Header="Sec"      Binding="{Binding Security}" FontSize="10" Width="60"/>

@@ -8,6 +8,9 @@
     <TabItem Header="Agents">
       <views:EntityTabView DataContext="{Binding Agents}"/>
     </TabItem>
+    <TabItem Header="Stations">
+      <views:EntityTabView DataContext="{Binding Stations}"/>
+    </TabItem>
     <TabItem Header="Corporations">
       <views:EntityTabView DataContext="{Binding Corps}"/>
     </TabItem>

@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
 
-/// <summary>The six things the entity tools can show.</summary>
-public enum EntityKind { Pilot, PlayerCorp, Alliance, Agent, NpcCorp, Faction }
+/// <summary>The seven things the entity tools can show.</summary>
+public enum EntityKind { Pilot, PlayerCorp, Alliance, Agent, NpcCorp, Faction, Station }
 
 /// <summary>A dropdown candidate: enough to identify the entity and tell two similar names apart.</summary>
 public record EntityMatch(long Id, string Name, string Subtitle)
@@ -23,11 +23,18 @@ public record EntityMatch(long Id, string Name, string Subtitle)
 /// it does.
 /// </summary>
 public record EntityFact(string Label, string Value,
-                         EntityKind? LinkKind = null, long LinkId = 0, string? Url = null)
+                         EntityKind? LinkKind = null, long LinkId = 0, string? Url = null,
+                         int SystemId = 0, int RegionId = 0)
 {
     public bool IsEntityLink => LinkKind is not null && LinkId > 0;
     public bool IsUrlLink    => !string.IsNullOrWhiteSpace(Url);
-    public bool IsPlain      => !IsEntityLink && !IsUrlLink;
+
+    // A place is not an entity — it has no viewer of its own — so these route to the map
+    // rather than through LinkKind.
+    public bool IsSystemLink => SystemId > 0;
+    public bool IsRegionLink => RegionId > 0;
+
+    public bool IsPlain => !IsEntityLink && !IsUrlLink && !IsSystemLink && !IsRegionLink;
 }
 
 /// <summary>Everything the About pane shows for one entity.</summary>
@@ -43,7 +50,8 @@ public record EntityMemberRow(long Id, string Name, string Subtitle = "",
                               long StationId = 0);
 public record EntityHistoryRow(string Alliance, string From, string Until, string Duration, bool Closed,
                                long LinkId = 0);
-public record EntityStationRow(string Name, string System, string Region, double Security, int Agents);
+public record EntityStationRow(string Name, string System, string Region, double Security, int Agents,
+                               long StationId = 0);
 
 /// <summary>
 /// One item an NPC corporation trades, across every one of its stations in the market data
@@ -139,6 +147,20 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 LIMIT @lim
                 """,
 
+            // Station names embed their system ("Jita IV - Moon 4 - ..."), so a name search
+            // already finds "everything in Jita". The region is matched too, for the times you
+            // know the neighbourhood but not the name.
+            EntityKind.Station => """
+                SELECT s."StationId" AS "Id", s."Name",
+                       COALESCE(n."Name",'') AS "Subtitle"
+                FROM "SdeStations" s
+                LEFT JOIN "SdeNpcCorporations" n ON n."CorporationId" = s."CorporationId"
+                LEFT JOIN "SdeRegions"         r ON r."RegionId"      = s."RegionId"
+                WHERE s."Name" LIKE @q OR COALESCE(r."Name",'') LIKE @q
+                ORDER BY CASE WHEN s."Name" LIKE @prefix THEN 0 ELSE 1 END, s."Name"
+                LIMIT @lim
+                """,
+
             _ => """
                 SELECT "FactionId" AS "Id", "Name", '' AS "Subtitle"
                 FROM "SdeFactions"
@@ -180,6 +202,11 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 SELECT COUNT(*) AS "Value" FROM "SdeNpcCorporations" n
                 LEFT JOIN "SdeFactions" f ON f."FactionId" = n."FactionId"
                 WHERE n."Name" LIKE @q OR COALESCE(f."Name",'') LIKE @q
+                """,
+            EntityKind.Station => """
+                SELECT COUNT(*) AS "Value" FROM "SdeStations" s
+                LEFT JOIN "SdeRegions" r ON r."RegionId" = s."RegionId"
+                WHERE s."Name" LIKE @q OR COALESCE(r."Name",'') LIKE @q
                 """,
             _ => """SELECT COUNT(*) AS "Value" FROM "SdeFactions" WHERE "Name" LIKE @q""",
         };
@@ -516,13 +543,36 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         return await db.Database.SqlQueryRaw<EntityStationRow>("""
             SELECT s."Name", COALESCE(ss."Name",'') AS "System", COALESCE(r."Name",'') AS "Region",
                    ROUND(s."Security", 1) AS "Security",
-                   (SELECT COUNT(*) FROM "SdeAgents" a WHERE a."LocationId" = s."StationId") AS "Agents"
+                   (SELECT COUNT(*) FROM "SdeAgents" a WHERE a."LocationId" = s."StationId") AS "Agents",
+                   s."StationId"
             FROM "SdeStations" s
             LEFT JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = s."SolarSystemId"
             LEFT JOIN "SdeRegions"      r  ON r."RegionId"       = s."RegionId"
             WHERE s."CorporationId" = @id
             ORDER BY r."Name", ss."Name", s."Name"
             """, new SqliteParameter("@id", corpId)).ToListAsync(ct);
+    }
+
+    /// <summary>
+    /// The agents working out of one station. A station tab with no sub-tab at all would be an
+    /// empty pane, and "who can I talk to here" is the question a station actually answers.
+    /// </summary>
+    public async Task<List<EntityMemberRow>> StationAgentsAsync(long stationId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        return await db.Database.SqlQueryRaw<EntityMemberRow>("""
+            SELECT a."AgentId" AS "Id", a."Name",
+                   COALESCE(n."Name",'')  AS "Subtitle",
+                   a."Level",
+                   COALESCE(d."Name",'')  AS "Division",
+                   ''                     AS "Station",
+                   0                      AS "StationId"
+            FROM "SdeAgents" a
+            LEFT JOIN "SdeCorpDivisions"   d ON d."DivisionId"    = a."DivisionId"
+            LEFT JOIN "SdeNpcCorporations" n ON n."CorporationId" = a."CorporationId"
+            WHERE a."LocationId" = @id
+            ORDER BY a."Level" DESC, a."Name"
+            """, new SqliteParameter("@id", stationId)).ToListAsync(ct);
     }
 
     /// <summary>
@@ -868,7 +918,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                            COALESCE(n."Name",'')  AS "Corporation",
                            COALESCE(s."Name",'')  AS "Station",
                            COALESCE(f."Name",'')  AS "Faction",
-                           a."CorporationId", COALESCE(f."FactionId", 0) AS "FactionId"
+                           a."CorporationId", COALESCE(f."FactionId", 0) AS "FactionId",
+                           COALESCE(a."LocationId", 0) AS "StationId"
                     FROM "SdeAgents" a
                     LEFT JOIN "SdeAgentTypes"      ty ON ty."AgentTypeId"  = a."AgentTypeId"
                     LEFT JOIN "SdeCorpDivisions"   d  ON d."DivisionId"    = a."DivisionId"
@@ -884,7 +935,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                         new("Agent ID",     id.ToString("N0")),
                         new("Corporation",  r.Corporation, EntityKind.NpcCorp, r.CorporationId),
                         new("Faction",      r.Faction,     EntityKind.Faction, r.FactionId),
-                        new("Station",      r.Station),
+                        new("Station",      r.Station, EntityKind.Station, r.StationId),
                         new("Division",     r.Division),
                         new("Agent type",   r.AgentType),
                         new("Locator",      r.IsLocator > 0 ? "Yes" : "No"),
@@ -926,7 +977,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                            COALESCE(mc."Name",'') AS "MilitiaCorp",
                            COALESCE(ss."Name",'') AS "HomeSystem",
                            (SELECT COUNT(*) FROM "SdeNpcCorporations" n WHERE n."FactionId" = f."FactionId") AS "Corporations",
-                           COALESCE(f."MilitiaCorporationId", 0) AS "MilitiaCorpId"
+                           COALESCE(f."MilitiaCorporationId", 0) AS "MilitiaCorpId",
+                           COALESCE(f."SolarSystemId", 0) AS "HomeSystemId"
                     FROM "SdeFactions" f
                     LEFT JOIN "SdeNpcCorporations" mc ON mc."CorporationId" = f."MilitiaCorporationId"
                     LEFT JOIN "SdeSolarSystems"    ss ON ss."SolarSystemId" = f."SolarSystemId"
@@ -939,9 +991,57 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                         new("Faction ID",   id.ToString("N0")),
                         new("Militia corp", r.MilitiaCorp.Length > 0 ? r.MilitiaCorp : "—",
                             r.MilitiaCorpId > 0 ? EntityKind.NpcCorp : null, r.MilitiaCorpId),
-                        new("Home system",  r.HomeSystem),
+                        new("Home system",  r.HomeSystem, SystemId: r.HomeSystemId),
                         new("Corporations", r.Corporations.ToString("N0")),
                     ], url);
+            }
+
+            case EntityKind.Station:
+            {
+                var r = (await db.Database.SqlQueryRaw<StationDetailRaw>("""
+                    SELECT s."Name",
+                           COALESCE(ss."Name",'')  AS "System",
+                           COALESCE(rg."Name",'')  AS "Region",
+                           COALESCE(cn."Name",'')  AS "Constellation",
+                           COALESCE(n."Name",'')   AS "Corporation",
+                           COALESCE(f."Name",'')   AS "Faction",
+                           COALESCE(ty."Name",'')  AS "StationType",
+                           s."SolarSystemId", s."RegionId",
+                           COALESCE(s."CorporationId", 0) AS "CorporationId",
+                           COALESCE(f."FactionId", 0)     AS "FactionId",
+                           COALESCE(s."StationTypeId", 0) AS "StationTypeId",
+                           s."Security", s."ReprocessingEfficiency", s."ReprocessingTax",
+                           (SELECT COUNT(*) FROM "SdeAgents" a WHERE a."LocationId" = s."StationId") AS "Agents"
+                    FROM "SdeStations" s
+                    LEFT JOIN "SdeSolarSystems"    ss ON ss."SolarSystemId"   = s."SolarSystemId"
+                    LEFT JOIN "SdeConstellations"  cn ON cn."ConstellationId" = s."ConstellationId"
+                    LEFT JOIN "SdeRegions"         rg ON rg."RegionId"        = s."RegionId"
+                    LEFT JOIN "SdeNpcCorporations" n  ON n."CorporationId"    = s."CorporationId"
+                    LEFT JOIN "SdeFactions"        f  ON f."FactionId"        = n."FactionId"
+                    LEFT JOIN "SdeTypes"           ty ON ty."TypeId"          = s."StationTypeId"
+                    WHERE s."StationId" = @id
+                    """, new SqliteParameter("@id", id)).ToListAsync(ct)).FirstOrDefault();
+                if (r is null) return null;
+
+                // A station has no portrait, but its hull does — and the render is how you
+                // recognise a station in the client.
+                var stationImg = r.StationTypeId > 0
+                    ? $"https://images.evetech.net/types/{r.StationTypeId}/render?size=128"
+                    : null;
+
+                return new EntityDetail(id, r.Name, "NPC station", "",
+                    [
+                        new("Station ID",    id.ToString("N0")),
+                        new("System",        r.System,        SystemId: r.SolarSystemId),
+                        new("Constellation", r.Constellation),
+                        new("Region",        r.Region,        RegionId: r.RegionId),
+                        new("Security",      SecurityColors.Text(r.Security)),
+                        new("Corporation",   r.Corporation,   EntityKind.NpcCorp, r.CorporationId),
+                        new("Faction",       r.Faction,       EntityKind.Faction, r.FactionId),
+                        new("Type",          r.StationType),
+                        new("Agents",        r.Agents.ToString("N0")),
+                        new("Reprocessing",  $"{r.ReprocessingEfficiency * 100:0.#}% · {r.ReprocessingTax * 100:0.#}% tax"),
+                    ], stationImg);
             }
         }
     }
@@ -1026,11 +1126,18 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     private record GroupDetailRaw(string Name, int Members, int Kills, int Losses, int IsOurs);
     private record AgentDetailRaw(string Name, int Level, int IsLocator, string AgentType,
                                   string Division, string Corporation, string Station, string Faction,
-                                  long CorporationId, long FactionId);
+                                  long CorporationId, long FactionId, long StationId);
     private record NpcCorpDetailRaw(string Name, string Faction, int Stations, int Agents,
                                     int LpOffers, int LpHeld, double IskPerLp, long FactionId);
     private record FactionDetailRaw(string Name, string Description, string MilitiaCorp,
-                                    string HomeSystem, int Corporations, long MilitiaCorpId);
+                                    string HomeSystem, int Corporations, long MilitiaCorpId,
+                                    int HomeSystemId);
+
+    private record StationDetailRaw(string Name, string System, string Region, string Constellation,
+                                    string Corporation, string Faction, string StationType,
+                                    int SolarSystemId, int RegionId, long CorporationId, long FactionId,
+                                    int StationTypeId, double Security,
+                                    double ReprocessingEfficiency, double ReprocessingTax, int Agents);
 
     private static string Pretty(string iso) =>
         DateTimeOffset.TryParse(iso, out var d) ? d.ToLocalTime().ToString("d MMM yyyy HH:mm") : "—";

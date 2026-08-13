@@ -19,8 +19,8 @@ public sealed class NavigateToEntityTool : IAgentTool
     public string Name => "navigate_to_entity";
 
     public string Description =>
-        "Opens a pilot, corporation, alliance, NPC agent, NPC corporation or faction in the " +
-        "Player Entities or NPC Entities viewer. Use when the capsuleer asks to 'pull up', " +
+        "Opens a pilot, corporation, alliance, NPC agent, NPC station, NPC corporation or faction " +
+        "in the Player Entities or NPC Entities viewer. Use when the capsuleer asks to 'pull up', " +
         "'show', 'look up' or 'who is' a character, corp, alliance, agent or faction. " +
         "Shows portrait, affiliation, kills and losses, corporation history and more. " +
         "Partial name match — prefer the most specific name you know.";
@@ -63,6 +63,7 @@ public sealed class NavigateToEntityTool : IAgentTool
             "agent"                         => EntityKind.Agent,
             "npc_corporation" or "npc_corp" => EntityKind.NpcCorp,
             "faction"                       => EntityKind.Faction,
+            "station"                       => EntityKind.Station,
             _                               => (EntityKind?)null,
         };
         if (kind is null) return $"Unknown entity_type '{typeText}'.";

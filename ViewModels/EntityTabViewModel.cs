@@ -38,6 +38,7 @@ public class EntityTabViewModel : ReactiveObject
         OpenHistoryCommand = ReactiveCommand.Create<EntityHistoryRow>(r => Open(HistoryLinkKind, r.LinkId));
         OpenItemCommand    = ReactiveCommand.Create<int>(id => NavigateToItemAction?.Invoke(id));
         OpenSystemMapCommand = ReactiveCommand.Create<int>(id => { if (id > 0) NavigateToSystemAction?.Invoke(id); });
+        OpenStationCommand   = ReactiveCommand.Create<long>(id => Open(EntityKind.Station, id));
     }
 
     // ── Search ────────────────────────────────────────────────────────────────
@@ -127,7 +128,8 @@ public class EntityTabViewModel : ReactiveObject
     /// <summary>Alliances list their member corporations; corporations list where they have been.</summary>
     /// Members: an alliance lists its corporations, an NPC corporation its agents, a
     /// faction its corporations — three different rosters, one grid.
-    public bool HasMembers  => Kind is EntityKind.Alliance or EntityKind.NpcCorp or EntityKind.Faction;
+    public bool HasMembers  => Kind is EntityKind.Alliance or EntityKind.NpcCorp or EntityKind.Faction
+                                    or EntityKind.Station;
     public bool HasHistory  => Kind is EntityKind.PlayerCorp or EntityKind.Pilot;
     public bool HasStations => Kind is EntityKind.NpcCorp;
 
@@ -145,11 +147,15 @@ public class EntityTabViewModel : ReactiveObject
     {
         EntityKind.Alliance => "Member Corps",
         EntityKind.NpcCorp  => "Agents",
+        EntityKind.Station  => "Agents",
         _                   => "Corporations",
     };
 
     /// <summary>The agent roster gets real columns; the other rosters have one detail line.</summary>
-    public bool ShowAgentColumns    => Kind is EntityKind.NpcCorp;
+    public bool ShowAgentColumns    => Kind is EntityKind.NpcCorp or EntityKind.Station;
+
+    /// <summary>Every agent on a station tab is at that station — the column would repeat it.</summary>
+    public bool ShowAgentStation    => Kind is EntityKind.NpcCorp;
     public bool ShowMemberSubtitle  => Kind is not EntityKind.NpcCorp;
 
     public string HistoryHeader => Kind is EntityKind.Pilot ? "Corp History" : "Alliance History";
@@ -162,6 +168,7 @@ public class EntityTabViewModel : ReactiveObject
     {
         EntityKind.Alliance => EntityKind.PlayerCorp,
         EntityKind.NpcCorp  => EntityKind.Agent,
+        EntityKind.Station  => EntityKind.Agent,
         _                   => EntityKind.NpcCorp,
     };
 
@@ -188,6 +195,7 @@ public class EntityTabViewModel : ReactiveObject
     public ReactiveCommand<EntityMemberRow, System.Reactive.Unit>  OpenMemberCommand  { get; }
     public ReactiveCommand<EntityHistoryRow, System.Reactive.Unit> OpenHistoryCommand { get; }
     public ReactiveCommand<int, System.Reactive.Unit>              OpenItemCommand    { get; }
+    public ReactiveCommand<long, System.Reactive.Unit>             OpenStationCommand { get; }
 
     /// <summary>Named to match the killmail row template, which binds a system button to
     /// whatever DataContext it finds — the Killmail Browser has the same command.</summary>
@@ -202,6 +210,8 @@ public class EntityTabViewModel : ReactiveObject
     public void OpenFact(EntityFact fact)
     {
         if (fact.IsEntityLink) Open(fact.LinkKind!.Value, fact.LinkId);
+        else if (fact.IsSystemLink) NavigateToSystemAction?.Invoke(fact.SystemId);
+        else if (fact.IsRegionLink) EntityNavigator.Instance.Region(fact.RegionId);
         else if (fact.IsUrlLink) OpenUrl(fact.Url!);
     }
 
@@ -441,6 +451,7 @@ public class EntityTabViewModel : ReactiveObject
             {
                 EntityKind.Alliance => await _service.AllianceCorpsAsync(id, ct),
                 EntityKind.NpcCorp  => await _service.NpcCorpAgentsAsync(id, ct),
+                EntityKind.Station  => await _service.StationAgentsAsync(id, ct),
                 _                   => await _service.FactionCorpsAsync(id, ct),
             };
             await Dispatcher.UIThread.InvokeAsync(() =>
@@ -448,9 +459,12 @@ public class EntityTabViewModel : ReactiveObject
                 if (ct.IsCancellationRequested) return;
                 Members.Clear();
                 foreach (var r in rows) Members.Add(r);
+                var noun = Kind is EntityKind.NpcCorp or EntityKind.Station ? "agent" : "member corporation";
                 MembersStatus = rows.Count == 0
-                    ? "No member corporations returned. ESI reports current membership only."
-                    : $"{rows.Count:N0} member corporation(s)";
+                    ? (Kind is EntityKind.Alliance
+                        ? "No member corporations returned. ESI reports current membership only."
+                        : $"No {noun}s found.")
+                    : $"{rows.Count:N0} {noun}(s)";
             });
         }
         catch (OperationCanceledException) { }
