@@ -78,40 +78,8 @@ public class StructureFitting
     public int    TypeId      { get; set; }
 }
 
-/// <summary>
-/// A service module the user says is fitted to a structure. Zero or more per structure.
-///
-/// <para>Always user-supplied: ESI publishes a structure's name, owner, position and type, and
-/// nothing about what is fitted inside it. Even for our own corp's structures the services array
-/// is not stored today, so there is nothing to sync against and no risk of a refresh clobbering
-/// this.</para>
-/// </summary>
-public class StructureServiceModule
-{
-    public int  Id          { get; set; }
-    public long StructureId { get; set; }
-
-    /// <summary>SDE type id of the module, e.g. Standup Cloning Center I (35894).</summary>
-    public int TypeId { get; set; }
-}
-
-/// <summary>
-/// A rig fitted to a structure, in one of three slots. Mirrors <c>IndyStructureRigs</c>, which
-/// already models rigs this way for Indy Parks — same shape so the two can be pushed between.
-/// </summary>
-public class StructureRig
-{
-    public int  Id          { get; set; }
-    public long StructureId { get; set; }
-
-    /// <summary>0, 1 or 2. Structures have three rig slots.</summary>
-    public int SlotIndex { get; set; }
-
-    public int RigTypeId { get; set; }
-}
-
-/// <summary>A service module on an Indy Parks structure. Separate from
-/// <see cref="StructureServiceModule"/> because a park entry describes a planned or hypothetical
+/// <summary>A service module on an Indy Parks structure. Kept separate from
+/// <see cref="StructureFitting"/> because a park entry describes a planned or hypothetical
 /// structure that need not correspond to a real one — only those with a RealStructureId can be
 /// pushed across.</summary>
 public class IndyStructureService

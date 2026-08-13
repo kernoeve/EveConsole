@@ -14,8 +14,8 @@ namespace EveConsole.Services;
 ///
 /// <para>⚠️ An ESI refresh overwrites the fields ESI owns, including ones the user has edited, and
 /// that is the agreed behaviour: for a structure we can read, ESI is right and the user's guess is
-/// stale. What it must NOT do is discard the parts ESI cannot know — notes, fitted service modules
-/// and rigs — so those are left alone here and live in their own tables.</para>
+/// stale. What it must NOT do is discard the parts ESI cannot know — notes, and the hand-entered
+/// fitting — so notes stay on the row untouched and the fitting lives in its own table.</para>
 /// </summary>
 public class StructureSyncService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
 {
@@ -82,9 +82,8 @@ public class StructureSyncService(IDbContextFactory<AppDbContext> dbFactory, App
             await db.EsiStructureNameFailures.Where(f => doomed.Contains(f.StructureId)).ExecuteDeleteAsync(ct);
 
             // The app's own table too, along with anything hung off it — a ship cannot have had
-            // meaningful service modules or rigs recorded against it.
-            await db.StructureServiceModules.Where(m => doomed.Contains(m.StructureId)).ExecuteDeleteAsync(ct);
-            await db.StructureRigs.Where(r => doomed.Contains(r.StructureId)).ExecuteDeleteAsync(ct);
+            // a meaningful fitting recorded against it by hand.
+            await db.StructureFittings.Where(f => doomed.Contains(f.StructureId)).ExecuteDeleteAsync(ct);
             await db.Structures.Where(s => doomed.Contains(s.StructureId)).ExecuteDeleteAsync(ct);
 
             return doomed.Count;
@@ -130,23 +129,12 @@ public class StructureSyncService(IDbContextFactory<AppDbContext> dbFactory, App
                 .Where(f => withAssets.Contains(f.StructureId))
                 .ToListAsync(ct);
 
-            var rigs = await db.StructureRigs
-                .Where(r => withAssets.Contains(r.StructureId))
-                .ToListAsync(ct);
-
-            var services = await db.StructureServiceModules
-                .Where(m => withAssets.Contains(m.StructureId))
-                .ToListAsync(ct);
-
-            var total = hand.Count + rigs.Count + services.Count;
-            if (total == 0) return 0;
+            if (hand.Count == 0) return 0;
 
             db.StructureFittings.RemoveRange(hand);
-            db.StructureRigs.RemoveRange(rigs);
-            db.StructureServiceModules.RemoveRange(services);
             await db.SaveChangesAsync(ct);
 
-            return total;
+            return hand.Count;
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)

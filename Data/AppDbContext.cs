@@ -219,8 +219,6 @@ public class AppDbContext : DbContext
     // that table so the UI never writes into polled data.
     public DbSet<Structure>              Structures              => Set<Structure>();
     public DbSet<StructureFitting>       StructureFittings       => Set<StructureFitting>();
-    public DbSet<StructureServiceModule> StructureServiceModules => Set<StructureServiceModule>();
-    public DbSet<StructureRig>           StructureRigs           => Set<StructureRig>();
 
     // ── Build cost calculation ───────────────────────────────────────────────
     public DbSet<EsiAdjustedPrice>   EsiAdjustedPrices   => Set<EsiAdjustedPrice>();
@@ -889,16 +887,6 @@ public class AppDbContext : DbContext
             // modules in the same hole.
             e.HasIndex(x => new { x.StructureId, x.Band, x.SlotIndex }).IsUnique();
             e.ToTable("StructureFittings"); });
-
-        mb.Entity<StructureServiceModule>(e => {
-            e.HasKey(x => x.Id);
-            e.HasIndex(x => x.StructureId);
-            e.ToTable("StructureServiceModules"); });
-
-        mb.Entity<StructureRig>(e => {
-            e.HasKey(x => x.Id);
-            e.HasIndex(x => x.StructureId);
-            e.ToTable("StructureRigs"); });
 
         mb.Entity<IndyStructureService>(e => {
             e.HasKey(x => x.Id);

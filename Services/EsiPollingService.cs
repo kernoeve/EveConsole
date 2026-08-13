@@ -2734,6 +2734,44 @@ public class EsiPollingService : ReactiveObject
         }
     }
 
+    /// <summary>
+    /// Asks ESI about one structure and hands back what it said, without committing anything to
+    /// the app's own table.
+    ///
+    /// <para>Split from <see cref="RetryStructureAsync"/> so "add by location ID" can show the
+    /// caller what an id turns out to be before they accept it. A typed id can be a typo, and
+    /// there is no way to remove a structure from the table once it is in — so the look is
+    /// deliberately separate from the commit.</para>
+    ///
+    /// <para>Writing to EsiStructureNames is not a commitment: that table is ESI's cache, and
+    /// caching an answer we just paid a call for is the point of it.</para>
+    /// </summary>
+    public async Task<StructureName?> LookupStructureAsync(long structureId, CancellationToken ct = default)
+    {
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            await ResolveNewStructureNamesAsync(0, [structureId], db, ct, force: true);
+            await BackfillNearestCelestialsAsync(db, ct);
+
+            return await db.EsiStructureNames.AsNoTracking()
+                .FirstOrDefaultAsync(s => s.StructureId == structureId, ct);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(EsiPollingService), nameof(LookupStructureAsync), ex);
+            return null;
+        }
+    }
+
+    /// <summary>Copies what ESI resolved into the app's own structure table. Exposed so the
+    /// Structure Browser can commit an added id without taking a second dependency on the sync
+    /// service — this class already owns it.</summary>
+    public Task<int> SyncStructuresAsync(CancellationToken ct = default) => _structureSync.SyncAsync(ct);
+
     public async Task ForceResolveStructureNamesAsync(CancellationToken ct = default)
     {
         StatusText = "Resolving structure names…";

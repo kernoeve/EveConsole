@@ -509,10 +509,56 @@ public class StructureBrowserViewModel : ReactiveObject
     private bool _busy;
     public bool Busy { get => _busy; set => this.RaiseAndSetIfChanged(ref _busy, value); }
 
+    // ── Add by location ID ───────────────────────────────────────────────────
+    // Two steps, look then commit. A structure normally arrives by being seen in assets, jobs,
+    // contracts or kills, so every id in the table has already been proven to exist; a typed one
+    // has not, and there is no way to remove a row once it is in. Showing what the id turns out
+    // to be before accepting it is what stops a mistyped digit becoming permanent.
+
+    private bool _addOpen;
+    public bool AddOpen { get => _addOpen; set => this.RaiseAndSetIfChanged(ref _addOpen, value); }
+
+    private string _addIdText = "";
+    public string AddIdText
+    {
+        get => _addIdText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _addIdText, value);
+            // Editing the id invalidates a preview of the previous one — otherwise Add could
+            // commit an id the panel is no longer describing.
+            ClearAddPreview();
+        }
+    }
+
+    private string _addStatus = "";
+    public string AddStatus { get => _addStatus; private set => this.RaiseAndSetIfChanged(ref _addStatus, value); }
+
+    private string _addPreview = "";
+    /// <summary>What ESI said about the looked-up id, or why it said nothing.</summary>
+    public string AddPreview { get => _addPreview; private set => this.RaiseAndSetIfChanged(ref _addPreview, value); }
+
+    private long _addLookedUpId;
+    private bool _addCanCommit;
+    /// <summary>Only true once a look-up has run for the id currently typed.</summary>
+    public bool AddCanCommit { get => _addCanCommit; private set => this.RaiseAndSetIfChanged(ref _addCanCommit, value); }
+
+    private void ClearAddPreview()
+    {
+        AddPreview      = "";
+        AddCanCommit    = false;
+        _addLookedUpId  = 0;
+    }
+
     public ReactiveCommand<Unit, Unit> RefreshCommand    { get; }
     public ReactiveCommand<Unit, Unit> ResolveCommand    { get; }
     public ReactiveCommand<Unit, Unit> ClearFilters      { get; }
     public ReactiveCommand<Unit, Unit> PullFromEsiCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> OpenAddCommand   { get; }
+    public ReactiveCommand<Unit, Unit> LookupAddCommand { get; }
+    public ReactiveCommand<Unit, Unit> CommitAddCommand { get; }
+    public ReactiveCommand<Unit, Unit> CancelAddCommand { get; }
 
     public StructureBrowserViewModel(IDbContextFactory<AppDbContext> dbFactory, EsiPollingService polling,
                                      Api.EsiClient esi, FittingOptionService fittingOptions,
@@ -532,6 +578,17 @@ public class StructureBrowserViewModel : ReactiveObject
         ResolveCommand = ReactiveCommand.CreateFromTask(ResolveAsync);
 
         PullFromEsiCommand = ReactiveCommand.CreateFromTask(PullFromEsiAsync);
+
+        OpenAddCommand   = ReactiveCommand.Create(() =>
+        {
+            AddIdText = "";
+            ClearAddPreview();
+            AddStatus = "";
+            AddOpen   = true;
+        });
+        LookupAddCommand = ReactiveCommand.CreateFromTask(LookupAddAsync);
+        CommitAddCommand = ReactiveCommand.CreateFromTask(CommitAddAsync);
+        CancelAddCommand = ReactiveCommand.Create(() => { AddOpen = false; });
 
         SlotClickedCommand = ReactiveCommand.CreateFromTask<EveConsole.Controls.FittingSlot>(OpenSlotPickerAsync);
 
@@ -736,31 +793,22 @@ public class StructureBrowserViewModel : ReactiveObject
                     FromAssets = true,
                 });
 
-            // Hand-entered rigs and service modules, for the slots assets did not cover. Never
-            // cleared by an empty asset list — that is the whole point of keeping them separately.
+            // Hand-entered fittings, for the slots assets did not cover. Named with the same
+            // LocationFlag the game uses so the list reads identically whichever side a row came
+            // from — the Source column is what distinguishes them, not the slot label.
             var seen = Fitting.Select(f => f.Slot).ToHashSet();
 
-            foreach (var r in await db.StructureRigs.AsNoTracking()
-                         .Where(r => r.StructureId == row.StructureId).ToListAsync())
+            foreach (var f in await db.StructureFittings.AsNoTracking()
+                         .Where(f => f.StructureId == row.StructureId).ToListAsync())
             {
-                var slot = $"RigSlot{r.SlotIndex}";
-                if (seen.Contains(slot)) continue;
+                var slot = $"{BandFlagPrefix(f.Band)}{f.SlotIndex}";
+                if (f.TypeId <= 0 || !seen.Add(slot)) continue;
+
                 Fitting.Add(new FittingRow
                 {
                     Slot     = slot,
-                    TypeId   = r.RigTypeId,
-                    TypeName = typeNames.GetValueOrDefault(r.RigTypeId, $"Type {r.RigTypeId}"),
-                });
-            }
-
-            foreach (var m in await db.StructureServiceModules.AsNoTracking()
-                         .Where(m => m.StructureId == row.StructureId).ToListAsync())
-            {
-                Fitting.Add(new FittingRow
-                {
-                    Slot     = "Service",
-                    TypeId   = m.TypeId,
-                    TypeName = typeNames.GetValueOrDefault(m.TypeId, $"Type {m.TypeId}"),
+                    TypeId   = f.TypeId,
+                    TypeName = typeNames.GetValueOrDefault(f.TypeId, $"Type {f.TypeId}"),
                 });
             }
 
@@ -958,6 +1006,26 @@ public class StructureBrowserViewModel : ReactiveObject
     /// Hand-entered rigs and service modules fill slots assets did not cover, which is the whole
     /// arrangement for structures we do not own.</para>
     /// </summary>
+    /// <summary>
+    /// The LocationFlag prefix the game uses for each band. Shared by the ring and the list so the
+    /// two cannot disagree about what a slot is called — they are read side by side, and a hand
+    /// entry labelled differently from an asset one would read as a different kind of thing.
+    /// </summary>
+    private static string BandFlagPrefix(EveConsole.Controls.FittingBand band) => band switch
+    {
+        EveConsole.Controls.FittingBand.High    => "HiSlot",
+        EveConsole.Controls.FittingBand.Mid     => "MedSlot",
+        EveConsole.Controls.FittingBand.Low     => "LoSlot",
+        EveConsole.Controls.FittingBand.Rig     => "RigSlot",
+        EveConsole.Controls.FittingBand.Service => "ServiceSlot",
+        _                                       => band.ToString(),
+    };
+
+    /// <summary>As above, from the stored band name. Falls back to the raw text if it no longer
+    /// parses, so a row written by an older build still shows rather than vanishing.</summary>
+    private static string BandFlagPrefix(string band) =>
+        Enum.TryParse<EveConsole.Controls.FittingBand>(band, out var b) ? BandFlagPrefix(b) : band;
+
     private async Task BuildFittingSlotsAsync(
         AppDbContext db, StructureRow row, Dictionary<int, string> typeNames)
     {
@@ -988,12 +1056,11 @@ public class StructureBrowserViewModel : ReactiveObject
         var slots = new List<EveConsole.Controls.FittingSlot>();
         var wanted = new List<int>();
 
-        void Band(EveConsole.Controls.FittingBand band, string flagPrefix, int count,
-                  Func<int, int> manual)
+        void Band(EveConsole.Controls.FittingBand band, int count, Func<int, int> manual)
         {
             for (var i = 0; i < count; i++)
             {
-                var flag       = $"{flagPrefix}{i}";
+                var flag       = $"{BandFlagPrefix(band)}{i}";
                 var fromAssets = byFlag.TryGetValue(flag, out var assetType);
                 var typeId     = fromAssets ? assetType : manual(i);
 
@@ -1010,15 +1077,15 @@ public class StructureBrowserViewModel : ReactiveObject
         int Hand(EveConsole.Controls.FittingBand band, int slot) =>
             hand.GetValueOrDefault((band.ToString(), slot));
 
-        Band(EveConsole.Controls.FittingBand.High, "HiSlot",  Cap(AttrHiSlots),
+        Band(EveConsole.Controls.FittingBand.High,    Cap(AttrHiSlots),
              i => Hand(EveConsole.Controls.FittingBand.High, i));
-        Band(EveConsole.Controls.FittingBand.Mid,  "MedSlot", Cap(AttrMedSlots),
+        Band(EveConsole.Controls.FittingBand.Mid,     Cap(AttrMedSlots),
              i => Hand(EveConsole.Controls.FittingBand.Mid, i));
-        Band(EveConsole.Controls.FittingBand.Low,  "LoSlot",  Cap(AttrLowSlots),
+        Band(EveConsole.Controls.FittingBand.Low,     Cap(AttrLowSlots),
              i => Hand(EveConsole.Controls.FittingBand.Low, i));
-        Band(EveConsole.Controls.FittingBand.Rig,  "RigSlot", Cap(AttrRigSlots),
+        Band(EveConsole.Controls.FittingBand.Rig,     Cap(AttrRigSlots),
              i => Hand(EveConsole.Controls.FittingBand.Rig, i));
-        Band(EveConsole.Controls.FittingBand.Service, "ServiceSlot", Cap(AttrServiceSlots),
+        Band(EveConsole.Controls.FittingBand.Service, Cap(AttrServiceSlots),
              i => Hand(EveConsole.Controls.FittingBand.Service, i));
 
         // Show the ring immediately, then fill the icons in. Waiting on a dozen HTTP fetches
@@ -1278,10 +1345,163 @@ public class StructureBrowserViewModel : ReactiveObject
             await LoadAsync();
             // Reselect from the displayed rows, not the unfiltered list: LoadAsync rebuilds every
             // row object, so the old selection now points at an instance the grid has never seen.
-            Selected = Rows.FirstOrDefault(r => r.StructureId == id);
+            SelectById(id);
         }
         catch (Exception ex) { DetailStatus = $"Pull failed: {ex.Message}"; }
         finally { Busy = false; }
+    }
+
+    /// <summary>
+    /// Asks ESI what a typed id is, without adding anything yet.
+    /// </summary>
+    private async Task LookupAddAsync()
+    {
+        ClearAddPreview();
+
+        // Ids get pasted out of chat and spreadsheets, which add separators and spaces.
+        var text = new string(AddIdText.Where(char.IsDigit).ToArray());
+        if (!long.TryParse(text, out var id) || id <= 0)
+        {
+            AddStatus = "Enter a numeric location ID.";
+            return;
+        }
+
+        await using (var db = await _dbFactory.CreateDbContextAsync())
+        {
+            if (await db.Structures.AnyAsync(s => s.StructureId == id))
+            {
+                AddStatus = "Already in the table.";
+                AddOpen   = false;
+                SelectById(id);
+                return;
+            }
+        }
+
+        // A warning rather than a refusal. Station ids and the like are far below this, and the
+        // lookup will simply 404 — but refusing outright would also block whatever id range CCP
+        // decides to use next, and being wrong in that direction is worse.
+        var caveat = id < EveIds.PlayerStructureThreshold
+            ? " (that is below the player-structure ID range, so a 404 is likely)"
+            : "";
+
+        AddStatus = $"Asking ESI about {id}{caveat}…";
+        Busy = true;
+        try
+        {
+            var row = await _polling.LookupStructureAsync(id);
+
+            _addLookedUpId = id;
+            AddCanCommit   = true;
+
+            if (row is null)
+            {
+                AddPreview = "ESI did not answer — see the error log. It can still be added and "
+                           + "filled in by hand.";
+                AddStatus  = "No answer.";
+                return;
+            }
+
+            AddPreview = (StructureStatus)row.Status switch
+            {
+                StructureStatus.NoAccess => "No access (403) — no docking rights with this "
+                                          + "structure. It can still be added and filled in by hand.",
+                StructureStatus.NotFound => "Not found (404) — no such structure, or it has been "
+                                          + "unanchored. Check the ID before adding.",
+                StructureStatus.Resolved => await DescribeAsync(row),
+                _                        => "ESI returned nothing usable for this ID.",
+            };
+
+            AddStatus = ((StructureStatus)row.Status) == StructureStatus.Resolved
+                ? "Resolved."
+                : StatusLabel(row.Status) + ".";
+        }
+        catch (Exception ex)
+        {
+            AddStatus  = $"Look-up failed: {ex.Message}";
+            AddPreview = "";
+        }
+        finally { Busy = false; }
+    }
+
+    /// <summary>Turns a resolved row into the line shown before committing — names, not ids, since
+    /// the point is to let someone recognise the place.</summary>
+    private async Task<string> DescribeAsync(StructureName row)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+
+        var system = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => s.SolarSystemId == row.SolarSystemId)
+            .Select(s => s.Name).FirstOrDefaultAsync() ?? $"System {row.SolarSystemId}";
+
+        var type = row.TypeId > 0
+            ? await db.SdeTypes.AsNoTracking().Where(t => t.TypeId == row.TypeId)
+                  .Select(t => t.Name).FirstOrDefaultAsync() ?? $"Type {row.TypeId}"
+            : "unknown type";
+
+        var owner = row.OwnerId > 0
+            ? await db.UniverseNames.AsNoTracking().Where(u => u.EntityId == row.OwnerId)
+                  .Select(u => u.Name).FirstOrDefaultAsync() ?? $"Corp {row.OwnerId}"
+            : "unknown owner";
+
+        return $"{row.Name}\n{type} in {system}\nOwned by {owner}";
+    }
+
+    /// <summary>
+    /// Commits the looked-up id to the app's own table.
+    /// </summary>
+    private async Task CommitAddAsync()
+    {
+        var id = _addLookedUpId;
+        if (id <= 0) return;
+
+        Busy = true;
+        try
+        {
+            // The sync owns the mapping from ESI's row onto ours, and inserts a row for every id
+            // it has seen — so for anything the look-up reached, resolved or not, this is enough.
+            await _polling.SyncStructuresAsync();
+
+            await using (var db = await _dbFactory.CreateDbContextAsync())
+            {
+                if (!await db.Structures.AnyAsync(s => s.StructureId == id))
+                {
+                    // ESI never answered at all, so there is no row for the sync to have copied.
+                    // Record it anyway: a structure we cannot read is precisely the one worth
+                    // keeping by hand, which is the whole reason this dialog exists.
+                    db.Structures.Add(new Structure
+                    {
+                        StructureId = id,
+                        UpdatedBy   = StructureSource.User,
+                        UpdatedAt   = DateTimeOffset.UtcNow,
+                    });
+                    await db.SaveChangesAsync();
+                }
+            }
+
+            AddOpen = false;
+            await LoadAsync();
+            SelectById(id);
+        }
+        catch (Exception ex) { AddStatus = $"Add failed: {ex.Message}"; }
+        finally { Busy = false; }
+    }
+
+    /// <summary>
+    /// Selects a structure by id, revealing it if the current filters hide it.
+    ///
+    /// <para>⚠️ Unhides rather than failing quietly. An id that was just added or just pulled is
+    /// usually an unresolved one, and Show unknown now defaults off — so the row the user asked
+    /// for would land outside the list and the command would look like it did nothing.</para>
+    /// </summary>
+    private void SelectById(long id)
+    {
+        if (Rows.All(r => r.StructureId != id) && _all.Any(r => r.StructureId == id))
+        {
+            ShowUnknown = true;
+            RegionText  = ConstellationText = SystemText = TypeText = CorpText = AllianceText = "";
+        }
+
+        Selected = Rows.FirstOrDefault(r => r.StructureId == id);
     }
 
     private void BuildFilters()

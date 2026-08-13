@@ -1871,21 +1871,6 @@ public class App : Application
                     "UpdatedAt"          TEXT    NOT NULL DEFAULT '2000-01-01 00:00:00+00:00')
                 """,
                 """
-                CREATE TABLE IF NOT EXISTS "StructureServiceModules" (
-                    "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                    "StructureId" INTEGER NOT NULL,
-                    "TypeId"      INTEGER NOT NULL DEFAULT 0)
-                """,
-                """CREATE INDEX IF NOT EXISTS "IX_StructureServiceModules_StructureId" ON "StructureServiceModules" ("StructureId")""",
-                """
-                CREATE TABLE IF NOT EXISTS "StructureRigs" (
-                    "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                    "StructureId" INTEGER NOT NULL,
-                    "SlotIndex"   INTEGER NOT NULL DEFAULT 0,
-                    "RigTypeId"   INTEGER NOT NULL DEFAULT 0)
-                """,
-                """CREATE INDEX IF NOT EXISTS "IX_StructureRigs_StructureId" ON "StructureRigs" ("StructureId")""",
-                """
                 CREATE TABLE IF NOT EXISTS "StructureFittings" (
                     "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     "StructureId" INTEGER NOT NULL,
