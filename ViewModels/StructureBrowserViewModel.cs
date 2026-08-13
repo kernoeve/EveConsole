@@ -99,6 +99,7 @@ public class StructureBrowserViewModel : ReactiveObject
     private readonly Api.EsiClient                   _esi;
     private readonly FittingOptionService            _fittingOptions;
     private readonly AppPreferencesService           _prefs;
+    private readonly IndyStructureLinkService        _indyLink;
 
     private List<StructureRow> _all = [];
 
@@ -536,6 +537,12 @@ public class StructureBrowserViewModel : ReactiveObject
             PickerOpen  = false;
             PickingSlot = null;
 
+            // Carry it through to any Indy Parks entry linked to this structure. Only rigs and
+            // service modules exist on that side, and the link service ignores the push entirely
+            // when assets describe this structure — in which case this edit could not have
+            // happened, since the fitting is read-only then.
+            await _indyLink.PushFromRealAsync(structureId);
+
             // Rebuild so the ring shows the change, including its icon.
             await LoadDetailAsync(Selected);
         }
@@ -612,13 +619,14 @@ public class StructureBrowserViewModel : ReactiveObject
 
     public StructureBrowserViewModel(IDbContextFactory<AppDbContext> dbFactory, EsiPollingService polling,
                                      Api.EsiClient esi, FittingOptionService fittingOptions,
-                                     AppPreferencesService prefs)
+                                     AppPreferencesService prefs, IndyStructureLinkService indyLink)
     {
         _dbFactory      = dbFactory;
         _polling        = polling;
         _esi            = esi;
         _fittingOptions = fittingOptions;
         _prefs          = prefs;
+        _indyLink       = indyLink;
 
         // Straight to the backing field: the setter persists, and going through it here would
         // write the stored value back over itself on every startup.

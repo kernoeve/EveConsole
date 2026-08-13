@@ -46,6 +46,19 @@ public class RigSlotVm : ReactiveObject
     }
 }
 
+// ── Service module (zero or more per structure, no slot) ──────────────────────
+
+/// <summary>One service module on a park structure. Unlike a rig it carries no slot index: the
+/// game gives a structure several service slots but which one holds what changes nothing.</summary>
+public class ServiceModuleVm(StructureVm owner, int typeId, string name) : ReactiveObject
+{
+    /// <summary>The structure it sits on. Carried here so the remove button can pass one object
+    /// and still say which structure to take it off.</summary>
+    public StructureVm Owner  { get; } = owner;
+    public int         TypeId { get; } = typeId;
+    public string      Name   { get; } = name;
+}
+
 // ── Structure VM ──────────────────────────────────────────────────────────────
 
 public class StructureVm : ReactiveObject
@@ -127,6 +140,52 @@ public class StructureVm : ReactiveObject
     }
 
     public ObservableCollection<RigSlotVm> RigSlots { get; } = new();
+
+    /// <summary>Service modules on this structure. No slots: a park entry cares which services
+    /// exist, not which hole each occupies.</summary>
+    public ObservableCollection<ServiceModuleVm> Services { get; } = new();
+
+    /// <summary>Candidates for the "add a service" picker, for this structure's hull.</summary>
+    private IReadOnlyList<SdeRigOption> _availableServices = [];
+    public IReadOnlyList<SdeRigOption> AvailableServices
+    {
+        get => _availableServices;
+        set => this.RaiseAndSetIfChanged(ref _availableServices, value);
+    }
+
+    private SdeRigOption? _serviceToAdd;
+    public SdeRigOption? ServiceToAdd
+    {
+        get => _serviceToAdd;
+        set => this.RaiseAndSetIfChanged(ref _serviceToAdd, value);
+    }
+
+    /// <summary>
+    /// True when the linked real structure's fitting is visible in our own assets.
+    ///
+    /// <para>⚠️ Rigs and services are then read-only here. The game is the authority for a
+    /// structure we can see inside, so an edit made on this side would be reverted by the next
+    /// sweep — offering it would be offering a change that silently undoes itself.</para>
+    /// </summary>
+    private bool _fittingFromAssets;
+    public bool FittingFromAssets
+    {
+        get => _fittingFromAssets;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _fittingFromAssets, value);
+            this.RaisePropertyChanged(nameof(FittingEditable));
+            this.RaisePropertyChanged(nameof(FittingSourceText));
+        }
+    }
+
+    public bool FittingEditable => !_fittingFromAssets;
+
+    public string FittingSourceText => _fittingFromAssets
+        ? "From assets — the game reports this structure's fitting, so it cannot be edited here."
+        : RealStructureId is null
+            ? ""
+            : "Entered by hand — this fitting is also written to the linked structure.";
 
     public string DisplayHeader => string.IsNullOrWhiteSpace(DisplayName) ? StructureTypeLabel : DisplayName;
 
@@ -373,6 +432,8 @@ public class IndyParksViewModel : ReactiveObject
     public ReactiveCommand<StructureVm, Unit>      UnlinkFacilityCommand       { get; }
     public ReactiveCommand<ItemSearchResult, Unit> AddItemExceptionCommand     { get; }
     public ReactiveCommand<ItemExceptionVm, Unit>  RemoveItemExceptionCommand  { get; }
+    public ReactiveCommand<StructureVm, Unit>      AddServiceCommand           { get; }
+    public ReactiveCommand<ServiceModuleVm, Unit>  RemoveServiceCommand        { get; }
 
     // ── Private ───────────────────────────────────────────────────────────
 
@@ -386,13 +447,19 @@ public class IndyParksViewModel : ReactiveObject
     private readonly CorpActivityService? _corpActivity;
     private readonly AppErrorLogger?      _errorLogger;
 
+    /// <summary>Pushes hand-entered fittings through to the linked structure. Optional for the
+    /// same reason as the two above — without it, edits simply stay on this side.</summary>
+    private readonly IndyStructureLinkService? _indyLink;
+
     public IndyParksViewModel(IDbContextFactory<AppDbContext> dbFactory,
                               CorpActivityService? corpActivity = null,
-                              AppErrorLogger? errorLogger = null)
+                              AppErrorLogger? errorLogger = null,
+                              IndyStructureLinkService? indyLink = null)
     {
         _dbFactory    = dbFactory;
         _corpActivity = corpActivity;
         _errorLogger  = errorLogger;
+        _indyLink     = indyLink;
 
         LoadRigsFromSde();
 
@@ -407,6 +474,9 @@ public class IndyParksViewModel : ReactiveObject
         UnlinkFacilityCommand     = ReactiveCommand.CreateFromTask<StructureVm>(UnlinkFacilityAsync);
         AddItemExceptionCommand   = ReactiveCommand.CreateFromTask<ItemSearchResult>(AddItemExceptionAsync);
         RemoveItemExceptionCommand = ReactiveCommand.CreateFromTask<ItemExceptionVm>(RemoveItemExceptionAsync);
+        AddServiceCommand         = ReactiveCommand.CreateFromTask<StructureVm>(AddServiceAsync);
+        RemoveServiceCommand      = ReactiveCommand.CreateFromTask<ServiceModuleVm>(
+                                        s => RemoveServiceAsync(s.Owner, s));
 
         this.WhenAnyValue(x => x.ParkName)
             .Skip(1)
@@ -438,7 +508,42 @@ public class IndyParksViewModel : ReactiveObject
         _rigsByType["athanor"]     = LoadRigs(db, attrRigSize, 2, [attrRxnME, attrReprYield]);
         _rigsByType["tatara"]      = LoadRigs(db, attrRigSize, 3, [attrRxnME, attrReprYield]);
         _rigsByType["npc_station"] = [];
+
+        LoadServiceOptions(db);
     }
+
+    /// <summary>
+    /// Service modules, shared by every Upwell hull.
+    ///
+    /// <para>Unlike rigs there is no size restriction to apply — a service module declares the
+    /// serviceSlot effect and that is the whole test, which is also how the Structure Browser's
+    /// picker decides. NPC stations get none: their services are not something anyone fits.</para>
+    /// </summary>
+    private void LoadServiceOptions(AppDbContext db)
+    {
+        const int effServiceSlot = 6306;   // dogma effect, verified against the SDE
+        const int structureModuleCategory = 66;
+
+        var services = (from te in db.SdeTypeDogmaEffects
+                        join t in db.SdeTypes  on te.TypeId  equals t.TypeId
+                        join g in db.SdeGroups on t.GroupId equals g.GroupId
+                        where te.EffectId == effServiceSlot
+                              && t.Published
+                              && g.CategoryId == structureModuleCategory
+                        select new { t.TypeId, t.Name })
+                       .ToList()
+                       .OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase)
+                       .Select(t => new SdeRigOption(t.TypeId, t.Name))
+                       .ToList();
+
+        foreach (var key in StructureTypeKeys)
+            _servicesByType[key] = key == "npc_station" ? [] : services;
+    }
+
+    private readonly Dictionary<string, IReadOnlyList<SdeRigOption>> _servicesByType = new();
+
+    public IReadOnlyList<SdeRigOption> GetServicesForType(string structureTypeKey)
+        => _servicesByType.TryGetValue(structureTypeKey, out var s) ? s : [];
 
     private static IReadOnlyList<SdeRigOption> LoadRigs(AppDbContext db, int sizeAttrId, double sizeValue, int[] bonusAttrIds)
     {
@@ -565,6 +670,23 @@ public class IndyParksViewModel : ReactiveObject
         var rigs = await db.IndyStructureRigs.AsNoTracking()
             .Where(r => structIds.Contains(r.StructureId)).ToListAsync();
 
+        var services = await db.IndyStructureServices.AsNoTracking()
+            .Where(s => structIds.Contains(s.StructureId)).ToListAsync();
+
+        var serviceNames = await db.SdeTypes.AsNoTracking()
+            .Where(t => services.Select(s => s.TypeId).Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name);
+
+        // Which linked structures the game is describing for us. Read once for the whole park
+        // rather than per structure, and by the same test the sync uses to pick a direction.
+        var linkedIds = structures.Where(s => s.RealStructureId != null)
+                                  .Select(s => s.RealStructureId!.Value).ToList();
+        var assetFed = linkedIds.Count == 0
+            ? []
+            : (await db.EsiAssets.AsNoTracking()
+                .Where(a => linkedIds.Contains(a.LocationId) && a.LocationFlag.Contains("Slot"))
+                .Select(a => a.LocationId).Distinct().ToListAsync()).ToHashSet();
+
         var assignments = await db.IndyCategoryAssignments.AsNoTracking()
             .Where(a => a.ParkId == id).ToListAsync();
 
@@ -590,6 +712,16 @@ public class IndyParksViewModel : ReactiveObject
                         : availableRigs.FirstOrDefault(r => r.TypeId == saved.RigTypeId);
                     vm.RigSlots.Add(new RigSlotVm(slot, availableRigs, selectedRig));
                 }
+
+                vm.AvailableServices = GetServicesForType(s.StructureTypeKey);
+                foreach (var svc in services.Where(x => x.StructureId == s.Id)
+                                            .OrderBy(x => serviceNames.GetValueOrDefault(x.TypeId, "")))
+                    vm.Services.Add(new ServiceModuleVm(
+                        vm, svc.TypeId, serviceNames.GetValueOrDefault(svc.TypeId, $"Type {svc.TypeId}")));
+
+                vm.FittingFromAssets =
+                    s.RealStructureId is { } realId && assetFed.Contains(realId);
+
                 WireStructureVm(vm);
                 Structures.Add(vm);
             }
@@ -887,6 +1019,59 @@ public class IndyParksViewModel : ReactiveObject
         if (entity is null) return;
         entity.RigTypeId = slot.Selected?.TypeId ?? 0;
         await db.SaveChangesAsync();
+
+        await PushFittingAsync(structure);
+    }
+
+    /// <summary>
+    /// Carries a hand-entered fitting through to the linked structure.
+    ///
+    /// <para>The link service decides whether anything actually moves: if the real structure's
+    /// fitting is visible in assets it pushes the other way instead, so this cannot overwrite what
+    /// the game reported even if the UI let an edit through.</para>
+    /// </summary>
+    private async Task PushFittingAsync(StructureVm structure)
+    {
+        if (_suppressSave || structure.RealStructureId is null || _indyLink is null) return;
+        await _indyLink.PushFromParkAsync(structure.Id);
+    }
+
+    // ── Service modules ───────────────────────────────────────────────────
+
+    private async Task AddServiceAsync(StructureVm structure)
+    {
+        if (structure.ServiceToAdd is not { } pick) return;
+        if (structure.Services.Any(s => s.TypeId == pick.TypeId))
+        {
+            // The same service twice does nothing in game, and two identical rows would give the
+            // set comparison in the link service something it would have to collapse anyway.
+            structure.ServiceToAdd = null;
+            return;
+        }
+
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        db.IndyStructureServices.Add(new IndyStructureService
+        {
+            StructureId = structure.Id, TypeId = pick.TypeId,
+        });
+        await db.SaveChangesAsync();
+
+        structure.Services.Add(new ServiceModuleVm(structure, pick.TypeId, pick.Name));
+        structure.ServiceToAdd = null;
+
+        await PushFittingAsync(structure);
+    }
+
+    private async Task RemoveServiceAsync(StructureVm structure, ServiceModuleVm service)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        await db.IndyStructureServices
+            .Where(s => s.StructureId == structure.Id && s.TypeId == service.TypeId)
+            .ExecuteDeleteAsync();
+
+        structure.Services.Remove(service);
+
+        await PushFittingAsync(structure);
     }
 
     private async Task SaveAllRigSlotsAsync(StructureVm vm)

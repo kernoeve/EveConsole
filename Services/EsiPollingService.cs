@@ -33,6 +33,7 @@ public class EsiPollingService : ReactiveObject
     private readonly AppPreferencesService   _prefs;
     private readonly EveMailService          _mailService;
     private readonly StructureSyncService    _structureSync;
+    private readonly IndyStructureLinkService _indyLink;
 
     private static readonly HashSet<string> s_netWorthCharEndpoints = [
         "char.wallet.balance", "char.industry.jobs", "char.orders.active", "char.assets", "char.contracts"
@@ -135,7 +136,7 @@ public class EsiPollingService : ReactiveObject
         ["contract.items"]        = "Contract Items",
     };
 
-    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService, StructureSyncService structureSync)
+    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService, StructureSyncService structureSync, IndyStructureLinkService indyLink)
     {
         _scopeFactory       = scopeFactory;
         _esi                = esi;
@@ -147,6 +148,7 @@ public class EsiPollingService : ReactiveObject
         _prefs              = prefs;
         _mailService        = mailService;
         _structureSync      = structureSync;
+        _indyLink           = indyLink;
         _characterEndpoints = BuildEndpoints();
         _corpEndpoints      = BuildCorpEndpoints();
         CharacterEndpointInfos = _characterEndpoints
@@ -2873,6 +2875,14 @@ public class EsiPollingService : ReactiveObject
             if (superseded > 0)
                 _errorLogger.Log(nameof(EsiPollingService), "Structure fittings",
                     $"Cleared {superseded:N0} hand-entered fitting row(s) now covered by assets.");
+
+            // Bring linked Indy Parks entries into agreement with the structures they describe.
+            // Runs after the two above on purpose: it decides direction from what assets say, so
+            // it must see the same picture they have just settled.
+            var linked = await _indyLink.SyncAllAsync(ct);
+            if (linked > 0)
+                _errorLogger.Log(nameof(EsiPollingService), "Indy Parks link",
+                    $"Updated {linked:N0} linked park structure fitting(s).");
 
             // Counted after the work, from the table itself, so the figures describe what is
             // actually there rather than what this pass happened to touch.

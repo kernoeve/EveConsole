@@ -460,6 +460,7 @@ public class MainWindowViewModel : ReactiveObject
         CorpActivityService             corpActivityService,
         StandingBuyOrderService         standingBuyOrderService,
         IndyFacilityCheckService        indyFacilityCheck,
+        IndyStructureLinkService        indyStructureLink,
         KillmailBrowserService          killmailBrowserService,
         BuildCostService                buildCostService,
         ProductionCalculatorService     prodCalcService,
@@ -568,7 +569,8 @@ public class MainWindowViewModel : ReactiveObject
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
         CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);
         ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService, dbFactory);
-        IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger);
+        IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger,
+                                                        indyStructureLink);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
@@ -587,7 +589,8 @@ public class MainWindowViewModel : ReactiveObject
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(
-                                     dbFactory, pollingService, esi, new FittingOptionService(dbFactory), appPrefs);
+                                     dbFactory, pollingService, esi, new FittingOptionService(dbFactory),
+                                     appPrefs, indyStructureLink);
         UniverseVm             = new UniverseViewModel(
             new UniverseMapService(dbFactory), mapStatsService,
             new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);

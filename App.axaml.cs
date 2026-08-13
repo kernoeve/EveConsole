@@ -2303,6 +2303,7 @@ public class App : Application
         services.AddSingleton<AppErrorLogger>();
         services.AddSingleton<UiStallMonitor>();
         services.AddSingleton<StructureSyncService>();
+        services.AddSingleton<IndyStructureLinkService>();
         services.AddSingleton<FittingOptionService>();
         services.AddSingleton<TimerSettingsService>();
         services.AddSingleton<AppPreferencesService>();
