@@ -446,6 +446,52 @@
     </TabItem>
 
     <!-- ══ Tab 7: Name Cache ═════════════════════════════════════════════════ -->
+    <TabItem Header="Structures">
+      <ScrollViewer Margin="10 12 10 0">
+        <StackPanel Spacing="14">
+
+          <TextBlock Text="{Binding StructureState}" FontSize="12"
+                     FontWeight="SemiBold" Foreground="#c8a84b" TextWrapping="Wrap" />
+
+          <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Last sweep"
+                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding StructureSweepText}"
+                       FontSize="12" Foreground="#aab" Margin="0 0 0 8" />
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Next sweep"
+                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding StructureNextText}"
+                       FontSize="12" Foreground="#aab" Margin="0 0 0 8" />
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Last result"
+                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding StructureCountsText}"
+                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Public list"
+                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PublicStructureText}"
+                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="What this does"
+                       FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Top" />
+            <TextBlock Grid.Row="4" Grid.Column="1" FontSize="11" Foreground="#666" TextWrapping="Wrap"
+                       Margin="0 0 0 10"
+                       Text="Collects player-structure IDs from assets, contracts, industry jobs, market orders and wallet entries, then resolves each one's name, type, owner and position. Sweeps hourly; the public structure list is walked once a day for structures nobody here has visited. Rows our own assets identify as ships, containers or asset-safety wraps are removed rather than kept as unknown structures. Resolving needs esi-universe.read_structures.v1 and docking access, so a private structure stays unresolved — those are the ones worth describing by hand in the Structure Browser." />
+
+            <Button Grid.Row="5" Grid.Column="1" Content="Sweep now"
+                    HorizontalAlignment="Left" Padding="14 5" FontSize="11"
+                    Background="#1a1a28" Foreground="#5599aa" BorderBrush="#2a3a44" BorderThickness="1"
+                    Command="{Binding RunStructureSweep}"
+                    IsEnabled="{Binding !StructureSweepRunning}" />
+          </Grid>
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
     <TabItem Header="Name Cache">
       <ScrollViewer Margin="10 12 10 0">
         <StackPanel Spacing="14">

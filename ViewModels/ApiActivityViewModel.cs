@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Reactive;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Monitoring;
@@ -186,6 +187,15 @@ public class ApiActivityViewModel : ReactiveObject
         _nameCache     = nameCache;
         _alarms        = alarms;
 
+        // Fire-and-forget: the sweep reports its own progress through StructureSweepRunning and
+        // the summary lines, so the command does not need to await it to keep the UI honest.
+        RunStructureSweep = ReactiveCommand.Create(() =>
+        {
+            _ = _polling.ForceResolveStructureNamesAsync();
+        });
+
+        RunStructureSweep.ThrownExceptions.Subscribe(_ => { });
+
         InFlight.CollectionChanged += (_, _) => HasNoInFlight = InFlight.Count == 0;
     }
 
@@ -243,6 +253,30 @@ public class ApiActivityViewModel : ReactiveObject
     private string _alarmLastFireText = "—";
     public string AlarmLastFireText { get => _alarmLastFireText; private set => this.RaiseAndSetIfChanged(ref _alarmLastFireText, value); }
 
+    // ── Structures ───────────────────────────────────────────────────────────
+
+    private string _structureState = "—";
+    public string StructureState { get => _structureState; private set => this.RaiseAndSetIfChanged(ref _structureState, value); }
+
+    private string _structureSweepText = "—";
+    public string StructureSweepText { get => _structureSweepText; private set => this.RaiseAndSetIfChanged(ref _structureSweepText, value); }
+
+    private string _structureNextText = "—";
+    public string StructureNextText { get => _structureNextText; private set => this.RaiseAndSetIfChanged(ref _structureNextText, value); }
+
+    private string _structureCountsText = "—";
+    public string StructureCountsText { get => _structureCountsText; private set => this.RaiseAndSetIfChanged(ref _structureCountsText, value); }
+
+    private string _publicStructureText = "—";
+    public string PublicStructureText { get => _publicStructureText; private set => this.RaiseAndSetIfChanged(ref _publicStructureText, value); }
+
+    private bool _structureSweepRunning;
+    /// <summary>Mirrors the polling service, so the Sweep now button disables while one runs.</summary>
+    public bool StructureSweepRunning { get => _structureSweepRunning; private set => this.RaiseAndSetIfChanged(ref _structureSweepRunning, value); }
+
+    /// <summary>Runs the structure sweep now rather than waiting for the hour to come round.</summary>
+    public ReactiveCommand<Unit, Unit> RunStructureSweep { get; }
+
     /// <summary>Cheap, in-memory only — safe to call on the window's 2s tick.</summary>
     public void SyncBackgroundProcesses()
     {
@@ -281,6 +315,26 @@ public class ApiActivityViewModel : ReactiveObject
             : "Caught up";
 
         NameCacheState = _nameCache.StatusText;
+
+        // Structures. The work is a side task of the polling loop rather than a declared
+        // endpoint, so without this it appears in neither the call schedule nor the activity log
+        // except during the brief bursts when it is actually resolving.
+        StructureState = _polling.StructureSweepRunning
+            ? "● Sweeping — resolving structures now"
+            : "● Watching — sweeps hourly, public list daily";
+
+        StructureSweepText = _polling.StructureSweepAt is { } at
+            ? $"{at.ToLocalTime():yyyy-MM-dd HH:mm:ss}"
+            : "not yet this session";
+
+        var next = _polling.StructureSweepNextAt;
+        StructureNextText = next <= DateTimeOffset.UtcNow
+            ? "due now"
+            : $"{next.ToLocalTime():HH:mm:ss} ({(next - DateTimeOffset.UtcNow).TotalMinutes:N0} min)";
+
+        StructureCountsText   = _polling.StructureSweepSummary;
+        PublicStructureText   = _polling.PublicStructureSummary;
+        StructureSweepRunning = _polling.StructureSweepRunning;
 
         // Alarms. Nothing is defined out of the box, so "no alarms" is the normal resting
         // state rather than a fault.

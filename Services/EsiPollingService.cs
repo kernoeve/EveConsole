@@ -32,6 +32,9 @@ public class EsiPollingService : ReactiveObject
     private readonly NetWorthService         _netWorth;
     private readonly AppPreferencesService   _prefs;
     private readonly EveMailService          _mailService;
+    private readonly StructureSyncService    _structureSync;
+    private readonly IndyStructureLinkService _indyLink;
+    private readonly EveRefStructureService   _eveRefStructures;
 
     private static readonly HashSet<string> s_netWorthCharEndpoints = [
         "char.wallet.balance", "char.industry.jobs", "char.orders.active", "char.assets", "char.contracts"
@@ -134,7 +137,7 @@ public class EsiPollingService : ReactiveObject
         ["contract.items"]        = "Contract Items",
     };
 
-    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService)
+    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService, StructureSyncService structureSync, IndyStructureLinkService indyLink, EveRefStructureService eveRefStructures)
     {
         _scopeFactory       = scopeFactory;
         _esi                = esi;
@@ -145,6 +148,9 @@ public class EsiPollingService : ReactiveObject
         _killMailService    = killMailService;
         _prefs              = prefs;
         _mailService        = mailService;
+        _structureSync      = structureSync;
+        _indyLink           = indyLink;
+        _eveRefStructures   = eveRefStructures;
         _characterEndpoints = BuildEndpoints();
         _corpEndpoints      = BuildCorpEndpoints();
         CharacterEndpointInfos = _characterEndpoints
@@ -180,7 +186,55 @@ public class EsiPollingService : ReactiveObject
     // periodic sweep folds in contracts, market, wallet, and industry, and re-checks structures whose
     // 30-day freshness has lapsed (catching unanchors → 404 → Unanchored status).
     private static readonly TimeSpan StructureSweepInterval = TimeSpan.FromHours(1);
+
+    /// <summary>
+    /// How long after startup the first sweep runs. Short, because an hour of uptime before the
+    /// app notices a structure is a long time to sit waiting — but not zero: the first poll cycle
+    /// should land first, so the sweep has the new assets and contracts to work from and is not
+    /// competing with the busiest moment of startup.
+    /// </summary>
+    private static readonly TimeSpan StructureSweepStartupDelay = TimeSpan.FromMinutes(3);
+
     private DateTimeOffset _lastStructureSweepUtc = DateTimeOffset.MinValue;
+
+    // ── Structure sweep, reported to Background Processes ────────────────────
+    // Structure work runs as a side task of the polling loop rather than as a declared endpoint,
+    // so it appears in neither the call schedule nor the activity log except during the brief
+    // bursts when it is actually resolving. These make it visible.
+
+    private DateTimeOffset? _structureSweepAt;
+    /// <summary>When the structure sweep last completed. Null before the first one.</summary>
+    public DateTimeOffset? StructureSweepAt
+    {
+        get => _structureSweepAt;
+        private set => this.RaiseAndSetIfChanged(ref _structureSweepAt, value);
+    }
+
+    /// <summary>When the next loop-driven sweep is due.</summary>
+    public DateTimeOffset StructureSweepNextAt => _lastStructureSweepUtc == DateTimeOffset.MinValue
+        ? DateTimeOffset.UtcNow
+        : _lastStructureSweepUtc + StructureSweepInterval;
+
+    private string _structureSweepSummary = "Not run yet this session";
+    public string StructureSweepSummary
+    {
+        get => _structureSweepSummary;
+        private set => this.RaiseAndSetIfChanged(ref _structureSweepSummary, value);
+    }
+
+    private string _publicStructureSummary = "Not run yet";
+    public string PublicStructureSummary
+    {
+        get => _publicStructureSummary;
+        private set => this.RaiseAndSetIfChanged(ref _publicStructureSummary, value);
+    }
+
+    private bool _structureSweepRunning;
+    public bool StructureSweepRunning
+    {
+        get => _structureSweepRunning;
+        private set => this.RaiseAndSetIfChanged(ref _structureSweepRunning, value);
+    }
 
     private async Task RunPollingLoopAsync(CancellationToken ct)
     {
@@ -188,8 +242,12 @@ public class EsiPollingService : ReactiveObject
         await LoadCharacterTokensAsync(ct);
         await LoadCorpTokensAsync(ct);
         StatusText = "Polling: Running";
-        // The app already kicks a sweep at startup; delay the first loop-driven one by a full interval.
-        _lastStructureSweepUtc = DateTimeOffset.UtcNow;
+
+        // ⚠️ Backdated so the first sweep is due StructureSweepStartupDelay from now, not a full
+        // hour. This used to be set to UtcNow with a comment claiming the app kicked a sweep at
+        // startup — nothing did, so a fresh launch went an hour before noticing any new structure.
+        _lastStructureSweepUtc =
+            DateTimeOffset.UtcNow - StructureSweepInterval + StructureSweepStartupDelay;
 
         while (!ct.IsCancellationRequested)
         {
@@ -2343,11 +2401,103 @@ public class EsiPollingService : ReactiveObject
         return FromResult(r);
     }
 
+    /// <summary>
+    /// Ceiling on newly-discovered public structures per sweep. A guard rail against some future
+    /// world where the list is enormous, NOT the pacing mechanism — the resolver's own 200 ms
+    /// gap between structures is that, and it is already slower per call than the contract poll's
+    /// 100-150 ms. High enough to clear a normal backlog in one sweep: the 744 unknown at the
+    /// time of writing cost about two and a half minutes, against a structure sweep that is
+    /// already the longest thing polling does.
+    ///
+    /// <para>The real safety is elsewhere and does not depend on this number: refusals count
+    /// toward ESI's error limit, and the resolve loop stops the moment that limit is blocked.</para>
+    /// </summary>
+    private const int PublicStructureBatch = 1000;
+
+    /// <summary>Between sweeps. The public list changes on the order of days, not minutes.</summary>
+    private static readonly TimeSpan PublicStructureSweepEvery = TimeSpan.FromHours(24);
+
+    /// <summary>
+    /// Walks the public structure list and hands anything unknown to the normal resolver.
+    ///
+    /// <para>Every other source of structures is incidental — a killmail, a contract, an asset
+    /// location — so what we know stops where our characters have been. This is the one source
+    /// that is not about us, and it is where the structures on the map come from for space nobody
+    /// here has visited.</para>
+    ///
+    /// <para>⚠️ Public is not the same as accessible, in either direction. A structure we can dock
+    /// at but whose owner has not made it public will not appear, and a public structure may still
+    /// refuse the name lookup — which the resolver already records as a failure with a 30-day
+    /// backoff, so a refusal costs one call a month rather than one a cycle.</para>
+    /// </summary>
+    private async Task SweepPublicStructuresAsync(AppDbContext db, CancellationToken ct)
+    {
+        var lastSwept = _prefs.GetLong(AppPreferencesService.PublicStructureSweepKey, 0);
+        var now       = DateTimeOffset.UtcNow;
+
+        if (lastSwept > 0 &&
+            now - DateTimeOffset.FromUnixTimeSeconds(lastSwept) < PublicStructureSweepEvery)
+            return;
+
+        var ids = await _esi.GetPublicStructureIdsAsync(ct);
+        if (ids is null || ids.Count == 0) return;
+
+        // Stamp the sweep even if the batch below is capped or the resolve loop stops early on
+        // the error limit: the timer's job is the daily cadence, and any remainder is picked up
+        // on the next sweep.
+        await _prefs.SetLongAsync(AppPreferencesService.PublicStructureSweepKey,
+                                  now.ToUnixTimeSeconds());
+
+        // Only ones we have never resolved at all. The resolver filters again itself, but doing
+        // it here is what keeps the batch to structures that are genuinely new rather than
+        // handing it 885 ids it will mostly discard.
+        var known = (await db.EsiStructureNames
+            .Select(s => s.StructureId).ToListAsync(ct)).ToHashSet();
+
+        // ⚠️ Recent failures are excluded HERE as well as in the resolver. A public structure can
+        // still refuse the lookup, and those refusals never produce a row in EsiStructureNames —
+        // so without this they would look "unknown" forever and fill the daily batch with the
+        // same doomed ids, starving the ones that would actually resolve.
+        var failBackoff = DateTimeOffset.UtcNow.AddDays(-30);
+        var recentlyFailed = (await db.EsiStructureNameFailures
+            .Select(f => new { f.StructureId, f.FailedAt })
+            .ToListAsync(ct))
+            .Where(f => f.FailedAt > failBackoff)
+            .Select(f => f.StructureId)
+            .ToHashSet();
+
+        var unknown = ids
+            .Where(id => !known.Contains(id) && !recentlyFailed.Contains(id))
+            .Take(PublicStructureBatch)
+            .ToList();
+
+        PublicStructureSummary =
+            $"{ids.Count:N0} listed · {ids.Count(known.Contains):N0} already known · " +
+            $"{unknown.Count:N0} new to resolve";
+
+        if (unknown.Count == 0) return;
+
+        StatusText = $"Polling: Resolving {unknown.Count} public structure(s)…";
+
+        var primary = await db.Characters
+            .Where(c => c.RefreshToken != "")
+            .Select(c => c.Id).FirstOrDefaultAsync(ct);
+
+        await ResolveNewStructureNamesAsync(primary, unknown, db, ct);
+    }
+
     // Fetches and caches names for structure IDs missing from EsiStructureNames or older than 30 days.
     // Tries primaryAuthCharId first, then falls back to any other character in the DB.
     // ESI requires esi-universe.read_structures.v1 and docking access to the structure.
+    /// <param name="force">
+    /// Ignores both skip lists — the freshness window and the failure backoff. Set only for a
+    /// user-initiated pull: both gates exist to stop the automatic sweep spending calls on answers
+    /// it already has or cannot get, and neither can know that the user just granted themselves
+    /// docking rights. A forced call is the user asserting the world changed since we last looked.
+    /// </param>
     private async Task ResolveNewStructureNamesAsync(
-        long primaryAuthCharId, IReadOnlyList<long> candidateIds, AppDbContext db, CancellationToken ct)
+        long primaryAuthCharId, IReadOnlyList<long> candidateIds, AppDbContext db, CancellationToken ct,
+        bool force = false)
     {
         if (candidateIds.Count == 0) return;
 
@@ -2378,7 +2528,7 @@ public class EsiPollingService : ReactiveObject
             .ToHashSet();
 
         var toResolve = candidateIds
-            .Where(id => !fresh.Contains(id) && !recentlyFailed.Contains(id))
+            .Where(id => force || (!fresh.Contains(id) && !recentlyFailed.Contains(id)))
             .Distinct().ToList();
         if (toResolve.Count == 0) return;
 
@@ -2555,9 +2705,106 @@ public class EsiPollingService : ReactiveObject
         await db.SaveChangesAsync(ct);
     }
 
+    /// <summary>
+    /// Tries one structure now, on demand, and reports the status it ended on.
+    ///
+    /// <para>Forced past both skip lists: a 403 parks a structure for thirty days and a success
+    /// parks it for thirty more, which is right for the sweep but wrong for a button whose whole
+    /// purpose is to ask again. Everything else — the failure row, the status, the celestial —
+    /// is written by the same resolver the sweep uses, so a manual pull and an automatic one
+    /// leave the row in the same state.</para>
+    /// </summary>
+    public async Task<StructureStatus> RetryStructureAsync(long structureId, CancellationToken ct = default)
+    {
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            await ResolveNewStructureNamesAsync(0, [structureId], db, ct, force: true);
+            await BackfillNearestCelestialsAsync(db, ct);
+            await _structureSync.SyncAsync(ct);
+
+            var row = await db.EsiStructureNames.AsNoTracking()
+                .FirstOrDefaultAsync(s => s.StructureId == structureId, ct);
+
+            return row is null ? StructureStatus.Pending : (StructureStatus)row.Status;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(EsiPollingService), nameof(RetryStructureAsync), ex);
+            return StructureStatus.Pending;
+        }
+    }
+
+    /// <summary>
+    /// Imports EVE Ref's structure snapshot, no more than once a day.
+    ///
+    /// <para>Gated on its own watermark rather than the sweep's cadence: the sweep runs hourly and
+    /// this is a third-party file that is neither ours to hammer nor changing that fast.</para>
+    /// </summary>
+    private async Task<(int Seen, int Filled)> SweepEveRefStructuresAsync(CancellationToken ct)
+    {
+        var last = _prefs.GetLong(AppPreferencesService.EveRefStructureFetchKey, 0);
+        var now  = DateTimeOffset.UtcNow;
+
+        if (last > 0 && now - DateTimeOffset.FromUnixTimeSeconds(last) < TimeSpan.FromDays(1))
+            return (0, 0);
+
+        var (imported, filled) = await _eveRefStructures.RefreshAsync(ct);
+
+        // Stamped only on a real answer, so a failed fetch is retried on the next sweep rather
+        // than parked for a day.
+        if (imported > 0)
+            await _prefs.SetLongAsync(AppPreferencesService.EveRefStructureFetchKey,
+                                      now.ToUnixTimeSeconds());
+
+        return (imported, filled);
+    }
+
+    /// <summary>
+    /// Asks ESI about one structure and hands back what it said, without committing anything to
+    /// the app's own table.
+    ///
+    /// <para>Split from <see cref="RetryStructureAsync"/> so "add by location ID" can show the
+    /// caller what an id turns out to be before they accept it. A typed id can be a typo, and
+    /// there is no way to remove a structure from the table once it is in — so the look is
+    /// deliberately separate from the commit.</para>
+    ///
+    /// <para>Writing to EsiStructureNames is not a commitment: that table is ESI's cache, and
+    /// caching an answer we just paid a call for is the point of it.</para>
+    /// </summary>
+    public async Task<StructureName?> LookupStructureAsync(long structureId, CancellationToken ct = default)
+    {
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            await ResolveNewStructureNamesAsync(0, [structureId], db, ct, force: true);
+            await BackfillNearestCelestialsAsync(db, ct);
+
+            return await db.EsiStructureNames.AsNoTracking()
+                .FirstOrDefaultAsync(s => s.StructureId == structureId, ct);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(EsiPollingService), nameof(LookupStructureAsync), ex);
+            return null;
+        }
+    }
+
+    /// <summary>Copies what ESI resolved into the app's own structure table. Exposed so the
+    /// Structure Browser can commit an added id without taking a second dependency on the sync
+    /// service — this class already owns it.</summary>
+    public Task<int> SyncStructuresAsync(CancellationToken ct = default) => _structureSync.SyncAsync(ct);
+
     public async Task ForceResolveStructureNamesAsync(CancellationToken ct = default)
     {
         StatusText = "Resolving structure names…";
+        StructureSweepRunning = true;
         try
         {
             using var scope = _scopeFactory.CreateScope();
@@ -2608,6 +2855,11 @@ public class EsiPollingService : ReactiveObject
                 .Where(s => s.Status != (int)StructureStatus.Resolved)
                 .Select(s => s.StructureId).ToListAsync(ct)) ids.Add(id);
 
+            // Drop anything our own assets identify as something other than a structure before it
+            // is seeded. The heuristic above cannot catch a ship whose own asset row arrived on a
+            // different page, and an Asset Safety Wrap almost always does.
+            ids = (await _structureSync.RejectNonStructuresAsync(db, ids, ct)).ToHashSet();
+
             // Seed placeholder rows so newly-seen structures appear in the browser (as Pending)
             // even before their details resolve.
             var existing = new HashSet<long>(await db.EsiStructureNames.Select(s => s.StructureId).ToListAsync(ct));
@@ -2623,7 +2875,63 @@ public class EsiPollingService : ReactiveObject
             var structureIds = ids.ToList();
             StatusText = $"Polling: Resolving {structureIds.Count} structure(s)…";
             await ResolveNewStructureNamesAsync(0, structureIds, db, ct);
+
+            // Last, and on its own daily timer: everything above is a structure we have touched,
+            // this is the one source that finds structures we have not. Kept after the others so
+            // a large public backlog never delays resolving the ones we actually use.
+            await SweepPublicStructuresAsync(db, ct);
+
             await BackfillNearestCelestialsAsync(db, ct);
+
+            // Clear out anything already in the table that our assets identify as not a structure,
+            // before the sync copies it into the table the user is about to curate by hand.
+            var purged = await _structureSync.PurgeNonStructuresAsync(ct);
+            if (purged > 0)
+                _errorLogger.Log(nameof(EsiPollingService), "Structure hygiene",
+                    $"Removed {purged:N0} row(s) our assets identify as ships, containers or " +
+                     "asset-safety wraps rather than structures.");
+
+            // Copy what ESI resolved into the app's own table, which is what the Structure Browser
+            // reads and edits. One direction only — nothing the user types can travel back into
+            // the polled table.
+            var synced = await _structureSync.SyncAsync(ct);
+
+            // Assets supersede hand-entered fittings. Once the game says what is fitted, a typed
+            // answer can only agree redundantly or contradict it, so it goes.
+            var superseded = await _structureSync.ClearSupersededFittingsAsync(ct);
+
+            // EVE Ref's snapshot, for the structures ESI will not describe. Daily: it is
+            // published hourly, but a name or system changes on the scale of months and the file
+            // is ~855 KB. Runs before the Indy Parks step so a system it supplies is in place
+            // before anything reads the structure table.
+            var (everefSeen, everefFilled) = await SweepEveRefStructuresAsync(ct);
+
+            // Bring linked Indy Parks entries into agreement with the structures they describe.
+            // Runs after the others on purpose: it decides direction from what assets say, so
+            // it must see the same picture they have just settled.
+            var linked = await _indyLink.SyncAllAsync(ct);
+
+            // Counted after the work, from the table itself, so the figures describe what is
+            // actually there rather than what this pass happened to touch.
+            var total    = await db.Structures.CountAsync(ct);
+            var resolved = await db.Structures.CountAsync(s => s.TypeId != 0, ct);
+
+            // ⚠️ Reported here, not to the error log. Both of these change data behind the user's
+            // back — a hand-entered fitting deleted, a park's rigs rewritten — so they have to be
+            // visible somewhere, but neither is a fault and filing them as errors makes that log
+            // useless for finding the things that are. Only mentioned when non-zero: a summary
+            // that always ends "0 superseded · 0 linked" trains people to stop reading it.
+            var extra = "";
+            if (superseded > 0)   extra += $" · {superseded:N0} fitting(s) superseded by assets";
+            if (everefSeen > 0)   extra += $" · EVE Ref: {everefSeen:N0} known, {everefFilled:N0} filled";
+            if (linked > 0)       extra += $" · {linked:N0} linked park fitting(s) updated";
+
+            StructureSweepSummary =
+                $"{structureIds.Count:N0} id(s) checked · {synced:N0} synced · " +
+                $"{purged:N0} purged · {total:N0} structures held, {resolved:N0} identified{extra}";
+
+            StructureSweepAt = DateTimeOffset.UtcNow;
+
             StatusText = structureIds.Count == 0
                 ? "Polling: No structure IDs found in assets"
                 : $"Polling: Structure names resolved ({structureIds.Count} IDs)";
@@ -2632,8 +2940,10 @@ public class EsiPollingService : ReactiveObject
         catch (Exception ex)
         {
             StatusText = "Polling: Structure name resolve failed";
+            StructureSweepSummary = $"Failed — {ex.Message}";
             _errorLogger.Log("EsiPollingService", "ForceResolveStructureNamesAsync", ex);
         }
+        finally { StructureSweepRunning = false; }
     }
 
     private async Task<PollingResult> FetchCorpStructuresAsync(long corpId, AppDbContext db, CancellationToken ct)

@@ -9,6 +9,15 @@ public class AppPreferencesService(IServiceScopeFactory factory)
 {
     public const string StructureNameCharKey = "polling.structure_name_char_id";
 
+    /// <summary>Unix seconds of the last public-structure sweep. The list moves slowly and
+    /// resolving what it turns up is the expensive part, so it is walked daily, not per cycle.</summary>
+    public const string PublicStructureSweepKey = "polling.public_structures_swept_at";
+
+    /// <summary>Unix seconds of the last EVE Ref structure snapshot import. Published hourly but
+    /// read daily: a structure's name and system change on the scale of months, and the file is
+    /// ~855 KB every time.</summary>
+    public const string EveRefStructureFetchKey = "polling.everef_structures_fetched_at";
+
     private readonly ConcurrentDictionary<string, string> _cache = new();
 
     public Task LoadAsync()

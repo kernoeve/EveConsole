@@ -473,27 +473,38 @@ public class MarketPricingService
     /// <summary>
     /// Records which system a structure sits in, from the orders listed there.
     ///
-    /// A structure's own details come from /universe/structures/, which 403s unless one of our
-    /// characters can dock — so for a private structure the system would otherwise stay 0
-    /// forever. A market order carries its system_id regardless of that, and an order listed at
-    /// a structure is proof of where the structure is. Only fills zeroes: a system that came
-    /// from the structure endpoint is authoritative and is left alone.
+    /// <para>A structure's own details come from /universe/structures/, which 403s unless one of
+    /// our characters can dock — so for a private structure the system would otherwise stay 0
+    /// forever. A market order carries its system_id regardless of that, and an order listed at a
+    /// structure is proof of where the structure is.</para>
+    ///
+    /// <para>⚠️ Writes to <c>Structures</c>, the app's own table, and never to
+    /// <c>EsiStructureNames</c>. Only ESI's own responses go into the polled tables; this is a
+    /// conclusion drawn from one endpoint's data about another endpoint's subject, and putting it
+    /// there would make a derived value indistinguishable from something ESI actually said about
+    /// that structure. It would also be pointless: the sync only copies resolved rows onward, and
+    /// a structure that needs this is by definition one that never resolves.</para>
+    ///
+    /// <para>Only fills zeroes, so a system from the structure endpoint — or one typed by hand —
+    /// is left alone. UpdatedBy is deliberately not stamped either: filling an empty field is not
+    /// the same as rewriting the row, and claiming it would tell someone their hand-written
+    /// description had been overwritten when it had not.</para>
     /// </summary>
     private static async Task BackfillStructureSystemsAsync(AppDbContext db, CancellationToken ct)
     {
         try
         {
             await db.Database.ExecuteSqlRawAsync("""
-                UPDATE "EsiStructureNames"
+                UPDATE "Structures"
                    SET "SolarSystemId" = (
                        SELECT o."SystemId" FROM "MarketRawOrders" o
-                       WHERE o."LocationId" = "EsiStructureNames"."StructureId"
+                       WHERE o."LocationId" = "Structures"."StructureId"
                          AND o."SystemId" > 0
                        LIMIT 1)
                  WHERE "SolarSystemId" = 0
                    AND EXISTS (
                        SELECT 1 FROM "MarketRawOrders" o
-                       WHERE o."LocationId" = "EsiStructureNames"."StructureId"
+                       WHERE o."LocationId" = "Structures"."StructureId"
                          AND o."SystemId" > 0)
                 """, ct);
         }

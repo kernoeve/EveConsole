@@ -357,6 +357,26 @@ public class EsiClient
     public Task<EsiKillMailFull?> GetKillMailAsync(int killMailId, string hash, CancellationToken ct = default)
         => GetAsync<EsiKillMailFull>($"killmails/{killMailId}/{hash}/", ct);
 
+    /// <summary>
+    /// Every player structure whose owner has made it public, as bare ids. Public, no auth.
+    ///
+    /// <para>The only way to learn of a structure nobody here has bumped into: everything else we
+    /// know about structures arrives incidentally, from a killmail, a contract or an asset
+    /// location, so that coverage stops where our characters have been.</para>
+    ///
+    /// <para>⚠️ The converse also holds — a structure we merely have docking rights to is NOT
+    /// listed unless its owner also made it public. This supplements the incidental sources, it
+    /// does not replace them.</para>
+    ///
+    /// <para>Null on error rather than throwing: a missed refresh of a slow-moving list is not
+    /// worth failing a polling cycle over.</para>
+    /// </summary>
+    public async Task<List<long>?> GetPublicStructureIdsAsync(CancellationToken ct = default)
+    {
+        try { return await GetAsync<List<long>>("universe/structures/", ct); }
+        catch { return null; }
+    }
+
     // Moon detail (public). Returns null on error. name is e.g. "X-1QGA VI - Moon 3".
     public async Task<EsiMoonDetail?> GetMoonAsync(int moonId, CancellationToken ct = default)
     {
