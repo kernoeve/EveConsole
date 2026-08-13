@@ -2872,26 +2872,29 @@ public class EsiPollingService : ReactiveObject
             // Assets supersede hand-entered fittings. Once the game says what is fitted, a typed
             // answer can only agree redundantly or contradict it, so it goes.
             var superseded = await _structureSync.ClearSupersededFittingsAsync(ct);
-            if (superseded > 0)
-                _errorLogger.Log(nameof(EsiPollingService), "Structure fittings",
-                    $"Cleared {superseded:N0} hand-entered fitting row(s) now covered by assets.");
 
             // Bring linked Indy Parks entries into agreement with the structures they describe.
             // Runs after the two above on purpose: it decides direction from what assets say, so
             // it must see the same picture they have just settled.
             var linked = await _indyLink.SyncAllAsync(ct);
-            if (linked > 0)
-                _errorLogger.Log(nameof(EsiPollingService), "Indy Parks link",
-                    $"Updated {linked:N0} linked park structure fitting(s).");
 
             // Counted after the work, from the table itself, so the figures describe what is
             // actually there rather than what this pass happened to touch.
             var total    = await db.Structures.CountAsync(ct);
             var resolved = await db.Structures.CountAsync(s => s.TypeId != 0, ct);
 
+            // ⚠️ Reported here, not to the error log. Both of these change data behind the user's
+            // back — a hand-entered fitting deleted, a park's rigs rewritten — so they have to be
+            // visible somewhere, but neither is a fault and filing them as errors makes that log
+            // useless for finding the things that are. Only mentioned when non-zero: a summary
+            // that always ends "0 superseded · 0 linked" trains people to stop reading it.
+            var extra = "";
+            if (superseded > 0) extra += $" · {superseded:N0} fitting(s) superseded by assets";
+            if (linked > 0)     extra += $" · {linked:N0} linked park fitting(s) updated";
+
             StructureSweepSummary =
                 $"{structureIds.Count:N0} id(s) checked · {synced:N0} synced · " +
-                $"{purged:N0} purged · {total:N0} structures held, {resolved:N0} identified";
+                $"{purged:N0} purged · {total:N0} structures held, {resolved:N0} identified{extra}";
 
             StructureSweepAt = DateTimeOffset.UtcNow;
 
