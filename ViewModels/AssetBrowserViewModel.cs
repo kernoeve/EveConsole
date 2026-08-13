@@ -300,7 +300,7 @@ public class AssetBrowserViewModel : ReactiveObject
     //   Base — all display-ready columns. Aggregation queries wrap Base with GROUP BY.
     private static readonly string QueryPrefix = """
         WITH
-        ContainerJoins AS (
+        ContainerHops AS (
             SELECT
                 a.ItemId, a.OwnerId, a.OwnerType,
                 p1.TypeId AS CP1TypeId,
@@ -313,7 +313,23 @@ public class AssetBrowserViewModel : ReactiveObject
                     WHEN p2.LocationId = a.RootLocationId  THEN 2
                     WHEN p3.LocationId = a.RootLocationId  THEN 3
                     ELSE 0
-                END AS ContainerDepth
+                END AS ContainerDepth,
+                -- Which hop's flag names the corp hangar division.
+                --
+                -- A division is not an item, so it owns no hop of its own: it is expressed as the
+                -- LocationFlag of whatever sits directly inside the office. Verified against the
+                -- data -- Morphite (Unlocked) -> Station Container (CorpSAG3) -> Office
+                -- (OfficeFolder) -- so the flag that matters is one hop further out at each
+                -- depth, which is why the path used to jump straight from Office to the
+                -- container and lose the division between them.
+                CASE
+                    WHEN a.LocationType != 'item'          THEN NULL
+                    WHEN a.LocationId = a.RootLocationId   THEN NULL
+                    WHEN p1.LocationId = a.RootLocationId  THEN a.LocationFlag
+                    WHEN p2.LocationId = a.RootLocationId  THEN p1.LocationFlag
+                    WHEN p3.LocationId = a.RootLocationId  THEN p2.LocationFlag
+                    ELSE NULL
+                END AS DivFlag
             FROM EsiAssets a
             LEFT JOIN EsiAssets p1 ON p1.ItemId = a.LocationId  AND p1.OwnerId = a.OwnerId AND p1.OwnerType = a.OwnerType
                                    AND a.LocationType = 'item' AND a.LocationId != a.RootLocationId
@@ -321,6 +337,27 @@ public class AssetBrowserViewModel : ReactiveObject
                                    AND p1.LocationId != a.RootLocationId
             LEFT JOIN EsiAssets p3 ON p3.ItemId = p2.LocationId AND p3.OwnerId = a.OwnerId AND p3.OwnerType = a.OwnerType
                                    AND p2.LocationId != a.RootLocationId
+        ),
+        -- Second pass only because SQLite cannot reference a computed alias from the same SELECT,
+        -- and resolving the division name needs DivFlag to already exist.
+        ContainerJoins AS (
+            SELECT
+                h.ItemId, h.OwnerId, h.OwnerType,
+                h.CP1TypeId, h.CP2TypeId, h.CP3TypeId, h.ContainerDepth,
+                -- 'CorpSAG_' is one character, so divisions 1-7 match and CorporationGoalDeliveries
+                -- (which also sits under the office, but is not a hangar) does not. Falls back to
+                -- the number when the corp has not named the division, or when we hold no
+                -- divisions for that corp at all -- "Division 6" still beats showing nothing.
+                CASE WHEN h.DivFlag LIKE 'CorpSAG_'
+                     THEN COALESCE(NULLIF(cd.Name, ''), 'Division ' || SUBSTR(h.DivFlag, 8))
+                     ELSE NULL
+                END AS DivName
+            FROM ContainerHops h
+            LEFT JOIN EsiCorpDivisions cd ON h.OwnerType     = 'corporation'
+                                         AND cd.CorporationId = h.OwnerId
+                                         AND cd.DivisionType  = 'hangar'
+                                         AND h.DivFlag LIKE 'CorpSAG_'
+                                         AND cd.Division = CAST(SUBSTR(h.DivFlag, 8) AS INTEGER)
         ),
         JobFacilities AS (
             SELECT
@@ -378,12 +415,18 @@ public class AssetBrowserViewModel : ReactiveObject
                     WHEN 'other'        THEN COALESCE(NULLIF(sn.Name,''), '<Unknown Structure>')
                     ELSE                     '<Unresolved - Please Refresh>'
                 END AS "Location Name",
+                -- The division slots in immediately after the outermost name, which is the office
+                -- whenever there is a division at all. Concatenating NULL yields NULL in SQLite,
+                -- so the COALESCE is what makes the segment vanish rather than erase the path.
                 CASE cj.ContainerDepth
                     WHEN 0 THEN NULL
                     WHEN 1 THEN COALESCE(ct1.Name, CAST(cj.CP1TypeId AS TEXT))
+                              || COALESCE(' > ' || cj.DivName, '')
                     WHEN 2 THEN COALESCE(ct2.Name, CAST(cj.CP2TypeId AS TEXT))
+                              || COALESCE(' > ' || cj.DivName, '')
                               || ' > ' || COALESCE(ct1.Name, CAST(cj.CP1TypeId AS TEXT))
                     WHEN 3 THEN COALESCE(ct3.Name, CAST(cj.CP3TypeId AS TEXT))
+                              || COALESCE(' > ' || cj.DivName, '')
                               || ' > ' || COALESCE(ct2.Name, CAST(cj.CP2TypeId AS TEXT))
                               || ' > ' || COALESCE(ct1.Name, CAST(cj.CP1TypeId AS TEXT))
                     ELSE NULL

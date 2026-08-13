@@ -779,8 +779,9 @@ public class StructureBrowserViewModel : ReactiveObject
                 .Take(5000)
                 .ToListAsync();
 
-            // Containers are themselves assets, so their name comes from the same list.
-            var containerTypes = assets.ToDictionary(a => a.ItemId, a => a.TypeId);
+            // Containers are themselves assets, so both their names and their place in the chain
+            // come from this same list.
+            var byItem = assets.ToDictionary(a => a.ItemId);
 
             // Owner names rather than "character"/"corporation", which said nothing useful.
             var charNames = await db.Characters.AsNoTracking()
@@ -800,16 +801,61 @@ public class StructureBrowserViewModel : ReactiveObject
                 .ToListAsync())
                 .ToDictionary(d => (d.CorporationId, d.Division), d => d.Name);
 
+            // The division a CorpSAG flag names, or null when the flag is not one.
+            string? DivisionName(long ownerId, string ownerType, string flag)
+            {
+                // CorpSAG1..7 map to hangar divisions 1..7. CorporationGoalDeliveries also lives
+                // under the office and is not one of them, so the digit has to parse.
+                if (ownerType != "corporation" || !flag.StartsWith("CorpSAG") ||
+                    !int.TryParse(flag[7..], out var div))
+                    return null;
+
+                return divisions.TryGetValue((ownerId, div), out var name) && name.Length > 0
+                    ? name
+                    : $"Division {div}";
+            }
+
+            // The flag column keeps the division number alongside the name: this column is about
+            // where in the hangar something sits, and the number is how the game labels the tab.
             string WhereFrom(long ownerId, string ownerType, string flag)
             {
-                // CorpSAG1..7 map to hangar divisions 1..7.
-                if (ownerType == "corporation" && flag.StartsWith("CorpSAG") &&
-                    int.TryParse(flag[7..], out var div) &&
-                    divisions.TryGetValue((ownerId, div), out var name) &&
-                    name.Length > 0)
-                    return $"{name} (div {div})";
+                if (ownerType != "corporation" || !flag.StartsWith("CorpSAG") ||
+                    !int.TryParse(flag[7..], out var div))
+                    return flag;
 
-                return flag;
+                return divisions.TryGetValue((ownerId, div), out var name) && name.Length > 0
+                    ? $"{name} (div {div})"
+                    : flag;
+            }
+
+            // The full chain from the structure down to whatever holds this item, matching the
+            // Assets tool rather than naming only the immediate container — an item can be several
+            // layers deep, and "Station Container" alone does not say which of them.
+            //
+            // ⚠️ A corp hangar division is not an item and owns no hop of its own: it is the
+            // LocationFlag of whatever sits directly in the office. So the division is emitted when
+            // the flag being carried up is a CorpSAG one, which is exactly when the parent just
+            // added is the office — that is what puts it between the two.
+            string ContainerPath(long locationId, string flag, long ownerId, string ownerType)
+            {
+                var parts = new List<string>();
+                var id    = locationId;
+
+                // Bounded rather than while(true): a cycle in the asset graph would otherwise hang
+                // the load, and nothing legitimately nests anywhere near this deep.
+                for (int hop = 0; hop < 8 && id != row.StructureId; hop++)
+                {
+                    if (!byItem.TryGetValue(id, out var parent)) break;
+
+                    parts.Insert(0, typeNames.GetValueOrDefault(parent.TypeId, $"Type {parent.TypeId}"));
+                    if (DivisionName(ownerId, ownerType, flag) is { } division)
+                        parts.Insert(1, division);
+
+                    flag = parent.LocationFlag;
+                    id   = parent.LocationId;
+                }
+
+                return string.Join(" > ", parts);
             }
 
             foreach (var a in assets.OrderBy(a => a.LocationFlag))
@@ -818,10 +864,7 @@ public class StructureBrowserViewModel : ReactiveObject
                 {
                     TypeName  = typeNames.GetValueOrDefault(a.TypeId, $"Type {a.TypeId}"),
                     Location  = WhereFrom(a.OwnerId, a.OwnerType, a.LocationFlag),
-                    Container = a.LocationId != row.StructureId
-                                  && containerTypes.TryGetValue(a.LocationId, out var ct)
-                                    ? typeNames.GetValueOrDefault(ct, $"Type {ct}")
-                                    : "",
+                    Container = ContainerPath(a.LocationId, a.LocationFlag, a.OwnerId, a.OwnerType),
                     Quantity  = a.Quantity,
                     Owner     = OwnerName(a.OwnerId, a.OwnerType),
                 };
