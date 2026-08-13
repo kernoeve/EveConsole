@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:ctl="clr-namespace:EveConsole.Controls"
              x:Class="EveConsole.Views.StructureBrowserView"
              x:DataType="vm:StructureBrowserViewModel"
              Background="#0d0d12">
@@ -221,17 +222,28 @@
             </TabItem>
 
             <!-- ── Fitting ─────────────────────────────────────────── -->
+            <!-- Ring on the left, list on the right: the ring says what is empty at a glance,
+                 the list is what you read when you want the names. -->
             <TabItem Header="Fitting">
-              <DataGrid ItemsSource="{Binding Fitting}" AutoGenerateColumns="False"
-                        IsReadOnly="True" FontSize="11" RowHeight="22"
-                        Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
-                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
-                <DataGrid.Columns>
-                  <DataGridTextColumn Header="Slot"   Binding="{Binding Slot}"     Width="120" />
-                  <DataGridTextColumn Header="Module" Binding="{Binding TypeName}" Width="*" />
-                  <DataGridTextColumn Header="Known from" Binding="{Binding Source}" Width="100" />
-                </DataGrid.Columns>
-              </DataGrid>
+              <Grid ColumnDefinitions="*,340">
+
+                <ctl:FittingCanvas Grid.Column="0"
+                                   Slots="{Binding FittingSlots}"
+                                   HullRender="{Binding TypeRender}"
+                                   SlotClickedCommand="{Binding SlotClickedCommand}" />
+
+                <DataGrid Grid.Column="1" ItemsSource="{Binding Fitting}" AutoGenerateColumns="False"
+                          IsReadOnly="True" RowHeight="22"
+                          Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="1 0 0 0"
+                          BorderBrush="#1e1e2a"
+                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Slot"   Binding="{Binding Slot}"     Width="100" />
+                    <DataGridTextColumn Header="Module" Binding="{Binding TypeName}" Width="*" />
+                    <DataGridTextColumn Header="From"   Binding="{Binding Source}"   Width="70" />
+                  </DataGrid.Columns>
+                </DataGrid>
+              </Grid>
             </TabItem>
 
             <!-- ── Assets ──────────────────────────────────────────── -->

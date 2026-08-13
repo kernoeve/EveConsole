@@ -211,6 +211,21 @@ public class StructureBrowserViewModel : ReactiveObject
             : $"{Jobs.Count:N0} of {_allJobs.Count:N0} job(s)";
     }
 
+    /// <summary>
+    /// Clicking a slot. Reports what was clicked for now; this is the hook the module picker will
+    /// hang off, and it is deliberately on the view model rather than the control so the control
+    /// stays reusable for ships.
+    /// </summary>
+    public ReactiveCommand<EveConsole.Controls.FittingSlot, Unit> SlotClickedCommand { get; }
+
+    private IReadOnlyList<EveConsole.Controls.FittingSlot>? _fittingSlots;
+    /// <summary>Every slot the hull has, filled or empty, for the graphical fitting view.</summary>
+    public IReadOnlyList<EveConsole.Controls.FittingSlot>? FittingSlots
+    {
+        get => _fittingSlots;
+        private set => this.RaiseAndSetIfChanged(ref _fittingSlots, value);
+    }
+
     private Avalonia.Media.Imaging.Bitmap? _typeRender;
     /// <summary>Render of the structure's hull, refreshed whenever the selected type changes.</summary>
     public Avalonia.Media.Imaging.Bitmap? TypeRender
@@ -240,6 +255,14 @@ public class StructureBrowserViewModel : ReactiveObject
 
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadAsync);
         ResolveCommand = ReactiveCommand.CreateFromTask(ResolveAsync);
+
+        SlotClickedCommand = ReactiveCommand.Create<EveConsole.Controls.FittingSlot>(slot =>
+        {
+            DetailStatus = slot.IsEmpty
+                ? $"{slot.Band} slot {slot.Index} is empty."
+                : $"{slot.Band} slot {slot.Index}: {slot.Name} " +
+                  $"({(slot.FromAssets ? "from assets" : "entered by hand")})";
+        });
         ClearFilters   = ReactiveCommand.Create(() =>
         {
             RegionText = ConstellationText = SystemText = TypeText = CorpText = AllianceText = "";
@@ -445,6 +468,8 @@ public class StructureBrowserViewModel : ReactiveObject
                 });
             }
 
+            await BuildFittingSlotsAsync(db, row, typeNames);
+
             // ── Assets stored here ───────────────────────────────────────────
             // ⚠️ RootLocationId, not LocationId. An item inside a container has the CONTAINER as
             // its LocationId, so matching on that alone shows only what sits loose in the
@@ -511,14 +536,23 @@ public class StructureBrowserViewModel : ReactiveObject
                 // is noise.
                 if (a.LocationFlag == "OfficeFolder") continue;
 
-                // Cargo, fuel and fighters get their own tabs: a fuel bay is a running cost, a
-                // ship's cargo is in transit and fighters are a defensive fit. None of them is
-                // "what is stored here", and each drowns that list.
-                if (a.LocationFlag == "StructureFuel")            Fuel.Add(vm);
-                else if (a.LocationFlag == "Cargo")               Cargo.Add(vm);
-                else if (a.LocationFlag == "FighterBay"
-                      || a.LocationFlag.StartsWith("FighterTube")) Fighters.Add(vm);
-                else                                              Assets.Add(vm);
+                // ⚠️ The dedicated tabs describe the STRUCTURE's own bays, so they take only items
+                // sitting directly on it. A docked ship's cargo carries the flag "Cargo" too, and
+                // its RootLocationId is this structure — so without this test every ship's hold
+                // emptied itself onto the Cargo tab and the structure's own bay was lost in it.
+                var onTheStructure = a.LocationId == row.StructureId;
+
+                if (onTheStructure && a.LocationFlag == "StructureFuel")   Fuel.Add(vm);
+                else if (onTheStructure && (a.LocationFlag == "Cargo"
+                                         || a.LocationFlag == "QuantumCoreRoom"))
+                    // The quantum core is one item and does not warrant a tab of its own, but it
+                    // is part of what the structure is carrying, so it belongs with the cargo.
+                    Cargo.Add(vm);
+                else if (onTheStructure && (a.LocationFlag == "FighterBay"
+                                         || a.LocationFlag.StartsWith("FighterTube")))
+                    Fighters.Add(vm);
+                else
+                    Assets.Add(vm);
             }
 
             // ── Industry jobs run here ───────────────────────────────────────
@@ -564,6 +598,89 @@ public class StructureBrowserViewModel : ReactiveObject
                 $"{Fuel.Count:N0} fuel · {Fighters.Count:N0} fighters · {_allJobs.Count:N0} job(s)";
         }
         catch (Exception ex) { DetailStatus = $"Detail load failed: {ex.Message}"; }
+    }
+
+    // Dogma attributes that carry slot counts. Populated identically for hulls and structures,
+    // which is what lets the fitting control serve both without knowing about either.
+    private const int AttrLowSlots     = 12;
+    private const int AttrMedSlots     = 13;
+    private const int AttrHiSlots      = 14;
+    private const int AttrRigSlots     = 1137;
+    private const int AttrServiceSlots = 2056;
+
+    /// <summary>
+    /// Builds every slot the hull has — filled from what we know, empty where we do not.
+    ///
+    /// <para>Capacity comes from the type's dogma attributes rather than from what happens to be
+    /// fitted, so a Fortizar shows five service slots with two filled rather than just the two.
+    /// Empty slots are the useful half of a fitting view.</para>
+    ///
+    /// <para>Assets win where they exist, since they are what the game says is actually fitted.
+    /// Hand-entered rigs and service modules fill slots assets did not cover, which is the whole
+    /// arrangement for structures we do not own.</para>
+    /// </summary>
+    private async Task BuildFittingSlotsAsync(
+        AppDbContext db, StructureRow row, Dictionary<int, string> typeNames)
+    {
+        if (row.TypeId <= 0) { FittingSlots = null; return; }
+
+        var attrs = await db.SdeTypeDogmaAttributes.AsNoTracking()
+            .Where(a => a.TypeId == row.TypeId)
+            .ToDictionaryAsync(a => a.AttributeId, a => (int)a.Value);
+
+        int Cap(int attr) => attrs.GetValueOrDefault(attr, 0);
+
+        // Fitted, from assets: LocationFlag names the band and the index.
+        var fitted = await db.EsiAssets.AsNoTracking()
+            .Where(a => a.LocationId == row.StructureId && a.LocationFlag.Contains("Slot"))
+            .Select(a => new { a.LocationFlag, a.TypeId })
+            .ToListAsync();
+
+        var byFlag = fitted
+            .GroupBy(f => f.LocationFlag)
+            .ToDictionary(g => g.Key, g => g.First().TypeId);
+
+        // Hand-entered, for the slots assets never reach.
+        var rigs = await db.StructureRigs.AsNoTracking()
+            .Where(r => r.StructureId == row.StructureId).ToListAsync();
+        var services = await db.StructureServiceModules.AsNoTracking()
+            .Where(m => m.StructureId == row.StructureId).ToListAsync();
+
+        var slots = new List<EveConsole.Controls.FittingSlot>();
+
+        void Band(EveConsole.Controls.FittingBand band, string flagPrefix, int count,
+                  Func<int, int> manual)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                var flag       = $"{flagPrefix}{i}";
+                var fromAssets = byFlag.TryGetValue(flag, out var assetType);
+                var typeId     = fromAssets ? assetType : manual(i);
+
+                slots.Add(new EveConsole.Controls.FittingSlot(
+                    band, i, typeId,
+                    typeId > 0 ? typeNames.GetValueOrDefault(typeId, $"Type {typeId}") : "",
+                    Icon: null,
+                    FromAssets: fromAssets));
+            }
+        }
+
+        Band(EveConsole.Controls.FittingBand.High, "HiSlot",  Cap(AttrHiSlots),  _ => 0);
+        Band(EveConsole.Controls.FittingBand.Mid,  "MedSlot", Cap(AttrMedSlots), _ => 0);
+        Band(EveConsole.Controls.FittingBand.Low,  "LoSlot",  Cap(AttrLowSlots), _ => 0);
+
+        Band(EveConsole.Controls.FittingBand.Rig, "RigSlot", Cap(AttrRigSlots),
+             i => rigs.FirstOrDefault(r => r.SlotIndex == i)?.RigTypeId ?? 0);
+
+        // Service modules have no meaningful slot index of their own — the game numbers them by
+        // where they happen to sit — so hand-entered ones fill the first free slots in order.
+        var manualServices = services.Select(m => m.TypeId).ToList();
+        var nextManual     = 0;
+
+        Band(EveConsole.Controls.FittingBand.Service, "ServiceSlot", Cap(AttrServiceSlots),
+             _ => nextManual < manualServices.Count ? manualServices[nextManual++] : 0);
+
+        FittingSlots = slots;
     }
 
     /// <summary>Renders of structure hulls, kept for the session — they are a few hundred KB each
