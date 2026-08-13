@@ -158,20 +158,11 @@ public class FittingCanvas : Control
     private FittingSlot? _hover;
     private Point        _hoverAt;
 
-    /// <summary>Clock position to degrees, measured the way atan2 does on screen: 0° east, angles
-    /// increasing clockwise because Y grows downward. Twelve o'clock is therefore -90°.</summary>
-    private static double Clock(double hour) => hour * 30 - 90;
-
     /// <summary>
-    /// Preferred gap between neighbouring slots. A band uses this until it would outgrow the arc
-    /// it is allotted, then tightens to fit.
-    ///
-    /// <para>⚠️ Both halves matter. A fixed step alone made a Fortizar's six high slots span 105°,
-    /// which ran them into the mid band; an arc divided by the count alone strands three slots
-    /// across a wide sweep and packs eight into the same space. Preferred-but-clamped keeps small
-    /// bands compact and large ones inside their own territory.</para>
+    /// Clear space between neighbouring slot boxes, measured on screen rather than in degrees.
+    /// A band uses this until it would outgrow the extent it is allotted, then tightens to fit.
     /// </summary>
-    private const double SlotStepDeg = 17;
+    private const double SlotGap = 9;
 
     /// <summary>
     /// Places the slots in the arrangement the game uses — high at the top, mid on the right, low
@@ -201,38 +192,68 @@ public class FittingCanvas : Control
 
         if (_radius <= SlotSize) return;
 
-        void Band(FittingBand band, double centreHour, double halfWidthDeg)
+        // ⚠️ Slots are spaced along a straight axis, then pushed out to the circle — NOT spread
+        // by equal angles. Equal angles look even in degrees and uneven on screen: across the top
+        // the horizontal gap per degree is r·cos(θ)·Δθ, which shrinks toward the ends of the arc,
+        // so the outermost slots collide while the middle ones sit far apart. Spacing the axis
+        // and solving the circle for the other coordinate gives a constant visible gap.
+
+        /// <summary>Slots evenly spaced in X, riding the top or bottom of the circle.</summary>
+        void Horizontal(FittingBand band, bool top, double maxHalfExtent)
         {
             var inBand = slots.Where(s => s.Band == band).OrderBy(s => s.Index).ToList();
             if (inBand.Count == 0) return;
 
-            // Tighten only when the preferred step would push the band past its own arc.
-            var step = inBand.Count > 1
-                ? Math.Min(SlotStepDeg, halfWidthDeg * 2 / (inBand.Count - 1))
-                : 0;
+            var step = SlotSize + SlotGap;
+            if (inBand.Count > 1)
+                step = Math.Min(step, maxHalfExtent * 2 / (inBand.Count - 1));
 
-            // Centred on the clock position: with four slots the two middle ones straddle it.
-            var start = Clock(centreHour) - step * (inBand.Count - 1) / 2.0;
+            var start = -step * (inBand.Count - 1) / 2.0;
 
             for (var i = 0; i < inBand.Count; i++)
             {
-                var rad = (start + step * i) * Math.PI / 180;
-                var x   = cx + Math.Cos(rad) * _radius;
-                var y   = cy + Math.Sin(rad) * _radius;
+                var dx = start + step * i;
+                var dy = Math.Sqrt(Math.Max(0, _radius * _radius - dx * dx));
+                var y  = top ? cy - dy : cy + dy;
 
                 _placed.Add((inBand[i],
-                    new Rect(x - SlotSize / 2, y - SlotSize / 2, SlotSize, SlotSize)));
+                    new Rect(cx + dx - SlotSize / 2, y - SlotSize / 2, SlotSize, SlotSize)));
             }
         }
 
-        // Clock positions and arc widths taken from the in-game window: high 10-2, mid 2-3:30,
-        // low 5-6:30, rigs 8-9. The half-widths are what keep neighbouring bands apart — they
-        // are chosen so no two bands' arcs can meet however many slots a hull has.
-        Band(FittingBand.High,      12,   45);
-        Band(FittingBand.Mid,        2.75, 22);
-        Band(FittingBand.Low,        5.75, 22);
-        Band(FittingBand.Rig,        8.5,  16);
-        Band(FittingBand.Subsystem, 10.5,  16);
+        /// <summary>Slots evenly spaced in Y, riding the left or right of the circle.</summary>
+        void Vertical(FittingBand band, bool right, double centreOffsetY, double maxHalfExtent)
+        {
+            var inBand = slots.Where(s => s.Band == band).OrderBy(s => s.Index).ToList();
+            if (inBand.Count == 0) return;
+
+            var step = SlotSize + SlotGap;
+            if (inBand.Count > 1)
+                step = Math.Min(step, maxHalfExtent * 2 / (inBand.Count - 1));
+
+            var start = centreOffsetY - step * (inBand.Count - 1) / 2.0;
+
+            for (var i = 0; i < inBand.Count; i++)
+            {
+                var dy = start + step * i;
+                var dx = Math.Sqrt(Math.Max(0, _radius * _radius - dy * dy));
+                var x  = right ? cx + dx : cx - dx;
+
+                _placed.Add((inBand[i],
+                    new Rect(x - SlotSize / 2, cy + dy - SlotSize / 2, SlotSize, SlotSize)));
+            }
+        }
+
+        // The extents are what keep neighbouring bands apart. Horizontal bands stop at 0.70r and
+        // vertical ones at 0.45r, which leaves the corners between high and mid — the tightest
+        // pair — around two box widths clear however many slots a hull has.
+        Horizontal(FittingBand.High, top: true,  maxHalfExtent: _radius * 0.70);
+        Horizontal(FittingBand.Low,  top: false, maxHalfExtent: _radius * 0.70);
+
+        Vertical(FittingBand.Mid, right: true,  centreOffsetY: -_radius * 0.05, maxHalfExtent: _radius * 0.45);
+        Vertical(FittingBand.Rig, right: false, centreOffsetY:  _radius * 0.30, maxHalfExtent: _radius * 0.30);
+        Vertical(FittingBand.Subsystem, right: false, centreOffsetY: -_radius * 0.35,
+                 maxHalfExtent: _radius * 0.25);
 
         // Services are a straight row below the circle: there can be seven, and an arc that long
         // reads as another module band rather than as something different in kind.
