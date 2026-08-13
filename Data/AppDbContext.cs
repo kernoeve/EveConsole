@@ -220,6 +220,10 @@ public class AppDbContext : DbContext
     public DbSet<Structure>              Structures              => Set<Structure>();
     public DbSet<StructureFitting>       StructureFittings       => Set<StructureFitting>();
 
+    // EVE Ref's published structure snapshot. A third source, kept apart from both the polled
+    // table and our own — see EveRefStructure.
+    public DbSet<EveRefStructure>        EveRefStructures        => Set<EveRefStructure>();
+
     // ── Build cost calculation ───────────────────────────────────────────────
     public DbSet<EsiAdjustedPrice>   EsiAdjustedPrices   => Set<EsiAdjustedPrice>();
     public DbSet<IndustryCostIndex>  IndustryCostIndices => Set<IndustryCostIndex>();
@@ -887,6 +891,11 @@ public class AppDbContext : DbContext
             // modules in the same hole.
             e.HasIndex(x => new { x.StructureId, x.Band, x.SlotIndex }).IsUnique();
             e.ToTable("StructureFittings"); });
+
+        mb.Entity<EveRefStructure>(e => {
+            e.HasKey(x => x.StructureId);
+            e.Property(x => x.StructureId).ValueGeneratedNever();
+            e.ToTable("EveRefStructures"); });
 
         mb.Entity<IndyStructureService>(e => {
             e.HasKey(x => x.Id);

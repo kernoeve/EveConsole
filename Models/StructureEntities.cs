@@ -78,6 +78,46 @@ public class StructureFitting
     public int    TypeId      { get; set; }
 }
 
+/// <summary>
+/// What EVE Ref publishes about a structure.
+///
+/// <para>⚠️ A third table on purpose, alongside the polled one and our own. This is a third
+/// party's observation, assembled by people whose characters can dock where ours cannot — so it
+/// is neither something ESI told us nor something the user asserted, and folding it into either
+/// would make an unverifiable value indistinguishable from a verified one. Kept whole so the
+/// Structure Browser can say where a name came from, and so a bad snapshot can be re-imported
+/// rather than untangled.</para>
+///
+/// <para>⚠️ Almost every field is optional. Only the id, first-seen and the flags are reliably
+/// present in the feed; measured against our own unknowns, 506 of 861 entries existed but had no
+/// system even there. Code against the absence, not against a sample entry that happened to be
+/// complete.</para>
+/// </summary>
+public class EveRefStructure
+{
+    public long   StructureId   { get; set; }
+    public string Name          { get; set; } = "";
+    public long   OwnerId       { get; set; }
+    public int    SolarSystemId { get; set; }
+    public int    RegionId      { get; set; }
+    public int    TypeId        { get; set; }
+    public double X, Y, Z;
+
+    /// <summary>Docking is open to all. Distinct from the market being public — the pair that
+    /// prompted this are market-public and docking-private, which is exactly why their orders
+    /// reach us while the structures stay opaque.</summary>
+    public bool IsPublic { get; set; }
+    public bool IsMarket { get; set; }
+
+    /// <summary>Kept as text: display only, and EF Core's SQLite provider cannot translate a
+    /// DateTimeOffset into a WHERE or ORDER BY, so a real date here would be a trap for the next
+    /// person who tries to filter on it.</summary>
+    public string FirstSeen { get; set; } = "";
+
+    /// <summary>When we took the snapshot this row came from.</summary>
+    public DateTimeOffset FetchedAt { get; set; }
+}
+
 /// <summary>A service module on an Indy Parks structure. Kept separate from
 /// <see cref="StructureFitting"/> because a park entry describes a planned or hypothetical
 /// structure that need not correspond to a real one — only those with a RealStructureId can be

@@ -34,6 +34,7 @@ public class EsiPollingService : ReactiveObject
     private readonly EveMailService          _mailService;
     private readonly StructureSyncService    _structureSync;
     private readonly IndyStructureLinkService _indyLink;
+    private readonly EveRefStructureService   _eveRefStructures;
 
     private static readonly HashSet<string> s_netWorthCharEndpoints = [
         "char.wallet.balance", "char.industry.jobs", "char.orders.active", "char.assets", "char.contracts"
@@ -136,7 +137,7 @@ public class EsiPollingService : ReactiveObject
         ["contract.items"]        = "Contract Items",
     };
 
-    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService, StructureSyncService structureSync, IndyStructureLinkService indyLink)
+    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService, StructureSyncService structureSync, IndyStructureLinkService indyLink, EveRefStructureService eveRefStructures)
     {
         _scopeFactory       = scopeFactory;
         _esi                = esi;
@@ -149,6 +150,7 @@ public class EsiPollingService : ReactiveObject
         _mailService        = mailService;
         _structureSync      = structureSync;
         _indyLink           = indyLink;
+        _eveRefStructures   = eveRefStructures;
         _characterEndpoints = BuildEndpoints();
         _corpEndpoints      = BuildCorpEndpoints();
         CharacterEndpointInfos = _characterEndpoints
@@ -2737,6 +2739,31 @@ public class EsiPollingService : ReactiveObject
     }
 
     /// <summary>
+    /// Imports EVE Ref's structure snapshot, no more than once a day.
+    ///
+    /// <para>Gated on its own watermark rather than the sweep's cadence: the sweep runs hourly and
+    /// this is a third-party file that is neither ours to hammer nor changing that fast.</para>
+    /// </summary>
+    private async Task<(int Seen, int Filled)> SweepEveRefStructuresAsync(CancellationToken ct)
+    {
+        var last = _prefs.GetLong(AppPreferencesService.EveRefStructureFetchKey, 0);
+        var now  = DateTimeOffset.UtcNow;
+
+        if (last > 0 && now - DateTimeOffset.FromUnixTimeSeconds(last) < TimeSpan.FromDays(1))
+            return (0, 0);
+
+        var (imported, filled) = await _eveRefStructures.RefreshAsync(ct);
+
+        // Stamped only on a real answer, so a failed fetch is retried on the next sweep rather
+        // than parked for a day.
+        if (imported > 0)
+            await _prefs.SetLongAsync(AppPreferencesService.EveRefStructureFetchKey,
+                                      now.ToUnixTimeSeconds());
+
+        return (imported, filled);
+    }
+
+    /// <summary>
     /// Asks ESI about one structure and hands back what it said, without committing anything to
     /// the app's own table.
     ///
@@ -2873,8 +2900,14 @@ public class EsiPollingService : ReactiveObject
             // answer can only agree redundantly or contradict it, so it goes.
             var superseded = await _structureSync.ClearSupersededFittingsAsync(ct);
 
+            // EVE Ref's snapshot, for the structures ESI will not describe. Daily: it is
+            // published hourly, but a name or system changes on the scale of months and the file
+            // is ~855 KB. Runs before the Indy Parks step so a system it supplies is in place
+            // before anything reads the structure table.
+            var (everefSeen, everefFilled) = await SweepEveRefStructuresAsync(ct);
+
             // Bring linked Indy Parks entries into agreement with the structures they describe.
-            // Runs after the two above on purpose: it decides direction from what assets say, so
+            // Runs after the others on purpose: it decides direction from what assets say, so
             // it must see the same picture they have just settled.
             var linked = await _indyLink.SyncAllAsync(ct);
 
@@ -2889,8 +2922,9 @@ public class EsiPollingService : ReactiveObject
             // useless for finding the things that are. Only mentioned when non-zero: a summary
             // that always ends "0 superseded · 0 linked" trains people to stop reading it.
             var extra = "";
-            if (superseded > 0) extra += $" · {superseded:N0} fitting(s) superseded by assets";
-            if (linked > 0)     extra += $" · {linked:N0} linked park fitting(s) updated";
+            if (superseded > 0)   extra += $" · {superseded:N0} fitting(s) superseded by assets";
+            if (everefSeen > 0)   extra += $" · EVE Ref: {everefSeen:N0} known, {everefFilled:N0} filled";
+            if (linked > 0)       extra += $" · {linked:N0} linked park fitting(s) updated";
 
             StructureSweepSummary =
                 $"{structureIds.Count:N0} id(s) checked · {synced:N0} synced · " +

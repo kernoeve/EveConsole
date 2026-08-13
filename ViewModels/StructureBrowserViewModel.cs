@@ -283,6 +283,18 @@ public class StructureBrowserViewModel : ReactiveObject
     /// <summary>Who last wrote this row and when — the reason UpdatedBy exists.</summary>
     public string Provenance { get => _provenance; private set => this.RaiseAndSetIfChanged(ref _provenance, value); }
 
+    private string _eveRefNote = "";
+    /// <summary>
+    /// Says when a field came from EVE Ref rather than ESI.
+    ///
+    /// <para>⚠️ Shown because these two are not the same kind of fact. EVE Ref is a third party's
+    /// observation, assembled by people whose characters can dock where ours cannot — it can be
+    /// months stale, and the structure may have been renamed or destroyed since, possibly by us.
+    /// Presenting it in the same grey as a value ESI returned would be claiming a confidence we
+    /// do not have.</para>
+    /// </summary>
+    public string EveRefNote { get => _eveRefNote; private set => this.RaiseAndSetIfChanged(ref _eveRefNote, value); }
+
     public ObservableCollection<FittingRow>        Fitting { get; } = [];
     public ObservableCollection<StructureAssetRow> Assets  { get; } = [];
     public ObservableCollection<StructureAssetRow> Cargo    { get; } = [];
@@ -843,6 +855,8 @@ public class StructureBrowserViewModel : ReactiveObject
                     ? $"Never written · {s.UpdatedBy}"
                     : $"Last written by {s.UpdatedBy} at {s.UpdatedAt.ToLocalTime():yyyy-MM-dd HH:mm}";
 
+            EveRefNote = await BuildEveRefNoteAsync(db, row, s);
+
             var typeNames = await db.SdeTypes.AsNoTracking()
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name);
 
@@ -1300,6 +1314,39 @@ public class StructureBrowserViewModel : ReactiveObject
         11 => "Reactions",
         _ => $"Activity {activityId}",
     };
+
+    /// <summary>
+    /// Names the fields on this row that match EVE Ref's snapshot rather than anything ESI said.
+    ///
+    /// <para>⚠️ Only for structures ESI will not describe. On a resolved structure ESI's own
+    /// answer filled these fields and EVE Ref merely agrees, so saying so would be noise on the
+    /// 1,500 rows where it does not matter.</para>
+    ///
+    /// <para>Compares values rather than tracking who wrote what: the import only ever fills
+    /// blanks and never stamps UpdatedBy, so a match against a field ESI left empty is exactly the
+    /// evidence that EVE Ref is where it came from.</para>
+    /// </summary>
+    private static async Task<string> BuildEveRefNoteAsync(
+        AppDbContext db, StructureRow row, Structure? s)
+    {
+        if (s is null || row.IsKnown) return "";
+
+        var t = await db.EveRefStructures.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.StructureId == row.StructureId);
+        if (t is null) return "";
+
+        var fields = new List<string>();
+        if (t.Name.Length > 0   && s.Name == t.Name)                   fields.Add("name");
+        if (t.SolarSystemId > 0 && s.SolarSystemId == t.SolarSystemId) fields.Add("system");
+        if (t.TypeId > 0        && s.TypeId == t.TypeId)               fields.Add("type");
+        if (t.OwnerId > 0       && s.OwnerId == t.OwnerId)             fields.Add("owner");
+
+        if (fields.Count == 0) return "";
+
+        var seen = t.FetchedAt == default ? "" : $", read {t.FetchedAt.ToLocalTime():yyyy-MM-dd}";
+        return $"The {string.Join(", ", fields)} came from EVE Ref{seen} — a third party's "
+             + "observation, not something ESI confirmed. It can be out of date.";
+    }
 
     /// <summary>
     /// Fills the system and type pickers once per session. Systems carry their region, because

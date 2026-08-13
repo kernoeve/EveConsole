@@ -1882,6 +1882,22 @@ public class App : Application
                 // guarantees it.
                 """CREATE UNIQUE INDEX IF NOT EXISTS "IX_StructureFittings_Slot" ON "StructureFittings" ("StructureId","Band","SlotIndex")""",
                 """
+                CREATE TABLE IF NOT EXISTS "EveRefStructures" (
+                    "StructureId"   INTEGER NOT NULL PRIMARY KEY,
+                    "Name"          TEXT    NOT NULL DEFAULT '',
+                    "OwnerId"       INTEGER NOT NULL DEFAULT 0,
+                    "SolarSystemId" INTEGER NOT NULL DEFAULT 0,
+                    "RegionId"      INTEGER NOT NULL DEFAULT 0,
+                    "TypeId"        INTEGER NOT NULL DEFAULT 0,
+                    "X"             REAL    NOT NULL DEFAULT 0,
+                    "Y"             REAL    NOT NULL DEFAULT 0,
+                    "Z"             REAL    NOT NULL DEFAULT 0,
+                    "IsPublic"      INTEGER NOT NULL DEFAULT 0,
+                    "IsMarket"      INTEGER NOT NULL DEFAULT 0,
+                    "FirstSeen"     TEXT    NOT NULL DEFAULT '',
+                    "FetchedAt"     TEXT    NOT NULL DEFAULT '2000-01-01 00:00:00+00:00')
+                """,
+                """
                 CREATE TABLE IF NOT EXISTS "IndyStructureServices" (
                     "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     "StructureId" INTEGER NOT NULL,
@@ -2311,6 +2327,7 @@ public class App : Application
         services.AddSingleton<UiStallMonitor>();
         services.AddSingleton<StructureSyncService>();
         services.AddSingleton<IndyStructureLinkService>();
+        services.AddSingleton<EveRefStructureService>();
         services.AddSingleton<FittingOptionService>();
         services.AddSingleton<TimerSettingsService>();
         services.AddSingleton<AppPreferencesService>();

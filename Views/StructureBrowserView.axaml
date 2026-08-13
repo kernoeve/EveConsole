@@ -254,6 +254,10 @@
                   <TextBlock Text="{Binding EditLockReason}"
                              IsVisible="{Binding !CanEditIdentity}"
                              FontSize="10" Foreground="#7a6a55" TextWrapping="Wrap" />
+                  <!-- A value nobody can verify does not get the same grey as one ESI returned. -->
+                  <TextBlock Text="{Binding EveRefNote}"
+                             IsVisible="{Binding EveRefNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                             FontSize="10" Foreground="#6a7a8a" TextWrapping="Wrap" />
                   <TextBlock Text="Location ID cannot be changed — it is the structure's identity."
                              FontSize="10" Foreground="#556" />
 
