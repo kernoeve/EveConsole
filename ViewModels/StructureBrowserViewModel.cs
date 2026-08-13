@@ -82,6 +82,7 @@ public class StructureBrowserViewModel : ReactiveObject
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly EsiPollingService               _polling;
     private readonly Api.EsiClient                   _esi;
+    private readonly FittingOptionService            _fittingOptions;
 
     private List<StructureRow> _all = [];
 
@@ -255,6 +256,157 @@ public class StructureBrowserViewModel : ReactiveObject
         ? "Fitting comes from assets — read only"
         : "No fitting in assets — click a slot to record one";
 
+    // ── Module picker ────────────────────────────────────────────────────────
+
+    public ReactiveCommand<Unit, Unit> FitModuleCommand    { get; }
+    public ReactiveCommand<Unit, Unit> ClearSlotCommand    { get; }
+    public ReactiveCommand<Unit, Unit> CancelPickerCommand { get; }
+
+    /// <summary>The slot being edited, or null when the picker is closed.</summary>
+    private EveConsole.Controls.FittingSlot? _pickingSlot;
+    public EveConsole.Controls.FittingSlot? PickingSlot
+    {
+        get => _pickingSlot;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _pickingSlot, value);
+            this.RaisePropertyChanged(nameof(PickerTitle));
+        }
+    }
+
+    public string PickerTitle => PickingSlot is { } s
+        ? $"{s.Band} slot {s.Index + 1}"
+        : "";
+
+    private bool _pickerOpen;
+    public bool PickerOpen { get => _pickerOpen; private set => this.RaiseAndSetIfChanged(ref _pickerOpen, value); }
+
+    public ObservableCollection<FittingOption> ModuleOptions { get; } = [];
+
+    private FittingOption? _selectedModule;
+    public FittingOption? SelectedModule
+    {
+        get => _selectedModule;
+        set => this.RaiseAndSetIfChanged(ref _selectedModule, value);
+    }
+
+    private string _moduleFilter = "";
+    public string ModuleFilter
+    {
+        get => _moduleFilter;
+        set { this.RaiseAndSetIfChanged(ref _moduleFilter, value); ApplyModuleFilter(); }
+    }
+
+    /// <summary>Everything fittable in the open slot, before the text filter narrows it.</summary>
+    private List<FittingOption> _allModuleOptions = [];
+
+    private void ApplyModuleFilter()
+    {
+        ModuleOptions.Clear();
+
+        var needle = ModuleFilter.Trim();
+        foreach (var o in _allModuleOptions)
+            if (needle.Length == 0 ||
+                o.Name.Contains(needle, StringComparison.OrdinalIgnoreCase) ||
+                o.GroupName.Contains(needle, StringComparison.OrdinalIgnoreCase))
+                ModuleOptions.Add(o);
+    }
+
+    /// <summary>
+    /// Opens the picker for a slot, listing what the game says can go in it.
+    ///
+    /// <para>The canvas refuses clicks when the fitting comes from assets; this checks again, so a
+    /// caller that forgets to bind IsReadOnly still cannot overwrite what the game reported.</para>
+    /// </summary>
+    private async Task OpenSlotPickerAsync(EveConsole.Controls.FittingSlot slot)
+    {
+        if (FittingReadOnly)
+        {
+            DetailStatus = "This fitting is known from assets and cannot be edited.";
+            return;
+        }
+
+        if (Selected is not { } row) return;
+
+        PickingSlot  = slot;
+        ModuleFilter = "";
+        SelectedModule = null;
+        PickerOpen   = true;
+
+        _allModuleOptions = await _fittingOptions.OptionsAsync(slot.Band, (int)row.TypeId);
+        ApplyModuleFilter();
+
+        DetailStatus = _allModuleOptions.Count == 0
+            ? $"Nothing fits a {slot.Band} slot on this hull."
+            : $"{_allModuleOptions.Count} module(s) fit this slot.";
+    }
+
+    private async Task FitSelectedModuleAsync()
+    {
+        if (PickingSlot is not { } slot || SelectedModule is not { } module) return;
+        if (Selected is not { } row) return;
+
+        await WriteSlotAsync(row.StructureId, slot, module.TypeId);
+        DetailStatus = $"Fitted {module.Name}.";
+    }
+
+    private async Task ClearSlotAsync()
+    {
+        if (PickingSlot is not { } slot || Selected is not { } row) return;
+
+        await WriteSlotAsync(row.StructureId, slot, 0);
+        DetailStatus = "Slot cleared.";
+    }
+
+    /// <summary>
+    /// Records one slot. A type id of 0 empties it.
+    ///
+    /// <para>Written straight through rather than batched behind a Save: a fitting is a set of
+    /// small independent facts, and a half-applied one is not a state worth being able to reach.</para>
+    /// </summary>
+    private async Task WriteSlotAsync(
+        long structureId, EveConsole.Controls.FittingSlot slot, int typeId)
+    {
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+
+            var band     = slot.Band.ToString();
+            var existing = await db.StructureFittings
+                .FirstOrDefaultAsync(f => f.StructureId == structureId
+                                       && f.Band == band
+                                       && f.SlotIndex == slot.Index);
+
+            if (typeId == 0)
+            {
+                if (existing is not null) db.StructureFittings.Remove(existing);
+            }
+            else if (existing is null)
+            {
+                db.StructureFittings.Add(new StructureFitting
+                {
+                    StructureId = structureId,
+                    Band        = band,
+                    SlotIndex   = slot.Index,
+                    TypeId      = typeId,
+                });
+            }
+            else
+            {
+                existing.TypeId = typeId;
+            }
+
+            await db.SaveChangesAsync();
+
+            PickerOpen  = false;
+            PickingSlot = null;
+
+            // Rebuild so the ring shows the change, including its icon.
+            await LoadDetailAsync(Selected);
+        }
+        catch (Exception ex) { DetailStatus = $"Could not record that module: {ex.Message}"; }
+    }
+
     private Avalonia.Media.Imaging.Bitmap? _typeRender;
     /// <summary>Render of the structure's hull, refreshed whenever the selected type changes.</summary>
     public Avalonia.Media.Imaging.Bitmap? TypeRender
@@ -276,28 +428,25 @@ public class StructureBrowserViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ResolveCommand   { get; }
     public ReactiveCommand<Unit, Unit> ClearFilters     { get; }
 
-    public StructureBrowserViewModel(IDbContextFactory<AppDbContext> dbFactory, EsiPollingService polling, Api.EsiClient esi)
+    public StructureBrowserViewModel(IDbContextFactory<AppDbContext> dbFactory, EsiPollingService polling,
+                                     Api.EsiClient esi, FittingOptionService fittingOptions)
     {
-        _dbFactory = dbFactory;
-        _polling   = polling;
-        _esi       = esi;
+        _dbFactory      = dbFactory;
+        _polling        = polling;
+        _esi            = esi;
+        _fittingOptions = fittingOptions;
 
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadAsync);
         ResolveCommand = ReactiveCommand.CreateFromTask(ResolveAsync);
 
-        SlotClickedCommand = ReactiveCommand.Create<EveConsole.Controls.FittingSlot>(slot =>
-        {
-            // The control already refuses clicks when read-only; this is the second gate, so a
-            // future caller that forgets to bind IsReadOnly still cannot edit asset-backed data.
-            if (FittingReadOnly)
-            {
-                DetailStatus = "This fitting is known from assets and cannot be edited.";
-                return;
-            }
+        SlotClickedCommand = ReactiveCommand.CreateFromTask<EveConsole.Controls.FittingSlot>(OpenSlotPickerAsync);
 
-            DetailStatus = slot.IsEmpty
-                ? $"{slot.Band} slot {slot.Index} is empty."
-                : $"{slot.Band} slot {slot.Index}: {slot.Name}";
+        FitModuleCommand   = ReactiveCommand.CreateFromTask(FitSelectedModuleAsync);
+        ClearSlotCommand   = ReactiveCommand.CreateFromTask(ClearSlotAsync);
+        CancelPickerCommand = ReactiveCommand.Create(() =>
+        {
+            PickerOpen  = false;
+            PickingSlot = null;
         });
         ClearFilters   = ReactiveCommand.Create(() =>
         {
@@ -676,11 +825,11 @@ public class StructureBrowserViewModel : ReactiveObject
             .GroupBy(f => f.LocationFlag)
             .ToDictionary(g => g.Key, g => g.First().TypeId);
 
-        // Hand-entered, for the slots assets never reach.
-        var rigs = await db.StructureRigs.AsNoTracking()
-            .Where(r => r.StructureId == row.StructureId).ToListAsync();
-        var services = await db.StructureServiceModules.AsNoTracking()
-            .Where(m => m.StructureId == row.StructureId).ToListAsync();
+        // Hand-entered, for the structures assets never reach. Keyed by band and slot, so a typed
+        // module lands back in the slot it was put in rather than the first free one.
+        var hand = (await db.StructureFittings.AsNoTracking()
+                .Where(f => f.StructureId == row.StructureId).ToListAsync())
+            .ToDictionary(f => (f.Band, f.SlotIndex), f => f.TypeId);
 
         var slots = new List<EveConsole.Controls.FittingSlot>();
         var wanted = new List<int>();
@@ -704,20 +853,19 @@ public class StructureBrowserViewModel : ReactiveObject
             }
         }
 
-        Band(EveConsole.Controls.FittingBand.High, "HiSlot",  Cap(AttrHiSlots),  _ => 0);
-        Band(EveConsole.Controls.FittingBand.Mid,  "MedSlot", Cap(AttrMedSlots), _ => 0);
-        Band(EveConsole.Controls.FittingBand.Low,  "LoSlot",  Cap(AttrLowSlots), _ => 0);
+        int Hand(EveConsole.Controls.FittingBand band, int slot) =>
+            hand.GetValueOrDefault((band.ToString(), slot));
 
-        Band(EveConsole.Controls.FittingBand.Rig, "RigSlot", Cap(AttrRigSlots),
-             i => rigs.FirstOrDefault(r => r.SlotIndex == i)?.RigTypeId ?? 0);
-
-        // Service modules have no meaningful slot index of their own — the game numbers them by
-        // where they happen to sit — so hand-entered ones fill the first free slots in order.
-        var manualServices = services.Select(m => m.TypeId).ToList();
-        var nextManual     = 0;
-
+        Band(EveConsole.Controls.FittingBand.High, "HiSlot",  Cap(AttrHiSlots),
+             i => Hand(EveConsole.Controls.FittingBand.High, i));
+        Band(EveConsole.Controls.FittingBand.Mid,  "MedSlot", Cap(AttrMedSlots),
+             i => Hand(EveConsole.Controls.FittingBand.Mid, i));
+        Band(EveConsole.Controls.FittingBand.Low,  "LoSlot",  Cap(AttrLowSlots),
+             i => Hand(EveConsole.Controls.FittingBand.Low, i));
+        Band(EveConsole.Controls.FittingBand.Rig,  "RigSlot", Cap(AttrRigSlots),
+             i => Hand(EveConsole.Controls.FittingBand.Rig, i));
         Band(EveConsole.Controls.FittingBand.Service, "ServiceSlot", Cap(AttrServiceSlots),
-             _ => nextManual < manualServices.Count ? manualServices[nextManual++] : 0);
+             i => Hand(EveConsole.Controls.FittingBand.Service, i));
 
         // Show the ring immediately, then fill the icons in. Waiting on a dozen HTTP fetches
         // before drawing anything would make selecting a structure feel broken.

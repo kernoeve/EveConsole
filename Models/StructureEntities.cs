@@ -55,6 +55,30 @@ public class Structure
 }
 
 /// <summary>
+/// One hand-entered fitted module, in any band.
+///
+/// <para>⚠️ One table for every band rather than one per band. The two earlier tables covered rigs
+/// and service modules only, which left nowhere to record a high, mid or low — and the moment a
+/// second shape existed, every read would have had to union them and every write pick between
+/// them. Band is stored as the enum's name so the table reads plainly in SQL.</para>
+///
+/// <para>Only ever holds fittings for structures whose modules we CANNOT see in assets. When
+/// assets arrive for a structure these rows are deleted, because the game is then the authority
+/// and two answers would be worse than one.</para>
+/// </summary>
+public class StructureFitting
+{
+    public int    Id          { get; set; }
+    public long   StructureId { get; set; }
+
+    /// <summary><see cref="EveConsole.Controls.FittingBand"/> as a string.</summary>
+    public string Band        { get; set; } = "";
+
+    public int    SlotIndex   { get; set; }
+    public int    TypeId      { get; set; }
+}
+
+/// <summary>
 /// A service module the user says is fitted to a structure. Zero or more per structure.
 ///
 /// <para>Always user-supplied: ESI publishes a structure's name, owner, position and type, and

@@ -218,6 +218,7 @@ public class AppDbContext : DbContext
     // The app's own record, fed from EsiStructureNames and editable. Deliberately separate from
     // that table so the UI never writes into polled data.
     public DbSet<Structure>              Structures              => Set<Structure>();
+    public DbSet<StructureFitting>       StructureFittings       => Set<StructureFitting>();
     public DbSet<StructureServiceModule> StructureServiceModules => Set<StructureServiceModule>();
     public DbSet<StructureRig>           StructureRigs           => Set<StructureRig>();
 
@@ -881,6 +882,13 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.StructureId);
             e.Property(x => x.StructureId).ValueGeneratedNever();
             e.ToTable("Structures"); });
+
+        mb.Entity<StructureFitting>(e => {
+            e.HasKey(x => x.Id);
+            // One module per slot: the unique index is what stops a double-click leaving two
+            // modules in the same hole.
+            e.HasIndex(x => new { x.StructureId, x.Band, x.SlotIndex }).IsUnique();
+            e.ToTable("StructureFittings"); });
 
         mb.Entity<StructureServiceModule>(e => {
             e.HasKey(x => x.Id);

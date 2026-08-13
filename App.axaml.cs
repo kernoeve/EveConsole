@@ -1886,6 +1886,17 @@ public class App : Application
                 """,
                 """CREATE INDEX IF NOT EXISTS "IX_StructureRigs_StructureId" ON "StructureRigs" ("StructureId")""",
                 """
+                CREATE TABLE IF NOT EXISTS "StructureFittings" (
+                    "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "StructureId" INTEGER NOT NULL,
+                    "Band"        TEXT    NOT NULL DEFAULT '',
+                    "SlotIndex"   INTEGER NOT NULL DEFAULT 0,
+                    "TypeId"      INTEGER NOT NULL DEFAULT 0)
+                """,
+                // Unique so a slot can only hold one module — the constraint, not the UI, is what
+                // guarantees it.
+                """CREATE UNIQUE INDEX IF NOT EXISTS "IX_StructureFittings_Slot" ON "StructureFittings" ("StructureId","Band","SlotIndex")""",
+                """
                 CREATE TABLE IF NOT EXISTS "IndyStructureServices" (
                     "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     "StructureId" INTEGER NOT NULL,
@@ -2307,6 +2318,7 @@ public class App : Application
         services.AddSingleton<AppErrorLogger>();
         services.AddSingleton<UiStallMonitor>();
         services.AddSingleton<StructureSyncService>();
+        services.AddSingleton<FittingOptionService>();
         services.AddSingleton<TimerSettingsService>();
         services.AddSingleton<AppPreferencesService>();
         services.AddSingleton<SlackAuthService>();

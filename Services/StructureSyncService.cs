@@ -98,6 +98,65 @@ public class StructureSyncService(IDbContextFactory<AppDbContext> dbFactory, App
     }
 
     /// <summary>
+    /// Drops hand-entered fittings for any structure whose modules now show up in assets.
+    ///
+    /// <para>⚠️ Assets supersede. The moment the game tells us what is fitted, a hand-written
+    /// answer is at best redundant and at worst contradicts it — and there would be no way to
+    /// tell which was right, since the person who typed it may have been describing the same
+    /// structure before they gained access. Deleting is the honest resolution: nothing is lost
+    /// that assets do not now say better.</para>
+    ///
+    /// <para>This is also what makes the read path safe. The fitting view merges hand-entered
+    /// rows into slots assets do not cover; without this, a structure that gained access would
+    /// show its real fitting alongside stale invented ones.</para>
+    /// </summary>
+    public async Task<int> ClearSupersededFittingsAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+            // Structures with any slot-flagged asset sitting directly on them.
+            var withAssets = (await db.EsiAssets.AsNoTracking()
+                .Where(a => a.LocationFlag.Contains("Slot"))
+                .Select(a => a.LocationId)
+                .Distinct()
+                .ToListAsync(ct))
+                .ToHashSet();
+
+            if (withAssets.Count == 0) return 0;
+
+            var hand = await db.StructureFittings
+                .Where(f => withAssets.Contains(f.StructureId))
+                .ToListAsync(ct);
+
+            var rigs = await db.StructureRigs
+                .Where(r => withAssets.Contains(r.StructureId))
+                .ToListAsync(ct);
+
+            var services = await db.StructureServiceModules
+                .Where(m => withAssets.Contains(m.StructureId))
+                .ToListAsync(ct);
+
+            var total = hand.Count + rigs.Count + services.Count;
+            if (total == 0) return 0;
+
+            db.StructureFittings.RemoveRange(hand);
+            db.StructureRigs.RemoveRange(rigs);
+            db.StructureServiceModules.RemoveRange(services);
+            await db.SaveChangesAsync(ct);
+
+            return total;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            errorLogger.Log(nameof(StructureSyncService), nameof(ClearSupersededFittingsAsync), ex);
+            return 0;
+        }
+    }
+
+    /// <summary>
     /// Filters candidate ids before they are seeded, so identified non-structures never enter the
     /// table in the first place. The purge above cleans up what is already there; this is what
     /// stops it coming back on the next asset poll.

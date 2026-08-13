@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:ctl="clr-namespace:EveConsole.Controls"
+             xmlns:svc="clr-namespace:EveConsole.Services"
              x:Class="EveConsole.Views.StructureBrowserView"
              x:DataType="vm:StructureBrowserViewModel"
              Background="#0d0d12">
@@ -228,11 +229,54 @@
               <Grid ColumnDefinitions="*,340">
 
                 <Grid Grid.Column="0" RowDefinitions="*,Auto">
-                  <ctl:FittingCanvas Grid.Row="0"
-                                     Slots="{Binding FittingSlots}"
-                                     HullRender="{Binding TypeRender}"
-                                     IsReadOnly="{Binding FittingReadOnly}"
-                                     SlotClickedCommand="{Binding SlotClickedCommand}" />
+                  <Panel Grid.Row="0">
+                    <ctl:FittingCanvas Slots="{Binding FittingSlots}"
+                                       HullRender="{Binding TypeRender}"
+                                       IsReadOnly="{Binding FittingReadOnly}"
+                                       SlotClickedCommand="{Binding SlotClickedCommand}" />
+
+                    <!-- Module picker, over the ring so the slot being filled stays in view -->
+                    <Border IsVisible="{Binding PickerOpen}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Width="380" MaxHeight="340"
+                            Background="#f00e0e16" BorderBrush="#3a4a58" BorderThickness="1"
+                            CornerRadius="4" Padding="12">
+                      <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+                        <TextBlock Grid.Row="0" Text="{Binding PickerTitle}"
+                                   FontSize="12" FontWeight="SemiBold" Foreground="#c8a84b"
+                                   Margin="0 0 0 6" />
+
+                        <TextBox Grid.Row="1" Text="{Binding ModuleFilter}" FontSize="11"
+                                 Watermark="filter modules…" Margin="0 0 0 6" />
+
+                        <ListBox Grid.Row="2" ItemsSource="{Binding ModuleOptions}"
+                                 SelectedItem="{Binding SelectedModule}"
+                                 Background="Transparent" BorderThickness="0">
+                          <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="svc:FittingOption">
+                              <StackPanel Spacing="0" Margin="0 1">
+                                <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="#ddd" />
+                                <TextBlock Text="{Binding GroupName}" FontSize="9.5" Foreground="#7a7a8a" />
+                              </StackPanel>
+                            </DataTemplate>
+                          </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="6" Margin="0 8 0 0">
+                          <Button Content="Fit" Command="{Binding FitModuleCommand}"
+                                  Background="#1a1a28" Foreground="#5599aa" BorderBrush="#2a3a44"
+                                  BorderThickness="1" Padding="16 4" FontSize="11" />
+                          <Button Content="Clear slot" Command="{Binding ClearSlotCommand}"
+                                  Background="#1a1a28" Foreground="#a06a6a" BorderBrush="#442a2a"
+                                  BorderThickness="1" Padding="12 4" FontSize="11" />
+                          <Button Content="Cancel" Command="{Binding CancelPickerCommand}"
+                                  Background="#1a1a28" Foreground="#889" BorderBrush="#2a2a38"
+                                  BorderThickness="1" Padding="12 4" FontSize="11" />
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </Panel>
 
                   <TextBlock Grid.Row="1" Text="{Binding FittingSourceText}"
                              FontSize="10.5" Foreground="#7a8896"

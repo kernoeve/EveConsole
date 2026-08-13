@@ -2789,6 +2789,13 @@ public class EsiPollingService : ReactiveObject
             // the polled table.
             var synced = await _structureSync.SyncAsync(ct);
 
+            // Assets supersede hand-entered fittings. Once the game says what is fitted, a typed
+            // answer can only agree redundantly or contradict it, so it goes.
+            var superseded = await _structureSync.ClearSupersededFittingsAsync(ct);
+            if (superseded > 0)
+                _errorLogger.Log(nameof(EsiPollingService), "Structure fittings",
+                    $"Cleared {superseded:N0} hand-entered fitting row(s) now covered by assets.");
+
             // Counted after the work, from the table itself, so the figures describe what is
             // actually there rather than what this pass happened to touch.
             var total    = await db.Structures.CountAsync(ct);

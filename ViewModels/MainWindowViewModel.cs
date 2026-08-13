@@ -586,7 +586,8 @@ public class MainWindowViewModel : ReactiveObject
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
-        StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
+        StructureBrowserVm     = new StructureBrowserViewModel(
+                                     dbFactory, pollingService, esi, new FittingOptionService(dbFactory));
         UniverseVm             = new UniverseViewModel(
             new UniverseMapService(dbFactory), mapStatsService,
             new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
