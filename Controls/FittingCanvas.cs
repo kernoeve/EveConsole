@@ -127,9 +127,32 @@ public class FittingCanvas : Control
     private static readonly Typeface BoldFace =
         new(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold);
 
-    /// <summary>Box edge. Trimmed from 34: a Keepstar's eight high slots are the worst case, and
-    /// four pixels each buys nearly thirty across the band.</summary>
-    private const double SlotSize = 30;
+    /// <summary>Box edge when there is room; shrinks on a crowded hull.</summary>
+    private const double BaseSlotSize = 30;
+
+    /// <summary>Below this a box cannot hold a readable icon. Nothing published needs it, but the
+    /// floor stops a future hull degrading silently into dots.</summary>
+    private const double MinSlotSize = 20;
+
+    /// <summary>
+    /// Box edge actually used, recomputed each layout so every band shares one size — differing
+    /// sizes around a single ring would read as meaning something.
+    ///
+    /// <para>⚠️ Measured across all published types the ceiling is eight slots for high, mid, low
+    /// and service alike. The binding case is not the obvious one: eight LOWS sit on the
+    /// horizontal rule beside eight highs and fit, while eight MIDS on the vertical rule do not.
+    /// The Leviathan and the Palatine Keepstar both carry 8/8, so this is a real hull.</para>
+    /// </summary>
+    private double _slotSize = BaseSlotSize;
+
+    // How far each band reaches from its centre, as a fraction of the radius. A shared budget,
+    // not independent knobs: widening one pushes its end slots into the next.
+    //
+    // Rigs cap at three, so their band is never the constraint and is kept deliberately narrow —
+    // the space is worth more to the highs and lows, which can reach eight.
+    private const double HorizontalExtent = 0.78;
+    private const double MidExtent        = 0.56;
+    private const double RigExtent        = 0.24;
 
     private static IBrush FillFor(FittingBand band) => band switch
     {
@@ -164,15 +187,11 @@ public class FittingCanvas : Control
     /// Clear space between neighbouring slot boxes, measured on screen rather than in degrees.
     /// A band uses this until it would outgrow the extent it is allotted, then tightens to fit.
     /// </summary>
-    private const double SlotGap = 9;
+    private const double SlotGap = 8;
 
     /// <summary>
     /// Places the slots in the arrangement the game uses — high at the top, mid on the right, low
     /// at the bottom, rigs on the left, services in a row underneath.
-    ///
-    /// <para>Each band is centred on a clock position and its slots step outward from that centre
-    /// at a fixed angle, so a Keepstar's eight high slots and a Rifter's three both stay evenly
-    /// spaced and neither collides with the band next door.</para>
     /// </summary>
     private void Layout()
     {
@@ -185,14 +204,33 @@ public class FittingCanvas : Control
                             .OrderBy(s => s.Index).ToList();
 
         // The service row lives below the circle, so the circle gives up that height.
-        var reserved = services.Count > 0 ? SlotSize + 16 : 0;
+        var reserved = services.Count > 0 ? BaseSlotSize + 16 : 0;
 
         var cx = Bounds.Width / 2;
         var cy = (Bounds.Height - reserved) / 2;
-        _radius = Math.Min(Bounds.Width, Bounds.Height - reserved) / 2 - SlotSize * 0.75;
+        _radius = Math.Min(Bounds.Width, Bounds.Height - reserved) / 2 - BaseSlotSize * 0.75;
         _centre = new Point(cx, cy);
 
-        if (_radius <= SlotSize) return;
+        if (_radius <= BaseSlotSize) return;
+
+        // ── One box size, set by the tightest band ───────────────────────────
+        // Decided before anything is placed: a band forced to tighten its step caps how big a box
+        // can be everywhere.
+        //
+        // Rigs are excluded. They cap at three slots on a narrow band, so they can never be the
+        // constraint — including them would only risk shrinking every box for no reason.
+        double Room(FittingBand b, double halfExtent)
+        {
+            var n = slots.Count(s => s.Band == b);
+            return n > 1 ? halfExtent * 2 / (n - 1) : double.MaxValue;
+        }
+
+        var tightest = Math.Min(
+            Math.Min(Room(FittingBand.High, _radius * HorizontalExtent),
+                     Room(FittingBand.Low,  _radius * HorizontalExtent)),
+                     Room(FittingBand.Mid,  _radius * MidExtent));
+
+        _slotSize = Math.Clamp(tightest - SlotGap, MinSlotSize, BaseSlotSize);
 
         // ⚠️ Slots are spaced along a straight axis, then pushed out to the circle — NOT spread
         // by equal angles. Equal angles look even in degrees and uneven on screen: across the top
@@ -206,7 +244,7 @@ public class FittingCanvas : Control
             var inBand = slots.Where(s => s.Band == band).OrderBy(s => s.Index).ToList();
             if (inBand.Count == 0) return;
 
-            var step = SlotSize + SlotGap;
+            var step = _slotSize + SlotGap;
             if (inBand.Count > 1)
                 step = Math.Min(step, maxHalfExtent * 2 / (inBand.Count - 1));
 
@@ -219,7 +257,7 @@ public class FittingCanvas : Control
                 var y  = top ? cy - dy : cy + dy;
 
                 _placed.Add((inBand[i],
-                    new Rect(cx + dx - SlotSize / 2, y - SlotSize / 2, SlotSize, SlotSize)));
+                    new Rect(cx + dx - _slotSize / 2, y - _slotSize / 2, _slotSize, _slotSize)));
             }
         }
 
@@ -229,7 +267,7 @@ public class FittingCanvas : Control
             var inBand = slots.Where(s => s.Band == band).OrderBy(s => s.Index).ToList();
             if (inBand.Count == 0) return;
 
-            var step = SlotSize + SlotGap;
+            var step = _slotSize + SlotGap;
             if (inBand.Count > 1)
                 step = Math.Min(step, maxHalfExtent * 2 / (inBand.Count - 1));
 
@@ -242,7 +280,7 @@ public class FittingCanvas : Control
                 var x  = right ? cx + dx : cx - dx;
 
                 _placed.Add((inBand[i],
-                    new Rect(x - SlotSize / 2, cy + dy - SlotSize / 2, SlotSize, SlotSize)));
+                    new Rect(x - _slotSize / 2, cy + dy - _slotSize / 2, _slotSize, _slotSize)));
             }
         }
 
@@ -254,25 +292,25 @@ public class FittingCanvas : Control
         // With eight highs the band now reaches roughly 49° from vertical while the topmost mid
         // sits around 20° from horizontal, leaving a clear arc between them rather than the few
         // pixels there were before.
-        Horizontal(FittingBand.High, top: true,  maxHalfExtent: _radius * 0.80);
-        Horizontal(FittingBand.Low,  top: false, maxHalfExtent: _radius * 0.80);
+        Horizontal(FittingBand.High, top: true,  maxHalfExtent: _radius * HorizontalExtent);
+        Horizontal(FittingBand.Low,  top: false, maxHalfExtent: _radius * HorizontalExtent);
 
-        Vertical(FittingBand.Mid, right: true,  centreOffsetY:  _radius * 0.05, maxHalfExtent: _radius * 0.40);
-        Vertical(FittingBand.Rig, right: false, centreOffsetY:  _radius * 0.30, maxHalfExtent: _radius * 0.28);
-        Vertical(FittingBand.Subsystem, right: false, centreOffsetY: -_radius * 0.35,
-                 maxHalfExtent: _radius * 0.25);
+        Vertical(FittingBand.Mid, right: true,  centreOffsetY: 0,              maxHalfExtent: _radius * MidExtent);
+        Vertical(FittingBand.Rig, right: false, centreOffsetY: _radius * 0.36, maxHalfExtent: _radius * RigExtent);
+        Vertical(FittingBand.Subsystem, right: false, centreOffsetY: -_radius * 0.38,
+                 maxHalfExtent: _radius * RigExtent);
 
         // Services are a straight row below the circle: there can be seven, and an arc that long
         // reads as another module band rather than as something different in kind.
         if (services.Count > 0)
         {
-            var totalW = services.Count * SlotSize + (services.Count - 1) * 6;
+            var totalW = services.Count * _slotSize + (services.Count - 1) * 6;
             var x0     = cx - totalW / 2;
-            var y0     = Bounds.Height - SlotSize - 6;
+            var y0     = Bounds.Height - _slotSize - 6;
 
             for (var i = 0; i < services.Count; i++)
                 _placed.Add((services[i],
-                    new Rect(x0 + i * (SlotSize + 6), y0, SlotSize, SlotSize)));
+                    new Rect(x0 + i * (_slotSize + 6), y0, _slotSize, _slotSize)));
         }
     }
 
