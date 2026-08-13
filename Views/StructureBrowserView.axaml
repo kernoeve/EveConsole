@@ -188,20 +188,38 @@
 
                   <StackPanel>
                     <TextBlock Classes="flabel" Text="NAME" />
-                    <TextBox Text="{Binding EditName}" FontSize="11.5" />
+                    <TextBox Text="{Binding EditName}" FontSize="11.5"
+                             IsEnabled="{Binding CanEditIdentity}" />
                   </StackPanel>
 
                   <Grid ColumnDefinitions="*,*">
                     <StackPanel Grid.Column="0" Margin="0 0 6 0">
                       <TextBlock Classes="flabel" Text="SYSTEM" />
-                      <TextBox Text="{Binding EditSystem}" FontSize="11.5" />
+                      <AutoCompleteBox ItemsSource="{Binding SystemOptions}"
+                                       SelectedItem="{Binding EditSystem}"
+                                       ValueMemberBinding="{Binding Label}"
+                                       FilterMode="Contains" MinimumPrefixLength="2"
+                                       IsEnabled="{Binding CanEditIdentity}"
+                                       Margin="0" FontSize="11.5"
+                                       Watermark="Type two letters of the system name…" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="6 0 0 0">
                       <TextBlock Classes="flabel" Text="TYPE" />
-                      <TextBox Text="{Binding EditType}" FontSize="11.5" />
+                      <ComboBox ItemsSource="{Binding TypeOptions}"
+                                SelectedItem="{Binding EditType}"
+                                IsEnabled="{Binding CanEditIdentity}"
+                                FontSize="11.5" HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                          <DataTemplate x:DataType="vm:PickOption">
+                            <TextBlock Text="{Binding Label}" FontSize="11.5" />
+                          </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                      </ComboBox>
                     </StackPanel>
                   </Grid>
 
+                  <!-- Notes sits outside the identity gate on purpose: ESI never supplies it, so
+                       there is nothing for a hand-written note to be overwritten by. -->
                   <StackPanel>
                     <TextBlock Classes="flabel" Text="NOTES" />
                     <TextBox Text="{Binding EditNotes}" FontSize="11.5"
@@ -213,9 +231,18 @@
                     <Button Content="Save" Click="OnSaveDetail"
                             Background="#1a1a28" Foreground="#5599aa" BorderBrush="#2a3a44"
                             BorderThickness="1" Padding="16 4" FontSize="11" />
-                    <TextBlock Text="Location ID cannot be changed — it is the structure's identity."
-                               FontSize="10" Foreground="#556" VerticalAlignment="Center" />
+                    <Button Content="Pull from ESI" Command="{Binding PullFromEsiCommand}"
+                            IsEnabled="{Binding !Busy}"
+                            Background="#1a1a28" Foreground="#7a8896" BorderBrush="#2a2a3a"
+                            BorderThickness="1" Padding="16 4" FontSize="11"
+                            ToolTip.Tip="Asks ESI about this structure now, ignoring the 30-day backoff a 403 normally earns. Use after gaining docking rights." />
                   </StackPanel>
+
+                  <TextBlock Text="{Binding EditLockReason}"
+                             IsVisible="{Binding !CanEditIdentity}"
+                             FontSize="10" Foreground="#7a6a55" TextWrapping="Wrap" />
+                  <TextBlock Text="Location ID cannot be changed — it is the structure's identity."
+                             FontSize="10" Foreground="#556" />
 
                 </StackPanel>
                 </Grid>

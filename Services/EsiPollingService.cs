@@ -2485,8 +2485,15 @@ public class EsiPollingService : ReactiveObject
     // Fetches and caches names for structure IDs missing from EsiStructureNames or older than 30 days.
     // Tries primaryAuthCharId first, then falls back to any other character in the DB.
     // ESI requires esi-universe.read_structures.v1 and docking access to the structure.
+    /// <param name="force">
+    /// Ignores both skip lists — the freshness window and the failure backoff. Set only for a
+    /// user-initiated pull: both gates exist to stop the automatic sweep spending calls on answers
+    /// it already has or cannot get, and neither can know that the user just granted themselves
+    /// docking rights. A forced call is the user asserting the world changed since we last looked.
+    /// </param>
     private async Task ResolveNewStructureNamesAsync(
-        long primaryAuthCharId, IReadOnlyList<long> candidateIds, AppDbContext db, CancellationToken ct)
+        long primaryAuthCharId, IReadOnlyList<long> candidateIds, AppDbContext db, CancellationToken ct,
+        bool force = false)
     {
         if (candidateIds.Count == 0) return;
 
@@ -2517,7 +2524,7 @@ public class EsiPollingService : ReactiveObject
             .ToHashSet();
 
         var toResolve = candidateIds
-            .Where(id => !fresh.Contains(id) && !recentlyFailed.Contains(id))
+            .Where(id => force || (!fresh.Contains(id) && !recentlyFailed.Contains(id)))
             .Distinct().ToList();
         if (toResolve.Count == 0) return;
 
@@ -2692,6 +2699,39 @@ public class EsiPollingService : ReactiveObject
             }
         }
         await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// Tries one structure now, on demand, and reports the status it ended on.
+    ///
+    /// <para>Forced past both skip lists: a 403 parks a structure for thirty days and a success
+    /// parks it for thirty more, which is right for the sweep but wrong for a button whose whole
+    /// purpose is to ask again. Everything else — the failure row, the status, the celestial —
+    /// is written by the same resolver the sweep uses, so a manual pull and an automatic one
+    /// leave the row in the same state.</para>
+    /// </summary>
+    public async Task<StructureStatus> RetryStructureAsync(long structureId, CancellationToken ct = default)
+    {
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            await ResolveNewStructureNamesAsync(0, [structureId], db, ct, force: true);
+            await BackfillNearestCelestialsAsync(db, ct);
+            await _structureSync.SyncAsync(ct);
+
+            var row = await db.EsiStructureNames.AsNoTracking()
+                .FirstOrDefaultAsync(s => s.StructureId == structureId, ct);
+
+            return row is null ? StructureStatus.Pending : (StructureStatus)row.Status;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(EsiPollingService), nameof(RetryStructureAsync), ex);
+            return StructureStatus.Pending;
+        }
     }
 
     public async Task ForceResolveStructureNamesAsync(CancellationToken ct = default)

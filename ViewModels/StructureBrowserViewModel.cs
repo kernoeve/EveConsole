@@ -12,6 +12,16 @@ using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
+/// <summary>
+/// One choice in the system or type picker. <see cref="Label"/> is both what is shown and what
+/// the box matches typing against; <see cref="Id"/> is what gets saved, so picking "Jita — The
+/// Forge" stores 30000142 rather than a string the next reader would have to resolve again.
+/// </summary>
+public sealed record PickOption(int Id, string Label)
+{
+    public override string ToString() => Label;
+}
+
 public class StructureRow
 {
     public long   StructureId  { get; init; }
@@ -123,25 +133,64 @@ public class StructureBrowserViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _selected, value);
             this.RaisePropertyChanged(nameof(HasSelection));
+            this.RaisePropertyChanged(nameof(CanEditIdentity));
+            this.RaisePropertyChanged(nameof(EditLockReason));
             _ = LoadDetailAsync(value);
         }
     }
 
     public bool HasSelection => _selected is not null;
 
+    /// <summary>
+    /// Whether identity — name, system, type — may be hand-edited.
+    ///
+    /// <para>⚠️ False as soon as ESI can describe the structure. Those three fields are exactly
+    /// the ones the next resolve will overwrite, so allowing an edit here would offer a change
+    /// that silently reverts within the hour. Editing is for the structures ESI refuses us: a 403
+    /// or a 404 means nothing will ever come back to contradict what the user types.</para>
+    ///
+    /// <para>Notes is deliberately outside this gate — ESI has no opinion about it, so there is
+    /// nothing for a hand-written note to fight with.</para>
+    /// </summary>
+    public bool CanEditIdentity => _selected is not null && !_selected.IsKnown;
+
+    /// <summary>Explains the locked fields rather than leaving them mysteriously greyed.</summary>
+    public string EditLockReason => _selected is null
+        ? ""
+        : _selected.IsKnown
+            ? "Name, system and type come from ESI and cannot be edited — the next resolve would overwrite them."
+            : "";
+
     // Editable copies. Held apart from the row so cancelling is just a reload and a half-typed
     // edit never leaks into the list.
     private string _editName = "";
     public string EditName { get => _editName; set => this.RaiseAndSetIfChanged(ref _editName, value); }
 
-    private string _editSystem = "";
-    public string EditSystem { get => _editSystem; set => this.RaiseAndSetIfChanged(ref _editSystem, value); }
-
-    private string _editType = "";
-    public string EditType { get => _editType; set => this.RaiseAndSetIfChanged(ref _editType, value); }
-
     private string _editNotes = "";
     public string EditNotes { get => _editNotes; set => this.RaiseAndSetIfChanged(ref _editNotes, value); }
+
+    // ── System / type pickers ────────────────────────────────────────────────
+    // Both are chosen from the SDE rather than typed: the row stores ids, and a free-text field
+    // would have to guess which system "Jita" meant on every save.
+
+    public ObservableCollection<PickOption> SystemOptions { get; } = [];
+    public ObservableCollection<PickOption> TypeOptions   { get; } = [];
+    private bool _optionsLoaded;
+
+    private PickOption? _editSystem;
+    public PickOption? EditSystem { get => _editSystem; set => this.RaiseAndSetIfChanged(ref _editSystem, value); }
+
+    private PickOption? _editType;
+    public PickOption? EditType
+    {
+        get => _editType;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _editType, value);
+            // The render follows the picker, so a mis-picked type is obvious before saving.
+            if (value is not null) _ = LoadTypeRenderAsync(value.Id);
+        }
+    }
 
     private string _provenance = "";
     /// <summary>Who last wrote this row and when — the reason UpdatedBy exists.</summary>
@@ -424,9 +473,10 @@ public class StructureBrowserViewModel : ReactiveObject
     private bool _busy;
     public bool Busy { get => _busy; set => this.RaiseAndSetIfChanged(ref _busy, value); }
 
-    public ReactiveCommand<Unit, Unit> RefreshCommand   { get; }
-    public ReactiveCommand<Unit, Unit> ResolveCommand   { get; }
-    public ReactiveCommand<Unit, Unit> ClearFilters     { get; }
+    public ReactiveCommand<Unit, Unit> RefreshCommand    { get; }
+    public ReactiveCommand<Unit, Unit> ResolveCommand    { get; }
+    public ReactiveCommand<Unit, Unit> ClearFilters      { get; }
+    public ReactiveCommand<Unit, Unit> PullFromEsiCommand { get; }
 
     public StructureBrowserViewModel(IDbContextFactory<AppDbContext> dbFactory, EsiPollingService polling,
                                      Api.EsiClient esi, FittingOptionService fittingOptions)
@@ -438,6 +488,8 @@ public class StructureBrowserViewModel : ReactiveObject
 
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadAsync);
         ResolveCommand = ReactiveCommand.CreateFromTask(ResolveAsync);
+
+        PullFromEsiCommand = ReactiveCommand.CreateFromTask(PullFromEsiAsync);
 
         SlotClickedCommand = ReactiveCommand.CreateFromTask<EveConsole.Controls.FittingSlot>(OpenSlotPickerAsync);
 
@@ -585,6 +637,7 @@ public class StructureBrowserViewModel : ReactiveObject
         if (row is null) { DetailStatus = ""; Provenance = ""; TypeRender = null; return; }
 
         _ = LoadTypeRenderAsync(row.TypeId);
+        await LoadPickOptionsAsync();
 
         try
         {
@@ -595,8 +648,13 @@ public class StructureBrowserViewModel : ReactiveObject
 
             EditName   = s?.Name  ?? "";
             EditNotes  = s?.Notes ?? "";
-            EditSystem = row.SystemName;
-            EditType   = row.TypeName;
+
+            // Assigned through the backing fields: the EditType setter reloads the render, which
+            // is wasted work when the load above is already fetching the same image.
+            _editSystem = SystemOptions.FirstOrDefault(o => o.Id == row.SystemId);
+            _editType   = TypeOptions.FirstOrDefault(o => o.Id == row.TypeId);
+            this.RaisePropertyChanged(nameof(EditSystem));
+            this.RaisePropertyChanged(nameof(EditType));
 
             Provenance = s is null
                 ? ""
@@ -968,8 +1026,58 @@ public class StructureBrowserViewModel : ReactiveObject
     };
 
     /// <summary>
+    /// Fills the system and type pickers once per session. Systems carry their region, because
+    /// New Eden has several same-named-looking systems and the region is how anyone tells the
+    /// intended one apart; types are the structure category only, so the list is short enough to
+    /// scroll rather than search.
+    /// </summary>
+    private async Task LoadPickOptionsAsync()
+    {
+        if (_optionsLoaded) return;
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+
+            var regs = await db.SdeRegions.AsNoTracking()
+                .ToDictionaryAsync(r => r.RegionId, r => r.Name);
+
+            var systems = await db.SdeSolarSystems.AsNoTracking()
+                .Select(s => new { s.SolarSystemId, s.Name, s.RegionId })
+                .ToListAsync();
+
+            foreach (var s in systems.OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase))
+            {
+                var region = regs.GetValueOrDefault(s.RegionId, "");
+                SystemOptions.Add(new PickOption(
+                    s.SolarSystemId, region.Length > 0 ? $"{s.Name} — {region}" : s.Name));
+            }
+
+            // Category 65 is what makes a type a structure, the same test the non-structure purge
+            // uses. Unpublished types are test/removed hulls that cannot be anchored.
+            var types = await db.SdeTypes.AsNoTracking()
+                .Join(db.SdeGroups.AsNoTracking().Where(g => g.CategoryId == StructureCategory),
+                      t => t.GroupId, g => g.GroupId, (t, g) => new { t.TypeId, t.Name, t.Published })
+                .Where(t => t.Published)
+                .ToListAsync();
+
+            foreach (var t in types.OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase))
+                TypeOptions.Add(new PickOption(t.TypeId, t.Name));
+
+            _optionsLoaded = true;
+        }
+        catch (Exception ex) { DetailStatus = $"Could not load pickers: {ex.Message}"; }
+    }
+
+    private const int StructureCategory = 65;
+
+    /// <summary>
     /// Writes the edited fields back. Only the app's own table is touched — nothing here can
     /// reach EsiStructureNames, so a hand-typed name cannot be mistaken for something ESI said.
+    ///
+    /// <para>Identity is written only when <see cref="CanEditIdentity"/> allows it. The check is
+    /// repeated here rather than trusted to the disabled controls: a stale selection or a binding
+    /// that failed to update would otherwise write a hand-typed system over one ESI gave us.</para>
     /// </summary>
     public async Task SaveDetailAsync()
     {
@@ -986,18 +1094,59 @@ public class StructureBrowserViewModel : ReactiveObject
                 return;
             }
 
-            s.Name      = EditName.Trim();
-            s.Notes     = EditNotes;
+            s.Notes = EditNotes;
+
+            if (CanEditIdentity)
+            {
+                s.Name = EditName.Trim();
+                if (EditSystem is not null) s.SolarSystemId = EditSystem.Id;
+                if (EditType   is not null) s.TypeId        = EditType.Id;
+            }
+
             s.UpdatedBy = StructureSource.User;
             s.UpdatedAt = DateTimeOffset.UtcNow;
 
             await db.SaveChangesAsync();
 
-            DetailStatus = "Saved.";
+            DetailStatus = CanEditIdentity ? "Saved." : "Notes saved (identity comes from ESI).";
             Provenance   = $"Last written by {StructureSource.User} at {DateTimeOffset.Now:yyyy-MM-dd HH:mm}";
             await LoadAsync();
         }
         catch (Exception ex) { DetailStatus = $"Save failed: {ex.Message}"; }
+    }
+
+    /// <summary>
+    /// Asks ESI about this one structure now, ignoring the thirty-day backoff a 403 normally
+    /// earns. That backoff is right for the sweep and wrong here: the user pressing this is
+    /// usually saying they just got docking rights, which is the one thing the sweep's timer
+    /// cannot know.
+    /// </summary>
+    private async Task PullFromEsiAsync()
+    {
+        if (Selected is not { } row) return;
+
+        var id = row.StructureId;
+        DetailStatus = "Asking ESI…";
+        Busy = true;
+        try
+        {
+            var status = await _polling.RetryStructureAsync(id);
+
+            DetailStatus = status switch
+            {
+                StructureStatus.Resolved => "Resolved from ESI.",
+                StructureStatus.NoAccess => "No access (403) — no docking rights with this structure.",
+                StructureStatus.NotFound => "Not found (404) — the structure has been unanchored or destroyed.",
+                _                        => "ESI did not answer. See the error log.",
+            };
+
+            await LoadAsync();
+            // Reselect from the displayed rows, not the unfiltered list: LoadAsync rebuilds every
+            // row object, so the old selection now points at an instance the grid has never seen.
+            Selected = Rows.FirstOrDefault(r => r.StructureId == id);
+        }
+        catch (Exception ex) { DetailStatus = $"Pull failed: {ex.Message}"; }
+        finally { Busy = false; }
     }
 
     private void BuildFilters()
