@@ -381,6 +381,13 @@ public record EsiPublicAlliance(
     [property: JsonPropertyName("faction_id")]              int?    FactionId
 );
 
+public record EsiCorpHistory(
+    [property: JsonPropertyName("corporation_id")] int CorporationId,
+    [property: JsonPropertyName("record_id")]      int RecordId,
+    [property: JsonPropertyName("start_date")]     DateTimeOffset StartDate,
+    [property: JsonPropertyName("is_deleted")]     bool? IsDeleted
+);
+
 public record EsiAllianceHistory(
     [property: JsonPropertyName("alliance_id")] int? AllianceId,
     [property: JsonPropertyName("record_id")]   int  RecordId,

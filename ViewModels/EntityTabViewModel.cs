@@ -33,6 +33,7 @@ public class EntityTabViewModel : ReactiveObject
         _service   = service;
         _killmails = killmails;
         Kind       = kind;
+        OpenFactCommand = ReactiveCommand.Create<EntityFact>(OpenFact);
     }
 
     // ── Search ────────────────────────────────────────────────────────────────
@@ -106,9 +107,107 @@ public class EntityTabViewModel : ReactiveObject
     public ObservableCollection<EntityMemberRow>  Members { get; } = [];
     public ObservableCollection<EntityHistoryRow> History { get; } = [];
 
+    public ObservableCollection<EntityStationRow>   Stations  { get; } = [];
+    public ObservableCollection<LpOfferRow>         LpOffers  { get; } = [];
+    public ObservableCollection<FactionWarfareRow>  Warfare   { get; } = [];
+
     /// <summary>Alliances list their member corporations; corporations list where they have been.</summary>
-    public bool HasMembers => Kind is EntityKind.Alliance;
-    public bool HasHistory => Kind is EntityKind.PlayerCorp;
+    /// Members: an alliance lists its corporations, an NPC corporation its agents, a
+    /// faction its corporations — three different rosters, one grid.
+    public bool HasMembers  => Kind is EntityKind.Alliance or EntityKind.NpcCorp or EntityKind.Faction;
+    public bool HasHistory  => Kind is EntityKind.PlayerCorp or EntityKind.Pilot;
+    public bool HasStations => Kind is EntityKind.NpcCorp;
+    public bool HasLpOffers => Kind is EntityKind.NpcCorp;
+    public bool HasWarfare  => Kind is EntityKind.Faction;
+
+    public string MembersHeader => Kind switch
+    {
+        EntityKind.Alliance => "Member Corps",
+        EntityKind.NpcCorp  => "Agents",
+        _                   => "Corporations",
+    };
+
+    public string HistoryHeader => Kind is EntityKind.Pilot ? "Corp History" : "Alliance History";
+
+    /// <summary>The column heading over the history grid's first column.</summary>
+    public string HistoryEntityHeader => Kind is EntityKind.Pilot ? "Corporation" : "Alliance";
+
+    /// <summary>Where a click in the members or history grid should go.</summary>
+    public EntityKind MemberLinkKind => Kind switch
+    {
+        EntityKind.Alliance => EntityKind.PlayerCorp,
+        EntityKind.NpcCorp  => EntityKind.Agent,
+        _                   => EntityKind.NpcCorp,
+    };
+
+    public EntityKind HistoryLinkKind => Kind is EntityKind.Pilot ? EntityKind.PlayerCorp : EntityKind.Alliance;
+
+    /// <summary>Set by the owning tool — switches to another tab and loads an entity there.</summary>
+    public Action<EntityKind, long>? NavigateTo { get; set; }
+
+    public void Open(EntityKind kind, long id)
+    {
+        if (id > 0) NavigateTo?.Invoke(kind, id);
+    }
+
+    private Bitmap? _corpLogo;
+    public Bitmap? CorpLogo { get => _corpLogo; private set => this.RaiseAndSetIfChanged(ref _corpLogo, value); }
+
+    private Bitmap? _allianceLogo;
+    public Bitmap? AllianceLogo { get => _allianceLogo; private set => this.RaiseAndSetIfChanged(ref _allianceLogo, value); }
+
+    private bool _hasAffiliation;
+    public bool HasAffiliation { get => _hasAffiliation; private set => this.RaiseAndSetIfChanged(ref _hasAffiliation, value); }
+
+    public ReactiveCommand<EntityFact, System.Reactive.Unit> OpenFactCommand { get; }
+
+    public void OpenFact(EntityFact fact)
+    {
+        if (fact.IsEntityLink) Open(fact.LinkKind!.Value, fact.LinkId);
+        else if (fact.IsUrlLink) OpenUrl(fact.Url!);
+    }
+
+    /// <summary>Corporation URLs open in the system browser, not in the app.</summary>
+    public static void OpenUrl(string url)
+    {
+        try
+        {
+            if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase)) url = "https://" + url;
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        catch { /* a bad URL in a corp description is not worth surfacing */ }
+    }
+
+    private string _stationsStatus = "";
+    public string StationsStatus { get => _stationsStatus; private set => this.RaiseAndSetIfChanged(ref _stationsStatus, value); }
+
+    private string _lpOffersStatus = "";
+    public string LpOffersStatus { get => _lpOffersStatus; private set => this.RaiseAndSetIfChanged(ref _lpOffersStatus, value); }
+
+    private string _warfareStatus = "";
+    public string WarfareStatus { get => _warfareStatus; private set => this.RaiseAndSetIfChanged(ref _warfareStatus, value); }
+
+    /// <summary>
+    /// Loads a straightforward list into a collection and reports the count. The remaining
+    /// panes differ only in their source and their noun, which is not enough to justify a
+    /// method each.
+    /// </summary>
+    private async Task LoadListAsync<T>(ObservableCollection<T> target, Func<Task<List<T>>> load,
+                                        Action<string> setStatus, string noun)
+    {
+        try
+        {
+            var rows = await load();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                target.Clear();
+                foreach (var r in rows) target.Add(r);
+                setStatus(rows.Count == 0 ? $"No {noun}s found." : $"{rows.Count:N0} {noun}(s)");
+            });
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { setStatus($"Error: {ex.Message}"); }
+    }
 
     private string _membersStatus = "";
     public string MembersStatus { get => _membersStatus; private set => this.RaiseAndSetIfChanged(ref _membersStatus, value); }
@@ -143,7 +242,7 @@ public class EntityTabViewModel : ReactiveObject
                 Name        = detail.Name;
                 Subtitle    = detail.Subtitle;
                 Description = detail.Description;
-                Image       = null;
+                Image = null; CorpLogo = null; AllianceLogo = null; HasAffiliation = false;
 
                 Facts.Clear();
                 foreach (var f in detail.Facts)
@@ -162,7 +261,13 @@ public class EntityTabViewModel : ReactiveObject
             if (HasKills) _ = LoadKillsAsync(id, ct);
             if (HasIntel)   _ = LoadIntelAsync(id, ct);
             if (HasMembers) _ = LoadMembersAsync(id, ct);
-            if (HasHistory) _ = LoadHistoryAsync(id, ct);
+            if (HasHistory)  _ = LoadHistoryAsync(id, ct);
+            if (HasStations) _ = LoadListAsync(Stations, () => _service.NpcCorpStationsAsync(id, ct),
+                                               v => StationsStatus = v, "station");
+            if (HasLpOffers) _ = LoadListAsync(LpOffers, () => _service.NpcCorpLpOffersAsync(id, ct),
+                                               v => LpOffersStatus = v, "LP offer");
+            if (HasWarfare)  _ = LoadListAsync(Warfare, () => _service.FactionWarfareAsync(id, ct),
+                                               v => WarfareStatus = v, "faction warfare system");
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
@@ -190,6 +295,17 @@ public class EntityTabViewModel : ReactiveObject
                 foreach (var f in facts)
                     if (!string.IsNullOrWhiteSpace(f.Value)) Facts.Add(f);
 
+                foreach (var f in facts)
+                {
+                    if (f.LinkKind == EntityKind.PlayerCorp && f.Label == "Corporation")
+                        _ = LoadLogoAsync(EntityBrowserService.ImageUrlFor(EntityKind.PlayerCorp, f.LinkId),
+                                          v => CorpLogo = v, ct);
+                    if (f.LinkKind == EntityKind.Alliance)
+                        _ = LoadLogoAsync(EntityBrowserService.ImageUrlFor(EntityKind.Alliance, f.LinkId),
+                                          v => AllianceLogo = v, ct);
+                }
+                HasAffiliation = facts.Any(f => f.LinkKind is EntityKind.PlayerCorp or EntityKind.Alliance);
+
                 if (description.Length > 0)
                 {
                     Description = description;
@@ -205,7 +321,12 @@ public class EntityTabViewModel : ReactiveObject
     {
         try
         {
-            var rows = await _service.AllianceCorpsAsync(id, ct);
+            var rows = Kind switch
+            {
+                EntityKind.Alliance => await _service.AllianceCorpsAsync(id, ct),
+                EntityKind.NpcCorp  => await _service.NpcCorpAgentsAsync(id, ct),
+                _                   => await _service.FactionCorpsAsync(id, ct),
+            };
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 if (ct.IsCancellationRequested) return;
@@ -224,7 +345,9 @@ public class EntityTabViewModel : ReactiveObject
     {
         try
         {
-            var rows = await _service.CorpAllianceHistoryAsync(id, ct);
+            var rows = Kind is EntityKind.Pilot
+                ? await _service.CharacterCorpHistoryAsync(id, ct)
+                : await _service.CorpAllianceHistoryAsync(id, ct);
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 if (ct.IsCancellationRequested) return;
@@ -237,6 +360,19 @@ public class EntityTabViewModel : ReactiveObject
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) { HistoryStatus = $"Error: {ex.Message}"; }
+    }
+
+    private async Task LoadLogoAsync(string? url, Action<Bitmap> set, CancellationToken ct)
+    {
+        if (url is null) return;
+        try
+        {
+            var bytes = await _http.GetByteArrayAsync(url, ct);
+            using var ms = new MemoryStream(bytes);
+            var bmp = new Bitmap(ms);
+            await Dispatcher.UIThread.InvokeAsync(() => { if (!ct.IsCancellationRequested) set(bmp); });
+        }
+        catch { /* decoration */ }
     }
 
     private async Task LoadImageAsync(string url, CancellationToken ct)
@@ -263,6 +399,7 @@ public class EntityTabViewModel : ReactiveObject
                 if (ct.IsCancellationRequested) return;
                 Kills.Clear();
                 foreach (var r in rows) Kills.Add(r);
+                _ = Task.WhenAll(rows.Select(r => r.LoadImagesAsync()));
                 KillsStatus = rows.Count == 0
                     ? "No killmails recorded for this entity."
                     : $"{rows.Count:N0} most recent killmail(s)"

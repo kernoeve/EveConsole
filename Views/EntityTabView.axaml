@@ -48,11 +48,24 @@
             Padding="12 10" Margin="0 8 0 0">
       <Grid ColumnDefinitions="Auto,*">
 
-        <Border Grid.Column="0" Width="96" Height="96" Margin="0 0 14 0"
-                Background="#0d0d14" BorderBrush="#252530" BorderThickness="1"
-                CornerRadius="3" VerticalAlignment="Top">
-          <Image Source="{Binding Image}" Stretch="Uniform"/>
-        </Border>
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0 0 14 0" VerticalAlignment="Top">
+          <Border Width="96" Height="96"
+                  Background="#0d0d14" BorderBrush="#252530" BorderThickness="1" CornerRadius="3">
+            <Image Source="{Binding Image}" Stretch="Uniform"/>
+          </Border>
+
+          <!-- Corp over alliance at half height, the same stack the killmail rows use. -->
+          <StackPanel Margin="4 0 0 0" IsVisible="{Binding HasAffiliation}">
+            <Border Width="46" Height="46" Background="#0d0d14" BorderBrush="#252530"
+                    BorderThickness="1" CornerRadius="3" Margin="0 0 0 4">
+              <Image Source="{Binding CorpLogo}" Stretch="Uniform"/>
+            </Border>
+            <Border Width="46" Height="46" Background="#0d0d14" BorderBrush="#252530"
+                    BorderThickness="1" CornerRadius="3">
+              <Image Source="{Binding AllianceLogo}" Stretch="Uniform"/>
+            </Border>
+          </StackPanel>
+        </StackPanel>
 
         <StackPanel Grid.Column="1" Spacing="3">
           <TextBlock Text="{Binding Name}"     FontSize="15" FontWeight="SemiBold" Foreground="#c8a84b"/>
@@ -67,10 +80,19 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="svc:EntityFact">
-                <StackPanel Orientation="Horizontal" Margin="0 1 22 1">
-                  <TextBlock Text="{Binding Label}" FontSize="10" Foreground="#666677" Margin="0 0 6 0"/>
+                <StackPanel Orientation="Horizontal" Width="300" Margin="0 2 14 2">
+                  <TextBlock Text="{Binding Label}" FontSize="10" Foreground="#666677"
+                             Width="105" TextTrimming="CharacterEllipsis"/>
                   <TextBlock Text="{Binding Value}" FontSize="10" Foreground="#ccc"
-                             TextTrimming="CharacterEllipsis" MaxWidth="280"/>
+                             IsVisible="{Binding IsPlain}"
+                             TextTrimming="CharacterEllipsis" MaxWidth="190"/>
+                  <Button Content="{Binding Value}"
+                          IsVisible="{Binding !IsPlain}"
+                          Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenFactCommand}"
+                          CommandParameter="{Binding}"
+                          Background="Transparent" BorderThickness="0" Padding="0"
+                          FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                          HorizontalContentAlignment="Left" MaxWidth="190"/>
                 </StackPanel>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -114,33 +136,89 @@
         </Grid>
       </TabItem>
 
-      <TabItem Header="Member Corps" IsVisible="{Binding HasMembers}">
+      <TabItem Header="{Binding MembersHeader}" IsVisible="{Binding HasMembers}">
         <Grid RowDefinitions="Auto,*" Margin="4 6">
           <TextBlock Grid.Row="0" Text="{Binding MembersStatus}" FontSize="10" Foreground="#555566"
                      TextWrapping="Wrap" Margin="0 0 0 6"/>
-          <DataGrid Grid.Row="1" ItemsSource="{Binding Members}"
+          <DataGrid Grid.Row="1" ItemsSource="{Binding Members}" x:Name="MembersGrid"
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
-                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                    DoubleTapped="OnMemberDoubleTapped">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Corporation" Binding="{Binding Name}" Width="*"/>
-              <DataGridTextColumn Header="ID"          Binding="{Binding Id}"   Width="120"/>
+              <DataGridTextColumn Header="Name"    Binding="{Binding Name}"     Width="320"/>
+              <DataGridTextColumn Header="Details" Binding="{Binding Subtitle}" Width="*"/>
+              <DataGridTextColumn Header="ID"      Binding="{Binding Id}"       Width="110"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>
       </TabItem>
 
-      <TabItem Header="Alliance History" IsVisible="{Binding HasHistory}">
+      <TabItem Header="{Binding HistoryHeader}" IsVisible="{Binding HasHistory}">
         <Grid RowDefinitions="Auto,*" Margin="4 6">
           <TextBlock Grid.Row="0" Text="{Binding HistoryStatus}" FontSize="10" Foreground="#555566"
                      TextWrapping="Wrap" Margin="0 0 0 6"/>
           <DataGrid Grid.Row="1" ItemsSource="{Binding History}"
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
-                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                    DoubleTapped="OnHistoryDoubleTapped">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Alliance" Binding="{Binding Alliance}" Width="*"/>
+              <DataGridTextColumn Header="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).HistoryEntityHeader}"
+                                  Binding="{Binding Alliance}" Width="*"/>
               <DataGridTextColumn Header="From"     Binding="{Binding From}"     Width="130"/>
               <DataGridTextColumn Header="Until"    Binding="{Binding Until}"    Width="130"/>
               <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="130"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Stations" IsVisible="{Binding HasStations}">
+        <Grid RowDefinitions="Auto,*" Margin="4 6">
+          <TextBlock Grid.Row="0" Text="{Binding StationsStatus}" FontSize="10" Foreground="#555566" Margin="0 0 0 6"/>
+          <DataGrid Grid.Row="1" ItemsSource="{Binding Stations}"
+                    IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Station"  Binding="{Binding Name}"     Width="*"/>
+              <DataGridTextColumn Header="System"   Binding="{Binding System}"   Width="130"/>
+              <DataGridTextColumn Header="Region"   Binding="{Binding Region}"   Width="150"/>
+              <DataGridTextColumn Header="Sec"      Binding="{Binding Security}" Width="60"/>
+              <DataGridTextColumn Header="Agents"   Binding="{Binding Agents}"   Width="70"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="LP Offers" IsVisible="{Binding HasLpOffers}">
+        <Grid RowDefinitions="Auto,*" Margin="4 6">
+          <TextBlock Grid.Row="0" Text="{Binding LpOffersStatus}" FontSize="10" Foreground="#555566" Margin="0 0 0 6"/>
+          <DataGrid Grid.Row="1" ItemsSource="{Binding LpOffers}"
+                    IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Item"     Binding="{Binding Item}"     Width="*"/>
+              <DataGridTextColumn Header="Qty"      Binding="{Binding Quantity}" Width="80"/>
+              <DataGridTextColumn Header="LP"       Binding="{Binding LpCost}"   Width="110"/>
+              <DataGridTextColumn Header="ISK"      Binding="{Binding IskCost}"  Width="130"/>
+              <DataGridTextColumn Header="Requires" Binding="{Binding Required}" Width="300"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Faction Warfare" IsVisible="{Binding HasWarfare}">
+        <Grid RowDefinitions="Auto,*" Margin="4 6">
+          <TextBlock Grid.Row="0" Text="{Binding WarfareStatus}" FontSize="10" Foreground="#555566" Margin="0 0 0 6"/>
+          <DataGrid Grid.Row="1" ItemsSource="{Binding Warfare}"
+                    IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="System"    Binding="{Binding System}"    Width="150"/>
+              <DataGridTextColumn Header="Region"    Binding="{Binding Region}"    Width="170"/>
+              <DataGridTextColumn Header="Role"      Binding="{Binding Role}"      Width="90"/>
+              <DataGridTextColumn Header="Contested" Binding="{Binding Contested}" Width="110"/>
+              <DataGridTextColumn Header="Points"    Binding="{Binding Points}"    Width="90"/>
+              <DataGridTextColumn Header="Threshold" Binding="{Binding Threshold}" Width="*"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>

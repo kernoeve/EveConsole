@@ -591,6 +591,11 @@ public class MainWindowViewModel : ReactiveObject
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);
         NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
+        PlayerEntitiesVm.NavigateToNpc = (kind, id) =>
+        {
+            OpenTool("npc_entities");
+            NpcEntitiesVm.Open(kind, id);
+        };
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
