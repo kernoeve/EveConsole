@@ -144,10 +144,22 @@ public class FittingCanvas : Control
     private FittingSlot? _hover;
     private Point        _hoverAt;
 
+    /// <summary>Clock position to degrees, measured the way atan2 does on screen: 0° east, angles
+    /// increasing clockwise because Y grows downward. Twelve o'clock is therefore -90°.</summary>
+    private static double Clock(double hour) => hour * 30 - 90;
+
+    /// <summary>Angle between neighbouring slots in a band. Fixed rather than a sweep divided by
+    /// the count: a band spread to fill a fixed arc puts its slots on top of each other when there
+    /// are many and strands them far apart when there are few.</summary>
+    private const double SlotStepDeg = 21;
+
     /// <summary>
-    /// Places the slots: the three module bands sweep an arc each around the hull, rigs sit on a
-    /// tighter inner arc, and services run along the bottom — the arrangement the game uses, which
-    /// is worth copying because it is what anyone fitting a hull already reads fluently.
+    /// Places the slots in the arrangement the game uses — high at the top, mid on the right, low
+    /// at the bottom, rigs on the left, services in a row underneath.
+    ///
+    /// <para>Each band is centred on a clock position and its slots step outward from that centre
+    /// at a fixed angle, so a Keepstar's eight high slots and a Rifter's three both stay evenly
+    /// spaced and neither collides with the band next door.</para>
     /// </summary>
     private void Layout()
     {
@@ -156,54 +168,61 @@ public class FittingCanvas : Control
         var slots = Slots;
         if (slots is null || slots.Count == 0) return;
 
+        var services = slots.Where(s => s.Band == FittingBand.Service)
+                            .OrderBy(s => s.Index).ToList();
+
+        // The service row lives below the circle, so the circle gives up that height.
+        var reserved = services.Count > 0 ? SlotSize + 16 : 0;
+
         var cx = Bounds.Width / 2;
-        var cy = Bounds.Height / 2;
-        var r  = Math.Min(Bounds.Width, Bounds.Height) / 2 - SlotSize;
-        if (r <= SlotSize) return;
+        var cy = (Bounds.Height - reserved) / 2;
+        _radius = Math.Min(Bounds.Width, Bounds.Height - reserved) / 2 - SlotSize * 0.75;
+        _centre = new Point(cx, cy);
 
-        void Arc(FittingBand band, double startDeg, double sweepDeg, double radius)
+        if (_radius <= SlotSize) return;
+
+        void Band(FittingBand band, double centreHour)
         {
-            var band_ = slots.Where(s => s.Band == band).OrderBy(s => s.Index).ToList();
-            if (band_.Count == 0) return;
+            var inBand = slots.Where(s => s.Band == band).OrderBy(s => s.Index).ToList();
+            if (inBand.Count == 0) return;
 
-            // Spread across the arc; a single slot sits at its midpoint rather than at one end.
-            for (var i = 0; i < band_.Count; i++)
+            // Centred on the clock position: with four slots the two middle ones straddle it.
+            var start = Clock(centreHour) - SlotStepDeg * (inBand.Count - 1) / 2.0;
+
+            for (var i = 0; i < inBand.Count; i++)
             {
-                var t   = band_.Count == 1 ? 0.5 : (double)i / (band_.Count - 1);
-                var deg = startDeg + sweepDeg * t;
-                var rad = deg * Math.PI / 180;
+                var rad = (start + SlotStepDeg * i) * Math.PI / 180;
+                var x   = cx + Math.Cos(rad) * _radius;
+                var y   = cy + Math.Sin(rad) * _radius;
 
-                var x = cx + Math.Cos(rad) * radius;
-                var y = cy + Math.Sin(rad) * radius;
-
-                _placed.Add((band_[i],
+                _placed.Add((inBand[i],
                     new Rect(x - SlotSize / 2, y - SlotSize / 2, SlotSize, SlotSize)));
             }
         }
 
-        // Degrees clockwise from east. High across the top, mid down the right, low up the left,
-        // mirroring the game.
-        Arc(FittingBand.High, -160, 140, r);
-        Arc(FittingBand.Mid,   -10,  80, r);
-        Arc(FittingBand.Low,   170,  80, r);
-        Arc(FittingBand.Rig,    60,  60, r * 0.62);
-        Arc(FittingBand.Subsystem, 120, 60, r * 0.62);
+        // Clock positions taken from the in-game window: high 10-1, mid 2-3, low 5-6, rigs 8-9.
+        Band(FittingBand.High,      12);
+        Band(FittingBand.Mid,        2.5);
+        Band(FittingBand.Low,        5.5);
+        Band(FittingBand.Rig,        8.5);
+        Band(FittingBand.Subsystem, 10.5);
 
-        // Services are a row, not an arc: there can be seven of them and an arc that long reads
-        // as another module band rather than as something different in kind.
-        var services = slots.Where(s => s.Band == FittingBand.Service)
-                            .OrderBy(s => s.Index).ToList();
+        // Services are a straight row below the circle: there can be seven, and an arc that long
+        // reads as another module band rather than as something different in kind.
         if (services.Count > 0)
         {
             var totalW = services.Count * SlotSize + (services.Count - 1) * 6;
             var x0     = cx - totalW / 2;
-            var y0     = Bounds.Height - SlotSize - 8;
+            var y0     = Bounds.Height - SlotSize - 6;
 
             for (var i = 0; i < services.Count; i++)
                 _placed.Add((services[i],
                     new Rect(x0 + i * (SlotSize + 6), y0, SlotSize, SlotSize)));
         }
     }
+
+    private Point  _centre;
+    private double _radius;
 
     // ── Interaction ──────────────────────────────────────────────────────────
 
@@ -264,37 +283,34 @@ public class FittingCanvas : Control
             return;
         }
 
-        var cx = Bounds.Width / 2;
-        var cy = Bounds.Height / 2;
-        var r  = Math.Min(Bounds.Width, Bounds.Height) / 2 - SlotSize;
-
-        // The ring the module bands sit on, so they read as one arrangement rather than as
-        // scattered squares.
-        ctx.DrawEllipse(RingBrush, RingPen, new Point(cx, cy), r, r);
-
-        // Hull in the middle, inside the ring.
+        // The hull fills the circle and is clipped by it, so the render reads as the subject the
+        // slots are arranged around rather than as a picture floating inside a ring.
         if (HullRender is { } hull)
         {
-            var size = r * 1.15;
-            ctx.DrawImage(hull, new Rect(cx - size / 2, cy - size / 2, size, size));
+            var circle = new EllipseGeometry(
+                new Rect(_centre.X - _radius, _centre.Y - _radius, _radius * 2, _radius * 2));
+
+            using (ctx.PushGeometryClip(circle))
+            {
+                // Square, sized to the circle's diameter, so the image touches the edge on every
+                // side and the corners are what gets clipped away.
+                var d = _radius * 2;
+                ctx.DrawImage(hull, new Rect(_centre.X - d / 2, _centre.Y - d / 2, d, d));
+            }
         }
+
+        // The ring the slots attach to, drawn over the hull so the edge stays crisp.
+        ctx.DrawEllipse(null, RingPen, _centre, _radius, _radius);
 
         foreach (var (slot, rect) in _placed)
         {
+            // Box first, then the icon on top — the outline is what ties the slot to the ring,
+            // and it stays visible behind a transparent icon.
             var fill = slot.IsEmpty ? EmptyFill : FillFor(slot.Band);
             ctx.DrawRectangle(fill, EmptyPen, new RoundedRect(rect, 3));
 
             if (slot.Icon is { } icon)
-                ctx.DrawImage(icon, rect.Deflate(3));
-            else if (!slot.IsEmpty)
-            {
-                // No icon yet: the first letters still say which module is where, which beats an
-                // anonymous coloured square while the icons load.
-                var initials = Initials(slot.Name);
-                var t = new FormattedText(initials, System.Globalization.CultureInfo.CurrentCulture,
-                    FlowDirection.LeftToRight, BoldFace, 10, TipTitle);
-                ctx.DrawText(t, new Point(rect.Center.X - t.Width / 2, rect.Center.Y - t.Height / 2));
-            }
+                ctx.DrawImage(icon, rect.Deflate(2));
 
             if (ReferenceEquals(slot, _hover))
                 ctx.DrawRectangle(null, HoverPen, new RoundedRect(rect.Inflate(2), 4));
@@ -352,14 +368,4 @@ public class FittingCanvas : Control
         ctx.DrawText(t, new Point((Bounds.Width - t.Width) / 2, (Bounds.Height - t.Height) / 2));
     }
 
-    /// <summary>Up to three initials from a module name, skipping the "Standup" every structure
-    /// module carries — it is the one word that distinguishes nothing.</summary>
-    private static string Initials(string name)
-    {
-        var words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-            .Where(w => !w.Equals("Standup", StringComparison.OrdinalIgnoreCase))
-            .Take(3);
-
-        return string.Concat(words.Select(w => char.ToUpperInvariant(w[0])));
-    }
 }

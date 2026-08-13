@@ -647,6 +647,7 @@ public class StructureBrowserViewModel : ReactiveObject
             .Where(m => m.StructureId == row.StructureId).ToListAsync();
 
         var slots = new List<EveConsole.Controls.FittingSlot>();
+        var wanted = new List<int>();
 
         void Band(EveConsole.Controls.FittingBand band, string flagPrefix, int count,
                   Func<int, int> manual)
@@ -656,6 +657,8 @@ public class StructureBrowserViewModel : ReactiveObject
                 var flag       = $"{flagPrefix}{i}";
                 var fromAssets = byFlag.TryGetValue(flag, out var assetType);
                 var typeId     = fromAssets ? assetType : manual(i);
+
+                if (typeId > 0) wanted.Add(typeId);
 
                 slots.Add(new EveConsole.Controls.FittingSlot(
                     band, i, typeId,
@@ -680,7 +683,57 @@ public class StructureBrowserViewModel : ReactiveObject
         Band(EveConsole.Controls.FittingBand.Service, "ServiceSlot", Cap(AttrServiceSlots),
              _ => nextManual < manualServices.Count ? manualServices[nextManual++] : 0);
 
+        // Show the ring immediately, then fill the icons in. Waiting on a dozen HTTP fetches
+        // before drawing anything would make selecting a structure feel broken.
         FittingSlots = slots;
+
+        var icons = await LoadIconsAsync(wanted.Distinct().ToList());
+        if (icons.Count == 0) return;
+
+        // Records are immutable, so the list is rebuilt with the icons attached — which also
+        // gives the control a new reference to notice.
+        FittingSlots = slots
+            .Select(s => s.TypeId > 0 && icons.TryGetValue(s.TypeId, out var bmp)
+                           ? s with { Icon = bmp }
+                           : s)
+            .ToList();
+    }
+
+    /// <summary>Module icons, cached across selections — the same modules recur constantly.</summary>
+    private static readonly Dictionary<int, Avalonia.Media.Imaging.Bitmap?> _iconCache = new();
+
+    private static async Task<Dictionary<int, Avalonia.Media.Imaging.Bitmap>> LoadIconsAsync(
+        IReadOnlyList<int> typeIds)
+    {
+        var result = new Dictionary<int, Avalonia.Media.Imaging.Bitmap>();
+
+        foreach (var id in typeIds)
+        {
+            if (_iconCache.TryGetValue(id, out var cached))
+            {
+                if (cached is not null) result[id] = cached;
+                continue;
+            }
+
+            try
+            {
+                var bytes = await _renderHttp.GetByteArrayAsync(
+                    $"https://images.evetech.net/types/{id}/icon?size=64");
+
+                using var ms = new MemoryStream(bytes);
+                var bmp = new Avalonia.Media.Imaging.Bitmap(ms);
+                _iconCache[id] = bmp;
+                result[id] = bmp;
+            }
+            catch
+            {
+                // A missing icon leaves an empty box, which is honest — better than a broken
+                // image or an error for something purely decorative.
+                _iconCache[id] = null;
+            }
+        }
+
+        return result;
     }
 
     /// <summary>Renders of structure hulls, kept for the session — they are a few hundred KB each
