@@ -71,6 +71,11 @@ public class StructureAssetRow
     public string Container { get; init; } = "";
     public long   Quantity  { get; init; }
     public string Owner     { get; init; } = "";
+
+    /// <summary>Grouped for reading — a fuel bay holds hundreds of thousands of blocks, and
+    /// bare digits at that length take a moment to size up. The column sorts on
+    /// <see cref="Quantity"/> so the display format cannot turn the ordering alphabetical.</summary>
+    public string QuantityText => Quantity.ToString("N0");
 }
 
 /// <summary>An industry job run at the selected structure.</summary>

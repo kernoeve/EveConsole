@@ -12,6 +12,11 @@
       <Setter Property="FontSize" Value="11" />
       <Setter Property="Margin" Value="0 0 6 0" />
     </Style>
+    <!-- Quantities read as numbers: right-aligned so the digits line up column-wise. -->
+    <Style Selector="DataGridCell.num TextBlock">
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="Margin" Value="0 0 8 0" />
+    </Style>
     <Style Selector="TextBlock.flabel">
       <Setter Property="FontSize" Value="9.5" />
       <Setter Property="FontWeight" Value="SemiBold" />
@@ -334,7 +339,8 @@
                   <DataGridTextColumn Header="Item"      Binding="{Binding TypeName}"  Width="*" />
                   <DataGridTextColumn Header="Container" Binding="{Binding Container}" Width="200" />
                   <DataGridTextColumn Header="Where"     Binding="{Binding Location}"  Width="170" />
-                  <DataGridTextColumn Header="Qty"       Binding="{Binding Quantity}"  Width="90" />
+                  <DataGridTextColumn Header="Qty"       Binding="{Binding QuantityText}" SortMemberPath="Quantity"
+                                      Width="90" CellStyleClasses="num" />
                   <DataGridTextColumn Header="Owner"     Binding="{Binding Owner}"     Width="130" />
                 </DataGrid.Columns>
               </DataGrid>
@@ -350,7 +356,8 @@
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="Item"      Binding="{Binding TypeName}"  Width="*" />
                   <DataGridTextColumn Header="Container" Binding="{Binding Container}" Width="220" />
-                  <DataGridTextColumn Header="Qty"       Binding="{Binding Quantity}"  Width="110" />
+                  <DataGridTextColumn Header="Qty"       Binding="{Binding QuantityText}" SortMemberPath="Quantity"
+                                      Width="110" CellStyleClasses="num" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
@@ -363,7 +370,8 @@
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="Item" Binding="{Binding TypeName}" Width="*" />
-                  <DataGridTextColumn Header="Qty"  Binding="{Binding Quantity}" Width="140" />
+                  <DataGridTextColumn Header="Qty"  Binding="{Binding QuantityText}" SortMemberPath="Quantity"
+                                      Width="140" CellStyleClasses="num" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
@@ -377,7 +385,8 @@
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="Fighter" Binding="{Binding TypeName}" Width="*" />
                   <DataGridTextColumn Header="Where"   Binding="{Binding Location}" Width="180" />
-                  <DataGridTextColumn Header="Qty"     Binding="{Binding Quantity}" Width="110" />
+                  <DataGridTextColumn Header="Qty"     Binding="{Binding QuantityText}" SortMemberPath="Quantity"
+                                      Width="110" CellStyleClasses="num" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
