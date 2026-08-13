@@ -585,25 +585,32 @@ public class KillmailBrowserViewModel : ReactiveObject
             : $"{KillmailRows.Count:N0} killmails";
     }
 
-    public void SelectById(int killMailId)
-    {
-        var row = KillmailRows.FirstOrDefault(r => r.KillMailId == killMailId);
-        if (row is not null)
-        {
-            SelectedKillmail = row;
-        }
-        else
-        {
-            // Kill not loaded yet — reload then select
-            _ = LoadAndSelectAsync(killMailId);
-        }
-    }
+    public void SelectById(int killMailId) => _ = SelectByIdAsync(killMailId);
 
-    private async Task LoadAndSelectAsync(int killMailId)
+    /// <summary>
+    /// Show a kill that arrived from somewhere else — an entity viewer, the map, corp activity.
+    /// </summary>
+    private async Task SelectByIdAsync(int killMailId)
     {
-        await LoadAsync();
         var row = KillmailRows.FirstOrDefault(r => r.KillMailId == killMailId);
-        if (row is not null) SelectedKillmail = row;
+        if (row is not null) { SelectedKillmail = row; return; }
+
+        // Not on screen, and reloading as-is would not help: the list defaults to the last 30
+        // days, while a kill picked out of a pilot's history is usually older than that. Widen
+        // the range before looking again.
+        _filterFrom = null;
+        _filterThru = null;
+        this.RaisePropertyChanged(nameof(FilterFrom));
+        this.RaisePropertyChanged(nameof(FilterThru));
+        await LoadAsync();
+
+        row = KillmailRows.FirstOrDefault(r => r.KillMailId == killMailId);
+        if (row is not null) { SelectedKillmail = row; return; }
+
+        // Older than the first page of an unfiltered list. The row cannot be highlighted
+        // without paging an unknown distance to reach it, but the detail pane is what was
+        // actually asked for, so load that on its own.
+        await LoadDetailAsync(killMailId);
     }
 
     private async Task LoadDetailAsync(int killMailId, CancellationToken ct = default)

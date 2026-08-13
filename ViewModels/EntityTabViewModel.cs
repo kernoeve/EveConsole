@@ -119,6 +119,7 @@ public class EntityTabViewModel : ReactiveObject
     public ObservableCollection<EntityHistoryRow> History { get; } = [];
 
     public ObservableCollection<EntityStationRow>   Stations  { get; } = [];
+    public ObservableCollection<NpcOrderRow>       Orders    { get; } = [];
     public ObservableCollection<LpOfferRow>         LpOffers  { get; } = [];
     public ObservableCollection<FactionWarfareRow>  Warfare   { get; } = [];
 
@@ -128,6 +129,14 @@ public class EntityTabViewModel : ReactiveObject
     public bool HasMembers  => Kind is EntityKind.Alliance or EntityKind.NpcCorp or EntityKind.Faction;
     public bool HasHistory  => Kind is EntityKind.PlayerCorp or EntityKind.Pilot;
     public bool HasStations => Kind is EntityKind.NpcCorp;
+
+    /// <summary>
+    /// Orders are an NPC corporation's, but the Player Entities viewer can land on one — every
+    /// capsuleer starts in an NPC corp and plenty stay — so this is settled per entity when it
+    /// loads rather than by Kind alone.
+    /// </summary>
+    private bool _hasOrders;
+    public bool HasOrders { get => _hasOrders; private set => this.RaiseAndSetIfChanged(ref _hasOrders, value); }
     public bool HasLpOffers => Kind is EntityKind.NpcCorp;
     public bool HasWarfare  => Kind is EntityKind.Faction;
 
@@ -209,6 +218,9 @@ public class EntityTabViewModel : ReactiveObject
     private string _stationsStatus = "";
     public string StationsStatus { get => _stationsStatus; private set => this.RaiseAndSetIfChanged(ref _stationsStatus, value); }
 
+    private string _ordersStatus = "";
+    public string OrdersStatus { get => _ordersStatus; private set => this.RaiseAndSetIfChanged(ref _ordersStatus, value); }
+
     private string _lpOffersStatus = "";
     public string LpOffersStatus { get => _lpOffersStatus; private set => this.RaiseAndSetIfChanged(ref _lpOffersStatus, value); }
 
@@ -235,6 +247,49 @@ public class EntityTabViewModel : ReactiveObject
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) { setStatus($"Error: {ex.Message}"); }
+    }
+
+    /// <summary>
+    /// The NPC corporation's own market orders. Unlike the other panes this one decides
+    /// whether it applies at all — a player corporation has none — and it reports how much of
+    /// the corporation's territory the local market data actually covers, because an empty
+    /// list otherwise reads as "this corp sells nothing" when it means "you have not pulled
+    /// that region".
+    /// </summary>
+    private async Task LoadOrdersAsync(long id, CancellationToken ct)
+    {
+        try
+        {
+            if (!await _service.IsNpcCorpAsync(id, ct))
+            {
+                await Dispatcher.UIThread.InvokeAsync(() => { Orders.Clear(); HasOrders = false; });
+                return;
+            }
+
+            var rows = await _service.NpcCorpOrdersAsync(id, ct);
+            var (covered, total) = await _service.NpcCorpOrderCoverageAsync(id, ct);
+            if (ct.IsCancellationRequested) return;
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                Orders.Clear();
+                foreach (var r in rows) Orders.Add(r);
+                HasOrders = true;
+
+                var buys  = rows.Count(r => r.IsBuyOrder);
+                var sells = rows.Count - buys;
+                var scope = total == 0    ? ""
+                          : covered == 0  ? " — no market data pulled for any region this corp holds stations in"
+                          : covered < total ? $" — market data covers {covered} of its {total} regions"
+                          : "";
+
+                OrdersStatus = rows.Count == 0
+                    ? $"No orders found{(scope.Length > 0 ? scope : " in the market data pulled so far")}."
+                    : $"{sells:N0} sell, {buys:N0} buy{scope}";
+            });
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { OrdersStatus = $"Error: {ex.Message}"; }
     }
 
     private string _membersStatus = "";
@@ -301,6 +356,7 @@ public class EntityTabViewModel : ReactiveObject
             if (HasHistory)  _ = LoadHistoryAsync(id, ct);
             if (HasStations) _ = LoadListAsync(Stations, () => _service.NpcCorpStationsAsync(id, ct),
                                                v => StationsStatus = v, "station");
+            if (Kind is EntityKind.NpcCorp or EntityKind.PlayerCorp) _ = LoadOrdersAsync(id, ct);
             if (HasLpOffers) _ = LoadListAsync(LpOffers, () => _service.NpcCorpLpOffersAsync(id, ct),
                                                v => LpOffersStatus = v, "LP offer");
             if (HasWarfare)  _ = LoadListAsync(Warfare, () => _service.FactionWarfareAsync(id, ct),
@@ -332,7 +388,18 @@ public class EntityTabViewModel : ReactiveObject
                 // The local name cache can have no row for an entity reached by id alone, in
                 // which case the header is showing "Unknown 90000001". ESI just told us what it
                 // is actually called.
-                if (!string.IsNullOrWhiteSpace(esiName) && Name != esiName) Name = esiName!;
+                if (!string.IsNullOrWhiteSpace(esiName) && Name != esiName)
+                {
+                    Name = esiName!;
+
+                    // The picker was filled from the same unknown name, so it has to follow —
+                    // otherwise the box still reads "Unknown 3004245" beside a header that now
+                    // has the real one.
+                    _selectedMatch = new EntityMatch(id, esiName!, "");
+                    this.RaisePropertyChanged(nameof(SelectedMatch));
+                    _searchText = esiName!;
+                    this.RaisePropertyChanged(nameof(SearchText));
+                }
 
                 foreach (var f in facts)
                     if (!string.IsNullOrWhiteSpace(f.Value)) Facts.Add(f);

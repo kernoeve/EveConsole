@@ -44,6 +44,17 @@ public record EntityMemberRow(long Id, string Name, string Subtitle = "",
 public record EntityHistoryRow(string Alliance, string From, string Until, string Duration, bool Closed,
                                long LinkId = 0);
 public record EntityStationRow(string Name, string System, string Region, double Security, int Agents);
+
+/// <summary>One market order an NPC corporation is running out of one of its own stations.</summary>
+public record NpcOrderRow(bool IsBuyOrder, int TypeId, string Item, double Price,
+                         int VolumeRemain, int VolumeTotal,
+                         string Station, string System, string Region, int Duration)
+{
+    public string Side       => IsBuyOrder ? "Buy" : "Sell";
+    public string SideColor  => IsBuyOrder ? "#5aa469" : "#c8a84b";
+    public string PriceText  => Price.ToString("N2");
+    public string VolumeText => VolumeRemain.ToString("N0");
+}
 public record LpOfferRow(string Item, int TypeId, int Quantity, string LpCost, string IskCost, string Required);
 public record FactionWarfareRow(string System, string Region, string Contested, int Points, int Threshold, string Role);
 
@@ -499,6 +510,82 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             WHERE s."CorporationId" = @id
             ORDER BY r."Name", ss."Name", s."Name"
             """, new SqliteParameter("@id", corpId)).ToListAsync(ct);
+    }
+
+    /// <summary>
+    /// The market orders an NPC corporation is running out of its own stations — how the game
+    /// sells BPOs and skill books, and buys tags and other rat loot.
+    ///
+    /// Raw orders carry no issuer, so ownership is inferred from two facts together: a player
+    /// order cannot be listed for longer than 90 days, and an order sitting in an NPC station
+    /// belongs to whoever owns that station. Neither alone is enough — a player order in an NPC
+    /// station is ordinary, and the duration test on its own says nothing about who placed it.
+    ///
+    /// Only what has actually been pulled is shown. Seeing every NPC order would mean pulling
+    /// market data for every NPC region, which is the user's call, so the caller reports the
+    /// region coverage alongside the rows rather than implying the list is complete.
+    /// </summary>
+    public async Task<List<NpcOrderRow>> NpcCorpOrdersAsync(long corpId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        return await db.Database.SqlQueryRaw<NpcOrderRow>("""
+            SELECT o."IsBuyOrder", o."TypeId",
+                   COALESCE(t."Name", 'Type ' || o."TypeId") AS "Item",
+                   o."Price", o."VolumeRemain", o."VolumeTotal",
+                   s."Name"                  AS "Station",
+                   COALESCE(ss."Name",'')    AS "System",
+                   COALESCE(r."Name",'')     AS "Region",
+                   o."Duration"
+            FROM (SELECT DISTINCT "OrderId", "TypeId", "IsBuyOrder", "Price", "VolumeRemain",
+                         "VolumeTotal", "LocationId", "Duration"
+                  FROM "MarketRawOrders" WHERE "Duration" > 90) o
+            JOIN "SdeStations" s ON s."StationId" = o."LocationId"
+            LEFT JOIN "SdeTypes"        t  ON t."TypeId"        = o."TypeId"
+            LEFT JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = s."SolarSystemId"
+            LEFT JOIN "SdeRegions"      r  ON r."RegionId"       = s."RegionId"
+            WHERE s."CorporationId" = @id
+            ORDER BY o."IsBuyOrder", t."Name", o."Price"
+            """, new SqliteParameter("@id", corpId)).ToListAsync(ct);
+    }
+
+    /// <summary>
+    /// Which regions the order list above could have drawn on — the market configs actually
+    /// pulled, versus the regions this corporation holds stations in. Without this the tab
+    /// cannot tell "this corp runs no orders" apart from "you have not pulled that market".
+    /// </summary>
+    public async Task<(int Covered, int Total)> NpcCorpOrderCoverageAsync(
+        long corpId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var r = (await db.Database.SqlQueryRaw<CoverageRaw>("""
+            SELECT (SELECT COUNT(DISTINCT s."RegionId") FROM "SdeStations" s
+                    WHERE s."CorporationId" = @id) AS "Total",
+                   (SELECT COUNT(DISTINCT s."RegionId") FROM "SdeStations" s
+                    WHERE s."CorporationId" = @id
+                      AND EXISTS (SELECT 1 FROM "MarketRawOrders" o
+                                  WHERE o."LocationId" = s."StationId")) AS "Covered"
+            """, new SqliteParameter("@id", corpId)).ToListAsync(ct)).FirstOrDefault();
+        return (r?.Covered ?? 0, r?.Total ?? 0);
+    }
+
+    private sealed class CoverageRaw
+    {
+        public int Covered { get; set; }
+        public int Total   { get; set; }
+    }
+
+    /// <summary>
+    /// Whether a corporation id is an NPC one. The Player Entities viewer can land on an NPC
+    /// corp — every capsuleer starts in one and plenty stay — and it should show that corp's
+    /// orders when it does.
+    /// </summary>
+    public async Task<bool> IsNpcCorpAsync(long corpId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var n = (await db.Database.SqlQueryRaw<int>(
+            """SELECT COUNT(*) AS "Value" FROM "SdeNpcCorporations" WHERE "CorporationId" = @id""",
+            new SqliteParameter("@id", corpId)).ToListAsync(ct)).FirstOrDefault();
+        return n > 0;
     }
 
     /// <summary>
