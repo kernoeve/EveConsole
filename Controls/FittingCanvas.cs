@@ -148,10 +148,16 @@ public class FittingCanvas : Control
     /// increasing clockwise because Y grows downward. Twelve o'clock is therefore -90°.</summary>
     private static double Clock(double hour) => hour * 30 - 90;
 
-    /// <summary>Angle between neighbouring slots in a band. Fixed rather than a sweep divided by
-    /// the count: a band spread to fill a fixed arc puts its slots on top of each other when there
-    /// are many and strands them far apart when there are few.</summary>
-    private const double SlotStepDeg = 21;
+    /// <summary>
+    /// Preferred gap between neighbouring slots. A band uses this until it would outgrow the arc
+    /// it is allotted, then tightens to fit.
+    ///
+    /// <para>⚠️ Both halves matter. A fixed step alone made a Fortizar's six high slots span 105°,
+    /// which ran them into the mid band; an arc divided by the count alone strands three slots
+    /// across a wide sweep and packs eight into the same space. Preferred-but-clamped keeps small
+    /// bands compact and large ones inside their own territory.</para>
+    /// </summary>
+    private const double SlotStepDeg = 17;
 
     /// <summary>
     /// Places the slots in the arrangement the game uses — high at the top, mid on the right, low
@@ -181,17 +187,22 @@ public class FittingCanvas : Control
 
         if (_radius <= SlotSize) return;
 
-        void Band(FittingBand band, double centreHour)
+        void Band(FittingBand band, double centreHour, double halfWidthDeg)
         {
             var inBand = slots.Where(s => s.Band == band).OrderBy(s => s.Index).ToList();
             if (inBand.Count == 0) return;
 
+            // Tighten only when the preferred step would push the band past its own arc.
+            var step = inBand.Count > 1
+                ? Math.Min(SlotStepDeg, halfWidthDeg * 2 / (inBand.Count - 1))
+                : 0;
+
             // Centred on the clock position: with four slots the two middle ones straddle it.
-            var start = Clock(centreHour) - SlotStepDeg * (inBand.Count - 1) / 2.0;
+            var start = Clock(centreHour) - step * (inBand.Count - 1) / 2.0;
 
             for (var i = 0; i < inBand.Count; i++)
             {
-                var rad = (start + SlotStepDeg * i) * Math.PI / 180;
+                var rad = (start + step * i) * Math.PI / 180;
                 var x   = cx + Math.Cos(rad) * _radius;
                 var y   = cy + Math.Sin(rad) * _radius;
 
@@ -200,12 +211,14 @@ public class FittingCanvas : Control
             }
         }
 
-        // Clock positions taken from the in-game window: high 10-1, mid 2-3, low 5-6, rigs 8-9.
-        Band(FittingBand.High,      12);
-        Band(FittingBand.Mid,        2.5);
-        Band(FittingBand.Low,        5.5);
-        Band(FittingBand.Rig,        8.5);
-        Band(FittingBand.Subsystem, 10.5);
+        // Clock positions and arc widths taken from the in-game window: high 10-2, mid 2-3:30,
+        // low 5-6:30, rigs 8-9. The half-widths are what keep neighbouring bands apart — they
+        // are chosen so no two bands' arcs can meet however many slots a hull has.
+        Band(FittingBand.High,      12,   45);
+        Band(FittingBand.Mid,        2.75, 22);
+        Band(FittingBand.Low,        5.75, 22);
+        Band(FittingBand.Rig,        8.5,  16);
+        Band(FittingBand.Subsystem, 10.5,  16);
 
         // Services are a straight row below the circle: there can be seven, and an arc that long
         // reads as another module band rather than as something different in kind.
