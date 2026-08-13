@@ -66,11 +66,15 @@ public class StructureAssetRow
 /// <summary>An industry job run at the selected structure.</summary>
 public class StructureJobRow
 {
-    public string Activity { get; init; } = "";
-    public string Product  { get; init; } = "";
-    public int    Runs     { get; init; }
-    public string Status   { get; init; } = "";
-    public string EndDate  { get; init; } = "";
+    public string   Activity { get; init; } = "";
+    public string   Product  { get; init; } = "";
+    public int      Runs     { get; init; }
+    public string   Status   { get; init; } = "";
+    public string   EndDate  { get; init; } = "";
+
+    /// <summary>The end date as a value, for filtering. EndDate above is already formatted for
+    /// display and cannot be compared.</summary>
+    public DateTime EndsAt   { get; init; }
 }
 
 public class StructureBrowserViewModel : ReactiveObject
@@ -144,9 +148,68 @@ public class StructureBrowserViewModel : ReactiveObject
 
     public ObservableCollection<FittingRow>        Fitting { get; } = [];
     public ObservableCollection<StructureAssetRow> Assets  { get; } = [];
-    public ObservableCollection<StructureAssetRow> Cargo   { get; } = [];
-    public ObservableCollection<StructureAssetRow> Fuel    { get; } = [];
-    public ObservableCollection<StructureJobRow>   Jobs    { get; } = [];
+    public ObservableCollection<StructureAssetRow> Cargo    { get; } = [];
+    public ObservableCollection<StructureAssetRow> Fuel     { get; } = [];
+    public ObservableCollection<StructureAssetRow> Fighters { get; } = [];
+    public ObservableCollection<StructureJobRow>   Jobs     { get; } = [];
+
+    // ── Industry job filters ─────────────────────────────────────────────────
+    // Held unfiltered so changing a filter re-filters in memory rather than re-querying.
+    private List<StructureJobRow> _allJobs = [];
+
+    /// <summary>Defaults to the last 90 days: a structure that has been running a while holds
+    /// thousands of delivered jobs, and the recent ones are what anyone is looking for.</summary>
+    private string _jobFrom = DateTime.Today.AddDays(-90).ToString("yyyy-MM-dd");
+    public string JobFrom
+    {
+        get => _jobFrom;
+        set { this.RaiseAndSetIfChanged(ref _jobFrom, value); ApplyJobFilters(); }
+    }
+
+    private string _jobThru = "";
+    public string JobThru
+    {
+        get => _jobThru;
+        set { this.RaiseAndSetIfChanged(ref _jobThru, value); ApplyJobFilters(); }
+    }
+
+    public ObservableCollection<string> JobStatuses { get; } = ["All"];
+
+    private string _jobStatus = "All";
+    public string JobStatus
+    {
+        get => _jobStatus;
+        set { this.RaiseAndSetIfChanged(ref _jobStatus, value); ApplyJobFilters(); }
+    }
+
+    private string _jobCountText = "";
+    public string JobCountText { get => _jobCountText; private set => this.RaiseAndSetIfChanged(ref _jobCountText, value); }
+
+    /// <summary>
+    /// Narrows the held jobs onto the grid. Dates are parsed leniently — a half-typed date leaves
+    /// that bound open rather than emptying the grid while the user is still typing.
+    /// </summary>
+    private void ApplyJobFilters()
+    {
+        Jobs.Clear();
+
+        DateTime? from = DateTime.TryParse(JobFrom, out var f) ? f.Date : null;
+        DateTime? thru = DateTime.TryParse(JobThru, out var t) ? t.Date.AddDays(1) : null;
+
+        foreach (var j in _allJobs)
+        {
+            if (from is { } lo && j.EndsAt < lo) continue;
+            if (thru is { } hi && j.EndsAt >= hi) continue;
+            if (JobStatus != "All" && !string.Equals(j.Status, JobStatus, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            Jobs.Add(j);
+        }
+
+        JobCountText = Jobs.Count == _allJobs.Count
+            ? $"{Jobs.Count:N0} job(s)"
+            : $"{Jobs.Count:N0} of {_allJobs.Count:N0} job(s)";
+    }
 
     private Avalonia.Media.Imaging.Bitmap? _typeRender;
     /// <summary>Render of the structure's hull, refreshed whenever the selected type changes.</summary>
@@ -307,7 +370,9 @@ public class StructureBrowserViewModel : ReactiveObject
         Assets.Clear();
         Cargo.Clear();
         Fuel.Clear();
+        Fighters.Clear();
         Jobs.Clear();
+        _allJobs = [];
 
         if (row is null) { DetailStatus = ""; Provenance = ""; TypeRender = null; return; }
 
@@ -440,11 +505,20 @@ public class StructureBrowserViewModel : ReactiveObject
                     Owner     = OwnerName(a.OwnerId, a.OwnerType),
                 };
 
-                // Cargo and fuel get their own tabs: a fuel bay is a running cost and a ship's
-                // cargo is in transit, neither of which belongs in a list of what is stored.
-                if (a.LocationFlag == "StructureFuel") Fuel.Add(vm);
-                else if (a.LocationFlag == "Cargo")    Cargo.Add(vm);
-                else                                   Assets.Add(vm);
+                // ⚠️ The office itself is skipped, not excluded from the query. It is a container
+                // other corps rent and store things in, so it has to stay in the lookup above for
+                // their items to name it — but listing the empty folder as though it were stock
+                // is noise.
+                if (a.LocationFlag == "OfficeFolder") continue;
+
+                // Cargo, fuel and fighters get their own tabs: a fuel bay is a running cost, a
+                // ship's cargo is in transit and fighters are a defensive fit. None of them is
+                // "what is stored here", and each drowns that list.
+                if (a.LocationFlag == "StructureFuel")            Fuel.Add(vm);
+                else if (a.LocationFlag == "Cargo")               Cargo.Add(vm);
+                else if (a.LocationFlag == "FighterBay"
+                      || a.LocationFlag.StartsWith("FighterTube")) Fighters.Add(vm);
+                else                                              Assets.Add(vm);
             }
 
             // ── Industry jobs run here ───────────────────────────────────────
@@ -462,22 +536,32 @@ public class StructureBrowserViewModel : ReactiveObject
                 .Take(500)
                 .ToList();
 
-            foreach (var j in jobs)
-                Jobs.Add(new StructureJobRow
-                {
-                    Activity = ActivityName(j.ActivityId),
-                    // Nullable: research and copying jobs produce no item type.
-                    Product  = j.ProductTypeId is { } pid
-                                 ? typeNames.GetValueOrDefault(pid, $"Type {pid}")
-                                 : "—",
-                    Runs     = j.Runs,
-                    Status   = j.Status,
-                    EndDate  = j.EndDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),
-                });
+            _allJobs = jobs.Select(j => new StructureJobRow
+            {
+                Activity = ActivityName(j.ActivityId),
+                // Nullable: research and copying jobs produce no item type.
+                Product  = j.ProductTypeId is { } pid
+                             ? typeNames.GetValueOrDefault(pid, $"Type {pid}")
+                             : "—",
+                Runs     = j.Runs,
+                Status   = j.Status,
+                EndDate  = j.EndDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),
+                EndsAt   = j.EndDate.ToLocalTime().DateTime,
+            }).ToList();
+
+            // Statuses actually present, so the dropdown never offers one that matches nothing.
+            var statuses = _allJobs.Select(j => j.Status).Distinct()
+                                   .OrderBy(x => x).ToList();
+            JobStatuses.Clear();
+            JobStatuses.Add("All");
+            foreach (var st in statuses) JobStatuses.Add(st);
+            if (!JobStatuses.Contains(JobStatus)) JobStatus = "All";
+
+            ApplyJobFilters();
 
             DetailStatus =
                 $"{Fitting.Count} fitted · {Assets.Count:N0} stored · {Cargo.Count:N0} cargo · " +
-                $"{Fuel.Count:N0} fuel · {Jobs.Count:N0} job(s)";
+                $"{Fuel.Count:N0} fuel · {Fighters.Count:N0} fighters · {_allJobs.Count:N0} job(s)";
         }
         catch (Exception ex) { DetailStatus = $"Detail load failed: {ex.Message}"; }
     }

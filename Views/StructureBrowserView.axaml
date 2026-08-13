@@ -256,11 +256,11 @@
                         IsReadOnly="True" RowHeight="22"
                         Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
+                <!-- No owner column: it is always the corp that owns the structure. -->
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="Item"      Binding="{Binding TypeName}"  Width="*" />
-                  <DataGridTextColumn Header="Container" Binding="{Binding Container}" Width="200" />
-                  <DataGridTextColumn Header="Qty"       Binding="{Binding Quantity}"  Width="90" />
-                  <DataGridTextColumn Header="Owner"     Binding="{Binding Owner}"     Width="130" />
+                  <DataGridTextColumn Header="Container" Binding="{Binding Container}" Width="220" />
+                  <DataGridTextColumn Header="Qty"       Binding="{Binding Quantity}"  Width="110" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
@@ -272,27 +272,69 @@
                         Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Item"  Binding="{Binding TypeName}" Width="*" />
-                  <DataGridTextColumn Header="Qty"   Binding="{Binding Quantity}" Width="120" />
-                  <DataGridTextColumn Header="Owner" Binding="{Binding Owner}"    Width="130" />
+                  <DataGridTextColumn Header="Item" Binding="{Binding TypeName}" Width="*" />
+                  <DataGridTextColumn Header="Qty"  Binding="{Binding Quantity}" Width="140" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </TabItem>
+
+            <!-- ── Fighters ────────────────────────────────────────── -->
+            <TabItem Header="Fighters">
+              <DataGrid ItemsSource="{Binding Fighters}" AutoGenerateColumns="False"
+                        IsReadOnly="True" RowHeight="22"
+                        Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
+                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Fighter" Binding="{Binding TypeName}" Width="*" />
+                  <DataGridTextColumn Header="Where"   Binding="{Binding Location}" Width="180" />
+                  <DataGridTextColumn Header="Qty"     Binding="{Binding Quantity}" Width="110" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
 
             <!-- ── Industry jobs ───────────────────────────────────── -->
             <TabItem Header="Industry Jobs">
-              <DataGrid ItemsSource="{Binding Jobs}" AutoGenerateColumns="False"
-                        IsReadOnly="True" FontSize="11" RowHeight="22"
-                        Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
-                        GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
-                <DataGrid.Columns>
-                  <DataGridTextColumn Header="Activity" Binding="{Binding Activity}" Width="130" />
-                  <DataGridTextColumn Header="Product"  Binding="{Binding Product}"  Width="*" />
-                  <DataGridTextColumn Header="Runs"     Binding="{Binding Runs}"     Width="70" />
-                  <DataGridTextColumn Header="Status"   Binding="{Binding Status}"   Width="100" />
-                  <DataGridTextColumn Header="Ends"     Binding="{Binding EndDate}"  Width="140" />
-                </DataGrid.Columns>
-              </DataGrid>
+              <Grid RowDefinitions="Auto,*">
+
+                <!-- Filters. Defaulted to the last 90 days: a structure running a while holds
+                     thousands of delivered jobs and the recent ones are what anyone wants. -->
+                <Border Grid.Row="0" Background="#10101a" Padding="8 6" Margin="0 0 0 4"
+                        BorderBrush="#1e1e2a" BorderThickness="0 0 0 1">
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <StackPanel>
+                      <TextBlock Classes="flabel" Text="ENDS FROM" />
+                      <TextBox Text="{Binding JobFrom}" Width="110" FontSize="11"
+                               Watermark="yyyy-mm-dd" />
+                    </StackPanel>
+                    <StackPanel>
+                      <TextBlock Classes="flabel" Text="ENDS THRU" />
+                      <TextBox Text="{Binding JobThru}" Width="110" FontSize="11"
+                               Watermark="any" />
+                    </StackPanel>
+                    <StackPanel>
+                      <TextBlock Classes="flabel" Text="STATUS" />
+                      <ComboBox ItemsSource="{Binding JobStatuses}"
+                                SelectedItem="{Binding JobStatus}"
+                                Width="140" FontSize="11" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding JobCountText}" FontSize="10.5" Foreground="#7a8896"
+                               VerticalAlignment="Bottom" Margin="4 0 0 5" />
+                  </StackPanel>
+                </Border>
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding Jobs}" AutoGenerateColumns="False"
+                          IsReadOnly="True" RowHeight="22"
+                          Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
+                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Activity" Binding="{Binding Activity}" Width="130" />
+                    <DataGridTextColumn Header="Product"  Binding="{Binding Product}"  Width="*" />
+                    <DataGridTextColumn Header="Runs"     Binding="{Binding Runs}"     Width="70" />
+                    <DataGridTextColumn Header="Status"   Binding="{Binding Status}"   Width="100" />
+                    <DataGridTextColumn Header="Ends"     Binding="{Binding EndDate}"  Width="140" />
+                  </DataGrid.Columns>
+                </DataGrid>
+              </Grid>
             </TabItem>
 
           </TabControl>
