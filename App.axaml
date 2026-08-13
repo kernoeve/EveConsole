@@ -5,6 +5,11 @@
 
   <Application.Resources>
     <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <!-- Shared so the Killmail Browser and the entity viewer render the same row. -->
+        <ResourceInclude Source="avares://EveConsole/Views/KillmailRowTemplate.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+
       <!-- Eve amber replaces Fluent blue everywhere: tab underlines, focus rings,
            checkbox fills, progress bar fill, selection highlights -->
       <Color x:Key="SystemAccentColor">#c8a84b</Color>

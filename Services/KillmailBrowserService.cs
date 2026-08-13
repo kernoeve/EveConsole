@@ -96,6 +96,7 @@ public class KillmailBrowserService(
         DateOnly? fromDate = null, DateOnly? thruDate = null,
         string? characterFilter = null, string? corporationFilter = null,
         string? shipFilter = null, string? systemFilter = null,
+        EntityKind? entityKind = null, long entityId = 0,
         CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();
@@ -141,6 +142,21 @@ public class KillmailBrowserService(
         {
             var idsStr = string.Join(",", corporationIds);
             conditions.Add($"""(d."VictimCorpId" IN ({idsStr}) OR EXISTS (SELECT 1 FROM "KillMailAttackers" a WHERE a."KillMailId" = d."KillMailId" AND a."FinalBlow" = 1 AND a."CorporationId" IN ({idsStr})))""");
+        }
+
+        // Entity viewer path. The id is already known, so no name resolution is needed —
+        // and unlike the browser's own filters this counts every attacker rather than only
+        // the final blow, because "killmails this pilot was on" is the question being asked
+        // there, not "kills credited to them".
+        if (entityKind is { } ek && entityId > 0)
+        {
+            var (victimCol, attackerCol) = ek switch
+            {
+                EntityKind.Pilot      => ("VictimCharId",     "CharacterId"),
+                EntityKind.PlayerCorp => ("VictimCorpId",     "CorporationId"),
+                _                     => ("VictimAllianceId", "AllianceId"),
+            };
+            conditions.Add($"""(d."{victimCol}" = {entityId} OR EXISTS (SELECT 1 FROM "KillMailAttackers" a WHERE a."KillMailId" = d."KillMailId" AND a."{attackerCol}" = {entityId}))""");
         }
 
         var whereSql = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";

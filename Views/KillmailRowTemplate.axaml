@@ -1,0 +1,111 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:vm="clr-namespace:EveConsole.ViewModels">
+
+  <!-- The killmail list row. Lives here rather than inside the Killmail Browser so
+       the entity viewer renders the identical thing — same layout, ship render,
+       corporation logos and security colouring — instead of a second copy that
+       drifts the first time either is touched. -->
+          <DataTemplate x:Key="KillmailRowTemplate" DataType="vm:KillmailListRowVm">
+            <Border BorderBrush="#1a1a26" BorderThickness="0 0 0 1">
+              <Grid ColumnDefinitions="70,50,*,160,160" Margin="4 4 4 4">
+
+                  <!-- Date / Time / ISK -->
+                  <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
+                    <TextBlock Text="{Binding DateText}"
+                               FontSize="10" Foreground="#888899" />
+                    <TextBlock Text="{Binding TimeText}"
+                               FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding TotalIskText}"
+                               FontSize="10" Foreground="#c8a84b"
+                               IsVisible="{Binding TotalIskText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                  </StackPanel>
+
+                  <!-- Ship render -->
+                  <Image Grid.Column="1"
+                         Source="{Binding ShipRender}"
+                         Width="48" Height="48"
+                         Stretch="Uniform"
+                         VerticalAlignment="Center"
+                         ToolTip.Tip="{Binding ShipName}"
+                         Margin="0 0 6 0" />
+
+                  <!-- System / Constellation / Region -->
+                  <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
+                    <StackPanel Orientation="Horizontal" Spacing="3">
+                      <TextBlock Text="{Binding SecurityText}"
+                                 FontSize="10" FontWeight="SemiBold"
+                                 Foreground="{Binding SecurityColor}" />
+                      <!-- The system name opens that system on the Universe map. -->
+                      <Button Command="{Binding $parent[UserControl].DataContext.OpenSystemMapCommand}"
+                              CommandParameter="{Binding SystemId}"
+                              Background="Transparent" BorderThickness="0" Padding="0"
+                              HorizontalContentAlignment="Left" Cursor="Hand"
+                              ToolTip.Tip="Open on the Universe map">
+                        <TextBlock Text="{Binding SystemName}"
+                                   FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                   TextDecorations="Underline"
+                                   TextTrimming="CharacterEllipsis" />
+                      </Button>
+                    </StackPanel>
+                    <TextBlock Text="{Binding ConstellationName}"
+                               FontSize="9" Foreground="#888899"
+                               TextTrimming="CharacterEllipsis"
+                               IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <TextBlock Text="{Binding RegionName}"
+                               FontSize="9" Foreground="#666677"
+                               TextTrimming="CharacterEllipsis"
+                               IsVisible="{Binding RegionName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                  </StackPanel>
+
+                  <!-- Victim: logo + name/corp/alliance -->
+                  <Grid Grid.Column="3" ColumnDefinitions="32,*" Margin="0 0 4 0">
+                    <Image Grid.Column="0"
+                           Source="{Binding VictimLogo}"
+                           Width="32" Height="32"
+                           Stretch="Uniform"
+                           VerticalAlignment="Center"
+                           ToolTip.Tip="{Binding VictimAlliance}"
+                           Margin="0 0 4 0" />
+                    <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding VictimName}"
+                                 FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding VictimCorp}"
+                                 FontSize="9" Foreground="#888899"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding VictimAlliance}"
+                                 FontSize="9" Foreground="#666677"
+                                 TextTrimming="CharacterEllipsis"
+                                 IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+                  </Grid>
+
+                  <!-- Final blow: logo + name/corp/alliance -->
+                  <Grid Grid.Column="4" ColumnDefinitions="32,*">
+                    <Image Grid.Column="0"
+                           Source="{Binding FbLogo}"
+                           Width="32" Height="32"
+                           Stretch="Uniform"
+                           VerticalAlignment="Center"
+                           ToolTip.Tip="{Binding FbAlliance}"
+                           Margin="0 0 4 0" />
+                    <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding FbName}"
+                                 FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding FbCorp}"
+                                 FontSize="9" Foreground="#888899"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding FbAlliance}"
+                                 FontSize="9" Foreground="#666677"
+                                 TextTrimming="CharacterEllipsis"
+                                 IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+                  </Grid>
+
+                </Grid>
+            </Border>
+          </DataTemplate>
+
+</ResourceDictionary>

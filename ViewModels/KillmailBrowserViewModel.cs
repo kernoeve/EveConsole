@@ -497,7 +497,7 @@ public class KillmailBrowserViewModel : ReactiveObject
                 _offset, KillmailBrowserService.PageSize,
                 _filterFrom is { } f ? DateOnly.FromDateTime(f) : null,
                 _filterThru is { } t ? DateOnly.FromDateTime(t) : null,
-                _filterChar, _filterCorp, _filterShip, _filterSystem, ct);
+                _filterChar, _filterCorp, _filterShip, _filterSystem, ct: ct);
 
             var rows = page.Rows.Select(r => new KillmailListRowVm(r)).ToList();
             KillmailRows.Clear();
@@ -527,7 +527,7 @@ public class KillmailBrowserViewModel : ReactiveObject
                 _offset, KillmailBrowserService.PageSize,
                 _filterFrom is { } f ? DateOnly.FromDateTime(f) : null,
                 _filterThru is { } t ? DateOnly.FromDateTime(t) : null,
-                _filterChar, _filterCorp, _filterShip, _filterSystem, ct);
+                _filterChar, _filterCorp, _filterShip, _filterSystem, ct: ct);
 
             var newRows = page.Rows.Select(r => new KillmailListRowVm(r)).ToList();
             foreach (var r in newRows) KillmailRows.Add(r);

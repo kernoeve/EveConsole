@@ -16,11 +16,11 @@ public class PlayerEntitiesViewModel : ReactiveObject
     public EntityTabViewModel Corps     { get; }
     public EntityTabViewModel Alliances { get; }
 
-    public PlayerEntitiesViewModel(EntityBrowserService service)
+    public PlayerEntitiesViewModel(EntityBrowserService service, KillmailBrowserService killmails)
     {
-        Pilots    = new EntityTabViewModel(service, EntityKind.Pilot);
-        Corps     = new EntityTabViewModel(service, EntityKind.PlayerCorp);
-        Alliances = new EntityTabViewModel(service, EntityKind.Alliance);
+        Pilots    = new EntityTabViewModel(service, killmails, EntityKind.Pilot);
+        Corps     = new EntityTabViewModel(service, killmails, EntityKind.PlayerCorp);
+        Alliances = new EntityTabViewModel(service, killmails, EntityKind.Alliance);
     }
 
     private int _selectedTabIndex;

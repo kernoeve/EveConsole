@@ -1,4 +1,6 @@
+using EveConsole.Api;
 using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +28,9 @@ public record EntityDetail(
 public record EntityKillRow(long KillMailId, string When, string System, string Ship,
                             string Counterparty, string Role);
 
+public record EntityMemberRow(long Id, string Name, string Subtitle);
+public record EntityHistoryRow(string Alliance, string From, string Until, string Duration, bool Closed);
+
 public record IntelSightingRow(string When, string System, string Channel, string Ship, string Reporter);
 
 /// <summary>
@@ -39,7 +44,7 @@ public record IntelSightingRow(string When, string System, string Channel, strin
 /// Raw SQL rather than LINQ: the detail rows draw counts from several tables at once, which
 /// EF turns into either a cartesian join or a query per row.
 /// </summary>
-public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory)
+public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, EsiClient? esi = null)
 {
     /// <summary>Dropdown candidates. Deliberately small — this is a picker, not a report.</summary>
     public const int MaxMatches = 300;
@@ -142,6 +147,286 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory)
         return (await db.Database.SqlQueryRaw<int>(sql,
             new SqliteParameter("@cat", CategoryOf(kind)),
             new SqliteParameter("@q",   $"%{q}%")).ToListAsync(ct)).FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Falls back to ESI when the local cache does not know the name. UniverseNames only
+    /// holds entities the app has already met — a pilot who has never appeared in one of
+    /// your killmails, contracts or chat logs simply is not there — so a name search that
+    /// only reads it can never find anyone new.
+    ///
+    /// ESI's search is authenticated and needs a character token, so this is best-effort:
+    /// with no characters signed in, or the scope withheld, the local result stands.
+    /// Anything found is written back to the cache, so the next search finds it locally.
+    /// </summary>
+    public async Task<List<EntityMatch>> SearchWithEsiAsync(EntityKind kind, string text,
+                                                            CancellationToken ct = default)
+    {
+        var local = await SearchAsync(kind, text, ct);
+
+        var q = (text ?? "").Trim();
+        if (esi is null || q.Length < MinSearch) return local;
+        if (kind is not (EntityKind.Pilot or EntityKind.PlayerCorp or EntityKind.Alliance)) return local;
+        // A full local page is already more than the dropdown shows; going to ESI as well
+        // would add latency to a search that is not short of answers.
+        if (local.Count >= MaxMatches) return local;
+
+        try
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+            var searchAs = await db.Characters.AsNoTracking()
+                .Select(c => (long)c.Id).FirstOrDefaultAsync(ct);
+            if (searchAs == 0) return local;
+
+            var ids = kind switch
+            {
+                EntityKind.Pilot      => await esi.SearchCharacterIdsAsync(searchAs, q, ct),
+                EntityKind.PlayerCorp => await esi.SearchCorporationIdsAsync(searchAs, q, ct),
+                _                     => await esi.SearchAllianceIdsAsync(searchAs, q, ct),
+            };
+
+            var known = local.Select(m => m.Id).ToHashSet();
+            var fresh = ids.Select(i => (long)i).Where(i => !known.Contains(i)).Take(MaxMatches).ToList();
+            if (fresh.Count == 0) return local;
+
+            var names = await esi.GetNamesAsync(fresh, ct);
+            if (names.Count == 0) return local;
+
+            var category = CategoryOf(kind);
+            var now      = DateTimeOffset.UtcNow.ToString("O");
+            foreach (var n in names)
+            {
+                // INSERT OR IGNORE: another lookup may have cached the same id already,
+                // and the name is not worth overwriting a fresher one for.
+                await db.Database.ExecuteSqlRawAsync("""
+                    INSERT OR IGNORE INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
+                    VALUES (@id, @name, @cat, @at)
+                    """,
+                    [new SqliteParameter("@id", n.Id), new SqliteParameter("@name", n.Name),
+                     new SqliteParameter("@cat", category), new SqliteParameter("@at", now)], ct);
+            }
+
+            return local
+                .Concat(names.Select(n => new EntityMatch(n.Id, n.Name, "via ESI")))
+                .OrderBy(m => m.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                .ThenBy(m => m.Name.Length)
+                .ThenBy(m => m.Name)
+                .Take(MaxMatches)
+                .ToList();
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { return local; /* ESI is an enhancement here, not the source of truth */ }
+    }
+
+    /// <summary>
+    /// Public ESI detail for a player entity, fetched when it is opened. Adds the things
+    /// no local table has — member counts, descriptions, founding dates — and, for a
+    /// character, the authoritative security status.
+    /// </summary>
+    public async Task<(List<EntityFact> Facts, string Description)> EnrichAsync(
+        EntityKind kind, long id, CancellationToken ct = default)
+    {
+        var facts = new List<EntityFact>();
+        if (esi is null) return (facts, "");
+
+        try
+        {
+            switch (kind)
+            {
+                case EntityKind.Pilot:
+                {
+                    var c = await esi.GetPublicAsync<EsiPublicCharacter>($"characters/{id}/", ct);
+                    if (c is null) break;
+
+                    var corpName = await NameOfAsync(c.CorporationId, ct);
+                    facts.Add(new("Corporation", corpName ?? c.CorporationId.ToString("N0")));
+                    if (c.AllianceId is { } aid)
+                        facts.Add(new("Alliance", await NameOfAsync(aid, ct) ?? aid.ToString("N0")));
+                    if (c.SecurityStatus is { } sec)
+                        facts.Add(new("Security status", sec.ToString("0.00")));
+                    if (c.Birthday is { } b)
+                        facts.Add(new("Born", b.ToLocalTime().ToString("d MMM yyyy")));
+                    if (!string.IsNullOrWhiteSpace(c.Title))
+                        facts.Add(new("Title", c.Title!));
+
+                    return (facts, StripHtml(c.Description));
+                }
+
+                case EntityKind.PlayerCorp:
+                {
+                    var c = await esi.GetPublicAsync<EsiPublicCorporation>($"corporations/{id}/", ct);
+                    if (c is null) break;
+
+                    if (!string.IsNullOrWhiteSpace(c.Ticker)) facts.Add(new("Ticker", $"[{c.Ticker}]"));
+                    facts.Add(new("Members", c.MemberCount.ToString("N0")));
+                    facts.Add(new("CEO", await NameOfAsync(c.CeoId, ct) ?? c.CeoId.ToString("N0")));
+                    if (c.AllianceId is { } aid)
+                        facts.Add(new("Alliance", await NameOfAsync(aid, ct) ?? aid.ToString("N0")));
+                    if (c.DateFounded is { } d)
+                        facts.Add(new("Founded", d.ToLocalTime().ToString("d MMM yyyy")));
+                    if (c.TaxRate is { } t) facts.Add(new("Tax rate", $"{t * 100:0.#}%"));
+                    if (c.WarEligible is true) facts.Add(new("War eligible", "Yes"));
+                    if (!string.IsNullOrWhiteSpace(c.Url) && c.Url != "http://")
+                        facts.Add(new("URL", c.Url!));
+
+                    return (facts, StripHtml(c.Description));
+                }
+
+                case EntityKind.Alliance:
+                {
+                    var a = await esi.GetPublicAsync<EsiPublicAlliance>($"alliances/{id}/", ct);
+                    if (a is null) break;
+
+                    if (!string.IsNullOrWhiteSpace(a.Ticker)) facts.Add(new("Ticker", $"[{a.Ticker}]"));
+                    facts.Add(new("Creator", await NameOfAsync(a.CreatorId, ct) ?? a.CreatorId.ToString("N0")));
+                    if (a.ExecutorCorporationId is { } ex)
+                        facts.Add(new("Executor corp", await NameOfAsync(ex, ct) ?? ex.ToString("N0")));
+                    if (a.DateFounded is { } d)
+                        facts.Add(new("Founded", d.ToLocalTime().ToString("d MMM yyyy")));
+                    break;
+                }
+            }
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { /* enrichment is additive — the local pane already stands on its own */ }
+
+        return (facts, "");
+    }
+
+    /// <summary>
+    /// Corporations currently in an alliance, from /alliances/{id}/corporations/. Ids only,
+    /// so each is resolved to a name — and cached, since an alliance roster is a large batch
+    /// of names the app will likely meet again.
+    /// </summary>
+    public async Task<List<EntityMemberRow>> AllianceCorpsAsync(long allianceId, CancellationToken ct = default)
+    {
+        if (esi is null) return [];
+        try
+        {
+            var ids = await esi.GetPublicAsync<List<int>>($"alliances/{allianceId}/corporations/", ct);
+            if (ids is null || ids.Count == 0) return [];
+
+            var names = await ResolveNamesAsync(ids.Select(i => (long)i).ToList(), "corporation", ct);
+            return ids
+                .Select(i => new EntityMemberRow(i, names.GetValueOrDefault(i, $"Corporation {i}"), ""))
+                .OrderBy(r => r.Name)
+                .ToList();
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { return []; }
+    }
+
+    /// <summary>
+    /// A corporation's alliance history, from /corporations/{id}/alliancehistory/. Newest
+    /// first, with the periods the corporation was unaffiliated shown as such rather than
+    /// dropped — leaving them out would imply a continuous run of memberships.
+    /// </summary>
+    public async Task<List<EntityHistoryRow>> CorpAllianceHistoryAsync(long corpId, CancellationToken ct = default)
+    {
+        if (esi is null) return [];
+        try
+        {
+            var rows = await esi.GetPublicAsync<List<EsiAllianceHistory>>(
+                $"corporations/{corpId}/alliancehistory/", ct);
+            if (rows is null || rows.Count == 0) return [];
+
+            var ids = rows.Where(r => r.AllianceId is > 0).Select(r => (long)r.AllianceId!.Value)
+                          .Distinct().ToList();
+            var names = await ResolveNamesAsync(ids, "alliance", ct);
+
+            var ordered = rows.OrderByDescending(r => r.StartDate).ToList();
+            var result  = new List<EntityHistoryRow>(ordered.Count);
+
+            for (int i = 0; i < ordered.Count; i++)
+            {
+                var r    = ordered[i];
+                var name = r.AllianceId is > 0
+                    ? names.GetValueOrDefault(r.AllianceId.Value, $"Alliance {r.AllianceId}")
+                    : "— no alliance —";
+
+                // The record has no end date; a membership ran until the next one began.
+                var until = i == 0 ? "present" : ordered[i - 1].StartDate.ToLocalTime().ToString("d MMM yyyy");
+                var from  = r.StartDate.ToLocalTime().ToString("d MMM yyyy");
+                var days  = ((i == 0 ? DateTimeOffset.UtcNow : ordered[i - 1].StartDate) - r.StartDate).Days;
+
+                result.Add(new EntityHistoryRow(name, from, until, days < 0 ? "" : $"{days:N0} day(s)",
+                                                r.IsDeleted == true));
+            }
+            return result;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { return []; }
+    }
+
+    /// <summary>Resolves ids to names, caching anything new so later lookups stay local.</summary>
+    private async Task<Dictionary<long, string>> ResolveNamesAsync(
+        List<long> ids, string category, CancellationToken ct)
+    {
+        var map = new Dictionary<long, string>();
+        if (ids.Count == 0) return map;
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        var idList = string.Join(",", ids);
+        foreach (var row in await db.Database.SqlQueryRaw<CachedName>(
+                     $"""SELECT "EntityId" AS "Id", "Name" FROM "UniverseNames" WHERE "EntityId" IN ({idList})""")
+                     .ToListAsync(ct))
+            map[row.Id] = row.Name;
+
+        var missing = ids.Where(i => !map.ContainsKey(i)).ToList();
+        if (missing.Count == 0 || esi is null) return map;
+
+        // /universe/names/ takes up to 1000 per call.
+        foreach (var chunk in missing.Chunk(1000))
+        {
+            var names = await esi.GetNamesAsync(chunk.ToList(), ct);
+            var now   = DateTimeOffset.UtcNow.ToString("O");
+            foreach (var n in names)
+            {
+                map[n.Id] = n.Name;
+                await db.Database.ExecuteSqlRawAsync("""
+                    INSERT OR IGNORE INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
+                    VALUES (@id, @name, @cat, @at)
+                    """,
+                    [new SqliteParameter("@id", n.Id), new SqliteParameter("@name", n.Name),
+                     new SqliteParameter("@cat", category), new SqliteParameter("@at", now)], ct);
+            }
+        }
+        return map;
+    }
+
+    private record CachedName(long Id, string Name);
+
+    /// <summary>Name from the local cache, or from ESI if it is not there yet.</summary>
+    private async Task<string?> NameOfAsync(long id, CancellationToken ct)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var cached = (await db.Database.SqlQueryRaw<string>(
+            """SELECT "Name" AS "Value" FROM "UniverseNames" WHERE "EntityId" = @id""",
+            new SqliteParameter("@id", id)).ToListAsync(ct)).FirstOrDefault();
+        if (!string.IsNullOrEmpty(cached)) return cached;
+
+        if (esi is null) return null;
+        try
+        {
+            var names = await esi.GetNamesAsync(new List<long> { id }, ct);
+            return names.FirstOrDefault()?.Name;
+        }
+        catch { return null; }
+    }
+
+    /// <summary>
+    /// EVE bios and corp descriptions are markup — font tags, colours, links. The viewer
+    /// shows plain text, so the tags come out rather than being displayed literally.
+    /// </summary>
+    private static string StripHtml(string? s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return "";
+        var text = System.Text.RegularExpressions.Regex.Replace(s, "<br\\s*/?>", "\n",
+                       System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        text = System.Text.RegularExpressions.Regex.Replace(text, "<[^>]+>", "");
+        return System.Net.WebUtility.HtmlDecode(text).Trim();
     }
 
     private static string CategoryOf(EntityKind kind) => kind switch

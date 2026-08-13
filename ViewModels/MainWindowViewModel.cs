@@ -588,9 +588,9 @@ public class MainWindowViewModel : ReactiveObject
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
-        var entityBrowser      = new EntityBrowserService(dbFactory);
-        PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser);
-        NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser);
+        var entityBrowser      = new EntityBrowserService(dbFactory, esi);
+        PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);
+        NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);

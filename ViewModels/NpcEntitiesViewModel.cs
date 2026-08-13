@@ -10,11 +10,11 @@ public class NpcEntitiesViewModel : ReactiveObject
     public EntityTabViewModel Corps    { get; }
     public EntityTabViewModel Factions { get; }
 
-    public NpcEntitiesViewModel(EntityBrowserService service)
+    public NpcEntitiesViewModel(EntityBrowserService service, KillmailBrowserService killmails)
     {
-        Agents   = new EntityTabViewModel(service, EntityKind.Agent);
-        Corps    = new EntityTabViewModel(service, EntityKind.NpcCorp);
-        Factions = new EntityTabViewModel(service, EntityKind.Faction);
+        Agents   = new EntityTabViewModel(service, killmails, EntityKind.Agent);
+        Corps    = new EntityTabViewModel(service, killmails, EntityKind.NpcCorp);
+        Factions = new EntityTabViewModel(service, killmails, EntityKind.Faction);
     }
 
     private int _selectedTabIndex;

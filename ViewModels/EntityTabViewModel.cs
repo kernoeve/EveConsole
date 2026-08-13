@@ -16,7 +16,8 @@ namespace EveConsole.ViewModels;
 /// </summary>
 public class EntityTabViewModel : ReactiveObject
 {
-    private readonly EntityBrowserService _service;
+    private readonly EntityBrowserService  _service;
+    private readonly KillmailBrowserService _killmails;
     private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(10) };
 
     public EntityKind Kind { get; }
@@ -27,10 +28,11 @@ public class EntityTabViewModel : ReactiveObject
     /// <summary>Intel sightings are recorded per character.</summary>
     public bool HasIntel => Kind is EntityKind.Pilot;
 
-    public EntityTabViewModel(EntityBrowserService service, EntityKind kind)
+    public EntityTabViewModel(EntityBrowserService service, KillmailBrowserService killmails, EntityKind kind)
     {
-        _service = service;
-        Kind     = kind;
+        _service   = service;
+        _killmails = killmails;
+        Kind       = kind;
     }
 
     // ── Search ────────────────────────────────────────────────────────────────
@@ -42,7 +44,7 @@ public class EntityTabViewModel : ReactiveObject
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> Populator =>
         async (text, ct) =>
         {
-            var hits = await _service.SearchAsync(Kind, text ?? "", ct);
+            var hits = await _service.SearchWithEsiAsync(Kind, text ?? "", ct);
 
             if (hits.Count >= EntityBrowserService.MaxMatches)
             {
@@ -99,8 +101,20 @@ public class EntityTabViewModel : ReactiveObject
     public Bitmap? Image { get => _image; private set => this.RaiseAndSetIfChanged(ref _image, value); }
 
     public ObservableCollection<EntityFact>       Facts { get; } = [];
-    public ObservableCollection<EntityKillRow>    Kills { get; } = [];
-    public ObservableCollection<IntelSightingRow> Intel { get; } = [];
+    public ObservableCollection<KillmailListRowVm> Kills { get; } = [];
+    public ObservableCollection<IntelSightingRow> Intel   { get; } = [];
+    public ObservableCollection<EntityMemberRow>  Members { get; } = [];
+    public ObservableCollection<EntityHistoryRow> History { get; } = [];
+
+    /// <summary>Alliances list their member corporations; corporations list where they have been.</summary>
+    public bool HasMembers => Kind is EntityKind.Alliance;
+    public bool HasHistory => Kind is EntityKind.PlayerCorp;
+
+    private string _membersStatus = "";
+    public string MembersStatus { get => _membersStatus; private set => this.RaiseAndSetIfChanged(ref _membersStatus, value); }
+
+    private string _historyStatus = "";
+    public string HistoryStatus { get => _historyStatus; private set => this.RaiseAndSetIfChanged(ref _historyStatus, value); }
 
     private string _killsStatus = "";
     public string KillsStatus { get => _killsStatus; private set => this.RaiseAndSetIfChanged(ref _killsStatus, value); }
@@ -144,14 +158,85 @@ public class EntityTabViewModel : ReactiveObject
             // Everything below is optional detail — the About pane is already usable, so
             // none of it blocks the others.
             if (detail.ImageUrl is { } url) _ = LoadImageAsync(url, ct);
+            _ = EnrichAsync(id, ct);
             if (HasKills) _ = LoadKillsAsync(id, ct);
-            if (HasIntel) _ = LoadIntelAsync(id, ct);
+            if (HasIntel)   _ = LoadIntelAsync(id, ct);
+            if (HasMembers) _ = LoadMembersAsync(id, ct);
+            if (HasHistory) _ = LoadHistoryAsync(id, ct);
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
             await Dispatcher.UIThread.InvokeAsync(() => Status = $"Error: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Public ESI detail, folded in once it arrives. Appended rather than replacing the
+    /// local facts, and only after they are already on screen — the pane must not sit empty
+    /// waiting on a network call.
+    /// </summary>
+    private async Task EnrichAsync(long id, CancellationToken ct)
+    {
+        try
+        {
+            var (facts, description) = await _service.EnrichAsync(Kind, id, ct);
+            if (ct.IsCancellationRequested) return;
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (ct.IsCancellationRequested) return;
+
+                foreach (var f in facts)
+                    if (!string.IsNullOrWhiteSpace(f.Value)) Facts.Add(f);
+
+                if (description.Length > 0)
+                {
+                    Description = description;
+                    this.RaisePropertyChanged(nameof(HasDescription));
+                }
+            });
+        }
+        catch (OperationCanceledException) { }
+        catch { /* additive only */ }
+    }
+
+    private async Task LoadMembersAsync(long id, CancellationToken ct)
+    {
+        try
+        {
+            var rows = await _service.AllianceCorpsAsync(id, ct);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (ct.IsCancellationRequested) return;
+                Members.Clear();
+                foreach (var r in rows) Members.Add(r);
+                MembersStatus = rows.Count == 0
+                    ? "No member corporations returned. ESI reports current membership only."
+                    : $"{rows.Count:N0} member corporation(s)";
+            });
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { MembersStatus = $"Error: {ex.Message}"; }
+    }
+
+    private async Task LoadHistoryAsync(long id, CancellationToken ct)
+    {
+        try
+        {
+            var rows = await _service.CorpAllianceHistoryAsync(id, ct);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (ct.IsCancellationRequested) return;
+                History.Clear();
+                foreach (var r in rows) History.Add(r);
+                HistoryStatus = rows.Count == 0
+                    ? "No alliance history recorded for this corporation."
+                    : $"{rows.Count:N0} period(s), newest first";
+            });
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { HistoryStatus = $"Error: {ex.Message}"; }
     }
 
     private async Task LoadImageAsync(string url, CancellationToken ct)
@@ -170,7 +255,9 @@ public class EntityTabViewModel : ReactiveObject
     {
         try
         {
-            var rows = await _service.KillsAsync(Kind, id, ct);
+            var page = await _killmails.GetListAsync(0, EntityBrowserService.MaxDetailRows,
+                entityKind: Kind, entityId: id, ct: ct);
+            var rows = page.Rows.Select(r => new KillmailListRowVm(r)).ToList();
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 if (ct.IsCancellationRequested) return;
