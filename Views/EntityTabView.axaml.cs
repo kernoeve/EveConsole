@@ -20,6 +20,12 @@ public partial class EntityTabView : ReactiveUserControl<EntityTabViewModel>
             vm.Open(vm.MemberLinkKind, row.Id);
     }
 
+    /// <summary>Opens the killmail in the Killmail tool, where the full detail lives.</summary>
+    private void OnKillmailDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is ListBox { SelectedItem: KillmailListRowVm row }) row.OpenKillmail();
+    }
+
     private void OnHistoryDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (DataContext is not EntityTabViewModel vm) return;

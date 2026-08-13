@@ -68,16 +68,18 @@
                            ToolTip.Tip="{Binding VictimAlliance}"
                            Margin="0 0 4 0" />
                     <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-                      <TextBlock Text="{Binding VictimName}"
-                                 FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
-                                 TextTrimming="CharacterEllipsis" />
-                      <TextBlock Text="{Binding VictimCorp}"
-                                 FontSize="9" Foreground="#888899"
-                                 TextTrimming="CharacterEllipsis" />
-                      <TextBlock Text="{Binding VictimAlliance}"
-                                 FontSize="9" Foreground="#666677"
-                                 TextTrimming="CharacterEllipsis"
-                                 IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                      <Button Content="{Binding VictimName}" Command="{Binding OpenVictimCommand}"
+                              Background="Transparent" BorderThickness="0" Padding="0"
+                              HorizontalContentAlignment="Left" Cursor="Hand"
+                              FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" />
+                      <Button Content="{Binding VictimCorp}" Command="{Binding OpenVictimCorpCommand}"
+                              Background="Transparent" BorderThickness="0" Padding="0"
+                              HorizontalContentAlignment="Left" Cursor="Hand"
+                              FontSize="9" Foreground="#888899" />
+                      <Button Content="{Binding VictimAlliance}" Command="{Binding OpenVictimAllianceCommand}"
+                              Background="Transparent" BorderThickness="0" Padding="0"
+                              HorizontalContentAlignment="Left" Cursor="Hand"
+                              FontSize="9" Foreground="#666677" IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                     </StackPanel>
                   </Grid>
 
@@ -91,16 +93,18 @@
                            ToolTip.Tip="{Binding FbAlliance}"
                            Margin="0 0 4 0" />
                     <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-                      <TextBlock Text="{Binding FbName}"
-                                 FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
-                                 TextTrimming="CharacterEllipsis" />
-                      <TextBlock Text="{Binding FbCorp}"
-                                 FontSize="9" Foreground="#888899"
-                                 TextTrimming="CharacterEllipsis" />
-                      <TextBlock Text="{Binding FbAlliance}"
-                                 FontSize="9" Foreground="#666677"
-                                 TextTrimming="CharacterEllipsis"
-                                 IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                      <Button Content="{Binding FbName}" Command="{Binding OpenFbCommand}"
+                              Background="Transparent" BorderThickness="0" Padding="0"
+                              HorizontalContentAlignment="Left" Cursor="Hand"
+                              FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" />
+                      <Button Content="{Binding FbCorp}" Command="{Binding OpenFbCorpCommand}"
+                              Background="Transparent" BorderThickness="0" Padding="0"
+                              HorizontalContentAlignment="Left" Cursor="Hand"
+                              FontSize="9" Foreground="#888899" />
+                      <Button Content="{Binding FbAlliance}" Command="{Binding OpenFbAllianceCommand}"
+                              Background="Transparent" BorderThickness="0" Padding="0"
+                              HorizontalContentAlignment="Left" Cursor="Hand"
+                              FontSize="9" Foreground="#666677" IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                     </StackPanel>
                   </Grid>
 

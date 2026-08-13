@@ -135,7 +135,8 @@
           <ListBox Grid.Row="1" ItemsSource="{Binding Kills}"
                    Background="Transparent" BorderThickness="0"
                    ItemTemplate="{StaticResource KillmailRowTemplate}"
-                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                   DoubleTapped="OnKillmailDoubleTapped">
             <ListBox.Styles>
               <Style Selector="ListBoxItem">
                 <Setter Property="Padding" Value="0" />

@@ -341,7 +341,10 @@ public class EntityTabViewModel : ReactiveObject
                         _ = LoadLogoAsync(EntityBrowserService.ImageUrlFor(EntityKind.Alliance, f.LinkId),
                                           v => AllianceLogo = v, ct);
                 }
-                HasAffiliation = facts.Any(f => f.LinkKind is EntityKind.PlayerCorp or EntityKind.Alliance);
+                // Not for an alliance: its creator and executor corps are links, but they
+                // are not an affiliation of the alliance and a logo stack implies they are.
+                HasAffiliation = Kind is not EntityKind.Alliance
+                              && facts.Any(f => f.LinkKind is EntityKind.PlayerCorp or EntityKind.Alliance);
 
                 if (description.Length > 0)
                 {

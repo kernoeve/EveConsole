@@ -10,9 +10,9 @@ public sealed record KillmailListRow(
     int VictimShipTypeId, string ShipName,
     int SystemId, string SystemName, string ConstellationName, string RegionName,
     double SecurityStatus, double TotalIsk,
-    long VictimCorpId, long VictimAllianceId,
+    long VictimCharId, long VictimCorpId, long VictimAllianceId,
     string VictimName, string VictimCorp, string VictimAlliance,
-    long FbCorpId, long FbAllianceId,
+    long FbCharId, long FbCorpId, long FbAllianceId,
     string FbName, string FbCorp, string FbAlliance);
 
 public sealed record KillmailDetailData(
@@ -305,9 +305,9 @@ public class KillmailBrowserService(
                 d.SolarSystemId,
                 sys?.Name ?? d.SolarSystemId.ToString(), constellationName, regionName,
                 sys?.Security ?? 0.0, isk,
-                d.VictimCorpId, d.VictimAllianceId ?? 0L,
+                d.VictimCharId, d.VictimCorpId, d.VictimAllianceId ?? 0L,
                 Res(d.VictimCharId), Res(d.VictimCorpId), Res(d.VictimAllianceId),
-                fb?.CorporationId ?? 0L, fb?.AllianceId ?? 0L,
+                fb?.CharacterId ?? 0L, fb?.CorporationId ?? 0L, fb?.AllianceId ?? 0L,
                 fb is not null ? Res(fb.CharacterId) : "",
                 fb is not null ? Res(fb.CorporationId) : "",
                 fb is not null ? Res(fb.AllianceId) : "");

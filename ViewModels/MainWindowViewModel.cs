@@ -591,6 +591,19 @@ public class MainWindowViewModel : ReactiveObject
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);
         NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
+        // One wiring for every killmail row in the app — browser, corp activity, system
+        // page, entity viewers.
+        EntityNavigator.Instance.OpenEntity = (kind, id) =>
+        {
+            var player = kind is EntityKind.Pilot or EntityKind.PlayerCorp or EntityKind.Alliance;
+            OpenTool(player ? "player_entities" : "npc_entities");
+            if (player) PlayerEntitiesVm.Open(kind, id);
+            else        NpcEntitiesVm.Open(kind, id);
+        };
+        EntityNavigator.Instance.OpenSystem   = id => { OpenTool("universe"); _ = UniverseVm.OpenSystemCommand.Execute(id).Subscribe(); };
+        EntityNavigator.Instance.OpenItem     = id => { OpenTool("items"); _ = ItemBrowserVm.NavigateToItemCommand.Execute(id).Subscribe(); };
+        EntityNavigator.Instance.OpenKillmail = id => { OpenTool("killmails"); KillmailBrowserVm.SelectById(id); };
+
         Action<int> showSystem = systemId =>
         {
             OpenTool("universe");

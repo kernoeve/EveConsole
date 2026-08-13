@@ -1,3 +1,4 @@
+using System.Reactive;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using Avalonia.Media.Imaging;
@@ -12,8 +13,10 @@ namespace EveConsole.ViewModels;
 public class KillmailListRowVm : ReactiveObject
 {
     private readonly int  _victimShipTypeId;
+    private readonly long _victimCharId;
     private readonly long _victimCorpId;
     private readonly long _victimAllianceId;
+    private readonly long _fbCharId;
     private readonly long _fbCorpId;
     private readonly long _fbAllianceId;
 
@@ -62,15 +65,45 @@ public class KillmailListRowVm : ReactiveObject
         FbCorp            = r.FbCorp;
         FbAlliance        = r.FbAlliance;
         _victimShipTypeId = r.VictimShipTypeId;
+        _victimCharId     = r.VictimCharId;
         _victimCorpId     = r.VictimCorpId;
         _victimAllianceId = r.VictimAllianceId;
+        _fbCharId         = r.FbCharId;
         _fbCorpId         = r.FbCorpId;
         _fbAllianceId     = r.FbAllianceId;
 
         var sec       = r.SecurityStatus;
         SecurityText  = sec >= 0.05 ? $"{sec:F1}" : "0.0";
         SecurityColor = sec >= 0.5 ? "#44bb44" : sec >= 0.1 ? "#cccc44" : "#cc4444";
+
+        OpenVictimCommand         = ReactiveCommand.Create(OpenVictim);
+        OpenVictimCorpCommand     = ReactiveCommand.Create(OpenVictimCorp);
+        OpenVictimAllianceCommand = ReactiveCommand.Create(OpenVictimAlliance);
+        OpenFbCommand             = ReactiveCommand.Create(OpenFb);
+        OpenFbCorpCommand         = ReactiveCommand.Create(OpenFbCorp);
+        OpenFbAllianceCommand     = ReactiveCommand.Create(OpenFbAlliance);
     }
+
+    // Links live on the row rather than on a host view model. The same row renders in the
+    // Killmail Browser, Corp Activity, the map's system page and the entity viewers, and a
+    // link that only worked in one of them would be worse than none.
+    private static EveConsole.Services.EntityNavigator Nav => EveConsole.Services.EntityNavigator.Instance;
+
+    public ReactiveCommand<Unit, Unit> OpenVictimCommand         { get; }
+    public ReactiveCommand<Unit, Unit> OpenVictimCorpCommand     { get; }
+    public ReactiveCommand<Unit, Unit> OpenVictimAllianceCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenFbCommand             { get; }
+    public ReactiveCommand<Unit, Unit> OpenFbCorpCommand         { get; }
+    public ReactiveCommand<Unit, Unit> OpenFbAllianceCommand     { get; }
+
+    public void OpenVictim()         => Nav.Entity(EveConsole.Services.EntityKind.Pilot,      _victimCharId);
+    public void OpenVictimCorp()     => Nav.Entity(EveConsole.Services.EntityKind.PlayerCorp, _victimCorpId);
+    public void OpenVictimAlliance() => Nav.Entity(EveConsole.Services.EntityKind.Alliance,   _victimAllianceId);
+    public void OpenFb()             => Nav.Entity(EveConsole.Services.EntityKind.Pilot,      _fbCharId);
+    public void OpenFbCorp()         => Nav.Entity(EveConsole.Services.EntityKind.PlayerCorp, _fbCorpId);
+    public void OpenFbAlliance()     => Nav.Entity(EveConsole.Services.EntityKind.Alliance,   _fbAllianceId);
+    public void OpenSystem()         => Nav.System(SystemId);
+    public void OpenKillmail()       => Nav.Killmail(KillMailId);
 
     public Task LoadImagesAsync() => Task.WhenAll(
         _victimShipTypeId > 0
