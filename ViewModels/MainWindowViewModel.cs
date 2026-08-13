@@ -587,7 +587,7 @@ public class MainWindowViewModel : ReactiveObject
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(
-                                     dbFactory, pollingService, esi, new FittingOptionService(dbFactory));
+                                     dbFactory, pollingService, esi, new FittingOptionService(dbFactory), appPrefs);
         UniverseVm             = new UniverseViewModel(
             new UniverseMapService(dbFactory), mapStatsService,
             new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);

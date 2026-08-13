@@ -98,6 +98,7 @@ public class StructureBrowserViewModel : ReactiveObject
     private readonly EsiPollingService               _polling;
     private readonly Api.EsiClient                   _esi;
     private readonly FittingOptionService            _fittingOptions;
+    private readonly AppPreferencesService           _prefs;
 
     private List<StructureRow> _all = [];
 
@@ -121,12 +122,25 @@ public class StructureBrowserViewModel : ReactiveObject
     public string AllianceText      { get => _allianceText;      set { this.RaiseAndSetIfChanged(ref _allianceText, value); ApplyFilters(); } }
 
     /// <summary>
-    /// Defaults on. Unresolved rows used to be hidden as noise, but they are now the ones worth
-    /// looking at — a structure ESI will not describe is exactly the one to fill in by hand, and
-    /// hiding it would mean the user cannot reach the record they most need to edit.
+    /// Off on a first run: the unresolved rows outnumber the readable ones by roughly two to one,
+    /// so showing them by default buries the structures the user came to look at. They stay one
+    /// click away because a structure ESI will not describe is exactly the one worth filling in
+    /// by hand — which is also why the choice is remembered: someone doing that work should not
+    /// have to re-tick the box every time the app starts.
     /// </summary>
-    private bool _showUnknown = true;
-    public bool ShowUnknown { get => _showUnknown; set { this.RaiseAndSetIfChanged(ref _showUnknown, value); ApplyFilters(); } }
+    private bool _showUnknown;
+    public bool ShowUnknown
+    {
+        get => _showUnknown;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showUnknown, value);
+            ApplyFilters();
+            _ = _prefs.SetBoolAsync(ShowUnknownKey, value);
+        }
+    }
+
+    private const string ShowUnknownKey = "structures.show_unknown";
 
     // ── Selected structure (the viewer below the list) ───────────────────────
 
@@ -501,12 +515,18 @@ public class StructureBrowserViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> PullFromEsiCommand { get; }
 
     public StructureBrowserViewModel(IDbContextFactory<AppDbContext> dbFactory, EsiPollingService polling,
-                                     Api.EsiClient esi, FittingOptionService fittingOptions)
+                                     Api.EsiClient esi, FittingOptionService fittingOptions,
+                                     AppPreferencesService prefs)
     {
         _dbFactory      = dbFactory;
         _polling        = polling;
         _esi            = esi;
         _fittingOptions = fittingOptions;
+        _prefs          = prefs;
+
+        // Straight to the backing field: the setter persists, and going through it here would
+        // write the stored value back over itself on every startup.
+        _showUnknown = _prefs.GetBool(ShowUnknownKey, false);
 
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadAsync);
         ResolveCommand = ReactiveCommand.CreateFromTask(ResolveAsync);

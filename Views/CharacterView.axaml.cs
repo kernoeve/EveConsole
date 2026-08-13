@@ -1,9 +1,11 @@
 using System;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using EveConsole.Models;
 using EveConsole.ViewModels;
 using ReactiveUI;
@@ -109,8 +111,15 @@ public partial class CharacterView : UserControl
             LayoutHost.Children.Add(b);
         }
 
-        // Nudge the pie charts to render after being (re)placed — LiveCharts can otherwise
-        // measure to 0×0 when reparented into a freshly-laid-out cell.
+        // Nudge everything that was just (re)placed to measure again.
+        //
+        // ⚠️ Reparenting is what makes this necessary. A section is measured wherever it happens
+        // to be sitting, and SectionStore is a full-width panel while a layout cell is a fraction
+        // of that — so a control that sizes itself from the width it was last given keeps the
+        // wrong one. LiveCharts showed this first by measuring to 0×0; DataGrid shows it by
+        // computing its star column against the store's width and then overflowing the card,
+        // which is why resizing the window "fixed" it. The double Post is deliberate: the first
+        // gets past the layout pass this method triggers, the second past the one that settles it.
         Dispatcher.UIThread.Post(() =>
             Dispatcher.UIThread.Post(() =>
             {
@@ -118,6 +127,16 @@ public partial class CharacterView : UserControl
                 IncomeChart?.InvalidateVisual();
                 ExpenseChart?.InvalidateMeasure();
                 ExpenseChart?.InvalidateVisual();
+
+                foreach (var child in LayoutHost.Children)
+                {
+                    child.InvalidateMeasure();
+                    foreach (var grid in child.GetVisualDescendants().OfType<DataGrid>())
+                    {
+                        grid.InvalidateMeasure();
+                        grid.InvalidateArrange();
+                    }
+                }
             }));
     }
 
