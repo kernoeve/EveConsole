@@ -25,11 +25,17 @@ public class PlayerEntitiesViewModel : ReactiveObject
         // A link on one tab opens the entity on the tab that owns that kind. NPC kinds are
         // handed to the NPC tool if one is attached, since they have no home here.
         foreach (var tab in new[] { Pilots, Corps, Alliances })
-            tab.NavigateTo = Open;
+        {
+            tab.NavigateTo             = Open;
+            tab.NavigateToSystemAction = id => NavigateToSystem?.Invoke(id);
+        }
     }
 
     /// <summary>Set by MainWindowViewModel so NPC links can cross to the other tool.</summary>
     public Action<EntityKind, long>? NavigateToNpc { get; set; }
+
+    /// <summary>Set by MainWindowViewModel — opens the Universe map on a system.</summary>
+    public Action<int>? NavigateToSystem { get; set; }
 
     public void Open(EntityKind kind, long id)
     {

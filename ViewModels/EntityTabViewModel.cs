@@ -37,6 +37,7 @@ public class EntityTabViewModel : ReactiveObject
         OpenMemberCommand  = ReactiveCommand.Create<EntityMemberRow>(r => Open(MemberLinkKind, r.Id));
         OpenHistoryCommand = ReactiveCommand.Create<EntityHistoryRow>(r => Open(HistoryLinkKind, r.LinkId));
         OpenItemCommand    = ReactiveCommand.Create<int>(id => NavigateToItemAction?.Invoke(id));
+        OpenSystemMapCommand = ReactiveCommand.Create<int>(id => { if (id > 0) NavigateToSystemAction?.Invoke(id); });
     }
 
     // ── Search ────────────────────────────────────────────────────────────────
@@ -137,6 +138,10 @@ public class EntityTabViewModel : ReactiveObject
         _                   => "Corporations",
     };
 
+    /// <summary>The agent roster gets real columns; the other rosters have one detail line.</summary>
+    public bool ShowAgentColumns    => Kind is EntityKind.NpcCorp;
+    public bool ShowMemberSubtitle  => Kind is not EntityKind.NpcCorp;
+
     public string HistoryHeader => Kind is EntityKind.Pilot ? "Corp History" : "Alliance History";
 
     /// <summary>The column heading over the history grid's first column.</summary>
@@ -173,6 +178,13 @@ public class EntityTabViewModel : ReactiveObject
     public ReactiveCommand<EntityMemberRow, System.Reactive.Unit>  OpenMemberCommand  { get; }
     public ReactiveCommand<EntityHistoryRow, System.Reactive.Unit> OpenHistoryCommand { get; }
     public ReactiveCommand<int, System.Reactive.Unit>              OpenItemCommand    { get; }
+
+    /// <summary>Named to match the killmail row template, which binds a system button to
+    /// whatever DataContext it finds — the Killmail Browser has the same command.</summary>
+    public ReactiveCommand<int, System.Reactive.Unit>              OpenSystemMapCommand { get; }
+
+    /// <summary>Set by MainWindowViewModel — opens the Universe map on a system.</summary>
+    public Action<int>? NavigateToSystemAction { get; set; }
 
     /// <summary>Set by MainWindowViewModel — opens the Item Browser on a type.</summary>
     public Action<int>? NavigateToItemAction { get; set; }

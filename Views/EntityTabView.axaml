@@ -170,7 +170,14 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Details" Binding="{Binding Subtitle}" FontSize="10" Width="*"/>
+              <DataGridTextColumn Header="Details"  Binding="{Binding Subtitle}" FontSize="10" Width="*"
+                                  IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowMemberSubtitle}"/>
+              <DataGridTextColumn Header="Lvl"      Binding="{Binding Level}"    FontSize="10" Width="55"
+                                  IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentColumns}"/>
+              <DataGridTextColumn Header="Division" Binding="{Binding Division}" FontSize="10" Width="140"
+                                  IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentColumns}"/>
+              <DataGridTextColumn Header="Station"  Binding="{Binding Station}"  FontSize="10" Width="*"
+                                  IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentColumns}"/>
               <DataGridTextColumn Header="ID"      Binding="{Binding Id}" FontSize="10"       Width="110"/>
             </DataGrid.Columns>
           </DataGrid>

@@ -19,12 +19,16 @@ public class NpcEntitiesViewModel : ReactiveObject
         foreach (var tab in new[] { Agents, Corps, Factions })
         {
             tab.NavigateTo = Open;
-            tab.NavigateToItemAction = id => NavigateToItem?.Invoke(id);
+            tab.NavigateToItemAction   = id => NavigateToItem?.Invoke(id);
+            tab.NavigateToSystemAction = id => NavigateToSystem?.Invoke(id);
         }
     }
 
     /// <summary>Set by MainWindowViewModel — opens the Item Browser.</summary>
     public Action<int>? NavigateToItem { get; set; }
+
+    /// <summary>Set by MainWindowViewModel — opens the Universe map on a system.</summary>
+    public Action<int>? NavigateToSystem { get; set; }
 
     public void Open(EntityKind kind, long id)
     {

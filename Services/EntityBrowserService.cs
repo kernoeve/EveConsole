@@ -38,7 +38,9 @@ public record EntityDetail(
 public record EntityKillRow(long KillMailId, string When, string System, string Ship,
                             string Counterparty, string Role);
 
-public record EntityMemberRow(long Id, string Name, string Subtitle);
+public record EntityMemberRow(long Id, string Name, string Subtitle = "",
+                              int Level = 0, string Division = "", string Station = "",
+                              long StationId = 0);
 public record EntityHistoryRow(string Alliance, string From, string Until, string Duration, bool Closed,
                                long LinkId = 0);
 public record EntityStationRow(string Name, string System, string Region, double Security, int Agents);
@@ -261,6 +263,17 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                                       EntityKind.Alliance, aid));
                     if (c.SecurityStatus is { } sec)
                         facts.Add(new("Security status", sec.ToString("0.00")));
+                    if (c.FactionId is { } fid)
+                        facts.Add(new("Faction", await NameOfAsync(fid, ct) ?? fid.ToString("N0"),
+                                      EntityKind.Faction, fid));
+                    if (!string.IsNullOrWhiteSpace(c.Gender))
+                        facts.Add(new("Gender", char.ToUpper(c.Gender![0]) + c.Gender[1..]));
+                    if (c.RaceId is { } race)
+                        facts.Add(new("Race", await RaceNameAsync(race, ct) ?? race.ToString()));
+                    if (c.BloodlineId is { } bl)
+                        facts.Add(new("Bloodline", await BloodlineNameAsync(bl, ct) ?? bl.ToString()));
+                    if (c.AchievementScore is { } score)
+                        facts.Add(new("Achievement score", score.ToString("N0")));
                     if (c.Birthday is { } b)
                         facts.Add(new("Born", b.ToLocalTime().ToString("d MMM yyyy")));
                     if (!string.IsNullOrWhiteSpace(c.Title))
@@ -297,9 +310,14 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     if (a is null) break;
 
                     if (!string.IsNullOrWhiteSpace(a.Ticker)) facts.Add(new("Ticker", $"[{a.Ticker}]"));
-                    facts.Add(new("Creator", await NameOfAsync(a.CreatorId, ct) ?? a.CreatorId.ToString("N0")));
+                    facts.Add(new("Creator", await NameOfAsync(a.CreatorId, ct) ?? a.CreatorId.ToString("N0"),
+                                  EntityKind.Pilot, a.CreatorId));
+                    facts.Add(new("Creator corp",
+                                  await NameOfAsync(a.CreatorCorporationId, ct) ?? a.CreatorCorporationId.ToString("N0"),
+                                  EntityKind.PlayerCorp, a.CreatorCorporationId));
                     if (a.ExecutorCorporationId is { } ex)
-                        facts.Add(new("Executor corp", await NameOfAsync(ex, ct) ?? ex.ToString("N0")));
+                        facts.Add(new("Executor corp", await NameOfAsync(ex, ct) ?? ex.ToString("N0"),
+                                      EntityKind.PlayerCorp, ex));
                     if (a.DateFounded is { } d)
                         facts.Add(new("Founded", d.ToLocalTime().ToString("d MMM yyyy")));
                     break;
@@ -450,8 +468,9 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         return await db.Database.SqlQueryRaw<EntityMemberRow>("""
-            SELECT a."AgentId" AS "Id", a."Name",
-                   'L' || a."Level" || ' · ' || COALESCE(d."Name",'') || ' · ' || COALESCE(s."Name",'') AS "Subtitle"
+            SELECT a."AgentId" AS "Id", a."Name", '' AS "Subtitle",
+                   a."Level", COALESCE(d."Name",'') AS "Division",
+                   COALESCE(s."Name",'') AS "Station", COALESCE(s."StationId", 0) AS "StationId"
             FROM "SdeAgents" a
             LEFT JOIN "SdeCorpDivisions" d ON d."DivisionId" = a."DivisionId"
             LEFT JOIN "SdeStations"      s ON s."StationId"  = a."LocationId"
@@ -551,6 +570,36 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
 
     private record LpOfferRaw(int OfferId, string Item, int TypeId, int Quantity, int LpCost, long IskCost);
     private record LpReqRaw(int OfferId, int Quantity, string Item);
+
+    /// <summary>Race name from the SDE.</summary>
+    private async Task<string?> RaceNameAsync(int raceId, CancellationToken ct)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        return (await db.Database.SqlQueryRaw<string>(
+            """SELECT "Name" AS "Value" FROM "SdeRaces" WHERE "RaceId" = @id""",
+            new SqliteParameter("@id", raceId)).ToListAsync(ct)).FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Bloodline name from ESI. The SDE import has no bloodline table, and the list is
+    /// small and fixed, so it is fetched once and held for the session.
+    /// </summary>
+    private static Dictionary<int, string>? _bloodlines;
+
+    private async Task<string?> BloodlineNameAsync(int id, CancellationToken ct)
+    {
+        if (esi is null) return null;
+        try
+        {
+            if (_bloodlines is null)
+            {
+                var rows = await esi.GetPublicAsync<List<EsiBloodline>>("universe/bloodlines/", ct);
+                _bloodlines = rows?.ToDictionary(b => b.BloodlineId, b => b.Name) ?? [];
+            }
+            return _bloodlines.GetValueOrDefault(id);
+        }
+        catch { return null; }
+    }
 
     /// <summary>Name from the local cache, or from ESI if it is not there yet.</summary>
     private async Task<string?> NameOfAsync(long id, CancellationToken ct)
@@ -705,6 +754,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                         new("Corporation",  r.Corporation, EntityKind.NpcCorp, r.CorporationId),
                         new("Faction",      r.Faction,     EntityKind.Faction, r.FactionId),
                         new("Station",      r.Station),
+                        new("Division",     r.Division),
                         new("Agent type",   r.AgentType),
                         new("Locator",      r.IsLocator > 0 ? "Yes" : "No"),
                     ], url);

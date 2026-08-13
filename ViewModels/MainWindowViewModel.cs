@@ -591,6 +591,14 @@ public class MainWindowViewModel : ReactiveObject
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);
         NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
+        Action<int> showSystem = systemId =>
+        {
+            OpenTool("universe");
+            _ = UniverseVm.OpenSystemCommand.Execute(systemId).Subscribe();
+        };
+        PlayerEntitiesVm.NavigateToSystem = showSystem;
+        NpcEntitiesVm.NavigateToSystem    = showSystem;
+
         NpcEntitiesVm.NavigateToItem = typeId =>
         {
             OpenTool("items");

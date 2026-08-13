@@ -351,7 +351,11 @@ public record EsiPublicCharacter(
     [property: JsonPropertyName("security_status")] double? SecurityStatus,
     [property: JsonPropertyName("race_id")]         int?    RaceId,
     [property: JsonPropertyName("bloodline_id")]    int?    BloodlineId,
-    [property: JsonPropertyName("title")]           string? Title
+    [property: JsonPropertyName("title")]           string? Title,
+    [property: JsonPropertyName("gender")]          string? Gender,
+    [property: JsonPropertyName("faction_id")]      int?    FactionId,
+    /// <summary>Only returned when X-Compatibility-Date pins a new enough schema.</summary>
+    [property: JsonPropertyName("achievement_score")] int?  AchievementScore
 );
 
 public record EsiPublicCorporation(
@@ -379,6 +383,11 @@ public record EsiPublicAlliance(
     [property: JsonPropertyName("executor_corporation_id")] int?    ExecutorCorporationId,
     [property: JsonPropertyName("date_founded")]            DateTimeOffset? DateFounded,
     [property: JsonPropertyName("faction_id")]              int?    FactionId
+);
+
+public record EsiBloodline(
+    [property: JsonPropertyName("bloodline_id")] int    BloodlineId,
+    [property: JsonPropertyName("name")]         string Name
 );
 
 public record EsiCorpHistory(
