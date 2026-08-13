@@ -119,7 +119,8 @@ public class EntityTabViewModel : ReactiveObject
     public ObservableCollection<EntityHistoryRow> History { get; } = [];
 
     public ObservableCollection<EntityStationRow>   Stations  { get; } = [];
-    public ObservableCollection<NpcOrderRow>       Orders    { get; } = [];
+    public ObservableCollection<NpcOrderItemRow>    Sells     { get; } = [];
+    public ObservableCollection<NpcOrderItemRow>    Buys      { get; } = [];
     public ObservableCollection<LpOfferRow>         LpOffers  { get; } = [];
     public ObservableCollection<FactionWarfareRow>  Warfare   { get; } = [];
 
@@ -262,7 +263,8 @@ public class EntityTabViewModel : ReactiveObject
         {
             if (!await _service.IsNpcCorpAsync(id, ct))
             {
-                await Dispatcher.UIThread.InvokeAsync(() => { Orders.Clear(); HasOrders = false; });
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                    { Sells.Clear(); Buys.Clear(); HasOrders = false; });
                 return;
             }
 
@@ -272,12 +274,14 @@ public class EntityTabViewModel : ReactiveObject
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Orders.Clear();
-                foreach (var r in rows) Orders.Add(r);
+                Sells.Clear();
+                Buys.Clear();
+                foreach (var r in rows)
+                    (r.IsBuyOrder ? Buys : Sells).Add(r);
                 HasOrders = true;
 
-                var buys  = rows.Count(r => r.IsBuyOrder);
-                var sells = rows.Count - buys;
+                var buys  = Buys.Count;
+                var sells = Sells.Count;
                 var scope = total == 0    ? ""
                           : covered == 0  ? " — no market data pulled for any region this corp holds stations in"
                           : covered < total ? $" — market data covers {covered} of its {total} regions"

@@ -169,12 +169,19 @@
                              FontSize="15" FontWeight="SemiBold" Foreground="#c8a84b"
                              TextDecorations="Underline" />
                 </Button>
-                <TextBlock Text="{Binding Detail.VictimName}"
-                           FontSize="11" Foreground="#aaaacc" />
-                <TextBlock Text="{Binding Detail.VictimCorp}"
-                           FontSize="10" Foreground="#666677" />
-                <TextBlock Text="{Binding Detail.VictimAlliance}"
-                           FontSize="10" Foreground="#555566" />
+                <Button Content="{Binding Detail.VictimName}" Command="{Binding Detail.OpenVictimCommand}"
+                        Background="Transparent" BorderThickness="0" Padding="0"
+                        HorizontalContentAlignment="Left" Cursor="Hand"
+                        FontSize="11" Foreground="#aaaacc" />
+                <Button Content="{Binding Detail.VictimCorp}" Command="{Binding Detail.OpenVictimCorpCommand}"
+                        Background="Transparent" BorderThickness="0" Padding="0"
+                        HorizontalContentAlignment="Left" Cursor="Hand"
+                        FontSize="10" Foreground="#666677" />
+                <Button Content="{Binding Detail.VictimAlliance}" Command="{Binding Detail.OpenVictimAllianceCommand}"
+                        Background="Transparent" BorderThickness="0" Padding="0"
+                        HorizontalContentAlignment="Left" Cursor="Hand"
+                        FontSize="10" Foreground="#555566"
+                        IsVisible="{Binding Detail.VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                 <StackPanel Orientation="Horizontal" Spacing="0" Margin="0 2 0 0">
                   <TextBlock Text="{Binding Detail.TimeText}" FontSize="10" Foreground="#444455" />
                   <TextBlock Text="  ·  " FontSize="10" Foreground="#444455" />
@@ -330,16 +337,19 @@
 
                         <!-- Name / Corp / Alliance / Ship -->
                         <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Top">
-                          <TextBlock Text="{Binding CharName}"
-                                     FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
-                                     TextTrimming="CharacterEllipsis" />
-                          <TextBlock Text="{Binding CorpName}"
-                                     FontSize="9" Foreground="#888899"
-                                     TextTrimming="CharacterEllipsis" />
-                          <TextBlock Text="{Binding AllianceName}"
-                                     FontSize="9" Foreground="#666677"
-                                     TextTrimming="CharacterEllipsis"
-                                     IsVisible="{Binding AllianceName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          <Button Content="{Binding CharName}" Command="{Binding OpenCharCommand}"
+                                  Background="Transparent" BorderThickness="0" Padding="0"
+                                  HorizontalContentAlignment="Left" Cursor="Hand"
+                                  FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" />
+                          <Button Content="{Binding CorpName}" Command="{Binding OpenCorpCommand}"
+                                  Background="Transparent" BorderThickness="0" Padding="0"
+                                  HorizontalContentAlignment="Left" Cursor="Hand"
+                                  FontSize="9" Foreground="#888899" />
+                          <Button Content="{Binding AllianceName}" Command="{Binding OpenAllianceCommand}"
+                                  Background="Transparent" BorderThickness="0" Padding="0"
+                                  HorizontalContentAlignment="Left" Cursor="Hand"
+                                  FontSize="9" Foreground="#666677"
+                                  IsVisible="{Binding AllianceName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                           <TextBlock Text="{Binding ShipName}"
                                      FontSize="9" Foreground="#4a5570" FontStyle="Italic"
                                      TextTrimming="CharacterEllipsis"

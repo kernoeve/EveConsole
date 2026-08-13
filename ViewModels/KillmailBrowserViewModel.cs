@@ -222,6 +222,8 @@ public class KillmailSlotGroupVm
 public class KillmailAttackerVm : ReactiveObject
 {
     private readonly long _characterId;
+    private readonly long _corporationId;
+    private readonly long _allianceId;
     private readonly int  _shipTypeId;
     private readonly int  _weaponTypeId;
 
@@ -255,10 +257,22 @@ public class KillmailAttackerVm : ReactiveObject
         DamageText    = $"{r.DamageDone:N0}";
         FinalBlow     = r.FinalBlow;
         _characterId  = r.CharacterId;
+        _corporationId = r.CorporationId;
+        _allianceId    = r.AllianceId;
         _shipTypeId   = r.ShipTypeId;
         _weaponTypeId = r.WeaponTypeId;
         if (r.FinalBlow) { RoleLabel = "★ FB"; RoleColor = "#c8a84b"; }
+
+        OpenCharCommand     = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.Pilot, _characterId));
+        OpenCorpCommand     = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.PlayerCorp, _corporationId));
+        OpenAllianceCommand = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.Alliance, _allianceId));
     }
+
+    private static EveConsole.Services.EntityNavigator Nav => EveConsole.Services.EntityNavigator.Instance;
+
+    public ReactiveCommand<Unit, Unit> OpenCharCommand     { get; }
+    public ReactiveCommand<Unit, Unit> OpenCorpCommand     { get; }
+    public ReactiveCommand<Unit, Unit> OpenAllianceCommand { get; }
 
     public void MarkTopDamage()
     {
@@ -314,6 +328,12 @@ public class KillmailDetailVm : ReactiveObject
     public List<KillmailSlotGroupVm>  SlotGroups { get; }
     public List<KillmailAttackerVm>   Attackers  { get; }
 
+    private static EveConsole.Services.EntityNavigator Nav => EveConsole.Services.EntityNavigator.Instance;
+
+    public ReactiveCommand<Unit, Unit> OpenVictimCommand         { get; }
+    public ReactiveCommand<Unit, Unit> OpenVictimCorpCommand     { get; }
+    public ReactiveCommand<Unit, Unit> OpenVictimAllianceCommand { get; }
+
     public KillmailDetailVm(KillmailDetailData d)
     {
         _victimCharId     = d.VictimCharId;
@@ -336,6 +356,10 @@ public class KillmailDetailVm : ReactiveObject
         TotalIskText   = FmtIsk(d.DestroyedIsk + d.DroppedIsk);
         SlotGroups = d.SlotGroups.Select(g => new KillmailSlotGroupVm(g)).ToList();
         Attackers  = d.Attackers.Select(a => new KillmailAttackerVm(a)).ToList();
+
+        OpenVictimCommand         = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.Pilot, _victimCharId));
+        OpenVictimCorpCommand     = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.PlayerCorp, _victimCorpId));
+        OpenVictimAllianceCommand = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.Alliance, _victimAllianceId));
 
         // Mark the highest-damage attacker (may differ from final blow)
         Attackers.OrderByDescending(a => a.DamageDone).FirstOrDefault()?.MarkTopDamage();

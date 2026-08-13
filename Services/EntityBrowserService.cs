@@ -45,15 +45,17 @@ public record EntityHistoryRow(string Alliance, string From, string Until, strin
                                long LinkId = 0);
 public record EntityStationRow(string Name, string System, string Region, double Security, int Agents);
 
-/// <summary>One market order an NPC corporation is running out of one of its own stations.</summary>
-public record NpcOrderRow(bool IsBuyOrder, int TypeId, string Item, double Price,
-                         int VolumeRemain, int VolumeTotal,
-                         string Station, string System, string Region, int Duration)
+/// <summary>
+/// One item an NPC corporation trades, across every one of its stations in the market data
+/// pulled so far. Collapsed to the item rather than listed order by order: the same blueprint
+/// is sold from dozens of stations at near-identical prices, so the per-order list was mostly
+/// repetition. The price spread is what actually varies, and the Item Browser has the detail.
+/// </summary>
+public record NpcOrderItemRow(bool IsBuyOrder, int TypeId, string Item,
+                              double LowPrice, double HighPrice)
 {
-    public string Side       => IsBuyOrder ? "Buy" : "Sell";
-    public string SideColor  => IsBuyOrder ? "#5aa469" : "#c8a84b";
-    public string PriceText  => Price.ToString("N2");
-    public string VolumeText => VolumeRemain.ToString("N0");
+    public string LowText  => LowPrice.ToString("N2");
+    public string HighText => HighPrice.ToString("N2");
 }
 public record LpOfferRow(string Item, int TypeId, int Quantity, string LpCost, string IskCost, string Required);
 public record FactionWarfareRow(string System, string Region, string Contested, int Points, int Threshold, string Role);
@@ -525,26 +527,21 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     /// market data for every NPC region, which is the user's call, so the caller reports the
     /// region coverage alongside the rows rather than implying the list is complete.
     /// </summary>
-    public async Task<List<NpcOrderRow>> NpcCorpOrdersAsync(long corpId, CancellationToken ct = default)
+    public async Task<List<NpcOrderItemRow>> NpcCorpOrdersAsync(long corpId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        return await db.Database.SqlQueryRaw<NpcOrderRow>("""
+        return await db.Database.SqlQueryRaw<NpcOrderItemRow>("""
             SELECT o."IsBuyOrder", o."TypeId",
                    COALESCE(t."Name", 'Type ' || o."TypeId") AS "Item",
-                   o."Price", o."VolumeRemain", o."VolumeTotal",
-                   s."Name"                  AS "Station",
-                   COALESCE(ss."Name",'')    AS "System",
-                   COALESCE(r."Name",'')     AS "Region",
-                   o."Duration"
-            FROM (SELECT DISTINCT "OrderId", "TypeId", "IsBuyOrder", "Price", "VolumeRemain",
-                         "VolumeTotal", "LocationId", "Duration"
+                   MIN(o."Price") AS "LowPrice",
+                   MAX(o."Price") AS "HighPrice"
+            FROM (SELECT DISTINCT "OrderId", "TypeId", "IsBuyOrder", "Price", "LocationId"
                   FROM "MarketRawOrders" WHERE "Duration" > 90) o
             JOIN "SdeStations" s ON s."StationId" = o."LocationId"
-            LEFT JOIN "SdeTypes"        t  ON t."TypeId"        = o."TypeId"
-            LEFT JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = s."SolarSystemId"
-            LEFT JOIN "SdeRegions"      r  ON r."RegionId"       = s."RegionId"
+            LEFT JOIN "SdeTypes" t ON t."TypeId" = o."TypeId"
             WHERE s."CorporationId" = @id
-            ORDER BY o."IsBuyOrder", t."Name", o."Price"
+            GROUP BY o."IsBuyOrder", o."TypeId"
+            ORDER BY "Item"
             """, new SqliteParameter("@id", corpId)).ToListAsync(ct);
     }
 

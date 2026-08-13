@@ -233,41 +233,64 @@
         </Grid>
       </TabItem>
 
+      <!-- Sells and buys are separate questions — "what can I get here" versus "what will they
+           take off me" — so they get a grid each rather than a side column to scan past. -->
       <TabItem Header="Orders" IsVisible="{Binding HasOrders}">
         <Grid RowDefinitions="Auto,*" Margin="4 6">
           <TextBlock Grid.Row="0" Text="{Binding OrdersStatus}" FontSize="10" Foreground="#555566" Margin="0 0 0 6"/>
-          <DataGrid Grid.Row="1" ItemsSource="{Binding Orders}"
-                    IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
-                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
-            <DataGrid.Columns>
-              <DataGridTemplateColumn Header="" Width="42" SortMemberPath="Side">
-                <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate x:DataType="svc:NpcOrderRow">
-                    <TextBlock Text="{Binding Side}" FontSize="10" FontWeight="SemiBold"
-                               Foreground="{Binding SideColor}" VerticalAlignment="Center"/>
-                  </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-              </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item">
-                <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate x:DataType="svc:NpcOrderRow">
-                    <Button Content="{Binding Item}"
-                            Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenItemCommand}"
-                            CommandParameter="{Binding TypeId}"
-                            Background="Transparent" BorderThickness="0" Padding="0"
-                            FontSize="10" Foreground="#c8a84b" Cursor="Hand"
-                            HorizontalContentAlignment="Left" VerticalAlignment="Center"
-                            ToolTip.Tip="Open in Item Browser"/>
-                  </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-              </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Price"   Binding="{Binding PriceText}"  FontSize="10" Width="110"/>
-              <DataGridTextColumn Header="Volume"  Binding="{Binding VolumeText}" FontSize="10" Width="90"/>
-              <DataGridTextColumn Header="Station" Binding="{Binding Station}"    FontSize="10" Width="220"/>
-              <DataGridTextColumn Header="System"  Binding="{Binding System}"     FontSize="10" Width="110"/>
-              <DataGridTextColumn Header="Region"  Binding="{Binding Region}"     FontSize="10" Width="140"/>
-            </DataGrid.Columns>
-          </DataGrid>
+          <Grid Grid.Row="1" ColumnDefinitions="*,10,*">
+            <Grid Grid.Column="0" RowDefinitions="Auto,*">
+              <TextBlock Grid.Row="0" Text="Sells" FontSize="11" FontWeight="SemiBold"
+                         Foreground="#c8a84b" Margin="0 0 0 4"/>
+              <DataGrid Grid.Row="1" ItemsSource="{Binding Sells}"
+                        IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="svc:NpcOrderItemRow">
+                        <Button Content="{Binding Item}"
+                                Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenItemCommand}"
+                                CommandParameter="{Binding TypeId}"
+                                Background="Transparent" BorderThickness="0" Padding="0"
+                                FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                                HorizontalContentAlignment="Left" VerticalAlignment="Center"
+                                ToolTip.Tip="Open in Item Browser"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Low Price"  Binding="{Binding LowText}"  FontSize="10" Width="110"/>
+                  <DataGridTextColumn Header="High Price" Binding="{Binding HighText}" FontSize="10" Width="110"/>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+
+            <Grid Grid.Column="2" RowDefinitions="Auto,*">
+              <TextBlock Grid.Row="0" Text="Buys" FontSize="11" FontWeight="SemiBold"
+                         Foreground="#5aa469" Margin="0 0 0 4"/>
+              <DataGrid Grid.Row="1" ItemsSource="{Binding Buys}"
+                        IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="svc:NpcOrderItemRow">
+                        <Button Content="{Binding Item}"
+                                Command="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).OpenItemCommand}"
+                                CommandParameter="{Binding TypeId}"
+                                Background="Transparent" BorderThickness="0" Padding="0"
+                                FontSize="10" Foreground="#c8a84b" Cursor="Hand"
+                                HorizontalContentAlignment="Left" VerticalAlignment="Center"
+                                ToolTip.Tip="Open in Item Browser"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Low Price"  Binding="{Binding LowText}"  FontSize="10" Width="110"/>
+                  <DataGridTextColumn Header="High Price" Binding="{Binding HighText}" FontSize="10" Width="110"/>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Grid>
         </Grid>
       </TabItem>
 

@@ -41,7 +41,8 @@ public sealed record KillmailItemRow(
 public sealed record KillmailAttackerRow(
     string CharName, string CorpName, string AllianceName,
     int DamageDone, bool FinalBlow, string ShipName, string WeaponName,
-    long CharacterId, int ShipTypeId, int WeaponTypeId);
+    long CharacterId, int ShipTypeId, int WeaponTypeId,
+    long CorporationId = 0, long AllianceId = 0);
 
 public sealed record KillmailListPage(List<KillmailListRow> Rows, bool HasMore);
 
@@ -566,7 +567,9 @@ public class KillmailBrowserService(
             a.WeaponTypeId.HasValue && typeNames.TryGetValue(a.WeaponTypeId.Value, out var awn) ? awn : "",
             a.CharacterId  ?? 0,
             a.ShipTypeId   ?? 0,
-            a.WeaponTypeId ?? 0
+            a.WeaponTypeId ?? 0,
+            a.CorporationId ?? 0,
+            a.AllianceId    ?? 0
         )).ToList();
 
         return new KillmailDetailData(
