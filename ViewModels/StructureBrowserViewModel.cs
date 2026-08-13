@@ -185,6 +185,21 @@ public class StructureBrowserViewModel : ReactiveObject
     private PickOption? _editSystem;
     public PickOption? EditSystem { get => _editSystem; set => this.RaiseAndSetIfChanged(ref _editSystem, value); }
 
+    /// <summary>
+    /// The literal text in the system box, which the selection alone cannot express.
+    ///
+    /// <para>An AutoCompleteBox drops its selection the moment you type, so a null
+    /// <see cref="EditSystem"/> means either "cleared" or "half-way through typing Jita" — and
+    /// those want opposite outcomes on save. The text tells them apart: empty is a deliberate
+    /// clear, non-empty with no selection is an unfinished edit worth refusing.</para>
+    /// </summary>
+    private string _editSystemText = "";
+    public string EditSystemText
+    {
+        get => _editSystemText;
+        set => this.RaiseAndSetIfChanged(ref _editSystemText, value);
+    }
+
     private PickOption? _editType;
     public PickOption? EditType
     {
@@ -192,8 +207,10 @@ public class StructureBrowserViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _editType, value);
-            // The render follows the picker, so a mis-picked type is obvious before saving.
-            if (value is not null) _ = LoadTypeRenderAsync(value.Id);
+            // The render follows the picker, so a mis-picked type is obvious before saving —
+            // and clearing the type empties the frame rather than leaving the old hull sitting
+            // there next to an empty box.
+            _ = LoadTypeRenderAsync(value?.Id ?? 0);
         }
     }
 
@@ -656,9 +673,20 @@ public class StructureBrowserViewModel : ReactiveObject
 
             // Assigned through the backing fields: the EditType setter reloads the render, which
             // is wasted work when the load above is already fetching the same image.
-            _editSystem = SystemOptions.FirstOrDefault(o => o.Id == row.SystemId);
-            _editType   = TypeOptions.FirstOrDefault(o => o.Id == row.TypeId);
+            //
+            // A stored id missing from its list gets an entry made for it. Otherwise the box would
+            // show blank and saving would write that blank back — an unpublished hull, or a system
+            // predating an SDE import, would be quietly erased by opening the tab and pressing Save.
+            _editSystem = row.SystemId == 0
+                ? null
+                : Ensure(SystemOptions, (int)row.SystemId, row.SystemName);
+            _editType = row.TypeId == 0
+                ? NoType
+                : Ensure(TypeOptions, (int)row.TypeId, row.TypeName);
+
+            _editSystemText = _editSystem?.Label ?? "";
             this.RaisePropertyChanged(nameof(EditSystem));
+            this.RaisePropertyChanged(nameof(EditSystemText));
             this.RaisePropertyChanged(nameof(EditType));
 
             Provenance = s is null
@@ -1066,6 +1094,10 @@ public class StructureBrowserViewModel : ReactiveObject
                 .Where(t => t.Published)
                 .ToListAsync();
 
+            // A dropdown has no equivalent of clearing the text, so "unknown" has to be an entry
+            // in the list or the field becomes write-once: pick a type by mistake and there is no
+            // way back to not knowing.
+            TypeOptions.Add(NoType);
             foreach (var t in types.OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase))
                 TypeOptions.Add(new PickOption(t.TypeId, t.Name));
 
@@ -1075,6 +1107,23 @@ public class StructureBrowserViewModel : ReactiveObject
     }
 
     private const int StructureCategory = 65;
+
+    /// <summary>The "no type recorded" row, so the dropdown can express what an empty text box can.</summary>
+    private static readonly PickOption NoType = new(0, "— none —");
+
+    /// <summary>
+    /// Finds the option for an id, inventing one from the row's own label if the SDE list does not
+    /// carry it. The invented entry is what lets an unrecognised id survive a save.
+    /// </summary>
+    private static PickOption Ensure(ObservableCollection<PickOption> options, int id, string label)
+    {
+        var found = options.FirstOrDefault(o => o.Id == id);
+        if (found is not null) return found;
+
+        var made = new PickOption(id, label.Length > 0 ? label : $"Type {id}");
+        options.Add(made);
+        return made;
+    }
 
     /// <summary>
     /// Writes the edited fields back. Only the app's own table is touched — nothing here can
@@ -1103,9 +1152,27 @@ public class StructureBrowserViewModel : ReactiveObject
 
             if (CanEditIdentity)
             {
-                s.Name = EditName.Trim();
-                if (EditSystem is not null) s.SolarSystemId = EditSystem.Id;
-                if (EditType   is not null) s.TypeId        = EditType.Id;
+                // Cleared means cleared. The earlier "only write what is set" guard could not tell
+                // an emptied box from an untouched one, so clearing a system silently did nothing.
+                if (string.IsNullOrWhiteSpace(EditSystemText))
+                {
+                    s.SolarSystemId = 0;
+                }
+                else if (EditSystem is not null)
+                {
+                    s.SolarSystemId = EditSystem.Id;
+                }
+                else
+                {
+                    // Text with no selection is a half-finished edit. Refusing is better than
+                    // guessing: writing 0 would erase a system the user was mid-way through
+                    // retyping, and keeping the old one would ignore what they typed.
+                    DetailStatus = "Pick a system from the list, or clear the box to leave it unset.";
+                    return;
+                }
+
+                s.Name   = EditName.Trim();
+                s.TypeId = EditType?.Id ?? 0;
             }
 
             s.UpdatedBy = StructureSource.User;

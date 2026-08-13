@@ -202,6 +202,7 @@
                       <TextBlock Classes="flabel" Text="SYSTEM" />
                       <AutoCompleteBox ItemsSource="{Binding SystemOptions}"
                                        SelectedItem="{Binding EditSystem}"
+                                       Text="{Binding EditSystemText}"
                                        ValueMemberBinding="{Binding Label}"
                                        FilterMode="Contains" MinimumPrefixLength="2"
                                        IsEnabled="{Binding CanEditIdentity}"
