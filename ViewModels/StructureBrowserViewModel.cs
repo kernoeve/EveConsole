@@ -192,9 +192,59 @@ public class StructureBrowserViewModel : ReactiveObject
     // Both are chosen from the SDE rather than typed: the row stores ids, and a free-text field
     // would have to guess which system "Jita" meant on every save.
 
-    public ObservableCollection<PickOption> SystemOptions { get; } = [];
-    public ObservableCollection<PickOption> TypeOptions   { get; } = [];
-    private bool _optionsLoaded;
+    /// <summary>
+    /// Every system, held in the view model and never handed to a control wholesale.
+    ///
+    /// <para>⚠️ New Eden has ~8,500 systems. The first version filled a bound ObservableCollection
+    /// one item at a time — 8,500 notifications, each of which the AutoCompleteBox reacted to, all
+    /// on the UI thread — and then gave the control all 8,500 to lay out. That froze the app on
+    /// the first selection and eventually took it down. The box is fed through
+    /// <see cref="SystemPopulator"/> instead, which never returns more than a screenful.</para>
+    /// </summary>
+    private List<PickOption> _systemOptions = [];
+    public List<PickOption> SystemOptions
+    {
+        get => _systemOptions;
+        private set => this.RaiseAndSetIfChanged(ref _systemOptions, value);
+    }
+
+    /// <summary>How many matches the system box will show at once. Anyone who wants a particular
+    /// system types more of its name; nobody scrolls a thousand rows to find one.</summary>
+    private const int SystemMatchLimit = 50;
+
+    /// <summary>
+    /// Feeds the system box only what matches what has been typed.
+    ///
+    /// <para>Prefix matches first: typing "Jit" wants Jita, not the first alphabetical system that
+    /// happens to contain those letters somewhere.</para>
+    /// </summary>
+    public Func<string?, CancellationToken, Task<IEnumerable<object>>> SystemPopulator => (text, _) =>
+    {
+        var needle = (text ?? "").Trim();
+        if (needle.Length == 0)
+            return Task.FromResult<IEnumerable<object>>([]);
+
+        var matches = SystemOptions
+            .Where(o => o.Label.Contains(needle, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(o => o.Label.StartsWith(needle, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .ThenBy(o => o.Label, StringComparer.OrdinalIgnoreCase)
+            .Take(SystemMatchLimit)
+            .Cast<object>()
+            .ToList();
+
+        return Task.FromResult<IEnumerable<object>>(matches);
+    };
+
+    private List<PickOption> _typeOptions = [];
+    public List<PickOption> TypeOptions
+    {
+        get => _typeOptions;
+        private set => this.RaiseAndSetIfChanged(ref _typeOptions, value);
+    }
+
+    /// <summary>Started once at construction, awaited by the first detail load. Held as a task so
+    /// two quick selections cannot both decide to load them.</summary>
+    private Task? _optionsTask;
 
     private PickOption? _editSystem;
     public PickOption? EditSystem { get => _editSystem; set => this.RaiseAndSetIfChanged(ref _editSystem, value); }
@@ -605,7 +655,18 @@ public class StructureBrowserViewModel : ReactiveObject
         });
 
         _ = LoadAsync();
+
+        // Started now rather than on the first selection. It is the same work either way, but at
+        // construction nothing is waiting on it, whereas on a click the user is.
+        _ = LoadPickOptionsAsync();
     }
+
+    /// <summary>
+    /// Bumped on every selection. Work that outlives the click it belongs to — icon downloads —
+    /// compares against it before publishing, so a slow fetch cannot decorate the ring of a
+    /// structure the user has since moved off.
+    /// </summary>
+    private int _detailSeq;
 
     private static string StatusLabel(int status) => (StructureStatus)status switch
     {
@@ -725,6 +786,8 @@ public class StructureBrowserViewModel : ReactiveObject
     /// </summary>
     private async Task LoadDetailAsync(StructureRow? row)
     {
+        _detailSeq++;
+
         Fitting.Clear();
         Assets.Clear();
         Cargo.Clear();
@@ -756,10 +819,10 @@ public class StructureBrowserViewModel : ReactiveObject
             // predating an SDE import, would be quietly erased by opening the tab and pressing Save.
             _editSystem = row.SystemId == 0
                 ? null
-                : Ensure(SystemOptions, (int)row.SystemId, row.SystemName);
+                : Ensure(SystemOptions, v => SystemOptions = v, (int)row.SystemId, row.SystemName);
             _editType = row.TypeId == 0
                 ? NoType
-                : Ensure(TypeOptions, (int)row.TypeId, row.TypeName);
+                : Ensure(TypeOptions, v => TypeOptions = v, (int)row.TypeId, row.TypeName);
 
             _editSystemText = _editSystem?.Label ?? "";
             this.RaisePropertyChanged(nameof(EditSystem));
@@ -1088,12 +1151,28 @@ public class StructureBrowserViewModel : ReactiveObject
         Band(EveConsole.Controls.FittingBand.Service, Cap(AttrServiceSlots),
              i => Hand(EveConsole.Controls.FittingBand.Service, i));
 
-        // Show the ring immediately, then fill the icons in. Waiting on a dozen HTTP fetches
-        // before drawing anything would make selecting a structure feel broken.
+        // Show the ring immediately, then fill the icons in.
         FittingSlots = slots;
 
-        var icons = await LoadIconsAsync(wanted.Distinct().ToList());
-        if (icons.Count == 0) return;
+        // ⚠️ Deliberately not awaited, which is what the line above was always meant to mean.
+        // Awaiting it made the caller wait too, so the assets, cargo and job tabs sat empty until
+        // every module icon had come down — the first selection of a session pays for all of them
+        // at once, which is exactly when the viewer looked hung.
+        _ = FillFittingIconsAsync(slots, wanted.Distinct().ToList(), _detailSeq);
+    }
+
+    /// <summary>
+    /// Attaches module icons to the ring once they arrive.
+    ///
+    /// <para>⚠️ Checks the sequence it was started with before publishing. Without it, clicking
+    /// down the list faster than the images download would let an earlier structure's icons land
+    /// on a later structure's ring.</para>
+    /// </summary>
+    private async Task FillFittingIconsAsync(
+        List<EveConsole.Controls.FittingSlot> slots, List<int> wanted, int seq)
+    {
+        var icons = await LoadIconsAsync(wanted);
+        if (icons.Count == 0 || seq != _detailSeq) return;
 
         // Records are immutable, so the list is rebuilt with the icons attached — which also
         // gives the control a new reference to notice.
@@ -1107,35 +1186,55 @@ public class StructureBrowserViewModel : ReactiveObject
     /// <summary>Module icons, cached across selections — the same modules recur constantly.</summary>
     private static readonly Dictionary<int, Avalonia.Media.Imaging.Bitmap?> _iconCache = new();
 
+    /// <summary>
+    /// Fetches whatever icons are not already cached.
+    ///
+    /// <para>⚠️ In parallel, not one after another. A full rack is a dozen or more modules, and
+    /// serially every one of them could spend the whole HTTP timeout before the next even started
+    /// — which is how a single unreachable image server turned one click into minutes rather than
+    /// seconds. Concurrently the worst case is one timeout, whatever the slot count.</para>
+    /// </summary>
     private static async Task<Dictionary<int, Avalonia.Media.Imaging.Bitmap>> LoadIconsAsync(
         IReadOnlyList<int> typeIds)
     {
-        var result = new Dictionary<int, Avalonia.Media.Imaging.Bitmap>();
+        var result  = new Dictionary<int, Avalonia.Media.Imaging.Bitmap>();
+        var missing = new List<int>();
 
         foreach (var id in typeIds)
         {
             if (_iconCache.TryGetValue(id, out var cached))
             {
                 if (cached is not null) result[id] = cached;
-                continue;
             }
+            else missing.Add(id);
+        }
 
+        if (missing.Count == 0) return result;
+
+        var fetched = await Task.WhenAll(missing.Distinct().Select(async id =>
+        {
             try
             {
                 var bytes = await _renderHttp.GetByteArrayAsync(
                     $"https://images.evetech.net/types/{id}/icon?size=64");
 
                 using var ms = new MemoryStream(bytes);
-                var bmp = new Avalonia.Media.Imaging.Bitmap(ms);
-                _iconCache[id] = bmp;
-                result[id] = bmp;
+                return (id, bmp: (Avalonia.Media.Imaging.Bitmap?)new Avalonia.Media.Imaging.Bitmap(ms));
             }
             catch
             {
                 // A missing icon leaves an empty box, which is honest — better than a broken
                 // image or an error for something purely decorative.
-                _iconCache[id] = null;
+                return (id, bmp: (Avalonia.Media.Imaging.Bitmap?)null);
             }
+        }));
+
+        // Written here rather than inside the tasks: the cache is a plain dictionary, and this
+        // continuation is the one place they are all back on a single thread.
+        foreach (var (id, bmp) in fetched)
+        {
+            _iconCache[id] = bmp;
+            if (bmp is not null) result[id] = bmp;
         }
 
         return result;
@@ -1144,7 +1243,13 @@ public class StructureBrowserViewModel : ReactiveObject
     /// <summary>Renders of structure hulls, kept for the session — they are a few hundred KB each
     /// and the same handful of types recur constantly as the user moves down the list.</summary>
     private static readonly Dictionary<int, Avalonia.Media.Imaging.Bitmap?> _renderCache = new();
-    private static readonly HttpClient _renderHttp = new() { Timeout = TimeSpan.FromSeconds(20) };
+    /// <summary>
+    /// ⚠️ A short timeout on purpose. These are decorative 64px icons and 256px renders from a
+    /// CDN: if one has not arrived in five seconds it is not coming, and waiting longer buys
+    /// nothing but a frozen-looking viewer. Failures are cached as null, so an unreachable image
+    /// server costs one wait per type per session rather than one per click.
+    /// </summary>
+    private static readonly HttpClient _renderHttp = new() { Timeout = TimeSpan.FromSeconds(5) };
 
     /// <summary>
     /// Fetches the hull render for a structure type. Follows the selected row rather than the
@@ -1194,44 +1299,55 @@ public class StructureBrowserViewModel : ReactiveObject
     /// intended one apart; types are the structure category only, so the list is short enough to
     /// scroll rather than search.
     /// </summary>
-    private async Task LoadPickOptionsAsync()
-    {
-        if (_optionsLoaded) return;
+    private Task LoadPickOptionsAsync() => _optionsTask ??= BuildPickOptionsAsync();
 
+    private async Task BuildPickOptionsAsync()
+    {
         try
         {
-            await using var db = await _dbFactory.CreateDbContextAsync();
-
-            var regs = await db.SdeRegions.AsNoTracking()
-                .ToDictionaryAsync(r => r.RegionId, r => r.Name);
-
-            var systems = await db.SdeSolarSystems.AsNoTracking()
-                .Select(s => new { s.SolarSystemId, s.Name, s.RegionId })
-                .ToListAsync();
-
-            foreach (var s in systems.OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase))
+            // ⚠️ Off the UI thread. Microsoft.Data.Sqlite has no true async I/O, so every
+            // "…Async" here runs synchronously on whichever thread calls it — awaiting them from
+            // the selection handler blocks the UI for the whole load rather than yielding.
+            var (systems, types) = await Task.Run(async () =>
             {
-                var region = regs.GetValueOrDefault(s.RegionId, "");
-                SystemOptions.Add(new PickOption(
-                    s.SolarSystemId, region.Length > 0 ? $"{s.Name} — {region}" : s.Name));
-            }
+                await using var db = await _dbFactory.CreateDbContextAsync();
 
-            // Category 65 is what makes a type a structure, the same test the non-structure purge
-            // uses. Unpublished types are test/removed hulls that cannot be anchored.
-            var types = await db.SdeTypes.AsNoTracking()
-                .Join(db.SdeGroups.AsNoTracking().Where(g => g.CategoryId == StructureCategory),
-                      t => t.GroupId, g => g.GroupId, (t, g) => new { t.TypeId, t.Name, t.Published })
-                .Where(t => t.Published)
-                .ToListAsync();
+                var regs = await db.SdeRegions.AsNoTracking()
+                    .ToDictionaryAsync(r => r.RegionId, r => r.Name);
 
-            // A dropdown has no equivalent of clearing the text, so "unknown" has to be an entry
-            // in the list or the field becomes write-once: pick a type by mistake and there is no
-            // way back to not knowing.
-            TypeOptions.Add(NoType);
-            foreach (var t in types.OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase))
-                TypeOptions.Add(new PickOption(t.TypeId, t.Name));
+                var sys = (await db.SdeSolarSystems.AsNoTracking()
+                        .Select(s => new { s.SolarSystemId, s.Name, s.RegionId })
+                        .ToListAsync())
+                    .OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
+                    .Select(s =>
+                    {
+                        var region = regs.GetValueOrDefault(s.RegionId, "");
+                        return new PickOption(
+                            s.SolarSystemId, region.Length > 0 ? $"{s.Name} — {region}" : s.Name);
+                    })
+                    .ToList();
 
-            _optionsLoaded = true;
+                // Category 65 is what makes a type a structure, the same test the non-structure
+                // purge uses. Unpublished types are test/removed hulls that cannot be anchored.
+                var tps = (await db.SdeTypes.AsNoTracking()
+                        .Join(db.SdeGroups.AsNoTracking().Where(g => g.CategoryId == StructureCategory),
+                              t => t.GroupId, g => g.GroupId, (t, g) => new { t.TypeId, t.Name, t.Published })
+                        .Where(t => t.Published)
+                        .ToListAsync())
+                    .OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase)
+                    .Select(t => new PickOption(t.TypeId, t.Name))
+                    .ToList();
+
+                // A dropdown has no equivalent of clearing the text, so "unknown" has to be an
+                // entry in the list or the field becomes write-once: pick a type by mistake and
+                // there is no way back to not knowing.
+                tps.Insert(0, NoType);
+
+                return (sys, tps);
+            });
+
+            SystemOptions = systems;
+            TypeOptions   = types;
         }
         catch (Exception ex) { DetailStatus = $"Could not load pickers: {ex.Message}"; }
     }
@@ -1245,13 +1361,15 @@ public class StructureBrowserViewModel : ReactiveObject
     /// Finds the option for an id, inventing one from the row's own label if the SDE list does not
     /// carry it. The invented entry is what lets an unrecognised id survive a save.
     /// </summary>
-    private static PickOption Ensure(ObservableCollection<PickOption> options, int id, string label)
+    private static PickOption Ensure(List<PickOption> options, Action<List<PickOption>> replace,
+                                     int id, string label)
     {
         var found = options.FirstOrDefault(o => o.Id == id);
         if (found is not null) return found;
 
         var made = new PickOption(id, label.Length > 0 ? label : $"Type {id}");
-        options.Add(made);
+        // A replaced list, not a mutated one — the bound controls only notice a new reference.
+        replace([.. options, made]);
         return made;
     }
 

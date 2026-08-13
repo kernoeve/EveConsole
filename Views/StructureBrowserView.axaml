@@ -203,11 +203,15 @@
                   <Grid ColumnDefinitions="*,*">
                     <StackPanel Grid.Column="0" Margin="0 0 6 0">
                       <TextBlock Classes="flabel" Text="SYSTEM" />
-                      <AutoCompleteBox ItemsSource="{Binding SystemOptions}"
+                      <!-- ⚠️ AsyncPopulator, not ItemsSource. Handing this box all ~8,500 systems
+                           made it lay out every one of them and hung the tool. FilterMode must be
+                           None: the populator has already narrowed the list, and letting the box
+                           filter again would drop matches it never received. -->
+                      <AutoCompleteBox AsyncPopulator="{Binding SystemPopulator}"
                                        SelectedItem="{Binding EditSystem}"
                                        Text="{Binding EditSystemText}"
                                        ValueMemberBinding="{Binding Label}"
-                                       FilterMode="Contains" MinimumPrefixLength="2"
+                                       FilterMode="None" MinimumPrefixLength="2"
                                        IsEnabled="{Binding CanEditIdentity}"
                                        Margin="0" FontSize="11.5"
                                        Watermark="Type two letters of the system name…" />
