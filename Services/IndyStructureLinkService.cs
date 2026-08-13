@@ -66,16 +66,23 @@ public class IndyStructureLinkService(IDbContextFactory<AppDbContext> dbFactory,
         }
     }
 
-    /// <summary>Pushes one park structure's fitting to its linked real structure. No-op when the
-    /// real one is asset-fed, since the game outranks a typed answer.</summary>
+    /// <summary>
+    /// The park side has just been edited: carry it to the linked structure.
+    ///
+    /// <para>⚠️ Pushes the direction its name says rather than re-deciding. When neither side is
+    /// asset-fed both are editable, and re-running the direction rule after an edit would answer
+    /// with the same fixed direction every time — so an edit made on the other side would be
+    /// overwritten by the copy it had just replaced. An asset-fed structure is the one case where
+    /// the game still outranks the edit, so the park is corrected from it instead.</para>
+    /// </summary>
     public Task<int> PushFromParkAsync(int parkStructureId, CancellationToken ct = default) =>
-        SyncWhereAsync(l => l.ParkId == parkStructureId, ct);
+        PushAsync(l => l.ParkId == parkStructureId, fromPark: true, ct);
 
-    /// <summary>Pushes a real structure's fitting to any park entry linked to it.</summary>
+    /// <summary>The real side has just been edited: carry it to any park entry linked to it.</summary>
     public Task<int> PushFromRealAsync(long realStructureId, CancellationToken ct = default) =>
-        SyncWhereAsync(l => l.RealId == realStructureId, ct);
+        PushAsync(l => l.RealId == realStructureId, fromPark: false, ct);
 
-    private async Task<int> SyncWhereAsync(Func<Link, bool> match, CancellationToken ct)
+    private async Task<int> PushAsync(Func<Link, bool> match, bool fromPark, CancellationToken ct)
     {
         try
         {
@@ -83,7 +90,15 @@ public class IndyStructureLinkService(IDbContextFactory<AppDbContext> dbFactory,
 
             var changed = 0;
             foreach (var link in (await LinksAsync(db, ct)).Where(match))
-                changed += await SyncOneAsync(db, link, ct);
+            {
+                // A park edit cannot outrank the game, so an asset-fed structure corrects the park
+                // instead of accepting from it. Everywhere else the edited side wins.
+                var parkWins = fromPark && !await IsAssetFedAsync(db, link.RealId, ct);
+
+                changed += parkWins
+                    ? await ParkToRealAsync(db, link, ct)
+                    : await RealToParkAsync(db, link, ct);
+            }
 
             if (changed > 0) await db.SaveChangesAsync(ct);
             return changed;
@@ -91,7 +106,7 @@ public class IndyStructureLinkService(IDbContextFactory<AppDbContext> dbFactory,
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
-            errorLogger.Log(nameof(IndyStructureLinkService), nameof(SyncWhereAsync), ex);
+            errorLogger.Log(nameof(IndyStructureLinkService), nameof(PushAsync), ex);
             return 0;
         }
     }
@@ -128,18 +143,38 @@ public class IndyStructureLinkService(IDbContextFactory<AppDbContext> dbFactory,
 
     private static async Task<int> RealToParkAsync(AppDbContext db, Link link, CancellationToken ct)
     {
-        var fitted = await db.EsiAssets.AsNoTracking()
-            .Where(a => a.LocationId == link.RealId && a.LocationFlag.Contains("Slot"))
-            .Select(a => new { a.LocationFlag, a.TypeId })
-            .ToListAsync(ct);
-
-        var rigs = fitted.Where(f => f.LocationFlag.StartsWith("RigSlot"))
-                         .Select(f => f.TypeId).ToList();
-        var services = fitted.Where(f => f.LocationFlag.StartsWith("ServiceSlot"))
-                             .Select(f => f.TypeId).ToList();
+        var (rigs, services) = await ReadRealAsync(db, link.RealId, ct);
 
         return await WriteParkRigsAsync(db, link.ParkId, rigs, ct)
              + await WriteParkServicesAsync(db, link.ParkId, services, ct);
+    }
+
+    /// <summary>
+    /// What the real structure is currently fitted with, from whichever source knows.
+    ///
+    /// <para>⚠️ Assets when there are any, hand entries otherwise — never both, and never assets
+    /// alone. Reading only assets would make a push from a structure nobody can see inside send an
+    /// empty set, silently emptying the park entry that was the only record of its fitting.</para>
+    /// </summary>
+    private static async Task<(List<int> Rigs, List<int> Services)> ReadRealAsync(
+        AppDbContext db, long realId, CancellationToken ct)
+    {
+        var fitted = await db.EsiAssets.AsNoTracking()
+            .Where(a => a.LocationId == realId && a.LocationFlag.Contains("Slot"))
+            .Select(a => new { a.LocationFlag, a.TypeId })
+            .ToListAsync(ct);
+
+        if (fitted.Count > 0)
+            return (fitted.Where(f => f.LocationFlag.StartsWith("RigSlot")).Select(f => f.TypeId).ToList(),
+                    fitted.Where(f => f.LocationFlag.StartsWith("ServiceSlot")).Select(f => f.TypeId).ToList());
+
+        var hand = await db.StructureFittings.AsNoTracking()
+            .Where(f => f.StructureId == realId && (f.Band == BandRig || f.Band == BandService))
+            .Select(f => new { f.Band, f.TypeId })
+            .ToListAsync(ct);
+
+        return (hand.Where(f => f.Band == BandRig).Select(f => f.TypeId).ToList(),
+                hand.Where(f => f.Band == BandService).Select(f => f.TypeId).ToList());
     }
 
     private static async Task<int> WriteParkRigsAsync(
