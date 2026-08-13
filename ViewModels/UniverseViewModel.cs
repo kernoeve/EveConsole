@@ -267,6 +267,27 @@ public class UniverseViewModel : ReactiveObject
     public ObservableCollection<CrumbVm>       Crumbs     { get; } = [];
     public ObservableCollection<LegendEntryVm> Legend     { get; } = [];
 
+    /// <summary>
+    /// What the marks beside each system box mean.
+    ///
+    /// <para>Built once and never cleared, unlike <see cref="Legend"/>, which is rebuilt whenever
+    /// the overlay changes — the badges do not change with the overlay, so neither does this. It
+    /// exists at all because a row of small coloured squares with nothing explaining them is
+    /// decoration rather than information.</para>
+    ///
+    /// <para>Read from the canvas's own tables, so a colour cannot be changed in one place and
+    /// explained differently in the other.</para>
+    /// </summary>
+    public IReadOnlyList<LegendEntryVm> DockLegend { get; } =
+        MapCanvas.DockLegend
+            .Select(d => new LegendEntryVm(d.Label, ((ISolidColorBrush)d.Brush).Color))
+            .ToList();
+
+    public IReadOnlyList<LegendEntryVm> ServiceLegend { get; } =
+        MapCanvas.ServiceLegend
+            .Select(s => new LegendEntryVm(s.Label, ((ISolidColorBrush)s.Brush).Color))
+            .ToList();
+
     public IReadOnlyList<OverlayModeVm> OverlayModes { get; }
 
     private OverlayModeVm _selectedOverlay;

@@ -568,45 +568,99 @@ public class MapCanvas : Control
             DrawBadges(ctx, badges, rect);
     }
 
-    // Badge colours. Docking capability leads, because it is the one that decides whether you can
-    // bring the ship you are flying: gold for a Keepstar (supers and titans), orange for anything
-    // else a capital can dock at, grey-blue for a subcap-only citadel.
-    private static readonly IBrush BadgeKeepstar = new ImmutableSolidColorBrush(Color.Parse("#e8c86a"));
-    private static readonly IBrush BadgeCapital  = new ImmutableSolidColorBrush(Color.Parse("#e08a3c"));
-    private static readonly IBrush BadgeSubcap   = new ImmutableSolidColorBrush(Color.Parse("#7f93a8"));
-    private static readonly IBrush BadgeIndustry = new ImmutableSolidColorBrush(Color.Parse("#5fa8d3"));
-    private static readonly IBrush BadgeRefinery = new ImmutableSolidColorBrush(Color.Parse("#6bbf8a"));
-    private static readonly IPen   BadgePen      = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#0b0b10")), 1);
+    // ── Badge palette ────────────────────────────────────────────────────────
+    //
+    // Docking is a rank, so its three colours are a deliberate progression — gold, orange,
+    // grey-blue — and read as "more" to "less" without the legend. Services are unordered, so
+    // theirs are simply distinguishable from each other and from the docking three.
+
+    private static readonly IBrush DockSuper   = new ImmutableSolidColorBrush(Color.Parse("#e8c86a"));
+    private static readonly IBrush DockCapital = new ImmutableSolidColorBrush(Color.Parse("#e08a3c"));
+    private static readonly IBrush DockSubcap  = new ImmutableSolidColorBrush(Color.Parse("#7f93a8"));
+
+    private static readonly IBrush SvcManufacturing = new ImmutableSolidColorBrush(Color.Parse("#5fa8d3"));
+    private static readonly IBrush SvcResearch      = new ImmutableSolidColorBrush(Color.Parse("#9b7fd4"));
+    private static readonly IBrush SvcReprocessing  = new ImmutableSolidColorBrush(Color.Parse("#6bbf8a"));
+    private static readonly IBrush SvcReactions     = new ImmutableSolidColorBrush(Color.Parse("#d4708a"));
+    private static readonly IBrush SvcCloning       = new ImmutableSolidColorBrush(Color.Parse("#d9d2c4"));
+    private static readonly IBrush SvcMarket        = new ImmutableSolidColorBrush(Color.Parse("#d8a03c"));
+
+    private static readonly IPen BadgePen = new ImmutablePen(
+        new ImmutableSolidColorBrush(Color.Parse("#0b0b10")), 1);
+
+    /// <summary>Legend order, and the order marks are drawn in. Fixed so a given service is always
+    /// in the same place on the box and can be learned by position as well as colour.</summary>
+    internal static readonly (SystemServices Service, IBrush Brush, string Label)[] ServiceLegend =
+    [
+        (SystemServices.Manufacturing, SvcManufacturing, "Manufacturing"),
+        (SystemServices.Research,      SvcResearch,      "Research / Invention"),
+        (SystemServices.Reprocessing,  SvcReprocessing,  "Reprocessing"),
+        (SystemServices.Reactions,     SvcReactions,     "Reactions"),
+        (SystemServices.Cloning,       SvcCloning,       "Clone bay"),
+        (SystemServices.Market,        SvcMarket,        "Market"),
+    ];
+
+    internal static readonly (DockClass Dock, IBrush Brush, string Label)[] DockLegend =
+    [
+        (DockClass.Super,   DockSuper,   "Supers & titans (Keepstar, Sotiyo)"),
+        (DockClass.Capital, DockCapital, "Capitals (Fortizar, Azbel, Tatara, NPC station)"),
+        (DockClass.Subcap,  DockSubcap,  "Subcapitals only (Astrahus, Raitaru, Athanor)"),
+    ];
+
+    private static IBrush? DockBrush(DockClass d) => d switch
+    {
+        DockClass.Super   => DockSuper,
+        DockClass.Capital => DockCapital,
+        DockClass.Subcap  => DockSubcap,
+        _                 => null,
+    };
 
     /// <summary>
-    /// A column of small squares against the right edge of the system box, in the manner of the
-    /// in-game and Dotlan maps. Drawn from the box rectangle rather than the node point so they
-    /// sit against the box whatever its width, and outside it so they never cover the name.
+    /// Docking on the left, services on the right, both outside the box so neither covers the
+    /// name and neither depends on the overlay.
+    ///
+    /// <para>Docking gets a single tall bar rather than a square: it is one fact with a rank, and
+    /// a bar reads as a level at a glance where a square among squares does not. Services are a
+    /// grid of small squares — up to six of them would be taller than the box in one column, so
+    /// they wrap into two.</para>
     /// </summary>
     private void DrawBadges(DrawingContext ctx, MapBadges b, Rect box)
     {
-        const double size = 5, gap = 1.5;
+        const double size = 4.5, gap = 1.5, offset = 3;
 
-        var marks = new List<IBrush>(4);
+        // ── Left: one bar, height stepped by class so it reads without colour ──
+        if (DockBrush(b.Dock) is { } dockBrush)
+        {
+            const double barW = 3.5;
+            var frac = b.Dock switch
+            {
+                DockClass.Super   => 0.86,
+                DockClass.Capital => 0.58,
+                _                 => 0.30,
+            };
+            var barH = box.Height * frac;
+            ctx.DrawRectangle(dockBrush, BadgePen,
+                new Rect(box.X - offset - barW, box.Y + (box.Height - barH) / 2, barW, barH));
+        }
 
-        // One docking mark, the best available — three separate marks for a system with all
-        // three would say less, not more.
-        if (b.Keepstar)                       marks.Add(BadgeKeepstar);
-        else if (b.Fortizar || b.NpcStation)  marks.Add(BadgeCapital);
-        else if (b.Astrahus)                  marks.Add(BadgeSubcap);
-
-        if (b.EngineeringComplex) marks.Add(BadgeIndustry);
-        if (b.Refinery)           marks.Add(BadgeRefinery);
+        // ── Right: services, in fixed legend order, wrapping into columns ──
+        var marks = ServiceLegend
+            .Where(s => b.Services.HasFlag(s.Service))
+            .Select(s => s.Brush)
+            .ToList();
         if (marks.Count == 0) return;
 
-        var totalH = marks.Count * size + (marks.Count - 1) * gap;
-        var x = box.Right + 3;
-        var y = box.Y + (box.Height - totalH) / 2;
+        // Three to a column keeps the block no taller than the box at any sensible font size.
+        const int perColumn = 3;
+        var rows   = Math.Min(marks.Count, perColumn);
+        var blockH = rows * size + (rows - 1) * gap;
+        var top    = box.Y + (box.Height - blockH) / 2;
 
-        foreach (var brush in marks)
+        for (var i = 0; i < marks.Count; i++)
         {
-            ctx.DrawRectangle(brush, BadgePen, new Rect(x, y, size, size));
-            y += size + gap;
+            var x = box.Right + offset + (i / perColumn) * (size + gap);
+            var y = top       + (i % perColumn) * (size + gap);
+            ctx.DrawRectangle(marks[i], BadgePen, new Rect(x, y, size, size));
         }
     }
 

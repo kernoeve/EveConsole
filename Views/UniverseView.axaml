@@ -207,6 +207,55 @@
 
           <Rectangle Height="1" Fill="#1e1e2a" />
 
+          <!-- Box marks. Always shown, because unlike the overlay legend above these do not
+               change with the overlay — and a row of small coloured squares with nothing
+               explaining them is decoration rather than information. -->
+          <StackPanel Spacing="4">
+            <TextBlock Classes="flabel" Text="DOCKING — LEFT OF THE BOX" />
+            <ItemsControl ItemsSource="{Binding DockLegend}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:LegendEntryVm">
+                  <StackPanel Orientation="Horizontal" Spacing="7" Margin="0 2">
+                    <ItemsControl ItemsSource="{Binding Swatches}" VerticalAlignment="Center">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <!-- A bar, matching the map: the height is the rank. -->
+                          <Rectangle Width="4" Height="11" Fill="{Binding}" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="{Binding Label}" FontSize="10.5" Foreground="#8a8a9a"
+                               TextWrapping="Wrap" VerticalAlignment="Center" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Classes="flabel" Text="SERVICES — RIGHT OF THE BOX" Margin="0 6 0 0" />
+            <ItemsControl ItemsSource="{Binding ServiceLegend}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:LegendEntryVm">
+                  <StackPanel Orientation="Horizontal" Spacing="7" Margin="0 2">
+                    <ItemsControl ItemsSource="{Binding Swatches}" VerticalAlignment="Center">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Rectangle Width="9" Height="9" Fill="{Binding}" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="{Binding Label}" FontSize="10.5" Foreground="#8a8a9a"
+                               VerticalAlignment="Center" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock FontSize="10" Foreground="#4a4a5c" TextWrapping="Wrap" Margin="0 4 0 0"
+                       Text="Merged from NPC stations and player structures. A structure whose type we have not resolved contributes nothing, so a blank side means &quot;not known&quot; rather than &quot;nothing there&quot;." />
+          </StackPanel>
+
+          <Rectangle Height="1" Fill="#1e1e2a" />
+
           <TextBlock FontSize="10.5" Foreground="#4a4a5c" TextWrapping="Wrap"
                      Text="Scroll to zoom, drag to pan. Kill counts come from killmails this app has stored, not from all of New Eden." />
 

@@ -26,30 +26,62 @@ public sealed record MapNode(
     int    Tier = 0);
 
 /// <summary>
+/// The largest hull that can dock somewhere in a system.
+///
+/// <para>⚠️ Taken from the hull's own <c>rigSize</c> attribute, not from a list of type names.
+/// Upwell structures are built in three sizes and the size IS the docking class, so a faction
+/// Fortizar classifies itself and a hull CCP adds next year classifies itself too. Ranked, so
+/// "the best in the system" is a MAX rather than a pile of booleans.</para>
+/// </summary>
+public enum DockClass
+{
+    /// <summary>Nothing here we can dock at, or nothing we can identify.</summary>
+    None = 0,
+
+    /// <summary>Medium: Astrahus, Raitaru, Athanor. No capitals.</summary>
+    Subcap = 1,
+
+    /// <summary>Large, and every NPC station: capitals yes, supers no.</summary>
+    Capital = 2,
+
+    /// <summary>Extra-large: Keepstar and Sotiyo. The only places a super or titan can dock.</summary>
+    Super = 3,
+}
+
+/// <summary>
+/// Services a system offers, merged across NPC stations and player structures.
+///
+/// <para>⚠️ Deliberately not the full service list. Measured against the SDE, Office Rental,
+/// Market, Fitting and Reprocessing Plant are present at 1,753-1,754 of the 1,754 systems that
+/// have an NPC station at all, so badging them would colour every box in high-sec identically and
+/// say nothing. What survives is what varies — and everything on the player side, since in null
+/// and wormhole space there are no NPC stations and a fitted module is the whole story.</para>
+/// </summary>
+[Flags]
+public enum SystemServices
+{
+    None          = 0,
+    Manufacturing = 1 << 0,
+    Research      = 1 << 1,
+    Reprocessing  = 1 << 2,
+
+    /// <summary>Player structures only — no NPC station reacts.</summary>
+    Reactions     = 1 << 3,
+    Cloning       = 1 << 4,
+    Market        = 1 << 5,
+}
+
+/// <summary>
 /// What a system offers, drawn on its box whatever the overlay is showing. Facts about the place
 /// rather than a reading of it, which is why they are not part of <see cref="MapNodeStyle"/> —
 /// changing overlay must not take them away.
 ///
-/// <para>The docking flags are the point of this: an NPC station and a Fortizar take capitals, an
-/// Astrahus does not, and only a Keepstar takes a super or a titan. That decides whether a system
-/// is somewhere you can actually bring the ship you fly.</para>
+/// <para>Docking leads because it decides whether a system is somewhere you can bring the ship
+/// you are flying; services answer what you could do once there.</para>
 /// </summary>
-public sealed record MapBadges(
-    bool NpcStation,
-    bool Astrahus,
-    bool Fortizar,
-    bool Keepstar,
-    bool EngineeringComplex,
-    bool Refinery)
+public sealed record MapBadges(DockClass Dock, SystemServices Services)
 {
-    /// <summary>Anything a capital can dock at.</summary>
-    public bool CapitalDock => NpcStation || Fortizar || Keepstar;
-
-    /// <summary>Only a Keepstar takes a super or a titan.</summary>
-    public bool SuperDock => Keepstar;
-
-    public bool Any => NpcStation || Astrahus || Fortizar || Keepstar
-                    || EngineeringComplex || Refinery;
+    public bool Any => Dock != DockClass.None || Services != SystemServices.None;
 }
 
 /// <summary>An undirected jump between two nodes. Stored once per pair, low id first.</summary>
@@ -310,50 +342,151 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     /// <para>Structures come from the ones this app has resolved a name for, so a system with a
     /// citadel nobody here has seen shows nothing. Under-reporting, never inventing.</para>
     /// </summary>
+    /// <summary>rigSize. Both the rig and the hull declare it, and on a hull it is the size class.</summary>
+    private const int AttrRigSize = 1547;
+
+    /// <summary>The serviceSlot effect — what makes a module a service module.</summary>
+    private const int EffServiceSlot = 6306;
+
+    /// <summary>
+    /// NPC station services worth badging, by SDE service id.
+    ///
+    /// <para>⚠️ Reprocessing takes BOTH ids. "Reprocessing Plant" (5) sits at 1,753 systems and
+    /// "Refinery" (6) at 405; they are separate services in the SDE and a station with either can
+    /// reprocess, so reporting only the rare one would be tidier and wrong.</para>
+    /// </summary>
+    private static readonly (int[] Ids, SystemServices Service)[] NpcServiceMap =
+    [
+        ([14],    SystemServices.Manufacturing),  // Factory
+        ([15],    SystemServices.Research),       // Laboratory
+        ([5, 6],  SystemServices.Reprocessing),   // Reprocessing Plant, Refinery
+        ([10, 24],SystemServices.Cloning),        // Cloning, Jump Clone Facility
+        ([7],     SystemServices.Market),         // Market
+        // Reactions has no NPC equivalent — station services predate them.
+    ];
+
+    /// <summary>
+    /// Which service a Standup module provides, matched on its name.
+    ///
+    /// <para>⚠️ Name matching, and the one place in this file that is not attribute-driven. A
+    /// service module declares that it OCCUPIES a service slot but nothing about what it does, so
+    /// there is no attribute to read. The saving grace is that the set is small, closed and
+    /// enumerable: sixteen published modules, all checked against the SDE. Verify with the
+    /// serviceSlot effect query if CCP adds one.</para>
+    /// </summary>
+    private static SystemServices ServiceOfModule(string name) => name switch
+    {
+        _ when name.Contains("Reactor")       => SystemServices.Reactions,
+        _ when name.Contains("Reprocessing")  => SystemServices.Reprocessing,
+        _ when name.Contains("Manufacturing")
+            || name.Contains("Shipyard")      => SystemServices.Manufacturing,
+        _ when name.Contains("Research")
+            || name.Contains("Invention")     => SystemServices.Research,
+        _ when name.Contains("Cloning")       => SystemServices.Cloning,
+        _ when name.Contains("Market")        => SystemServices.Market,
+        // Moon drills, cyno generators and jammers are service modules too, and none of them is
+        // something you travel to a system for.
+        _                                     => SystemServices.None,
+    };
+
     public async Task<Dictionary<int, MapBadges>> GetSystemBadgesAsync(CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();
 
-        var npc = (await db.SdeStations.AsNoTracking()
-            .Select(s => s.SolarSystemId).Distinct().ToListAsync(ct)).ToHashSet();
-
-        // Grouped by name within the structure groups, so faction Fortizars come along and a
-        // wreck or blueprint that happens to share a word does not.
-        var types = await (
-            from t in db.SdeTypes.AsNoTracking()
-            join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
-            where g.Name == "Citadel" || g.Name == "Engineering Complex" || g.Name == "Refinery"
-            select new { t.TypeId, t.Name, GroupName = g.Name }).ToListAsync(ct);
-
-        var astrahus = types.Where(t => t.Name.Contains("Astrahus")).Select(t => t.TypeId).ToHashSet();
-        var fortizar = types.Where(t => t.Name.Contains("Fortizar")).Select(t => t.TypeId).ToHashSet();
-        var keepstar = types.Where(t => t.Name.Contains("Keepstar")).Select(t => t.TypeId).ToHashSet();
-        var engineer = types.Where(t => t.GroupName == "Engineering Complex").Select(t => t.TypeId).ToHashSet();
-        var refinery = types.Where(t => t.GroupName == "Refinery").Select(t => t.TypeId).ToHashSet();
-
-        var structures = await db.EsiStructureNames.AsNoTracking()
-            .Select(s => new { s.SolarSystemId, s.TypeId })
-            .ToListAsync(ct);
-
         var badges = new Dictionary<int, MapBadges>();
 
-        foreach (var systemId in npc)
-            badges[systemId] = new MapBadges(true, false, false, false, false, false);
-
-        foreach (var group in structures.GroupBy(s => s.SolarSystemId))
+        void Add(int systemId, DockClass dock, SystemServices services)
         {
-            var existing = badges.GetValueOrDefault(group.Key)
-                           ?? new MapBadges(false, false, false, false, false, false);
-
-            badges[group.Key] = existing with
+            var b = badges.GetValueOrDefault(systemId) ?? new MapBadges(DockClass.None, SystemServices.None);
+            badges[systemId] = b with
             {
-                Astrahus           = existing.Astrahus           || group.Any(s => astrahus.Contains(s.TypeId)),
-                Fortizar           = existing.Fortizar           || group.Any(s => fortizar.Contains(s.TypeId)),
-                Keepstar           = existing.Keepstar           || group.Any(s => keepstar.Contains(s.TypeId)),
-                EngineeringComplex = existing.EngineeringComplex || group.Any(s => engineer.Contains(s.TypeId)),
-                Refinery           = existing.Refinery           || group.Any(s => refinery.Contains(s.TypeId)),
+                // Best wins: a system with a Keepstar and an Astrahus is a Keepstar system.
+                Dock     = (DockClass)Math.Max((int)b.Dock, (int)dock),
+                Services = b.Services | services,
             };
         }
+
+        // ── NPC stations ─────────────────────────────────────────────────────
+        // Every NPC station takes capitals; none takes a super.
+        var stations = await db.SdeStations.AsNoTracking()
+            .Select(s => new { s.SolarSystemId, s.OperationId })
+            .ToListAsync(ct);
+
+        var opServices = (await db.SdeStationOperationServices.AsNoTracking().ToListAsync(ct))
+            .GroupBy(o => o.OperationId)
+            .ToDictionary(g => g.Key, g => g.Select(o => o.ServiceId).ToHashSet());
+
+        foreach (var st in stations)
+        {
+            var services = SystemServices.None;
+            if (st.OperationId is { } op && opServices.TryGetValue(op, out var ids))
+                foreach (var (mapIds, service) in NpcServiceMap)
+                    if (mapIds.Any(ids.Contains)) services |= service;
+
+            Add(st.SolarSystemId, DockClass.Capital, services);
+        }
+
+        // ── Player structures ────────────────────────────────────────────────
+        // ⚠️ Our own table, not the polled one: it carries hand-entered structures ESI will not
+        // describe, and its type is what the docking class is read from.
+        var hullSize = await db.SdeTypeDogmaAttributes.AsNoTracking()
+            .Where(a => a.AttributeId == AttrRigSize)
+            .ToDictionaryAsync(a => a.TypeId, a => a.Value, ct);
+
+        var structures = await db.Structures.AsNoTracking()
+            .Where(s => s.TypeId != 0)
+            .Select(s => new { s.StructureId, s.SolarSystemId, s.TypeId })
+            .ToListAsync(ct);
+
+        var systemOf = structures.ToDictionary(s => s.StructureId, s => s.SolarSystemId);
+
+        foreach (var s in structures)
+        {
+            var dock = hullSize.TryGetValue(s.TypeId, out var size)
+                ? size switch
+                {
+                    >= 4 => DockClass.Super,     // Keepstar, Sotiyo
+                    3    => DockClass.Capital,   // Fortizar, Azbel, Tatara
+                    2    => DockClass.Subcap,    // Astrahus, Raitaru, Athanor
+                    _    => DockClass.None,
+                }
+                // A structure with no rigSize is not a dockable hull — a Metenox moon drill is the
+                // case that matters. Silence rather than a guess.
+                : DockClass.None;
+
+            if (dock != DockClass.None) Add(s.SolarSystemId, dock, SystemServices.None);
+        }
+
+        // ── Player service modules ───────────────────────────────────────────
+        // Two sources, same meaning: what the game reports fitted, and what the user recorded for
+        // a structure nobody here can see inside.
+        var moduleNames = await (
+            from te in db.SdeTypeDogmaEffects.AsNoTracking()
+            join t  in db.SdeTypes.AsNoTracking() on te.TypeId equals t.TypeId
+            where te.EffectId == EffServiceSlot
+            select new { t.TypeId, t.Name }).ToListAsync(ct);
+
+        var serviceOfType = moduleNames.ToDictionary(m => m.TypeId, m => ServiceOfModule(m.Name));
+
+        var fittedFromAssets = await db.EsiAssets.AsNoTracking()
+            .Where(a => a.LocationFlag.StartsWith("ServiceSlot"))
+            .Select(a => new { a.LocationId, a.TypeId })
+            .ToListAsync(ct);
+
+        foreach (var a in fittedFromAssets)
+            if (systemOf.TryGetValue(a.LocationId, out var sys)
+                && serviceOfType.TryGetValue(a.TypeId, out var svc) && svc != SystemServices.None)
+                Add(sys, DockClass.None, svc);
+
+        var fittedByHand = await db.StructureFittings.AsNoTracking()
+            .Where(f => f.Band == "Service" && f.TypeId != 0)
+            .Select(f => new { f.StructureId, f.TypeId })
+            .ToListAsync(ct);
+
+        foreach (var f in fittedByHand)
+            if (systemOf.TryGetValue(f.StructureId, out var sys)
+                && serviceOfType.TryGetValue(f.TypeId, out var svc) && svc != SystemServices.None)
+                Add(sys, DockClass.None, svc);
 
         return badges;
     }
