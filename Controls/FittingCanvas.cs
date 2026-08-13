@@ -60,6 +60,20 @@ public class FittingCanvas : Control
     public static readonly StyledProperty<ICommand?> SlotClickedCommandProperty =
         AvaloniaProperty.Register<FittingCanvas, ICommand?>(nameof(SlotClickedCommand));
 
+    /// <summary>
+    /// Suppresses editing. Set when the fitting is known from assets: the game is then the
+    /// authority on what is fitted, and letting someone type over it would create a disagreement
+    /// with no way to tell which side is right.
+    /// </summary>
+    public static readonly StyledProperty<bool> IsReadOnlyProperty =
+        AvaloniaProperty.Register<FittingCanvas, bool>(nameof(IsReadOnly));
+
+    public bool IsReadOnly
+    {
+        get => GetValue(IsReadOnlyProperty);
+        set => SetValue(IsReadOnlyProperty, value);
+    }
+
     public IReadOnlyList<FittingSlot>? Slots
     {
         get => GetValue(SlotsProperty);
@@ -79,7 +93,7 @@ public class FittingCanvas : Control
     }
 
     static FittingCanvas() =>
-        AffectsRender<FittingCanvas>(SlotsProperty, HullRenderProperty);
+        AffectsRender<FittingCanvas>(SlotsProperty, HullRenderProperty, IsReadOnlyProperty);
 
     public FittingCanvas()
     {
@@ -257,7 +271,11 @@ public class FittingCanvas : Control
         if (!ReferenceEquals(hit, _hover))
         {
             _hover = hit;
-            Cursor = new Cursor(hit is null ? StandardCursorType.Arrow : StandardCursorType.Hand);
+            // Hover still resolves when read-only — the tooltip is worth having either way — but
+            // the cursor does not promise a click that will do nothing.
+            Cursor = new Cursor(hit is null || IsReadOnly
+                ? StandardCursorType.Arrow
+                : StandardCursorType.Hand);
         }
 
         InvalidateVisual();
@@ -274,6 +292,8 @@ public class FittingCanvas : Control
     {
         base.OnPointerPressed(e);
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+
+        if (IsReadOnly) return;
 
         if (SlotAt(e.GetPosition(this)) is { } slot &&
             SlotClickedCommand?.CanExecute(slot) == true)
@@ -356,9 +376,11 @@ public class FittingCanvas : Control
             culture, FlowDirection.LeftToRight, BoldFace, 12, TipTitle);
 
         var body = new FormattedText(
-            slot.IsEmpty
-                ? "Click to fit a module"
-                : $"{LabelFor(slot.Band)} {slot.Index} · known from {(slot.FromAssets ? "assets" : "manual entry")}",
+            IsReadOnly
+                ? $"{LabelFor(slot.Band)} {slot.Index} · from assets — the game is the authority here"
+                : slot.IsEmpty
+                    ? "Click to fit a module"
+                    : $"{LabelFor(slot.Band)} {slot.Index} · entered by hand",
             culture, FlowDirection.LeftToRight, Face, 10, TipBody);
 
         var w = Math.Max(title.Width, body.Width);

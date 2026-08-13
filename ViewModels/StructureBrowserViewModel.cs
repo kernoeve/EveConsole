@@ -223,8 +223,37 @@ public class StructureBrowserViewModel : ReactiveObject
     public IReadOnlyList<EveConsole.Controls.FittingSlot>? FittingSlots
     {
         get => _fittingSlots;
-        private set => this.RaiseAndSetIfChanged(ref _fittingSlots, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _fittingSlots, value);
+            FittingReadOnly = value?.Any(s => s.FromAssets) == true;
+        }
     }
+
+    private bool _fittingReadOnly;
+    /// <summary>
+    /// True once ANY slot is known from assets, which locks the whole fitting rather than that
+    /// one slot.
+    ///
+    /// <para>If the game tells us what is fitted, it is the authority; a hand-edited slot
+    /// alongside asset-sourced ones would be a disagreement with no way to tell which side is
+    /// right, and the next asset poll would silently overrule it anyway. Editing is for the
+    /// structures we cannot see inside — which is exactly the set where no slot comes from
+    /// assets.</para>
+    /// </summary>
+    public bool FittingReadOnly
+    {
+        get => _fittingReadOnly;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _fittingReadOnly, value);
+            this.RaisePropertyChanged(nameof(FittingSourceText));
+        }
+    }
+
+    public string FittingSourceText => FittingReadOnly
+        ? "Fitting comes from assets — read only"
+        : "No fitting in assets — click a slot to record one";
 
     private Avalonia.Media.Imaging.Bitmap? _typeRender;
     /// <summary>Render of the structure's hull, refreshed whenever the selected type changes.</summary>
@@ -258,10 +287,17 @@ public class StructureBrowserViewModel : ReactiveObject
 
         SlotClickedCommand = ReactiveCommand.Create<EveConsole.Controls.FittingSlot>(slot =>
         {
+            // The control already refuses clicks when read-only; this is the second gate, so a
+            // future caller that forgets to bind IsReadOnly still cannot edit asset-backed data.
+            if (FittingReadOnly)
+            {
+                DetailStatus = "This fitting is known from assets and cannot be edited.";
+                return;
+            }
+
             DetailStatus = slot.IsEmpty
                 ? $"{slot.Band} slot {slot.Index} is empty."
-                : $"{slot.Band} slot {slot.Index}: {slot.Name} " +
-                  $"({(slot.FromAssets ? "from assets" : "entered by hand")})";
+                : $"{slot.Band} slot {slot.Index}: {slot.Name}";
         });
         ClearFilters   = ReactiveCommand.Create(() =>
         {

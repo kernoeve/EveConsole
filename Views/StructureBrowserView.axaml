@@ -227,10 +227,17 @@
             <TabItem Header="Fitting">
               <Grid ColumnDefinitions="*,340">
 
-                <ctl:FittingCanvas Grid.Column="0"
-                                   Slots="{Binding FittingSlots}"
-                                   HullRender="{Binding TypeRender}"
-                                   SlotClickedCommand="{Binding SlotClickedCommand}" />
+                <Grid Grid.Column="0" RowDefinitions="*,Auto">
+                  <ctl:FittingCanvas Grid.Row="0"
+                                     Slots="{Binding FittingSlots}"
+                                     HullRender="{Binding TypeRender}"
+                                     IsReadOnly="{Binding FittingReadOnly}"
+                                     SlotClickedCommand="{Binding SlotClickedCommand}" />
+
+                  <TextBlock Grid.Row="1" Text="{Binding FittingSourceText}"
+                             FontSize="10.5" Foreground="#7a8896"
+                             HorizontalAlignment="Center" Margin="0 2 0 6" />
+                </Grid>
 
                 <DataGrid Grid.Column="1" ItemsSource="{Binding Fitting}" AutoGenerateColumns="False"
                           IsReadOnly="True" RowHeight="22"
