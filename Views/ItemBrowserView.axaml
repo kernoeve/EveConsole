@@ -723,6 +723,7 @@
                           <DataTemplate>
                             <TextBlock Text="{ReflectionBinding SecurityText}"
                                        Foreground="{ReflectionBinding SecurityColor}"
+                                       ToolTip.Tip="{ReflectionBinding SecurityTip}"
                                        FontWeight="SemiBold" VerticalAlignment="Center" />
                           </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
@@ -779,6 +780,7 @@
                           <DataTemplate>
                             <TextBlock Text="{ReflectionBinding SecurityText}"
                                        Foreground="{ReflectionBinding SecurityColor}"
+                                       ToolTip.Tip="{ReflectionBinding SecurityTip}"
                                        FontWeight="SemiBold" VerticalAlignment="Center" />
                           </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

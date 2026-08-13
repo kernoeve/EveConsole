@@ -242,15 +242,13 @@ public class GateVm(SystemViewService.GateRow r)
     public string Name        { get; } = r.Name;
     public string RegionName  { get; } = r.RegionName;
     public bool   OutOfRegion { get; } = r.OutOfRegion;
-    public string Security    { get; } = r.Security.ToString("F2");
-    public string SecurityColor { get; } = SecurityBrush(r.Security);
+    /// <summary>The rounded band — the number that decides high / low / null.</summary>
+    public string Security      { get; } = EveConsole.Services.SecurityColors.Text(r.Security);
 
-    private static string SecurityBrush(double sec) => Math.Round(sec, 1) switch
-    {
-        >= 0.5 => "#4fc07a",
-        > 0.0  => "#e0913c",
-        _      => "#d94848",
-    };
+    /// <summary>True security, shown beside the band rather than instead of it.</summary>
+    public string SecurityTrue  { get; } = EveConsole.Services.SecurityColors.TrueText(r.Security);
+    public string SecurityColor { get; } = EveConsole.Services.SecurityColors.Hex(r.Security);
+    public string SecurityTip   { get; } = EveConsole.Services.SecurityColors.Tip(r.Security);
 }
 
 /// <summary>
@@ -287,6 +285,13 @@ public class SystemPageViewModel : ReactiveObject
 
     private string _security = "";
     public string Security { get => _security; private set => this.RaiseAndSetIfChanged(ref _security, value); }
+
+    /// <summary>True security, shown beside the rounded band rather than instead of it.</summary>
+    private string _securityTrue = "";
+    public string SecurityTrue { get => _securityTrue; private set => this.RaiseAndSetIfChanged(ref _securityTrue, value); }
+
+    private string _securityTip = "";
+    public string SecurityTip { get => _securityTip; private set => this.RaiseAndSetIfChanged(ref _securityTip, value); }
 
     private string _securityColor = "#8a8a9a";
     public string SecurityColor { get => _securityColor; private set => this.RaiseAndSetIfChanged(ref _securityColor, value); }
@@ -511,13 +516,10 @@ public class SystemPageViewModel : ReactiveObject
             Name          = header.Name;
             Region        = header.Region;
             Constellation = header.Constellation;
-            Security      = header.Security.ToString("F2");
-            SecurityColor = Math.Round(header.Security, 1) switch
-            {
-                >= 0.5 => "#4fc07a",
-                > 0.0  => "#e0913c",
-                _      => "#d94848",
-            };
+            Security      = EveConsole.Services.SecurityColors.Text(header.Security);
+            SecurityTrue  = EveConsole.Services.SecurityColors.TrueText(header.Security);
+            SecurityColor = EveConsole.Services.SecurityColors.Hex(header.Security);
+            SecurityTip   = EveConsole.Services.SecurityColors.Tip(header.Security);
             SecurityClass = header.SecurityClass;
             LocalPirates  = header.LocalPirates;
 

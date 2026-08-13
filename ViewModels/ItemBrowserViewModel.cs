@@ -174,6 +174,7 @@ public class OrderRowVm
 
     public string SecurityText  => Security is { } s ? EveConsole.Services.SecurityColors.Text(s) : "";
     public string SecurityColor => Security is { } s ? EveConsole.Services.SecurityColors.Hex(s) : "#555566";
+    public string SecurityTip   => Security is { } s ? EveConsole.Services.SecurityColors.Tip(s) : "";
 
     public string PriceText        => Price.ToString("N2");
     public string VolumeRemainText => VolumeRemain.ToString("N0");

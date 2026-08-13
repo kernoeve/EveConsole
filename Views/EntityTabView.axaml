@@ -250,7 +250,15 @@
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="System"   Binding="{Binding System}" FontSize="10"   Width="130"/>
               <DataGridTextColumn Header="Region"   Binding="{Binding Region}" FontSize="10"   Width="150"/>
-              <DataGridTextColumn Header="Sec"      Binding="{Binding Security}" FontSize="10" Width="60"/>
+              <DataGridTemplateColumn Header="Sec" Width="60" SortMemberPath="Security">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="svc:EntityStationRow">
+                    <TextBlock Text="{Binding SecurityText}" Foreground="{Binding SecurityColor}"
+                               ToolTip.Tip="{Binding SecurityTip}"
+                               FontWeight="SemiBold" VerticalAlignment="Center"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTextColumn Header="Agents"   Binding="{Binding Agents}" FontSize="10"   Width="70"/>
             </DataGrid.Columns>
           </DataGrid>

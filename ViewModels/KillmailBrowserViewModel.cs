@@ -33,6 +33,10 @@ public class KillmailListRowVm : ReactiveObject
     public string         RegionName        { get; }
     public string         SecurityText      { get; }
     public string         SecurityColor     { get; }
+
+    /// <summary>True security, on hover. The headline is the rounded band; this is the detail
+    /// behind it — and the only place a null-sec system's real depth is visible.</summary>
+    public string         SecurityTip       { get; }
     public string         VictimName        { get; }
     public string         VictimCorp        { get; }
     public string         VictimAlliance    { get; }
@@ -75,8 +79,9 @@ public class KillmailListRowVm : ReactiveObject
         _fbAllianceId     = r.FbAllianceId;
 
         var sec       = r.SecurityStatus;
-        SecurityText  = sec >= 0.05 ? $"{sec:F1}" : "0.0";
-        SecurityColor = sec >= 0.5 ? "#44bb44" : sec >= 0.1 ? "#cccc44" : "#cc4444";
+        SecurityText  = EveConsole.Services.SecurityColors.Text(sec);
+        SecurityColor = EveConsole.Services.SecurityColors.Hex(sec);
+        SecurityTip   = EveConsole.Services.SecurityColors.Tip(sec);
 
         OpenVictimCommand         = ReactiveCommand.Create(OpenVictim);
         OpenVictimCorpCommand     = ReactiveCommand.Create(OpenVictimCorp);

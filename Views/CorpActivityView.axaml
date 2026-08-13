@@ -1056,7 +1056,7 @@
                                Stretch="Uniform" VerticalAlignment="Center" ToolTip.Tip="{Binding ShipName}" Margin="0 0 6 0" />
                         <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
                           <StackPanel Orientation="Horizontal" Spacing="3">
-                            <TextBlock Text="{Binding SecurityText}" FontSize="10" FontWeight="SemiBold" Foreground="{Binding SecurityColor}" />
+                            <TextBlock Text="{Binding SecurityText}" FontSize="10" FontWeight="SemiBold" ToolTip.Tip="{Binding SecurityTip}" Foreground="{Binding SecurityColor}" />
                             <TextBlock Text="{Binding SystemName}"   FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                           </StackPanel>
                           <TextBlock Text="{Binding ConstellationName}" FontSize="9" Foreground="#888899" TextTrimming="CharacterEllipsis"

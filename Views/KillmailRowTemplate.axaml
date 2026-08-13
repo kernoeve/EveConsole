@@ -35,6 +35,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="3">
                       <TextBlock Text="{Binding SecurityText}"
                                  FontSize="10" FontWeight="SemiBold"
+                                 ToolTip.Tip="{Binding SecurityTip}"
                                  Foreground="{Binding SecurityColor}" />
                       <!-- The system name opens that system on the Universe map. -->
                       <Button Command="{Binding $parent[UserControl].DataContext.OpenSystemMapCommand}"

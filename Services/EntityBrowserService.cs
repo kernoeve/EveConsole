@@ -51,7 +51,12 @@ public record EntityMemberRow(long Id, string Name, string Subtitle = "",
 public record EntityHistoryRow(string Alliance, string From, string Until, string Duration, bool Closed,
                                long LinkId = 0);
 public record EntityStationRow(string Name, string System, string Region, double Security, int Agents,
-                               long StationId = 0);
+                               long StationId = 0)
+{
+    public string SecurityText  => SecurityColors.Text(Security);
+    public string SecurityColor => SecurityColors.Hex(Security);
+    public string SecurityTip   => SecurityColors.Tip(Security);
+}
 
 /// <summary>
 /// One item an NPC corporation trades, across every one of its stations in the market data
@@ -542,7 +547,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         return await db.Database.SqlQueryRaw<EntityStationRow>("""
             SELECT s."Name", COALESCE(ss."Name",'') AS "System", COALESCE(r."Name",'') AS "Region",
-                   ROUND(s."Security", 1) AS "Security",
+                   s."Security",
                    (SELECT COUNT(*) FROM "SdeAgents" a WHERE a."LocationId" = s."StationId") AS "Agents",
                    s."StationId"
             FROM "SdeStations" s
@@ -1035,7 +1040,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                         new("System",        r.System,        SystemId: r.SolarSystemId),
                         new("Constellation", r.Constellation),
                         new("Region",        r.Region,        RegionId: r.RegionId),
-                        new("Security",      SecurityColors.Text(r.Security)),
+                        new("Security",      $"{SecurityColors.Text(r.Security)}  (true {SecurityColors.TrueText(r.Security)})"),
                         new("Corporation",   r.Corporation,   EntityKind.NpcCorp, r.CorporationId),
                         new("Faction",       r.Faction,       EntityKind.Faction, r.FactionId),
                         new("Type",          r.StationType),
