@@ -52,10 +52,11 @@
                                FontSize="9" Foreground="#888899"
                                TextTrimming="CharacterEllipsis"
                                IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                    <TextBlock Text="{Binding RegionName}"
-                               FontSize="9" Foreground="#666677"
-                               TextTrimming="CharacterEllipsis"
-                               IsVisible="{Binding RegionName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <Button Content="{Binding RegionName}" Command="{Binding OpenRegionCommand}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            HorizontalContentAlignment="Left" Cursor="Hand"
+                            FontSize="9" Foreground="#666677"
+                            IsVisible="{Binding RegionName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                   </StackPanel>
 
                   <!-- Victim: logo + name/corp/alliance -->

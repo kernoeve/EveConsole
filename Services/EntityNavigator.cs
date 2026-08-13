@@ -19,11 +19,16 @@ public class EntityNavigator
     public Action<int>?              OpenSystem   { get; set; }
     public Action<int>?              OpenItem     { get; set; }
     public Action<int>?              OpenKillmail { get; set; }
+    public Action<int>?              OpenRegion   { get; set; }
+
+    /// <summary>Map overlay by key — "security", "sovereignty", "adm" and so on.</summary>
+    public Func<string, string>?     SetOverlay   { get; set; }
 
     public void Entity(EntityKind kind, long id) { if (id > 0) OpenEntity?.Invoke(kind, id); }
     public void System(int systemId)             { if (systemId > 0) OpenSystem?.Invoke(systemId); }
     public void Item(int typeId)                 { if (typeId > 0) OpenItem?.Invoke(typeId); }
     public void Killmail(int killMailId)         { if (killMailId > 0) OpenKillmail?.Invoke(killMailId); }
+    public void Region(int regionId)             { if (regionId > 0) OpenRegion?.Invoke(regionId); }
 
     /// <summary>
     /// Shared instance. A static rather than an injected dependency on purpose: the row view

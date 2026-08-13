@@ -240,11 +240,12 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     /// no local table has — member counts, descriptions, founding dates — and, for a
     /// character, the authoritative security status.
     /// </summary>
-    public async Task<(List<EntityFact> Facts, string Description)> EnrichAsync(
+    public async Task<(List<EntityFact> Facts, string Description, string? Name)> EnrichAsync(
         EntityKind kind, long id, CancellationToken ct = default)
     {
         var facts = new List<EntityFact>();
-        if (esi is null) return (facts, "");
+        string? name = null;
+        if (esi is null) return (facts, "", null);
 
         try
         {
@@ -279,7 +280,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     if (!string.IsNullOrWhiteSpace(c.Title))
                         facts.Add(new("Title", c.Title!));
 
-                    return (facts, StripHtml(c.Description));
+                    await CacheNameAsync(c.Name, id, CategoryOf(kind), ct);
+                    return (facts, StripHtml(c.Description), c.Name);
                 }
 
                 case EntityKind.PlayerCorp:
@@ -301,7 +303,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     if (!string.IsNullOrWhiteSpace(c.Url) && c.Url != "http://")
                         facts.Add(new("URL", c.Url!, Url: c.Url));
 
-                    return (facts, StripHtml(c.Description));
+                    await CacheNameAsync(c.Name, id, CategoryOf(kind), ct);
+                    return (facts, StripHtml(c.Description), c.Name);
                 }
 
                 case EntityKind.Alliance:
@@ -320,6 +323,9 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                                       EntityKind.PlayerCorp, ex));
                     if (a.DateFounded is { } d)
                         facts.Add(new("Founded", d.ToLocalTime().ToString("d MMM yyyy")));
+
+                    await CacheNameAsync(a.Name, id, CategoryOf(kind), ct);
+                    name = a.Name;
                     break;
                 }
             }
@@ -327,7 +333,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         catch (OperationCanceledException) { throw; }
         catch { /* enrichment is additive — the local pane already stands on its own */ }
 
-        return (facts, "");
+        return (facts, "", name);
     }
 
     /// <summary>
@@ -655,6 +661,27 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         EntityKind.Faction    => $"https://images.evetech.net/corporations/{id}/logo?size=128",
         _                     => null,
     };
+
+    /// <summary>
+    /// Back-fill a name we happened to learn. INSERT OR IGNORE, so an existing row wins —
+    /// this fills gaps, it does not refresh.
+    /// </summary>
+    private async Task CacheNameAsync(string? name, long id, string category, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return;
+        try
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            await db.Database.ExecuteSqlRawAsync("""
+                INSERT OR IGNORE INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
+                VALUES (@id, @name, @cat, @at)
+                """,
+                [new SqliteParameter("@id", id), new SqliteParameter("@name", name),
+                 new SqliteParameter("@cat", category),
+                 new SqliteParameter("@at", DateTimeOffset.UtcNow.ToString("O"))], ct);
+        }
+        catch { /* a missing name row is cosmetic — never fail the viewer over it */ }
+    }
 
     // ── Detail ───────────────────────────────────────────────────────────────
 

@@ -8,7 +8,7 @@ namespace EveConsole.Services;
 public sealed record KillmailListRow(
     int KillMailId, DateTimeOffset KillMailTime,
     int VictimShipTypeId, string ShipName,
-    int SystemId, string SystemName, string ConstellationName, string RegionName,
+    int SystemId, string SystemName, string ConstellationName, int RegionId, string RegionName,
     double SecurityStatus, double TotalIsk,
     long VictimCharId, long VictimCorpId, long VictimAllianceId,
     string VictimName, string VictimCorp, string VictimAlliance,
@@ -303,7 +303,7 @@ public class KillmailBrowserService(
                 d.VictimShipTypeId,
                 shipNames.TryGetValue(d.VictimShipTypeId, out var sn) ? sn : d.VictimShipTypeId.ToString(),
                 d.SolarSystemId,
-                sys?.Name ?? d.SolarSystemId.ToString(), constellationName, regionName,
+                sys?.Name ?? d.SolarSystemId.ToString(), constellationName, sys?.RegionId ?? 0, regionName,
                 sys?.Security ?? 0.0, isk,
                 d.VictimCharId, d.VictimCorpId, d.VictimAllianceId ?? 0L,
                 Res(d.VictimCharId), Res(d.VictimCorpId), Res(d.VictimAllianceId),

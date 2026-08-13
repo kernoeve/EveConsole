@@ -29,6 +29,7 @@ public class KillmailListRowVm : ReactiveObject
     public int            SystemId          { get; }
     public string         SystemName        { get; }
     public string         ConstellationName { get; }
+    public int            RegionId          { get; }
     public string         RegionName        { get; }
     public string         SecurityText      { get; }
     public string         SecurityColor     { get; }
@@ -57,6 +58,7 @@ public class KillmailListRowVm : ReactiveObject
         SystemId          = r.SystemId;
         SystemName        = r.SystemName;
         ConstellationName = r.ConstellationName;
+        RegionId          = r.RegionId;
         RegionName        = r.RegionName;
         VictimName        = r.VictimName;
         VictimCorp        = r.VictimCorp;
@@ -82,6 +84,7 @@ public class KillmailListRowVm : ReactiveObject
         OpenFbCommand             = ReactiveCommand.Create(OpenFb);
         OpenFbCorpCommand         = ReactiveCommand.Create(OpenFbCorp);
         OpenFbAllianceCommand     = ReactiveCommand.Create(OpenFbAlliance);
+        OpenRegionCommand         = ReactiveCommand.Create(() => Nav.Region(RegionId));
     }
 
     // Links live on the row rather than on a host view model. The same row renders in the
@@ -95,6 +98,7 @@ public class KillmailListRowVm : ReactiveObject
     public ReactiveCommand<Unit, Unit> OpenFbCommand             { get; }
     public ReactiveCommand<Unit, Unit> OpenFbCorpCommand         { get; }
     public ReactiveCommand<Unit, Unit> OpenFbAllianceCommand     { get; }
+    public ReactiveCommand<Unit, Unit> OpenRegionCommand         { get; }
 
     public void OpenVictim()         => Nav.Entity(EveConsole.Services.EntityKind.Pilot,      _victimCharId);
     public void OpenVictimCorp()     => Nav.Entity(EveConsole.Services.EntityKind.PlayerCorp, _victimCorpId);

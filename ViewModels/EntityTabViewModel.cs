@@ -322,12 +322,17 @@ public class EntityTabViewModel : ReactiveObject
     {
         try
         {
-            var (facts, description) = await _service.EnrichAsync(Kind, id, ct);
+            var (facts, description, esiName) = await _service.EnrichAsync(Kind, id, ct);
             if (ct.IsCancellationRequested) return;
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 if (ct.IsCancellationRequested) return;
+
+                // The local name cache can have no row for an entity reached by id alone, in
+                // which case the header is showing "Unknown 90000001". ESI just told us what it
+                // is actually called.
+                if (!string.IsNullOrWhiteSpace(esiName) && Name != esiName) Name = esiName!;
 
                 foreach (var f in facts)
                     if (!string.IsNullOrWhiteSpace(f.Value)) Facts.Add(f);

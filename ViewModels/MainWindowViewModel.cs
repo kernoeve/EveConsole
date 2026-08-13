@@ -603,6 +603,24 @@ public class MainWindowViewModel : ReactiveObject
         EntityNavigator.Instance.OpenSystem   = id => { OpenTool("universe"); _ = UniverseVm.OpenSystemCommand.Execute(id).Subscribe(); };
         EntityNavigator.Instance.OpenItem     = id => { OpenTool("items"); _ = ItemBrowserVm.NavigateToItemCommand.Execute(id).Subscribe(); };
         EntityNavigator.Instance.OpenKillmail = id => { OpenTool("killmails"); KillmailBrowserVm.SelectById(id); };
+        EntityNavigator.Instance.OpenRegion   = id => { OpenTool("universe"); _ = UniverseVm.ShowRegionAsync(id); };
+
+        // Resolve the overlay here rather than in the agent tool: this is the list's home, so
+        // an overlay added to the map is reachable by name without touching the tool.
+        EntityNavigator.Instance.SetOverlay = text =>
+        {
+            var wanted = (text ?? "").Trim();
+            var mode = UniverseVm.OverlayModes.FirstOrDefault(m =>
+                           m.Key.Equals(wanted, StringComparison.OrdinalIgnoreCase) ||
+                           m.Name.Equals(wanted, StringComparison.OrdinalIgnoreCase))
+                    ?? UniverseVm.OverlayModes.FirstOrDefault(m =>
+                           m.Name.Contains(wanted, StringComparison.OrdinalIgnoreCase));
+            if (mode is null) return "";
+
+            OpenTool("universe");
+            UniverseVm.SelectedOverlay = mode;
+            return $"Map overlay set to {mode.Name}.";
+        };
 
         Action<int> showSystem = systemId =>
         {
@@ -625,8 +643,9 @@ public class MainWindowViewModel : ReactiveObject
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(dbFactory, pollingService, esi);
+        var universeMapService = new UniverseMapService(dbFactory);
         UniverseVm             = new UniverseViewModel(
-            new UniverseMapService(dbFactory), mapStatsService,
+            universeMapService, mapStatsService,
             new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds);
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
@@ -681,6 +700,7 @@ public class MainWindowViewModel : ReactiveObject
                 dbFactory, alarmService.Registry, alarmService);
         // Set before Initialize — that is where the tool list is built.
         agentService.EntityBrowser = entityBrowser;
+        agentService.MapService    = universeMapService;
         agentService.Initialize(connString);
         TtsService         = ttsService;
         SpeechInputService = speechInputService;
