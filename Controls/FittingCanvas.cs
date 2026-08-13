@@ -186,8 +186,13 @@ public class FittingCanvas : Control
     /// <summary>
     /// Clear space between neighbouring slot boxes, measured on screen rather than in degrees.
     /// A band uses this until it would outgrow the extent it is allotted, then tightens to fit.
+    ///
+    /// <para>Tightening this also opens the corners where two bands meet, which is not obvious:
+    /// a band's span is (count-1) × step, so a smaller gap pulls its end slots back toward its
+    /// own centre and away from the neighbouring band. That is what clears the Keepstar's eighth
+    /// high slot from the first mid.</para>
     /// </summary>
-    private const double SlotGap = 8;
+    private const double SlotGap = 5;
 
     /// <summary>
     /// Places the slots in the arrangement the game uses — high at the top, mid on the right, low
@@ -304,13 +309,15 @@ public class FittingCanvas : Control
         // reads as another module band rather than as something different in kind.
         if (services.Count > 0)
         {
-            var totalW = services.Count * _slotSize + (services.Count - 1) * 6;
+            // SlotGap here too, so the row spaces exactly like the bands on the circle rather
+            // than carrying its own number that would drift from them.
+            var totalW = services.Count * _slotSize + (services.Count - 1) * SlotGap;
             var x0     = cx - totalW / 2;
             var y0     = Bounds.Height - _slotSize - 6;
 
             for (var i = 0; i < services.Count; i++)
                 _placed.Add((services[i],
-                    new Rect(x0 + i * (_slotSize + 6), y0, _slotSize, _slotSize)));
+                    new Rect(x0 + i * (_slotSize + SlotGap), y0, _slotSize, _slotSize)));
         }
     }
 
