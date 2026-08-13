@@ -127,7 +127,9 @@ public class FittingCanvas : Control
     private static readonly Typeface BoldFace =
         new(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold);
 
-    private const double SlotSize = 34;
+    /// <summary>Box edge. Trimmed from 34: a Keepstar's eight high slots are the worst case, and
+    /// four pixels each buys nearly thirty across the band.</summary>
+    private const double SlotSize = 30;
 
     private static IBrush FillFor(FittingBand band) => band switch
     {
@@ -244,14 +246,19 @@ public class FittingCanvas : Control
             }
         }
 
-        // The extents are what keep neighbouring bands apart. Horizontal bands stop at 0.70r and
-        // vertical ones at 0.45r, which leaves the corners between high and mid — the tightest
-        // pair — around two box widths clear however many slots a hull has.
-        Horizontal(FittingBand.High, top: true,  maxHalfExtent: _radius * 0.70);
-        Horizontal(FittingBand.Low,  top: false, maxHalfExtent: _radius * 0.70);
+        // ⚠️ The extents are a budget shared between neighbouring bands, not independent knobs.
+        // A Keepstar's eight high slots are the worst case: at 0.70r the clamp squeezed the step
+        // down to about the box width and they touched. Widening the highs alone would have run
+        // their end slots into the mids, so the mids move down and narrow by the same argument.
+        //
+        // With eight highs the band now reaches roughly 49° from vertical while the topmost mid
+        // sits around 20° from horizontal, leaving a clear arc between them rather than the few
+        // pixels there were before.
+        Horizontal(FittingBand.High, top: true,  maxHalfExtent: _radius * 0.80);
+        Horizontal(FittingBand.Low,  top: false, maxHalfExtent: _radius * 0.80);
 
-        Vertical(FittingBand.Mid, right: true,  centreOffsetY: -_radius * 0.05, maxHalfExtent: _radius * 0.45);
-        Vertical(FittingBand.Rig, right: false, centreOffsetY:  _radius * 0.30, maxHalfExtent: _radius * 0.30);
+        Vertical(FittingBand.Mid, right: true,  centreOffsetY:  _radius * 0.05, maxHalfExtent: _radius * 0.40);
+        Vertical(FittingBand.Rig, right: false, centreOffsetY:  _radius * 0.30, maxHalfExtent: _radius * 0.28);
         Vertical(FittingBand.Subsystem, right: false, centreOffsetY: -_radius * 0.35,
                  maxHalfExtent: _radius * 0.25);
 
