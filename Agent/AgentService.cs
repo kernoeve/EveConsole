@@ -32,6 +32,19 @@ public sealed class AgentService : ReactiveObject
 
     // Targeted navigation/filter callbacks — set by MainWindow after startup.
     public Action<int, string>?                       NavigateItemCallback    { get; set; }
+
+    /// <summary>Opens an entity viewer. Set alongside <see cref="EntityBrowser"/>.</summary>
+    public Action<Services.EntityKind, long, string>? NavigateEntityCallback  { get; set; }
+
+    /// <summary>
+    /// Supplied by the host so the entity tool can resolve names the same way the viewers
+    /// do. Absent in contexts that have no database, in which case the tool is not offered.
+    /// </summary>
+    public Services.EntityBrowserService?             EntityBrowser           { get; set; }
+
+    /// <summary>Resolves system and region names for the map tool. Same contract as
+    /// <see cref="EntityBrowser"/> — absent means the tool is not offered.</summary>
+    public Services.UniverseMapService?               MapService              { get; set; }
     public Action<string?, string?, string?>?          FilterAssetsCallback   { get; set; }
     public Action<string?, string?, string?, string?>? FilterIndustryCallback { get; set; }
     public Action<string>?                             SelectCharacterCallback { get; set; }
@@ -146,6 +159,13 @@ public sealed class AgentService : ReactiveObject
                 tabName => CaptureTabCallback?.Invoke(tabName)
                            ?? Task.FromResult<(byte[]?, string)>((null, ""))),
         ];
+
+        if (EntityBrowser is { } entities)
+            Tools = [.. Tools, new NavigateToEntityTool(entities,
+                (kind, id, name) => NavigateEntityCallback?.Invoke(kind, id, name))];
+
+        if (MapService is { } mapService)
+            Tools = [.. Tools, new OpenMapTool(mapService), new SetMapOverlayTool()];
 
         if (AlarmToolFactory?.Invoke() is { } alarmTool)
             Tools = [.. Tools, alarmTool];

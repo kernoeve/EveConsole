@@ -200,6 +200,24 @@ public class StructureSyncService(IDbContextFactory<AppDbContext> dbFactory, App
                     // Either ESI has nothing to say, or nothing it owns has moved. Leaving the row
                     // alone keeps UpdatedBy/UpdatedAt honest — a sync that rewrote every row each
                     // cycle would erase the record of who last actually changed something.
+                    //
+                    // ⚠️ One exception: a system id learned from somewhere other than the structure
+                    // endpoint. A market order listed at a private structure carries its own system
+                    // id, which is proof of where that structure is, and the market pull records it
+                    // against the polled row. Without this it would stop there — and it stops there
+                    // precisely for the structures it was gathered for, since a 403 row is never
+                    // resolved and so never copied. The skip above exists to stop an unresolved
+                    // row's BLANKS overwriting a typed description; a system id that is genuinely
+                    // known is not one of those blanks.
+                    if (row.SolarSystemId == 0 && s.SolarSystemId > 0)
+                    {
+                        // Only ever fills a zero, so a system someone typed is safe. UpdatedBy is
+                        // deliberately not stamped: filling an empty field is not "ESI last wrote
+                        // this row", and saying so would tell someone their hand-written
+                        // description had been overwritten when it had not.
+                        row.SolarSystemId = s.SolarSystemId;
+                        written++;
+                    }
                     continue;
                 }
 

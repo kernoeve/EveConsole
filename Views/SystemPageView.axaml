@@ -66,8 +66,13 @@
         <StackPanel Grid.Column="2" Spacing="6">
           <StackPanel Orientation="Horizontal" Spacing="10">
             <TextBlock Text="{Binding Name}" FontSize="22" FontWeight="SemiBold" Foreground="#e8e8f2" />
+            <!-- The rounded band decides high/low/null, so it is the headline; true security
+                 sits beside it because ore, spawns and bounties all scale off the real value. -->
             <TextBlock Text="{Binding Security}" FontSize="14" FontWeight="SemiBold"
+                       ToolTip.Tip="{Binding SecurityTip}"
                        Foreground="{Binding SecurityColor}" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding SecurityTrue}" FontSize="10" Foreground="#666677"
+                       ToolTip.Tip="True security" VerticalAlignment="Center" Margin="-4 0 0 0" />
             <TextBlock Text="{Binding SecurityClass}" Classes="hlabel" />
           </StackPanel>
 

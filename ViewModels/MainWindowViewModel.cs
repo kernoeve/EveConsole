@@ -52,6 +52,8 @@ public class MainWindowViewModel : ReactiveObject
     public OrderTrackerViewModel          OrderTrackerVm         { get; }
     public StandingBuyOrdersViewModel     StandingBuyOrdersVm    { get; }
     public LpMarketValuesViewModel        LpMarketValuesVm       { get; }
+    public PlayerEntitiesViewModel        PlayerEntitiesVm       { get; }
+    public NpcEntitiesViewModel           NpcEntitiesVm          { get; }
     public MarketSettingsViewModel        MarketVm               { get; }
     public TimerSettingsViewModel         TimerVm                { get; }
     public AgentPanelViewModel            AgentVm                { get; }
@@ -383,6 +385,8 @@ public class MainWindowViewModel : ReactiveObject
             "order_tracker"  => ("Order Tracker",   OrderTrackerVm,    true),
             "standing_buy_orders" => ("Standing Buy Orders", StandingBuyOrdersVm, true),
             "lp_market_values" => ("LP Market Values", LpMarketValuesVm, true),
+            "player_entities"  => ("Player Entities", PlayerEntitiesVm, true),
+            "npc_entities"     => ("NPC Entities",    NpcEntitiesVm,    true),
             "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
             "killmails"      => ("Killmails",      KillmailBrowserVm, true),
             "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
@@ -568,7 +572,7 @@ public class MainWindowViewModel : ReactiveObject
         PriceHistorySettingsVm = new PriceHistorySettingsViewModel(dbFactory.CreateDbContext());
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
         CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);
-        ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService, dbFactory);
+        ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService, dbFactory, appPrefs);
         IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger,
                                                         indyStructureLink);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
@@ -586,13 +590,69 @@ public class MainWindowViewModel : ReactiveObject
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
+        var entityBrowser      = new EntityBrowserService(dbFactory, esi);
+        PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);
+        NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
+        // One wiring for every killmail row in the app — browser, corp activity, system
+        // page, entity viewers.
+        EntityNavigator.Instance.OpenEntity = (kind, id) =>
+        {
+            var player = kind is EntityKind.Pilot or EntityKind.PlayerCorp or EntityKind.Alliance;
+            OpenTool(player ? "player_entities" : "npc_entities");
+            if (player) PlayerEntitiesVm.Open(kind, id);
+            else        NpcEntitiesVm.Open(kind, id);
+        };
+        EntityNavigator.Instance.OpenSystem   = id => { OpenTool("universe"); _ = UniverseVm.OpenSystemCommand.Execute(id).Subscribe(); };
+        EntityNavigator.Instance.OpenItem     = id => { OpenTool("items"); _ = ItemBrowserVm.NavigateToItemCommand.Execute(id).Subscribe(); };
+        EntityNavigator.Instance.OpenKillmail = id => { OpenTool("killmails"); KillmailBrowserVm.SelectById(id); };
+        // FocusRegionAsync, not ShowRegionAsync: the separate per-region map is legacy — only
+        // the system page still returns to it. A region is now territory you zoom to on the
+        // one continuous universe map.
+        EntityNavigator.Instance.OpenRegion   = id => { OpenTool("universe"); _ = UniverseVm.FocusRegionAsync(id); };
+
+        // Resolve the overlay here rather than in the agent tool: this is the list's home, so
+        // an overlay added to the map is reachable by name without touching the tool.
+        EntityNavigator.Instance.SetOverlay = text =>
+        {
+            var wanted = (text ?? "").Trim();
+            var mode = UniverseVm.OverlayModes.FirstOrDefault(m =>
+                           m.Key.Equals(wanted, StringComparison.OrdinalIgnoreCase) ||
+                           m.Name.Equals(wanted, StringComparison.OrdinalIgnoreCase))
+                    ?? UniverseVm.OverlayModes.FirstOrDefault(m =>
+                           m.Name.Contains(wanted, StringComparison.OrdinalIgnoreCase));
+            if (mode is null) return "";
+
+            OpenTool("universe");
+            UniverseVm.SelectedOverlay = mode;
+            return $"Map overlay set to {mode.Name}.";
+        };
+
+        Action<int> showSystem = systemId =>
+        {
+            OpenTool("universe");
+            _ = UniverseVm.OpenSystemCommand.Execute(systemId).Subscribe();
+        };
+        PlayerEntitiesVm.NavigateToSystem = showSystem;
+        NpcEntitiesVm.NavigateToSystem    = showSystem;
+
+        NpcEntitiesVm.NavigateToItem = typeId =>
+        {
+            OpenTool("items");
+            _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
+        };
+        PlayerEntitiesVm.NavigateToNpc = (kind, id) =>
+        {
+            OpenTool("npc_entities");
+            NpcEntitiesVm.Open(kind, id);
+        };
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
         StructureBrowserVm     = new StructureBrowserViewModel(
                                      dbFactory, pollingService, esi, new FittingOptionService(dbFactory),
                                      appPrefs, indyStructureLink);
+        var universeMapService = new UniverseMapService(dbFactory);
         UniverseVm             = new UniverseViewModel(
-            new UniverseMapService(dbFactory), mapStatsService,
+            universeMapService, mapStatsService,
             new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds);
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
@@ -645,6 +705,9 @@ public class MainWindowViewModel : ReactiveObject
         agentService.AlarmToolFactory =
             () => new EveConsole.Agent.Tools.Actions.ManageAlarmsTool(
                 dbFactory, alarmService.Registry, alarmService);
+        // Set before Initialize — that is where the tool list is built.
+        agentService.EntityBrowser = entityBrowser;
+        agentService.MapService    = universeMapService;
         agentService.Initialize(connString);
         TtsService         = ttsService;
         SpeechInputService = speechInputService;
@@ -719,6 +782,8 @@ public class MainWindowViewModel : ReactiveObject
             [
                 new NavItem("corp_activity", "Corp Activity"),
                 new NavItem("killmails",     "Killmails"),
+                new NavItem("player_entities", "Player Entities"),
+                new NavItem("npc_entities",    "NPC Entities"),
             ]),
             new("Communication",
             [

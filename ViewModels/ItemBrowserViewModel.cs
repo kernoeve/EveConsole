@@ -166,7 +166,15 @@ public class OrderRowVm
     public int            MinVolume    { get; init; }
     public string         Range        { get; init; } = "";
     public string         LocationName { get; init; } = "";
+
+    /// <summary>Null when the location's system is unknown — a structure whose order recorded
+    /// no system id.</summary>
+    public double?        Security     { get; init; }
     public DateTimeOffset Expires      { get; init; }
+
+    public string SecurityText  => Security is { } s ? EveConsole.Services.SecurityColors.Text(s) : "";
+    public string SecurityColor => Security is { } s ? EveConsole.Services.SecurityColors.Hex(s) : "#555566";
+    public string SecurityTip   => Security is { } s ? EveConsole.Services.SecurityColors.Tip(s) : "";
 
     public string PriceText        => Price.ToString("N2");
     public string VolumeRemainText => VolumeRemain.ToString("N0");
@@ -239,6 +247,7 @@ public class ItemDisplayVm : ReactiveObject
 public class ItemBrowserViewModel : ReactiveObject
 {
     private readonly AppDbContext _db;
+    private readonly AppPreferencesService? _prefs;
 
     /// <summary>
     /// Used by loads that run alongside another one. The tab loads fire together and an
@@ -521,6 +530,14 @@ public class ItemBrowserViewModel : ReactiveObject
     public ObservableCollection<MarketConfigOption> MarketConfigs { get; } = [];
     public bool HasMarketConfigs => MarketConfigs.Count > 0;
 
+    /// <summary>
+    /// The "All Sources" entry. Id 0 is not a real config, and the order query reads it as
+    /// "every enabled source" rather than as a filter.
+    /// </summary>
+    public const int AllSourcesId = 0;
+
+    private const string MarketSourcePrefKey = "itembrowser.market_source";
+
     private MarketConfigOption? _selectedMarketConfig;
     public MarketConfigOption? SelectedMarketConfig
     {
@@ -528,6 +545,8 @@ public class ItemBrowserViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _selectedMarketConfig, value);
+            if (value is not null && _prefs is not null)
+                _ = _prefs.SetAsync(MarketSourcePrefKey, value.LocationName);
             _ = LoadOrdersAsync();
         }
     }
@@ -758,9 +777,11 @@ public class ItemBrowserViewModel : ReactiveObject
     public ReactiveCommand<int, System.Reactive.Unit> NavigateToItemCommand { get; }
 
     public ItemBrowserViewModel(AppDbContext db, MarketHistoryService? historyService = null,
-                                IDbContextFactory<AppDbContext>? dbFactory = null)
+                                IDbContextFactory<AppDbContext>? dbFactory = null,
+                                AppPreferencesService? prefs = null)
     {
         _db             = db;
+        _prefs          = prefs;
         _dbFactory      = dbFactory;
         _historyService = historyService;
         _selectedPeriod = PeriodOptions[0]; // All Time
@@ -1524,13 +1545,27 @@ public class ItemBrowserViewModel : ReactiveObject
             .Select(c => new MarketConfigOption { Id = c.Id, LocationName = c.LocationName, Method = c.Method })
             .ToListAsync();
 
+        var remembered = _prefs?.Get(MarketSourcePrefKey);
+
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             MarketConfigs.Clear();
+
+            // Only worth offering when there is more than one source to combine.
+            if (configs.Count > 1)
+                MarketConfigs.Add(new MarketConfigOption { Id = AllSourcesId, LocationName = "All Sources" });
+
             foreach (var c in configs) MarketConfigs.Add(c);
             this.RaisePropertyChanged(nameof(HasMarketConfigs));
+
+            // Matched by name rather than id: config ids are reassigned when sources are
+            // removed and re-added in Settings, which would silently restore the wrong one.
             if (SelectedMarketConfig is null)
-                SelectedMarketConfig = MarketConfigs.FirstOrDefault();
+                SelectedMarketConfig =
+                    (remembered is not null
+                        ? MarketConfigs.FirstOrDefault(c => c.LocationName == remembered)
+                        : null)
+                    ?? MarketConfigs.FirstOrDefault();
         });
     }
 
@@ -1552,9 +1587,25 @@ public class ItemBrowserViewModel : ReactiveObject
         IsLoadingOrders = true;
         try
         {
-            var orders = await _db.MarketRawOrders.AsNoTracking()
-                .Where(o => o.ConfigId == config.Id && o.TypeId == item.TypeId)
-                .ToListAsync(ct);
+            List<MarketRawOrder> orders;
+            if (config.Id == AllSourcesId)
+            {
+                // Every configured source at once. Sources can overlap — a public structure
+                // pulled on its own also appears in its region's orders — so the same order
+                // can arrive twice and is collapsed by id. No overlap exists in the current
+                // configuration, but it costs one grouping to not depend on that.
+                var configIds = MarketConfigs.Where(c => c.Id != AllSourcesId).Select(c => c.Id).ToList();
+                orders = await _db.MarketRawOrders.AsNoTracking()
+                    .Where(o => configIds.Contains(o.ConfigId) && o.TypeId == item.TypeId)
+                    .ToListAsync(ct);
+                orders = orders.GroupBy(o => o.OrderId).Select(g => g.First()).ToList();
+            }
+            else
+            {
+                orders = await _db.MarketRawOrders.AsNoTracking()
+                    .Where(o => o.ConfigId == config.Id && o.TypeId == item.TypeId)
+                    .ToListAsync(ct);
+            }
 
             if (ct.IsCancellationRequested) return;
 
@@ -1565,21 +1616,105 @@ public class ItemBrowserViewModel : ReactiveObject
                 .Select(id => (int)id)
                 .Distinct().ToList();
 
-            var stationNames = stationIds.Count > 0
+            var stations = stationIds.Count > 0
                 ? await _db.SdeStations.AsNoTracking()
                     .Where(s => stationIds.Contains(s.StationId))
-                    .ToDictionaryAsync(s => (long)s.StationId, s => s.Name, ct)
-                : new Dictionary<long, string>();
+                    .Select(s => new { s.StationId, s.Name, s.Security })
+                    .ToListAsync(ct)
+                : [];
+
+            var stationNames = stations.ToDictionary(s => (long)s.StationId, s => s.Name);
+            var stationSec   = stations.ToDictionary(s => (long)s.StationId, s => s.Security);
+
+            // Structures resolve from the name cache the app already fills. Falling back to the
+            // config's own name only works when the source *is* that structure — a region source
+            // returns orders from every public structure in it, and labelling them all
+            // "Player Structure" hides which one each order is actually in.
+            var structureIds = orders
+                .Select(o => o.LocationId)
+                .Where(id => id >= 1_000_000_000_000L)
+                .Distinct().ToList();
+
+            var structures = structureIds.Count > 0
+                ? await _db.EsiStructureNames.AsNoTracking()
+                    .Where(s => structureIds.Contains(s.StructureId))
+                    .Select(s => new { s.StructureId, s.Name, s.SolarSystemId, s.Status })
+                    .ToListAsync(ct)
+                : [];
+
+            var structureNames = structures
+                .Where(s => !string.IsNullOrWhiteSpace(s.Name))
+                .ToDictionary(s => s.StructureId, s => s.Name);
+
+            // A structure we have no docking rights to (403) cannot be named — ESI only tells
+            // you what a structure is called if you can dock there. That is permanent, not a
+            // gap waiting to fill, so say so rather than leaving a generic label that reads
+            // like a bug.
+            var structureStatus = structures.ToDictionary(s => s.StructureId, s => s.Status);
+
+            // A structure carries no security of its own — it belongs to the system the
+            // structure is anchored in, with the order's own system id as the fallback.
+            var structureSystemOf = structures
+                .Where(s => s.SolarSystemId > 0)
+                .ToDictionary(s => s.StructureId, s => s.SolarSystemId);
+
+            var structureSystems = orders
+                .Where(o => o.LocationId >= 1_000_000_000_000L)
+                .Select(o => structureSystemOf.TryGetValue(o.LocationId, out var sid) ? sid : o.SystemId)
+                .Where(id => id > 0)
+                .Distinct().ToList();
+
+            var systems = structureSystems.Count > 0
+                ? await _db.SdeSolarSystems.AsNoTracking()
+                    .Where(s => structureSystems.Contains(s.SolarSystemId))
+                    .Select(s => new { s.SolarSystemId, s.Name, s.Security })
+                    .ToListAsync(ct)
+                : [];
+
+            var systemSec   = systems.ToDictionary(s => s.SolarSystemId, s => s.Security);
+            var systemNames = systems.ToDictionary(s => s.SolarSystemId, s => s.Name);
 
             if (ct.IsCancellationRequested) return;
 
-            string structureName = config.Method == MarketMethod.PlayerStructure
-                ? config.LocationName : "Player Structure";
+            double? GetSecurity(MarketRawOrder o)
+            {
+                if (stationSec.TryGetValue(o.LocationId, out var ss)) return ss;
+                var sysId = structureSystemOf.TryGetValue(o.LocationId, out var sid) ? sid : o.SystemId;
+                return systemSec.TryGetValue(sysId, out var sy) ? sy : null;
+            }
 
-            string GetLocation(long locId) =>
-                stationNames.TryGetValue(locId, out var n) ? n :
-                locId >= 1_000_000_000_000L ? structureName :
-                $"Station {locId}";
+            string configStructureName = config.Method == MarketMethod.PlayerStructure
+                ? config.LocationName : "";
+
+            // Falls through name → the config's own name (only right when the source *is* that
+            // structure) → a label naming the system and saying why there is no name.
+            string UnnamedStructure(long locId, int sysId)
+            {
+                if (configStructureName.Length > 0) return configStructureName;
+
+                var reason = structureStatus.TryGetValue(locId, out var st)
+                    ? (StructureStatus)st switch
+                    {
+                        StructureStatus.NoAccess => "Private Structure",
+                        StructureStatus.NotFound => "Unanchored Structure",
+                        _                        => "Player Structure",
+                    }
+                    : "Player Structure";
+
+                return systemNames.TryGetValue(sysId, out var sysName) && sysName.Length > 0
+                    ? $"{sysName} - {reason}"
+                    : reason;
+            }
+
+            string GetLocation(MarketRawOrder o)
+            {
+                if (stationNames.TryGetValue(o.LocationId, out var n)) return n;
+                if (structureNames.TryGetValue(o.LocationId, out var sn)) return sn;
+                if (o.LocationId < 1_000_000_000_000L) return $"Station {o.LocationId}";
+
+                var sysId = structureSystemOf.TryGetValue(o.LocationId, out var sid) ? sid : o.SystemId;
+                return UnnamedStructure(o.LocationId, sysId);
+            }
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -1594,7 +1729,8 @@ public class ItemBrowserViewModel : ReactiveObject
                         VolumeTotal  = o.VolumeTotal,
                         MinVolume    = o.MinVolume,
                         Range        = o.Range,
-                        LocationName = GetLocation(o.LocationId),
+                        LocationName = GetLocation(o),
+                        Security     = GetSecurity(o),
                         Expires      = o.Issued.AddDays(o.Duration),
                     });
 
@@ -1606,7 +1742,8 @@ public class ItemBrowserViewModel : ReactiveObject
                         VolumeTotal  = o.VolumeTotal,
                         MinVolume    = o.MinVolume,
                         Range        = o.Range,
-                        LocationName = GetLocation(o.LocationId),
+                        LocationName = GetLocation(o),
+                        Security     = GetSecurity(o),
                         Expires      = o.Issued.AddDays(o.Duration),
                     });
             });

@@ -466,6 +466,38 @@ public class MarketPricingService
             await Task.Yield();
         }
         db.ChangeTracker.AutoDetectChangesEnabled = true;
+
+        await BackfillStructureSystemsAsync(db, ct);
+    }
+
+    /// <summary>
+    /// Records which system a structure sits in, from the orders listed there.
+    ///
+    /// A structure's own details come from /universe/structures/, which 403s unless one of our
+    /// characters can dock — so for a private structure the system would otherwise stay 0
+    /// forever. A market order carries its system_id regardless of that, and an order listed at
+    /// a structure is proof of where the structure is. Only fills zeroes: a system that came
+    /// from the structure endpoint is authoritative and is left alone.
+    /// </summary>
+    private static async Task BackfillStructureSystemsAsync(AppDbContext db, CancellationToken ct)
+    {
+        try
+        {
+            await db.Database.ExecuteSqlRawAsync("""
+                UPDATE "EsiStructureNames"
+                   SET "SolarSystemId" = (
+                       SELECT o."SystemId" FROM "MarketRawOrders" o
+                       WHERE o."LocationId" = "EsiStructureNames"."StructureId"
+                         AND o."SystemId" > 0
+                       LIMIT 1)
+                 WHERE "SolarSystemId" = 0
+                   AND EXISTS (
+                       SELECT 1 FROM "MarketRawOrders" o
+                       WHERE o."LocationId" = "EsiStructureNames"."StructureId"
+                         AND o."SystemId" > 0)
+                """, ct);
+        }
+        catch { /* an unfilled system id is cosmetic — never fail a market pull over it */ }
     }
 
     private static async Task UpsertPricesAsync(

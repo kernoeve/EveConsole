@@ -146,7 +146,8 @@ public class EsiClient
 
     private sealed record EsiSearchResult(
         [property: JsonPropertyName("character")]   List<int>? Character,
-        [property: JsonPropertyName("corporation")] List<int>? Corporation);
+        [property: JsonPropertyName("corporation")] List<int>? Corporation,
+        [property: JsonPropertyName("alliance")]    List<int>? Alliance);
 
     private sealed record EsiUniverseIdsResult(
         [property: JsonPropertyName("characters")]   List<EsiIdItem>? Characters,
@@ -227,6 +228,29 @@ public class EsiClient
         {
             var result = await GetAuthAsync<EsiSearchResult>(charId, url, ct);
             return result?.Corporation ?? [];
+        }
+        catch { return []; }
+    }
+
+    /// <summary>
+    /// Public, unauthenticated GET returning the payload or null. Wraps the internal
+    /// paged/result plumbing for the many endpoints that need neither — character,
+    /// corporation and alliance public info among them.
+    /// </summary>
+    public async Task<T?> GetPublicAsync<T>(string path, CancellationToken ct = default)
+    {
+        var r = await ExecutePublicAsync<T>(path, ct);
+        return r.IsSuccess ? r.Data : default;
+    }
+
+    public async Task<List<int>> SearchAllianceIdsAsync(long charId, string name, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return [];
+        var url = $"characters/{charId}/search/?categories=alliance&search={Uri.EscapeDataString(name)}&strict=false";
+        try
+        {
+            var result = await GetAuthAsync<EsiSearchResult>(charId, url, ct);
+            return result?.Alliance ?? [];
         }
         catch { return []; }
     }

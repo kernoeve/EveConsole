@@ -450,6 +450,21 @@ public class UniverseViewModel : ReactiveObject
         });
     }
 
+    /// <summary>
+    /// <see cref="FocusRegionAsync"/> for callers that hold a region id rather than its name —
+    /// a killmail row, an agent tool. The graph is keyed by region name, so the id is resolved
+    /// here rather than making every caller do it.
+    /// </summary>
+    public async Task FocusRegionAsync(int regionId)
+    {
+        if (_regions.Count == 0) _regions = await _map.GetRegionsAsync();
+
+        var region = _regions.FirstOrDefault(r => r.RegionId == regionId);
+        if (region is null) return;
+
+        await FocusRegionAsync(region.Name);
+    }
+
     private async Task DrillDownAsync(int id)
     {
         var node = Graph?.Nodes.FirstOrDefault(n => n.Id == id);
@@ -761,25 +776,11 @@ public class UniverseViewModel : ReactiveObject
         return (styles, legend);
     }
 
-    // EVE's own security colour ramp, keyed on the security value rounded to one decimal —
-    // the same rounding the client uses, so 0.45 reads as 0.5 and counts as high sec.
-    private static readonly (double Sec, Color Color)[] SecurityRamp =
-    [
-        (1.0, Color.Parse("#2FEFEF")), (0.9, Color.Parse("#48F0C0")),
-        (0.8, Color.Parse("#00EF47")), (0.7, Color.Parse("#00F000")),
-        (0.6, Color.Parse("#8FEF2F")), (0.5, Color.Parse("#EFEF00")),
-        (0.4, Color.Parse("#D77700")), (0.3, Color.Parse("#F06000")),
-        (0.2, Color.Parse("#F04800")), (0.1, Color.Parse("#D73000")),
-        (0.0, Color.Parse("#F00000")),
-    ];
+    // The ramp itself lives in SecurityColors, so every grid that shows a security value
+    // colours it exactly the way this map does.
+    private static readonly (double Sec, Color Color)[] SecurityRamp = SecurityColors.Ramp;
 
-    private static Color SecurityColor(double security)
-    {
-        var s = Math.Round(security, 1, MidpointRounding.AwayFromZero);
-        foreach (var (sec, color) in SecurityRamp)
-            if (s >= sec) return color;
-        return SecurityRamp[^1].Color;   // null sec and below all share the 0.0 colour
-    }
+    private static Color SecurityColor(double security) => SecurityColors.Of(security);
 
     private static void BuildSecurityOverlay(
         MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend, bool byRegion)

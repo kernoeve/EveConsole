@@ -8,11 +8,11 @@ namespace EveConsole.Services;
 public sealed record KillmailListRow(
     int KillMailId, DateTimeOffset KillMailTime,
     int VictimShipTypeId, string ShipName,
-    int SystemId, string SystemName, string ConstellationName, string RegionName,
+    int SystemId, string SystemName, string ConstellationName, int RegionId, string RegionName,
     double SecurityStatus, double TotalIsk,
-    long VictimCorpId, long VictimAllianceId,
+    long VictimCharId, long VictimCorpId, long VictimAllianceId,
     string VictimName, string VictimCorp, string VictimAlliance,
-    long FbCorpId, long FbAllianceId,
+    long FbCharId, long FbCorpId, long FbAllianceId,
     string FbName, string FbCorp, string FbAlliance);
 
 public sealed record KillmailDetailData(
@@ -41,7 +41,8 @@ public sealed record KillmailItemRow(
 public sealed record KillmailAttackerRow(
     string CharName, string CorpName, string AllianceName,
     int DamageDone, bool FinalBlow, string ShipName, string WeaponName,
-    long CharacterId, int ShipTypeId, int WeaponTypeId);
+    long CharacterId, int ShipTypeId, int WeaponTypeId,
+    long CorporationId = 0, long AllianceId = 0);
 
 public sealed record KillmailListPage(List<KillmailListRow> Rows, bool HasMore);
 
@@ -96,6 +97,7 @@ public class KillmailBrowserService(
         DateOnly? fromDate = null, DateOnly? thruDate = null,
         string? characterFilter = null, string? corporationFilter = null,
         string? shipFilter = null, string? systemFilter = null,
+        EntityKind? entityKind = null, long entityId = 0,
         CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();
@@ -141,6 +143,21 @@ public class KillmailBrowserService(
         {
             var idsStr = string.Join(",", corporationIds);
             conditions.Add($"""(d."VictimCorpId" IN ({idsStr}) OR EXISTS (SELECT 1 FROM "KillMailAttackers" a WHERE a."KillMailId" = d."KillMailId" AND a."FinalBlow" = 1 AND a."CorporationId" IN ({idsStr})))""");
+        }
+
+        // Entity viewer path. The id is already known, so no name resolution is needed —
+        // and unlike the browser's own filters this counts every attacker rather than only
+        // the final blow, because "killmails this pilot was on" is the question being asked
+        // there, not "kills credited to them".
+        if (entityKind is { } ek && entityId > 0)
+        {
+            var (victimCol, attackerCol) = ek switch
+            {
+                EntityKind.Pilot      => ("VictimCharId",     "CharacterId"),
+                EntityKind.PlayerCorp => ("VictimCorpId",     "CorporationId"),
+                _                     => ("VictimAllianceId", "AllianceId"),
+            };
+            conditions.Add($"""(d."{victimCol}" = {entityId} OR EXISTS (SELECT 1 FROM "KillMailAttackers" a WHERE a."KillMailId" = d."KillMailId" AND a."{attackerCol}" = {entityId}))""");
         }
 
         var whereSql = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
@@ -287,11 +304,11 @@ public class KillmailBrowserService(
                 d.VictimShipTypeId,
                 shipNames.TryGetValue(d.VictimShipTypeId, out var sn) ? sn : d.VictimShipTypeId.ToString(),
                 d.SolarSystemId,
-                sys?.Name ?? d.SolarSystemId.ToString(), constellationName, regionName,
+                sys?.Name ?? d.SolarSystemId.ToString(), constellationName, sys?.RegionId ?? 0, regionName,
                 sys?.Security ?? 0.0, isk,
-                d.VictimCorpId, d.VictimAllianceId ?? 0L,
+                d.VictimCharId, d.VictimCorpId, d.VictimAllianceId ?? 0L,
                 Res(d.VictimCharId), Res(d.VictimCorpId), Res(d.VictimAllianceId),
-                fb?.CorporationId ?? 0L, fb?.AllianceId ?? 0L,
+                fb?.CharacterId ?? 0L, fb?.CorporationId ?? 0L, fb?.AllianceId ?? 0L,
                 fb is not null ? Res(fb.CharacterId) : "",
                 fb is not null ? Res(fb.CorporationId) : "",
                 fb is not null ? Res(fb.AllianceId) : "");
@@ -550,7 +567,9 @@ public class KillmailBrowserService(
             a.WeaponTypeId.HasValue && typeNames.TryGetValue(a.WeaponTypeId.Value, out var awn) ? awn : "",
             a.CharacterId  ?? 0,
             a.ShipTypeId   ?? 0,
-            a.WeaponTypeId ?? 0
+            a.WeaponTypeId ?? 0,
+            a.CorporationId ?? 0,
+            a.AllianceId    ?? 0
         )).ToList();
 
         return new KillmailDetailData(
