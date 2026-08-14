@@ -138,7 +138,7 @@ public class TrackedOrderGenerator(
                     LocationName  = rule.LocationName,
                     TypeId        = raw.TypeId,
                     TypeName      = raw.TypeName,
-                    Priority      = 60,
+                    Priority      = WorklistPriority.OrderDriven,
                 });
             }
         }

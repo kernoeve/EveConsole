@@ -80,7 +80,7 @@ public class StandingBuyOrderGenerator(
         {
             var by = r.OutbidBy is { } b ? $" by {b:N2} ISK" : "";
             return ("Raise bid", $"Outbid{by} — best competing bid {r.CompetingBidText}. "
-                               + $"Yours: {r.PriceText}.", 100);
+                               + $"Yours: {r.PriceText}.", WorklistPriority.Outbid);
         }
 
         if (r.MatchStatus == "missing" && settings.RaiseMissing)
@@ -90,15 +90,16 @@ public class StandingBuyOrderGenerator(
             var caveat = r.IsLocationTracked
                 ? ""
                 : " Competing bids unknown — this location is not a configured market source.";
-            return ("Place buy order", $"No order found at {r.LocationName}.{caveat}", 90);
+            return ("Place buy order", $"No order found at {r.LocationName}.{caveat}", WorklistPriority.Missing);
         }
 
         if (r.IsLow && settings.RaiseLow)
             return ("Top up order",
-                    $"{r.RemainingText} left ({r.RemainingPercentText} of the original volume).", 70);
+                    $"{r.RemainingText} left ({r.RemainingPercentText} of the original volume).",
+                    WorklistPriority.ForStock(r.RemainingPercentValue));
 
         if (r.IsExpiringSoon && settings.RaiseExpiring)
-            return ("Re-place order", $"Expires {r.ExpiryText}.", 50);
+            return ("Re-place order", $"Expires {r.ExpiryText}.", WorklistPriority.Housekeeping);
 
         return (null, "", 0);
     }

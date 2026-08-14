@@ -69,7 +69,7 @@ public class StandingProjectGenerator(
                     CharacterName = alt?.CharacterName ?? "",
                     TypeId        = r.ItemTypeId ?? 0,
                     TypeName      = r.ItemTypeName,
-                    Priority      = 85,
+                    Priority      = WorklistPriority.StandingProject,
                 });
             }
         }

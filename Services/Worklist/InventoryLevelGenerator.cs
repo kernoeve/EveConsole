@@ -115,7 +115,7 @@ public class InventoryLevelGenerator(
                         verb     = "Raise bid";
                         detail   = $"{stock}{order}. Outbid — best bid {rival:N2} ISK, "
                                  + $"yours {best:N2} ISK.";
-                        priority = 100;
+                        priority = WorklistPriority.Outbid;
                     }
                     else if (shortfall > 0)
                     {
@@ -124,7 +124,7 @@ public class InventoryLevelGenerator(
                                  + (bids.IsTracked(rule.LocationId)
                                       ? ""
                                       : " Competing bids unknown — this location is not a configured market source.");
-                        priority = 80;
+                        priority = WorklistPriority.ForStock(need.Percent);
                     }
                     else continue;   // below threshold, but existing orders already cover it
 

@@ -113,7 +113,7 @@ public class IndustryJobGenerator(
 
                 // An inventory level is more urgent the emptier it is, so the priority carries
                 // how far below target it has fallen rather than treating every shortfall alike.
-                var priority = IndustryPriority.ForInventory(need.Percent);
+                var priority = WorklistPriority.ForStock(need.Percent);
 
                 string blockedBy = "";
                 var readiness    = WorklistReadiness.Ready;
@@ -300,26 +300,3 @@ public class IndustryJobGenerator(
     }
 }
 
-/// <summary>
-/// How industry work ranks against itself and against everything else.
-///
-/// Two things drive it. Work that fills a customer order outranks work that tops up a shelf,
-/// because someone is waiting on the first. And within stock-keeping, emptier outranks fuller:
-/// a group at 25% of target is closer to stopping production than one at 75%, so it earns a
-/// higher place even though both are technically short.
-/// </summary>
-public static class IndustryPriority
-{
-    /// <summary>Jobs serving a pending customer order.</summary>
-    public const int OrderDriven = 120;
-
-    /// <summary>
-    /// Stock-keeping, scaled by depletion: empty scores near the order-driven band without
-    /// reaching it, full-but-short scores just above the floor.
-    /// </summary>
-    public static int ForInventory(double percentOfTarget)
-    {
-        var depleted = Math.Clamp(100 - percentOfTarget, 0, 100) / 100.0;
-        return 40 + (int)Math.Round(depleted * 60);   // 40 at target, 100 at empty
-    }
-}
