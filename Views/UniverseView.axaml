@@ -211,7 +211,7 @@
                change with the overlay — and a row of small coloured squares with nothing
                explaining them is decoration rather than information. -->
           <StackPanel Spacing="4">
-            <TextBlock Classes="flabel" Text="DOCKING — LEFT OF THE BOX" />
+            <TextBlock Classes="flabel" Text="DOCKING — BAR ABOVE THE BOX" />
             <ItemsControl ItemsSource="{Binding DockLegend}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:LegendEntryVm">
@@ -219,8 +219,9 @@
                     <ItemsControl ItemsSource="{Binding Swatches}" VerticalAlignment="Center">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                          <!-- A bar, matching the map: the height is the rank. -->
-                          <Rectangle Width="7" Height="14" Fill="{Binding}" />
+                          <!-- A wide bar, matching the map. Thickness is the rank there; here the
+                               three sit in a fixed order, so one height reads cleanly. -->
+                          <Rectangle Width="18" Height="5" Fill="{Binding}" />
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>

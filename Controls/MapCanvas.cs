@@ -212,6 +212,10 @@ public class MapCanvas : Control
     /// matches what is actually drawn instead of assuming a dot-sized target.</summary>
     private readonly Dictionary<int, Rect> _gateRects = new();
 
+    /// <summary>Half-extent of each region in world units, keyed by region node id. Sizes the
+    /// watermark so a label matches the territory it names.</summary>
+    private readonly Dictionary<int, double> _regionExtent = new();
+
     /// <summary>Same, for system boxes. Only populated while the boxes are being drawn.</summary>
     private readonly Dictionary<int, Rect> _nodeRects = new();
 
@@ -323,8 +327,22 @@ public class MapCanvas : Control
         ));
 
         _gateRects.Clear();
+        _regionExtent.Clear();
         if (g.IsContinuous)
         {
+            // How far a region reaches, for the watermark's size. Measured from its own systems
+            // rather than assumed, so Delve gets a bigger label than Pochven because it is bigger.
+            // Matched on RegionName because the system tier carries that and not a region id.
+            var byRegionName = g.Nodes.Where(n => n.Tier == 1 && n.RegionName.Length > 0)
+                                      .GroupBy(n => n.RegionName)
+                                      .ToDictionary(gr => gr.Key, gr => gr.ToList());
+
+            foreach (var r in g.Nodes.Where(n => n.Tier == 0))
+                if (byRegionName.TryGetValue(r.Name, out var members) && members.Count > 0)
+                    _regionExtent[r.Id] = Math.Max(
+                        (members.Max(m => m.X) - members.Min(m => m.X)) / 2,
+                        (members.Max(m => m.Y) - members.Min(m => m.Y)) / 2);
+
             _spacingTier0 = MedianNearestNeighbour(g.Nodes.Where(n => n.Tier == 0).ToList());
 
             // ⚠️ Area estimate, not the median, for the system tier. MedianNearestNeighbour is
@@ -466,6 +484,11 @@ public class MapCanvas : Control
             ? (_activeTier == 1 ? _spacingTier1 : _spacingTier0)
             : _spacing;
 
+        // Region names, behind everything, once the map is showing systems. Zooming in no longer
+        // enters a region, so without this there is nothing on screen saying which one you are
+        // looking at — the boxes name systems and the breadcrumb names wherever you last clicked.
+        if (g.IsContinuous && _activeTier == 1) DrawRegionWatermarks(ctx, g);
+
         // Edges first so nodes sit on top of them.
         foreach (var e in g.Edges)
         {
@@ -513,6 +536,47 @@ public class MapCanvas : Control
         }
 
         if (_hover is not null) DrawTooltip(ctx, _hover);
+    }
+
+    /// <summary>Faint enough to sit under the map without competing with it. Everything drawn
+    /// afterwards covers it, which is what makes a label this large usable at all.</summary>
+    private static readonly IBrush WatermarkBrush =
+        new ImmutableSolidColorBrush(Color.FromArgb(38, 190, 205, 235));
+
+    /// <summary>
+    /// The region name written across its own territory, behind the systems.
+    ///
+    /// <para>Sized from the region's real extent rather than from zoom alone, so Delve carries a
+    /// larger name than Pochven and a name never spills far past the space it describes.</para>
+    ///
+    /// <para>⚠️ Drawn before the edges, so systems and jumps overlay it. A label at this size is
+    /// only readable as a background wash; in front of the map it would be a curtain over it.</para>
+    /// </summary>
+    private void DrawRegionWatermarks(DrawingContext ctx, MapGraph g)
+    {
+        foreach (var r in g.Nodes)
+        {
+            if (r.Tier != 0) continue;
+            if (!_regionExtent.TryGetValue(r.Id, out var extent) || extent <= 0) continue;
+
+            // Half the region's on-screen width. Below a floor the name is unreadable anyway and
+            // several would overlap; above a ceiling it stops being a label and becomes wallpaper.
+            var radiusPx = extent * _scale;
+            var fontSize = Math.Clamp(radiusPx * 0.42, 22, 190);
+            if (radiusPx < 60) continue;
+
+            var p = ToScreen(r.X, r.Y);
+
+            // Generous margin: the text is centred on the point, so a region whose centre is off
+            // screen can still have its name reaching into view.
+            if (p.X < -1200 || p.Y < -400 || p.X > Bounds.Width + 1200 || p.Y > Bounds.Height + 400)
+                continue;
+
+            var text = new FormattedText(r.Name.ToUpperInvariant(), CultureInfo.CurrentCulture,
+                                         FlowDirection.LeftToRight, BoldFace, fontSize, WatermarkBrush);
+
+            ctx.DrawText(text, new Point(p.X - text.Width / 2, p.Y - text.Height / 2));
+        }
     }
 
     private void DrawDot(
@@ -621,17 +685,18 @@ public class MapCanvas : Control
     };
 
     /// <summary>
-    /// Docking on the left, services along the bottom, both outside the box so neither covers the
-    /// name and neither depends on the overlay.
+    /// Docking above the box, services below it, both outside so neither covers the name and
+    /// neither depends on the overlay.
     ///
-    /// <para>Docking gets a single tall bar rather than a square: it is one fact with a rank, and
-    /// a bar reads as a level at a glance where a square among squares does not.</para>
+    /// <para>Docking is one bar spanning the full box width, its THICKNESS stepped by class.
+    /// Sitting apart from the services it cannot be mistaken for one of them, and the thickness
+    /// keeps the rank readable for anyone the colours fail.</para>
     ///
-    /// <para>Services run in one row under the box. Stacked beside it they had to wrap, which put
-    /// a service's mark in a different place depending on how many others were present — and a
-    /// mark you have to find is a mark you have to decode. A single row keeps each service at a
-    /// fixed offset from the left edge, and the box is always wider than it is tall, so six marks
-    /// fit across where they never fit down.</para>
+    /// <para>Services run in one row underneath. Stacked beside the box they had to wrap, which
+    /// put a service's mark in a different place depending on how many others were present — and
+    /// a mark you have to find is a mark you have to decode. A single row keeps each service at a
+    /// fixed offset, and the box is always wider than it is tall, so six marks fit across where
+    /// they never fit down.</para>
     /// </summary>
     private void DrawBadges(DrawingContext ctx, MapBadges b, Rect box)
     {
@@ -640,19 +705,17 @@ public class MapCanvas : Control
         // marks are their own separators, since each carries a dark outline.
         const double size = 9, gap = 0, offset = 3;
 
-        // ── Left: one bar, height stepped by class so it reads without colour ──
+        // ── Above: one bar the width of the box, thickness stepped by class ──
         if (DockBrush(b.Dock) is { } dockBrush)
         {
-            const double barW = 7;
-            var frac = b.Dock switch
+            var barH = b.Dock switch
             {
-                DockClass.Super   => 0.86,
-                DockClass.Capital => 0.58,
-                _                 => 0.30,
+                DockClass.Super   => 6.0,
+                DockClass.Capital => 4.0,
+                _                 => 2.5,
             };
-            var barH = box.Height * frac;
             ctx.DrawRectangle(dockBrush, BadgePen,
-                new Rect(box.X - offset - barW, box.Y + (box.Height - barH) / 2, barW, barH));
+                new Rect(box.X, box.Y - offset - barH, box.Width, barH));
         }
 
         // ── Below: services, one row, in fixed legend order ──
