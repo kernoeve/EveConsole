@@ -103,6 +103,7 @@ public class AppDbContext : DbContext
     public DbSet<WorklistMarketAlt>      WorklistMarketAlts      => Set<WorklistMarketAlt>();
     public DbSet<WorklistInvRule>   WorklistInvRules   => Set<WorklistInvRule>();
     public DbSet<WorklistOrderRule> WorklistOrderRules => Set<WorklistOrderRule>();
+    public DbSet<WorklistCorpAlt>   WorklistCorpAlts   => Set<WorklistCorpAlt>();
     public DbSet<WorklistItemState> WorklistItemStates => Set<WorklistItemState>();
 
     // ── Application error log ────────────────────────────────────────────
@@ -1014,6 +1015,11 @@ public class AppDbContext : DbContext
 
         mb.Entity<WorklistOrderRule>(e => {
             e.HasKey(x => x.Id); });
+
+        mb.Entity<WorklistCorpAlt>(e => {
+            e.HasKey(x => x.Id);
+            // One maintainer per corporation, for the same reason a station has one trader.
+            e.HasIndex(x => x.CorporationId).IsUnique(); });
 
         mb.Entity<WorklistItemState>(e => {
             e.HasKey(x => x.Key); });

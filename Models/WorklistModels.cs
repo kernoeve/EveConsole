@@ -100,3 +100,21 @@ public class WorklistOrderRule
 
     public bool Enabled { get; set; } = true;
 }
+
+/// <summary>
+/// Which character maintains a corporation's standing projects.
+///
+/// A sibling of <see cref="WorklistMarketAlt"/>, kept separate rather than folded in because the
+/// key is different in kind: one answers "who trades at this station", this answers "who
+/// administers this corporation". Storing both in a table named for market alts would make the
+/// name lie about half its rows, and the trivial CRUD they share is the cheaper duplication.
+/// </summary>
+public class WorklistCorpAlt
+{
+    public int    Id              { get; set; }
+    public long   CorporationId   { get; set; }
+    public string CorporationName { get; set; } = "";
+    public long   CharacterId     { get; set; }
+    public string CharacterName   { get; set; } = "";
+    public string Note            { get; set; } = "";
+}

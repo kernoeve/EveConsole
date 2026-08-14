@@ -1588,6 +1588,21 @@ public class App : Application
                 """);
 
             db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistCorpAlts" (
+                    "Id"              INTEGER NOT NULL CONSTRAINT "PK_WorklistCorpAlts" PRIMARY KEY AUTOINCREMENT,
+                    "CorporationId"   INTEGER NOT NULL DEFAULT 0,
+                    "CorporationName" TEXT    NOT NULL DEFAULT '',
+                    "CharacterId"     INTEGER NOT NULL DEFAULT 0,
+                    "CharacterName"   TEXT    NOT NULL DEFAULT '',
+                    "Note"            TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistCorpAlts_CorporationId"
+                ON "WorklistCorpAlts" ("CorporationId")
+                """);
+
+            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "WorklistOrderRules" (
                     "Id"           INTEGER NOT NULL CONSTRAINT "PK_WorklistOrderRules" PRIMARY KEY AUTOINCREMENT,
                     "ParkId"       INTEGER NOT NULL DEFAULT 0,
@@ -2436,6 +2451,9 @@ public class App : Application
                               EveConsole.Services.Worklist.InventoryLevelGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.TrackedOrderGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.WorklistCorpAltService>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.StandingProjectGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.WorklistService>();
         services.AddSingleton<IndyFacilityCheckService>();
 
