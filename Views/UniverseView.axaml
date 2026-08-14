@@ -231,7 +231,7 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <TextBlock Classes="flabel" Text="SERVICES — RIGHT OF THE BOX" Margin="0 6 0 0" />
+            <TextBlock Classes="flabel" Text="SERVICES — UNDER THE BOX" Margin="0 6 0 0" />
             <ItemsControl ItemsSource="{Binding ServiceLegend}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:LegendEntryVm">

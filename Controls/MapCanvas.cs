@@ -621,13 +621,17 @@ public class MapCanvas : Control
     };
 
     /// <summary>
-    /// Docking on the left, services on the right, both outside the box so neither covers the
+    /// Docking on the left, services along the bottom, both outside the box so neither covers the
     /// name and neither depends on the overlay.
     ///
     /// <para>Docking gets a single tall bar rather than a square: it is one fact with a rank, and
-    /// a bar reads as a level at a glance where a square among squares does not. Services are a
-    /// grid of small squares — up to six of them would be taller than the box in one column, so
-    /// they wrap into two.</para>
+    /// a bar reads as a level at a glance where a square among squares does not.</para>
+    ///
+    /// <para>Services run in one row under the box. Stacked beside it they had to wrap, which put
+    /// a service's mark in a different place depending on how many others were present — and a
+    /// mark you have to find is a mark you have to decode. A single row keeps each service at a
+    /// fixed offset from the left edge, and the box is always wider than it is tall, so six marks
+    /// fit across where they never fit down.</para>
     /// </summary>
     private void DrawBadges(DrawingContext ctx, MapBadges b, Rect box)
     {
@@ -651,28 +655,22 @@ public class MapCanvas : Control
                 new Rect(box.X - offset - barW, box.Y + (box.Height - barH) / 2, barW, barH));
         }
 
-        // ── Right: services, in fixed legend order, wrapping into columns ──
+        // ── Below: services, one row, in fixed legend order ──
         var marks = ServiceLegend
             .Where(s => b.Services.HasFlag(s.Service))
             .Select(s => s.Brush)
             .ToList();
         if (marks.Count == 0) return;
 
-        // ⚠️ Two to a column, not three. At this size three would stand 27px tall against a box
-        // that is roughly 26px for a two-line label and 17px for one, so the block would overhang
-        // its own card. Two rows keeps it 18px whatever the service count, and grows sideways
-        // instead — where there is room.
-        const int perColumn = 2;
-        var rows   = Math.Min(marks.Count, perColumn);
-        var blockH = rows * size + (rows - 1) * gap;
-        var top    = box.Y + (box.Height - blockH) / 2;
+        // Centred under the box rather than left-aligned to it: the box width varies with the
+        // system name, and a row hung off one edge would drift relative to the name above it.
+        var rowW = marks.Count * size + (marks.Count - 1) * gap;
+        var x0   = box.X + (box.Width - rowW) / 2;
+        var y0   = box.Bottom + offset;
 
         for (var i = 0; i < marks.Count; i++)
-        {
-            var x = box.Right + offset + (i / perColumn) * (size + gap);
-            var y = top       + (i % perColumn) * (size + gap);
-            ctx.DrawRectangle(marks[i], BadgePen, new Rect(x, y, size, size));
-        }
+            ctx.DrawRectangle(marks[i], BadgePen,
+                new Rect(x0 + i * (size + gap), y0, size, size));
     }
 
     /// <summary>
