@@ -153,6 +153,61 @@
       </Grid>
     </TabItem>
 
+    <TabItem Header="Inventory Rules">
+      <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="14 12"
+            DataContext="{Binding RulesVm}" x:DataType="vm:WorklistInvRulesViewModel">
+
+        <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                   Margin="0 0 0 10"
+                   Text="When a group drops below the threshold, there should be a buy order at that station. Several rules can point at one group — below 100% order locally, below 75% also order at the hub — and they stack rather than replace each other. Who places the order comes from the station's desk."/>
+
+        <Grid Grid.Row="1" ColumnDefinitions="220,*,110,110,Auto" Margin="0 0 0 6">
+          <ComboBox Grid.Column="0" Margin="0 0 8 0" FontSize="11"
+                    ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}"
+                    PlaceholderText="Inventory group…" HorizontalAlignment="Stretch"/>
+          <AutoCompleteBox Grid.Column="1" Margin="0 0 8 0"
+                           Text="{Binding LocationText}"
+                           SelectedItem="{Binding SelectedLocation}"
+                           AsyncPopulator="{Binding LocationPopulator}"
+                           FilterMode="None" MinimumPrefixLength="2"
+                           MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
+                           FontSize="11" Watermark="Station or structure…"/>
+          <TextBox Grid.Column="2" Margin="0 0 8 0" FontSize="11" Text="{Binding Threshold}"
+                   Watermark="Below %" ToolTip.Tip="Fire when stock falls below this share of the group target"/>
+          <TextBox Grid.Column="3" Margin="0 0 8 0" FontSize="11" Text="{Binding Fill}"
+                   Watermark="Fill to %" ToolTip.Tip="Order back up to this share of the group target"/>
+          <Button Grid.Column="4" Content="Add rule" Command="{Binding AddCommand}"
+                  FontSize="11" Padding="10 4"/>
+        </Grid>
+
+        <TextBlock Grid.Row="2" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+                   TextWrapping="Wrap" Margin="0 0 0 8"/>
+
+        <DataGrid Grid.Row="3" ItemsSource="{Binding Rules}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Group"     Binding="{Binding GroupName}"     FontSize="10" Width="220"/>
+            <DataGridTextColumn Header="Trigger"   Binding="{Binding ThresholdText}" FontSize="10" Width="100"/>
+            <DataGridTextColumn Header="Fill"      Binding="{Binding FillText}"      FontSize="10" Width="90"/>
+            <DataGridTextColumn Header="Location"  Binding="{Binding LocationName}"  FontSize="10" Width="*"/>
+            <DataGridTextColumn Header="Character" Binding="{Binding DeskText}"      FontSize="10" Width="160"/>
+            <DataGridTemplateColumn Header="" Width="80">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:InvRuleRow">
+                  <Button Content="Remove"
+                          Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).RulesVm.DeleteCommand}"
+                          CommandParameter="{Binding}"
+                          FontSize="9" Padding="6 2" Background="Transparent"
+                          BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
     <TabItem Header="Sources">
       <ScrollViewer>
         <StackPanel Margin="14 12" Spacing="16" MaxWidth="640" HorizontalAlignment="Left">

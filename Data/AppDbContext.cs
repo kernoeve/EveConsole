@@ -101,6 +101,7 @@ public class AppDbContext : DbContext
     // ── Standing buy orders (user-defined intent) ────────────────────────
     public DbSet<StandingBuyOrder> StandingBuyOrders => Set<StandingBuyOrder>();
     public DbSet<WorklistDesk>      WorklistDesks      => Set<WorklistDesk>();
+    public DbSet<WorklistInvRule>   WorklistInvRules   => Set<WorklistInvRule>();
     public DbSet<WorklistItemState> WorklistItemStates => Set<WorklistItemState>();
 
     // ── Application error log ────────────────────────────────────────────
@@ -1006,6 +1007,9 @@ public class AppDbContext : DbContext
             // One character per location: the desk answers "who works here", and two
             // answers for one station is not a routing rule, it is an ambiguity.
             e.HasIndex(x => x.LocationId).IsUnique(); });
+
+        mb.Entity<WorklistInvRule>(e => {
+            e.HasKey(x => x.Id); });
 
         mb.Entity<WorklistItemState>(e => {
             e.HasKey(x => x.Key); });

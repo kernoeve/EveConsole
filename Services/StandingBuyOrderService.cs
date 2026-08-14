@@ -45,7 +45,8 @@ public sealed record StandingBuyOrderRow(
 /// character and corp orders (it is populated from characters/{id}/orders/ and the
 /// corp equivalent), so matching needs no owner filter — every row is theirs.
 /// </summary>
-public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
+public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
+                                     MarketCompetitionService competition)
 {
     /// <summary>An order this far below its original volume wants topping up.
     /// Matches the threshold used for standing projects.</summary>
@@ -161,24 +162,10 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
         var locIds  = standing.Select(s => s.LocationId).Distinct().ToList();
         var ourOrderIds = live.Select(o => o.OrderId).ToHashSet();
 
-        var bookRows = await db.MarketRawOrders.AsNoTracking()
-            .Where(m => m.IsBuyOrder && typeIds.Contains(m.TypeId) && locIds.Contains(m.LocationId))
-            .Select(m => new { m.OrderId, m.TypeId, m.LocationId, m.Price })
-            .ToListAsync(ct);
-
-        var competingBest = bookRows
-            .Where(m => !ourOrderIds.Contains(m.OrderId))
-            .GroupBy(m => (m.TypeId, m.LocationId))
-            .ToDictionary(g => g.Key, g => (decimal)g.Max(m => m.Price));
-
-        // A location with any book rows at all is being tracked, even if this
-        // particular item has no other bidder.
-        var trackedLocations = await db.MarketRawOrders.AsNoTracking()
-            .Where(m => locIds.Contains(m.LocationId))
-            .Select(m => m.LocationId)
-            .Distinct()
-            .ToListAsync(ct);
-        var trackedSet = trackedLocations.ToHashSet();
+        // Read through MarketCompetitionService: the worklist's inventory-level rules ask the
+        // same question, and two implementations would eventually disagree about exactly the
+        // two things above that are easy to get wrong.
+        var bids = await competition.LoadBuyAsync(typeIds, locIds, ourOrderIds, ct);
 
         var charNames = await db.Characters.AsNoTracking()
             .ToDictionaryAsync(c => c.Id, c => c.Name, ct);
@@ -197,9 +184,8 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
 
         foreach (var sbo in standing)
         {
-            var tracked  = trackedSet.Contains(sbo.LocationId);
-            var rivalBid = competingBest.TryGetValue((sbo.TypeId, sbo.LocationId), out var rb)
-                ? rb : (decimal?)null;
+            var tracked  = bids.IsTracked(sbo.LocationId);
+            var rivalBid = bids.BestBuy(sbo.TypeId, sbo.LocationId);
 
             // Shown even when our order is missing: knowing what the station is paying
             // is exactly what you need in order to place one.

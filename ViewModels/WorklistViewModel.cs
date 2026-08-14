@@ -80,6 +80,9 @@ public class WorklistViewModel : ReactiveObject
     /// <summary>Desk configuration, hosted here because it exists only to serve this tool.</summary>
     public WorklistDesksViewModel DesksVm { get; }
 
+    /// <summary>Inventory-level rules: thresholds, stations and fill targets.</summary>
+    public WorklistInvRulesViewModel RulesVm { get; }
+
     /// <summary>Which sources run, and which conditions each one raises.</summary>
     public ObservableCollection<WorklistToggleVm> Sources    { get; } = [];
     public ObservableCollection<WorklistToggleVm> Conditions { get; } = [];
@@ -87,10 +90,13 @@ public class WorklistViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit>   RefreshCommand { get; }
     public ReactiveCommand<string, Unit> SnoozeCommand  { get; }
 
-    public WorklistViewModel(WorklistService service, WorklistDesksViewModel desks)
+    public WorklistViewModel(WorklistService service, WorklistDesksViewModel desks,
+                             WorklistInvRulesViewModel rules)
     {
         _service = service;
         DesksVm  = desks;
+        RulesVm  = rules;
+        RulesVm.RulesChanged = RefreshAsync;
 
         // Assigning a desk unblocks items, so the list should reflect it without a manual
         // refresh — that gap is exactly what makes config feel like it did not take.

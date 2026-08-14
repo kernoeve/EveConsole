@@ -594,7 +594,8 @@ public class MainWindowViewModel : ReactiveObject
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
         WorklistVm             = new WorklistViewModel(worklistService,
-                                     new WorklistDesksViewModel(worklistDeskService, corpActivityService, dbFactory));
+                                     new WorklistDesksViewModel(worklistDeskService, corpActivityService, dbFactory),
+                                     new WorklistInvRulesViewModel(dbFactory, corpActivityService, worklistDeskService));
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);

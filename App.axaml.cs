@@ -1561,6 +1561,18 @@ public class App : Application
                 """);
 
             db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistInvRules" (
+                    "Id"                INTEGER NOT NULL CONSTRAINT "PK_WorklistInvRules" PRIMARY KEY AUTOINCREMENT,
+                    "GroupId"           INTEGER NOT NULL DEFAULT 0,
+                    "ThresholdPercent"  REAL    NOT NULL DEFAULT 100,
+                    "FillTargetPercent" REAL    NOT NULL DEFAULT 100,
+                    "LocationId"        INTEGER NOT NULL DEFAULT 0,
+                    "LocationName"      TEXT    NOT NULL DEFAULT '',
+                    "Enabled"           INTEGER NOT NULL DEFAULT 1
+                )
+                """);
+
+            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "WorklistItemStates" (
                     "Key"          TEXT NOT NULL CONSTRAINT "PK_WorklistItemStates" PRIMARY KEY,
                     "FirstSeenAt"  TEXT NOT NULL DEFAULT '',
@@ -2386,6 +2398,7 @@ public class App : Application
         services.AddSingleton<CorpActivityService>();
         services.AddSingleton<KillmailBrowserService>();
         services.AddSingleton<CorpTop10ExcludeService>();
+        services.AddSingleton<MarketCompetitionService>();
         services.AddSingleton<StandingBuyOrderService>();
 
         // Worklist. Generators register as IWorklistGenerator so WorklistService picks up new
