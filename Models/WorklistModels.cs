@@ -159,3 +159,18 @@ public class WorklistIndyChar
 
     public string Note { get; set; } = "";
 }
+
+/// <summary>
+/// A station added to the industry asset scope on top of the region or system it is set to.
+///
+/// The scope answers "where would I actually pull material from", and for most players that is
+/// their home region plus the trade hubs they import through. Jita is not in the region and never
+/// will be, but stock sitting there is stock they have — counting it as absent would raise a
+/// purchase for something already bought and waiting to be hauled.
+/// </summary>
+public class WorklistIndyScopeStation
+{
+    public int    Id           { get; set; }
+    public long   LocationId   { get; set; }
+    public string LocationName { get; set; } = "";
+}

@@ -21,6 +21,13 @@ public sealed record BlueprintStock
     public required string OwnerType    { get; init; }
     public required long   OwnerId      { get; init; }
 
+    /// <summary>
+    /// Installed in a live job, so unusable until it ends — but still owned. Kept rather than
+    /// dropped because the two are different answers: a busy print comes back, and telling
+    /// someone to buy one they already have would be wrong.
+    /// </summary>
+    public required bool   LockedInJob  { get; init; }
+
     public string Describe() => IsOriginal
         ? $"BPO ME{Me}/TE{Te}"
         : $"BPC ME{Me}/TE{Te}, {Runs:N0} run(s) left";
@@ -45,17 +52,23 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
     /// <summary>
     /// Blueprints in asset safety are recoverable, not usable — a job cannot be installed from
     /// one. Everything else, including copies sitting in a container inside a hangar, can be.
+    ///
+    /// <para>The flag alone is not enough: a print inside a container inside a wrap carries an
+    /// ordinary hangar flag, so the container chain has to be checked too.</para>
     /// </summary>
-    private const string AssetSafety = "AssetSafety";
+    private const string AssetSafetyFlag = "AssetSafety";
 
     /// <summary>
     /// Every usable print of the given blueprint types, keyed by type id.
     ///
-    /// <para>Two corrections are applied that a plain read of the table would miss. Prints held
-    /// in a container report the container's item id as their location, so the chain is walked
-    /// to the station or structure the container is ultimately in — the same root the assets
-    /// table stores, so blueprints and materials are compared at the same place. And prints
-    /// already installed in a live job are dropped, because they are locked until it ends.</para>
+    /// <para>Prints held in a container report the container's item id as their location, so the
+    /// chain is walked to the station or structure the container is ultimately in — the same root
+    /// the assets table stores, so blueprints and materials are compared at the same place.
+    /// Nearly every print is in a container, so without this the search finds almost none.</para>
+    ///
+    /// <para>Prints installed in a live job are marked rather than removed. Whether one is
+    /// available and whether one is owned are different questions with different answers, and
+    /// only the second decides whether to go buy one.</para>
     /// </summary>
     public async Task<Dictionary<int, List<BlueprintStock>>> LoadAsync(
         IReadOnlyCollection<int> blueprintTypeIds, CancellationToken ct = default)
@@ -64,14 +77,18 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        var rows = await db.EsiBlueprints.AsNoTracking()
-            .Where(b => blueprintTypeIds.Contains(b.TypeId) && b.LocationFlag != AssetSafety)
-            .Select(b => new
-            {
-                b.ItemId, b.TypeId, b.Runs, b.MaterialEfficiency, b.TimeEfficiency,
-                b.LocationId, b.OwnerType, b.OwnerId,
-            })
-            .ToListAsync(ct);
+        var wrapped = await AssetSafety.WrappedItemIdsAsync(db, ct);
+
+        var rows = (await db.EsiBlueprints.AsNoTracking()
+                .Where(b => blueprintTypeIds.Contains(b.TypeId) && b.LocationFlag != AssetSafetyFlag)
+                .Select(b => new
+                {
+                    b.ItemId, b.TypeId, b.Runs, b.MaterialEfficiency, b.TimeEfficiency,
+                    b.LocationId, b.OwnerType, b.OwnerId,
+                })
+                .ToListAsync(ct))
+            .Where(b => !wrapped.Contains(b.ItemId) && !wrapped.Contains(b.LocationId))
+            .ToList();
         if (rows.Count == 0) return [];
 
         // Container item id → the station or structure it is ultimately in. Only the locations
@@ -93,23 +110,37 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
             .ToHashSet();
 
         return rows
-            .Where(r => !locked.Contains(r.ItemId))
             .Select(r => new BlueprintStock
             {
-                ItemId     = r.ItemId,
-                TypeId     = r.TypeId,
-                IsOriginal = r.Runs < 0,
-                Runs       = r.Runs < 0 ? int.MaxValue : r.Runs,
-                Me         = r.MaterialEfficiency,
-                Te         = r.TimeEfficiency,
-                LocationId = containerRoots.GetValueOrDefault(r.LocationId, r.LocationId),
-                OwnerType  = r.OwnerType,
-                OwnerId    = r.OwnerId,
+                ItemId      = r.ItemId,
+                TypeId      = r.TypeId,
+                IsOriginal  = r.Runs < 0,
+                Runs        = r.Runs < 0 ? int.MaxValue : r.Runs,
+                Me          = r.MaterialEfficiency,
+                Te          = r.TimeEfficiency,
+                LocationId  = containerRoots.GetValueOrDefault(r.LocationId, r.LocationId),
+                OwnerType   = r.OwnerType,
+                OwnerId     = r.OwnerId,
+                LockedInJob = locked.Contains(r.ItemId),
             })
-            .Where(b => b.Runs > 0)
+            .Where(b => b.Runs > 0)   // a spent copy is a row that has not caught up yet
             .GroupBy(b => b.TypeId)
             .ToDictionary(g => g.Key, g => g.ToList());
     }
+
+    /// <summary>
+    /// Whether a print of this type exists at all within reach, wherever it is and whatever it is
+    /// doing — the question that decides between "move one" and "go buy one".
+    ///
+    /// <para>A print busy in a job counts, because it will come back. Originals always survive
+    /// their job; a copy survives if it has runs left on it. Scope is applied because a print in
+    /// another region is not one that will be installed here this week.</para>
+    /// </summary>
+    public static bool OwnedWithin(
+        IReadOnlyList<BlueprintStock> all, HashSet<long>? scope,
+        IReadOnlyList<WorklistIndyCharReach> reaches) =>
+        all.Any(b => reaches.Any(r => r.CanUse(b))
+                     && (scope is null || scope.Contains(b.LocationId)));
 
     /// <summary>
     /// The prints of one type that a given character can install a job from at a given site, in
@@ -132,7 +163,7 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
         IReadOnlyList<BlueprintStock> all, long siteId,
         IReadOnlyList<WorklistIndyCharReach> reaches) =>
         all
-            .Where(b => b.LocationId == siteId && reaches.Any(r => r.CanUse(b)))
+            .Where(b => !b.LockedInJob && b.LocationId == siteId && reaches.Any(r => r.CanUse(b)))
             .OrderByDescending(b => b.IsOriginal)
             .ThenByDescending(b => b.Me)
             .ThenByDescending(b => b.Te)

@@ -10,6 +10,9 @@ using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
+/// <summary>A station added to the asset scope on top of its region or system.</summary>
+public sealed record ScopeStationRow(int Id, string LocationName);
+
 /// <summary>One enabled character, with their slot picture alongside the switches.</summary>
 public sealed record IndyCharRow(int Id, string CharacterName, string Activities,
                                  string Assets, string Slots, WorklistIndyChar Config);
@@ -27,6 +30,8 @@ public class WorklistIndustryViewModel : ReactiveObject
     private readonly IndustryAssignmentService       _assignment;
     private readonly WorklistSettings                _settings;
     private readonly AppErrorLogger                  _errorLogger;
+    private readonly CorpActivityService             _corpActivity;
+    private readonly WorklistMarketAltService        _marketAlts;
 
     public ObservableCollection<IndyCharRow>     Chars      { get; } = [];
     public ObservableCollection<CharacterOption> Characters { get; } = [];
@@ -34,22 +39,37 @@ public class WorklistIndustryViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit>            AddCommand    { get; }
     public ReactiveCommand<IndyCharRow, Unit>     DeleteCommand { get; }
+    public ReactiveCommand<Unit, Unit>            AddScopeStationCommand    { get; }
+    public ReactiveCommand<ScopeStationRow, Unit> DeleteScopeStationCommand { get; }
 
     public WorklistIndustryViewModel(IDbContextFactory<AppDbContext> dbFactory,
                                      IndustryAssignmentService assignment,
                                      WorklistSettings settings,
-                                     AppErrorLogger errorLogger)
+                                     AppErrorLogger errorLogger,
+                                     CorpActivityService corpActivity,
+                                     WorklistMarketAltService marketAlts)
     {
-        _dbFactory   = dbFactory;
-        _assignment  = assignment;
-        _settings    = settings;
-        _errorLogger = errorLogger;
+        _dbFactory    = dbFactory;
+        _assignment   = assignment;
+        _settings     = settings;
+        _errorLogger  = errorLogger;
+        _corpActivity = corpActivity;
+        _marketAlts   = marketAlts;
 
         AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
         DeleteCommand = ReactiveCommand.CreateFromTask<IndyCharRow>(async r =>
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
             await db.WorklistIndyChars.Where(x => x.Id == r.Id).ExecuteDeleteAsync();
+            await LoadAsync();
+            if (IndustryChanged is not null) await IndustryChanged();
+        });
+
+        AddScopeStationCommand    = ReactiveCommand.CreateFromTask(AddScopeStationAsync);
+        DeleteScopeStationCommand = ReactiveCommand.CreateFromTask<ScopeStationRow>(async r =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            await db.WorklistIndyScopeStations.Where(x => x.Id == r.Id).ExecuteDeleteAsync();
             await LoadAsync();
             if (IndustryChanged is not null) await IndustryChanged();
         });
@@ -90,6 +110,139 @@ public class WorklistIndustryViewModel : ReactiveObject
     public string ParkWarning { get => _parkWarning; private set => this.RaiseAndSetIfChanged(ref _parkWarning, value); }
     public bool HasParkWarning => ParkWarning.Length > 0;
 
+    // ── Where industry buys ───────────────────────────────────────────────────
+
+    public Func<string?, CancellationToken, Task<IEnumerable<object>>> LocationPopulator =>
+        async (text, ct) =>
+            (await _corpActivity.SearchSdeStationsAsync(text ?? "", ct)).Cast<object>().ToList();
+
+    private object? _selectedBuyLocation;
+    public object? SelectedBuyLocation
+    {
+        get => _selectedBuyLocation;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedBuyLocation, value);
+            if (_loading || value is not SdeStationResult s) return;
+            _ = Fire(async () =>
+            {
+                await _settings.SetIndustryBuyLocationAsync(s.StationId, s.Name);
+                await LoadAsync();
+                if (IndustryChanged is not null) await IndustryChanged();
+            }, "SetBuyLocation");
+        }
+    }
+
+    private string _buyLocationText = "";
+    public string BuyLocationText { get => _buyLocationText; set => this.RaiseAndSetIfChanged(ref _buyLocationText, value); }
+
+    /// <summary>
+    /// Says when buying cannot be routed. Shortfalls are still found and still reported on the
+    /// jobs they block; what is missing is somewhere to send the purchase, so the buy tasks
+    /// would have no station and no character.
+    /// </summary>
+    private string _buyWarning = "";
+    public string BuyWarning { get => _buyWarning; private set => this.RaiseAndSetIfChanged(ref _buyWarning, value); }
+    public bool HasBuyWarning => BuyWarning.Length > 0;
+
+    // ── How far to look for materials ─────────────────────────────────────────
+
+    public string[] Scopes { get; } = ["Everywhere", "Region", "System"];
+
+    private string _selectedScope = "Everywhere";
+    public string SelectedScope
+    {
+        get => _selectedScope;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedScope, value);
+            this.RaisePropertyChanged(nameof(NeedsScopePlace));
+            if (_loading) return;
+
+            // Everywhere needs no place, so it can save immediately. The other two are only
+            // half-specified until one is picked, and saving a region scope with no region would
+            // silently mean "nowhere" — every material would read as unowned and every job would
+            // raise a purchase.
+            if (value == "Everywhere")
+                _ = Fire(async () =>
+                {
+                    await _settings.SetIndustryScopeAsync("Everywhere", null, "");
+                    await LoadAsync();
+                    if (IndustryChanged is not null) await IndustryChanged();
+                }, "SetScope");
+        }
+    }
+
+    public bool NeedsScopePlace => SelectedScope != "Everywhere";
+
+    public Func<string?, CancellationToken, Task<IEnumerable<object>>> ScopePlacePopulator =>
+        async (text, ct) => SelectedScope == "System"
+            ? (await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct)).Cast<object>().ToList()
+            : (await _corpActivity.SearchSdeRegionsAsync(text ?? "", ct)).Cast<object>().ToList();
+
+    private object? _selectedScopePlace;
+    public object? SelectedScopePlace
+    {
+        get => _selectedScopePlace;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedScopePlace, value);
+            if (_loading) return;
+
+            (long Id, string Name)? place = value switch
+            {
+                SdeSystemResult s => (s.SystemId, s.Name),
+                SdeRegionResult r => (r.RegionId, r.Name),
+                _                 => null,
+            };
+            if (place is not { } p) return;
+
+            _ = Fire(async () =>
+            {
+                await _settings.SetIndustryScopeAsync(SelectedScope, p.Id, p.Name);
+                await LoadAsync();
+                if (IndustryChanged is not null) await IndustryChanged();
+            }, "SetScope");
+        }
+    }
+
+    private string _scopePlaceText = "";
+    public string ScopePlaceText { get => _scopePlaceText; set => this.RaiseAndSetIfChanged(ref _scopePlaceText, value); }
+
+    // ── Extra stations in scope ───────────────────────────────────────────────
+
+    public ObservableCollection<ScopeStationRow> ScopeStations { get; } = [];
+
+    private object? _selectedExtraStation;
+    public object? SelectedExtraStation { get => _selectedExtraStation; set => this.RaiseAndSetIfChanged(ref _selectedExtraStation, value); }
+
+    private string _extraStationText = "";
+    public string ExtraStationText { get => _extraStationText; set => this.RaiseAndSetIfChanged(ref _extraStationText, value); }
+
+    private async Task AddScopeStationAsync()
+    {
+        if (SelectedExtraStation is not SdeStationResult s)
+        {
+            Status = "Pick a station to add to the scope.";
+            return;
+        }
+
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        if (!await db.WorklistIndyScopeStations.AnyAsync(x => x.LocationId == s.StationId))
+        {
+            db.WorklistIndyScopeStations.Add(new WorklistIndyScopeStation
+            {
+                LocationId = s.StationId, LocationName = s.Name,
+            });
+            await db.SaveChangesAsync();
+        }
+
+        SelectedExtraStation = null;
+        ExtraStationText     = "";
+        await LoadAsync();
+        if (IndustryChanged is not null) await IndustryChanged();
+    }
+
     // ── Job length ────────────────────────────────────────────────────────────
     //
     // Held as text rather than a number so a half-typed value does not momentarily read as zero
@@ -120,21 +273,23 @@ public class WorklistIndustryViewModel : ReactiveObject
                      ? d : -1.0;
         if (days < 0) return;   // mid-edit garbage: leave the stored value alone
 
-        // Fire-and-forget from a property setter, so the throw has to be caught here — nothing
-        // is awaiting this and an escaping exception would land unhandled on the thread pool.
-        _ = Task.Run(async () =>
+        _ = Fire(async () =>
         {
-            try
-            {
-                await _settings.SetMaxJobDaysAsync(key, days);
-                if (IndustryChanged is not null) await IndustryChanged();
-            }
-            catch (Exception ex)
-            {
-                _errorLogger.Log(nameof(WorklistIndustryViewModel), "SetMaxJobDays", ex);
-            }
-        });
+            await _settings.SetMaxJobDaysAsync(key, days);
+            if (IndustryChanged is not null) await IndustryChanged();
+        }, "SetMaxJobDays");
     }
+
+    /// <summary>
+    /// Runs work started from a property setter. Nothing awaits these, so an escaping exception
+    /// would land unhandled on the thread pool and take the client down — a poor trade for a
+    /// save that lost a race with another writer.
+    /// </summary>
+    private Task Fire(Func<Task> work, string context) => Task.Run(async () =>
+    {
+        try { await work(); }
+        catch (Exception ex) { _errorLogger.Log(nameof(WorklistIndustryViewModel), context, ex); }
+    });
 
     // ── New row ───────────────────────────────────────────────────────────────
 
@@ -185,6 +340,17 @@ public class WorklistIndustryViewModel : ReactiveObject
                 ? await db.IndyStructures.CountAsync(s => s.ParkId == parkId && s.RealStructureId != null)
                 : 0;
 
+            var buyLocId = _settings.IndustryBuyLocationId;
+            var buyAlt   = buyLocId > 0
+                ? (await _marketAlts.GetByLocationAsync()).GetValueOrDefault(buyLocId)
+                : null;
+
+            var scopeStations = (await db.WorklistIndyScopeStations.AsNoTracking()
+                    .OrderBy(s => s.LocationName)
+                    .ToListAsync())
+                .Select(s => new ScopeStationRow(s.Id, s.LocationName))
+                .ToList();
+
             // Slot figures come from the assignment service so the tab and the generator can
             // never disagree about how many slots a character has free.
             var candidates = await _assignment.LoadCandidatesAsync();
@@ -224,6 +390,25 @@ public class WorklistIndustryViewModel : ReactiveObject
                 _maxJobDaysRxn = Text(_settings.MaxJobDaysReaction);
                 this.RaisePropertyChanged(nameof(MaxJobDaysMfg));
                 this.RaisePropertyChanged(nameof(MaxJobDaysRxn));
+
+                _buyLocationText = _settings.IndustryBuyLocationName;
+                this.RaisePropertyChanged(nameof(BuyLocationText));
+
+                _selectedScope  = _settings.IndustryScope;
+                _scopePlaceText = _settings.IndustryScopeName;
+                this.RaisePropertyChanged(nameof(SelectedScope));
+                this.RaisePropertyChanged(nameof(NeedsScopePlace));
+                this.RaisePropertyChanged(nameof(ScopePlaceText));
+
+                ScopeStations.Clear();
+                foreach (var s in scopeStations) ScopeStations.Add(s);
+
+                BuyWarning = buyLocId <= 0
+                    ? "No buy location set. Shortfalls will still be reported on the jobs they block, but the purchases have nowhere to be raised."
+                    : buyAlt is null
+                        ? $"No market alt is assigned to {_settings.IndustryBuyLocationName} on the Market Alts tab, so buy tasks there will have no character."
+                        : "";
+                this.RaisePropertyChanged(nameof(HasBuyWarning));
 
                 ParkWarning = parkId <= 0
                     ? "No park selected. Industry jobs stay silent until one is chosen, because the park decides facilities and rigs."

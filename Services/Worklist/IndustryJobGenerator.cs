@@ -34,6 +34,7 @@ public class IndustryJobGenerator(
     IndustryTimeService             times,
     InvLevelService                 invLevels,
     ProductionCalculatorService     production,
+    WorklistMarketAltService        marketAlts,
     WorklistSettings                settings) : IWorklistGenerator
 {
     public string Id          => "industry_jobs";
@@ -76,10 +77,34 @@ public class IndustryJobGenerator(
         // of items into hundreds of jobs, and a per-job asset query made the generator take
         // seconds; the park's own stock is a few thousand rows, so it is cheaper to hold all of
         // it than to ask repeatedly.
-        var siteAssets = await db.EsiAssets.AsNoTracking()
-            .Where(a => siteIds.Contains(a.RootLocationId))
-            .Select(a => new { a.RootLocationId, a.TypeId, a.OwnerId, a.OwnerType, a.Quantity })
-            .ToListAsync(ct);
+        // Asset safety is excluded everywhere below. A wrap has to be unpacked wherever the game
+        // put it and hauled back, so its contents cannot fill a job — and the flag sits only on
+        // the wrap itself, so the whole container chain beneath it has to be found.
+        var wrapped = await AssetSafety.WrappedItemIdsAsync(db, ct);
+
+        var siteAssets = (await db.EsiAssets.AsNoTracking()
+                .Where(a => siteIds.Contains(a.RootLocationId))
+                .Select(a => new { a.ItemId, a.RootLocationId, a.TypeId, a.OwnerId, a.OwnerType, a.Quantity })
+                .ToListAsync(ct))
+            .Where(a => !wrapped.Contains(a.ItemId))
+            .ToList();
+
+        // How far to look before calling something missing. Stock outside this counts as absent,
+        // which is the point: material in another region is not material this job can use, and
+        // treating it as present would suppress a purchase that genuinely needs making.
+        //
+        // The extra stations sit on top, because a trade hub is deliberately outside the home
+        // region and stock waiting there is still stock in hand.
+        var scope = await InvLevelService.ResolveScopeFilterAsync(
+            db, settings.IndustryScope, settings.IndustryScopeId, ct);
+        if (scope is not null)
+        {
+            scope.UnionWith(await db.WorklistIndyScopeStations.AsNoTracking()
+                .Select(s => s.LocationId).ToListAsync(ct));
+            // The park's own facilities are always in scope. A job's inputs sitting in the
+            // structure it runs in cannot sensibly be called out of reach.
+            scope.UnionWith(siteIds);
+        }
 
         // Split by whose it is, because the two are looked up differently: corp stock at a
         // facility serves any alt whose config includes it, whoever the holding corp is, while
@@ -92,6 +117,26 @@ public class IndustryJobGenerator(
                       .GroupBy(a => (a.RootLocationId, a.TypeId, a.OwnerId))
                       .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity)));
 
+        // Everything in scope, wherever it sits. Separate from the per-site view above and asking
+        // a different question: the site view decides whether a job can start now, this one
+        // decides whether the material exists at all — a haul or a purchase.
+        var scopeRows = (await (scope is null
+                    ? db.EsiAssets.AsNoTracking()
+                    : db.EsiAssets.AsNoTracking().Where(a => scope.Contains(a.RootLocationId)))
+                .Select(a => new { a.ItemId, a.TypeId, a.OwnerType, a.OwnerId, a.Quantity })
+                .ToListAsync(ct))
+            .Where(a => !wrapped.Contains(a.ItemId))
+            .GroupBy(a => (a.TypeId, a.OwnerType, a.OwnerId))
+            .Select(g => new { g.Key.TypeId, g.Key.OwnerType, g.Key.OwnerId,
+                               Qty = g.Sum(a => (long)a.Quantity) })
+            .ToList();
+
+        var inScope = new ScopeStock(
+            scopeRows.Where(a => a.OwnerType == "corporation")
+                     .GroupBy(a => a.TypeId).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)),
+            scopeRows.Where(a => a.OwnerType != "corporation")
+                     .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)));
+
         // Rig bonuses key off the item's category, which needs the SDE group tree.
         var typeToGroup = ctx.TypeGroupMap.ToDictionary(kv => kv.Key, kv => kv.Value.GroupId);
         var groupInfo   = ctx.GroupCatMap.ToDictionary(
@@ -101,6 +146,16 @@ public class IndustryJobGenerator(
         var groups = await db.InvLevelGroups.AsNoTracking()
             .Where(g => rules.Select(r => r.GroupId).Contains(g.Id))
             .ToDictionaryAsync(g => g.Id, ct);
+
+        // Items the player has said they make. A Build rule is a standing decision not to buy the
+        // thing, so its shortfall is answered by the jobs below and never by a purchase — without
+        // this, an intermediate like Fernite Carbide gets a build job and a buy order for the
+        // same shortfall, which are contradictory instructions for one pile of material.
+        var buildManaged = (await db.InvLevelItems.AsNoTracking()
+                .Where(i => rules.Select(r => r.GroupId).Contains(i.GroupId))
+                .Select(i => i.TypeId)
+                .ToListAsync(ct))
+            .ToHashSet();
 
         var items     = new List<WorklistItem>();
         var slotsLeft = candidates.ToDictionary(
@@ -117,6 +172,14 @@ public class IndustryJobGenerator(
         // nine-job reaction into two plans instead of nine.
         var planCache = new Dictionary<(int TypeId, long Qty, int Me), Dictionary<int, long>>();
 
+        // What the planned jobs will consume in total, and the most urgent job waiting on each.
+        // Accumulated across every rule so one purchase covers the demand rather than one per
+        // job — you buy Ferrogel once, however many builds are short of it.
+        var demand = new Dictionary<int, MaterialDemand>();
+
+        // Blueprints nothing can be built without, keyed by blueprint type.
+        var printsWanted = new Dictionary<int, PrintWanted>();
+
         // Rules in a fixed order, and items within them too, so the greedy allocation below
         // walks demand identically on every run and therefore assigns identically.
         foreach (var rule in rules.OrderByDescending(r => r.ThresholdPercent).ThenBy(r => r.Id))
@@ -132,11 +195,16 @@ public class IndustryJobGenerator(
             var avail   = await invLevels.LoadAvailableAsync(group, typeIds, ct);
             var names   = await invLevels.GetTypeNamesAsync(typeIds, ct);
 
-            // Blueprints that make these items, what each needs by way of skills, and how many
-            // runs one print will carry.
-            var products = await db.SdeBlueprintProducts.AsNoTracking()
-                .Where(p => typeIds.Contains(p.ProductTypeId))
-                .ToListAsync(ct);
+            // Which blueprint makes each item is the calculator's choice, not a fresh one. Some
+            // products have an unpublished "Test Reaction Blueprint" alongside the real formula
+            // with a tiny output quantity — Tungsten Carbide's yields 20 a run against the real
+            // 10,000 — and picking differently from the calculator would plan materials off one
+            // blueprint while counting runs off another. It filters those out; reusing its index
+            // makes the two agree by construction rather than by both remembering to.
+            var products = typeIds
+                .Select(id => ctx.BlueprintByProduct.GetValueOrDefault(id))
+                .OfType<SdeBlueprintProduct>()
+                .ToList();
             var bpIds = products.Select(p => p.TypeId).Distinct().ToList();
             var bpSkills = (await db.SdeBlueprintSkills.AsNoTracking()
                     .Where(s => bpIds.Contains(s.TypeId))
@@ -155,10 +223,7 @@ public class IndustryJobGenerator(
                 var need = InvRuleShortfall.For(rule, group, gi, av);
                 if (need is null || need.Shortfall <= 0) continue;
 
-                var product = products
-                    .Where(p => p.ProductTypeId == gi.TypeId)
-                    .OrderBy(p => p.TypeId)
-                    .FirstOrDefault();
+                var product = ctx.BlueprintByProduct.GetValueOrDefault(gi.TypeId);
                 if (product is null) continue;   // nothing makes it — a Buy rule's job, not this
 
                 var name       = names.GetValueOrDefault(gi.TypeId, $"Type {gi.TypeId}");
@@ -216,10 +281,31 @@ public class IndustryJobGenerator(
 
                 if (prints.Count == 0)
                 {
+                    // Owning one somewhere and owning none at all are different problems. The
+                    // first is a move; the second is a purchase, and saying "buy" when the print
+                    // is one structure away would be the more expensive mistake of the two.
+                    var allPrints = printsByType.GetValueOrDefault(product.TypeId, []);
+                    var owned     = IndustryBlueprintService.OwnedWithin(allPrints, scope, reaches);
+
+                    if (!owned)
+                    {
+                        var bpName = ctx.TypeNames.GetValueOrDefault(product.TypeId,
+                                                                     $"Blueprint {product.TypeId}");
+                        if (!printsWanted.TryGetValue(product.TypeId, out var want)
+                            || want.Priority < priority)
+                            printsWanted[product.TypeId] =
+                                new PrintWanted(bpName, name, runsNeeded, priority);
+                        else
+                            printsWanted[product.TypeId] =
+                                want with { Runs = want.Runs + runsNeeded };
+                    }
+
                     items.Add(Unstartable(rule, gi.TypeId, name, priority,
                         $"{head} Build {need.Shortfall:N0} ({runsNeeded:N0} run(s)) at {siteName}.",
-                        $"No usable blueprint at {siteName} — every print is elsewhere, "
-                        + "out of reach, or locked in a running job",
+                        owned
+                            ? $"No blueprint at {siteName} — one is owned but elsewhere, out of "
+                              + "reach, or locked in a running job"
+                            : $"No BPO or BPC owned{settings.IndustryScopeSuffix} — one has to be acquired",
                         siteId.Value, siteName));
                     continue;
                 }
@@ -262,15 +348,32 @@ public class IndustryJobGenerator(
                         planCache[cacheKey] = needed =
                             await MaterialsForAsync(ctx, gi.TypeId, wanted, job.Print.Me, ct);
 
+                    // Every planned job's inputs count toward what has to be bought, whether or
+                    // not this one can start — the purchase serves the whole shortfall.
+                    foreach (var (matId, qty) in needed)
+                    {
+                        var d = demand.GetValueOrDefault(matId);
+                        demand[matId] = new MaterialDemand(
+                            d.Qty + qty, Math.Max(d.Priority, priority));
+                    }
+
                     var missing = MissingAtSite(
-                        stock, ctx, owner, needed, siteId.Value, committed);
+                        stock, inScope, ctx, owner, needed, siteId.Value, committed);
 
                     if (missing.Count > 0)
                     {
+                        // Named by what would fix it. "Not here" and "not owned" both stop the
+                        // job, but one is answered by a hauler and the other by a wallet.
+                        var haul = missing.Where(m => !m.MustBuy).Select(m => m.Name).ToList();
+                        var buy  = missing.Where(m =>  m.MustBuy).Select(m => m.Name).ToList();
+
                         readiness = WorklistReadiness.Blocked;
-                        blockedBy = $"Materials not at {siteName}: "
-                                  + string.Join(", ", missing.Take(4))
-                                  + (missing.Count > 4 ? $", and {missing.Count - 4} more" : "");
+                        blockedBy = buy.Count == 0
+                            ? $"Materials not at {siteName}: " + Names(haul)
+                            : haul.Count == 0
+                                ? $"Not owned{settings.IndustryScopeSuffix}: " + Names(buy)
+                                : $"Not owned{settings.IndustryScopeSuffix}: {Names(buy)}; "
+                                  + $"elsewhere: {Names(haul)}";
                     }
                     else if (busy)
                     {
@@ -321,6 +424,129 @@ public class IndustryJobGenerator(
                     });
                 }
             }
+        }
+
+        foreach (var typeId in buildManaged) demand.Remove(typeId);
+
+        items.AddRange(await BuyTasksAsync(db, ctx, demand, printsWanted, candidates, ct));
+        return items;
+    }
+
+    /// <summary>
+    /// What has to be acquired before the blocked jobs can run.
+    ///
+    /// <para>Raised once per item rather than once per job. Nine builds short of the same alloy
+    /// is one purchase, and nine rows saying so would bury the eight other things that need
+    /// buying. The quantity is the whole planned demand less what is already owned in scope and
+    /// less what is already on order, so acting on it clears the shortfall rather than topping it
+    /// up by a job at a time.</para>
+    ///
+    /// <para>Blueprints are stated as BPO or BPC and left without a station. Either fills the
+    /// gap and which one is worth it is the player's call; and neither is a market order, so
+    /// there is no station for the task to belong to.</para>
+    /// </summary>
+    private async Task<List<WorklistItem>> BuyTasksAsync(
+        AppDbContext db, ProductionContext ctx,
+        Dictionary<int, MaterialDemand> demand, Dictionary<int, PrintWanted> printsWanted,
+        List<IndustryCandidate> candidates, CancellationToken ct)
+    {
+        var items = new List<WorklistItem>();
+
+        var buyAt   = settings.IndustryBuyLocationId;
+        var buyName = settings.IndustryBuyLocationName;
+        var alt     = buyAt > 0 ? (await marketAlts.GetByLocationAsync(ct)).GetValueOrDefault(buyAt) : null;
+
+        foreach (var (bpTypeId, want) in printsWanted.OrderBy(p => p.Key))
+        {
+            var price = ctx.BpcPerRun.TryGetValue(bpTypeId, out var opts) && opts.Count > 0
+                ? $" Copies have been seen on contract from {opts.Min(o => o.PerRun):N0} ISK a run."
+                : "";
+
+            items.Add(new WorklistItem
+            {
+                Key       = $"industry_print:{bpTypeId}",
+                Source    = Id,
+                Title     = $"Acquire BPO/BPC — {want.BlueprintName}",
+                Detail    = $"No blueprint owned{settings.IndustryScopeSuffix}, so {want.ProductName} "
+                          + $"cannot be built at all. {want.Runs:N0} run(s) wanted.{price}",
+                Readiness = WorklistReadiness.Ready,
+                TypeId    = bpTypeId,
+                TypeName  = want.BlueprintName,
+                Priority  = want.Priority,
+            });
+        }
+
+        if (demand.Count == 0) return items;
+
+        // What the characters between them already hold in scope. Taken across all of them
+        // rather than per character, because the purchase serves whoever ends up running the job.
+        var typeIds = demand.Keys.ToList();
+
+        var scope = await InvLevelService.ResolveScopeFilterAsync(
+            db, settings.IndustryScope, settings.IndustryScopeId, ct);
+        if (scope is not null)
+            scope.UnionWith(await db.WorklistIndyScopeStations.AsNoTracking()
+                .Select(s => s.LocationId).ToListAsync(ct));
+
+        var anyCorp     = candidates.Any(c => c.Config.IncludeCorpAssets);
+        var personalIds = candidates.Where(c => c.Config.IncludePersonalAssets)
+                                    .Select(c => c.Config.CharacterId).ToHashSet();
+
+        var wrapped = await AssetSafety.WrappedItemIdsAsync(db, ct);
+
+        var owned = (await (scope is null
+                    ? db.EsiAssets.AsNoTracking().Where(a => typeIds.Contains(a.TypeId))
+                    : db.EsiAssets.AsNoTracking().Where(a => typeIds.Contains(a.TypeId)
+                                                          && scope.Contains(a.RootLocationId)))
+                .Select(a => new { a.ItemId, a.TypeId, a.OwnerType, a.OwnerId, a.Quantity })
+                .ToListAsync(ct))
+            .Where(a => !wrapped.Contains(a.ItemId))
+            .Where(a => a.OwnerType == "corporation" ? anyCorp : personalIds.Contains(a.OwnerId))
+            .GroupBy(a => a.TypeId)
+            .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
+
+        // Already bought and waiting to fill. Without this the same purchase is suggested every
+        // refresh until the order completes.
+        var onOrder = (await db.EsiMarketOrders.AsNoTracking()
+                .Where(o => o.IsBuyOrder && !o.IsHistory && typeIds.Contains(o.TypeId))
+                .Select(o => new { o.OrderId, o.OwnerType, o.TypeId, o.VolumeRemain })
+                .ToListAsync(ct))
+            .GroupBy(o => o.OrderId)
+            .Select(g => g.FirstOrDefault(o => o.OwnerType == "corporation") ?? g.First())
+            .GroupBy(o => o.TypeId)
+            .ToDictionary(g => g.Key, g => g.Sum(o => (long)o.VolumeRemain));
+
+        foreach (var (typeId, d) in demand.OrderBy(x => x.Key))
+        {
+            var have  = owned.GetValueOrDefault(typeId);
+            var order = onOrder.GetValueOrDefault(typeId);
+            var short_ = d.Qty - have - order;
+            if (short_ <= 0) continue;
+
+            var name    = ctx.TypeNames.GetValueOrDefault(typeId, $"Type {typeId}");
+            var ordered = order > 0 ? $", {order:N0} on order" : "";
+
+            items.Add(new WorklistItem
+            {
+                Key           = $"industry_buy:{typeId}",
+                Source        = Id,
+                Title         = $"Buy — {name}",
+                Detail        = $"Planned jobs need {d.Qty:N0}; {have:N0} on hand"
+                              + $"{settings.IndustryScopeSuffix}{ordered} — short {short_:N0}.",
+                Readiness     = alt is null ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
+                BlockedBy     = alt is null
+                    ? (buyAt > 0
+                        ? $"No market alt assigned to {buyName}"
+                        : "No buy location set on the Industry tab")
+                    : "",
+                CharacterId   = alt?.CharacterId   ?? 0,
+                CharacterName = alt?.CharacterName ?? "",
+                LocationId    = buyAt,
+                LocationName  = buyName,
+                TypeId        = typeId,
+                TypeName      = name,
+                Priority      = d.Priority,
+            });
         }
 
         return items;
@@ -401,26 +627,43 @@ public class IndustryJobGenerator(
     /// drawing the pile down as it is spent is what lets a five-job split report the first two
     /// Ready and the rest waiting.</para>
     /// </summary>
-    private static List<string> MissingAtSite(
-        SiteStock stock, ProductionContext ctx, IndustryCandidate who,
+    private static List<MissingMaterial> MissingAtSite(
+        SiteStock stock, ScopeStock inScope, ProductionContext ctx, IndustryCandidate who,
         Dictionary<int, long> needed, long siteId, Dictionary<(long, int), long> committed)
     {
         if (needed.Count == 0) return [];
 
-        var shortIds = new List<int>();
+        var missing = new List<MissingMaterial>();
 
-        foreach (var (typeId, wanted) in needed)
+        foreach (var (typeId, wanted) in needed.OrderBy(n => n.Key))
         {
-            var reachable = stock.Reachable(siteId, typeId, who.Config);
-            if (reachable - committed.GetValueOrDefault((siteId, typeId)) < wanted)
-                shortIds.Add(typeId);
+            var here = stock.Reachable(siteId, typeId, who.Config)
+                     - committed.GetValueOrDefault((siteId, typeId));
+            if (here >= wanted) continue;
+
+            missing.Add(new MissingMaterial(
+                ctx.TypeNames.GetValueOrDefault(typeId, $"Type {typeId}"),
+                typeId,
+                // Owned in scope but not here is a hauling problem. Not owned in scope at all is
+                // a buying one, and only the second should raise a purchase.
+                MustBuy: inScope.Reachable(typeId, who.Config) < wanted));
         }
 
-        return shortIds
-            .OrderBy(id => id)
-            .Select(id => ctx.TypeNames.GetValueOrDefault(id, $"Type {id}"))
-            .ToList();
+        return missing;
     }
+
+    private sealed record MissingMaterial(string Name, int TypeId, bool MustBuy);
+
+    /// <summary>Total the planned jobs will consume, and the most urgent one waiting on it.</summary>
+    private readonly record struct MaterialDemand(long Qty, int Priority);
+
+    /// <summary>A blueprint no job can be installed from, because none is owned.</summary>
+    private sealed record PrintWanted(string BlueprintName, string ProductName, long Runs, int Priority);
+
+    /// <summary>Names for a message, capped so a job short of thirty things stays readable.</summary>
+    private static string Names(IReadOnlyList<string> names) =>
+        string.Join(", ", names.Take(4))
+        + (names.Count > 4 ? $", and {names.Count - 4} more" : "");
 
     /// <summary>What is on hand at the park's facilities, indexed for the two ways it is asked
     /// about. Materials pooled in a corp hangar serve every alt whose config includes them;
@@ -435,6 +678,20 @@ public class IndustryJobGenerator(
             if (cfg.IncludeCorpAssets)     total += Corp.GetValueOrDefault((siteId, typeId));
             if (cfg.IncludePersonalAssets) total += Personal.GetValueOrDefault(
                                                         (siteId, typeId, cfg.CharacterId));
+            return total;
+        }
+    }
+
+    /// <summary>The same, across the whole configured scope rather than one facility.</summary>
+    private sealed record ScopeStock(
+        Dictionary<int, long>               Corp,
+        Dictionary<(int TypeId, long OwnerId), long> Personal)
+    {
+        public long Reachable(int typeId, WorklistIndyChar cfg)
+        {
+            long total = 0;
+            if (cfg.IncludeCorpAssets)     total += Corp.GetValueOrDefault(typeId);
+            if (cfg.IncludePersonalAssets) total += Personal.GetValueOrDefault((typeId, cfg.CharacterId));
             return total;
         }
     }

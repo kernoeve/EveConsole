@@ -57,6 +57,61 @@ public class WorklistSettings(AppPreferencesService prefs)
     public Task SetIndustryParkAsync(int parkId) =>
         prefs.SetAsync(IndustryParkKey, parkId.ToString());
 
+    // ── Where industry buys ───────────────────────────────────────────────────
+    //
+    // Build rules carry no station of their own — the park decides where a job runs, so the rule
+    // has nothing to say about it. But an input the job is short of has to be bought somewhere,
+    // and a nullsec build site is not that place. This names the market the shortfalls are
+    // ordered at, and the character is whoever is already the market alt there.
+    //
+    // Blueprints are the exception and are left unassigned on purpose: a BPO or BPC is acquired
+    // through contracts, not a market order, so there is no station for the task to belong to.
+
+    public const string IndustryBuyLocationKey     = "worklist.industry.buy_location_id";
+    public const string IndustryBuyLocationNameKey = "worklist.industry.buy_location_name";
+
+    public long   IndustryBuyLocationId   => prefs.GetLong(IndustryBuyLocationKey, 0);
+    public string IndustryBuyLocationName => prefs.Get(IndustryBuyLocationNameKey) ?? "";
+
+    public async Task SetIndustryBuyLocationAsync(long locationId, string name)
+    {
+        await prefs.SetAsync(IndustryBuyLocationKey, locationId.ToString());
+        await prefs.SetAsync(IndustryBuyLocationNameKey, name);
+    }
+
+    // ── How far to look for materials ─────────────────────────────────────────
+    //
+    // Deciding a job is short of something means deciding what counts as having it. Stock in
+    // another region is not stock you can use this week, so counting it would suppress a purchase
+    // that genuinely needs making; counting only the build site would call for buying things
+    // sitting one structure away. The scope is the line between those, and only the player knows
+    // where it sits — for most it is the region they actually operate in.
+    //
+    // Everywhere is the default because it is the assumption that never invents a purchase. It
+    // will under-report, and the setting is how that gets fixed.
+
+    public const string IndustryScopeKey     = "worklist.industry.asset_scope";
+    public const string IndustryScopeIdKey   = "worklist.industry.asset_scope_id";
+    public const string IndustryScopeNameKey = "worklist.industry.asset_scope_name";
+
+    /// <summary>"Everywhere", "Region" or "System" — the vocabulary InvLevelService already uses,
+    /// so the same resolver serves both.</summary>
+    public string IndustryScope => prefs.Get(IndustryScopeKey) is { Length: > 0 } s ? s : "Everywhere";
+
+    public long?  IndustryScopeId => prefs.GetLong(IndustryScopeIdKey, 0) is var id && id > 0 ? id : null;
+    public string IndustryScopeName => prefs.Get(IndustryScopeNameKey) ?? "";
+
+    /// <summary>How the scope reads in a task's text, e.g. "in Tenerifis".</summary>
+    public string IndustryScopeSuffix => IndustryScope == "Everywhere" || IndustryScopeName.Length == 0
+        ? "" : $" in {IndustryScopeName}";
+
+    public async Task SetIndustryScopeAsync(string scope, long? id, string name)
+    {
+        await prefs.SetAsync(IndustryScopeKey, scope);
+        await prefs.SetAsync(IndustryScopeIdKey, (id ?? 0).ToString());
+        await prefs.SetAsync(IndustryScopeNameKey, name);
+    }
+
     // ── Job length ────────────────────────────────────────────────────────────
     //
     // How long a single job may be allowed to run. Twenty thousand runs of a component is a

@@ -296,7 +296,7 @@
     <TabItem Header="Industry">
       <!-- No ScrollViewer: it gives the DataGrid unbounded width, which breaks star sizing and
            pushes the last column out of view. The final * row fills the tab instead. -->
-      <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*" Margin="14 12"
+      <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*" Margin="14 12"
             DataContext="{Binding IndustryVm}" x:DataType="vm:WorklistIndustryViewModel">
 
         <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
@@ -324,7 +324,68 @@
         <TextBlock Grid.Row="2" Text="{Binding ParkWarning}" IsVisible="{Binding HasParkWarning}"
                    FontSize="10" Foreground="#c8a84b" TextWrapping="Wrap" Margin="0 0 0 10"/>
 
-        <Grid Grid.Row="3" ColumnDefinitions="200,Auto,Auto,Auto,20,Auto,Auto,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
+        <!-- Where material is looked for, and where what is missing gets bought. -->
+        <Grid Grid.Row="3" ColumnDefinitions="130,240,Auto,260" RowDefinitions="Auto,Auto,Auto,Auto"
+              Margin="0 0 0 6">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Count material" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="Region / system" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="3" Text="Buy shortfalls at" Classes="fieldLabel"/>
+
+          <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" FontSize="11"
+                    ItemsSource="{Binding Scopes}" SelectedItem="{Binding SelectedScope}"
+                    HorizontalAlignment="Stretch"
+                    ToolTip.Tip="How far to look when deciding a job is short of something. Stock outside this counts as not owned, so it raises a purchase rather than a haul."/>
+          <AutoCompleteBox Grid.Row="1" Grid.Column="1" Margin="0 0 16 0"
+                           IsEnabled="{Binding NeedsScopePlace}"
+                           Text="{Binding ScopePlaceText}"
+                           SelectedItem="{Binding SelectedScopePlace}"
+                           AsyncPopulator="{Binding ScopePlacePopulator}"
+                           FilterMode="None" MinimumPrefixLength="2"
+                           MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
+                           FontSize="11" Watermark="Type two characters…"/>
+          <AutoCompleteBox Grid.Row="1" Grid.Column="3"
+                           Text="{Binding BuyLocationText}"
+                           SelectedItem="{Binding SelectedBuyLocation}"
+                           AsyncPopulator="{Binding LocationPopulator}"
+                           FilterMode="None" MinimumPrefixLength="2"
+                           MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
+                           FontSize="11" Watermark="Trade hub…"
+                           ToolTip.Tip="Where purchases are raised, and whose market alt gets them. Blueprints are left unassigned — a BPO or BPC comes from contracts, not a market order."/>
+
+          <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" Margin="0 8 0 0"
+                     Text="Also count these stations" Classes="fieldLabel"/>
+          <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="6">
+            <AutoCompleteBox Width="290"
+                             Text="{Binding ExtraStationText}"
+                             SelectedItem="{Binding SelectedExtraStation}"
+                             AsyncPopulator="{Binding LocationPopulator}"
+                             FilterMode="None" MinimumPrefixLength="2"
+                             MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
+                             FontSize="11" Watermark="Jita, Amarr…"
+                             ToolTip.Tip="Trade hubs you import through. Stock waiting in one of these is stock you have, so it should not raise a second purchase."/>
+            <Button Content="Add" Command="{Binding AddScopeStationCommand}" FontSize="11" Padding="10 4"/>
+          </StackPanel>
+          <ItemsControl Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2" ItemsSource="{Binding ScopeStations}"
+                        Margin="8 0 0 0" VerticalAlignment="Center">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:ScopeStationRow">
+                <Button Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).IndustryVm.DeleteScopeStationCommand}"
+                        CommandParameter="{Binding}"
+                        Content="{Binding LocationName}" ToolTip.Tip="Click to remove from the scope"
+                        FontSize="9" Padding="6 2" Margin="0 0 4 4" Cursor="Hand"
+                        Background="Transparent" BorderBrush="#252530" BorderThickness="1"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Grid>
+
+        <TextBlock Grid.Row="4" Text="{Binding BuyWarning}" IsVisible="{Binding HasBuyWarning}"
+                   FontSize="10" Foreground="#c8a84b" TextWrapping="Wrap" Margin="0 0 0 10"/>
+
+        <Grid Grid.Row="5" ColumnDefinitions="200,Auto,Auto,Auto,20,Auto,Auto,Auto" RowDefinitions="Auto,Auto" Margin="0 8 0 6">
           <TextBlock Grid.Row="0" Grid.Column="0" Text="Character" Classes="fieldLabel"/>
           <TextBlock Grid.Row="0" Grid.Column="1" Text="Slots used for" Classes="fieldLabel"/>
           <TextBlock Grid.Row="0" Grid.Column="5" Text="Materials from" Classes="fieldLabel"/>
@@ -340,10 +401,10 @@
                     FontSize="11" Padding="10 4"/>
         </Grid>
 
-        <TextBlock Grid.Row="4" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+        <TextBlock Grid.Row="6" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
-        <DataGrid Grid.Row="5" ItemsSource="{Binding Chars}"
+        <DataGrid Grid.Row="7" ItemsSource="{Binding Chars}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <DataGrid.Columns>
