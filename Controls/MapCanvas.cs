@@ -661,9 +661,12 @@ public class MapCanvas : Control
     private static readonly IBrush DockCapital = new ImmutableSolidColorBrush(Color.Parse("#22c55e"));
     private static readonly IBrush DockSubcap  = new ImmutableSolidColorBrush(Color.Parse("#7f93a8"));
 
-    private static readonly IBrush SvcManufacturing = new ImmutableSolidColorBrush(Color.Parse("#5fa8d3"));
+    // ⚠️ Manufacturing and Reprocessing were #5fa8d3 and #6bbf8a — a sky blue leaning cyan and a
+    // sea green leaning teal, which met in the middle and were hard to tell apart at 9px. Moved to
+    // a true blue and a true green so roughly 90° of hue separates them instead of 50°.
+    private static readonly IBrush SvcManufacturing = new ImmutableSolidColorBrush(Color.Parse("#4a7fe0"));
     private static readonly IBrush SvcResearch      = new ImmutableSolidColorBrush(Color.Parse("#9b7fd4"));
-    private static readonly IBrush SvcReprocessing  = new ImmutableSolidColorBrush(Color.Parse("#6bbf8a"));
+    private static readonly IBrush SvcReprocessing  = new ImmutableSolidColorBrush(Color.Parse("#5fd07a"));
     private static readonly IBrush SvcReactions     = new ImmutableSolidColorBrush(Color.Parse("#d4708a"));
     private static readonly IBrush SvcCloning       = new ImmutableSolidColorBrush(Color.Parse("#d9d2c4"));
     private static readonly IBrush SvcMarket        = new ImmutableSolidColorBrush(Color.Parse("#d8a03c"));
