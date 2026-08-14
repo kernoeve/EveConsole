@@ -225,6 +225,57 @@
       </Grid>
     </TabItem>
 
+    <TabItem Header="Order Rules">
+      <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="14 12"
+            DataContext="{Binding OrderRulesVm}" x:DataType="vm:WorklistOrderRulesViewModel">
+
+        <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                   Margin="0 0 0 10"
+                   Text="Plans your pending customer orders and buys what they are short of. Quantities already built or already in production are subtracted first, then the rest is planned against the park — so its facilities and rigs decide how much material a build really needs."/>
+
+        <Grid Grid.Row="1" ColumnDefinitions="240,*,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Plan against park" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="Buy at" Classes="fieldLabel"/>
+          <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" FontSize="11"
+                    ItemsSource="{Binding Parks}" SelectedItem="{Binding SelectedPark}"
+                    PlaceholderText="Pick a park…" HorizontalAlignment="Stretch"/>
+          <AutoCompleteBox Grid.Row="1" Grid.Column="1" Margin="0 0 8 0"
+                           Text="{Binding LocationText}"
+                           SelectedItem="{Binding SelectedLocation}"
+                           AsyncPopulator="{Binding LocationPopulator}"
+                           FilterMode="None" MinimumPrefixLength="2"
+                           MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
+                           FontSize="11" Watermark="Type two characters…"/>
+          <Button Grid.Row="1" Grid.Column="2" Content="Add rule" Command="{Binding AddCommand}"
+                  FontSize="11" Padding="10 4"/>
+        </Grid>
+
+        <TextBlock Grid.Row="2" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+                   TextWrapping="Wrap" Margin="0 0 0 8"/>
+
+        <DataGrid Grid.Row="3" ItemsSource="{Binding Rules}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Park"      Binding="{Binding ParkName}"     FontSize="10" Width="240"/>
+            <DataGridTextColumn Header="Buy at"    Binding="{Binding LocationName}" FontSize="10" Width="*"/>
+            <DataGridTextColumn Header="Character" Binding="{Binding AltText}"      FontSize="10" Width="160"/>
+            <DataGridTemplateColumn Header="" Width="80">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:OrderRuleRow">
+                  <Button Content="Remove"
+                          Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).OrderRulesVm.DeleteCommand}"
+                          CommandParameter="{Binding}"
+                          FontSize="9" Padding="6 2" Background="Transparent"
+                          BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
     <TabItem Header="Sources">
       <ScrollViewer>
         <StackPanel Margin="14 12" Spacing="16" MaxWidth="640" HorizontalAlignment="Left">

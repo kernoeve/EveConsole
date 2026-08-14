@@ -83,6 +83,9 @@ public class WorklistViewModel : ReactiveObject
     /// <summary>Inventory-level rules: thresholds, stations and fill targets.</summary>
     public WorklistInvRulesViewModel RulesVm { get; }
 
+    /// <summary>Rules turning pending customer orders into buys.</summary>
+    public WorklistOrderRulesViewModel OrderRulesVm { get; }
+
     /// <summary>Which sources run, and which conditions each one raises.</summary>
     public ObservableCollection<WorklistToggleVm> Sources    { get; } = [];
     public ObservableCollection<WorklistToggleVm> Conditions { get; } = [];
@@ -91,12 +94,15 @@ public class WorklistViewModel : ReactiveObject
     public ReactiveCommand<string, Unit> SnoozeCommand  { get; }
 
     public WorklistViewModel(WorklistService service, WorklistMarketAltsViewModel marketAlts,
-                             WorklistInvRulesViewModel rules)
+                             WorklistInvRulesViewModel rules,
+                             WorklistOrderRulesViewModel orderRules)
     {
         _service = service;
         MarketAltsVm  = marketAlts;
         RulesVm  = rules;
         RulesVm.RulesChanged = RefreshAsync;
+        OrderRulesVm = orderRules;
+        OrderRulesVm.RulesChanged = RefreshAsync;
 
         // Assigning a market alt unblocks items, so the list should reflect it without a manual
         // refresh — that gap is exactly what makes config feel like it did not take.

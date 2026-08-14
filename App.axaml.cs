@@ -1588,6 +1588,16 @@ public class App : Application
                 """);
 
             db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistOrderRules" (
+                    "Id"           INTEGER NOT NULL CONSTRAINT "PK_WorklistOrderRules" PRIMARY KEY AUTOINCREMENT,
+                    "ParkId"       INTEGER NOT NULL DEFAULT 0,
+                    "LocationId"   INTEGER NOT NULL DEFAULT 0,
+                    "LocationName" TEXT    NOT NULL DEFAULT '',
+                    "Enabled"      INTEGER NOT NULL DEFAULT 1
+                )
+                """);
+
+            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "WorklistItemStates" (
                     "Key"          TEXT NOT NULL CONSTRAINT "PK_WorklistItemStates" PRIMARY KEY,
                     "FirstSeenAt"  TEXT NOT NULL DEFAULT '',
@@ -2424,6 +2434,8 @@ public class App : Application
                               EveConsole.Services.Worklist.StandingBuyOrderGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.InventoryLevelGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.TrackedOrderGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.WorklistService>();
         services.AddSingleton<IndyFacilityCheckService>();
 

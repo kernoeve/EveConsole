@@ -102,6 +102,7 @@ public class AppDbContext : DbContext
     public DbSet<StandingBuyOrder> StandingBuyOrders => Set<StandingBuyOrder>();
     public DbSet<WorklistMarketAlt>      WorklistMarketAlts      => Set<WorklistMarketAlt>();
     public DbSet<WorklistInvRule>   WorklistInvRules   => Set<WorklistInvRule>();
+    public DbSet<WorklistOrderRule> WorklistOrderRules => Set<WorklistOrderRule>();
     public DbSet<WorklistItemState> WorklistItemStates => Set<WorklistItemState>();
 
     // ── Application error log ────────────────────────────────────────────
@@ -1009,6 +1010,9 @@ public class AppDbContext : DbContext
             e.HasIndex(x => x.LocationId).IsUnique(); });
 
         mb.Entity<WorklistInvRule>(e => {
+            e.HasKey(x => x.Id); });
+
+        mb.Entity<WorklistOrderRule>(e => {
             e.HasKey(x => x.Id); });
 
         mb.Entity<WorklistItemState>(e => {
