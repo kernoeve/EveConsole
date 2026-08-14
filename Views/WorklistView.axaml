@@ -225,7 +225,10 @@
               RowDefinitions="Auto,Auto" Margin="0 0 0 6">
 
           <TextBlock Grid.Row="0" Grid.Column="0" Text="Inventory group" Classes="fieldLabel"/>
-          <TextBlock Grid.Row="0" Grid.Column="1" Text="Station or structure" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="Station or structure" Classes="fieldLabel"
+                     IsVisible="{Binding NeedsLocation}"/>
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="Site" Classes="fieldLabel"
+                     IsVisible="{Binding !NeedsLocation}"/>
           <TextBlock Grid.Row="0" Grid.Column="2" Text="Action" Classes="fieldLabel"/>
           <TextBlock Grid.Row="0" Grid.Column="3" Text="Trigger below (%)" Classes="fieldLabel"/>
           <TextBlock Grid.Row="0" Grid.Column="4" Text="Fill up to (%)"  Classes="fieldLabel"/>
@@ -239,7 +242,13 @@
                            AsyncPopulator="{Binding LocationPopulator}"
                            FilterMode="None" MinimumPrefixLength="2"
                            MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
-                           FontSize="11" Watermark="Type two characters…"/>
+                           FontSize="11" Watermark="Type two characters…"
+                           IsVisible="{Binding NeedsLocation}"/>
+          <!-- A Build rule runs wherever the park assigns the job, so there is nothing to pick. -->
+          <TextBlock Grid.Row="1" Grid.Column="1" Margin="0 0 8 0" FontSize="10" Foreground="#666677"
+                     VerticalAlignment="Center" TextWrapping="Wrap"
+                     IsVisible="{Binding !NeedsLocation}"
+                     Text="Decided by the Indy Park on the Industry tab"/>
           <ComboBox Grid.Row="1" Grid.Column="2" Margin="0 0 8 0" FontSize="11"
                     ItemsSource="{Binding Actions}" SelectedItem="{Binding Action}"
                     HorizontalAlignment="Stretch"

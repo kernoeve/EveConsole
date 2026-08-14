@@ -125,6 +125,8 @@ public class IndustryJobGenerator(
                 string blockedBy = "";
                 var readiness    = WorklistReadiness.Ready;
                 IndustryCandidate? chosen = null;
+                long?  siteId    = null;
+                string siteName  = "";
 
                 if (eligible.Count == 0)
                 {
@@ -135,7 +137,26 @@ public class IndustryJobGenerator(
                 }
                 else
                 {
-                    var needed = await MaterialsForAsync(ctx, gi.TypeId, shortfall, ct);
+                    var root = await PlanRootJobAsync(ctx, gi.TypeId, shortfall, ct);
+
+                    var needed = root is null
+                        ? []
+                        : root.Materials
+                              .GroupBy(m => m.MaterialTypeId)
+                              .ToDictionary(g => g.Key, g => (long)g.Sum(m => m.TotalQty));
+
+                    // Where this job actually runs. The park assigns a facility per category, so
+                    // checking the whole park would pass a job whose inputs are at a different
+                    // structure than the one it is planned for.
+                    if (root?.StationId is { } planned)
+                    {
+                        siteId   = planned;
+                        siteName = root.StationName.Length > 0 ? root.StationName : root.StructureName;
+                    }
+                    else
+                    {
+                        siteName = root?.StructureName ?? "";
+                    }
 
                     foreach (var c in eligible)
                     {
@@ -152,18 +173,26 @@ public class IndustryJobGenerator(
                         readiness = WorklistReadiness.Waiting;
                         blockedBy = "Every character who can run this has all slots busy";
                     }
+                    else if (siteId is null)
+                    {
+                        // The facility this job is planned for has no real structure behind it,
+                        // so there is nowhere to count materials. Saying so beats reporting a
+                        // readiness that was never actually checked.
+                        readiness = WorklistReadiness.Blocked;
+                        blockedBy = siteName.Length > 0
+                            ? $"{siteName} is not linked to a real structure, so materials cannot be checked"
+                            : "No linked structure for this job, so materials cannot be checked";
+                    }
                     else
                     {
                         // Materials are checked against the chosen character's own reach: which
-                        // hangars they can draw from, at the park's linked structures. A job whose
-                        // inputs sit somewhere else cannot be started, and saying so is the point
-                        // of the tool.
-                        var missing = await MissingAtSiteAsync(db, chosen, needed, siteIds, ct);
+                        // hangars they can draw from, at the structure the job runs in.
+                        var missing = await MissingAtSiteAsync(db, chosen, needed, [siteId.Value], ct);
 
                         if (missing.Count > 0)
                         {
                             readiness = WorklistReadiness.Blocked;
-                            blockedBy = "Materials not at the build site: "
+                            blockedBy = $"Materials not at {siteName}: "
                                       + string.Join(", ", missing.Take(4))
                                       + (missing.Count > 4 ? $", and {missing.Count - 4} more" : "");
                         }
@@ -176,7 +205,7 @@ public class IndustryJobGenerator(
                 }
 
                 var siteNote = siteIds.Count == 0
-                    ? " No structure in the park is linked to a real location, so materials cannot be checked."
+                    ? " No structure in this park is linked to a real location."
                     : "";
 
                 items.Add(new WorklistItem
@@ -193,6 +222,8 @@ public class IndustryJobGenerator(
                     BlockedBy     = blockedBy,
                     CharacterId   = chosen?.Config.CharacterId   ?? 0,
                     CharacterName = chosen?.Config.CharacterName ?? "",
+                    LocationId    = siteId ?? 0,
+                    LocationName  = siteName,
                     TypeId        = gi.TypeId,
                     TypeName      = name,
                     Priority      = priority,
@@ -213,7 +244,7 @@ public class IndustryJobGenerator(
     /// station. On an expensive, rarely-run build the difference is not a rounding error, and
     /// waiting on a job that could have started is the exact cost this tool exists to remove.
     /// </summary>
-    private async Task<Dictionary<int, long>> MaterialsForAsync(
+    private async Task<PlanJob?> PlanRootJobAsync(
         ProductionContext ctx, int productTypeId, long quantity, CancellationToken ct)
     {
         var entry = new ProductionQueueEntry
@@ -225,14 +256,10 @@ public class IndustryJobGenerator(
 
         var plan = production.Calculate([entry], ctx);
 
-        // The root job's own inputs. Sub-components the plan would build are separate jobs with
-        // their own worklist items, so their materials are not this job's problem.
-        var root = plan.AllJobs.FirstOrDefault(j => j.OutputTypeId == productTypeId);
-        if (root is null) return [];
-
-        return root.Materials
-            .GroupBy(m => m.MaterialTypeId)
-            .ToDictionary(g => g.Key, g => (long)g.Sum(m => m.TotalQty));
+        // The root job. Its own inputs are what must be present to start it; sub-components the
+        // plan would build are separate jobs with their own worklist items. It also names the
+        // facility the park assigns the job to, which is where those inputs actually have to be.
+        return plan.AllJobs.FirstOrDefault(j => j.OutputTypeId == productTypeId);
     }
 
     /// <summary>

@@ -92,7 +92,22 @@ public class WorklistInvRulesViewModel : ReactiveObject
     public IReadOnlyList<string> Actions { get; } = ["Buy", "Build"];
 
     private string _action = "Buy";
-    public string Action { get => _action; set => this.RaiseAndSetIfChanged(ref _action, value); }
+    public string Action
+    {
+        get => _action;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _action, value);
+            this.RaisePropertyChanged(nameof(NeedsLocation));
+        }
+    }
+
+    /// <summary>
+    /// Only a Buy rule needs a station: it says where the order goes and whose market alt places
+    /// it. A Build rule's site comes from the Indy Park, which assigns a facility per category,
+    /// so asking for one here would collect a value nothing reads.
+    /// </summary>
+    public bool NeedsLocation => Action != "Build";
 
     private string _status = "";
     public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
@@ -116,10 +131,13 @@ public class WorklistInvRulesViewModel : ReactiveObject
                 r.Action,
                 $"below {r.ThresholdPercent:0.#}%",
                 $"to {r.FillTargetPercent:0.#}%",
-                r.LocationName,
-                // Surfaced per rule because a rule pointing at a station with no market alt produces
-                // blocked items, and this is where that is fixable.
-                altMap.TryGetValue(r.LocationId, out var d) ? d.CharacterName : "— unassigned —",
+                r.Action == "Build" ? "— from park —" : r.LocationName,
+                // Surfaced per rule because a Buy rule pointing at a station with no market alt
+                // produces blocked items, and this is where that is fixable. A Build rule routes
+                // by skills and slots instead, so it has no market alt to show.
+                r.Action == "Build"
+                    ? "— by skill —"
+                    : altMap.TryGetValue(r.LocationId, out var d) ? d.CharacterName : "— unassigned —",
                 r))
             .ToList();
 
@@ -141,8 +159,11 @@ public class WorklistInvRulesViewModel : ReactiveObject
 
     private async Task AddAsync()
     {
-        if (SelectedGroup is null)             { Status = "Pick an inventory level group."; return; }
-        if (SelectedLocation is not SdeStationResult loc) { Status = "Pick a station or structure."; return; }
+        if (SelectedGroup is null) { Status = "Pick an inventory level group."; return; }
+
+        // A Build rule has no station of its own — the park decides where the job runs.
+        SdeStationResult? loc = SelectedLocation as SdeStationResult;
+        if (NeedsLocation && loc is null) { Status = "Pick a station or structure for the buy order."; return; }
         if (!double.TryParse(Threshold, out var threshold) || threshold <= 0)
                                                { Status = "Threshold must be a number above zero."; return; }
         if (!double.TryParse(Fill, out var fill) || fill <= 0)
@@ -154,8 +175,8 @@ public class WorklistInvRulesViewModel : ReactiveObject
             GroupId           = SelectedGroup.Id,
             ThresholdPercent  = threshold,
             FillTargetPercent = fill,
-            LocationId        = loc.StationId,
-            LocationName      = loc.Name,
+            LocationId        = loc?.StationId ?? 0,
+            LocationName      = loc?.Name ?? "",
             Enabled           = true,
             Action            = Action,
         });
