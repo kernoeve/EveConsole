@@ -1426,7 +1426,8 @@ public class IndyParksViewModel : ReactiveObject
                 s.DisplayName, s.StructureTypeKey, s.SystemName, s.SecurityClass,
                 Enumerable.Range(0, 3).Select(slot =>
                     rigs.FirstOrDefault(r => r.StructureId == s.Id && r.SlotIndex == slot)?.RigTypeId ?? 0
-                ).ToList()
+                ).ToList(),
+                s.RealStructureId, s.RealStructureName
             )).ToList(),
             catAsgn.Select(a => new CategoryAssignmentExportDto(
                 a.CategoryKey,
@@ -1461,11 +1462,15 @@ public class IndyParksViewModel : ReactiveObject
         {
             var structure = new IndyStructure
             {
-                ParkId           = park.Id,
-                DisplayName      = s.DisplayName,
-                StructureTypeKey = s.StructureTypeKey,
-                SystemName       = s.SystemName,
-                SecurityClass    = s.SecurityClass,
+                ParkId            = park.Id,
+                DisplayName       = s.DisplayName,
+                StructureTypeKey  = s.StructureTypeKey,
+                SystemName        = s.SystemName,
+                SecurityClass     = s.SecurityClass,
+                // Carried so an imported park is usable immediately: without the link there is
+                // no real facility behind it, so nothing can check materials or read its rigs.
+                RealStructureId   = s.RealStructureId,
+                RealStructureName = s.RealStructureName,
             };
             db.IndyStructures.Add(structure);
             pendingRigs.Add((structure, s.RigTypeIds));
@@ -1545,7 +1550,11 @@ file record StructureExportDto(
     string StructureTypeKey,
     string SystemName,
     string SecurityClass,
-    List<int> RigTypeIds
+    List<int> RigTypeIds,
+    // Optional with defaults so files written before the link existed still deserialise. They
+    // import unlinked, which is exactly what they were.
+    long? RealStructureId = null,
+    string RealStructureName = ""
 );
 
 file record CategoryAssignmentExportDto(string CategoryKey, int? StructureIndex);
