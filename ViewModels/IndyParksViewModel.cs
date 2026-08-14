@@ -375,6 +375,13 @@ public class IndyParksViewModel : ReactiveObject
         ("react_biochemical",  "Hybrid Reactions"),
         ("react_bio_gas",      "Bio and Gas Phase Reactions"),
         ("react_structure",    "Structures and Fuel Blocks"),
+        // Science. Separate entries rather than one "science" row because they are separately
+        // rigged and usually separately housed — a copy farm and an invention structure are
+        // rigged differently, and a park that could only name one would send work to the wrong
+        // facility.
+        ("bp_research",        "Blueprint Research"),
+        ("bp_copying",         "Blueprint Copying"),
+        ("bp_invention",       "Blueprint Invention"),
         // Reprocessing
         ("reprocessing",       "Reprocessing"),
     ];
@@ -1448,6 +1455,8 @@ public class IndyParksViewModel : ReactiveObject
         await db.SaveChangesAsync();
 
         var structureIds = new List<int>();
+        var pendingRigs  = new List<(IndyStructure Structure, List<int> RigTypeIds)>();
+
         foreach (var s in dto.Structures)
         {
             var structure = new IndyStructure
@@ -1459,20 +1468,28 @@ public class IndyParksViewModel : ReactiveObject
                 SecurityClass    = s.SecurityClass,
             };
             db.IndyStructures.Add(structure);
-            await db.SaveChangesAsync();
-            structureIds.Add(structure.Id);
+            pendingRigs.Add((structure, s.RigTypeIds));
+        }
 
+        // One write for every structure, then one for every rig slot — not two per structure in
+        // the loop. A park with a dozen facilities took the write lock two dozen times in a row,
+        // and anything else saving during that stretch queued behind all of them.
+        await db.SaveChangesAsync();   // assigns the ids the rigs need
+        structureIds.AddRange(pendingRigs.Select(p => p.Structure.Id));
+
+        foreach (var (structure, rigTypeIds) in pendingRigs)
+        {
             for (int slot = 0; slot < 3; slot++)
             {
                 db.IndyStructureRigs.Add(new IndyStructureRig
                 {
                     StructureId = structure.Id,
                     SlotIndex   = slot,
-                    RigTypeId   = slot < s.RigTypeIds.Count ? s.RigTypeIds[slot] : 0,
+                    RigTypeId   = slot < rigTypeIds.Count ? rigTypeIds[slot] : 0,
                 });
             }
-            await db.SaveChangesAsync();
         }
+        await db.SaveChangesAsync();
 
         foreach (var a in dto.Assignments)
         {

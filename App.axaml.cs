@@ -46,6 +46,20 @@ public class App : Application
             if (e.ExceptionObject is Exception ex)
                 errorLogger.Log("AppDomain", "UnhandledException", ex);
         };
+        // The one that can actually prevent a crash. AppDomain.UnhandledException below only
+        // observes — the process still dies. An async void event handler that throws posts to
+        // this dispatcher, and there are thirty such handlers across the views, so guarding them
+        // individually would be a list to keep in step forever.
+        //
+        // Marking it handled is the right trade for what actually lands here: a transient
+        // SQLITE_BUSY from two writers colliding, already retried for thirty seconds. Losing the
+        // action is a nuisance; losing the session mid-setup is not. Everything is logged, so a
+        // real defect still surfaces in the error log rather than vanishing.
+        Avalonia.Threading.Dispatcher.UIThread.UnhandledException += (_, e) =>
+        {
+            errorLogger.Log("Dispatcher", "UnhandledException", e.Exception);
+            e.Handled = true;
+        };
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
             errorLogger.Log("TaskScheduler", "UnobservedTaskException", e.Exception);

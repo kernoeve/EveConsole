@@ -32,6 +32,11 @@ public static class IndyRigMatching
         if (n.Contains("Basic Large Ship"))        return "large_ships";
         if (n.Contains("Capital Ship"))            return "capital_ships";
         if (n.Contains("Drone and Fighter"))       return "drones_fighters";
+        // Science rigs, before the manufacturing names below. Copy first: "Blueprint Copy Cost
+        // Optimization" would otherwise fall through to nothing.
+        if (n.Contains("Blueprint Copy"))          return "bp_copying";
+        if (n.Contains("Invention"))               return "bp_invention";
+        if (n.Contains("Research"))                return "bp_research";
         if (n.Contains("Equipment"))               return "modules_equipment";
         if (n.Contains("Ammunition"))              return "ammo_charges";
         if (n.Contains("Basic Capital Component")) return "capital_components";
