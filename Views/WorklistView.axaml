@@ -7,6 +7,11 @@
 
   <UserControl.Styles>
     <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="10" /></Style>
+    <Style Selector="TextBlock.fieldLabel">
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="Foreground" Value="#7a8896" />
+      <Setter Property="Margin"     Value="0 0 8 3" />
+    </Style>
     <Style Selector="DataGridColumnHeader">
       <Setter Property="Background" Value="#12121a" />
       <Setter Property="Foreground" Value="#555566" />
@@ -109,21 +114,24 @@
                    Margin="0 0 0 10"
                    Text="A desk says which character works a station. Every generator routes its items through these, so a station without one produces blocked items that name no owner."/>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,180,180,Auto" Margin="0 0 0 6">
-          <AutoCompleteBox Grid.Column="0" Margin="0 0 8 0"
+        <Grid Grid.Row="1" ColumnDefinitions="*,180,180,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Station or structure" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="Character"           Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="2" Text="Note"                Classes="fieldLabel"/>
+          <AutoCompleteBox Grid.Row="1" Grid.Column="0" Margin="0 0 8 0"
                            Text="{Binding LocationText}"
                            SelectedItem="{Binding SelectedLocation}"
                            AsyncPopulator="{Binding LocationPopulator}"
                            FilterMode="None" MinimumPrefixLength="2"
                            MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
                            FontSize="11" Watermark="Station or structure…"/>
-          <ComboBox Grid.Column="1" Margin="0 0 8 0" FontSize="11"
+          <ComboBox Grid.Row="1" Grid.Column="1" Margin="0 0 8 0" FontSize="11"
                     ItemsSource="{Binding Characters}"
                     SelectedItem="{Binding SelectedCharacter}"
                     PlaceholderText="Character…" HorizontalAlignment="Stretch"/>
-          <TextBox Grid.Column="2" Margin="0 0 8 0" FontSize="11"
-                   Text="{Binding Note}" Watermark="Note (optional)"/>
-          <Button Grid.Column="3" Content="Add / Update" Command="{Binding AddCommand}"
+          <TextBox Grid.Row="1" Grid.Column="2" Margin="0 0 8 0" FontSize="11"
+                   Text="{Binding Note}" Watermark="optional"/>
+          <Button Grid.Row="1" Grid.Column="3" Content="Add / Update" Command="{Binding AddCommand}"
                   FontSize="11" Padding="10 4"/>
         </Grid>
 
@@ -161,22 +169,31 @@
                    Margin="0 0 0 10"
                    Text="When a group drops below the threshold, there should be a buy order at that station. Several rules can point at one group — below 100% order locally, below 75% also order at the hub — and they stack rather than replace each other. Who places the order comes from the station's desk."/>
 
-        <Grid Grid.Row="1" ColumnDefinitions="220,*,110,110,Auto" Margin="0 0 0 6">
-          <ComboBox Grid.Column="0" Margin="0 0 8 0" FontSize="11"
+        <!-- Labels above the fields rather than watermarks: both percentages default to 100,
+             and a watermark only shows while a field is empty, so they were two bare numbers. -->
+        <Grid Grid.Row="1" ColumnDefinitions="220,*,120,120,Auto"
+              RowDefinitions="Auto,Auto" Margin="0 0 0 6">
+
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Inventory group" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="Station or structure" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="2" Text="Order below (%)" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="3" Text="Fill up to (%)"  Classes="fieldLabel"/>
+
+          <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" FontSize="11"
                     ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}"
-                    PlaceholderText="Inventory group…" HorizontalAlignment="Stretch"/>
-          <AutoCompleteBox Grid.Column="1" Margin="0 0 8 0"
+                    PlaceholderText="Pick a group…" HorizontalAlignment="Stretch"/>
+          <AutoCompleteBox Grid.Row="1" Grid.Column="1" Margin="0 0 8 0"
                            Text="{Binding LocationText}"
                            SelectedItem="{Binding SelectedLocation}"
                            AsyncPopulator="{Binding LocationPopulator}"
                            FilterMode="None" MinimumPrefixLength="2"
                            MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
-                           FontSize="11" Watermark="Station or structure…"/>
-          <TextBox Grid.Column="2" Margin="0 0 8 0" FontSize="11" Text="{Binding Threshold}"
-                   Watermark="Below %" ToolTip.Tip="Fire when stock falls below this share of the group target"/>
-          <TextBox Grid.Column="3" Margin="0 0 8 0" FontSize="11" Text="{Binding Fill}"
-                   Watermark="Fill to %" ToolTip.Tip="Order back up to this share of the group target"/>
-          <Button Grid.Column="4" Content="Add rule" Command="{Binding AddCommand}"
+                           FontSize="11" Watermark="Type two characters…"/>
+          <TextBox Grid.Row="1" Grid.Column="2" Margin="0 0 8 0" FontSize="11" Text="{Binding Threshold}"
+                   ToolTip.Tip="Raise a task when stock falls below this share of the group target"/>
+          <TextBox Grid.Row="1" Grid.Column="3" Margin="0 0 8 0" FontSize="11" Text="{Binding Fill}"
+                   ToolTip.Tip="Order back up to this share of the group target"/>
+          <Button Grid.Row="1" Grid.Column="4" Content="Add rule" Command="{Binding AddCommand}"
                   FontSize="11" Padding="10 4"/>
         </Grid>
 

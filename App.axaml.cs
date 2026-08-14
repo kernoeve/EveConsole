@@ -2407,6 +2407,8 @@ public class App : Application
         services.AddSingleton<EveConsole.Services.Worklist.WorklistSettings>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.StandingBuyOrderGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.InventoryLevelGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.WorklistService>();
         services.AddSingleton<IndyFacilityCheckService>();
 
