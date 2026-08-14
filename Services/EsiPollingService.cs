@@ -1252,6 +1252,28 @@ public class EsiPollingService : ReactiveObject
         return status;
     }
 
+    /// <summary>
+    /// How stale a "checked at" stamp may get before it is written for its own sake.
+    ///
+    /// <para>⚠️ These three endpoints poll every ten seconds and the answer is the same almost
+    /// every time — a character sits in one system, in one ship, logged in. The row was written
+    /// anyway, because the stamp was set to UtcNow unconditionally and EF then saw a modified
+    /// entity every pass. With five characters online that is roughly 1.3 writes a second and
+    /// 110,000 a day, each one taking the exclusive write lock to record that nothing happened.
+    /// </para>
+    ///
+    /// <para>The stamp cannot simply stop being written: consumers tell live data from stale by
+    /// it, so a character parked for an hour would read as an hour out of date. Writing it only
+    /// when it has drifted this far keeps freshness accurate to within the window, and errs
+    /// toward looking staler than it is rather than fresher.</para>
+    /// </summary>
+    private static readonly TimeSpan StampWriteEvery = TimeSpan.FromMinutes(5);
+
+    /// <summary>True when the stamp is old enough to be worth a write on its own. Null counts as
+    /// due, which is what makes a newly created status row save immediately.</summary>
+    private static bool StampDue(DateTimeOffset? checkedAt) =>
+        checkedAt is null || DateTimeOffset.UtcNow - checkedAt.Value >= StampWriteEvery;
+
     private async Task<PollingResult> FetchOnlineAsync(long charId, AppDbContext db, CancellationToken ct)
     {
         var r = await _esi.ExecuteAuthAsync<EsiCharacterOnline>(charId,
@@ -1260,12 +1282,26 @@ public class EsiPollingService : ReactiveObject
 
         var status = await GetOrCreateStatusAsync(db, charId, ct);
 
-        status.Online          = r.Data.Online;
-        status.LastLogin       = r.Data.LastLogin;
-        status.LastLogout      = r.Data.LastLogout;
-        status.LoginCount      = r.Data.Logins;
-        status.OnlineCheckedAt = DateTimeOffset.UtcNow;
+        // Written only when something actually moved, or when the stamp has drifted — see
+        // StampWriteEvery. Online state is the same on the overwhelming majority of passes.
+        var changed = status.Online     != r.Data.Online
+                   || status.LastLogin  != r.Data.LastLogin
+                   || status.LastLogout != r.Data.LastLogout
+                   || status.LoginCount != r.Data.Logins;
 
+        if (changed || StampDue(status.OnlineCheckedAt))
+        {
+            status.Online          = r.Data.Online;
+            status.LastLogin       = r.Data.LastLogin;
+            status.LastLogout      = r.Data.LastLogout;
+            status.LoginCount      = r.Data.Logins;
+            status.OnlineCheckedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(ct);
+        }
+
+        // ⚠️ Everything below runs whether or not the row was written. It is in-memory state that
+        // decides which endpoints run next, and skipping it on an unchanged pass would stop
+        // location and ship polling for a character who is still online.
         // Cached so the endpoint loop can skip location/ship without a DB read.
         var wasOnline = _onlineState.TryGetValue(charId, out var prev) && prev;
         _onlineState[charId] = r.Data.Online;
@@ -1285,7 +1321,6 @@ public class EsiPollingService : ReactiveObject
             _offlineFixTaken.TryRemove((charId, "char.ship"), out _);
         }
 
-        await db.SaveChangesAsync(ct);
         return FromResult(r);
     }
 
@@ -1297,12 +1332,21 @@ public class EsiPollingService : ReactiveObject
             $"characters/{charId}/location/", ct);
         if (!r.IsSuccess || r.Data is null) return FromResult(r);
 
-        status.SolarSystemId     = r.Data.SolarSystemId;
-        status.StationId         = r.Data.StationId;
-        status.StructureId       = r.Data.StructureId;
-        status.LocationCheckedAt = DateTimeOffset.UtcNow;
+        // A docked character reports the same three values every ten seconds; only a jump or a
+        // dock changes any of them. See StampWriteEvery.
+        var changed = status.SolarSystemId != r.Data.SolarSystemId
+                   || status.StationId     != r.Data.StationId
+                   || status.StructureId   != r.Data.StructureId;
 
-        await db.SaveChangesAsync(ct);
+        if (changed || StampDue(status.LocationCheckedAt))
+        {
+            status.SolarSystemId     = r.Data.SolarSystemId;
+            status.StationId         = r.Data.StationId;
+            status.StructureId       = r.Data.StructureId;
+            status.LocationCheckedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(ct);
+        }
+
         return FromResult(r);
     }
 
@@ -1314,12 +1358,20 @@ public class EsiPollingService : ReactiveObject
             $"characters/{charId}/ship/", ct);
         if (!r.IsSuccess || r.Data is null) return FromResult(r);
 
-        status.ShipTypeId    = r.Data.ShipTypeId;
-        status.ShipItemId    = r.Data.ShipItemId;
-        status.ShipName      = r.Data.ShipName;
-        status.ShipCheckedAt = DateTimeOffset.UtcNow;
+        // The ship only changes when the character boards another one. See StampWriteEvery.
+        var changed = status.ShipTypeId != r.Data.ShipTypeId
+                   || status.ShipItemId != r.Data.ShipItemId
+                   || status.ShipName   != r.Data.ShipName;
 
-        await db.SaveChangesAsync(ct);
+        if (changed || StampDue(status.ShipCheckedAt))
+        {
+            status.ShipTypeId    = r.Data.ShipTypeId;
+            status.ShipItemId    = r.Data.ShipItemId;
+            status.ShipName      = r.Data.ShipName;
+            status.ShipCheckedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(ct);
+        }
+
         return FromResult(r);
     }
 
