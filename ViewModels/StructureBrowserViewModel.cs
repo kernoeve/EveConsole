@@ -1660,6 +1660,21 @@ public class StructureBrowserViewModel : ReactiveObject
     }
 
     /// <summary>
+    /// Shows one structure, for a caller arriving from somewhere else.
+    ///
+    /// <para>Loads first when the list is empty: the tool builds its rows on construction, but a
+    /// link can be followed before that has finished, and selecting into an empty list would land
+    /// on nothing and look like a broken link.</para>
+    /// </summary>
+    public void Open(long structureId) => _ = OpenAsync(structureId);
+
+    private async Task OpenAsync(long structureId)
+    {
+        if (_all.Count == 0) await LoadAsync();
+        SelectById(structureId);
+    }
+
+    /// <summary>
     /// Selects a structure by id, revealing it if the current filters hide it.
     ///
     /// <para>⚠️ Unhides rather than failing quietly. An id that was just added or just pulled is

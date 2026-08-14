@@ -409,7 +409,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 {
                     712             => "react_bio_gas",         // Biochemical Material (gas reactions)
                     428             => "react_biochemical",     // Intermediate Materials (moon processing)
-                    429 or 974 or 4096 => "react_composite",   // Composite / Hybrid Polymers / Molecular-Forged
+                    // 4932 Unrefined Mineral — the eight Unrefined Tritanium/Pyerite/… products,
+                    // reaction-produced and bonused by the composite rig. See IndyRigMatching.
+                    429 or 974 or 4096 or 4932 => "react_composite",   // Composite / Hybrid Polymers / Molecular-Forged
                     _               => "",
                 };
             }
@@ -420,8 +422,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 // ── Category 6: Ships ────────────────────────────────────────────────
                 (6, "Frigate" or "Destroyer" or "Shuttle" or "Corvette" or "Rookie Ship"
                    or "Hauler" or "Mining Barge")                                           => "small_ships",
+                // "Special Edition Yachts" — Victorieux, the Opux pair, the YC128 buses. All
+                // cruiser-hulled at 115,000 m³. See IndyRigMatching.
                 (6, "Cruiser" or "Battlecruiser" or "Combat Battlecruiser"
-                   or "Attack Battlecruiser")                                               => "medium_ships",
+                   or "Attack Battlecruiser" or "Special Edition Yachts")                   => "medium_ships",
                 (6, "Battleship" or "Freighter")                                            => "large_ships",
                 // T2 frigates/destroyers; SDE group is "Interdictor" not "Interdiction Destroyer"
                 (6, "Interceptor" or "Assault Frigate" or "Covert Ops"
@@ -452,6 +456,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 (20, _)         => "modules_equipment",
                 (23, _)         => "modules_equipment",
                 (39, _)         => "modules_equipment",
+                // Special Edition Assets — the Deactivated Station Key Pass is the only
+                // manufacturable member of the category. See IndyRigMatching.
+                (63, _)         => "modules_equipment",
+                // Sovereignty Structures (40) and Orbitals (46) take the structure rig. Five
+                // manufacturable members between them, all structures. See IndyRigMatching.
+                (40, _)         => "structure_ammo",
+                (46, _)         => "structure_ammo",
                 // Category 2 (Celestial) is a junk drawer — planets, suns, wrecks, 1,697
                 // non-interactable objects. Only its container groups are manufacturable.
                 (2, var celestial) when celestial.Contains("Container") => "modules_equipment",
