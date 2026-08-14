@@ -1,0 +1,167 @@
+using System.Collections.ObjectModel;
+using System.Reactive;
+using Avalonia.Threading;
+using EveConsole.Services.Worklist;
+using ReactiveUI;
+
+namespace EveConsole.ViewModels;
+
+/// <summary>One row on the worklist.</summary>
+public class WorklistRowVm : ReactiveObject
+{
+    private readonly WorklistItem _item;
+
+    public WorklistRowVm(WorklistItem item) => _item = item;
+
+    public string Key           => _item.Key;
+    public string Title         => _item.Title;
+    public string Detail        => _item.Detail;
+    public string SourceName    => _item.Source;
+    public string CharacterName => _item.CharacterName.Length > 0 ? _item.CharacterName : "—";
+    public string LocationName  => _item.LocationName;
+    public int    TypeId        => _item.TypeId;
+    public int    Priority      => _item.Priority;
+    public bool   IsSnoozed     => _item.IsSnoozed;
+
+    public string ReadinessText => _item.Readiness switch
+    {
+        WorklistReadiness.Ready   => "Ready",
+        WorklistReadiness.Blocked => "Blocked",
+        _                         => "Waiting",
+    };
+
+    public string ReadinessColor => _item.Readiness switch
+    {
+        WorklistReadiness.Ready   => "#5aa469",
+        WorklistReadiness.Blocked => "#c85a5a",
+        _                         => "#c8a84b",
+    };
+
+    /// <summary>Blocked items say what is in the way; the rest carry their own detail.</summary>
+    public string Note => _item.BlockedBy.Length > 0 ? _item.BlockedBy : "";
+
+    public bool HasNote => Note.Length > 0;
+
+    /// <summary>How long this has been asking to be done — the thing a regenerated list would
+    /// otherwise lose on every refresh.</summary>
+    public string AgeText => _item.FirstSeenAt is { } f ? Ago(f) : "";
+
+    /// <summary>How stale the data behind the suggestion is. Shown so the player does not act
+    /// on an hour-old order book without knowing it.</summary>
+    public string DataAgeText => _item.DataAsOf is { } d ? $"data {Ago(d)}" : "";
+
+    public string SnoozeText => _item.SnoozedUntil is { } s && s > DateTimeOffset.UtcNow
+        ? $"snoozed until {s.ToLocalTime():d MMM HH:mm}"
+        : "";
+
+    private static string Ago(DateTimeOffset t)
+    {
+        var d = DateTimeOffset.UtcNow - t;
+        if (d.TotalMinutes <  1) return "just now";
+        if (d.TotalHours   <  1) return $"{(int)d.TotalMinutes}m ago";
+        if (d.TotalDays    <  1) return $"{(int)d.TotalHours}h ago";
+        return $"{(int)d.TotalDays}d ago";
+    }
+}
+
+/// <summary>
+/// The worklist: what to do next, and whether it can be done now.
+///
+/// Rows are rebuilt from live data on every refresh rather than tracked, so an item disappears
+/// once the thing it asked for has happened. Detection is off polled ESI data, which means a
+/// refresh only reflects the last poll — hence the per-row data age.
+/// </summary>
+public class WorklistViewModel : ReactiveObject
+{
+    private readonly WorklistService _service;
+
+    public ObservableCollection<WorklistRowVm> Rows { get; } = [];
+
+    /// <summary>Desk configuration, hosted here because it exists only to serve this tool.</summary>
+    public WorklistDesksViewModel DesksVm { get; }
+
+    public ReactiveCommand<Unit, Unit>   RefreshCommand { get; }
+    public ReactiveCommand<string, Unit> SnoozeCommand  { get; }
+
+    public WorklistViewModel(WorklistService service, WorklistDesksViewModel desks)
+    {
+        _service = service;
+        DesksVm  = desks;
+
+        // Assigning a desk unblocks items, so the list should reflect it without a manual
+        // refresh — that gap is exactly what makes config feel like it did not take.
+        DesksVm.DeskChanged = RefreshAsync;
+
+        RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
+        SnoozeCommand  = ReactiveCommand.CreateFromTask<string>(async key =>
+        {
+            await _service.SnoozeAsync(key, DateTimeOffset.UtcNow.AddHours(SnoozeHours));
+            await RefreshAsync();
+        });
+
+        _ = RefreshAsync();
+    }
+
+    /// <summary>How long the snooze button hides an item for.</summary>
+    public const int SnoozeHours = 8;
+
+    private bool _showSnoozed;
+    public bool ShowSnoozed
+    {
+        get => _showSnoozed;
+        set { this.RaiseAndSetIfChanged(ref _showSnoozed, value); _ = RefreshAsync(); }
+    }
+
+    private bool _isLoading;
+    public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
+
+    private string _status = "";
+    public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
+
+    private string _errors = "";
+    public string Errors { get => _errors; private set => this.RaiseAndSetIfChanged(ref _errors, value); }
+    public bool HasErrors => Errors.Length > 0;
+
+    public async Task RefreshAsync()
+    {
+        IsLoading = true;
+        try
+        {
+            var run = await _service.BuildAsync();
+
+            var visible = run.AllItems
+                .Where(i => ShowSnoozed || !i.IsSnoozed)
+                // Blocked last: the list is read top-down looking for something to do, and an
+                // item that cannot be actioned does not belong at the top of that read.
+                .OrderBy(i => i.Readiness == WorklistReadiness.Blocked ? 1 : 0)
+                .ThenByDescending(i => i.Priority)
+                .ThenBy(i => i.CharacterName)
+                .ThenBy(i => i.Title)
+                .ToList();
+
+            var failed = run.Sections.Where(s => s.Error is not null).ToList();
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                Rows.Clear();
+                foreach (var i in visible) Rows.Add(new WorklistRowVm(i));
+
+                var snoozed = run.AllItems.Count(i => i.IsSnoozed);
+                Status = visible.Count == 0
+                    ? (snoozed > 0 ? $"Nothing to do — {snoozed} snoozed." : "Nothing to do.")
+                    : $"{visible.Count:N0} item(s)"
+                      + (snoozed > 0 && !ShowSnoozed ? $", {snoozed} snoozed" : "");
+
+                Errors = failed.Count == 0
+                    ? ""
+                    : string.Join("  ·  ", failed.Select(f => $"{f.DisplayName}: {f.Error}"));
+                this.RaisePropertyChanged(nameof(HasErrors));
+            });
+        }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => Status = $"Error: {ex.Message}");
+        }
+        finally { IsLoading = false; }
+    }
+}

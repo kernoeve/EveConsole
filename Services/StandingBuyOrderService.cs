@@ -9,6 +9,7 @@ public sealed record StandingBuyOrderRow(
     long   DbId,
     int    TypeId,
     string TypeName,
+    long   LocationId,
     string LocationName,
     string MatchStatus,            // "matched" | "missing"
     string OwnerDisplay,
@@ -212,6 +213,7 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
                     DbId                 : sbo.Id,
                     TypeId               : sbo.TypeId,
                     TypeName             : sbo.TypeName,
+                    LocationId           : sbo.LocationId,
                     LocationName         : sbo.LocationName,
                     MatchStatus          : "missing",
                     OwnerDisplay         : "",
@@ -296,6 +298,7 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory)
                 DbId                 : sbo.Id,
                 TypeId               : sbo.TypeId,
                 TypeName             : sbo.TypeName,
+                LocationId           : sbo.LocationId,
                 LocationName         : sbo.LocationName,
                 MatchStatus          : "matched",
                 OwnerDisplay         : owner,

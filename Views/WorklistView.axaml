@@ -1,0 +1,156 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:models="clr-namespace:EveConsole.Models"
+             x:Class="EveConsole.Views.WorklistView"
+             x:DataType="vm:WorklistViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="10" /></Style>
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="Background" Value="#12121a" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding"    Value="6 5 2 5" />
+    </Style>
+  </UserControl.Styles>
+
+  <TabControl Padding="0" Background="Transparent">
+    <TabItem Header="Worklist">
+  <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="14 12">
+
+    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
+      <TextBlock Text="Worklist" FontSize="15" FontWeight="SemiBold" Foreground="#c8a84b"
+                 VerticalAlignment="Center"/>
+      <Button Content="Refresh" Command="{Binding RefreshCommand}"
+              IsEnabled="{Binding !IsLoading}" FontSize="11" Padding="10 4"/>
+      <CheckBox Content="Show snoozed" IsChecked="{Binding ShowSnoozed}"
+                FontSize="11" VerticalAlignment="Center"/>
+      <TextBlock Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+                 VerticalAlignment="Center"/>
+    </StackPanel>
+
+    <TextBlock Grid.Row="1" Text="{Binding Errors}" IsVisible="{Binding HasErrors}"
+               FontSize="10" Foreground="#c85a5a" TextWrapping="Wrap" Margin="0 0 0 8"/>
+
+    <TextBlock Grid.Row="2" FontSize="10" Foreground="#555566" Margin="0 0 0 8"
+               TextWrapping="Wrap"
+               Text="Items are rebuilt from live data each refresh — one disappears once the work is done. Detection runs off polled ESI data, so each row shows how old the data behind it is."/>
+
+    <DataGrid Grid.Row="3" ItemsSource="{Binding Rows}"
+              IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+              Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+      <DataGrid.Columns>
+
+        <DataGridTemplateColumn Header="State" Width="72" SortMemberPath="ReadinessText">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:WorklistRowVm">
+              <TextBlock Text="{Binding ReadinessText}" Foreground="{Binding ReadinessColor}"
+                         FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTextColumn Header="Task"      Binding="{Binding Title}"         FontSize="10" Width="260"/>
+        <DataGridTextColumn Header="Character" Binding="{Binding CharacterName}" FontSize="10" Width="140"/>
+        <DataGridTextColumn Header="Location"  Binding="{Binding LocationName}"  FontSize="10" Width="220"/>
+
+        <DataGridTemplateColumn Header="Detail" Width="*" SortMemberPath="Detail">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:WorklistRowVm">
+              <StackPanel Spacing="1" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Detail}" Foreground="#c8c8d8" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding Note}" Foreground="#c85a5a"
+                           IsVisible="{Binding HasNote}" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding SnoozeText}" Foreground="#666677"
+                           IsVisible="{Binding IsSnoozed}"/>
+              </StackPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="Age" Width="120" SortMemberPath="AgeText">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:WorklistRowVm">
+              <StackPanel Spacing="1" VerticalAlignment="Center">
+                <TextBlock Text="{Binding AgeText}"     Foreground="#7a8896"/>
+                <TextBlock Text="{Binding DataAgeText}" Foreground="#555566" FontSize="9"/>
+              </StackPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="" Width="80">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:WorklistRowVm">
+              <Button Content="Snooze"
+                      Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).SnoozeCommand}"
+                      CommandParameter="{Binding Key}"
+                      FontSize="9" Padding="6 2" Background="Transparent"
+                      BorderBrush="#252530" BorderThickness="1" Cursor="Hand"
+                      ToolTip.Tip="Hide this item for 8 hours"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+      </DataGrid.Columns>
+    </DataGrid>
+  </Grid>
+    </TabItem>
+
+    <TabItem Header="Desks">
+      <!-- x:DataType scoped to the desks VM so the bindings below compile against it rather
+           than silently falling back to reflection against the parent. -->
+      <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="14 12"
+            DataContext="{Binding DesksVm}" x:DataType="vm:WorklistDesksViewModel">
+
+        <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                   Margin="0 0 0 10"
+                   Text="A desk says which character works a station. Every generator routes its items through these, so a station without one produces blocked items that name no owner."/>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,180,180,Auto" Margin="0 0 0 6">
+          <AutoCompleteBox Grid.Column="0" Margin="0 0 8 0"
+                           Text="{Binding LocationText}"
+                           SelectedItem="{Binding SelectedLocation}"
+                           AsyncPopulator="{Binding LocationPopulator}"
+                           FilterMode="None" MinimumPrefixLength="2"
+                           MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
+                           FontSize="11" Watermark="Station or structure…"/>
+          <ComboBox Grid.Column="1" Margin="0 0 8 0" FontSize="11"
+                    ItemsSource="{Binding Characters}"
+                    SelectedItem="{Binding SelectedCharacter}"
+                    PlaceholderText="Character…" HorizontalAlignment="Stretch"/>
+          <TextBox Grid.Column="2" Margin="0 0 8 0" FontSize="11"
+                   Text="{Binding Note}" Watermark="Note (optional)"/>
+          <Button Grid.Column="3" Content="Add / Update" Command="{Binding AddCommand}"
+                  FontSize="11" Padding="10 4"/>
+        </Grid>
+
+        <TextBlock Grid.Row="2" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+                   TextWrapping="Wrap" Margin="0 0 0 8"/>
+
+        <DataGrid Grid.Row="3" ItemsSource="{Binding Desks}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Location"  Binding="{Binding LocationName}"  FontSize="10" Width="*"/>
+            <DataGridTextColumn Header="Character" Binding="{Binding CharacterName}" FontSize="10" Width="200"/>
+            <DataGridTextColumn Header="Note"      Binding="{Binding Note}"          FontSize="10" Width="220"/>
+            <DataGridTemplateColumn Header="" Width="80">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="models:WorklistDesk">
+                  <Button Content="Remove"
+                          Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).DesksVm.DeleteCommand}"
+                          CommandParameter="{Binding}"
+                          FontSize="9" Padding="6 2" Background="Transparent"
+                          BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+  </TabControl>
+</UserControl>

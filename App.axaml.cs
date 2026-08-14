@@ -1541,6 +1541,33 @@ public class App : Application
                 ON "StandingBuyOrders" ("TypeId", "LocationId")
                 """);
 
+            // ── Worklist ─────────────────────────────────────────────────────
+            // Only configuration and per-item state are stored. The items themselves are
+            // recomputed from live data every refresh, so there is nothing here to keep in
+            // step with the game.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistDesks" (
+                    "Id"            INTEGER NOT NULL CONSTRAINT "PK_WorklistDesks" PRIMARY KEY AUTOINCREMENT,
+                    "LocationId"    INTEGER NOT NULL DEFAULT 0,
+                    "LocationName"  TEXT    NOT NULL DEFAULT '',
+                    "CharacterId"   INTEGER NOT NULL DEFAULT 0,
+                    "CharacterName" TEXT    NOT NULL DEFAULT '',
+                    "Note"          TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistDesks_LocationId"
+                ON "WorklistDesks" ("LocationId")
+                """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistItemStates" (
+                    "Key"          TEXT NOT NULL CONSTRAINT "PK_WorklistItemStates" PRIMARY KEY,
+                    "FirstSeenAt"  TEXT NOT NULL DEFAULT '',
+                    "SnoozedUntil" TEXT NULL
+                )
+                """);
+
             // ── Client activity monitoring ───────────────────────────────────
             // Live session state per character, refreshed by the char.online /
             // char.location / char.ship polling endpoints.
@@ -2360,6 +2387,13 @@ public class App : Application
         services.AddSingleton<KillmailBrowserService>();
         services.AddSingleton<CorpTop10ExcludeService>();
         services.AddSingleton<StandingBuyOrderService>();
+
+        // Worklist. Generators register as IWorklistGenerator so WorklistService picks up new
+        // ones without being edited — the list of sources is the DI registrations.
+        services.AddSingleton<EveConsole.Services.Worklist.WorklistDeskService>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.StandingBuyOrderGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.WorklistService>();
         services.AddSingleton<IndyFacilityCheckService>();
 
         // Game log import — reads EVE's own logs into GameLogEvents for tools to

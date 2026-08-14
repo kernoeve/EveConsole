@@ -422,6 +422,9 @@
               <DataTemplate DataType="vm:StandingBuyOrdersViewModel">
                 <views:StandingBuyOrdersView />
               </DataTemplate>
+              <DataTemplate DataType="vm:WorklistViewModel">
+                <views:WorklistView />
+              </DataTemplate>
               <DataTemplate DataType="vm:LpMarketValuesViewModel">
                 <views:LpMarketValuesView />
               </DataTemplate>

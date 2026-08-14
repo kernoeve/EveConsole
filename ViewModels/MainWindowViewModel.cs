@@ -51,6 +51,7 @@ public class MainWindowViewModel : ReactiveObject
     public SaleListingViewModel           SaleListingMarketVm    { get; }
     public OrderTrackerViewModel          OrderTrackerVm         { get; }
     public StandingBuyOrdersViewModel     StandingBuyOrdersVm    { get; }
+    public WorklistViewModel              WorklistVm             { get; }
     public LpMarketValuesViewModel        LpMarketValuesVm       { get; }
     public PlayerEntitiesViewModel        PlayerEntitiesVm       { get; }
     public NpcEntitiesViewModel           NpcEntitiesVm          { get; }
@@ -384,6 +385,7 @@ public class MainWindowViewModel : ReactiveObject
             "sale_list_market" => ("Sale Listing (Market)", SaleListingMarketVm, true),
             "order_tracker"  => ("Order Tracker",   OrderTrackerVm,    true),
             "standing_buy_orders" => ("Standing Buy Orders", StandingBuyOrdersVm, true),
+            "worklist"       => ("Worklist",       WorklistVm,        true),
             "lp_market_values" => ("LP Market Values", LpMarketValuesVm, true),
             "player_entities"  => ("Player Entities", PlayerEntitiesVm, true),
             "npc_entities"     => ("NPC Entities",    NpcEntitiesVm,    true),
@@ -463,6 +465,8 @@ public class MainWindowViewModel : ReactiveObject
         BatchAddService                 batchAddService,
         CorpActivityService             corpActivityService,
         StandingBuyOrderService         standingBuyOrderService,
+        EveConsole.Services.Worklist.WorklistService worklistService,
+        EveConsole.Services.Worklist.WorklistDeskService worklistDeskService,
         IndyFacilityCheckService        indyFacilityCheck,
         IndyStructureLinkService        indyStructureLink,
         KillmailBrowserService          killmailBrowserService,
@@ -589,6 +593,8 @@ public class MainWindowViewModel : ReactiveObject
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
+        WorklistVm             = new WorklistViewModel(worklistService,
+                                     new WorklistDesksViewModel(worklistDeskService, corpActivityService, dbFactory));
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);
@@ -769,6 +775,7 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("sale_posting",  "Sale Posting"),
                 new NavItem("order_tracker", "Order Tracker"),
                 new NavItem("standing_buy_orders", "Standing Buy Orders"),
+                new NavItem("worklist",      "Worklist"),
                 new NavItem("lp_market_values", "LP Market Values"),
                 new NavItem("trade",         "Trade Opportunities"),
                 new NavItem("contracts",     "Contracts"),

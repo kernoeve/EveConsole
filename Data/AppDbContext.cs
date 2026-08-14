@@ -100,6 +100,8 @@ public class AppDbContext : DbContext
 
     // ── Standing buy orders (user-defined intent) ────────────────────────
     public DbSet<StandingBuyOrder> StandingBuyOrders => Set<StandingBuyOrder>();
+    public DbSet<WorklistDesk>      WorklistDesks      => Set<WorklistDesk>();
+    public DbSet<WorklistItemState> WorklistItemStates => Set<WorklistItemState>();
 
     // ── Application error log ────────────────────────────────────────────
     public DbSet<AppErrorEntry> AppErrors => Set<AppErrorEntry>();
@@ -998,6 +1000,15 @@ public class AppDbContext : DbContext
             // One standing order per type per location — a second would just be a
             // duplicate row matching the same live orders.
             e.HasIndex(x => new { x.TypeId, x.LocationId }).IsUnique(); });
+
+        mb.Entity<WorklistDesk>(e => {
+            e.HasKey(x => x.Id);
+            // One character per location: the desk answers "who works here", and two
+            // answers for one station is not a routing rule, it is an ambiguity.
+            e.HasIndex(x => x.LocationId).IsUnique(); });
+
+        mb.Entity<WorklistItemState>(e => {
+            e.HasKey(x => x.Key); });
 
         mb.Entity<CharacterStatus>(e => {
             e.HasKey(x => x.CharacterId);
