@@ -64,23 +64,73 @@ public class CelestialVm(SystemViewService.CelestialRow r) : IconRowVm
     protected override string? IconUrl => $"https://images.evetech.net/types/{r.TypeId}/icon?size=32";
 }
 
-public class SysStructureVm(SystemViewService.StructureRow r) : IconRowVm
+public class SysStructureVm : IconRowVm
 {
+    private readonly SystemViewService.StructureRow _r;
+
     /// <summary>Station id for an NPC station, location id for a player structure — which of the
     /// two decides where clicking it goes.</summary>
-    public long   Id          { get; } = r.StructureId;
-    public bool   IsNpc       { get; } = r.IsNpc;
-    public string Name        { get; } = r.Name;
-    public string TypeName    { get; } = r.TypeName;
-    public string Corporation { get; } = r.Corporation;
-    public string Alliance    { get; } = r.Alliance;
-    public string Location    { get; } = r.Location;
-    public string Owner       { get; } = r.Owner;
-    public string Kind        { get; } = r.IsNpc ? "NPC" : "Player";
-    public string KindColor   { get; } = r.IsNpc ? "#6a7f99" : "#c8a84b";
+    public long   Id          { get; }
+    public bool   IsNpc       { get; }
+    public int    TypeId      { get; }
+    public string Name        { get; }
+    public string TypeName    { get; }
+    public string Corporation { get; }
+    public string Alliance    { get; }
+    public string Location    { get; }
+    public string Owner       { get; }
+    public string Kind        { get; }
+    public string KindColor   { get; }
+
+    public bool HasCorporation { get; }
+    public bool HasAlliance    { get; }
+
+    public SysStructureVm(SystemViewService.StructureRow r)
+    {
+        _r          = r;
+        Id          = r.StructureId;
+        IsNpc       = r.IsNpc;
+        TypeId      = r.TypeId;
+        Name        = r.Name;
+        TypeName    = r.TypeName;
+        Corporation = r.Corporation;
+        Alliance    = r.Alliance;
+        Location    = r.Location;
+        Owner       = r.Owner;
+        Kind        = r.IsNpc ? "NPC" : "Player";
+        KindColor   = r.IsNpc ? "#6a7f99" : "#c8a84b";
+
+        // An id without a name is a link to a blank page, and a name without an id is a link that
+        // cannot go anywhere. Both are needed before one is offered.
+        HasCorporation = r.CorporationId > 0 && r.Corporation.Length > 0;
+        HasAlliance    = r.AllianceId    > 0 && r.Alliance.Length    > 0;
+
+        OpenCommand = ReactiveCommand.Create(() =>
+        {
+            if (IsNpc) Nav.Entity(EntityKind.Station, Id);
+            else       Nav.Structure(Id);
+        });
+
+        // ⚠️ An NPC station's owner is an NPC corporation, a player structure's is a player one.
+        // They live in different tools, so the same column routes to different places by kind.
+        OpenCorpCommand = ReactiveCommand.Create(() =>
+            Nav.Entity(IsNpc ? EntityKind.NpcCorp : EntityKind.PlayerCorp, _r.CorporationId));
+
+        OpenAllianceCommand = ReactiveCommand.Create(() =>
+            Nav.Entity(EntityKind.Alliance, _r.AllianceId));
+
+        OpenTypeCommand = ReactiveCommand.Create(() => Nav.Item(TypeId));
+    }
+
+    private static EntityNavigator Nav => EntityNavigator.Instance;
+
+    public ReactiveCommand<Unit, Unit> OpenCommand         { get; }
+    public ReactiveCommand<Unit, Unit> OpenCorpCommand     { get; }
+    public ReactiveCommand<Unit, Unit> OpenAllianceCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenTypeCommand     { get; }
 
     protected override string? IconUrl =>
-        r.TypeId > 0 ? $"https://images.evetech.net/types/{r.TypeId}/icon?size=32" : null;
+        TypeId > 0 ? $"https://images.evetech.net/types/{TypeId}/icon?size=32" : null;
 }
 
 /// <summary>One line of the celestial tree, indented by depth.</summary>
@@ -113,15 +163,44 @@ public class CelestialNodeVm(SystemViewService.CelestialNode n) : IconRowVm
         n.TypeId > 0 ? $"https://images.evetech.net/types/{n.TypeId}/icon?size=32" : null;
 }
 
-public class AgentVm(SystemViewService.AgentRow a)
+public class AgentVm
 {
-    public string Location    { get; } = a.Location;
-    public string Name        { get; } = a.Name;
-    public string Corporation { get; } = a.Corporation;
-    public string Division    { get; } = a.Division;
-    public string AgentType   { get; } = a.AgentType;
-    public string Level       { get; } = a.Level.ToString();
-    public string Locator     { get; } = a.IsLocator ? "Locator" : "";
+    public string Location    { get; }
+    public string Name        { get; }
+    public string Corporation { get; }
+    public string Division    { get; }
+    public string AgentType   { get; }
+    public string Level       { get; }
+    public string Locator     { get; }
+
+    public bool HasCorporation { get; }
+    public bool HasStation     { get; }
+
+    public AgentVm(SystemViewService.AgentRow a)
+    {
+        Location    = a.Location;
+        Name        = a.Name;
+        Corporation = a.Corporation;
+        Division    = a.Division;
+        AgentType   = a.AgentType;
+        Level       = a.Level.ToString();
+        Locator     = a.IsLocator ? "Locator" : "";
+
+        HasCorporation = a.CorporationId > 0 && a.Corporation.Length > 0;
+        HasStation     = a.StationId     > 0 && a.Location.Length    > 0;
+
+        // Agents, their corporations and the stations they sit in are all NPC entities, so all
+        // three go to the same tool — the kind is what picks the tab.
+        OpenCommand        = ReactiveCommand.Create(() => Nav.Entity(EntityKind.Agent,   a.AgentId));
+        OpenCorpCommand    = ReactiveCommand.Create(() => Nav.Entity(EntityKind.NpcCorp, a.CorporationId));
+        OpenStationCommand = ReactiveCommand.Create(() => Nav.Entity(EntityKind.Station, a.StationId));
+    }
+
+    private static EntityNavigator Nav => EntityNavigator.Instance;
+
+    public ReactiveCommand<Unit, Unit> OpenCommand        { get; }
+    public ReactiveCommand<Unit, Unit> OpenCorpCommand    { get; }
+    public ReactiveCommand<Unit, Unit> OpenStationCommand { get; }
 }
 
 public class SystemEventVm(SystemViewService.SystemEvent e) : IconRowVm
@@ -157,14 +236,43 @@ public class IntelFaceVm : ReactiveObject
     /// <summary>Bound as the command parameter for opening the hull in the Item Browser.</summary>
     public int     ShipTypeId { get; }
 
-    public IntelFaceVm(long charId, string name, string? ship, int shipTypeId, long corpId, long allianceId)
+    /// <summary>Named so the badges can say who they are. A corp or alliance logo with no name is
+    /// a picture of a shape, recognisable only to someone who already knew.</summary>
+    public string CorporationName { get; }
+    public string AllianceName    { get; }
+
+    public bool HasCorporation { get; }
+    public bool HasAlliance    { get; }
+
+    public IntelFaceVm(long charId, string name, string? ship, int shipTypeId, long corpId, long allianceId,
+                       string corpName = "", string allianceName = "")
     {
         _charId = charId; _corpId = corpId; _allianceId = allianceId;
         ShipTypeId = shipTypeId;
         Name    = name;
         Ship    = ship ?? "";
         HasShip = !string.IsNullOrEmpty(ship);
+
+        // Fall back to the id when the name cache has not caught up: "Corporation 98365656" is
+        // still something you can look up, where a blank tooltip is not.
+        CorporationName = corpName.Length > 0 ? corpName : corpId     > 0 ? $"Corporation {corpId}"     : "";
+        AllianceName    = allianceName.Length > 0 ? allianceName : allianceId > 0 ? $"Alliance {allianceId}" : "";
+
+        HasCorporation = corpId     > 0;
+        HasAlliance    = allianceId > 0;
+
+        OpenCommand         = ReactiveCommand.Create(() => Nav.Entity(EntityKind.Pilot,      _charId));
+        OpenCorpCommand     = ReactiveCommand.Create(() => Nav.Entity(EntityKind.PlayerCorp, _corpId));
+        OpenAllianceCommand = ReactiveCommand.Create(() => Nav.Entity(EntityKind.Alliance,   _allianceId));
+        OpenShipCommand     = ReactiveCommand.Create(() => Nav.Item(ShipTypeId));
     }
+
+    private static EntityNavigator Nav => EntityNavigator.Instance;
+
+    public ReactiveCommand<Unit, Unit> OpenCommand         { get; }
+    public ReactiveCommand<Unit, Unit> OpenCorpCommand     { get; }
+    public ReactiveCommand<Unit, Unit> OpenAllianceCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenShipCommand     { get; }
 
     private Bitmap? _portrait, _corpLogo, _allianceLogo, _shipIcon;
     public Bitmap? Portrait     { get => _portrait;     private set => this.RaiseAndSetIfChanged(ref _portrait, value); }
@@ -200,11 +308,14 @@ public class IntelRowVm(SystemViewService.IntelRow r)
     public string Channel  { get; } = r.Channel;
 
     public List<IntelFaceVm> Pilots { get; } =
-        [.. r.Pilots.Select(p => new IntelFaceVm(p.CharacterId, p.Name, p.Ship, p.ShipTypeId, p.CorporationId, p.AllianceId))];
+        [.. r.Pilots.Select(p => new IntelFaceVm(p.CharacterId, p.Name, p.Ship, p.ShipTypeId,
+                                                 p.CorporationId, p.AllianceId,
+                                                 p.CorporationName, p.AllianceName))];
 
     /// <summary>The reporter, shown the same way as the pilots they called.</summary>
     public IntelFaceVm ReportedBy { get; } =
-        new(r.ReporterId, r.Reporter, null, 0, r.ReporterCorpId, r.ReporterAllianceId);
+        new(r.ReporterId, r.Reporter, null, 0, r.ReporterCorpId, r.ReporterAllianceId,
+            r.ReporterCorpName, r.ReporterAllianceName);
 
     public Task LoadIconsAsync() =>
         Task.WhenAll(Pilots.Select(p => p.LoadIconsAsync()).Append(ReportedBy.LoadIconsAsync()));
@@ -499,19 +610,9 @@ public class SystemPageViewModel : ReactiveObject
 
     public ReactiveCommand<int, Unit> OpenInItemBrowserCommand { get; }
 
-    /// <summary>
-    /// Opens whichever tool owns the thing that was clicked.
-    ///
-    /// <para>The row knows which it is, so the routing lives here rather than in two nearly
-    /// identical commands: an NPC station is an entity and goes to the entity browser's station
-    /// tab, a player structure has its own tool.</para>
-    /// </summary>
-    public ReactiveCommand<SysStructureVm, Unit> OpenStructureCommand { get; } =
-        ReactiveCommand.Create<SysStructureVm>(s =>
-        {
-            if (s.IsNpc) EntityNavigator.Instance.Entity(EntityKind.Station, s.Id);
-            else         EntityNavigator.Instance.Structure(s.Id);
-        });
+    /// <summary>Opens the killmail the row describes, for the list's double-click.</summary>
+    public ReactiveCommand<KillmailListRowVm, Unit> OpenKillCommand { get; } =
+        ReactiveCommand.Create<KillmailListRowVm>(k => EntityNavigator.Instance.Killmail(k.KillMailId));
 
     // ── Load ─────────────────────────────────────────────────────────────────
 
