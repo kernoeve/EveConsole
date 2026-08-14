@@ -472,6 +472,7 @@ public class MainWindowViewModel : ReactiveObject
         EveConsole.Services.Worklist.WorklistSettings worklistSettings,
         IndyFacilityCheckService        indyFacilityCheck,
         IndyStructureLinkService        indyStructureLink,
+        IndyBulkAddService              indyBulkAdd,
         KillmailBrowserService          killmailBrowserService,
         BuildCostService                buildCostService,
         ProductionCalculatorService     prodCalcService,

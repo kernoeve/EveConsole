@@ -109,14 +109,37 @@
 
           <!-- Structures section -->
           <StackPanel Spacing="10">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Grid.Column="0" Text="STRUCTURES" FontSize="10" FontWeight="SemiBold"
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="STRUCTURES" FontSize="10" FontWeight="SemiBold"
                          Foreground="#555566" LetterSpacing="1" VerticalAlignment="Center" />
-              <Button Grid.Column="1" Command="{Binding AddStructureCommand}"
+
+              <!-- Bulk add. Building a park a row at a time is the slow part of setting one up,
+                   and the real fitting arrives with the link, so rigs need no retyping. -->
+              <AutoCompleteBox Grid.Row="0" Grid.Column="2" Width="170" Margin="0 0 6 0"
+                               Text="{Binding BulkSystemText}"
+                               SelectedItem="{Binding BulkSystem}"
+                               AsyncPopulator="{Binding SystemPopulator}"
+                               FilterMode="None" MinimumPrefixLength="2"
+                               MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
+                               FontSize="11" Watermark="System…" />
+              <CheckBox Grid.Row="0" Grid.Column="3" Content="Skip moon refineries" Margin="0 0 6 0"
+                        IsChecked="{Binding SkipMoonRefineries}" FontSize="11"
+                        VerticalAlignment="Center"
+                        ToolTip.Tip="Athanors and Tataras anchored to a moon are usually moon mining, not industry" />
+              <Button Grid.Row="0" Grid.Column="4" Command="{Binding AddAllInSystemCommand}"
+                      Content="+ Add All In System" Margin="0 0 6 0"
+                      Background="#1a1a28" Foreground="#c8a84b"
+                      BorderBrush="#3a3020" BorderThickness="1"
+                      Padding="10 4" FontSize="11" />
+              <Button Grid.Row="0" Grid.Column="5" Command="{Binding AddStructureCommand}"
                       Content="+ Add Structure"
                       Background="#1a1a28" Foreground="#c8a84b"
                       BorderBrush="#3a3020" BorderThickness="1"
                       Padding="10 4" FontSize="11" />
+
+              <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Text="{Binding BulkStatus}"
+                         FontSize="10" Foreground="#7a8896" TextWrapping="Wrap" Margin="0 6 0 0"
+                         IsVisible="{Binding BulkStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             </Grid>
 
             <ItemsControl x:CompileBindings="False" ItemsSource="{Binding Structures}">

@@ -2428,6 +2428,7 @@ public class App : Application
         services.AddSingleton<UiStallMonitor>();
         services.AddSingleton<StructureSyncService>();
         services.AddSingleton<IndyStructureLinkService>();
+        services.AddSingleton<IndyBulkAddService>();
         services.AddSingleton<EveRefStructureService>();
         services.AddSingleton<FittingOptionService>();
         services.AddSingleton<TimerSettingsService>();

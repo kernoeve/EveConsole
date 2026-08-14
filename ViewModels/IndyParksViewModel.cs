@@ -425,6 +425,7 @@ public class IndyParksViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit>             DeleteParkCommand           { get; }
     public ReactiveCommand<Unit, Unit>             SetDefaultParkCommand       { get; }
     public ReactiveCommand<Unit, Unit>             AddStructureCommand         { get; }
+    public ReactiveCommand<Unit, Unit>             AddAllInSystemCommand       { get; }
     public ReactiveCommand<StructureVm, Unit>      RemoveStructureCommand      { get; }
     public ReactiveCommand<StructureVm, Unit>      SaveStructureCommand        { get; }
     public ReactiveCommand<StructureVm, Unit>      SearchFacilityCommand       { get; }
@@ -450,16 +451,19 @@ public class IndyParksViewModel : ReactiveObject
     /// <summary>Pushes hand-entered fittings through to the linked structure. Optional for the
     /// same reason as the two above — without it, edits simply stay on this side.</summary>
     private readonly IndyStructureLinkService? _indyLink;
+    private readonly IndyBulkAddService?       _bulkAdd;
 
     public IndyParksViewModel(IDbContextFactory<AppDbContext> dbFactory,
                               CorpActivityService? corpActivity = null,
                               AppErrorLogger? errorLogger = null,
-                              IndyStructureLinkService? indyLink = null)
+                              IndyStructureLinkService? indyLink = null,
+                              IndyBulkAddService? bulkAdd = null)
     {
         _dbFactory    = dbFactory;
         _corpActivity = corpActivity;
         _errorLogger  = errorLogger;
         _indyLink     = indyLink;
+        _bulkAdd      = bulkAdd;
 
         LoadRigsFromSde();
 
@@ -467,6 +471,7 @@ public class IndyParksViewModel : ReactiveObject
         DeleteParkCommand         = ReactiveCommand.CreateFromTask(DeleteParkAsync);
         SetDefaultParkCommand     = ReactiveCommand.CreateFromTask(SetDefaultParkAsync);
         AddStructureCommand       = ReactiveCommand.CreateFromTask(AddStructureAsync);
+        AddAllInSystemCommand     = ReactiveCommand.CreateFromTask(AddAllInSystemAsync);
         RemoveStructureCommand    = ReactiveCommand.CreateFromTask<StructureVm>(RemoveStructureAsync);
         SaveStructureCommand      = ReactiveCommand.CreateFromTask<StructureVm>(SaveStructureAsync);
         SearchFacilityCommand     = ReactiveCommand.CreateFromTask<StructureVm>(SearchFacilityAsync);
@@ -890,6 +895,128 @@ public class IndyParksViewModel : ReactiveObject
     }
 
     // ── Structure CRUD ────────────────────────────────────────────────────
+
+    // ── Add every industrial structure in a system ────────────────────────
+
+    /// <summary>Feeds the system picker beside the bulk-add button.</summary>
+    public Func<string?, CancellationToken, Task<IEnumerable<object>>> SystemPopulator =>
+        async (text, ct) =>
+        {
+            if (_corpActivity is null) return Array.Empty<object>();
+            var hits = await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct);
+            return hits.Cast<object>().ToList();
+        };
+
+    private object? _bulkSystem;
+    public object? BulkSystem { get => _bulkSystem; set => this.RaiseAndSetIfChanged(ref _bulkSystem, value); }
+
+    private string _bulkSystemText = "";
+    public string BulkSystemText { get => _bulkSystemText; set => this.RaiseAndSetIfChanged(ref _bulkSystemText, value); }
+
+    /// <summary>
+    /// Refineries sitting on a moon are usually moon mining rather than industry, and a busy
+    /// system can hold dozens of them. On by default because adding thirty Athanors nobody builds
+    /// in is a worse first experience than missing one that is genuinely a factory.
+    /// </summary>
+    private bool _skipMoonRefineries = true;
+    public bool SkipMoonRefineries
+    {
+        get => _skipMoonRefineries;
+        set => this.RaiseAndSetIfChanged(ref _skipMoonRefineries, value);
+    }
+
+    private string _bulkStatus = "";
+    public string BulkStatus { get => _bulkStatus; private set => this.RaiseAndSetIfChanged(ref _bulkStatus, value); }
+
+    private async Task AddAllInSystemAsync()
+    {
+        if (_selectedPark is null) { BulkStatus = "Pick a park first."; return; }
+        if (_bulkAdd is null)      { BulkStatus = "Bulk add is unavailable."; return; }
+        if (BulkSystem is not SdeSystemResult sys)
+        {
+            BulkStatus = "Pick a system from the list.";
+            return;
+        }
+
+        var parkId     = _selectedPark.Id;
+        var candidates = await _bulkAdd.FindInSystemAsync(sys.SystemId, parkId);
+
+        var already = candidates.Count(c => c.AlreadyInPark);
+        var skipped = SkipMoonRefineries ? candidates.Count(c => c.OnMoon && !c.AlreadyInPark) : 0;
+
+        var toAdd = candidates
+            .Where(c => !c.AlreadyInPark && !(SkipMoonRefineries && c.OnMoon))
+            .ToList();
+
+        if (toAdd.Count == 0)
+        {
+            BulkStatus = candidates.Count == 0
+                ? $"No industrial structures known in {sys.Name}. Only structures the app has "
+                + "already resolved a name for can be added."
+                : $"Nothing new to add in {sys.Name} — {already} already in this park"
+                  + (skipped > 0 ? $", {skipped} moon refinery(ies) skipped" : "") + ".";
+            return;
+        }
+
+        var securityClass = await SecurityClassOfAsync(sys.SystemId);
+
+        await using (var db = await _dbFactory.CreateDbContextAsync())
+        {
+            foreach (var c in toAdd)
+            {
+                var s = new IndyStructure
+                {
+                    ParkId            = parkId,
+                    DisplayName       = c.Name,
+                    StructureTypeKey  = c.TypeKey,
+                    SystemName        = sys.Name,
+                    SecurityClass     = securityClass,
+                    RealStructureId   = c.StructureId,
+                    RealStructureName = c.Name,
+                };
+                db.IndyStructures.Add(s);
+                await db.SaveChangesAsync();
+
+                for (int slot = 0; slot < 3; slot++)
+                    db.IndyStructureRigs.Add(new IndyStructureRig
+                    {
+                        StructureId = s.Id, SlotIndex = slot, RigTypeId = 0,
+                    });
+                await db.SaveChangesAsync();
+            }
+        }
+
+        // Pull the real fitting in. Linking is what makes this worth doing in bulk: rigs and
+        // service modules arrive from the game rather than being typed in per structure.
+        if (_indyLink is not null)
+            foreach (var c in toAdd)
+                await _indyLink.PushFromRealAsync(c.StructureId);
+
+        await LoadParkDetailAsync(parkId);
+
+        BulkStatus = $"Added {toAdd.Count} structure(s) from {sys.Name}"
+                   + (already > 0 ? $", {already} already present" : "")
+                   + (skipped > 0 ? $", {skipped} moon refinery(ies) skipped" : "") + ".";
+    }
+
+    /// <summary>The park's security class for a system, which drives rig strength.</summary>
+    private async Task<string> SecurityClassOfAsync(int systemId)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var sec = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => s.SolarSystemId == systemId)
+            .Select(s => (double?)s.Security)
+            .FirstOrDefaultAsync();
+
+        // Wormhole systems sit above 30000000 in their own id range and take no rig bonus band.
+        if (systemId >= 31000000) return "wormhole";
+        return SecurityColors.Rounded(sec ?? 0) switch
+        {
+            >= 0.5 => "highsec",
+            > 0.0  => "lowsec",
+            _      => "nullsec",
+        };
+    }
 
     private async Task AddStructureAsync()
     {
