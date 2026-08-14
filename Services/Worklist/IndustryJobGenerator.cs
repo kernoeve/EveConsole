@@ -94,16 +94,10 @@ public class IndustryJobGenerator(
 
             foreach (var gi in groupItems.OrderBy(i => i.TypeId))
             {
-                var target = (long)gi.TargetQuantity * Math.Max(1, group.Multiplier);
-                if (target <= 0) continue;
-
-                var a    = avail.TryGetValue(gi.TypeId, out var av) ? av : null;
-                var have = (a?.Assets ?? 0) + (a?.IndustryJobs ?? 0);
-                if (have >= target * (rule.ThresholdPercent / 100.0)) continue;
-
-                var wanted    = (long)Math.Ceiling(target * (rule.FillTargetPercent / 100.0));
-                var shortfall = wanted - have;
-                if (shortfall <= 0) continue;
+                avail.TryGetValue(gi.TypeId, out var av);
+                var need = InvRuleShortfall.For(rule, group, gi, av);
+                if (need is null || need.Shortfall <= 0) continue;
+                var shortfall = need.Shortfall;
 
                 var product = products
                     .Where(p => p.ProductTypeId == gi.TypeId)
@@ -116,11 +110,10 @@ public class IndustryJobGenerator(
                 var required = bpSkills.GetValueOrDefault((product.TypeId, product.Activity), []);
                 var eligible = IndustryAssignmentService.EligibleFor(candidates, pool, required);
                 var name     = names.GetValueOrDefault(gi.TypeId, $"Type {gi.TypeId}");
-                var pct      = have * 100.0 / target;
 
                 // An inventory level is more urgent the emptier it is, so the priority carries
                 // how far below target it has fallen rather than treating every shortfall alike.
-                var priority = IndustryPriority.ForInventory(pct);
+                var priority = IndustryPriority.ForInventory(need.Percent);
 
                 string blockedBy = "";
                 var readiness    = WorklistReadiness.Ready;
@@ -216,8 +209,8 @@ public class IndustryJobGenerator(
                     Key           = $"industry_job:{rule.Id}:{gi.TypeId}",
                     Source        = Id,
                     Title         = $"Start job — {name}",
-                    Detail        = $"{group.Name} · {have:N0} of {target:N0} ({pct:0.#}%) — "
-                                  + $"build {shortfall:N0}.{siteNote}",
+                    Detail        = $"{group.Name} · {need.StockText}.{need.FillText(rule)} "
+                                  + $"Build {shortfall:N0}.{siteNote}",
                     Readiness     = readiness,
                     BlockedBy     = blockedBy,
                     CharacterId   = chosen?.Config.CharacterId   ?? 0,

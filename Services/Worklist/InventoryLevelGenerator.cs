@@ -82,30 +82,20 @@ public class InventoryLevelGenerator(
 
                 foreach (var gi in groupItems)
                 {
-                    var target = (long)gi.TargetQuantity * Math.Max(1, group.Multiplier);
-                    if (target <= 0) continue;
-
-                    // Stock is what exists: on hand, plus in production. Buy orders are excluded
-                    // even when the group counts them — the group's include flags say what the
-                    // Inventory Levels tool should display, and this is a different question.
-                    // Here an order is not stock; it is the thing that may make the shortfall
-                    // unnecessary, and it is subtracted as such immediately below. Reading the
-                    // group's flag would also make the answer depend on how the station sits
-                    // relative to the group's scope, which has nothing to do with the question.
-                    var a    = avail.TryGetValue(gi.TypeId, out var av) ? av : null;
-                    var have = (a?.Assets ?? 0) + (a?.IndustryJobs ?? 0);
-                    if (have >= target * (rule.ThresholdPercent / 100.0)) continue;
+                    avail.TryGetValue(gi.TypeId, out var av);
+                    var need = InvRuleShortfall.For(rule, group, gi, av);
+                    if (need is null) continue;
 
                     var mine = ourOrders
                         .Where(o => o.TypeId == gi.TypeId && o.LocationId == rule.LocationId)
                         .ToList();
                     var onOrder = mine.Sum(o => (long)o.VolumeRemain);
 
-                    var wanted    = (long)Math.Ceiling(target * (rule.FillTargetPercent / 100.0));
-                    var shortfall = wanted - have - onOrder;
+                    // The shared figure less what is already on order here, which is this
+                    // generator's own concern: an order already covering the gap means no task.
+                    var shortfall = need.Shortfall - onOrder;
 
                     var name = names.GetValueOrDefault(gi.TypeId, $"Type {gi.TypeId}");
-                    var pct  = target > 0 ? have * 100.0 / target : 0;
 
                     // Being outbid is worth saying even when the shortfall is covered: the order
                     // exists, looks healthy, and is buying nothing.
@@ -116,15 +106,9 @@ public class InventoryLevelGenerator(
                     string verb, detail;
                     int priority;
 
-                    // Stock and target alone do not explain the shortfall once a fill target
-                    // above or below 100% is involved — "5,607 of 10,000, short 5,393" reads as
-                    // an arithmetic error until the 110% is on the row too. So say what is being
-                    // filled to whenever it is not simply the target.
-                    var stock = $"stock {have:N0} of {target:N0} ({pct:0.#}%)";
+                    var stock = need.StockText;
                     var order = onOrder > 0 ? $", {onOrder:N0} on order here" : "";
-                    var fill  = Math.Abs(rule.FillTargetPercent - 100) < 0.05
-                        ? ""
-                        : $" Filling to {rule.FillTargetPercent:0.#}% ({wanted:N0}).";
+                    var fill  = need.FillText(rule);
 
                     if (outbid)
                     {
