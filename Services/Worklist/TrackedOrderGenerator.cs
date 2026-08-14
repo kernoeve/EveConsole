@@ -21,6 +21,7 @@ public class TrackedOrderGenerator(
     IDbContextFactory<AppDbContext> dbFactory,
     ProductionCalculatorService     production,
     WorklistMarketAltService        marketAlts,
+    WorklistSettings                settings,
     AppErrorLogger                  errorLogger) : IWorklistGenerator
 {
     public string Id          => "tracked_orders";
@@ -44,12 +45,30 @@ public class TrackedOrderGenerator(
 
         var wantedTypes = demand.Keys.ToList();
 
-        // Already built and sitting somewhere.
-        var onHand = await db.EsiAssets.AsNoTracking()
-            .Where(a => wantedTypes.Contains(a.TypeId))
+        // How far to look. The same scope the industry generator uses, deliberately: it is one
+        // statement about where the player's material actually is, and two settings that could
+        // disagree would have the two tools reporting different shortfalls for the same order.
+        //
+        // Asset safety is dropped throughout. The flag sits only on the wrap, so its whole
+        // container chain has to go with it, and counting any of it as built stock would
+        // suppress a purchase that genuinely needs making.
+        var scope = await InvLevelService.ResolveScopeFilterAsync(
+            db, settings.IndustryScope, settings.IndustryScopeId, ct);
+        if (scope is not null)
+            scope.UnionWith(await db.WorklistIndyScopeStations.AsNoTracking()
+                .Select(s => s.LocationId).ToListAsync(ct));
+
+        var reach = new ProductionCalculatorService.AssetReach(
+            scope, await AssetSafety.WrappedItemIdsAsync(db, ct));
+
+        // Already built and sitting somewhere in scope.
+        var onHand = (await db.EsiAssets.AsNoTracking()
+                .Where(a => wantedTypes.Contains(a.TypeId))
+                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.Quantity })
+                .ToListAsync(ct))
+            .Where(a => reach.Counts(a.ItemId, a.RootLocationId))
             .GroupBy(a => a.TypeId)
-            .Select(g => new { TypeId = g.Key, Qty = g.Sum(a => (long)a.Quantity) })
-            .ToDictionaryAsync(x => x.TypeId, x => x.Qty, ct);
+            .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
         // Already in the ovens. ApplyAvailabilityAsync only knows about assets, so without this
         // an order whose build is halfway done would be planned and bought for a second time.
@@ -59,12 +78,15 @@ public class TrackedOrderGenerator(
         // collected — counting only "active" would miss exactly the units most likely to be
         // sitting there, and buy them again. "paused" will still produce eventually. "delivered"
         // is excluded because those units are in assets already and counted as on hand.
+        // Scoped by the facility the job runs in, matching the asset side: production landing in
+        // another region is no more use to this order than material sitting there.
         var inBuild = (await db.EsiIndustryJobs.AsNoTracking()
                 .Where(j => (j.Status == "active" || j.Status == "paused" || j.Status == "ready")
                             && j.ProductTypeId != null
                             && wantedTypes.Contains(j.ProductTypeId!.Value))
-                .Select(j => new { j.ProductTypeId, j.Runs })
+                .Select(j => new { j.ProductTypeId, j.Runs, j.FacilityId })
                 .ToListAsync(ct))
+            .Where(j => scope is null || scope.Contains(j.FacilityId))
             .GroupBy(j => j.ProductTypeId!.Value)
             .ToDictionary(g => g.Key, g => (long)g.Sum(j => j.Runs));
 
@@ -98,10 +120,12 @@ public class TrackedOrderGenerator(
             {
                 var plan = await production.CalculateAsync(queue, rule.ParkId, ct: ct);
 
-                // Assets mode, not Station: this asks "do I own the materials anywhere", which
-                // is the right question when the answer decides whether to buy. Where they need
-                // to end up is a hauling problem, and a separate piece of work.
-                await production.ApplyAvailabilityAsync(plan, ProductionCalculatorService.MissingMode.Assets, ct);
+                // Assets mode, not Station: this asks "do I own the materials", which is the
+                // right question when the answer decides whether to buy. Where they need to end
+                // up is a hauling problem, and a separate piece of work. "Anywhere" is bounded by
+                // the configured scope, so stock a region away does not cancel a real purchase.
+                await production.ApplyAvailabilityAsync(
+                    plan, ProductionCalculatorService.MissingMode.Assets, ct, reach);
 
                 shortfalls = plan.RawMaterials.Where(r => r.Missing > 0).ToList();
             }

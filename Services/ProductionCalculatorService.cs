@@ -1010,6 +1010,24 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
     // ── Stock availability ────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Which owned stock is allowed to count as available.
+    ///
+    /// <para>Optional, and null means everything the player owns — what the Production Calculator
+    /// asks for, since it is answering "what would this cost me". A caller deciding whether to
+    /// place an order needs the narrower question: material in another region will not fill a job
+    /// this week, and material in an asset safety wrap will not fill one at all.</para>
+    /// </summary>
+    /// <param name="Scope">Root locations that count, or null for anywhere.</param>
+    /// <param name="Excluded">Item ids to ignore wherever they are — asset safety and its
+    /// container chain.</param>
+    public sealed record AssetReach(HashSet<long>? Scope, HashSet<long>? Excluded)
+    {
+        public bool Counts(long itemId, long rootLocationId) =>
+            (Excluded is null || !Excluded.Contains(itemId))
+            && (Scope is null || Scope.Contains(rootLocationId));
+    }
+
     /// <summary>How the Raw Materials tab decides what is missing.</summary>
     public enum MissingMode
     {
@@ -1041,7 +1059,8 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     public async Task ApplyAvailabilityAsync(
         ProductionPlan plan,
         MissingMode rawMode,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        AssetReach? reach = null)
     {
         var typeIds = plan.AllJobs.SelectMany(j => j.Materials).Select(m => m.MaterialTypeId)
             .Concat(plan.RawMaterials.Select(r => r.TypeId))
@@ -1052,10 +1071,12 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
         // RootLocationId is the terminal station reached by walking the container chain, so
         // this counts materials sitting in cans and ship holds at the station too.
-        var rows = await db.EsiAssets.AsNoTracking()
-            .Where(a => typeIds.Contains(a.TypeId))
-            .Select(a => new { a.TypeId, a.RootLocationId, a.Quantity })
-            .ToListAsync(ct);
+        var rows = (await db.EsiAssets.AsNoTracking()
+                .Where(a => typeIds.Contains(a.TypeId))
+                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.Quantity })
+                .ToListAsync(ct))
+            .Where(a => reach is null || reach.Counts(a.ItemId, a.RootLocationId))
+            .ToList();
 
         var byStation = rows
             .GroupBy(a => (a.RootLocationId, a.TypeId))
