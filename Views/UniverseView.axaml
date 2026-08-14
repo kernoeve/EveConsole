@@ -220,7 +220,7 @@
                       <ItemsControl.ItemTemplate>
                         <DataTemplate>
                           <!-- A bar, matching the map: the height is the rank. -->
-                          <Rectangle Width="4" Height="11" Fill="{Binding}" />
+                          <Rectangle Width="7" Height="14" Fill="{Binding}" />
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>

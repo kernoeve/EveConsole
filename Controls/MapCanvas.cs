@@ -570,12 +570,17 @@ public class MapCanvas : Control
 
     // ── Badge palette ────────────────────────────────────────────────────────
     //
-    // Docking is a rank, so its three colours are a deliberate progression — gold, orange,
-    // grey-blue — and read as "more" to "less" without the legend. Services are unordered, so
-    // theirs are simply distinguishable from each other and from the docking three.
+    // ⚠️ Two families, kept apart by saturation as well as by side and shape: docking is
+    // saturated and sits left as a bar, services are muted and sit right as squares. That is what
+    // lets a violet docking bar and a lavender research square coexist without being read as the
+    // same thing.
+    //
+    // Docking was gold and orange, which at 9px were one colour. Violet and green share no hue,
+    // so the three ranks are told apart at a glance rather than by comparison — and the bar's
+    // stepped height still says which is which if the colours ever fail someone.
 
-    private static readonly IBrush DockSuper   = new ImmutableSolidColorBrush(Color.Parse("#e8c86a"));
-    private static readonly IBrush DockCapital = new ImmutableSolidColorBrush(Color.Parse("#e08a3c"));
+    private static readonly IBrush DockSuper   = new ImmutableSolidColorBrush(Color.Parse("#a855f7"));
+    private static readonly IBrush DockCapital = new ImmutableSolidColorBrush(Color.Parse("#22c55e"));
     private static readonly IBrush DockSubcap  = new ImmutableSolidColorBrush(Color.Parse("#7f93a8"));
 
     private static readonly IBrush SvcManufacturing = new ImmutableSolidColorBrush(Color.Parse("#5fa8d3"));
@@ -626,12 +631,15 @@ public class MapCanvas : Control
     /// </summary>
     private void DrawBadges(DrawingContext ctx, MapBadges b, Rect box)
     {
-        const double size = 4.5, gap = 1.5, offset = 3;
+        // ⚠️ Sized to be seen, not to be tidy. At 4.5px with a gap these were invisible against a
+        // busy map. Doubling to 9 and closing the gap to nothing costs no more room overall — the
+        // marks are their own separators, since each carries a dark outline.
+        const double size = 9, gap = 0, offset = 3;
 
         // ── Left: one bar, height stepped by class so it reads without colour ──
         if (DockBrush(b.Dock) is { } dockBrush)
         {
-            const double barW = 3.5;
+            const double barW = 7;
             var frac = b.Dock switch
             {
                 DockClass.Super   => 0.86,
@@ -650,8 +658,11 @@ public class MapCanvas : Control
             .ToList();
         if (marks.Count == 0) return;
 
-        // Three to a column keeps the block no taller than the box at any sensible font size.
-        const int perColumn = 3;
+        // ⚠️ Two to a column, not three. At this size three would stand 27px tall against a box
+        // that is roughly 26px for a two-line label and 17px for one, so the block would overhang
+        // its own card. Two rows keeps it 18px whatever the service count, and grows sideways
+        // instead — where there is room.
+        const int perColumn = 2;
         var rows   = Math.Min(marks.Count, perColumn);
         var blockH = rows * size + (rows - 1) * gap;
         var top    = box.Y + (box.Height - blockH) / 2;
