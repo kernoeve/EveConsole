@@ -426,6 +426,7 @@ public class IndyParksViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit>             SetDefaultParkCommand       { get; }
     public ReactiveCommand<Unit, Unit>             AddStructureCommand         { get; }
     public ReactiveCommand<Unit, Unit>             AddAllInSystemCommand       { get; }
+    public ReactiveCommand<Unit, Unit>             AutoAssignCommand           { get; }
     public ReactiveCommand<StructureVm, Unit>      RemoveStructureCommand      { get; }
     public ReactiveCommand<StructureVm, Unit>      SaveStructureCommand        { get; }
     public ReactiveCommand<StructureVm, Unit>      SearchFacilityCommand       { get; }
@@ -472,6 +473,7 @@ public class IndyParksViewModel : ReactiveObject
         SetDefaultParkCommand     = ReactiveCommand.CreateFromTask(SetDefaultParkAsync);
         AddStructureCommand       = ReactiveCommand.CreateFromTask(AddStructureAsync);
         AddAllInSystemCommand     = ReactiveCommand.CreateFromTask(AddAllInSystemAsync);
+        AutoAssignCommand         = ReactiveCommand.CreateFromTask(AutoAssignAsync);
         RemoveStructureCommand    = ReactiveCommand.CreateFromTask<StructureVm>(RemoveStructureAsync);
         SaveStructureCommand      = ReactiveCommand.CreateFromTask<StructureVm>(SaveStructureAsync);
         SearchFacilityCommand     = ReactiveCommand.CreateFromTask<StructureVm>(SearchFacilityAsync);
@@ -895,6 +897,86 @@ public class IndyParksViewModel : ReactiveObject
     }
 
     // ── Structure CRUD ────────────────────────────────────────────────────
+
+    // ── Auto-assign categories from rigs ──────────────────────────────────
+
+    private string _autoAssignStatus = "";
+    public string AutoAssignStatus
+    {
+        get => _autoAssignStatus;
+        private set => this.RaiseAndSetIfChanged(ref _autoAssignStatus, value);
+    }
+
+    /// <summary>
+    /// Point each category at the structure rigged for it.
+    ///
+    /// A rigged structure already declares what it is for, so making the player restate it in a
+    /// dropdown is asking them to copy information the park already holds — and a park of a dozen
+    /// facilities is a dozen chances to mis-click.
+    ///
+    /// <para>Only empty assignments are filled. An assignment already made is a decision, and a
+    /// button that silently overrode deliberate choices would be worse than no button. Categories
+    /// with no rigged structure, or with more than one and no way to choose, are left alone and
+    /// counted in the status so the gap is visible rather than guessed at.</para>
+    /// </summary>
+    private async Task AutoAssignAsync()
+    {
+        if (_selectedPark is null) { AutoAssignStatus = "Pick a park first."; return; }
+
+        var filled = 0;
+        var already = 0;
+        var noMatch = new List<string>();
+        var ambiguous = new List<string>();
+
+        foreach (var a in Assignments)
+        {
+            if (a.Selected is not null) { already++; continue; }
+
+            // An exact rig beats a wildcard: the Tatara's L-Set covers every reaction, so it
+            // would otherwise win categories an Athanor is specifically rigged for.
+            var exact = Structures.Where(s => HasRig(s, a.CategoryKey, exactOnly: true)).ToList();
+            var any   = exact.Count > 0
+                ? exact
+                : Structures.Where(s => HasRig(s, a.CategoryKey, exactOnly: false)).ToList();
+
+            if (any.Count == 0)      { noMatch.Add(a.CategoryLabel);   continue; }
+            if (any.Count > 1)       { ambiguous.Add(a.CategoryLabel); continue; }
+
+            a.Selected = any[0];   // the setter persists and is what the dropdown would do
+            filled++;
+        }
+
+        await Task.CompletedTask;
+
+        var parts = new List<string>();
+        parts.Add(filled == 0 ? "Nothing to assign" : $"Assigned {filled} category(ies)");
+        if (already   > 0) parts.Add($"{already} already set");
+        if (ambiguous.Count > 0)
+            parts.Add($"{ambiguous.Count} with more than one rigged structure, left for you "
+                    + $"({string.Join(", ", ambiguous.Take(3))}{(ambiguous.Count > 3 ? ", …" : "")})");
+        if (noMatch.Count > 0)
+            parts.Add($"{noMatch.Count} with no rigged structure");
+
+        AutoAssignStatus = string.Join(" · ", parts) + ".";
+    }
+
+    /// <summary>Whether any of a structure's rigs bonuses this category.</summary>
+    private static bool HasRig(StructureVm s, string categoryKey, bool exactOnly)
+    {
+        foreach (var slot in s.RigSlots)
+        {
+            var name = slot.Selected?.Name;
+            if (string.IsNullOrEmpty(name)) continue;
+
+            var rigCategory = IndyRigMatching.RigCategoryFromName(name);
+            if (rigCategory.Length == 0) continue;
+
+            if (exactOnly ? rigCategory == categoryKey
+                          : IndyRigMatching.RigApplies(rigCategory, categoryKey))
+                return true;
+        }
+        return false;
+    }
 
     // ── Add every industrial structure in a system ────────────────────────
 
