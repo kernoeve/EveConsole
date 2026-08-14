@@ -104,15 +104,15 @@
   </Grid>
     </TabItem>
 
-    <TabItem Header="Desks">
-      <!-- x:DataType scoped to the desks VM so the bindings below compile against it rather
+    <TabItem Header="Market Alts">
+      <!-- x:DataType scoped to the market alts VM so the bindings below compile against it rather
            than silently falling back to reflection against the parent. -->
       <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="14 12"
-            DataContext="{Binding DesksVm}" x:DataType="vm:WorklistDesksViewModel">
+            DataContext="{Binding MarketAltsVm}" x:DataType="vm:WorklistMarketAltsViewModel">
 
         <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
                    Margin="0 0 0 10"
-                   Text="A desk says which character works a station. Every generator routes its items through these, so a station without one produces blocked items that name no owner."/>
+                   Text="Which character maintains orders at each station. Items route through these, so a station with no alt assigned produces blocked items that name no owner."/>
 
         <Grid Grid.Row="1" ColumnDefinitions="*,180,180,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
           <TextBlock Grid.Row="0" Grid.Column="0" Text="Station or structure" Classes="fieldLabel"/>
@@ -138,7 +138,7 @@
         <TextBlock Grid.Row="2" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
-        <DataGrid Grid.Row="3" ItemsSource="{Binding Desks}"
+        <DataGrid Grid.Row="3" ItemsSource="{Binding MarketAlts}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <DataGrid.Columns>
@@ -147,9 +147,9 @@
             <DataGridTextColumn Header="Note"      Binding="{Binding Note}"          FontSize="10" Width="220"/>
             <DataGridTemplateColumn Header="" Width="80">
               <DataGridTemplateColumn.CellTemplate>
-                <DataTemplate x:DataType="models:WorklistDesk">
+                <DataTemplate x:DataType="models:WorklistMarketAlt">
                   <Button Content="Remove"
-                          Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).DesksVm.DeleteCommand}"
+                          Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).MarketAltsVm.DeleteCommand}"
                           CommandParameter="{Binding}"
                           FontSize="9" Padding="6 2" Background="Transparent"
                           BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
@@ -167,7 +167,7 @@
 
         <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
                    Margin="0 0 0 10"
-                   Text="When a group drops below the threshold, there should be a buy order at that station. Several rules can point at one group — below 100% order locally, below 75% also order at the hub — and they stack rather than replace each other. Who places the order comes from the station's desk."/>
+                   Text="When a group drops below the threshold, there should be a buy order at that station. Several rules can point at one group — below 100% order locally, below 75% also order at the hub — and they stack rather than replace each other. Who places the order comes from the station's market alt."/>
 
         <!-- Labels above the fields rather than watermarks: both percentages default to 100,
              and a watermark only shows while a field is empty, so they were two bare numbers. -->
@@ -208,7 +208,7 @@
             <DataGridTextColumn Header="Trigger"   Binding="{Binding ThresholdText}" FontSize="10" Width="100"/>
             <DataGridTextColumn Header="Fill"      Binding="{Binding FillText}"      FontSize="10" Width="90"/>
             <DataGridTextColumn Header="Location"  Binding="{Binding LocationName}"  FontSize="10" Width="*"/>
-            <DataGridTextColumn Header="Character" Binding="{Binding DeskText}"      FontSize="10" Width="160"/>
+            <DataGridTextColumn Header="Character" Binding="{Binding AltText}"      FontSize="10" Width="160"/>
             <DataGridTemplateColumn Header="" Width="80">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:InvRuleRow">

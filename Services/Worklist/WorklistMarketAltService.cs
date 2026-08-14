@@ -12,47 +12,47 @@ namespace EveConsole.Services.Worklist;
 /// order-driven generator routes builds by station. One mapping, edited once when an alt
 /// changes hands.
 /// </summary>
-public class WorklistDeskService(IDbContextFactory<AppDbContext> dbFactory)
+public class WorklistMarketAltService(IDbContextFactory<AppDbContext> dbFactory)
 {
-    public async Task<List<WorklistDesk>> GetAllAsync(CancellationToken ct = default)
+    public async Task<List<WorklistMarketAlt>> GetAllAsync(CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        return await db.WorklistDesks.AsNoTracking()
+        return await db.WorklistMarketAlts.AsNoTracking()
             .OrderBy(d => d.LocationName)
             .ToListAsync(ct);
     }
 
     /// <summary>
-    /// Location id to desk. Generators resolve in bulk rather than per item — a worklist run
+    /// Location id to market alt. Generators resolve in bulk rather than per item — a worklist run
     /// touches the same handful of stations over and over.
     /// </summary>
-    public async Task<Dictionary<long, WorklistDesk>> GetByLocationAsync(CancellationToken ct = default)
+    public async Task<Dictionary<long, WorklistMarketAlt>> GetByLocationAsync(CancellationToken ct = default)
     {
         var all = await GetAllAsync(ct);
         return all.ToDictionary(d => d.LocationId);
     }
 
-    /// <summary>Adds, or moves an existing desk to a different character. The unique index on
+    /// <summary>Adds, or moves an existing alt to a different character. The unique index on
     /// LocationId makes "one character per station" a schema guarantee, not a convention.</summary>
-    public async Task SaveAsync(WorklistDesk desk, CancellationToken ct = default)
+    public async Task SaveAsync(WorklistMarketAlt alt, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        var existing = desk.Id > 0
-            ? await db.WorklistDesks.FirstOrDefaultAsync(d => d.Id == desk.Id, ct)
-            : await db.WorklistDesks.FirstOrDefaultAsync(d => d.LocationId == desk.LocationId, ct);
+        var existing = alt.Id > 0
+            ? await db.WorklistMarketAlts.FirstOrDefaultAsync(d => d.Id == alt.Id, ct)
+            : await db.WorklistMarketAlts.FirstOrDefaultAsync(d => d.LocationId == alt.LocationId, ct);
 
         if (existing is null)
         {
-            db.WorklistDesks.Add(desk);
+            db.WorklistMarketAlts.Add(alt);
         }
         else
         {
-            existing.LocationId    = desk.LocationId;
-            existing.LocationName  = desk.LocationName;
-            existing.CharacterId   = desk.CharacterId;
-            existing.CharacterName = desk.CharacterName;
-            existing.Note          = desk.Note;
+            existing.LocationId    = alt.LocationId;
+            existing.LocationName  = alt.LocationName;
+            existing.CharacterId   = alt.CharacterId;
+            existing.CharacterName = alt.CharacterName;
+            existing.Note          = alt.Note;
         }
 
         await db.SaveChangesAsync(ct);
@@ -61,9 +61,9 @@ public class WorklistDeskService(IDbContextFactory<AppDbContext> dbFactory)
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        var row = await db.WorklistDesks.FirstOrDefaultAsync(d => d.Id == id, ct);
+        var row = await db.WorklistMarketAlts.FirstOrDefaultAsync(d => d.Id == id, ct);
         if (row is null) return;
-        db.WorklistDesks.Remove(row);
+        db.WorklistMarketAlts.Remove(row);
         await db.SaveChangesAsync(ct);
     }
 }

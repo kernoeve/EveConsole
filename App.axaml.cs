@@ -1546,8 +1546,8 @@ public class App : Application
             // recomputed from live data every refresh, so there is nothing here to keep in
             // step with the game.
             db.Database.ExecuteSqlRaw("""
-                CREATE TABLE IF NOT EXISTS "WorklistDesks" (
-                    "Id"            INTEGER NOT NULL CONSTRAINT "PK_WorklistDesks" PRIMARY KEY AUTOINCREMENT,
+                CREATE TABLE IF NOT EXISTS "WorklistMarketAlts" (
+                    "Id"            INTEGER NOT NULL CONSTRAINT "PK_WorklistMarketAlts" PRIMARY KEY AUTOINCREMENT,
                     "LocationId"    INTEGER NOT NULL DEFAULT 0,
                     "LocationName"  TEXT    NOT NULL DEFAULT '',
                     "CharacterId"   INTEGER NOT NULL DEFAULT 0,
@@ -1556,9 +1556,24 @@ public class App : Application
                 )
                 """);
             db.Database.ExecuteSqlRaw("""
-                CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistDesks_LocationId"
-                ON "WorklistDesks" ("LocationId")
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistMarketAlts_LocationId"
+                ON "WorklistMarketAlts" ("LocationId")
                 """);
+
+            // Carry over rows from the table's former name. This never shipped, so the only
+            // databases holding WorklistDesks are ones used to test the branch — but losing
+            // someone's configuration to a rename is a poor trade for deleting four lines.
+            try
+            {
+                db.Database.ExecuteSqlRaw("""
+                    INSERT OR IGNORE INTO "WorklistMarketAlts"
+                        ("LocationId", "LocationName", "CharacterId", "CharacterName", "Note")
+                    SELECT "LocationId", "LocationName", "CharacterId", "CharacterName", "Note"
+                    FROM "WorklistDesks"
+                    """);
+                db.Database.ExecuteSqlRaw("""DROP TABLE "WorklistDesks" """);
+            }
+            catch { /* no old table — the normal case on a fresh install */ }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "WorklistInvRules" (
@@ -2403,7 +2418,7 @@ public class App : Application
 
         // Worklist. Generators register as IWorklistGenerator so WorklistService picks up new
         // ones without being edited — the list of sources is the DI registrations.
-        services.AddSingleton<EveConsole.Services.Worklist.WorklistDeskService>();
+        services.AddSingleton<EveConsole.Services.Worklist.WorklistMarketAltService>();
         services.AddSingleton<EveConsole.Services.Worklist.WorklistSettings>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.StandingBuyOrderGenerator>();

@@ -23,7 +23,7 @@ namespace EveConsole.Services.Worklist;
 public class InventoryLevelGenerator(
     IDbContextFactory<AppDbContext> dbFactory,
     InvLevelService                 invLevels,
-    WorklistDeskService             desks,
+    WorklistMarketAltService             marketAlts,
     MarketCompetitionService        competition) : IWorklistGenerator
 {
     public string Id          => "inventory_levels";
@@ -42,7 +42,7 @@ public class InventoryLevelGenerator(
             .Where(g => rules.Select(r => r.GroupId).Contains(g.Id))
             .ToDictionaryAsync(g => g.Id, ct);
 
-        var deskMap = await desks.GetByLocationAsync(ct);
+        var altMap = await marketAlts.GetByLocationAsync(ct);
 
         // Our own live buy orders, deduped the way StandingBuyOrderService does: a corp order
         // placed by one of our characters comes back from both the character and corp endpoints
@@ -76,7 +76,7 @@ public class InventoryLevelGenerator(
 
             foreach (var rule in ruleGroup)
             {
-                deskMap.TryGetValue(rule.LocationId, out var desk);
+                altMap.TryGetValue(rule.LocationId, out var alt);
 
                 foreach (var gi in groupItems)
                 {
@@ -142,7 +142,7 @@ public class InventoryLevelGenerator(
                     }
                     else continue;   // below threshold, but existing orders already cover it
 
-                    var blocked = desk is null;
+                    var blocked = alt is null;
 
                     items.Add(new WorklistItem
                     {
@@ -154,8 +154,8 @@ public class InventoryLevelGenerator(
                         Detail        = $"{group.Name} · below {rule.ThresholdPercent:0.#}% · {detail}",
                         Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
                         BlockedBy     = blocked ? "No character assigned to this location" : "",
-                        CharacterId   = desk?.CharacterId   ?? 0,
-                        CharacterName = desk?.CharacterName ?? "",
+                        CharacterId   = alt?.CharacterId   ?? 0,
+                        CharacterName = alt?.CharacterName ?? "",
                         LocationId    = rule.LocationId,
                         LocationName  = rule.LocationName,
                         TypeId        = gi.TypeId,

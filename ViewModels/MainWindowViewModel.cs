@@ -466,7 +466,7 @@ public class MainWindowViewModel : ReactiveObject
         CorpActivityService             corpActivityService,
         StandingBuyOrderService         standingBuyOrderService,
         EveConsole.Services.Worklist.WorklistService worklistService,
-        EveConsole.Services.Worklist.WorklistDeskService worklistDeskService,
+        EveConsole.Services.Worklist.WorklistMarketAltService worklistMarketAltService,
         IndyFacilityCheckService        indyFacilityCheck,
         IndyStructureLinkService        indyStructureLink,
         KillmailBrowserService          killmailBrowserService,
@@ -594,8 +594,8 @@ public class MainWindowViewModel : ReactiveObject
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
         WorklistVm             = new WorklistViewModel(worklistService,
-                                     new WorklistDesksViewModel(worklistDeskService, corpActivityService, dbFactory),
-                                     new WorklistInvRulesViewModel(dbFactory, corpActivityService, worklistDeskService));
+                                     new WorklistMarketAltsViewModel(worklistMarketAltService, corpActivityService, dbFactory),
+                                     new WorklistInvRulesViewModel(dbFactory, corpActivityService, worklistMarketAltService));
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);

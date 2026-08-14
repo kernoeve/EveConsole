@@ -77,8 +77,8 @@ public class WorklistViewModel : ReactiveObject
 
     public ObservableCollection<WorklistRowVm> Rows { get; } = [];
 
-    /// <summary>Desk configuration, hosted here because it exists only to serve this tool.</summary>
-    public WorklistDesksViewModel DesksVm { get; }
+    /// <summary>Market alt configuration, hosted here because it exists only to serve this tool.</summary>
+    public WorklistMarketAltsViewModel MarketAltsVm { get; }
 
     /// <summary>Inventory-level rules: thresholds, stations and fill targets.</summary>
     public WorklistInvRulesViewModel RulesVm { get; }
@@ -90,17 +90,17 @@ public class WorklistViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit>   RefreshCommand { get; }
     public ReactiveCommand<string, Unit> SnoozeCommand  { get; }
 
-    public WorklistViewModel(WorklistService service, WorklistDesksViewModel desks,
+    public WorklistViewModel(WorklistService service, WorklistMarketAltsViewModel marketAlts,
                              WorklistInvRulesViewModel rules)
     {
         _service = service;
-        DesksVm  = desks;
+        MarketAltsVm  = marketAlts;
         RulesVm  = rules;
         RulesVm.RulesChanged = RefreshAsync;
 
-        // Assigning a desk unblocks items, so the list should reflect it without a manual
+        // Assigning a market alt unblocks items, so the list should reflect it without a manual
         // refresh — that gap is exactly what makes config feel like it did not take.
-        DesksVm.DeskChanged = RefreshAsync;
+        MarketAltsVm.MarketAltsChanged = RefreshAsync;
 
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
         SnoozeCommand  = ReactiveCommand.CreateFromTask<string>(async key =>

@@ -17,7 +17,7 @@ public sealed record InvGroupOption(int Id, string Name)
 
 /// <summary>One rule as shown in the grid, with the group resolved to its name.</summary>
 public sealed record InvRuleRow(int Id, string GroupName, string ThresholdText,
-                                string FillText, string LocationName, string DeskText,
+                                string FillText, string LocationName, string AltText,
                                 WorklistInvRule Rule);
 
 /// <summary>
@@ -31,7 +31,7 @@ public class WorklistInvRulesViewModel : ReactiveObject
 {
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly CorpActivityService             _stations;
-    private readonly WorklistDeskService             _desks;
+    private readonly WorklistMarketAltService             _marketAlts;
 
     public ObservableCollection<InvRuleRow>     Rules  { get; } = [];
     public ObservableCollection<InvGroupOption> Groups { get; } = [];
@@ -41,11 +41,11 @@ public class WorklistInvRulesViewModel : ReactiveObject
 
     public WorklistInvRulesViewModel(IDbContextFactory<AppDbContext> dbFactory,
                                      CorpActivityService stations,
-                                     WorklistDeskService desks)
+                                     WorklistMarketAltService marketAlts)
     {
         _dbFactory = dbFactory;
         _stations  = stations;
-        _desks     = desks;
+        _marketAlts     = marketAlts;
 
         AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
         DeleteCommand = ReactiveCommand.CreateFromTask<InvRuleRow>(async r =>
@@ -97,7 +97,7 @@ public class WorklistInvRulesViewModel : ReactiveObject
 
         var rules  = await db.WorklistInvRules.AsNoTracking().ToListAsync();
         var groups = await db.InvLevelGroups.AsNoTracking().OrderBy(g => g.Name).ToListAsync();
-        var deskMap = await _desks.GetByLocationAsync();
+        var altMap = await _marketAlts.GetByLocationAsync();
 
         var groupNames = groups.ToDictionary(g => g.Id, g => g.Name);
 
@@ -110,9 +110,9 @@ public class WorklistInvRulesViewModel : ReactiveObject
                 $"below {r.ThresholdPercent:0.#}%",
                 $"to {r.FillTargetPercent:0.#}%",
                 r.LocationName,
-                // Surfaced per rule because a rule pointing at a station with no desk produces
+                // Surfaced per rule because a rule pointing at a station with no market alt produces
                 // blocked items, and this is where that is fixable.
-                deskMap.TryGetValue(r.LocationId, out var d) ? d.CharacterName : "— no desk —",
+                altMap.TryGetValue(r.LocationId, out var d) ? d.CharacterName : "— unassigned —",
                 r))
             .ToList();
 

@@ -17,38 +17,38 @@ namespace EveConsole.ViewModels;
 /// serve it — every generator asks the same question, and an unassigned station is why an item
 /// shows up blocked.
 /// </summary>
-public class WorklistDesksViewModel : ReactiveObject
+public class WorklistMarketAltsViewModel : ReactiveObject
 {
-    private readonly WorklistDeskService             _desks;
+    private readonly WorklistMarketAltService             _marketAlts;
     private readonly CorpActivityService             _stations;
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
 
-    public ObservableCollection<WorklistDesk>     Desks      { get; } = [];
+    public ObservableCollection<WorklistMarketAlt>     MarketAlts      { get; } = [];
     public ObservableCollection<CharacterOption>  Characters { get; } = [];
 
     public ReactiveCommand<Unit, Unit>          AddCommand    { get; }
-    public ReactiveCommand<WorklistDesk, Unit>  DeleteCommand { get; }
+    public ReactiveCommand<WorklistMarketAlt, Unit>  DeleteCommand { get; }
 
-    public WorklistDesksViewModel(WorklistDeskService desks, CorpActivityService stations,
+    public WorklistMarketAltsViewModel(WorklistMarketAltService marketAlts, CorpActivityService stations,
                                   IDbContextFactory<AppDbContext> dbFactory)
     {
-        _desks     = desks;
+        _marketAlts     = marketAlts;
         _stations  = stations;
         _dbFactory = dbFactory;
 
         AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
-        DeleteCommand = ReactiveCommand.CreateFromTask<WorklistDesk>(async d =>
+        DeleteCommand = ReactiveCommand.CreateFromTask<WorklistMarketAlt>(async d =>
         {
-            await _desks.DeleteAsync(d.Id);
+            await _marketAlts.DeleteAsync(d.Id);
             await LoadAsync();
         });
 
         _ = LoadAsync();
     }
 
-    /// <summary>Raised after a desk changes so the worklist can pick up the new routing.
+    /// <summary>Raised after a market alt changes so the worklist can pick up the new routing.
     /// Not named Changed — ReactiveObject already has one.</summary>
-    public Func<Task>? DeskChanged { get; set; }
+    public Func<Task>? MarketAltsChanged { get; set; }
 
     // ── Station picker ────────────────────────────────────────────────────────
 
@@ -90,7 +90,7 @@ public class WorklistDesksViewModel : ReactiveObject
 
     public async Task LoadAsync()
     {
-        var rows = await _desks.GetAllAsync();
+        var rows = await _marketAlts.GetAllAsync();
 
         await using var db = await _dbFactory.CreateDbContextAsync();
         var chars = await db.Characters.AsNoTracking()
@@ -100,16 +100,16 @@ public class WorklistDesksViewModel : ReactiveObject
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            Desks.Clear();
-            foreach (var d in rows) Desks.Add(d);
+            MarketAlts.Clear();
+            foreach (var d in rows) MarketAlts.Add(d);
 
             Characters.Clear();
             foreach (var c in chars) Characters.Add(new CharacterOption(c.Id, c.Name));
 
             Status = rows.Count == 0
-                ? "No desks yet. Until a station has one, its items show as blocked because "
+                ? "No marketAlts yet. Until a station has one, its items show as blocked because "
                 + "nothing knows which character should do the work."
-                : $"{rows.Count:N0} desk(s)";
+                : $"{rows.Count:N0} market alt(s)";
         });
     }
 
@@ -126,9 +126,9 @@ public class WorklistDesksViewModel : ReactiveObject
             return;
         }
 
-        // Saving by LocationId reassigns an existing desk rather than failing on the unique
+        // Saving by LocationId reassigns an existing market alt rather than failing on the unique
         // index — moving a station to a different alt is the common edit, not an error.
-        await _desks.SaveAsync(new WorklistDesk
+        await _marketAlts.SaveAsync(new WorklistMarketAlt
         {
             LocationId    = loc.StationId,
             LocationName  = loc.Name,
@@ -142,6 +142,6 @@ public class WorklistDesksViewModel : ReactiveObject
         Note             = "";
 
         await LoadAsync();
-        if (DeskChanged is not null) await DeskChanged();
+        if (MarketAltsChanged is not null) await MarketAltsChanged();
     }
 }

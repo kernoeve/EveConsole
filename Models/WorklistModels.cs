@@ -10,7 +10,7 @@ namespace EveConsole.Models;
 /// station, and the order-driven generator routes builds by station. Holding the mapping once
 /// means an alt changing hands is a single edit rather than three.
 /// </summary>
-public class WorklistDesk
+public class WorklistMarketAlt
 {
     public int    Id            { get; set; }
 
@@ -55,7 +55,7 @@ public class WorklistItemState
 /// below 75% also order at the hub. They stack rather than override — being well short is a
 /// reason to buy in both places, not to stop buying in the first one.
 ///
-/// No character here on purpose. The station's <see cref="WorklistDesk"/> answers that, so an
+/// No character here on purpose. The station's <see cref="WorklistMarketAlt"/> answers that, so an
 /// alt changing hands does not mean editing every rule that names its station.
 /// </summary>
 public class WorklistInvRule

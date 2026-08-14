@@ -15,7 +15,7 @@ namespace EveConsole.Services.Worklist;
 /// </summary>
 public class StandingBuyOrderGenerator(
     StandingBuyOrderService              standing,
-    WorklistDeskService                  desks,
+    WorklistMarketAltService                  marketAlts,
     WorklistSettings                     settings,
     IDbContextFactory<AppDbContext>      dbFactory) : IWorklistGenerator
 {
@@ -25,7 +25,7 @@ public class StandingBuyOrderGenerator(
     public async Task<List<WorklistItem>> GenerateAsync(CancellationToken ct = default)
     {
         var rows     = await standing.BuildGridRowsAsync(ct);
-        var deskMap  = await desks.GetByLocationAsync(ct);
+        var altMap  = await marketAlts.GetByLocationAsync(ct);
         var asOf     = await MarketDataAsOfAsync(ct);
 
         var items = new List<WorklistItem>();
@@ -37,11 +37,11 @@ public class StandingBuyOrderGenerator(
             var (verb, detail, priority) = Diagnose(r, settings);
             if (verb is null) continue;
 
-            deskMap.TryGetValue(r.LocationId, out var desk);
+            altMap.TryGetValue(r.LocationId, out var alt);
 
-            // No desk is a real blocker rather than a detail: the point of the list is knowing
+            // No alt is a real blocker rather than a detail: the point of the list is knowing
             // which character to log in, and an item that cannot say is unfinished work.
-            var blocked = desk is null;
+            var blocked = alt is null;
 
             items.Add(new WorklistItem
             {
@@ -51,8 +51,8 @@ public class StandingBuyOrderGenerator(
                 Detail        = detail,
                 Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
                 BlockedBy     = blocked ? "No character assigned to this location" : "",
-                CharacterId   = desk?.CharacterId   ?? 0,
-                CharacterName = desk?.CharacterName ?? "",
+                CharacterId   = alt?.CharacterId   ?? 0,
+                CharacterName = alt?.CharacterName ?? "",
                 LocationId    = r.LocationId,
                 LocationName  = r.LocationName,
                 TypeId        = r.TypeId,
