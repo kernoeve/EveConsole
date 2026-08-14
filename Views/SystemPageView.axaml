@@ -237,6 +237,65 @@
               </ItemsControl>
             </StackPanel>
 
+            <!-- Two lists rather than one with a Kind column: the two lead to different tools,
+                 and which you are looking at should be obvious before you click. Each section
+                 hides itself when the system has none of that kind. -->
+            <StackPanel IsVisible="{Binding HasPlayerStructures}">
+              <TextBlock Classes="colhead" Text="PLAYER STRUCTURES" Margin="0 0 0 6" />
+              <ItemsControl ItemsSource="{Binding PlayerStructures}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:SysStructureVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="Auto,*,150,*">
+                        <Image Grid.Column="0" Source="{Binding Icon}" Width="20" Height="20"
+                               Stretch="Uniform" VerticalAlignment="Center" Margin="0 0 6 0" />
+                        <Button Grid.Column="1" x:CompileBindings="False"
+                                Command="{Binding $parent[UserControl].DataContext.OpenStructureCommand}"
+                                CommandParameter="{Binding}"
+                                Background="Transparent" BorderThickness="0" Padding="0"
+                                Cursor="Hand" HorizontalAlignment="Left"
+                                ToolTip.Tip="Open in the Structure Browser">
+                          <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="#7fb8d8"
+                                     TextDecorations="Underline" />
+                        </Button>
+                        <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding TypeName}" />
+                        <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding Owner}"
+                                   TextTrimming="CharacterEllipsis" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <StackPanel IsVisible="{Binding HasNpcStations}">
+              <TextBlock Classes="colhead" Text="NPC STATIONS" Margin="0 0 0 6" />
+              <ItemsControl ItemsSource="{Binding NpcStations}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:SysStructureVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="Auto,*,150,*">
+                        <Image Grid.Column="0" Source="{Binding Icon}" Width="20" Height="20"
+                               Stretch="Uniform" VerticalAlignment="Center" Margin="0 0 6 0" />
+                        <Button Grid.Column="1" x:CompileBindings="False"
+                                Command="{Binding $parent[UserControl].DataContext.OpenStructureCommand}"
+                                CommandParameter="{Binding}"
+                                Background="Transparent" BorderThickness="0" Padding="0"
+                                Cursor="Hand" HorizontalAlignment="Left"
+                                ToolTip.Tip="Open in NPC Entities">
+                          <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="#7fb8d8"
+                                     TextDecorations="Underline" />
+                        </Button>
+                        <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding TypeName}" />
+                        <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding Corporation}"
+                                   TextTrimming="CharacterEllipsis" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
           </StackPanel>
         </ScrollViewer>
       </TabItem>

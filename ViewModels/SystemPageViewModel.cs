@@ -66,11 +66,16 @@ public class CelestialVm(SystemViewService.CelestialRow r) : IconRowVm
 
 public class SysStructureVm(SystemViewService.StructureRow r) : IconRowVm
 {
+    /// <summary>Station id for an NPC station, location id for a player structure — which of the
+    /// two decides where clicking it goes.</summary>
+    public long   Id          { get; } = r.StructureId;
+    public bool   IsNpc       { get; } = r.IsNpc;
     public string Name        { get; } = r.Name;
     public string TypeName    { get; } = r.TypeName;
     public string Corporation { get; } = r.Corporation;
     public string Alliance    { get; } = r.Alliance;
     public string Location    { get; } = r.Location;
+    public string Owner       { get; } = r.Owner;
     public string Kind        { get; } = r.IsNpc ? "NPC" : "Player";
     public string KindColor   { get; } = r.IsNpc ? "#6a7f99" : "#c8a84b";
 
@@ -365,6 +370,20 @@ public class SystemPageViewModel : ReactiveObject
     public ObservableCollection<GateVm>           Gates         { get; } = [];
     public ObservableCollection<AgentVm>          Agents        { get; } = [];
 
+    /// <summary>
+    /// The same structures as <see cref="Structures"/>, split for the Overview beside the gates.
+    ///
+    /// <para>Split rather than one list with a Kind column because the two answer different
+    /// questions and lead to different places: an NPC station is a fixture of the system and opens
+    /// in the entity browser, a player structure is somebody's and opens in the Structure Browser.
+    /// The Structures tab keeps the combined view for comparing them.</para>
+    /// </summary>
+    public ObservableCollection<SysStructureVm> PlayerStructures { get; } = [];
+    public ObservableCollection<SysStructureVm> NpcStations      { get; } = [];
+
+    public bool HasPlayerStructures => PlayerStructures.Count > 0;
+    public bool HasNpcStations      => NpcStations.Count > 0;
+
     private string _historyNote = "";
     public string HistoryNote { get => _historyNote; private set => this.RaiseAndSetIfChanged(ref _historyNote, value); }
 
@@ -480,6 +499,20 @@ public class SystemPageViewModel : ReactiveObject
 
     public ReactiveCommand<int, Unit> OpenInItemBrowserCommand { get; }
 
+    /// <summary>
+    /// Opens whichever tool owns the thing that was clicked.
+    ///
+    /// <para>The row knows which it is, so the routing lives here rather than in two nearly
+    /// identical commands: an NPC station is an entity and goes to the entity browser's station
+    /// tab, a player structure has its own tool.</para>
+    /// </summary>
+    public ReactiveCommand<SysStructureVm, Unit> OpenStructureCommand { get; } =
+        ReactiveCommand.Create<SysStructureVm>(s =>
+        {
+            if (s.IsNpc) EntityNavigator.Instance.Entity(EntityKind.Station, s.Id);
+            else         EntityNavigator.Instance.Structure(s.Id);
+        });
+
     // ── Load ─────────────────────────────────────────────────────────────────
 
     /// <summary>Bumped per load so background icon fetches from a previous system can tell
@@ -571,6 +604,10 @@ public class SystemPageViewModel : ReactiveObject
             BuildAdmGraph(admHist);
             BuildIndexGraph(indexHist);
             Fill(Structures, structures.Select(s => new SysStructureVm(s)));
+            Fill(PlayerStructures, structures.Where(s => !s.IsNpc).Select(s => new SysStructureVm(s)));
+            Fill(NpcStations,      structures.Where(s =>  s.IsNpc).Select(s => new SysStructureVm(s)));
+            this.RaisePropertyChanged(nameof(HasPlayerStructures));
+            this.RaisePropertyChanged(nameof(HasNpcStations));
             Fill(Kills, killPage.Rows.Select(r => new KillmailListRowVm(r)));
             Fill(Gates, gates.Select(g => new GateVm(g)));
             Fill(Agents, agents.Select(a => new AgentVm(a)));
