@@ -593,6 +593,18 @@ public class MainWindowViewModel : ReactiveObject
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);
         NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
+        ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
+        PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
+        StructureBrowserVm     = new StructureBrowserViewModel(
+                                     dbFactory, pollingService, esi, new FittingOptionService(dbFactory),
+                                     appPrefs, indyStructureLink);
+        var universeMapService = new UniverseMapService(dbFactory);
+        UniverseVm             = new UniverseViewModel(
+            universeMapService, mapStatsService,
+            new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
+        AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds);
+        JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
+
         // One wiring for every killmail row in the app — browser, corp activity, system
         // page, entity viewers.
         EntityNavigator.Instance.OpenEntity = (kind, id) =>
@@ -645,17 +657,6 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("npc_entities");
             NpcEntitiesVm.Open(kind, id);
         };
-        ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
-        PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
-        StructureBrowserVm     = new StructureBrowserViewModel(
-                                     dbFactory, pollingService, esi, new FittingOptionService(dbFactory),
-                                     appPrefs, indyStructureLink);
-        var universeMapService = new UniverseMapService(dbFactory);
-        UniverseVm             = new UniverseViewModel(
-            universeMapService, mapStatsService,
-            new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
-        AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds);
-        JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
