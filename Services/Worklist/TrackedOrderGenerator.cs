@@ -53,8 +53,15 @@ public class TrackedOrderGenerator(
 
         // Already in the ovens. ApplyAvailabilityAsync only knows about assets, so without this
         // an order whose build is halfway done would be planned and bought for a second time.
+        //
+        // The same three statuses the poller treats as live. "ready" matters most here: the job
+        // has finished and consumed its materials, but the product is not in assets until it is
+        // collected — counting only "active" would miss exactly the units most likely to be
+        // sitting there, and buy them again. "paused" will still produce eventually. "delivered"
+        // is excluded because those units are in assets already and counted as on hand.
         var inBuild = (await db.EsiIndustryJobs.AsNoTracking()
-                .Where(j => j.Status == "active" && j.ProductTypeId != null
+                .Where(j => (j.Status == "active" || j.Status == "paused" || j.Status == "ready")
+                            && j.ProductTypeId != null
                             && wantedTypes.Contains(j.ProductTypeId!.Value))
                 .Select(j => new { j.ProductTypeId, j.Runs })
                 .ToListAsync(ct))
