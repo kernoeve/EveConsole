@@ -12,9 +12,13 @@ namespace EveConsole.Services.Worklist;
 /// X% of target, there should be a buy order at this station"; several rules can point at one
 /// group, so falling further can add a second order at a trade hub without cancelling the first.
 ///
-/// Availability comes from <see cref="InvLevelService.LoadAvailableAsync"/> — the same call the
-/// Inventory Levels tool uses — so the numbers here and the numbers the rule was written against
-/// cannot disagree. Recomputing them locally would be the fastest way to make this tool untrusted.
+/// Availability comes from <see cref="InvLevelService.LoadAvailableAsync"/>, the same call the
+/// Inventory Levels tool makes, so assets and job output are counted identically in both.
+///
+/// Its buy-order component is deliberately ignored, though. A group's include flags describe what
+/// that tool should display; this asks a different question — "is there an order in place, and
+/// does it cover the gap" — and the answer must not change because a display setting was toggled.
+/// So stock means on hand plus in production, and orders are checked separately.
 /// </summary>
 public class InventoryLevelGenerator(
     IDbContextFactory<AppDbContext> dbFactory,
@@ -79,7 +83,15 @@ public class InventoryLevelGenerator(
                     var target = (long)gi.TargetQuantity * Math.Max(1, group.Multiplier);
                     if (target <= 0) continue;
 
-                    var have = avail.TryGetValue(gi.TypeId, out var a) ? a.Total : 0;
+                    // Stock is what exists: on hand, plus in production. Buy orders are excluded
+                    // even when the group counts them — the group's include flags say what the
+                    // Inventory Levels tool should display, and this is a different question.
+                    // Here an order is not stock; it is the thing that may make the shortfall
+                    // unnecessary, and it is subtracted as such immediately below. Reading the
+                    // group's flag would also make the answer depend on how the station sits
+                    // relative to the group's scope, which has nothing to do with the question.
+                    var a    = avail.TryGetValue(gi.TypeId, out var av) ? av : null;
+                    var have = (a?.Assets ?? 0) + (a?.IndustryJobs ?? 0);
                     if (have >= target * (rule.ThresholdPercent / 100.0)) continue;
 
                     var mine = ourOrders
@@ -87,12 +99,8 @@ public class InventoryLevelGenerator(
                         .ToList();
                     var onOrder = mine.Sum(o => (long)o.VolumeRemain);
 
-                    // What is already on order at this station only counts once. When the group
-                    // is set to include buy orders it is already inside `have`, so subtracting
-                    // again would understate the shortfall; when it is not, it has to be taken
-                    // off here or every refresh re-orders what is already coming.
                     var wanted    = (long)Math.Ceiling(target * (rule.FillTargetPercent / 100.0));
-                    var shortfall = wanted - have - (group.IncludeMarketBuyOrders ? 0 : onOrder);
+                    var shortfall = wanted - have - onOrder;
 
                     var name = names.GetValueOrDefault(gi.TypeId, $"Type {gi.TypeId}");
                     var pct  = target > 0 ? have * 100.0 / target : 0;
@@ -106,18 +114,27 @@ public class InventoryLevelGenerator(
                     string verb, detail;
                     int priority;
 
+                    // Stock and target alone do not explain the shortfall once a fill target
+                    // above or below 100% is involved — "5,607 of 10,000, short 5,393" reads as
+                    // an arithmetic error until the 110% is on the row too. So say what is being
+                    // filled to whenever it is not simply the target.
+                    var stock = $"stock {have:N0} of {target:N0} ({pct:0.#}%)";
+                    var order = onOrder > 0 ? $", {onOrder:N0} on order here" : "";
+                    var fill  = Math.Abs(rule.FillTargetPercent - 100) < 0.05
+                        ? ""
+                        : $" Filling to {rule.FillTargetPercent:0.#}% ({wanted:N0}).";
+
                     if (outbid)
                     {
                         verb     = "Raise bid";
-                        detail   = $"{have:N0} of {target:N0} ({pct:0.#}%). Outbid — best bid "
-                                 + $"{rival:N2} ISK, yours {best:N2} ISK.";
+                        detail   = $"{stock}{order}. Outbid — best bid {rival:N2} ISK, "
+                                 + $"yours {best:N2} ISK.";
                         priority = 100;
                     }
                     else if (shortfall > 0)
                     {
                         verb     = onOrder > 0 ? "Increase buy order" : "Place buy order";
-                        detail   = $"{have:N0} of {target:N0} ({pct:0.#}%) — short {shortfall:N0}."
-                                 + (onOrder > 0 ? $" {onOrder:N0} already on order here." : "")
+                        detail   = $"{stock}{order}.{fill} Short {shortfall:N0}."
                                  + (bids.IsTracked(rule.LocationId)
                                       ? ""
                                       : " Competing bids unknown — this location is not a configured market source.");
@@ -134,7 +151,7 @@ public class InventoryLevelGenerator(
                         Key           = $"inv_level:{rule.Id}:{gi.TypeId}",
                         Source        = Id,
                         Title         = $"{verb} — {name}",
-                        Detail        = $"{group.Name} at {rule.ThresholdPercent:0.#}%. {detail}",
+                        Detail        = $"{group.Name} · below {rule.ThresholdPercent:0.#}% · {detail}",
                         Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
                         BlockedBy     = blocked ? "No character assigned to this location" : "",
                         CharacterId   = desk?.CharacterId   ?? 0,
