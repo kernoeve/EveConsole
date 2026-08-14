@@ -216,6 +216,17 @@ public class MapCanvas : Control
     /// watermark so a label matches the territory it names.</summary>
     private readonly Dictionary<int, double> _regionExtent = new();
 
+    /// <summary>
+    /// Where each badge was drawn last frame and what it means, so hovering one explains it.
+    ///
+    /// <para>Rebuilt every render alongside the node rectangles. A mark is a few pixels across and
+    /// carries no text, so without this the only way to learn it is the legend — and a legend you
+    /// have to look away to read is one you stop reading.</para>
+    /// </summary>
+    private readonly List<(Rect Rect, string Title, string Detail)> _badgeTips = new();
+
+    private (string Title, string Detail)? _badgeHover;
+
     /// <summary>Same, for system boxes. Only populated while the boxes are being drawn.</summary>
     private readonly Dictionary<int, Rect> _nodeRects = new();
 
@@ -515,6 +526,7 @@ public class MapCanvas : Control
 
         _gateRects.Clear();
         _nodeRects.Clear();
+        _badgeTips.Clear();
 
         foreach (var n in g.Nodes)
         {
@@ -535,7 +547,9 @@ public class MapCanvas : Control
             else          DrawDot(ctx, n, p, fill, style, showDotLabels);
         }
 
-        if (_hover is not null) DrawTooltip(ctx, _hover);
+        // A badge tooltip wins: the cursor is on the mark, so that is what the question is about.
+        if (_badgeHover is { } badge)  DrawTooltipBox(ctx, badge.Title, badge.Detail);
+        else if (_hover is not null)   DrawTooltip(ctx, _hover);
     }
 
     /// <summary>Faint enough to sit under the map without competing with it. Everything drawn
@@ -657,23 +671,38 @@ public class MapCanvas : Control
     private static readonly IPen BadgePen = new ImmutablePen(
         new ImmutableSolidColorBrush(Color.Parse("#0b0b10")), 1);
 
-    /// <summary>Legend order, and the order marks are drawn in. Fixed so a given service is always
-    /// in the same place on the box and can be learned by position as well as colour.</summary>
-    internal static readonly (SystemServices Service, IBrush Brush, string Label)[] ServiceLegend =
+    /// <summary>
+    /// Legend order, and the order marks are drawn in. Fixed so a given service is always in the
+    /// same place on the box and can be learned by position as well as colour.
+    ///
+    /// <para>Detail says where the mark can have come from, which is the question the colour
+    /// cannot answer: a mark on a null-sec system is somebody's fitted module, the same mark in
+    /// high sec is usually the NPC station.</para>
+    /// </summary>
+    internal static readonly (SystemServices Service, IBrush Brush, string Label, string Detail)[] ServiceLegend =
     [
-        (SystemServices.Manufacturing, SvcManufacturing, "Manufacturing"),
-        (SystemServices.Research,      SvcResearch,      "Research / Invention"),
-        (SystemServices.Reprocessing,  SvcReprocessing,  "Reprocessing"),
-        (SystemServices.Reactions,     SvcReactions,     "Reactions"),
-        (SystemServices.Cloning,       SvcCloning,       "Clone bay"),
-        (SystemServices.Market,        SvcMarket,        "Market"),
+        (SystemServices.Manufacturing, SvcManufacturing, "Manufacturing",
+            "NPC factory, or a Standup Manufacturing Plant or Shipyard"),
+        (SystemServices.Research,      SvcResearch,      "Research / Invention",
+            "NPC laboratory, or a Standup Research or Invention Lab"),
+        (SystemServices.Reprocessing,  SvcReprocessing,  "Reprocessing",
+            "NPC reprocessing plant or refinery, or a Standup Reprocessing Facility"),
+        (SystemServices.Reactions,     SvcReactions,     "Reactions",
+            "A Standup reactor. No NPC station reacts, so this is always a player structure"),
+        (SystemServices.Cloning,       SvcCloning,       "Clone bay",
+            "NPC cloning or jump clone facility, or a Standup Cloning Center"),
+        (SystemServices.Market,        SvcMarket,        "Market",
+            "NPC market, or a Standup Market Hub"),
     ];
 
-    internal static readonly (DockClass Dock, IBrush Brush, string Label)[] DockLegend =
+    internal static readonly (DockClass Dock, IBrush Brush, string Label, string Detail)[] DockLegend =
     [
-        (DockClass.Super,   DockSuper,   "Supers & titans — Keepstar only"),
-        (DockClass.Capital, DockCapital, "Capitals — Fortizar or NPC station"),
-        (DockClass.Subcap,  DockSubcap,  "Subcapitals — any other structure"),
+        (DockClass.Super,   DockSuper,   "Supers & titans — Keepstar only",
+            "A Keepstar is here. Supercarriers and titans can dock"),
+        (DockClass.Capital, DockCapital, "Capitals — Fortizar or NPC station",
+            "Capitals can dock, supers cannot"),
+        (DockClass.Subcap,  DockSubcap,  "Subcapitals — any other structure",
+            "Something dockable is here, but nothing that takes a capital"),
     ];
 
     private static IBrush? DockBrush(DockClass d) => d switch
@@ -714,15 +743,18 @@ public class MapCanvas : Control
                 DockClass.Capital => 4.0,
                 _                 => 2.5,
             };
-            ctx.DrawRectangle(dockBrush, BadgePen,
-                new Rect(box.X, box.Y - offset - barH, box.Width, barH));
+            var bar = new Rect(box.X, box.Y - offset - barH, box.Width, barH);
+            ctx.DrawRectangle(dockBrush, BadgePen, bar);
+
+            // ⚠️ The hover target is padded, not the bar. A 2.5px stripe is drawable but not
+            // reliably hittable, and a mark that needs a steady hand to read is a mark nobody
+            // reads. The drawn size stays honest to the rank; only the catch area grows.
+            var entry = DockLegend.First(d => d.Dock == b.Dock);
+            _badgeTips.Add((bar.Inflate(new Thickness(0, 4)), entry.Label, entry.Detail));
         }
 
         // ── Below: services, one row, in fixed legend order ──
-        var marks = ServiceLegend
-            .Where(s => b.Services.HasFlag(s.Service))
-            .Select(s => s.Brush)
-            .ToList();
+        var marks = ServiceLegend.Where(s => b.Services.HasFlag(s.Service)).ToList();
         if (marks.Count == 0) return;
 
         // Centred under the box rather than left-aligned to it: the box width varies with the
@@ -732,8 +764,11 @@ public class MapCanvas : Control
         var y0   = box.Bottom + offset;
 
         for (var i = 0; i < marks.Count; i++)
-            ctx.DrawRectangle(marks[i], BadgePen,
-                new Rect(x0 + i * (size + gap), y0, size, size));
+        {
+            var r = new Rect(x0 + i * (size + gap), y0, size, size);
+            ctx.DrawRectangle(marks[i].Brush, BadgePen, r);
+            _badgeTips.Add((r, marks[i].Label, marks[i].Detail));
+        }
     }
 
     /// <summary>
@@ -769,7 +804,13 @@ public class MapCanvas : Control
         // The box already names the region, so the tooltip explains the gesture instead.
         if (n.IsOutsideRegion) detail = $"Double-click to open {n.RegionName}";
 
-        var title = new FormattedText(n.Name, CultureInfo.CurrentCulture,
+        DrawTooltipBox(ctx, n.Name, detail);
+    }
+
+    /// <summary>The tooltip itself, shared by nodes and badges so both look and place the same.</summary>
+    private void DrawTooltipBox(DrawingContext ctx, string titleText, string? detail)
+    {
+        var title = new FormattedText(titleText, CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight, Face, 11.5, TipTextBrush);
         var body = string.IsNullOrEmpty(detail) ? null : new FormattedText(
             detail, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Face, 10.5, LabelBrush);
@@ -870,10 +911,20 @@ public class MapCanvas : Control
             return;
         }
 
-        var hit = HitTest(pos);
+        // Badges first. They sit outside the box so they never overlap a node's own hit area,
+        // but the cursor being on one means the question is about the mark, not the system.
+        (string Title, string Detail)? badge = null;
+        foreach (var t in _badgeTips)
+            if (t.Rect.Contains(pos)) { badge = (t.Title, t.Detail); break; }
+
+        var hit = badge is null ? HitTest(pos) : null;
         _hoverAt = pos;
-        if (!ReferenceEquals(hit, _hover)) { _hover = hit; InvalidateVisual(); }
-        else if (hit is not null) InvalidateVisual();   // keep the tooltip glued to the cursor
+
+        var badgeChanged = badge?.Title != _badgeHover?.Title;
+        _badgeHover = badge;
+
+        if (badgeChanged || !ReferenceEquals(hit, _hover)) { _hover = hit; InvalidateVisual(); }
+        else if (hit is not null || badge is not null) InvalidateVisual();   // glue it to the cursor
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
