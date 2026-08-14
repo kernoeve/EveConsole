@@ -16,6 +16,7 @@ namespace EveConsole.Services.Worklist;
 public class StandingBuyOrderGenerator(
     StandingBuyOrderService              standing,
     WorklistDeskService                  desks,
+    WorklistSettings                     settings,
     IDbContextFactory<AppDbContext>      dbFactory) : IWorklistGenerator
 {
     public string Id          => "standing_buy";
@@ -33,7 +34,7 @@ public class StandingBuyOrderGenerator(
         {
             // One item per standing order, not one per symptom. An order can be low and
             // expiring and outbid at once, but it is still a single trip to the market window.
-            var (verb, detail, priority) = Diagnose(r);
+            var (verb, detail, priority) = Diagnose(r, settings);
             if (verb is null) continue;
 
             deskMap.TryGetValue(r.LocationId, out var desk);
@@ -72,16 +73,17 @@ public class StandingBuyOrderGenerator(
     /// it exists, it has volume, it has time left — and buys nothing at all, so it goes first.
     /// A missing order at least announces itself by being absent.
     /// </summary>
-    private static (string? Verb, string Detail, int Priority) Diagnose(StandingBuyOrderRow r)
+    private static (string? Verb, string Detail, int Priority) Diagnose(
+        StandingBuyOrderRow r, WorklistSettings settings)
     {
-        if (r.IsOutbid)
+        if (r.IsOutbid && settings.RaiseOutbid)
         {
             var by = r.OutbidBy is { } b ? $" by {b:N2} ISK" : "";
             return ("Raise bid", $"Outbid{by} — best competing bid {r.CompetingBidText}. "
                                + $"Yours: {r.PriceText}.", 100);
         }
 
-        if (r.MatchStatus == "missing")
+        if (r.MatchStatus == "missing" && settings.RaiseMissing)
         {
             // A station with no market source configured cannot be checked for competition, so
             // say so rather than letting silence read as "nobody else is bidding".
@@ -91,11 +93,11 @@ public class StandingBuyOrderGenerator(
             return ("Place buy order", $"No order found at {r.LocationName}.{caveat}", 90);
         }
 
-        if (r.IsLow)
+        if (r.IsLow && settings.RaiseLow)
             return ("Top up order",
                     $"{r.RemainingText} left ({r.RemainingPercentText} of the original volume).", 70);
 
-        if (r.IsExpiringSoon)
+        if (r.IsExpiringSoon && settings.RaiseExpiring)
             return ("Re-place order", $"Expires {r.ExpiryText}.", 50);
 
         return (null, "", 0);

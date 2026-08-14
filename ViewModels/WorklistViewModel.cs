@@ -80,6 +80,10 @@ public class WorklistViewModel : ReactiveObject
     /// <summary>Desk configuration, hosted here because it exists only to serve this tool.</summary>
     public WorklistDesksViewModel DesksVm { get; }
 
+    /// <summary>Which sources run, and which conditions each one raises.</summary>
+    public ObservableCollection<WorklistToggleVm> Sources    { get; } = [];
+    public ObservableCollection<WorklistToggleVm> Conditions { get; } = [];
+
     public ReactiveCommand<Unit, Unit>   RefreshCommand { get; }
     public ReactiveCommand<string, Unit> SnoozeCommand  { get; }
 
@@ -99,7 +103,40 @@ public class WorklistViewModel : ReactiveObject
             await RefreshAsync();
         });
 
+        BuildToggles();
         _ = RefreshAsync();
+    }
+
+    /// <summary>
+    /// The Sources tab. Built from the registered generators rather than a hard-coded list, so
+    /// a new generator appears here the moment it is registered.
+    /// </summary>
+    private void BuildToggles()
+    {
+        var s = _service.Settings;
+
+        foreach (var g in _service.Generators)
+            Sources.Add(new WorklistToggleVm(
+                g.DisplayName,
+                "Include this source in the worklist.",
+                s.IsSourceEnabled(g.Id),
+                on => s.SetSourceEnabledAsync(g.Id, on),
+                RefreshAsync));
+
+        // Standing-buy conditions are separate switches because they are separate jobs: an
+        // outbid order needs a price change, a missing one needs creating, a low one topping up.
+        Conditions.Add(new WorklistToggleVm("Missing orders",
+            "A standing order with no live buy order at its station.",
+            s.RaiseMissing,  on => s.SetConditionAsync("missing", on),  RefreshAsync));
+        Conditions.Add(new WorklistToggleVm("Outbid",
+            "Someone else is bidding higher, so the order is buying nothing.",
+            s.RaiseOutbid,   on => s.SetConditionAsync("outbid", on),   RefreshAsync));
+        Conditions.Add(new WorklistToggleVm("Running low",
+            "Remaining volume has fallen below the top-up threshold.",
+            s.RaiseLow,      on => s.SetConditionAsync("low", on),      RefreshAsync));
+        Conditions.Add(new WorklistToggleVm("Expiring soon",
+            "The order is close to the end of its duration.",
+            s.RaiseExpiring, on => s.SetConditionAsync("expiring", on), RefreshAsync));
     }
 
     /// <summary>How long the snooze button hides an item for.</summary>
@@ -163,5 +200,47 @@ public class WorklistViewModel : ReactiveObject
             await Dispatcher.UIThread.InvokeAsync(() => Status = $"Error: {ex.Message}");
         }
         finally { IsLoading = false; }
+    }
+}
+
+/// <summary>
+/// One configurable switch on the Sources tab. Writes straight through to preferences and asks
+/// the worklist to rebuild, because a setting that needs a separate refresh to take effect reads
+/// as a setting that did not save.
+/// </summary>
+public class WorklistToggleVm : ReactiveObject
+{
+    private readonly Func<bool, Task> _save;
+    private readonly Func<Task>       _refresh;
+    private bool _isOn;
+
+    public WorklistToggleVm(string label, string description, bool isOn,
+                            Func<bool, Task> save, Func<Task> refresh)
+    {
+        Label       = label;
+        Description = description;
+        _isOn       = isOn;
+        _save       = save;
+        _refresh    = refresh;
+    }
+
+    public string Label       { get; }
+    public string Description { get; }
+
+    public bool IsOn
+    {
+        get => _isOn;
+        set
+        {
+            if (_isOn == value) return;
+            this.RaiseAndSetIfChanged(ref _isOn, value);
+            _ = Apply(value);
+        }
+    }
+
+    private async Task Apply(bool value)
+    {
+        await _save(value);
+        await _refresh();
     }
 }

@@ -2391,6 +2391,7 @@ public class App : Application
         // Worklist. Generators register as IWorklistGenerator so WorklistService picks up new
         // ones without being edited — the list of sources is the DI registrations.
         services.AddSingleton<EveConsole.Services.Worklist.WorklistDeskService>();
+        services.AddSingleton<EveConsole.Services.Worklist.WorklistSettings>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.StandingBuyOrderGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.WorklistService>();

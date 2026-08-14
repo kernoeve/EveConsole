@@ -152,5 +152,48 @@
         </DataGrid>
       </Grid>
     </TabItem>
+
+    <TabItem Header="Sources">
+      <ScrollViewer>
+        <StackPanel Margin="14 12" Spacing="16" MaxWidth="640" HorizontalAlignment="Left">
+
+          <StackPanel Spacing="6">
+            <TextBlock Text="Sources" FontSize="12" FontWeight="SemiBold" Foreground="#c8a84b"/>
+            <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                       Text="A source that is off is skipped entirely — it costs no queries rather than running and having its output discarded."/>
+            <ItemsControl ItemsSource="{Binding Sources}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:WorklistToggleVm">
+                  <StackPanel Margin="0 6 0 0">
+                    <CheckBox Content="{Binding Label}" IsChecked="{Binding IsOn}" FontSize="11"/>
+                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="#555566"
+                               Margin="24 0 0 0" TextWrapping="Wrap"/>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <StackPanel Spacing="6">
+            <TextBlock Text="Standing buy orders — what to raise" FontSize="12"
+                       FontWeight="SemiBold" Foreground="#c8a84b"/>
+            <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                       Text="Which conditions become tasks. Each is a different job, so they switch independently."/>
+            <ItemsControl ItemsSource="{Binding Conditions}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:WorklistToggleVm">
+                  <StackPanel Margin="0 6 0 0">
+                    <CheckBox Content="{Binding Label}" IsChecked="{Binding IsOn}" FontSize="11"/>
+                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="#555566"
+                               Margin="24 0 0 0" TextWrapping="Wrap"/>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
   </TabControl>
 </UserControl>

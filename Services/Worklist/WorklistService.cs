@@ -24,15 +24,22 @@ public sealed record WorklistRun(List<WorklistSection> Sections, DateTimeOffset 
 public class WorklistService(
     IDbContextFactory<AppDbContext> dbFactory,
     IEnumerable<IWorklistGenerator> generators,
+    WorklistSettings                settings,
     AppErrorLogger                  errorLogger)
 {
     private readonly List<IWorklistGenerator> _generators = generators.ToList();
 
     public IReadOnlyList<IWorklistGenerator> Generators => _generators;
 
+    public WorklistSettings Settings => settings;
+
     public async Task<WorklistRun> BuildAsync(CancellationToken ct = default)
     {
-        var tasks = _generators.Select(async g =>
+        // A disabled source is skipped rather than filtered afterwards: it should cost no
+        // queries at all, not run and have its output thrown away.
+        var active = _generators.Where(g => settings.IsSourceEnabled(g.Id)).ToList();
+
+        var tasks = active.Select(async g =>
         {
             try
             {
