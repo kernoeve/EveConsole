@@ -607,9 +607,9 @@ public class MapCanvas : Control
 
     internal static readonly (DockClass Dock, IBrush Brush, string Label)[] DockLegend =
     [
-        (DockClass.Super,   DockSuper,   "Supers & titans (Keepstar, Sotiyo)"),
-        (DockClass.Capital, DockCapital, "Capitals (Fortizar, Azbel, Tatara, NPC station)"),
-        (DockClass.Subcap,  DockSubcap,  "Subcapitals only (Astrahus, Raitaru, Athanor)"),
+        (DockClass.Super,   DockSuper,   "Supers & titans — Keepstar only"),
+        (DockClass.Capital, DockCapital, "Capitals — Fortizar or NPC station"),
+        (DockClass.Subcap,  DockSubcap,  "Subcapitals — any other structure"),
     ];
 
     private static IBrush? DockBrush(DockClass d) => d switch

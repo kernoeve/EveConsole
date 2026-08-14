@@ -342,11 +342,35 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     /// <para>Structures come from the ones this app has resolved a name for, so a system with a
     /// citadel nobody here has seen shows nothing. Under-reporting, never inventing.</para>
     /// </summary>
-    /// <summary>rigSize. Both the rig and the hull declare it, and on a hull it is the size class.</summary>
-    private const int AttrRigSize = 1547;
-
     /// <summary>The serviceSlot effect — what makes a module a service module.</summary>
     private const int EffServiceSlot = 6306;
+
+    /// <summary>SDE category 65 — Structure. The same test the non-structure purge uses.</summary>
+    private const int StructureCategory = 65;
+
+    /// <summary>Hull groups you can dock at. The other four in the structure category — cyno
+    /// beacon, cyno jammer, jump bridge and moon drill — are anchorables, not places to dock.</summary>
+    private static readonly string[] DockableGroups = ["Citadel", "Engineering Complex", "Refinery"];
+
+    /// <summary>
+    /// What can dock at a hull.
+    ///
+    /// <para>⚠️ By hull, and there is no attribute for it. An earlier version read the hull's
+    /// <c>rigSize</c> on the reasoning that the three Upwell sizes are the docking classes. They
+    /// are not: rigSize governs which RIGS fit, and a Sotiyo is size 4 while taking neither
+    /// capitals nor supers. That version told the map RH0-EG could dock titans when all it holds
+    /// is a Sotiyo.</para>
+    ///
+    /// <para>Only a Keepstar takes supers and titans; only a Fortizar and an NPC station take
+    /// capitals; every other dockable hull is subcapital. Matching on the name covers the faction
+    /// variants — five faction Fortizars and the Palatine Keepstar — and the whole category is 18
+    /// published hulls, so the set this has to be right about is small and enumerable.</para>
+    /// </summary>
+    private static DockClass DockOf(string hullName, string groupName) =>
+          hullName.Contains("Keepstar")      ? DockClass.Super
+        : hullName.Contains("Fortizar")      ? DockClass.Capital
+        : DockableGroups.Contains(groupName) ? DockClass.Subcap
+        : DockClass.None;
 
     /// <summary>
     /// NPC station services worth badging, by SDE service id.
@@ -429,9 +453,13 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         // ── Player structures ────────────────────────────────────────────────
         // ⚠️ Our own table, not the polled one: it carries hand-entered structures ESI will not
         // describe, and its type is what the docking class is read from.
-        var hullSize = await db.SdeTypeDogmaAttributes.AsNoTracking()
-            .Where(a => a.AttributeId == AttrRigSize)
-            .ToDictionaryAsync(a => a.TypeId, a => a.Value, ct);
+        var hulls = await (
+            from t in db.SdeTypes.AsNoTracking()
+            join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
+            where g.CategoryId == StructureCategory
+            select new { t.TypeId, HullName = t.Name, GroupName = g.Name }).ToListAsync(ct);
+
+        var dockOfType = hulls.ToDictionary(h => h.TypeId, h => DockOf(h.HullName, h.GroupName));
 
         var structures = await db.Structures.AsNoTracking()
             .Where(s => s.TypeId != 0)
@@ -441,21 +469,8 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         var systemOf = structures.ToDictionary(s => s.StructureId, s => s.SolarSystemId);
 
         foreach (var s in structures)
-        {
-            var dock = hullSize.TryGetValue(s.TypeId, out var size)
-                ? size switch
-                {
-                    >= 4 => DockClass.Super,     // Keepstar, Sotiyo
-                    3    => DockClass.Capital,   // Fortizar, Azbel, Tatara
-                    2    => DockClass.Subcap,    // Astrahus, Raitaru, Athanor
-                    _    => DockClass.None,
-                }
-                // A structure with no rigSize is not a dockable hull — a Metenox moon drill is the
-                // case that matters. Silence rather than a guess.
-                : DockClass.None;
-
-            if (dock != DockClass.None) Add(s.SolarSystemId, dock, SystemServices.None);
-        }
+            if (dockOfType.TryGetValue(s.TypeId, out var dock) && dock != DockClass.None)
+                Add(s.SolarSystemId, dock, SystemServices.None);
 
         // ── Player service modules ───────────────────────────────────────────
         // Two sources, same meaning: what the game reports fitted, and what the user recorded for
