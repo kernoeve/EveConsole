@@ -488,11 +488,11 @@ public class IndyParksViewModel : ReactiveObject
         this.WhenAnyValue(x => x.ParkName)
             .Skip(1)
             .Throttle(TimeSpan.FromMilliseconds(500))
-            .Subscribe(async _ => await SaveParkNameAsync());
+            .SubscribeAsyncSafe(_ => SaveParkNameAsync(), _errorLogger, "IndyParks.SaveParkName");
 
         this.WhenAnyValue(x => x.ItemSearchText)
             .Throttle(TimeSpan.FromMilliseconds(300))
-            .Subscribe(async text => await SearchItemsAsync(text));
+            .SubscribeAsyncSafe(text => SearchItemsAsync(text), _errorLogger, "IndyParks.SearchItems");
 
         _ = LoadParksAsync();
     }
@@ -803,7 +803,7 @@ public class IndyParksViewModel : ReactiveObject
     private void WireStructureVm(StructureVm vm)
     {
         // Reload rig list when structure type changes
-        vm.WhenAnyValue(x => x.StructureTypeKey).Skip(1).Subscribe(async key =>
+        vm.WhenAnyValue(x => x.StructureTypeKey).Skip(1).SubscribeAsyncSafe(async key =>
         {
             var rigs = GetRigsForType(key);
             foreach (var slot in vm.RigSlots)
@@ -813,21 +813,21 @@ public class IndyParksViewModel : ReactiveObject
             }
             await SaveStructureDbAsync(vm);
             await SaveAllRigSlotsAsync(vm);
-        });
+        }, _errorLogger, "IndyParks.StructureTypeChanged");
 
         vm.WhenAnyValue(x => x.DisplayName, x => x.SystemName, x => x.SecurityClass, x => x.FacilityTax)
             .Skip(1)
             .Throttle(TimeSpan.FromMilliseconds(400))
-            .Subscribe(async _ => await SaveStructureDbAsync(vm));
+            .SubscribeAsyncSafe(_ => SaveStructureDbAsync(vm), _errorLogger, "IndyParks.SaveStructure");
 
         // Radio-group behaviour from a checkbox. Only a tick does anything; unticking the
         // current catch-all puts it straight back, since a park must always have one.
-        vm.WhenAnyValue(x => x.IsDefaultFacility).Skip(1).Subscribe(async isDefault =>
+        vm.WhenAnyValue(x => x.IsDefaultFacility).Skip(1).SubscribeAsyncSafe(async isDefault =>
         {
             if (_suppressSave) return;
             if (isDefault) await SetDefaultStructureAsync(vm);
             else if (!Structures.Any(s => s.IsDefaultFacility)) vm.IsDefaultFacility = true;
-        });
+        }, _errorLogger, "IndyParks.SetDefaultFacility");
 
         foreach (var slot in vm.RigSlots)
             WireRigSlot(vm, slot);
@@ -836,7 +836,7 @@ public class IndyParksViewModel : ReactiveObject
     private void WireRigSlot(StructureVm structure, RigSlotVm slot)
     {
         slot.WhenAnyValue(x => x.Selected).Skip(1)
-            .Subscribe(async _ => await SaveRigSlotAsync(structure, slot));
+            .SubscribeAsyncSafe(_ => SaveRigSlotAsync(structure, slot), _errorLogger, "IndyParks.SaveRigSlot");
     }
 
     private void RebuildAssignments(List<IndyCategoryAssignment> saved)
@@ -854,7 +854,7 @@ public class IndyParksViewModel : ReactiveObject
                 vm.Selected = Structures.FirstOrDefault(s => s.Id == sid);
 
             vm.WhenAnyValue(x => x.Selected).Skip(1)
-                .Subscribe(async _ => await SaveAssignmentAsync(vm));
+                .SubscribeAsyncSafe(_ => SaveAssignmentAsync(vm), _errorLogger, "IndyParks.SaveAssignment");
 
             Assignments.Add(vm);
         }
@@ -1044,28 +1044,30 @@ public class IndyParksViewModel : ReactiveObject
 
         await using (var db = await _dbFactory.CreateDbContextAsync())
         {
-            foreach (var c in toAdd)
+            // Two writes, not two per structure. Adding a dozen facilities used to take the write
+            // lock twenty-four times in a row, and anything else saving during that window — a
+            // throttled rename, a polling write — queued behind every one of them.
+            var added = toAdd.Select(c => new IndyStructure
             {
-                var s = new IndyStructure
-                {
-                    ParkId            = parkId,
-                    DisplayName       = c.Name,
-                    StructureTypeKey  = c.TypeKey,
-                    SystemName        = sys.Name,
-                    SecurityClass     = securityClass,
-                    RealStructureId   = c.StructureId,
-                    RealStructureName = c.Name,
-                };
-                db.IndyStructures.Add(s);
-                await db.SaveChangesAsync();
+                ParkId            = parkId,
+                DisplayName       = c.Name,
+                StructureTypeKey  = c.TypeKey,
+                SystemName        = sys.Name,
+                SecurityClass     = securityClass,
+                RealStructureId   = c.StructureId,
+                RealStructureName = c.Name,
+            }).ToList();
 
+            db.IndyStructures.AddRange(added);
+            await db.SaveChangesAsync();   // ids are assigned here, so rigs need a second pass
+
+            foreach (var s in added)
                 for (int slot = 0; slot < 3; slot++)
                     db.IndyStructureRigs.Add(new IndyStructureRig
                     {
                         StructureId = s.Id, SlotIndex = slot, RigTypeId = 0,
                     });
-                await db.SaveChangesAsync();
-            }
+            await db.SaveChangesAsync();
         }
 
         // Pull the real fitting in. Linking is what makes this worth doing in bulk: rigs and
@@ -1319,7 +1321,7 @@ public class IndyParksViewModel : ReactiveObject
             if (exc.StructureId is int sid)
                 vm.Selected = Structures.FirstOrDefault(s => s.Id == sid);
             vm.WhenAnyValue(x => x.Selected).Skip(1)
-                .Subscribe(async _ => await SaveItemExceptionAsync(vm));
+                .SubscribeAsyncSafe(_ => SaveItemExceptionAsync(vm), _errorLogger, "IndyParks.SaveItemException");
             ItemExceptions.Add(vm);
         }
     }
@@ -1371,7 +1373,7 @@ public class IndyParksViewModel : ReactiveObject
             IReadOnlyList<StructureVm?> options = [null, .. Structures.Cast<StructureVm?>()];
             var vm = new ItemExceptionVm(entity.Id, entity.TypeId, entity.TypeName) { StructureOptions = options };
             vm.WhenAnyValue(x => x.Selected).Skip(1)
-                .Subscribe(async _ => await SaveItemExceptionAsync(vm));
+                .SubscribeAsyncSafe(_ => SaveItemExceptionAsync(vm), _errorLogger, "IndyParks.SaveItemException");
             ItemExceptions.Add(vm);
             ItemSearchText = "";
             ItemSearchResults.Clear();

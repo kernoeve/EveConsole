@@ -439,7 +439,7 @@ public class InvLevelViewModel : ReactiveObject
 
         Observable.Interval(TimeSpan.FromMinutes(1))
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(async _ => await RefreshAllAsync());
+            .SubscribeAsyncSafe(_ => RefreshAllAsync(), null, "InvLevel.AutoRefresh");
 
         _ = InitAsync();
     }
