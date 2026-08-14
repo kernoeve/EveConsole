@@ -22,10 +22,12 @@ public class IndustryJobGenerator(
     IDbContextFactory<AppDbContext> dbFactory,
     IndustryAssignmentService       assignment,
     InvLevelService                 invLevels,
+    ProductionCalculatorService     production,
     WorklistSettings                settings) : IWorklistGenerator
 {
     public string Id          => "industry_jobs";
     public string DisplayName => "Industry Jobs";
+
 
     public async Task<List<WorklistItem>> GenerateAsync(CancellationToken ct = default)
     {
@@ -41,6 +43,11 @@ public class IndustryJobGenerator(
 
         var candidates = await assignment.LoadCandidatesAsync(ct);
         if (candidates.Count == 0) return [];
+
+        // Loaded once per run and passed down. Calculate() is pure given a context, so each item
+        // costs only arithmetic — and a field would race, since generators run in parallel and
+        // two refreshes can overlap.
+        var ctx = await production.LoadContextAsync(parkId, ct);
 
         // Where the work happens. Only linked structures can be checked for materials — an
         // unlinked one models rigs but points at no real place, so nothing can be counted there.
@@ -128,11 +135,7 @@ public class IndustryJobGenerator(
                 }
                 else
                 {
-                    // Runs needed, and therefore materials needed. Ceiling because a partial run
-                    // is not a thing — asking for 1.2 runs means starting 2.
-                    var perRun = Math.Max(1, product.Quantity);
-                    var runs   = (int)Math.Ceiling(shortfall / (double)perRun);
-                    var needed = await MaterialsForAsync(db, product.TypeId, product.Activity, runs, ct);
+                    var needed = await MaterialsForAsync(ctx, gi.TypeId, shortfall, ct);
 
                     foreach (var c in eligible)
                     {
@@ -201,21 +204,35 @@ public class IndustryJobGenerator(
     }
 
     /// <summary>
-    /// What one blueprint consumes for a number of runs.
+    /// Exactly what one job consumes, at the ME and rig bonuses that will actually apply.
     ///
-    /// Base quantities, without material efficiency: this decides whether a job can start, and
-    /// erring toward asking for slightly more never suggests a job that would stall halfway. The
-    /// Production Calculator remains the place for exact costings.
+    /// Planned through <see cref="ProductionCalculatorService"/> against the configured park, so
+    /// the figures match what the Production Calculator would quote for the same build. Base SDE
+    /// quantities were tried first and were wrong in the direction that matters: over-stating a
+    /// requirement produces a job reported as blocked for materials that are sitting in the
+    /// station. On an expensive, rarely-run build the difference is not a rounding error, and
+    /// waiting on a job that could have started is the exact cost this tool exists to remove.
     /// </summary>
-    private static async Task<Dictionary<int, long>> MaterialsForAsync(
-        AppDbContext db, int blueprintTypeId, string activity, int runs, CancellationToken ct)
+    private async Task<Dictionary<int, long>> MaterialsForAsync(
+        ProductionContext ctx, int productTypeId, long quantity, CancellationToken ct)
     {
-        var mats = await db.SdeBlueprintMaterials.AsNoTracking()
-            .Where(m => m.TypeId == blueprintTypeId && m.Activity == activity)
-            .Select(m => new { m.MaterialTypeId, m.Quantity })
-            .ToListAsync(ct);
+        var entry = new ProductionQueueEntry
+        {
+            TypeId   = productTypeId,
+            Quantity = (int)Math.Min(int.MaxValue, quantity),
+            MeLevel  = await production.GetDefaultMeAsync(productTypeId, ct),
+        };
 
-        return mats.ToDictionary(m => m.MaterialTypeId, m => (long)m.Quantity * runs);
+        var plan = production.Calculate([entry], ctx);
+
+        // The root job's own inputs. Sub-components the plan would build are separate jobs with
+        // their own worklist items, so their materials are not this job's problem.
+        var root = plan.AllJobs.FirstOrDefault(j => j.OutputTypeId == productTypeId);
+        if (root is null) return [];
+
+        return root.Materials
+            .GroupBy(m => m.MaterialTypeId)
+            .ToDictionary(g => g.Key, g => (long)g.Sum(m => m.TotalQty));
     }
 
     /// <summary>

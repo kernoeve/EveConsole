@@ -282,7 +282,8 @@
     </TabItem>
 
     <TabItem Header="Industry">
-      <ScrollViewer>
+      <!-- No ScrollViewer: it gives the DataGrid unbounded width, which breaks star sizing and
+           pushes the last column out of view. The final * row fills the tab instead. -->
       <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*" Margin="14 12"
             DataContext="{Binding IndustryVm}" x:DataType="vm:WorklistIndustryViewModel">
 
@@ -319,7 +320,7 @@
         <TextBlock Grid.Row="4" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
-        <DataGrid Grid.Row="5" ItemsSource="{Binding Chars}" MinHeight="200"
+        <DataGrid Grid.Row="5" ItemsSource="{Binding Chars}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <DataGrid.Columns>
@@ -341,7 +342,6 @@
           </DataGrid.Columns>
         </DataGrid>
       </Grid>
-      </ScrollViewer>
     </TabItem>
 
     <TabItem Header="Order Rules">
