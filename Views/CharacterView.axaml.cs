@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using EveConsole.Models;
@@ -108,6 +109,8 @@ public partial class CharacterView : UserControl
             Grid.SetRowSpan(b, rowSpan);
             Grid.SetColumnSpan(b, colSpan);
             b.Margin = new Thickness(6);
+            b.SizeChanged -= OnSectionSizeChanged;
+            b.SizeChanged += OnSectionSizeChanged;
             LayoutHost.Children.Add(b);
         }
 
@@ -116,10 +119,9 @@ public partial class CharacterView : UserControl
         // ⚠️ Reparenting is what makes this necessary. A section is measured wherever it happens
         // to be sitting, and SectionStore is a full-width panel while a layout cell is a fraction
         // of that — so a control that sizes itself from the width it was last given keeps the
-        // wrong one. LiveCharts showed this first by measuring to 0×0; DataGrid shows it by
-        // computing its star column against the store's width and then overflowing the card,
-        // which is why resizing the window "fixed" it. The double Post is deliberate: the first
-        // gets past the layout pass this method triggers, the second past the one that settles it.
+        // wrong one. LiveCharts showed this first by measuring to 0×0. The double Post is
+        // deliberate: the first gets past the layout pass this method triggers, the second past
+        // the one that settles it.
         Dispatcher.UIThread.Post(() =>
             Dispatcher.UIThread.Post(() =>
             {
@@ -129,15 +131,36 @@ public partial class CharacterView : UserControl
                 ExpenseChart?.InvalidateVisual();
 
                 foreach (var child in LayoutHost.Children)
-                {
-                    child.InvalidateMeasure();
-                    foreach (var grid in child.GetVisualDescendants().OfType<DataGrid>())
-                    {
-                        grid.InvalidateMeasure();
-                        grid.InvalidateArrange();
-                    }
-                }
+                    ReMeasureGrids(child);
             }));
+    }
+
+    /// <summary>
+    /// Re-measures a card's grids whenever the card's own size changes.
+    ///
+    /// <para>⚠️ Tied to the size actually changing, not done once after placement. The one-shot
+    /// version was not enough: the sale listing still came up with its last columns hanging off
+    /// the card until the window was resized by hand, which proves the card reaches its final
+    /// width AFTER the nudge rather than before it. Rather than guess how many layout passes that
+    /// takes, this reacts to the event that says it happened — the same event a manual resize
+    /// raises, which is why resizing was the workaround.</para>
+    ///
+    /// <para>Cheap: a DataGrid whose width did not really change re-measures to the same widths
+    /// and draws nothing new.</para>
+    /// </summary>
+    private void OnSectionSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        if (e.WidthChanged && sender is Layoutable l) ReMeasureGrids(l);
+    }
+
+    private static void ReMeasureGrids(Layoutable section)
+    {
+        section.InvalidateMeasure();
+        foreach (var grid in section.GetVisualDescendants().OfType<DataGrid>())
+        {
+            grid.InvalidateMeasure();
+            grid.InvalidateArrange();
+        }
     }
 
     private async void OnCustomizeClick(object? sender, RoutedEventArgs e)
