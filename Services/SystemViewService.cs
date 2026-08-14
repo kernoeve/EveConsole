@@ -674,7 +674,11 @@ public class SystemViewService(
     /// </summary>
     public sealed record CelestialNode(
         int Depth, string Kind, string Name, string TypeName, int TypeId, string Owner,
-        int Power = 0, int Workforce = 0, int ReagentPerHour = 0, string Reagent = "");
+        int Power = 0, int Workforce = 0, int ReagentPerHour = 0, string Reagent = "",
+        // Set only on the docked rows — a planet or a stargate has no owner to link to.
+        long LocationId = 0, bool IsNpc = false,
+        string Corporation = "", string Alliance = "",
+        long CorporationId = 0, long AllianceId = 0);
 
     /// <summary>
     /// The system laid out as it is arranged in space rather than as separate lists: the star,
@@ -706,7 +710,9 @@ public class SystemViewService(
 
         var structures = await GetStructuresAsync(systemId, ct);
 
-        var players = await db.EsiStructureNames.AsNoTracking()
+        // The app's own table, matching GetStructuresAsync above — reading the polled one here
+        // would place structures the two disagree about at different celestials.
+        var players = await db.Structures.AsNoTracking()
             .Where(s => s.SolarSystemId == systemId && s.NearestCelestialId > 0)
             .Select(s => new { s.StructureId, s.NearestCelestialId })
             .ToListAsync(ct);
@@ -740,7 +746,10 @@ public class SystemViewService(
             if (!docked.TryGetValue(celestialId, out var list)) return;
             foreach (var s in list.OrderByDescending(s => s.IsNpc).ThenBy(s => s.Name))
                 nodes.Add(new CelestialNode(
-                    depth, s.IsNpc ? "Station" : "Structure", s.Name, s.TypeName, s.TypeId, s.Owner));
+                    depth, s.IsNpc ? "Station" : "Structure", s.Name, s.TypeName, s.TypeId, s.Owner,
+                    LocationId: s.StructureId, IsNpc: s.IsNpc,
+                    Corporation: s.Corporation, Alliance: s.Alliance,
+                    CorporationId: s.CorporationId, AllianceId: s.AllianceId));
         }
 
         foreach (var star in celestials.Where(c => c.Kind == 4))

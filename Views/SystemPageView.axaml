@@ -42,9 +42,13 @@
     <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
     </Style>
+    <!-- ⚠️ No Foreground. A link here keeps whatever colour its column already had — the
+         killmail tool established that, and recolouring everything clickable to blue turns a
+         page where nearly every name links into a page that is mostly blue, which tells you
+         nothing about which ones matter. The cursor and the hover underline carry the
+         affordance instead; at rest the row looks exactly as it did. -->
     <Style Selector="TextBlock.linktext">
       <Setter Property="FontSize"          Value="11.5" />
-      <Setter Property="Foreground"        Value="#7fb8d8" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
     <Style Selector="Button.link:pointerover TextBlock.linktext">
@@ -107,7 +111,20 @@
 
           <StackPanel Orientation="Horizontal">
             <TextBlock Classes="hlabel" Text="Sovereignty" Margin="0 0 6 0" />
-            <TextBlock Classes="hvalue" Text="{Binding Holder}" />
+            <!-- Split into its two halves so each can be clicked. The combined string is kept for
+                 the case where neither is a link, which is how "Unclaimed" still appears. -->
+            <Button Classes="link" Command="{Binding OpenSovAllianceCommand}"
+                    IsVisible="{Binding HasSovAlliance}">
+              <TextBlock Text="{Binding SovAlliance}" Classes="linktext hvalue" Margin="0" />
+            </Button>
+            <TextBlock Classes="hvalue" Text="  ·  " Margin="0"
+                       IsVisible="{Binding HasSovCorporation}" />
+            <Button Classes="link" Command="{Binding OpenSovCorpCommand}"
+                    IsVisible="{Binding HasSovCorporation}" Margin="0 0 18 0">
+              <TextBlock Text="{Binding SovCorporation}" Classes="linktext hvalue" Margin="0" />
+            </Button>
+            <TextBlock Classes="hvalue" Text="{Binding Holder}"
+                       IsVisible="{Binding HasSovNeither}" />
             <TextBlock Classes="hlabel" Text="Local pirates" Margin="0 0 6 0"
                        IsVisible="{Binding LocalPirates, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             <TextBlock Classes="hvalue" Text="{Binding LocalPirates}" Foreground="#c88a6a" />
@@ -280,21 +297,23 @@
                         <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
                         <Button Grid.Column="1" Classes="link" Command="{Binding OpenCommand}"
                                 ToolTip.Tip="Open in the Structure Browser">
-                          <TextBlock Text="{Binding Name}" Classes="linktext" TextWrapping="Wrap" />
+                          <TextBlock Text="{Binding Name}" Classes="linktext" Foreground="#c8c8d8"
+                                     TextWrapping="Wrap" />
                         </Button>
                         <Button Grid.Column="2" Classes="link" Command="{Binding OpenTypeCommand}"
                                 ToolTip.Tip="Open in the Item Browser">
-                          <TextBlock Text="{Binding TypeName}" Classes="linktext" />
+                          <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10.5"
+                                     Foreground="#6a6a7c" />
                         </Button>
                         <Button Grid.Column="3" Classes="link" Command="{Binding OpenCorpCommand}"
                                 IsVisible="{Binding HasCorporation}">
-                          <TextBlock Text="{Binding Corporation}" Classes="linktext"
-                                     TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding Corporation}" Classes="linktext" FontSize="10.5"
+                                     Foreground="#6a6a7c" TextTrimming="CharacterEllipsis" />
                         </Button>
                         <Button Grid.Column="4" Classes="link" Command="{Binding OpenAllianceCommand}"
                                 IsVisible="{Binding HasAlliance}">
-                          <TextBlock Text="{Binding Alliance}" Classes="linktext"
-                                     TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding Alliance}" Classes="linktext" FontSize="10.5"
+                                     Foreground="#6a6a7c" TextTrimming="CharacterEllipsis" />
                         </Button>
                         <TextBlock Grid.Column="5" Classes="colmuted" Text="{Binding Location}"
                                    TextTrimming="CharacterEllipsis" />
@@ -321,17 +340,19 @@
                         <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
                         <Button Grid.Column="1" Classes="link" Command="{Binding OpenCommand}"
                                 ToolTip.Tip="Open in NPC Entities">
-                          <TextBlock Text="{Binding Name}" Classes="linktext" TextWrapping="Wrap" />
+                          <TextBlock Text="{Binding Name}" Classes="linktext" Foreground="#c8c8d8"
+                                     TextWrapping="Wrap" />
                         </Button>
                         <Button Grid.Column="2" Classes="link" Command="{Binding OpenTypeCommand}"
                                 ToolTip.Tip="Open in the Item Browser">
-                          <TextBlock Text="{Binding TypeName}" Classes="linktext" />
+                          <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10.5"
+                                     Foreground="#6a6a7c" />
                         </Button>
                         <Button Grid.Column="3" Classes="link" Command="{Binding OpenCorpCommand}"
                                 IsVisible="{Binding HasCorporation}"
                                 ToolTip.Tip="Open in NPC Entities">
-                          <TextBlock Text="{Binding Corporation}" Classes="linktext"
-                                     TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding Corporation}" Classes="linktext" FontSize="10.5"
+                                     Foreground="#6a6a7c" TextTrimming="CharacterEllipsis" />
                         </Button>
                         <TextBlock Grid.Column="5" Classes="colmuted" Text="{Binding Location}"
                                    TextTrimming="CharacterEllipsis" />
@@ -371,14 +392,47 @@
                                   Margin="{Binding Indent}" VerticalAlignment="Center">
                         <Image Source="{Binding Icon}" Width="22" Height="22"
                                Stretch="Uniform" VerticalAlignment="Center" />
+                        <!-- Only the docked rows are links; a planet or a gate is a place, not a
+                             thing with a viewer. Both keep the kind colouring either way. -->
+                        <Button Classes="link" Command="{Binding OpenCommand}"
+                                IsVisible="{Binding HasLocation}">
+                          <TextBlock Text="{Binding Name}" Classes="linktext"
+                                     Foreground="{Binding NameColor}"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Button>
                         <TextBlock Text="{Binding Name}" FontSize="11.5"
                                    Foreground="{Binding NameColor}"
+                                   IsVisible="{Binding !HasLocation}"
                                    VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                       </StackPanel>
-                      <TextBlock Grid.Column="1" Classes="colmuted" Text="{Binding Owner}"
-                                 TextTrimming="CharacterEllipsis" />
-                      <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding TypeName}"
-                                 TextTrimming="CharacterEllipsis" />
+
+                      <!-- Owner splits into its two halves so each links; the combined string
+                           remains for rows that have one but no id to reach it by. -->
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                                  VerticalAlignment="Center">
+                        <Button Classes="link" Command="{Binding OpenCorpCommand}"
+                                IsVisible="{Binding HasCorporation}">
+                          <TextBlock Text="{Binding Corporation}" Classes="linktext" FontSize="10.5"
+                                     Foreground="#6a6a7c" TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Text="·" Classes="colmuted"
+                                   IsVisible="{Binding HasAlliance}" />
+                        <Button Classes="link" Command="{Binding OpenAllianceCommand}"
+                                IsVisible="{Binding HasAlliance}">
+                          <TextBlock Text="{Binding Alliance}" Classes="linktext" FontSize="10.5"
+                                     Foreground="#6a6a7c" TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Classes="colmuted" Text="{Binding Owner}"
+                                   IsVisible="{Binding !HasCorporation}"
+                                   TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+
+                      <Button Grid.Column="2" Classes="link" Command="{Binding OpenTypeCommand}"
+                              IsVisible="{Binding HasType}"
+                              ToolTip.Tip="Open in the Item Browser">
+                        <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10.5"
+                                   Foreground="#6a6a7c" TextTrimming="CharacterEllipsis" />
+                      </Button>
                       <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding Power}" />
                       <TextBlock Grid.Column="4" Classes="colmuted" Text="{Binding Workforce}" />
                       <TextBlock Grid.Column="5" Text="{Binding Reagent}" FontSize="10.5"
@@ -481,7 +535,7 @@
                       <StackPanel Grid.Column="0">
                         <Button Classes="link" Command="{Binding OpenCommand}"
                                 ToolTip.Tip="Open in NPC Entities">
-                          <TextBlock Text="{Binding Name}" Classes="linktext" />
+                          <TextBlock Text="{Binding Name}" Classes="linktext" Foreground="#c8c8d8" />
                         </Button>
                         <!-- The station is on each row rather than as a group header, so the
                              list stays sortable and copies out intact. -->
@@ -489,15 +543,15 @@
                                 IsVisible="{Binding HasStation}"
                                 ToolTip.Tip="Open the station in NPC Entities">
                           <TextBlock Text="{Binding Location}" Classes="linktext"
-                                     FontSize="10.5" Foreground="#6a8fa8"
+                                     FontSize="10.5" Foreground="#6a6a7c"
                                      TextTrimming="CharacterEllipsis" />
                         </Button>
                       </StackPanel>
                       <Button Grid.Column="1" Classes="link" Command="{Binding OpenCorpCommand}"
                               IsVisible="{Binding HasCorporation}"
                               ToolTip.Tip="Open in NPC Entities">
-                        <TextBlock Text="{Binding Corporation}" Classes="linktext"
-                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Corporation}" Classes="linktext" FontSize="10.5"
+                                   Foreground="#6a6a7c" TextTrimming="CharacterEllipsis" />
                       </Button>
                       <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding Division}" />
                       <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding AgentType}"
@@ -566,16 +620,17 @@
                         <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                           <Button Classes="link" Command="{Binding OpenVictimCommand}">
                             <TextBlock Text="{Binding VictimName}" Classes="linktext" FontSize="10"
-                                       FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                       Foreground="#c8c8d8" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" />
                           </Button>
                           <Button Classes="link" Command="{Binding OpenVictimCorpCommand}">
                             <TextBlock Text="{Binding VictimCorp}" Classes="linktext" FontSize="9"
-                                       Foreground="#7f9fb8" TextTrimming="CharacterEllipsis" />
+                                       Foreground="#888899" TextTrimming="CharacterEllipsis" />
                           </Button>
                           <Button Classes="link" Command="{Binding OpenVictimAllianceCommand}"
                                   IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                             <TextBlock Text="{Binding VictimAlliance}" Classes="linktext" FontSize="9"
-                                       Foreground="#6a8496" TextTrimming="CharacterEllipsis" />
+                                       Foreground="#666677" TextTrimming="CharacterEllipsis" />
                           </Button>
                         </StackPanel>
                       </Grid>
@@ -589,16 +644,17 @@
                         <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                           <Button Classes="link" Command="{Binding OpenFbCommand}">
                             <TextBlock Text="{Binding FbName}" Classes="linktext" FontSize="10"
-                                       FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                       Foreground="#c8c8d8" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" />
                           </Button>
                           <Button Classes="link" Command="{Binding OpenFbCorpCommand}">
                             <TextBlock Text="{Binding FbCorp}" Classes="linktext" FontSize="9"
-                                       Foreground="#7f9fb8" TextTrimming="CharacterEllipsis" />
+                                       Foreground="#888899" TextTrimming="CharacterEllipsis" />
                           </Button>
                           <Button Classes="link" Command="{Binding OpenFbAllianceCommand}"
                                   IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                             <TextBlock Text="{Binding FbAlliance}" Classes="linktext" FontSize="9"
-                                       Foreground="#6a8496" TextTrimming="CharacterEllipsis" />
+                                       Foreground="#666677" TextTrimming="CharacterEllipsis" />
                           </Button>
                         </StackPanel>
                       </Grid>
@@ -762,7 +818,7 @@
                         <Button Classes="link" Command="{Binding ReportedBy.OpenCommand}"
                                 Margin="2 0 0 0" ToolTip.Tip="{Binding Channel}">
                           <TextBlock Text="{Binding Reporter}" Classes="linktext" FontSize="11"
-                                     Foreground="#8a9aa8" TextTrimming="CharacterEllipsis" />
+                                     Foreground="#8a8a9a" TextTrimming="CharacterEllipsis" />
                         </Button>
                       </StackPanel>
                       <TextBlock Grid.Column="7" Text="{Binding Status}" FontSize="10"

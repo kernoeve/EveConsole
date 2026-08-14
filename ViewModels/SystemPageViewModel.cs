@@ -140,6 +140,33 @@ public class CelestialNodeVm(SystemViewService.CelestialNode n) : IconRowVm
     public string    TypeName  { get; } = n.TypeName;
     public string    Kind      { get; } = n.Kind;
     public string    Owner     { get; } = n.Owner;
+    public string    Corporation { get; } = n.Corporation;
+    public string    Alliance    { get; } = n.Alliance;
+
+    // Only the docked rows carry an owner or a viewer of their own; a planet is a place.
+    public bool HasLocation    { get; } = n.LocationId    > 0;
+    public bool HasCorporation { get; } = n.CorporationId > 0 && n.Corporation.Length > 0;
+    public bool HasAlliance    { get; } = n.AllianceId    > 0 && n.Alliance.Length    > 0;
+    public bool HasType        { get; } = n.TypeId        > 0;
+
+    private static EntityNavigator Nav => EntityNavigator.Instance;
+
+    /// <summary>An NPC station opens in the entity browser; a player structure has its own tool.</summary>
+    public ReactiveCommand<Unit, Unit> OpenCommand { get; } = ReactiveCommand.Create(() =>
+    {
+        if (n.IsNpc) EntityNavigator.Instance.Entity(EntityKind.Station, n.LocationId);
+        else         EntityNavigator.Instance.Structure(n.LocationId);
+    });
+
+    public ReactiveCommand<Unit, Unit> OpenCorpCommand { get; } = ReactiveCommand.Create(() =>
+        EntityNavigator.Instance.Entity(
+            n.IsNpc ? EntityKind.NpcCorp : EntityKind.PlayerCorp, n.CorporationId));
+
+    public ReactiveCommand<Unit, Unit> OpenAllianceCommand { get; } = ReactiveCommand.Create(() =>
+        EntityNavigator.Instance.Entity(EntityKind.Alliance, n.AllianceId));
+
+    public ReactiveCommand<Unit, Unit> OpenTypeCommand { get; } = ReactiveCommand.Create(() =>
+        EntityNavigator.Instance.Item(n.TypeId));
     public string    Power     { get; } = n.Power > 0 ? n.Power.ToString("N0") : "";
     public string    Workforce { get; } = n.Workforce > 0 ? n.Workforce.ToString("N0") : "";
     /// <summary>Reagent yield per hour, named by planet type — Lava gives Magmatic Gas, Ice
@@ -384,6 +411,11 @@ public class SystemPageViewModel : ReactiveObject
         OpenInItemBrowserCommand = ReactiveCommand.Create<int>(
             typeId => { if (typeId > 0) NavigateToItemAction?.Invoke(typeId); });
         OpenInItemBrowserCommand.ThrownExceptions.Subscribe(_ => { });
+
+        OpenSovAllianceCommand = ReactiveCommand.Create(() =>
+            EntityNavigator.Instance.Entity(EntityKind.Alliance, _sovAllianceId));
+        OpenSovCorpCommand = ReactiveCommand.Create(() =>
+            EntityNavigator.Instance.Entity(EntityKind.PlayerCorp, _sovCorporationId));
     }
 
     // ── Header ───────────────────────────────────────────────────────────────
@@ -445,6 +477,28 @@ public class SystemPageViewModel : ReactiveObject
 
     private string _holder = "";
     public string Holder { get => _holder; private set => this.RaiseAndSetIfChanged(ref _holder, value); }
+
+    // The sovereignty holder, split so each half can be clicked. Holder above stays as the one
+    // combined string, since it is still what a system with neither reads as ("Unclaimed").
+    private string _sovAlliance = "";
+    public string SovAlliance { get => _sovAlliance; private set => this.RaiseAndSetIfChanged(ref _sovAlliance, value); }
+
+    private string _sovCorporation = "";
+    public string SovCorporation { get => _sovCorporation; private set => this.RaiseAndSetIfChanged(ref _sovCorporation, value); }
+
+    private long _sovAllianceId, _sovCorporationId;
+
+    private bool _hasSovAlliance;
+    public bool HasSovAlliance { get => _hasSovAlliance; private set => this.RaiseAndSetIfChanged(ref _hasSovAlliance, value); }
+
+    private bool _hasSovCorporation;
+    public bool HasSovCorporation { get => _hasSovCorporation; private set => this.RaiseAndSetIfChanged(ref _hasSovCorporation, value); }
+
+    /// <summary>Shown only when neither half is a link, so "Unclaimed" still appears.</summary>
+    public bool HasSovNeither => !_hasSovAlliance && !_hasSovCorporation;
+
+    public ReactiveCommand<Unit, Unit> OpenSovAllianceCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenSovCorpCommand     { get; }
 
     private Bitmap? _holderLogo;
     public Bitmap? HolderLogo { get => _holderLogo; private set => this.RaiseAndSetIfChanged(ref _holderLogo, value); }
@@ -686,6 +740,14 @@ public class SystemPageViewModel : ReactiveObject
                 : string.IsNullOrEmpty(header.CorporationName)
                     ? header.AllianceName
                     : $"{header.AllianceName}  ·  {header.CorporationName}";
+
+            SovAlliance       = header.AllianceName;
+            SovCorporation    = header.CorporationName;
+            _sovAllianceId    = header.AllianceId    ?? 0;
+            _sovCorporationId = header.CorporationId ?? 0;
+            HasSovAlliance    = _sovAllianceId    > 0 && SovAlliance.Length    > 0;
+            HasSovCorporation = _sovCorporationId > 0 && SovCorporation.Length > 0;
+            this.RaisePropertyChanged(nameof(HasSovNeither));
 
             PlanetCount = header.Planets.ToString("N0");
             MoonCount   = header.Moons.ToString("N0");
