@@ -30,6 +30,9 @@
                  VerticalAlignment="Center"/>
       <Button Content="Refresh" Command="{Binding RefreshCommand}"
               IsEnabled="{Binding !IsLoading}" FontSize="11" Padding="10 4"/>
+      <CheckBox Content="Show blocked / waiting" IsChecked="{Binding ShowNotReady}"
+                ToolTip.Tip="Include work that cannot be started yet, with the reason."
+                FontSize="11" VerticalAlignment="Center"/>
       <CheckBox Content="Show snoozed" IsChecked="{Binding ShowSnoozed}"
                 FontSize="11" VerticalAlignment="Center"/>
       <TextBlock Text="{Binding Status}" FontSize="10" Foreground="#7a8896"

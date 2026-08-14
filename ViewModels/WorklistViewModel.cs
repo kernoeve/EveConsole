@@ -173,6 +173,21 @@ public class WorklistViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _showSnoozed, value); _ = RefreshAsync(); }
     }
 
+    /// <summary>
+    /// Blocked and waiting items are hidden unless asked for.
+    ///
+    /// The list is read to find something to do now, and an item that cannot be started is not
+    /// that — it is context. Left in by default they crowd out the actionable rows, and a list
+    /// mostly full of things you cannot do stops being read at all. They stay one click away
+    /// because the reasons are worth seeing when planning rather than executing.
+    /// </summary>
+    private bool _showNotReady;
+    public bool ShowNotReady
+    {
+        get => _showNotReady;
+        set { this.RaiseAndSetIfChanged(ref _showNotReady, value); _ = RefreshAsync(); }
+    }
+
     private bool _isLoading;
     public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
 
@@ -190,8 +205,10 @@ public class WorklistViewModel : ReactiveObject
         {
             var run = await _service.BuildAsync();
 
-            var visible = run.AllItems
-                .Where(i => ShowSnoozed || !i.IsSnoozed)
+            var unsnoozed = run.AllItems.Where(i => ShowSnoozed || !i.IsSnoozed).ToList();
+
+            var visible = unsnoozed
+                .Where(i => ShowNotReady || i.Readiness == WorklistReadiness.Ready)
                 // Blocked last: the list is read top-down looking for something to do, and an
                 // item that cannot be actioned does not belong at the top of that read.
                 .OrderBy(i => i.Readiness == WorklistReadiness.Blocked ? 1 : 0)
@@ -207,11 +224,23 @@ public class WorklistViewModel : ReactiveObject
                 Rows.Clear();
                 foreach (var i in visible) Rows.Add(new WorklistRowVm(i));
 
-                var snoozed = run.AllItems.Count(i => i.IsSnoozed);
+                var snoozed  = run.AllItems.Count(i => i.IsSnoozed);
+                var blocked  = unsnoozed.Count(i => i.Readiness == WorklistReadiness.Blocked);
+                var waiting  = unsnoozed.Count(i => i.Readiness == WorklistReadiness.Waiting);
+
+                // Hidden counts are always reported, even when nothing is actionable. "Nothing to
+                // do" beside nine blocked items would be a lie of omission — there is plenty to
+                // do, none of it right now.
+                var hidden = new List<string>();
+                if (!ShowNotReady && blocked > 0) hidden.Add($"{blocked} blocked");
+                if (!ShowNotReady && waiting > 0) hidden.Add($"{waiting} waiting");
+                if (!ShowSnoozed  && snoozed > 0) hidden.Add($"{snoozed} snoozed");
+
+                var tail = hidden.Count > 0 ? $" ({string.Join(", ", hidden)} hidden)" : "";
+
                 Status = visible.Count == 0
-                    ? (snoozed > 0 ? $"Nothing to do — {snoozed} snoozed." : "Nothing to do.")
-                    : $"{visible.Count:N0} item(s)"
-                      + (snoozed > 0 && !ShowSnoozed ? $", {snoozed} snoozed" : "");
+                    ? $"Nothing ready{tail}."
+                    : $"{visible.Count:N0} ready{tail}";
 
                 Errors = failed.Count == 0
                     ? ""
