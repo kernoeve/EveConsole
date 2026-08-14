@@ -303,12 +303,23 @@
                    Margin="0 0 0 10"
                    Text="Which characters may be given jobs, and on what. Slots on alts in corps that never run industry are not available for work, so this is opt-in. Jobs go to the least capable character who can run them, keeping the high-skill alts free for the work only they can do."/>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0 0 0 6">
-          <TextBlock Text="Plan against park" Classes="fieldLabel" VerticalAlignment="Center"/>
-          <ComboBox Width="240" FontSize="11"
+        <Grid Grid.Row="1" ColumnDefinitions="240,Auto,Auto,*" RowDefinitions="Auto,Auto" Margin="0 0 0 8">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Plan against park" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="Max job length — manufacturing" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="2" Text="reactions" Classes="fieldLabel"/>
+
+          <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 16 0" FontSize="11"
                     ItemsSource="{Binding Parks}" SelectedItem="{Binding SelectedPark}"
-                    PlaceholderText="Pick a park…"/>
-        </StackPanel>
+                    PlaceholderText="Pick a park…" HorizontalAlignment="Stretch"/>
+          <TextBox Grid.Row="1" Grid.Column="1" Width="70" Margin="0 0 8 0" FontSize="11"
+                   Text="{Binding MaxJobDaysMfg}"
+                   ToolTip.Tip="Days. A shortfall needing longer is split into several jobs, which can run on different slots and characters. Blank for no limit — only the blueprint's own run cap then applies."/>
+          <TextBox Grid.Row="1" Grid.Column="2" Width="70" Margin="0 0 8 0" FontSize="11"
+                   Text="{Binding MaxJobDaysRxn}"
+                   ToolTip.Tip="Days. Reactions are set apart from manufacturing because they are usually run in shorter, continuous cycles."/>
+          <TextBlock Grid.Row="1" Grid.Column="3" Text="days" Classes="fieldLabel"
+                     VerticalAlignment="Center"/>
+        </Grid>
 
         <TextBlock Grid.Row="2" Text="{Binding ParkWarning}" IsVisible="{Binding HasParkWarning}"
                    FontSize="10" Foreground="#c8a84b" TextWrapping="Wrap" Margin="0 0 0 10"/>

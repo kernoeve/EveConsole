@@ -602,7 +602,7 @@ public class MainWindowViewModel : ReactiveObject
                                      new WorklistInvRulesViewModel(dbFactory, corpActivityService, worklistMarketAltService),
                                      new WorklistOrderRulesViewModel(dbFactory, corpActivityService, worklistMarketAltService),
                                      new WorklistCorpAltsViewModel(dbFactory, worklistCorpAltService),
-                                     new WorklistIndustryViewModel(dbFactory, industryAssignmentService, worklistSettings));
+                                     new WorklistIndustryViewModel(dbFactory, industryAssignmentService, worklistSettings, errorLogger));
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);

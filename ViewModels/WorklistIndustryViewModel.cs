@@ -3,6 +3,7 @@ using System.Reactive;
 using Avalonia.Threading;
 using EveConsole.Data;
 using EveConsole.Models;
+using EveConsole.Services;
 using EveConsole.Services.Worklist;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
@@ -25,6 +26,7 @@ public class WorklistIndustryViewModel : ReactiveObject
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly IndustryAssignmentService       _assignment;
     private readonly WorklistSettings                _settings;
+    private readonly AppErrorLogger                  _errorLogger;
 
     public ObservableCollection<IndyCharRow>     Chars      { get; } = [];
     public ObservableCollection<CharacterOption> Characters { get; } = [];
@@ -35,11 +37,13 @@ public class WorklistIndustryViewModel : ReactiveObject
 
     public WorklistIndustryViewModel(IDbContextFactory<AppDbContext> dbFactory,
                                      IndustryAssignmentService assignment,
-                                     WorklistSettings settings)
+                                     WorklistSettings settings,
+                                     AppErrorLogger errorLogger)
     {
-        _dbFactory  = dbFactory;
-        _assignment = assignment;
-        _settings   = settings;
+        _dbFactory   = dbFactory;
+        _assignment  = assignment;
+        _settings    = settings;
+        _errorLogger = errorLogger;
 
         AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
         DeleteCommand = ReactiveCommand.CreateFromTask<IndyCharRow>(async r =>
@@ -85,6 +89,52 @@ public class WorklistIndustryViewModel : ReactiveObject
     private string _parkWarning = "";
     public string ParkWarning { get => _parkWarning; private set => this.RaiseAndSetIfChanged(ref _parkWarning, value); }
     public bool HasParkWarning => ParkWarning.Length > 0;
+
+    // ── Job length ────────────────────────────────────────────────────────────
+    //
+    // Held as text rather than a number so a half-typed value does not momentarily read as zero
+    // and turn the cap off. Nothing is saved until the field loses focus or the value parses,
+    // and blank means "no limit" as plainly as it looks.
+
+    private string _maxJobDaysMfg = "";
+    public string MaxJobDaysMfg
+    {
+        get => _maxJobDaysMfg;
+        set { this.RaiseAndSetIfChanged(ref _maxJobDaysMfg, value); Save(WorklistSettings.MaxJobDaysMfgKey, value); }
+    }
+
+    private string _maxJobDaysRxn = "";
+    public string MaxJobDaysRxn
+    {
+        get => _maxJobDaysRxn;
+        set { this.RaiseAndSetIfChanged(ref _maxJobDaysRxn, value); Save(WorklistSettings.MaxJobDaysRxnKey, value); }
+    }
+
+    private void Save(string key, string raw)
+    {
+        if (_loading) return;
+        var text = raw.Trim();
+        var days = text.Length == 0 ? 0.0
+                 : double.TryParse(text, System.Globalization.NumberStyles.Float,
+                                   System.Globalization.CultureInfo.InvariantCulture, out var d) && d > 0
+                     ? d : -1.0;
+        if (days < 0) return;   // mid-edit garbage: leave the stored value alone
+
+        // Fire-and-forget from a property setter, so the throw has to be caught here — nothing
+        // is awaiting this and an escaping exception would land unhandled on the thread pool.
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _settings.SetMaxJobDaysAsync(key, days);
+                if (IndustryChanged is not null) await IndustryChanged();
+            }
+            catch (Exception ex)
+            {
+                _errorLogger.Log(nameof(WorklistIndustryViewModel), "SetMaxJobDays", ex);
+            }
+        });
+    }
 
     // ── New row ───────────────────────────────────────────────────────────────
 
@@ -168,6 +218,13 @@ public class WorklistIndustryViewModel : ReactiveObject
                 _selectedPark = Parks.FirstOrDefault(p => p.Id == parkId);
                 this.RaisePropertyChanged(nameof(SelectedPark));
 
+                // Blank rather than "0" for no limit: an empty box reads as unset, where a zero
+                // reads as a cap of nothing.
+                _maxJobDaysMfg = Text(_settings.MaxJobDaysManufacturing);
+                _maxJobDaysRxn = Text(_settings.MaxJobDaysReaction);
+                this.RaisePropertyChanged(nameof(MaxJobDaysMfg));
+                this.RaisePropertyChanged(nameof(MaxJobDaysRxn));
+
                 ParkWarning = parkId <= 0
                     ? "No park selected. Industry jobs stay silent until one is chosen, because the park decides facilities and rigs."
                     : unlinked.Count > 0
@@ -187,6 +244,9 @@ public class WorklistIndustryViewModel : ReactiveObject
         }
         finally { _loading = false; }
     }
+
+    private static string Text(double days) =>
+        days > 0 ? days.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) : "";
 
     private static string Describe(WorklistIndyChar c)
     {

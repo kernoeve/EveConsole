@@ -2490,6 +2490,8 @@ public class App : Application
                               EveConsole.Services.Worklist.TrackedOrderGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.WorklistCorpAltService>();
         services.AddSingleton<EveConsole.Services.Worklist.IndustryAssignmentService>();
+        services.AddSingleton<EveConsole.Services.Worklist.IndustryBlueprintService>();
+        services.AddSingleton<EveConsole.Services.Worklist.IndustryTimeService>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.StandingProjectGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,

@@ -56,4 +56,43 @@ public class WorklistSettings(AppPreferencesService prefs)
 
     public Task SetIndustryParkAsync(int parkId) =>
         prefs.SetAsync(IndustryParkKey, parkId.ToString());
+
+    // ── Job length ────────────────────────────────────────────────────────────
+    //
+    // How long a single job may be allowed to run. Twenty thousand runs of a component is a
+    // legal job and a seven-day one, and the units do not exist until it ends — so a shortfall
+    // met by one long job is a shortfall that stays unmet all week. Splitting it into five
+    // shorter jobs delivers the first fifth on day two, and lets the work spread across slots
+    // and characters instead of parking one slot for the duration.
+    //
+    // Manufacturing and reactions are set apart because they are run differently: reaction
+    // cycles are short and continuous, manufacturing runs long. Zero means no limit, and then
+    // only the blueprint's own maximum applies.
+
+    public const string MaxJobDaysMfgKey = "worklist.industry.max_job_days.manufacturing";
+    public const string MaxJobDaysRxnKey = "worklist.industry.max_job_days.reaction";
+
+    public double MaxJobDaysManufacturing => Days(MaxJobDaysMfgKey);
+    public double MaxJobDaysReaction      => Days(MaxJobDaysRxnKey);
+
+    public double MaxJobDaysFor(IndustryPool pool) =>
+        pool == IndustryPool.Reaction ? MaxJobDaysReaction : MaxJobDaysManufacturing;
+
+    public Task SetMaxJobDaysAsync(string key, double days) =>
+        prefs.SetAsync(key, days.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+
+    /// <summary>
+    /// Seven days by default: a week is the span most industrialists already plan around, and it
+    /// is short enough that a split actually happens on the long component runs that prompted
+    /// this. Negative values are read as no limit rather than rejected, since the only sane
+    /// reading of "less than nothing" here is "do not cap".
+    /// </summary>
+    private double Days(string key)
+    {
+        var raw = prefs.Get(key);
+        if (string.IsNullOrEmpty(raw)) return 7.0;
+        return double.TryParse(raw, System.Globalization.NumberStyles.Float,
+                               System.Globalization.CultureInfo.InvariantCulture, out var d) && d > 0
+            ? d : 0.0;
+    }
 }
