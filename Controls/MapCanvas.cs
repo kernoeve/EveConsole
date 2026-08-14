@@ -659,7 +659,11 @@ public class MapCanvas : Control
 
     private static readonly IBrush DockSuper   = new ImmutableSolidColorBrush(Color.Parse("#a855f7"));
     private static readonly IBrush DockCapital = new ImmutableSolidColorBrush(Color.Parse("#22c55e"));
-    private static readonly IBrush DockSubcap  = new ImmutableSolidColorBrush(Color.Parse("#7f93a8"));
+
+    // ⚠️ Lifted from #7f93a8. Muted grey-blue on a dark map, drawn 2.5px thin, read as nothing at
+    // all — RH0-EG holds a Sotiyo and looked like a system with no structure. "Dockable, but
+    // nothing that takes a capital" is worth knowing, so the lowest rank still has to be seen.
+    private static readonly IBrush DockSubcap  = new ImmutableSolidColorBrush(Color.Parse("#a8bdd4"));
 
     // ⚠️ Manufacturing and Reprocessing were #5fa8d3 and #6bbf8a — a sky blue leaning cyan and a
     // sea green leaning teal, which met in the middle and were hard to tell apart at 9px. Moved to
@@ -740,11 +744,15 @@ public class MapCanvas : Control
         // ── Above: one bar the width of the box, thickness stepped by class ──
         if (DockBrush(b.Dock) is { } dockBrush)
         {
+            // ⚠️ A compressed range, not a proportional one. Thickness ranks the three, but the
+            // bottom of the range has to clear the floor of what registers at all: 2.5px vanished
+            // on a dark map. Ordering survives the compression; visibility did not survive the
+            // spread.
             var barH = b.Dock switch
             {
                 DockClass.Super   => 6.0,
-                DockClass.Capital => 4.0,
-                _                 => 2.5,
+                DockClass.Capital => 4.5,
+                _                 => 3.5,
             };
             var bar = new Rect(box.X, box.Y - offset - barH, box.Width, barH);
             ctx.DrawRectangle(dockBrush, BadgePen, bar);
