@@ -42,4 +42,18 @@ public class WorklistSettings(AppPreferencesService prefs)
         prefs.SetAsync($"worklist.standing_buy.{condition}", on ? "1" : "0");
 
     private bool Cond(string name) => prefs.GetBool($"worklist.standing_buy.{name}", true);
+
+    // ── Industry ──────────────────────────────────────────────────────────────
+
+    public const string IndustryParkKey = "worklist.industry.park_id";
+
+    /// <summary>
+    /// Which Indy Park industry work is planned against. Zero means unset, and the generator
+    /// stays silent rather than guessing — the park decides facilities and rigs, and guessing
+    /// wrong produces confidently wrong material figures.
+    /// </summary>
+    public int IndustryParkId => (int)prefs.GetLong(IndustryParkKey, 0);
+
+    public Task SetIndustryParkAsync(int parkId) =>
+        prefs.SetAsync(IndustryParkKey, parkId.ToString());
 }

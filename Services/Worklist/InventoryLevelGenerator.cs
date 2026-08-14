@@ -33,8 +33,10 @@ public class InventoryLevelGenerator(
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
+        // Build rules belong to the industry generator. Without this a component group would be
+        // told to buy and to manufacture the same shortfall.
         var rules = await db.WorklistInvRules.AsNoTracking()
-            .Where(r => r.Enabled)
+            .Where(r => r.Enabled && r.Action != "Build")
             .ToListAsync(ct);
         if (rules.Count == 0) return [];
 

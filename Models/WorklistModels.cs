@@ -77,6 +77,13 @@ public class WorklistInvRule
     public string LocationName { get; set; } = "";
 
     public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// "Buy" places a market order for the shortfall; "Build" starts a job for it. Which is right
+    /// depends on the group: raw materials are bought, components and finished goods are made,
+    /// and a rule that could only buy would tell you to purchase things you manufacture.
+    /// </summary>
+    public string Action { get; set; } = "Buy";
 }
 
 /// <summary>
@@ -117,4 +124,38 @@ public class WorklistCorpAlt
     public long   CharacterId     { get; set; }
     public string CharacterName   { get; set; } = "";
     public string Note            { get; set; } = "";
+}
+
+/// <summary>
+/// A character the worklist may assign industry jobs to, and on what terms.
+///
+/// Opt-in per character, because slot capacity across every alt is a meaningless number: alts
+/// sitting in corps that never run industry would contribute dozens of "free" slots that are
+/// not actually available for work.
+///
+/// The three activities are independent switches rather than one flag. A character given a pile
+/// of BPOs might run copies all day with manufacturing and reactions deliberately left alone,
+/// and collapsing that into "does industry" would either hide their slots or invent work for
+/// slots the player has other plans for.
+/// </summary>
+public class WorklistIndyChar
+{
+    public int    Id            { get; set; }
+    public long   CharacterId   { get; set; }
+    public string CharacterName { get; set; } = "";
+
+    public bool Manufacturing { get; set; } = true;
+    public bool Reactions     { get; set; } = true;
+    public bool Science       { get; set; }
+
+    /// <summary>
+    /// Where this character's jobs may draw materials from. Both are offered because the habit
+    /// differs: materials pooled in a corp hangar serve every alt in that corp, while a player
+    /// who keeps stock in personal hangars per structure needs the personal side counted instead.
+    /// Getting this wrong does not merely mis-count — it suggests jobs that cannot start.
+    /// </summary>
+    public bool IncludeCorpAssets     { get; set; } = true;
+    public bool IncludePersonalAssets { get; set; } = true;
+
+    public string Note { get; set; } = "";
 }

@@ -89,6 +89,9 @@ public class WorklistViewModel : ReactiveObject
     /// <summary>Who maintains each corporation's standing projects.</summary>
     public WorklistCorpAltsViewModel CorpAltsVm { get; }
 
+    /// <summary>Which characters run industry, and against which park.</summary>
+    public WorklistIndustryViewModel IndustryVm { get; }
+
     /// <summary>Which sources run, and which conditions each one raises.</summary>
     public ObservableCollection<WorklistToggleVm> Sources    { get; } = [];
     public ObservableCollection<WorklistToggleVm> Conditions { get; } = [];
@@ -99,7 +102,8 @@ public class WorklistViewModel : ReactiveObject
     public WorklistViewModel(WorklistService service, WorklistMarketAltsViewModel marketAlts,
                              WorklistInvRulesViewModel rules,
                              WorklistOrderRulesViewModel orderRules,
-                             WorklistCorpAltsViewModel corpAlts)
+                             WorklistCorpAltsViewModel corpAlts,
+                             WorklistIndustryViewModel industry)
     {
         _service = service;
         MarketAltsVm  = marketAlts;
@@ -109,6 +113,8 @@ public class WorklistViewModel : ReactiveObject
         OrderRulesVm.RulesChanged = RefreshAsync;
         CorpAltsVm = corpAlts;
         CorpAltsVm.CorpAltsChanged = RefreshAsync;
+        IndustryVm = industry;
+        IndustryVm.IndustryChanged = RefreshAsync;
 
         // Assigning a market alt unblocks items, so the list should reflect it without a manual
         // refresh — that gap is exactly what makes config feel like it did not take.

@@ -16,7 +16,7 @@ public sealed record InvGroupOption(int Id, string Name)
 }
 
 /// <summary>One rule as shown in the grid, with the group resolved to its name.</summary>
-public sealed record InvRuleRow(int Id, string GroupName, string ThresholdText,
+public sealed record InvRuleRow(int Id, string GroupName, string ActionText, string ThresholdText,
                                 string FillText, string LocationName, string AltText,
                                 WorklistInvRule Rule);
 
@@ -88,6 +88,12 @@ public class WorklistInvRulesViewModel : ReactiveObject
     private string _fill = "100";
     public string Fill { get => _fill; set => this.RaiseAndSetIfChanged(ref _fill, value); }
 
+    /// <summary>Buy places an order for the shortfall; Build starts a job for it.</summary>
+    public IReadOnlyList<string> Actions { get; } = ["Buy", "Build"];
+
+    private string _action = "Buy";
+    public string Action { get => _action; set => this.RaiseAndSetIfChanged(ref _action, value); }
+
     private string _status = "";
     public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
 
@@ -107,6 +113,7 @@ public class WorklistInvRulesViewModel : ReactiveObject
             .Select(r => new InvRuleRow(
                 r.Id,
                 groupNames.GetValueOrDefault(r.GroupId, $"Group {r.GroupId}"),
+                r.Action,
                 $"below {r.ThresholdPercent:0.#}%",
                 $"to {r.FillTargetPercent:0.#}%",
                 r.LocationName,
@@ -150,6 +157,7 @@ public class WorklistInvRulesViewModel : ReactiveObject
             LocationId        = loc.StationId,
             LocationName      = loc.Name,
             Enabled           = true,
+            Action            = Action,
         });
         await db.SaveChangesAsync();
 

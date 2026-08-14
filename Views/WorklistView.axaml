@@ -221,13 +221,14 @@
 
         <!-- Labels above the fields rather than watermarks: both percentages default to 100,
              and a watermark only shows while a field is empty, so they were two bare numbers. -->
-        <Grid Grid.Row="1" ColumnDefinitions="220,*,120,120,Auto"
+        <Grid Grid.Row="1" ColumnDefinitions="200,*,90,120,120,Auto"
               RowDefinitions="Auto,Auto" Margin="0 0 0 6">
 
           <TextBlock Grid.Row="0" Grid.Column="0" Text="Inventory group" Classes="fieldLabel"/>
           <TextBlock Grid.Row="0" Grid.Column="1" Text="Station or structure" Classes="fieldLabel"/>
-          <TextBlock Grid.Row="0" Grid.Column="2" Text="Order below (%)" Classes="fieldLabel"/>
-          <TextBlock Grid.Row="0" Grid.Column="3" Text="Fill up to (%)"  Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="2" Text="Action" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="3" Text="Trigger below (%)" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="4" Text="Fill up to (%)"  Classes="fieldLabel"/>
 
           <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" FontSize="11"
                     ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}"
@@ -239,11 +240,15 @@
                            FilterMode="None" MinimumPrefixLength="2"
                            MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
                            FontSize="11" Watermark="Type two characters…"/>
-          <TextBox Grid.Row="1" Grid.Column="2" Margin="0 0 8 0" FontSize="11" Text="{Binding Threshold}"
+          <ComboBox Grid.Row="1" Grid.Column="2" Margin="0 0 8 0" FontSize="11"
+                    ItemsSource="{Binding Actions}" SelectedItem="{Binding Action}"
+                    HorizontalAlignment="Stretch"
+                    ToolTip.Tip="Buy places a market order for the shortfall; Build starts a job for it"/>
+          <TextBox Grid.Row="1" Grid.Column="3" Margin="0 0 8 0" FontSize="11" Text="{Binding Threshold}"
                    ToolTip.Tip="Raise a task when stock falls below this share of the group target"/>
-          <TextBox Grid.Row="1" Grid.Column="3" Margin="0 0 8 0" FontSize="11" Text="{Binding Fill}"
-                   ToolTip.Tip="Order back up to this share of the group target"/>
-          <Button Grid.Row="1" Grid.Column="4" Content="Add rule" Command="{Binding AddCommand}"
+          <TextBox Grid.Row="1" Grid.Column="4" Margin="0 0 8 0" FontSize="11" Text="{Binding Fill}"
+                   ToolTip.Tip="Fill back up to this share of the group target"/>
+          <Button Grid.Row="1" Grid.Column="5" Content="Add rule" Command="{Binding AddCommand}"
                   FontSize="11" Padding="10 4"/>
         </Grid>
 
@@ -254,7 +259,8 @@
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <DataGrid.Columns>
-            <DataGridTextColumn Header="Group"     Binding="{Binding GroupName}"     FontSize="10" Width="220"/>
+            <DataGridTextColumn Header="Group"     Binding="{Binding GroupName}"     FontSize="10" Width="200"/>
+            <DataGridTextColumn Header="Action"    Binding="{Binding ActionText}"    FontSize="10" Width="70"/>
             <DataGridTextColumn Header="Trigger"   Binding="{Binding ThresholdText}" FontSize="10" Width="100"/>
             <DataGridTextColumn Header="Fill"      Binding="{Binding FillText}"      FontSize="10" Width="90"/>
             <DataGridTextColumn Header="Location"  Binding="{Binding LocationName}"  FontSize="10" Width="*"/>
@@ -273,6 +279,69 @@
           </DataGrid.Columns>
         </DataGrid>
       </Grid>
+    </TabItem>
+
+    <TabItem Header="Industry">
+      <ScrollViewer>
+      <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*" Margin="14 12"
+            DataContext="{Binding IndustryVm}" x:DataType="vm:WorklistIndustryViewModel">
+
+        <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                   Margin="0 0 0 10"
+                   Text="Which characters may be given jobs, and on what. Slots on alts in corps that never run industry are not available for work, so this is opt-in. Jobs go to the least capable character who can run them, keeping the high-skill alts free for the work only they can do."/>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0 0 0 6">
+          <TextBlock Text="Plan against park" Classes="fieldLabel" VerticalAlignment="Center"/>
+          <ComboBox Width="240" FontSize="11"
+                    ItemsSource="{Binding Parks}" SelectedItem="{Binding SelectedPark}"
+                    PlaceholderText="Pick a park…"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="2" Text="{Binding ParkWarning}" IsVisible="{Binding HasParkWarning}"
+                   FontSize="10" Foreground="#c8a84b" TextWrapping="Wrap" Margin="0 0 0 10"/>
+
+        <Grid Grid.Row="3" ColumnDefinitions="200,Auto,Auto,Auto,20,Auto,Auto,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Character" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="Slots used for" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="5" Text="Materials from" Classes="fieldLabel"/>
+          <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 12 0" FontSize="11"
+                    ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}"
+                    PlaceholderText="Character…" HorizontalAlignment="Stretch"/>
+          <CheckBox Grid.Row="1" Grid.Column="1" Content="Manufacturing" IsChecked="{Binding Manufacturing}" FontSize="11" Margin="0 0 8 0"/>
+          <CheckBox Grid.Row="1" Grid.Column="2" Content="Reactions"     IsChecked="{Binding Reactions}"     FontSize="11" Margin="0 0 8 0"/>
+          <CheckBox Grid.Row="1" Grid.Column="3" Content="Science"       IsChecked="{Binding Science}"       FontSize="11"/>
+          <CheckBox Grid.Row="1" Grid.Column="5" Content="Corp"     IsChecked="{Binding CorpAssets}"     FontSize="11" Margin="0 0 8 0"/>
+          <CheckBox Grid.Row="1" Grid.Column="6" Content="Personal" IsChecked="{Binding PersonalAssets}" FontSize="11" Margin="0 0 12 0"/>
+          <Button   Grid.Row="1" Grid.Column="7" Content="Add / Update" Command="{Binding AddCommand}"
+                    FontSize="11" Padding="10 4"/>
+        </Grid>
+
+        <TextBlock Grid.Row="4" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+                   TextWrapping="Wrap" Margin="0 0 0 8"/>
+
+        <DataGrid Grid.Row="5" ItemsSource="{Binding Chars}" MinHeight="200"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Character"      Binding="{Binding CharacterName}" FontSize="10" Width="200"/>
+            <DataGridTextColumn Header="Slots used for" Binding="{Binding Activities}"    FontSize="10" Width="220"/>
+            <DataGridTextColumn Header="Materials from" Binding="{Binding Assets}"        FontSize="10" Width="140"/>
+            <DataGridTextColumn Header="Free / total"   Binding="{Binding Slots}"         FontSize="10" Width="*"/>
+            <DataGridTemplateColumn Header="" Width="80">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:IndyCharRow">
+                  <Button Content="Remove"
+                          Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).IndustryVm.DeleteCommand}"
+                          CommandParameter="{Binding}"
+                          FontSize="9" Padding="6 2" Background="Transparent"
+                          BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+      </ScrollViewer>
     </TabItem>
 
     <TabItem Header="Order Rules">

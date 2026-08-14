@@ -1588,6 +1588,28 @@ public class App : Application
                 """);
 
             db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistIndyChars" (
+                    "Id"                    INTEGER NOT NULL CONSTRAINT "PK_WorklistIndyChars" PRIMARY KEY AUTOINCREMENT,
+                    "CharacterId"           INTEGER NOT NULL DEFAULT 0,
+                    "CharacterName"         TEXT    NOT NULL DEFAULT '',
+                    "Manufacturing"         INTEGER NOT NULL DEFAULT 1,
+                    "Reactions"             INTEGER NOT NULL DEFAULT 1,
+                    "Science"               INTEGER NOT NULL DEFAULT 0,
+                    "IncludeCorpAssets"     INTEGER NOT NULL DEFAULT 1,
+                    "IncludePersonalAssets" INTEGER NOT NULL DEFAULT 1,
+                    "Note"                  TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistIndyChars_CharacterId"
+                ON "WorklistIndyChars" ("CharacterId")
+                """);
+
+            // Added after the rules table shipped on this branch, so it needs its own ALTER —
+            // CREATE TABLE IF NOT EXISTS will not add a column to a table that already exists.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistInvRules" ADD COLUMN "Action" TEXT NOT NULL DEFAULT 'Buy' """); } catch { }
+
+            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "WorklistCorpAlts" (
                     "Id"              INTEGER NOT NULL CONSTRAINT "PK_WorklistCorpAlts" PRIMARY KEY AUTOINCREMENT,
                     "CorporationId"   INTEGER NOT NULL DEFAULT 0,
@@ -2452,8 +2474,11 @@ public class App : Application
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.TrackedOrderGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.WorklistCorpAltService>();
+        services.AddSingleton<EveConsole.Services.Worklist.IndustryAssignmentService>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.StandingProjectGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.IndustryJobGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.WorklistService>();
         services.AddSingleton<IndyFacilityCheckService>();
 
