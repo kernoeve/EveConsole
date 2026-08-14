@@ -2498,8 +2498,12 @@ public class App : Application
                               EveConsole.Services.Worklist.StandingBuyOrderGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.InventoryLevelGenerator>();
+        // Customer orders no longer raise their own purchases. They and the inventory targets are
+        // additive demand on one pool of stock, and each netting that stock against its own
+        // shortfall meant neither ever asked for the real figure — so both feed
+        // MaterialPurchaseGenerator instead.
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
-                              EveConsole.Services.Worklist.TrackedOrderGenerator>();
+                              EveConsole.Services.Worklist.MaterialPurchaseGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.WorklistCorpAltService>();
         services.AddSingleton<EveConsole.Services.Worklist.IndustryAssignmentService>();
         services.AddSingleton<EveConsole.Services.Worklist.IndustryBlueprintService>();

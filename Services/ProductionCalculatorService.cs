@@ -287,10 +287,24 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     /// Plans a queue against an already-loaded context. Pure computation — no database access —
     /// so a caller with many items to cost pays the loading cost once.
     /// </summary>
+    /// <param name="meOverrides">
+    /// Material efficiency to use for particular products, whatever their place in the tree.
+    ///
+    /// <para>Without this only the item asked for carries a real ME and everything beneath it is
+    /// costed at the shared default. That is fine for a quote and wrong for a purchase: planning
+    /// an Avatar assumed an ME10 Enhanced Neurolink Protection Cell and asked for 17 Nano
+    /// Regulation Gates, where the ME8 original actually on hand needs 18. Buying 17 leaves the
+    /// job unable to start.</para>
+    ///
+    /// <para>Null leaves the existing behaviour untouched, which is what the Production
+    /// Calculator wants — it is answering what a build would cost in general, not what this
+    /// player's specific prints demand.</para>
+    /// </param>
     public ProductionPlan Calculate(
         List<ProductionQueueEntry> requests,
         ProductionContext ctx,
-        bool includeBpcCost = false)
+        bool includeBpcCost = false,
+        IReadOnlyDictionary<int, int>? meOverrides = null)
     {
         // Bound back to the names the body below already uses, so the planning logic is the same
         // code it was when it and the loading lived in one method.
@@ -564,7 +578,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             // Final products use the user-chosen ME (defaulted per the same rule when added to the
             // queue). Sub-components follow the shared default-ME rule (ME10 / T2 ME3 / BPC-only ME0 /
             // titan & Keepstar ME9 / reactions ME0) so this matches the stored build cost.
-            int    meLevel    = (isFinal && !isReaction && finalMeLevels.TryGetValue(typeId, out var ml))
+            // An override wins at any depth — it is a statement about a print actually on hand.
+            // Reactions are excluded because a formula cannot be researched, so any ME on one is
+            // noise rather than a bonus.
+            int    meLevel    = (!isReaction && meOverrides is not null
+                                 && meOverrides.TryGetValue(typeId, out var ov))
+                                ? ov
+                                : (isFinal && !isReaction && finalMeLevels.TryGetValue(typeId, out var ml))
                                 ? ml
                                 : IndustryMe.DefaultMe(isReaction, !isReaction && !BlueprintIsBpoSourced(bpProd.TypeId),
                                       t2TypeIds.Contains(typeId), titanKeepstarIds.Contains(typeId));

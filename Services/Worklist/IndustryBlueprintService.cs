@@ -1,4 +1,5 @@
 using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services.Worklist;
@@ -136,6 +137,51 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
     /// their job; a copy survives if it has runs left on it. Scope is applied because a print in
     /// another region is not one that will be installed here this week.</para>
     /// </summary>
+    /// <summary>
+    /// Every print in reach, whatever its type, for building an efficiency map across a whole
+    /// production tree.
+    /// </summary>
+    public async Task<List<BlueprintStock>> LoadAllAsync(CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var ids = await db.EsiBlueprints.AsNoTracking().Select(b => b.TypeId).Distinct().ToListAsync(ct);
+        return (await LoadAsync(ids, ct)).SelectMany(kv => kv.Value).ToList();
+    }
+
+    /// <summary>
+    /// The efficiency each product would actually be built at, from the best print on hand.
+    ///
+    /// <para>Keyed by product rather than blueprint, because that is what a plan asks about. The
+    /// best print is the one the job generator would reach for — an original before a copy, then
+    /// the highest ME — so the materials a purchase is sized against are the materials the job
+    /// will really consume.</para>
+    ///
+    /// <para>Products with no print owned are absent, and the caller falls back to the shared
+    /// default. Guessing an efficiency for a blueprint that has to be bought would be inventing
+    /// a number about an object that does not exist yet.</para>
+    /// </summary>
+    public static Dictionary<int, int> BestMeByProduct(
+        IReadOnlyList<BlueprintStock> all,
+        IReadOnlyDictionary<int, SdeBlueprintProduct> blueprintByProduct,
+        HashSet<long>? scope,
+        IReadOnlyList<WorklistIndyCharReach> reaches)
+    {
+        var usable = all
+            .Where(b => reaches.Any(r => r.CanUse(b)) && (scope is null || scope.Contains(b.LocationId)))
+            .GroupBy(b => b.TypeId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.OrderByDescending(b => b.IsOriginal).ThenByDescending(b => b.Me)
+                      .ThenByDescending(b => b.Te).ThenBy(b => b.ItemId).First());
+
+        var byProduct = new Dictionary<int, int>();
+        foreach (var (productTypeId, bp) in blueprintByProduct)
+            if (usable.TryGetValue(bp.TypeId, out var best))
+                byProduct[productTypeId] = best.Me;
+
+        return byProduct;
+    }
+
     public static bool OwnedWithin(
         IReadOnlyList<BlueprintStock> all, HashSet<long>? scope,
         IReadOnlyList<WorklistIndyCharReach> reaches) =>

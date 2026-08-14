@@ -34,7 +34,6 @@ public class IndustryJobGenerator(
     IndustryTimeService             times,
     InvLevelService                 invLevels,
     ProductionCalculatorService     production,
-    WorklistMarketAltService        marketAlts,
     WorklistSettings                settings) : IWorklistGenerator
 {
     public string Id          => "industry_jobs";
@@ -147,15 +146,6 @@ public class IndustryJobGenerator(
             .Where(g => rules.Select(r => r.GroupId).Contains(g.Id))
             .ToDictionaryAsync(g => g.Id, ct);
 
-        // Items the player has said they make. A Build rule is a standing decision not to buy the
-        // thing, so its shortfall is answered by the jobs below and never by a purchase — without
-        // this, an intermediate like Fernite Carbide gets a build job and a buy order for the
-        // same shortfall, which are contradictory instructions for one pile of material.
-        var buildManaged = (await db.InvLevelItems.AsNoTracking()
-                .Where(i => rules.Select(r => r.GroupId).Contains(i.GroupId))
-                .Select(i => i.TypeId)
-                .ToListAsync(ct))
-            .ToHashSet();
 
         var items     = new List<WorklistItem>();
         var slotsLeft = candidates.ToDictionary(
@@ -172,13 +162,6 @@ public class IndustryJobGenerator(
         // nine-job reaction into two plans instead of nine.
         var planCache = new Dictionary<(int TypeId, long Qty, int Me), Dictionary<int, long>>();
 
-        // What the planned jobs will consume in total, and the most urgent job waiting on each.
-        // Accumulated across every rule so one purchase covers the demand rather than one per
-        // job — you buy Ferrogel once, however many builds are short of it.
-        var demand = new Dictionary<int, MaterialDemand>();
-
-        // Blueprints nothing can be built without, keyed by blueprint type.
-        var printsWanted = new Dictionary<int, PrintWanted>();
 
         // Rules in a fixed order, and items within them too, so the greedy allocation below
         // walks demand identically on every run and therefore assigns identically.
@@ -284,21 +267,11 @@ public class IndustryJobGenerator(
                     // Owning one somewhere and owning none at all are different problems. The
                     // first is a move; the second is a purchase, and saying "buy" when the print
                     // is one structure away would be the more expensive mistake of the two.
+                    // Acquiring the print is Material Purchases' business — it is one purchase
+                    // however many rules and orders are waiting on it. This row only reports why
+                    // the job cannot run.
                     var allPrints = printsByType.GetValueOrDefault(product.TypeId, []);
                     var owned     = IndustryBlueprintService.OwnedWithin(allPrints, scope, reaches);
-
-                    if (!owned)
-                    {
-                        var bpName = ctx.TypeNames.GetValueOrDefault(product.TypeId,
-                                                                     $"Blueprint {product.TypeId}");
-                        if (!printsWanted.TryGetValue(product.TypeId, out var want)
-                            || want.Priority < priority)
-                            printsWanted[product.TypeId] =
-                                new PrintWanted(bpName, name, runsNeeded, priority);
-                        else
-                            printsWanted[product.TypeId] =
-                                want with { Runs = want.Runs + runsNeeded };
-                    }
 
                     items.Add(Unstartable(rule, gi.TypeId, name, priority,
                         $"{head} Build {need.Shortfall:N0} ({runsNeeded:N0} run(s)) at {siteName}.",
@@ -347,15 +320,6 @@ public class IndustryJobGenerator(
                     if (!planCache.TryGetValue(cacheKey, out var needed))
                         planCache[cacheKey] = needed =
                             await MaterialsForAsync(ctx, gi.TypeId, wanted, job.Print.Me, ct);
-
-                    // Every planned job's inputs count toward what has to be bought, whether or
-                    // not this one can start — the purchase serves the whole shortfall.
-                    foreach (var (matId, qty) in needed)
-                    {
-                        var d = demand.GetValueOrDefault(matId);
-                        demand[matId] = new MaterialDemand(
-                            d.Qty + qty, Math.Max(d.Priority, priority));
-                    }
 
                     var missing = MissingAtSite(
                         stock, inScope, ctx, owner, needed, siteId.Value, committed);
@@ -424,129 +388,6 @@ public class IndustryJobGenerator(
                     });
                 }
             }
-        }
-
-        foreach (var typeId in buildManaged) demand.Remove(typeId);
-
-        items.AddRange(await BuyTasksAsync(db, ctx, demand, printsWanted, candidates, ct));
-        return items;
-    }
-
-    /// <summary>
-    /// What has to be acquired before the blocked jobs can run.
-    ///
-    /// <para>Raised once per item rather than once per job. Nine builds short of the same alloy
-    /// is one purchase, and nine rows saying so would bury the eight other things that need
-    /// buying. The quantity is the whole planned demand less what is already owned in scope and
-    /// less what is already on order, so acting on it clears the shortfall rather than topping it
-    /// up by a job at a time.</para>
-    ///
-    /// <para>Blueprints are stated as BPO or BPC and left without a station. Either fills the
-    /// gap and which one is worth it is the player's call; and neither is a market order, so
-    /// there is no station for the task to belong to.</para>
-    /// </summary>
-    private async Task<List<WorklistItem>> BuyTasksAsync(
-        AppDbContext db, ProductionContext ctx,
-        Dictionary<int, MaterialDemand> demand, Dictionary<int, PrintWanted> printsWanted,
-        List<IndustryCandidate> candidates, CancellationToken ct)
-    {
-        var items = new List<WorklistItem>();
-
-        var buyAt   = settings.IndustryBuyLocationId;
-        var buyName = settings.IndustryBuyLocationName;
-        var alt     = buyAt > 0 ? (await marketAlts.GetByLocationAsync(ct)).GetValueOrDefault(buyAt) : null;
-
-        foreach (var (bpTypeId, want) in printsWanted.OrderBy(p => p.Key))
-        {
-            var price = ctx.BpcPerRun.TryGetValue(bpTypeId, out var opts) && opts.Count > 0
-                ? $" Copies have been seen on contract from {opts.Min(o => o.PerRun):N0} ISK a run."
-                : "";
-
-            items.Add(new WorklistItem
-            {
-                Key       = $"industry_print:{bpTypeId}",
-                Source    = Id,
-                Title     = $"Acquire BPO/BPC — {want.BlueprintName}",
-                Detail    = $"No blueprint owned{settings.IndustryScopeSuffix}, so {want.ProductName} "
-                          + $"cannot be built at all. {want.Runs:N0} run(s) wanted.{price}",
-                Readiness = WorklistReadiness.Ready,
-                TypeId    = bpTypeId,
-                TypeName  = want.BlueprintName,
-                Priority  = want.Priority,
-            });
-        }
-
-        if (demand.Count == 0) return items;
-
-        // What the characters between them already hold in scope. Taken across all of them
-        // rather than per character, because the purchase serves whoever ends up running the job.
-        var typeIds = demand.Keys.ToList();
-
-        var scope = await InvLevelService.ResolveScopeFilterAsync(
-            db, settings.IndustryScope, settings.IndustryScopeId, ct);
-        if (scope is not null)
-            scope.UnionWith(await db.WorklistIndyScopeStations.AsNoTracking()
-                .Select(s => s.LocationId).ToListAsync(ct));
-
-        var anyCorp     = candidates.Any(c => c.Config.IncludeCorpAssets);
-        var personalIds = candidates.Where(c => c.Config.IncludePersonalAssets)
-                                    .Select(c => c.Config.CharacterId).ToHashSet();
-
-        var wrapped = await AssetSafety.WrappedItemIdsAsync(db, ct);
-
-        var owned = (await (scope is null
-                    ? db.EsiAssets.AsNoTracking().Where(a => typeIds.Contains(a.TypeId))
-                    : db.EsiAssets.AsNoTracking().Where(a => typeIds.Contains(a.TypeId)
-                                                          && scope.Contains(a.RootLocationId)))
-                .Select(a => new { a.ItemId, a.TypeId, a.OwnerType, a.OwnerId, a.Quantity })
-                .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId))
-            .Where(a => a.OwnerType == "corporation" ? anyCorp : personalIds.Contains(a.OwnerId))
-            .GroupBy(a => a.TypeId)
-            .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
-
-        // Already bought and waiting to fill. Without this the same purchase is suggested every
-        // refresh until the order completes.
-        var onOrder = (await db.EsiMarketOrders.AsNoTracking()
-                .Where(o => o.IsBuyOrder && !o.IsHistory && typeIds.Contains(o.TypeId))
-                .Select(o => new { o.OrderId, o.OwnerType, o.TypeId, o.VolumeRemain })
-                .ToListAsync(ct))
-            .GroupBy(o => o.OrderId)
-            .Select(g => g.FirstOrDefault(o => o.OwnerType == "corporation") ?? g.First())
-            .GroupBy(o => o.TypeId)
-            .ToDictionary(g => g.Key, g => g.Sum(o => (long)o.VolumeRemain));
-
-        foreach (var (typeId, d) in demand.OrderBy(x => x.Key))
-        {
-            var have  = owned.GetValueOrDefault(typeId);
-            var order = onOrder.GetValueOrDefault(typeId);
-            var short_ = d.Qty - have - order;
-            if (short_ <= 0) continue;
-
-            var name    = ctx.TypeNames.GetValueOrDefault(typeId, $"Type {typeId}");
-            var ordered = order > 0 ? $", {order:N0} on order" : "";
-
-            items.Add(new WorklistItem
-            {
-                Key           = $"industry_buy:{typeId}",
-                Source        = Id,
-                Title         = $"Buy — {name}",
-                Detail        = $"Planned jobs need {d.Qty:N0}; {have:N0} on hand"
-                              + $"{settings.IndustryScopeSuffix}{ordered} — short {short_:N0}.",
-                Readiness     = alt is null ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
-                BlockedBy     = alt is null
-                    ? (buyAt > 0
-                        ? $"No market alt assigned to {buyName}"
-                        : "No buy location set on the Industry tab")
-                    : "",
-                CharacterId   = alt?.CharacterId   ?? 0,
-                CharacterName = alt?.CharacterName ?? "",
-                LocationId    = buyAt,
-                LocationName  = buyName,
-                TypeId        = typeId,
-                TypeName      = name,
-                Priority      = d.Priority,
-            });
         }
 
         return items;
@@ -654,11 +495,6 @@ public class IndustryJobGenerator(
 
     private sealed record MissingMaterial(string Name, int TypeId, bool MustBuy);
 
-    /// <summary>Total the planned jobs will consume, and the most urgent one waiting on it.</summary>
-    private readonly record struct MaterialDemand(long Qty, int Priority);
-
-    /// <summary>A blueprint no job can be installed from, because none is owned.</summary>
-    private sealed record PrintWanted(string BlueprintName, string ProductName, long Runs, int Priority);
 
     /// <summary>Names for a message, capped so a job short of thirty things stays readable.</summary>
     private static string Names(IReadOnlyList<string> names) =>
