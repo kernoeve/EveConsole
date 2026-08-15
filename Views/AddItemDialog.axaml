@@ -21,7 +21,21 @@
                FontSize="12" Padding="8 5"
                TextChanged="OnSearchChanged" />
 
-      <Border Background="#12121a" CornerRadius="3"
+      <!-- Collapses once something is picked, so the choice and the quantity are what is left on
+           screen rather than a list the reader has finished with. Typing again brings it back. -->
+      <Border x:Name="SelectedPanel" IsVisible="False"
+              Background="#12121a" CornerRadius="3"
+              BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Grid.Column="0" x:Name="SelectedText" FontSize="12" Foreground="#c8a84b"
+                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+          <Button Grid.Column="1" Content="Change" Click="OnChangeClick"
+                  Background="Transparent" Foreground="#888899"
+                  BorderBrush="#2a2a3a" BorderThickness="1" Padding="8 3" FontSize="11"/>
+        </Grid>
+      </Border>
+
+      <Border x:Name="ResultsPanel" Background="#12121a" CornerRadius="3"
               BorderBrush="#1e1e2a" BorderThickness="1" Height="200">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
           <ListBox x:Name="ResultsList"

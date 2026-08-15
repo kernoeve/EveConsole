@@ -120,12 +120,23 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         return await db.InvLevelItems.Where(i => i.GroupId == groupId).ToListAsync(ct);
     }
 
-    public async Task<InvLevelItem?> AddItemAsync(int groupId, int typeId, CancellationToken ct = default)
+    /// <summary>
+    /// Adds an item to a group at the target the caller asked for.
+    ///
+    /// <para>The target used to be hardcoded to 1, so the quantity typed into the add dialog was
+    /// collected, passed along and then discarded — every item landed at 1 whatever was entered.
+    /// Callers with no opinion still get 1 from the default.</para>
+    /// </summary>
+    public async Task<InvLevelItem?> AddItemAsync(
+        int groupId, int typeId, int targetQty = 1, CancellationToken ct = default)
     {
         await using var db = dbFactory.CreateDbContext();
         if (await db.InvLevelItems.AnyAsync(i => i.GroupId == groupId && i.TypeId == typeId, ct))
             return null;
-        var item = new InvLevelItem { GroupId = groupId, TypeId = typeId, TargetQuantity = 1 };
+        var item = new InvLevelItem
+        {
+            GroupId = groupId, TypeId = typeId, TargetQuantity = Math.Max(1, targetQty),
+        };
         db.InvLevelItems.Add(item);
         await db.SaveChangesAsync(ct);
         return item;

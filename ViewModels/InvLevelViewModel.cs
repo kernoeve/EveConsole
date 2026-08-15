@@ -68,12 +68,13 @@ public class InvCollectionRow : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> ToggleCommand     { get; }
     public ReactiveCommand<Unit, Unit> RenameCommand     { get; }
+    public ReactiveCommand<Unit, Unit> ExportCommand     { get; }
     public ReactiveCommand<Unit, Unit> DeleteCommand     { get; }
     public ReactiveCommand<Unit, Unit> ExpandAllCommand  { get; }
     public ReactiveCommand<Unit, Unit> CollapseAllCommand { get; }
 
     public InvCollectionRow(int? collectionId, string name, bool isSynthetic,
-        Action toggle, Func<Task> rename, Func<Task> delete,
+        Action toggle, Func<Task> rename, Func<Task> export, Func<Task> delete,
         Action expandAll, Action collapseAll)
     {
         CollectionId     = collectionId;
@@ -81,6 +82,7 @@ public class InvCollectionRow : ReactiveObject
         IsSynthetic      = isSynthetic;
         ToggleCommand    = ReactiveCommand.Create(toggle);
         RenameCommand    = ReactiveCommand.CreateFromTask(rename);
+        ExportCommand    = ReactiveCommand.CreateFromTask(export);
         DeleteCommand    = ReactiveCommand.CreateFromTask(delete);
         ExpandAllCommand = ReactiveCommand.Create(expandAll);
         CollapseAllCommand = ReactiveCommand.Create(collapseAll);
@@ -356,6 +358,7 @@ public class InvItemRow : ReactiveObject
 public class InvLevelViewModel : ReactiveObject
 {
     private readonly InvLevelService              _svc;
+    private readonly InvLevelCollectionTransfer   _transfer;
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly BatchAddService?             _batchSvc;
     private readonly ProductionCalculatorService? _prodCalc;
@@ -402,6 +405,39 @@ public class InvLevelViewModel : ReactiveObject
     public Func<IReadOnlyList<CollectionOption>, Task<InvGroupDialogResult?>>?              ShowAddGroupDialog        { get; set; }
     public Func<InvGroupRow, IReadOnlyList<CollectionOption>, Task<InvGroupDialogResult?>>? ShowEditGroupDialog       { get; set; }
     public Func<Task<AddItemDialogResult?>>?                                                ShowAddItemDialog          { get; set; }
+
+    // File pickers belong to the view; the view model says which collection and what to call it.
+    public Func<int, string, Task>? ExportCollection { get; set; }
+    public Func<Task>?              ImportCollection { get; set; }
+
+    public ReactiveCommand<Unit, Unit> ImportCollectionCommand { get; private set; } = null!;
+
+    /// <summary>
+    /// Writes a collection out. Called by the view once it has a stream from the save dialog.
+    /// </summary>
+    public Task ExportCollectionAsync(int collectionId, Stream output) =>
+        _transfer.ExportAsync(collectionId, output);
+
+    /// <summary>
+    /// Reads a collection in, always as a new one, and reloads so it appears without a refresh.
+    /// </summary>
+    public async Task ImportCollectionAsync(Stream input)
+    {
+        try
+        {
+            var r = await _transfer.ImportAsync(input);
+            await RefreshAllAsync();
+            StatusText = $"Imported '{r.CollectionName}' — {r.Groups} group(s), {r.Items} item(s)"
+                       + (r.UnknownTypes > 0
+                            ? $". {r.UnknownTypes} item(s) skipped: this install's SDE does not have them."
+                            : ".");
+            await NotifyGroupsChangedAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Import failed: {ex.Message}";
+        }
+    }
     public Func<Task<FitSelectorResult?>>?                                                  ShowFitSelectorDialog      { get; set; }
     public Func<Task<MarketGroupPickerResult?>>?                                            ShowMarketGroupPickerDialog { get; set; }
     public Func<Task<BlueprintPickerResult?>>?                                              ShowBlueprintPickerDialog  { get; set; }
@@ -428,6 +464,8 @@ public class InvLevelViewModel : ReactiveObject
         var hasGroups = this.WhenAnyValue(x => x.HasAnyGroup);
         AddGroupCommand              = ReactiveCommand.CreateFromTask(AddGroupAsync);
         AddCollectionCommand         = ReactiveCommand.CreateFromTask(AddCollectionAsync);
+        ImportCollectionCommand      = ReactiveCommand.CreateFromTask(
+            async () => { if (ImportCollection is not null) await ImportCollection(); });
         DeleteSelectedItemCommand    = ReactiveCommand.CreateFromTask(DeleteSelectedItemAsync,
             this.WhenAnyValue(x => x.IsItemRowSelected));
         RefreshCommand               = ReactiveCommand.CreateFromTask(RefreshAllAsync);
@@ -829,7 +867,7 @@ public class InvLevelViewModel : ReactiveObject
         var result = await ShowAddItemDialog();
         if (result is null) return;
 
-        var item = await _svc.AddItemAsync(groupRow.GroupId, result.TypeId);
+        var item = await _svc.AddItemAsync(groupRow.GroupId, result.TypeId, result.TargetQty);
         if (item is null)
         {
             StatusText = $"{result.TypeName} is already in the group.";
@@ -1009,6 +1047,13 @@ public class InvLevelViewModel : ReactiveObject
                 if (newName == null) return;
                 await _svc.RenameCollectionAsync(collectionId.Value, newName);
                 collRow.CollectionName = newName;
+            },
+            export: async () =>
+            {
+                if (isSynthetic || !collectionId.HasValue || ExportCollection is null) return;
+                var collRow = _allCollections.FirstOrDefault(c => c.CollectionId == collectionId);
+                if (collRow == null) return;
+                await ExportCollection(collectionId.Value, collRow.CollectionName);
             },
             delete: async () =>
             {
