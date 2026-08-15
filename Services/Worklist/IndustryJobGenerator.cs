@@ -7,10 +7,15 @@ namespace EveConsole.Services.Worklist;
 /// <summary>
 /// Jobs to start, and who should start them.
 ///
-/// Demand comes from inventory rules marked Build: a group short of target whose items are made
-/// rather than bought. Each shortfall becomes one or more jobs, assigned to the least capable
-/// character who can actually run them — the alt who can build titans should not be filled with
-/// work anyone could do, because that capacity is the one thing that cannot be substituted.
+/// Demand comes from two places and is pooled per item, because they are additive but the
+/// production is not: inventory rules marked Build, and pending customer orders. An order for an
+/// Avatar beside a standing target of one means building two, and planning each separately would
+/// make two one-run jobs where the split logic should decide the shape. Whoever is waiting only
+/// changes the urgency and the wording.
+///
+/// Each item's total becomes one or more jobs, assigned to the least capable character who can
+/// actually run them — the alt who can build titans should not be filled with work anyone could
+/// do, because that capacity is the one thing that cannot be substituted.
 ///
 /// <para><b>A shortfall is not a job.</b> Twenty-five thousand units is a job of 25,000 runs only
 /// if a print will carry that many and the player is content to wait a week for any of it. So the
@@ -46,10 +51,11 @@ public class IndustryJobGenerator(
         var parkId = settings.IndustryParkId;
         if (parkId <= 0) return [];
 
+        // No early exit on an empty rule set: customer orders are demand in their own right, so
+        // a player who tracks orders and keeps no inventory targets still gets jobs.
         var rules = await db.WorklistInvRules.AsNoTracking()
             .Where(r => r.Enabled && r.Action == "Build")
             .ToListAsync(ct);
-        if (rules.Count == 0) return [];
 
         var candidates = await assignment.LoadCandidatesAsync(ct);
         if (candidates.Count == 0) return [];
@@ -146,6 +152,34 @@ public class IndustryJobGenerator(
             .Where(g => rules.Select(r => r.GroupId).Contains(g.Id))
             .ToDictionaryAsync(g => g.Id, ct);
 
+        // ── What has to be built, from every demand at once ───────────────────
+        //
+        // Pooled by item rather than planned per rule, because the demands are additive but the
+        // production is not: an order for an Avatar beside a standing target of one means two
+        // Avatars, and planning each separately would make two one-run jobs where the split logic
+        // should decide the shape. Whoever is waiting only changes the urgency and the wording.
+        var demand = new Dictionary<int, BuildDemand>();
+
+        void Want(int typeId, long units, int priority, string why)
+        {
+            if (units <= 0) return;
+            if (!ctx.BlueprintByProduct.ContainsKey(typeId)) return;  // bought, not built
+
+            if (demand.TryGetValue(typeId, out var had))
+                demand[typeId] = had with
+                {
+                    Units    = had.Units + units,
+                    Priority = Math.Max(had.Priority, priority),
+                    Reasons  = [.. had.Reasons, why],
+                };
+            else
+                demand[typeId] = new BuildDemand(typeId, units, priority, [why]);
+        }
+
+        await AddStockDemandAsync(db, rules, groups, Want, ct);
+        await AddOrderDemandAsync(db, scope, wrapped, Want, ct);
+
+        if (demand.Count == 0) return [];
 
         var items     = new List<WorklistItem>();
         var slotsLeft = candidates.ToDictionary(
@@ -163,53 +197,39 @@ public class IndustryJobGenerator(
         var planCache = new Dictionary<(int TypeId, long Qty, int Me), Dictionary<int, long>>();
 
 
-        // Rules in a fixed order, and items within them too, so the greedy allocation below
-        // walks demand identically on every run and therefore assigns identically.
-        foreach (var rule in rules.OrderByDescending(r => r.ThresholdPercent).ThenBy(r => r.Id))
+        // Which blueprint makes each item is the calculator's choice, not a fresh one. Some
+        // products have an unpublished "Test Reaction Blueprint" alongside the real formula with
+        // a tiny output quantity — Tungsten Carbide's yields 20 a run against the real 10,000 —
+        // and picking differently from the calculator would plan materials off one blueprint
+        // while counting runs off another. It filters those out; reusing its index makes the two
+        // agree by construction rather than by both remembering to.
+        var demanded = demand.Keys.ToList();
+        var bpIds = demanded
+            .Select(id => ctx.BlueprintByProduct.GetValueOrDefault(id))
+            .OfType<SdeBlueprintProduct>()
+            .Select(p => p.TypeId).Distinct().ToList();
+
+        var bpSkills = (await db.SdeBlueprintSkills.AsNoTracking()
+                .Where(s => bpIds.Contains(s.TypeId))
+                .ToListAsync(ct))
+            .GroupBy(s => (s.TypeId, s.Activity))
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<SdeBlueprintSkill>)g.ToList());
+        var runLimits = await db.SdeBlueprints.AsNoTracking()
+            .Where(b => bpIds.Contains(b.TypeId))
+            .ToDictionaryAsync(b => b.TypeId, b => b.MaxProductionLimit, ct);
+        var names = await invLevels.GetTypeNamesAsync(demanded, ct);
+
+        var printsByType = await blueprints.LoadAsync(bpIds, ct);
+
+        // Most urgent first, then by type id, so the greedy slot and material allocation below
+        // walks demand identically on every run and therefore assigns identically — and the work
+        // someone is waiting on claims a slot before routine stock-keeping does.
+        foreach (var d in demand.Values.OrderByDescending(x => x.Priority).ThenBy(x => x.TypeId))
         {
-            if (!groups.TryGetValue(rule.GroupId, out var group)) continue;
-
-            var groupItems = await db.InvLevelItems.AsNoTracking()
-                .Where(i => i.GroupId == group.Id)
-                .ToListAsync(ct);
-            if (groupItems.Count == 0) continue;
-
-            var typeIds = groupItems.Select(i => i.TypeId).Distinct().ToList();
-            var avail   = await invLevels.LoadAvailableAsync(group, typeIds, ct);
-            var names   = await invLevels.GetTypeNamesAsync(typeIds, ct);
-
-            // Which blueprint makes each item is the calculator's choice, not a fresh one. Some
-            // products have an unpublished "Test Reaction Blueprint" alongside the real formula
-            // with a tiny output quantity — Tungsten Carbide's yields 20 a run against the real
-            // 10,000 — and picking differently from the calculator would plan materials off one
-            // blueprint while counting runs off another. It filters those out; reusing its index
-            // makes the two agree by construction rather than by both remembering to.
-            var products = typeIds
-                .Select(id => ctx.BlueprintByProduct.GetValueOrDefault(id))
-                .OfType<SdeBlueprintProduct>()
-                .ToList();
-            var bpIds = products.Select(p => p.TypeId).Distinct().ToList();
-            var bpSkills = (await db.SdeBlueprintSkills.AsNoTracking()
-                    .Where(s => bpIds.Contains(s.TypeId))
-                    .ToListAsync(ct))
-                .GroupBy(s => (s.TypeId, s.Activity))
-                .ToDictionary(g => g.Key, g => (IReadOnlyList<SdeBlueprintSkill>)g.ToList());
-            var runLimits = await db.SdeBlueprints.AsNoTracking()
-                .Where(b => bpIds.Contains(b.TypeId))
-                .ToDictionaryAsync(b => b.TypeId, b => b.MaxProductionLimit, ct);
-
-            var printsByType = await blueprints.LoadAsync(bpIds, ct);
-
-            foreach (var gi in groupItems.OrderBy(i => i.TypeId))
-            {
-                avail.TryGetValue(gi.TypeId, out var av);
-                var need = InvRuleShortfall.For(rule, group, gi, av);
-                if (need is null || need.Shortfall <= 0) continue;
-
-                var product = ctx.BlueprintByProduct.GetValueOrDefault(gi.TypeId);
+                var product = ctx.BlueprintByProduct.GetValueOrDefault(d.TypeId);
                 if (product is null) continue;   // nothing makes it — a Buy rule's job, not this
 
-                var name       = names.GetValueOrDefault(gi.TypeId, $"Type {gi.TypeId}");
+                var name       = names.GetValueOrDefault(d.TypeId, $"Type {d.TypeId}");
                 var isReaction = product.Activity == "reaction";
                 var pool       = isReaction ? IndustryPool.Reaction : IndustryPool.Manufacturing;
                 var required   = bpSkills.GetValueOrDefault((product.TypeId, product.Activity), []);
@@ -217,14 +237,14 @@ public class IndustryJobGenerator(
 
                 // An inventory level is more urgent the emptier it is, so the priority carries
                 // how far below target it has fallen rather than treating every shortfall alike.
-                var priority = WorklistPriority.ForStock(need.Percent);
+                var priority = d.Priority;
 
-                var head = $"{group.Name} · {need.StockText}.{need.FillText(rule)}";
+                var head = d.Head;
 
                 if (eligible.Count == 0)
                 {
-                    items.Add(Unstartable(rule, gi.TypeId, name, priority,
-                        $"{head} Build {need.Shortfall:N0}.",
+                    items.Add(Unstartable(d.TypeId, name, priority,
+                        $"{head} Build {d.Units:N0}.",
                         required.Count > 0
                             ? "No enabled character has the skills for this job"
                             : "No enabled character runs this activity"));
@@ -233,15 +253,15 @@ public class IndustryJobGenerator(
 
                 // Where the park sends this job. Facility assignment is by category, not by
                 // quantity, so one probe at the full shortfall settles it for every split.
-                var probe    = await PlanRootJobAsync(ctx, gi.TypeId, need.Shortfall, ct: ct);
+                var probe    = await PlanRootJobAsync(ctx, d.TypeId, d.Units, ct: ct);
                 var siteId   = probe?.StationId;
                 var siteName = probe?.StationName.Length > 0 ? probe.StationName
                              : probe?.StructureName ?? "";
 
                 if (siteId is null)
                 {
-                    items.Add(Unstartable(rule, gi.TypeId, name, priority,
-                        $"{head} Build {need.Shortfall:N0}.",
+                    items.Add(Unstartable(d.TypeId, name, priority,
+                        $"{head} Build {d.Units:N0}.",
                         siteName.Length > 0
                             ? $"{siteName} is not linked to a real structure, so materials cannot be checked"
                             : "No linked structure for this job, so materials cannot be checked"));
@@ -250,7 +270,7 @@ public class IndustryJobGenerator(
 
                 structureBySite.TryGetValue(siteId.Value, out var structure);
                 var catKey = IndyRigMatching.ItemCategoryKey(
-                                 gi.TypeId, isReaction, typeToGroup, groupInfo);
+                                 d.TypeId, isReaction, typeToGroup, groupInfo);
 
                 var reaches = eligible
                     .Select(c => new WorklistIndyCharReach(
@@ -260,7 +280,7 @@ public class IndustryJobGenerator(
                 var prints = IndustryBlueprintService.UsableAt(
                     printsByType.GetValueOrDefault(product.TypeId, []), siteId.Value, reaches);
 
-                var runsNeeded = IndustryJobSplit.RunsFor(need.Shortfall, Math.Max(1, product.Quantity));
+                var runsNeeded = IndustryJobSplit.RunsFor(d.Units, Math.Max(1, product.Quantity));
 
                 if (prints.Count == 0)
                 {
@@ -273,8 +293,8 @@ public class IndustryJobGenerator(
                     var allPrints = printsByType.GetValueOrDefault(product.TypeId, []);
                     var owned     = IndustryBlueprintService.OwnedWithin(allPrints, scope, reaches);
 
-                    items.Add(Unstartable(rule, gi.TypeId, name, priority,
-                        $"{head} Build {need.Shortfall:N0} ({runsNeeded:N0} run(s)) at {siteName}.",
+                    items.Add(Unstartable(d.TypeId, name, priority,
+                        $"{head} Build {d.Units:N0} ({runsNeeded:N0} run(s)) at {siteName}.",
                         owned
                             ? $"No blueprint at {siteName} — one is owned but elsewhere, out of "
                               + "reach, or locked in a running job"
@@ -316,10 +336,10 @@ public class IndustryJobGenerator(
                     // Materials for this job at this print's ME, against what is left at the site
                     // after the jobs already planned in this pass.
                     var wanted   = job.Runs * (long)Math.Max(1, product.Quantity);
-                    var cacheKey = (gi.TypeId, wanted, job.Print.Me);
+                    var cacheKey = (d.TypeId, wanted, job.Print.Me);
                     if (!planCache.TryGetValue(cacheKey, out var needed))
                         planCache[cacheKey] = needed =
-                            await MaterialsForAsync(ctx, gi.TypeId, wanted, job.Print.Me, ct);
+                            await MaterialsForAsync(ctx, d.TypeId, wanted, job.Print.Me, ct);
 
                     var missing = MissingAtSite(
                         stock, inScope, ctx, owner, needed, siteId.Value, committed);
@@ -371,10 +391,10 @@ public class IndustryJobGenerator(
                         // refreshes as slots free up, and a key that moved with it would reset
                         // the item's age and silently drop its snooze. The index keeps the
                         // pieces of one split independently snoozable.
-                        Key           = $"industry_job:{rule.Id}:{gi.TypeId}:{job.Index}",
+                        Key           = $"industry_job:{d.TypeId}:{job.Index}",
                         Source        = Id,
                         Title         = $"Run job — {runsText}",
-                        Detail        = $"{head} Short {need.Shortfall:N0}{ofText}. "
+                        Detail        = $"{head} Short {d.Units:N0}{ofText}. "
                                       + $"{job.Print.Describe()} at {siteName}.{durText}{leftover}",
                         Readiness     = readiness,
                         BlockedBy     = blockedBy,
@@ -382,24 +402,116 @@ public class IndustryJobGenerator(
                         CharacterName = owner.Config.CharacterName,
                         LocationId    = siteId.Value,
                         LocationName  = siteName,
-                        TypeId        = gi.TypeId,
+                        TypeId        = d.TypeId,
                         TypeName      = name,
                         Priority      = priority,
                     });
                 }
-            }
         }
 
         return items;
     }
 
+    /// <summary>
+    /// Everything asking for one item to be built, and who is asking.
+    /// </summary>
+    /// <param name="Priority">The most urgent contributor's. A customer order sitting alongside a
+    /// stock top-up makes the whole build a customer order's worth of urgent, because the order
+    /// is not served until the last unit is.</param>
+    private sealed record BuildDemand(int TypeId, long Units, int Priority, List<string> Reasons)
+    {
+        public string Head => string.Join(" + ", Reasons);
+    }
+
+    /// <summary>Inventory targets: a group short of what the rule says it should hold.</summary>
+    private async Task AddStockDemandAsync(
+        AppDbContext db, List<WorklistInvRule> rules, Dictionary<int, InvLevelGroup> groups,
+        Action<int, long, int, string> want, CancellationToken ct)
+    {
+        foreach (var rule in rules.OrderByDescending(r => r.ThresholdPercent).ThenBy(r => r.Id))
+        {
+            if (!groups.TryGetValue(rule.GroupId, out var group)) continue;
+
+            var groupItems = await db.InvLevelItems.AsNoTracking()
+                .Where(i => i.GroupId == group.Id).ToListAsync(ct);
+            if (groupItems.Count == 0) continue;
+
+            var typeIds = groupItems.Select(i => i.TypeId).Distinct().ToList();
+            var avail   = await invLevels.LoadAvailableAsync(group, typeIds, ct);
+
+            foreach (var gi in groupItems.OrderBy(i => i.TypeId))
+            {
+                avail.TryGetValue(gi.TypeId, out var av);
+                var need = InvRuleShortfall.For(rule, group, gi, av);
+                if (need is null || need.Shortfall <= 0) continue;
+
+                // An inventory level is more urgent the emptier it is, so the priority carries
+                // how far below target it has fallen rather than treating every shortfall alike.
+                want(gi.TypeId, need.Shortfall, WorklistPriority.ForStock(need.Percent),
+                     $"{group.Name} · {need.StockText}.{need.FillText(rule)}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Pending customer orders, less what is already built or building.
+    ///
+    /// <para>Additive to the inventory targets, not a substitute for them: an order for an Avatar
+    /// beside a standing target of one means two Avatars. Serving the order out of the stock the
+    /// target is meant to hold would quietly empty the shelf the target exists to keep full.</para>
+    /// </summary>
+    private static async Task AddOrderDemandAsync(
+        AppDbContext db, HashSet<long>? scope, HashSet<long> wrapped,
+        Action<int, long, int, string> want, CancellationToken ct)
+    {
+        // The Order Rules tab is what says orders should be planned at all.
+        if (!await db.WorklistOrderRules.AsNoTracking().AnyAsync(r => r.Enabled, ct)) return;
+
+        var orders = await db.TrackedOrders.AsNoTracking()
+            .Where(o => o.Status == "pending").ToListAsync(ct);
+        if (orders.Count == 0) return;
+
+        var wanted = orders.Select(o => o.TypeId).Distinct().ToList();
+
+        var onHand = (await db.EsiAssets.AsNoTracking()
+                .Where(a => wanted.Contains(a.TypeId))
+                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.Quantity })
+                .ToListAsync(ct))
+            .Where(a => !wrapped.Contains(a.ItemId)
+                        && (scope is null || scope.Contains(a.RootLocationId)))
+            .GroupBy(a => a.TypeId)
+            .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
+
+        // "ready" counts as building: the job has finished and eaten its materials, but the
+        // product is not in assets until collected, so ignoring it would build it twice.
+        var inBuild = (await db.EsiIndustryJobs.AsNoTracking()
+                .Where(j => (j.Status == "active" || j.Status == "paused" || j.Status == "ready")
+                            && j.ProductTypeId != null && wanted.Contains(j.ProductTypeId!.Value))
+                .Select(j => new { j.ProductTypeId, j.Runs, j.FacilityId })
+                .ToListAsync(ct))
+            .Where(j => scope is null || scope.Contains(j.FacilityId))
+            .GroupBy(j => j.ProductTypeId!.Value)
+            .ToDictionary(g => g.Key, g => (long)g.Sum(j => j.Runs));
+
+        foreach (var g in orders.GroupBy(o => o.TypeId).OrderBy(g => g.Key))
+        {
+            var outstanding = g.Sum(o => (long)o.Units)
+                            - onHand.GetValueOrDefault(g.Key)
+                            - inBuild.GetValueOrDefault(g.Key);
+            if (outstanding <= 0) continue;
+
+            want(g.Key, outstanding, WorklistPriority.OrderDriven,
+                 $"{g.Count()} pending order(s) for {g.Sum(o => o.Units):N0}.");
+        }
+    }
+
     /// <summary>A shortfall that cannot become a job at all, reported once with the reason.</summary>
     private WorklistItem Unstartable(
-        WorklistInvRule rule, int typeId, string name, int priority,
+        int typeId, string name, int priority,
         string detail, string blockedBy, long locationId = 0, string locationName = "") =>
         new()
         {
-            Key          = $"industry_job:{rule.Id}:{typeId}:0",
+            Key          = $"industry_job:{typeId}:0",
             Source       = Id,
             Title        = $"Start job — {name}",
             Detail       = detail,
