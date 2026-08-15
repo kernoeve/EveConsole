@@ -604,6 +604,17 @@ public class MainWindowViewModel : ReactiveObject
                                      new WorklistCorpAltsViewModel(dbFactory, worklistCorpAltService),
                                      new WorklistIndustryViewModel(dbFactory, industryAssignmentService, worklistSettings, errorLogger, corpActivityService, worklistMarketAltService),
                                      new WorklistStationLevelsViewModel(dbFactory, corpActivityService));
+
+        // Adding, renaming or deleting an inventory group changes what the Worklist's group
+        // pickers should offer. They load once, so without this a new group is missing until a
+        // restart and a renamed one keeps its old label — making a rule look like it points at a
+        // group that no longer exists.
+        InvLevelVm.GroupsChanged = async () =>
+        {
+            await WorklistVm.RulesVm.LoadAsync();
+            await WorklistVm.StationLevelsVm.LoadAsync();
+        };
+
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);

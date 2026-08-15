@@ -761,6 +761,7 @@ public class InvLevelViewModel : ReactiveObject
 
         RebuildGridRows();
         StatusText = $"Group '{g.Name}' added.";
+        await NotifyGroupsChangedAsync();
     }
 
     private async Task EditGroupAsync(InvGroupRow row)
@@ -796,6 +797,7 @@ public class InvLevelViewModel : ReactiveObject
 
         RebuildGridRows();
         await RefreshGroupAsync(row);
+        await NotifyGroupsChangedAsync();
     }
 
     private async Task DeleteGroupAsync(InvGroupRow row)
@@ -804,7 +806,20 @@ public class InvLevelViewModel : ReactiveObject
         _allGroups.Remove(row);
         RebuildGridRows();
         StatusText = $"Group '{row.GroupName}' deleted.";
+        await NotifyGroupsChangedAsync();
     }
+
+    /// <summary>
+    /// Tells anything that offers these groups for selection that the list has moved on.
+    ///
+    /// <para>The Worklist's rule and station-level tabs load their group dropdown once. Without
+    /// this, a group added here is missing from them until the app restarts, and one renamed here
+    /// still shows its old name — so a rule appears to point at a group that no longer exists.</para>
+    /// </summary>
+    public Func<Task>? GroupsChanged { get; set; }
+
+    private Task NotifyGroupsChangedAsync() =>
+        GroupsChanged is null ? Task.CompletedTask : GroupsChanged();
 
     // ── Item CRUD ─────────────────────────────────────────────────────────────
 
