@@ -92,10 +92,10 @@ public class IndustryJobGenerator(
         // able to see a corporation's hangars is not the same as being able to build from them:
         // a main in a large alliance corp exposes tens of thousands of rows that are other
         // people's, and treating them as material makes every shortfall look filled.
-        var corps = WorklistIndyCharReach.Corporations(candidates);
+        var corps = await assignment.UsableCorporationsAsync(settings.IncludeNonPersonalCorps, ct);
 
         bool Ours(string ownerType, long ownerId) =>
-            ownerType != "corporation" || corps.Contains(ownerId);
+            ownerType != "corporation" || corps is null || corps.Contains(ownerId);
 
         var siteAssets = (await db.EsiAssets.AsNoTracking()
                 .Where(a => siteIds.Contains(a.RootLocationId))
@@ -257,7 +257,7 @@ public class IndustryJobGenerator(
                                  d.TypeId, isReaction, typeToGroup, groupInfo);
 
                 var reaches = eligible
-                    .Select(c => WorklistIndyCharReach.Of(c))
+                    .Select(c => WorklistIndyCharReach.Of(c, corps))
                     .ToList();
 
                 var prints = IndustryBlueprintService.UsableAt(
@@ -303,12 +303,12 @@ public class IndustryJobGenerator(
                     // Reach is checked per print because a copy in a personal hangar is usable
                     // by exactly one alt, whatever the corp hangar holds.
                     var owner = eligible.FirstOrDefault(c =>
-                        WorklistIndyCharReach.Of(c).CanUse(job.Print)
+                        WorklistIndyCharReach.Of(c, corps).CanUse(job.Print)
                         && slotsLeft[c.Config.CharacterId].GetValueOrDefault(pool) > 0);
 
                     var busy = owner is null;
                     owner ??= eligible.FirstOrDefault(c =>
-                        WorklistIndyCharReach.Of(c).CanUse(job.Print))
+                        WorklistIndyCharReach.Of(c, corps).CanUse(job.Print))
                         ?? eligible[0];
 
                     var readiness = WorklistReadiness.Ready;

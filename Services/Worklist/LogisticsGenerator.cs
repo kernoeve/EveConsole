@@ -66,11 +66,11 @@ public class LogisticsGenerator(
 
         var candidates = await assignment.LoadCandidatesAsync(ct);
         if (candidates.Count == 0) return [];
+        var corps   = await assignment.UsableCorporationsAsync(settings.IncludeNonPersonalCorps, ct);
         var reaches = candidates
-            .Select(c => WorklistIndyCharReach.Of(c))
+            .Select(c => WorklistIndyCharReach.Of(c, corps))
             .ToList();
 
-        var corps   = WorklistIndyCharReach.Corporations(candidates);
         var scope   = await ScopeAsync(db, ct);
         var wrapped = await AssetExclusions.UnusableItemIdsAsync(db, ct);
 
@@ -86,7 +86,7 @@ public class LogisticsGenerator(
             // sitting in a large alliance corp exposes that corp's hangars, and none of it is
             // the player's to build with or to move.
             .Where(a => a.OwnerType == "corporation"
-                          ? corps.Contains(a.OwnerId)
+                          ? corps is null || corps.Contains(a.OwnerId)
                           : candidates.Any(c => c.Config.IncludePersonalAssets
                                                 && c.Config.CharacterId == a.OwnerId))
             .ToList();

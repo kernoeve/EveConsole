@@ -105,6 +105,25 @@ public class WorklistSettings(AppPreferencesService prefs)
     public string IndustryScopeSuffix => IndustryScope == "Everywhere" || IndustryScopeName.Length == 0
         ? "" : $" in {IndustryScopeName}";
 
+    /// <summary>
+    /// Whether hangars belonging to corporations that are not the player's own count as material.
+    ///
+    /// <para>Off, because they are not the player's. Authorising a main in a large alliance corp
+    /// hands the app that corp's entire hangar — tens of thousands of rows of other people's
+    /// property — and counting it makes every shortfall look filled. Which corporations are the
+    /// player's is already recorded: the Corporations tab flags them as personal.</para>
+    ///
+    /// <para>It is a switch rather than a rule about who is configured, because the answer does
+    /// not change with which alts happen to be running jobs. Someone else's stock is someone
+    /// else's whoever is asked to build with it.</para>
+    /// </summary>
+    public const string IncludeNonPersonalCorpsKey = "worklist.industry.include_nonpersonal_corps";
+
+    public bool IncludeNonPersonalCorps => prefs.GetBool(IncludeNonPersonalCorpsKey, false);
+
+    public Task SetIncludeNonPersonalCorpsAsync(bool on) =>
+        prefs.SetAsync(IncludeNonPersonalCorpsKey, on ? "1" : "0");
+
     public async Task SetIndustryScopeAsync(string scope, long? id, string name)
     {
         await prefs.SetAsync(IndustryScopeKey, scope);

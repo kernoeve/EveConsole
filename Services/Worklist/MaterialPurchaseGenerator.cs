@@ -51,14 +51,15 @@ public class MaterialPurchaseGenerator(
         if (candidates.Count == 0) return [];
 
         var ctx     = await production.LoadContextAsync(parkId, ct);
+        var corps   = await assignment.UsableCorporationsAsync(settings.IncludeNonPersonalCorps, ct);
         var reaches = candidates
-            .Select(c => WorklistIndyCharReach.Of(c))
+            .Select(c => WorklistIndyCharReach.Of(c, corps))
             .ToList();
 
         var scope = await ScopeAsync(db, ct);
         var reach = new ProductionCalculatorService.AssetReach(
             scope, await AssetExclusions.UnusableItemIdsAsync(db, ct),
-            WorklistIndyCharReach.Corporations(candidates));
+            corps);
 
         var allPrints = await blueprints.LoadAllAsync(ct);
         var meMap     = IndustryBlueprintService.BestMeByProduct(

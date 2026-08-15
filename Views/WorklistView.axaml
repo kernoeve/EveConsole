@@ -466,7 +466,12 @@
                            FontSize="11" Watermark="Trade hub…"
                            ToolTip.Tip="Where purchases are raised, and whose market alt gets them. Blueprints are left unassigned — a BPO or BPC comes from contracts, not a market order."/>
 
-          <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" Margin="0 8 0 0"
+          <CheckBox Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Margin="0 8 0 0"
+                    Content="Count other corporations' assets" FontSize="11"
+                    IsChecked="{Binding IncludeNonPersonalCorps}"
+                    ToolTip.Tip="Off by default. Only corporations flagged personal on the Corporations tab count as material — authorising a character in a large alliance corp otherwise hands the tool that corp's entire hangar, none of which is yours."/>
+
+          <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0 8 0 0"
                      Text="Also count these stations" Classes="fieldLabel"/>
           <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="6">
             <AutoCompleteBox Width="290"

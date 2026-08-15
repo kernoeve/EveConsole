@@ -147,6 +147,22 @@ public class WorklistIndustryViewModel : ReactiveObject
 
     // ── How far to look for materials ─────────────────────────────────────────
 
+    private bool _includeNonPersonalCorps;
+    public bool IncludeNonPersonalCorps
+    {
+        get => _includeNonPersonalCorps;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _includeNonPersonalCorps, value);
+            if (_loading) return;
+            _ = Fire(async () =>
+            {
+                await _settings.SetIncludeNonPersonalCorpsAsync(value);
+                if (IndustryChanged is not null) await IndustryChanged();
+            }, "SetIncludeNonPersonalCorps");
+        }
+    }
+
     public string[] Scopes { get; } = ["Everywhere", "Region", "System"];
 
     private string _selectedScope = "Everywhere";
@@ -393,6 +409,9 @@ public class WorklistIndustryViewModel : ReactiveObject
 
                 _buyLocationText = _settings.IndustryBuyLocationName;
                 this.RaisePropertyChanged(nameof(BuyLocationText));
+
+                _includeNonPersonalCorps = _settings.IncludeNonPersonalCorps;
+                this.RaisePropertyChanged(nameof(IncludeNonPersonalCorps));
 
                 _selectedScope  = _settings.IndustryScope;
                 _scopePlaceText = _settings.IndustryScopeName;

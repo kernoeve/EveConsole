@@ -89,6 +89,26 @@ public class IndustryAssignmentService(IDbContextFactory<AppDbContext> dbFactory
         _                          => "copying",
     };
 
+    /// <summary>
+    /// Corporations whose hangars may be counted, or null when every one of them may.
+    ///
+    /// <para>Personal corporations only by default — the ones already flagged as the player's on
+    /// the Corporations tab. Authorising a main in a large alliance corp hands the app that
+    /// corp's whole hangar, and treating it as material makes every shortfall look filled.</para>
+    /// </summary>
+    public async Task<HashSet<long>?> UsableCorporationsAsync(
+        bool includeNonPersonal, CancellationToken ct = default)
+    {
+        if (includeNonPersonal) return null;
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        return (await db.Corporations.AsNoTracking()
+                .Where(c => c.IsPersonal)
+                .Select(c => (long)c.Id)
+                .ToListAsync(ct))
+            .ToHashSet();
+    }
+
     public async Task<List<IndustryCandidate>> LoadCandidatesAsync(CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);

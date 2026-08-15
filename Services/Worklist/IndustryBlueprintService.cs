@@ -221,26 +221,17 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
 /// Whose hangars a character's jobs may draw from. The same rule that governs materials governs
 /// prints — a blueprint in a corp hangar is only usable by an alt whose corp assets count.
 /// </summary>
+/// <param name="Corps">Corporations whose hangars may be drawn on at all, or null for any. Which
+/// corporations those are is a property of the account, not of whoever happens to be configured
+/// to run jobs — someone else's stock is someone else's whoever is asked to build with it.</param>
 public readonly record struct WorklistIndyCharReach(
-    long CharacterId, long CorporationId, bool Corp, bool Personal)
+    long CharacterId, bool Corp, bool Personal, HashSet<long>? Corps)
 {
-    /// <summary>
-    /// Corp stock counts only when it is this character's own corporation. Being able to see a
-    /// corporation's hangars is not the same as being able to build from them: a main in a large
-    /// alliance corp exposes tens of thousands of asset rows that belong to other people.
-    /// </summary>
     public bool CanUse(BlueprintStock b) => b.OwnerType == "corporation"
-        ? Corp && b.OwnerId == CorporationId
+        ? Corp && (Corps is null || Corps.Contains(b.OwnerId))
         : Personal && b.OwnerId == CharacterId;
 
-    /// <summary>The corporations whose stock these characters may actually draw on.</summary>
-    public static HashSet<long> Corporations(IEnumerable<IndustryCandidate> candidates) =>
-        candidates.Where(c => c.Config.IncludeCorpAssets)
-                  .Select(c => c.CorporationId)
-                  .Where(id => id > 0)
-                  .ToHashSet();
-
-    public static WorklistIndyCharReach Of(IndustryCandidate c) =>
-        new(c.Config.CharacterId, c.CorporationId,
-            c.Config.IncludeCorpAssets, c.Config.IncludePersonalAssets);
+    public static WorklistIndyCharReach Of(IndustryCandidate c, HashSet<long>? corps) =>
+        new(c.Config.CharacterId,
+            c.Config.IncludeCorpAssets, c.Config.IncludePersonalAssets, corps);
 }
