@@ -519,6 +519,14 @@ public class EsiPollingService : ReactiveObject
     // Walks the parent-chain for every asset and returns {ItemId → (RootLocationId, RootLocationType)}.
     // A terminal is reached when LocationType is not 'item', or when the LocationId is not found
     // among the asset ItemIds (meaning it's an external player structure > 1T, or an unknown ref).
+    //
+    // A structure you own is the awkward case. It appears in your own asset list as an item
+    // anchored in space, so a plain walk climbs straight through it and roots everything inside
+    // to the solar system — 6,391 rows on the account this was found on, all of it real dockable
+    // stock that no station-keyed query could then see. An owned structure is a location, not a
+    // step on the way to one, so the walk stops there.
+    private const string AnchoredInSpace = "AutoFit";
+
     private static Dictionary<long, (long RootId, string RootType)> ComputeRootLocations(
         IReadOnlyList<EsiAsset> assets)
     {
@@ -531,6 +539,21 @@ public class EsiPollingService : ReactiveObject
             int depth   = 0;
             while (true)
             {
+                // Reached an owned structure by climbing into it: that structure is the location.
+                // Typed "other", the same as an external player structure, so it resolves through
+                // the structure-name cache like any other dockable place.
+                //
+                // Only when climbing — a structure asked about itself really is in space. And only
+                // for AutoFit, which is what anchored structures and starbases carry; a ship in
+                // space carries ActiveShip and genuinely is in space.
+                if (current.ItemId != asset.ItemId
+                    && current.LocationType == "solar_system"
+                    && current.LocationFlag == AnchoredInSpace)
+                {
+                    result[asset.ItemId] = (current.ItemId, "other");
+                    break;
+                }
+
                 if (current.LocationType is "station" or "solar_system" or "other")
                 {
                     result[asset.ItemId] = (current.LocationId, current.LocationType);
