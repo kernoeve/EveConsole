@@ -377,7 +377,14 @@ public class MaterialPurchaseGenerator(
                                                   ? bp.Quantity : 1)));
     }
 
-    /// <summary>How much of each shortfall is already held as ore, ice or gas, and what it is.</summary>
+    /// <summary>
+    /// How much of each shortfall is already covered in an unrefined form, and by what.
+    ///
+    /// <para>Counts what is on order as well as what is held. An open buy order for compressed
+    /// gas is as surely incoming as one for the gas itself, and ignoring it raised a second
+    /// purchase for material already bought — the same double-buy the direct on-order check
+    /// exists to prevent, one conversion removed.</para>
+    /// </summary>
     private static async Task<Dictionary<int, (long Units, string Note)>> SubstituteStockAsync(
         AppDbContext db, Dictionary<int, List<Substitute>> subs,
         List<PlanRawMaterial> shortfalls, ProductionCalculatorService.AssetReach reach,
@@ -396,6 +403,8 @@ public class MaterialPurchaseGenerator(
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
+        var ordered = await OnOrderAsync(db, sourceIds, ct);
+
         var result = new Dictionary<int, (long, string)>();
 
         foreach (var typeId in wanted)
@@ -407,14 +416,18 @@ public class MaterialPurchaseGenerator(
             // gives all of its outputs at once, so there is nothing to apportion.
             foreach (var s in subs[typeId].OrderBy(s => s.SourceName))
             {
-                var units = held.GetValueOrDefault(s.SourceTypeId);
+                var have  = held.GetValueOrDefault(s.SourceTypeId);
+                var due   = ordered.GetValueOrDefault(s.SourceTypeId);
+                var units = have + due;
                 if (units <= 0) continue;
 
                 var gives = s.From(units);
                 if (gives <= 0) continue;
 
                 total += gives;
-                from.Add($"{units:N0} {s.SourceName}");
+                from.Add(due > 0
+                    ? $"{have:N0} {s.SourceName} and {due:N0} on order"
+                    : $"{units:N0} {s.SourceName}");
             }
 
             if (total <= 0) continue;
