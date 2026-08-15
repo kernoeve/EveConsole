@@ -2524,6 +2524,9 @@ public class App : Application
         services.AddSingleton<EveConsole.Services.Worklist.IndustryBlueprintService>();
         services.AddSingleton<EveConsole.Services.Worklist.IndustryTimeService>();
         services.AddSingleton<EveConsole.Services.Worklist.MaterialSubstitutionService>();
+        services.AddSingleton<EveConsole.Services.Worklist.JumpDistanceService>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.LogisticsGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.StandingProjectGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,

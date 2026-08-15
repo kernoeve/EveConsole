@@ -32,6 +32,25 @@ public static class WorklistPriority
     public const int StandingProject = 85;
     public const int Housekeeping    = 30;
 
+    // ── Hauling ───────────────────────────────────────────────────────────────
+    //
+    // A haul is worth what the most valuable thing on it is worth. A run that unblocks a job
+    // earns the job's urgency even if most of the cargo is a routine top-up, because the trip
+    // happens once and the job starts when it lands. The tiers are never used to split a run:
+    // one source to one destination is one task whatever is in it.
+
+    /// <summary>Carries material a job is waiting on.</summary>
+    public const int HaulUnblocking = 95;
+
+    /// <summary>Tops a station up to its configured level, with nothing waiting.</summary>
+    public const int HaulRestock = 45;
+
+    /// <summary>Moves ore, ice or gas to where it can be refined.</summary>
+    public const int HaulToRefine = 40;
+
+    /// <summary>Puts spare stock where its group lives. Real, but nothing is waiting.</summary>
+    public const int HaulSurplus = 25;
+
     private const int StockFloor = 40;
     private const int StockRange = 40;   // so a full shelf scores 40 and an empty one 80
 
