@@ -28,6 +28,7 @@ public class MaterialPurchaseGenerator(
     IndustryAssignmentService       assignment,
     IndustryBlueprintService        blueprints,
     InvLevelService                 invLevels,
+    MaterialSubstitutionService     substitution,
     ProductionCalculatorService     production,
     WorklistMarketAltService        marketAlts,
     WorklistSettings                settings,
@@ -122,21 +123,35 @@ public class MaterialPurchaseGenerator(
         var bpShortfalls = shortfalls.Where(r => ctx.BpTypeIds.Contains(r.TypeId))
                                      .Select(r => r.TypeId).ToHashSet();
 
-        var items = new List<WorklistItem>();
-        items.AddRange(PrintTasks(ctx, queue, allPrints, scope, reaches, bpShortfalls));
-
         var buyAt   = settings.IndustryBuyLocationId;
         var buyName = settings.IndustryBuyLocationName;
         var alt     = buyAt > 0 ? (await marketAlts.GetByLocationAsync(ct)).GetValueOrDefault(buyAt) : null;
 
+        var items = new List<WorklistItem>();
+        items.AddRange(PrintTasks(ctx, queue, allPrints, scope, reaches, bpShortfalls,
+                                  buyAt, buyName, alt));
+
         var onOrder = await OnOrderAsync(db, shortfalls.Select(s => s.TypeId).ToList(), ct);
+
+        // Ore, ice and gas already held count toward what they turn into, so a shortfall covered
+        // by unrefined stock does not become a purchase.
+        var subs      = await substitution.LoadAsync(ct);
+        var subsStock = await SubstituteStockAsync(db, subs, shortfalls, reach, ct);
+
+        // Production already running that will yield the material. Assets alone under-count what
+        // is coming: a reaction three days from delivery is material as surely bought as one on
+        // an open order, and buying against it orders the same units twice.
+        var inFlight = await InFlightOutputAsync(
+            db, ctx, shortfalls.Select(s => s.TypeId).ToList(), scope, ct);
 
         foreach (var raw in shortfalls.OrderBy(r => r.TypeName))
         {
             if (buildManaged.Contains(raw.TypeId)) continue;
 
-            var ordered = onOrder.GetValueOrDefault(raw.TypeId);
-            var short_  = raw.Missing - ordered;
+            var ordered  = onOrder.GetValueOrDefault(raw.TypeId);
+            var building = inFlight.GetValueOrDefault(raw.TypeId);
+            var held     = subsStock.GetValueOrDefault(raw.TypeId);
+            var short_   = raw.Missing - ordered - building - held.Units;
             if (short_ <= 0) continue;
 
             // A blueprint is acquired, not market-ordered, so it is titled the way the print
@@ -147,11 +162,15 @@ public class MaterialPurchaseGenerator(
             {
                 Key           = $"industry_buy:{raw.TypeId}",
                 Source        = Id,
-                Title         = isPrint ? $"Acquire BPO/BPC — {raw.TypeName}"
-                                        : $"Buy — {raw.TypeName}",
+                // The amount belongs in the title. The task line is read to decide what to do
+                // next, and "buy this" without a number is not yet an instruction.
+                Title         = isPrint ? $"Acquire BPO/BPC — {short_:N0} × {raw.TypeName}"
+                                        : $"Buy — {short_:N0} × {raw.TypeName}",
                 Detail        = $"{WantedBy(plan, raw.TypeId)}: need {raw.Quantity:N0}; "
                               + $"{raw.Available:N0} on hand{settings.IndustryScopeSuffix}"
-                              + (ordered > 0 ? $", {ordered:N0} on order" : "")
+                              + (ordered  > 0 ? $", {ordered:N0} on order" : "")
+                              + (building > 0 ? $", {building:N0} in production" : "")
+                              + held.Note
                               + $" — short {short_:N0}.",
                 Readiness     = alt is null ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
                 BlockedBy     = alt is null
@@ -282,7 +301,8 @@ public class MaterialPurchaseGenerator(
     private static List<WorklistItem> PrintTasks(
         ProductionContext ctx, List<ProductionQueueEntry> queue,
         List<BlueprintStock> allPrints, HashSet<long>? scope,
-        List<WorklistIndyCharReach> reaches, HashSet<int> alreadyCounted)
+        List<WorklistIndyCharReach> reaches, HashSet<int> alreadyCounted,
+        long buyAt, string buyName, WorklistMarketAlt? alt)
     {
         var items = new List<WorklistItem>();
 
@@ -299,21 +319,107 @@ public class MaterialPurchaseGenerator(
                 ? $" Copies have been seen on contract from {opts.Min(o => o.PerRun):N0} ISK a run."
                 : "";
 
+            // No count in the title. Every other line's number is how many to acquire, and one
+            // original would serve all the runs wanted here — "2 ×" would read as buy two.
             items.Add(new WorklistItem
             {
-                Key       = $"industry_print:{bp.TypeId}",
-                Source    = "material_purchases",
-                Title     = $"Acquire BPO/BPC — {bpName}",
-                Detail    = $"No blueprint owned, so {entry.TypeName} cannot be built at all. "
-                          + $"{entry.Quantity:N0} wanted.{price}",
-                Readiness = WorklistReadiness.Ready,
-                TypeId    = bp.TypeId,
-                TypeName  = bpName,
-                Priority  = WorklistPriority.OrderDriven,
+                Key           = $"industry_print:{bp.TypeId}",
+                Source        = "material_purchases",
+                Title         = $"Acquire BPO/BPC — {bpName}",
+                Detail        = $"No blueprint owned, so {entry.TypeName} cannot be built at all. "
+                              + $"{entry.Quantity:N0} wanted.{price}",
+                Readiness     = WorklistReadiness.Ready,
+                CharacterId   = alt?.CharacterId   ?? 0,
+                CharacterName = alt?.CharacterName ?? "",
+                LocationId    = buyAt,
+                LocationName  = buyName,
+                TypeId        = bp.TypeId,
+                TypeName      = bpName,
+                Priority      = WorklistPriority.OrderDriven,
             });
         }
 
         return items;
+    }
+
+    /// <summary>
+    /// Units of each material that live jobs will deliver.
+    ///
+    /// <para>Counted in units rather than runs, because a reaction run yields thousands and a
+    /// component run yields one; comparing runs against a material shortfall would be comparing
+    /// different things. "ready" counts too — the job is finished and the units exist, they are
+    /// just not collected.</para>
+    /// </summary>
+    private static async Task<Dictionary<int, long>> InFlightOutputAsync(
+        AppDbContext db, ProductionContext ctx, List<int> typeIds,
+        HashSet<long>? scope, CancellationToken ct)
+    {
+        if (typeIds.Count == 0) return [];
+
+        var jobs = await db.EsiIndustryJobs.AsNoTracking()
+            .Where(j => (j.Status == "active" || j.Status == "paused" || j.Status == "ready")
+                        && j.ProductTypeId != null && typeIds.Contains(j.ProductTypeId!.Value))
+            .Select(j => new { j.ProductTypeId, j.Runs, j.FacilityId })
+            .ToListAsync(ct);
+
+        return jobs
+            .Where(j => scope is null || scope.Contains(j.FacilityId))
+            .GroupBy(j => j.ProductTypeId!.Value)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Sum(j => (long)j.Runs
+                                * Math.Max(1, ctx.BlueprintByProduct.TryGetValue(g.Key, out var bp)
+                                                  ? bp.Quantity : 1)));
+    }
+
+    /// <summary>How much of each shortfall is already held as ore, ice or gas, and what it is.</summary>
+    private static async Task<Dictionary<int, (long Units, string Note)>> SubstituteStockAsync(
+        AppDbContext db, Dictionary<int, List<Substitute>> subs,
+        List<PlanRawMaterial> shortfalls, ProductionCalculatorService.AssetReach reach,
+        CancellationToken ct)
+    {
+        var wanted = shortfalls.Select(s => s.TypeId).Where(subs.ContainsKey).ToList();
+        if (wanted.Count == 0) return [];
+
+        var sourceIds = wanted.SelectMany(w => subs[w]).Select(s => s.SourceTypeId).Distinct().ToList();
+
+        var held = (await db.EsiAssets.AsNoTracking()
+                .Where(a => sourceIds.Contains(a.TypeId))
+                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.Quantity })
+                .ToListAsync(ct))
+            .Where(a => reach.Counts(a.ItemId, a.RootLocationId))
+            .GroupBy(a => a.TypeId)
+            .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
+
+        var result = new Dictionary<int, (long, string)>();
+
+        foreach (var typeId in wanted)
+        {
+            long total = 0;
+            var  from  = new List<string>();
+
+            // Each source is counted in full against every product it yields. One batch of ice
+            // gives all of its outputs at once, so there is nothing to apportion.
+            foreach (var s in subs[typeId].OrderBy(s => s.SourceName))
+            {
+                var units = held.GetValueOrDefault(s.SourceTypeId);
+                if (units <= 0) continue;
+
+                var gives = s.From(units);
+                if (gives <= 0) continue;
+
+                total += gives;
+                from.Add($"{units:N0} {s.SourceName}");
+            }
+
+            if (total <= 0) continue;
+
+            result[typeId] = (total,
+                $", {total:N0} recoverable from " + string.Join(", ", from.Take(3))
+                + (from.Count > 3 ? $" and {from.Count - 3} more" : ""));
+        }
+
+        return result;
     }
 
     private async Task<HashSet<long>?> ScopeAsync(AppDbContext db, CancellationToken ct)
