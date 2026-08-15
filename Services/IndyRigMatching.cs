@@ -157,6 +157,11 @@ public static class IndyRigMatching
             // not the capital one, so it belongs in adv_components with group 334.
             _ when gc.Name.Contains("Capital") && gc.Name.Contains("Component")
                                                && !gc.Name.Contains("Advanced")       => "capital_components",
+            // Group 536 "Structure Components" before the generic Component match, which would
+            // otherwise claim it on the group name alone and cost a Structure Reprocessing Plant
+            // with the advanced-component rig. Structures and their parts share a rig family —
+            // the XL is named "Structure and Component Manufacturing Efficiency" outright.
+            _ when groupId == 536                                                    => "structure_ammo",
             _ when gc.Name.Contains("Component")                                     => "adv_components",
             _ when gc.CategoryId is 22 or 65                                         => "structure_ammo",
             // R.A.M. tools and Data Interfaces are built at standard facilities. This rule

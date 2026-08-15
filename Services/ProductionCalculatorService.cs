@@ -496,6 +496,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 _ when gc.Name.Contains("Capital") && gc.Name.Contains("Component")
                                                    && !gc.Name.Contains("Advanced")
                                                                           => "capital_components",
+                // Group 536 "Structure Components" ahead of the generic match, which claims it
+                // on the group name alone. See IndyRigMatching.
+                _ when tg.GroupId == 536                                   => "structure_ammo",
                 _ when gc.Name.Contains("Component")                       => "adv_components",
                 _ when gc.CategoryId is 22 or 65                          => "structure_ammo",
                 // R.A.M. items and Data Interfaces are manufactured at standard facilities

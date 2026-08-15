@@ -369,12 +369,17 @@ public class IndyParksViewModel : ReactiveObject
         ("drones_fighters",    "Drones and Fighters"),
         ("ammo_charges",       "Ammo and Charges"),
         ("modules_equipment",  "Modules and Equipment"),
-        ("structure_ammo",     "Structure and Ammo"),
+        // Named for what it actually routes: structures, their components, deployables and fuel
+        // blocks. It never carried ammo — that is "Ammo and Charges" above — and the old label
+        // had players assigning it as though it did.
+        ("structure_ammo",     "Structures, Components and Fuel Blocks"),
         // Reactions
         ("react_composite",    "Composite Reactions"),
         ("react_biochemical",  "Hybrid Reactions"),
         ("react_bio_gas",      "Bio and Gas Phase Reactions"),
-        ("react_structure",    "Structures and Fuel Blocks"),
+        // "react_structure" was listed here and nothing ever mapped to it — no rig, no item, in
+        // any of the three matchers. A facility assigned to it received no work, and its name
+        // read like the home for structures, so it drew the assignment that belonged above.
         // Science. Separate entries rather than one "science" row because they are separately
         // rigged and usually separately housed — a copy farm and an invention structure are
         // rigged differently, and a park that could only name one would send work to the wrong
