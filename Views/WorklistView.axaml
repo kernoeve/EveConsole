@@ -293,6 +293,60 @@
       </Grid>
     </TabItem>
 
+    <TabItem Header="Station Levels">
+      <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="14 12"
+            DataContext="{Binding StationLevelsVm}" x:DataType="vm:WorklistStationLevelsViewModel">
+
+        <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                   Margin="0 0 0 10"
+                   Text="Where each group's stock should live. This distributes material rather than demanding more of it — the Inventory Rules already set the quantity — so it raises hauling only, never a buy or a build. Tick Accepts surplus for the station spare stock should collect at when nothing else needs it."/>
+
+        <Grid Grid.Row="1" ColumnDefinitions="240,*,Auto,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Inventory group"     Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="Station or structure" Classes="fieldLabel"/>
+          <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" FontSize="11"
+                    ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}"
+                    PlaceholderText="Group…" HorizontalAlignment="Stretch"/>
+          <AutoCompleteBox Grid.Row="1" Grid.Column="1" Margin="0 0 8 0"
+                           Text="{Binding LocationText}"
+                           SelectedItem="{Binding SelectedLocation}"
+                           AsyncPopulator="{Binding LocationPopulator}"
+                           FilterMode="None" MinimumPrefixLength="2"
+                           MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
+                           FontSize="11" Watermark="Need not be in the park…"/>
+          <CheckBox Grid.Row="1" Grid.Column="2" Content="Accepts surplus" FontSize="11"
+                    Margin="0 0 8 0" IsChecked="{Binding AcceptsSurplus}"
+                    ToolTip.Tip="Spare stock of this group collects here when no station needs it."/>
+          <Button Grid.Row="1" Grid.Column="3" Content="Add / Update" Command="{Binding AddCommand}"
+                  FontSize="11" Padding="10 4"/>
+        </Grid>
+
+        <TextBlock Grid.Row="2" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+                   TextWrapping="Wrap" Margin="0 0 0 8"/>
+
+        <DataGrid Grid.Row="3" ItemsSource="{Binding Levels}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Inventory group" Binding="{Binding GroupName}"    FontSize="10" Width="240"/>
+            <DataGridTextColumn Header="Station"         Binding="{Binding LocationName}" FontSize="10" Width="*"/>
+            <DataGridTextColumn Header="Accepts surplus" Binding="{Binding SurplusText}"  FontSize="10" Width="120"/>
+            <DataGridTemplateColumn Header="" Width="80">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StationLevelRow">
+                  <Button Content="Remove"
+                          Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).StationLevelsVm.DeleteCommand}"
+                          CommandParameter="{Binding}"
+                          FontSize="9" Padding="6 2" Background="Transparent"
+                          BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
     <TabItem Header="Industry">
       <!-- No ScrollViewer: it gives the DataGrid unbounded width, which breaks star sizing and
            pushes the last column out of view. The final * row fills the tab instead. -->

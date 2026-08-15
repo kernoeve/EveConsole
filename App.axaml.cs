@@ -1639,6 +1639,21 @@ public class App : Application
                 """);
 
             db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistStationLevels" (
+                    "Id"             INTEGER NOT NULL CONSTRAINT "PK_WorklistStationLevels" PRIMARY KEY AUTOINCREMENT,
+                    "GroupId"        INTEGER NOT NULL DEFAULT 0,
+                    "LocationId"     INTEGER NOT NULL DEFAULT 0,
+                    "LocationName"   TEXT    NOT NULL DEFAULT '',
+                    "AcceptsSurplus" INTEGER NOT NULL DEFAULT 0,
+                    "Enabled"        INTEGER NOT NULL DEFAULT 1
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistStationLevels_GroupId_LocationId"
+                ON "WorklistStationLevels" ("GroupId", "LocationId")
+                """);
+
+            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "WorklistIndyScopeStations" (
                     "Id"           INTEGER NOT NULL CONSTRAINT "PK_WorklistIndyScopeStations" PRIMARY KEY AUTOINCREMENT,
                     "LocationId"   INTEGER NOT NULL DEFAULT 0,

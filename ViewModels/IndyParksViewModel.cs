@@ -382,9 +382,26 @@ public class IndyParksViewModel : ReactiveObject
         ("bp_research",        "Blueprint Research"),
         ("bp_copying",         "Blueprint Copying"),
         ("bp_invention",       "Blueprint Invention"),
-        // Reprocessing
-        ("reprocessing",       "Reprocessing"),
+        // Reprocessing. Split three ways because the rigs are: there is an Asteroid Ore, a Moon
+        // Ore and an Ice Grading Processor, and a refinery carrying two of the three refines the
+        // third at no bonus. A park that could name only one facility would route ore to a
+        // structure rigged for ice.
+        //
+        // Gas is the odd one out and has no rig at all — compressed gas decompresses one for one
+        // at any refinery. It is listed so the park can still say where that happens, since the
+        // hauling has to be aimed somewhere.
+        ("refine_ore",         "Refine Standard Ore"),
+        ("refine_moon_ore",    "Refine Moon Ore"),
+        ("refine_ice",         "Refine Ice"),
+        ("decompress_gas",     "Decompress Gas"),
     ];
+
+    /// <summary>
+    /// The old single reprocessing key, still honoured when none of the four specific ones is
+    /// assigned. Parks built before the split named one facility for all of it, and that answer
+    /// is still better than none.
+    /// </summary>
+    public const string LegacyReprocessingKey = "reprocessing";
 
     // ── Pre-loaded rig options per structure type ─────────────────────────
 

@@ -24,6 +24,11 @@ public static class IndyRigMatching
     /// isn't an industry rig at all.</summary>
     public static string RigCategoryFromName(string n)
     {
+        // Reprocessing rigs first: "Asteroid Ore Grading Processor" would otherwise be caught by
+        // nothing, and "Moon Ore" shares no word with the manufacturing names below.
+        if (n.Contains("Asteroid Ore Grading"))    return "refine_ore";
+        if (n.Contains("Moon Ore Grading"))        return "refine_moon_ore";
+        if (n.Contains("Ice Grading"))             return "refine_ice";
         if (n.Contains("Advanced Small Ship"))     return "adv_small_ships";
         if (n.Contains("Basic Small Ship"))        return "small_ships";
         if (n.Contains("Advanced Medium Ship"))    return "adv_medium_ships";

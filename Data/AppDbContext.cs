@@ -107,6 +107,7 @@ public class AppDbContext : DbContext
     public DbSet<WorklistIndyChar>  WorklistIndyChars  => Set<WorklistIndyChar>();
     public DbSet<WorklistItemState> WorklistItemStates => Set<WorklistItemState>();
     public DbSet<WorklistIndyScopeStation> WorklistIndyScopeStations => Set<WorklistIndyScopeStation>();
+    public DbSet<WorklistStationLevel>     WorklistStationLevels     => Set<WorklistStationLevel>();
 
     // ── Application error log ────────────────────────────────────────────
     public DbSet<AppErrorEntry> AppErrors => Set<AppErrorEntry>();
@@ -1022,6 +1023,11 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             // One maintainer per corporation, for the same reason a station has one trader.
             e.HasIndex(x => x.CorporationId).IsUnique(); });
+
+        mb.Entity<WorklistStationLevel>(e => {
+            e.HasKey(x => x.Id);
+            // One row per group per station; a station may hold several groups.
+            e.HasIndex(x => new { x.GroupId, x.LocationId }).IsUnique(); });
 
         mb.Entity<WorklistIndyScopeStation>(e => {
             e.HasKey(x => x.Id);

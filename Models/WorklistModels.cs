@@ -161,6 +161,36 @@ public class WorklistIndyChar
 }
 
 /// <summary>
+/// "Keep this group's stock at this station."
+///
+/// <para>A statement about <b>where</b> material should sit, not how much should exist. The
+/// inventory rules already decide the quantity; this decides its distribution, so it raises
+/// hauling and never buying or building. Treating it as additional demand would double every
+/// target the moment a station was named for it.</para>
+///
+/// <para>One row per group per station, and a station may appear under several groups — a
+/// structure can be the home for capital parts and merely a consumer of everything else.</para>
+/// </summary>
+public class WorklistStationLevel
+{
+    public int    Id           { get; set; }
+    public int    GroupId      { get; set; }
+    public long   LocationId   { get; set; }
+    public string LocationName { get; set; } = "";
+
+    /// <summary>
+    /// Where this group's spare stock collects when nothing needs it.
+    ///
+    /// <para>Without somewhere to send it, surplus has no destination and simply stays wherever
+    /// it was made. Capital parts belong at the capital shipyard even when no job is waiting on
+    /// them, because that is where the next job will want them.</para>
+    /// </summary>
+    public bool AcceptsSurplus { get; set; }
+
+    public bool Enabled { get; set; } = true;
+}
+
+/// <summary>
 /// A station added to the industry asset scope on top of the region or system it is set to.
 ///
 /// The scope answers "where would I actually pull material from", and for most players that is
