@@ -58,7 +58,7 @@ public class MaterialPurchaseGenerator(
 
         var scope = await ScopeAsync(db, ct);
         var reach = new ProductionCalculatorService.AssetReach(
-            scope, await AssetSafety.WrappedItemIdsAsync(db, ct));
+            scope, await AssetExclusions.UnusableItemIdsAsync(db, ct));
 
         var allPrints = await blueprints.LoadAllAsync(ct);
         var meMap     = IndustryBlueprintService.BestMeByProduct(

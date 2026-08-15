@@ -72,7 +72,7 @@ public class LogisticsGenerator(
             .ToList();
 
         var scope   = await ScopeAsync(db, ct);
-        var wrapped = await AssetSafety.WrappedItemIdsAsync(db, ct);
+        var wrapped = await AssetExclusions.UnusableItemIdsAsync(db, ct);
 
         // Everything reachable, by where it is. The same rule the shortfall checks use, so the
         // two agree about what exists.
@@ -332,9 +332,14 @@ public class LogisticsGenerator(
                 jumpCache[destSystem] = await jumps.JumpsFromAsync(destSystem, ct: ct);
             var distances = jumpCache.GetValueOrDefault(destSystem) ?? [];
 
+            // Distance first, then indifference. Between two equally close sources, take from the
+            // one that has no use for the item at all rather than from one holding it to a level
+            // — the second is only spare until its own consumption catches up, and emptying it to
+            // the line means the next refresh asks for it back.
             var sources = spare
                 .Where(s => s.Key.TypeId == typeId && s.Key.Station != dest && s.Value > 0)
                 .OrderBy(s => Distance(distances, systems, s.Key.Station))
+                .ThenBy(s => want.ContainsKey((s.Key.Station, typeId)) ? 1 : 0)
                 .ThenBy(s => s.Key.Station)
                 .ToList();
 

@@ -85,7 +85,7 @@ public class IndustryJobGenerator(
         // Asset safety is excluded everywhere below. A wrap has to be unpacked wherever the game
         // put it and hauled back, so its contents cannot fill a job — and the flag sits only on
         // the wrap itself, so the whole container chain beneath it has to be found.
-        var wrapped = await AssetSafety.WrappedItemIdsAsync(db, ct);
+        var wrapped = await AssetExclusions.UnusableItemIdsAsync(db, ct);
 
         var siteAssets = (await db.EsiAssets.AsNoTracking()
                 .Where(a => siteIds.Contains(a.RootLocationId))

@@ -78,7 +78,7 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        var wrapped = await AssetSafety.WrappedItemIdsAsync(db, ct);
+        var wrapped = await AssetExclusions.UnusableItemIdsAsync(db, ct);
 
         var rows = (await db.EsiBlueprints.AsNoTracking()
                 .Where(b => blueprintTypeIds.Contains(b.TypeId) && b.LocationFlag != AssetSafetyFlag)
