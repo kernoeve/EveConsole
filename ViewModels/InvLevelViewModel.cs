@@ -455,6 +455,7 @@ public class InvLevelViewModel : ReactiveObject
     {
         _svc          = svc;
         _dbFactory    = dbFactory;
+        _transfer     = new InvLevelCollectionTransfer(dbFactory);
         _batchSvc     = batchSvc;
         _prodCalc     = prodCalc;
         _fittings     = fittings;

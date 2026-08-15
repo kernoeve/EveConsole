@@ -151,6 +151,7 @@ public class WorklistViewModel : ReactiveObject
         MarketAltsVm.MarketAltsChanged = RefreshAsync;
 
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
+        ClearFiltersCommand = ReactiveCommand.Create(ClearFilters);
         SnoozeCommand  = ReactiveCommand.CreateFromTask<string>(async key =>
         {
             await _service.SnoozeAsync(key, DateTimeOffset.UtcNow.AddHours(SnoozeHours));
@@ -218,6 +219,153 @@ public class WorklistViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _showNotReady, value); _ = RefreshAsync(); }
     }
 
+    // ── Filtering ─────────────────────────────────────────────────────────────
+    //
+    // Applied over the rows already built rather than by regenerating, so changing a filter is
+    // instant. A rebuild takes seconds — every generator re-queries and re-plans — and paying
+    // that to hide a few rows would make the filters feel broken.
+    //
+    // The dropdown options come from the whole unfiltered set and stay put as filters are
+    // applied. Options that vanished as you narrowed would make it impossible to widen again
+    // without clearing everything first.
+
+    /// <summary>Shown at the top of each dropdown; means no filter on that column.</summary>
+    public const string AnyValue = "(any)";
+
+    private List<WorklistRowVm> _pool = [];
+    private string _hiddenTail = "";
+
+    public ObservableCollection<string> StateOptions     { get; } = [];
+    public ObservableCollection<string> TaskOptions      { get; } = [];
+    public ObservableCollection<string> CharacterOptions { get; } = [];
+    public ObservableCollection<string> SourceOptions    { get; } = [];
+    public ObservableCollection<string> DestOptions      { get; } = [];
+
+    private string _stateFilter     = AnyValue;
+    private string _taskFilter      = AnyValue;
+    private string _characterFilter = AnyValue;
+    private string _sourceFilter    = AnyValue;
+    private string _destFilter      = AnyValue;
+    private string _descriptionFilter = "";
+    private string _noteFilter        = "";
+
+    public string StateFilter       { get => _stateFilter;       set => SetFilter(ref _stateFilter, value); }
+    public string TaskFilter        { get => _taskFilter;        set => SetFilter(ref _taskFilter, value); }
+    public string CharacterFilter   { get => _characterFilter;   set => SetFilter(ref _characterFilter, value); }
+    public string SourceFilter      { get => _sourceFilter;      set => SetFilter(ref _sourceFilter, value); }
+    public string DestFilter        { get => _destFilter;        set => SetFilter(ref _destFilter, value); }
+    public string DescriptionFilter { get => _descriptionFilter; set => SetFilter(ref _descriptionFilter, value); }
+    public string NoteFilter        { get => _noteFilter;        set => SetFilter(ref _noteFilter, value); }
+
+    public ReactiveCommand<Unit, Unit> ClearFiltersCommand { get; private set; } = null!;
+
+    public bool HasFilters =>
+        _stateFilter != AnyValue || _taskFilter != AnyValue || _characterFilter != AnyValue
+        || _sourceFilter != AnyValue || _destFilter != AnyValue
+        || _descriptionFilter.Length > 0 || _noteFilter.Length > 0;
+
+    private void SetFilter(ref string field, string? value)
+    {
+        var v = value ?? AnyValue;
+        if (field == v) return;
+        field = v;
+        this.RaisePropertyChanged(nameof(HasFilters));
+        ApplyFilters();
+    }
+
+    private void RebuildFilterOptions()
+    {
+        Fill(StateOptions,     _pool.Select(r => r.ReadinessText));
+        Fill(TaskOptions,      _pool.Select(r => r.KindText));
+        Fill(CharacterOptions, _pool.Select(r => r.CharacterName));
+        Fill(SourceOptions,    _pool.Select(r => r.LocationName));
+        Fill(DestOptions,      _pool.Select(r => r.DestinationName));
+
+        // A filter naming something the latest refresh no longer contains would hide every row
+        // with no way to tell why, so it falls back to unfiltered.
+        Keep(ref _stateFilter,     StateOptions,     nameof(StateFilter));
+        Keep(ref _taskFilter,      TaskOptions,      nameof(TaskFilter));
+        Keep(ref _characterFilter, CharacterOptions, nameof(CharacterFilter));
+        Keep(ref _sourceFilter,    SourceOptions,    nameof(SourceFilter));
+        Keep(ref _destFilter,      DestOptions,      nameof(DestFilter));
+
+        void Fill(ObservableCollection<string> target, IEnumerable<string> values)
+        {
+            var distinct = values
+                .Select(v => string.IsNullOrWhiteSpace(v) ? "—" : v)
+                .Distinct()
+                .OrderBy(v => v, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            target.Clear();
+            target.Add(AnyValue);
+            foreach (var v in distinct) target.Add(v);
+        }
+
+        void Keep(ref string field, ObservableCollection<string> options, string propertyName)
+        {
+            if (options.Contains(field)) return;
+            field = AnyValue;
+            this.RaisePropertyChanged(propertyName);
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        var rows = _pool.Where(Matches).ToList();
+
+        Rows.Clear();
+        foreach (var r in rows) Rows.Add(r);
+
+        UpdateStatus();
+        this.RaisePropertyChanged(nameof(HasFilters));
+    }
+
+    private bool Matches(WorklistRowVm r) =>
+        Is(_stateFilter,     r.ReadinessText)
+        && Is(_taskFilter,      r.KindText)
+        && Is(_characterFilter, r.CharacterName)
+        && Is(_sourceFilter,    r.LocationName)
+        && Is(_destFilter,      r.DestinationName)
+        && Has(_descriptionFilter, r.Title)
+        // The note cell shows the detail, the blocked reason and the snooze line together, so a
+        // search over it has to cover all three or it would miss what the reader can see.
+        && Has(_noteFilter, $"{r.Detail} {r.Note} {r.SnoozeText}");
+
+    private static bool Is(string filter, string value) =>
+        filter == AnyValue
+        || string.Equals(filter, string.IsNullOrWhiteSpace(value) ? "—" : value,
+                         StringComparison.OrdinalIgnoreCase);
+
+    private static bool Has(string needle, string haystack) =>
+        needle.Length == 0
+        || haystack.Contains(needle, StringComparison.OrdinalIgnoreCase);
+
+    private void ClearFilters()
+    {
+        _stateFilter = _taskFilter = _characterFilter = _sourceFilter = _destFilter = AnyValue;
+        _descriptionFilter = _noteFilter = "";
+
+        foreach (var p in new[] { nameof(StateFilter), nameof(TaskFilter), nameof(CharacterFilter),
+                                  nameof(SourceFilter), nameof(DestFilter),
+                                  nameof(DescriptionFilter), nameof(NoteFilter) })
+            this.RaisePropertyChanged(p);
+
+        ApplyFilters();
+    }
+
+    private void UpdateStatus()
+    {
+        var shown = Rows.Count;
+        var pool  = _pool.Count;
+
+        Status = pool == 0
+            ? $"Nothing ready{_hiddenTail}."
+            : HasFilters
+                ? $"{shown:N0} of {pool:N0} ready{_hiddenTail}"
+                : $"{pool:N0} ready{_hiddenTail}";
+    }
+
     private bool _isLoading;
     public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
 
@@ -251,8 +399,9 @@ public class WorklistViewModel : ReactiveObject
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Rows.Clear();
-                foreach (var i in visible) Rows.Add(new WorklistRowVm(i));
+                _pool = visible.Select(i => new WorklistRowVm(i)).ToList();
+                RebuildFilterOptions();
+                ApplyFilters();
 
                 var snoozed  = run.AllItems.Count(i => i.IsSnoozed);
                 var blocked  = unsnoozed.Count(i => i.Readiness == WorklistReadiness.Blocked);
@@ -266,11 +415,8 @@ public class WorklistViewModel : ReactiveObject
                 if (!ShowNotReady && waiting > 0) hidden.Add($"{waiting} waiting");
                 if (!ShowSnoozed  && snoozed > 0) hidden.Add($"{snoozed} snoozed");
 
-                var tail = hidden.Count > 0 ? $" ({string.Join(", ", hidden)} hidden)" : "";
-
-                Status = visible.Count == 0
-                    ? $"Nothing ready{tail}."
-                    : $"{visible.Count:N0} ready{tail}";
+                _hiddenTail = hidden.Count > 0 ? $" ({string.Join(", ", hidden)} hidden)" : "";
+                UpdateStatus();
 
                 Errors = failed.Count == 0
                     ? ""

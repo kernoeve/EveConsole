@@ -43,9 +43,40 @@
     <TextBlock Grid.Row="1" Text="{Binding Errors}" IsVisible="{Binding HasErrors}"
                FontSize="10" Foreground="#c85a5a" TextWrapping="Wrap" Margin="0 0 0 8"/>
 
-    <TextBlock Grid.Row="2" FontSize="10" Foreground="#555566" Margin="0 0 0 8"
-               TextWrapping="Wrap"
-               Text="Items are rebuilt from live data each refresh — one disappears once the work is done. Detection runs off polled ESI data, so each row shows how old the data behind it is."/>
+    <StackPanel Grid.Row="2" Spacing="6" Margin="0 0 0 8">
+      <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                 Text="Items are rebuilt from live data each refresh — one disappears once the work is done. Detection runs off polled ESI data, so each row shows how old the data behind it is."/>
+
+      <!-- Column widths match the grid's so each control sits under what it filters. Volume and
+           Age have none: one is a computed size and the other a timestamp, and neither is a
+           thing you look for by name. -->
+      <Grid ColumnDefinitions="72,90,230,130,190,190,*,Auto">
+        <ComboBox Grid.Column="0" ItemsSource="{Binding StateOptions}"
+                  SelectedItem="{Binding StateFilter}" FontSize="10"
+                  HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
+        <ComboBox Grid.Column="1" ItemsSource="{Binding TaskOptions}"
+                  SelectedItem="{Binding TaskFilter}" FontSize="10"
+                  HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
+        <TextBox  Grid.Column="2" Text="{Binding DescriptionFilter}" FontSize="10"
+                  Watermark="contains…" Margin="0 0 2 0"/>
+        <ComboBox Grid.Column="3" ItemsSource="{Binding CharacterOptions}"
+                  SelectedItem="{Binding CharacterFilter}" FontSize="10"
+                  HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
+        <ComboBox Grid.Column="4" ItemsSource="{Binding SourceOptions}"
+                  SelectedItem="{Binding SourceFilter}" FontSize="10"
+                  HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
+        <ComboBox Grid.Column="5" ItemsSource="{Binding DestOptions}"
+                  SelectedItem="{Binding DestFilter}" FontSize="10"
+                  HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
+        <TextBox  Grid.Column="6" Text="{Binding NoteFilter}" FontSize="10"
+                  Watermark="contains…" Margin="100 0 2 0"
+                  ToolTip.Tip="Searches the detail, the blocked reason and the snooze line together — everything the Note column shows."/>
+        <Button   Grid.Column="7" Content="Clear" Command="{Binding ClearFiltersCommand}"
+                  IsVisible="{Binding HasFilters}"
+                  FontSize="10" Padding="8 3" Background="Transparent"
+                  BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
+      </Grid>
+    </StackPanel>
 
     <DataGrid Grid.Row="3" ItemsSource="{Binding Rows}"
               IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
