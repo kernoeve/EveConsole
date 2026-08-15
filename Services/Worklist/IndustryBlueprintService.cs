@@ -221,9 +221,26 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
 /// Whose hangars a character's jobs may draw from. The same rule that governs materials governs
 /// prints — a blueprint in a corp hangar is only usable by an alt whose corp assets count.
 /// </summary>
-public readonly record struct WorklistIndyCharReach(long CharacterId, bool Corp, bool Personal)
+public readonly record struct WorklistIndyCharReach(
+    long CharacterId, long CorporationId, bool Corp, bool Personal)
 {
+    /// <summary>
+    /// Corp stock counts only when it is this character's own corporation. Being able to see a
+    /// corporation's hangars is not the same as being able to build from them: a main in a large
+    /// alliance corp exposes tens of thousands of asset rows that belong to other people.
+    /// </summary>
     public bool CanUse(BlueprintStock b) => b.OwnerType == "corporation"
-        ? Corp
+        ? Corp && b.OwnerId == CorporationId
         : Personal && b.OwnerId == CharacterId;
+
+    /// <summary>The corporations whose stock these characters may actually draw on.</summary>
+    public static HashSet<long> Corporations(IEnumerable<IndustryCandidate> candidates) =>
+        candidates.Where(c => c.Config.IncludeCorpAssets)
+                  .Select(c => c.CorporationId)
+                  .Where(id => id > 0)
+                  .ToHashSet();
+
+    public static WorklistIndyCharReach Of(IndustryCandidate c) =>
+        new(c.Config.CharacterId, c.CorporationId,
+            c.Config.IncludeCorpAssets, c.Config.IncludePersonalAssets);
 }

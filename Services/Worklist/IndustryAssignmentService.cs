@@ -15,6 +15,15 @@ public sealed class IndustryCandidate
 {
     public required WorklistIndyChar Config { get; init; }
 
+    /// <summary>
+    /// The corporation this character is actually in.
+    ///
+    /// <para>Needed because "include corp assets" is not the same as "include every corporation's
+    /// assets". A main sitting in a large alliance corp gives the app visibility of that corp's
+    /// hangars, and none of it is the player's to build with or move.</para>
+    /// </summary>
+    public required long CorporationId { get; init; }
+
     /// <summary>Skill id to active level. Blueprint requirements are checked against this.</summary>
     public required Dictionary<int, int> Skills { get; init; }
 
@@ -89,6 +98,10 @@ public class IndustryAssignmentService(IDbContextFactory<AppDbContext> dbFactory
 
         var charIds = configs.Select(c => c.CharacterId).ToList();
 
+        var corpOf = await db.Characters.AsNoTracking()
+            .Where(c => charIds.Contains(c.Id))
+            .ToDictionaryAsync(c => c.Id, c => (long)c.CorporationId, ct);
+
         var skills = (await db.EsiSkills.AsNoTracking()
                 .Where(s => charIds.Contains(s.CharacterId))
                 .Select(s => new { s.CharacterId, s.SkillId, s.ActiveSkillLevel })
@@ -134,7 +147,8 @@ public class IndustryAssignmentService(IDbContextFactory<AppDbContext> dbFactory
 
             candidates.Add(new IndustryCandidate
             {
-                Config     = cfg,
+                Config        = cfg,
+                CorporationId = corpOf.GetValueOrDefault(cfg.CharacterId),
                 Skills     = mine,
                 Capacity   = capacity,
                 FreeSlots  = free,

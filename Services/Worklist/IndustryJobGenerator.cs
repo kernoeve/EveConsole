@@ -88,11 +88,20 @@ public class IndustryJobGenerator(
         // the wrap itself, so the whole container chain beneath it has to be found.
         var wrapped = await AssetExclusions.UnusableItemIdsAsync(db, ct);
 
+        // Corp stock only counts for corporations the enabled characters are actually in. Being
+        // able to see a corporation's hangars is not the same as being able to build from them:
+        // a main in a large alliance corp exposes tens of thousands of rows that are other
+        // people's, and treating them as material makes every shortfall look filled.
+        var corps = WorklistIndyCharReach.Corporations(candidates);
+
+        bool Ours(string ownerType, long ownerId) =>
+            ownerType != "corporation" || corps.Contains(ownerId);
+
         var siteAssets = (await db.EsiAssets.AsNoTracking()
                 .Where(a => siteIds.Contains(a.RootLocationId))
                 .Select(a => new { a.ItemId, a.RootLocationId, a.TypeId, a.OwnerId, a.OwnerType, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId))
+            .Where(a => !wrapped.Contains(a.ItemId) && Ours(a.OwnerType, a.OwnerId))
             .ToList();
 
         // How far to look before calling something missing. Stock outside this counts as absent,
@@ -131,7 +140,7 @@ public class IndustryJobGenerator(
                     : db.EsiAssets.AsNoTracking().Where(a => scope.Contains(a.RootLocationId)))
                 .Select(a => new { a.ItemId, a.TypeId, a.OwnerType, a.OwnerId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId))
+            .Where(a => !wrapped.Contains(a.ItemId) && Ours(a.OwnerType, a.OwnerId))
             .GroupBy(a => (a.TypeId, a.OwnerType, a.OwnerId))
             .Select(g => new { g.Key.TypeId, g.Key.OwnerType, g.Key.OwnerId,
                                Qty = g.Sum(a => (long)a.Quantity) })
@@ -153,7 +162,7 @@ public class IndustryJobGenerator(
             .Where(g => rules.Select(r => r.GroupId).Contains(g.Id))
             .ToDictionaryAsync(g => g.Id, ct);
 
-        var demand = await demands.GatherAsync(db, ctx, rules, groups, scope, wrapped, inScope, ct);
+        var demand = await demands.GatherAsync(db, ctx, rules, groups, scope, wrapped, corps, inScope, ct);
         if (demand.Count == 0) return [];
 
         var items     = new List<WorklistItem>();
@@ -248,8 +257,7 @@ public class IndustryJobGenerator(
                                  d.TypeId, isReaction, typeToGroup, groupInfo);
 
                 var reaches = eligible
-                    .Select(c => new WorklistIndyCharReach(
-                        c.Config.CharacterId, c.Config.IncludeCorpAssets, c.Config.IncludePersonalAssets))
+                    .Select(c => WorklistIndyCharReach.Of(c))
                     .ToList();
 
                 var prints = IndustryBlueprintService.UsableAt(
@@ -295,14 +303,12 @@ public class IndustryJobGenerator(
                     // Reach is checked per print because a copy in a personal hangar is usable
                     // by exactly one alt, whatever the corp hangar holds.
                     var owner = eligible.FirstOrDefault(c =>
-                        new WorklistIndyCharReach(c.Config.CharacterId,
-                            c.Config.IncludeCorpAssets, c.Config.IncludePersonalAssets).CanUse(job.Print)
+                        WorklistIndyCharReach.Of(c).CanUse(job.Print)
                         && slotsLeft[c.Config.CharacterId].GetValueOrDefault(pool) > 0);
 
                     var busy = owner is null;
                     owner ??= eligible.FirstOrDefault(c =>
-                        new WorklistIndyCharReach(c.Config.CharacterId,
-                            c.Config.IncludeCorpAssets, c.Config.IncludePersonalAssets).CanUse(job.Print))
+                        WorklistIndyCharReach.Of(c).CanUse(job.Print))
                         ?? eligible[0];
 
                     var readiness = WorklistReadiness.Ready;

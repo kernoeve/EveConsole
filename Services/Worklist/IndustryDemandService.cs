@@ -86,7 +86,7 @@ public class IndustryDemandService(
     public async Task<Dictionary<int, BuildDemand>> GatherAsync(
         AppDbContext db, ProductionContext ctx, List<WorklistInvRule> rules,
         Dictionary<int, InvLevelGroup> groups, HashSet<long>? scope, HashSet<long> wrapped,
-        ScopeStock inScope, CancellationToken ct)
+        HashSet<long>? corps, ScopeStock inScope, CancellationToken ct)
     {
         var gross = new Dictionary<int, Gross>();
 
@@ -143,7 +143,7 @@ public class IndustryDemandService(
 
         // ── Customer orders ───────────────────────────────────────────────────
 
-        foreach (var (typeId, units, outstanding, count) in await OrderDemandAsync(db, scope, wrapped, ct))
+        foreach (var (typeId, units, outstanding, count) in await OrderDemandAsync(db, scope, wrapped, corps, ct))
         {
             if (!ctx.BlueprintByProduct.ContainsKey(typeId)) continue;
 
@@ -271,7 +271,8 @@ public class IndustryDemandService(
 
     /// <summary>Pending orders: gross units, what is still outstanding, and how many orders.</summary>
     private static async Task<List<(int TypeId, long Units, long Outstanding, int Count)>> OrderDemandAsync(
-        AppDbContext db, HashSet<long>? scope, HashSet<long> wrapped, CancellationToken ct)
+        AppDbContext db, HashSet<long>? scope, HashSet<long> wrapped, HashSet<long>? corps,
+        CancellationToken ct)
     {
         if (!await db.WorklistOrderRules.AsNoTracking().AnyAsync(r => r.Enabled, ct)) return [];
 
@@ -283,10 +284,12 @@ public class IndustryDemandService(
 
         var onHand = (await db.EsiAssets.AsNoTracking()
                 .Where(a => wanted.Contains(a.TypeId))
-                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.Quantity })
+                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.OwnerType, a.OwnerId, a.Quantity })
                 .ToListAsync(ct))
             .Where(a => !wrapped.Contains(a.ItemId)
-                        && (scope is null || scope.Contains(a.RootLocationId)))
+                        && (scope is null || scope.Contains(a.RootLocationId))
+                        && (a.OwnerType != "corporation"
+                            || corps is null || corps.Contains(a.OwnerId)))
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 

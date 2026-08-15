@@ -52,13 +52,13 @@ public class MaterialPurchaseGenerator(
 
         var ctx     = await production.LoadContextAsync(parkId, ct);
         var reaches = candidates
-            .Select(c => new WorklistIndyCharReach(
-                c.Config.CharacterId, c.Config.IncludeCorpAssets, c.Config.IncludePersonalAssets))
+            .Select(c => WorklistIndyCharReach.Of(c))
             .ToList();
 
         var scope = await ScopeAsync(db, ct);
         var reach = new ProductionCalculatorService.AssetReach(
-            scope, await AssetExclusions.UnusableItemIdsAsync(db, ct));
+            scope, await AssetExclusions.UnusableItemIdsAsync(db, ct),
+            WorklistIndyCharReach.Corporations(candidates));
 
         var allPrints = await blueprints.LoadAllAsync(ct);
         var meMap     = IndustryBlueprintService.BestMeByProduct(
@@ -272,9 +272,9 @@ public class MaterialPurchaseGenerator(
 
         var onHand = (await db.EsiAssets.AsNoTracking()
                 .Where(a => wanted.Contains(a.TypeId))
-                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.Quantity })
+                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.OwnerType, a.OwnerId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => reach.Counts(a.ItemId, a.RootLocationId))
+            .Where(a => reach.Counts(a.ItemId, a.RootLocationId, a.OwnerType, a.OwnerId))
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
@@ -397,9 +397,9 @@ public class MaterialPurchaseGenerator(
 
         var held = (await db.EsiAssets.AsNoTracking()
                 .Where(a => sourceIds.Contains(a.TypeId))
-                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.Quantity })
+                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.OwnerType, a.OwnerId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => reach.Counts(a.ItemId, a.RootLocationId))
+            .Where(a => reach.Counts(a.ItemId, a.RootLocationId, a.OwnerType, a.OwnerId))
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 

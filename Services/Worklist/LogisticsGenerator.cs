@@ -67,10 +67,10 @@ public class LogisticsGenerator(
         var candidates = await assignment.LoadCandidatesAsync(ct);
         if (candidates.Count == 0) return [];
         var reaches = candidates
-            .Select(c => new WorklistIndyCharReach(
-                c.Config.CharacterId, c.Config.IncludeCorpAssets, c.Config.IncludePersonalAssets))
+            .Select(c => WorklistIndyCharReach.Of(c))
             .ToList();
 
+        var corps   = WorklistIndyCharReach.Corporations(candidates);
         var scope   = await ScopeAsync(db, ct);
         var wrapped = await AssetExclusions.UnusableItemIdsAsync(db, ct);
 
@@ -82,8 +82,11 @@ public class LogisticsGenerator(
                 .Select(a => new { a.ItemId, a.RootLocationId, a.TypeId, a.OwnerType, a.OwnerId, a.Quantity })
                 .ToListAsync(ct))
             .Where(a => !wrapped.Contains(a.ItemId))
+            // Corp stock only from corporations the enabled characters are actually in. A main
+            // sitting in a large alliance corp exposes that corp's hangars, and none of it is
+            // the player's to build with or to move.
             .Where(a => a.OwnerType == "corporation"
-                          ? candidates.Any(c => c.Config.IncludeCorpAssets)
+                          ? corps.Contains(a.OwnerId)
                           : candidates.Any(c => c.Config.IncludePersonalAssets
                                                 && c.Config.CharacterId == a.OwnerId))
             .ToList();
@@ -115,7 +118,7 @@ public class LogisticsGenerator(
         var meMap = IndustryBlueprintService.BestMeByProduct(
             await blueprints.LoadAllAsync(ct), ctx.BlueprintByProduct, scope, reaches);
 
-        await AddJobDemandAsync(db, ctx, meMap, scope, wrapped, inScope, Need, ct);
+        await AddJobDemandAsync(db, ctx, meMap, scope, wrapped, corps, inScope, Need, ct);
         await AddStationLevelDemandAsync(db, stock, Need, ct);
 
         var refineMoves = await RefiningMovesAsync(db, ctx, parkId, stock, ct);
@@ -150,7 +153,7 @@ public class LogisticsGenerator(
     /// </summary>
     private async Task AddJobDemandAsync(
         AppDbContext db, ProductionContext ctx, Dictionary<int, int> meMap,
-        HashSet<long>? scope, HashSet<long> wrapped, ScopeStock inScope,
+        HashSet<long>? scope, HashSet<long> wrapped, HashSet<long>? corps, ScopeStock inScope,
         Action<long, int, long, HaulReason> need, CancellationToken ct)
     {
         var rules = await db.WorklistInvRules.AsNoTracking()
@@ -165,7 +168,7 @@ public class LogisticsGenerator(
         // being built. Working it out separately here left materials unhauled for jobs the list
         // was suggesting: an item covered by a parent build has no shortfall of its own, so the
         // old per-rule reading of it came out as zero.
-        var demand = await demands.GatherAsync(db, ctx, rules, groups, scope, wrapped, inScope, ct);
+        var demand = await demands.GatherAsync(db, ctx, rules, groups, scope, wrapped, corps, inScope, ct);
 
         foreach (var (typeId, d) in demand.OrderBy(d => d.Key))
         {

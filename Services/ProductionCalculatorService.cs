@@ -1044,11 +1044,21 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     /// <param name="Scope">Root locations that count, or null for anywhere.</param>
     /// <param name="Excluded">Item ids to ignore wherever they are — asset safety and its
     /// container chain.</param>
-    public sealed record AssetReach(HashSet<long>? Scope, HashSet<long>? Excluded)
+    /// <param name="Corporations">Corporations whose hangars count, or null for all of them.
+    /// Seeing a corporation's assets is not the same as being able to use them: a character in a
+    /// large alliance corp exposes tens of thousands of rows belonging to other people.</param>
+    public sealed record AssetReach(
+        HashSet<long>? Scope, HashSet<long>? Excluded, HashSet<long>? Corporations = null)
     {
         public bool Counts(long itemId, long rootLocationId) =>
             (Excluded is null || !Excluded.Contains(itemId))
             && (Scope is null || Scope.Contains(rootLocationId));
+
+        /// <summary>The same test, plus whose it is. Corp-owned stock only counts for a
+        /// corporation the player actually builds out of.</summary>
+        public bool Counts(long itemId, long rootLocationId, string ownerType, long ownerId) =>
+            Counts(itemId, rootLocationId)
+            && (ownerType != "corporation" || Corporations is null || Corporations.Contains(ownerId));
     }
 
     /// <summary>How the Raw Materials tab decides what is missing.</summary>
@@ -1096,9 +1106,11 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // this counts materials sitting in cans and ship holds at the station too.
         var rows = (await db.EsiAssets.AsNoTracking()
                 .Where(a => typeIds.Contains(a.TypeId))
-                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.Quantity })
+                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId,
+                                   a.OwnerType, a.OwnerId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => reach is null || reach.Counts(a.ItemId, a.RootLocationId))
+            .Where(a => reach is null
+                        || reach.Counts(a.ItemId, a.RootLocationId, a.OwnerType, a.OwnerId))
             .ToList();
 
         var byStation = rows
