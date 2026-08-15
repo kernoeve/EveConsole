@@ -61,6 +61,7 @@ public class StandingProjectGenerator(
                     // already, so nothing else needs to go into the key.
                     Key           = $"standing_project:{r.DbId}",
                     Source        = Id,
+                    Kind          = WorklistKind.CorpProject,
                     Title         = $"{verb} — {r.TypeDisplay}",
                     Detail        = $"{corpName} · {detail}",
                     Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
@@ -86,11 +87,11 @@ public class StandingProjectGenerator(
     /// </summary>
     private static (string? Verb, string Detail) Diagnose(StandingProjectGridRow r) => r.MatchStatus switch
     {
-        "not_active" => ("Create corp project",
+        "not_active" => ("Create",
                          $"No active project matches this definition. Target {r.TargetDisplay}"
                          + (r.DestDisplay.Length > 0 ? $" to {r.DestDisplay}" : "") + "."),
 
-        "no_systems" => ("Check project scope",
+        "no_systems" => ("Check scope",
                          $"Scope resolves to no systems, so nothing can be created for it. "
                          + $"Target {r.TargetDisplay}."),
 

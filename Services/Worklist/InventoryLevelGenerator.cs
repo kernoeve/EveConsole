@@ -119,7 +119,7 @@ public class InventoryLevelGenerator(
                     }
                     else if (shortfall > 0)
                     {
-                        verb     = onOrder > 0 ? "Increase buy order" : "Place buy order";
+                        verb     = onOrder > 0 ? "Increase order" : "Place order";
                         detail   = $"{stock}{order}.{fill} Short {shortfall:N0}."
                                  + (bids.IsTracked(rule.LocationId)
                                       ? ""
@@ -136,6 +136,7 @@ public class InventoryLevelGenerator(
                         // of work at two stations, and they must snooze independently.
                         Key           = $"inv_level:{rule.Id}:{gi.TypeId}",
                         Source        = Id,
+                        Kind          = WorklistKind.Buy,
                         Title         = $"{verb} — {name}",
                         Detail        = $"{group.Name} · below {rule.ThresholdPercent:0.#}% · {detail}",
                         Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,

@@ -393,7 +393,9 @@ public class IndustryJobGenerator(
                         // pieces of one split independently snoozable.
                         Key           = $"industry_job:{d.TypeId}:{job.Index}",
                         Source        = Id,
-                        Title         = $"Run job — {runsText}",
+                        Kind          = WorklistKind.Job,
+                        Title         = runsText,
+                        Quantity      = wanted,
                         Detail        = $"{head} Short {d.Units:N0}{ofText}. "
                                       + $"{job.Print.Describe()} at {siteName}.{durText}{leftover}",
                         Readiness     = readiness,
@@ -513,7 +515,8 @@ public class IndustryJobGenerator(
         {
             Key          = $"industry_job:{typeId}:0",
             Source       = Id,
-            Title        = $"Start job — {name}",
+            Kind         = WorklistKind.Job,
+            Title        = name,
             Detail       = detail,
             Readiness    = WorklistReadiness.Blocked,
             BlockedBy    = blockedBy,

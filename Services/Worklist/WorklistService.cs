@@ -55,9 +55,52 @@ public class WorklistService(
         });
 
         var sections = (await Task.WhenAll(tasks)).ToList();
+        await ApplyVolumeAsync(sections, ct);
         await ApplyStateAsync(sections, ct);
 
         return new WorklistRun(sections, DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>
+    /// Works out how much space each task's contents take.
+    ///
+    /// <para>Done here rather than in the generators so every source gets the figure from one
+    /// lookup. Five generators each fetching volumes would be five chances to use a different
+    /// packaged size for the same item, and four more queries.</para>
+    ///
+    /// <para>Packaged volume is the honest figure for material being hauled or bought. An
+    /// assembled ship takes far more room than its packaged form, but nothing here is assembled —
+    /// these are things being moved to or made at a structure.</para>
+    /// </summary>
+    private async Task ApplyVolumeAsync(List<WorklistSection> sections, CancellationToken ct)
+    {
+        var items = sections.SelectMany(s => s.Items).ToList();
+
+        var typeIds = items
+            .SelectMany(i => i.Lines.Count > 0
+                ? i.Lines.Select(l => l.TypeId)
+                : i.Quantity > 0 && i.TypeId > 0 ? [i.TypeId] : Array.Empty<int>())
+            .Distinct().ToList();
+        if (typeIds.Count == 0) return;
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var volumes = await db.SdeTypes.AsNoTracking()
+            .Where(t => typeIds.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.Volume, ct);
+
+        foreach (var section in sections)
+        {
+            for (var i = 0; i < section.Items.Count; i++)
+            {
+                var item = section.Items[i];
+
+                var m3 = item.Lines.Count > 0
+                    ? item.Lines.Sum(l => volumes.GetValueOrDefault(l.TypeId) * l.Quantity)
+                    : item.Quantity > 0 ? volumes.GetValueOrDefault(item.TypeId) * item.Quantity : 0;
+
+                if (m3 > 0) section.Items[i] = item with { Volume = m3 };
+            }
+        }
     }
 
     /// <summary>

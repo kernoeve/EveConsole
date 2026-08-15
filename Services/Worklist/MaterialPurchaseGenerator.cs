@@ -164,8 +164,12 @@ public class MaterialPurchaseGenerator(
                 Source        = Id,
                 // The amount belongs in the title. The task line is read to decide what to do
                 // next, and "buy this" without a number is not yet an instruction.
-                Title         = isPrint ? $"Acquire BPO/BPC — {short_:N0} × {raw.TypeName}"
-                                        : $"Buy — {short_:N0} × {raw.TypeName}",
+                Kind          = WorklistKind.Buy,
+                // "BPO/BPC" survives the prefix strip: it says the purchase is a contract rather
+                // than a market order, which the kind column cannot.
+                Title         = isPrint ? $"BPO/BPC — {short_:N0} × {raw.TypeName}"
+                                        : $"{short_:N0} × {raw.TypeName}",
+                Quantity      = short_,
                 Detail        = $"{WantedBy(plan, raw.TypeId)}: need {raw.Quantity:N0}; "
                               + $"{raw.Available:N0} on hand{settings.IndustryScopeSuffix}"
                               + (ordered  > 0 ? $", {ordered:N0} on order" : "")
@@ -325,7 +329,8 @@ public class MaterialPurchaseGenerator(
             {
                 Key           = $"industry_print:{bp.TypeId}",
                 Source        = "material_purchases",
-                Title         = $"Acquire BPO/BPC — {bpName}",
+                Kind          = WorklistKind.Buy,
+                Title         = $"BPO/BPC — {bpName}",
                 Detail        = $"No blueprint owned, so {entry.TypeName} cannot be built at all. "
                               + $"{entry.Quantity:N0} wanted.{price}",
                 Readiness     = WorklistReadiness.Ready,

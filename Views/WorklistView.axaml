@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:models="clr-namespace:EveConsole.Models"
+             xmlns:wl="clr-namespace:EveConsole.Services.Worklist"
              x:Class="EveConsole.Views.WorklistView"
              x:DataType="vm:WorklistViewModel">
 
@@ -48,7 +49,32 @@
 
     <DataGrid Grid.Row="3" ItemsSource="{Binding Rows}"
               IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
-              Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+              Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+              AreRowDetailsFrozen="False" RowDetailsVisibilityMode="VisibleWhenSelected">
+
+      <!-- The manifest for tasks that carry several items. Shown on selection rather than behind
+           a separate toggle: the row is already clickable, and a multi-item haul is exactly the
+           row a reader clicks to find out what is on it. Single-item tasks render nothing. -->
+      <DataGrid.RowDetailsTemplate>
+        <DataTemplate x:DataType="vm:WorklistRowVm">
+          <Border IsVisible="{Binding HasLines}" Margin="34 2 0 6" Padding="8 6"
+                  Background="#12121a" BorderBrush="#252530" BorderThickness="1"
+                  CornerRadius="2" HorizontalAlignment="Left">
+            <ItemsControl ItemsSource="{Binding Lines}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="wl:WorklistLine">
+                  <Grid ColumnDefinitions="300,110" Margin="0 1">
+                    <TextBlock Grid.Column="0" Text="{Binding TypeName}" FontSize="10" Foreground="#c8c8d8"/>
+                    <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
+                               FontSize="10" Foreground="#7a8896" HorizontalAlignment="Right"/>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Border>
+        </DataTemplate>
+      </DataGrid.RowDetailsTemplate>
+
       <DataGrid.Columns>
 
         <DataGridTemplateColumn Header="State" Width="72" SortMemberPath="ReadinessText">
@@ -60,11 +86,14 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTextColumn Header="Task"      Binding="{Binding Title}"         FontSize="10" Width="260"/>
-        <DataGridTextColumn Header="Character" Binding="{Binding CharacterName}" FontSize="10" Width="140"/>
-        <DataGridTextColumn Header="Location"  Binding="{Binding LocationName}"  FontSize="10" Width="220"/>
+        <DataGridTextColumn Header="Task"        Binding="{Binding KindText}"        FontSize="10" Width="90"/>
+        <DataGridTextColumn Header="Description" Binding="{Binding Title}"           FontSize="10" Width="230"/>
+        <DataGridTextColumn Header="Character"   Binding="{Binding CharacterName}"   FontSize="10" Width="130"/>
+        <DataGridTextColumn Header="Location 1 (Source)" Binding="{Binding LocationName}"    FontSize="10" Width="190"/>
+        <DataGridTextColumn Header="Location 2 (Dest)"   Binding="{Binding DestinationName}" FontSize="10" Width="190"/>
+        <DataGridTextColumn Header="Volume"      Binding="{Binding VolumeText}"      FontSize="10" Width="100"/>
 
-        <DataGridTemplateColumn Header="Detail" Width="*" SortMemberPath="Detail">
+        <DataGridTemplateColumn Header="Note" Width="*" SortMemberPath="Detail">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <StackPanel Spacing="1" VerticalAlignment="Center">

@@ -23,6 +23,30 @@ public class WorklistRowVm : ReactiveObject
     public int    Priority      => _item.Priority;
     public bool   IsSnoozed     => _item.IsSnoozed;
 
+    /// <summary>The kind of doing, as its own scannable column.</summary>
+    public string KindText => _item.Kind switch
+    {
+        WorklistKind.Buy         => "Buy",
+        WorklistKind.Haul        => "Haul",
+        WorklistKind.Job         => "Job",
+        _                        => "Corp Project",
+    };
+
+    /// <summary>Only a haul has a far end.</summary>
+    public string DestinationName => _item.DestinationName;
+
+    /// <summary>
+    /// Rounded to whole cubic metres above a thousand — nobody loads a hauler to the decimal, and
+    /// the column is read to judge how many trips it is.
+    /// </summary>
+    public string VolumeText => _item.Volume <= 0 ? ""
+        : _item.Volume >= 1000 ? $"{_item.Volume:N0} m³"
+        : $"{_item.Volume:N1} m³";
+
+    /// <summary>The manifest, shown by expanding the row. Empty for single-item tasks.</summary>
+    public IReadOnlyList<WorklistLine> Lines => _item.Lines;
+    public bool HasLines => _item.Lines.Count > 0;
+
     public string ReadinessText => _item.Readiness switch
     {
         WorklistReadiness.Ready   => "Ready",

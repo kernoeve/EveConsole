@@ -47,6 +47,7 @@ public class StandingBuyOrderGenerator(
             {
                 Key           = $"standing_buy:{r.TypeId}:{r.LocationId}",
                 Source        = Id,
+                Kind          = WorklistKind.Buy,
                 Title         = $"{verb} — {r.TypeName}",
                 Detail        = detail,
                 Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
@@ -90,7 +91,7 @@ public class StandingBuyOrderGenerator(
             var caveat = r.IsLocationTracked
                 ? ""
                 : " Competing bids unknown — this location is not a configured market source.";
-            return ("Place buy order", $"No order found at {r.LocationName}.{caveat}", WorklistPriority.Missing);
+            return ("Place order", $"No order found at {r.LocationName}.{caveat}", WorklistPriority.Missing);
         }
 
         if (r.IsLow && settings.RaiseLow)

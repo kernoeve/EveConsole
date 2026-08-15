@@ -445,21 +445,26 @@ public class LogisticsGenerator(
             var from = places.GetValueOrDefault(run.Key.From, $"Location {run.Key.From}");
             var to   = places.GetValueOrDefault(run.Key.To,   $"Location {run.Key.To}");
 
-            var listed = string.Join(", ", cargo.Take(4)
-                .Select(c => $"{c.Qty:N0} × {names.GetValueOrDefault(c.TypeId, $"Type {c.TypeId}")}"));
-            var more = cargo.Count > 4 ? $", and {cargo.Count - 4} more" : "";
-
             items.Add(new WorklistItem
             {
                 // Keyed on the pair, not the cargo: it is one trip, and a key that changed as
                 // items were added or removed would reset its age every refresh.
                 Key          = $"haul:{run.Key.From}:{run.Key.To}",
                 Source       = Id,
-                Title        = $"Haul — {cargo.Count} item(s) to {Short(to)}",
-                Detail       = $"{from} → {to}. {Because(reason)} {listed}{more}.",
+                Kind         = WorklistKind.Haul,
+                Title        = $"{cargo.Count} item(s)",
+                // The manifest lives on the row's own lines now. Repeating four of them here and
+                // hiding the rest behind "and 9 more" was a worse answer to the same question.
+                Detail       = Because(reason),
                 Readiness    = WorklistReadiness.Ready,
-                LocationId   = run.Key.From,
-                LocationName = from,
+                LocationId      = run.Key.From,
+                LocationName    = from,
+                DestinationId   = run.Key.To,
+                DestinationName = to,
+                Lines        = cargo
+                    .Select(c => new WorklistLine(
+                        c.TypeId, names.GetValueOrDefault(c.TypeId, $"Type {c.TypeId}"), c.Qty))
+                    .ToList(),
                 TypeId       = cargo[0].TypeId,
                 TypeName     = names.GetValueOrDefault(cargo[0].TypeId, ""),
                 Priority     = reason switch
