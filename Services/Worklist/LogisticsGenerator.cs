@@ -29,7 +29,7 @@ public class LogisticsGenerator(
     IDbContextFactory<AppDbContext> dbFactory,
     IndustryBlueprintService        blueprints,
     IndustryAssignmentService       assignment,
-    InvLevelService                 invLevels,
+    IndustryDemandService           demands,
     JumpDistanceService             jumps,
     ProductionCalculatorService     production,
     WorklistSettings                settings,
@@ -76,7 +76,7 @@ public class LogisticsGenerator(
 
         // Everything reachable, by where it is. The same rule the shortfall checks use, so the
         // two agree about what exists.
-        var stock = (await (scope is null
+        var reachable = (await (scope is null
                     ? db.EsiAssets.AsNoTracking()
                     : db.EsiAssets.AsNoTracking().Where(a => scope.Contains(a.RootLocationId)))
                 .Select(a => new { a.ItemId, a.RootLocationId, a.TypeId, a.OwnerType, a.OwnerId, a.Quantity })
@@ -86,8 +86,19 @@ public class LogisticsGenerator(
                           ? candidates.Any(c => c.Config.IncludeCorpAssets)
                           : candidates.Any(c => c.Config.IncludePersonalAssets
                                                 && c.Config.CharacterId == a.OwnerId))
+            .ToList();
+
+        var stock = reachable
             .GroupBy(a => (Station: a.RootLocationId, a.TypeId))
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
+
+        // The same view of stock the demand service nets against, so both agree on what exists.
+        var inScope = new ScopeStock(
+            reachable.Where(a => a.OwnerType == "corporation")
+                     .GroupBy(a => a.TypeId).ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity)),
+            reachable.Where(a => a.OwnerType != "corporation")
+                     .GroupBy(a => (a.TypeId, a.OwnerId))
+                     .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity)));
 
         var want = new Dictionary<(long Station, int TypeId), Want>();
 
@@ -104,7 +115,7 @@ public class LogisticsGenerator(
         var meMap = IndustryBlueprintService.BestMeByProduct(
             await blueprints.LoadAllAsync(ct), ctx.BlueprintByProduct, scope, reaches);
 
-        await AddJobDemandAsync(db, ctx, meMap, Need, ct);
+        await AddJobDemandAsync(db, ctx, meMap, scope, wrapped, inScope, Need, ct);
         await AddStationLevelDemandAsync(db, stock, Need, ct);
 
         var refineMoves = await RefiningMovesAsync(db, ctx, parkId, stock, ct);
@@ -139,49 +150,47 @@ public class LogisticsGenerator(
     /// </summary>
     private async Task AddJobDemandAsync(
         AppDbContext db, ProductionContext ctx, Dictionary<int, int> meMap,
+        HashSet<long>? scope, HashSet<long> wrapped, ScopeStock inScope,
         Action<long, int, long, HaulReason> need, CancellationToken ct)
     {
         var rules = await db.WorklistInvRules.AsNoTracking()
             .Where(r => r.Enabled && r.Action == "Build")
             .ToListAsync(ct);
-        if (rules.Count == 0) return;
 
         var groups = await db.InvLevelGroups.AsNoTracking()
             .Where(g => rules.Select(r => r.GroupId).Contains(g.Id))
             .ToDictionaryAsync(g => g.Id, ct);
 
-        foreach (var rule in rules.OrderBy(r => r.Id))
+        // The same demand the job generator works from, so the two cannot disagree about what is
+        // being built. Working it out separately here left materials unhauled for jobs the list
+        // was suggesting: an item covered by a parent build has no shortfall of its own, so the
+        // old per-rule reading of it came out as zero.
+        var demand = await demands.GatherAsync(db, ctx, rules, groups, scope, wrapped, inScope, ct);
+
+        foreach (var (typeId, d) in demand.OrderBy(d => d.Key))
         {
-            if (!groups.TryGetValue(rule.GroupId, out var group)) continue;
-
-            var groupItems = await db.InvLevelItems.AsNoTracking()
-                .Where(i => i.GroupId == group.Id).ToListAsync(ct);
-            if (groupItems.Count == 0) continue;
-
-            var typeIds = groupItems.Select(i => i.TypeId).Distinct().ToList();
-            var avail   = await invLevels.LoadAvailableAsync(group, typeIds, ct);
-
-            foreach (var gi in groupItems.OrderBy(i => i.TypeId))
+            var entry = new ProductionQueueEntry
             {
-                avail.TryGetValue(gi.TypeId, out var av);
-                var shortfall = InvRuleShortfall.For(rule, group, gi, av);
-                if (shortfall is null || shortfall.Shortfall <= 0) continue;
-                if (!ctx.BlueprintByProduct.ContainsKey(gi.TypeId)) continue;
+                TypeId   = typeId,
+                Quantity = (int)Math.Clamp(d.Units, 1, int.MaxValue),
+                MeLevel  = meMap.TryGetValue(typeId, out var me) ? me : 10,
+            };
 
-                var entry = new ProductionQueueEntry
-                {
-                    TypeId   = gi.TypeId,
-                    Quantity = (int)Math.Clamp(shortfall.Shortfall, 1, int.MaxValue),
-                    MeLevel  = meMap.TryGetValue(gi.TypeId, out var me) ? me : 10,
-                };
-
-                var root = production.Calculate([entry], ctx, meOverrides: meMap)
-                                     .AllJobs.FirstOrDefault(j => j.OutputTypeId == gi.TypeId);
-                if (root?.StationId is not { } site) continue;
-
-                foreach (var m in root.Materials)
-                    need(site, m.MaterialTypeId, m.TotalQty, HaulReason.Unblocking);
+            PlanJob? root;
+            try
+            {
+                root = production.Calculate([entry], ctx, meOverrides: meMap)
+                                 .AllJobs.FirstOrDefault(j => j.OutputTypeId == typeId);
             }
+            catch (OperationCanceledException) { throw; }
+            catch { continue; }
+
+            if (root?.StationId is not { } site) continue;
+
+            // Only this job's own inputs. Its sub-assemblies are separate jobs at their own
+            // facilities, and they appear in the demand list in their own right.
+            foreach (var m in root.Materials)
+                need(site, m.MaterialTypeId, m.TotalQty, HaulReason.Unblocking);
         }
     }
 

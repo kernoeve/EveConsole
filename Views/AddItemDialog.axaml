@@ -61,10 +61,14 @@
       <StackPanel x:Name="QtyPanel" Spacing="5">
         <TextBlock Text="TARGET QUANTITY" FontSize="10" FontWeight="SemiBold"
                    Foreground="#555566" LetterSpacing="1" />
+        <!-- Six digits was too small to say what these groups actually hold: the reaction
+             targets here run to twenty million, and anything larger silently clamped. The cap is
+             now the column's own limit rather than an arbitrary one. -->
         <NumericUpDown x:Name="QtyBox"
-                       Value="1" Minimum="1" Maximum="999999"
+                       Value="1" Minimum="1" Maximum="2000000000"
                        Increment="1" ShowButtonSpinner="True"
-                       Width="140" FontSize="12"
+                       FormatString="N0"
+                       Width="160" FontSize="12"
                        Background="#131320" BorderBrush="#2a2a3a"
                        Foreground="#c8c8d8" />
       </StackPanel>
