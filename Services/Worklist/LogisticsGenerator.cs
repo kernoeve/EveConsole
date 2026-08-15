@@ -109,14 +109,18 @@ public class LogisticsGenerator(
 
         var refineMoves = await RefiningMovesAsync(db, ctx, parkId, stock, ct);
 
-        var names   = await NamesAsync(db, want.Keys.Select(k => k.TypeId)
-                                          .Concat(refineMoves.Select(m => m.TypeId)).Distinct().ToList(), ct);
         var systems = await SystemsAsync(db, ct);
         var places  = await PlaceNamesAsync(db, ct);
 
         var moves = new List<Move>(refineMoves);
         moves.AddRange(await AllocateAsync(want, stock, systems, ct));
         moves.AddRange(SurplusMoves(await SurplusHomesAsync(db, ct), want, stock));
+
+        // Named from the moves themselves, not from the demand that produced most of them.
+        // Surplus exists precisely where nothing is wanted, so its types are never in `want` —
+        // and a run mixing restocking with surplus takes the restock label while listing the
+        // surplus items as bare type ids.
+        var names = await NamesAsync(db, moves.Select(m => m.TypeId).Distinct().ToList(), ct);
 
         return Tasks(moves, names, places);
     }
