@@ -365,6 +365,7 @@ public class InvLevelViewModel : ReactiveObject
     private readonly FittingsService?             _fittings;
     private readonly ObservableCollection<Character>?   _characters;
     private readonly ObservableCollection<Corporation>? _corporations;
+    private readonly AppPreferencesService              _prefs;
 
     private readonly List<InvGroupRow>       _allGroups       = [];
     private readonly List<InvCollectionRow>  _allCollections  = [];
@@ -445,8 +446,13 @@ public class InvLevelViewModel : ReactiveObject
     public Func<string, Task<string?>>?                                                     ShowRenameCollectionDialog { get; set; }
     public Action<int, string>?                                                             OpenInItemBrowser          { get; set; }
 
+    /// <param name="prefs">Required, and deliberately not optional like the rest. It was added as
+    /// a trailing optional and wired to a property that is assigned later in the caller's
+    /// constructor, so it silently arrived null and the saved expansion state never loaded or
+    /// saved. Sitting among the required parameters, that cannot happen again.</param>
     public InvLevelViewModel(InvLevelService svc,
         IDbContextFactory<AppDbContext>   dbFactory,
+        AppPreferencesService              prefs,
         BatchAddService?             batchSvc      = null,
         ProductionCalculatorService? prodCalc      = null,
         FittingsService?             fittings      = null,
@@ -455,6 +461,7 @@ public class InvLevelViewModel : ReactiveObject
     {
         _svc          = svc;
         _dbFactory    = dbFactory;
+        _prefs        = prefs;
         _transfer     = new InvLevelCollectionTransfer(dbFactory);
         _batchSvc     = batchSvc;
         _prodCalc     = prodCalc;
@@ -540,6 +547,10 @@ public class InvLevelViewModel : ReactiveObject
         // Create the synthetic Default collection if any group has null CollectionId
         if (_allGroups.Any(g => g.CollectionId == null))
             _defaultCollRow = MakeCollectionRow(null, "Default", isSynthetic: true);
+
+        // Before the first rebuild, so the list is drawn folded as it was left rather than
+        // opening everything and snapping shut a frame later.
+        ApplyStoredExpansion();
 
         RebuildGridRows();
         HasAnyGroup = _allGroups.Count > 0;
@@ -983,20 +994,20 @@ public class InvLevelViewModel : ReactiveObject
 
     private void RebuildGridRows()
     {
-        GridRows.Clear();
+        var desired = new List<object>();
 
         void AddGroupWithItems(InvGroupRow g)
         {
-            GridRows.Add(g);
+            desired.Add(g);
             if (g.IsExpanded)
                 foreach (var item in g.AllItems)
-                    GridRows.Add(item);
+                    desired.Add(item);
         }
 
         // Real collections
         foreach (var col in _allCollections)
         {
-            GridRows.Add(col);
+            desired.Add(col);
             if (col.IsExpanded)
                 foreach (var g in _allGroups.Where(g => g.CollectionId == col.CollectionId))
                     AddGroupWithItems(g);
@@ -1005,11 +1016,101 @@ public class InvLevelViewModel : ReactiveObject
         // Synthetic "Default" for ungrouped groups
         if (_defaultCollRow != null)
         {
-            GridRows.Add(_defaultCollRow);
+            desired.Add(_defaultCollRow);
             if (_defaultCollRow.IsExpanded)
                 foreach (var g in _allGroups.Where(g => g.CollectionId == null))
                     AddGroupWithItems(g);
         }
+
+        SyncGridRows(desired);
+        PersistExpansion();
+    }
+
+    /// <summary>
+    /// Brings <see cref="GridRows"/> to <paramref name="desired"/> with the fewest possible
+    /// changes.
+    ///
+    /// <para>Clearing and refilling would be simpler, but a collection reset sends the DataGrid's
+    /// scroll position back to the top — so adding one item to a group near the bottom of a long
+    /// list threw the reader back to the first row every time. Individual inserts and removes
+    /// leave the viewport where it was.</para>
+    /// </summary>
+    private void SyncGridRows(List<object> desired)
+    {
+        var wanted = new HashSet<object>(desired, ReferenceEqualityComparer.Instance);
+        for (var i = GridRows.Count - 1; i >= 0; i--)
+            if (!wanted.Contains(GridRows[i]))
+                GridRows.RemoveAt(i);
+
+        for (var i = 0; i < desired.Count; i++)
+        {
+            if (i < GridRows.Count && ReferenceEquals(GridRows[i], desired[i])) continue;
+
+            var at = IndexOfRow(desired[i], i);
+            if (at >= 0) GridRows.Move(at, i);
+            else         GridRows.Insert(i, desired[i]);
+        }
+
+        while (GridRows.Count > desired.Count)
+            GridRows.RemoveAt(GridRows.Count - 1);
+    }
+
+    /// <summary>
+    /// Reference-identity search, because rows are view models without value equality and
+    /// <see cref="ObservableCollection{T}.IndexOf"/> would fall back to <c>Equals</c>.
+    /// </summary>
+    private int IndexOfRow(object row, int from)
+    {
+        for (var i = from; i < GridRows.Count; i++)
+            if (ReferenceEquals(GridRows[i], row)) return i;
+        return -1;
+    }
+
+    // ── Expansion state ───────────────────────────────────────────────────────
+    //
+    // Which groups and collections are folded shut is a view preference, not data, so it lives in
+    // AppPreferences rather than the group tables. Collapsed ids are stored rather than expanded
+    // ones so that anything newly created — by this app or an import — starts open.
+
+    private const string CollapsedGroupsKey      = "invlevels.collapsed_groups";
+    private const string CollapsedCollectionsKey = "invlevels.collapsed_collections";
+    private const string DefaultCollectionToken  = "default";
+
+    private bool _expansionRestored;
+
+    private void ApplyStoredExpansion()
+    {
+        var groups = Ids(_prefs.Get(CollapsedGroupsKey) ?? "");
+        foreach (var g in _allGroups)
+            g.IsExpanded = !groups.Contains(g.GroupId.ToString());
+
+        var colls = Ids(_prefs.Get(CollapsedCollectionsKey) ?? "");
+        foreach (var c in _allCollections)
+            c.IsExpanded = !colls.Contains(c.CollectionId!.Value.ToString());
+        if (_defaultCollRow is not null)
+            _defaultCollRow.IsExpanded = !colls.Contains(DefaultCollectionToken);
+
+        _expansionRestored = true;
+
+        static HashSet<string> Ids(string csv) =>
+            new(csv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+    }
+
+    private void PersistExpansion()
+    {
+        // Not before the stored state has been applied, or the first rebuild of a fresh load —
+        // where everything still defaults to expanded — would overwrite what was saved.
+        if (!_expansionRestored) return;
+
+        var groups = string.Join(',', _allGroups.Where(g => !g.IsExpanded).Select(g => g.GroupId));
+
+        var colls = _allCollections.Where(c => !c.IsExpanded)
+                                   .Select(c => c.CollectionId!.Value.ToString())
+                                   .ToList();
+        if (_defaultCollRow is { IsExpanded: false }) colls.Add(DefaultCollectionToken);
+
+        _ = _prefs.SetAsync(CollapsedGroupsKey, groups);
+        _ = _prefs.SetAsync(CollapsedCollectionsKey, string.Join(',', colls));
     }
 
     private static InvGroupDialogResult BuildResultFromRow(InvGroupRow row, int? multiplierOverride = null) =>

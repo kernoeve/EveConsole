@@ -14,8 +14,80 @@ namespace EveConsole.ViewModels;
 public sealed record ScopeStationRow(int Id, string LocationName);
 
 /// <summary>One enabled character, with their slot picture alongside the switches.</summary>
-public sealed record IndyCharRow(int Id, string CharacterName, string Activities,
-                                 string Assets, string Slots, WorklistIndyChar Config);
+/// <summary>
+/// One industry character in the grid, with the three activity switches editable in place and
+/// saved on change. Which slots may be used is the only thing this list decides, so it is the
+/// only thing there is to edit.
+/// </summary>
+public sealed class IndyCharRow : ReactiveObject
+{
+    private readonly Func<IndyCharRow, Task> _save;
+    private readonly bool _loaded;
+
+    public WorklistIndyChar Config { get; }
+    public int    Id            => Config.Id;
+    public string CharacterName => Config.CharacterName;
+    public string Slots         { get; }
+
+    public IndyCharRow(WorklistIndyChar config, string slots, Func<IndyCharRow, Task> save)
+    {
+        Config = config;
+        Slots  = slots;
+        _save  = save;
+
+        _manufacturing = config.Manufacturing;
+        _reactions     = config.Reactions;
+        _science       = config.Science;
+
+        _loaded = true;
+    }
+
+    private bool _manufacturing;
+    public bool Manufacturing
+    {
+        get => _manufacturing;
+        set { this.RaiseAndSetIfChanged(ref _manufacturing, value); Persist(); }
+    }
+
+    private bool _reactions;
+    public bool Reactions
+    {
+        get => _reactions;
+        set { this.RaiseAndSetIfChanged(ref _reactions, value); Persist(); }
+    }
+
+    private bool _science;
+    public bool Science
+    {
+        get => _science;
+        set { this.RaiseAndSetIfChanged(ref _science, value); Persist(); }
+    }
+
+    /// <summary>Sorted on, and it still reads as a sentence when every box is clear.</summary>
+    public string Activities
+    {
+        get
+        {
+            var parts = new List<string>(3);
+            if (_manufacturing) parts.Add("Manufacturing");
+            if (_reactions)     parts.Add("Reactions");
+            if (_science)       parts.Add("Science");
+            return parts.Count == 0 ? "— none —" : string.Join(", ", parts);
+        }
+    }
+
+    private void Persist()
+    {
+        if (!_loaded) return;
+
+        Config.Manufacturing = _manufacturing;
+        Config.Reactions     = _reactions;
+        Config.Science       = _science;
+
+        this.RaisePropertyChanged(nameof(Activities));
+        _ = _save(this);
+    }
+}
 
 /// <summary>
 /// Which characters run industry, on what, and where their materials come from.
@@ -321,12 +393,6 @@ public class WorklistIndustryViewModel : ReactiveObject
     private bool _science;
     public bool Science { get => _science; set => this.RaiseAndSetIfChanged(ref _science, value); }
 
-    private bool _corpAssets = true;
-    public bool CorpAssets { get => _corpAssets; set => this.RaiseAndSetIfChanged(ref _corpAssets, value); }
-
-    private bool _personalAssets = true;
-    public bool PersonalAssets { get => _personalAssets; set => this.RaiseAndSetIfChanged(ref _personalAssets, value); }
-
     private string _status = "";
     public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
 
@@ -374,17 +440,11 @@ public class WorklistIndustryViewModel : ReactiveObject
             var rows = candidates
                 .OrderBy(c => c.Config.CharacterName)
                 .Select(c => new IndyCharRow(
-                    c.Config.Id,
-                    c.Config.CharacterName,
-                    Describe(c.Config),
-                    c.Config.IncludeCorpAssets && c.Config.IncludePersonalAssets ? "Corp + personal"
-                        : c.Config.IncludeCorpAssets     ? "Corp"
-                        : c.Config.IncludePersonalAssets ? "Personal"
-                        : "— none —",
+                    c.Config,
                     $"M {c.FreeSlots[IndustryPool.Manufacturing]}/{c.Capacity[IndustryPool.Manufacturing]}  ·  "
                     + $"R {c.FreeSlots[IndustryPool.Reaction]}/{c.Capacity[IndustryPool.Reaction]}  ·  "
                     + $"S {c.FreeSlots[IndustryPool.Science]}/{c.Capacity[IndustryPool.Science]}",
-                    c.Config))
+                    SaveCharAsync))
                 .ToList();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
@@ -452,6 +512,34 @@ public class WorklistIndustryViewModel : ReactiveObject
     private static string Text(double days) =>
         days > 0 ? days.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) : "";
 
+    /// <summary>
+    /// Writes one character's activity switches back.
+    ///
+    /// <para>No reload afterwards. Rebuilding the grid would re-query every character's slots and
+    /// replace the row under the cursor mid-click; the worklist behind the tab is refreshed
+    /// instead, which is the part that actually changes.</para>
+    /// </summary>
+    private async Task SaveCharAsync(IndyCharRow row)
+    {
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            await db.WorklistIndyChars
+                .Where(x => x.Id == row.Id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(x => x.Manufacturing, row.Config.Manufacturing)
+                    .SetProperty(x => x.Reactions,     row.Config.Reactions)
+                    .SetProperty(x => x.Science,       row.Config.Science));
+
+            Status = $"{row.CharacterName}: {row.Activities}";
+            if (IndustryChanged is not null) await IndustryChanged();
+        }
+        catch (Exception ex)
+        {
+            Status = $"Could not save that change: {ex.Message}";
+        }
+    }
+
     private static string Describe(WorklistIndyChar c)
     {
         var parts = new List<string>(3);
@@ -484,8 +572,6 @@ public class WorklistIndustryViewModel : ReactiveObject
                 Manufacturing         = Manufacturing,
                 Reactions             = Reactions,
                 Science               = Science,
-                IncludeCorpAssets     = CorpAssets,
-                IncludePersonalAssets = PersonalAssets,
             });
         }
         else
@@ -494,8 +580,6 @@ public class WorklistIndustryViewModel : ReactiveObject
             existing.Manufacturing         = Manufacturing;
             existing.Reactions             = Reactions;
             existing.Science               = Science;
-            existing.IncludeCorpAssets     = CorpAssets;
-            existing.IncludePersonalAssets = PersonalAssets;
         }
 
         await db.SaveChangesAsync();

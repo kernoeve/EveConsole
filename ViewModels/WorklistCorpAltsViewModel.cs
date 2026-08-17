@@ -15,6 +15,73 @@ public sealed record CorpOption(long Id, string Name)
 }
 
 /// <summary>
+/// One corporation's assignment in the grid, with the character and note editable in place and
+/// saved on change. The corporation is not: it is the row's identity.
+/// </summary>
+public sealed class CorpAltRow : ReactiveObject
+{
+    private readonly Func<CorpAltRow, Task> _save;
+    private readonly bool _loaded;
+
+    public WorklistCorpAlt Alt { get; }
+    public int    Id              => Alt.Id;
+    public string CorporationName => Alt.CorporationName;
+
+    /// <summary>Held on the row, not reached for with $parent — see InvRuleRow.GroupOptions.</summary>
+    public IEnumerable<CharacterOption> CharacterOptions { get; }
+
+    public CorpAltRow(WorklistCorpAlt alt, CharacterOption? character,
+                      IEnumerable<CharacterOption> characterOptions, Func<CorpAltRow, Task> save)
+    {
+        Alt              = alt;
+        CharacterOptions = characterOptions;
+        _save            = save;
+
+        _character = character;
+        _note      = alt.Note;
+
+        _loaded = true;
+    }
+
+    private CharacterOption? _character;
+    public CharacterOption? Character
+    {
+        get => _character;
+        set
+        {
+            // A null is the combo clearing itself as the row realises, not an unassignment.
+            if (value is null) return;
+            this.RaiseAndSetIfChanged(ref _character, value);
+            this.RaisePropertyChanged(nameof(CharacterName));
+            Persist();
+        }
+    }
+
+    public string CharacterName => _character?.Name ?? Alt.CharacterName;
+
+    private string _note;
+    public string Note
+    {
+        get => _note;
+        set { this.RaiseAndSetIfChanged(ref _note, value); Persist(); }
+    }
+
+    private void Persist()
+    {
+        if (!_loaded) return;
+
+        if (_character is not null)
+        {
+            Alt.CharacterId   = _character.Id;
+            Alt.CharacterName = _character.Name;
+        }
+        Alt.Note = _note;
+
+        _ = _save(this);
+    }
+}
+
+/// <summary>
 /// Which character maintains each corporation's standing projects.
 ///
 /// The definitions themselves already live in Corp Activity, so this is the only configuration
@@ -28,12 +95,12 @@ public class WorklistCorpAltsViewModel : ReactiveObject
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly WorklistCorpAltService          _corpAlts;
 
-    public ObservableCollection<WorklistCorpAlt>  Alts       { get; } = [];
+    public ObservableCollection<CorpAltRow>       Alts       { get; } = [];
     public ObservableCollection<CorpOption>       Corps      { get; } = [];
     public ObservableCollection<CharacterOption>  Characters { get; } = [];
 
     public ReactiveCommand<Unit, Unit>             AddCommand    { get; }
-    public ReactiveCommand<WorklistCorpAlt, Unit>  DeleteCommand { get; }
+    public ReactiveCommand<CorpAltRow, Unit>       DeleteCommand { get; }
 
     public WorklistCorpAltsViewModel(IDbContextFactory<AppDbContext> dbFactory,
                                      WorklistCorpAltService corpAlts)
@@ -42,7 +109,7 @@ public class WorklistCorpAltsViewModel : ReactiveObject
         _corpAlts  = corpAlts;
 
         AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
-        DeleteCommand = ReactiveCommand.CreateFromTask<WorklistCorpAlt>(async a =>
+        DeleteCommand = ReactiveCommand.CreateFromTask<CorpAltRow>(async a =>
         {
             await _corpAlts.DeleteAsync(a.Id);
             await LoadAsync();
@@ -87,20 +154,26 @@ public class WorklistCorpAltsViewModel : ReactiveObject
             .Select(c => new { c.Id, c.Name })
             .ToListAsync();
 
+        var charOptions = chars.Select(c => new CharacterOption(c.Id, c.Name)).ToList();
+
         var unassigned = withProjects.Count(w => alts.All(a => a.CorporationId != w.CorpId));
         var totalDefs  = withProjects.Sum(w => w.Count);
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
+            // Characters first: the rows carry one each and the grid combo binds its ItemsSource
+            // here, so a row realised against an empty list draws blank and pushes null back.
+            Characters.Clear();
+            foreach (var c in charOptions) Characters.Add(c);
+
             Alts.Clear();
-            foreach (var a in alts) Alts.Add(a);
+            foreach (var a in alts)
+                Alts.Add(new CorpAltRow(a, charOptions.FirstOrDefault(o => o.Id == a.CharacterId),
+                                        Characters, SaveRowAsync));
 
             Corps.Clear();
             foreach (var w in withProjects.OrderBy(w => corpNames.GetValueOrDefault(w.CorpId, "")))
                 Corps.Add(new CorpOption(w.CorpId, corpNames.GetValueOrDefault(w.CorpId, $"Corp {w.CorpId}")));
-
-            Characters.Clear();
-            foreach (var c in chars) Characters.Add(new CharacterOption(c.Id, c.Name));
 
             Status = withProjects.Count == 0
                 ? "No standing projects defined yet — set them up in Corp Activity first."
@@ -109,6 +182,41 @@ public class WorklistCorpAltsViewModel : ReactiveObject
                        ? $" · {unassigned} corporation(s) unassigned, so their items show as blocked"
                        : "");
         });
+    }
+
+    /// <summary>
+    /// Writes one edited row back, a short pause after the last keystroke — the note would
+    /// otherwise save on every character typed. Per row, so one edit cannot cancel another's
+    /// pending write. No reload, which would replace the row under the cursor mid-edit.
+    /// </summary>
+    private readonly Dictionary<int, CancellationTokenSource> _pendingSaves = [];
+
+    private async Task SaveRowAsync(CorpAltRow row)
+    {
+        if (_pendingSaves.Remove(row.Id, out var inFlight)) inFlight.Cancel();
+        var cts = _pendingSaves[row.Id] = new CancellationTokenSource();
+
+        try { await Task.Delay(500, cts.Token); }
+        catch (OperationCanceledException) { return; }
+        finally { if (ReferenceEquals(_pendingSaves.GetValueOrDefault(row.Id), cts)) _pendingSaves.Remove(row.Id); }
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            await db.WorklistCorpAlts
+                .Where(x => x.Id == row.Id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(x => x.CharacterId,   row.Alt.CharacterId)
+                    .SetProperty(x => x.CharacterName, row.Alt.CharacterName)
+                    .SetProperty(x => x.Note,          row.Alt.Note));
+
+            Status = "Saved.";
+            if (CorpAltsChanged is not null) await CorpAltsChanged();
+        }
+        catch (Exception ex)
+        {
+            Status = $"Could not save that change: {ex.Message}";
+        }
     }
 
     private async Task AddAsync()

@@ -103,28 +103,34 @@ public class InventoryLevelGenerator(
                     var best  = mine.Count > 0 ? mine.Max(o => o.Price) : (decimal?)null;
                     var outbid = best is { } b && rival is { } r && b < r;
 
-                    string verb, detail;
+                    string title, detail;
                     int priority;
+                    // Only a shortfall is an amount to acquire, and only an amount can be added
+                    // to what another source wants of the same thing at the same station.
+                    string? mergeKey = null;
 
                     var stock = need.StockText;
                     var order = onOrder > 0 ? $", {onOrder:N0} on order here" : "";
                     var fill  = need.FillText(rule);
 
+                    // The name leads in every case. The column sorts on this string, so a leading
+                    // verb sorted every shortfall in the list under "P" for "Place order".
                     if (outbid)
                     {
-                        verb     = "Raise bid";
+                        title    = $"{name} — raise bid";
                         detail   = $"{stock}{order}. Outbid — best bid {rival:N2} ISK, "
                                  + $"yours {best:N2} ISK.";
                         priority = WorklistPriority.Outbid;
                     }
                     else if (shortfall > 0)
                     {
-                        verb     = onOrder > 0 ? "Increase order" : "Place order";
+                        title    = $"{name} × {shortfall:N0}";
                         detail   = $"{stock}{order}.{fill} Short {shortfall:N0}."
                                  + (bids.IsTracked(rule.LocationId)
                                       ? ""
                                       : " Competing bids unknown — this location is not a configured market source.");
                         priority = WorklistPriority.ForStock(need.Percent);
+                        mergeKey = WorklistItem.BuyMergeKey(rule.LocationId, gi.TypeId);
                     }
                     else continue;   // below threshold, but existing orders already cover it
 
@@ -137,8 +143,10 @@ public class InventoryLevelGenerator(
                         Key           = $"inv_level:{rule.Id}:{gi.TypeId}",
                         Source        = Id,
                         Kind          = WorklistKind.Buy,
-                        Title         = $"{verb} — {name}",
+                        Title         = title,
                         Detail        = $"{group.Name} · below {rule.ThresholdPercent:0.#}% · {detail}",
+                        Quantity      = shortfall > 0 ? shortfall : 0,
+                        MergeKey      = mergeKey,
                         Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
                         BlockedBy     = blocked ? "No character assigned to this location" : "",
                         CharacterId   = alt?.CharacterId   ?? 0,

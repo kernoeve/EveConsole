@@ -11,6 +11,76 @@ using ReactiveUI;
 namespace EveConsole.ViewModels;
 
 /// <summary>
+/// One market alt in the grid, with the character and the note editable in place and saved on
+/// change. The station is not: it is the row's identity, and repointing it is the same act as
+/// adding one, which the form above already does.
+/// </summary>
+public sealed class MarketAltRow : ReactiveObject
+{
+    private readonly Func<MarketAltRow, Task> _save;
+    private readonly bool _loaded;
+
+    public WorklistMarketAlt Alt { get; }
+    public int    Id           => Alt.Id;
+    public string LocationName => Alt.LocationName;
+
+    /// <summary>Held on the row, not reached for with $parent — see InvRuleRow.GroupOptions.</summary>
+    public IEnumerable<CharacterOption> CharacterOptions { get; }
+
+    public MarketAltRow(WorklistMarketAlt alt, CharacterOption? character,
+                        IEnumerable<CharacterOption> characterOptions, Func<MarketAltRow, Task> save)
+    {
+        Alt              = alt;
+        CharacterOptions = characterOptions;
+        _save            = save;
+
+        _character = character;
+        _note      = alt.Note;
+
+        _loaded = true;
+    }
+
+    private CharacterOption? _character;
+    public CharacterOption? Character
+    {
+        get => _character;
+        set
+        {
+            // A null is the combo clearing itself while the grid realises the row, not the user
+            // unassigning the station — which is what Remove is for.
+            if (value is null) return;
+            this.RaiseAndSetIfChanged(ref _character, value);
+            this.RaisePropertyChanged(nameof(CharacterName));
+            Persist();
+        }
+    }
+
+    /// <summary>Sorted on, so the column still orders by who rather than by row order.</summary>
+    public string CharacterName => _character?.Name ?? Alt.CharacterName;
+
+    private string _note;
+    public string Note
+    {
+        get => _note;
+        set { this.RaiseAndSetIfChanged(ref _note, value); Persist(); }
+    }
+
+    private void Persist()
+    {
+        if (!_loaded) return;
+
+        if (_character is not null)
+        {
+            Alt.CharacterId   = _character.Id;
+            Alt.CharacterName = _character.Name;
+        }
+        Alt.Note = _note;
+
+        _ = _save(this);
+    }
+}
+
+/// <summary>
 /// Which character works which station.
 ///
 /// Config rather than a report, and it lives inside the Worklist tool because it exists only to
@@ -23,11 +93,11 @@ public class WorklistMarketAltsViewModel : ReactiveObject
     private readonly CorpActivityService             _stations;
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
 
-    public ObservableCollection<WorklistMarketAlt>     MarketAlts      { get; } = [];
+    public ObservableCollection<MarketAltRow>     MarketAlts { get; } = [];
     public ObservableCollection<CharacterOption>  Characters { get; } = [];
 
     public ReactiveCommand<Unit, Unit>          AddCommand    { get; }
-    public ReactiveCommand<WorklistMarketAlt, Unit>  DeleteCommand { get; }
+    public ReactiveCommand<MarketAltRow, Unit>  DeleteCommand { get; }
 
     public WorklistMarketAltsViewModel(WorklistMarketAltService marketAlts, CorpActivityService stations,
                                   IDbContextFactory<AppDbContext> dbFactory)
@@ -37,7 +107,7 @@ public class WorklistMarketAltsViewModel : ReactiveObject
         _dbFactory = dbFactory;
 
         AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
-        DeleteCommand = ReactiveCommand.CreateFromTask<WorklistMarketAlt>(async d =>
+        DeleteCommand = ReactiveCommand.CreateFromTask<MarketAltRow>(async d =>
         {
             await _marketAlts.DeleteAsync(d.Id);
             await LoadAsync();
@@ -97,20 +167,64 @@ public class WorklistMarketAltsViewModel : ReactiveObject
             .OrderBy(c => c.Name)
             .Select(c => new { c.Id, c.Name })
             .ToListAsync();
+        var options = chars.Select(c => new CharacterOption(c.Id, c.Name)).ToList();
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            MarketAlts.Clear();
-            foreach (var d in rows) MarketAlts.Add(d);
-
+            // Characters first: the rows carry one each and the grid combo binds its ItemsSource
+            // here, so a row realised against an empty list draws blank and pushes null back.
             Characters.Clear();
-            foreach (var c in chars) Characters.Add(new CharacterOption(c.Id, c.Name));
+            foreach (var c in options) Characters.Add(c);
+
+            MarketAlts.Clear();
+            foreach (var d in rows)
+                MarketAlts.Add(new MarketAltRow(d, options.FirstOrDefault(o => o.Id == d.CharacterId),
+                                                Characters, SaveRowAsync));
 
             Status = rows.Count == 0
                 ? "No marketAlts yet. Until a station has one, its items show as blocked because "
                 + "nothing knows which character should do the work."
                 : $"{rows.Count:N0} market alt(s)";
         });
+    }
+
+    /// <summary>
+    /// Writes one edited row back, a short pause after the last keystroke.
+    ///
+    /// <para>The pause is for the note, which would otherwise save on every character typed and
+    /// rebuild the worklist behind the tab each time. Per row, so editing one cannot cancel a
+    /// neighbour's pending write.</para>
+    ///
+    /// <para>No reload: rebuilding the grid would replace the row under the cursor mid-edit.</para>
+    /// </summary>
+    private readonly Dictionary<int, CancellationTokenSource> _pendingSaves = [];
+
+    private async Task SaveRowAsync(MarketAltRow row)
+    {
+        if (_pendingSaves.Remove(row.Id, out var inFlight)) inFlight.Cancel();
+        var cts = _pendingSaves[row.Id] = new CancellationTokenSource();
+
+        try { await Task.Delay(500, cts.Token); }
+        catch (OperationCanceledException) { return; }
+        finally { if (ReferenceEquals(_pendingSaves.GetValueOrDefault(row.Id), cts)) _pendingSaves.Remove(row.Id); }
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            await db.WorklistMarketAlts
+                .Where(x => x.Id == row.Id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(x => x.CharacterId,   row.Alt.CharacterId)
+                    .SetProperty(x => x.CharacterName, row.Alt.CharacterName)
+                    .SetProperty(x => x.Note,          row.Alt.Note));
+
+            Status = "Saved.";
+            if (MarketAltsChanged is not null) await MarketAltsChanged();
+        }
+        catch (Exception ex)
+        {
+            Status = $"Could not save that change: {ex.Message}";
+        }
     }
 
     private async Task AddAsync()

@@ -48,7 +48,10 @@ public class StandingBuyOrderGenerator(
                 Key           = $"standing_buy:{r.TypeId}:{r.LocationId}",
                 Source        = Id,
                 Kind          = WorklistKind.Buy,
-                Title         = $"{verb} — {r.TypeName}",
+                // Name first so the column sorts by item. These carry no quantity — they are
+                // about the state of a standing order, not an amount to acquire — so the verb
+                // stays, trailing, rather than being replaced by a count there is none of.
+                Title         = $"{r.TypeName} — {verb.ToLowerInvariant()}",
                 Detail        = detail,
                 Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
                 BlockedBy     = blocked ? "No character assigned to this location" : "",

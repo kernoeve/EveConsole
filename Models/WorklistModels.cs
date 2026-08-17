@@ -149,12 +149,20 @@ public class WorklistIndyChar
     public bool Science       { get; set; }
 
     /// <summary>
-    /// Where this character's jobs may draw materials from. Both are offered because the habit
-    /// differs: materials pooled in a corp hangar serve every alt in that corp, while a player
-    /// who keeps stock in personal hangars per structure needs the personal side counted instead.
-    /// Getting this wrong does not merely mis-count — it suggests jobs that cannot start.
+    /// Unused. Kept only so existing rows still load — nothing reads these.
+    ///
+    /// <para>They used to gate, per character, whether corp or personal stock counted for that
+    /// character's jobs, which was wrong twice over. What material is the player's is the asset
+    /// scope's business and applies to everyone alike; what a given pilot can physically reach is
+    /// their own hangar and their own corporation's, which follows from who they are and needs no
+    /// setting. In between, the personal flag quietly hid every asset belonging to a character not
+    /// on this list — 8,985 rows of 11,624, including blueprints held by a trading alt.</para>
     /// </summary>
+    [Obsolete("Asset visibility comes from the scope; per-character reach from corp membership.")]
     public bool IncludeCorpAssets     { get; set; } = true;
+
+    /// <inheritdoc cref="IncludeCorpAssets"/>
+    [Obsolete("Asset visibility comes from the scope; per-character reach from corp membership.")]
     public bool IncludePersonalAssets { get; set; } = true;
 
     public string Note { get; set; } = "";

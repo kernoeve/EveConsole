@@ -15,10 +15,146 @@ public sealed record InvGroupOption(int Id, string Name)
     public override string ToString() => Name;
 }
 
-/// <summary>One rule as shown in the grid, with the group resolved to its name.</summary>
-public sealed record InvRuleRow(int Id, string GroupName, string ActionText, string ThresholdText,
-                                string FillText, string LocationName, string AltText,
-                                WorklistInvRule Rule);
+/// <summary>
+/// One rule as shown in the grid, editable in place.
+///
+/// <para>Every field writes straight through to the database on change rather than waiting for a
+/// Save. The grid is the whole editor — there is nowhere else to press Save, and a rule left
+/// half-edited because the user clicked away would silently not be the rule they think it is.</para>
+/// </summary>
+public sealed class InvRuleRow : ReactiveObject
+{
+    private readonly Func<InvRuleRow, Task> _save;
+    private readonly Func<long, string>     _altFor;
+
+    /// <summary>Suppresses writes while the constructor fills the fields in.</summary>
+    private readonly bool _loaded;
+
+    public WorklistInvRule Rule { get; }
+    public int             Id   => Rule.Id;
+
+    /// <summary>
+    /// The dropdown contents, held on the row rather than reached for through the visual tree.
+    ///
+    /// <para>A cell template binding its ItemsSource with <c>$parent[UserControl]</c> has to walk
+    /// up to an ancestor that is not attached yet while the cell is being realised, so the list
+    /// arrives after SelectedItem — and a ComboBox handed a selection that is not in its (still
+    /// empty) items clears it. That is what drew every Group and Action cell blank until the tab
+    /// was left and re-entered. Binding to the row's own DataContext resolves immediately.</para>
+    /// </summary>
+    public IEnumerable<InvGroupOption> GroupOptions  { get; }
+    public IReadOnlyList<string>       ActionOptions { get; }
+
+    public InvRuleRow(WorklistInvRule rule, InvGroupOption? group,
+                      IEnumerable<InvGroupOption> groupOptions, IReadOnlyList<string> actionOptions,
+                      Func<InvRuleRow, Task> save, Func<long, string> altFor)
+    {
+        Rule          = rule;
+        GroupOptions  = groupOptions;
+        ActionOptions = actionOptions;
+        _save         = save;
+        _altFor       = altFor;
+
+        _group        = group;
+        _action       = rule.Action;
+        _threshold    = rule.ThresholdPercent;
+        _fill         = rule.FillTargetPercent;
+        _locationName = rule.LocationName;
+
+        _loaded = true;
+    }
+
+    private InvGroupOption? _group;
+    public InvGroupOption? Group
+    {
+        get => _group;
+        set
+        {
+            // A null is the combo clearing itself, not the user unsetting the group — there is no
+            // such thing as a rule without one. Accepting it would blank the cell and save.
+            if (value is null) return;
+            this.RaiseAndSetIfChanged(ref _group, value);
+            Persist();
+        }
+    }
+
+    /// <summary>Sorted and searched on, so the grid keeps working when the cell shows a combo.</summary>
+    public string GroupName => _group?.Name ?? $"Group {Rule.GroupId}";
+
+    private string _action;
+    public string Action
+    {
+        get => _action;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _action, value);
+            this.RaisePropertyChanged(nameof(NeedsLocation));
+            this.RaisePropertyChanged(nameof(LocationDisplay));
+            this.RaisePropertyChanged(nameof(AltText));
+            Persist();
+        }
+    }
+
+    private double _threshold;
+    public double Threshold
+    {
+        get => _threshold;
+        set { this.RaiseAndSetIfChanged(ref _threshold, value); Persist(); }
+    }
+
+    private double _fill;
+    public double Fill
+    {
+        get => _fill;
+        set { this.RaiseAndSetIfChanged(ref _fill, value); Persist(); }
+    }
+
+    private string _locationName;
+    public string LocationName
+    {
+        get => _locationName;
+        private set => this.RaiseAndSetIfChanged(ref _locationName, value);
+    }
+
+    /// <summary>
+    /// Set from the picker rather than by typing: the id is what the rest of the tool matches on,
+    /// and a free-typed name would leave the row pointing at the station it used to mean.
+    /// </summary>
+    public SdeStationResult? PickedLocation
+    {
+        get => null;
+        set
+        {
+            if (value is null) return;
+            Rule.LocationId = value.StationId;
+            LocationName    = value.Name;
+            this.RaisePropertyChanged(nameof(LocationDisplay));
+            this.RaisePropertyChanged(nameof(AltText));
+            Persist();
+        }
+    }
+
+    /// <summary>A Build rule's site comes from the park, so there is no station to show or pick.</summary>
+    public bool NeedsLocation => Action != "Build";
+
+    public string LocationDisplay => NeedsLocation ? LocationName : "— from park —";
+
+    public string AltText => Action == "Build" ? "— by skill —" : _altFor(Rule.LocationId);
+
+    private void Persist()
+    {
+        if (!_loaded) return;
+
+        Rule.GroupId           = _group?.Id ?? Rule.GroupId;
+        Rule.Action            = _action;
+        Rule.ThresholdPercent  = _threshold;
+        Rule.FillTargetPercent = _fill;
+        Rule.LocationName      = _locationName;
+
+        this.RaisePropertyChanged(nameof(GroupName));
+        _ = _save(this);
+    }
+}
 
 /// <summary>
 /// Rules that turn an inventory level group into buy orders.
@@ -121,33 +257,35 @@ public class WorklistInvRulesViewModel : ReactiveObject
         var altMap = await _marketAlts.GetByLocationAsync();
 
         var groupNames = groups.ToDictionary(g => g.Id, g => g.Name);
+        var options    = groups.Select(g => new InvGroupOption(g.Id, g.Name)).ToList();
+
+        // Surfaced per rule because a Buy rule pointing at a station with no market alt produces
+        // blocked items, and this is where that is fixable. A Build rule routes by skills and
+        // slots instead, so it has no market alt to show.
+        string AltFor(long locationId) =>
+            altMap.TryGetValue(locationId, out var d) ? d.CharacterName : "— unassigned —";
 
         var rows = rules
             .OrderBy(r => groupNames.GetValueOrDefault(r.GroupId, ""))
             .ThenByDescending(r => r.ThresholdPercent)
             .Select(r => new InvRuleRow(
-                r.Id,
-                groupNames.GetValueOrDefault(r.GroupId, $"Group {r.GroupId}"),
-                r.Action,
-                $"below {r.ThresholdPercent:0.#}%",
-                $"to {r.FillTargetPercent:0.#}%",
-                r.Action == "Build" ? "— from park —" : r.LocationName,
-                // Surfaced per rule because a Buy rule pointing at a station with no market alt
-                // produces blocked items, and this is where that is fixable. A Build rule routes
-                // by skills and slots instead, so it has no market alt to show.
-                r.Action == "Build"
-                    ? "— by skill —"
-                    : altMap.TryGetValue(r.LocationId, out var d) ? d.CharacterName : "— unassigned —",
-                r))
+                r,
+                options.FirstOrDefault(o => o.Id == r.GroupId),
+                Groups, Actions,
+                SaveAsync,
+                AltFor))
             .ToList();
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
+            // Groups first, always. The rows carry a group each and the grid's combo boxes bind
+            // their ItemsSource to this collection — realise a row against an empty one and the
+            // combo cannot match its SelectedItem, so it draws blank and pushes null back.
+            Groups.Clear();
+            foreach (var g in options) Groups.Add(g);
+
             Rules.Clear();
             foreach (var r in rows) Rules.Add(r);
-
-            Groups.Clear();
-            foreach (var g in groups) Groups.Add(new InvGroupOption(g.Id, g.Name));
 
             Status = groups.Count == 0
                 ? "No inventory level groups exist yet — create one in Inventory Levels first."
@@ -155,6 +293,56 @@ public class WorklistInvRulesViewModel : ReactiveObject
                     ? "No rules yet."
                     : $"{rows.Count:N0} rule(s)";
         });
+    }
+
+    /// <summary>
+    /// Pending saves, one per row.
+    ///
+    /// <para>Per row rather than one shared timer, because cancelling a neighbour's pending write
+    /// to start your own would drop it silently.</para>
+    /// </summary>
+    private readonly Dictionary<int, CancellationTokenSource> _pendingSaves = [];
+
+    /// <summary>
+    /// Writes one edited row back, a short pause after the last keystroke.
+    ///
+    /// <para>The pause matters: typing "75" into a percentage sets 7 and then 75, and every write
+    /// rebuilds the whole worklist behind this tab — which is seconds of work. Coalescing a burst
+    /// of keystrokes into one write keeps the cell responsive while it is being typed in.</para>
+    ///
+    /// <para>Deliberately does not reload the grid. A reload would rebuild every row while the
+    /// user still has the cell open, taking the focus and the caret with it — so the edited row
+    /// stays as it is and only the worklist behind it is rebuilt.</para>
+    /// </summary>
+    private async Task SaveAsync(InvRuleRow row)
+    {
+        if (_pendingSaves.Remove(row.Id, out var inFlight)) inFlight.Cancel();
+        var cts = _pendingSaves[row.Id] = new CancellationTokenSource();
+
+        try { await Task.Delay(500, cts.Token); }
+        catch (OperationCanceledException) { return; }
+        finally { if (ReferenceEquals(_pendingSaves.GetValueOrDefault(row.Id), cts)) _pendingSaves.Remove(row.Id); }
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            await db.WorklistInvRules
+                .Where(x => x.Id == row.Id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(x => x.GroupId,           row.Rule.GroupId)
+                    .SetProperty(x => x.Action,            row.Rule.Action)
+                    .SetProperty(x => x.ThresholdPercent,  row.Rule.ThresholdPercent)
+                    .SetProperty(x => x.FillTargetPercent, row.Rule.FillTargetPercent)
+                    .SetProperty(x => x.LocationId,        row.Rule.LocationId)
+                    .SetProperty(x => x.LocationName,      row.Rule.LocationName));
+
+            Status = "Saved.";
+            if (RulesChanged is not null) await RulesChanged();
+        }
+        catch (Exception ex)
+        {
+            Status = $"Could not save that change: {ex.Message}";
+        }
     }
 
     private async Task AddAsync()

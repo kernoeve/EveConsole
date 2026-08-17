@@ -145,15 +145,105 @@ public class WorklistSettings(AppPreferencesService prefs)
 
     public const string MaxJobDaysMfgKey = "worklist.industry.max_job_days.manufacturing";
     public const string MaxJobDaysRxnKey = "worklist.industry.max_job_days.reaction";
+    public const string MaxJobDaysSciKey = "worklist.industry.max_job_days.science";
 
     public double MaxJobDaysManufacturing => Days(MaxJobDaysMfgKey);
     public double MaxJobDaysReaction      => Days(MaxJobDaysRxnKey);
 
-    public double MaxJobDaysFor(IndustryPool pool) =>
-        pool == IndustryPool.Reaction ? MaxJobDaysReaction : MaxJobDaysManufacturing;
+    /// <summary>
+    /// Copying and invention, which run to their own rhythm again. An invention attempt on a
+    /// capital blueprint is over eight days on its own, so a limit set for manufacturing would
+    /// chop the batch into single attempts and hand out a slot for each.
+    /// </summary>
+    public double MaxJobDaysScience => Days(MaxJobDaysSciKey);
+
+    public double MaxJobDaysFor(IndustryPool pool) => pool switch
+    {
+        IndustryPool.Reaction => MaxJobDaysReaction,
+        IndustryPool.Science  => MaxJobDaysScience,
+        _                     => MaxJobDaysManufacturing,
+    };
+
+    // ── Where science happens ─────────────────────────────────────────────────
+    //
+    // Unlike manufacturing, science is not routed by what is being made: a lab is a lab, and a
+    // player who has rigged one structure for copying and another for invention wants every such
+    // job to go there. So these are named outright rather than derived from the item's category.
+    //
+    // Zero means unconfigured, and the generator then falls back to the park's first linked
+    // structure and says so — silently picking would hide that the rigs being modelled are not the
+    // rigs the job would really run under.
+
+    public const string InventionStructureKey = "worklist.industry.invention_structure_id";
+    public const string CopyStructureKey      = "worklist.industry.copy_structure_id";
+
+    public long InventionStructureId => prefs.GetLong(InventionStructureKey, 0);
+    public long CopyStructureId      => prefs.GetLong(CopyStructureKey, 0);
+
+    public Task SetScienceStructureAsync(string key, long structureId) =>
+        prefs.SetAsync(key, structureId.ToString());
+
+    // ── Decryptors ────────────────────────────────────────────────────────────
+    //
+    // Held as names rather than type ids because that is what the player thinks in, and the eight
+    // generic decryptors have not changed name in a decade. An unrecognised name reads as none,
+    // which costs a decryptor's worth of runs and never invents something that cannot be invented.
+
+    public const string ShipDecryptorKey  = "worklist.industry.decryptor.ship";
+    public const string OtherDecryptorKey = "worklist.industry.decryptor.other";
+
+    /// <summary>
+    /// Ships default to Parity: +3 runs on a blueprint that would otherwise carry one is the
+    /// difference between four hulls per success and one, and the 50% it adds to the odds pays for
+    /// the decryptor several times over on anything hull-sized.
+    /// </summary>
+    public string ShipDecryptor => prefs.Get(ShipDecryptorKey) ?? "Parity Decryptor";
+
+    /// <summary>
+    /// Everything else defaults to none. A module or a round of ammunition already invents at ten
+    /// runs a success, so the marginal runs are worth less than the decryptor, and buying one per
+    /// attempt on a line that runs hundreds of attempts is real money.
+    /// </summary>
+    public string OtherDecryptor => prefs.Get(OtherDecryptorKey) ?? "";
+
+    public Task SetDecryptorAsync(string key, string name) => prefs.SetAsync(key, name);
 
     public Task SetMaxJobDaysAsync(string key, double days) =>
         prefs.SetAsync(key, days.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+
+    // ── Station level deadbands ───────────────────────────────────────────────
+    //
+    // A level held to the unit is a level that generates a haul every time anything is consumed.
+    // Ten units short of a thousand is not worth a trip, and a task that appears, gets ignored,
+    // and reappears next refresh trains the reader to ignore the list.
+    //
+    // Two separate bands because they guard opposite directions and a player may not want them
+    // symmetric: being under at a build site costs a stalled job, while being over costs only
+    // space. Both are a percentage of the level and both are hysteresis — the trip is triggered
+    // at the edge of the band but fills or drains all the way back to the level, so crossing it
+    // once does not leave the station sitting permanently at the trigger point.
+
+    public const string RestockBandKey = "worklist.station_levels.restock_band_pct";
+    public const string SurplusBandKey = "worklist.station_levels.surplus_band_pct";
+
+    /// <summary>How far below its level a station must fall before it is worth restocking.</summary>
+    public double RestockBandPercent => Band(RestockBandKey);
+
+    /// <summary>How far above its level a station must rise before the excess is swept away.</summary>
+    public double SurplusBandPercent => Band(SurplusBandKey);
+
+    public Task SetBandAsync(string key, double percent) =>
+        prefs.SetAsync(key, Math.Clamp(percent, 0, 100)
+            .ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+
+    /// <summary>Ten percent by default, and never negative — a negative band would mean acting
+    /// before there is anything to act on.</summary>
+    private double Band(string key) =>
+        prefs.Get(key) is { Length: > 0 } s
+        && double.TryParse(s, System.Globalization.NumberStyles.Float,
+                           System.Globalization.CultureInfo.InvariantCulture, out var v)
+            ? Math.Clamp(v, 0, 100)
+            : 10.0;
 
     /// <summary>
     /// Seven days by default: a week is the span most industrialists already plan around, and it

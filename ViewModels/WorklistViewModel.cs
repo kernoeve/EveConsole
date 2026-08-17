@@ -6,12 +6,28 @@ using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
+/// <summary>One line in a summary-panel section: a label and its figure.</summary>
+public sealed record SummaryStatVm(string Label, string Value);
+
 /// <summary>One row on the worklist.</summary>
 public class WorklistRowVm : ReactiveObject
 {
     private readonly WorklistItem _item;
 
-    public WorklistRowVm(WorklistItem item) => _item = item;
+    public WorklistRowVm(WorklistItem item, int sequence)
+    {
+        _item    = item;
+        Sequence = sequence;
+    }
+
+    /// <summary>
+    /// This row's place in the default priority order, numbered from one.
+    ///
+    /// <para>Sorting a column throws that order away, and the ranking is the tool's actual output —
+    /// it is not recoverable by sorting on anything else, because it is a blend of readiness,
+    /// priority, character and title. Carrying it as a column means sorting on it gets you back.</para>
+    /// </summary>
+    public int Sequence { get; }
 
     public string Key           => _item.Key;
     public string Title         => _item.Title;
@@ -22,6 +38,9 @@ public class WorklistRowVm : ReactiveObject
     public int    TypeId        => _item.TypeId;
     public int    Priority      => _item.Priority;
     public bool   IsSnoozed     => _item.IsSnoozed;
+    public double Value         => _item.Value;
+    public double VolumeRaw     => _item.Volume;
+    public IndustryPool? Pool   => _item.Pool;
 
     /// <summary>The kind of doing, as its own scannable column.</summary>
     public string KindText => _item.Kind switch
@@ -29,6 +48,8 @@ public class WorklistRowVm : ReactiveObject
         WorklistKind.Buy         => "Buy",
         WorklistKind.Haul        => "Haul",
         WorklistKind.Job         => "Job",
+        WorklistKind.AssetSafety => "Asset Safety",
+        WorklistKind.SkillQueue  => "Skill Queue",
         _                        => "Corp Project",
     };
 
@@ -46,6 +67,24 @@ public class WorklistRowVm : ReactiveObject
     /// <summary>The manifest, shown by expanding the row. Empty for single-item tasks.</summary>
     public IReadOnlyList<WorklistLine> Lines => _item.Lines;
     public bool HasLines => _item.Lines.Count > 0;
+
+    /// <summary>
+    /// Whether the manifest is showing. Collapsed by default and toggled by the row's own +/−,
+    /// rather than following selection: a reader clicks a row to work on it as often as to look
+    /// inside it, and having the manifest open and close underneath that click moves the list.
+    /// </summary>
+    private bool _isExpanded;
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isExpanded, value);
+            this.RaisePropertyChanged(nameof(ExpandGlyph));
+        }
+    }
+
+    public string ExpandGlyph => _isExpanded ? "−" : "+";
 
     public string ReadinessText => _item.Readiness switch
     {
@@ -89,6 +128,58 @@ public class WorklistRowVm : ReactiveObject
 }
 
 /// <summary>
+/// One station's need for one item on the Station Needs grid.
+///
+/// <para>Formatted text alongside the raw value each column sorts on, so the grid orders by
+/// quantity rather than by the digits of a thousands-separated string.</para>
+/// </summary>
+public sealed class StationNeedRowVm(StationNeed n)
+{
+    public string Station => n.StationName;
+    public string Item    => n.TypeName;
+
+    public long   TotalRaw  => n.Total;
+    public string Total     => n.Total.ToString("N0");
+    public long   OnHandRaw => n.OnHand;
+    public string OnHand    => n.OnHand.ToString("N0");
+
+    public long   ShortRaw  => n.Shortfall;
+    public string Short     => n.Shortfall > 0 ? n.Shortfall.ToString("N0") : "";
+    /// <summary>Red only where the station is actually short; a covered need is not a problem.</summary>
+    public string ShortColor => n.Shortfall > 0 ? "#c85a5a" : "#555566";
+
+    // Priced and sized on the shortfall, so the columns answer "what does closing this cost, and
+    // what does it take to carry" rather than restating stock already sitting there.
+    public double ShortValueRaw  => n.ShortfallValue;
+    public string ShortValue     => n.Shortfall > 0 ? Isk(n.ShortfallValue) : "";
+    public double ShortVolumeRaw => n.ShortfallVolume;
+    public string ShortVolume    => n.Shortfall > 0 ? $"{n.ShortfallVolume:N0} m³" : "";
+
+    public long   OrderJobsRaw => n.OrderJobs;
+    public long   JobsRaw      => n.Jobs;
+    public long   InvLevelsRaw => n.InventoryLevels;
+    public long   StnLevelsRaw => n.StationLevels;
+
+    // Blank rather than "0": a column of zeroes is noise, and what the reader is scanning for is
+    // which of the four is carrying the number.
+    public string OrderJobs => Some(n.OrderJobs);
+    public string Jobs      => Some(n.Jobs);
+    public string InvLevels => Some(n.InventoryLevels);
+    public string StnLevels => Some(n.StationLevels);
+
+    private static string Some(long v) => v > 0 ? v.ToString("N0") : "";
+
+    internal static string Isk(double v) => v switch
+    {
+        >= 1_000_000_000_000 => $"{v / 1_000_000_000_000:N2}T",
+        >= 1_000_000_000     => $"{v / 1_000_000_000:N2}B",
+        >= 1_000_000         => $"{v / 1_000_000:N1}M",
+        >= 1_000             => $"{v / 1_000:N0}k",
+        _                    => v.ToString("N0"),
+    };
+}
+
+/// <summary>
 /// The worklist: what to do next, and whether it can be done now.
 ///
 /// Rows are rebuilt from live data on every refresh rather than tracked, so an item disappears
@@ -100,6 +191,77 @@ public class WorklistViewModel : ReactiveObject
     private readonly WorklistService _service;
 
     public ObservableCollection<WorklistRowVm> Rows { get; } = [];
+
+    // ── Station Needs ─────────────────────────────────────────────────────────
+    //
+    // What each station wants and which demand is asking for it. The worklist says what to do;
+    // this says why, which is the question asked when a suggestion looks wrong.
+
+    public ObservableCollection<StationNeedRowVm> Needs { get; } = [];
+
+    private bool _needsLoading;
+    public bool NeedsLoading { get => _needsLoading; private set => this.RaiseAndSetIfChanged(ref _needsLoading, value); }
+
+    private string _needsStatus = "Open this tab to work out what every station wants.";
+    public string NeedsStatus { get => _needsStatus; private set => this.RaiseAndSetIfChanged(ref _needsStatus, value); }
+
+    public ReactiveCommand<Unit, Unit> RefreshNeedsCommand { get; private set; } = null!;
+
+    /// <summary>
+    /// Which top-level tab is showing. Watched only so Station Needs can fill itself the first
+    /// time it is opened: working it out costs the same gather the worklist does, which is worth
+    /// paying when the tab is looked at and not worth paying at startup for everyone who never
+    /// opens it.
+    /// </summary>
+    private int _outerTabIndex;
+    public int OuterTabIndex
+    {
+        get => _outerTabIndex;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _outerTabIndex, value);
+            if (value == StationNeedsTab && Needs.Count == 0 && !NeedsLoading) _ = LoadNeedsAsync();
+        }
+    }
+
+    private const int StationNeedsTab = 1;
+
+    private async Task LoadNeedsAsync()
+    {
+        // Taken off the service's own generator list rather than injected separately, so the
+        // report is produced by the very object that plans the hauling.
+        var logistics = _service.Generators.OfType<LogisticsGenerator>().FirstOrDefault();
+        if (logistics is null)
+        {
+            NeedsStatus = "The Logistics source is not available.";
+            return;
+        }
+
+        NeedsLoading = true;
+        try
+        {
+            var rows = await logistics.NeedsAsync();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                Needs.Clear();
+                foreach (var r in rows.OrderByDescending(r => r.Shortfall).ThenBy(r => r.StationName))
+                    Needs.Add(new StationNeedRowVm(r));
+
+                var stations = rows.Select(r => r.StationId).Distinct().Count();
+                var short_   = rows.Count(r => r.Shortfall > 0);
+                NeedsStatus = rows.Count == 0
+                    ? "Nothing is wanted anywhere — no build rules, orders or station levels are asking for material."
+                    : $"{rows.Count:N0} need(s) across {stations} station(s); {short_:N0} short. "
+                    + "Shortest first. These are wants, not tasks — a small shortfall may sit inside "
+                    + "the station-level deadband and raise no haul.";
+            });
+        }
+        catch (Exception ex)
+        {
+            NeedsStatus = $"Could not work out station needs: {ex.Message}";
+        }
+        finally { NeedsLoading = false; }
+    }
 
     /// <summary>Market alt configuration, hosted here because it exists only to serve this tool.</summary>
     public WorklistMarketAltsViewModel MarketAltsVm { get; }
@@ -151,6 +313,7 @@ public class WorklistViewModel : ReactiveObject
         MarketAltsVm.MarketAltsChanged = RefreshAsync;
 
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
+        RefreshNeedsCommand = ReactiveCommand.CreateFromTask(LoadNeedsAsync);
         ClearFiltersCommand = ReactiveCommand.Create(ClearFilters);
         SnoozeCommand  = ReactiveCommand.CreateFromTask<string>(async key =>
         {
@@ -217,6 +380,28 @@ public class WorklistViewModel : ReactiveObject
     {
         get => _showNotReady;
         set { this.RaiseAndSetIfChanged(ref _showNotReady, value); _ = RefreshAsync(); }
+    }
+
+    // Counts live on the toggles themselves rather than only in the status line's "hidden" tail.
+    // The tail says nothing once a toggle is on, which is exactly when the reader wants to know
+    // how much of what they are looking at is the part they just revealed.
+    //
+    // Counted over the whole run, not the filtered rows: these describe what the toggle governs,
+    // and a number that moved when an unrelated column filter changed would read as the toggle
+    // having done something.
+
+    private string _notReadyLabel = "Show blocked / waiting";
+    public string NotReadyLabel
+    {
+        get => _notReadyLabel;
+        private set => this.RaiseAndSetIfChanged(ref _notReadyLabel, value);
+    }
+
+    private string _snoozedLabel = "Show snoozed";
+    public string SnoozedLabel
+    {
+        get => _snoozedLabel;
+        private set => this.RaiseAndSetIfChanged(ref _snoozedLabel, value);
     }
 
     // ── Filtering ─────────────────────────────────────────────────────────────
@@ -317,8 +502,72 @@ public class WorklistViewModel : ReactiveObject
         Rows.Clear();
         foreach (var r in rows) Rows.Add(r);
 
+        UpdateSummary(rows);
         UpdateStatus();
         this.RaisePropertyChanged(nameof(HasFilters));
+    }
+
+    // ── Summary panel ─────────────────────────────────────────────────────────
+    //
+    // Computed from the filtered rows rather than the whole run, so it always describes what is
+    // on screen. Filtering to one character and reading a total for everybody would be worse
+    // than no total at all.
+
+    public ObservableCollection<SummaryStatVm> BuySummary   { get; } = [];
+    public ObservableCollection<SummaryStatVm> HaulSummary  { get; } = [];
+    public ObservableCollection<SummaryStatVm> MfgSummary   { get; } = [];
+    public ObservableCollection<SummaryStatVm> RxnSummary   { get; } = [];
+    public ObservableCollection<SummaryStatVm> SciSummary   { get; } = [];
+    public ObservableCollection<SummaryStatVm> CharSummary  { get; } = [];
+
+    private void UpdateSummary(List<WorklistRowVm> rows)
+    {
+        Fill(BuySummary, Buy(rows));
+        Fill(HaulSummary, Haul(rows));
+        Fill(MfgSummary, Jobs(rows, IndustryPool.Manufacturing));
+        Fill(RxnSummary, Jobs(rows, IndustryPool.Reaction));
+        Fill(SciSummary, Jobs(rows, IndustryPool.Science));
+
+        Fill(CharSummary, rows
+            .GroupBy(r => r.CharacterName)
+            .OrderByDescending(g => g.Count()).ThenBy(g => g.Key)
+            .Select(g => new SummaryStatVm(g.Key, g.Count().ToString("N0"))));
+
+        static void Fill(ObservableCollection<SummaryStatVm> into, IEnumerable<SummaryStatVm> from)
+        {
+            into.Clear();
+            foreach (var s in from) into.Add(s);
+        }
+
+        static IEnumerable<SummaryStatVm> Buy(List<WorklistRowVm> rows)
+        {
+            var b = rows.Where(r => r.KindText == "Buy").ToList();
+            yield return new("Tasks",  b.Count.ToString("N0"));
+            yield return new("Value",  StationNeedRowVm.Isk(b.Sum(r => r.Value)));
+            yield return new("Volume", M3(b.Sum(r => r.VolumeRaw)));
+        }
+
+        static IEnumerable<SummaryStatVm> Haul(List<WorklistRowVm> rows)
+        {
+            var h = rows.Where(r => r.KindText == "Haul").ToList();
+            yield return new("Tasks",   h.Count.ToString("N0"));
+            yield return new("Sources", h.Select(r => r.LocationName).Distinct().Count().ToString("N0"));
+            yield return new("Dests",   h.Select(r => r.DestinationName).Distinct().Count().ToString("N0"));
+            yield return new("Value",   StationNeedRowVm.Isk(h.Sum(r => r.Value)));
+            yield return new("Volume",  M3(h.Sum(r => r.VolumeRaw)));
+        }
+
+        static IEnumerable<SummaryStatVm> Jobs(List<WorklistRowVm> rows, IndustryPool pool)
+        {
+            var j = rows.Where(r => r.Pool == pool).ToList();
+            yield return new("Jobs",          j.Count.ToString("N0"));
+            yield return new("Output value",  StationNeedRowVm.Isk(j.Sum(r => r.Value)));
+            yield return new("Output volume", M3(j.Sum(r => r.VolumeRaw)));
+        }
+
+        static string M3(double v) => v >= 1_000_000 ? $"{v / 1_000_000:N1}M m³"
+                                    : v >= 1_000     ? $"{v / 1_000:N0}k m³"
+                                    : $"{v:N0} m³";
     }
 
     private bool Matches(WorklistRowVm r) =>
@@ -399,7 +648,9 @@ public class WorklistViewModel : ReactiveObject
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                _pool = visible.Select(i => new WorklistRowVm(i)).ToList();
+                // Numbered here, off the ordered list, so the sequence is the default order itself
+                // rather than a second guess at it.
+                _pool = visible.Select((i, n) => new WorklistRowVm(i, n + 1)).ToList();
                 RebuildFilterOptions();
                 ApplyFilters();
 
@@ -410,6 +661,9 @@ public class WorklistViewModel : ReactiveObject
                 // Hidden counts are always reported, even when nothing is actionable. "Nothing to
                 // do" beside nine blocked items would be a lie of omission — there is plenty to
                 // do, none of it right now.
+                NotReadyLabel = $"Show blocked / waiting ({blocked + waiting:N0})";
+                SnoozedLabel  = $"Show snoozed ({snoozed:N0})";
+
                 var hidden = new List<string>();
                 if (!ShowNotReady && blocked > 0) hidden.Add($"{blocked} blocked");
                 if (!ShowNotReady && waiting > 0) hidden.Add($"{waiting} waiting");

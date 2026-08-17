@@ -28,7 +28,7 @@ public enum WorklistReadiness
 /// BPO/BPC" are all buying — and reading the kind out of prose is work the reader should not have
 /// to do.</para>
 /// </summary>
-public enum WorklistKind { Buy, Haul, Job, CorpProject }
+public enum WorklistKind { Buy, Haul, Job, CorpProject, AssetSafety, SkillQueue }
 
 /// <summary>One item on a task that moves or acquires several things at once.</summary>
 public sealed record WorklistLine(int TypeId, string TypeName, long Quantity);
@@ -100,9 +100,35 @@ public sealed record WorklistItem
     /// </summary>
     public double Volume { get; init; }
 
+    /// <summary>
+    /// What the task's contents are worth, at the same prices the asset valuation uses. Filled by
+    /// the service alongside <see cref="Volume"/>, from the same one lookup.
+    /// </summary>
+    public double Value { get; init; }
+
+    /// <summary>
+    /// Which slot pool a job occupies. Null for everything that is not a job — the three pools
+    /// are separate capacity and a summary that lumped them would hide which one is full.
+    /// </summary>
+    public IndustryPool? Pool { get; init; }
+
     /// <summary>Higher sorts first. Generators set this relative to their own items; the
     /// service does not renormalise across sources.</summary>
     public int Priority { get; init; }
+
+    /// <summary>
+    /// Marks items that are the same real-world purchase and should be shown as one.
+    ///
+    /// <para>Two generators can independently want the same thing at the same station — the job
+    /// materials need 33,013 Dysprosium at Jita and an inventory rule wants another 109,268 — and
+    /// as separate rows that reads as two errands when it is one order for 142,281. The service
+    /// folds every item sharing a key into a single task.</para>
+    ///
+    /// <para>Null means never merge, which is the default and the right answer for anything that
+    /// is not simply "acquire this many of this type here": a BPO/BPC bought on contract, or an
+    /// order-maintenance task like raising a bid, which has no quantity to add up.</para>
+    /// </summary>
+    public string? MergeKey { get; init; }
 
     /// <summary>
     /// How stale the data behind this item is. Detection runs off polled ESI data, so a
@@ -116,6 +142,23 @@ public sealed record WorklistItem
     public DateTimeOffset? SnoozedUntil { get; init; }
 
     public bool IsSnoozed => SnoozedUntil is { } s && s > DateTimeOffset.UtcNow;
+
+    /// <summary>
+    /// The key under which quantity purchases of one type at one station combine. Station and
+    /// type, and nothing else — buying the same thing somewhere else is a different errand, and
+    /// which generator asked for it is exactly the distinction the reader does not care about.
+    /// </summary>
+    public static string BuyMergeKey(long locationId, int typeId) => $"buy:{locationId}:{typeId}";
+
+    /// <summary>
+    /// A short marker kept on the front of the title through a merge, for the one distinction the
+    /// item name and the kind column cannot carry between them.
+    ///
+    /// <para>Only "BPO/BPC" uses it: a blueprint is acquired on contract rather than ordered on
+    /// the market, and merging a job's demand for one with a stocking rule's must not lose that.
+    /// Null everywhere else.</para>
+    /// </summary>
+    public string? TitleTag { get; init; }
 }
 
 /// <summary>
