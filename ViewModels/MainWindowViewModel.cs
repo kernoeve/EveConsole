@@ -51,6 +51,7 @@ public class MainWindowViewModel : ReactiveObject
     public SaleListingViewModel           SaleListingMarketVm    { get; }
     public OrderTrackerViewModel          OrderTrackerVm         { get; }
     public StandingBuyOrdersViewModel     StandingBuyOrdersVm    { get; }
+    public WorklistViewModel              WorklistVm             { get; }
     public LpMarketValuesViewModel        LpMarketValuesVm       { get; }
     public PlayerEntitiesViewModel        PlayerEntitiesVm       { get; }
     public NpcEntitiesViewModel           NpcEntitiesVm          { get; }
@@ -384,6 +385,7 @@ public class MainWindowViewModel : ReactiveObject
             "sale_list_market" => ("Sale Listing (Market)", SaleListingMarketVm, true),
             "order_tracker"  => ("Order Tracker",   OrderTrackerVm,    true),
             "standing_buy_orders" => ("Standing Buy Orders", StandingBuyOrdersVm, true),
+            "worklist"       => ("Worklist",       WorklistVm,        true),
             "lp_market_values" => ("LP Market Values", LpMarketValuesVm, true),
             "player_entities"  => ("Player Entities", PlayerEntitiesVm, true),
             "npc_entities"     => ("NPC Entities",    NpcEntitiesVm,    true),
@@ -462,9 +464,16 @@ public class MainWindowViewModel : ReactiveObject
         SalePostingService              salePostingService,
         BatchAddService                 batchAddService,
         CorpActivityService             corpActivityService,
+        CharacterSummaryService         characterSummaryService,
         StandingBuyOrderService         standingBuyOrderService,
+        EveConsole.Services.Worklist.WorklistService worklistService,
+        EveConsole.Services.Worklist.WorklistMarketAltService worklistMarketAltService,
+        EveConsole.Services.Worklist.WorklistCorpAltService worklistCorpAltService,
+        EveConsole.Services.Worklist.IndustryAssignmentService industryAssignmentService,
+        EveConsole.Services.Worklist.WorklistSettings worklistSettings,
         IndyFacilityCheckService        indyFacilityCheck,
         IndyStructureLinkService        indyStructureLink,
+        IndyBulkAddService              indyBulkAdd,
         KillmailBrowserService          killmailBrowserService,
         BuildCostService                buildCostService,
         ProductionCalculatorService     prodCalcService,
@@ -527,15 +536,19 @@ public class MainWindowViewModel : ReactiveObject
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
                                                      zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost,
                                                      intelService, monitoringSettings, entityNames, alarmService, lpStoreService);
-        CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters);
+        CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters,
+            characterSummaryService);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
         var fittingsService = new FittingsService(esi, dbFactory);
         MarketLevelVm     = new MarketLevelViewModel(marketLevelService, dbFactory, fittingsService,
             CharacterVm.Characters, CharacterVm.Corporations, batchAddService, prodCalcService);
-        InvLevelVm        = new InvLevelViewModel(invLevelService, dbFactory, batchAddService,
-            prodCalcService, fittingsService, CharacterVm.Characters, CharacterVm.Corporations);
+        // appPrefs is the constructor parameter, not the AppPrefs property — that is not assigned
+        // until far below this line, and passing it here handed the view model a null.
+        InvLevelVm        = new InvLevelViewModel(invLevelService, dbFactory, appPrefs,
+            batchAddService, prodCalcService, fittingsService,
+            CharacterVm.Characters, CharacterVm.Corporations);
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, slackService, exportFormat);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
@@ -574,7 +587,7 @@ public class MainWindowViewModel : ReactiveObject
         CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);
         ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService, dbFactory, appPrefs);
         IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger,
-                                                        indyStructureLink);
+                                                        indyStructureLink, indyBulkAdd);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
@@ -589,10 +602,40 @@ public class MainWindowViewModel : ReactiveObject
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
+        WorklistVm             = new WorklistViewModel(worklistService,
+                                     new WorklistMarketAltsViewModel(worklistMarketAltService, corpActivityService, dbFactory),
+                                     new WorklistInvRulesViewModel(dbFactory, corpActivityService, worklistMarketAltService),
+                                     new WorklistOrderRulesViewModel(dbFactory, corpActivityService, worklistMarketAltService),
+                                     new WorklistCorpAltsViewModel(dbFactory, worklistCorpAltService),
+                                     new WorklistIndustryViewModel(dbFactory, industryAssignmentService, worklistSettings, errorLogger, corpActivityService, worklistMarketAltService),
+                                     new WorklistStationLevelsViewModel(dbFactory, corpActivityService, worklistSettings));
+
+        // Adding, renaming or deleting an inventory group changes what the Worklist's group
+        // pickers should offer. They load once, so without this a new group is missing until a
+        // restart and a renamed one keeps its old label — making a rule look like it points at a
+        // group that no longer exists.
+        InvLevelVm.GroupsChanged = async () =>
+        {
+            await WorklistVm.RulesVm.LoadAsync();
+            await WorklistVm.StationLevelsVm.LoadAsync();
+        };
+
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);
         NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
+        ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
+        PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
+        StructureBrowserVm     = new StructureBrowserViewModel(
+                                     dbFactory, pollingService, esi, new FittingOptionService(dbFactory),
+                                     appPrefs, indyStructureLink);
+        var universeMapService = new UniverseMapService(dbFactory);
+        UniverseVm             = new UniverseViewModel(
+            universeMapService, mapStatsService,
+            new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
+        AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds);
+        JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
+
         // One wiring for every killmail row in the app — browser, corp activity, system
         // page, entity viewers.
         EntityNavigator.Instance.OpenEntity = (kind, id) =>
@@ -646,17 +689,6 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("npc_entities");
             NpcEntitiesVm.Open(kind, id);
         };
-        ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
-        PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
-        StructureBrowserVm     = new StructureBrowserViewModel(
-                                     dbFactory, pollingService, esi, new FittingOptionService(dbFactory),
-                                     appPrefs, indyStructureLink);
-        var universeMapService = new UniverseMapService(dbFactory);
-        UniverseVm             = new UniverseViewModel(
-            universeMapService, mapStatsService,
-            new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
-        AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds);
-        JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
         ProductionCalcVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
@@ -769,6 +801,7 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("sale_posting",  "Sale Posting"),
                 new NavItem("order_tracker", "Order Tracker"),
                 new NavItem("standing_buy_orders", "Standing Buy Orders"),
+                new NavItem("worklist",      "Worklist"),
                 new NavItem("lp_market_values", "LP Market Values"),
                 new NavItem("trade",         "Trade Opportunities"),
                 new NavItem("contracts",     "Contracts"),

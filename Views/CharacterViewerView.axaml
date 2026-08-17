@@ -22,6 +22,149 @@
     </Style>
   </UserControl.Styles>
 
+  <TabControl Padding="0" Background="Transparent" SelectedIndex="{Binding OuterTabIndex}">
+
+  <!-- ════ Summary: every character on one grid ═══════════════════════════════
+       The detail tab answers "what about this one". This answers "which one",
+       which is the question actually being asked when deciding who to log in. -->
+  <TabItem Header="Summary">
+    <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
+
+      <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
+        <TextBlock Text="All characters" FontSize="15" FontWeight="SemiBold"
+                   Foreground="#c8a84b" VerticalAlignment="Center"/>
+        <Button Content="Refresh" Command="{Binding RefreshSummaryCommand}"
+                IsEnabled="{Binding !SummaryLoading}" FontSize="11" Padding="10 4"/>
+        <TextBlock Text="Double-click a row to open it on the Detail tab."
+                   FontSize="10" Foreground="#555566" VerticalAlignment="Center"/>
+      </StackPanel>
+
+      <TextBlock Grid.Row="1" Text="{Binding SummaryStatus}" FontSize="10" Foreground="#7a8896"
+                 TextWrapping="Wrap" Margin="0 0 0 8"/>
+
+      <DataGrid Grid.Row="2" x:Name="SummaryGrid"
+                ItemsSource="{Binding SummaryRows}"
+                IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                CanUserSortColumns="True"
+                DoubleTapped="OnSummaryRowActivated"
+                Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+
+        <!-- The grid's own FontSize does not reach the TextBlocks a column generates, so the
+             standard size is set on the cells and headers here rather than repeated on every
+             column. Scoped to this grid so the detail tab's own grids are untouched. -->
+        <DataGrid.Styles>
+          <Style Selector="DataGridCell TextBlock">
+            <Setter Property="FontSize" Value="10" />
+          </Style>
+          <Style Selector="DataGridColumnHeader">
+            <Setter Property="Background" Value="#12121a" />
+            <Setter Property="Foreground" Value="#555566" />
+            <Setter Property="FontSize"   Value="10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding"    Value="6 5 2 5" />
+          </Style>
+        </DataGrid.Styles>
+
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="Character" Binding="{Binding Name}"     Width="150"/>
+          <DataGridTextColumn Header="Corp"      Binding="{Binding CorpName}" Width="150"/>
+          <DataGridTextColumn Header="Alliance"  Binding="{Binding Alliance}" Width="140"/>
+
+          <DataGridTemplateColumn Header="Status" Width="70" SortMemberPath="Online">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
+                <TextBlock Text="{Binding OnlineText}" Foreground="{Binding OnlineColor}"
+                           FontWeight="SemiBold" VerticalAlignment="Center"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <!-- Tooltips on the wide text columns: a structure name rarely fits. -->
+          <DataGridTemplateColumn Header="Location" Width="200" SortMemberPath="Location">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
+                <TextBlock Text="{Binding Location}" ToolTip.Tip="{Binding Location}"
+                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTemplateColumn Header="Ship" Width="150" SortMemberPath="Ship">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
+                <TextBlock Text="{Binding Ship}" ToolTip.Tip="{Binding Ship}"
+                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTextColumn Header="Pod value" Binding="{Binding PodValue}"
+                              SortMemberPath="PodValueRaw" Width="90"/>
+
+          <DataGridTemplateColumn Header="Home station" Width="190" SortMemberPath="HomeStation">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
+                <TextBlock Text="{Binding HomeStation}" ToolTip.Tip="{Binding HomeStation}"
+                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTemplateColumn Header="Skill queue" Width="100" SortMemberPath="QueueEndsRaw">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
+                <TextBlock Text="{Binding QueueText}" Foreground="{Binding QueueColor}"
+                           VerticalAlignment="Center"
+                           ToolTip.Tip="Entries in the queue, and how long until the last one finishes."/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTextColumn Header="Total SP"  Binding="{Binding TotalSp}"
+                              SortMemberPath="TotalSpRaw" Width="100"/>
+          <DataGridTextColumn Header="ISK"       Binding="{Binding Isk_}"
+                              SortMemberPath="IskRaw" Width="90"/>
+          <DataGridTextColumn Header="Assets"    Binding="{Binding AssetValue}"
+                              SortMemberPath="AssetValueRaw" Width="90"/>
+
+          <!-- Coloured by how much room is left, as a share of that character's own capacity —
+               two free is comfortable on three and nearly nothing on eleven. -->
+          <DataGridTemplateColumn Header="Mfg" Width="70" SortMemberPath="ManufacturingFreeRaw">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
+                <TextBlock Text="{Binding Manufacturing}" Foreground="{Binding ManufacturingColor}"
+                           FontWeight="SemiBold" VerticalAlignment="Center"
+                           ToolTip.Tip="Manufacturing slots free of total"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTemplateColumn Header="Rxn" Width="70" SortMemberPath="ReactionFreeRaw">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
+                <TextBlock Text="{Binding Reaction}" Foreground="{Binding ReactionColor}"
+                           FontWeight="SemiBold" VerticalAlignment="Center"
+                           ToolTip.Tip="Reaction slots free of total"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTemplateColumn Header="Sci" Width="*" SortMemberPath="ScienceFreeRaw">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
+                <TextBlock Text="{Binding Science}" Foreground="{Binding ScienceColor}"
+                           FontWeight="SemiBold" VerticalAlignment="Center"
+                           ToolTip.Tip="Science slots free of total — copying, research and invention"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+    </Grid>
+  </TabItem>
+
+  <!-- ════ Detail: the original single-character view, dropdown and all ═══════ -->
+  <TabItem Header="Detail">
   <DockPanel>
 
     <!-- ── Top: selector bar ──────────────────────────────────────────────── -->
@@ -514,5 +657,8 @@
 
     </TabControl>
   </DockPanel>
+  </TabItem>
+
+  </TabControl>
 
 </UserControl>

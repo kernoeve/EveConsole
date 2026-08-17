@@ -12,6 +12,7 @@ using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
+using EveConsole.Services.Worklist;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
@@ -1219,9 +1220,16 @@ public class OverviewViewModel : ReactiveObject
 
             var safetyNotifs = (await Off(() => _db.EsiNotifications.AsNoTracking()
                 .Where(n => charIds.Contains(n.CharacterId) &&
-                            n.Type == "StructureItemsMovedIntoSafety" &&
+                            // "MovedToSafety", not "MovedIntoSafety". The latter is not a type ESI
+                            // ever sends, so this alert matched nothing at all until it was fixed.
+                            n.Type == AssetSafetyGenerator.SafetyNotification &&
                             !dismissedIds.Contains(n.NotificationId))
                 .ToListAsync()))
+                // Only while the items are still in safety. The delivery deadline is in the
+                // notification body, and once it has passed the game has already moved them —
+                // there is nothing left to decide, so it is history rather than an alert. Without
+                // this the corrected type string surfaced every event since 2022 in one go.
+                .Where(n => AssetSafetyGenerator.WindowEnd(n.Text) is { } end && end > now)
                 .OrderBy(n => n.Timestamp)
                 .ToList();
 
@@ -1237,7 +1245,11 @@ public class OverviewViewModel : ReactiveObject
                 AlertRowVm? row = null;
                 row = new AlertRowVm
                 {
-                    Message       = $"{charName}: Items moved to Asset Safety on {dateText}.",
+                    Message       = AssetSafetyGenerator.WindowEnd(notif.Text) is { } deadline
+                        ? $"{charName}: Items moved to Asset Safety on {dateText} — "
+                          + $"choose a destination by {deadline.ToLocalTime():d MMM HH:mm} "
+                          + $"({(int)(deadline - now).TotalDays}d left) or the game picks one."
+                        : $"{charName}: Items moved to Asset Safety on {dateText}.",
                     IsDismissible = true,
                     DismissCommand = ReactiveCommand.CreateFromTask(async () =>
                     {

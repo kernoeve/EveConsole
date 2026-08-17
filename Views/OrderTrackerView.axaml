@@ -72,6 +72,7 @@
         <DataGridTextColumn Header="Units"          Binding="{Binding UnitsText}"   SortMemberPath="Units"       Width="90"  CellStyleClasses="num" />
         <DataGridTextColumn Header="Buyer"          Binding="{Binding Buyer}"       Width="150" />
         <DataGridTextColumn Header="Est. Date"      Binding="{Binding EstDate}"     Width="100" />
+        <DataGridTextColumn Header="Pri"            Binding="{Binding PriorityMark}" SortMemberPath="IsPriority" Width="44" />
         <DataGridTextColumn Header="Purchase Price" Binding="{Binding Purchase}"    SortMemberPath="PurchaseRaw" Width="120" CellStyleClasses="num" />
         <DataGridTextColumn Header="Status"         Binding="{Binding Status}"      Width="100" />
         <DataGridTextColumn Header="Build Cost"     Binding="{Binding Build}"       SortMemberPath="BuildRaw"    Width="120" CellStyleClasses="num" />

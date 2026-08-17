@@ -96,8 +96,12 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTextColumn Header="Holding Worth" Binding="{Binding HoldingValueText}" Width="150"/>
-            <DataGridTextColumn Header="Updated"       Binding="{Binding UpdatedText}"      Width="130"/>
+            <DataGridTextColumn Header="Holding Worth" Binding="{Binding HoldingValueText}" Width="150"
+                                SortMemberPath="HoldingValue"/>
+            <!-- Sorted on the timestamp, not the "d MMM HH:mm" text, which would order by day
+                 number and put 1 April ahead of 2 March. -->
+            <DataGridTextColumn Header="Updated"       Binding="{Binding UpdatedText}"      Width="130"
+                                SortMemberPath="ComputedAt"/>
           </DataGrid.Columns>
         </DataGrid>
       </Grid>

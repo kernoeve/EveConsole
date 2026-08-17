@@ -53,10 +53,13 @@
       <TextBlock Text="TARGET QTY PER ITEM"
                  FontSize="10" Foreground="#888899"
                  VerticalAlignment="Center" />
+      <!-- Same limit as the add-item dialog, and for the same reason: six digits cannot express
+           a reaction target that runs to millions. -->
       <NumericUpDown Value="{Binding TargetQty}"
-                     Minimum="1" Maximum="999999"
+                     Minimum="1" Maximum="2000000000"
                      Increment="1"
-                     Width="120"
+                     FormatString="N0"
+                     Width="140"
                      Background="#0a0a10" Foreground="#c8c8d8"
                      BorderBrush="#2a2a3a" />
     </StackPanel>

@@ -100,6 +100,14 @@ public class AppDbContext : DbContext
 
     // ── Standing buy orders (user-defined intent) ────────────────────────
     public DbSet<StandingBuyOrder> StandingBuyOrders => Set<StandingBuyOrder>();
+    public DbSet<WorklistMarketAlt>      WorklistMarketAlts      => Set<WorklistMarketAlt>();
+    public DbSet<WorklistInvRule>   WorklistInvRules   => Set<WorklistInvRule>();
+    public DbSet<WorklistOrderRule> WorklistOrderRules => Set<WorklistOrderRule>();
+    public DbSet<WorklistCorpAlt>   WorklistCorpAlts   => Set<WorklistCorpAlt>();
+    public DbSet<WorklistIndyChar>  WorklistIndyChars  => Set<WorklistIndyChar>();
+    public DbSet<WorklistItemState> WorklistItemStates => Set<WorklistItemState>();
+    public DbSet<WorklistIndyScopeStation> WorklistIndyScopeStations => Set<WorklistIndyScopeStation>();
+    public DbSet<WorklistStationLevel>     WorklistStationLevels     => Set<WorklistStationLevel>();
 
     // ── Application error log ────────────────────────────────────────────
     public DbSet<AppErrorEntry> AppErrors => Set<AppErrorEntry>();
@@ -998,6 +1006,40 @@ public class AppDbContext : DbContext
             // One standing order per type per location — a second would just be a
             // duplicate row matching the same live orders.
             e.HasIndex(x => new { x.TypeId, x.LocationId }).IsUnique(); });
+
+        mb.Entity<WorklistMarketAlt>(e => {
+            e.HasKey(x => x.Id);
+            // One character per location: the desk answers "who works here", and two
+            // answers for one station is not a routing rule, it is an ambiguity.
+            e.HasIndex(x => x.LocationId).IsUnique(); });
+
+        mb.Entity<WorklistInvRule>(e => {
+            e.HasKey(x => x.Id); });
+
+        mb.Entity<WorklistOrderRule>(e => {
+            e.HasKey(x => x.Id); });
+
+        mb.Entity<WorklistCorpAlt>(e => {
+            e.HasKey(x => x.Id);
+            // One maintainer per corporation, for the same reason a station has one trader.
+            e.HasIndex(x => x.CorporationId).IsUnique(); });
+
+        mb.Entity<WorklistStationLevel>(e => {
+            e.HasKey(x => x.Id);
+            // One row per group per station; a station may hold several groups.
+            e.HasIndex(x => new { x.GroupId, x.LocationId }).IsUnique(); });
+
+        mb.Entity<WorklistIndyScopeStation>(e => {
+            e.HasKey(x => x.Id);
+            // One row per station: adding Jita twice is not two scopes.
+            e.HasIndex(x => x.LocationId).IsUnique(); });
+
+        mb.Entity<WorklistIndyChar>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.CharacterId).IsUnique(); });
+
+        mb.Entity<WorklistItemState>(e => {
+            e.HasKey(x => x.Key); });
 
         mb.Entity<CharacterStatus>(e => {
             e.HasKey(x => x.CharacterId);

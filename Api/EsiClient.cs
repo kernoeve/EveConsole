@@ -456,6 +456,9 @@ public class EsiClient
                 ErrorLimitRemain   = errorLimitRemain,
                 ErrorLimitReset    = errorLimitReset,
                 RetryAfterSeconds  = TryGetInt("Retry-After"),
+                // Off Content rather than the response headers: Expires is a content header, and
+                // response.Headers does not carry it.
+                Expires            = response.Content.Headers.Expires,
                 Error              = error,
             };
         }

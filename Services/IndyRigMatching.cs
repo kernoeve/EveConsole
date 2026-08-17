@@ -24,6 +24,11 @@ public static class IndyRigMatching
     /// isn't an industry rig at all.</summary>
     public static string RigCategoryFromName(string n)
     {
+        // Reprocessing rigs first: "Asteroid Ore Grading Processor" would otherwise be caught by
+        // nothing, and "Moon Ore" shares no word with the manufacturing names below.
+        if (n.Contains("Asteroid Ore Grading"))    return "refine_ore";
+        if (n.Contains("Moon Ore Grading"))        return "refine_moon_ore";
+        if (n.Contains("Ice Grading"))             return "refine_ice";
         if (n.Contains("Advanced Small Ship"))     return "adv_small_ships";
         if (n.Contains("Basic Small Ship"))        return "small_ships";
         if (n.Contains("Advanced Medium Ship"))    return "adv_medium_ships";
@@ -32,6 +37,11 @@ public static class IndyRigMatching
         if (n.Contains("Basic Large Ship"))        return "large_ships";
         if (n.Contains("Capital Ship"))            return "capital_ships";
         if (n.Contains("Drone and Fighter"))       return "drones_fighters";
+        // Science rigs, before the manufacturing names below. Copy first: "Blueprint Copy Cost
+        // Optimization" would otherwise fall through to nothing.
+        if (n.Contains("Blueprint Copy"))          return "bp_copying";
+        if (n.Contains("Invention"))               return "bp_invention";
+        if (n.Contains("Research"))                return "bp_research";
         if (n.Contains("Equipment"))               return "modules_equipment";
         if (n.Contains("Ammunition"))              return "ammo_charges";
         if (n.Contains("Basic Capital Component")) return "capital_components";
@@ -163,6 +173,11 @@ public static class IndyRigMatching
             // not the capital one, so it belongs in adv_components with group 334.
             _ when gc.Name.Contains("Capital") && gc.Name.Contains("Component")
                                                && !gc.Name.Contains("Advanced")       => "capital_components",
+            // Group 536 "Structure Components" before the generic Component match, which would
+            // otherwise claim it on the group name alone and cost a Structure Reprocessing Plant
+            // with the advanced-component rig. Structures and their parts share a rig family —
+            // the XL is named "Structure and Component Manufacturing Efficiency" outright.
+            _ when groupId == 536                                                    => "structure_ammo",
             _ when gc.Name.Contains("Component")                                     => "adv_components",
             _ when gc.CategoryId is 22 or 65                                         => "structure_ammo",
             // R.A.M. tools and Data Interfaces are built at standard facilities. This rule

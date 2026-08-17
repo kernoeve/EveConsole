@@ -494,19 +494,39 @@ public class MarketPricingService
     {
         try
         {
-            await db.Database.ExecuteSqlRawAsync("""
-                UPDATE "Structures"
-                   SET "SolarSystemId" = (
-                       SELECT o."SystemId" FROM "MarketRawOrders" o
-                       WHERE o."LocationId" = "Structures"."StructureId"
-                         AND o."SystemId" > 0
-                       LIMIT 1)
-                 WHERE "SolarSystemId" = 0
-                   AND EXISTS (
-                       SELECT 1 FROM "MarketRawOrders" o
-                       WHERE o."LocationId" = "Structures"."StructureId"
-                         AND o."SystemId" > 0)
-                """, ct);
+            // Read first, write second, and only what changes.
+            //
+            // ⚠️ This was one UPDATE with two correlated subqueries over MarketRawOrders, which
+            // has no index on LocationId and holds ~665,000 rows. SQLite planned it as a full
+            // scan per candidate structure, twice — around a billion row reads, inside the write
+            // transaction, at the end of every market refresh. It made the Jita pull hold the
+            // database long enough for unrelated saves to time out.
+            //
+            // One grouped read costs a single scan, and the write touches only the two or three
+            // rows that actually gain a system.
+            var unknown = await db.Structures
+                .Where(s => s.SolarSystemId == 0)
+                .Select(s => s.StructureId)
+                .ToListAsync(ct);
+            if (unknown.Count == 0) return;
+
+            var found = await db.MarketRawOrders.AsNoTracking()
+                .Where(o => o.SystemId > 0 && unknown.Contains(o.LocationId))
+                .GroupBy(o => o.LocationId)
+                .Select(g => new { LocationId = g.Key, SystemId = g.Min(o => o.SystemId) })
+                .ToListAsync(ct);
+            if (found.Count == 0) return;
+
+            var ids = found.Select(f => f.LocationId).ToList();
+            var rows = await db.Structures.Where(s => ids.Contains(s.StructureId)).ToListAsync(ct);
+
+            foreach (var row in rows)
+            {
+                var hit = found.First(f => f.LocationId == row.StructureId);
+                if (row.SolarSystemId == 0) row.SolarSystemId = hit.SystemId;
+            }
+
+            await db.SaveChangesAsync(ct);
         }
         catch { /* an unfilled system id is cosmetic — never fail a market pull over it */ }
     }

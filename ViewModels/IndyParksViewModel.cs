@@ -369,15 +369,44 @@ public class IndyParksViewModel : ReactiveObject
         ("drones_fighters",    "Drones and Fighters"),
         ("ammo_charges",       "Ammo and Charges"),
         ("modules_equipment",  "Modules and Equipment"),
-        ("structure_ammo",     "Structure and Ammo"),
+        // Named for what it actually routes: structures, their components, deployables and fuel
+        // blocks. It never carried ammo — that is "Ammo and Charges" above — and the old label
+        // had players assigning it as though it did.
+        ("structure_ammo",     "Structures, Components and Fuel Blocks"),
         // Reactions
         ("react_composite",    "Composite Reactions"),
         ("react_biochemical",  "Hybrid Reactions"),
         ("react_bio_gas",      "Bio and Gas Phase Reactions"),
-        ("react_structure",    "Structures and Fuel Blocks"),
-        // Reprocessing
-        ("reprocessing",       "Reprocessing"),
+        // "react_structure" was listed here and nothing ever mapped to it — no rig, no item, in
+        // any of the three matchers. A facility assigned to it received no work, and its name
+        // read like the home for structures, so it drew the assignment that belonged above.
+        // Science. Separate entries rather than one "science" row because they are separately
+        // rigged and usually separately housed — a copy farm and an invention structure are
+        // rigged differently, and a park that could only name one would send work to the wrong
+        // facility.
+        ("bp_research",        "Blueprint Research"),
+        ("bp_copying",         "Blueprint Copying"),
+        ("bp_invention",       "Blueprint Invention"),
+        // Reprocessing. Split three ways because the rigs are: there is an Asteroid Ore, a Moon
+        // Ore and an Ice Grading Processor, and a refinery carrying two of the three refines the
+        // third at no bonus. A park that could name only one facility would route ore to a
+        // structure rigged for ice.
+        //
+        // Gas is the odd one out and has no rig at all — compressed gas decompresses one for one
+        // at any refinery. It is listed so the park can still say where that happens, since the
+        // hauling has to be aimed somewhere.
+        ("refine_ore",         "Refine Standard Ore"),
+        ("refine_moon_ore",    "Refine Moon Ore"),
+        ("refine_ice",         "Refine Ice"),
+        ("decompress_gas",     "Decompress Gas"),
     ];
+
+    /// <summary>
+    /// The old single reprocessing key, still honoured when none of the four specific ones is
+    /// assigned. Parks built before the split named one facility for all of it, and that answer
+    /// is still better than none.
+    /// </summary>
+    public const string LegacyReprocessingKey = "reprocessing";
 
     // ── Pre-loaded rig options per structure type ─────────────────────────
 
@@ -425,6 +454,8 @@ public class IndyParksViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit>             DeleteParkCommand           { get; }
     public ReactiveCommand<Unit, Unit>             SetDefaultParkCommand       { get; }
     public ReactiveCommand<Unit, Unit>             AddStructureCommand         { get; }
+    public ReactiveCommand<Unit, Unit>             AddAllInSystemCommand       { get; }
+    public ReactiveCommand<Unit, Unit>             AutoAssignCommand           { get; }
     public ReactiveCommand<StructureVm, Unit>      RemoveStructureCommand      { get; }
     public ReactiveCommand<StructureVm, Unit>      SaveStructureCommand        { get; }
     public ReactiveCommand<StructureVm, Unit>      SearchFacilityCommand       { get; }
@@ -450,16 +481,19 @@ public class IndyParksViewModel : ReactiveObject
     /// <summary>Pushes hand-entered fittings through to the linked structure. Optional for the
     /// same reason as the two above — without it, edits simply stay on this side.</summary>
     private readonly IndyStructureLinkService? _indyLink;
+    private readonly IndyBulkAddService?       _bulkAdd;
 
     public IndyParksViewModel(IDbContextFactory<AppDbContext> dbFactory,
                               CorpActivityService? corpActivity = null,
                               AppErrorLogger? errorLogger = null,
-                              IndyStructureLinkService? indyLink = null)
+                              IndyStructureLinkService? indyLink = null,
+                              IndyBulkAddService? bulkAdd = null)
     {
         _dbFactory    = dbFactory;
         _corpActivity = corpActivity;
         _errorLogger  = errorLogger;
         _indyLink     = indyLink;
+        _bulkAdd      = bulkAdd;
 
         LoadRigsFromSde();
 
@@ -467,6 +501,8 @@ public class IndyParksViewModel : ReactiveObject
         DeleteParkCommand         = ReactiveCommand.CreateFromTask(DeleteParkAsync);
         SetDefaultParkCommand     = ReactiveCommand.CreateFromTask(SetDefaultParkAsync);
         AddStructureCommand       = ReactiveCommand.CreateFromTask(AddStructureAsync);
+        AddAllInSystemCommand     = ReactiveCommand.CreateFromTask(AddAllInSystemAsync);
+        AutoAssignCommand         = ReactiveCommand.CreateFromTask(AutoAssignAsync);
         RemoveStructureCommand    = ReactiveCommand.CreateFromTask<StructureVm>(RemoveStructureAsync);
         SaveStructureCommand      = ReactiveCommand.CreateFromTask<StructureVm>(SaveStructureAsync);
         SearchFacilityCommand     = ReactiveCommand.CreateFromTask<StructureVm>(SearchFacilityAsync);
@@ -481,11 +517,11 @@ public class IndyParksViewModel : ReactiveObject
         this.WhenAnyValue(x => x.ParkName)
             .Skip(1)
             .Throttle(TimeSpan.FromMilliseconds(500))
-            .Subscribe(async _ => await SaveParkNameAsync());
+            .SubscribeAsyncSafe(_ => SaveParkNameAsync(), _errorLogger, "IndyParks.SaveParkName");
 
         this.WhenAnyValue(x => x.ItemSearchText)
             .Throttle(TimeSpan.FromMilliseconds(300))
-            .Subscribe(async text => await SearchItemsAsync(text));
+            .SubscribeAsyncSafe(text => SearchItemsAsync(text), _errorLogger, "IndyParks.SearchItems");
 
         _ = LoadParksAsync();
     }
@@ -796,7 +832,7 @@ public class IndyParksViewModel : ReactiveObject
     private void WireStructureVm(StructureVm vm)
     {
         // Reload rig list when structure type changes
-        vm.WhenAnyValue(x => x.StructureTypeKey).Skip(1).Subscribe(async key =>
+        vm.WhenAnyValue(x => x.StructureTypeKey).Skip(1).SubscribeAsyncSafe(async key =>
         {
             var rigs = GetRigsForType(key);
             foreach (var slot in vm.RigSlots)
@@ -806,21 +842,21 @@ public class IndyParksViewModel : ReactiveObject
             }
             await SaveStructureDbAsync(vm);
             await SaveAllRigSlotsAsync(vm);
-        });
+        }, _errorLogger, "IndyParks.StructureTypeChanged");
 
         vm.WhenAnyValue(x => x.DisplayName, x => x.SystemName, x => x.SecurityClass, x => x.FacilityTax)
             .Skip(1)
             .Throttle(TimeSpan.FromMilliseconds(400))
-            .Subscribe(async _ => await SaveStructureDbAsync(vm));
+            .SubscribeAsyncSafe(_ => SaveStructureDbAsync(vm), _errorLogger, "IndyParks.SaveStructure");
 
         // Radio-group behaviour from a checkbox. Only a tick does anything; unticking the
         // current catch-all puts it straight back, since a park must always have one.
-        vm.WhenAnyValue(x => x.IsDefaultFacility).Skip(1).Subscribe(async isDefault =>
+        vm.WhenAnyValue(x => x.IsDefaultFacility).Skip(1).SubscribeAsyncSafe(async isDefault =>
         {
             if (_suppressSave) return;
             if (isDefault) await SetDefaultStructureAsync(vm);
             else if (!Structures.Any(s => s.IsDefaultFacility)) vm.IsDefaultFacility = true;
-        });
+        }, _errorLogger, "IndyParks.SetDefaultFacility");
 
         foreach (var slot in vm.RigSlots)
             WireRigSlot(vm, slot);
@@ -829,7 +865,7 @@ public class IndyParksViewModel : ReactiveObject
     private void WireRigSlot(StructureVm structure, RigSlotVm slot)
     {
         slot.WhenAnyValue(x => x.Selected).Skip(1)
-            .Subscribe(async _ => await SaveRigSlotAsync(structure, slot));
+            .SubscribeAsyncSafe(_ => SaveRigSlotAsync(structure, slot), _errorLogger, "IndyParks.SaveRigSlot");
     }
 
     private void RebuildAssignments(List<IndyCategoryAssignment> saved)
@@ -847,7 +883,7 @@ public class IndyParksViewModel : ReactiveObject
                 vm.Selected = Structures.FirstOrDefault(s => s.Id == sid);
 
             vm.WhenAnyValue(x => x.Selected).Skip(1)
-                .Subscribe(async _ => await SaveAssignmentAsync(vm));
+                .SubscribeAsyncSafe(_ => SaveAssignmentAsync(vm), _errorLogger, "IndyParks.SaveAssignment");
 
             Assignments.Add(vm);
         }
@@ -890,6 +926,210 @@ public class IndyParksViewModel : ReactiveObject
     }
 
     // ── Structure CRUD ────────────────────────────────────────────────────
+
+    // ── Auto-assign categories from rigs ──────────────────────────────────
+
+    private string _autoAssignStatus = "";
+    public string AutoAssignStatus
+    {
+        get => _autoAssignStatus;
+        private set => this.RaiseAndSetIfChanged(ref _autoAssignStatus, value);
+    }
+
+    /// <summary>
+    /// Point each category at the structure rigged for it.
+    ///
+    /// A rigged structure already declares what it is for, so making the player restate it in a
+    /// dropdown is asking them to copy information the park already holds — and a park of a dozen
+    /// facilities is a dozen chances to mis-click.
+    ///
+    /// <para>Only empty assignments are filled. An assignment already made is a decision, and a
+    /// button that silently overrode deliberate choices would be worse than no button. Categories
+    /// with no rigged structure, or with more than one and no way to choose, are left alone and
+    /// counted in the status so the gap is visible rather than guessed at.</para>
+    /// </summary>
+    private async Task AutoAssignAsync()
+    {
+        if (_selectedPark is null) { AutoAssignStatus = "Pick a park first."; return; }
+
+        var filled = 0;
+        var already = 0;
+        var noMatch = new List<string>();
+        var ambiguous = new List<string>();
+
+        foreach (var a in Assignments)
+        {
+            if (a.Selected is not null) { already++; continue; }
+
+            // An exact rig beats a wildcard: the Tatara's L-Set covers every reaction, so it
+            // would otherwise win categories an Athanor is specifically rigged for.
+            var exact = Structures.Where(s => HasRig(s, a.CategoryKey, exactOnly: true)).ToList();
+            var any   = exact.Count > 0
+                ? exact
+                : Structures.Where(s => HasRig(s, a.CategoryKey, exactOnly: false)).ToList();
+
+            if (any.Count == 0)      { noMatch.Add(a.CategoryLabel);   continue; }
+            if (any.Count > 1)       { ambiguous.Add(a.CategoryLabel); continue; }
+
+            a.Selected = any[0];   // the setter persists and is what the dropdown would do
+            filled++;
+        }
+
+        await Task.CompletedTask;
+
+        var parts = new List<string>();
+        parts.Add(filled == 0 ? "Nothing to assign" : $"Assigned {filled} category(ies)");
+        if (already   > 0) parts.Add($"{already} already set");
+        if (ambiguous.Count > 0)
+            parts.Add($"{ambiguous.Count} with more than one rigged structure, left for you "
+                    + $"({string.Join(", ", ambiguous.Take(3))}{(ambiguous.Count > 3 ? ", …" : "")})");
+        if (noMatch.Count > 0)
+            parts.Add($"{noMatch.Count} with no rigged structure");
+
+        AutoAssignStatus = string.Join(" · ", parts) + ".";
+    }
+
+    /// <summary>Whether any of a structure's rigs bonuses this category.</summary>
+    private static bool HasRig(StructureVm s, string categoryKey, bool exactOnly)
+    {
+        foreach (var slot in s.RigSlots)
+        {
+            var name = slot.Selected?.Name;
+            if (string.IsNullOrEmpty(name)) continue;
+
+            var rigCategory = IndyRigMatching.RigCategoryFromName(name);
+            if (rigCategory.Length == 0) continue;
+
+            if (exactOnly ? rigCategory == categoryKey
+                          : IndyRigMatching.RigApplies(rigCategory, categoryKey))
+                return true;
+        }
+        return false;
+    }
+
+    // ── Add every industrial structure in a system ────────────────────────
+
+    /// <summary>Feeds the system picker beside the bulk-add button.</summary>
+    public Func<string?, CancellationToken, Task<IEnumerable<object>>> SystemPopulator =>
+        async (text, ct) =>
+        {
+            if (_corpActivity is null) return Array.Empty<object>();
+            var hits = await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct);
+            return hits.Cast<object>().ToList();
+        };
+
+    private object? _bulkSystem;
+    public object? BulkSystem { get => _bulkSystem; set => this.RaiseAndSetIfChanged(ref _bulkSystem, value); }
+
+    private string _bulkSystemText = "";
+    public string BulkSystemText { get => _bulkSystemText; set => this.RaiseAndSetIfChanged(ref _bulkSystemText, value); }
+
+    /// <summary>
+    /// Refineries sitting on a moon are usually moon mining rather than industry, and a busy
+    /// system can hold dozens of them. On by default because adding thirty Athanors nobody builds
+    /// in is a worse first experience than missing one that is genuinely a factory.
+    /// </summary>
+    private bool _skipMoonRefineries = true;
+    public bool SkipMoonRefineries
+    {
+        get => _skipMoonRefineries;
+        set => this.RaiseAndSetIfChanged(ref _skipMoonRefineries, value);
+    }
+
+    private string _bulkStatus = "";
+    public string BulkStatus { get => _bulkStatus; private set => this.RaiseAndSetIfChanged(ref _bulkStatus, value); }
+
+    private async Task AddAllInSystemAsync()
+    {
+        if (_selectedPark is null) { BulkStatus = "Pick a park first."; return; }
+        if (_bulkAdd is null)      { BulkStatus = "Bulk add is unavailable."; return; }
+        if (BulkSystem is not SdeSystemResult sys)
+        {
+            BulkStatus = "Pick a system from the list.";
+            return;
+        }
+
+        var parkId     = _selectedPark.Id;
+        var candidates = await _bulkAdd.FindInSystemAsync(sys.SystemId, parkId);
+
+        var already = candidates.Count(c => c.AlreadyInPark);
+        var skipped = SkipMoonRefineries ? candidates.Count(c => c.OnMoon && !c.AlreadyInPark) : 0;
+
+        var toAdd = candidates
+            .Where(c => !c.AlreadyInPark && !(SkipMoonRefineries && c.OnMoon))
+            .ToList();
+
+        if (toAdd.Count == 0)
+        {
+            BulkStatus = candidates.Count == 0
+                ? $"No industrial structures known in {sys.Name}. Only structures the app has "
+                + "already resolved a name for can be added."
+                : $"Nothing new to add in {sys.Name} — {already} already in this park"
+                  + (skipped > 0 ? $", {skipped} moon refinery(ies) skipped" : "") + ".";
+            return;
+        }
+
+        var securityClass = await SecurityClassOfAsync(sys.SystemId);
+
+        await using (var db = await _dbFactory.CreateDbContextAsync())
+        {
+            // Two writes, not two per structure. Adding a dozen facilities used to take the write
+            // lock twenty-four times in a row, and anything else saving during that window — a
+            // throttled rename, a polling write — queued behind every one of them.
+            var added = toAdd.Select(c => new IndyStructure
+            {
+                ParkId            = parkId,
+                DisplayName       = c.Name,
+                StructureTypeKey  = c.TypeKey,
+                SystemName        = sys.Name,
+                SecurityClass     = securityClass,
+                RealStructureId   = c.StructureId,
+                RealStructureName = c.Name,
+            }).ToList();
+
+            db.IndyStructures.AddRange(added);
+            await db.SaveChangesAsync();   // ids are assigned here, so rigs need a second pass
+
+            foreach (var s in added)
+                for (int slot = 0; slot < 3; slot++)
+                    db.IndyStructureRigs.Add(new IndyStructureRig
+                    {
+                        StructureId = s.Id, SlotIndex = slot, RigTypeId = 0,
+                    });
+            await db.SaveChangesAsync();
+        }
+
+        // Pull the real fitting in. Linking is what makes this worth doing in bulk: rigs and
+        // service modules arrive from the game rather than being typed in per structure.
+        if (_indyLink is not null)
+            foreach (var c in toAdd)
+                await _indyLink.PushFromRealAsync(c.StructureId);
+
+        await LoadParkDetailAsync(parkId);
+
+        BulkStatus = $"Added {toAdd.Count} structure(s) from {sys.Name}"
+                   + (already > 0 ? $", {already} already present" : "")
+                   + (skipped > 0 ? $", {skipped} moon refinery(ies) skipped" : "") + ".";
+    }
+
+    /// <summary>The park's security class for a system, which drives rig strength.</summary>
+    private async Task<string> SecurityClassOfAsync(int systemId)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var sec = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => s.SolarSystemId == systemId)
+            .Select(s => (double?)s.Security)
+            .FirstOrDefaultAsync();
+
+        // Wormhole systems sit above 30000000 in their own id range and take no rig bonus band.
+        if (systemId >= 31000000) return "wormhole";
+        return SecurityColors.Rounded(sec ?? 0) switch
+        {
+            >= 0.5 => "highsec",
+            > 0.0  => "lowsec",
+            _      => "nullsec",
+        };
+    }
 
     private async Task AddStructureAsync()
     {
@@ -1110,7 +1350,7 @@ public class IndyParksViewModel : ReactiveObject
             if (exc.StructureId is int sid)
                 vm.Selected = Structures.FirstOrDefault(s => s.Id == sid);
             vm.WhenAnyValue(x => x.Selected).Skip(1)
-                .Subscribe(async _ => await SaveItemExceptionAsync(vm));
+                .SubscribeAsyncSafe(_ => SaveItemExceptionAsync(vm), _errorLogger, "IndyParks.SaveItemException");
             ItemExceptions.Add(vm);
         }
     }
@@ -1162,7 +1402,7 @@ public class IndyParksViewModel : ReactiveObject
             IReadOnlyList<StructureVm?> options = [null, .. Structures.Cast<StructureVm?>()];
             var vm = new ItemExceptionVm(entity.Id, entity.TypeId, entity.TypeName) { StructureOptions = options };
             vm.WhenAnyValue(x => x.Selected).Skip(1)
-                .Subscribe(async _ => await SaveItemExceptionAsync(vm));
+                .SubscribeAsyncSafe(_ => SaveItemExceptionAsync(vm), _errorLogger, "IndyParks.SaveItemException");
             ItemExceptions.Add(vm);
             ItemSearchText = "";
             ItemSearchResults.Clear();
@@ -1208,7 +1448,8 @@ public class IndyParksViewModel : ReactiveObject
                 s.DisplayName, s.StructureTypeKey, s.SystemName, s.SecurityClass,
                 Enumerable.Range(0, 3).Select(slot =>
                     rigs.FirstOrDefault(r => r.StructureId == s.Id && r.SlotIndex == slot)?.RigTypeId ?? 0
-                ).ToList()
+                ).ToList(),
+                s.RealStructureId, s.RealStructureName
             )).ToList(),
             catAsgn.Select(a => new CategoryAssignmentExportDto(
                 a.CategoryKey,
@@ -1237,31 +1478,45 @@ public class IndyParksViewModel : ReactiveObject
         await db.SaveChangesAsync();
 
         var structureIds = new List<int>();
+        var pendingRigs  = new List<(IndyStructure Structure, List<int> RigTypeIds)>();
+
         foreach (var s in dto.Structures)
         {
             var structure = new IndyStructure
             {
-                ParkId           = park.Id,
-                DisplayName      = s.DisplayName,
-                StructureTypeKey = s.StructureTypeKey,
-                SystemName       = s.SystemName,
-                SecurityClass    = s.SecurityClass,
+                ParkId            = park.Id,
+                DisplayName       = s.DisplayName,
+                StructureTypeKey  = s.StructureTypeKey,
+                SystemName        = s.SystemName,
+                SecurityClass     = s.SecurityClass,
+                // Carried so an imported park is usable immediately: without the link there is
+                // no real facility behind it, so nothing can check materials or read its rigs.
+                RealStructureId   = s.RealStructureId,
+                RealStructureName = s.RealStructureName,
             };
             db.IndyStructures.Add(structure);
-            await db.SaveChangesAsync();
-            structureIds.Add(structure.Id);
+            pendingRigs.Add((structure, s.RigTypeIds));
+        }
 
+        // One write for every structure, then one for every rig slot — not two per structure in
+        // the loop. A park with a dozen facilities took the write lock two dozen times in a row,
+        // and anything else saving during that stretch queued behind all of them.
+        await db.SaveChangesAsync();   // assigns the ids the rigs need
+        structureIds.AddRange(pendingRigs.Select(p => p.Structure.Id));
+
+        foreach (var (structure, rigTypeIds) in pendingRigs)
+        {
             for (int slot = 0; slot < 3; slot++)
             {
                 db.IndyStructureRigs.Add(new IndyStructureRig
                 {
                     StructureId = structure.Id,
                     SlotIndex   = slot,
-                    RigTypeId   = slot < s.RigTypeIds.Count ? s.RigTypeIds[slot] : 0,
+                    RigTypeId   = slot < rigTypeIds.Count ? rigTypeIds[slot] : 0,
                 });
             }
-            await db.SaveChangesAsync();
         }
+        await db.SaveChangesAsync();
 
         foreach (var a in dto.Assignments)
         {
@@ -1317,7 +1572,11 @@ file record StructureExportDto(
     string StructureTypeKey,
     string SystemName,
     string SecurityClass,
-    List<int> RigTypeIds
+    List<int> RigTypeIds,
+    // Optional with defaults so files written before the link existed still deserialise. They
+    // import unlinked, which is exactly what they were.
+    long? RealStructureId = null,
+    string RealStructureName = ""
 );
 
 file record CategoryAssignmentExportDto(string CategoryKey, int? StructureIndex);

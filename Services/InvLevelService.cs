@@ -120,12 +120,23 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         return await db.InvLevelItems.Where(i => i.GroupId == groupId).ToListAsync(ct);
     }
 
-    public async Task<InvLevelItem?> AddItemAsync(int groupId, int typeId, CancellationToken ct = default)
+    /// <summary>
+    /// Adds an item to a group at the target the caller asked for.
+    ///
+    /// <para>The target used to be hardcoded to 1, so the quantity typed into the add dialog was
+    /// collected, passed along and then discarded — every item landed at 1 whatever was entered.
+    /// Callers with no opinion still get 1 from the default.</para>
+    /// </summary>
+    public async Task<InvLevelItem?> AddItemAsync(
+        int groupId, int typeId, int targetQty = 1, CancellationToken ct = default)
     {
         await using var db = dbFactory.CreateDbContext();
         if (await db.InvLevelItems.AnyAsync(i => i.GroupId == groupId && i.TypeId == typeId, ct))
             return null;
-        var item = new InvLevelItem { GroupId = groupId, TypeId = typeId, TargetQuantity = 1 };
+        var item = new InvLevelItem
+        {
+            GroupId = groupId, TypeId = typeId, TargetQuantity = Math.Max(1, targetQty),
+        };
         db.InvLevelItems.Add(item);
         await db.SaveChangesAsync(ct);
         return item;
@@ -222,15 +233,26 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
     // Resolve the set of location IDs a group's scope covers — NPC stations + player/corp
     // structures, plus the solar-system id itself so items floating in space (or in a ship in
     // space, e.g. a titan a character is logged off in) are included. Null = Everywhere.
-    private static async Task<HashSet<long>?> ResolveScopeFilterAsync(
+    private static Task<HashSet<long>?> ResolveScopeFilterAsync(
         AppDbContext db, InvLevelGroup group, CancellationToken ct)
-    {
-        if (group.Scope == "Station" && group.LocationId.HasValue)
-            return [group.LocationId.Value];
+        => ResolveScopeFilterAsync(db, group.Scope, group.LocationId, ct);
 
-        if (group.Scope == "System" && group.LocationId.HasValue)
+    /// <summary>
+    /// Every location id that counts as inside a scope, or null for Everywhere.
+    ///
+    /// <para>Shared rather than duplicated: "which structures are in this region" is the kind of
+    /// question two callers can easily answer differently — one remembering player structures and
+    /// the other not — and then disagree about whether the same pile of material exists.</para>
+    /// </summary>
+    public static async Task<HashSet<long>?> ResolveScopeFilterAsync(
+        AppDbContext db, string scope, long? locationId, CancellationToken ct)
+    {
+        if (scope == "Station" && locationId.HasValue)
+            return [locationId.Value];
+
+        if (scope == "System" && locationId.HasValue)
         {
-            int sysId = (int)group.LocationId.Value;
+            int sysId = (int)locationId.Value;
             var ids = new HashSet<long> { sysId };
             ids.UnionWith(await db.SdeStations
                 .Where(s => s.SolarSystemId == sysId).Select(s => (long)s.StationId).ToListAsync(ct));
@@ -241,9 +263,9 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             return ids;
         }
 
-        if (group.Scope == "Region" && group.LocationId.HasValue)
+        if (scope == "Region" && locationId.HasValue)
         {
-            int regionId = (int)group.LocationId.Value;
+            int regionId = (int)locationId.Value;
             var sysIds = await db.SdeSolarSystems
                 .Where(s => s.RegionId == regionId).Select(s => s.SolarSystemId).ToListAsync(ct);
             var ids = new HashSet<long>(sysIds.Select(s => (long)s));

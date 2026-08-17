@@ -287,10 +287,24 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     /// Plans a queue against an already-loaded context. Pure computation — no database access —
     /// so a caller with many items to cost pays the loading cost once.
     /// </summary>
+    /// <param name="meOverrides">
+    /// Material efficiency to use for particular products, whatever their place in the tree.
+    ///
+    /// <para>Without this only the item asked for carries a real ME and everything beneath it is
+    /// costed at the shared default. That is fine for a quote and wrong for a purchase: planning
+    /// an Avatar assumed an ME10 Enhanced Neurolink Protection Cell and asked for 17 Nano
+    /// Regulation Gates, where the ME8 original actually on hand needs 18. Buying 17 leaves the
+    /// job unable to start.</para>
+    ///
+    /// <para>Null leaves the existing behaviour untouched, which is what the Production
+    /// Calculator wants — it is answering what a build would cost in general, not what this
+    /// player's specific prints demand.</para>
+    /// </param>
     public ProductionPlan Calculate(
         List<ProductionQueueEntry> requests,
         ProductionContext ctx,
-        bool includeBpcCost = false)
+        bool includeBpcCost = false,
+        IReadOnlyDictionary<int, int>? meOverrides = null)
     {
         // Bound back to the names the body below already uses, so the planning logic is the same
         // code it was when it and the loading lived in one method.
@@ -493,6 +507,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 _ when gc.Name.Contains("Capital") && gc.Name.Contains("Component")
                                                    && !gc.Name.Contains("Advanced")
                                                                           => "capital_components",
+                // Group 536 "Structure Components" ahead of the generic match, which claims it
+                // on the group name alone. See IndyRigMatching.
+                _ when tg.GroupId == 536                                   => "structure_ammo",
                 _ when gc.Name.Contains("Component")                       => "adv_components",
                 _ when gc.CategoryId is 22 or 65                          => "structure_ammo",
                 // R.A.M. items and Data Interfaces are manufactured at standard facilities
@@ -575,7 +592,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             // Final products use the user-chosen ME (defaulted per the same rule when added to the
             // queue). Sub-components follow the shared default-ME rule (ME10 / T2 ME3 / BPC-only ME0 /
             // titan & Keepstar ME9 / reactions ME0) so this matches the stored build cost.
-            int    meLevel    = (isFinal && !isReaction && finalMeLevels.TryGetValue(typeId, out var ml))
+            // An override wins at any depth — it is a statement about a print actually on hand.
+            // Reactions are excluded because a formula cannot be researched, so any ME on one is
+            // noise rather than a bonus.
+            int    meLevel    = (!isReaction && meOverrides is not null
+                                 && meOverrides.TryGetValue(typeId, out var ov))
+                                ? ov
+                                : (isFinal && !isReaction && finalMeLevels.TryGetValue(typeId, out var ml))
                                 ? ml
                                 : IndustryMe.DefaultMe(isReaction, !isReaction && !BlueprintIsBpoSourced(bpProd.TypeId),
                                       t2TypeIds.Contains(typeId), titanKeepstarIds.Contains(typeId));
@@ -1021,6 +1044,34 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
     // ── Stock availability ────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Which owned stock is allowed to count as available.
+    ///
+    /// <para>Optional, and null means everything the player owns — what the Production Calculator
+    /// asks for, since it is answering "what would this cost me". A caller deciding whether to
+    /// place an order needs the narrower question: material in another region will not fill a job
+    /// this week, and material in an asset safety wrap will not fill one at all.</para>
+    /// </summary>
+    /// <param name="Scope">Root locations that count, or null for anywhere.</param>
+    /// <param name="Excluded">Item ids to ignore wherever they are — asset safety and its
+    /// container chain.</param>
+    /// <param name="Corporations">Corporations whose hangars count, or null for all of them.
+    /// Seeing a corporation's assets is not the same as being able to use them: a character in a
+    /// large alliance corp exposes tens of thousands of rows belonging to other people.</param>
+    public sealed record AssetReach(
+        HashSet<long>? Scope, HashSet<long>? Excluded, HashSet<long>? Corporations = null)
+    {
+        public bool Counts(long itemId, long rootLocationId) =>
+            (Excluded is null || !Excluded.Contains(itemId))
+            && (Scope is null || Scope.Contains(rootLocationId));
+
+        /// <summary>The same test, plus whose it is. Corp-owned stock only counts for a
+        /// corporation the player actually builds out of.</summary>
+        public bool Counts(long itemId, long rootLocationId, string ownerType, long ownerId) =>
+            Counts(itemId, rootLocationId)
+            && (ownerType != "corporation" || Corporations is null || Corporations.Contains(ownerId));
+    }
+
     /// <summary>How the Raw Materials tab decides what is missing.</summary>
     public enum MissingMode
     {
@@ -1052,7 +1103,8 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     public async Task ApplyAvailabilityAsync(
         ProductionPlan plan,
         MissingMode rawMode,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        AssetReach? reach = null)
     {
         var typeIds = plan.AllJobs.SelectMany(j => j.Materials).Select(m => m.MaterialTypeId)
             .Concat(plan.RawMaterials.Select(r => r.TypeId))
@@ -1063,10 +1115,14 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
         // RootLocationId is the terminal station reached by walking the container chain, so
         // this counts materials sitting in cans and ship holds at the station too.
-        var rows = await db.EsiAssets.AsNoTracking()
-            .Where(a => typeIds.Contains(a.TypeId))
-            .Select(a => new { a.TypeId, a.RootLocationId, a.Quantity })
-            .ToListAsync(ct);
+        var rows = (await db.EsiAssets.AsNoTracking()
+                .Where(a => typeIds.Contains(a.TypeId))
+                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId,
+                                   a.OwnerType, a.OwnerId, a.Quantity })
+                .ToListAsync(ct))
+            .Where(a => reach is null
+                        || reach.Counts(a.ItemId, a.RootLocationId, a.OwnerType, a.OwnerId))
+            .ToList();
 
         var byStation = rows
             .GroupBy(a => (a.RootLocationId, a.TypeId))

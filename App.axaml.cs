@@ -46,6 +46,20 @@ public class App : Application
             if (e.ExceptionObject is Exception ex)
                 errorLogger.Log("AppDomain", "UnhandledException", ex);
         };
+        // The one that can actually prevent a crash. AppDomain.UnhandledException below only
+        // observes — the process still dies. An async void event handler that throws posts to
+        // this dispatcher, and there are thirty such handlers across the views, so guarding them
+        // individually would be a list to keep in step forever.
+        //
+        // Marking it handled is the right trade for what actually lands here: a transient
+        // SQLITE_BUSY from two writers colliding, already retried for thirty seconds. Losing the
+        // action is a nuisance; losing the session mid-setup is not. Everything is logged, so a
+        // real defect still surfaces in the error log rather than vanishing.
+        Avalonia.Threading.Dispatcher.UIThread.UnhandledException += (_, e) =>
+        {
+            errorLogger.Log("Dispatcher", "UnhandledException", e.Exception);
+            e.Handled = true;
+        };
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
             errorLogger.Log("TaskScheduler", "UnobservedTaskException", e.Exception);
@@ -231,6 +245,10 @@ public class App : Application
                     "CreatedAt"     TEXT    NOT NULL DEFAULT ''
                 )
                 """);
+
+            // Hand-marked to jump the queue, for an order whose urgency the estimated date does
+            // not capture. Everything it needs outranks every other order.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "IsPriority" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
             // Sale Posting — postings → sections → items (see SalePostingModels.cs)
             db.Database.ExecuteSqlRaw("""
@@ -438,6 +456,10 @@ public class App : Application
                     PRIMARY KEY ("OwnerId", "OwnerType", "Endpoint")
                 )
                 """);
+
+            // When the server said its copy goes stale. Polling shortly after that beats polling
+            // on a clock of our own, which drifts against it and can miss by nearly a full cache.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCallRecords" ADD COLUMN "ExpiresAt" TEXT"""); } catch { }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "ApiTimerSettings" (
@@ -1541,6 +1563,134 @@ public class App : Application
                 ON "StandingBuyOrders" ("TypeId", "LocationId")
                 """);
 
+            // ── Worklist ─────────────────────────────────────────────────────
+            // Only configuration and per-item state are stored. The items themselves are
+            // recomputed from live data every refresh, so there is nothing here to keep in
+            // step with the game.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistMarketAlts" (
+                    "Id"            INTEGER NOT NULL CONSTRAINT "PK_WorklistMarketAlts" PRIMARY KEY AUTOINCREMENT,
+                    "LocationId"    INTEGER NOT NULL DEFAULT 0,
+                    "LocationName"  TEXT    NOT NULL DEFAULT '',
+                    "CharacterId"   INTEGER NOT NULL DEFAULT 0,
+                    "CharacterName" TEXT    NOT NULL DEFAULT '',
+                    "Note"          TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistMarketAlts_LocationId"
+                ON "WorklistMarketAlts" ("LocationId")
+                """);
+
+            // Carry over rows from the table's former name. This never shipped, so the only
+            // databases holding WorklistDesks are ones used to test the branch — but losing
+            // someone's configuration to a rename is a poor trade for deleting four lines.
+            try
+            {
+                db.Database.ExecuteSqlRaw("""
+                    INSERT OR IGNORE INTO "WorklistMarketAlts"
+                        ("LocationId", "LocationName", "CharacterId", "CharacterName", "Note")
+                    SELECT "LocationId", "LocationName", "CharacterId", "CharacterName", "Note"
+                    FROM "WorklistDesks"
+                    """);
+                db.Database.ExecuteSqlRaw("""DROP TABLE "WorklistDesks" """);
+            }
+            catch { /* no old table — the normal case on a fresh install */ }
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistInvRules" (
+                    "Id"                INTEGER NOT NULL CONSTRAINT "PK_WorklistInvRules" PRIMARY KEY AUTOINCREMENT,
+                    "GroupId"           INTEGER NOT NULL DEFAULT 0,
+                    "ThresholdPercent"  REAL    NOT NULL DEFAULT 100,
+                    "FillTargetPercent" REAL    NOT NULL DEFAULT 100,
+                    "LocationId"        INTEGER NOT NULL DEFAULT 0,
+                    "LocationName"      TEXT    NOT NULL DEFAULT '',
+                    "Enabled"           INTEGER NOT NULL DEFAULT 1
+                )
+                """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistIndyChars" (
+                    "Id"                    INTEGER NOT NULL CONSTRAINT "PK_WorklistIndyChars" PRIMARY KEY AUTOINCREMENT,
+                    "CharacterId"           INTEGER NOT NULL DEFAULT 0,
+                    "CharacterName"         TEXT    NOT NULL DEFAULT '',
+                    "Manufacturing"         INTEGER NOT NULL DEFAULT 1,
+                    "Reactions"             INTEGER NOT NULL DEFAULT 1,
+                    "Science"               INTEGER NOT NULL DEFAULT 0,
+                    "IncludeCorpAssets"     INTEGER NOT NULL DEFAULT 1,
+                    "IncludePersonalAssets" INTEGER NOT NULL DEFAULT 1,
+                    "Note"                  TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistIndyChars_CharacterId"
+                ON "WorklistIndyChars" ("CharacterId")
+                """);
+
+            // Added after the rules table shipped on this branch, so it needs its own ALTER —
+            // CREATE TABLE IF NOT EXISTS will not add a column to a table that already exists.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistInvRules" ADD COLUMN "Action" TEXT NOT NULL DEFAULT 'Buy' """); } catch { }
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistCorpAlts" (
+                    "Id"              INTEGER NOT NULL CONSTRAINT "PK_WorklistCorpAlts" PRIMARY KEY AUTOINCREMENT,
+                    "CorporationId"   INTEGER NOT NULL DEFAULT 0,
+                    "CorporationName" TEXT    NOT NULL DEFAULT '',
+                    "CharacterId"     INTEGER NOT NULL DEFAULT 0,
+                    "CharacterName"   TEXT    NOT NULL DEFAULT '',
+                    "Note"            TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistCorpAlts_CorporationId"
+                ON "WorklistCorpAlts" ("CorporationId")
+                """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistStationLevels" (
+                    "Id"             INTEGER NOT NULL CONSTRAINT "PK_WorklistStationLevels" PRIMARY KEY AUTOINCREMENT,
+                    "GroupId"        INTEGER NOT NULL DEFAULT 0,
+                    "LocationId"     INTEGER NOT NULL DEFAULT 0,
+                    "LocationName"   TEXT    NOT NULL DEFAULT '',
+                    "AcceptsSurplus" INTEGER NOT NULL DEFAULT 0,
+                    "Enabled"        INTEGER NOT NULL DEFAULT 1
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistStationLevels_GroupId_LocationId"
+                ON "WorklistStationLevels" ("GroupId", "LocationId")
+                """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistIndyScopeStations" (
+                    "Id"           INTEGER NOT NULL CONSTRAINT "PK_WorklistIndyScopeStations" PRIMARY KEY AUTOINCREMENT,
+                    "LocationId"   INTEGER NOT NULL DEFAULT 0,
+                    "LocationName" TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistIndyScopeStations_LocationId"
+                ON "WorklistIndyScopeStations" ("LocationId")
+                """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistOrderRules" (
+                    "Id"           INTEGER NOT NULL CONSTRAINT "PK_WorklistOrderRules" PRIMARY KEY AUTOINCREMENT,
+                    "ParkId"       INTEGER NOT NULL DEFAULT 0,
+                    "LocationId"   INTEGER NOT NULL DEFAULT 0,
+                    "LocationName" TEXT    NOT NULL DEFAULT '',
+                    "Enabled"      INTEGER NOT NULL DEFAULT 1
+                )
+                """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "WorklistItemStates" (
+                    "Key"          TEXT NOT NULL CONSTRAINT "PK_WorklistItemStates" PRIMARY KEY,
+                    "FirstSeenAt"  TEXT NOT NULL DEFAULT '',
+                    "SnoozedUntil" TEXT NULL
+                )
+                """);
+
             // ── Client activity monitoring ───────────────────────────────────
             // Live session state per character, refreshed by the char.online /
             // char.location / char.ship polling endpoints.
@@ -2327,6 +2477,7 @@ public class App : Application
         services.AddSingleton<UiStallMonitor>();
         services.AddSingleton<StructureSyncService>();
         services.AddSingleton<IndyStructureLinkService>();
+        services.AddSingleton<IndyBulkAddService>();
         services.AddSingleton<EveRefStructureService>();
         services.AddSingleton<FittingOptionService>();
         services.AddSingleton<TimerSettingsService>();
@@ -2357,9 +2508,47 @@ public class App : Application
         services.AddSingleton<SalePostingService>();
         services.AddSingleton<BatchAddService>();
         services.AddSingleton<CorpActivityService>();
+        services.AddSingleton<CharacterSummaryService>();
         services.AddSingleton<KillmailBrowserService>();
         services.AddSingleton<CorpTop10ExcludeService>();
+        services.AddSingleton<MarketCompetitionService>();
         services.AddSingleton<StandingBuyOrderService>();
+
+        // Worklist. Generators register as IWorklistGenerator so WorklistService picks up new
+        // ones without being edited — the list of sources is the DI registrations.
+        services.AddSingleton<EveConsole.Services.Worklist.WorklistMarketAltService>();
+        services.AddSingleton<EveConsole.Services.Worklist.WorklistSettings>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.StandingBuyOrderGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.InventoryLevelGenerator>();
+        // Customer orders no longer raise their own purchases. They and the inventory targets are
+        // additive demand on one pool of stock, and each netting that stock against its own
+        // shortfall meant neither ever asked for the real figure — so both feed
+        // MaterialPurchaseGenerator instead.
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.MaterialPurchaseGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.WorklistCorpAltService>();
+        services.AddSingleton<EveConsole.Services.Worklist.IndustryAssignmentService>();
+        services.AddSingleton<EveConsole.Services.Worklist.IndustryBlueprintService>();
+        services.AddSingleton<EveConsole.Services.Worklist.IndustryTimeService>();
+        services.AddSingleton<EveConsole.Services.Worklist.IndustryDemandService>();
+        services.AddSingleton<EveConsole.Services.Worklist.MaterialSubstitutionService>();
+        services.AddSingleton<EveConsole.Services.Worklist.JumpDistanceService>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.LogisticsGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.StandingProjectGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.IndustryJobGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.SkillQueueGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.AssetSafetyGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.InventionService>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.InventionGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.WorklistService>();
         services.AddSingleton<IndyFacilityCheckService>();
 
         // Game log import — reads EVE's own logs into GameLogEvents for tools to

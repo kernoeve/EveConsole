@@ -546,6 +546,9 @@ public class BuildCostService
                 _ when gc.Name.Contains("Capital") && gc.Name.Contains("Component")
                                                    && !gc.Name.Contains("Advanced")
                                                                            => "capital_components",
+                // Group 536 "Structure Components" ahead of the generic match, which claims it
+                // on the group name alone. See IndyRigMatching.
+                _ when tg.GroupId == 536                                    => "structure_ammo",
                 _ when gc.Name.Contains("Component")                        => "adv_components",
                 _ when gc.CategoryId is 22 or 65                           => "structure_ammo",
                 // R.A.M. items and Data Interfaces are manufactured at standard facilities
@@ -874,27 +877,14 @@ public class BuildCostService
                 .Where(kv => batchByName.ContainsKey(kv.Value))
                 .ToDictionary(kv => kv.Key, kv => batchByName[kv.Value]);
 
-            // A blueprint cannot be run more times than it allows. Some cap well below 100 —
-            // asking for more would plan a batch nobody could actually install.
-            var maxRunsByBlueprint = await db.SdeBlueprints.AsNoTracking()
-                .Where(b => b.MaxProductionLimit > 0)
-                .ToDictionaryAsync(b => b.TypeId, b => b.MaxProductionLimit, ct);
-
-            int BatchRuns(int typeId)
-            {
-                var wanted =
-                    batchExceptions.TryGetValue(typeId, out var runs) ? runs
-                  : recIsReaction.Contains(typeId) || componentTypes.Contains(typeId) ? 100
-                  : 1;
-
-                if (wanted <= 1) return 1;
-
-                return productMap.TryGetValue(typeId, out var prod)
-                    && maxRunsByBlueprint.TryGetValue(prod.TypeId, out var max)
-                    && max > 0
-                        ? Math.Min(wanted, max)
-                        : wanted;
-            }
+            // No clamp to the blueprint's maxProductionLimit here. That field looks like a per-job
+            // run cap and is not one — the only limit the game imposes on an original is thirty
+            // days of run time, which a hundred runs of anything costed here comes nowhere near.
+            // Clamping to it costed capital components in batches of 40 rather than 100.
+            int BatchRuns(int typeId) =>
+                batchExceptions.TryGetValue(typeId, out var runs) ? runs
+              : recIsReaction.Contains(typeId) || componentTypes.Contains(typeId) ? 100
+              : 1;
 
             // Order matters, and it is what makes crediting leftovers possible at all.
             //

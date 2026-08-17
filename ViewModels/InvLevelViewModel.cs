@@ -68,12 +68,13 @@ public class InvCollectionRow : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> ToggleCommand     { get; }
     public ReactiveCommand<Unit, Unit> RenameCommand     { get; }
+    public ReactiveCommand<Unit, Unit> ExportCommand     { get; }
     public ReactiveCommand<Unit, Unit> DeleteCommand     { get; }
     public ReactiveCommand<Unit, Unit> ExpandAllCommand  { get; }
     public ReactiveCommand<Unit, Unit> CollapseAllCommand { get; }
 
     public InvCollectionRow(int? collectionId, string name, bool isSynthetic,
-        Action toggle, Func<Task> rename, Func<Task> delete,
+        Action toggle, Func<Task> rename, Func<Task> export, Func<Task> delete,
         Action expandAll, Action collapseAll)
     {
         CollectionId     = collectionId;
@@ -81,6 +82,7 @@ public class InvCollectionRow : ReactiveObject
         IsSynthetic      = isSynthetic;
         ToggleCommand    = ReactiveCommand.Create(toggle);
         RenameCommand    = ReactiveCommand.CreateFromTask(rename);
+        ExportCommand    = ReactiveCommand.CreateFromTask(export);
         DeleteCommand    = ReactiveCommand.CreateFromTask(delete);
         ExpandAllCommand = ReactiveCommand.Create(expandAll);
         CollapseAllCommand = ReactiveCommand.Create(collapseAll);
@@ -356,12 +358,14 @@ public class InvItemRow : ReactiveObject
 public class InvLevelViewModel : ReactiveObject
 {
     private readonly InvLevelService              _svc;
+    private readonly InvLevelCollectionTransfer   _transfer;
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly BatchAddService?             _batchSvc;
     private readonly ProductionCalculatorService? _prodCalc;
     private readonly FittingsService?             _fittings;
     private readonly ObservableCollection<Character>?   _characters;
     private readonly ObservableCollection<Corporation>? _corporations;
+    private readonly AppPreferencesService              _prefs;
 
     private readonly List<InvGroupRow>       _allGroups       = [];
     private readonly List<InvCollectionRow>  _allCollections  = [];
@@ -402,6 +406,39 @@ public class InvLevelViewModel : ReactiveObject
     public Func<IReadOnlyList<CollectionOption>, Task<InvGroupDialogResult?>>?              ShowAddGroupDialog        { get; set; }
     public Func<InvGroupRow, IReadOnlyList<CollectionOption>, Task<InvGroupDialogResult?>>? ShowEditGroupDialog       { get; set; }
     public Func<Task<AddItemDialogResult?>>?                                                ShowAddItemDialog          { get; set; }
+
+    // File pickers belong to the view; the view model says which collection and what to call it.
+    public Func<int, string, Task>? ExportCollection { get; set; }
+    public Func<Task>?              ImportCollection { get; set; }
+
+    public ReactiveCommand<Unit, Unit> ImportCollectionCommand { get; private set; } = null!;
+
+    /// <summary>
+    /// Writes a collection out. Called by the view once it has a stream from the save dialog.
+    /// </summary>
+    public Task ExportCollectionAsync(int collectionId, Stream output) =>
+        _transfer.ExportAsync(collectionId, output);
+
+    /// <summary>
+    /// Reads a collection in, always as a new one, and reloads so it appears without a refresh.
+    /// </summary>
+    public async Task ImportCollectionAsync(Stream input)
+    {
+        try
+        {
+            var r = await _transfer.ImportAsync(input);
+            await RefreshAllAsync();
+            StatusText = $"Imported '{r.CollectionName}' — {r.Groups} group(s), {r.Items} item(s)"
+                       + (r.UnknownTypes > 0
+                            ? $". {r.UnknownTypes} item(s) skipped: this install's SDE does not have them."
+                            : ".");
+            await NotifyGroupsChangedAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Import failed: {ex.Message}";
+        }
+    }
     public Func<Task<FitSelectorResult?>>?                                                  ShowFitSelectorDialog      { get; set; }
     public Func<Task<MarketGroupPickerResult?>>?                                            ShowMarketGroupPickerDialog { get; set; }
     public Func<Task<BlueprintPickerResult?>>?                                              ShowBlueprintPickerDialog  { get; set; }
@@ -409,8 +446,13 @@ public class InvLevelViewModel : ReactiveObject
     public Func<string, Task<string?>>?                                                     ShowRenameCollectionDialog { get; set; }
     public Action<int, string>?                                                             OpenInItemBrowser          { get; set; }
 
+    /// <param name="prefs">Required, and deliberately not optional like the rest. It was added as
+    /// a trailing optional and wired to a property that is assigned later in the caller's
+    /// constructor, so it silently arrived null and the saved expansion state never loaded or
+    /// saved. Sitting among the required parameters, that cannot happen again.</param>
     public InvLevelViewModel(InvLevelService svc,
         IDbContextFactory<AppDbContext>   dbFactory,
+        AppPreferencesService              prefs,
         BatchAddService?             batchSvc      = null,
         ProductionCalculatorService? prodCalc      = null,
         FittingsService?             fittings      = null,
@@ -419,6 +461,8 @@ public class InvLevelViewModel : ReactiveObject
     {
         _svc          = svc;
         _dbFactory    = dbFactory;
+        _prefs        = prefs;
+        _transfer     = new InvLevelCollectionTransfer(dbFactory);
         _batchSvc     = batchSvc;
         _prodCalc     = prodCalc;
         _fittings     = fittings;
@@ -428,6 +472,8 @@ public class InvLevelViewModel : ReactiveObject
         var hasGroups = this.WhenAnyValue(x => x.HasAnyGroup);
         AddGroupCommand              = ReactiveCommand.CreateFromTask(AddGroupAsync);
         AddCollectionCommand         = ReactiveCommand.CreateFromTask(AddCollectionAsync);
+        ImportCollectionCommand      = ReactiveCommand.CreateFromTask(
+            async () => { if (ImportCollection is not null) await ImportCollection(); });
         DeleteSelectedItemCommand    = ReactiveCommand.CreateFromTask(DeleteSelectedItemAsync,
             this.WhenAnyValue(x => x.IsItemRowSelected));
         RefreshCommand               = ReactiveCommand.CreateFromTask(RefreshAllAsync);
@@ -439,7 +485,7 @@ public class InvLevelViewModel : ReactiveObject
 
         Observable.Interval(TimeSpan.FromMinutes(1))
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(async _ => await RefreshAllAsync());
+            .SubscribeAsyncSafe(_ => RefreshAllAsync(), null, "InvLevel.AutoRefresh");
 
         _ = InitAsync();
     }
@@ -501,6 +547,10 @@ public class InvLevelViewModel : ReactiveObject
         // Create the synthetic Default collection if any group has null CollectionId
         if (_allGroups.Any(g => g.CollectionId == null))
             _defaultCollRow = MakeCollectionRow(null, "Default", isSynthetic: true);
+
+        // Before the first rebuild, so the list is drawn folded as it was left rather than
+        // opening everything and snapping shut a frame later.
+        ApplyStoredExpansion();
 
         RebuildGridRows();
         HasAnyGroup = _allGroups.Count > 0;
@@ -761,6 +811,7 @@ public class InvLevelViewModel : ReactiveObject
 
         RebuildGridRows();
         StatusText = $"Group '{g.Name}' added.";
+        await NotifyGroupsChangedAsync();
     }
 
     private async Task EditGroupAsync(InvGroupRow row)
@@ -796,6 +847,7 @@ public class InvLevelViewModel : ReactiveObject
 
         RebuildGridRows();
         await RefreshGroupAsync(row);
+        await NotifyGroupsChangedAsync();
     }
 
     private async Task DeleteGroupAsync(InvGroupRow row)
@@ -804,7 +856,20 @@ public class InvLevelViewModel : ReactiveObject
         _allGroups.Remove(row);
         RebuildGridRows();
         StatusText = $"Group '{row.GroupName}' deleted.";
+        await NotifyGroupsChangedAsync();
     }
+
+    /// <summary>
+    /// Tells anything that offers these groups for selection that the list has moved on.
+    ///
+    /// <para>The Worklist's rule and station-level tabs load their group dropdown once. Without
+    /// this, a group added here is missing from them until the app restarts, and one renamed here
+    /// still shows its old name — so a rule appears to point at a group that no longer exists.</para>
+    /// </summary>
+    public Func<Task>? GroupsChanged { get; set; }
+
+    private Task NotifyGroupsChangedAsync() =>
+        GroupsChanged is null ? Task.CompletedTask : GroupsChanged();
 
     // ── Item CRUD ─────────────────────────────────────────────────────────────
 
@@ -814,7 +879,7 @@ public class InvLevelViewModel : ReactiveObject
         var result = await ShowAddItemDialog();
         if (result is null) return;
 
-        var item = await _svc.AddItemAsync(groupRow.GroupId, result.TypeId);
+        var item = await _svc.AddItemAsync(groupRow.GroupId, result.TypeId, result.TargetQty);
         if (item is null)
         {
             StatusText = $"{result.TypeName} is already in the group.";
@@ -929,20 +994,20 @@ public class InvLevelViewModel : ReactiveObject
 
     private void RebuildGridRows()
     {
-        GridRows.Clear();
+        var desired = new List<object>();
 
         void AddGroupWithItems(InvGroupRow g)
         {
-            GridRows.Add(g);
+            desired.Add(g);
             if (g.IsExpanded)
                 foreach (var item in g.AllItems)
-                    GridRows.Add(item);
+                    desired.Add(item);
         }
 
         // Real collections
         foreach (var col in _allCollections)
         {
-            GridRows.Add(col);
+            desired.Add(col);
             if (col.IsExpanded)
                 foreach (var g in _allGroups.Where(g => g.CollectionId == col.CollectionId))
                     AddGroupWithItems(g);
@@ -951,11 +1016,101 @@ public class InvLevelViewModel : ReactiveObject
         // Synthetic "Default" for ungrouped groups
         if (_defaultCollRow != null)
         {
-            GridRows.Add(_defaultCollRow);
+            desired.Add(_defaultCollRow);
             if (_defaultCollRow.IsExpanded)
                 foreach (var g in _allGroups.Where(g => g.CollectionId == null))
                     AddGroupWithItems(g);
         }
+
+        SyncGridRows(desired);
+        PersistExpansion();
+    }
+
+    /// <summary>
+    /// Brings <see cref="GridRows"/> to <paramref name="desired"/> with the fewest possible
+    /// changes.
+    ///
+    /// <para>Clearing and refilling would be simpler, but a collection reset sends the DataGrid's
+    /// scroll position back to the top — so adding one item to a group near the bottom of a long
+    /// list threw the reader back to the first row every time. Individual inserts and removes
+    /// leave the viewport where it was.</para>
+    /// </summary>
+    private void SyncGridRows(List<object> desired)
+    {
+        var wanted = new HashSet<object>(desired, ReferenceEqualityComparer.Instance);
+        for (var i = GridRows.Count - 1; i >= 0; i--)
+            if (!wanted.Contains(GridRows[i]))
+                GridRows.RemoveAt(i);
+
+        for (var i = 0; i < desired.Count; i++)
+        {
+            if (i < GridRows.Count && ReferenceEquals(GridRows[i], desired[i])) continue;
+
+            var at = IndexOfRow(desired[i], i);
+            if (at >= 0) GridRows.Move(at, i);
+            else         GridRows.Insert(i, desired[i]);
+        }
+
+        while (GridRows.Count > desired.Count)
+            GridRows.RemoveAt(GridRows.Count - 1);
+    }
+
+    /// <summary>
+    /// Reference-identity search, because rows are view models without value equality and
+    /// <see cref="ObservableCollection{T}.IndexOf"/> would fall back to <c>Equals</c>.
+    /// </summary>
+    private int IndexOfRow(object row, int from)
+    {
+        for (var i = from; i < GridRows.Count; i++)
+            if (ReferenceEquals(GridRows[i], row)) return i;
+        return -1;
+    }
+
+    // ── Expansion state ───────────────────────────────────────────────────────
+    //
+    // Which groups and collections are folded shut is a view preference, not data, so it lives in
+    // AppPreferences rather than the group tables. Collapsed ids are stored rather than expanded
+    // ones so that anything newly created — by this app or an import — starts open.
+
+    private const string CollapsedGroupsKey      = "invlevels.collapsed_groups";
+    private const string CollapsedCollectionsKey = "invlevels.collapsed_collections";
+    private const string DefaultCollectionToken  = "default";
+
+    private bool _expansionRestored;
+
+    private void ApplyStoredExpansion()
+    {
+        var groups = Ids(_prefs.Get(CollapsedGroupsKey) ?? "");
+        foreach (var g in _allGroups)
+            g.IsExpanded = !groups.Contains(g.GroupId.ToString());
+
+        var colls = Ids(_prefs.Get(CollapsedCollectionsKey) ?? "");
+        foreach (var c in _allCollections)
+            c.IsExpanded = !colls.Contains(c.CollectionId!.Value.ToString());
+        if (_defaultCollRow is not null)
+            _defaultCollRow.IsExpanded = !colls.Contains(DefaultCollectionToken);
+
+        _expansionRestored = true;
+
+        static HashSet<string> Ids(string csv) =>
+            new(csv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+    }
+
+    private void PersistExpansion()
+    {
+        // Not before the stored state has been applied, or the first rebuild of a fresh load —
+        // where everything still defaults to expanded — would overwrite what was saved.
+        if (!_expansionRestored) return;
+
+        var groups = string.Join(',', _allGroups.Where(g => !g.IsExpanded).Select(g => g.GroupId));
+
+        var colls = _allCollections.Where(c => !c.IsExpanded)
+                                   .Select(c => c.CollectionId!.Value.ToString())
+                                   .ToList();
+        if (_defaultCollRow is { IsExpanded: false }) colls.Add(DefaultCollectionToken);
+
+        _ = _prefs.SetAsync(CollapsedGroupsKey, groups);
+        _ = _prefs.SetAsync(CollapsedCollectionsKey, string.Join(',', colls));
     }
 
     private static InvGroupDialogResult BuildResultFromRow(InvGroupRow row, int? multiplierOverride = null) =>
@@ -994,6 +1149,13 @@ public class InvLevelViewModel : ReactiveObject
                 if (newName == null) return;
                 await _svc.RenameCollectionAsync(collectionId.Value, newName);
                 collRow.CollectionName = newName;
+            },
+            export: async () =>
+            {
+                if (isSynthetic || !collectionId.HasValue || ExportCollection is null) return;
+                var collRow = _allCollections.FirstOrDefault(c => c.CollectionId == collectionId);
+                if (collRow == null) return;
+                await ExportCollection(collectionId.Value, collRow.CollectionName);
             },
             delete: async () =>
             {

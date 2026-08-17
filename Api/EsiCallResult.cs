@@ -11,6 +11,10 @@ public class EsiCallResult<T>
     public int?   ErrorLimitRemain    { get; init; }
     public int?   ErrorLimitReset     { get; init; }
     public int?   RetryAfterSeconds   { get; init; }
+
+    /// <summary>When the server's copy goes stale, from the Expires header. Null when it sent
+    /// none, in which case the caller falls back to its own interval.</summary>
+    public DateTimeOffset? Expires  { get; init; }
     public string? Error              { get; init; }
     // For paged fetches: false when one or more pages after the first failed, so the returned
     // Data is incomplete. Callers that reconcile "rows no longer returned" must not act on a

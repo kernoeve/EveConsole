@@ -462,7 +462,7 @@ public class MarketLevelViewModel : ReactiveObject
 
         Observable.Interval(TimeSpan.FromMinutes(1))
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(async _ => await AutoRefreshAsync());
+            .SubscribeAsyncSafe(_ => AutoRefreshAsync(), null, "MarketLevel.AutoRefresh");
 
         _ = InitializeAsync();
     }
