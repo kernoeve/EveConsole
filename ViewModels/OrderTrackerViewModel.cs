@@ -11,7 +11,7 @@ namespace EveConsole.ViewModels;
 
 // Result returned by the add/edit order dialog.
 public record OrderDialogResult(int TypeId, string TypeName, int Units, string Buyer,
-    string? EstimatedDate, double PurchasePrice, string Status);
+    string? EstimatedDate, double PurchasePrice, string Status, bool IsPriority = false);
 
 // One row on the Order Tracker grid.
 public class TrackedOrderRowVm
@@ -22,6 +22,9 @@ public class TrackedOrderRowVm
     public int    Units   { get; } public string UnitsText { get; }
     public string Buyer   { get; }
     public string EstDate { get; }
+    public bool   IsPriority   { get; }
+    /// <summary>A star rather than True/False: the column is scanned, not read.</summary>
+    public string PriorityMark { get; }
     public double PurchaseRaw { get; } public string Purchase { get; }
     public string StatusRaw   { get; } public string Status   { get; }
     public double BuildRaw  { get; } public string Build  { get; }
@@ -40,6 +43,8 @@ public class TrackedOrderRowVm
         EstDate     = o.EstimatedDate ?? "";
         PurchaseRaw = o.PurchasePrice; Purchase = MarketFmt.Isk(o.PurchasePrice);
         StatusRaw   = o.Status;
+        IsPriority  = o.IsPriority;
+        PriorityMark = o.IsPriority ? "★" : "";
         Status      = o.Status.Length > 0 ? char.ToUpper(o.Status[0]) + o.Status[1..] : o.Status;
 
         BuildRaw = buildCost ?? 0;
@@ -53,7 +58,7 @@ public class TrackedOrderRowVm
     }
 
     public OrderDialogResult ToDialog() =>
-        new(TypeId, Type, Units, Buyer, string.IsNullOrEmpty(EstDate) ? null : EstDate, PurchaseRaw, StatusRaw);
+        new(TypeId, Type, Units, Buyer, string.IsNullOrEmpty(EstDate) ? null : EstDate, PurchaseRaw, StatusRaw, IsPriority);
 }
 
 public record OrderStatusFilter(string Label, string? Value) { public override string ToString() => Label; }
@@ -189,6 +194,7 @@ public class OrderTrackerViewModel : ReactiveObject
                 EstimatedDate = r.EstimatedDate,
                 PurchasePrice = r.PurchasePrice,
                 Status        = r.Status,
+                IsPriority    = r.IsPriority,
                 CreatedAt     = DateTimeOffset.UtcNow,
             });
             await db.SaveChangesAsync();
@@ -213,6 +219,7 @@ public class OrderTrackerViewModel : ReactiveObject
             o.EstimatedDate = r.EstimatedDate;
             o.PurchasePrice = r.PurchasePrice;
             o.Status        = r.Status;
+            o.IsPriority    = r.IsPriority;
             await db.SaveChangesAsync();
             await LoadAsync();
         }

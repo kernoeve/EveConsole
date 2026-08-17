@@ -34,6 +34,7 @@ public partial class OrderEditDialog : Window
             EstDateBox.Text = initial.EstimatedDate ?? "";
             PriceBox.Value = (decimal)initial.PurchasePrice;
             StatusBox.SelectedIndex = initial.Status switch { "completed" => 1, "canceled" => 2, _ => 0 };
+            PriorityBox.IsChecked = initial.IsPriority;
         }
 
         UpdateOk();
@@ -88,7 +89,8 @@ public partial class OrderEditDialog : Window
             BuyerBox.Text ?? "",
             est,
             (double)(PriceBox.Value ?? 0m),
-            status));
+            status,
+            PriorityBox.IsChecked == true));
     }
 
     private void OnCancel(object? sender, RoutedEventArgs e) => Close(null);

@@ -67,6 +67,10 @@
         <TextBox x:Name="EstDateBox" Watermark="yyyy-MM-dd" Padding="8 5" />
       </StackPanel>
 
+      <CheckBox x:Name="PriorityBox" FontSize="11"
+                Content="Priority — put this order and everything it needs at the top"
+                ToolTip.Tip="Outranks every other order regardless of estimated date, along with the jobs, purchases and hauls that serve it."/>
+
       <StackPanel Spacing="5">
         <TextBlock Classes="lbl" Text="STATUS" />
         <ComboBox x:Name="StatusBox" SelectedIndex="0" HorizontalAlignment="Stretch">
