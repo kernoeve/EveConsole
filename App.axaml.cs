@@ -246,6 +246,10 @@ public class App : Application
                 )
                 """);
 
+            // Hand-marked to jump the queue, for an order whose urgency the estimated date does
+            // not capture. Everything it needs outranks every other order.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "IsPriority" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+
             // Sale Posting — postings → sections → items (see SalePostingModels.cs)
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "SalePostings" (
@@ -452,6 +456,10 @@ public class App : Application
                     PRIMARY KEY ("OwnerId", "OwnerType", "Endpoint")
                 )
                 """);
+
+            // When the server said its copy goes stale. Polling shortly after that beats polling
+            // on a clock of our own, which drifts against it and can miss by nearly a full cache.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCallRecords" ADD COLUMN "ExpiresAt" TEXT"""); } catch { }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "ApiTimerSettings" (
@@ -2500,6 +2508,7 @@ public class App : Application
         services.AddSingleton<SalePostingService>();
         services.AddSingleton<BatchAddService>();
         services.AddSingleton<CorpActivityService>();
+        services.AddSingleton<CharacterSummaryService>();
         services.AddSingleton<KillmailBrowserService>();
         services.AddSingleton<CorpTop10ExcludeService>();
         services.AddSingleton<MarketCompetitionService>();
@@ -2532,6 +2541,13 @@ public class App : Application
                               EveConsole.Services.Worklist.StandingProjectGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.IndustryJobGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.SkillQueueGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.AssetSafetyGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.InventionService>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.InventionGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.WorklistService>();
         services.AddSingleton<IndyFacilityCheckService>();
 

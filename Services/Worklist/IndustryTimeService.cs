@@ -34,17 +34,40 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
     private const int AttrStructMfgTime   = 2602;
     private const int AttrStructRxnTime   = 2721;
 
+    // Science rig bonuses. Copying and invention are separately bonused, so a lab rigged for one
+    // does nothing for the other and they cannot share a lookup.
+    private const int AttrCopyRigTime      = 2780;
+    private const int AttrInventionRigTime = 2781;
+
     // Industry cuts manufacturing time by 4% a level; Advanced Industry cuts both manufacturing
     // and reaction time by 3% a level. Reactions have no time-efficiency research, so a reaction
     // formula's TE is always zero and the term drops out on its own.
     private const int SkillIndustry         = 3380;
     private const int SkillAdvancedIndustry = 3388;
 
+    /// <summary>
+    /// Science cuts copying time by 5% a level — and copying only. Invention takes Advanced
+    /// Industry and nothing else.
+    ///
+    /// <para>Both settled against the player's own completed jobs rather than from memory. Every
+    /// invention job runs at exactly <c>base × 0.85 × 0.85 × 0.496</c> of its SDE time and every
+    /// copy job at <c>× 0.75</c> of that again, across every blueprint and run count on record. The
+    /// three factors are Advanced Industry V, the Raitaru's engineering role bonus, and a 24%
+    /// laboratory rig doubled by nullsec; the extra quarter off copying is Science V, which those
+    /// same characters all have.</para>
+    /// </summary>
+    private const int SkillScience = 3402;
+
+    public const string CopyingActivity   = "copying";
+    public const string InventionActivity = "invention";
+
     public sealed class TimeContext
     {
         public required Dictionary<(int TypeId, string Activity), int> BaseSeconds { get; init; }
         public required Dictionary<int, double> MfgRigTime     { get; init; }
         public required Dictionary<int, double> RxnRigTime     { get; init; }
+        public required Dictionary<int, double> CopyRigTime      { get; init; }
+        public required Dictionary<int, double> InventionRigTime { get; init; }
         public required Dictionary<int, double> RigLowsecMult  { get; init; }
         public required Dictionary<int, double> RigNullsecMult { get; init; }
         public required Dictionary<int, string> RigCategories  { get; init; }
@@ -65,7 +88,8 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         var baseTimes = (await db.HoboBlueprintActivities.AsNoTracking()
-                .Where(a => a.Activity == "manufacturing" || a.Activity == "reaction")
+                .Where(a => a.Activity == "manufacturing" || a.Activity == "reaction"
+                         || a.Activity == CopyingActivity || a.Activity == InventionActivity)
                 .Select(a => new { a.TypeId, a.Activity, a.Time })
                 .ToListAsync(ct))
             .GroupBy(a => (a.TypeId, a.Activity))
@@ -74,12 +98,15 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         var attrs = await db.SdeTypeDogmaAttributes.AsNoTracking()
             .Where(a => a.AttributeId == AttrMfgRigTime     || a.AttributeId == AttrRxnRigTime
                      || a.AttributeId == AttrRigLowsecMult  || a.AttributeId == AttrRigNullsecMult
+                     || a.AttributeId == AttrCopyRigTime    || a.AttributeId == AttrInventionRigTime
                      || a.AttributeId == AttrStructMfgTime  || a.AttributeId == AttrStructRxnTime)
             .Select(a => new { a.TypeId, a.AttributeId, a.Value })
             .ToListAsync(ct);
 
         var mfgRig = new Dictionary<int, double>();
         var rxnRig = new Dictionary<int, double>();
+        var cpyRig = new Dictionary<int, double>();
+        var invRig = new Dictionary<int, double>();
         var lowMul = new Dictionary<int, double>();
         var nulMul = new Dictionary<int, double>();
         var structTypeIds = new List<int>();
@@ -88,11 +115,13 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         {
             switch (a.AttributeId)
             {
-                case AttrMfgRigTime:     mfgRig[a.TypeId] = Math.Abs(a.Value) / 100.0; break;
-                case AttrRxnRigTime:     rxnRig[a.TypeId] = Math.Abs(a.Value) / 100.0; break;
-                case AttrRigLowsecMult:  lowMul[a.TypeId] = a.Value; break;
-                case AttrRigNullsecMult: nulMul[a.TypeId] = a.Value; break;
-                default:                 structTypeIds.Add(a.TypeId); break;
+                case AttrMfgRigTime:       mfgRig[a.TypeId] = Math.Abs(a.Value) / 100.0; break;
+                case AttrRxnRigTime:       rxnRig[a.TypeId] = Math.Abs(a.Value) / 100.0; break;
+                case AttrCopyRigTime:      cpyRig[a.TypeId] = Math.Abs(a.Value) / 100.0; break;
+                case AttrInventionRigTime: invRig[a.TypeId] = Math.Abs(a.Value) / 100.0; break;
+                case AttrRigLowsecMult:    lowMul[a.TypeId] = a.Value; break;
+                case AttrRigNullsecMult:   nulMul[a.TypeId] = a.Value; break;
+                default:                   structTypeIds.Add(a.TypeId); break;
             }
         }
 
@@ -127,6 +156,8 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
             BaseSeconds    = baseTimes,
             MfgRigTime     = mfgRig,
             RxnRigTime     = rxnRig,
+            CopyRigTime      = cpyRig,
+            InventionRigTime = invRig,
             RigLowsecMult  = lowMul,
             RigNullsecMult = nulMul,
             RigCategories  = rigNames.ToDictionary(
@@ -176,6 +207,75 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         var rigFactor = Math.Max(0.0, 1.0 - RigTimeBonus(ctx, structure, itemCategoryKey, isReaction));
 
         return baseSeconds * teFactor * skillFactor * roleFactor * rigFactor;
+    }
+
+    /// <summary>
+    /// Seconds for one unit of science work: one copy-run for copying, one attempt for invention.
+    /// Null when the blueprint has no base time for that activity on record.
+    ///
+    /// <para><b>Copying is charged per run per copy.</b> A job making two copies of thirty runs
+    /// each costs sixty times the base, not two — which is exactly what the player's own copy jobs
+    /// show, so the caller multiplies by both. Invention is charged per attempt and has no second
+    /// dimension.</para>
+    ///
+    /// <para>The chain is the manufacturing one with the science terms swapped in, and the same
+    /// engineering-complex role bonus: a Raitaru's 15% applies to a lab job as much as to a build.
+    /// Verified exact against every invention and copy job in the player's history.</para>
+    /// </summary>
+    public static double? PerScienceUnitSeconds(
+        TimeContext    ctx,
+        int            blueprintTypeId,
+        string         activity,
+        IndyStructure? structure,
+        string         itemCategoryKey,
+        IReadOnlyDictionary<int, int> skills)
+    {
+        if (!ctx.BaseSeconds.TryGetValue((blueprintTypeId, activity), out var baseSeconds)
+            || baseSeconds <= 0)
+            return null;
+
+        var advIndustry = Math.Clamp(skills.GetValueOrDefault(SkillAdvancedIndustry), 0, 5);
+        var skillFactor = 1.0 - 0.03 * advIndustry;
+
+        // Science shortens copying and nothing else. Applying it to invention as well would model
+        // every invention job a quarter shorter than it runs.
+        if (activity == CopyingActivity)
+            skillFactor *= 1.0 - 0.05 * Math.Clamp(skills.GetValueOrDefault(SkillScience), 0, 5);
+
+        var roleFactor = 1.0;
+        if (structure is not null
+            && ctx.StructMfgTime.TryGetValue(structure.StructureTypeKey.ToLowerInvariant(), out var role))
+            roleFactor = role;
+
+        var rigFactor = Math.Max(0.0, 1.0 - ScienceRigBonus(ctx, structure, itemCategoryKey, activity));
+
+        return baseSeconds * skillFactor * roleFactor * rigFactor;
+    }
+
+    /// <summary>
+    /// Laboratory rig reduction for this activity, scaled by security class exactly as the
+    /// manufacturing rigs are. Copying and invention are bonused separately, so a rig that helps
+    /// one may do nothing for the other.
+    /// </summary>
+    private static double ScienceRigBonus(
+        TimeContext ctx, IndyStructure? structure, string itemCategoryKey, string activity)
+    {
+        if (structure is null || itemCategoryKey.Length == 0) return 0;
+        if (!ctx.RigsByStructure.TryGetValue(structure.Id, out var fitted)) return 0;
+
+        var bonusAttr = activity == CopyingActivity ? ctx.CopyRigTime : ctx.InventionRigTime;
+
+        double total = 0;
+        foreach (var rigTypeId in fitted)
+        {
+            if (!IndyRigMatching.RigApplies(
+                    ctx.RigCategories.GetValueOrDefault(rigTypeId, ""), itemCategoryKey))
+                continue;
+            if (!bonusAttr.TryGetValue(rigTypeId, out var pct)) continue;
+
+            total += pct * SecurityMultiplier(ctx, structure, rigTypeId);
+        }
+        return total;
     }
 
     /// <summary>
