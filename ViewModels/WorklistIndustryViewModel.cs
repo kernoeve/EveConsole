@@ -351,6 +351,22 @@ public class WorklistIndustryViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _maxJobDaysRxn, value); Save(WorklistSettings.MaxJobDaysRxnKey, value); }
     }
 
+    /// <summary>
+    /// Copying and invention.
+    ///
+    /// <para>Apart from the other two because an invention batch behaves differently from a build:
+    /// a long build still delivers its first fifth on day two if it is split, while an invention
+    /// job yields nothing at all until it ends. A single attempt on a capital blueprint runs about
+    /// eight days before rig bonuses, so a limit inherited from manufacturing would force one
+    /// attempt per job and spend a science slot on each.</para>
+    /// </summary>
+    private string _maxJobDaysSci = "";
+    public string MaxJobDaysSci
+    {
+        get => _maxJobDaysSci;
+        set { this.RaiseAndSetIfChanged(ref _maxJobDaysSci, value); Save(WorklistSettings.MaxJobDaysSciKey, value); }
+    }
+
     private void Save(string key, string raw)
     {
         if (_loading) return;
@@ -464,8 +480,10 @@ public class WorklistIndustryViewModel : ReactiveObject
                 // reads as a cap of nothing.
                 _maxJobDaysMfg = Text(_settings.MaxJobDaysManufacturing);
                 _maxJobDaysRxn = Text(_settings.MaxJobDaysReaction);
+                _maxJobDaysSci = Text(_settings.MaxJobDaysScience);
                 this.RaisePropertyChanged(nameof(MaxJobDaysMfg));
                 this.RaisePropertyChanged(nameof(MaxJobDaysRxn));
+                this.RaisePropertyChanged(nameof(MaxJobDaysSci));
 
                 _buyLocationText = _settings.IndustryBuyLocationName;
                 this.RaisePropertyChanged(nameof(BuyLocationText));
