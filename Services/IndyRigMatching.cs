@@ -70,10 +70,13 @@ public static class IndyRigMatching
         if (isReaction)
             return groupId switch
             {
-                712                => "react_bio_gas",     // Biochemical Material (gas)
-                428                => "react_biochemical", // Intermediate Materials (moon)
-                429 or 974 or 4096 => "react_composite",   // Composite / Hybrid Polymers
-                _                  => "",
+                712                      => "react_bio_gas",     // Biochemical Material (gas)
+                428                      => "react_biochemical", // Intermediate Materials (moon)
+                // 4932 Unrefined Mineral — the eight Unrefined Tritanium/Pyerite/… products.
+                // Reaction-produced (verified: every one has a "… Formula" blueprint with
+                // activity 'reaction') and bonused by the same composite rig as the rest.
+                429 or 974 or 4096 or 4932 => "react_composite", // Composite / Hybrid Polymers
+                _                        => "",
             };
 
         if (!groupInfo.TryGetValue(groupId, out var gc)) return "";
@@ -83,8 +86,11 @@ public static class IndyRigMatching
             // ── Category 6: Ships ────────────────────────────────────────────
             (6, "Frigate" or "Destroyer" or "Shuttle" or "Corvette" or "Rookie Ship"
                or "Hauler" or "Mining Barge")                                        => "small_ships",
+            // "Special Edition Yachts" is the Victorieux, the Opux pair and the three YC128
+            // campaign buses. Cruiser-hulled: every one is 115,000 m³ against a Rupture's
+            // 96,000 and a Tempest's 450,000, and the group is uniform, so it classifies whole.
             (6, "Cruiser" or "Battlecruiser" or "Combat Battlecruiser"
-               or "Attack Battlecruiser")                                            => "medium_ships",
+               or "Attack Battlecruiser" or "Special Edition Yachts")                => "medium_ships",
             (6, "Battleship" or "Freighter")                                         => "large_ships",
             // SDE group is "Interdictor", not "Interdiction Destroyer"
             (6, "Interceptor" or "Assault Frigate" or "Covert Ops"
@@ -115,6 +121,16 @@ public static class IndyRigMatching
             (20, _)         => "modules_equipment",
             (23, _)         => "modules_equipment",
             (39, _)         => "modules_equipment",
+            // Special Edition Assets. One manufacturable member in the whole category — the
+            // Deactivated Station Key Pass — so there is nothing else a category rule can catch.
+            (63, _)         => "modules_equipment",
+            // Sovereignty Structures (40) and Orbitals (46) are built like structures and take
+            // the structure rig. Checked against the SDE rather than assumed: category 40 has
+            // three manufacturable members (Territorial Claim Unit, Sovereignty Blockade Unit,
+            // Sovereignty Hub) and category 46 has two (Customs Office Gantry, Orbital Skyhook).
+            // All five are structures, so neither category can catch anything of another kind.
+            (40, _)         => "structure_ammo",
+            (46, _)         => "structure_ammo",
             // Category 2 (Celestial) is a junk drawer — planets, suns, wrecks, wormholes,
             // 1,697 non-interactable objects. Only its container groups are manufacturable,
             // so match those by name rather than blanketing the category and quietly

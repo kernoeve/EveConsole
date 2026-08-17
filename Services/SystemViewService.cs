@@ -459,7 +459,8 @@ public class SystemViewService(
     /// alliance. Zero where we do not know.</summary>
     public sealed record IntelPilot(
         long CharacterId, string Name, string? Ship, int ShipTypeId,
-        long CorporationId, long AllianceId);
+        long CorporationId, long AllianceId,
+        string CorporationName = "", string AllianceName = "");
 
     public sealed record IntelRow(
         DateTimeOffset            When,
@@ -473,7 +474,9 @@ public class SystemViewService(
         string                    Channel,
         string                    Message,
         bool                      NoVisual,
-        bool                      Obsolete);
+        bool                      Obsolete,
+        string                    ReporterCorpName     = "",
+        string                    ReporterAllianceName = "");
 
     /// <summary>
     /// Sightings reported in this system, newest first.
@@ -513,13 +516,26 @@ public class SystemViewService(
             .Where(a => everyone.Contains(a.CharacterId))
             .ToDictionaryAsync(a => a.CharacterId, a => a, ct);
 
+        // Names for the logos. A corp or alliance badge with no name is a picture of a shape —
+        // recognisable only to someone who already knew, which is not who needs the intel tab.
+        var orgIds = affiliation.Values.Select(a => a.CorporationId)
+            .Concat(affiliation.Values.Select(a => a.AllianceId))
+            .Where(i => i > 0).Distinct().ToList();
+
+        var orgNames = await db.UniverseNames.AsNoTracking()
+            .Where(n => orgIds.Contains(n.EntityId))
+            .ToDictionaryAsync(n => n.EntityId, n => n.Name, ct);
+
+        string OrgName(long id) => id > 0 ? orgNames.GetValueOrDefault(id, "") : "";
+
         var byReport = pilots.GroupBy(p => p.IntelReportId).ToDictionary(
             g => g.Key,
             g => (IReadOnlyList<IntelPilot>)g.Select(x =>
             {
                 var a = affiliation.GetValueOrDefault(x.CharacterId);
                 return new IntelPilot(x.CharacterId, x.CharacterName, x.ShipName, x.ShipTypeId ?? 0,
-                                      a?.CorporationId ?? 0, a?.AllianceId ?? 0);
+                                      a?.CorporationId ?? 0, a?.AllianceId ?? 0,
+                                      OrgName(a?.CorporationId ?? 0), OrgName(a?.AllianceId ?? 0));
             }).ToList());
 
         return reports.Select(r =>
@@ -539,7 +555,9 @@ public class SystemViewService(
                 r.ChannelName,
                 r.Message ?? "",
                 r.NoVisual,
-                r.Obsolete);
+                r.Obsolete,
+                OrgName(ra?.CorporationId ?? 0),
+                OrgName(ra?.AllianceId ?? 0));
         }).ToList();
     }
 
@@ -656,7 +674,11 @@ public class SystemViewService(
     /// </summary>
     public sealed record CelestialNode(
         int Depth, string Kind, string Name, string TypeName, int TypeId, string Owner,
-        int Power = 0, int Workforce = 0, int ReagentPerHour = 0, string Reagent = "");
+        int Power = 0, int Workforce = 0, int ReagentPerHour = 0, string Reagent = "",
+        // Set only on the docked rows — a planet or a stargate has no owner to link to.
+        long LocationId = 0, bool IsNpc = false,
+        string Corporation = "", string Alliance = "",
+        long CorporationId = 0, long AllianceId = 0);
 
     /// <summary>
     /// The system laid out as it is arranged in space rather than as separate lists: the star,
@@ -688,7 +710,9 @@ public class SystemViewService(
 
         var structures = await GetStructuresAsync(systemId, ct);
 
-        var players = await db.EsiStructureNames.AsNoTracking()
+        // The app's own table, matching GetStructuresAsync above — reading the polled one here
+        // would place structures the two disagree about at different celestials.
+        var players = await db.Structures.AsNoTracking()
             .Where(s => s.SolarSystemId == systemId && s.NearestCelestialId > 0)
             .Select(s => new { s.StructureId, s.NearestCelestialId })
             .ToListAsync(ct);
@@ -722,7 +746,10 @@ public class SystemViewService(
             if (!docked.TryGetValue(celestialId, out var list)) return;
             foreach (var s in list.OrderByDescending(s => s.IsNpc).ThenBy(s => s.Name))
                 nodes.Add(new CelestialNode(
-                    depth, s.IsNpc ? "Station" : "Structure", s.Name, s.TypeName, s.TypeId, s.Owner));
+                    depth, s.IsNpc ? "Station" : "Structure", s.Name, s.TypeName, s.TypeId, s.Owner,
+                    LocationId: s.StructureId, IsNpc: s.IsNpc,
+                    Corporation: s.Corporation, Alliance: s.Alliance,
+                    CorporationId: s.CorporationId, AllianceId: s.AllianceId));
         }
 
         foreach (var star in celestials.Where(c => c.Kind == 4))
@@ -821,7 +848,8 @@ public class SystemViewService(
 
     public sealed record StructureRow(
         long StructureId, int TypeId, string Name, string TypeName,
-        string Corporation, string Alliance, string Location, bool IsNpc)
+        string Corporation, string Alliance, string Location, bool IsNpc,
+        long CorporationId = 0, long AllianceId = 0)
     {
         /// <summary>Corporation with its alliance after it — the alliance alone hides who
         /// actually owns the structure, and many corporations are in no alliance at all.</summary>
@@ -840,7 +868,12 @@ public class SystemViewService(
             .Where(s => s.SolarSystemId == systemId)
             .ToListAsync(ct);
 
-        var player = await db.EsiStructureNames.AsNoTracking()
+        // ⚠️ Structures, not EsiStructureNames. That table belongs to the polling service; this
+        // one is the app's own and carries hand-entered names, systems and types for the
+        // structures ESI refuses to describe. Reading the polled table here showed a system's
+        // Astrahus as "Structure 1035…" while the Structure Browser showed the name someone had
+        // typed for it.
+        var player = await db.Structures.AsNoTracking()
             .Where(s => s.SolarSystemId == systemId)
             .ToListAsync(ct);
 
@@ -884,14 +917,16 @@ public class SystemViewService(
         return stations.Select(s => new StructureRow(
                 s.StationId, s.StationTypeId ?? 0, s.Name,
                 types.GetValueOrDefault(s.StationTypeId ?? 0, "Station"),
-                OwnerOf(s.CorporationId ?? 0), "", StationLocation(s.Name), true))
+                OwnerOf(s.CorporationId ?? 0), "", StationLocation(s.Name), true,
+                CorporationId: s.CorporationId ?? 0))
             .Concat(player.Select(s => new StructureRow(
                 s.StructureId, s.TypeId,
                 string.IsNullOrEmpty(s.Name) ? $"Structure {s.StructureId}" : s.Name,
                 types.GetValueOrDefault(s.TypeId, "Unknown type"),
                 OwnerOf(s.OwnerId), OwnerOf(s.AllianceId),
                 celestialNames.GetValueOrDefault(s.NearestCelestialId, s.NearestCelestial),
-                false)))
+                false,
+                CorporationId: s.OwnerId, AllianceId: s.AllianceId)))
             .OrderByDescending(r => r.IsNpc).ThenBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
@@ -900,7 +935,8 @@ public class SystemViewService(
 
     public sealed record AgentRow(
         string Location, string Name, string Corporation, string Division,
-        string AgentType, int Level, bool IsLocator);
+        string AgentType, int Level, bool IsLocator,
+        long AgentId = 0, long CorporationId = 0, long StationId = 0);
 
     /// <summary>
     /// Agents stationed in a system, grouped by where they sit.
@@ -948,7 +984,8 @@ public class SystemViewService(
                 // only the notable types are worth naming.
                 types.GetValueOrDefault(a.AgentTypeId, "") is var t && t is "BasicAgent" or "" ? "" : t,
                 a.Level,
-                a.IsLocator))
+                a.IsLocator,
+                AgentId: a.AgentId, CorporationId: a.CorporationId, StationId: a.LocationId))
             .OrderBy(a => a.Location, StringComparer.OrdinalIgnoreCase)
             .ThenBy(a => a.Level)
             .ThenBy(a => a.Name, StringComparer.OrdinalIgnoreCase)

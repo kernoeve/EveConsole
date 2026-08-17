@@ -648,6 +648,7 @@ public class MainWindowViewModel : ReactiveObject
         EntityNavigator.Instance.OpenSystem   = id => { OpenTool("universe"); _ = UniverseVm.OpenSystemCommand.Execute(id).Subscribe(); };
         EntityNavigator.Instance.OpenItem     = id => { OpenTool("items"); _ = ItemBrowserVm.NavigateToItemCommand.Execute(id).Subscribe(); };
         EntityNavigator.Instance.OpenKillmail = id => { OpenTool("killmails"); KillmailBrowserVm.SelectById(id); };
+        EntityNavigator.Instance.OpenStructure = id => { OpenTool("structure_browser"); StructureBrowserVm.Open(id); };
         // FocusRegionAsync, not ShowRegionAsync: the separate per-region map is legacy — only
         // the system page still returns to it. A region is now territory you zoom to on the
         // one continuous universe map.

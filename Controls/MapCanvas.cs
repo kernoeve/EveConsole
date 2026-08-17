@@ -212,6 +212,21 @@ public class MapCanvas : Control
     /// matches what is actually drawn instead of assuming a dot-sized target.</summary>
     private readonly Dictionary<int, Rect> _gateRects = new();
 
+    /// <summary>Half-extent of each region in world units, keyed by region node id. Sizes the
+    /// watermark so a label matches the territory it names.</summary>
+    private readonly Dictionary<int, double> _regionExtent = new();
+
+    /// <summary>
+    /// Where each badge was drawn last frame and what it means, so hovering one explains it.
+    ///
+    /// <para>Rebuilt every render alongside the node rectangles. A mark is a few pixels across and
+    /// carries no text, so without this the only way to learn it is the legend — and a legend you
+    /// have to look away to read is one you stop reading.</para>
+    /// </summary>
+    private readonly List<(Rect Rect, string Title, string Detail)> _badgeTips = new();
+
+    private (string Title, string Detail)? _badgeHover;
+
     /// <summary>Same, for system boxes. Only populated while the boxes are being drawn.</summary>
     private readonly Dictionary<int, Rect> _nodeRects = new();
 
@@ -323,8 +338,22 @@ public class MapCanvas : Control
         ));
 
         _gateRects.Clear();
+        _regionExtent.Clear();
         if (g.IsContinuous)
         {
+            // How far a region reaches, for the watermark's size. Measured from its own systems
+            // rather than assumed, so Delve gets a bigger label than Pochven because it is bigger.
+            // Matched on RegionName because the system tier carries that and not a region id.
+            var byRegionName = g.Nodes.Where(n => n.Tier == 1 && n.RegionName.Length > 0)
+                                      .GroupBy(n => n.RegionName)
+                                      .ToDictionary(gr => gr.Key, gr => gr.ToList());
+
+            foreach (var r in g.Nodes.Where(n => n.Tier == 0))
+                if (byRegionName.TryGetValue(r.Name, out var members) && members.Count > 0)
+                    _regionExtent[r.Id] = Math.Max(
+                        (members.Max(m => m.X) - members.Min(m => m.X)) / 2,
+                        (members.Max(m => m.Y) - members.Min(m => m.Y)) / 2);
+
             _spacingTier0 = MedianNearestNeighbour(g.Nodes.Where(n => n.Tier == 0).ToList());
 
             // ⚠️ Area estimate, not the median, for the system tier. MedianNearestNeighbour is
@@ -466,6 +495,11 @@ public class MapCanvas : Control
             ? (_activeTier == 1 ? _spacingTier1 : _spacingTier0)
             : _spacing;
 
+        // Region names, behind everything, once the map is showing systems. Zooming in no longer
+        // enters a region, so without this there is nothing on screen saying which one you are
+        // looking at — the boxes name systems and the breadcrumb names wherever you last clicked.
+        if (g.IsContinuous && _activeTier == 1) DrawRegionWatermarks(ctx, g);
+
         // Edges first so nodes sit on top of them.
         foreach (var e in g.Edges)
         {
@@ -492,6 +526,7 @@ public class MapCanvas : Control
 
         _gateRects.Clear();
         _nodeRects.Clear();
+        _badgeTips.Clear();
 
         foreach (var n in g.Nodes)
         {
@@ -512,7 +547,50 @@ public class MapCanvas : Control
             else          DrawDot(ctx, n, p, fill, style, showDotLabels);
         }
 
-        if (_hover is not null) DrawTooltip(ctx, _hover);
+        // A badge tooltip wins: the cursor is on the mark, so that is what the question is about.
+        if (_badgeHover is { } badge)  DrawTooltipBox(ctx, badge.Title, badge.Detail);
+        else if (_hover is not null)   DrawTooltip(ctx, _hover);
+    }
+
+    /// <summary>Faint enough to sit under the map without competing with it. Everything drawn
+    /// afterwards covers it, which is what makes a label this large usable at all.</summary>
+    private static readonly IBrush WatermarkBrush =
+        new ImmutableSolidColorBrush(Color.FromArgb(38, 190, 205, 235));
+
+    /// <summary>
+    /// The region name written across its own territory, behind the systems.
+    ///
+    /// <para>Sized from the region's real extent rather than from zoom alone, so Delve carries a
+    /// larger name than Pochven and a name never spills far past the space it describes.</para>
+    ///
+    /// <para>⚠️ Drawn before the edges, so systems and jumps overlay it. A label at this size is
+    /// only readable as a background wash; in front of the map it would be a curtain over it.</para>
+    /// </summary>
+    private void DrawRegionWatermarks(DrawingContext ctx, MapGraph g)
+    {
+        foreach (var r in g.Nodes)
+        {
+            if (r.Tier != 0) continue;
+            if (!_regionExtent.TryGetValue(r.Id, out var extent) || extent <= 0) continue;
+
+            // Half the region's on-screen width. Below a floor the name is unreadable anyway and
+            // several would overlap; above a ceiling it stops being a label and becomes wallpaper.
+            var radiusPx = extent * _scale;
+            var fontSize = Math.Clamp(radiusPx * 0.42, 22, 190);
+            if (radiusPx < 60) continue;
+
+            var p = ToScreen(r.X, r.Y);
+
+            // Generous margin: the text is centred on the point, so a region whose centre is off
+            // screen can still have its name reaching into view.
+            if (p.X < -1200 || p.Y < -400 || p.X > Bounds.Width + 1200 || p.Y > Bounds.Height + 400)
+                continue;
+
+            var text = new FormattedText(r.Name.ToUpperInvariant(), CultureInfo.CurrentCulture,
+                                         FlowDirection.LeftToRight, BoldFace, fontSize, WatermarkBrush);
+
+            ctx.DrawText(text, new Point(p.X - text.Width / 2, p.Y - text.Height / 2));
+        }
     }
 
     private void DrawDot(
@@ -568,45 +646,139 @@ public class MapCanvas : Control
             DrawBadges(ctx, badges, rect);
     }
 
-    // Badge colours. Docking capability leads, because it is the one that decides whether you can
-    // bring the ship you are flying: gold for a Keepstar (supers and titans), orange for anything
-    // else a capital can dock at, grey-blue for a subcap-only citadel.
-    private static readonly IBrush BadgeKeepstar = new ImmutableSolidColorBrush(Color.Parse("#e8c86a"));
-    private static readonly IBrush BadgeCapital  = new ImmutableSolidColorBrush(Color.Parse("#e08a3c"));
-    private static readonly IBrush BadgeSubcap   = new ImmutableSolidColorBrush(Color.Parse("#7f93a8"));
-    private static readonly IBrush BadgeIndustry = new ImmutableSolidColorBrush(Color.Parse("#5fa8d3"));
-    private static readonly IBrush BadgeRefinery = new ImmutableSolidColorBrush(Color.Parse("#6bbf8a"));
-    private static readonly IPen   BadgePen      = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#0b0b10")), 1);
+    // ── Badge palette ────────────────────────────────────────────────────────
+    //
+    // ⚠️ Two families, kept apart by saturation as well as by side and shape: docking is
+    // saturated and sits left as a bar, services are muted and sit right as squares. That is what
+    // lets a violet docking bar and a lavender research square coexist without being read as the
+    // same thing.
+    //
+    // Docking was gold and orange, which at 9px were one colour. Violet and green share no hue,
+    // so the three ranks are told apart at a glance rather than by comparison — and the bar's
+    // stepped height still says which is which if the colours ever fail someone.
+
+    private static readonly IBrush DockSuper   = new ImmutableSolidColorBrush(Color.Parse("#a855f7"));
+    private static readonly IBrush DockCapital = new ImmutableSolidColorBrush(Color.Parse("#22c55e"));
+
+    // ⚠️ Lifted from #7f93a8. Muted grey-blue on a dark map, drawn 2.5px thin, read as nothing at
+    // all — RH0-EG holds a Sotiyo and looked like a system with no structure. "Dockable, but
+    // nothing that takes a capital" is worth knowing, so the lowest rank still has to be seen.
+    private static readonly IBrush DockSubcap  = new ImmutableSolidColorBrush(Color.Parse("#a8bdd4"));
+
+    // ⚠️ Manufacturing and Reprocessing were #5fa8d3 and #6bbf8a — a sky blue leaning cyan and a
+    // sea green leaning teal, which met in the middle and were hard to tell apart at 9px. Moved to
+    // a true blue and a true green so roughly 90° of hue separates them instead of 50°.
+    private static readonly IBrush SvcManufacturing = new ImmutableSolidColorBrush(Color.Parse("#4a7fe0"));
+    private static readonly IBrush SvcResearch      = new ImmutableSolidColorBrush(Color.Parse("#9b7fd4"));
+    private static readonly IBrush SvcReprocessing  = new ImmutableSolidColorBrush(Color.Parse("#5fd07a"));
+    private static readonly IBrush SvcReactions     = new ImmutableSolidColorBrush(Color.Parse("#d4708a"));
+    private static readonly IBrush SvcCloning       = new ImmutableSolidColorBrush(Color.Parse("#d9d2c4"));
+    private static readonly IBrush SvcMarket        = new ImmutableSolidColorBrush(Color.Parse("#d8a03c"));
+
+    private static readonly IPen BadgePen = new ImmutablePen(
+        new ImmutableSolidColorBrush(Color.Parse("#0b0b10")), 1);
 
     /// <summary>
-    /// A column of small squares against the right edge of the system box, in the manner of the
-    /// in-game and Dotlan maps. Drawn from the box rectangle rather than the node point so they
-    /// sit against the box whatever its width, and outside it so they never cover the name.
+    /// Legend order, and the order marks are drawn in. Fixed so a given service is always in the
+    /// same place on the box and can be learned by position as well as colour.
+    ///
+    /// <para>Detail says where the mark can have come from, which is the question the colour
+    /// cannot answer: a mark on a null-sec system is somebody's fitted module, the same mark in
+    /// high sec is usually the NPC station.</para>
+    /// </summary>
+    internal static readonly (SystemServices Service, IBrush Brush, string Label, string Detail)[] ServiceLegend =
+    [
+        (SystemServices.Manufacturing, SvcManufacturing, "Manufacturing",
+            "NPC factory, or a Standup Manufacturing Plant or Shipyard"),
+        (SystemServices.Research,      SvcResearch,      "Research / Invention",
+            "NPC laboratory, or a Standup Research or Invention Lab"),
+        (SystemServices.Reprocessing,  SvcReprocessing,  "Reprocessing",
+            "NPC reprocessing plant or refinery, or a Standup Reprocessing Facility"),
+        (SystemServices.Reactions,     SvcReactions,     "Reactions",
+            "A Standup reactor. No NPC station reacts, so this is always a player structure"),
+        (SystemServices.Cloning,       SvcCloning,       "Clone bay",
+            "NPC cloning or jump clone facility, or a Standup Cloning Center"),
+        (SystemServices.Market,        SvcMarket,        "Market",
+            "NPC market, or a Standup Market Hub"),
+    ];
+
+    internal static readonly (DockClass Dock, IBrush Brush, string Label, string Detail)[] DockLegend =
+    [
+        (DockClass.Super,   DockSuper,   "Supers & titans — Keepstar only",
+            "A Keepstar is here. Supercarriers and titans can dock"),
+        (DockClass.Capital, DockCapital, "Capitals — Fortizar or NPC station",
+            "Capitals can dock, supers cannot"),
+        (DockClass.Subcap,  DockSubcap,  "Subcapitals — any other structure",
+            "Something dockable is here, but nothing that takes a capital"),
+    ];
+
+    private static IBrush? DockBrush(DockClass d) => d switch
+    {
+        DockClass.Super   => DockSuper,
+        DockClass.Capital => DockCapital,
+        DockClass.Subcap  => DockSubcap,
+        _                 => null,
+    };
+
+    /// <summary>
+    /// Docking above the box, services below it, both outside so neither covers the name and
+    /// neither depends on the overlay.
+    ///
+    /// <para>Docking is one bar spanning the full box width, its THICKNESS stepped by class.
+    /// Sitting apart from the services it cannot be mistaken for one of them, and the thickness
+    /// keeps the rank readable for anyone the colours fail.</para>
+    ///
+    /// <para>Services run in one row underneath. Stacked beside the box they had to wrap, which
+    /// put a service's mark in a different place depending on how many others were present — and
+    /// a mark you have to find is a mark you have to decode. A single row keeps each service at a
+    /// fixed offset, and the box is always wider than it is tall, so six marks fit across where
+    /// they never fit down.</para>
     /// </summary>
     private void DrawBadges(DrawingContext ctx, MapBadges b, Rect box)
     {
-        const double size = 5, gap = 1.5;
+        // ⚠️ Sized to be seen, not to be tidy. At 4.5px with a gap these were invisible against a
+        // busy map. Doubling to 9 and closing the gap to nothing costs no more room overall — the
+        // marks are their own separators, since each carries a dark outline.
+        const double size = 9, gap = 0, offset = 3;
 
-        var marks = new List<IBrush>(4);
+        // ── Above: one bar the width of the box, thickness stepped by class ──
+        if (DockBrush(b.Dock) is { } dockBrush)
+        {
+            // ⚠️ A compressed range, not a proportional one. Thickness ranks the three, but the
+            // bottom of the range has to clear the floor of what registers at all: 2.5px vanished
+            // on a dark map. Ordering survives the compression; visibility did not survive the
+            // spread.
+            var barH = b.Dock switch
+            {
+                DockClass.Super   => 6.0,
+                DockClass.Capital => 4.5,
+                _                 => 3.5,
+            };
+            var bar = new Rect(box.X, box.Y - offset - barH, box.Width, barH);
+            ctx.DrawRectangle(dockBrush, BadgePen, bar);
 
-        // One docking mark, the best available — three separate marks for a system with all
-        // three would say less, not more.
-        if (b.Keepstar)                       marks.Add(BadgeKeepstar);
-        else if (b.Fortizar || b.NpcStation)  marks.Add(BadgeCapital);
-        else if (b.Astrahus)                  marks.Add(BadgeSubcap);
+            // ⚠️ The hover target is padded, not the bar. A 2.5px stripe is drawable but not
+            // reliably hittable, and a mark that needs a steady hand to read is a mark nobody
+            // reads. The drawn size stays honest to the rank; only the catch area grows.
+            var entry = DockLegend.First(d => d.Dock == b.Dock);
+            _badgeTips.Add((bar.Inflate(new Thickness(0, 4)), entry.Label, entry.Detail));
+        }
 
-        if (b.EngineeringComplex) marks.Add(BadgeIndustry);
-        if (b.Refinery)           marks.Add(BadgeRefinery);
+        // ── Below: services, one row, in fixed legend order ──
+        var marks = ServiceLegend.Where(s => b.Services.HasFlag(s.Service)).ToList();
         if (marks.Count == 0) return;
 
-        var totalH = marks.Count * size + (marks.Count - 1) * gap;
-        var x = box.Right + 3;
-        var y = box.Y + (box.Height - totalH) / 2;
+        // Centred under the box rather than left-aligned to it: the box width varies with the
+        // system name, and a row hung off one edge would drift relative to the name above it.
+        var rowW = marks.Count * size + (marks.Count - 1) * gap;
+        var x0   = box.X + (box.Width - rowW) / 2;
+        var y0   = box.Bottom + offset;
 
-        foreach (var brush in marks)
+        for (var i = 0; i < marks.Count; i++)
         {
-            ctx.DrawRectangle(brush, BadgePen, new Rect(x, y, size, size));
-            y += size + gap;
+            var r = new Rect(x0 + i * (size + gap), y0, size, size);
+            ctx.DrawRectangle(marks[i].Brush, BadgePen, r);
+            _badgeTips.Add((r, marks[i].Label, marks[i].Detail));
         }
     }
 
@@ -643,7 +815,13 @@ public class MapCanvas : Control
         // The box already names the region, so the tooltip explains the gesture instead.
         if (n.IsOutsideRegion) detail = $"Double-click to open {n.RegionName}";
 
-        var title = new FormattedText(n.Name, CultureInfo.CurrentCulture,
+        DrawTooltipBox(ctx, n.Name, detail);
+    }
+
+    /// <summary>The tooltip itself, shared by nodes and badges so both look and place the same.</summary>
+    private void DrawTooltipBox(DrawingContext ctx, string titleText, string? detail)
+    {
+        var title = new FormattedText(titleText, CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight, Face, 11.5, TipTextBrush);
         var body = string.IsNullOrEmpty(detail) ? null : new FormattedText(
             detail, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Face, 10.5, LabelBrush);
@@ -744,10 +922,20 @@ public class MapCanvas : Control
             return;
         }
 
-        var hit = HitTest(pos);
+        // Badges first. They sit outside the box so they never overlap a node's own hit area,
+        // but the cursor being on one means the question is about the mark, not the system.
+        (string Title, string Detail)? badge = null;
+        foreach (var t in _badgeTips)
+            if (t.Rect.Contains(pos)) { badge = (t.Title, t.Detail); break; }
+
+        var hit = badge is null ? HitTest(pos) : null;
         _hoverAt = pos;
-        if (!ReferenceEquals(hit, _hover)) { _hover = hit; InvalidateVisual(); }
-        else if (hit is not null) InvalidateVisual();   // keep the tooltip glued to the cursor
+
+        var badgeChanged = badge?.Title != _badgeHover?.Title;
+        _badgeHover = badge;
+
+        if (badgeChanged || !ReferenceEquals(hit, _hover)) { _hover = hit; InvalidateVisual(); }
+        else if (hit is not null || badge is not null) InvalidateVisual();   // glue it to the cursor
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
