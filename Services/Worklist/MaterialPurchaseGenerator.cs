@@ -62,8 +62,9 @@ public class MaterialPurchaseGenerator(
             corps);
 
         var allPrints = await blueprints.LoadAllAsync(ct);
+        var owned     = await assignment.PrintOwnershipAsync(settings.IncludeNonPersonalCorps, ct);
         var meMap     = IndustryBlueprintService.BestMeByProduct(
-                            allPrints, ctx.BlueprintByProduct, scope, reaches);
+                            allPrints, ctx.BlueprintByProduct, owned);
 
         // ── What has to be produced, from both demands ────────────────────────
 
@@ -129,7 +130,7 @@ public class MaterialPurchaseGenerator(
         var alt     = buyAt > 0 ? (await marketAlts.GetByLocationAsync(ct)).GetValueOrDefault(buyAt) : null;
 
         var items = new List<WorklistItem>();
-        items.AddRange(PrintTasks(ctx, queue, allPrints, scope, reaches, bpShortfalls,
+        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, bpShortfalls,
                                   buyAt, buyName, alt));
 
         var onOrder = await OnOrderAsync(db, shortfalls.Select(s => s.TypeId).ToList(), ct);
@@ -163,14 +164,21 @@ public class MaterialPurchaseGenerator(
             {
                 Key           = $"industry_buy:{raw.TypeId}",
                 Source        = Id,
-                // The amount belongs in the title. The task line is read to decide what to do
-                // next, and "buy this" without a number is not yet an instruction.
+                // The amount belongs in the title — "buy this" without a number is not yet an
+                // instruction — but the name leads, because the column sorts on this string and
+                // a leading count sorts by digit, scattering an item's rows across the list.
                 Kind          = WorklistKind.Buy,
-                // "BPO/BPC" survives the prefix strip: it says the purchase is a contract rather
-                // than a market order, which the kind column cannot.
-                Title         = isPrint ? $"BPO/BPC — {short_:N0} × {raw.TypeName}"
-                                        : $"{short_:N0} × {raw.TypeName}",
+                // "BPO/BPC" trails the name for the same reason, while still saying the purchase
+                // is a contract rather than a market order, which the kind column cannot.
+                Title         = isPrint ? $"{raw.TypeName} — BPO/BPC × {short_:N0}"
+                                        : $"{raw.TypeName} × {short_:N0}",
                 Quantity      = short_,
+                TitleTag      = isPrint ? "BPO/BPC" : null,
+                // Prints merge too. A job needing copies and a stocking rule wanting some on the
+                // shelf are one trip to the contract window, exactly as two demands for the same
+                // mineral are one order — the contract-versus-market distinction only matters
+                // against a market row for the same type, and a blueprint never has one.
+                MergeKey      = WorklistItem.BuyMergeKey(buyAt, raw.TypeId),
                 Detail        = $"{WantedBy(plan, raw.TypeId)}: need {raw.Quantity:N0}; "
                               + $"{raw.Available:N0} on hand{settings.IndustryScopeSuffix}"
                               + (ordered  > 0 ? $", {ordered:N0} on order" : "")
@@ -305,8 +313,8 @@ public class MaterialPurchaseGenerator(
     /// <summary>Blueprints nothing in the queue can be built without, because none is owned.</summary>
     private static List<WorklistItem> PrintTasks(
         ProductionContext ctx, List<ProductionQueueEntry> queue,
-        List<BlueprintStock> allPrints, HashSet<long>? scope,
-        List<WorklistIndyCharReach> reaches, HashSet<int> alreadyCounted,
+        List<BlueprintStock> allPrints, PrintOwnership owned,
+        HashSet<int> alreadyCounted,
         long buyAt, string buyName, WorklistMarketAlt? alt)
     {
         var items = new List<WorklistItem>();
@@ -317,21 +325,29 @@ public class MaterialPurchaseGenerator(
             if (alreadyCounted.Contains(bp.TypeId)) continue;   // the plan is already buying it
 
             var mine = allPrints.Where(p => p.TypeId == bp.TypeId).ToList();
-            if (IndustryBlueprintService.OwnedWithin(mine, scope, reaches)) continue;
+            if (IndustryBlueprintService.OwnedAnywhere(mine, owned)) continue;
 
             var bpName = ctx.TypeNames.GetValueOrDefault(bp.TypeId, $"Blueprint {bp.TypeId}");
             var price  = ctx.BpcPerRun.TryGetValue(bp.TypeId, out var opts) && opts.Count > 0
                 ? $" Copies have been seen on contract from {opts.Min(o => o.PerRun):N0} ISK a run."
                 : "";
 
-            // No count in the title. Every other line's number is how many to acquire, and one
-            // original would serve all the runs wanted here — "2 ×" would read as buy two.
+            // One print per run. These are bought as copies, and a copy is spent by the job that
+            // uses it, so two builds need two. The count carried no number at all until now, on
+            // the reasoning that a single original would cover every run — true of an original,
+            // but not of what actually gets bought, and it made this demand contribute nothing
+            // when it merged with a stocking rule for the same print.
+            var printsNeeded = IndustryJobSplit.RunsFor(entry.Quantity, Math.Max(1, bp.Quantity));
+
             items.Add(new WorklistItem
             {
                 Key           = $"industry_print:{bp.TypeId}",
                 Source        = "material_purchases",
                 Kind          = WorklistKind.Buy,
-                Title         = $"BPO/BPC — {bpName}",
+                Title         = $"{bpName} — BPO/BPC × {printsNeeded:N0}",
+                TitleTag      = "BPO/BPC",
+                Quantity      = printsNeeded,
+                MergeKey      = WorklistItem.BuyMergeKey(buyAt, bp.TypeId),
                 Detail        = $"No blueprint owned, so {entry.TypeName} cannot be built at all. "
                               + $"{entry.Quantity:N0} wanted.{price}",
                 Readiness     = WorklistReadiness.Ready,

@@ -94,6 +94,10 @@ public class IndustryJobGenerator(
         // people's, and treating them as material makes every shortfall look filled.
         var corps = await assignment.UsableCorporationsAsync(settings.IncludeNonPersonalCorps, ct);
 
+        // Wider than the candidates above on purpose: this only answers "does the player have one
+        // of these at all", which decides whether a blocked job reads as "move it" or "buy one".
+        var printOwner = await assignment.PrintOwnershipAsync(settings.IncludeNonPersonalCorps, ct);
+
         bool Ours(string ownerType, long ownerId) =>
             ownerType != "corporation" || corps is null || corps.Contains(ownerId);
 
@@ -126,7 +130,7 @@ public class IndustryJobGenerator(
         // personal stock only serves the character it belongs to.
         var stock = new SiteStock(
             siteAssets.Where(a => a.OwnerType == "corporation")
-                      .GroupBy(a => (a.RootLocationId, a.TypeId))
+                      .GroupBy(a => (a.RootLocationId, a.TypeId, a.OwnerId))
                       .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity)),
             siteAssets.Where(a => a.OwnerType != "corporation")
                       .GroupBy(a => (a.RootLocationId, a.TypeId, a.OwnerId))
@@ -148,7 +152,7 @@ public class IndustryJobGenerator(
 
         var inScope = new ScopeStock(
             scopeRows.Where(a => a.OwnerType == "corporation")
-                     .GroupBy(a => a.TypeId).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)),
+                     .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)),
             scopeRows.Where(a => a.OwnerType != "corporation")
                      .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)));
 
@@ -198,9 +202,6 @@ public class IndustryJobGenerator(
                 .ToListAsync(ct))
             .GroupBy(s => (s.TypeId, s.Activity))
             .ToDictionary(g => g.Key, g => (IReadOnlyList<SdeBlueprintSkill>)g.ToList());
-        var runLimits = await db.SdeBlueprints.AsNoTracking()
-            .Where(b => bpIds.Contains(b.TypeId))
-            .ToDictionaryAsync(b => b.TypeId, b => b.MaxProductionLimit, ct);
         var names = await invLevels.GetTypeNamesAsync(demanded, ct);
 
         var printsByType = await blueprints.LoadAsync(bpIds, ct);
@@ -227,7 +228,7 @@ public class IndustryJobGenerator(
 
                 if (eligible.Count == 0)
                 {
-                    items.Add(Unstartable(d.TypeId, name, priority,
+                    items.Add(Unstartable(d.TypeId, name, priority, pool,
                         $"{head} Build {d.Units:N0}.",
                         required.Count > 0
                             ? "No enabled character has the skills for this job"
@@ -244,7 +245,7 @@ public class IndustryJobGenerator(
 
                 if (siteId is null)
                 {
-                    items.Add(Unstartable(d.TypeId, name, priority,
+                    items.Add(Unstartable(d.TypeId, name, priority, pool,
                         $"{head} Build {d.Units:N0}.",
                         siteName.Length > 0
                             ? $"{siteName} is not linked to a real structure, so materials cannot be checked"
@@ -274,14 +275,17 @@ public class IndustryJobGenerator(
                     // however many rules and orders are waiting on it. This row only reports why
                     // the job cannot run.
                     var allPrints = printsByType.GetValueOrDefault(product.TypeId, []);
-                    var owned     = IndustryBlueprintService.OwnedWithin(allPrints, scope, reaches);
+                    var owned     = IndustryBlueprintService.OwnedAnywhere(allPrints, printOwner);
 
-                    items.Add(Unstartable(d.TypeId, name, priority,
+                    items.Add(Unstartable(d.TypeId, name, priority, pool,
                         $"{head} Build {d.Units:N0} ({runsNeeded:N0} run(s)) at {siteName}.",
                         owned
-                            ? $"No blueprint at {siteName} — one is owned but elsewhere, out of "
-                              + "reach, or locked in a running job"
-                            : $"No BPO or BPC owned{settings.IndustryScopeSuffix} — one has to be acquired",
+                            ? $"No blueprint at {siteName} — one is owned but elsewhere, held by "
+                              + "another character, or locked in a running job"
+                            // No scope in this wording any more: ownership is now checked across
+                            // every character, so "none owned" means none at all rather than
+                            // none within the material scope.
+                            : "No BPO or BPC owned on any character — one has to be acquired",
                         siteId.Value, siteName));
                     continue;
                 }
@@ -292,7 +296,6 @@ public class IndustryJobGenerator(
                                  timeCtx, product.TypeId, isReaction, print.Te,
                                  structure, catKey, eligible[0].Skills),
                     settings.MaxJobDaysFor(pool),
-                    runLimits.GetValueOrDefault(product.TypeId),
                     prints);
 
                 for (var i = 0; i < split.Jobs.Count; i++)
@@ -356,15 +359,28 @@ public class IndustryJobGenerator(
                                 committed.GetValueOrDefault((siteId.Value, typeId)) + qty;
                     }
 
+                    // Name first. The column sorts on this string, and a leading run count sorts
+                    // by digit — scattering the several jobs of one split across the whole list.
                     var runsText = product.Quantity > 1
-                        ? $"{job.Runs:N0} run(s) → {wanted:N0} × {name}"
-                        : $"{job.Runs:N0} × {name}";
+                        ? $"{name} — {job.Runs:N0} run(s) → {wanted:N0}"
+                        : $"{name} — {job.Runs:N0} run(s)";
                     var ofText   = split.Jobs.Count > 1 ? $" (job {job.Index} of {job.Of})" : "";
                     var duration = IndustryJobSplit.Duration(job.Seconds);
                     var durText  = duration.Length > 0 ? $" ~{duration}." : "";
                     var leftover = i == split.Jobs.Count - 1 && split.RunsUnassigned > 0
                         ? $" {split.RunsUnassigned:N0} further run(s) need a print — none free."
                         : "";
+
+                    // Named only on a real split. A job well under the configured length looks
+                    // like a miscalculation unless it says what stopped it, and the usual answer
+                    // is the blueprint's own run cap rather than the clock.
+                    var capText = split.Jobs.Count == 1 && split.RunsUnassigned == 0 ? "" : job.Cap switch
+                    {
+                        SplitCap.GameLimit => " Capped by EVE's 30-day limit on a single job.",
+                        SplitCap.CopyRuns  => " Capped by the runs left on the copy.",
+                        SplitCap.JobLength => $" Capped by the {settings.MaxJobDaysFor(pool):0.#}-day job length.",
+                        _                  => "",
+                    };
 
                     items.Add(new WorklistItem
                     {
@@ -373,12 +389,13 @@ public class IndustryJobGenerator(
                         // the item's age and silently drop its snooze. The index keeps the
                         // pieces of one split independently snoozable.
                         Key           = $"industry_job:{d.TypeId}:{job.Index}",
+                        Pool          = pool,
                         Source        = Id,
                         Kind          = WorklistKind.Job,
                         Title         = runsText,
                         Quantity      = wanted,
                         Detail        = $"{head} Short {d.Units:N0}{ofText}. "
-                                      + $"{job.Print.Describe()} at {siteName}.{durText}{leftover}",
+                                      + $"{job.Print.Describe()} at {siteName}.{durText}{capText}{leftover}",
                         Readiness     = readiness,
                         BlockedBy     = blockedBy,
                         CharacterId   = owner.Config.CharacterId,
@@ -398,8 +415,10 @@ public class IndustryJobGenerator(
 
 
     /// <summary>A shortfall that cannot become a job at all, reported once with the reason.</summary>
+    /// <param name="pool">Carried so a blocked job still counts under its own slot type in the
+    /// summary. A job that cannot start is still a manufacturing job.</param>
     private WorklistItem Unstartable(
-        int typeId, string name, int priority,
+        int typeId, string name, int priority, IndustryPool pool,
         string detail, string blockedBy, long locationId = 0, string locationName = "") =>
         new()
         {
@@ -415,6 +434,7 @@ public class IndustryJobGenerator(
             TypeId       = typeId,
             TypeName     = name,
             Priority     = priority,
+            Pool         = pool,
         };
 
     /// <summary>
@@ -483,7 +503,7 @@ public class IndustryJobGenerator(
 
         foreach (var (typeId, wanted) in needed.OrderBy(n => n.Key))
         {
-            var here = stock.Reachable(siteId, typeId, who.Config)
+            var here = stock.Reachable(siteId, typeId, who)
                      - committed.GetValueOrDefault((siteId, typeId));
             if (here >= wanted) continue;
 
@@ -492,7 +512,7 @@ public class IndustryJobGenerator(
                 typeId,
                 // Owned in scope but not here is a hauling problem. Not owned in scope at all is
                 // a buying one, and only the second should raise a purchase.
-                MustBuy: inScope.Reachable(typeId, who.Config) < wanted));
+                MustBuy: inScope.Reachable(typeId, who) < wanted));
         }
 
         return missing;
@@ -506,20 +526,21 @@ public class IndustryJobGenerator(
         string.Join(", ", names.Take(4))
         + (names.Count > 4 ? $", and {names.Count - 4} more" : "");
 
-    /// <summary>What is on hand at the park's facilities, indexed for the two ways it is asked
-    /// about. Materials pooled in a corp hangar serve every alt whose config includes them;
-    /// personal stock serves only its owner.</summary>
+    /// <summary>What is on hand at the park's facilities, indexed by who can reach it. Materials
+    /// in a corp hangar serve every alt in that corporation; personal stock serves only its
+    /// owner.</summary>
     private sealed record SiteStock(
-        Dictionary<(long Site, int TypeId), long>               Corp,
+        Dictionary<(long Site, int TypeId, long OwnerId), long> Corp,
         Dictionary<(long Site, int TypeId, long OwnerId), long> Personal)
     {
-        public long Reachable(long siteId, int typeId, WorklistIndyChar cfg)
-        {
-            long total = 0;
-            if (cfg.IncludeCorpAssets)     total += Corp.GetValueOrDefault((siteId, typeId));
-            if (cfg.IncludePersonalAssets) total += Personal.GetValueOrDefault(
-                                                        (siteId, typeId, cfg.CharacterId));
-            return total;
-        }
+        /// <summary>
+        /// Everything at this site the given character could actually put into a job: their own
+        /// hangar and their corporation's. A fact about who they are, not a setting — the scope
+        /// has already decided what is the player's, and this only asks who can physically
+        /// reach it.
+        /// </summary>
+        public long Reachable(long siteId, int typeId, IndustryCandidate who) =>
+            Corp.GetValueOrDefault((siteId, typeId, who.CorporationId))
+          + Personal.GetValueOrDefault((siteId, typeId, who.Config.CharacterId));
     }
 }

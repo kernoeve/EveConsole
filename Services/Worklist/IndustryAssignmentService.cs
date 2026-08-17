@@ -109,6 +109,25 @@ public class IndustryAssignmentService(IDbContextFactory<AppDbContext> dbFactory
             .ToHashSet();
     }
 
+    /// <summary>
+    /// Who the player owns blueprints through: every authorised character plus the usable corps.
+    ///
+    /// <para>Every character, not just the ones configured to run industry. Which alts run jobs is
+    /// a scheduling choice; which alts own things is a fact about the account, and conflating them
+    /// makes the tool recommend buying a blueprint it can see sitting in a trading alt's hangar.</para>
+    /// </summary>
+    public async Task<PrintOwnership> PrintOwnershipAsync(
+        bool includeNonPersonalCorps, CancellationToken ct = default)
+    {
+        var corps = await UsableCorporationsAsync(includeNonPersonalCorps, ct);
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var characters = (await db.Characters.AsNoTracking().Select(c => c.Id).ToListAsync(ct))
+            .ToHashSet();
+
+        return new PrintOwnership(characters, corps);
+    }
+
     public async Task<List<IndustryCandidate>> LoadCandidatesAsync(CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);

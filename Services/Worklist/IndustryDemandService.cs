@@ -8,23 +8,66 @@ namespace EveConsole.Services.Worklist;
 /// <param name="Priority">The most urgent contributor's. A customer order sitting alongside a
 /// stock top-up makes the whole build a customer order's worth of urgent, because the order is
 /// not served until the last unit is.</param>
-public sealed record BuildDemand(int TypeId, long Units, int Priority, List<string> Reasons)
+/// <param name="OrderUnits">Of the gross demand, what customer orders asked for.</param>
+/// <param name="RuleUnits">Of the gross demand, what inventory levels want on the shelf.</param>
+/// <param name="ParentUnits">Of the gross demand, what parent builds will eat.</param>
+public sealed record BuildDemand(int TypeId, long Units, int Priority, List<string> Reasons,
+                                 long OrderUnits = 0, long RuleUnits = 0, long ParentUnits = 0)
 {
     public string Head => string.Join(" + ", Reasons);
+
+    /// <summary>
+    /// The gross the three parts add up to, which is not <see cref="Units"/> — that is the net
+    /// left after stock is taken off. Shares are taken against this so they sum to one.
+    /// </summary>
+    public long Gross => OrderUnits + RuleUnits + ParentUnits;
+
+    /// <summary>
+    /// How much of <paramref name="amount"/> each source is responsible for.
+    ///
+    /// <para>Material for a job inherits the job's own mix: a component built half for a customer
+    /// order and half to restock a shelf puts half its minerals under each. Rounded down and the
+    /// remainder given to the largest share, so the parts always add back to the whole.</para>
+    /// </summary>
+    public (long Order, long Rule, long Parent) SplitOf(long amount)
+    {
+        if (amount <= 0) return (0, 0, 0);
+        if (Gross <= 0) return (0, amount, 0);   // no attribution recorded: call it stock-keeping
+
+        var order  = amount * OrderUnits  / Gross;
+        var rule   = amount * RuleUnits   / Gross;
+        var parent = amount * ParentUnits / Gross;
+
+        var slack = amount - order - rule - parent;
+        if (slack > 0)
+        {
+            if (OrderUnits >= RuleUnits && OrderUnits >= ParentUnits) order += slack;
+            else if (RuleUnits >= ParentUnits)                        rule  += slack;
+            else                                                      parent += slack;
+        }
+        return (order, rule, parent);
+    }
 }
 
 /// <summary>Everything in scope, wherever it sits and whoever owns it.</summary>
+/// <param name="Corp">Keyed by owning corporation as well as type, because which corporation
+/// holds a pile decides who can take from it.</param>
 public sealed record ScopeStock(
-    Dictionary<int, long>               Corp,
+    Dictionary<(int TypeId, long OwnerId), long> Corp,
     Dictionary<(int TypeId, long OwnerId), long> Personal)
 {
-    public long Reachable(int typeId, WorklistIndyChar cfg)
-    {
-        long total = 0;
-        if (cfg.IncludeCorpAssets)     total += Corp.GetValueOrDefault(typeId);
-        if (cfg.IncludePersonalAssets) total += Personal.GetValueOrDefault((typeId, cfg.CharacterId));
-        return total;
-    }
+    /// <summary>
+    /// What one character's job could actually draw on: their own hangar, plus the hangars of the
+    /// corporation they are in.
+    ///
+    /// <para>Derived from who the character is, not from a per-character setting. Everything here
+    /// is already inside the asset scope and therefore already the player's — the only remaining
+    /// question is physical: a pilot can take from their own hangar and from their own corp's,
+    /// and from nobody else's, whatever the plan would prefer.</para>
+    /// </summary>
+    public long Reachable(int typeId, IndustryCandidate who) =>
+        Corp.GetValueOrDefault((typeId, who.CorporationId))
+      + Personal.GetValueOrDefault((typeId, who.Config.CharacterId));
 
     /// <summary>
     /// Everything in scope regardless of whose it is, for netting demand rather than deciding
@@ -33,7 +76,7 @@ public sealed record ScopeStock(
     /// second batch of something the corp already holds.
     /// </summary>
     public long Anywhere(int typeId) =>
-        Corp.GetValueOrDefault(typeId)
+        Corp.Where(kv => kv.Key.TypeId == typeId).Sum(kv => kv.Value)
         + Personal.Where(kv => kv.Key.TypeId == typeId).Sum(kv => kv.Value);
 }
 
@@ -56,6 +99,16 @@ public class IndustryDemandService(
 
         /// <summary>Units customers have ordered, and units parent builds will eat.</summary>
         public long Consumed;
+
+        // The same total again, split by who is asking. Consumed stays the figure everything
+        // plans against — these only exist so a report can say why a station wants something,
+        // and they are kept in step by being written beside every change to Consumed.
+
+        /// <summary>Of <see cref="Consumed"/>, the part a customer order asked for.</summary>
+        public long OrderUnits;
+
+        /// <summary>Of <see cref="Consumed"/>, the part a parent build will eat.</summary>
+        public long ParentUnits;
 
         /// <summary>Stock and in-flight production, counted once however many demands there are.</summary>
         public long Have;
@@ -143,14 +196,17 @@ public class IndustryDemandService(
 
         // ── Customer orders ───────────────────────────────────────────────────
 
-        foreach (var (typeId, units, outstanding, count) in await OrderDemandAsync(db, scope, wrapped, corps, ct))
+        foreach (var (typeId, units, outstanding, count, rank) in await OrderDemandAsync(db, scope, wrapped, corps, ct))
         {
             if (!ctx.BlueprintByProduct.ContainsKey(typeId)) continue;
 
             var g = At(typeId);
-            g.Consumed += units;
+            g.Consumed  += units;
+            g.OrderUnits += units;
             g.Fires     = true;
-            g.Priority  = Math.Max(g.Priority, WorklistPriority.OrderDriven);
+            // Ranked rather than flat, so the order due first outranks the one due next month.
+            // Children inherit this below, so the whole tree under an urgent order stays urgent.
+            g.Priority  = Math.Max(g.Priority, WorklistPriority.ForOrder(rank));
             g.Reasons.Add($"{count} pending order(s) for {units:N0}.");
             if (outstanding > 0) topLevel.Add((typeId, outstanding));
         }
@@ -222,8 +278,9 @@ public class IndustryDemandService(
                 if (qty <= 0) continue;
 
                 var child = At(m.MaterialTypeId);
-                child.Consumed += qty;
-                child.Fires     = true;
+                child.Consumed    += qty;
+                child.ParentUnits += qty;
+                child.Fires        = true;
                 child.Priority  = Math.Max(child.Priority, g.Priority);
                 child.Reasons.Add($"{qty:N0} for {name}.");
 
@@ -248,7 +305,8 @@ public class IndustryDemandService(
 
             result[typeId] = new BuildDemand(
                 typeId, units, g.Priority,
-                [.. Summarise(g, have)]);
+                [.. Summarise(g, have)],
+                g.OrderUnits, g.Level, g.ParentUnits);
         }
 
         return result;
@@ -270,7 +328,23 @@ public class IndustryDemandService(
     }
 
     /// <summary>Pending orders: gross units, what is still outstanding, and how many orders.</summary>
-    private static async Task<List<(int TypeId, long Units, long Outstanding, int Count)>> OrderDemandAsync(
+    /// <summary>
+    /// Pending orders in the order they should be served: hand-marked ones first, then by
+    /// estimated date, then by when the order was taken.
+    ///
+    /// <para>An order with no estimated date sorts after every dated one rather than before —
+    /// a blank is "no deadline given", not "due immediately", and treating it as the latter would
+    /// let an undated order shoulder past one with a real date next week.</para>
+    /// </summary>
+    public static List<TrackedOrder> Ranked(IEnumerable<TrackedOrder> pending) =>
+        pending
+            .OrderByDescending(o => o.IsPriority)
+            .ThenBy(o => DateOnly.TryParse(o.EstimatedDate, out var d) ? d : DateOnly.MaxValue)
+            .ThenBy(o => o.CreatedAt)
+            .ThenBy(o => o.Id)
+            .ToList();
+
+    private static async Task<List<(int TypeId, long Units, long Outstanding, int Count, int Rank)>> OrderDemandAsync(
         AppDbContext db, HashSet<long>? scope, HashSet<long> wrapped, HashSet<long>? corps,
         CancellationToken ct)
     {
@@ -279,6 +353,12 @@ public class IndustryDemandService(
         var orders = await db.TrackedOrders.AsNoTracking()
             .Where(o => o.Status == "pending").ToListAsync(ct);
         if (orders.Count == 0) return [];
+
+        // Each order's place in the queue, so the work it drives can be ranked against the work
+        // other orders drive rather than all of it landing on one flat "order-driven" tier.
+        var rankOf = Ranked(orders)
+            .Select((o, i) => (o.Id, Rank: i))
+            .ToDictionary(x => x.Id, x => x.Rank);
 
         var wanted = orders.Select(o => o.TypeId).Distinct().ToList();
 
@@ -309,7 +389,10 @@ public class IndustryDemandService(
                 return (g.Key, units,
                         Math.Max(0, units - onHand.GetValueOrDefault(g.Key)
                                           - inBuild.GetValueOrDefault(g.Key)),
-                        g.Count());
+                        g.Count(),
+                        // Several orders can want the same item; the most urgent of them decides
+                        // how urgent building it is.
+                        Rank: g.Min(o => rankOf.GetValueOrDefault(o.Id, int.MaxValue)));
             })
             .ToList();
     }

@@ -158,16 +158,18 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
     ///
     /// <para>Products with no print owned are absent, and the caller falls back to the shared
     /// default. Guessing an efficiency for a blueprint that has to be bought would be inventing
-    /// a number about an object that does not exist yet.</para>
+    /// a number about an object that does not exist yet — but a print that <i>is</i> owned settles
+    /// the question, and its real efficiency beats the default even when the default is kinder.
+    /// Two ME8 Avatar copies mean the plan is costed at ME8, not at the ME9 a titan is assumed
+    /// to reach.</para>
     /// </summary>
     public static Dictionary<int, int> BestMeByProduct(
         IReadOnlyList<BlueprintStock> all,
         IReadOnlyDictionary<int, SdeBlueprintProduct> blueprintByProduct,
-        HashSet<long>? scope,
-        IReadOnlyList<WorklistIndyCharReach> reaches)
+        PrintOwnership owned)
     {
         var usable = all
-            .Where(b => reaches.Any(r => r.CanUse(b)) && (scope is null || scope.Contains(b.LocationId)))
+            .Where(owned.Owns)
             .GroupBy(b => b.TypeId)
             .ToDictionary(
                 g => g.Key,
@@ -182,11 +184,21 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
         return byProduct;
     }
 
-    public static bool OwnedWithin(
-        IReadOnlyList<BlueprintStock> all, HashSet<long>? scope,
-        IReadOnlyList<WorklistIndyCharReach> reaches) =>
-        all.Any(b => reaches.Any(r => r.CanUse(b))
-                     && (scope is null || scope.Contains(b.LocationId)));
+    /// <summary>
+    /// Whether the player already has one of these prints at all, anywhere, on any character.
+    ///
+    /// <para>Deliberately a wider test than <see cref="UsableAt"/>. That one answers "can a job be
+    /// installed from this print here and now", which is rightly narrow — the print has to be at
+    /// the site and belong to someone who can run the job. This one answers "must one be bought",
+    /// and the answer is no if the player owns one anywhere: a copy in a trading alt's Jita hangar
+    /// is a thing to move or trade across, not a thing to buy a second time.</para>
+    ///
+    /// <para>Neither the asset scope nor the industry-character list applies here for that reason.
+    /// Both exist to describe where materials may be drawn from and who may run jobs, and a
+    /// blueprint sitting in the wrong hangar is neither of those problems.</para>
+    /// </summary>
+    public static bool OwnedAnywhere(IReadOnlyList<BlueprintStock> all, PrintOwnership owned) =>
+        all.Any(owned.Owns);
 
     /// <summary>
     /// The prints of one type that a given character can install a job from at a given site, in
@@ -225,13 +237,42 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
 /// corporations those are is a property of the account, not of whoever happens to be configured
 /// to run jobs — someone else's stock is someone else's whoever is asked to build with it.</param>
 public readonly record struct WorklistIndyCharReach(
-    long CharacterId, bool Corp, bool Personal, HashSet<long>? Corps)
+    long CharacterId, long CorporationId, HashSet<long>? Corps)
 {
+    /// <summary>
+    /// Whether this character could install a job from this print: their own hangar, or a hangar
+    /// of the corporation they are actually in.
+    ///
+    /// <para>Read off who the character is rather than from a setting. Whether a print is the
+    /// player's is settled by <see cref="PrintOwnership"/>; all that is left here is the physical
+    /// question, and a pilot cannot pull a blueprint out of another character's hangar however
+    /// the tool is configured.</para>
+    /// </summary>
     public bool CanUse(BlueprintStock b) => b.OwnerType == "corporation"
-        ? Corp && (Corps is null || Corps.Contains(b.OwnerId))
-        : Personal && b.OwnerId == CharacterId;
+        ? b.OwnerId == CorporationId && (Corps is null || Corps.Contains(b.OwnerId))
+        : b.OwnerId == CharacterId;
 
     public static WorklistIndyCharReach Of(IndustryCandidate c, HashSet<long>? corps) =>
-        new(c.Config.CharacterId,
-            c.Config.IncludeCorpAssets, c.Config.IncludePersonalAssets, corps);
+        new(c.Config.CharacterId, c.CorporationId, corps);
+}
+
+/// <summary>
+/// Everything the player owns a print through — every authorised character, plus the corporations
+/// whose hangars count as theirs.
+///
+/// <para>Distinct from <see cref="WorklistIndyCharReach"/>, which is about who can <i>run a job</i>
+/// from a print. Ownership is a broader question and has to be, or a copy bought by the trading
+/// alt reads as no copy at all and the tool tells you to buy another. Two ME8 Avatar copies sat
+/// in Kerno Adler's Jita hangar did exactly that.</para>
+/// </summary>
+/// <param name="CharacterIds">Every character authorised in the app, not only the ones set up to
+/// run industry. A print in an unconfigured alt's hangar is still the player's.</param>
+/// <param name="Corps">Corporations whose hangars may be counted, or null for any. Follows the
+/// same personal-corp rule as materials: an alliance corp the main merely belongs to owns its own
+/// blueprints, not the player's.</param>
+public sealed record PrintOwnership(HashSet<long> CharacterIds, HashSet<long>? Corps)
+{
+    public bool Owns(BlueprintStock b) => b.OwnerType == "corporation"
+        ? Corps is null || Corps.Contains(b.OwnerId)
+        : CharacterIds.Contains(b.OwnerId);
 }
