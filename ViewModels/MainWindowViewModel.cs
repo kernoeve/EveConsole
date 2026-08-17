@@ -464,6 +464,7 @@ public class MainWindowViewModel : ReactiveObject
         SalePostingService              salePostingService,
         BatchAddService                 batchAddService,
         CorpActivityService             corpActivityService,
+        CharacterSummaryService         characterSummaryService,
         StandingBuyOrderService         standingBuyOrderService,
         EveConsole.Services.Worklist.WorklistService worklistService,
         EveConsole.Services.Worklist.WorklistMarketAltService worklistMarketAltService,
@@ -535,15 +536,19 @@ public class MainWindowViewModel : ReactiveObject
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
                                                      zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost,
                                                      intelService, monitoringSettings, entityNames, alarmService, lpStoreService);
-        CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters);
+        CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters,
+            characterSummaryService);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
         var fittingsService = new FittingsService(esi, dbFactory);
         MarketLevelVm     = new MarketLevelViewModel(marketLevelService, dbFactory, fittingsService,
             CharacterVm.Characters, CharacterVm.Corporations, batchAddService, prodCalcService);
-        InvLevelVm        = new InvLevelViewModel(invLevelService, dbFactory, batchAddService,
-            prodCalcService, fittingsService, CharacterVm.Characters, CharacterVm.Corporations);
+        // appPrefs is the constructor parameter, not the AppPrefs property — that is not assigned
+        // until far below this line, and passing it here handed the view model a null.
+        InvLevelVm        = new InvLevelViewModel(invLevelService, dbFactory, appPrefs,
+            batchAddService, prodCalcService, fittingsService,
+            CharacterVm.Characters, CharacterVm.Corporations);
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, slackService, exportFormat);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
@@ -603,7 +608,7 @@ public class MainWindowViewModel : ReactiveObject
                                      new WorklistOrderRulesViewModel(dbFactory, corpActivityService, worklistMarketAltService),
                                      new WorklistCorpAltsViewModel(dbFactory, worklistCorpAltService),
                                      new WorklistIndustryViewModel(dbFactory, industryAssignmentService, worklistSettings, errorLogger, corpActivityService, worklistMarketAltService),
-                                     new WorklistStationLevelsViewModel(dbFactory, corpActivityService));
+                                     new WorklistStationLevelsViewModel(dbFactory, corpActivityService, worklistSettings));
 
         // Adding, renaming or deleting an inventory group changes what the Worklist's group
         // pickers should offer. They load once, so without this a new group is missing until a

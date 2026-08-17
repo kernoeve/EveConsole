@@ -12,6 +12,99 @@ namespace EveConsole.ViewModels;
 
 // ── Display model types ───────────────────────────────────────────────────────
 
+/// <summary>
+/// One row on the Summary tab. Formatted text for display alongside the raw value each column
+/// sorts on, because a grid that sorts "9.9B" above "10.1B" is worse than one showing raw digits.
+/// </summary>
+public sealed class CharacterSummaryRowVm(EveConsole.Services.CharacterSummaryRow r)
+{
+    public long   CharacterId => r.CharacterId;
+    public string Name        => r.Name;
+    public string CorpName    => r.CorpName;
+    public string Alliance    => r.AllianceName;
+
+    public bool   Online      => r.Online;
+    public string OnlineText  => r.Online ? "Online" : "Offline";
+    public string OnlineColor => r.Online ? "#5aa469" : "#666677";
+
+    public string Location    => r.Location;
+    public string Ship        => r.Ship;
+    public string HomeStation => r.HomeStation;
+
+    public double PodValueRaw => r.PodValue;
+    public string PodValue    => Isk(r.PodValue);
+
+    public long   TotalSpRaw  => r.TotalSp;
+    public string TotalSp     => r.TotalSp.ToString("N0");
+
+    public decimal IskRaw     => r.Isk;
+    public string  Isk_       => Isk((double)r.Isk);
+
+    public double AssetValueRaw => r.AssetValue;
+    public string AssetValue    => Isk(r.AssetValue);
+
+    /// <summary>Sorted on time remaining, which is what "is this queue about to run dry" asks.
+    /// An empty queue sorts as if it ended long ago, so it lands at the urgent end.</summary>
+    public DateTimeOffset QueueEndsRaw => r.QueueEnds ?? DateTimeOffset.MinValue;
+    public int    QueueLength => r.QueueLength;
+    public string QueueText   => r.QueueLength == 0
+        ? "empty"
+        : r.QueueEnds is { } end
+            ? $"{r.QueueLength} · {Span(end - DateTimeOffset.UtcNow)}"
+            : $"{r.QueueLength} · paused";
+
+    /// <summary>Amber once the queue is inside a day, red when it has run dry.</summary>
+    public string QueueColor => r.QueueLength == 0 ? "#c85a5a"
+        : r.QueueEnds is { } e && e - DateTimeOffset.UtcNow < TimeSpan.FromDays(1) ? "#c8a84b"
+        : "#c8c8d8";
+
+    // A dash where the worklist is not allowed to use that pool. The character may well have
+    // eleven slots, but none of them are available to this tool, and printing the capacity would
+    // invite planning against slots it will never schedule.
+    public string Manufacturing => r.UsesManufacturing ? $"{r.ManufacturingFree} / {r.ManufacturingTotal}" : "—";
+    public string Reaction      => r.UsesReaction      ? $"{r.ReactionFree} / {r.ReactionTotal}"           : "—";
+    public string Science       => r.UsesScience       ? $"{r.ScienceFree} / {r.ScienceTotal}"             : "—";
+
+    // Sorted below every real figure rather than as a zero, which would rank an unused pool
+    // alongside a genuinely full one.
+    public int ManufacturingFreeRaw => r.UsesManufacturing ? r.ManufacturingFree : -1;
+    public int ReactionFreeRaw      => r.UsesReaction      ? r.ReactionFree      : -1;
+    public int ScienceFreeRaw       => r.UsesScience       ? r.ScienceFree       : -1;
+
+    public string ManufacturingColor => r.UsesManufacturing ? SlotColor(r.ManufacturingFree, r.ManufacturingTotal) : Unused;
+    public string ReactionColor      => r.UsesReaction      ? SlotColor(r.ReactionFree,      r.ReactionTotal)      : Unused;
+    public string ScienceColor       => r.UsesScience       ? SlotColor(r.ScienceFree,       r.ScienceTotal)       : Unused;
+
+    /// <summary>Muted, so a dash reads as "not applicable" rather than as a state to act on.</summary>
+    private const string Unused = "#555566";
+
+    /// <summary>
+    /// Red when there is nothing free, amber below half, green above.
+    ///
+    /// <para>Judged as a share of the character's own capacity rather than an absolute count: two
+    /// free slots is comfortable for an alt with three and nearly nothing for one with eleven, and
+    /// the column is scanned to find who has room.</para>
+    /// </summary>
+    private static string SlotColor(int free, int total) =>
+        free <= 0                ? "#c85a5a"
+        : total > 0 && free * 2 > total ? "#5aa469"
+        : "#e0902e";
+
+    private static string Isk(double v) => v switch
+    {
+        >= 1_000_000_000_000 => $"{v / 1_000_000_000_000:N2}T",
+        >= 1_000_000_000     => $"{v / 1_000_000_000:N2}B",
+        >= 1_000_000         => $"{v / 1_000_000:N1}M",
+        >= 1_000             => $"{v / 1_000:N0}k",
+        _                    => v.ToString("N0"),
+    };
+
+    private static string Span(TimeSpan t) => t.TotalSeconds <= 0 ? "done"
+        : t.TotalDays >= 1 ? $"{t.TotalDays:F0}d"
+        : t.TotalHours >= 1 ? $"{t.TotalHours:F0}h"
+        : $"{t.TotalMinutes:F0}m";
+}
+
 public record SkillGroupVm(int GroupId, string Name, long TotalSp)
 {
     public string SpText => TotalSp >= 1_000_000
@@ -171,6 +264,63 @@ public class CharacterViewerViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _selectedTabIndex, value);
     }
 
+    // ── Summary tab ───────────────────────────────────────────────────────────
+    //
+    // Every character on one grid. The detail tab answers "what about this one"; this answers
+    // "which one", which is the question actually asked when deciding who to log in.
+
+    public ObservableCollection<CharacterSummaryRowVm> SummaryRows { get; } = [];
+
+    private int _outerTabIndex;
+    public int OuterTabIndex
+    {
+        get => _outerTabIndex;
+        set => this.RaiseAndSetIfChanged(ref _outerTabIndex, value);
+    }
+
+    private bool _summaryLoading;
+    public bool SummaryLoading { get => _summaryLoading; private set => this.RaiseAndSetIfChanged(ref _summaryLoading, value); }
+
+    private string _summaryStatus = "";
+    public string SummaryStatus { get => _summaryStatus; private set => this.RaiseAndSetIfChanged(ref _summaryStatus, value); }
+
+    public ReactiveCommand<Unit, Unit> RefreshSummaryCommand { get; }
+
+    /// <summary>
+    /// Opens one character on the detail tab. Bound to a double-click on a summary row; the
+    /// dropdown there still works, so this is a shortcut rather than the only way in.
+    /// </summary>
+    public void ShowDetailFor(long characterId)
+    {
+        var match = Characters.FirstOrDefault(c => c.Id == characterId);
+        if (match is null) return;
+        SelectedCharacter = match;
+        OuterTabIndex     = 1;
+    }
+
+    private async Task LoadSummaryAsync()
+    {
+        if (_summary is null) return;
+
+        SummaryLoading = true;
+        try
+        {
+            var rows = await _summary.LoadAsync();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                SummaryRows.Clear();
+                foreach (var r in rows) SummaryRows.Add(new CharacterSummaryRowVm(r));
+                SummaryStatus = $"{rows.Count} character(s). Figures come from polled data — "
+                              + "the detail tab's Refresh updates one character, polling updates all.";
+            });
+        }
+        catch (Exception ex)
+        {
+            SummaryStatus = $"Could not load the summary: {ex.Message}";
+        }
+        finally { SummaryLoading = false; }
+    }
+
     // Selects a character by name and jumps to the Skills tab (index 0) — used when
     // navigating here from an Overview skill-queue alert.
     public void ShowSkillsFor(string characterName)
@@ -304,16 +454,23 @@ public class CharacterViewerViewModel : ReactiveObject
     public Action<int>? NavigateToItemAction { get; set; }
     public ReactiveCommand<int, Unit> OpenInItemBrowserCommand { get; }
 
-    public CharacterViewerViewModel(AppDbContext db, ObservableCollection<Character> characters)
+    private readonly EveConsole.Services.CharacterSummaryService? _summary;
+
+    public CharacterViewerViewModel(AppDbContext db, ObservableCollection<Character> characters,
+                                    EveConsole.Services.CharacterSummaryService? summary = null)
     {
         _db        = db;
         Characters = characters;
+        _summary   = summary;
 
         RefreshCommand = ReactiveCommand.CreateFromTask(async () =>
         {
             if (SelectedCharacter is not null)
                 await LoadCharacterDataAsync(SelectedCharacter);
         });
+
+        RefreshSummaryCommand = ReactiveCommand.CreateFromTask(LoadSummaryAsync);
+        _ = LoadSummaryAsync();
 
         OpenInItemBrowserCommand = ReactiveCommand.Create<int>(typeId => NavigateToItemAction?.Invoke(typeId));
 
