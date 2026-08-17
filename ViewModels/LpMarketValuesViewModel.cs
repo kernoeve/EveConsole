@@ -64,6 +64,16 @@ public record LpCorpValueVm(
         ? $"{LpHeld * IskPerLp:N0} ISK"
         : "—";
 
+    /// <summary>
+    /// The same figure as a number, for the column to sort on.
+    ///
+    /// <para>Sorting the formatted text put "9,000,000 ISK" above "10,000,000 ISK" and a bare
+    /// dash somewhere in the middle — a digit-by-digit comparison of something meant to be read
+    /// as a quantity. Rows with no balance sort to the bottom rather than as zero-worth holdings,
+    /// since "none held" is not the same answer as "held, worth nothing".</para>
+    /// </summary>
+    public double HoldingValue => LpHeld > 0 && IskPerLp > 0 ? LpHeld * IskPerLp : -1;
+
     public string UpdatedText => ComputedAt == default
         ? "—"
         : ComputedAt.ToLocalTime().ToString("d MMM HH:mm");
