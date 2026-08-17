@@ -164,24 +164,10 @@ public class WorklistSettings(AppPreferencesService prefs)
         _                     => MaxJobDaysManufacturing,
     };
 
-    // ── Where science happens ─────────────────────────────────────────────────
-    //
-    // Unlike manufacturing, science is not routed by what is being made: a lab is a lab, and a
-    // player who has rigged one structure for copying and another for invention wants every such
-    // job to go there. So these are named outright rather than derived from the item's category.
-    //
-    // Zero means unconfigured, and the generator then falls back to the park's first linked
-    // structure and says so — silently picking would hide that the rigs being modelled are not the
-    // rigs the job would really run under.
-
-    public const string InventionStructureKey = "worklist.industry.invention_structure_id";
-    public const string CopyStructureKey      = "worklist.industry.copy_structure_id";
-
-    public long InventionStructureId => prefs.GetLong(InventionStructureKey, 0);
-    public long CopyStructureId      => prefs.GetLong(CopyStructureKey, 0);
-
-    public Task SetScienceStructureAsync(string key, long structureId) =>
-        prefs.SetAsync(key, structureId.ToString());
+    // Where copying and invention happen is not a setting. Indy Parks already assigns Blueprint
+    // Copying and Blueprint Invention to a structure, the same way it assigns every manufacturing
+    // category, and InventionService reads that. Asking a second time here would let the two
+    // disagree, and the park is the one that also knows the lab's rigs.
 
     // ── Decryptors ────────────────────────────────────────────────────────────
     //

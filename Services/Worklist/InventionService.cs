@@ -269,26 +269,40 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
             : all.FirstOrDefault(d => d.Name == wanted) ?? Decryptor.None;
     }
 
+    /// <summary>Park category keys for the two science activities, as Indy Parks already names
+    /// them. <see cref="IndyRigMatching.RigCategoryFromName"/> derives the same keys from rig
+    /// names, so a lab's rigs and its assignment agree by construction.</summary>
+    public const string CopyingCategory   = "bp_copying";
+    public const string InventionCategory = "bp_invention";
+
     /// <summary>
-    /// The lab a science job runs in: the configured structure when set, otherwise the park's
-    /// first linked one.
+    /// The lab a science job runs in, read from the park's own category assignment.
     ///
-    /// <para>Named outright rather than routed by item category, unlike manufacturing. A lab is a
-    /// lab, and a player who has rigged one structure for invention wants every invention job to
-    /// go there whatever it is inventing.</para>
+    /// <para>Routed exactly as manufacturing is: Indy Parks already lets a park say which structure
+    /// does Blueprint Copying and which does Blueprint Invention, and that assignment is the
+    /// answer. An earlier version of this asked for the structure again as a worklist preference
+    /// and fell back to the park's first linked facility — which silently planned every invention
+    /// job in whichever structure happened to sort first, and modelled its rigs rather than the
+    /// lab's.</para>
+    ///
+    /// <para>Null when the park has not assigned that activity. Guessing would put the job in a
+    /// structure that may not even have a laboratory, and saying nothing is the honest answer.</para>
     /// </summary>
     public static async Task<Lab?> LabAsync(
-        AppDbContext db, int parkId, long configuredStructureId, CancellationToken ct = default)
+        AppDbContext db, int parkId, string categoryKey, CancellationToken ct = default)
     {
         if (parkId <= 0) return null;
 
-        var linked = await db.IndyStructures.AsNoTracking()
-            .Where(s => s.ParkId == parkId && s.RealStructureId != null)
-            .OrderBy(s => s.Id)
-            .ToListAsync(ct);
-        if (linked.Count == 0) return null;
+        var assignment = await db.IndyCategoryAssignments.AsNoTracking()
+            .Where(a => a.ParkId == parkId && a.CategoryKey == categoryKey && a.StructureId != null)
+            .Select(a => a.StructureId)
+            .FirstOrDefaultAsync(ct);
+        if (assignment is null) return null;
 
-        var s  = linked.FirstOrDefault(x => x.RealStructureId == configuredStructureId) ?? linked[0];
+        var s = await db.IndyStructures.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == assignment && x.RealStructureId != null, ct);
+        if (s is null) return null;
+
         var id = s.RealStructureId!.Value;
 
         var name = s.RealStructureName is { Length: > 0 } rn

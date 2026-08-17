@@ -81,10 +81,11 @@ public class InventionGenerator(
 
         var decryptors = await invention.DecryptorsAsync(ct);
 
-        // Two labs, separately configurable: a player who has rigged one structure for copying and
-        // another for invention wants each job to go to its own.
-        var inventionLab = await InventionService.LabAsync(db, parkId, settings.InventionStructureId, ct);
-        var copyLab      = await InventionService.LabAsync(db, parkId, settings.CopyStructureId, ct);
+        // Where the park says these activities happen. Both are Indy Parks categories already, so
+        // a park that has assigned Blueprint Copying and Blueprint Invention needs nothing more
+        // said here — and one that has not gets no jobs rather than a guess.
+        var inventionLab = await InventionService.LabAsync(db, parkId, InventionService.InventionCategory, ct);
+        var copyLab      = await InventionService.LabAsync(db, parkId, InventionService.CopyingCategory, ct);
         if (inventionLab is null || copyLab is null) return [];
 
         // Products, datacores and decryptors together — a decryptor is a material of the job like
@@ -173,9 +174,14 @@ public class InventionGenerator(
         // excluding originals above rather than by forking the algorithm.
         var split = IndustryJobSplit.Plan(
             plan.Attempts,
+            // A laboratory rig is keyed by the activity it speeds up, not by what is being made —
+            // unlike a manufacturing rig, which is keyed by the item's category. Passing the item
+            // key here (or, as this first did, an empty one) matches no rig at all, so a rigged
+            // lab modelled as an unrigged one and every batch came out roughly twice as long.
             print => IndustryTimeService.PerScienceUnitSeconds(
                          timeCtx, recipe.SourceBlueprintTypeId,
-                         IndustryTimeService.InventionActivity, lab.Structure, "", best.Skills),
+                         IndustryTimeService.InventionActivity, lab.Structure,
+                         InventionService.InventionCategory, best.Skills),
             settings.MaxJobDaysScience,
             atLab);
 
@@ -342,7 +348,7 @@ public class InventionGenerator(
 
         var perUnit = IndustryTimeService.PerScienceUnitSeconds(
             timeCtx, recipe.SourceBlueprintTypeId, IndustryTimeService.CopyingActivity,
-            lab.Structure, "", best.Skills);
+            lab.Structure, InventionService.CopyingCategory, best.Skills);
 
         // Copying is charged per run per copy, so a two-copy job of thirty runs costs sixty units.
         var duration = IndustryJobSplit.Duration((perUnit ?? 0) * copies * perCopy);

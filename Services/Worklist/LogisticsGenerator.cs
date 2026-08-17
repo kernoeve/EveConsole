@@ -406,7 +406,7 @@ public class LogisticsGenerator(
         if (candidates.Count == 0) return;
 
         var lab = await InventionService.LabAsync(db, settings.IndustryParkId,
-                                                  settings.InventionStructureId, ct);
+                                                  InventionService.InventionCategory, ct);
         if (lab is null) return;
 
         var decryptors = await invention.DecryptorsAsync(ct);
