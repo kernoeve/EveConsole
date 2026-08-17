@@ -11,6 +11,9 @@ namespace EveConsole.Services.Worklist;
 /// The scale, high to low:
 ///
 /// <list type="bullet">
+/// <item><b>Asset safety (300)</b> — a game-enforced deadline with money on the other side of
+/// it. Above even the order band, because every other kind of work merely slips when it is
+/// left; this one expires.</item>
 /// <item><b>Order-driven (120)</b> — someone is waiting on it. A customer order outranks
 /// everything, because the cost of it slipping is external.</item>
 /// <item><b>Silently failing (100)</b> — an order that exists, looks healthy in every list, and
@@ -26,8 +29,37 @@ namespace EveConsole.Services.Worklist;
 /// </summary>
 public static class WorklistPriority
 {
+    /// <summary>
+    /// Items sitting in asset safety that can be acted on.
+    ///
+    /// <para>Deliberately above <see cref="OrderBandTop"/>, which is otherwise the ceiling. The
+    /// order band is wide because orders compete with each other; this does not compete with
+    /// anything. A job that waits a day is a job done a day later, but asset safety runs on the
+    /// game's clock: miss the window and the items are delivered wherever the game chooses, at
+    /// the game's fee. There is no version of "later" that costs nothing.</para>
+    /// </summary>
+    public const int AssetSafety     = 300;
+
     public const int OrderDriven     = 120;
     public const int Outbid          = 100;
+
+    /// <summary>
+    /// The band customer-order work occupies, one step per order.
+    ///
+    /// <para>Orders are not equal to each other. The one due first, or hand-marked to jump the
+    /// queue, has to outrank the one due next month — and so does everything it needs, all the way
+    /// down the tree and including the hauls that feed it. Encoding the order's rank in the number
+    /// gets that for free: the demand service already carries a parent's priority down to its
+    /// children, and a haul takes the priority of its most valuable cargo.</para>
+    ///
+    /// <para>Rank 0 is the most urgent order. The band is wide enough for a hundred of them before
+    /// it would touch <see cref="Outbid"/>, and the floor stops it ever doing so.</para>
+    /// </summary>
+    public const int OrderBandTop = 220;
+
+    /// <summary>Where work for the order at <paramref name="rank"/> sits. Rank 0 is first.</summary>
+    public static int ForOrder(int rank) => Math.Max(OrderDriven, OrderBandTop - rank);
+
     public const int Missing         = 90;
     public const int StandingProject = 85;
     public const int Housekeeping    = 30;
