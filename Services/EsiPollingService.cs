@@ -17,7 +17,9 @@ public record PollingResult(
     int?    RateLimitRemaining = null,
     int?    RetryAfterSeconds  = null,
     int?    ErrorLimitRemain   = null,
-    int?    ErrorLimitReset    = null);
+    int?    ErrorLimitReset    = null,
+    /// <summary>When the server says its copy goes stale. Drives when this is next polled.</summary>
+    DateTimeOffset? Expires    = null);
 
 public record EndpointInfo(string Key, string DisplayName, int MinSeconds, int DefaultSeconds);
 
@@ -47,6 +49,57 @@ public class EsiPollingService : ReactiveObject
     public IReadOnlyList<EndpointInfo> CorpEndpointInfos      { get; private set; } = [];
 
     private readonly ConcurrentDictionary<string, DateTimeOffset> _lastCallTimes  = new();
+
+    /// <summary>
+    /// When the server said each cached response goes stale, by the same key as
+    /// <see cref="_lastCallTimes"/>. Absent until an endpoint has answered once with an
+    /// <c>Expires</c>, and absent permanently for anything that never sends one.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, DateTimeOffset> _expiresAt = new();
+
+    /// <summary>
+    /// How long after a cached copy lapses to wait before asking for the next one.
+    ///
+    /// <para>Small but not zero. Client and server clocks disagree by seconds, and an
+    /// <c>Expires</c> that has only just passed by our reckoning may not have passed by theirs —
+    /// which would spend a call to be handed the same copy and a stale expiry to wait on again.
+    /// A few seconds of deliberate lateness costs nothing against a cache measured in minutes.</para>
+    /// </summary>
+    private static readonly TimeSpan ExpiryGrace = TimeSpan.FromSeconds(15);
+
+    /// <summary>Never re-poll one key faster than this, whatever a header claims.</summary>
+    /// <remarks>
+    /// A guard against a hot loop, not a rate policy. An <c>Expires</c> already in the past —
+    /// a clock far out of step, a malformed header, an error response — would otherwise make the
+    /// endpoint due on every cycle.
+    /// </remarks>
+    private static readonly TimeSpan MinimumSpacing = TimeSpan.FromSeconds(60);
+
+    /// <summary>
+    /// Whether an endpoint is due.
+    ///
+    /// <para>The server's expiry wins where there is one, and the configured interval governs
+    /// everything else. That is deliberate rather than a compromise: for a cached endpoint the
+    /// cache <i>is</i> the rate limit, and no interval can beat it — polling on a clock of our
+    /// own only changes where in the window the call lands, which is the whole problem. One
+    /// call just after each lapse is both the freshest and the cheapest schedule there is.</para>
+    ///
+    /// <para>Taking the later of the two instead would keep the drift forever: a poll landing
+    /// fifty minutes into a sixty-minute window sets the next one an hour out, by which point
+    /// the cache has rolled again and the data is fifty minutes old — the same miss, every time.
+    /// Re-phasing costs one short cycle, once.</para>
+    /// </summary>
+    private bool IsDue(string callKey, string endpointKey, int defaultInterval, DateTimeOffset now)
+    {
+        if (!_lastCallTimes.TryGetValue(callKey, out var lastCalled)) return true;
+        if (now - lastCalled < MinimumSpacing) return false;
+
+        if (_expiresAt.TryGetValue(callKey, out var expires))
+            return now >= expires + ExpiryGrace;
+
+        return (now - lastCalled).TotalSeconds
+               >= _timerSettings.GetInterval(endpointKey, defaultInterval);
+    }
     private readonly ConcurrentDictionary<string, GroupState>     _rateLimits     = new();
     private readonly ConcurrentDictionary<string, string>         _endpointGroups = new(); // endpoint→group
     private readonly ConcurrentDictionary<long, string>           _charNames      = new();
@@ -365,8 +418,7 @@ public class EsiPollingService : ReactiveObject
 
             var callKey = $"{ep.Key}:{character.Id}:character";
 
-            if (_lastCallTimes.TryGetValue(callKey, out var lastCalled) &&
-                (now - lastCalled).TotalSeconds < _timerSettings.GetInterval(ep.Key, ep.DefaultIntervalSeconds))
+            if (!IsDue(callKey, ep.Key, ep.DefaultIntervalSeconds, now))
                 continue;
 
             if (_endpointGroups.TryGetValue(ep.Key, out var groupName) &&
@@ -398,7 +450,8 @@ public class EsiPollingService : ReactiveObject
 
             var callTime = DateTimeOffset.UtcNow;
             _lastCallTimes[callKey] = callTime;
-            await PersistCallRecordAsync(character.Id, "character", ep.Key, callTime, result.StatusCode, ct);
+            RecordExpiry(callKey, result);
+            await PersistCallRecordAsync(character.Id, "character", ep.Key, callTime, result.StatusCode, result.Expires, ct);
 
             UpdateRateLimitState(ep.Key, result);
             handle.Complete(result.Success, result.StatusCode, result.ErrorMessage);
@@ -429,6 +482,25 @@ public class EsiPollingService : ReactiveObject
         var prefix = endpointKey + ":";
         foreach (var key in _lastCallTimes.Keys.Where(k => k.StartsWith(prefix)).ToList())
             _lastCallTimes.TryRemove(key, out _);
+
+        // The stored expiry has to go too. Left in place it would hold the endpoint back until
+        // the server's window lapses, which is exactly what a reset is asking to bypass.
+        foreach (var key in _expiresAt.Keys.Where(k => k.StartsWith(prefix)).ToList())
+            _expiresAt.TryRemove(key, out _);
+    }
+
+    /// <summary>
+    /// Keeps the expiry a successful call reported, and drops it when one fails.
+    ///
+    /// <para>Dropped on failure because a 4xx or 5xx carries no useful expiry, and holding the
+    /// previous one would park the endpoint until a window that has nothing to do with the
+    /// error. Without a stored expiry the configured interval takes over, which is the right
+    /// retry behaviour.</para>
+    /// </summary>
+    private void RecordExpiry(string callKey, PollingResult result)
+    {
+        if (result.Success && result.Expires is { } e) _expiresAt[callKey] = e;
+        else                                           _expiresAt.TryRemove(callKey, out _);
     }
 
     private async Task LoadLastCallTimesAsync(CancellationToken ct)
@@ -437,12 +509,19 @@ public class EsiPollingService : ReactiveObject
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var records = await db.EsiCallRecords.AsNoTracking().ToListAsync(ct);
         foreach (var r in records)
-            _lastCallTimes[$"{r.Endpoint}:{r.OwnerId}:{r.OwnerType}"] = r.LastCalledAt;
+        {
+            var key = $"{r.Endpoint}:{r.OwnerId}:{r.OwnerType}";
+            _lastCallTimes[key] = r.LastCalledAt;
+
+            // Survives a restart, so the app comes back already in phase with the server rather
+            // than re-learning every schedule from a cold poll of everything.
+            if (r.ExpiresAt is { } e) _expiresAt[key] = e;
+        }
     }
 
     private async Task PersistCallRecordAsync(
         long ownerId, string ownerType, string endpoint,
-        DateTimeOffset calledAt, int statusCode, CancellationToken ct)
+        DateTimeOffset calledAt, int statusCode, DateTimeOffset? expiresAt, CancellationToken ct)
     {
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -459,12 +538,14 @@ public class EsiPollingService : ReactiveObject
                 Endpoint       = endpoint,
                 LastCalledAt   = calledAt,
                 LastStatusCode = statusCode,
+                ExpiresAt      = expiresAt,
             });
         }
         else
         {
             existing.LastCalledAt   = calledAt;
             existing.LastStatusCode = statusCode;
+            existing.ExpiresAt      = expiresAt;
         }
 
         await db.SaveChangesAsync(ct);
@@ -514,7 +595,7 @@ public class EsiPollingService : ReactiveObject
         new(r.IsSuccess, r.StatusCode,
             r.IsSuccess ? null : r.Error,
             r.RateLimitGroup, r.RateLimitRemaining, r.RetryAfterSeconds,
-            r.ErrorLimitRemain, r.ErrorLimitReset);
+            r.ErrorLimitRemain, r.ErrorLimitReset, r.Expires);
 
     // Walks the parent-chain for every asset and returns {ItemId → (RootLocationId, RootLocationType)}.
     // A terminal is reached when LocationType is not 'item', or when the LocationId is not found
@@ -1841,8 +1922,7 @@ public class EsiPollingService : ReactiveObject
 
             var callKey = $"{ep.Key}:{corp.Id}:corporation";
 
-            if (_lastCallTimes.TryGetValue(callKey, out var lastCalled) &&
-                (now - lastCalled).TotalSeconds < _timerSettings.GetInterval(ep.Key, ep.DefaultIntervalSeconds))
+            if (!IsDue(callKey, ep.Key, ep.DefaultIntervalSeconds, now))
                 continue;
 
             if (_endpointGroups.TryGetValue(ep.Key, out var groupName) &&
@@ -1873,7 +1953,8 @@ public class EsiPollingService : ReactiveObject
 
             var callTime = DateTimeOffset.UtcNow;
             _lastCallTimes[callKey] = callTime;
-            await PersistCallRecordAsync(corp.Id, "corporation", ep.Key, callTime, result.StatusCode, ct);
+            RecordExpiry(callKey, result);
+            await PersistCallRecordAsync(corp.Id, "corporation", ep.Key, callTime, result.StatusCode, result.Expires, ct);
 
             UpdateRateLimitState(ep.Key, result);
             handle.Complete(result.Success, result.StatusCode, result.ErrorMessage);

@@ -9,6 +9,16 @@ public class ApiCallRecord
     public string Endpoint     { get; set; } = "";
     public DateTimeOffset LastCalledAt   { get; set; }
     public int    LastStatusCode { get; set; } = 200;
+
+    /// <summary>
+    /// The <c>Expires</c> the server sent with the last response, or null when it sent none.
+    ///
+    /// <para>This is what makes a poll land shortly after fresh data exists rather than at an
+    /// arbitrary point in the cache window. Polling on our own interval, the two clocks drift:
+    /// a call one minute before a sixty-minute cache lapses returns the old copy and the next
+    /// attempt is an hour later, so the worst case is close to twice the cache.</para>
+    /// </summary>
+    public DateTimeOffset? ExpiresAt { get; set; }
 }
 
 // ── Single-row-per-character ─────────────────────────────────────────────────
@@ -947,6 +957,9 @@ public class TrackedOrder
     public string? EstimatedDate { get; set; }        // "yyyy-MM-dd", user's estimate
     public double PurchasePrice { get; set; }         // total agreed price for the order
     public string Status        { get; set; } = "pending";   // pending | completed | canceled
+
+    /// <summary>Hand-marked to jump the queue, ahead of every order ranked by date.</summary>
+    public bool   IsPriority    { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 }
 
