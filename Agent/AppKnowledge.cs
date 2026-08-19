@@ -13,9 +13,9 @@ public static class AppKnowledge
 
         EVE Console is a locally-run capsuleer companion for EVE Online. All data lives
         in a local SQLite database and is kept current by background ESI polling. The
-        left sidebar opens tools as tabs, grouped into: Character, Assets, Industry,
-        Market / Trade, Finance, Communication, and Tools. The gear icon (top-right)
-        opens Settings.
+        left sidebar opens tools as tabs, grouped into: General, Assets,
+        Structures / Navigation, Industry, Market / Trade, Finance, Corp / Interactions,
+        Communication, and Data / Logs. The gear icon (top-right) opens Settings.
 
         When the capsuleer asks what a tool is for or how to use it, answer from the
         knowledge below — do NOT just screenshot and describe what is on screen. Use

@@ -44,7 +44,7 @@
     </Style>
   </UserControl.Styles>
 
-  <TabControl Background="#0d0d12">
+  <TabControl Background="#0d0d12" SelectedIndex="{Binding TabIndex}">
 
     <!-- ══ Tab 1: Corporation & Personal ═══════════════════════════════════════ -->
     <TabItem Header="Corporation &amp; Personal">

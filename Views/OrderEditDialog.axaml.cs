@@ -18,6 +18,10 @@ public partial class OrderEditDialog : Window
     private string _typeName = "";
 
     // The picked buyer. A zero id means the typed text stands on its own — see OrderDialogResult.
+    /// <summary>Set while the dialog fills its fields in, so those assignments do not read as
+    /// the user typing. See the Edit Order block below.</summary>
+    private bool   _loading;
+
     private long   _buyerId;
     private string _buyerType = "";
     private string _buyerName = "";
@@ -35,6 +39,15 @@ public partial class OrderEditDialog : Window
         if (initial is not null)
         {
             Title = "Edit Order";
+            // ⚠️ Assigning BuyerBox.Text raises TextChanged, which runs the buyer search and opens
+            // the results list — for a buyer the user already picked and has not touched.
+            //
+            // Cleared on Opened rather than at the end of this block: setting Text before the
+            // window is shown does not necessarily raise TextChanged there and then, and a flag
+            // already back to false by the time the event arrives guards nothing. Held until the
+            // window is up, which is the earliest moment any change can be the user's doing.
+            _loading = true;
+            Opened += (_, _) => _loading = false;
             _typeId = initial.TypeId;
             _typeName = initial.TypeName;
             SelectedTypeText.Text = initial.TypeName;
@@ -48,6 +61,8 @@ public partial class OrderEditDialog : Window
             PriceBox.Value = (decimal)initial.PurchasePrice;
             StatusBox.SelectedIndex = initial.Status switch { "completed" => 1, "canceled" => 2, _ => 0 };
             PriorityBox.IsChecked = initial.IsPriority;
+            ContractBox.Text  = initial.LinkedContractId?.ToString() ?? "";
+            CompletedBox.Text = initial.CompletedOn ?? "";
         }
 
         UpdateOk();
@@ -55,6 +70,7 @@ public partial class OrderEditDialog : Window
 
     private async void OnSearchChanged(object? sender, TextChangedEventArgs e)
     {
+        if (_loading) return;
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
         var ct = _cts.Token;
@@ -91,6 +107,7 @@ public partial class OrderEditDialog : Window
     // must not drift apart, or an order would carry one buyer's name against another's id.
     private async void OnBuyerSearchChanged(object? sender, TextChangedEventArgs e)
     {
+        if (_loading) return;
         var text = BuyerBox.Text ?? "";
         if (text != _buyerName)
         {
@@ -98,7 +115,9 @@ public partial class OrderEditDialog : Window
             SelectedBuyerText.Text = text.Length > 0 ? $"{text}  (not linked)" : "(none selected)";
         }
 
-        if (_buyerSearchFunc is null) return;
+        // The picker belongs to typing. Anything that changes the text while the box is not focused
+        // — filling the dialog in, or writing the chosen name back — must not open it.
+        if (_buyerSearchFunc is null || !BuyerBox.IsFocused) return;
 
         _buyerCts?.Cancel();
         _buyerCts = new CancellationTokenSource();
@@ -140,6 +159,7 @@ public partial class OrderEditDialog : Window
         if (_typeId <= 0) return;
         var status = StatusBox.SelectedIndex switch { 1 => "completed", 2 => "canceled", _ => "pending" };
         var est = string.IsNullOrWhiteSpace(EstDateBox.Text) ? null : EstDateBox.Text!.Trim();
+        var completed = string.IsNullOrWhiteSpace(CompletedBox.Text) ? null : CompletedBox.Text!.Trim();
         Close(new OrderDialogResult(
             _typeId, _typeName,
             (int)(UnitsBox.Value ?? 1m),
@@ -148,7 +168,9 @@ public partial class OrderEditDialog : Window
             (double)(PriceBox.Value ?? 0m),
             status,
             PriorityBox.IsChecked == true,
-            _buyerId, _buyerType));
+            _buyerId, _buyerType,
+            int.TryParse(ContractBox.Text, out var contractId) && contractId > 0 ? contractId : null,
+            completed));
     }
 
     private void OnCancel(object? sender, RoutedEventArgs e) => Close(null);

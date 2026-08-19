@@ -104,6 +104,7 @@ public class ApiActivityViewModel : ReactiveObject
     private readonly MonitoringSettings          _monitoring;
     private readonly EntityNameBackfillService   _nameCache;
     private readonly AlarmService                _alarms;
+    private readonly OrderFulfilmentService      _orderFulfilment;
 
     public ObservableCollection<ActivityEntry>       Entries        { get; }
     public ObservableCollection<InFlightCall>        InFlight       { get; }
@@ -167,6 +168,7 @@ public class ApiActivityViewModel : ReactiveObject
         MonitoringSettings        monitoring,
         EntityNameBackfillService nameCache,
         AlarmService              alarms,
+        OrderFulfilmentService    orderFulfilment,
         LpStoreService            lpStore)
     {
         Entries        = log.Entries;
@@ -186,6 +188,7 @@ public class ApiActivityViewModel : ReactiveObject
         _monitoring    = monitoring;
         _nameCache     = nameCache;
         _alarms        = alarms;
+        _orderFulfilment = orderFulfilment;
 
         // Fire-and-forget: the sweep reports its own progress through StructureSweepRunning and
         // the summary lines, so the command does not need to await it to keep the UI honest.
@@ -249,6 +252,20 @@ public class ApiActivityViewModel : ReactiveObject
 
     private string _alarmNextText = "—";
     public string AlarmNextText { get => _alarmNextText; private set => this.RaiseAndSetIfChanged(ref _alarmNextText, value); }
+
+    // ── Order fulfilment ──────────────────────────────────────────────────────
+
+    private string _orderFulfilState = "";
+    public string OrderFulfilState
+    { get => _orderFulfilState; private set => this.RaiseAndSetIfChanged(ref _orderFulfilState, value); }
+
+    private string _orderFulfilLast = "";
+    public string OrderFulfilLast
+    { get => _orderFulfilLast; private set => this.RaiseAndSetIfChanged(ref _orderFulfilLast, value); }
+
+    private string _orderFulfilNext = "";
+    public string OrderFulfilNext
+    { get => _orderFulfilNext; private set => this.RaiseAndSetIfChanged(ref _orderFulfilNext, value); }
 
     private string _alarmLastFireText = "—";
     public string AlarmLastFireText { get => _alarmLastFireText; private set => this.RaiseAndSetIfChanged(ref _alarmLastFireText, value); }
@@ -341,6 +358,14 @@ public class ApiActivityViewModel : ReactiveObject
         AlarmState = _alarms.ArmedCount == 0
             ? "○ No alarms armed — create one in the Alarms tool"
             : $"● Watching {_alarms.ArmedCount} alarm(s)";
+
+        OrderFulfilState = _orderFulfilment.StatusText;
+        OrderFulfilLast  = _orderFulfilment.LastRunAt is { } ran
+            ? ran.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+            : "Never";
+        OrderFulfilNext  = _orderFulfilment.NextRunAt is { } nextRun
+            ? nextRun.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+            : "—";
 
         AlarmDetail   = _alarms.StatusText;
         AlarmNextText = _alarms.NextDueAt is { } due

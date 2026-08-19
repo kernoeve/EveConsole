@@ -566,6 +566,26 @@ public class ContractsViewModel : ReactiveObject
     public OwnedContractsViewModel  Owned  { get; }
     public PublicContractsViewModel Public { get; }
 
+    /// <summary>Which tab is showing. Bound two-way, so selecting a contract from elsewhere can
+    /// bring the owned list forward rather than landing on whichever tab was last open.</summary>
+    private int _tabIndex;
+    public int TabIndex
+    {
+        get => _tabIndex;
+        set => this.RaiseAndSetIfChanged(ref _tabIndex, value);
+    }
+
+    /// <summary>
+    /// Shows a specific contract: the owned tab, with that row selected so the detail pane fills
+    /// in. Used by the Order Tracker-s contract link.
+    /// </summary>
+    public void SelectById(int contractId)
+    {
+        TabIndex = 0;
+        if (Owned.Rows.FirstOrDefault(r => r.ContractId == contractId) is { } row)
+            Owned.SelectedRow = row;
+    }
+
     public ContractsViewModel(
         IDbContextFactory<AppDbContext> dbFactory, EsiClient esi, AppErrorLogger errorLogger)
     {

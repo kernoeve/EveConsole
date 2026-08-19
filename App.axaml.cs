@@ -313,7 +313,11 @@ public class App : Application
                     -- table complete and never runs an ALTER; omitting a column here is what makes
                     -- a new install crash on a NOT NULL insert while the dev machine stays fine.
                     "BuyerId"       INTEGER NOT NULL DEFAULT 0,
-                    "BuyerType"     TEXT    NOT NULL DEFAULT ''
+                    "BuyerType"     TEXT    NOT NULL DEFAULT '',
+                    "FulfilmentSource" TEXT NOT NULL DEFAULT '',
+                    "LinkedJobId"      INTEGER NULL,
+                    "LinkedContractId" INTEGER NULL,
+                    "CompletedOn"      TEXT NULL
                 )
                 """);
 
@@ -325,6 +329,12 @@ public class App : Application
             // rows keep their name with a zero id and simply do not link until re-picked.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "BuyerId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "BuyerType" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            // Where each pending order is expected to come from, and what delivered it. Filled by
+            // OrderFulfilmentService; see the CREATE TABLE above for why they are listed twice.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "FulfilmentSource" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "LinkedJobId" INTEGER NULL"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "LinkedContractId" INTEGER NULL"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "CompletedOn" TEXT NULL"""); } catch { }
 
             // Sale Posting — postings → sections → items (see SalePostingModels.cs)
             db.Database.ExecuteSqlRaw("""
@@ -2518,11 +2528,15 @@ public class App : Application
             Start("map stats polling",  () => Services.GetRequiredService<MapStatsPollingService>().Start());
 
             // Cheap when idle: the loop only touches the database for alarms whose interval is up.
+            // Links pending orders to stock, jobs and the contracts that deliver them.
+            Start("order fulfilment",   () => Services.GetRequiredService<OrderFulfilmentService>().Start());
+
             Start("alarms",             () => Services.GetRequiredService<AlarmService>().Start());
 
-            // Writes to the error log only when the UI thread actually freezes, so a healthy
-            // session records nothing.
-            Start("UI stall monitor",   () => Services.GetRequiredService<UiStallMonitor>().Start());
+            // Diagnostic only, and the error log is the sole place it reports — so when the switch
+            // is off it is not started at all, which also drops its half-second heartbeat.
+            if (PerfDiagnostics.Enabled)
+                Start("UI stall monitor", () => Services.GetRequiredService<UiStallMonitor>().Start());
 
             void Start(string name, Action start)
             {
@@ -2775,6 +2789,7 @@ public class App : Application
         services.AddSingleton<EveServerStatusService>();
         services.AddSingleton<UiLinkSettings>();
         services.AddSingleton<DataRetentionService>();
+        services.AddSingleton<OrderFulfilmentService>();
         services.AddSingleton<ExportFormatSettings>();
 
         // ViewModels

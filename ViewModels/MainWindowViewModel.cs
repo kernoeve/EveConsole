@@ -516,6 +516,7 @@ public class MainWindowViewModel : ReactiveObject
         EveServerStatusService          serverStatus,
         UiLinkSettings                  uiLinks,
         DataRetentionService        dataRetention,
+        OrderFulfilmentService      orderFulfilment,
         ExportFormatSettings            exportFormat,
         AlarmService                    alarmService,
         AlarmSoundService               alarmSounds,
@@ -542,7 +543,7 @@ public class MainWindowViewModel : ReactiveObject
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
                                                      zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost,
-                                                     intelService, monitoringSettings, entityNames, alarmService, lpStoreService);
+                                                     intelService, monitoringSettings, entityNames, alarmService, orderFulfilment, lpStoreService);
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters,
             characterSummaryService);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
@@ -660,6 +661,7 @@ public class MainWindowViewModel : ReactiveObject
         EntityNavigator.Instance.OpenItem     = id => { OpenTool("items"); _ = ItemBrowserVm.NavigateToItemCommand.Execute(id).Subscribe(); };
         EntityNavigator.Instance.OpenKillmail = id => { OpenTool("killmails"); KillmailBrowserVm.SelectById(id); };
         EntityNavigator.Instance.OpenStructure = id => { OpenTool("structure_browser"); StructureBrowserVm.Open(id); };
+        EntityNavigator.Instance.OpenContract  = id => { OpenTool("contracts"); ContractsVm.SelectById(id); };
         // FocusRegionAsync, not ShowRegionAsync: the separate per-region map is legacy — only
         // the system page still returns to it. A region is now territory you zoom to on the
         // one continuous universe map.
@@ -789,6 +791,7 @@ public class MainWindowViewModel : ReactiveObject
             new("General",
             [
                 new NavItem("overview",    "Overview"),
+                new NavItem("worklist",    "Worklist"),
                 new NavItem("characters",  "Characters"),
             ]),
             new("Assets",
@@ -796,7 +799,12 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("assets",     "Assets"),
                 new NavItem("items",      "Item Browser"),
                 new NavItem("inv_levels", "Inventory Levels"),
+            ]),
+            new("Structures / Navigation",
+            [
                 new NavItem("structure_browser", "Structure Browser"),
+                new NavItem("universe",          "Universe Map"),
+                new NavItem("jump_planner",      "Jump Planner"),
             ]),
             new("Industry",
             [
@@ -808,16 +816,15 @@ public class MainWindowViewModel : ReactiveObject
             ]),
             new("Market / Trade",
             [
-                new NavItem("market_levels", "Market Levels"),
                 new NavItem("market_viewer", "Market Overview"),
+                new NavItem("lp_market_values", "LP Market Values"),
+                new NavItem("market_levels", "Market Levels"),
+                new NavItem("contracts",     "Contracts"),
+                new NavItem("trade",         "Trade Opportunities"),
+                new NavItem("standing_buy_orders", "Standing Buy Orders"),
+                new NavItem("order_tracker", "Order Tracker"),
                 new NavItem("sales_tracker", "Sales Tracker"),
                 new NavItem("sale_posting",  "Sale Posting"),
-                new NavItem("order_tracker", "Order Tracker"),
-                new NavItem("standing_buy_orders", "Standing Buy Orders"),
-                new NavItem("worklist",      "Worklist"),
-                new NavItem("lp_market_values", "LP Market Values"),
-                new NavItem("trade",         "Trade Opportunities"),
-                new NavItem("contracts",     "Contracts"),
             ]),
             new("Finance",
             [
@@ -837,12 +844,10 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("eve_mail", "Eve Mail"),
                 new NavItem("notifications", "Notifications"),
             ]),
-            new("Tools",
+            new("Data / Logs",
             [
                 // Alarms is reached from the alarm light beside the settings gear, not from
                 // here — it is a status indicator first and a tool second.
-                new NavItem("universe", "Universe Map"),
-                new NavItem("jump_planner", "Jump Planner"),
                 new NavItem("data", "ESI Explorer"),
                 new NavItem("error_log", "Error Log"),
                 new NavItem("game_log", "Game Log"),

@@ -2,8 +2,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="EveConsole.Views.OrderEditDialog"
         Title="Add Order"
-        Width="420" Height="560"
-        CanResize="False"
+        Width="420" Height="680"
+        CanResize="True"
         WindowStartupLocation="CenterOwner"
         Background="#0d0d12">
 
@@ -20,7 +20,9 @@
 
   <Grid RowDefinitions="*,Auto" Margin="20">
 
-    <StackPanel Grid.Row="0" Spacing="10">
+    <!-- Scrolled, so a field added here can never push Save off the bottom of the window. -->
+    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Spacing="10" Margin="0 0 4 0">
 
       <TextBlock Classes="lbl" Text="ITEM TYPE" />
       <TextBlock x:Name="SelectedTypeText" Text="(none selected)" Foreground="#c8a84b" FontSize="12" />
@@ -95,9 +97,23 @@
         <TextBox x:Name="EstDateBox" Watermark="yyyy-MM-dd" Padding="8 5" />
       </StackPanel>
 
+      <StackPanel Spacing="5">
+        <TextBlock Classes="lbl" Text="COMPLETED DATE" />
+        <TextBox x:Name="CompletedBox" Watermark="yyyy-MM-dd" Padding="8 5" />
+        <TextBlock FontSize="10" Foreground="#666" TextWrapping="Wrap"
+                   Text="Set automatically: today when you mark an order completed or cancelled, or the date the linked contract was accepted. Override it here if the real date differs." />
+      </StackPanel>
+
       <CheckBox x:Name="PriorityBox" FontSize="11"
                 Content="Priority — put this order and everything it needs at the top"
                 ToolTip.Tip="Outranks every other order regardless of estimated date, along with the jobs, purchases and hauls that serve it."/>
+
+      <StackPanel Spacing="5">
+        <TextBlock Classes="lbl" Text="CONTRACT" />
+        <TextBox x:Name="ContractBox" Watermark="contract id, if the match missed it" Padding="8 5" />
+        <TextBlock FontSize="10" Foreground="#666" TextWrapping="Wrap"
+                   Text="Normally filled in automatically. Type an id here when the contract cannot be matched — usually because its item list differs from the order. Clearing it removes the link." />
+      </StackPanel>
 
       <StackPanel Spacing="5">
         <TextBlock Classes="lbl" Text="STATUS" />
@@ -109,6 +125,7 @@
       </StackPanel>
 
     </StackPanel>
+    </ScrollViewer>
 
     <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0 14 0 0">
       <TextBlock Grid.Column="0" x:Name="HintText" Text="Select an item type above."

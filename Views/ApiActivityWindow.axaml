@@ -445,6 +445,41 @@
       </ScrollViewer>
     </TabItem>
 
+    <!-- ══ Order Fulfilment ══════════════════════════════════════════════════ -->
+    <TabItem Header="Order Fulfilment">
+      <ScrollViewer Margin="10 12 10 0">
+        <StackPanel Spacing="14">
+
+          <!-- Order fulfilment. A loop with no visible output is indistinguishable from one that is
+               not running — this one failed silently for a whole session before the empty Source
+               column gave it away. -->
+          <TextBlock Text="Order fulfilment" FontSize="13" FontWeight="SemiBold"
+                     Foreground="#c8a84b" Margin="0 18 0 6" />
+
+          <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" Margin="0 0 0 6">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="State"
+                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding OrderFulfilState}"
+                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Last check"
+                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding OrderFulfilLast}"
+                       FontSize="12" Foreground="#aab" Margin="0 0 0 8" />
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Next check"
+                       FontSize="12" FontWeight="SemiBold" Foreground="#889" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding OrderFulfilNext}"
+                       FontSize="12" Foreground="#aab" />
+          </Grid>
+
+          <TextBlock FontSize="11" Foreground="#667" TextWrapping="Wrap"
+                     Text="Every five minutes, each pending order in the Order Tracker is matched against what could fill it: a contract issued by one of your characters or personal corporations to that buyer after the order was placed completes it outright; otherwise unreserved stock on hand, or the soonest industry job producing the item, whose completion date becomes the order's estimated date. Stock and jobs are reserved as they are claimed, so two orders never count the same units, and a contract already linked to one order is never reused for another." />
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
     <!-- ══ Tab 7: Name Cache ═════════════════════════════════════════════════ -->
     <TabItem Header="Structures">
       <ScrollViewer Margin="10 12 10 0">
