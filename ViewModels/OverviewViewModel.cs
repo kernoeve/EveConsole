@@ -654,7 +654,10 @@ public class OverviewViewModel : ReactiveObject
         {
             var now  = sw.ElapsedMilliseconds;
             var took = now - sectionAt;
-            if (took >= SlowSectionMs)
+            // Timing still runs — it costs a subtraction — but reporting is behind the switch,
+            // because a section over the threshold is a lead for someone investigating, not a
+            // fault worth a row in the log of every session. See PerfDiagnostics.
+            if (PerfDiagnostics.Enabled && took >= SlowSectionMs)
                 _errorLogger.Log(nameof(OverviewViewModel), "Slow Overview section",
                     $"\"{sectionName}\" took {took:N0} ms (wall clock, background queries included).");
 
