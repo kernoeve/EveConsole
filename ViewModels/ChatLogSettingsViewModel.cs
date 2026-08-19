@@ -64,6 +64,9 @@ public class ChatLogSettingsViewModel : ReactiveObject
     private readonly ChatLogImportService _importer;
     private readonly IntelService?        _intel;
     private bool _loading = true;
+    /// <summary>Path reachability, probed off the UI thread — see ThrottledUiProbe.</summary>
+    private readonly ThrottledUiProbe _pathProbe;
+
 
     public ChatLogSettingsViewModel(
         MonitoringSettings settings, ChatLogImportService importer, IntelService? intel = null)
@@ -91,8 +94,11 @@ public class ChatLogSettingsViewModel : ReactiveObject
         DetectDirectoryCommand = ReactiveCommand.CreateFromTask(DetectDirectoryAsync);
         OpenDirectoryCommand   = ReactiveCommand.Create(OpenSelectedDirectory);
 
+        _pathProbe = new ThrottledUiProbe(TimeSpan.FromSeconds(30),
+            DescribeResolvedPaths, text => ResolvedPaths = text);
+
         Observable.Interval(TimeSpan.FromSeconds(2))
-                  .ObserveOn(RxApp.MainThreadScheduler)
+                  .ObserveOnUi("ChatLogSettings.Poll")
                   .Subscribe(_ => Refresh());
 
         Refresh();
@@ -259,21 +265,27 @@ public class ChatLogSettingsViewModel : ReactiveObject
             : $"{n:N0} of {Channels.Count:N0} channel(s) selected.";
     }
 
+    /// <summary>⚠️ Enumerates the log directories — off the UI thread, for the same reason as
+    /// the reachability check. See GameLogSettingsViewModel.UpdateEstimate.</summary>
     private void UpdateEstimate()
     {
-        try
-        {
-            if (Channels.All(c => !c.IsSelected)) { EstimateText = ""; return; }
+        if (Channels.All(c => !c.IsSelected)) { EstimateText = ""; return; }
 
-            var files = _importer.EstimateHistoryFiles(HistoryDays);
-            EstimateText = HistoryDays <= 0
-                ? $"All {files:N0} file(s) for the selected channels will be processed."
-                : $"{files:N0} file(s) from the last {HistoryDays:N0} day(s) will be processed.";
-        }
-        catch (Exception ex)
+        var days = HistoryDays;
+        _ = Task.Run(() =>
         {
-            EstimateText = $"Could not count files — {ex.Message}";
-        }
+            string text;
+            try
+            {
+                var files = _importer.EstimateHistoryFiles(days);
+                text = days <= 0
+                    ? $"All {files:N0} file(s) for the selected channels will be processed."
+                    : $"{files:N0} file(s) from the last {days:N0} day(s) will be processed.";
+            }
+            catch (Exception ex) { text = $"Could not count files — {ex.Message}"; }
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => EstimateText = text);
+        });
     }
 
     private async Task DiscoverAsync()
@@ -325,6 +337,8 @@ public class ChatLogSettingsViewModel : ReactiveObject
     private Task SaveDirectoriesAsync()
     {
         _settings.ChatDirectories = Directories.ToList();
+        // The path list just changed — re-check now rather than waiting out the throttle.
+        _pathProbe.Force();
         Refresh();
         UpdateEstimate();
         return Task.CompletedTask;
@@ -340,14 +354,22 @@ public class ChatLogSettingsViewModel : ReactiveObject
 
     private void Refresh()
     {
+        // In-memory only — safe at two-second cadence.
         Status          = _importer.StatusText;
         IsBusy          = _importer.IsBusy;
         ProgressCurrent = _importer.ProgressCurrent;
         ProgressTotal   = Math.Max(1, _importer.ProgressTotal);
         ProgressText    = _importer.ProgressText;
 
+        // ⚠️ Filesystem — off the UI thread and throttled. See GameLogSettingsViewModel.Refresh.
+        _pathProbe.Poke();
+    }
+
+    /// <summary>Reachability of each configured chat log folder, checked off the UI thread.</summary>
+    private string DescribeResolvedPaths()
+    {
         var resolved = _settings.ResolveChatDirectories();
-        ResolvedPaths = resolved.Count == 0
+        return resolved.Count == 0
             ? "No chat log folder found — add one below."
             : string.Join("\n", resolved.Select(d =>
                 (Directory.Exists(d) ? "✓ " : "✗ unreachable — ") + d));

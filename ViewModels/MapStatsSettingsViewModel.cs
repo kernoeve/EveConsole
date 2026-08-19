@@ -62,7 +62,7 @@ public class MapStatsSettingsViewModel : ReactiveObject
         // Progress is polled rather than pushed: the backfill is a plain loop with no change
         // notifications, and a two-second refresh is plenty for a job measured in minutes.
         Observable.Interval(TimeSpan.FromSeconds(2))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOnUi("MapStatsSettings.Poll")
             .Subscribe(_ => Tick());
 
         _ = RefreshCoverageAsync();

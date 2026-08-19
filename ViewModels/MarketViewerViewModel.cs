@@ -48,6 +48,11 @@ public class MarketRegionOption
 public class MarketTypeSummaryVm
 {
     public string Type { get; }
+
+    public int  TypeId      { get; init; }
+    public bool HasTypeLink => TypeId > 0 && Type.Length > 0;
+    public void OpenType() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
+
     public string SellUnits { get; } public double SellUnitsRaw { get; }
     public string SellIsk   { get; } public double SellIskRaw   { get; }
     public string BuyUnits  { get; } public double BuyUnitsRaw  { get; }
@@ -100,6 +105,10 @@ public class MarketOrderByTypeVm
     public string Type  { get; }
     public string Units { get; } public double UnitsRaw { get; }
     public string Isk   { get; } public double IskRaw   { get; }
+
+    public int  TypeId      { get; init; }
+    public bool HasTypeLink => TypeId > 0 && Type.Length > 0;
+    public void OpenType() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
 
     public MarketOrderByTypeVm(string type, double units, double isk)
     {
@@ -166,6 +175,21 @@ public class MarketViewerViewModel : ReactiveObject
 
     // ── Summary pie charts ────────────────────────────────────────────────────────
     private ISeries[] _buyCorpSeries = [], _sellCorpSeries = [], _salesGroupSeries = [];
+    // Slice label → item type, for the two by-type charts. See BuildTypePie.
+    private Dictionary<string, int> _sellSliceTypes = [];
+    private Dictionary<string, int> _buySliceTypes  = [];
+
+    /// <summary>Opens the item a clicked slice stands for. Returns quietly for "Other", and for
+    /// any label the map does not hold — both mean the slice names no single item.</summary>
+    public void OpenSellSlice(string? label) => OpenSlice(_sellSliceTypes, label);
+    public void OpenBuySlice(string? label)  => OpenSlice(_buySliceTypes,  label);
+
+    private static void OpenSlice(Dictionary<string, int> map, string? label)
+    {
+        if (label is not null && map.TryGetValue(label, out var typeId))
+            EveConsole.Services.EntityNavigator.Instance.Item(typeId);
+    }
+
     public ISeries[] BuyCorpSeries    { get => _buyCorpSeries;    private set => this.RaiseAndSetIfChanged(ref _buyCorpSeries,    value); }
     public ISeries[] SellCorpSeries   { get => _sellCorpSeries;   private set => this.RaiseAndSetIfChanged(ref _sellCorpSeries,   value); }
     public ISeries[] SalesGroupSeries { get => _salesGroupSeries; private set => this.RaiseAndSetIfChanged(ref _salesGroupSeries, value); }
@@ -255,7 +279,7 @@ public class MarketViewerViewModel : ReactiveObject
 
         // Auto-refresh the active tab every 5 minutes.
         Observable.Interval(TimeSpan.FromMinutes(5))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOnUi("MarketViewer.AutoRefresh")
             .Subscribe(tick => { _ = LoadActiveAsync(); });
 
         _ = InitAsync();
@@ -367,9 +391,14 @@ public class MarketViewerViewModel : ReactiveObject
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name);
             string TName(int id) => typeNames.TryGetValue(id, out var n) ? n : $"Type {id}";
 
-            SellCorpSeries = BuildPie(sellByType.Select(x => (TName(x.TypeId), x.Isk)));
+            var sellPie    = BuildTypePie(sellByType.Select(x => (TName(x.TypeId), x.Isk, x.TypeId)));
+            SellCorpSeries = sellPie.Series;
+            _sellSliceTypes = sellPie.TypeByLabel;
             HasSellCorp    = SellCorpSeries.Length > 0;
-            BuyCorpSeries  = BuildPie(buyByType.Select(x => (TName(x.TypeId), x.Isk)));
+
+            var buyPie     = BuildTypePie(buyByType.Select(x => (TName(x.TypeId), x.Isk, x.TypeId)));
+            BuyCorpSeries  = buyPie.Series;
+            _buySliceTypes = buyPie.TypeByLabel;
             HasBuyCorp     = BuyCorpSeries.Length > 0;
 
             // Sales by top-level market group — selected region and period.
@@ -425,6 +454,33 @@ public class MarketViewerViewModel : ReactiveObject
     }
 
     // Top 10 items by value; the remainder collapses into a single "Other" slice.
+    /// <summary>
+    /// <see cref="BuildPie"/> for the two by-type charts, which also need a way back from a
+    /// clicked slice to the item it stands for.
+    ///
+    /// <para>⚠️ Keyed on the slice's label rather than carrying the id on the series. LiveCharts
+    /// gives a click handler the ChartPoint and its series, and a PieSeries' Name is the only
+    /// thing on it we set — so the label is what a click can be resolved through. "Other" is
+    /// deliberately absent from the map: it stands for everything past the tenth slice and names
+    /// no single item.</para>
+    /// </summary>
+    private static (ISeries[] Series, Dictionary<string, int> TypeByLabel) BuildTypePie(
+        IEnumerable<(string Label, double Value, int TypeId)> items)
+    {
+        var list  = items.ToList();
+        var series = BuildPie(list.Select(i => (i.Label, i.Value)));
+
+        // Only labels that actually became their own slice can be clicked; the rest folded into
+        // "Other". Duplicate names would be ambiguous, so the first wins and the rest drop out.
+        var sliceLabels = series.Select(s => s.Name ?? "").ToHashSet();
+        var map = list
+            .Where(i => i.TypeId > 0 && sliceLabels.Contains(i.Label) && i.Label != "Other")
+            .GroupBy(i => i.Label)
+            .ToDictionary(g => g.Key, g => g.First().TypeId);
+
+        return (series, map);
+    }
+
     private static ISeries[] BuildPie(IEnumerable<(string Label, double Value)> items)
     {
         var ordered = items.Where(i => i.Value > 0).OrderByDescending(i => i.Value).ToList();
@@ -570,7 +626,7 @@ public class MarketViewerViewModel : ReactiveObject
                 return new MarketTypeSummaryVm(
                     typeNames.TryGetValue(tid, out var n) ? n : $"Type {tid}",
                     o?.SellUnits ?? 0, o?.SellIsk ?? 0, o?.BuyUnits ?? 0, o?.BuyIsk ?? 0,
-                    s?.Units ?? 0, s?.Isk ?? 0);
+                    s?.Units ?? 0, s?.Isk ?? 0) { TypeId = tid };
             }).OrderByDescending(t => t.SalesIskRaw).ToList();
 
             TypeRows.Clear();
@@ -611,7 +667,8 @@ public class MarketViewerViewModel : ReactiveObject
 
             var vms = rows
                 .Select(x => new MarketOrderByTypeVm(
-                    typeNames.TryGetValue(x.TypeId, out var n) ? n : $"Type {x.TypeId}", x.Units, x.Isk))
+                    typeNames.TryGetValue(x.TypeId, out var n) ? n : $"Type {x.TypeId}", x.Units, x.Isk)
+                    { TypeId = x.TypeId })
                 .OrderByDescending(v => v.IskRaw).ToList();
 
             var target = buy ? BuyByTypeRows : SellByTypeRows;

@@ -41,7 +41,7 @@ public class ZkillboardSettingsViewModel : ReactiveObject
         CancelBackfillCommand = ReactiveCommand.Create(() => _backfill.CancelImport());
 
         Observable.Interval(TimeSpan.FromSeconds(2))
-                  .ObserveOn(RxApp.MainThreadScheduler)
+                  .ObserveOnUi("ZkbSettings.Poll")
                   .Subscribe(_ => Refresh());
 
         Refresh();

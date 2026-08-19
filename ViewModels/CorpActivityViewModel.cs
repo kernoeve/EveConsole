@@ -80,9 +80,15 @@ public sealed class CorpTopPlayerRowVm
     public string AmountText    { get; }
     public string PercentText   { get; }   // share of the category total
 
-    public CorpTopPlayerRowVm(int rank, string name, decimal amount, bool isCount = false, double percent = 0)
+    public long CharacterId { get; }
+    public bool HasCharacterLink => CharacterId > 0 && CharacterName.Length > 0;
+    public void OpenCharacter() => EntityNavigator.Instance.Entity(EntityKind.Pilot, CharacterId);
+
+    public CorpTopPlayerRowVm(int rank, string name, decimal amount, bool isCount = false,
+                              double percent = 0, long characterId = 0)
     {
         Rank          = rank;
+        CharacterId   = characterId;
         CharacterName = name;
         AmountText    = isCount ? amount.ToString("N0")
                       : amount >= 1_000_000_000m ? $"{amount / 1_000_000_000m:F2}B"
@@ -101,8 +107,13 @@ public sealed class CorpKillCharRowVm
     public int    KillsRaw      { get; }
     public int    LossesRaw     { get; }
 
+    public long CharacterId { get; }
+    public bool HasCharacterLink => CharacterId > 0 && CharacterName.Length > 0;
+    public void OpenCharacter() => EntityNavigator.Instance.Entity(EntityKind.Pilot, CharacterId);
+
     public CorpKillCharRowVm(KillCharRow r, string name)
     {
+        CharacterId   = r.CharacterId;
         CharacterName = name;
         KillsRaw      = r.Kills;
         LossesRaw     = r.Losses;
@@ -177,9 +188,15 @@ public sealed class ProjectContributorVm
     public string PercentText   { get; }
     public string PayoutText    { get; }
 
-    public ProjectContributorVm(int rank, string name, string contributed, string percent, string payout)
+    public long CharacterId { get; }
+    public bool HasCharacterLink => CharacterId > 0 && CharacterName.Length > 0;
+    public void OpenCharacter() => EntityNavigator.Instance.Entity(EntityKind.Pilot, CharacterId);
+
+    public ProjectContributorVm(int rank, string name, string contributed, string percent,
+                                string payout, long characterId = 0)
     {
         Rank          = rank;
+        CharacterId   = characterId;
         CharacterName = name;
         Contributed   = contributed;
         PercentText   = percent;
@@ -200,9 +217,16 @@ public sealed class CorpProjectRowVm
     public string CreatedText    { get; }
     public string CompletedText  { get; }
 
+    /// <summary>Who set the project up, in the entity browser. Nullable on the entity, and a
+    /// project imported before the id was captured has a name without one.</summary>
+    public long CreatorId { get; }
+    public bool HasCreatorLink => CreatorId > 0 && CreatorText.Length > 0;
+    public void OpenCreator() => EntityNavigator.Instance.Entity(EntityKind.Pilot, CreatorId);
+
     public CorpProjectRowVm(CorpProject p)
     {
         Source     = p;
+        CreatorId  = p.CreatorId ?? 0;
         Name       = p.Name;
         State      = p.State;
         ConfigType = p.ConfigType ?? "—";
@@ -242,6 +266,30 @@ public sealed class StandingProjectRowVm
     public bool   IsDeliverItem       { get; }
     public int?   ItemTypeId          { get; }
     public string ItemTypeName        { get; }
+
+    /// <summary>
+    /// The item a delivery project asks for, opened in the Item Browser.
+    ///
+    /// <para>⚠️ It hangs off <see cref="DescriptionText"/> rather than the location column: for a
+    /// delivery the description <i>is</i> the item (TargetDisplay = ItemTypeName) and the
+    /// location is the station it goes to. Only some project types name an item at all, so a row
+    /// without one renders as plain text instead of a link that goes nowhere.</para>
+    /// </summary>
+    public bool HasItemLink => ItemTypeId is > 0;
+    public void OpenItem() => EntityNavigator.Instance.Item(ItemTypeId ?? 0);
+
+    /// <summary>The delivery destination. Only the deliver-item projects have one — a destroy-NPC
+    /// project's location names a region or constellation, which is not a place with a page.</summary>
+    public long LocationId    { get; }
+    public bool LocationIsNpc { get; }
+    public bool HasLocationLink => LocationId > 0 && LocationText.Length > 0;
+
+    public void OpenLocation()
+    {
+        if (LocationIsNpc) EntityNavigator.Instance.Entity(EntityKind.Station, LocationId);
+        else               EntityNavigator.Instance.Structure(LocationId);
+    }
+
     public ReactiveCommand<Unit, Unit> EditCommand   { get; }
     public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
 
@@ -254,6 +302,8 @@ public sealed class StandingProjectRowVm
         TypeDisplay     = row.TypeDisplay;
         DescriptionText = row.TargetDisplay;
         LocationText    = row.DestDisplay;
+        LocationId      = row.StationId ?? 0;
+        LocationIsNpc   = row.StationIsNpc;
 
         // Less than 10% of the target left — flag the near-complete (often stuck) projects in orange.
         IsLowRemaining = row.RemainingPercentValue >= 0 && row.RemainingPercentValue < 10.0;
@@ -316,10 +366,21 @@ public sealed class MiningLedgerRowVm
     public double ReprocessedValue     { get; }
     public string ReprocessedValueText { get; }
 
+    // Both names on this row point at something: the miner at their entity page, the ore at the
+    // Item Browser. See EntityLinks for why these are plain methods rather than commands.
+    public long CharacterId { get; }
+    public int  TypeId      { get; }
+    public bool HasCharacterLink => CharacterId > 0 && CharacterName.Length > 0;
+    public bool HasTypeLink      => TypeId      > 0 && TypeName.Length      > 0;
+    public void OpenCharacter() => EntityNavigator.Instance.Entity(EntityKind.Pilot, CharacterId);
+    public void OpenType()      => EntityNavigator.Instance.Item(TypeId);
+
     public MiningLedgerRowVm(MiningLedgerRow r)
     {
         Date                 = r.Date;
         CharacterName        = r.CharacterName;
+        CharacterId          = r.CharacterId;
+        TypeId               = r.TypeId;
         TypeName             = r.TypeName;
         Quantity             = r.Quantity;
         QuantityText         = r.Quantity.ToString("N0");
@@ -363,8 +424,15 @@ public sealed class TaxPayerRowVm
     /// ("1.2B", "950.0M"), so sorting on it puts 950M above 1.2B alphabetically.</summary>
     public decimal AmountRaw { get; }
 
+    /// <summary>Who paid. A tax payer is normally a pilot, but the id decides — a corporation can
+    /// appear here too.</summary>
+    public long EntityId { get; }
+    public bool HasEntityLink => EntityId > 0 && Name.Length > 0;
+    public void OpenEntity() => EntityNavigator.Instance.Entity(EntityLinks.KindOf(EntityId), EntityId);
+
     public TaxPayerRowVm(TaxPayerRow r)
     {
+        EntityId  = r.EntityId;
         Rank      = r.Rank;
         Name      = r.Name;
         AmountRaw = r.Amount;
@@ -383,8 +451,16 @@ public sealed class WalletDetailRowVm
     /// <summary>Sort key for the Amount column — see TaxPayerRowVm.AmountRaw.</summary>
     public decimal AmountRaw { get; }
 
+    /// <summary>The other party to the transaction. Could be a character or a corporation — a
+    /// donation from a corp wallet is as common as one from a pilot — so the kind is inferred
+    /// from the id range rather than assumed.</summary>
+    public long PartyId { get; }
+    public bool HasPartyLink => PartyId > 0 && Name.Length > 0;
+    public void OpenParty() => EntityNavigator.Instance.Entity(EntityLinks.KindOf(PartyId), PartyId);
+
     public WalletDetailRowVm(WalletDetailRow r)
     {
+        PartyId    = r.PartyId;
         DateText   = r.Date.UtcDateTime.ToString("yyyy-MM-dd");
         TimeText   = r.Date.UtcDateTime.ToString("HH:mm");
         TypeName   = CorpActivityViewModel.FormatRefType(r.RefType);
@@ -421,8 +497,13 @@ public sealed class Activity24hPlayerRowVm
     /// <summary>Sort key for the Value column — see TaxPayerRowVm.AmountRaw.</summary>
     public decimal ValueRaw { get; }
 
+    public long CharacterId { get; }
+    public bool HasCharacterLink => CharacterId > 0 && Name.Length > 0;
+    public void OpenCharacter() => EntityNavigator.Instance.Entity(EntityKind.Pilot, CharacterId);
+
     public Activity24hPlayerRowVm(Activity24hPlayerRow r)
     {
+        CharacterId = r.CharacterId;
         Name      = r.CharacterName;
         ValueRaw  = r.Value;
         ValueText = CorpActivityViewModel.FormatIskStatic(r.Value);
@@ -432,10 +513,57 @@ public sealed class Activity24hPlayerRowVm
 public sealed class Activity24hKillRowVm : ReactiveObject
 {
     private readonly int  _victimShipTypeId;
+    private readonly int  _solarSystemId;
+    private readonly int  _regionId;
+    private readonly long _victimCharId;
     private readonly long _victimCorpId;
     private readonly long _victimAllianceId;
+    private readonly long _fbCharId;
     private readonly long _fbCorpId;
     private readonly long _fbAllianceId;
+
+    // ── Every name on the row is a way in ─────────────────────────────────────
+    //
+    // Six links: pilot, corporation and alliance, for the victim and for the final blow — the same
+    // set the Killmail tool offers on the same row. An id of zero means the killmail had no such
+    // party rather than that we failed to resolve one: a structure kill has no victim pilot, and
+    // plenty of pilots have no alliance. Those render as plain text instead of a dead link.
+    public bool HasVictimLink         => _victimCharId     > 0 && VictimName.Length     > 0;
+    public bool HasVictimCorpLink     => _victimCorpId     > 0 && VictimCorp.Length     > 0;
+    public bool HasVictimAllianceLink => _victimAllianceId > 0 && VictimAlliance.Length > 0;
+    public bool HasFbLink             => _fbCharId         > 0 && FbName.Length         > 0;
+    public bool HasFbCorpLink         => _fbCorpId         > 0 && FbCorp.Length         > 0;
+    public bool HasFbAllianceLink     => _fbAllianceId     > 0 && FbAlliance.Length     > 0;
+
+    // The other half of each pair. A cell shows the link or the plain name, never both — and
+    // sometimes neither, since an alliance line disappears entirely for a pilot without one.
+    // ⚠️ Its own flag rather than "not linked": "not linked" is also true of the empty case, and
+    // there the plain text has to stay hidden too.
+    public bool ShowVictimPlain         => VictimName.Length     > 0 && !HasVictimLink;
+    public bool ShowVictimCorpPlain     => VictimCorp.Length     > 0 && !HasVictimCorpLink;
+    public bool ShowVictimAlliancePlain => VictimAlliance.Length > 0 && !HasVictimAllianceLink;
+    public bool ShowFbPlain             => FbName.Length         > 0 && !HasFbLink;
+    public bool ShowFbCorpPlain         => FbCorp.Length         > 0 && !HasFbCorpLink;
+    public bool ShowFbAlliancePlain     => FbAlliance.Length     > 0 && !HasFbAllianceLink;
+
+    public void OpenVictim()         => EntityNavigator.Instance.Entity(EntityKind.Pilot,      _victimCharId);
+    public void OpenVictimCorp()     => EntityNavigator.Instance.Entity(EntityKind.PlayerCorp, _victimCorpId);
+    public void OpenVictimAlliance() => EntityNavigator.Instance.Entity(EntityKind.Alliance,   _victimAllianceId);
+    public void OpenFb()             => EntityNavigator.Instance.Entity(EntityKind.Pilot,      _fbCharId);
+    public void OpenFbCorp()         => EntityNavigator.Instance.Entity(EntityKind.PlayerCorp, _fbCorpId);
+    public void OpenFbAlliance()     => EntityNavigator.Instance.Entity(EntityKind.Alliance,   _fbAllianceId);
+
+    /// <summary>The kill itself — the ship name, and double-click anywhere on the row.</summary>
+    public void OpenKillmail() => EntityNavigator.Instance.Killmail(KillMailId);
+    public void OpenShip()     => EntityNavigator.Instance.Item(_victimShipTypeId);
+
+    /// <summary>Where it happened, on the map — the same destinations the Killmail tool uses.</summary>
+    public bool HasSystemLink => _solarSystemId > 0 && SystemName.Length > 0;
+    public bool HasRegionLink => _regionId      > 0 && RegionName.Length > 0;
+    public bool ShowSystemPlain => SystemName.Length > 0 && !HasSystemLink;
+    public bool ShowRegionPlain => RegionName.Length > 0 && !HasRegionLink;
+    public void OpenSystem() => EntityNavigator.Instance.System(_solarSystemId);
+    public void OpenRegion() => EntityNavigator.Instance.Region(_regionId);
 
     public int            KillMailId        { get; }
     public bool           IsLoss            { get; }
@@ -489,8 +617,12 @@ public sealed class Activity24hKillRowVm : ReactiveObject
         FbCorp            = r.FbCorp;
         FbAlliance        = r.FbAlliance;
         _victimShipTypeId = r.VictimShipTypeId;
+        _solarSystemId    = r.SolarSystemId;
+        _regionId         = r.RegionId;
+        _victimCharId     = r.VictimCharId;
         _victimCorpId     = r.VictimCorpId;
         _victimAllianceId = r.VictimAllianceId;
+        _fbCharId         = r.FbCharId;
         _fbCorpId         = r.FbCorpId;
         _fbAllianceId     = r.FbAllianceId;
 
@@ -526,8 +658,12 @@ public sealed class Activity24hKillRowVm : ReactiveObject
 
 // ── Main ViewModel ────────────────────────────────────────────────────────────
 
-public class CorpActivityViewModel : ReactiveObject
+public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 {
+    /// <summary>Set the first time this tool is opened; until then its refresh timer is a
+    /// no-op. See IPeriodicRefresh.</summary>
+    public bool AutoRefreshEnabled { get; set; }
+
     private readonly CorpActivityService     _service;
     private readonly CorpTop10ExcludeService _excludeSvc;
     private CancellationTokenSource          _top10Cts = new();
@@ -1205,8 +1341,10 @@ public class CorpActivityViewModel : ReactiveObject
             });
 
         // Light refresh every 60 s; full refresh (including detail tabs) every 5 min (tick 5).
+        // ⚠️ Gated and labelled — see InvLevelViewModel for why.
         Observable.Interval(TimeSpan.FromSeconds(60))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .Where(_ => AutoRefreshEnabled)
+            .ObserveOnUi("CorpActivity.AutoRefresh")
             .Where(_ => SelectedCorp is not null && !IsLoading)
             .Subscribe(_ =>
             {
@@ -1847,9 +1985,9 @@ public class CorpActivityViewModel : ReactiveObject
         TopContributors.Clear();
         for (int i = 0; i < contribRows.Count; i++)
         {
-            var (_, name, iskPayout, pct) = contribRows[i];
+            var (charId, name, iskPayout, pct) = contribRows[i];
             int rank = contribRows.Count(r => r.IskPayout > iskPayout) + 1;
-            TopContributors.Add(new CorpTopPlayerRowVm(rank, name, iskPayout, isCount: false, pct));
+            TopContributors.Add(new CorpTopPlayerRowVm(rank, name, iskPayout, isCount: false, pct, charId));
         }
     }
 
@@ -2295,7 +2433,7 @@ public class CorpActivityViewModel : ReactiveObject
             var payout = p.RewardPerContrib > 0
                        ? FormatIskStatic((decimal)(c.Contributed * p.RewardPerContrib)) + " ISK"
                        : "—";
-            ProjectContributors.Add(new(i + 1, name, c.Contributed.ToString("N0"), pct, payout));
+            ProjectContributors.Add(new(i + 1, name, c.Contributed.ToString("N0"), pct, payout, c.CharacterId));
         }
     }
 
@@ -2587,7 +2725,7 @@ public class CorpActivityViewModel : ReactiveObject
     {
         list.Clear();
         foreach (var r in rows)
-            list.Add(new CorpTopPlayerRowVm(r.Rank, resolveName(r.CharacterId), r.Amount, isCount, r.Percent));
+            list.Add(new CorpTopPlayerRowVm(r.Rank, resolveName(r.CharacterId), r.Amount, isCount, r.Percent, r.CharacterId));
     }
 
     internal static string FormatIskStatic(decimal v) => FormatIsk((double)v);

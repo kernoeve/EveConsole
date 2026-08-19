@@ -20,10 +20,49 @@ public class SaleListingRowVm
     public string WhenText { get; }
     public string Buyer    { get; }
     public string Item     { get; }
+    /// <summary>The item cell split in two: the named type, which links, and the "+3 more items"
+    /// tail, which does not.</summary>
+    public string ItemName  { get; }
+    public string ItemExtra { get; }
+    public string Owner    { get; }
+    public string Location { get; }
     public string OwnerType { get; }
     public long   OwnerId   { get; }
     public bool   OwnerIsPersonal { get; }
     public string Kind      { get; }
+
+    // ── Where each name goes when clicked ─────────────────────────────────────
+    //
+    // Copied off the source row rather than kept as a reference to it: a listing row outlives the
+    // sales load it was built from, and holding the whole SaleRowVm to reach four ids would keep
+    // every sale in the period alive for as long as the tool is open.
+    public long       LocationId        { get; }
+    /// <summary>NPC station rather than player structure — the two have different browsers.</summary>
+    public bool       LocationIsStation { get; }
+    public long       BuyerId           { get; }
+    public EntityKind BuyerKind         { get; }
+    public int        TypeId            { get; }
+
+    public bool HasOwnerLink    => OwnerId    > 0 && Owner.Length    > 0;
+    public bool HasLocationLink => LocationId > 0 && Location.Length > 0;
+    public bool HasBuyerLink    => BuyerId    > 0 && Buyer.Length    > 0;
+    public bool HasItemLink     => TypeId     > 0;
+
+    public void OpenOwner() => EntityNavigator.Instance.Entity(
+        OwnerType == "corporation" ? EntityKind.PlayerCorp : EntityKind.Pilot, OwnerId);
+
+    /// <summary>A station goes to the entity browser, a player structure to its own tool.</summary>
+    public void OpenLocation()
+    {
+        if (LocationIsStation) EntityNavigator.Instance.Entity(EntityKind.Station, LocationId);
+        else                   EntityNavigator.Instance.Structure(LocationId);
+    }
+
+    public void OpenBuyer() => EntityNavigator.Instance.Entity(BuyerKind, BuyerId);
+
+    /// <summary>The item itself. On a multi-item contract the cell reads "Foo +3 more items";
+    /// only the name is the link, because the "+3" stands for a list the row does not carry.</summary>
+    public void OpenItem()  => EntityNavigator.Instance.Item(TypeId);
 
     public string Amount    { get; } public double AmountRaw    { get; }
     public string Profit    { get; } public double ProfitRaw    { get; }
@@ -34,7 +73,17 @@ public class SaleListingRowVm
     {
         When = s.When; WhenSort = s.WhenSort; WhenText = s.WhenText;
         Buyer = s.Buyer; Item = s.Items;
+        Owner = s.Owner; Location = s.Location;
         OwnerType = s.OwnerType; OwnerId = s.OwnerId; OwnerIsPersonal = s.OwnerIsPersonal; Kind = s.Kind;
+        LocationId = s.LocationId; LocationIsStation = s.LocationIsStation;
+        BuyerId = s.BuyerId; BuyerKind = s.BuyerKind; TypeId = s.TypeId;
+
+        // "Revelation +3 more items" splits into a link and a plain tail. Only the named type has
+        // an id behind it; the rest of the contract is not on this row, so making the whole cell a
+        // link would promise a page for items it cannot identify.
+        var plus  = Item.IndexOf(" +", StringComparison.Ordinal);
+        ItemName  = plus > 0 ? Item[..plus]  : Item;
+        ItemExtra = plus > 0 ? Item[plus..] : "";
         AmountRaw = s.TotalRaw; Amount = MarketFmt.Isk(s.TotalRaw);
 
         // Same fallback as the Sales Tracker: a mineral or a meta module has no build cost, and
@@ -128,7 +177,7 @@ public class SaleListingViewModel : ReactiveObject
         _dateFrom      = DateTime.UtcNow.AddDays(-90).ToString("yyyy-MM-dd");
 
         Observable.Interval(TimeSpan.FromMinutes(5))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOnUi("SaleListing.AutoRefresh")
             .Subscribe(tick => { _ = LoadAsync(); });
 
         _ = LoadAsync();

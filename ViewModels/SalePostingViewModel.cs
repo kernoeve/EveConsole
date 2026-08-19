@@ -359,6 +359,39 @@ public class SalePostingRow : ReactiveObject
     private string _scopeDisplay = "";
     public string ScopeDisplay { get => _scopeDisplay; private set => this.RaiseAndSetIfChanged(ref _scopeDisplay, value); }
 
+    // ── The scope's location, as a link ───────────────────────────────────────
+    //
+    // ScopeDisplay reads "Jita IV - Moon 4 · Station". The name half points somewhere, the scope
+    // word does not, so the view renders the two separately and only the name links. Same split
+    // as the Inventory Levels group line.
+    private string _locationName = "";
+    private string _scope        = "Everywhere";
+    private long?  _locationId;
+
+    public string LocationName    => _locationName;
+    public string ScopeSuffix     => _scope == "Everywhere" ? "" : $" · {_scope}";
+    public bool   HasLocationLink => _locationId is > 0 && _locationName.Length > 0
+                                  && _scope != "Everywhere";
+
+    /// <summary>⚠️ A "Station" scope holds an NPC station or a player structure in the one column,
+    /// so it splits on int range: SdeStations keys on an int, which a structure id cannot fit.
+    /// </summary>
+    public void OpenLocation()
+    {
+        var id = _locationId ?? 0;
+        if (id <= 0) return;
+
+        switch (_scope)
+        {
+            case "Region":  EntityNavigator.Instance.Region((int)id); break;
+            case "System":  EntityNavigator.Instance.System((int)id); break;
+            case "Station" when id <= int.MaxValue:
+                EntityNavigator.Instance.Entity(EntityKind.Station, id); break;
+            case "Station":
+                EntityNavigator.Instance.Structure(id); break;
+        }
+    }
+
     private string _pricingDisplay = "";
     public string PricingDisplay { get => _pricingDisplay; private set => this.RaiseAndSetIfChanged(ref _pricingDisplay, value); }
 
@@ -386,6 +419,12 @@ public class SalePostingRow : ReactiveObject
         Model          = m;
         PostingName    = m.Name;
         ScopeDisplay   = m.Scope == "Everywhere" ? "Everywhere" : $"{m.LocationName} · {m.Scope}";
+        _scope         = m.Scope;
+        _locationId    = m.LocationId;
+        _locationName  = m.LocationName;
+        this.RaisePropertyChanged(nameof(LocationName));
+        this.RaisePropertyChanged(nameof(ScopeSuffix));
+        this.RaisePropertyChanged(nameof(HasLocationLink));
         string basis   = m.PricingBasis switch
         {
             "Contract" => "Contract",
@@ -535,6 +574,9 @@ public class SalePostingItemRow : ReactiveObject
     public int    SectionId { get; }
     public int    TypeId    { get; }
     public string TypeName  { get; private set; }
+
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
 
     public SalePostingItemRow(SalePostingItem model, string typeName, SalePostingService svc)
     {
@@ -693,8 +735,12 @@ public class SalePostingItemRow : ReactiveObject
 }
 
 // ── Window view-model ───────────────────────────────────────────────────────────
-public class SalePostingViewModel : ReactiveObject
+public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
 {
+    /// <summary>Set the first time this tool is opened; until then its refresh timer is a
+    /// no-op. See IPeriodicRefresh.</summary>
+    public bool AutoRefreshEnabled { get; set; }
+
     private readonly SalePostingService _svc;
     private readonly BatchAddService?   _batchSvc;
     private readonly SlackService?      _slack;
@@ -792,8 +838,10 @@ public class SalePostingViewModel : ReactiveObject
 
         _ = InitAsync();
 
+        // ⚠️ Gated and labelled — see InvLevelViewModel for why.
         Observable.Interval(TimeSpan.FromMinutes(1))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .Where(_ => AutoRefreshEnabled)
+            .ObserveOnUi("SalePosting.AutoRefresh")
             .Subscribe(tick => { _ = RefreshAllAsync(); });
     }
 

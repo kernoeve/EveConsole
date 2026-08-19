@@ -1,3 +1,4 @@
+using EveConsole.Services;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Reactive;
@@ -18,6 +19,9 @@ public class GameLogSettingsViewModel : ReactiveObject
     private readonly MonitoringSettings   _settings;
     private readonly GameLogImportService _importer;
     private bool _loading = true;
+    /// <summary>Path reachability, probed off the UI thread — see ThrottledUiProbe.</summary>
+    private readonly ThrottledUiProbe _pathProbe;
+
 
     public GameLogSettingsViewModel(MonitoringSettings settings, GameLogImportService importer)
     {
@@ -40,8 +44,11 @@ public class GameLogSettingsViewModel : ReactiveObject
         CancelImportCommand    = ReactiveCommand.Create(() => _importer.CancelImport());
         EstimateCommand        = ReactiveCommand.Create(UpdateEstimate);
 
+        _pathProbe = new ThrottledUiProbe(TimeSpan.FromSeconds(30),
+            DescribeResolvedPaths, text => ResolvedPaths = text);
+
         Observable.Interval(TimeSpan.FromSeconds(2))
-                  .ObserveOn(RxApp.MainThreadScheduler)
+                  .ObserveOnUi("GameLogSettings.Poll")
                   .Subscribe(_ => Refresh());
 
         Refresh();
@@ -117,19 +124,30 @@ public class GameLogSettingsViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _progressText, value);
     }
 
+    /// <summary>
+    /// Counts the files a history import would process.
+    ///
+    /// ⚠️ Enumerates the log directories, so it carries the same cost as the reachability check
+    /// and must not run on the UI thread — a configured share that is offline blocks for seconds.
+    /// Not throttled, because it only runs when the user changes something that alters the count.
+    /// </summary>
     private void UpdateEstimate()
     {
-        try
+        var days = HistoryDays;
+        _ = Task.Run(() =>
         {
-            var files = _importer.EstimateHistoryFiles(HistoryDays);
-            EstimateText = HistoryDays <= 0
-                ? $"All {files:N0} log file(s) will be processed."
-                : $"{files:N0} log file(s) modified in the last {HistoryDays:N0} day(s) will be processed.";
-        }
-        catch (Exception ex)
-        {
-            EstimateText = $"Could not count files — {ex.Message}";
-        }
+            string text;
+            try
+            {
+                var files = _importer.EstimateHistoryFiles(days);
+                text = days <= 0
+                    ? $"All {files:N0} log file(s) will be processed."
+                    : $"{files:N0} log file(s) modified in the last {days:N0} day(s) will be processed.";
+            }
+            catch (Exception ex) { text = $"Could not count files — {ex.Message}"; }
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => EstimateText = text);
+        });
     }
 
     private bool _storeUnmatched;
@@ -186,6 +204,7 @@ public class GameLogSettingsViewModel : ReactiveObject
 
     private void Refresh()
     {
+        // In-memory only — the importer keeps these as plain fields, so a two-second poll is fine.
         Status          = _importer.StatusText;
         IsImporting     = _importer.IsImporting;
         ProgressCurrent = _importer.ProgressCurrent;
@@ -193,8 +212,18 @@ public class GameLogSettingsViewModel : ReactiveObject
         ProgressText    = _importer.ProgressText;
         HistoryPending  = !_settings.HistoryImported;
 
+        // ⚠️ NOT in-memory: resolving the directories touches the filesystem, and a configured
+        // UNC path to a sleeping machine blocks on SMB for seconds. Off the UI thread and at a
+        // rate that suits a path list rather than a progress bar. This poll ran every 2 s and was
+        // the app's worst UI stall — 2.6-2.9 s at a time.
+        _pathProbe.Poke();
+    }
+
+    /// <summary>Reachability of each configured log folder, checked off the UI thread.</summary>
+    private string DescribeResolvedPaths()
+    {
         var resolved = _settings.ResolveDirectories();
-        ResolvedPaths = resolved.Count == 0
+        return resolved.Count == 0
             ? "No game log folder found — add one below."
             : string.Join("\n", resolved.Select(d =>
                 (Directory.Exists(d) ? "✓ " : "✗ unreachable — ") + d));
@@ -242,6 +271,8 @@ public class GameLogSettingsViewModel : ReactiveObject
     private Task SaveDirectoriesAsync()
     {
         _settings.GameLogDirectories = Directories.ToList();
+        // The path list just changed — re-check now rather than waiting out the throttle.
+        _pathProbe.Force();
         Refresh();
         UpdateEstimate();
         return Task.CompletedTask;
