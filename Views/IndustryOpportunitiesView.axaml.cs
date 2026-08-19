@@ -40,4 +40,18 @@ public partial class IndustryOpportunitiesView : UserControl
             vm.RequestItemNavigation(row.TypeId, row.TypeName);
         }
     }
+
+    /// <summary>
+    /// Single click on the item name.
+    ///
+    /// <para>Goes through <c>vm.RequestItemNavigation</c>, the same path the double-click above
+    /// uses, rather than the shared EntityNavigator. This tool also runs in a window of its own,
+    /// and that method is what knows where to open the Item Browser from either host.</para>
+    /// </summary>
+    private void OnOpenRowItem(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is IndustryOpportunitiesViewModel vm &&
+            (sender as Control)?.DataContext is IndustryRow row)
+            vm.RequestItemNavigation(row.TypeId, row.TypeName);
+    }
 }

@@ -90,7 +90,15 @@ public sealed record StandingProjectGridRow(
     string RemainingPercentText,
     double RemainingPercentValue,   // percent of the target still outstanding; -1 when not applicable
     int?   ItemTypeId,
-    string ItemTypeName);
+    string ItemTypeName,
+    /// <summary>Where a delivery goes, so the location cell can open it. Null on the destroy-NPC
+    /// project types, whose destination names a region or constellation rather than a place you
+    /// dock at.</summary>
+    long?  StationId = null,
+    /// <summary>NPC station rather than player structure — the two have different browsers.
+    /// Resolved against SdeStations rather than guessed from the id, since the ranges are not a
+    /// reliable tell.</summary>
+    bool   StationIsNpc = false);
 
 // â”€â”€ Service â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -1178,14 +1186,20 @@ public class CorpActivityService
     }
 
     /// <summary>
-    /// ISK destroyed vs lost for the month, summed in SQL rather than by pulling every
-    /// killmail — a busy month runs to thousands of kills and only the totals are wanted.
-    /// A kill counts as a loss when the victim belonged to this corp.
+    /// ISK destroyed vs lost for the month. A kill counts as a loss when the victim belonged to
+    /// this corp.
     ///
-    /// Prices are filtered to the configured pricing config: MarketItemPrices is keyed
-    /// (ConfigId, TypeId) and holds a row per config, so joining on TypeId alone counts
-    /// every item once per config and inflates the total several times over. The hull is
-    /// included, matching what the Killmail Browser reports for the same kill.
+    /// <para>⚠️ The valuation is no longer summed in SQL. It was, for a good reason — a busy month
+    /// runs to thousands of kills and only the totals are wanted — but that SQL priced blueprint
+    /// COPIES at the original's market price, because a copy is only distinguishable per item, by
+    /// its Singleton flag, against a blueprint list the SDE has to be asked for. That is not
+    /// expressible in the one statement, which is exactly how the two versions drifted. Now SQL
+    /// selects only what identifies each kill, and <see cref="KillmailValuation"/> prices them —
+    /// the same code the Killmail Browser and the 24-hour lists use.</para>
+    ///
+    /// <para>Cost of the change: the item rows for a month's kills are read rather than aggregated
+    /// in place. Bounded by the month, and the alternative is a total nobody can reconcile against
+    /// the kill it came from.</para>
     /// </summary>
     private async Task<(decimal Destroyed, decimal Lost)> GetMonthKillIskAsync(
         long corpId, DateTimeOffset from, CancellationToken ct)
@@ -1194,48 +1208,23 @@ public class CorpActivityService
         var fromStr  = SqlCutoff(from);
         var toStr    = SqlCutoff(from.AddMonths(1));
 
-        var settings  = await db.MarketDefaultSettings.AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == 1, ct);
-        if (settings?.AssetValueConfigId is not int configId) return (0m, 0m);
-        var priceType = settings.AssetValuePriceType;
-
-        var rows = await db.Database.SqlQuery<MonthKillIskRaw>($"""
-            WITH km AS (
-                SELECT d."KillMailId", d."VictimShipTypeId",
-                       CASE WHEN d."VictimCorpId" = {corpId} THEN 1 ELSE 0 END AS "IsLoss"
-                FROM "KillMailDetails" d
-                JOIN "EsiKillMailRefs" r ON r."KillMailId" = d."KillMailId"
-                    AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
-                WHERE d."KillMailTime" >= {fromStr} AND d."KillMailTime" < {toStr}
-                GROUP BY d."KillMailId"
-            )
-            SELECT "IsLoss", COALESCE(SUM("Isk"), 0) AS "Isk"
-            FROM (
-                SELECT km."IsLoss" AS "IsLoss",
-                       (COALESCE(i."QuantityDestroyed", 0) + COALESCE(i."QuantityDropped", 0))
-                       * COALESCE(CASE {priceType}
-                                       WHEN 'Buy'  THEN p."BuyPrice"
-                                       WHEN 'Sell' THEN p."SellPrice"
-                                       ELSE p."Midpoint" END, 0.0) AS "Isk"
-                FROM km
-                LEFT JOIN "KillMailItems" i ON i."KillMailId" = km."KillMailId"
-                LEFT JOIN "MarketItemPrices" p
-                       ON p."ConfigId" = {configId} AND p."TypeId" = i."ItemTypeId"
-                UNION ALL
-                SELECT km."IsLoss",
-                       COALESCE(CASE {priceType}
-                                     WHEN 'Buy'  THEN hp."BuyPrice"
-                                     WHEN 'Sell' THEN hp."SellPrice"
-                                     ELSE hp."Midpoint" END, 0.0)
-                FROM km
-                LEFT JOIN "MarketItemPrices" hp
-                       ON hp."ConfigId" = {configId} AND hp."TypeId" = km."VictimShipTypeId"
-            )
-            GROUP BY "IsLoss"
+        var kills = await db.Database.SqlQuery<MonthKillRaw>($"""
+            SELECT d."KillMailId", d."VictimShipTypeId",
+                   CASE WHEN d."VictimCorpId" = {corpId} THEN 1 ELSE 0 END AS "IsLoss"
+            FROM "KillMailDetails" d
+            JOIN "EsiKillMailRefs" r ON r."KillMailId" = d."KillMailId"
+                AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
+            WHERE d."KillMailTime" >= {fromStr} AND d."KillMailTime" < {toStr}
+            GROUP BY d."KillMailId"
             """).ToListAsync(ct);
 
-        var destroyed = rows.FirstOrDefault(r => r.IsLoss == 0)?.Isk ?? 0.0;
-        var lost      = rows.FirstOrDefault(r => r.IsLoss == 1)?.Isk ?? 0.0;
+        if (kills.Count == 0) return (0m, 0m);
+
+        var values = await KillmailValuation.ValueKillsAsync(
+            db, kills.ToDictionary(k => k.KillMailId, k => k.VictimShipTypeId), ct);
+
+        var destroyed = kills.Where(k => k.IsLoss == 0).Sum(k => values.GetValueOrDefault(k.KillMailId));
+        var lost      = kills.Where(k => k.IsLoss == 1).Sum(k => values.GetValueOrDefault(k.KillMailId));
         return ((decimal)destroyed, (decimal)lost);
     }
 
@@ -1262,10 +1251,11 @@ public class CorpActivityService
         return (decimal)(rows.FirstOrDefault()?.Value ?? 0.0);
     }
 
-    private sealed class MonthKillIskRaw
+    private sealed class MonthKillRaw
     {
-        public int    IsLoss { get; set; }
-        public double Isk    { get; set; }
+        public int KillMailId       { get; set; }
+        public int VictimShipTypeId { get; set; }
+        public int IsLoss           { get; set; }
     }
 
     private sealed class MonthValueRaw
@@ -1317,7 +1307,9 @@ public class CorpActivityService
 
     // â”€â”€ 24h Activity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    public sealed record Activity24hPlayerRow(string CharacterName, decimal Value);
+    /// <param name="CharacterId">Carried so the name can be a link. Every query behind this
+    /// already groups by it — it was simply dropped when the name was resolved.</param>
+    public sealed record Activity24hPlayerRow(string CharacterName, decimal Value, long CharacterId = 0);
     public sealed record Activity24hKillRow(
         int KillMailId, DateTimeOffset Time, bool IsLoss,
         int VictimShipTypeId, string ShipName,
@@ -1327,7 +1319,13 @@ public class CorpActivityService
         string VictimName, string VictimCorp, string VictimAlliance,
         long FbCorpId, long FbAllianceId,
         string FbName, string FbCorp, string FbAlliance,
-        decimal IskValue = 0m);
+        decimal IskValue = 0m,
+        // The two pilots. Corp and alliance ids were already carried here for the logos; these
+        // are what let the pilot names be links alongside them.
+        long VictimCharId = 0, long FbCharId = 0,
+        // Where it happened, so the system and region names link the way they do in the Killmail
+        // tool. Both are already looked up to produce the names above.
+        int SolarSystemId = 0, int RegionId = 0);
     public sealed record Activity24hSummary(int PlayerCount, decimal TotalIncome, decimal TotalExpense);
 
     public async Task<Activity24hSummary> Get24hSummaryAsync(long corpId, CancellationToken ct = default)
@@ -1423,7 +1421,7 @@ public class CorpActivityService
         var names    = await ResolveNamesAsync(filtered.Select(r => r.CharacterId), ct);
         return filtered.Select(r => new Activity24hPlayerRow(
             names.TryGetValue(r.CharacterId, out var n) ? n : r.CharacterId.ToString(),
-            (decimal)r.Amount)).ToList();
+            (decimal)r.Amount, r.CharacterId)).ToList();
     }
 
     public async Task<List<Activity24hPlayerRow>> Get24hTopIndustryAsync(
@@ -1449,7 +1447,7 @@ public class CorpActivityService
         var names    = await ResolveNamesAsync(filtered.Select(r => r.CharacterId), ct);
         return filtered.Select(r => new Activity24hPlayerRow(
             names.TryGetValue(r.CharacterId, out var n) ? n : r.CharacterId.ToString(),
-            (decimal)r.Amount)).ToList();
+            (decimal)r.Amount, r.CharacterId)).ToList();
     }
 
     public async Task<List<Activity24hPlayerRow>> Get24hTopMinersAsync(
@@ -1474,7 +1472,7 @@ public class CorpActivityService
         var names    = await ResolveNamesAsync(filtered.Select(r => r.CharacterId), ct);
         return filtered.Select(r => new Activity24hPlayerRow(
             names.TryGetValue(r.CharacterId, out var n) ? n : r.CharacterId.ToString(),
-            (decimal)r.Amount)).ToList();
+            (decimal)r.Amount, r.CharacterId)).ToList();
     }
 
     public async Task<List<Activity24hKillRow>> Get24hKillsAsync(
@@ -1548,8 +1546,8 @@ public class CorpActivityService
         var names = await ResolveNamesAsync(entityIds, ct);
         string Res(long? id) => id.HasValue && id.Value != 0 && names.TryGetValue(id.Value, out var n) ? n : "";
 
-        var killIds   = rows.Select(r => r.KillMailId).ToList();
-        var iskValues = await GetKillIskValuesAsync(killIds, db, ct);
+        var iskValues = await GetKillIskValuesAsync(
+            HullByKill(rows), db, ct);
 
         return rows.Select(r =>
         {
@@ -1570,7 +1568,8 @@ public class CorpActivityService
                 Res(r.VictimCharId), Res(r.VictimCorpId), Res(r.VictimAllianceId),
                 fb?.CorporationId ?? 0L, fb?.AllianceId ?? 0L,
                 Res(fb?.CharacterId), Res(fb?.CorporationId), Res(fb?.AllianceId),
-                isk);
+                isk, r.VictimCharId, fb?.CharacterId ?? 0L,
+                r.SolarSystemId, sys?.RegionId ?? 0);
         }).ToList();
     }
 
@@ -1753,8 +1752,8 @@ public class CorpActivityService
         var names = await ResolveNamesAsync(entityIds, ct);
         string Res(long? id) => id.HasValue && id.Value != 0 && names.TryGetValue(id.Value, out var n) ? n : "";
 
-        var killIds2   = rows.Select(r => r.KillMailId).ToList();
-        var iskValues2 = await GetKillIskValuesAsync(killIds2, db, ct);
+        var iskValues2 = await GetKillIskValuesAsync(
+            HullByKill(rows), db, ct);
 
         return rows.Select(r =>
         {
@@ -1774,7 +1773,8 @@ public class CorpActivityService
                 Res(r.VictimCharId), Res(r.VictimCorpId), Res(r.VictimAllianceId),
                 fb?.CorporationId ?? 0L, fb?.AllianceId ?? 0L,
                 Res(fb?.CharacterId), Res(fb?.CorporationId), Res(fb?.AllianceId),
-                isk);
+                isk, r.VictimCharId, fb?.CharacterId ?? 0L,
+                r.SolarSystemId, sys?.RegionId ?? 0);
         }).ToList();
     }
 
@@ -1850,7 +1850,8 @@ public class CorpActivityService
         string Res(long? id) => id.HasValue && id.Value != 0 && names.TryGetValue(id.Value, out var n) ? n : "";
 
         var charSet   = charIds.ToHashSet();
-        var iskValues = await GetKillIskValuesAsync(killIds, db, ct);
+        var iskValues = await GetKillIskValuesAsync(
+            HullByKill(rows), db, ct);
 
         return rows.Select(r =>
         {
@@ -1870,7 +1871,8 @@ public class CorpActivityService
                 Res(r.VictimCharId), Res(r.VictimCorpId), Res(r.VictimAllianceId),
                 fb?.CorporationId ?? 0L, fb?.AllianceId ?? 0L,
                 Res(fb?.CharacterId), Res(fb?.CorporationId), Res(fb?.AllianceId),
-                isk);
+                isk, r.VictimCharId, fb?.CharacterId ?? 0L,
+                r.SolarSystemId, sys?.RegionId ?? 0);
         }).ToList();
     }
 
@@ -1898,48 +1900,37 @@ public class CorpActivityService
         public string         Reason  { get; set; } = "";
     }
 
-    private sealed class KillIskRaw
+
+    /// <summary>
+    /// Per-kill ISK totals for the kill lists, from the shared valuation the Killmail Browser
+    /// uses.
+    ///
+    /// <para>⚠️ This used to be its own SQL sum, and it disagreed with the browser in two ways
+    /// that pulled in opposite directions — so the error was never a clean multiple and looked
+    /// like rounding rather than a fault. It priced blueprint COPIES at the original's market
+    /// price (268.35B against a true 106.75B on one kill), and it left the victim's hull out
+    /// altogether. It had already been corrected once, for an unrelated duplicate-config join,
+    /// under a comment saying it now matched the browser; it matched one of three things the
+    /// browser did. Calling the same code is the only version of "they agree" that stays true.</para>
+    /// </summary>
+    private static async Task<Dictionary<int, decimal>> GetKillIskValuesAsync(
+        IReadOnlyDictionary<int, int> hullByKill, AppDbContext db, CancellationToken ct)
     {
-        public int    KillMailId { get; set; }
-        public double TotalIsk   { get; set; }
+        var values = await KillmailValuation.ValueKillsAsync(db, hullByKill, ct);
+        return values.ToDictionary(kv => kv.Key, kv => (decimal)kv.Value);
     }
 
     /// <summary>
-    /// Per-kill ISK totals for the kill lists.
+    /// Killmail id → the victim's ship type, for the valuation above.
     ///
-    /// MarketItemPrices is keyed (ConfigId, TypeId) and this database carries four pricing
-    /// configs, so the original join on TypeId alone matched every item once per config and
-    /// summed them all — measured at roughly 11x the real value on a sample kill. Restricted
-    /// to the configured config and price type, which is what the Killmail Browser already
-    /// used, so the two views now agree.
+    /// <para>⚠️ Grouped rather than a straight ToDictionary. These lists come from queries that
+    /// join through EsiKillMailRefs, which can hold more than one ref row for the same kill — a
+    /// corp kill a tracked character also has a ref for — and a duplicate key would throw. The
+    /// ship type is identical on every duplicate, so taking the first is safe.</para>
     /// </summary>
-    private static async Task<Dictionary<int, decimal>> GetKillIskValuesAsync(
-        IReadOnlyList<int> killIds, AppDbContext db, CancellationToken ct)
-    {
-        if (killIds.Count == 0) return [];
-
-        var settings = await db.MarketDefaultSettings.AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == 1, ct);
-        if (settings?.AssetValueConfigId is not int configId) return [];
-        var priceType = settings.AssetValuePriceType;
-
-        var idStr = string.Join(",", killIds);
-#pragma warning disable EF1002 // idStr is built from int kill ids we queried ourselves
-        var rows = await db.Database.SqlQueryRaw<KillIskRaw>($"""
-            SELECT i."KillMailId",
-                   SUM((COALESCE(i."QuantityDestroyed", 0) + COALESCE(i."QuantityDropped", 0))
-                       * COALESCE(CASE @p1
-                                       WHEN 'Buy'  THEN p."BuyPrice"
-                                       WHEN 'Sell' THEN p."SellPrice"
-                                       ELSE p."Midpoint" END, 0.0)) AS "TotalIsk"
-            FROM "KillMailItems" i
-            LEFT JOIN "MarketItemPrices" p ON p."ConfigId" = @p0 AND p."TypeId" = i."ItemTypeId"
-            WHERE i."KillMailId" IN ({idStr})
-            GROUP BY i."KillMailId"
-            """, configId, priceType).ToListAsync(ct);
-#pragma warning restore EF1002
-        return rows.ToDictionary(r => r.KillMailId, r => (decimal)r.TotalIsk);
-    }
+    private static Dictionary<int, int> HullByKill(IEnumerable<Kill24hRaw> rows) =>
+        rows.GroupBy(r => r.KillMailId)
+            .ToDictionary(g => g.Key, g => g.First().VictimShipTypeId);
 
     private sealed class WalletSummaryRaw
     {
@@ -2295,6 +2286,21 @@ public class CorpActivityService
 
         var rows = new List<StandingProjectGridRow>();
 
+        // Which delivery destinations are NPC stations, so the location link knows whether to open
+        // the entity browser or the Structure Browser. One lookup for the whole grid; anything not
+        // in SdeStations is a player structure.
+        // ⚠️ SdeStations.StationId is an int, so only destinations inside int range can be NPC
+        // stations at all — a player structure id never fits, and passing one into the query
+        // would not compile, let alone match.
+        var destIds = standing.Where(p => p.StationId is > 0 and <= int.MaxValue)
+            .Select(p => (int)p.StationId!.Value).Distinct().ToList();
+        var npcStationIds = destIds.Count == 0
+            ? new HashSet<long>()
+            : (await db.SdeStations.AsNoTracking()
+                   .Where(s => destIds.Contains(s.StationId))
+                   .Select(s => s.StationId).ToListAsync(ct))
+              .Select(id => (long)id).ToHashSet();
+
         foreach (var sp in standing)
         {
             if (sp.ProjectType == "deliver_item")
@@ -2317,7 +2323,9 @@ public class CorpActivityService
                     RemainingPercentText : match is not null ? FormatRemainingPct(deliverPct) : "",
                     RemainingPercentValue: deliverPct,
                     ItemTypeId          : sp.ItemTypeId,
-                    ItemTypeName        : sp.ItemTypeName ?? ""));
+                    ItemTypeName        : sp.ItemTypeName ?? "",
+                    StationId           : sp.StationId,
+                    StationIsNpc        : sp.StationId.HasValue && npcStationIds.Contains(sp.StationId.Value)));
             }
             else // destroy_npc
             {

@@ -68,6 +68,16 @@ public class IndustryBrowserViewModel : ReactiveObject
     public const string ColCompletedBy      = "Completed By";
     public const string ColActivityId       = "Activity Id";
 
+    // What each name on a row opens. Hidden like the ids above — the grid never shows these,
+    // they exist so the visible text can be a link.
+    public const string ColOwnerId          = "Owner Id";
+    public const string ColOwnerType        = "Owner Type";
+    public const string ColInstallerId      = "Installer Id";
+    public const string ColFacilityId       = "Facility Id";
+    public const string ColFacilityIsStation = "Facility Is Station";
+    public const string ColSolarSystemId    = "Solar System Id";
+    public const string ColRegionId         = "Region Id";
+
     // ── Filter options ────────────────────────────────────────────────────────
 
     public static readonly string[] ActivityOptions =
@@ -557,7 +567,15 @@ public class IndustryBrowserViewModel : ReactiveObject
                 j.ActivityId                                                                  AS "Activity Id",
                 j.Probability                                                                 AS "Probability",
                 j.OwnerId                                                                     AS "Owner Id",
-                j.OwnerType                                                                   AS "Owner Type"
+                j.OwnerType                                                                   AS "Owner Type",
+                -- Hidden: what the names in the grid and the detail panel open.
+                j.InstallerId                                                                 AS "Installer Id",
+                j.FacilityId                                                                  AS "Facility Id",
+                -- Only an NPC station is named by SdeStations, which is also what decides whether
+                -- the facility link opens the entity browser or the Structure Browser.
+                CASE WHEN st.StationId IS NULL THEN 0 ELSE 1 END                              AS "Facility Is Station",
+                COALESCE(ss_st.SolarSystemId, ss_sn.SolarSystemId, 0)                         AS "Solar System Id",
+                COALESCE(r_st.RegionId, r_sn.RegionId, 0)                                     AS "Region Id"
             FROM EsiIndustryJobs j
             LEFT JOIN Characters       ch_inst  ON ch_inst.Id        = j.InstallerId
             LEFT JOIN UniverseNames    un_inst  ON un_inst.EntityId   = j.InstallerId

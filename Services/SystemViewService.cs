@@ -49,6 +49,8 @@ public class SystemViewService(
         string AllianceName,
         string CorporationName,
         string LocalPirates,
+        /// <summary>Zero when no region-dominant pirate faction met the sample threshold.</summary>
+        int    LocalPirateFactionId,
         int    Power,
         int    Workforce,
         double? Adm,
@@ -153,7 +155,8 @@ public class SystemViewService(
             sov?.AllianceId, sov?.CorporationId,
             sov?.AllianceId is { } a ? names.GetValueOrDefault(a, $"Alliance {a}") : "",
             sov?.CorporationId is { } c ? names.GetValueOrDefault(c, $"Corporation {c}") : "",
-            pirates.GetValueOrDefault(s.RegionId, ""),
+            pirates.GetValueOrDefault(s.RegionId)?.Name ?? "",
+            pirates.GetValueOrDefault(s.RegionId)?.FactionId ?? 0,
             res.Sum(r => r.Power), res.Sum(r => r.Workforce),
             adm, industry,
             PerHour(2015), PerHour(12),
@@ -210,7 +213,7 @@ public class SystemViewService(
         public int    Total     { get; set; }
     }
 
-    private static Dictionary<int, string>? _pirateCache;
+    private static Dictionary<int, LocalPirate>? _pirateCache;
     private static readonly SemaphoreSlim PirateLock = new(1, 1);
 
     /// <summary>
@@ -222,7 +225,11 @@ public class SystemViewService(
     /// Cached for the session: it scans several million attacker rows, and the answer does not
     /// change on any timescale that matters.
     /// </summary>
-    public async Task<Dictionary<int, string>> GetLocalPiratesAsync(CancellationToken ct = default)
+    /// <summary>The dominant pirate faction of a region — id as well as name, so the header can
+    /// link it to the NPC entity browser.</summary>
+    public sealed record LocalPirate(int FactionId, string Name);
+
+    public async Task<Dictionary<int, LocalPirate>> GetLocalPiratesAsync(CancellationToken ct = default)
     {
         if (_pirateCache is not null) return _pirateCache;
 
@@ -261,7 +268,11 @@ public class SystemViewService(
             _pirateCache = rows
                 .Where(r => r.Kills >= MinPirateSample && names.ContainsKey(r.FactionId))
                 .GroupBy(r => r.RegionId)
-                .ToDictionary(g => g.Key, g => names[g.OrderByDescending(x => x.Kills).First().FactionId]);
+                .ToDictionary(g => g.Key, g =>
+                {
+                    var top = g.OrderByDescending(x => x.Kills).First().FactionId;
+                    return new LocalPirate(top, names[top]);
+                });
 
             return _pirateCache;
         }

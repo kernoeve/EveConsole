@@ -15,6 +15,28 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     public string LocationName { get; } = r.LocationName;
     public string Owner        { get; } = r.OwnerDisplay;
 
+    // ── Links ─────────────────────────────────────────────────────────────────
+    public bool HasItemLink     => r.TypeId     > 0 && r.TypeName.Length     > 0;
+    public bool HasLocationLink => r.LocationId > 0 && r.LocationName.Length > 0;
+    /// <summary>Only where one owner holds the order — see StandingBuyOrderRow.OwnerId.</summary>
+    public bool HasOwnerLink    => r.OwnerId    > 0 && r.OwnerDisplay.Length > 0;
+
+    public void OpenItem() => EntityNavigator.Instance.Item(r.TypeId);
+
+    /// <summary>⚠️ Station versus structure by int range: SdeStations keys on an int, so an id
+    /// above that range cannot be a station.</summary>
+    public void OpenLocation()
+    {
+        if (r.LocationId <= 0) return;
+        if (r.LocationId <= int.MaxValue)
+            EntityNavigator.Instance.Entity(EntityKind.Station, r.LocationId);
+        else
+            EntityNavigator.Instance.Structure(r.LocationId);
+    }
+
+    public void OpenOwner() => EntityNavigator.Instance.Entity(
+        r.OwnerType == "corporation" ? EntityKind.PlayerCorp : EntityKind.Pilot, r.OwnerId);
+
     /// <summary>Per-order breakdown for aggregated rows; null so Avalonia shows no
     /// tooltip at all rather than an empty box on single-order rows.</summary>
     public string? OwnerTooltip { get; } =

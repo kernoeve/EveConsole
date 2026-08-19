@@ -70,10 +70,14 @@
       <Setter Property="BorderThickness" Value="0 0 0 1" />
       <Setter Property="Padding" Value="0 4" />
     </Style>
+    <!-- ⚠️ MinHeight 30, not 0. The Fluent TabItem template lays its selection underline out
+         against the item's height, so collapsing that to zero left the underline running through
+         the middle of the label instead of sitting beneath it. 30 fits a 12px label plus the
+         indicator and is still far shorter than the theme's own 48. -->
     <Style Selector="TabItem">
       <Setter Property="FontSize" Value="12" />
-      <Setter Property="Padding" Value="12 6" />
-      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Padding" Value="12 6 12 8" />
+      <Setter Property="MinHeight" Value="30" />
     </Style>
   </UserControl.Styles>
 
@@ -104,9 +108,19 @@
 
           <StackPanel Orientation="Horizontal">
             <TextBlock Classes="hlabel" Text="Region" Margin="0 0 6 0" />
-            <TextBlock Classes="hvalue" Text="{Binding Region}" />
+            <Panel>
+              <Button Classes="link" Click="OnOpenRegion" IsVisible="{Binding HasRegionLink}">
+                <TextBlock Text="{Binding Region}" Classes="linktext hvalue" Margin="0" />
+              </Button>
+              <TextBlock Classes="hvalue" Text="{Binding Region}" IsVisible="{Binding !HasRegionLink}" />
+            </Panel>
             <TextBlock Classes="hlabel" Text="Constellation" Margin="0 0 6 0" />
-            <TextBlock Classes="hvalue" Text="{Binding Constellation}" />
+            <Panel>
+              <Button Classes="link" Click="OnOpenConstellation" IsVisible="{Binding HasConstellationLink}">
+                <TextBlock Text="{Binding Constellation}" Classes="linktext hvalue" Margin="0" />
+              </Button>
+              <TextBlock Classes="hvalue" Text="{Binding Constellation}" IsVisible="{Binding !HasConstellationLink}" />
+            </Panel>
           </StackPanel>
 
           <StackPanel Orientation="Horizontal">
@@ -127,7 +141,12 @@
                        IsVisible="{Binding HasSovNeither}" />
             <TextBlock Classes="hlabel" Text="Local pirates" Margin="0 0 6 0"
                        IsVisible="{Binding LocalPirates, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-            <TextBlock Classes="hvalue" Text="{Binding LocalPirates}" Foreground="#c88a6a" />
+            <Panel>
+              <Button Classes="link" Click="OnOpenPirates" IsVisible="{Binding HasPirateLink}">
+                <TextBlock Text="{Binding LocalPirates}" Classes="linktext hvalue" Margin="0" Foreground="#c88a6a" />
+              </Button>
+              <TextBlock Classes="hvalue" Text="{Binding LocalPirates}" IsVisible="{Binding !HasPirateLink}" Foreground="#c88a6a" />
+            </Panel>
             <TextBlock Classes="hlabel" Text="ADM" Margin="0 0 6 0" IsVisible="{Binding HasAdm}" />
             <TextBlock Classes="hvalue" Text="{Binding Adm}" IsVisible="{Binding HasAdm}"
                        Foreground="{Binding AdmColor}" FontWeight="SemiBold" />
@@ -222,8 +241,22 @@
                     <Border Classes="rowline">
                       <Grid ColumnDefinitions="36,2*,2*,60,110,3*">
                         <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
-                        <TextBlock Grid.Column="1" Classes="col" Text="{Binding TypeName}" />
-                        <TextBlock Grid.Column="2" Classes="col" Text="{Binding Owner}" />
+                        <Panel Grid.Column="1">
+                          <Button Classes="link" Click="OnOpenSovType" IsVisible="{Binding HasTypeLink}"
+                                  ToolTip.Tip="Open in the Item Browser">
+                            <TextBlock Text="{Binding TypeName}" Classes="linktext col" Margin="0" />
+                          </Button>
+                          <TextBlock Classes="col" Text="{Binding TypeName}"
+                                     IsVisible="{Binding !HasTypeLink}" />
+                        </Panel>
+                        <Panel Grid.Column="2">
+                          <Button Classes="link" Click="OnOpenSovOwner" IsVisible="{Binding HasOwnerLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding Owner}" Classes="linktext col" Margin="0" />
+                          </Button>
+                          <TextBlock Classes="col" Text="{Binding Owner}"
+                                     IsVisible="{Binding !HasOwnerLink}" />
+                        </Panel>
                         <TextBlock Grid.Column="3" Classes="col" Text="{Binding Adm}" Margin="0 0 14 0" />
                         <TextBlock Grid.Column="4" Classes="col" Text="{Binding State}"
                                    Foreground="{Binding StateColor}" Margin="0 0 14 0" />
@@ -264,7 +297,15 @@
                   <DataTemplate DataType="vm:GateVm">
                     <Border Classes="rowline">
                       <Grid ColumnDefinitions="150,Auto,*">
-                        <TextBlock Grid.Column="0" Classes="col" Text="{Binding Name}" Foreground="#7fb8d8" />
+                        <Panel Grid.Column="0">
+                          <Button Classes="link" Click="OnOpenGateSystem" IsVisible="{Binding HasSystemLink}"
+                                  ToolTip.Tip="Open this system">
+                            <TextBlock Text="{Binding Name}" Classes="linktext col"
+                                       Foreground="#7fb8d8" Margin="0" />
+                          </Button>
+                          <TextBlock Classes="col" Text="{Binding Name}" Foreground="#7fb8d8"
+                                     IsVisible="{Binding !HasSystemLink}" />
+                        </Panel>
                         <TextBlock Grid.Column="1" Classes="col" Text="{Binding Security}"
                                    Foreground="{Binding SecurityColor}" Margin="0 0 14 0" />
                         <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding RegionName}"
@@ -606,10 +647,41 @@
                              Stretch="Uniform" VerticalAlignment="Center"
                              ToolTip.Tip="{Binding ShipName}" Margin="0 0 6 0" />
 
-                      <TextBlock Grid.Column="2" Text="{Binding ShipName}" FontSize="10"
-                                 Foreground="#c8c8d8" FontWeight="SemiBold"
-                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                                 Margin="0 0 6 0" />
+                      <!-- Security / system / constellation / region, the same block every
+                           other killmail list carries. The system is the page's own, but the
+                           row still reads like the ones in Corp Activity and the Killmail
+                           tool rather than a one-off; the ship keeps its name on the render's
+                           tooltip, as it does there. -->
+                      <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
+                        <StackPanel Orientation="Horizontal" Spacing="3">
+                          <TextBlock Text="{Binding SecurityText}" FontSize="10" FontWeight="SemiBold"
+                                     ToolTip.Tip="{Binding SecurityTip}" Foreground="{Binding SecurityColor}" />
+                          <Panel>
+                            <Button Classes="link" Command="{Binding OpenSystemCommand}"
+                                    IsVisible="{Binding HasSystemLink}">
+                              <TextBlock Text="{Binding SystemName}" Classes="linktext" FontSize="10"
+                                         Foreground="#c8c8d8" FontWeight="SemiBold"
+                                         TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding SystemName}" IsVisible="{Binding !HasSystemLink}"
+                                       FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Panel>
+                        </StackPanel>
+                        <TextBlock Text="{Binding ConstellationName}" FontSize="9" Foreground="#888899"
+                                   TextTrimming="CharacterEllipsis"
+                                   IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        <Panel>
+                          <Button Classes="link" Command="{Binding OpenRegionCommand}"
+                                  IsVisible="{Binding HasRegionLink}">
+                            <TextBlock Text="{Binding RegionName}" Classes="linktext" FontSize="9"
+                                       Foreground="#666677" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding RegionName}" IsVisible="{Binding !HasRegionLink}"
+                                     FontSize="9" Foreground="#666677"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </StackPanel>
 
                       <Grid Grid.Column="3" ColumnDefinitions="32,*" Margin="0 0 4 0">
                         <Button Grid.Column="0" Classes="link" Command="{Binding OpenVictimAllianceCommand}"

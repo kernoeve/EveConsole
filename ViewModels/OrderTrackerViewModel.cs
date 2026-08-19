@@ -10,8 +10,19 @@ using ReactiveUI;
 namespace EveConsole.ViewModels;
 
 // Result returned by the add/edit order dialog.
+/// <param name="BuyerId">Zero when the buyer was typed rather than picked — an order predating
+/// the picker, or a name the search could not reach.</param>
 public record OrderDialogResult(int TypeId, string TypeName, int Units, string Buyer,
-    string? EstimatedDate, double PurchasePrice, string Status, bool IsPriority = false);
+    string? EstimatedDate, double PurchasePrice, string Status, bool IsPriority = false,
+    long BuyerId = 0, string BuyerType = "");
+
+/// <summary>One candidate in the buyer picker. Subtitle disambiguates two similar names the way
+/// the entity browser's own dropdown does.</summary>
+public record BuyerResultVm(long Id, string Name, string Subtitle, string EntityType)
+{
+    // AutoComplete-style lists write ToString() back into the box; the bare name is what belongs.
+    public override string ToString() => Name;
+}
 
 // One row on the Order Tracker grid.
 public class TrackedOrderRowVm
@@ -21,6 +32,19 @@ public class TrackedOrderRowVm
     public int    TypeId  { get; } public string Type   { get; }
     public int    Units   { get; } public string UnitsText { get; }
     public string Buyer   { get; }
+
+    /// <summary>The picked buyer. Zero on an order whose buyer was typed, which is every order
+    /// made before the field became a picker — those show the name without a link.</summary>
+    public long   BuyerId   { get; }
+    public string BuyerType { get; }
+
+    public bool HasTypeLink  => TypeId  > 0 && Type.Length  > 0;
+    public bool HasBuyerLink => BuyerId > 0 && Buyer.Length > 0;
+
+    public void OpenType()  => EntityNavigator.Instance.Item(TypeId);
+    public void OpenBuyer() => EntityNavigator.Instance.Entity(
+        BuyerType == "corporation" ? EntityKind.PlayerCorp : EntityKind.Pilot, BuyerId);
+
     public string EstDate { get; }
     public bool   IsPriority   { get; }
     /// <summary>A star rather than True/False: the column is scanned, not read.</summary>
@@ -40,6 +64,8 @@ public class TrackedOrderRowVm
         TypeId      = o.TypeId;   Type  = typeName;
         Units       = o.Units;    UnitsText = o.Units.ToString("N0");
         Buyer       = o.Buyer;
+        BuyerId     = o.BuyerId;
+        BuyerType   = o.BuyerType;
         EstDate     = o.EstimatedDate ?? "";
         PurchaseRaw = o.PurchasePrice; Purchase = MarketFmt.Isk(o.PurchasePrice);
         StatusRaw   = o.Status;
@@ -58,7 +84,8 @@ public class TrackedOrderRowVm
     }
 
     public OrderDialogResult ToDialog() =>
-        new(TypeId, Type, Units, Buyer, string.IsNullOrEmpty(EstDate) ? null : EstDate, PurchaseRaw, StatusRaw, IsPriority);
+        new(TypeId, Type, Units, Buyer, string.IsNullOrEmpty(EstDate) ? null : EstDate,
+            PurchaseRaw, StatusRaw, IsPriority, BuyerId, BuyerType);
 }
 
 public record OrderStatusFilter(string Label, string? Value) { public override string ToString() => Label; }
@@ -191,6 +218,8 @@ public class OrderTrackerViewModel : ReactiveObject
                 TypeId        = r.TypeId,
                 Units         = r.Units,
                 Buyer         = r.Buyer,
+                BuyerId       = r.BuyerId,
+                BuyerType     = r.BuyerType,
                 EstimatedDate = r.EstimatedDate,
                 PurchasePrice = r.PurchasePrice,
                 Status        = r.Status,
@@ -216,6 +245,8 @@ public class OrderTrackerViewModel : ReactiveObject
             o.TypeId        = r.TypeId;
             o.Units         = r.Units;
             o.Buyer         = r.Buyer;
+            o.BuyerId       = r.BuyerId;
+            o.BuyerType     = r.BuyerType;
             o.EstimatedDate = r.EstimatedDate;
             o.PurchasePrice = r.PurchasePrice;
             o.Status        = r.Status;
@@ -250,5 +281,50 @@ public class OrderTrackerViewModel : ReactiveObject
             .OrderBy(t => t.Name).Take(50)
             .Select(t => new { t.TypeId, t.Name }).ToListAsync();
         return results.Select(r => new TypeResultVm(r.TypeId, r.Name)).ToList();
+    }
+
+    /// <summary>
+    /// Buyer candidates: characters and corporations, from what the app already knows.
+    ///
+    /// <para>⚠️ Local only — Characters, Corporations and the shared UniverseNames cache. No ESI
+    /// search: a buyer is somebody you have dealt with, so they are almost always already named
+    /// somewhere in the database, and reaching out on every keystroke would put an ESI round trip
+    /// behind a text box. A name the search cannot reach is still typeable; it simply saves
+    /// without an id and does not link.</para>
+    /// </summary>
+    public async Task<List<BuyerResultVm>> SearchBuyersAsync(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text) || text.Length < 3) return [];
+
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var pattern = $"%{text}%";
+
+        var chars = await db.Characters.AsNoTracking()
+            .Where(c => EF.Functions.Like(c.Name, pattern))
+            .OrderBy(c => c.Name).Take(20)
+            .Select(c => new BuyerResultVm(c.Id, c.Name, "Character", "character"))
+            .ToListAsync();
+
+        var corps = await db.Corporations.AsNoTracking()
+            .Where(c => EF.Functions.Like(c.Name, pattern))
+            .OrderBy(c => c.Name).Take(20)
+            .Select(c => new BuyerResultVm(c.Id, c.Name, "Corporation", "corporation"))
+            .ToListAsync();
+
+        // The shared name cache covers everyone else the app has ever resolved — buyers from past
+        // sales, killmail participants, contract acceptors.
+        var cached = await db.UniverseNames.AsNoTracking()
+            .Where(u => EF.Functions.Like(u.Name, pattern)
+                     && (u.Category == "character" || u.Category == "corporation"))
+            .OrderBy(u => u.Name).Take(40)
+            .Select(u => new BuyerResultVm(u.EntityId, u.Name,
+                        u.Category == "corporation" ? "Corporation" : "Character", u.Category))
+            .ToListAsync();
+
+        return chars.Concat(corps).Concat(cached)
+            .GroupBy(b => b.Id).Select(g => g.First())   // our own records win over the cache
+            .OrderBy(b => b.Name)
+            .Take(50)
+            .ToList();
     }
 }

@@ -5,6 +5,28 @@
              x:DataType="vm:PriceOverrideViewModel"
              Background="#0d0d12">
 
+  <UserControl.Styles>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+  </UserControl.Styles>
+
   <Grid RowDefinitions="Auto,1,Auto,*">
 
     <!-- ── Toolbar ──────────────────────────────────────────────────── -->
@@ -94,8 +116,21 @@
       </DataGrid.Styles>
 
       <DataGrid.Columns>
-        <DataGridTextColumn Header="Type" Binding="{Binding TypeName}"
-                            IsReadOnly="True" Width="2*" />
+        <DataGridTemplateColumn Header="Type" SortMemberPath="TypeName" IsReadOnly="True" Width="2*">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:PriceOverrideRow">
+              <Panel>
+                <Button Classes="link" Click="OnOpenRowItem" IsVisible="{Binding HasItemLink}"
+                        ToolTip.Tip="Open in the Item Browser">
+                  <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="Type ID" Binding="{Binding TypeId}"
                             IsReadOnly="True" Width="Auto" />
         <DataGridTextColumn Header="Build Cost" Binding="{Binding BuildCostText}"

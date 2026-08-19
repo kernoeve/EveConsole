@@ -486,6 +486,42 @@ public class UniverseViewModel : ReactiveObject
         await FocusRegionAsync(region.Name);
     }
 
+    /// <summary>
+    /// <see cref="FocusRegionAsync"/> one level down: frames a single constellation.
+    ///
+    /// <para>Same mechanism — find the member systems, hand their bounds to the canvas — but a
+    /// constellation is a handful of systems inside a region, so the padding floor is an order of
+    /// magnitude tighter. Reusing the region floor would zoom out to most of the region and make
+    /// the two links indistinguishable.</para>
+    /// </summary>
+    public async Task FocusConstellationAsync(string constellationName)
+    {
+        if (constellationName.Length == 0) return;
+
+        if (Level != MapLevel.Universe || Graph is not { IsContinuous: true })
+            await ShowUniverseAsync();
+
+        if (Graph is not { } g) return;
+
+        var members = g.Nodes.Where(n => n.Tier == 1 && n.ConstellationName == constellationName).ToList();
+        if (members.Count == 0) return;
+
+        double minX = members.Min(n => n.X), maxX = members.Max(n => n.X);
+        double minY = members.Min(n => n.Y), maxY = members.Max(n => n.Y);
+
+        var w = Math.Max(maxX - minX, 1e14);
+        var h = Math.Max(maxY - minY, 1e14);
+
+        await OnUiAsync(() =>
+        {
+            // Cleared first for the same reason FocusRegionAsync does it: the canvas consumes the
+            // property, so asking twice for the same target must still register as a change.
+            FocusBounds = null;
+            FocusBounds = new Rect(minX, minY, w, h);
+            Status      = $"{constellationName} — {members.Count} systems";
+        });
+    }
+
     private async Task DrillDownAsync(int id)
     {
         var node = Graph?.Nodes.FirstOrDefault(n => n.Id == id);

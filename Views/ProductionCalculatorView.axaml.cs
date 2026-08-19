@@ -120,6 +120,28 @@ public partial class ProductionCalculatorView : UserControl
             new FilePickerFileType("Text") { Patterns = ["*.txt"] });
     }
 
+    // ── Row links ─────────────────────────────────────────────────────────
+    //
+    // The plan rows bind straight into the grids, so each carries its own OpenItem and this is
+    // pure dispatch. One handler for all four: separate classes with the same link, and matching
+    // on type here beats four identical methods.
+    private void OnOpenPlanItem(object? sender, RoutedEventArgs e)
+    {
+        switch ((sender as Control)?.DataContext)
+        {
+            case PlanRawMaterial  r: r.OpenItem(); break;
+            case PlanIntermediate r: r.OpenItem(); break;
+            case PlanFinalProduct r: r.OpenItem(); break;
+            case PlanLeftoverItem r: r.OpenItem(); break;
+        }
+    }
+
+    private static PlanJob? Job(object? sender)
+        => ((sender as Control)?.DataContext as JobTreeNode)?.Job;
+
+    private void OnOpenJobStation(object? sender, RoutedEventArgs e) => Job(sender)?.OpenStation();
+    private void OnOpenJobSystem(object? sender, RoutedEventArgs e)  => Job(sender)?.OpenSystem();
+
     // ── Helpers ───────────────────────────────────────────────────────────
 
     private async Task CopyToClipboardAsync(string text)

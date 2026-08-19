@@ -25,4 +25,8 @@ public partial class LpMarketValuesView : ReactiveUserControl<LpMarketValuesView
         if (sender is not DataGrid { SelectedItem: LpCorpValueVm row }) return;
         vm.ShowHistoryFor(row.CorporationId);
     }
+
+    /// <summary>Row-level link: the button's DataContext is the row it sits in.</summary>
+    private void OnOpenCorporation(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as LpCorpValueVm)?.OpenCorporation();
 }

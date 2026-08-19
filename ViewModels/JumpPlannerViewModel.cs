@@ -49,6 +49,18 @@ public sealed class JumpLegVm
     /// <summary>Set on a leg that ends at a stop the user asked for, rather than a filled-in one.</summary>
     public required bool IsWaypoint { get; init; }
 
+    /// <summary>Where this leg's region sits, so the name can open the map on it.</summary>
+    public required int    ToRegionId { get; init; }
+
+    // ── Links ─────────────────────────────────────────────────────────────────
+    public bool HasFromLink   => FromSystemId > 0 && From.Length     > 0;
+    public bool HasToLink     => ToSystemId   > 0 && To.Length       > 0;
+    public bool HasRegionLink => ToRegionId   > 0 && ToRegion.Length > 0;
+
+    public void OpenFrom()   => EntityNavigator.Instance.System(FromSystemId);
+    public void OpenTo()     => EntityNavigator.Instance.System(ToSystemId);
+    public void OpenRegion() => EntityNavigator.Instance.Region(ToRegionId);
+
     // Properties, not fields: a binding resolves properties only, and a field here would
     // silently render as blank.
     public string DistanceText  => $"{DistanceLy:N3} ly";
@@ -607,6 +619,7 @@ public sealed class JumpPlannerViewModel : ReactiveObject
                     ToSystemId   = leg.ToSystemId,
                     To           = leg.ToSystem,
                     ToRegion     = leg.ToRegion,
+                    ToRegionId   = leg.ToRegionId,
                     ToSecurity = leg.ToSecurity,
                     DistanceLy = leg.DistanceLy,
                     Fuel       = leg.Fuel,

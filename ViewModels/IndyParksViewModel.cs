@@ -1,3 +1,5 @@
+using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Reactive;
@@ -35,7 +37,41 @@ public class RigSlotVm : ReactiveObject
     public SdeRigOption? Selected
     {
         get => _selected;
-        set => this.RaiseAndSetIfChanged(ref _selected, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selected, value);
+            this.RaisePropertyChanged(nameof(HasRig));
+            _ = LoadIconAsync();
+        }
+    }
+
+    /// <summary>
+    /// The fitted rig's icon, beside the dropdown.
+    ///
+    /// <para>A rig is a ComboBox selection, so its name is not a click target — the icon is what
+    /// gives the fitted rig a way through to the Item Browser. Shown only when a rig is fitted:
+    /// an empty slot has nothing to show and nothing to open.</para>
+    /// </summary>
+    public bool HasRig => _selected is { TypeId: > 0 };
+
+    private Bitmap? _icon;
+    public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
+
+    public void OpenRig() => EntityNavigator.Instance.Item(_selected?.TypeId ?? 0);
+
+    private Task LoadIconAsync()
+    {
+        var id = _selected?.TypeId ?? 0;
+        if (id <= 0) { Icon = null; return Task.CompletedTask; }
+
+        return EveImageCache.GetAsync($"https://images.evetech.net/types/{id}/icon?size=32")
+            .ContinueWith(t =>
+            {
+                var bmp = t.Result;
+                // ⚠️ Guard against a stale load. The dropdown can change while this is in flight,
+                // and a slower response must not paint over the newer selection.
+                Dispatcher.UIThread.Post(() => { if (_selected?.TypeId == id) Icon = bmp; });
+            }, TaskScheduler.Default);
     }
 
     public RigSlotVm(int slotIndex, IReadOnlyList<SdeRigOption> rigs, SdeRigOption? selected = null)
@@ -43,6 +79,7 @@ public class RigSlotVm : ReactiveObject
         SlotIndex = slotIndex;
         _availableRigs = rigs;
         _selected = selected;
+        _ = LoadIconAsync();
     }
 }
 
@@ -57,6 +94,9 @@ public class ServiceModuleVm(StructureVm owner, int typeId, string name) : React
     public StructureVm Owner  { get; } = owner;
     public int         TypeId { get; } = typeId;
     public string      Name   { get; } = name;
+
+    public bool HasItemLink => TypeId > 0 && Name.Length > 0;
+    public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
 }
 
 // ── Structure VM ──────────────────────────────────────────────────────────────
@@ -198,19 +238,40 @@ public class StructureVm : ReactiveObject
     public long? RealStructureId
     {
         get => _realStructureId;
-        set { this.RaiseAndSetIfChanged(ref _realStructureId, value); this.RaisePropertyChanged(nameof(FacilityLinkText)); }
+        set { this.RaiseAndSetIfChanged(ref _realStructureId, value); this.RaisePropertyChanged(nameof(FacilityLinkText)); this.RaisePropertyChanged(nameof(HasFacilityLink)); }
     }
 
     private string _realStructureName = "";
     public string RealStructureName
     {
         get => _realStructureName;
-        set { this.RaiseAndSetIfChanged(ref _realStructureName, value); this.RaisePropertyChanged(nameof(FacilityLinkText)); }
+        set { this.RaiseAndSetIfChanged(ref _realStructureName, value); this.RaisePropertyChanged(nameof(FacilityLinkText)); this.RaisePropertyChanged(nameof(HasFacilityLink)); }
     }
 
     public string FacilityLinkText => RealStructureId is null
         ? "Not linked — jobs here won't be rig-checked"
         : RealStructureName;
+
+    /// <summary>
+    /// The linked facility, opened where it lives: an NPC station in the entity browser, a player
+    /// structure in the Structure Browser.
+    ///
+    /// <para>⚠️ Decided on the id's magnitude rather than a lookup. That is sound in one
+    /// direction and a convention in the other: <c>SdeStations.StationId</c> is an <c>int</c>, so
+    /// anything above int range definitively cannot be an NPC station. Below it, station is the
+    /// overwhelmingly likely answer — player structure ids are allocated far higher — but it is
+    /// an assumption, and the cost of being wrong is opening the wrong browser, not bad data.</para>
+    /// </summary>
+    public bool HasFacilityLink => RealStructureId is > 0 && RealStructureName.Length > 0;
+
+    public void OpenFacility()
+    {
+        if (RealStructureId is not > 0) return;
+        if (RealStructureId.Value <= int.MaxValue)
+            EntityNavigator.Instance.Entity(EntityKind.Station, RealStructureId.Value);
+        else
+            EntityNavigator.Instance.Structure(RealStructureId.Value);
+    }
 
     /// <summary>Search results while picking; not persisted.</summary>
     public ObservableCollection<SdeStationResult> FacilityResults { get; } = [];
@@ -820,12 +881,23 @@ public class IndyParksViewModel : ReactiveObject
         vm.FacilitySearch = "";
         _facilitySearchTarget = null;
         await SaveStructureDbAsync(vm);
+
+        // Saving the link stores the ids and nothing else, so the two sides have still never been
+        // compared. Adopt settles which one describes the fitting, and the reload is what puts the
+        // answer on screen: the rig slots, the service list and the read-only state are all built
+        // by the park loader, so without it a link reads as made while every field it governs
+        // still shows the structure as unlinked.
+        if (_indyLink is not null) await _indyLink.AdoptOnLinkAsync(vm.Id);
+        await LoadParkDetailAsync(vm.ParkId);
     }
 
     public async Task UnlinkFacilityAsync(StructureVm vm)
     {
         vm.RealStructureId   = null;
         vm.RealStructureName = "";
+        // With no link there is no asset feed, so the fitting becomes hand-editable again. Set
+        // here as well as in the loader, or the fields stay locked until the park is re-entered.
+        vm.FittingFromAssets = false;
         await SaveStructureDbAsync(vm);
     }
 

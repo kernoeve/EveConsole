@@ -19,6 +19,9 @@ public class PriceOverrideRow : ReactiveObject
     public int    TypeId   { get; }
     public string TypeName { get; }
 
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
+
     public PriceOverrideRow(int typeId, string typeName, decimal? build, decimal? market, decimal? contract)
     {
         TypeId   = typeId;

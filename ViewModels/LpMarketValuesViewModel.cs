@@ -28,6 +28,11 @@ public record LpCorpValueVm(
     int    LpHeld,
     DateTimeOffset ComputedAt)
 {
+    /// <summary>LP stores belong to NPC corporations, so the link goes to NPC Entities.</summary>
+    public bool HasCorpLink => CorporationId > 0 && CorporationName.Length > 0;
+    public void OpenCorporation()
+        => EntityNavigator.Instance.Entity(EntityKind.NpcCorp, CorporationId);
+
     public string IskPerLpText => Format(IskPerLp);
     public string MedianText   => Format(MedianIskPerLp);
     public string BestText     => Format(BestIskPerLp);

@@ -50,6 +50,11 @@ public partial class ItemBrowserView : ReactiveUserControl<ItemBrowserViewModel>
         }
     }
 
+    /// <summary>A market order's location — NPC station or player structure, decided by which
+    /// lookup named it rather than by the id.</summary>
+    private void OnOpenOrderLocation(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as OrderRowVm)?.OpenLocation();
+
     private void OnDetailTabChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (sender is TabControl tc &&

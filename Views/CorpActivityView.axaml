@@ -17,6 +17,29 @@
     <Style Selector="DataGridCell">
       <Setter Property="Padding" Value="4 0 4 0" />
     </Style>
+
+    <!-- A name that opens something. The button carries no chrome of its own, so a grid full of
+         links still reads as a grid.
+         ⚠️ No Foreground anywhere in here. A link keeps whatever colour its column already had —
+         the same rule the Killmail tool and the system page follow. On these tabs nearly every
+         name is clickable, so colouring them would recolour the page without telling you which
+         ones matter. The cursor and the hover underline carry the affordance instead, and at rest
+         every list looks exactly as it did. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,1,*">
@@ -124,7 +147,21 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="CHARACTER" Binding="{Binding Name}"      Width="*"   />
+                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="Name" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:Activity24hPlayerRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasCharacterLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" SortMemberPath="ValueRaw" Width="90"  />
                 </DataGrid.Columns>
               </DataGrid>
@@ -153,7 +190,21 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="CHARACTER" Binding="{Binding Name}"      Width="*"   />
+                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="Name" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:Activity24hPlayerRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasCharacterLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" SortMemberPath="ValueRaw" Width="90"  />
                 </DataGrid.Columns>
               </DataGrid>
@@ -182,7 +233,21 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="CHARACTER" Binding="{Binding Name}"      Width="*"   />
+                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="Name" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:Activity24hPlayerRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasCharacterLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" SortMemberPath="ValueRaw" Width="90"  />
                 </DataGrid.Columns>
               </DataGrid>
@@ -245,18 +310,33 @@
                         <TextBlock Text="{Binding SecurityText}"
                                    FontSize="10" FontWeight="SemiBold"
                                    Foreground="{Binding SecurityColor}" />
-                        <TextBlock Text="{Binding SystemName}"
-                                   FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
-                                   TextTrimming="CharacterEllipsis" />
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenKillSystem" IsVisible="{Binding HasSystemLink}">
+                            <TextBlock Text="{Binding SystemName}" Classes="linktext"
+                                       FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding SystemName}" IsVisible="{Binding ShowSystemPlain}"
+                                     FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
+
                       </StackPanel>
                       <TextBlock Text="{Binding ConstellationName}"
                                  FontSize="9" Foreground="#888899"
                                  TextTrimming="CharacterEllipsis"
                                  IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                      <TextBlock Text="{Binding RegionName}"
-                                 FontSize="9" Foreground="#666677"
-                                 TextTrimming="CharacterEllipsis"
-                                 IsVisible="{Binding RegionName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                      <Panel>
+                        <Button Classes="link" Click="OnOpenKillRegion" IsVisible="{Binding HasRegionLink}">
+                          <TextBlock Text="{Binding RegionName}" Classes="linktext"
+                                     FontSize="9" Foreground="#666677"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Text="{Binding RegionName}" IsVisible="{Binding ShowRegionPlain}"
+                                   FontSize="9" Foreground="#666677"
+                                   TextTrimming="CharacterEllipsis" />
+                      </Panel>
+
                     </StackPanel>
 
                     <!-- Victim: logo + name/corp/alliance -->
@@ -269,16 +349,30 @@
                              ToolTip.Tip="{Binding VictimAlliance}"
                              Margin="0 0 4 0" />
                       <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding VictimName}"
-                                   FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
-                                   TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="{Binding VictimCorp}"
-                                   FontSize="9" Foreground="#888899"
-                                   TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="{Binding VictimAlliance}"
-                                   FontSize="9" Foreground="#666677"
-                                   TextTrimming="CharacterEllipsis"
-                                   IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenKillVictim" IsVisible="{Binding HasVictimLink}">
+                            <TextBlock Text="{Binding VictimName}" Classes="linktext" FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding VictimName}" IsVisible="{Binding ShowVictimPlain}" FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenKillVictimCorp" IsVisible="{Binding HasVictimCorpLink}">
+                            <TextBlock Text="{Binding VictimCorp}" Classes="linktext" FontSize="9" Foreground="#888899"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding VictimCorp}" IsVisible="{Binding ShowVictimCorpPlain}" FontSize="9" Foreground="#888899"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenKillVictimAlliance" IsVisible="{Binding HasVictimAllianceLink}">
+                            <TextBlock Text="{Binding VictimAlliance}" Classes="linktext" FontSize="9" Foreground="#666677"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding VictimAlliance}" IsVisible="{Binding ShowVictimAlliancePlain}" FontSize="9" Foreground="#666677"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
                       </StackPanel>
                     </Grid>
 
@@ -292,16 +386,30 @@
                              ToolTip.Tip="{Binding FbAlliance}"
                              Margin="0 0 4 0" />
                       <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding FbName}"
-                                   FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
-                                   TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="{Binding FbCorp}"
-                                   FontSize="9" Foreground="#888899"
-                                   TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="{Binding FbAlliance}"
-                                   FontSize="9" Foreground="#666677"
-                                   TextTrimming="CharacterEllipsis"
-                                   IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenKillFb" IsVisible="{Binding HasFbLink}">
+                            <TextBlock Text="{Binding FbName}" Classes="linktext" FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding FbName}" IsVisible="{Binding ShowFbPlain}" FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenKillFbCorp" IsVisible="{Binding HasFbCorpLink}">
+                            <TextBlock Text="{Binding FbCorp}" Classes="linktext" FontSize="9" Foreground="#888899"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding FbCorp}" IsVisible="{Binding ShowFbCorpPlain}" FontSize="9" Foreground="#888899"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenKillFbAlliance" IsVisible="{Binding HasFbAllianceLink}">
+                            <TextBlock Text="{Binding FbAlliance}" Classes="linktext" FontSize="9" Foreground="#666677"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding FbAlliance}" IsVisible="{Binding ShowFbAlliancePlain}" FontSize="9" Foreground="#666677"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
                       </StackPanel>
                     </Grid>
 
@@ -478,7 +586,21 @@
                   <DataGridTextColumn Header="DATE"   Binding="{Binding DateText}"   Width="90"  />
                   <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
-                  <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"       Width="*"   />
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WalletDetailRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowParty" IsVisible="{Binding HasPartyLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasPartyLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
                 </DataGrid.Columns>
               </DataGrid>
@@ -573,7 +695,21 @@
                   <DataGridTextColumn Header="DATE"   Binding="{Binding DateText}"   Width="90"  />
                   <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
-                  <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"       Width="*"   />
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WalletDetailRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowParty" IsVisible="{Binding HasPartyLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasPartyLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
                 </DataGrid.Columns>
               </DataGrid>
@@ -635,7 +771,21 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"      Binding="{Binding Rank}"   Width="40"  />
-                    <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"   Width="*"   />
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:TaxPayerRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowEntity" IsVisible="{Binding HasEntityLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasEntityLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                     <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="110" />
                   </DataGrid.Columns>
                 </DataGrid>
@@ -667,7 +817,21 @@
                   <DataGridTextColumn Header="DATE"   Binding="{Binding DateText}"   Width="90"  />
                   <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
-                  <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"       Width="*"   />
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WalletDetailRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowParty" IsVisible="{Binding HasPartyLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasPartyLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
                 </DataGrid.Columns>
               </DataGrid>
@@ -729,7 +893,21 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"      Binding="{Binding Rank}"   Width="40"  />
-                    <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"   Width="*"   />
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:TaxPayerRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowEntity" IsVisible="{Binding HasEntityLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasEntityLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                     <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="110" />
                   </DataGrid.Columns>
                 </DataGrid>
@@ -761,7 +939,21 @@
                   <DataGridTextColumn Header="DATE"   Binding="{Binding DateText}"   Width="90"  />
                   <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
-                  <DataGridTextColumn Header="NAME"   Binding="{Binding Name}"       Width="*"   />
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WalletDetailRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowParty" IsVisible="{Binding HasPartyLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasPartyLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
                 </DataGrid.Columns>
               </DataGrid>
@@ -823,7 +1015,21 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"       Binding="{Binding Rank}"   Width="40"  />
-                    <DataGridTextColumn Header="NAME"    Binding="{Binding Name}"   Width="*"   />
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:TaxPayerRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowEntity" IsVisible="{Binding HasEntityLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasEntityLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                     <DataGridTextColumn Header="DONATED" Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="110" />
                   </DataGrid.Columns>
                 </DataGrid>
@@ -855,7 +1061,21 @@
                   <DataGridTextColumn Header="DATE"    Binding="{Binding DateText}"   Width="90"  />
                   <DataGridTextColumn Header="TIME"    Binding="{Binding TimeText}"   Width="60"  />
                   <DataGridTextColumn Header="TYPE"    Binding="{Binding TypeName}"   Width="120" />
-                  <DataGridTextColumn Header="DONOR"   Binding="{Binding Name}"       Width="160" />
+                  <DataGridTemplateColumn Header="DONOR" SortMemberPath="Name" Width="160">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WalletDetailRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowParty" IsVisible="{Binding HasPartyLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasPartyLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="AMOUNT"  Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
                   <DataGridTextColumn Header="REASON"  Binding="{Binding ReasonText}" Width="*"   />
                 </DataGrid.Columns>
@@ -922,8 +1142,36 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="DATE"               Binding="{Binding Date}"                  Width="90"  />
-                    <DataGridTextColumn Header="CHARACTER"          Binding="{Binding CharacterName}"         Width="140" />
-                    <DataGridTextColumn Header="ORE TYPE"           Binding="{Binding TypeName}"              Width="*"   />
+                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="CharacterName" Width="140">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:MiningLedgerRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding CharacterName}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="ORE TYPE" SortMemberPath="TypeName" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:MiningLedgerRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}"
+                                  ToolTip.Tip="Open in the Item Browser">
+                            <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasTypeLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                     <DataGridTextColumn Header="QUANTITY"           Binding="{Binding QuantityText}"          Width="100" SortMemberPath="Quantity" />
                     <DataGridTextColumn Header="REPROCESSED VALUE"  Binding="{Binding ReprocessedValueText}"  Width="130" SortMemberPath="ReprocessedValue" />
                   </DataGrid.Columns>
@@ -947,8 +1195,36 @@
                 </DataGrid.Styles>
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="DATE"               Binding="{Binding Date}"                  Width="90"  />
-                  <DataGridTextColumn Header="CHARACTER"          Binding="{Binding CharacterName}"         Width="140" />
-                  <DataGridTextColumn Header="ORE TYPE"           Binding="{Binding TypeName}"              Width="*"   />
+                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="CharacterName" Width="140">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:MiningLedgerRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding CharacterName}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="ORE TYPE" SortMemberPath="TypeName" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:MiningLedgerRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}"
+                                  ToolTip.Tip="Open in the Item Browser">
+                            <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasTypeLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="QUANTITY"           Binding="{Binding QuantityText}"          Width="100" SortMemberPath="Quantity" />
                   <DataGridTextColumn Header="REPROCESSED VALUE"  Binding="{Binding ReprocessedValueText}"  Width="130" SortMemberPath="ReprocessedValue" />
                 </DataGrid.Columns>
@@ -1011,7 +1287,21 @@
                     </Style>
                   </DataGrid.Styles>
                   <DataGrid.Columns>
-                    <DataGridTextColumn Header="CHARACTER" Binding="{Binding CharacterName}" Width="*" />
+                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="CharacterName" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:CorpKillCharRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding CharacterName}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                     <DataGridTextColumn Header="KILLS"     Binding="{Binding KillsText}"     SortMemberPath="KillsRaw"  Width="80" />
                     <DataGridTextColumn Header="LOSSES"    Binding="{Binding LossesText}"    SortMemberPath="LossesRaw" Width="80" />
                   </DataGrid.Columns>
@@ -1027,7 +1317,12 @@
             </TabItem>
 
             <TabItem Header="DETAIL">
+              <!-- Double-click opens the kill in the Killmail tool, the same as the 24H list on
+                   the Activity tab. Taken off the tapped row rather than off SelectedItem, so it
+                   works wherever the pointer lands — including on a name that is itself a link,
+                   where one click follows the name and two open the kill. -->
               <ListBox ItemsSource="{Binding KillDetailRows}"
+                       DoubleTapped="OnKillRowDoubleTapped"
                        Background="#0d0d12" BorderThickness="0"
                        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListBox.Styles>
@@ -1057,31 +1352,86 @@
                         <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
                           <StackPanel Orientation="Horizontal" Spacing="3">
                             <TextBlock Text="{Binding SecurityText}" FontSize="10" FontWeight="SemiBold" ToolTip.Tip="{Binding SecurityTip}" Foreground="{Binding SecurityColor}" />
-                            <TextBlock Text="{Binding SystemName}"   FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            <Panel>
+                              <Button Classes="link" Click="OnOpenKillSystem" IsVisible="{Binding HasSystemLink}">
+                                <TextBlock Text="{Binding SystemName}" Classes="linktext"
+                                           FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                           TextTrimming="CharacterEllipsis" />
+                              </Button>
+                              <TextBlock Text="{Binding SystemName}" IsVisible="{Binding ShowSystemPlain}"
+                                         FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                         TextTrimming="CharacterEllipsis" />
+                            </Panel>
                           </StackPanel>
                           <TextBlock Text="{Binding ConstellationName}" FontSize="9" Foreground="#888899" TextTrimming="CharacterEllipsis"
                                      IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                          <TextBlock Text="{Binding RegionName}" FontSize="9" Foreground="#666677" TextTrimming="CharacterEllipsis"
-                                     IsVisible="{Binding RegionName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          <Panel>
+                            <Button Classes="link" Click="OnOpenKillRegion" IsVisible="{Binding HasRegionLink}">
+                              <TextBlock Text="{Binding RegionName}" Classes="linktext"
+                                         FontSize="9" Foreground="#666677" TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding RegionName}" IsVisible="{Binding ShowRegionPlain}"
+                                       FontSize="9" Foreground="#666677" TextTrimming="CharacterEllipsis" />
+                          </Panel>
                         </StackPanel>
                         <Grid Grid.Column="3" ColumnDefinitions="32,*" Margin="0 0 4 0">
                           <Image Grid.Column="0" Source="{Binding VictimLogo}" Width="32" Height="32"
                                  Stretch="Uniform" VerticalAlignment="Center" ToolTip.Tip="{Binding VictimAlliance}" Margin="0 0 4 0" />
                           <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding VictimName}"     FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{Binding VictimCorp}"     FontSize="9"  Foreground="#888899" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{Binding VictimAlliance}" FontSize="9"  Foreground="#666677" TextTrimming="CharacterEllipsis"
-                                       IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            <Panel>
+                          <Button Classes="link" Click="OnOpenKillVictim" IsVisible="{Binding HasVictimLink}">
+                            <TextBlock Text="{Binding VictimName}" Classes="linktext" FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding VictimName}" IsVisible="{Binding ShowVictimPlain}" FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                            <Panel>
+                          <Button Classes="link" Click="OnOpenKillVictimCorp" IsVisible="{Binding HasVictimCorpLink}">
+                            <TextBlock Text="{Binding VictimCorp}" Classes="linktext" FontSize="9" Foreground="#888899"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding VictimCorp}" IsVisible="{Binding ShowVictimCorpPlain}" FontSize="9" Foreground="#888899"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                            <Panel>
+                          <Button Classes="link" Click="OnOpenKillVictimAlliance" IsVisible="{Binding HasVictimAllianceLink}">
+                            <TextBlock Text="{Binding VictimAlliance}" Classes="linktext" FontSize="9" Foreground="#666677"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding VictimAlliance}" IsVisible="{Binding ShowVictimAlliancePlain}" FontSize="9" Foreground="#666677"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
                           </StackPanel>
                         </Grid>
                         <Grid Grid.Column="4" ColumnDefinitions="32,*">
                           <Image Grid.Column="0" Source="{Binding FbLogo}" Width="32" Height="32"
                                  Stretch="Uniform" VerticalAlignment="Center" ToolTip.Tip="{Binding FbAlliance}" Margin="0 0 4 0" />
                           <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding FbName}"     FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{Binding FbCorp}"     FontSize="9"  Foreground="#888899" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{Binding FbAlliance}" FontSize="9"  Foreground="#666677" TextTrimming="CharacterEllipsis"
-                                       IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            <Panel>
+                          <Button Classes="link" Click="OnOpenKillFb" IsVisible="{Binding HasFbLink}">
+                            <TextBlock Text="{Binding FbName}" Classes="linktext" FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding FbName}" IsVisible="{Binding ShowFbPlain}" FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                            <Panel>
+                          <Button Classes="link" Click="OnOpenKillFbCorp" IsVisible="{Binding HasFbCorpLink}">
+                            <TextBlock Text="{Binding FbCorp}" Classes="linktext" FontSize="9" Foreground="#888899"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding FbCorp}" IsVisible="{Binding ShowFbCorpPlain}" FontSize="9" Foreground="#888899"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                            <Panel>
+                          <Button Classes="link" Click="OnOpenKillFbAlliance" IsVisible="{Binding HasFbAllianceLink}">
+                            <TextBlock Text="{Binding FbAlliance}" Classes="linktext" FontSize="9" Foreground="#666677"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding FbAlliance}" IsVisible="{Binding ShowFbAlliancePlain}" FontSize="9" Foreground="#666677"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
                           </StackPanel>
                         </Grid>
                       </Grid>
@@ -1165,7 +1515,21 @@
                     <DataGridTextColumn Header="CAREER"   Binding="{Binding Career}"       Width="100" />
                     <DataGridTextColumn Header="PROGRESS" Binding="{Binding ProgressText}" Width="170" />
                     <DataGridTextColumn Header="REM. REWARD" Binding="{Binding RemainingRewardText}" Width="95" />
-                    <DataGridTextColumn Header="CREATOR"    Binding="{Binding CreatorText}"        Width="120" />
+                  <DataGridTemplateColumn Header="CREATOR" SortMemberPath="CreatorText" Width="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:CorpProjectRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenProjectCreator" IsVisible="{Binding HasCreatorLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding CreatorText}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding CreatorText}" IsVisible="{Binding !HasCreatorLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                     <DataGridTextColumn Header="CREATED"  Binding="{Binding CreatedText}"  Width="90"  />
                   </DataGrid.Columns>
                 </DataGrid>
@@ -1268,8 +1632,47 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="TYPE"        Binding="{Binding TypeDisplay}"    Width="95" />
-                    <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding DescriptionText}" Width="*" />
-                    <DataGridTextColumn Header="LOCATION"    Binding="{Binding LocationText}"   Width="130" />
+                    <!-- The description is the item on a delivery project, so this is the cell
+                         that opens the Item Browser; the location beside it is the station the
+                         delivery goes to. Projects that name no item stay plain text. -->
+                    <DataGridTemplateColumn Header="DESCRIPTION" SortMemberPath="DescriptionText" Width="*">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                          <Panel>
+                            <Button Click="OnOpenProjectItem" IsVisible="{Binding HasItemLink}"
+                                    Background="Transparent" BorderThickness="0" Padding="6 0"
+                                    Cursor="Hand" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                    ToolTip.Tip="Open in the Item Browser">
+                              <TextBlock Text="{Binding DescriptionText}" FontSize="10"
+                                         VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding DescriptionText}" IsVisible="{Binding !HasItemLink}"
+                                       FontSize="10" VerticalAlignment="Center" Padding="6 0"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Panel>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <!-- Only a delivery has a destination you can dock at. A destroy-NPC project's
+                         location names a region or constellation, so it stays plain text. -->
+                    <DataGridTemplateColumn Header="LOCATION" SortMemberPath="LocationText" Width="130">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                          <Panel>
+                            <Button Click="OnOpenProjectLocation" IsVisible="{Binding HasLocationLink}"
+                                    Background="Transparent" BorderThickness="0" Padding="6 0"
+                                    Cursor="Hand" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                    ToolTip.Tip="Open this station or structure">
+                              <TextBlock Text="{Binding LocationText}" FontSize="10"
+                                         VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding LocationText}" IsVisible="{Binding !HasLocationLink}"
+                                       FontSize="10" VerticalAlignment="Center" Padding="6 0"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Panel>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTemplateColumn Header="PROJECT STATUS" Width="200">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
@@ -1283,8 +1686,12 @@
                     <DataGridTemplateColumn Header="REMAINING" Width="90">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                          <!-- ⚠️ TextAlignment, not HorizontalAlignment. A template column's cell
+                               does not stretch its content the way a text column's does, so
+                               HorizontalAlignment="Right" has nothing to align against. -->
                           <TextBlock Text="{Binding RemainingText}" Foreground="{Binding RemainingColor}"
-                                     FontSize="10" VerticalAlignment="Center" Padding="6 0" />
+                                     FontSize="10" VerticalAlignment="Center" Padding="6 0"
+                                     HorizontalAlignment="Stretch" TextAlignment="Right" />
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -1292,11 +1699,13 @@
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
                           <TextBlock Text="{Binding RemainingPercentText}" Foreground="{Binding RemainingColor}"
-                                     FontSize="10" VerticalAlignment="Center" Padding="6 0" />
+                                     FontSize="10" VerticalAlignment="Center" Padding="6 0"
+                                     HorizontalAlignment="Stretch" TextAlignment="Right" />
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="PAYOUT"      Binding="{Binding RemainingPayoutText}" Width="110" />
+                    <DataGridTextColumn Header="PAYOUT"      Binding="{Binding RemainingPayoutText}" Width="110"
+                                        CellStyleClasses="num" />
                     <DataGridTemplateColumn Header="" Width="120" IsReadOnly="True">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
@@ -1434,7 +1843,21 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"           Binding="{Binding Rank}"          Width="36"  />
-                    <DataGridTextColumn Header="NAME"        Binding="{Binding CharacterName}" Width="*"   />
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="CharacterName" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:ProjectContributorVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding CharacterName}" Classes="linktext" FontSize="10"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                     <DataGridTextColumn Header="CONTRIBUTED" Binding="{Binding Contributed}"   Width="100" />
                     <DataGridTextColumn Header="% OF TARGET" Binding="{Binding PercentText}"   Width="80"  />
                     <DataGridTextColumn Header="PAYOUT"      Binding="{Binding PayoutText}"    Width="110" />
@@ -1547,8 +1970,16 @@
                         <Grid ColumnDefinitions="26,*,Auto,50" Margin="0 1">
                           <TextBlock Grid.Column="0" Text="{Binding Rank}"
                                      FontSize="10" Foreground="#555566" />
-                          <TextBlock Grid.Column="1" Text="{Binding CharacterName}"
-                                     FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                          <Panel Grid.Column="1">
+                                     <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
+                                             ToolTip.Tip="Open in the entity browser">
+                                       <TextBlock Text="{Binding CharacterName}" Classes="linktext"
+                                                  FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                                     </Button>
+                                     <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}"
+                                                FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis"
+                                                VerticalAlignment="Center" />
+                                     </Panel>
                           <TextBlock Grid.Column="2" Text="{Binding AmountText}"
                                      FontSize="11" Foreground="#c8a84b" HorizontalAlignment="Right" />
                           <TextBlock Grid.Column="3" Text="{Binding PercentText}"
@@ -1573,8 +2004,16 @@
                         <Grid ColumnDefinitions="26,*,Auto,50" Margin="0 1">
                           <TextBlock Grid.Column="0" Text="{Binding Rank}"
                                      FontSize="10" Foreground="#555566" />
-                          <TextBlock Grid.Column="1" Text="{Binding CharacterName}"
-                                     FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                          <Panel Grid.Column="1">
+                                     <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
+                                             ToolTip.Tip="Open in the entity browser">
+                                       <TextBlock Text="{Binding CharacterName}" Classes="linktext"
+                                                  FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                                     </Button>
+                                     <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}"
+                                                FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis"
+                                                VerticalAlignment="Center" />
+                                     </Panel>
                           <TextBlock Grid.Column="2" Text="{Binding AmountText}"
                                      FontSize="11" Foreground="#6aaa88" HorizontalAlignment="Right" />
                           <TextBlock Grid.Column="3" Text="{Binding PercentText}"
@@ -1598,8 +2037,16 @@
                         <Grid ColumnDefinitions="26,*,Auto" Margin="0 1">
                           <TextBlock Grid.Column="0" Text="{Binding Rank}"
                                      FontSize="10" Foreground="#555566" />
-                          <TextBlock Grid.Column="1" Text="{Binding CharacterName}"
-                                     FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                          <Panel Grid.Column="1">
+                                     <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
+                                             ToolTip.Tip="Open in the entity browser">
+                                       <TextBlock Text="{Binding CharacterName}" Classes="linktext"
+                                                  FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                                     </Button>
+                                     <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}"
+                                                FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis"
+                                                VerticalAlignment="Center" />
+                                     </Panel>
                           <TextBlock Grid.Column="2" Text="{Binding AmountText}"
                                      FontSize="11" Foreground="#aa6644" HorizontalAlignment="Right" />
                         </Grid>
@@ -1621,8 +2068,16 @@
                         <Grid ColumnDefinitions="26,*,Auto,50" Margin="0 1">
                           <TextBlock Grid.Column="0" Text="{Binding Rank}"
                                      FontSize="10" Foreground="#555566" />
-                          <TextBlock Grid.Column="1" Text="{Binding CharacterName}"
-                                     FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                          <Panel Grid.Column="1">
+                                     <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
+                                             ToolTip.Tip="Open in the entity browser">
+                                       <TextBlock Text="{Binding CharacterName}" Classes="linktext"
+                                                  FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                                     </Button>
+                                     <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}"
+                                                FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis"
+                                                VerticalAlignment="Center" />
+                                     </Panel>
                           <TextBlock Grid.Column="2" Text="{Binding AmountText}"
                                      FontSize="11" Foreground="#8899cc" HorizontalAlignment="Right" />
                           <TextBlock Grid.Column="3" Text="{Binding PercentText}"
@@ -1646,8 +2101,16 @@
                         <Grid ColumnDefinitions="26,*,Auto,50" Margin="0 1">
                           <TextBlock Grid.Column="0" Text="{Binding Rank}"
                                      FontSize="10" Foreground="#555566" />
-                          <TextBlock Grid.Column="1" Text="{Binding CharacterName}"
-                                     FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                          <Panel Grid.Column="1">
+                                     <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
+                                             ToolTip.Tip="Open in the entity browser">
+                                       <TextBlock Text="{Binding CharacterName}" Classes="linktext"
+                                                  FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                                     </Button>
+                                     <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}"
+                                                FontSize="11" Foreground="#c8c8d8" TextTrimming="CharacterEllipsis"
+                                                VerticalAlignment="Center" />
+                                     </Panel>
                           <TextBlock Grid.Column="2" Text="{Binding AmountText}"
                                      FontSize="11" Foreground="#c87c3c" HorizontalAlignment="Right" />
                           <TextBlock Grid.Column="3" Text="{Binding PercentText}"

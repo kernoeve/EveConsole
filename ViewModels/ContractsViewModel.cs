@@ -77,12 +77,17 @@ public class ContractItemRowVm
     public string TypeName  { get; }
     public string Quantity  { get; }
     public string Details   { get; }     // blueprint / singleton notes
+    public int    TypeId    { get; }
+
+    public bool HasItemLink => TypeId > 0;
+    public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
 
     public ContractItemRowVm(ContractItem it, IReadOnlyDictionary<int, string> typeNames)
     {
         Kind      = it.IsIncluded ? "Offered" : "Requested";
         KindColor = it.IsIncluded ? "#5cb85c" : "#d9877a";
         TypeName  = typeNames.TryGetValue(it.TypeId, out var n) ? n : $"Type {it.TypeId}";
+        TypeId    = it.TypeId;
         Quantity  = it.Quantity.ToString("N0");
 
         var notes = new List<string>();
@@ -133,6 +138,28 @@ public class ContractDetailVm
     public ObservableCollection<ContractItemRowVm> Items { get; } = new();
     public bool HasItems => Items.Count > 0;
 
+    // ── Party links ───────────────────────────────────────────────────────────
+    //
+    // The issuer falls back to the issuing corporation exactly as the name does, so the link
+    // always opens whoever the text names.
+    private readonly long _issuerId;
+    private readonly long _assigneeId;
+    private readonly long _acceptorId;
+
+    public bool HasIssuerLink   => _issuerId   > 0;
+    public bool HasAssigneeLink => _assigneeId > 0;
+    public bool HasAcceptorLink => _acceptorId > 0;
+
+    public void OpenIssuer()   => Open(_issuerId);
+    public void OpenAssignee() => Open(_assigneeId);
+    public void OpenAcceptor() => Open(_acceptorId);
+
+    private static void Open(long id)
+    {
+        if (id <= 0) return;
+        EntityNavigator.Instance.Entity(EntityLinks.KindOf(id), id);
+    }
+
     public ContractDetailVm(
         ContractRecord c,
         IReadOnlyList<ContractItem> items,
@@ -156,6 +183,9 @@ public class ContractDetailVm
         Issuer   = Party(names, c.IssuerId, c.IssuerCorporationId);
         Assignee = c.AssigneeId is > 0 ? Party(names, c.AssigneeId.Value, 0) : "—";
         Acceptor = c.AcceptorId is > 0 ? Party(names, c.AcceptorId.Value, 0) : "—";
+        _issuerId   = c.IssuerId != 0 ? c.IssuerId : c.IssuerCorporationId;
+        _assigneeId = c.AssigneeId ?? 0;
+        _acceptorId = c.AcceptorId ?? 0;
 
         DateIssued    = ContractFmt.Date(c.DateIssued);
         DateExpired   = ContractFmt.Date(c.DateExpired);
@@ -224,6 +254,29 @@ public class ContractRowVm
     // public list) and past-expiry rows are historical.
     public bool IsActive { get; }
 
+    // ── Links ─────────────────────────────────────────────────────────────────
+    //
+    // Contents links only where the summary actually starts with an item name; a title, a bare
+    // count or "(courier)" names nothing to open.
+    public int  ContentsTypeId { get; }
+    public bool HasContentsLink => ContentsTypeId > 0;
+    public void OpenContents() => EntityNavigator.Instance.Item(ContentsTypeId);
+
+    /// <summary>The issuing character where there is one, otherwise the issuing corporation —
+    /// the same fallback the displayed name uses, so the link always matches the text.</summary>
+    public bool HasIssuerLink => _issuerLinkId > 0;
+    public void OpenIssuer() => EntityNavigator.Instance.Entity(
+        EntityLinks.KindOf(_issuerLinkId), _issuerLinkId);
+
+    public bool HasAssigneeLink => AssigneeId is > 0;
+    public void OpenAssignee()
+    {
+        if (AssigneeId is not > 0) return;
+        EntityNavigator.Instance.Entity(EntityLinks.KindOf(AssigneeId.Value), AssigneeId.Value);
+    }
+
+    private readonly long _issuerLinkId;
+
     public ContractRowVm(
         ContractRecord c,
         IReadOnlyList<ContractItem> items,
@@ -244,6 +297,8 @@ public class ContractRowVm
         Issuer   = c.IssuerId != 0 && names.TryGetValue(c.IssuerId, out var iN) && iN.Length > 0
             ? iN
             : (names.TryGetValue(c.IssuerCorporationId, out var icN) && icN.Length > 0 ? icN : $"ID {c.IssuerId}");
+        // Matches the name above: the character when one is named, otherwise the corporation.
+        _issuerLinkId = c.IssuerId != 0 ? c.IssuerId : c.IssuerCorporationId;
         AssigneeId = c.AssigneeId;
         AcceptorId = c.AcceptorId;
         Assignee = c.AssigneeId is > 0
@@ -266,9 +321,16 @@ public class ContractRowVm
         if (!string.IsNullOrWhiteSpace(c.Title))
             Contents = c.Title!;
         else if (included.Count == 1)
-            Contents = $"{Name(included[0])} ×{included[0].Quantity:N0}";
+        {
+            Contents       = $"{Name(included[0])} ×{included[0].Quantity:N0}";
+            ContentsTypeId = included[0].TypeId;
+        }
         else if (included.Count > 1)
-            Contents = $"{Name(included[0])} +{included.Count - 1} more";
+        {
+            // The summary leads with the first item's name, so that is what the link opens.
+            Contents       = $"{Name(included[0])} +{included.Count - 1} more";
+            ContentsTypeId = included[0].TypeId;
+        }
         else if (items.Count > 0)
             Contents = $"{items.Count} item(s)";
         else

@@ -11,17 +11,26 @@ namespace EveConsole.Views;
 public partial class OrderEditDialog : Window
 {
     private readonly Func<string, Task<List<TypeResultVm>>> _searchFunc;
+    private readonly Func<string, Task<List<BuyerResultVm>>>? _buyerSearchFunc;
     private CancellationTokenSource? _cts;
+    private CancellationTokenSource? _buyerCts;
     private int _typeId;
     private string _typeName = "";
+
+    // The picked buyer. A zero id means the typed text stands on its own — see OrderDialogResult.
+    private long   _buyerId;
+    private string _buyerType = "";
+    private string _buyerName = "";
 
     // Parameterless ctor for the XAML previewer only.
     public OrderEditDialog() : this(_ => Task.FromResult(new List<TypeResultVm>()), null) { }
 
-    public OrderEditDialog(Func<string, Task<List<TypeResultVm>>> searchFunc, OrderDialogResult? initial)
+    public OrderEditDialog(Func<string, Task<List<TypeResultVm>>> searchFunc, OrderDialogResult? initial,
+                           Func<string, Task<List<BuyerResultVm>>>? buyerSearchFunc = null)
     {
         InitializeComponent();
-        _searchFunc = searchFunc;
+        _searchFunc      = searchFunc;
+        _buyerSearchFunc = buyerSearchFunc;
 
         if (initial is not null)
         {
@@ -30,6 +39,10 @@ public partial class OrderEditDialog : Window
             _typeName = initial.TypeName;
             SelectedTypeText.Text = initial.TypeName;
             UnitsBox.Value = initial.Units;
+            _buyerId   = initial.BuyerId;
+            _buyerType = initial.BuyerType;
+            _buyerName = initial.Buyer;
+            SelectedBuyerText.Text = initial.Buyer.Length > 0 ? initial.Buyer : "(none selected)";
             BuyerBox.Text = initial.Buyer;
             EstDateBox.Text = initial.EstimatedDate ?? "";
             PriceBox.Value = (decimal)initial.PurchasePrice;
@@ -72,6 +85,50 @@ public partial class OrderEditDialog : Window
         }
     }
 
+    // ── Buyer picker ──────────────────────────────────────────────────────────
+    //
+    // Same shape as the item search above. ⚠️ Typing clears the picked id: the text and the id
+    // must not drift apart, or an order would carry one buyer's name against another's id.
+    private async void OnBuyerSearchChanged(object? sender, TextChangedEventArgs e)
+    {
+        var text = BuyerBox.Text ?? "";
+        if (text != _buyerName)
+        {
+            _buyerId = 0; _buyerType = ""; _buyerName = text;
+            SelectedBuyerText.Text = text.Length > 0 ? $"{text}  (not linked)" : "(none selected)";
+        }
+
+        if (_buyerSearchFunc is null) return;
+
+        _buyerCts?.Cancel();
+        _buyerCts = new CancellationTokenSource();
+        var ct = _buyerCts.Token;
+
+        if (text.Length < 3) { BuyerResultsList.ItemsSource = null; BuyerResultsBox.IsVisible = false; return; }
+
+        try
+        {
+            await Task.Delay(250, ct);
+            var results = await _buyerSearchFunc(text);
+            if (ct.IsCancellationRequested) return;
+            BuyerResultsList.ItemsSource = results;
+            BuyerResultsBox.IsVisible    = results.Count > 0;
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private void OnBuyerSelected(object? sender, SelectionChangedEventArgs e)
+    {
+        if (BuyerResultsList.SelectedItem is not BuyerResultVm b) return;
+
+        _buyerId   = b.Id;
+        _buyerType = b.EntityType;
+        _buyerName = b.Name;
+        SelectedBuyerText.Text  = b.Name;
+        BuyerBox.Text           = b.Name;   // re-raises TextChanged; the name now matches, so the id survives
+        BuyerResultsBox.IsVisible = false;
+    }
+
     private void UpdateOk()
     {
         OkButton.IsEnabled = _typeId > 0;
@@ -90,7 +147,8 @@ public partial class OrderEditDialog : Window
             est,
             (double)(PriceBox.Value ?? 0m),
             status,
-            PriorityBox.IsChecked == true));
+            PriorityBox.IsChecked == true,
+            _buyerId, _buyerType));
     }
 
     private void OnCancel(object? sender, RoutedEventArgs e) => Close(null);

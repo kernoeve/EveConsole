@@ -21,6 +21,11 @@ public class EntityNavigator
     public Action<int>?              OpenKillmail { get; set; }
     public Action<int>?              OpenRegion   { get; set; }
 
+    /// <summary>A constellation, framed on the map — like a region, but tighter.
+    /// ⚠️ By name rather than id, unlike its neighbours here: the map graph is keyed on
+    /// constellation name, and resolving an id would be a lookup performed for nobody.</summary>
+    public Action<string>?           OpenConstellation { get; set; }
+
     /// <summary>A player structure, by location id, in the Structure Browser. Separate from
     /// <see cref="OpenEntity"/> because a structure is not one of the entity kinds — it has a
     /// tool of its own, where an NPC station belongs to the entity browser.</summary>
@@ -34,6 +39,7 @@ public class EntityNavigator
     public void Item(int typeId)                 { if (typeId > 0) OpenItem?.Invoke(typeId); }
     public void Killmail(int killMailId)         { if (killMailId > 0) OpenKillmail?.Invoke(killMailId); }
     public void Region(int regionId)             { if (regionId > 0) OpenRegion?.Invoke(regionId); }
+    public void Constellation(string name)       { if (name.Length > 0) OpenConstellation?.Invoke(name); }
     public void Structure(long structureId)      { if (structureId > 0) OpenStructure?.Invoke(structureId); }
 
     /// <summary>

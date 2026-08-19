@@ -167,6 +167,21 @@ public class OrderRowVm
     public string         Range        { get; init; } = "";
     public string         LocationName { get; init; } = "";
 
+    /// <summary>Where the order sits, so the name can open it. ⚠️ IsStation comes from which
+    /// lookup named it rather than from the id, since an unnamed station and an unnamed structure
+    /// both fall through to a synthesised label.</summary>
+    public long           LocationId   { get; init; }
+    public bool           IsStation    { get; init; }
+
+    public bool HasLocationLink => LocationId > 0 && LocationName.Length > 0;
+
+    public void OpenLocation()
+    {
+        if (IsStation) EveConsole.Services.EntityNavigator.Instance
+                           .Entity(EveConsole.Services.EntityKind.Station, LocationId);
+        else           EveConsole.Services.EntityNavigator.Instance.Structure(LocationId);
+    }
+
     /// <summary>Null when the location's system is unknown — a structure whose order recorded
     /// no system id.</summary>
     public double?        Security     { get; init; }
@@ -1730,6 +1745,8 @@ public class ItemBrowserViewModel : ReactiveObject
                         MinVolume    = o.MinVolume,
                         Range        = o.Range,
                         LocationName = GetLocation(o),
+                        LocationId   = o.LocationId,
+                        IsStation    = stationNames.ContainsKey(o.LocationId),
                         Security     = GetSecurity(o),
                         Expires      = o.Issued.AddDays(o.Duration),
                     });
@@ -1743,6 +1760,8 @@ public class ItemBrowserViewModel : ReactiveObject
                         MinVolume    = o.MinVolume,
                         Range        = o.Range,
                         LocationName = GetLocation(o),
+                        LocationId   = o.LocationId,
+                        IsStation    = stationNames.ContainsKey(o.LocationId),
                         Security     = GetSecurity(o),
                         Expires      = o.Issued.AddDays(o.Duration),
                     });
@@ -2004,9 +2023,36 @@ public class ItemBrowserViewModel : ReactiveObject
             }
         }
 
+        // ── Blueprints that need this skill to run ────────────────────────────
+        //
+        // ⚠️ A second source, not a wider allowlist. The loop above reads dogma attributes, which
+        // say "this skill is needed to USE the item" — which is why Industry listed only other
+        // skills: nothing is fitted or flown with Industry, it is spent at a job. Those
+        // requirements live in SdeBlueprintSkills, keyed by blueprint and activity, and no
+        // category filter reaches them.
+        //
+        // Grouped by activity rather than folded in with the categories above, because
+        // "Manufacturing" and "Ship" answer different questions about the same skill.
+        var bpRows = await _db.SdeBlueprintSkills.AsNoTracking()
+            .Where(s => s.SkillTypeId == skillTypeId)
+            .Join(_db.SdeTypes.AsNoTracking().Where(t => t.Published), s => s.TypeId, t => t.TypeId,
+                  (s, t) => new { s.Level, s.Activity, TypeName = t.Name, t.TypeId })
+            .ToListAsync(ct);
+
+        foreach (var r in bpRows)
+        {
+            if (!byLevel.TryGetValue(r.Level, out var bpList))
+                byLevel[r.Level] = bpList = [];
+            bpList.Add((ActivityGroupName(r.Activity), r.TypeName, r.TypeId));
+        }
+
         return byLevel.ToDictionary(
             kv => kv.Key,
             kv => kv.Value
+                // ⚠️ Distinct first. One blueprint can name the same skill at the same level on
+                // more than one activity — manufacturing and copying both wanting Industry I —
+                // and those rows land in one group looking like a duplicated entry.
+                .Distinct()
                 .GroupBy(i => i.CategoryName)
                 .OrderBy(g => g.Key)
                 .Select(g => new RequiredForGroupVm(g.Key,
@@ -2015,6 +2061,20 @@ public class ItemBrowserViewModel : ReactiveObject
                      .ToList()))
                 .ToList());
     }
+
+    /// <summary>The SDE's activity keys, as a reader would name them.</summary>
+    private static string ActivityGroupName(string activity) => activity switch
+    {
+        "manufacturing"        => "Manufacturing",
+        "invention"            => "Invention",
+        "copying"              => "Copying",
+        "research_material"    => "Material Research",
+        "research_time"        => "Time Research",
+        "reaction"             => "Reactions",
+        _                      => activity.Length > 0
+                                    ? char.ToUpperInvariant(activity[0]) + activity[1..]
+                                    : "Industry",
+    };
 
     private async Task LoadIconAsync(int typeId, ItemDisplayVm vm, CancellationToken ct)
     {

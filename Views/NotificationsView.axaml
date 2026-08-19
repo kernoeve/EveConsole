@@ -23,6 +23,25 @@
       <Setter Property="FontSize" Value="10" /><Setter Property="Foreground" Value="#555566" />
       <Setter Property="FontWeight" Value="SemiBold" /><Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,2*,4,1*,Auto">
@@ -66,8 +85,36 @@
       <DataGrid.Columns>
         <DataGridTextColumn Header="Date"        Binding="{Binding DateText}"   Width="130" />
         <DataGridTextColumn Header="Type"        Binding="{Binding TypeLabel}"  Width="220" />
-        <DataGridTextColumn Header="Character"   Binding="{Binding Character}"  Width="150" />
-        <DataGridTextColumn Header="Sender"      Binding="{Binding Sender}"     Width="160" />
+        <DataGridTemplateColumn Header="Character" Width="150" SortMemberPath="Character">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:NotificationRowVm">
+              <Panel>
+                <Button Classes="link" Click="OnOpenNotifCharacter" IsVisible="{Binding HasCharacterLink}"
+                        ToolTip.Tip="Open in the entity browser">
+                  <TextBlock Text="{Binding Character}" Classes="linktext"
+                             TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding Character}" IsVisible="{Binding !HasCharacterLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTemplateColumn Header="Sender" Width="160" SortMemberPath="Sender">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:NotificationRowVm">
+              <Panel>
+                <Button Classes="link" Click="OnOpenNotifSender" IsVisible="{Binding HasSenderLink}"
+                        ToolTip.Tip="Open in the entity browser">
+                  <TextBlock Text="{Binding Sender}" Classes="linktext"
+                             TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding Sender}" IsVisible="{Binding !HasSenderLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="Sender Type" Binding="{Binding SenderType}" Width="100" />
         <DataGridTextColumn Header="Read"        Binding="{Binding ReadText}"   Width="70" />
       </DataGrid.Columns>

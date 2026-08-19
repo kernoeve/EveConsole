@@ -14,10 +14,6 @@
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding"    Value="6 5 2 5" />
     </Style>
-    <Style Selector="DataGridCell.num TextBlock">
-      <Setter Property="HorizontalAlignment" Value="Right" />
-      <Setter Property="Margin" Value="0 0 8 0" />
-    </Style>
     <Style Selector="Button.link">
       <Setter Property="Background"      Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
@@ -26,6 +22,16 @@
     </Style>
     <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <!-- ⚠️ No Foreground. A link in a cell keeps the colour its column already had; the cursor
+         and the hover underline carry the affordance. Same rule as the killmail tool and the
+         system page — recolouring every clickable name says nothing about which ones matter. -->
+    <Style Selector="TextBlock.linktext">
+      <Setter Property="FontSize"          Value="11" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
     </Style>
   </UserControl.Styles>
 
@@ -50,22 +56,58 @@
               Background="#0d0d12">
       <DataGrid.Columns>
         <DataGridTextColumn Header="Date / Time" Binding="{Binding WhenText}" SortMemberPath="WhenSort" Width="130" />
-        <DataGridTextColumn Header="Buyer"       Binding="{Binding Buyer}"    Width="144" />
-        <DataGridTextColumn Header="Item"        Binding="{Binding Item}"     Width="*" />
+        <!-- Buyer and Item are links. The item cell links only the named type: on a contract it
+             reads "Revelation +3 more items", and that tail stands for items this row carries no
+             ids for, so linking the whole string would promise a page it cannot open. -->
+        <DataGridTemplateColumn Header="Buyer" SortMemberPath="Buyer" Width="144">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleListingRowVm">
+              <Panel>
+                <Button Classes="link" Click="OnOpenBuyer" IsVisible="{Binding HasBuyerLink}"
+                        HorizontalAlignment="Left" ToolTip.Tip="Open in the entity browser">
+                  <TextBlock Text="{Binding Buyer}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding Buyer}" IsVisible="{Binding !HasBuyerLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="Item" SortMemberPath="Item" Width="*">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleListingRowVm">
+              <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Classes="link" Click="OnOpenItem" IsVisible="{Binding HasItemLink}"
+                        HorizontalAlignment="Left" ToolTip.Tip="Open in the Item Browser">
+                  <TextBlock Text="{Binding ItemName}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding ItemName}" IsVisible="{Binding !HasItemLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding ItemExtra}" Foreground="#77778a" VerticalAlignment="Center" />
+              </StackPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="Amount"      Binding="{Binding Amount}"   SortMemberPath="AmountRaw" Width="60" CellStyleClasses="num" />
+        <!-- ⚠️ TextAlignment, not HorizontalAlignment. A template column's cell does not stretch
+             its content the way a text column's does, so HorizontalAlignment="Right" had nothing
+             to align against and these two read as left-aligned beside the Amount column. -->
         <DataGridTemplateColumn Header="Profit"   SortMemberPath="ProfitRaw"    Width="60">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleListingRowVm">
               <TextBlock Text="{Binding Profit}" Foreground="{Binding ProfitBrush}" FontSize="11"
-                         HorizontalAlignment="Right" Margin="0 0 8 0" VerticalAlignment="Center" />
+                         HorizontalAlignment="Stretch" TextAlignment="Right"
+                         Margin="0 0 8 0" VerticalAlignment="Center" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Profit %" SortMemberPath="ProfitPctRaw" Width="50">
+        <DataGridTemplateColumn Header="Profit %" SortMemberPath="ProfitPctRaw" Width="64">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleListingRowVm">
               <TextBlock Text="{Binding ProfitPct}" Foreground="{Binding ProfitBrush}" FontSize="11"
-                         HorizontalAlignment="Right" Margin="0 0 8 0" VerticalAlignment="Center" />
+                         HorizontalAlignment="Stretch" TextAlignment="Right"
+                         Margin="0 0 8 0" VerticalAlignment="Center" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

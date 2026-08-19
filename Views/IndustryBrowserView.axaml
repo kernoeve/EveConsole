@@ -78,8 +78,18 @@
             <StackPanel Orientation="Vertical" Spacing="2" VerticalAlignment="Center">
               <TextBlock x:Name="DetailFacility" Foreground="#9ab4c8" FontSize="11" FontWeight="SemiBold"
                          TextTrimming="CharacterEllipsis" MaxWidth="440"/>
-              <TextBlock x:Name="DetailLocation" Foreground="#556677" FontSize="10"
-                         TextTrimming="CharacterEllipsis" MaxWidth="440"/>
+              <!-- System and region split out so each can link. Security travels with them but is
+                   a value rather than a place, so it stays plain. Separators hide when the part
+                   after them is empty, which is how the old single joined string behaved. -->
+              <StackPanel Orientation="Horizontal" Spacing="0" MaxWidth="440">
+                <TextBlock x:Name="DetailSystem"   Foreground="#556677" FontSize="10"
+                           TextTrimming="CharacterEllipsis"/>
+                <TextBlock x:Name="DetailLocSep1"  Text="  ·  " Foreground="#556677" FontSize="10"/>
+                <TextBlock x:Name="DetailRegion"   Foreground="#556677" FontSize="10"
+                           TextTrimming="CharacterEllipsis"/>
+                <TextBlock x:Name="DetailLocSep2"  Text="  ·  " Foreground="#556677" FontSize="10"/>
+                <TextBlock x:Name="DetailSecurity" Foreground="#556677" FontSize="10"/>
+              </StackPanel>
             </StackPanel>
           </StackPanel>
 

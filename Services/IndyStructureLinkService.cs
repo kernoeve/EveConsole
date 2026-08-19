@@ -82,6 +82,44 @@ public class IndyStructureLinkService(IDbContextFactory<AppDbContext> dbFactory,
     public Task<int> PushFromRealAsync(long realStructureId, CancellationToken ct = default) =>
         PushAsync(l => l.RealId == realStructureId, fromPark: false, ct);
 
+    /// <summary>
+    /// A link has just been made: bring the two sides into agreement for the first time.
+    ///
+    /// <para>⚠️ Deliberately not the edit rule. Linking asserts that two records describe one
+    /// structure; it does not claim either was changed. So the side that already knows something
+    /// wins, whether it learned it from assets or from the browser's own fitting entry — and only
+    /// a real structure nobody knows anything about accepts the park's description. Running
+    /// <see cref="PushFromParkAsync"/> here instead would treat the link as a park edit, and a
+    /// fresh park entry would push its empty set out over a hand-entered fitting that was the
+    /// only record of it.</para>
+    /// </summary>
+    public async Task<int> AdoptOnLinkAsync(int parkStructureId, CancellationToken ct = default)
+    {
+        try
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+            var link = (await LinksAsync(db, ct)).FirstOrDefault(l => l.ParkId == parkStructureId);
+            if (link is null) return 0;
+
+            var (rigs, services) = await ReadRealAsync(db, link.RealId, ct);
+
+            var changed = rigs.Count > 0 || services.Count > 0
+                ? await RealToParkAsync(db, link, ct)
+                : await ParkToRealAsync(db, link, ct);
+
+            if (changed > 0) await db.SaveChangesAsync(ct);
+            LastChanged = changed;
+            return changed;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            errorLogger.Log(nameof(IndyStructureLinkService), nameof(AdoptOnLinkAsync), ex);
+            return 0;
+        }
+    }
+
     private async Task<int> PushAsync(Func<Link, bool> match, bool fromPark, CancellationToken ct)
     {
         try

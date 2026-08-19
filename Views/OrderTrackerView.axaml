@@ -12,9 +12,6 @@
       <Setter Property="FontSize" Value="10" /><Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding" Value="6 5 2 5" />
     </Style>
-    <Style Selector="DataGridCell.num TextBlock">
-      <Setter Property="HorizontalAlignment" Value="Right" /><Setter Property="Margin" Value="0 0 8 0" />
-    </Style>
     <Style Selector="TextBlock.fl">
       <Setter Property="Foreground" Value="#555566" /><Setter Property="FontSize" Value="11" />
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -22,6 +19,25 @@
     <Style Selector="TextBox, ComboBox">
       <Setter Property="Background" Value="#131320" /><Setter Property="BorderBrush" Value="#2a2a3a" />
       <Setter Property="Foreground" Value="#ccccdd" /><Setter Property="FontSize" Value="11" />
+    </Style>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
     </Style>
   </UserControl.Styles>
 
@@ -68,9 +84,35 @@
               Background="#0d0d12">
       <DataGrid.Columns>
         <DataGridTextColumn Header="Created"        Binding="{Binding CreatedText}" SortMemberPath="CreatedSort" Width="100" />
-        <DataGridTextColumn Header="Type"           Binding="{Binding Type}"        Width="230" />
+        <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="230">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrackedOrderRowVm">
+              <Panel>
+                <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}" ToolTip.Tip="Open in the Item Browser">
+                  <TextBlock Text="{Binding Type}" Classes="linktext"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding Type}" IsVisible="{Binding !HasTypeLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="Units"          Binding="{Binding UnitsText}"   SortMemberPath="Units"       Width="90"  CellStyleClasses="num" />
-        <DataGridTextColumn Header="Buyer"          Binding="{Binding Buyer}"       Width="150" />
+        <DataGridTemplateColumn Header="Buyer" SortMemberPath="Buyer" Width="150">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrackedOrderRowVm">
+              <Panel>
+                <Button Classes="link" Click="OnOpenRowBuyer" IsVisible="{Binding HasBuyerLink}" ToolTip.Tip="Open in the entity browser">
+                  <TextBlock Text="{Binding Buyer}" Classes="linktext"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding Buyer}" IsVisible="{Binding !HasBuyerLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="Est. Date"      Binding="{Binding EstDate}"     Width="100" />
         <DataGridTextColumn Header="Pri"            Binding="{Binding PriorityMark}" SortMemberPath="IsPriority" Width="44" />
         <DataGridTextColumn Header="Purchase Price" Binding="{Binding Purchase}"    SortMemberPath="PurchaseRaw" Width="120" CellStyleClasses="num" />

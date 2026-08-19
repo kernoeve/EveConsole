@@ -10,6 +10,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.ReactiveUI;
 using Avalonia.VisualTree;
 using EveConsole.ViewModels;
+using EveConsole.Services;
 using ReactiveUI;
 
 namespace EveConsole.Views;
@@ -55,6 +56,7 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
             JobsGrid.AddHandler(InputElement.PointerReleasedEvent,
                 new EventHandler<PointerReleasedEventArgs>(OnPointerReleased), RoutingStrategies.Tunnel);
             StatusPicker.SelectionChanged += OnStatusPickerChanged;
+            WireDetailLinks();
             _handlersAdded = true;
         }
 
@@ -115,12 +117,105 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
         foreach (var col in IndustryBrowserViewModel.DisplayColumns)
         {
             var c = col;
+            // Four columns name something with a page of its own. The rest are dates, counts and
+            // statuses, and stay plain.
+            Action<GridRow>? onClick = c switch
+            {
+                "Product"   => OpenProduct,
+                "Facility"  => OpenFacility,
+                "Installer" => OpenInstaller,
+                "Owner"     => OpenOwner,
+                _           => null,
+            };
+
             JobsGrid.Columns.Add(new DataGridTemplateColumn
             {
                 Header = c, Tag = c, IsReadOnly = true, CanUserSort = true,
                 CellTemplate = new FuncDataTemplate<GridRow>(
-                    (_, _) => new SelectableCell(JobsGrid, c, _selectionSvc)),
+                    (_, _) => new SelectableCell(JobsGrid, c, _selectionSvc, onClick)),
             });
+        }
+    }
+
+    // ── Row links ─────────────────────────────────────────────────────────────
+    //
+    // A GridRow is a string dictionary, so every id arrives as text. The hidden id columns are
+    // COALESCEd to 0 rather than left null, so a missing one parses to zero and EntityNavigator
+    // ignores it — no null handling needed here.
+    private static long Id(GridRow row, string col) =>
+        long.TryParse(row[col], out var v) ? v : 0;
+
+    private static void OpenProduct(GridRow row)
+        => EntityNavigator.Instance.Item((int)Id(row, IndustryBrowserViewModel.ColProductTypeId));
+
+    private static void OpenBlueprint(GridRow row)
+        => EntityNavigator.Instance.Item((int)Id(row, IndustryBrowserViewModel.ColBlueprintTypeId));
+
+    private static void OpenInstaller(GridRow row)
+        => EntityNavigator.Instance.Entity(EntityKind.Pilot,
+                                           Id(row, IndustryBrowserViewModel.ColInstallerId));
+
+    /// <summary>Owner is a character or a corporation, and the row says which.</summary>
+    private static void OpenOwner(GridRow row)
+        => EntityNavigator.Instance.Entity(
+            row[IndustryBrowserViewModel.ColOwnerType] == "corporation"
+                ? EntityKind.PlayerCorp : EntityKind.Pilot,
+            Id(row, IndustryBrowserViewModel.ColOwnerId));
+
+    /// <summary>NPC station to the entity browser, player structure to its own tool — decided by
+    /// whether SdeStations named it, which the query reports rather than this guessing.</summary>
+    private static void OpenFacility(GridRow row)
+    {
+        var id = Id(row, IndustryBrowserViewModel.ColFacilityId);
+        if (row[IndustryBrowserViewModel.ColFacilityIsStation] == "1")
+            EntityNavigator.Instance.Entity(EntityKind.Station, id);
+        else
+            EntityNavigator.Instance.Structure(id);
+    }
+
+    private static void OpenSystem(GridRow row)
+        => EntityNavigator.Instance.System((int)Id(row, IndustryBrowserViewModel.ColSolarSystemId));
+
+    private static void OpenRegion(GridRow row)
+        => EntityNavigator.Instance.Region((int)Id(row, IndustryBrowserViewModel.ColRegionId));
+
+    // ── Detail panel links ────────────────────────────────────────────────────
+    //
+    // These controls are named and filled imperatively rather than bound, so the links are
+    // attached once at startup and read the currently selected row when clicked. ViewModel
+    // .SelectedRow is the same row UpdateDetailPanel was given, so there is nothing to cache.
+    private void WireDetailLinks()
+    {
+        Link(DetailOwner,     OpenOwner);
+        Link(DetailInstaller, OpenInstaller);
+        Link(DetailFacility,  OpenFacility);
+        Link(DetailSystem,    OpenSystem);
+        Link(DetailRegion,    OpenRegion);
+        Link(DetailBlueprint, OpenBlueprint);
+        Link(DetailProduct,   OpenProduct);
+        Link(BlueprintImage,  OpenBlueprint);
+        Link(ProductImage,    OpenProduct);
+        Link(FacilityImage,   OpenFacility);
+    }
+
+    /// <summary>Makes one detail control clickable. ⚠️ No Foreground change — the detail panel
+    /// already colours these deliberately, and the cursor plus the hover underline carry the
+    /// affordance, matching every other link in the app. An Image gets the cursor only, having
+    /// no text to underline.</summary>
+    private void Link(Control c, Action<GridRow> open)
+    {
+        c.Cursor = new Cursor(StandardCursorType.Hand);
+        c.Tapped += (_, _) => { if (ViewModel?.SelectedRow is { } row) open(row); };
+
+        if (c is TextBlock tb)
+        {
+            tb.PointerEntered += (_, _) => tb.TextDecorations = TextDecorations.Underline;
+            tb.PointerExited  += (_, _) => tb.TextDecorations = null;
+        }
+        else
+        {
+            c.PointerEntered += (_, _) => c.Opacity = 0.75;
+            c.PointerExited  += (_, _) => c.Opacity = 1.0;
         }
     }
 
@@ -348,7 +443,8 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
             DetailBlueprint.Text      = "";
             DetailProduct.Text        = "";
             DetailFacility.Text       = "";
-            DetailLocation.Text       = "";
+            DetailSystem.Text = DetailRegion.Text = DetailSecurity.Text = "";
+            DetailLocSep1.IsVisible = DetailLocSep2.IsVisible = false;
             DetailME.Text             = "";
             DetailTE.Text             = "";
             DetailTimeLeft.Text       = "";
@@ -381,8 +477,12 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
         DetailProduct.Text        = row["Product"];
         DetailFacility.Text       = row["Facility"];
         var sys = row["Solar System"]; var reg = row["Region"]; var sec = row["Security"];
-        DetailLocation.Text = string.Join("  ·  ",
-            new[] { sys, reg, sec }.Where(s => !string.IsNullOrEmpty(s)));
+        DetailSystem.Text   = sys;
+        DetailRegion.Text   = reg;
+        DetailSecurity.Text = sec;
+        // A separator earns its place only when there is something on both sides of it.
+        DetailLocSep1.IsVisible = sys.Length > 0 && (reg.Length > 0 || sec.Length > 0);
+        DetailLocSep2.IsVisible = reg.Length > 0 && sec.Length > 0;
         DetailME.Text             = row[IndustryBrowserViewModel.ColME];
         DetailTE.Text             = row[IndustryBrowserViewModel.ColTE];
         DetailCost.Text           = row["Cost"] is { Length: > 0 } c ? $"{c} ISK" : "";

@@ -26,6 +26,13 @@ public class EveMailRowVm : ReactiveObject
     public DateTimeOffset TimeRaw      { get; }
     public string         CharName     { get; }
 
+    /// <summary>Each addressee separately, so every name in the To line is its own link. A
+    /// mailing list has no entity page, so it renders plain.</summary>
+    public IReadOnlyList<EveMailPartyVm> Recipients { get; }
+
+    public bool HasFromLink => FromId > 0 && FromText.Length > 0;
+    public void OpenFrom() => EntityNavigator.Instance.Entity(EntityLinks.KindOf(FromId), FromId);
+
     private bool   _isRead;
     private bool   _isUnread;
     private string _fromColor;
@@ -42,6 +49,7 @@ public class EveMailRowVm : ReactiveObject
         FromId        = r.FromId;
         FromText      = string.IsNullOrEmpty(r.FromName) ? $"#{r.FromId}" : r.FromName;
         ToText        = r.RecipientSummary;
+        Recipients    = r.Recipients.Select(x => new EveMailPartyVm(x)).ToList();
         Subject       = r.Subject;
         TimeText      = r.Timestamp.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
         TimeRaw       = r.Timestamp;
@@ -69,6 +77,15 @@ public class EveMailRowVm : ReactiveObject
     }
 }
 
+
+/// <summary>One name on a mail's To line.</summary>
+public class EveMailPartyVm(EveMailRecipient r)
+{
+    public string Name    { get; } = r.Name;
+    /// <summary>A mailing list is not an entity — nothing to open, so no link.</summary>
+    public bool   HasLink => r.Id > 0 && r.Type != "mailing_list";
+    public void   Open()  => EntityNavigator.Instance.Entity(EntityLinks.KindOf(r.Id, r.Type), r.Id);
+}
 public class EveMailFolderVm(string name, int? labelId)
 {
     public string Name    { get; } = name;
