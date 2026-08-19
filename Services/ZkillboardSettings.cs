@@ -30,11 +30,20 @@ public sealed class ZkillboardSettings(AppPreferencesService prefs)
     public const string KeyR2Z2SequenceSaved = "zkb.r2z2_sequence_saved_at";
     public const string KeyPostEnabled       = "zkb.post_enabled";
 
-    /// <summary>OFF by default — this is an optional supplement to the existing
-    /// ESI-based kill pull, not a replacement.</summary>
+    /// <summary>
+    /// ON by default. ESI's own killmail endpoints only return a kill when the tracked character
+    /// or corporation was the victim or landed the final blow, so participation without the final
+    /// blow — routine in fleet fights — is invisible to them. zKillboard closes that gap, which
+    /// makes it the normal way to have complete kill data rather than an opt-in extra.
+    ///
+    /// ⚠️ Defaulting to on means an install that has never touched this setting starts polling
+    /// zKillboard on upgrade, because an absent preference reads as the default. That is the
+    /// intent; the traffic is the targeted per-character/corp API in the default Mine + Corp
+    /// scope, not the firehose.
+    /// </summary>
     public bool Enabled
     {
-        get => prefs.GetBool(KeyEnabled, false);
+        get => prefs.GetBool(KeyEnabled, true);
         set => _ = prefs.SetBoolAsync(KeyEnabled, value);
     }
 

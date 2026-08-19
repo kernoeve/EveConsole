@@ -102,7 +102,6 @@ public class AppDbContext : DbContext
     public DbSet<StandingBuyOrder> StandingBuyOrders => Set<StandingBuyOrder>();
     public DbSet<WorklistMarketAlt>      WorklistMarketAlts      => Set<WorklistMarketAlt>();
     public DbSet<WorklistInvRule>   WorklistInvRules   => Set<WorklistInvRule>();
-    public DbSet<WorklistOrderRule> WorklistOrderRules => Set<WorklistOrderRule>();
     public DbSet<WorklistCorpAlt>   WorklistCorpAlts   => Set<WorklistCorpAlt>();
     public DbSet<WorklistIndyChar>  WorklistIndyChars  => Set<WorklistIndyChar>();
     public DbSet<WorklistItemState> WorklistItemStates => Set<WorklistItemState>();
@@ -1014,9 +1013,6 @@ public class AppDbContext : DbContext
             e.HasIndex(x => x.LocationId).IsUnique(); });
 
         mb.Entity<WorklistInvRule>(e => {
-            e.HasKey(x => x.Id); });
-
-        mb.Entity<WorklistOrderRule>(e => {
             e.HasKey(x => x.Id); });
 
         mb.Entity<WorklistCorpAlt>(e => {

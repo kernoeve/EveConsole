@@ -88,9 +88,21 @@ public sealed class IntelService(
     }
 
     /// <summary>
-    /// Parses the whole stored history of the intel channels, oldest first. Used by the button
-    /// in settings — without it the overlays stay empty until fresh intel is posted, when tens
-    /// of thousands of usable messages are already on disk.
+    /// Re-parses the stored history of the intel channels, oldest first. Used by the button in
+    /// settings — without it the overlays stay empty until fresh intel is posted, when tens of
+    /// thousands of usable messages are already on disk.
+    ///
+    /// <para>Existing reports for the period being re-parsed are discarded rather than resumed
+    /// around: a re-parse is normally asked for because the rules changed, and leaving the old
+    /// rows would keep whatever the old rules got wrong — the unique index on ChatMessageId makes
+    /// the second pass skip them.</para>
+    ///
+    /// <para>⚠️ "For the period being re-parsed" is the whole point. It used to clear every report
+    /// unconditionally, which was harmless while chat was kept forever. Now that Data Retention
+    /// can purge old chat, reports derived from messages that are gone cannot be regenerated —
+    /// clearing them would destroy history permanently. So the cut starts at the oldest chat
+    /// message still stored in these channels: everything from there on will be rebuilt, and
+    /// everything before it is left alone.</para>
     /// </summary>
     public async Task<int> BackfillAsync(
         IProgress<string>? progress = null, CancellationToken ct = default)
@@ -98,14 +110,24 @@ public sealed class IntelService(
         var channels = settings.ChatIntelChannels;
         if (channels.Count == 0) return 0;
 
-        // Discard what was derived before rather than resuming around it. Reports are wholly
-        // derived from chat, which is still there, and a re-parse is normally asked for because
-        // the rules changed — leaving the old rows would keep whatever the old rules got wrong,
-        // since the unique index on ChatMessageId makes the second pass skip them.
         using (var db = dbFactory.CreateDbContext())
         {
-            await db.IntelReportCharacters.ExecuteDeleteAsync(ct);
-            await db.IntelReports.ExecuteDeleteAsync(ct);
+            // The horizon of what a re-parse can actually reproduce.
+            var oldest = await db.ChatMessages.AsNoTracking()
+                .Where(m => channels.Contains(m.ChannelName) && !m.IsSystemMessage)
+                .MinAsync(m => (string?)m.OccurredAt, ct);
+
+            if (oldest is null) return 0;   // nothing stored to parse; keep what we have
+
+            // Channel-scoped as well as time-scoped: a report from a channel no longer configured
+            // for intel would not be regenerated either, so it is not ours to delete.
+            var doomed = db.IntelReports
+                .Where(r => string.Compare(r.ReportedAt, oldest) >= 0 && channels.Contains(r.ChannelName));
+
+            await db.IntelReportCharacters
+                .Where(c => doomed.Any(r => r.Id == c.IntelReportId))
+                .ExecuteDeleteAsync(ct);
+            await doomed.ExecuteDeleteAsync(ct);
         }
 
         settings.IntelWatermark = 0;

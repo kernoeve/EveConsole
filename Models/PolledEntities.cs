@@ -953,7 +953,19 @@ public class TrackedOrder
     public int    Id            { get; set; }   // autoincrement
     public int    TypeId        { get; set; }
     public int    Units         { get; set; } = 1;
-    public string Buyer         { get; set; } = "";   // who the item is sent to (free text)
+    public string Buyer         { get; set; } = "";   // who the item is sent to — the picked name
+
+    /// <summary>
+    /// The picked buyer's id, and whether it names a character or a corporation.
+    ///
+    /// <para>⚠️ Zero on any order created while the buyer was still free text. Those keep the
+    /// typed name and simply do not link; re-picking the buyer on the row fills them in. Nothing
+    /// back-fills automatically — a name alone does not identify a pilot, and guessing would
+    /// attach the wrong id to somebody's order history.</para>
+    /// </summary>
+    public long   BuyerId       { get; set; }
+    public string BuyerType     { get; set; } = "";   // "character" | "corporation" | ""
+
     public string? EstimatedDate { get; set; }        // "yyyy-MM-dd", user's estimate
     public double PurchasePrice { get; set; }         // total agreed price for the order
     public string Status        { get; set; } = "pending";   // pending | completed | canceled

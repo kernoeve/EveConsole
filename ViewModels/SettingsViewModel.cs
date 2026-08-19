@@ -23,8 +23,19 @@ public class SettingsViewModel : ReactiveObject
     public ZkillboardSettingsViewModel    ZkbVm           { get; }
     public MapStatsSettingsViewModel      MapStatsVm      { get; }
     public OtherSettingsViewModel         OtherVm         { get; }
+    public DataRetentionSettingsViewModel RetentionVm     { get; }
+
+    /// <summary>
+    /// Shared with the Worklist tool rather than a second instance of its own.
+    ///
+    /// <para>The Industry tab here edits which characters may be given jobs; the Worklist tool
+    /// reads that same list to plan against. Two view models over one table would each hold their
+    /// own copy of the grid and neither would see the other's edits until a reload.</para>
+    /// </summary>
+    public WorklistIndustryViewModel      IndustryVm      { get; }
 
     public SettingsViewModel(
+        WorklistIndustryViewModel     industryVm,
         CharacterViewModel            characterVm,
         SdeViewModel                  sdeVm,
         UpdateViewModel               updateVm,
@@ -42,6 +53,7 @@ public class SettingsViewModel : ReactiveObject
         ZkillboardSettingsViewModel   zkbVm,
         MapStatsSettingsViewModel     mapStatsVm,
         OtherSettingsViewModel        otherVm,
+        DataRetentionSettingsViewModel retentionVm,
         TtsService?                   tts     = null,
         SpeechInputService?           speech  = null,
         GlobalHotkeyService?          hotkey  = null)
@@ -63,5 +75,7 @@ public class SettingsViewModel : ReactiveObject
         CorpTop10Vm    = corpTop10Vm;
         DatabaseVm     = databaseVm;
         OtherVm        = otherVm;
+        RetentionVm    = retentionVm;
+        IndustryVm     = industryVm;
     }
 }
