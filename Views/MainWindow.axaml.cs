@@ -316,7 +316,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         vm.OverviewVm.OpenAlertSettingsRequested = () => _ = OpenSettingsAsync(vm, "Alerts");
 
-        _ = vm.OverviewVm.LoadAsync();
+        // Normally already done during startup, while the splash was up; the cached task makes this
+        // a no-op in that case.
+        _ = vm.OverviewVm.EnsureLoadedAsync();
     }
 
     // ── Agent navigation ──────────────────────────────────────────────────────
@@ -406,12 +408,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         await vm.PollingSettingsVm.LoadAsync(vm.CharacterVm.Characters);
         vm.CorpTop10SettingsVm.Load();
         var dbVm = new DatabaseSettingsViewModel(vm.AppPrefs, vm.DbBackup);
-        var settingsVm = new SettingsViewModel(vm.CharacterVm, vm.SdeVm, vm.UpdateVm, vm.MarketVm, vm.TimerVm,
+        // The Worklist tool's own industry view model, not a second one: the Industry tab edits
+        // the character list that tool plans against, and two instances over one table would not
+        // see each other's edits.
+        var settingsVm = new SettingsViewModel(vm.WorklistVm.IndustryVm,
+                                               vm.CharacterVm, vm.SdeVm, vm.UpdateVm, vm.MarketVm, vm.TimerVm,
                                                vm.AgentVm.Service, vm.PriceHistorySettingsVm,
                                                vm.AlertSettingsVm, vm.PollingSettingsVm,
                                                vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm,
                                                vm.GameLogSettingsVm, vm.ChatLogSettingsVm, vm.ZkbSettingsVm,
-                                               vm.MapStatsSettingsVm, vm.OtherSettingsVm,
+                                               vm.MapStatsSettingsVm, vm.OtherSettingsVm, vm.DataRetentionVm,
                                                vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
         var settingsWin = new SettingsWindow { DataContext = settingsVm };
         settingsWin.WireDatabase(dbVm, this);

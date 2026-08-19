@@ -29,10 +29,76 @@ public class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
+        // ── Splash and pending shrink, before anything else ────────────────────
+        //
+        // ⚠️ Order matters and cost two failed attempts to get right. The shrink rebuilds the
+        // database file and swaps it in, so it must run before ANYTHING opens it — and "before
+        // EnsureCreated" was not early enough: by then the container has handed out singletons,
+        // one of which was writing on the UI thread as the swap happened, leaving SQLite with a
+        // file replaced underneath it ("attempt to write a readonly database"). Here, before
+        // ConfigureServices, nothing exists to hold the file.
+        //
+        // The splash goes up first so the shrink can report progress. A rebuild of a large
+        // database on a slow disk takes minutes, and a silent black screen for that long invites
+        // the user to launch a second copy — which is the one thing that must not happen while
+        // the file is being replaced.
+        SplashWindow? splash = null;
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime startup)
+        {
+            // Kept alive by the splash until the main window takes over.
+            startup.ShutdownMode = Avalonia.Controls.ShutdownMode.OnLastWindowClose;
+            splash = new SplashWindow();
+            PositionSplashOnLastMonitor(splash);
+        }
+
+        base.OnFrameworkInitializationCompleted();
+        splash?.Show();
+
+        // Progress relay — IProgress<T> always posts back to the UI thread.
+        var progress = new Progress<(double Pct, string Status)>(r =>
+            splash?.ReportProgress(r.Pct, r.Status));
+        var p = (IProgress<(double, string)>)progress;
+
+        // ⚠️ Relocation before shrink: asking for both should shrink the database at its new home,
+        // not the copy being left behind. Like the shrink, it runs here because nothing has opened
+        // the database yet — see DatabaseRelocationService for what happened when it did not.
+        await Task.Run(() => DatabaseRelocationService.RunIfPending(
+            (pct, status) => p.Report((pct, status))));
+
+        if (AppConfig.GetShrinkPending())
+        {
+            // A rebuild reports almost nothing of its own — VACUUM has no progress callback — so
+            // the long middle phase would otherwise sit on one unchanging line for however many
+            // minutes it takes. A ticking elapsed time is the difference between "working" and
+            // "hung" to anyone watching, and this is precisely the wait that tempts a second
+            // launch. The ticker only speaks while that phase is current, so it cannot talk over
+            // the steps that do report.
+            var startedAt = DateTime.UtcNow;
+            var lastPct   = 0.0;
+
+            var work = Task.Run(() => DatabaseShrinkService.RunIfPending(
+                AppConfig.GetDbPath(),
+                (pct, status) => { lastPct = pct; p.Report((pct, status)); }));
+
+            while (await Task.WhenAny(work, Task.Delay(1000)) != work)
+                if (lastPct is > 5 and < 85)
+                    p.Report((lastPct,
+                        $"Shrinking database — {Elapsed(startedAt)} elapsed. " +
+                        "Please leave the application open."));
+
+            await work;
+        }
+
         // Build the DI container (fast — no I/O)
         var services = new ServiceCollection();
         ConfigureServices(services);
         Services = services.BuildServiceProvider();
+
+        // Set once the main window is up. Until then the splash is the only thing on screen, so a
+        // failure has to be shown THERE or it is invisible — which is exactly what happened when
+        // the shrink broke startup: the app was dead for minutes behind "Initializing database…"
+        // with the real cause only in the error log.
+        var startupDone = false;
 
         // Wire up global exception handlers so truly unhandled failures are persisted
         var errorLogger = Services.GetRequiredService<AppErrorLogger>();
@@ -57,12 +123,24 @@ public class App : Application
         // real defect still surfaces in the error log rather than vanishing.
         Avalonia.Threading.Dispatcher.UIThread.UnhandledException += (_, e) =>
         {
-            errorLogger.Log("Dispatcher", "UnhandledException", e.Exception);
+            // ⚠️ With the stack. Without it a swallowed exception here says only WHAT failed, and
+            // a "attempt to write a readonly database" tells you nothing about which component
+            // was writing — which cost two wrong diagnoses of the database shrink.
+            errorLogger.Log("Dispatcher", "UnhandledException",
+                e.Exception.Message, e.Exception.ToString());
+            if (!startupDone)
+            {
+                var why = e.Exception.Message;
+                splash?.ReportProgress(100,
+                    "Startup failed — " + (why.Length > 160 ? why[..160] + "…" : why) +
+                    "  (full details in the error log)");
+            }
             e.Handled = true;
         };
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
-            errorLogger.Log("TaskScheduler", "UnobservedTaskException", e.Exception);
+            errorLogger.Log("TaskScheduler", "UnobservedTaskException",
+                e.Exception.Message, e.Exception.ToString());
             e.SetObserved();
         };
 
@@ -78,7 +156,6 @@ public class App : Application
         ZkillboardBackfillService?  zkbBackfill   = null;
         ZkillboardPostService?      zkbPost       = null;
         MainWindow?           mainWindow    = null;
-        SplashWindow?         splash        = null;
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -148,18 +225,7 @@ public class App : Application
                 await Task.WhenAll(tasks);
                 desktop.Shutdown();
             };
-
-            splash = new SplashWindow();
-            PositionSplashOnLastMonitor(splash);
         }
-
-        base.OnFrameworkInitializationCompleted();
-        splash?.Show();
-
-        // Progress relay — IProgress<T> always posts back to the UI thread.
-        var progress = new Progress<(double Pct, string Status)>(r =>
-            splash?.ReportProgress(r.Pct, r.Status));
-        var p = (IProgress<(double, string)>)progress;
 
         // ── Heavy startup on a thread-pool thread ──────────────────────────────
         await Task.Run(() =>
@@ -242,13 +308,23 @@ public class App : Application
                     "EstimatedDate" TEXT,
                     "PurchasePrice" REAL    NOT NULL DEFAULT 0,
                     "Status"        TEXT    NOT NULL DEFAULT 'pending',
-                    "CreatedAt"     TEXT    NOT NULL DEFAULT ''
+                    "CreatedAt"     TEXT    NOT NULL DEFAULT '',
+                    -- ⚠️ Listed here as well as in the ALTERs below. A fresh install creates the
+                    -- table complete and never runs an ALTER; omitting a column here is what makes
+                    -- a new install crash on a NOT NULL insert while the dev machine stays fine.
+                    "BuyerId"       INTEGER NOT NULL DEFAULT 0,
+                    "BuyerType"     TEXT    NOT NULL DEFAULT ''
                 )
                 """);
 
             // Hand-marked to jump the queue, for an order whose urgency the estimated date does
             // not capture. Everything it needs outranks every other order.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "IsPriority" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+
+            // The buyer became a picked character or corporation rather than typed text. Existing
+            // rows keep their name with a zero id and simply do not link until re-picked.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "BuyerId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "BuyerType" TEXT NOT NULL DEFAULT ''"""); } catch { }
 
             // Sale Posting — postings → sections → items (see SalePostingModels.cs)
             db.Database.ExecuteSqlRaw("""
@@ -1674,16 +1750,6 @@ public class App : Application
                 """);
 
             db.Database.ExecuteSqlRaw("""
-                CREATE TABLE IF NOT EXISTS "WorklistOrderRules" (
-                    "Id"           INTEGER NOT NULL CONSTRAINT "PK_WorklistOrderRules" PRIMARY KEY AUTOINCREMENT,
-                    "ParkId"       INTEGER NOT NULL DEFAULT 0,
-                    "LocationId"   INTEGER NOT NULL DEFAULT 0,
-                    "LocationName" TEXT    NOT NULL DEFAULT '',
-                    "Enabled"      INTEGER NOT NULL DEFAULT 1
-                )
-                """);
-
-            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "WorklistItemStates" (
                     "Key"          TEXT NOT NULL CONSTRAINT "PK_WorklistItemStates" PRIMARY KEY,
                     "FirstSeenAt"  TEXT NOT NULL DEFAULT '',
@@ -1995,6 +2061,43 @@ public class App : Application
             db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailAttackers_KillMailId" ON "KillMailAttackers" ("KillMailId")""");
             db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailItems_KillMailId" ON "KillMailItems" ("KillMailId")""");
 
+            // ⚠️ These two are what make the Corporations and Alliances pages of the entity
+            // browser usable. Their header runs COUNT(DISTINCT CharacterId) and COUNT(*) over
+            // KillMailAttackers filtered on CorporationId / AllianceId — neither of which was
+            // indexed, so both were full scans. Measured on Brave Newbies against 8.4M attacker
+            // rows: 22 seconds warm for one corp header, against 139 ms for the same figures on
+            // a pilot, which filters on the already-indexed CharacterId. That asymmetry was the
+            // whole bug — pilots opened instantly while corps looked hung.
+            //
+            // It only became a problem when the zKillboard import took this table from our own
+            // kills to universe-wide. The scan was always there; the table was small enough that
+            // nobody could feel it.
+            //
+            // ⚠️ KillMailId MUST be the second column. These served the header counts on
+            // (CorporationId, CharacterId) alone, but that made things far worse elsewhere: the
+            // Kills/Losses tab's CTE correlates on BOTH ids —
+            //     EXISTS (SELECT 1 FROM KillMailAttackers a
+            //             WHERE a.KillMailId = k.KillMailId AND a.CorporationId = @id)
+            // — and once a CorporationId index existed SQLite preferred it over
+            // IX_KillMailAttackers_KillMailId, then had to visit the table for every row to check
+            // KillMailId. That query ran in 1.7s with no CorporationId index at all and did not
+            // finish inside 10 minutes with the two-column one. With KillMailId second the EXISTS
+            // is a direct seek, and CharacterId/CorporationId trailing still cover the counts.
+            //
+            // The lesson worth keeping: adding an index changed a plan that was already fine.
+            // Measure the queries around the one being fixed, not just the one being fixed.
+            db.Database.ExecuteSqlRaw("""DROP INDEX IF EXISTS "IX_KillMailAttackers_CorporationId" """);
+            db.Database.ExecuteSqlRaw("""DROP INDEX IF EXISTS "IX_KillMailAttackers_AllianceId" """);
+            db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailAttackers_Corp" ON "KillMailAttackers" ("CorporationId", "KillMailId", "CharacterId")""");
+            db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_KillMailAttackers_Alliance" ON "KillMailAttackers" ("AllianceId", "KillMailId", "CorporationId")""");
+
+            // ── Retired: WorklistOrderRules ─────────────────────────────────────
+            // The Worklist's per-park order rules were replaced by the source toggles in
+            // WorklistSettings (see IsSourceEnabled), which express the same intent without a
+            // table to keep in step. Nothing has read this since; dropped so a fresh install and
+            // an upgraded one have the same schema.
+            db.Database.ExecuteSqlRaw("""DROP TABLE IF EXISTS "WorklistOrderRules" """);
+
             // ── Structures — the app's own editable record ──────────────────────
             // Fed from EsiStructureNames by the polling sync, but never written by it: the UI
             // edits this table, so ESI-owned data stays ESI-owned. StructureId is the in-game
@@ -2260,14 +2363,21 @@ public class App : Application
                 """ALTER TABLE "IntelReports" ADD COLUMN "ReporterCharacterId" INTEGER NULL""",
                 """ALTER TABLE "IntelReports" ADD COLUMN "NoVisual" INTEGER NOT NULL DEFAULT 0""",
                 """ALTER TABLE "IntelReports" ADD COLUMN "Message" TEXT NOT NULL DEFAULT ''""",
-                // Intel whose chat message no longer exists. Only two things ever delete a chat
-                // message — the dedupe above, and a log file being re-read after its length
-                // appeared to go backwards — and in both cases the surviving copy of the message
-                // has been re-parsed into a fresh report. So these are duplicates of a report
-                // that is already present, and they show as repeated sightings in the UI.
-                // Nothing purges chat messages on age, so this cannot reach real history.
-                """DELETE FROM "IntelReportCharacters" WHERE "IntelReportId" IN (SELECT "Id" FROM "IntelReports" r WHERE NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = r."ChatMessageId"))""",
-                """DELETE FROM "IntelReports" WHERE NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = "IntelReports"."ChatMessageId")""",
+                // Intel whose chat message no longer exists. Two things delete a chat message
+                // without a replacement report being written: the dedupe above, and a log file
+                // being re-read after its length appeared to go backwards. In both cases the
+                // surviving copy has been re-parsed into a fresh report, so the orphan is a
+                // duplicate that shows as a repeated sighting in the UI.
+                //
+                // ⚠️ The guard on MIN(OccurredAt) is what makes this safe now that chat retention
+                // exists. An orphan OLDER than the oldest surviving chat message did not lose its
+                // message to dedupe — it lost it to a purge, and no replacement was written. This
+                // used to be unconditional, on the stated grounds that "nothing purges chat
+                // messages on age"; Data Retention makes that false, and without the guard the
+                // first startup after a chat purge would silently destroy every intel report
+                // derived from the messages it removed.
+                """DELETE FROM "IntelReportCharacters" WHERE "IntelReportId" IN (SELECT "Id" FROM "IntelReports" r WHERE NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = r."ChatMessageId") AND r."ReportedAt" >= COALESCE((SELECT MIN("OccurredAt") FROM "ChatMessages"), ''))""",
+                """DELETE FROM "IntelReports" WHERE NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = "IntelReports"."ChatMessageId") AND "ReportedAt" >= COALESCE((SELECT MIN("OccurredAt") FROM "ChatMessages"), '')""",
 
                 """CREATE TABLE IF NOT EXISTS "NameLookupMisses" ("Name" TEXT NOT NULL PRIMARY KEY, "CheckedAt" TEXT NULL)""",
                 """CREATE TABLE IF NOT EXISTS "CharacterAffiliations" ("CharacterId" INTEGER NOT NULL PRIMARY KEY, "CorporationId" INTEGER NOT NULL DEFAULT 0, "AllianceId" INTEGER NOT NULL DEFAULT 0, "PulledAt" TEXT NULL)""",
@@ -2328,7 +2438,7 @@ public class App : Application
         }
         }); // end Task.Run — schema migration complete
 
-        p.Report((94, "Loading settings…"));
+        p.Report((80, "Loading settings…"));
         var timerSettings = Services.GetRequiredService<TimerSettingsService>();
         await timerSettings.LoadAsync();
         var appPrefs = Services.GetRequiredService<AppPreferencesService>();
@@ -2336,50 +2446,101 @@ public class App : Application
         var corpTop10Exclude = Services.GetRequiredService<CorpTop10ExcludeService>();
         await corpTop10Exclude.LoadAsync();
 
-        p.Report((98, "Starting…"));
+        // Retention sweep. Started here rather than run once: each rule tracks its own last run in
+        // preferences, so one that came due while the app was closed goes almost immediately, and
+        // one whose day is not up yet waits — including across a session left open for a week.
+        Services.GetRequiredService<DataRetentionService>().Start();
+
+        // ── Everything below happens while the splash is still up ──────────────
+        //
+        // ⚠️ Ordering rewritten deliberately. The window used to be shown here, and the background
+        // services and the Overview's first load ran AFTER it appeared — so the app was on screen,
+        // looked ready, and ignored clicks for several seconds while it finished starting. Anything
+        // that must happen before the user can sensibly use the window now happens first, and the
+        // progress bar reports it, so the splash is honest about the wait instead of the main
+        // window being dishonest about being ready.
+        p.Report((84, "Preparing tools…"));
+        var mainVm = Services.GetRequiredService<MainWindowViewModel>();
+
+        p.Report((88, "Starting background services…"));
+        StartBackgroundServices();
+
+        // Bounded: the Overview reads a lot, and on a large database or a slow disk it must not be
+        // able to hold the window shut indefinitely. Past the cap it keeps loading behind a window
+        // that is already usable — the old behaviour, but as a fallback rather than the norm.
+        p.Report((94, "Loading overview…"));
+        await Task.WhenAny(mainVm.OverviewVm.EnsureLoadedAsync(), Task.Delay(TimeSpan.FromSeconds(20)));
+
+        p.Report((99, "Opening…"));
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopFinal)
         {
-            mainWindow            = new MainWindow();
-            mainWindow.DataContext = Services.GetRequiredService<MainWindowViewModel>();
+            mainWindow             = new MainWindow();
+            mainWindow.DataContext = mainVm;
             desktopFinal.MainWindow   = mainWindow;
             desktopFinal.ShutdownMode = Avalonia.Controls.ShutdownMode.OnMainWindowClose;
+
+            p.Report((100, "Ready."));
             mainWindow.Show();
 
-            await Task.Delay(350); // brief pause so the 100 % state is visible
+            await Task.Delay(250); // brief pause so the 100 % state is visible
+            startupDone = true;
             splash?.Close();
         }
 
-        // Start background services
-        polling?.Start();
-        marketPricing?.Start();
-        marketHistory?.Start();
-        contracts?.Start();
-        lpStore?.Start();
-        Services.GetRequiredService<DatabaseBackupService>().Start();
-        gameLogs?.Start();
-        chatLogs?.Start();
-        zkbPolling?.Start();
-        zkbFirehose?.Start();
-        zkbBackfill?.Start();
-        zkbPost?.Start();
-        Services.GetRequiredService<EntityNameBackfillService>().Start();
-        // Started early and independently: everything else consults its verdict.
-        Services.GetRequiredService<EveServerStatusService>().Start();
+        // ── Background services ────────────────────────────────────────────────
+        //
+        // Each is a loop-starter that returns immediately. Guarded individually: a service that
+        // cannot start is a degraded feature, not a reason to leave the user staring at a splash
+        // screen that will never go away.
+        void StartBackgroundServices()
+        {
+            Start("ESI polling",        () => polling?.Start());
+            Start("market pricing",     () => marketPricing?.Start());
+            Start("market history",     () => marketHistory?.Start());
+            Start("contracts",          () => contracts?.Start());
+            Start("LP store",           () => lpStore?.Start());
+            Start("database backup",    () => Services.GetRequiredService<DatabaseBackupService>().Start());
+            Start("game logs",          () => gameLogs?.Start());
+            Start("chat logs",          () => chatLogs?.Start());
+            Start("zKillboard polling", () => zkbPolling?.Start());
+            Start("zKillboard firehose",() => zkbFirehose?.Start());
+            Start("zKillboard backfill",() => zkbBackfill?.Start());
+            Start("zKillboard posting", () => zkbPost?.Start());
+            Start("name backfill",      () => Services.GetRequiredService<EntityNameBackfillService>().Start());
 
-        // Map statistics for the Universe tool. Both loops write rows keyed by CCP's hour
-        // bucket, so the archive catch-up and the live poller cannot collide even when they
-        // run over the same hour at the same time.
-        Services.GetRequiredService<MapStatsBackfillService>().Start();
-        Services.GetRequiredService<MapStatsPollingService>().Start();
+            // Started early and independently: everything else consults its verdict.
+            Start("server status",      () => Services.GetRequiredService<EveServerStatusService>().Start());
 
-        // Cheap when idle: the loop only touches the database for alarms whose interval is up.
-        Services.GetRequiredService<AlarmService>().Start();
+            // Map statistics for the Universe tool. Both loops write rows keyed by CCP's hour
+            // bucket, so the archive catch-up and the live poller cannot collide even when they
+            // run over the same hour at the same time.
+            Start("map stats backfill", () => Services.GetRequiredService<MapStatsBackfillService>().Start());
+            Start("map stats polling",  () => Services.GetRequiredService<MapStatsPollingService>().Start());
 
-        // Writes to the error log only when the UI thread actually freezes, so a healthy
-        // session records nothing.
-        Services.GetRequiredService<UiStallMonitor>().Start();
+            // Cheap when idle: the loop only touches the database for alarms whose interval is up.
+            Start("alarms",             () => Services.GetRequiredService<AlarmService>().Start());
+
+            // Writes to the error log only when the UI thread actually freezes, so a healthy
+            // session records nothing.
+            Start("UI stall monitor",   () => Services.GetRequiredService<UiStallMonitor>().Start());
+
+            void Start(string name, Action start)
+            {
+                try { start(); }
+                catch (Exception ex) { errorLogger.Log("Startup", $"starting {name}", ex); }
+            }
+        }
     }
 
+
+    /// <summary>m:ss since a start time. Hand-formatted because ":" is a reserved character in
+    /// TimeSpan custom format strings and an unescaped one throws at runtime, not at compile
+    /// time — a trap worth not leaving in a path that only executes during a shrink.</summary>
+    private static string Elapsed(DateTime startedUtc)
+    {
+        var span = DateTime.UtcNow - startedUtc;
+        return $"{(int)span.TotalMinutes}:{span.Seconds:00}";
+    }
     private static void PositionSplashOnLastMonitor(SplashWindow splash)
     {
         var pos = AppConfig.GetWindowPosition();
@@ -2613,6 +2774,7 @@ public class App : Application
         services.AddSingleton<EntityNameBackfillService>();
         services.AddSingleton<EveServerStatusService>();
         services.AddSingleton<UiLinkSettings>();
+        services.AddSingleton<DataRetentionService>();
         services.AddSingleton<ExportFormatSettings>();
 
         // ViewModels
