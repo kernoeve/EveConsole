@@ -49,7 +49,7 @@ public class IndustryJobGenerator(
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        var parkId = settings.IndustryParkId;
+        var parkId = await WorklistSettings.ResolveParkIdAsync(db, settings.IndustryParkId, ct);
         if (parkId <= 0) return [];
 
         // No early exit on an empty rule set: customer orders are demand in their own right, so
@@ -228,7 +228,7 @@ public class IndustryJobGenerator(
 
                 if (eligible.Count == 0)
                 {
-                    items.Add(Unstartable(d.TypeId, name, priority, pool,
+                    items.Add(Unstartable(d.TypeId, name, priority, pool, d.Units,
                         $"{head} Build {d.Units:N0}.",
                         required.Count > 0
                             ? "No enabled character has the skills for this job"
@@ -245,7 +245,7 @@ public class IndustryJobGenerator(
 
                 if (siteId is null)
                 {
-                    items.Add(Unstartable(d.TypeId, name, priority, pool,
+                    items.Add(Unstartable(d.TypeId, name, priority, pool, d.Units,
                         $"{head} Build {d.Units:N0}.",
                         siteName.Length > 0
                             ? $"{siteName} is not linked to a real structure, so materials cannot be checked"
@@ -277,7 +277,7 @@ public class IndustryJobGenerator(
                     var allPrints = printsByType.GetValueOrDefault(product.TypeId, []);
                     var owned     = IndustryBlueprintService.OwnedAnywhere(allPrints, printOwner);
 
-                    items.Add(Unstartable(d.TypeId, name, priority, pool,
+                    items.Add(Unstartable(d.TypeId, name, priority, pool, d.Units,
                         $"{head} Build {d.Units:N0} ({runsNeeded:N0} run(s)) at {siteName}.",
                         owned
                             ? $"No blueprint at {siteName} — one is owned but elsewhere, held by "
@@ -398,8 +398,15 @@ public class IndustryJobGenerator(
                                       + $"{job.Print.Describe()} at {siteName}.{durText}{capText}{leftover}",
                         Readiness     = readiness,
                         BlockedBy     = blockedBy,
-                        CharacterId   = owner.Config.CharacterId,
-                        CharacterName = owner.Config.CharacterName,
+                        // ⚠️ Only a job that can start names a character. An owner is still picked
+                        // above — material reach is per character, so the check needs one — but
+                        // reporting it on a job that cannot run reads as an instruction, and the
+                        // fallback owner is whoever comes first in the eligible list. Every
+                        // blocked and waiting job in the run landed on that same alt, a queue
+                        // they could never work through and which says nothing about who will
+                        // actually take the job once it frees up.
+                        CharacterId   = readiness == WorklistReadiness.Ready ? owner.Config.CharacterId   : 0,
+                        CharacterName = readiness == WorklistReadiness.Ready ? owner.Config.CharacterName : "",
                         LocationId    = siteId.Value,
                         LocationName  = siteName,
                         TypeId        = d.TypeId,
@@ -417,8 +424,13 @@ public class IndustryJobGenerator(
     /// <summary>A shortfall that cannot become a job at all, reported once with the reason.</summary>
     /// <param name="pool">Carried so a blocked job still counts under its own slot type in the
     /// summary. A job that cannot start is still a manufacturing job.</param>
+    /// <param name="units">What the job would produce. ⚠️ Carried purely so the row can be priced
+    /// and measured: <c>WorklistService.ApplyVolumeAsync</c> skips anything with no quantity, so
+    /// these rows used to sit with a blank value and volume column while every startable job
+    /// beside them had both. What is blocked is worth knowing the size of — that is most of why
+    /// it is worth unblocking.</param>
     private WorklistItem Unstartable(
-        int typeId, string name, int priority, IndustryPool pool,
+        int typeId, string name, int priority, IndustryPool pool, long units,
         string detail, string blockedBy, long locationId = 0, string locationName = "") =>
         new()
         {
@@ -426,6 +438,7 @@ public class IndustryJobGenerator(
             Source       = Id,
             Kind         = WorklistKind.Job,
             Title        = name,
+            Quantity     = units,
             Detail       = detail,
             Readiness    = WorklistReadiness.Blocked,
             BlockedBy    = blockedBy,

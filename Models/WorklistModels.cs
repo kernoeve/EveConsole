@@ -87,28 +87,6 @@ public class WorklistInvRule
 }
 
 /// <summary>
-/// "Plan the pending customer orders against this park, and buy what is missing here."
-///
-/// The order-driven counterpart to <see cref="WorklistInvRule"/>. Where that one keeps a
-/// stockpile topped up regardless of demand, this buys only what outstanding orders actually
-/// need — the build-to-order style, where the order drives acquisition rather than the shelf.
-/// </summary>
-public class WorklistOrderRule
-{
-    public int Id     { get; set; }
-
-    /// <summary>Which Indy Park to plan against — it decides facilities, rigs and therefore
-    /// the material quantities.</summary>
-    public int ParkId { get; set; }
-
-    /// <summary>Where the resulting buy orders go. Its market alt does the work.</summary>
-    public long   LocationId   { get; set; }
-    public string LocationName { get; set; } = "";
-
-    public bool Enabled { get; set; } = true;
-}
-
-/// <summary>
 /// Which character maintains a corporation's standing projects.
 ///
 /// A sibling of <see cref="WorklistMarketAlt"/>, kept separate rather than folded in because the

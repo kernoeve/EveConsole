@@ -248,6 +248,48 @@ public class WorklistInvRulesViewModel : ReactiveObject
     private string _status = "";
     public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
 
+    /// <summary>
+    /// Names the rules that can only ever produce blocked work.
+    ///
+    /// <para>A buy rule routes its purchases through the market alt at its station, so one pointing
+    /// at a station with no alt raises items nothing can action. The grid already shows
+    /// "— unassigned —" per row, but that is one cell among dozens: two rules had been sitting on
+    /// Jita IV - Moon 5 instead of Moon 4 — same station name, one character apart in the picker —
+    /// producing blocked buys that read as a mystery until the rows were compared by id.</para>
+    ///
+    /// <para>The station is named rather than just counted, because the fault is almost always
+    /// that it is nearly the right one.</para>
+    /// </summary>
+    private string _altWarning = "";
+    public string AltWarning { get => _altWarning; private set => this.RaiseAndSetIfChanged(ref _altWarning, value); }
+    public bool HasAltWarning => AltWarning.Length > 0;
+
+    private static string BuildAltWarning(
+        IReadOnlyList<Models.WorklistInvRule> rules,
+        IReadOnlyDictionary<int, string> groupNames,
+        IReadOnlySet<long> altLocations)
+    {
+        // Build rules route by skills and slots, not by a market alt, so they are not at fault.
+        var offenders = rules
+            .Where(r => r.Enabled && r.Action != "Build" && !altLocations.Contains(r.LocationId))
+            .Select(r => new
+            {
+                Group = groupNames.GetValueOrDefault(r.GroupId, $"group {r.GroupId}"),
+                Where = r.LocationId == 0 ? "no station set" : r.LocationName,
+            })
+            .OrderBy(x => x.Group)
+            .ToList();
+
+        if (offenders.Count == 0) return "";
+
+        var named = string.Join(", ", offenders.Take(4).Select(o => $"{o.Group} → {o.Where}"));
+        var rest  = offenders.Count > 4 ? $", and {offenders.Count - 4} more" : "";
+
+        return $"{offenders.Count} buy rule(s) point at a station with no market alt, so their "
+             + $"purchases have no character to place them and will show as blocked: {named}{rest}. "
+             + "Assign an alt on the Market tab, or re-pick the station on the rule.";
+    }
+
     public async Task LoadAsync()
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -292,6 +334,9 @@ public class WorklistInvRulesViewModel : ReactiveObject
                 : rows.Count == 0
                     ? "No rules yet."
                     : $"{rows.Count:N0} rule(s)";
+
+            AltWarning = BuildAltWarning(rules, groupNames, altMap.Keys.ToHashSet());
+            this.RaisePropertyChanged(nameof(HasAltWarning));
         });
     }
 
@@ -370,8 +415,9 @@ public class WorklistInvRulesViewModel : ReactiveObject
         });
         await db.SaveChangesAsync();
 
-        SelectedLocation = null;
-        LocationText     = "";
+        // The station is left as it was: rules are written a station at a time, so clearing it
+        // after each add threw away the field the player was about to reuse. The field selects its
+        // text on focus, so moving to another station is one click and a keystroke.
 
         await LoadAsync();
         if (RulesChanged is not null) await RulesChanged();

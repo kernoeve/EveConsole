@@ -926,12 +926,16 @@ public class BuildCostService
             // and composite reactions consuming intermediate reaction products are exactly where
             // that shows up. Cost them last; their leftovers fall back on the previous figure,
             // which is the best available when a thing transitively depends on itself.
+            //
+            // ⚠️ Deliberately not logged as an error. This is the designed handling of a graph EVE
+            // genuinely has, it fires on every recalculation, and a recurring note about working
+            // behaviour buries the faults the log exists to surface. The count goes on StatusText,
+            // where it is visible while the recalculation is being watched and gone afterwards.
             var ordered = order.ToHashSet();
             var cyclic  = builtTypes.Where(t => !ordered.Contains(t)).ToList();
             order.AddRange(cyclic);
             if (cyclic.Count > 0)
-                _errorLogger.Log("BuildCostService", "chain order",
-                    $"{cyclic.Count} item(s) sit in a dependency cycle and were costed last.");
+                StatusText = $"Build costs: calculating… ({cyclic.Count} in a dependency cycle, costed last)";
 
             foreach (var typeId in order)
             {

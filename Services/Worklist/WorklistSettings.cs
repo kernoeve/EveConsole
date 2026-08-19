@@ -1,3 +1,6 @@
+using EveConsole.Data;
+using Microsoft.EntityFrameworkCore;
+
 namespace EveConsole.Services.Worklist;
 
 /// <summary>
@@ -26,6 +29,23 @@ public class WorklistSettings(AppPreferencesService prefs)
 
     private static string SourceKey(string generatorId) => $"worklist.{generatorId}.enabled";
 
+    public const string CustomerOrdersKey = "worklist.customer_orders.enabled";
+
+    /// <summary>
+    /// Whether pending customer orders count as demand.
+    ///
+    /// <para>Not a generator of its own — it is an input two of them read, so it cannot go through
+    /// <see cref="IsSourceEnabled"/>. It replaces the WorklistOrderRules table, which looked like
+    /// a rules list but was only ever asked whether any row was enabled: the park and buy location
+    /// stored on each rule were written and never read, planning having always used
+    /// <see cref="IndustryParkId"/> and <see cref="IndustryBuyLocationId"/> from the Industry tab.
+    /// A single flag is what that table actually was.</para>
+    /// </summary>
+    public bool PlanCustomerOrders => prefs.GetBool(CustomerOrdersKey, true);
+
+    public Task SetPlanCustomerOrdersAsync(bool on) =>
+        prefs.SetAsync(CustomerOrdersKey, on ? "1" : "0");
+
     // ── Standing buy order conditions ─────────────────────────────────────────
     //
     // Separate flags rather than one switch, because they are genuinely different jobs. An
@@ -48,14 +68,34 @@ public class WorklistSettings(AppPreferencesService prefs)
     public const string IndustryParkKey = "worklist.industry.park_id";
 
     /// <summary>
-    /// Which Indy Park industry work is planned against. Zero means unset, and the generator
-    /// stays silent rather than guessing — the park decides facilities and rigs, and guessing
-    /// wrong produces confidently wrong material figures.
+    /// Which Indy Park industry work is planned against. Zero is the &lt;Default&gt; choice: follow
+    /// whichever park is flagged default rather than naming one here.
     /// </summary>
     public int IndustryParkId => (int)prefs.GetLong(IndustryParkKey, 0);
 
     public Task SetIndustryParkAsync(int parkId) =>
         prefs.SetAsync(IndustryParkKey, parkId.ToString());
+
+    /// <summary>
+    /// The park to plan against, with &lt;Default&gt; resolved.
+    ///
+    /// <para>⚠️ Resolved per run, not stored. That is the whole point of the choice: a player who
+    /// picks &lt;Default&gt; is saying "follow the default park", so changing which park carries the
+    /// star has to move the planning with it. Storing the id at the moment of choosing would
+    /// silently pin it to whichever park happened to be default that day.</para>
+    ///
+    /// <para>Still returns 0 when nothing resolves — no park chosen and none flagged default — and
+    /// every caller already treats 0 as "stay silent". The park decides facilities and rigs, and
+    /// guessing wrong produces confidently wrong material figures.</para>
+    /// </summary>
+    public static Task<int> ResolveParkIdAsync(
+        AppDbContext db, int configured, CancellationToken ct = default) =>
+        configured > 0
+            ? Task.FromResult(configured)
+            : db.IndyParks.AsNoTracking()
+                .Where(p => p.IsDefault)
+                .Select(p => p.Id)
+                .FirstOrDefaultAsync(ct);
 
     // ── Where industry buys ───────────────────────────────────────────────────
     //

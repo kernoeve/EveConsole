@@ -98,7 +98,7 @@ public class LogisticsGenerator(
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        var parkId = settings.IndustryParkId;
+        var parkId = await WorklistSettings.ResolveParkIdAsync(db, settings.IndustryParkId, ct);
         if (parkId <= 0) return [];
 
         try
@@ -210,7 +210,14 @@ public class LogisticsGenerator(
         var allPrints = await blueprints.LoadAllAsync(ct);
         var meMap     = IndustryBlueprintService.BestMeByProduct(allPrints, ctx.BlueprintByProduct, owned);
 
-        await AddJobDemandAsync(db, ctx, meMap, allPrints, owned, scope, wrapped, corps, inScope, Need, ct);
+        // Prints the blueprints table does not list but assets do. Without them a copy sitting in
+        // a structure that table omits is invisible here, so no move is ever raised for it — the
+        // job stays blocked for want of a print the player already owns and could simply carry.
+        var printsInAssets = await blueprints.OwnedInAssetsAsync(
+            ctx.BlueprintByProduct.Values.Select(b => b.TypeId).Distinct().ToList(), owned, ct);
+
+        await AddJobDemandAsync(db, ctx, meMap, allPrints, owned, printsInAssets,
+                                scope, wrapped, corps, inScope, Need, ct);
         await AddStationLevelDemandAsync(db, Need, ct);
 
         return (want, stock, ctx);
@@ -228,7 +235,7 @@ public class LogisticsGenerator(
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        var parkId = settings.IndustryParkId;
+        var parkId = await WorklistSettings.ResolveParkIdAsync(db, settings.IndustryParkId, ct);
         if (parkId <= 0) return [];
 
         try
@@ -312,6 +319,7 @@ public class LogisticsGenerator(
     private async Task AddJobDemandAsync(
         AppDbContext db, ProductionContext ctx, Dictionary<int, int> meMap,
         IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned,
+        Dictionary<int, int> printsInAssets,
         HashSet<long>? scope, HashSet<long> wrapped, HashSet<long>? corps, ScopeStock inScope,
         NeedFn need, CancellationToken ct)
     {
@@ -329,7 +337,7 @@ public class LogisticsGenerator(
         // old per-rule reading of it came out as zero.
         var demand = await demands.GatherAsync(db, ctx, rules, groups, scope, wrapped, corps, inScope, ct);
 
-        await AddInventionDemandAsync(db, ctx, demand, allPrints, owned, corps, need, ct);
+        await AddInventionDemandAsync(db, ctx, demand, allPrints, owned, printsInAssets, corps, need, ct);
 
         foreach (var (typeId, d) in demand.OrderBy(d => d.Key))
         {
@@ -375,7 +383,7 @@ public class LogisticsGenerator(
             // builds from it, so the want is met by stock and no move comes of it.
             if (ctx.BlueprintByProduct.TryGetValue(typeId, out var bpProd))
             {
-                var prints = PrintsWanted(allPrints, owned, bpProd,
+                var prints = PrintsWanted(allPrints, owned, printsInAssets, bpProd,
                                  IndustryJobSplit.RunsFor(d.Units, Math.Max(1, bpProd.Quantity)));
                 var (bpOrder, bpRule, bpParent) = d.SplitOf(prints);
                 need(site, bpProd.TypeId, prints, HaulReason.Unblocking, d.Priority,
@@ -398,15 +406,17 @@ public class LogisticsGenerator(
     /// </summary>
     private async Task AddInventionDemandAsync(
         AppDbContext db, ProductionContext ctx, Dictionary<int, BuildDemand> demand,
-        IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned, HashSet<long>? corps,
+        IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned,
+        Dictionary<int, int> printsInAssets, HashSet<long>? corps,
         NeedFn need, CancellationToken ct)
     {
         var candidates = (await assignment.LoadCandidatesAsync(ct))
             .Where(c => c.Runs(IndustryPool.Science)).ToList();
         if (candidates.Count == 0) return;
 
-        var lab = await InventionService.LabAsync(db, settings.IndustryParkId,
-                                                  InventionService.InventionCategory, ct);
+        var lab = await InventionService.LabAsync(
+            db, await WorklistSettings.ResolveParkIdAsync(db, settings.IndustryParkId, ct),
+            InventionService.InventionCategory, ct);
         if (lab is null) return;
 
         var decryptors = await invention.DecryptorsAsync(ct);
@@ -433,7 +443,7 @@ public class LogisticsGenerator(
             // Source copies are wanted at the lab in their own right. One per concurrent job,
             // since a copy is locked while its invention job runs — the same rule that governs
             // manufacturing prints, and the reason a batch cannot all run at once off one copy.
-            var copies = PrintsWanted(allPrints, owned,
+            var copies = PrintsWanted(allPrints, owned, printsInAssets,
                 new SdeBlueprintProduct
                 {
                     TypeId        = n.Recipe.SourceBlueprintTypeId,
@@ -465,10 +475,22 @@ public class LogisticsGenerator(
     /// </summary>
     private static long PrintsWanted(
         IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned,
+        Dictionary<int, int> printsInAssets,
         SdeBlueprintProduct bpProd, long runsNeeded)
     {
         var mine = allPrints.Where(p => p.TypeId == bpProd.TypeId && owned.Owns(p)).ToList();
-        if (mine.Count == 0) return 0;
+
+        // ⚠️ Assets are the fallback, not an addition. The blueprints table does not cover every
+        // structure the assets table does, so a copy there reads as owning none and no move is
+        // ever raised — the job sits blocked for a print already in a hangar. Counted at one run
+        // apiece because an asset row carries no run count: the conservative reading, which asks
+        // for the copies rather than assuming one of them covers the batch.
+        if (mine.Count == 0)
+        {
+            var inAssets = printsInAssets.GetValueOrDefault(bpProd.TypeId);
+            return inAssets == 0 ? 0 : Math.Min(inAssets, Math.Max(1, runsNeeded));
+        }
+
         if (mine.Any(p => p.IsOriginal)) return 1;
 
         // Best copies first, matching the order the job generator would reach for them in, so the

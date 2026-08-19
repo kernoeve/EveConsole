@@ -201,6 +201,46 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
         all.Any(owned.Owns);
 
     /// <summary>
+    /// Blueprint types held according to the <b>assets</b> table rather than the blueprints table.
+    ///
+    /// <para>⚠️ Answers "is one owned at all" and nothing else. An asset row carries no runs, ME or
+    /// TE, which is why every other method here reads EsiBlueprints — those figures decide what a
+    /// job costs and how long it runs. This is only good enough to stop the tool insisting a print
+    /// be bought when one is sitting in a hangar.</para>
+    ///
+    /// <para>Needed because the two tables disagree. Measured here: EsiBlueprints holds 5,518 rows
+    /// for this corporation and not one of them at UALX-3, while EsiAssets lists Avatar, Zirnitra,
+    /// Moros Navy Issue and more at that very structure. Reading only the blueprints table turned
+    /// that silence into "you own none", and produced a standing instruction to re-buy two Avatar
+    /// copies already owned.</para>
+    /// </summary>
+    public async Task<Dictionary<int, int>> OwnedInAssetsAsync(
+        IReadOnlyCollection<int> blueprintTypeIds, PrintOwnership owned, CancellationToken ct = default)
+    {
+        if (blueprintTypeIds.Count == 0) return [];
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var ids = blueprintTypeIds.ToList();
+
+        var rows = await db.EsiAssets.AsNoTracking()
+            .Where(a => ids.Contains(a.TypeId))
+            .Select(a => new { a.TypeId, a.OwnerType, a.OwnerId, a.Quantity, a.IsSingleton })
+            .ToListAsync(ct);
+
+        // The same ownership rule the blueprints table goes through, so the two cannot disagree
+        // about whose hangar counts.
+        return rows
+            .Where(a => a.OwnerType == "corporation"
+                ? owned.Corps is null || owned.Corps.Contains(a.OwnerId)
+                : owned.CharacterIds.Contains(a.OwnerId))
+            .GroupBy(a => a.TypeId)
+            // Each row is one print: a copy is singleton and stacks of originals do not occur in
+            // practice, so the row count is the print count. Quantity is deliberately not summed —
+            // it reads 1 per row here, and trusting it would silently double a mis-stacked row.
+            .ToDictionary(g => g.Key, g => g.Count());
+    }
+
+    /// <summary>
     /// The prints of one type that a given character can install a job from at a given site, in
     /// the order they should be used.
     ///
