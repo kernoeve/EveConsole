@@ -18,6 +18,10 @@ public class IndustryRow
 {
     public int    TypeId           { get; init; }
     public string TypeName         { get; init; } = "";
+
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
+
     public double BuildCost        { get; init; }
     public double SellPrice        { get; init; }   // market number we sell into (sell or buy order)
     public bool   HasSellOrders    { get; init; } = true; // false → priced from 30-day history avg

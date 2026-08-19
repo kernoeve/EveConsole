@@ -46,6 +46,17 @@ public class WalletJournalRowVm
     public decimal         AmountRaw    { get; }
     public decimal         BalanceRaw   { get; }
 
+    // ── Links ─────────────────────────────────────────────────────────────────
+    //
+    // The owner is the wallet's own character or corporation, so the kind is known outright
+    // rather than guessed from the id.
+    private readonly long   _ownerId;
+    private readonly string _ownerType;
+
+    public bool HasOwnerLink => _ownerId > 0 && OwnerText.Length > 0;
+    public void OpenOwner() => EntityNavigator.Instance.Entity(
+        _ownerType == "corporation" ? EntityKind.PlayerCorp : EntityKind.Pilot, _ownerId);
+
     public WalletJournalRowVm(WalletJournalEntry e,
         IReadOnlyDictionary<long, string>        ownerNames,
         IReadOnlyDictionary<(long, int), string> divisionNames)
@@ -60,6 +71,8 @@ public class WalletJournalRowVm
         BalanceRaw   = e.Balance;
         BalanceText  = FormatIsk(e.Balance);
         OwnerText    = ownerNames.TryGetValue(e.OwnerId, out var n) ? n : "";
+        _ownerId     = e.OwnerId;
+        _ownerType   = e.OwnerType;
         DivisionText = e.Division is > 0
             ? (divisionNames.TryGetValue((e.OwnerId, e.Division.Value), out var dn) ? dn
                : e.Division.Value == 1 ? "Master Wallet" : $"Div {e.Division}")
@@ -106,6 +119,32 @@ public class WalletTransactionRowVm
     public decimal UnitPriceRaw { get; }
     public decimal TotalRaw     { get; }
 
+    // ── Links ─────────────────────────────────────────────────────────────────
+    private readonly int    _typeId;
+    private readonly long   _locationId;
+    private readonly long   _ownerId;
+    private readonly string _ownerType;
+
+    public bool HasItemLink     => _typeId     > 0 && TypeName.Length     > 0;
+    public bool HasLocationLink => _locationId > 0 && LocationName.Length > 0;
+    public bool HasOwnerLink    => _ownerId    > 0 && OwnerText.Length    > 0;
+
+    public void OpenItem() => EntityNavigator.Instance.Item(_typeId);
+
+    /// <summary>⚠️ Station versus structure by int range: SdeStations keys on an int, so an id
+    /// above that range cannot be a station.</summary>
+    public void OpenLocation()
+    {
+        if (_locationId <= 0) return;
+        if (_locationId <= int.MaxValue)
+            EntityNavigator.Instance.Entity(EntityKind.Station, _locationId);
+        else
+            EntityNavigator.Instance.Structure(_locationId);
+    }
+
+    public void OpenOwner() => EntityNavigator.Instance.Entity(
+        _ownerType == "corporation" ? EntityKind.PlayerCorp : EntityKind.Pilot, _ownerId);
+
     public WalletTransactionRowVm(WalletTransaction t,
         IReadOnlyDictionary<int, string>         typeNames,
         IReadOnlyDictionary<long, string>        ownerNames,
@@ -129,6 +168,10 @@ public class WalletTransactionRowVm
                : t.Division.Value == 1 ? "Master Wallet" : $"Div {t.Division}")
             : "";
         LocationName = locationNames.TryGetValue(t.LocationId, out var ln) ? ln : "";
+        _typeId      = t.TypeId;
+        _locationId  = t.LocationId;
+        _ownerId     = t.OwnerId;
+        _ownerType   = t.OwnerType;
     }
 
     private static string FormatIsk(decimal v)

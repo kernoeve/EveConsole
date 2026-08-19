@@ -46,6 +46,7 @@ public sealed record JumpLeg(
     int    ToSystemId,
     string ToSystem,
     string ToRegion,
+    int    ToRegionId,
     double ToSecurity,
     double DistanceLy,
     double Fuel);
@@ -104,7 +105,7 @@ public sealed class JumpPlannerService
     private const int AttrFuelPerLy    = 868;   // isotopes consumed per light year
     private const int AttrFuelTypeId   = 866;   // which isotope
 
-    private sealed record Node(int Id, string Name, string Region, double Security, double X, double Y, double Z);
+    private sealed record Node(int Id, string Name, string Region, int RegionId, double Security, double X, double Y, double Z);
 
     /// <summary>
     /// The three Jove regions — UUA-F4, J7HZ-F and A821-A — 230 systems no stargate reaches and
@@ -206,7 +207,7 @@ public sealed class JumpPlannerService
             // midpoints as far as the search was concerned, and no player can go there.
             _systems = rows
                 .Where(r => !JoveRegionIds.Contains(r.RegionId))
-                .Select(r => new Node(r.SolarSystemId, r.Name, r.Region, r.Security, r.X, r.Y, r.Z))
+                .Select(r => new Node(r.SolarSystemId, r.Name, r.Region, r.RegionId, r.Security, r.X, r.Y, r.Z))
                 .ToList();
 
             return _systems;
@@ -758,7 +759,7 @@ public sealed class JumpPlannerService
             totalFuel += f;
 
             legs.Add(new JumpLeg(a.Id, a.Name, a.Region, a.Security,
-                                 b.Id, b.Name, b.Region, b.Security, d, f));
+                                 b.Id, b.Name, b.Region, b.RegionId, b.Security, d, f));
         }
 
         return new JumpRoute(legs, totalDist, totalFuel, ship.FuelTypeName, range);

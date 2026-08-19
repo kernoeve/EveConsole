@@ -285,8 +285,10 @@ public class WorklistStationLevelsViewModel : ReactiveObject
 
         await db.SaveChangesAsync();
 
-        SelectedLocation = null;
-        LocationText     = "";
+        // The station is left as it was. Levels are entered a station at a time — several groups
+        // for one station, then the next — so clearing it after each add threw away the field the
+        // player was about to reuse. The field selects its text on focus, so replacing it is one
+        // click and a keystroke when they do move on.
         await LoadAsync();
         if (LevelsChanged is not null) await LevelsChanged();
     }

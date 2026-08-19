@@ -189,6 +189,13 @@ public class MarketItemRow : ReactiveObject
     public int    TypeId  { get; }
     public string TypeName { get; }
 
+    /// <summary>Rows of three kinds share this grid, so the visibility flags are combined here
+    /// rather than in the template — a Canvas child cannot stack two bindings into one.</summary>
+    public bool ShowItemLink  => TypeId > 0 && TypeName.Length > 0;
+    public bool ShowItemPlain => !ShowItemLink;
+
+    public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
+
     private int _groupMultiplier = 1;
     public int GroupMultiplier
     {
@@ -357,8 +364,12 @@ public class MarketItemRow : ReactiveObject
 
 // ── Main ViewModel ────────────────────────────────────────────────────────────
 
-public class MarketLevelViewModel : ReactiveObject
+public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
 {
+    /// <summary>Set the first time this tool is opened; until then its refresh timer is a
+    /// no-op. See IPeriodicRefresh.</summary>
+    public bool AutoRefreshEnabled { get; set; }
+
     private readonly MarketLevelService              _svc;
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly List<MarketGroupRow>        _allGroups      = [];
@@ -460,8 +471,10 @@ public class MarketLevelViewModel : ReactiveObject
         AddFromBlueprintCommand      = ReactiveCommand.CreateFromTask(AddFromBlueprintAsync, hasGroup);
         OpenInItemBrowserCommand     = ReactiveCommand.Create(OpenSelectedInItemBrowser, hasItem);
 
+        // ⚠️ Gated and labelled — see InvLevelViewModel for why.
         Observable.Interval(TimeSpan.FromMinutes(1))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .Where(_ => AutoRefreshEnabled)
+            .ObserveOnUi("MarketLevel.AutoRefresh")
             .SubscribeAsyncSafe(_ => AutoRefreshAsync(), null, "MarketLevel.AutoRefresh");
 
         _ = InitializeAsync();
@@ -750,7 +763,8 @@ public class MarketLevelViewModel : ReactiveObject
 
     private async Task LoadAvailableStationsAsync()
     {
-        var stations = await _svc.GetAvailableStationsAsync();
+        // ⚠️ Off the calling thread — the auto-refresh reaches this from a main-thread timer.
+        var stations = await Task.Run(() => _svc.GetAvailableStationsAsync());
         AvailableStations.Clear();
         foreach (var s in stations) AvailableStations.Add(s);
     }
@@ -887,7 +901,8 @@ public class MarketLevelViewModel : ReactiveObject
                 MaxPriceOverPct = group.MaxPctOver,
             };
 
-            var result = await _svc.LoadGroupDataAsync(g);
+            // ⚠️ Task.Run, not a bare await — see InvLevelViewModel.RefreshGroupAsync.
+            var result = await Task.Run(() => _svc.LoadGroupDataAsync(g));
 
             // Update item rows with fresh data
             var dataMap = result.Rows.ToDictionary(r => r.TypeId);

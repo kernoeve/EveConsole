@@ -6,6 +6,28 @@
              x:DataType="vm:IndyParksViewModel"
              Background="#0d0d12">
 
+  <UserControl.Styles>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+  </UserControl.Styles>
+
   <Grid ColumnDefinitions="220,1,*">
 
     <!-- ── Left: park list ──────────────────────────────────────────────── -->
@@ -76,11 +98,13 @@
                  Foreground="#333344" FontSize="13"
                  HorizontalAlignment="Center" VerticalAlignment="Center" />
 
-      <!-- Park detail -->
-      <ScrollViewer IsVisible="{Binding SelectedPark, Converter={x:Static ObjectConverters.IsNotNull}}"
-                    VerticalScrollBarVisibility="Auto"
-                    HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="24 20" Spacing="28">
+      <!-- Park detail.
+           The park name and the structures toolbar sit outside the scroller. Add Structure is the
+           button you reach for while looking at the bottom of a long park, and scrolling to the top
+           to press it and back down again to see the result was most of the trip. -->
+      <Grid IsVisible="{Binding SelectedPark, Converter={x:Static ObjectConverters.IsNotNull}}"
+            RowDefinitions="Auto,*" Margin="24 20">
+        <StackPanel Grid.Row="0" Spacing="20">
 
           <!-- Park name + export -->
           <StackPanel Spacing="6">
@@ -107,9 +131,8 @@
                      HorizontalAlignment="Left" />
           </StackPanel>
 
-          <!-- Structures section -->
-          <StackPanel Spacing="10">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
+          <!-- Structures toolbar. Pinned; the list itself is in the scroller below. -->
+          <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
               <TextBlock Grid.Row="0" Grid.Column="0" Text="STRUCTURES" FontSize="10" FontWeight="SemiBold"
                          Foreground="#555566" LetterSpacing="1" VerticalAlignment="Center" />
 
@@ -127,7 +150,8 @@
                         VerticalAlignment="Center"
                         ToolTip.Tip="Athanors and Tataras anchored to a moon are usually moon mining, not industry" />
               <Button Grid.Row="0" Grid.Column="4" Command="{Binding AddAllInSystemCommand}"
-                      Content="+ Add All In System" Margin="0 0 6 0"
+                      Content="+ Add Missing In System" Margin="0 0 6 0"
+                      ToolTip.Tip="Adds the industrial structures in that system this park does not already have. Structures already linked here are counted and left alone, so pressing it again after adding one by hand creates no duplicates."
                       Background="#1a1a28" Foreground="#c8a84b"
                       BorderBrush="#3a3020" BorderThickness="1"
                       Padding="10 4" FontSize="11" />
@@ -140,7 +164,13 @@
               <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Text="{Binding BulkStatus}"
                          FontSize="10" Foreground="#7a8896" TextWrapping="Wrap" Margin="0 6 0 0"
                          IsVisible="{Binding BulkStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-            </Grid>
+          </Grid>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" Margin="0 14 0 0"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Spacing="28">
 
             <ItemsControl x:CompileBindings="False" ItemsSource="{Binding Structures}">
               <ItemsControl.ItemTemplate>
@@ -211,10 +241,22 @@
                                    Foreground="#444455" LetterSpacing="1" />
 
                         <Grid ColumnDefinitions="*,Auto">
-                          <TextBlock Grid.Column="0" Text="{Binding FacilityLinkText}"
-                                     FontSize="11" VerticalAlignment="Center"
-                                     TextTrimming="CharacterEllipsis"
-                                     Foreground="#aaaabc" />
+                          <!-- Linked: the name opens the facility. Unlinked: FacilityLinkText is
+                               the "not linked" hint, which is not a place and stays plain text. -->
+                          <Panel Grid.Column="0">
+                            <Button Classes="link" Click="OnOpenFacility"
+                                    IsVisible="{Binding HasFacilityLink}"
+                                    ToolTip.Tip="Open this station or structure">
+                              <TextBlock Text="{Binding FacilityLinkText}" Classes="linktext"
+                                         FontSize="11" Foreground="#aaaabc"
+                                         TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding FacilityLinkText}"
+                                       IsVisible="{Binding !HasFacilityLink}"
+                                       FontSize="11" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"
+                                       Foreground="#aaaabc" />
+                          </Panel>
                           <Button Grid.Column="1" x:CompileBindings="False"
                                   Command="{Binding $parent[UserControl].DataContext.UnlinkFacilityCommand}"
                                   CommandParameter="{Binding}"
@@ -266,14 +308,24 @@
                         <ItemsControl ItemsSource="{Binding RigSlots}">
                           <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:RigSlotVm">
-                              <Grid ColumnDefinitions="Auto,*" Margin="0 3">
+                              <Grid ColumnDefinitions="Auto,Auto,*" Margin="0 3">
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding SlotIndex, StringFormat='Slot {0}:'}"
                                            FontSize="11" Foreground="#444455"
                                            VerticalAlignment="Center" MinWidth="48" />
+                                <!-- The fitted rig's icon, and the only way into the Item Browser
+                                     for it: the name itself lives inside the ComboBox, where it
+                                     is a selection rather than something you can click through.
+                                     Collapses to nothing on an empty slot. -->
+                                <Button Grid.Column="1" Classes="link" Click="OnOpenRig"
+                                        IsVisible="{Binding HasRig}" Margin="0 0 4 0"
+                                        ToolTip.Tip="Open in the Item Browser">
+                                  <Image Source="{Binding Icon}" Width="20" Height="20"
+                                         Stretch="Uniform" VerticalAlignment="Center" />
+                                </Button>
                                 <!-- Locked when the game reports this structure's fitting: an
                                      edit here would be reverted by the next sweep. -->
-                                <ComboBox Grid.Column="1" x:CompileBindings="False"
+                                <ComboBox Grid.Column="2" x:CompileBindings="False"
                                           IsEnabled="{Binding $parent[ItemsControl].DataContext.FittingEditable}"
                                           ItemsSource="{Binding AvailableRigs}"
                                           SelectedItem="{Binding Selected}"
@@ -303,9 +355,18 @@
                           <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:ServiceModuleVm">
                               <Grid ColumnDefinitions="*,Auto" Margin="0 2">
-                                <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11"
-                                           Foreground="#aaaabc" VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis" />
+                                <Panel Grid.Column="0">
+                                  <Button Classes="link" Click="OnOpenServiceModule"
+                                          IsVisible="{Binding HasItemLink}"
+                                          ToolTip.Tip="Open in the Item Browser">
+                                    <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="11"
+                                               Foreground="#aaaabc" TextTrimming="CharacterEllipsis" />
+                                  </Button>
+                                  <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasItemLink}"
+                                             FontSize="11" Foreground="#aaaabc"
+                                             VerticalAlignment="Center"
+                                             TextTrimming="CharacterEllipsis" />
+                                </Panel>
                                 <Button Grid.Column="1" x:CompileBindings="False"
                                         IsEnabled="{Binding Owner.FittingEditable}"
                                         Command="{Binding $parent[UserControl].DataContext.RemoveServiceCommand}"
@@ -351,9 +412,8 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
-          </StackPanel>
 
-          <!-- Production assignments section -->
+            <!-- Production assignments section -->
           <StackPanel Spacing="10">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Grid.Column="0" Text="PRODUCTION ASSIGNMENTS" FontSize="10" FontWeight="SemiBold"
@@ -475,8 +535,9 @@
             </Border>
           </StackPanel>
 
-        </StackPanel>
-      </ScrollViewer>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
     </Grid>
 
   </Grid>

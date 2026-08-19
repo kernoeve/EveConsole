@@ -638,9 +638,73 @@
       </Grid>
     </TabItem>
 
+  <!-- ── Price History ──────────────────────────────────────────────────── -->
+  <TabItem Header="Price History">
+    <ScrollViewer>
+      <StackPanel Spacing="16" Margin="24 16">
+
+        <TextBlock Text="Price History Regions"
+                   FontSize="14" FontWeight="SemiBold" Foreground="#c8a84b" />
+
+        <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
+                   Text="A background job refreshes 30-day market history for every traded item in these regions, once per 24 hours per item, so the opportunity tools and item details read it straight from the DB. It paces itself against ESI's error limit, so it will never push the app over. Large regions (e.g. The Forge) fill in gradually across sessions." />
+
+        <!-- Configured regions grid -->
+        <DataGrid ItemsSource="{Binding PriceHistoryVm.ConfiguredRegions}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserSortColumns="False"
+                  CanUserResizeColumns="True"
+                  MaxHeight="200">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Region ID"   Binding="{ReflectionBinding RegionId}"   Width="100" />
+            <DataGridTextColumn Header="Region Name" Binding="{ReflectionBinding RegionName}" Width="*" />
+            <DataGridTemplateColumn Header="" Width="80">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="models:PriceHistoryRegion">
+                  <Button Content="Remove"
+                          Command="{Binding $parent[Window].DataContext.PriceHistoryVm.RemoveCommand}"
+                          CommandParameter="{Binding}"
+                          Padding="6 2" FontSize="11"
+                          Background="#2a1010" Foreground="#cc4444"
+                          BorderBrush="#3a1515" BorderThickness="1" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Add region row -->
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <ComboBox ItemsSource="{Binding PriceHistoryVm.AllRegions}"
+                    SelectedItem="{Binding PriceHistoryVm.SelectedNewRegion}"
+                    Width="260" PlaceholderText="Select a region to add…">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:SdeRegionOption">
+                <TextBlock Text="{Binding Name}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <Button Content="Add Region"
+                  Command="{Binding PriceHistoryVm.AddCommand}"
+                  Padding="12 6" FontSize="12"
+                  Background="#1a2a1a" Foreground="#70ad47"
+                  BorderBrush="#253525" BorderThickness="1" />
+        </StackPanel>
+
+        <TextBlock TextWrapping="Wrap" Foreground="#666677" FontSize="11" Margin="0 4 0 0"
+                   Text="Tip: watch live per-region sweep progress (refreshed vs queued, and whether it's running) on the Background Processes → Price History tab." />
+
+      </StackPanel>
+    </ScrollViewer>
+  </TabItem>
+
     <!-- ══ Industry ══════════════════════════════════════════════════════════ -->
     <TabItem Header="Industry">
-      <ScrollViewer Margin="0 8 0 0">
+      <!-- Horizontal scrolling off explicitly: the characters grid below sizes its last column
+           with a star, and an unbounded width would push that column out of view rather than
+           fitting it. -->
+      <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="12" Margin="0 0 4 0">
 
           <!-- Build Costs -->
@@ -691,6 +755,45 @@
 
               <TextBlock FontSize="11" Foreground="#666" TextWrapping="Wrap"
                          Text="Off by default. Component markets bounce around, and a few units listed cheap don't guarantee the quantity you need is available at that price — nor that it's worth tracking down and hauling. When off, the calculators build every component they can (items that genuinely can't be costed are still bought). Turn it on to let cheaper-of-build-vs-buy decide."/>
+            </StackPanel>
+          </Border>
+
+          <!-- Industry characters. Moved here from the Worklist tool: it is configuration, and
+               the tool itself is for reading the work rather than setting up who does it. -->
+          <Border Background="#161620" BorderBrush="#252530" BorderThickness="1"
+                  CornerRadius="4" Padding="12 10">
+            <StackPanel Spacing="8" DataContext="{Binding IndustryVm}">
+              <TextBlock Text="Industry Characters" FontWeight="SemiBold" Foreground="#c8a84b" FontSize="12" />
+              <TextBlock FontSize="11" Foreground="#666" TextWrapping="Wrap"
+                         Text="Which characters may be given jobs, and on what. Every authorised character is listed automatically with all three activities on — clear the ones a character should not be given, which is how an alt is taken out of consideration. Jobs go to the least capable character who can run them, keeping the high-skill alts free for the work only they can do." />
+
+              <DataGrid ItemsSource="{Binding Chars}" MinHeight="160" MaxHeight="320"
+                        IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Character" Binding="{Binding CharacterName}" FontSize="11" Width="200"
+                                      IsReadOnly="True" />
+
+                  <!-- Editable in place, saving on change. -->
+                  <DataGridTemplateColumn Header="Slots used for" Width="260" SortMemberPath="Activities" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:IndyCharRow">
+                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                          <CheckBox Content="Mfg"  IsChecked="{Binding Manufacturing, Mode=TwoWay}" FontSize="11"
+                                    MinHeight="0" ToolTip.Tip="Manufacturing" />
+                          <CheckBox Content="Rxn"  IsChecked="{Binding Reactions, Mode=TwoWay}"     FontSize="11"
+                                    MinHeight="0" ToolTip.Tip="Reactions" />
+                          <CheckBox Content="Sci"  IsChecked="{Binding Science, Mode=TwoWay}"       FontSize="11"
+                                    MinHeight="0" ToolTip.Tip="Science — copying, research, invention" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+
+                  <DataGridTextColumn Header="Free / total" Binding="{Binding Slots}" FontSize="11" Width="*"
+                                      IsReadOnly="True" />
+                </DataGrid.Columns>
+              </DataGrid>
             </StackPanel>
           </Border>
 
@@ -2188,67 +2291,6 @@
     </ScrollViewer>
   </TabItem>
 
-  <!-- ── Price History ──────────────────────────────────────────────────── -->
-  <TabItem Header="Price History">
-    <ScrollViewer>
-      <StackPanel Spacing="16" Margin="24 16">
-
-        <TextBlock Text="Price History Regions"
-                   FontSize="14" FontWeight="SemiBold" Foreground="#c8a84b" />
-
-        <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
-                   Text="A background job refreshes 30-day market history for every traded item in these regions, once per 24 hours per item, so the opportunity tools and item details read it straight from the DB. It paces itself against ESI's error limit, so it will never push the app over. Large regions (e.g. The Forge) fill in gradually across sessions." />
-
-        <!-- Configured regions grid -->
-        <DataGrid ItemsSource="{Binding PriceHistoryVm.ConfiguredRegions}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  CanUserSortColumns="False"
-                  CanUserResizeColumns="True"
-                  MaxHeight="200">
-          <DataGrid.Columns>
-            <DataGridTextColumn Header="Region ID"   Binding="{ReflectionBinding RegionId}"   Width="100" />
-            <DataGridTextColumn Header="Region Name" Binding="{ReflectionBinding RegionName}" Width="*" />
-            <DataGridTemplateColumn Header="" Width="80">
-              <DataGridTemplateColumn.CellTemplate>
-                <DataTemplate x:DataType="models:PriceHistoryRegion">
-                  <Button Content="Remove"
-                          Command="{Binding $parent[Window].DataContext.PriceHistoryVm.RemoveCommand}"
-                          CommandParameter="{Binding}"
-                          Padding="6 2" FontSize="11"
-                          Background="#2a1010" Foreground="#cc4444"
-                          BorderBrush="#3a1515" BorderThickness="1" />
-                </DataTemplate>
-              </DataGridTemplateColumn.CellTemplate>
-            </DataGridTemplateColumn>
-          </DataGrid.Columns>
-        </DataGrid>
-
-        <!-- Add region row -->
-        <StackPanel Orientation="Horizontal" Spacing="8">
-          <ComboBox ItemsSource="{Binding PriceHistoryVm.AllRegions}"
-                    SelectedItem="{Binding PriceHistoryVm.SelectedNewRegion}"
-                    Width="260" PlaceholderText="Select a region to add…">
-            <ComboBox.ItemTemplate>
-              <DataTemplate x:DataType="vm:SdeRegionOption">
-                <TextBlock Text="{Binding Name}" />
-              </DataTemplate>
-            </ComboBox.ItemTemplate>
-          </ComboBox>
-          <Button Content="Add Region"
-                  Command="{Binding PriceHistoryVm.AddCommand}"
-                  Padding="12 6" FontSize="12"
-                  Background="#1a2a1a" Foreground="#70ad47"
-                  BorderBrush="#253525" BorderThickness="1" />
-        </StackPanel>
-
-        <TextBlock TextWrapping="Wrap" Foreground="#666677" FontSize="11" Margin="0 4 0 0"
-                   Text="Tip: watch live per-region sweep progress (refreshed vs queued, and whether it's running) on the Background Processes → Price History tab." />
-
-      </StackPanel>
-    </ScrollViewer>
-  </TabItem>
-
     <!-- ══ Database ════════════════════════════════════════════════════════════ -->
     <TabItem Header="Database">
       <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
@@ -2299,26 +2341,30 @@
                   </Grid>
                 </StackPanel>
 
-                <!-- Move / Rename / Repoint buttons -->
+                <!-- Move-or-rename / Repoint buttons -->
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                  <Button Content="Move Database…"
+                  <!-- One button: a rename is a move to the same folder under a different name,
+                       and the file picker already lets the user choose both. -->
+                  <Button Content="Move / Rename Database…"
                           IsEnabled="{Binding !IsBusy}"
-                          Click="OnMoveDatabaseClick"
+                          Click="OnRelocateDatabaseClick"
                           Padding="12 5" FontSize="12"
                           Background="#1a1a28" Foreground="#aac8ff"
-                          BorderBrush="#2a2a48" BorderThickness="1" />
-                  <Button Content="Rename Database…"
-                          IsEnabled="{Binding !IsBusy}"
-                          Click="OnRenameDatabaseClick"
-                          Padding="12 5" FontSize="12"
-                          Background="#1a1a28" Foreground="#aac8ff"
-                          BorderBrush="#2a2a48" BorderThickness="1" />
+                          BorderBrush="#2a2a48" BorderThickness="1"
+                          ToolTip.Tip="Move the database to another folder or drive, or give it a different name. The application restarts to do it." />
                   <Button Content="Point to Existing DB…"
                           IsEnabled="{Binding !IsBusy}"
                           Click="OnPointToDbClick"
                           Padding="12 5" FontSize="12"
                           Background="#1a1a28" Foreground="#aac8ff"
                           BorderBrush="#2a2a48" BorderThickness="1" />
+                  <Button Content="Shrink Database…"
+                          IsEnabled="{Binding !IsBusy}"
+                          Click="OnShrinkDatabaseClick"
+                          Padding="12 5" FontSize="12"
+                          Background="#1a1a28" Foreground="#aac8ff"
+                          BorderBrush="#2a2a48" BorderThickness="1"
+                          ToolTip.Tip="Rebuild the database file so space freed by deleted data is returned to your drive. Restarts the application." />
                 </StackPanel>
 
                 <TextBlock Text="These operations copy or move the database file and restart the application."
@@ -2370,6 +2416,304 @@
                            Foreground="#70ad47" FontSize="11"
                            IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                            TextWrapping="Wrap" />
+
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+
+          <!-- Storage breakdown -->
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4"
+                  IsVisible="{Binding IsSqlite}">
+            <StackPanel>
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Storage Breakdown" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="10">
+
+                <TextBlock FontSize="11" Foreground="#666" TextWrapping="Wrap"
+                           Text="What the database file is spent on, table data and indexes separately. Figures are measured from the data and scaled to match the file's used pages — accurate enough to decide what is worth keeping, not a page-level audit. Large tables are sampled rather than read in full." />
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="Load"
+                          IsEnabled="{Binding CanAnalyse}"
+                          Click="OnAnalyseDbSizeClick"
+                          Padding="12 5" FontSize="12"
+                          Background="#1a1a28" Foreground="#aac8ff"
+                          BorderBrush="#2a2a48" BorderThickness="1" />
+                  <TextBlock Text="{Binding SizeStatusText}" Foreground="#888" FontSize="11"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+
+                <TextBlock Text="{Binding SizeSummaryText}" Foreground="#aaa" FontSize="11"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding SizeSummaryText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                <DataGrid ItemsSource="{Binding TableSizes}"
+                          IsVisible="{Binding HasTableSizes}"
+                          AutoGenerateColumns="False" IsReadOnly="True" RowHeight="22"
+                          MaxHeight="520"
+                          CanUserReorderColumns="False" CanUserResizeColumns="True"
+                          CanUserSortColumns="True"
+                          Background="#0d0d12">
+                  <DataGrid.Styles>
+                    <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+                    <Style Selector="DataGridColumnHeader">
+                      <Setter Property="Background" Value="#12121a" />
+                      <Setter Property="Foreground" Value="#555566" />
+                      <Setter Property="FontSize"   Value="10" />
+                      <Setter Property="FontWeight" Value="SemiBold" />
+                      <Setter Property="Padding"    Value="6 5 2 5" />
+                    </Style>
+                  </DataGrid.Styles>
+                  <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Table" Width="*" SortMemberPath="Name">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:TableSizeVm">
+                          <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
+                                     ToolTip.Tip="{Binding Tooltip}"
+                                     TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Rows"    Binding="{Binding RowsText}"  Width="110" />
+                    <DataGridTextColumn Header="Data"    Binding="{Binding TableText}" Width="90"  />
+                    <DataGridTextColumn Header="Indexes" Binding="{Binding IndexText}" Width="90"  />
+                    <DataGridTextColumn Header="Total"   Binding="{Binding TotalText}" Width="90"
+                                        SortMemberPath="SharePercent" />
+                    <DataGridTextColumn Header="Share"   Binding="{Binding ShareText}" Width="70"
+                                        SortMemberPath="SharePercent" />
+                    <DataGridTextColumn Header="Method"  Binding="{Binding Method}"    Width="80"  />
+                  </DataGrid.Columns>
+                </DataGrid>
+
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <!-- ══ Data Retention ══════════════════════════════════════════════════ -->
+    <TabItem Header="Data Retention">
+      <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="14" x:DataType="vm:DataRetentionSettingsViewModel"
+                    DataContext="{Binding RetentionVm}">
+
+          <TextBlock FontSize="11" Foreground="#666" TextWrapping="Wrap" Margin="2 0 2 0"
+                     Text="How long EVE Console keeps data it can afford to forget. Every rule here is off until you turn it on, and each runs once at startup. Purging removes rows, but SQLite reuses the freed pages rather than returning them, so the file itself only gets smaller after a compaction — see Database → Shrink Database. Database → Storage Breakdown shows where the space actually went." />
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel DataContext="{Binding ErrorLog}" x:DataType="vm:RetentionSectionVm">
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Error Log" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="10">
+
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="The error log is for reading the last few hours, not for keeping history. Left unattended it grows past a hundred thousand entries, at which point nobody looks at it. Under 1% of a measured 4 GB database, so this keeps the log readable rather than reclaiming space." />
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+                  <CheckBox Grid.Column="0"
+                            IsChecked="{Binding Enabled}"
+                            Content="Purge entries older than"
+                            Foreground="#ccc" FontSize="12" VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding Days}"
+                                 Minimum="{Binding MinimumDays}" Maximum="3650"
+                                 Increment="1" FormatString="0"
+                                 Width="110" FontSize="12" Margin="8 0 8 0" />
+                  <TextBlock Grid.Column="2" Text="days" Foreground="#ccc" FontSize="12"
+                             VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="Purge Now"
+                          IsEnabled="{Binding CanPurge}"
+                          Click="OnPurgeErrorLogClick"
+                          Padding="12 5" FontSize="12"
+                          Background="#1a1a28" Foreground="#aac8ff"
+                          BorderBrush="#2a2a48" BorderThickness="1" />
+                  <TextBlock Text="{Binding LastRunText}" Foreground="#666" FontSize="11"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Status}" Foreground="#888" FontSize="11"
+                             VerticalAlignment="Center" TextWrapping="Wrap"
+                             IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel DataContext="{Binding Killmails}" x:DataType="vm:RetentionSectionVm">
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Kill Mails" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="10">
+
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="Removes the kill and everything attached to it — attackers, items, references and zKillboard flags. Kill mails and their indexes are the largest thing in a typical database (61% of a measured 4 GB file), so this is the rule that actually reclaims space. ⚠️ Deleted kills are gone locally; getting them back means re-fetching from ESI or zKillboard, and ESI only serves recent ones." />
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+                  <CheckBox Grid.Column="0"
+                            IsChecked="{Binding Enabled}"
+                            Content="Purge kill mails older than"
+                            Foreground="#ccc" FontSize="12" VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding Days}"
+                                 Minimum="{Binding MinimumDays}" Maximum="3650"
+                                 Increment="1" FormatString="0"
+                                 Width="110" FontSize="12" Margin="8 0 8 0" />
+                  <TextBlock Grid.Column="2" Text="days" Foreground="#ccc" FontSize="12"
+                             VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="Purge Now"
+                          IsEnabled="{Binding CanPurge}"
+                          Click="OnPurgeKillmailsClick"
+                          Padding="12 5" FontSize="12"
+                          Background="#1a1a28" Foreground="#aac8ff"
+                          BorderBrush="#2a2a48" BorderThickness="1" />
+                  <TextBlock Text="{Binding LastRunText}" Foreground="#666" FontSize="11"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Status}" Foreground="#888" FontSize="11"
+                             VerticalAlignment="Center" TextWrapping="Wrap"
+                             IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel DataContext="{Binding PriceHistory}" x:DataType="vm:RetentionSectionVm">
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Price History" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="10">
+
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="Removes daily market history per region and type, together with the derived per-type price snapshots built from it — both together, because keeping one without the other leaves a history that disagrees with itself. About 15% of a measured 4 GB file. ESI serves roughly a year of history, so recent rows can be re-fetched." />
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+                  <CheckBox Grid.Column="0"
+                            IsChecked="{Binding Enabled}"
+                            Content="Purge price history older than"
+                            Foreground="#ccc" FontSize="12" VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding Days}"
+                                 Minimum="{Binding MinimumDays}" Maximum="3650"
+                                 Increment="1" FormatString="0"
+                                 Width="110" FontSize="12" Margin="8 0 8 0" />
+                  <TextBlock Grid.Column="2" Text="days" Foreground="#ccc" FontSize="12"
+                             VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="Purge Now"
+                          IsEnabled="{Binding CanPurge}"
+                          Click="OnPurgePriceHistoryClick"
+                          Padding="12 5" FontSize="12"
+                          Background="#1a1a28" Foreground="#aac8ff"
+                          BorderBrush="#2a2a48" BorderThickness="1" />
+                  <TextBlock Text="{Binding LastRunText}" Foreground="#666" FontSize="11"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Status}" Foreground="#888" FontSize="11"
+                             VerticalAlignment="Center" TextWrapping="Wrap"
+                             IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel DataContext="{Binding GameLog}" x:DataType="vm:RetentionSectionVm">
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Game Log" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="10">
+
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="Removes parsed game-log events — ratting, mining and industry activity read from your EVE client logs. The .log files on disk are left alone, so anything purged here can be re-imported with Game Logs → Import Past Logs for as long as those files survive." />
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+                  <CheckBox Grid.Column="0"
+                            IsChecked="{Binding Enabled}"
+                            Content="Purge game log events older than"
+                            Foreground="#ccc" FontSize="12" VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding Days}"
+                                 Minimum="{Binding MinimumDays}" Maximum="3650"
+                                 Increment="1" FormatString="0"
+                                 Width="110" FontSize="12" Margin="8 0 8 0" />
+                  <TextBlock Grid.Column="2" Text="days" Foreground="#ccc" FontSize="12"
+                             VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="Purge Now"
+                          IsEnabled="{Binding CanPurge}"
+                          Click="OnPurgeGameLogClick"
+                          Padding="12 5" FontSize="12"
+                          Background="#1a1a28" Foreground="#aac8ff"
+                          BorderBrush="#2a2a48" BorderThickness="1" />
+                  <TextBlock Text="{Binding LastRunText}" Foreground="#666" FontSize="11"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Status}" Foreground="#888" FontSize="11"
+                             VerticalAlignment="Center" TextWrapping="Wrap"
+                             IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+            <StackPanel DataContext="{Binding ChatMessages}" x:DataType="vm:RetentionSectionVm">
+              <Border Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Chat Messages" FontWeight="SemiBold" Foreground="#c8a84b" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="10">
+
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                           Text="Removes stored chat messages. Intel reports already parsed from them are kept — reports older than the oldest surviving message are treated as history that cannot be rebuilt, both by the startup cleanup and by Chat Logs → parse stored history, which rebuilds only the period it can actually reproduce. The .log files on disk are untouched, so a re-import stays possible while they exist." />
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+                  <CheckBox Grid.Column="0"
+                            IsChecked="{Binding Enabled}"
+                            Content="Purge chat messages older than"
+                            Foreground="#ccc" FontSize="12" VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding Days}"
+                                 Minimum="{Binding MinimumDays}" Maximum="3650"
+                                 Increment="1" FormatString="0"
+                                 Width="110" FontSize="12" Margin="8 0 8 0" />
+                  <TextBlock Grid.Column="2" Text="days" Foreground="#ccc" FontSize="12"
+                             VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="Purge Now"
+                          IsEnabled="{Binding CanPurge}"
+                          Click="OnPurgeChatClick"
+                          Padding="12 5" FontSize="12"
+                          Background="#1a1a28" Foreground="#aac8ff"
+                          BorderBrush="#2a2a48" BorderThickness="1" />
+                  <TextBlock Text="{Binding LastRunText}" Foreground="#666" FontSize="11"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Status}" Foreground="#888" FontSize="11"
+                             VerticalAlignment="Center" TextWrapping="Wrap"
+                             IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
 
               </StackPanel>
             </StackPanel>

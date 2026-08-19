@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
@@ -125,11 +126,20 @@ internal sealed class SelectableCell : Border
 
     public string ColName => _col;
 
-    public SelectableCell(DataGrid grid, string col, CellSelectionService svc)
+    /// <summary>Where this cell's text goes when clicked. Null for an ordinary cell.</summary>
+    private readonly Action<GridRow>? _onClick;
+
+    /// <param name="onClick">Makes the cell a link. ⚠️ Built into the cell rather than wrapping it
+    /// in a link Button, because a Button swallows the pointer press the selection service needs —
+    /// a linked column would lose cell selection and therefore Copy. The tap both selects and
+    /// navigates, which is what clicking a name is asking for anyway.</param>
+    public SelectableCell(DataGrid grid, string col, CellSelectionService svc,
+                          Action<GridRow>? onClick = null)
     {
         _grid            = grid;
         _col             = col;
         _svc             = svc;
+        _onClick         = onClick;
         _isTimeRemaining = col == "Time Remaining";
         _tb = new TextBlock
         {
@@ -139,6 +149,15 @@ internal sealed class SelectableCell : Border
         };
         Child = _tb;
         DataContextChanged += (_, _) => Refresh();
+
+        if (_onClick is not null)
+        {
+            Cursor = new Cursor(StandardCursorType.Hand);
+            // Not marked handled: the grid still needs the tap to select the cell.
+            Tapped         += (_, _) => { if (DataContext is GridRow r) _onClick(r); };
+            PointerEntered += (_, _) => _tb.TextDecorations = TextDecorations.Underline;
+            PointerExited  += (_, _) => _tb.TextDecorations = null;
+        }
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)

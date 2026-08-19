@@ -46,7 +46,7 @@ public class InventionGenerator(
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        var parkId = settings.IndustryParkId;
+        var parkId = await WorklistSettings.ResolveParkIdAsync(db, settings.IndustryParkId, ct);
         if (parkId <= 0) return [];
 
         var candidates = await assignment.LoadCandidatesAsync(ct);

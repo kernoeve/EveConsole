@@ -32,5 +32,16 @@ public partial class StandingBuyOrdersView : ReactiveUserControl<StandingBuyOrde
         };
     }
 
+    // Each row carries its own navigation; these reach it through the button's DataContext.
+    private static StandingBuyOrderRowVm? Row(object? sender)
+        => (sender as Control)?.DataContext as StandingBuyOrderRowVm;
+
+    private void OnOpenRowItem(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Row(sender)?.OpenItem();
+    private void OnOpenRowLocation(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Row(sender)?.OpenLocation();
+    private void OnOpenRowOwner(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Row(sender)?.OpenOwner();
+
     private Window GetWindow() => (TopLevel.GetTopLevel(this) as Window)!;
 }

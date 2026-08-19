@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using EveConsole.Models;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services.Worklist;
@@ -25,6 +26,7 @@ public class WorklistService(
     IDbContextFactory<AppDbContext> dbFactory,
     IEnumerable<IWorklistGenerator> generators,
     WorklistSettings                settings,
+    IndustryAssignmentService       assignment,
     AppErrorLogger                  errorLogger)
 {
     private readonly List<IWorklistGenerator> _generators = generators.ToList();
@@ -35,6 +37,11 @@ public class WorklistService(
 
     public async Task<WorklistRun> BuildAsync(CancellationToken ct = default)
     {
+        // Newly authorised characters join the industry list here, once, before the fan-out below.
+        // Inside a generator it would run once per generator in parallel, and they would race to
+        // insert the same rows.
+        await assignment.EnrolMissingAsync(ct);
+
         // A disabled source is skipped rather than filtered afterwards: it should cost no
         // queries at all, not run and have its output thrown away.
         var active = _generators.Where(g => settings.IsSourceEnabled(g.Id)).ToList();
@@ -178,6 +185,34 @@ public class WorklistService(
                     _                    => p.Midpoint,
                 });
 
+        // ⚠️ Contracts fill the gaps the market cannot. A blueprint has no market price at all —
+        // it is bought and sold on contracts — so a buy task for one valued at nothing, and the
+        // ISK column on those rows sat blank while the task itself was worth billions. Applied
+        // only where the market had no price rather than in preference to it: the market is the
+        // better number when it exists, and mixing the two per type would make the total depend on
+        // which source happened to answer.
+        var unpriced = typeIds.Where(id => !prices.ContainsKey(id) || prices[id] <= 0).ToList();
+        if (unpriced.Count > 0)
+            foreach (var cp in await db.ContractPrices.AsNoTracking()
+                         .Where(c => unpriced.Contains(c.TypeId)).ToListAsync(ct))
+                if (ContractPricing.EffectivePrice(cp) is { } effective && effective > 0)
+                    prices[cp.TypeId] = (double)effective;
+
+        // ⚠️ A blueprint is priced as a copy, and this overrides both sources above rather than
+        // filling a gap they left. ContractPrices holds the whole-item price, which for a
+        // blueprint type is the original — and an Avatar BPO is tens of billions against a copy
+        // at a small fraction of that. Nobody with a task to acquire a titan print is buying the
+        // original; they are buying a copy, which is what the task's own note already quotes.
+        // Valuing the row off the BPO put a number on the list that no part of the plan matched.
+        //
+        // A type with no BPC contract price keeps whatever it had. That is deliberate: the
+        // fallback would be the BPO price, which is the figure being corrected here.
+        var bpTypeIds = await KillmailValuation.BlueprintTypeIdsAsync(db, typeIds, ct);
+        if (bpTypeIds.Count > 0)
+            foreach (var (typeId, perRun) in
+                     await KillmailValuation.CheapestBpcPerRunAsync(db, bpTypeIds, ct))
+                if (perRun > 0) prices[typeId] = perRun;
+
         foreach (var section in sections)
         {
             for (var i = 0; i < section.Items.Count; i++)
@@ -192,7 +227,18 @@ public class WorklistService(
                     ? item.Lines.Sum(l => prices.GetValueOrDefault(l.TypeId) * l.Quantity)
                     : item.Quantity > 0 ? prices.GetValueOrDefault(item.TypeId) * item.Quantity : 0;
 
-                if (m3 > 0 || isk > 0) section.Items[i] = item with { Volume = m3, Value = isk };
+                // Stamped onto each line as well, off the same two lookups. The manifest shows a
+                // per-item value and volume, and taking them from anywhere else would let the
+                // lines disagree with the total they add up to.
+                var lines = item.Lines.Count == 0 ? item.Lines
+                    : item.Lines.Select(l => l with
+                      {
+                          Volume = volumes.GetValueOrDefault(l.TypeId) * l.Quantity,
+                          Value  = prices.GetValueOrDefault(l.TypeId)  * l.Quantity,
+                      }).ToList();
+
+                if (m3 > 0 || isk > 0)
+                    section.Items[i] = item with { Volume = m3, Value = isk, Lines = lines };
             }
         }
     }

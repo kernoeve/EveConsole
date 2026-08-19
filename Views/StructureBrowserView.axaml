@@ -12,11 +12,6 @@
       <Setter Property="FontSize" Value="11" />
       <Setter Property="Margin" Value="0 0 6 0" />
     </Style>
-    <!-- Quantities read as numbers: right-aligned so the digits line up column-wise. -->
-    <Style Selector="DataGridCell.num TextBlock">
-      <Setter Property="HorizontalAlignment" Value="Right" />
-      <Setter Property="Margin" Value="0 0 8 0" />
-    </Style>
     <Style Selector="TextBlock.flabel">
       <Setter Property="FontSize" Value="9.5" />
       <Setter Property="FontWeight" Value="SemiBold" />
@@ -38,6 +33,25 @@
     <Style Selector="DataGridCell">
       <Setter Property="Padding" Value="6 0" />
       <Setter Property="FontSize" Value="11" />
+    </Style>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
     </Style>
   </UserControl.Styles>
 
@@ -136,12 +150,90 @@
         </DataGrid.Styles>
         <DataGrid.Columns>
           <DataGridTextColumn Header="Structure" Binding="{Binding Name}" Width="2*" />
-          <DataGridTextColumn Header="Type" Binding="{Binding TypeName}" Width="*" />
-          <DataGridTextColumn Header="System" Binding="{Binding SystemName}" Width="*" />
-          <DataGridTextColumn Header="Constellation" Binding="{Binding Constellation}" Width="*" />
-          <DataGridTextColumn Header="Region" Binding="{Binding Region}" Width="*" />
-          <DataGridTextColumn Header="Corp" Binding="{Binding CorpName}" Width="1.4*" />
-          <DataGridTextColumn Header="Alliance" Binding="{Binding AllianceName}" Width="1.4*" />
+          <DataGridTemplateColumn Header="Type" SortMemberPath="TypeName" Width="*">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:StructureRow">
+                <Panel>
+                  <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}" ToolTip.Tip="Open in the Item Browser">
+                    <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Button>
+                  <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasTypeLink}"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Panel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="System" SortMemberPath="SystemName" Width="*">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:StructureRow">
+                <Panel>
+                  <Button Classes="link" Click="OnOpenRowSystem" IsVisible="{Binding HasSystemLink}" ToolTip.Tip="Open on the map">
+                    <TextBlock Text="{Binding SystemName}" Classes="linktext"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Button>
+                  <TextBlock Text="{Binding SystemName}" IsVisible="{Binding !HasSystemLink}"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Panel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="Constellation" SortMemberPath="Constellation" Width="*">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:StructureRow">
+                <Panel>
+                  <Button Classes="link" Click="OnOpenRowConstellation" IsVisible="{Binding HasConstellationLink}" ToolTip.Tip="Frame this constellation on the map">
+                    <TextBlock Text="{Binding Constellation}" Classes="linktext"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Button>
+                  <TextBlock Text="{Binding Constellation}" IsVisible="{Binding !HasConstellationLink}"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Panel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="Region" SortMemberPath="Region" Width="*">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:StructureRow">
+                <Panel>
+                  <Button Classes="link" Click="OnOpenRowRegion" IsVisible="{Binding HasRegionLink}" ToolTip.Tip="Frame this region on the map">
+                    <TextBlock Text="{Binding Region}" Classes="linktext"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Button>
+                  <TextBlock Text="{Binding Region}" IsVisible="{Binding !HasRegionLink}"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Panel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="Corp" SortMemberPath="CorpName" Width="1.4*">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:StructureRow">
+                <Panel>
+                  <Button Classes="link" Click="OnOpenRowCorp" IsVisible="{Binding HasCorpLink}" ToolTip.Tip="Open in the entity browser">
+                    <TextBlock Text="{Binding CorpName}" Classes="linktext"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Button>
+                  <TextBlock Text="{Binding CorpName}" IsVisible="{Binding !HasCorpLink}"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Panel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="Alliance" SortMemberPath="AllianceName" Width="1.4*">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:StructureRow">
+                <Panel>
+                  <Button Classes="link" Click="OnOpenRowAlliance" IsVisible="{Binding HasAllianceLink}" ToolTip.Tip="Open in the entity browser">
+                    <TextBlock Text="{Binding AllianceName}" Classes="linktext"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Button>
+                  <TextBlock Text="{Binding AllianceName}" IsVisible="{Binding !HasAllianceLink}"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Panel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
           <DataGridTextColumn Header="Nearest" Binding="{Binding NearestCelestial}" Width="*" />
           <DataGridTextColumn Header="Status" Binding="{Binding StatusText}" Width="Auto" />
         </DataGrid.Columns>
@@ -166,12 +258,33 @@
             <StackPanel Grid.Column="0" Spacing="1">
               <TextBlock Text="{Binding Selected.Name}" FontSize="13"
                          FontWeight="SemiBold" Foreground="#ddd" />
-              <TextBlock FontSize="10" Foreground="#667">
-                <Run Text="Location ID" /><Run Text=" " />
-                <Run Text="{Binding Selected.StructureId}" />
-                <Run Text="  ·  " />
-                <Run Text="{Binding Provenance}" />
-              </TextBlock>
+              <!-- ⚠️ System and region live on this line rather than on the Details tab. The
+                   fields there are the editable record — an AutoCompleteBox and a ComboBox — and
+                   a control you type into is not one you navigate from. This line was already the
+                   read-only summary, so it is where a link belongs. -->
+              <StackPanel Orientation="Horizontal" Spacing="0">
+                <TextBlock FontSize="10" Foreground="#667" VerticalAlignment="Center">
+                  <Run Text="Location ID" /><Run Text=" " />
+                  <Run Text="{Binding Selected.StructureId}" />
+                  <Run Text="  ·  " />
+                  <Run Text="{Binding Provenance}" />
+                </TextBlock>
+                <TextBlock Text="  ·  " FontSize="10" Foreground="#667" VerticalAlignment="Center"
+                           IsVisible="{Binding Selected.HasSystemLink}" />
+                <Button Classes="link" Click="OnOpenSelectedSystem"
+                        IsVisible="{Binding Selected.HasSystemLink}" ToolTip.Tip="Open on the map">
+                  <TextBlock Text="{Binding Selected.SystemName}" Classes="linktext"
+                             FontSize="10" Foreground="#667" />
+                </Button>
+                <TextBlock Text="  ·  " FontSize="10" Foreground="#667" VerticalAlignment="Center"
+                           IsVisible="{Binding Selected.HasRegionLink}" />
+                <Button Classes="link" Click="OnOpenSelectedRegion"
+                        IsVisible="{Binding Selected.HasRegionLink}"
+                        ToolTip.Tip="Frame this region on the map">
+                  <TextBlock Text="{Binding Selected.Region}" Classes="linktext"
+                             FontSize="10" Foreground="#667" />
+                </Button>
+              </StackPanel>
             </StackPanel>
             <TextBlock Grid.Column="1" Text="{Binding DetailStatus}"
                        FontSize="10.5" Foreground="#7a8896" VerticalAlignment="Center" />
@@ -189,7 +302,19 @@
                         Background="#0d0d12" CornerRadius="4"
                         BorderBrush="#1e1e2a" BorderThickness="1"
                         VerticalAlignment="Top">
-                  <Image Source="{Binding TypeRender}" Stretch="Uniform" Margin="6" />
+                  <!-- The render is the one place the structure's type appears read-only, so it
+                       carries the Item Browser link; the TYPE ComboBox beside it is for editing.
+                       Panel because a Border takes a single child and this needs both states. -->
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenSelectedType"
+                            IsVisible="{Binding Selected.HasTypeLink}"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                            ToolTip.Tip="Open in the Item Browser">
+                      <Image Source="{Binding TypeRender}" Stretch="Uniform" Margin="6" />
+                    </Button>
+                    <Image Source="{Binding TypeRender}" Stretch="Uniform" Margin="6"
+                           IsVisible="{Binding !Selected.HasTypeLink}" />
+                  </Panel>
                 </Border>
 
                 <StackPanel Grid.Column="1" Spacing="8" MaxWidth="620" HorizontalAlignment="Left">
@@ -334,7 +459,20 @@
                           GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="Slot"   Binding="{Binding Slot}"     Width="100" />
-                    <DataGridTextColumn Header="Module" Binding="{Binding TypeName}" Width="*" />
+                    <DataGridTemplateColumn Header="Module" SortMemberPath="TypeName" Width="*">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:FittingRow">
+                          <Panel>
+                            <Button Classes="link" Click="OnOpenFittingItem" IsVisible="{Binding HasItemLink}" ToolTip.Tip="Open in the Item Browser">
+                              <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                         VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Panel>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTextColumn Header="From"   Binding="{Binding Source}"   Width="70" />
                   </DataGrid.Columns>
                 </DataGrid>
@@ -348,12 +486,38 @@
                         Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Item"      Binding="{Binding TypeName}"  Width="*" />
+                  <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StructureAssetRow">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenAssetItem" IsVisible="{Binding HasItemLink}" ToolTip.Tip="Open in the Item Browser">
+                            <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Container" Binding="{Binding Container}" Width="200" />
                   <DataGridTextColumn Header="Where"     Binding="{Binding Location}"  Width="170" />
                   <DataGridTextColumn Header="Qty"       Binding="{Binding QuantityText}" SortMemberPath="Quantity"
                                       Width="90" CellStyleClasses="num" />
-                  <DataGridTextColumn Header="Owner"     Binding="{Binding Owner}"     Width="130" />
+                  <DataGridTemplateColumn Header="Owner" SortMemberPath="Owner" Width="130">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StructureAssetRow">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenAssetOwner" IsVisible="{Binding HasOwnerLink}" ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding Owner}" Classes="linktext"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding Owner}" IsVisible="{Binding !HasOwnerLink}"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
@@ -366,7 +530,20 @@
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
                 <!-- No owner column: it is always the corp that owns the structure. -->
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Item"      Binding="{Binding TypeName}"  Width="*" />
+                  <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StructureAssetRow">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenAssetItem" IsVisible="{Binding HasItemLink}" ToolTip.Tip="Open in the Item Browser">
+                            <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Container" Binding="{Binding Container}" Width="220" />
                   <DataGridTextColumn Header="Qty"       Binding="{Binding QuantityText}" SortMemberPath="Quantity"
                                       Width="110" CellStyleClasses="num" />
@@ -381,7 +558,20 @@
                         Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Item" Binding="{Binding TypeName}" Width="*" />
+                  <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StructureAssetRow">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenAssetItem" IsVisible="{Binding HasItemLink}" ToolTip.Tip="Open in the Item Browser">
+                            <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Qty"  Binding="{Binding QuantityText}" SortMemberPath="Quantity"
                                       Width="140" CellStyleClasses="num" />
                 </DataGrid.Columns>
@@ -395,7 +585,20 @@
                         Background="#0d0d12" RowBackground="#0d0d12" BorderThickness="0"
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Fighter" Binding="{Binding TypeName}" Width="*" />
+                  <DataGridTemplateColumn Header="Fighter" SortMemberPath="TypeName" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StructureAssetRow">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenAssetItem" IsVisible="{Binding HasItemLink}" ToolTip.Tip="Open in the Item Browser">
+                            <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Where"   Binding="{Binding Location}" Width="180" />
                   <DataGridTextColumn Header="Qty"     Binding="{Binding QuantityText}" SortMemberPath="Quantity"
                                       Width="110" CellStyleClasses="num" />
@@ -439,7 +642,20 @@
                           GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26">
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="Activity" Binding="{Binding Activity}" Width="130" />
-                    <DataGridTextColumn Header="Product"  Binding="{Binding Product}"  Width="*" />
+                    <DataGridTemplateColumn Header="Product" SortMemberPath="Product" Width="*">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:StructureJobRow">
+                          <Panel>
+                            <Button Classes="link" Click="OnOpenJobProduct" IsVisible="{Binding HasProductLink}" ToolTip.Tip="Open in the Item Browser">
+                              <TextBlock Text="{Binding Product}" Classes="linktext"
+                                         VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding Product}" IsVisible="{Binding !HasProductLink}"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Panel>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTextColumn Header="Runs"     Binding="{Binding Runs}"     Width="70" />
                     <DataGridTextColumn Header="Status"   Binding="{Binding Status}"   Width="100" />
                     <DataGridTextColumn Header="Ends"     Binding="{Binding EndDate}"  Width="140" />

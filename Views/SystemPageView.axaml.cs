@@ -21,4 +21,27 @@ public partial class SystemPageView : UserControl
         if (sender is Control { DataContext: KillmailListRowVm row })
             EntityNavigator.Instance.Killmail(row.KillMailId);
     }
+
+    // ── Header links ──────────────────────────────────────────────────────────
+    //
+    // These sit outside any row template, so they read the page's own view model rather than a
+    // DataContext.
+    private SystemPageViewModel? Vm => DataContext as SystemPageViewModel;
+
+    private void OnOpenRegion(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Vm?.OpenRegion();
+    private void OnOpenConstellation(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Vm?.OpenConstellation();
+    private void OnOpenPirates(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Vm?.OpenPirates();
+
+    // ── Row links ─────────────────────────────────────────────────────────────
+    private void OnOpenSovType(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as SovStructureVm)?.OpenType();
+
+    private void OnOpenSovOwner(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as SovStructureVm)?.OpenOwner();
+
+    private void OnOpenGateSystem(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as GateVm)?.OpenSystem();
 }

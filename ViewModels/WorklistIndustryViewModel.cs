@@ -106,11 +106,8 @@ public class WorklistIndustryViewModel : ReactiveObject
     private readonly WorklistMarketAltService        _marketAlts;
 
     public ObservableCollection<IndyCharRow>     Chars      { get; } = [];
-    public ObservableCollection<CharacterOption> Characters { get; } = [];
     public ObservableCollection<ParkOption>      Parks      { get; } = [];
 
-    public ReactiveCommand<Unit, Unit>            AddCommand    { get; }
-    public ReactiveCommand<IndyCharRow, Unit>     DeleteCommand { get; }
     public ReactiveCommand<Unit, Unit>            AddScopeStationCommand    { get; }
     public ReactiveCommand<ScopeStationRow, Unit> DeleteScopeStationCommand { get; }
 
@@ -128,15 +125,10 @@ public class WorklistIndustryViewModel : ReactiveObject
         _corpActivity = corpActivity;
         _marketAlts   = marketAlts;
 
-        AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
-        DeleteCommand = ReactiveCommand.CreateFromTask<IndyCharRow>(async r =>
-        {
-            await using var db = await _dbFactory.CreateDbContextAsync();
-            await db.WorklistIndyChars.Where(x => x.Id == r.Id).ExecuteDeleteAsync();
-            await LoadAsync();
-            if (IndustryChanged is not null) await IndustryChanged();
-        });
-
+        // Neither add nor delete: every authorised character is enrolled automatically, so an
+        // added row would be a duplicate and a removed one would return on the next pass. Clearing
+        // all three activity boxes is how a character is taken out of consideration, and that
+        // survives, because enrolment never touches a row that already exists.
         AddScopeStationCommand    = ReactiveCommand.CreateFromTask(AddScopeStationAsync);
         DeleteScopeStationCommand = ReactiveCommand.CreateFromTask<ScopeStationRow>(async r =>
         {
@@ -152,6 +144,15 @@ public class WorklistIndustryViewModel : ReactiveObject
     public Func<Task>? IndustryChanged { get; set; }
 
     // ── Park ──────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// The "follow the starred park" choice, stored as park id 0.
+    ///
+    /// <para>Resolved when work is planned rather than when it is picked, so moving the star in
+    /// Indy Parks moves the planning with it. Pinning the id at the moment of choosing would make
+    /// the two silently disagree the first time the default changed.</para>
+    /// </summary>
+    public const string DefaultParkLabel = "<Default>";
 
     private ParkOption? _selectedPark;
     public ParkOption? SelectedPark
@@ -181,6 +182,11 @@ public class WorklistIndustryViewModel : ReactiveObject
     private string _parkWarning = "";
     public string ParkWarning { get => _parkWarning; private set => this.RaiseAndSetIfChanged(ref _parkWarning, value); }
     public bool HasParkWarning => ParkWarning.Length > 0;
+
+    /// <summary>Which park <see cref="DefaultParkLabel"/> resolves to, blank when a park is named
+    /// outright. The dropdown reads "&lt;Default&gt;" and nothing else would say what that is.</summary>
+    private string _parkResolvedText = "";
+    public string ParkResolvedText { get => _parkResolvedText; private set => this.RaiseAndSetIfChanged(ref _parkResolvedText, value); }
 
     // ── Where industry buys ───────────────────────────────────────────────────
 
@@ -395,20 +401,6 @@ public class WorklistIndustryViewModel : ReactiveObject
         catch (Exception ex) { _errorLogger.Log(nameof(WorklistIndustryViewModel), context, ex); }
     });
 
-    // ── New row ───────────────────────────────────────────────────────────────
-
-    private CharacterOption? _selectedCharacter;
-    public CharacterOption? SelectedCharacter { get => _selectedCharacter; set => this.RaiseAndSetIfChanged(ref _selectedCharacter, value); }
-
-    private bool _manufacturing = true;
-    public bool Manufacturing { get => _manufacturing; set => this.RaiseAndSetIfChanged(ref _manufacturing, value); }
-
-    private bool _reactions = true;
-    public bool Reactions { get => _reactions; set => this.RaiseAndSetIfChanged(ref _reactions, value); }
-
-    private bool _science;
-    public bool Science { get => _science; set => this.RaiseAndSetIfChanged(ref _science, value); }
-
     private string _status = "";
     public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
 
@@ -419,13 +411,22 @@ public class WorklistIndustryViewModel : ReactiveObject
         _loading = true;
         try
         {
+            // Before anything is read, so a character authorised since the last build is in the
+            // grid rather than missing until the next worklist refresh.
+            await _assignment.EnrolMissingAsync();
+
             await using var db = await _dbFactory.CreateDbContextAsync();
 
             var parks = await db.IndyParks.AsNoTracking().OrderBy(p => p.Name).ToListAsync();
-            var chars = await db.Characters.AsNoTracking().OrderBy(c => c.Name)
-                .Select(c => new { c.Id, c.Name }).ToListAsync();
 
-            var parkId = _settings.IndustryParkId;
+            // Two ids, deliberately. The dropdown shows what was *chosen* — <Default> stays
+            // selected as <Default> — while every warning below describes the park actually
+            // planned against.
+            var chosenParkId = _settings.IndustryParkId;
+            var parkId       = await WorklistSettings.ResolveParkIdAsync(db, chosenParkId);
+            var defaultName  = chosenParkId > 0
+                ? ""
+                : parks.FirstOrDefault(p => p.Id == parkId)?.Name ?? "";
 
             var unlinked = parkId > 0
                 ? await db.IndyStructures.AsNoTracking()
@@ -468,12 +469,12 @@ public class WorklistIndustryViewModel : ReactiveObject
                 Chars.Clear();
                 foreach (var r in rows) Chars.Add(r);
 
-                Characters.Clear();
-                foreach (var c in chars) Characters.Add(new CharacterOption(c.Id, c.Name));
-
                 Parks.Clear();
+                // Id 0 is the sentinel: follow whichever park carries the star, resolved each
+                // time work is planned rather than pinned here.
+                Parks.Add(new ParkOption { Id = 0, Name = DefaultParkLabel });
                 foreach (var p in parks) Parks.Add(new ParkOption { Id = p.Id, Name = p.Name });
-                _selectedPark = Parks.FirstOrDefault(p => p.Id == parkId);
+                _selectedPark = Parks.FirstOrDefault(p => p.Id == chosenParkId) ?? Parks[0];
                 this.RaisePropertyChanged(nameof(SelectedPark));
 
                 // Blank rather than "0" for no limit: an empty box reads as unset, where a zero
@@ -508,7 +509,8 @@ public class WorklistIndustryViewModel : ReactiveObject
                 this.RaisePropertyChanged(nameof(HasBuyWarning));
 
                 ParkWarning = parkId <= 0
-                    ? "No park selected. Industry jobs stay silent until one is chosen, because the park decides facilities and rigs."
+                    ? $"{DefaultParkLabel} is selected and no park is marked default in Indy Parks. "
+                      + "Industry jobs stay silent until a park is starred there or picked here, because the park decides facilities and rigs."
                     : unlinked.Count > 0
                         ? $"{unlinked.Count} structure(s) in this park are not linked to a real location "
                           + $"({string.Join(", ", unlinked.Take(3))}"
@@ -519,10 +521,18 @@ public class WorklistIndustryViewModel : ReactiveObject
                             : "";
                 this.RaisePropertyChanged(nameof(HasParkWarning));
 
-                Status = rows.Count == 0
-                    ? "No characters enabled for industry yet. Until one is, no jobs can be assigned."
-                    : $"{rows.Count:N0} character(s) enabled";
+                // Which park <Default> currently points at. Shown because the dropdown says
+                // "<Default>" and nothing else on screen would say what that resolved to.
+                ParkResolvedText = defaultName.Length > 0 ? $"→ {defaultName}" : "";
             });
+        }
+        catch (Exception ex)
+        {
+            // ⚠️ Every field on this tab is assigned at the end of the try above, so anything that
+            // throws part-way leaves the whole tab blank — park, job lengths, asset scope and the
+            // character grid all at once, with no clue why. That happened. Say so instead.
+            _errorLogger.Log(nameof(WorklistIndustryViewModel), nameof(LoadAsync), ex);
+            Status = $"Could not load the industry settings: {ex.Message}";
         }
         finally { _loading = false; }
     }
@@ -549,60 +559,15 @@ public class WorklistIndustryViewModel : ReactiveObject
                     .SetProperty(x => x.Reactions,     row.Config.Reactions)
                     .SetProperty(x => x.Science,       row.Config.Science));
 
-            Status = $"{row.CharacterName}: {row.Activities}";
             if (IndustryChanged is not null) await IndustryChanged();
         }
         catch (Exception ex)
         {
-            Status = $"Could not save that change: {ex.Message}";
+            // The grid has no status line of its own — the box the user just clicked is the
+            // feedback. A failed save is a real fault, so it goes to the error log rather than
+            // being swallowed to keep the panel quiet.
+            _errorLogger.Log(nameof(WorklistIndustryViewModel), nameof(SaveCharAsync), ex);
         }
     }
 
-    private static string Describe(WorklistIndyChar c)
-    {
-        var parts = new List<string>(3);
-        if (c.Manufacturing) parts.Add("Manufacturing");
-        if (c.Reactions)     parts.Add("Reactions");
-        if (c.Science)       parts.Add("Science");
-        return parts.Count == 0 ? "— none —" : string.Join(", ", parts);
-    }
-
-    private async Task AddAsync()
-    {
-        if (SelectedCharacter is null) { Status = "Pick a character."; return; }
-        if (!Manufacturing && !Reactions && !Science)
-        {
-            Status = "Enable at least one activity, or the character can never be assigned a job.";
-            return;
-        }
-
-        await using var db = await _dbFactory.CreateDbContextAsync();
-
-        var existing = await db.WorklistIndyChars
-            .FirstOrDefaultAsync(c => c.CharacterId == SelectedCharacter.Id);
-
-        if (existing is null)
-        {
-            db.WorklistIndyChars.Add(new WorklistIndyChar
-            {
-                CharacterId           = SelectedCharacter.Id,
-                CharacterName         = SelectedCharacter.Name,
-                Manufacturing         = Manufacturing,
-                Reactions             = Reactions,
-                Science               = Science,
-            });
-        }
-        else
-        {
-            existing.CharacterName         = SelectedCharacter.Name;
-            existing.Manufacturing         = Manufacturing;
-            existing.Reactions             = Reactions;
-            existing.Science               = Science;
-        }
-
-        await db.SaveChangesAsync();
-
-        await LoadAsync();
-        if (IndustryChanged is not null) await IndustryChanged();
-    }
 }

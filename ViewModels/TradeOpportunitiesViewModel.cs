@@ -36,6 +36,11 @@ public class TradeRow
     public string TotalCostDisplay   => FormatIsk(TotalCost);
     public string TotalProfitDisplay => FormatIsk(TotalProfit);
 
+    /// <summary>Single-click opens the Item Browser. Double-clicking the row still routes
+    /// through the tool's own RequestItemNavigation, which keeps the trade context.</summary>
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
+
     private static string FormatIsk(double v) => v switch
     {
         >= 1_000_000_000_000 => $"{v / 1_000_000_000_000:N2}T",

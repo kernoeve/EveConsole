@@ -22,6 +22,11 @@ internal static class SalesQuery
         SELECT t."TransactionId" AS SaleId, t."OwnerId" AS OwnerId, t."OwnerType" AS OwnerType,
                t."Date" AS DateStr, t."TypeId" AS TypeId, t."Quantity" AS Quantity,
                CAST(t."UnitPrice" AS REAL) AS UnitPrice, t."ClientId" AS BuyerId,
+               t."LocationId" AS LocationId,
+               -- Which tool the location link opens. An NPC station is an entity; a player
+               -- structure has a browser of its own. Decided by which table actually named it
+               -- rather than by the id, because the ranges are not a reliable tell.
+               (SELECT COUNT(*) FROM "SdeStations" WHERE "StationId" = t."LocationId") AS IsStation,
                COALESCE((SELECT "Name" FROM "SdeStations"       WHERE "StationId"   = t."LocationId"),
                         (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = t."LocationId")) AS Location
         FROM "EsiWalletTransactions" t
@@ -37,6 +42,8 @@ internal static class SalesQuery
         """
         SELECT c."ContractId" AS SaleId, c."OwnerId" AS OwnerId, c."OwnerType" AS OwnerType,
                c."DateCompleted" AS DateStr, CAST(c."Price" AS REAL) AS Price, COALESCE(c."AcceptorId", 0) AS BuyerId,
+               c."StartLocationId" AS LocationId,
+               (SELECT COUNT(*) FROM "SdeStations" WHERE "StationId" = c."StartLocationId") AS IsStation,
                COALESCE((SELECT "Name" FROM "SdeStations"       WHERE "StationId"   = c."StartLocationId"),
                         (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = c."StartLocationId")) AS Location
         FROM "EsiContracts" c
@@ -128,6 +135,20 @@ internal static class SalesQuery
         var buyerNames = await ResolveBuyersAsync(db, buyerIds, charNames, corpNames, names, errorLogger);
         string BuyerName(long id) => id <= 0 ? "" : (buyerNames.TryGetValue(id, out var n) ? n : id.ToString());
 
+        // Which browser page a buyer's name should open. The cached category is authoritative
+        // where we have one; our own characters and corporations answer for themselves; and the
+        // fallback is EVE's id ranges, which are stable and are the only thing left when a name
+        // came back from a bulk resolve that did not record a category.
+        var buyerCats = await db.UniverseNames.AsNoTracking()
+            .Where(u => buyerIds.Contains(u.EntityId) && u.Category != "")
+            .ToDictionaryAsync(u => u.EntityId, u => u.Category);
+
+        EntityKind BuyerKind(long id) =>
+            buyerCats.TryGetValue(id, out var cat) && cat.Length > 0 ? EntityLinks.KindOf(id, cat)
+          : charNames.ContainsKey(id) ? EntityKind.Pilot
+          : corpNames.ContainsKey(id) ? EntityKind.PlayerCorp
+          : EntityLinks.KindOf(id);
+
         var itemsByContract = citems.GroupBy(i => i.ContractId).ToDictionary(g => g.Key, g => g.ToList());
         var rows = new List<SaleRowVm>(market.Count + contracts.Count);
 
@@ -139,7 +160,8 @@ internal static class SalesQuery
                 OwnerName(m.OwnerId, m.OwnerType), m.Location ?? "", BuyerName(m.BuyerId),
                 TypeName(m.TypeId), m.Quantity.ToString("N0"), m.Quantity * m.UnitPrice,
                 bu is double b ? b * m.Quantity : null, mv is double v ? v * m.Quantity : null,
-                m.TypeId, GroupTwoUp(m.TypeId), m.SaleId));
+                m.TypeId, GroupTwoUp(m.TypeId), m.SaleId,
+                m.LocationId, m.IsStation > 0, m.BuyerId, BuyerKind(m.BuyerId)));
         }
 
         foreach (var c in contracts)
@@ -157,7 +179,8 @@ internal static class SalesQuery
                 when, "Contract", c.OwnerType, c.OwnerId, IsPersonal(c.OwnerId, c.OwnerType),
                 OwnerName(c.OwnerId, c.OwnerType), c.Location ?? "", BuyerName(c.BuyerId),
                 namesText, units, c.Price, build, mkt,
-                firstType, firstType > 0 ? GroupTwoUp(firstType) : "—", c.SaleId));
+                firstType, firstType > 0 ? GroupTwoUp(firstType) : "—", c.SaleId,
+                c.LocationId, c.IsStation > 0, c.BuyerId, BuyerKind(c.BuyerId)));
         }
 
         // Rows the user has marked as not for profit. Loaded as a flag rather than filtered out
@@ -234,12 +257,14 @@ internal static class SalesQuery
         public long SaleId { get; set; } public long OwnerId { get; set; } public string OwnerType { get; set; } = "";
         public string DateStr { get; set; } = ""; public int TypeId { get; set; } public int Quantity { get; set; }
         public double UnitPrice { get; set; } public long BuyerId { get; set; } public string? Location { get; set; }
+        public long LocationId { get; set; } public int IsStation { get; set; }
     }
     private sealed class ContractSaleDto
     {
         public long SaleId { get; set; } public long OwnerId { get; set; } public string OwnerType { get; set; } = "";
         public string DateStr { get; set; } = ""; public double Price { get; set; }
         public long BuyerId { get; set; } public string? Location { get; set; }
+        public long LocationId { get; set; } public int IsStation { get; set; }
     }
     private sealed class ContractItemDto
     {

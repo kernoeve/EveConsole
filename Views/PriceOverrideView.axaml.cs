@@ -39,5 +39,9 @@ public partial class PriceOverrideView : UserControl
         }
     }
 
+    /// <summary>The item name, in the Item Browser. The row carries the link itself.</summary>
+    private void OnOpenRowItem(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as PriceOverrideRow)?.OpenItem();
+
     private Window GetWindow() => (TopLevel.GetTopLevel(this) as Window)!;
 }

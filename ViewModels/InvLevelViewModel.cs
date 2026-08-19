@@ -136,6 +136,38 @@ public class InvGroupRow : ReactiveObject
         ? "Everywhere"
         : $"{LocationName} · {Scope}";
 
+    // ── The scope's location, as a link ───────────────────────────────────────
+    //
+    // ScopeDisplay reads "Jita IV - Moon 4 · Station". The name half points somewhere, the scope
+    // word does not, so the view renders the two separately and only the name links. An
+    // "Everywhere" group has no location at all and shows neither.
+    public string ScopeSuffix   => Scope == "Everywhere" ? "" : $" · {Scope}";
+    public bool   HasLocationLink => LocationId is > 0 && LocationName.Length > 0
+                                  && Scope != "Everywhere";
+
+    /// <summary>
+    /// Where each scope's id lives.
+    ///
+    /// <para>⚠️ A "Station" scope holds either an NPC station or a player structure — one column
+    /// for both — so it splits on int range. SdeStations keys on an int, which a structure id
+    /// cannot fit, so anything above that range is definitively a structure.</para>
+    /// </summary>
+    public void OpenLocation()
+    {
+        var id = LocationId ?? 0;
+        if (id <= 0) return;
+
+        switch (Scope)
+        {
+            case "Region":  EntityNavigator.Instance.Region((int)id); break;
+            case "System":  EntityNavigator.Instance.System((int)id); break;
+            case "Station" when id <= int.MaxValue:
+                EntityNavigator.Instance.Entity(EntityKind.Station, id); break;
+            case "Station":
+                EntityNavigator.Instance.Structure(id); break;
+        }
+    }
+
     private int _multiplier = 1;
     private Func<int, Task>? _saveMultiplier;
 
@@ -199,6 +231,9 @@ public class InvGroupRow : ReactiveObject
         IncludeMarketBuyOrders = g.IncludeMarketBuyOrders;
         IncludeContractsBuying = g.IncludeContractsBuying;
         this.RaisePropertyChanged(nameof(ScopeDisplay));
+        this.RaisePropertyChanged(nameof(ScopeSuffix));
+        this.RaisePropertyChanged(nameof(LocationName));
+        this.RaisePropertyChanged(nameof(HasLocationLink));
         this.RaisePropertyChanged(nameof(IncludeSummary));
     }
 }
@@ -218,6 +253,10 @@ public class InvItemRow : ReactiveObject
     private static readonly SolidColorBrush RowOrange = new(Color.Parse("#3a2a12"));
     private static readonly SolidColorBrush RowRed    = new(Color.Parse("#3a1616"));
 
+    /// <summary>Alternating shade for a row carrying no warning. A small step from the grid's own
+    /// #0d0d12, matching the shared banding elsewhere in the app.</summary>
+    private static readonly SolidColorBrush RowBand = new(Color.Parse("#111118"));
+
     private readonly InvLevelService _svc;
 
     public bool IsCollection => false;
@@ -228,6 +267,9 @@ public class InvItemRow : ReactiveObject
     public int    GroupId  { get; }
     public int    TypeId   { get; }
     public string TypeName { get; }
+
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
 
     // Static type metadata (set once at load)
     private readonly double  _volume;
@@ -294,8 +336,33 @@ public class InvItemRow : ReactiveObject
     // Green when at/above target; orange for a 0% to -50% shortfall; red when worse than -50%.
     public IBrush DiffColor => Diff >= 0 ? Green : DiffPct >= -50 ? Orange : Red;
 
-    // Whole-row tint mirroring the shortfall severity (transparent when at/above target).
-    public IBrush RowBackground => Diff >= 0 ? RowClear : DiffPct >= -50 ? RowOrange : RowRed;
+    /// <summary>
+    /// Set by the view as rows are laid out, so a healthy row can be banded.
+    ///
+    /// <para>⚠️ Position, so it has to be reassigned after a sort — the row that was third is not
+    /// third any more. <see cref="InvLevelViewModel.ApplyRowBanding"/> owns that.</para>
+    /// </summary>
+    private bool _isAltRow;
+    public bool IsAltRow
+    {
+        get => _isAltRow;
+        set { this.RaiseAndSetIfChanged(ref _isAltRow, value); this.RaisePropertyChanged(nameof(RowBackground)); }
+    }
+
+    /// <summary>
+    /// Whole-row tint mirroring the shortfall severity, falling back to alternating shading.
+    ///
+    /// <para>⚠️ Both live here because both want the same pixel and only this object knows which
+    /// should win. The shared alternating-row style paints the row template, which sits on top of
+    /// this — so it was silently erasing the amber and red on every other row, and the grid opts
+    /// out of it with Classes="tinted". Meaning beats position: a row that is short of target
+    /// shows that, and only a healthy row is banded.</para>
+    /// </summary>
+    public IBrush RowBackground =>
+        Diff <  0 && DiffPct <  -50 ? RowRed
+      : Diff <  0                   ? RowOrange
+      : IsAltRow                    ? RowBand
+                                    : RowClear;
 
     public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
 
@@ -355,8 +422,12 @@ public class InvItemRow : ReactiveObject
 
 // ── Main ViewModel ─────────────────────────────────────────────────────────────
 
-public class InvLevelViewModel : ReactiveObject
+public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 {
+    /// <summary>Set the first time this tool is opened; until then its refresh timer is a
+    /// no-op. See IPeriodicRefresh.</summary>
+    public bool AutoRefreshEnabled { get; set; }
+
     private readonly InvLevelService              _svc;
     private readonly InvLevelCollectionTransfer   _transfer;
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
@@ -422,11 +493,18 @@ public class InvLevelViewModel : ReactiveObject
     /// <summary>
     /// Reads a collection in, always as a new one, and reloads so it appears without a refresh.
     /// </summary>
+    /// <remarks>
+    /// Unlike every other mutation here, import writes its rows straight to the database rather
+    /// than through the in-memory lists, so it is the one path that has to re-read them.
+    /// <see cref="RefreshAllAsync"/> only updates availability on groups already loaded — it was
+    /// what this called, and the imported collection stayed invisible until the next restart.
+    /// </remarks>
     public async Task ImportCollectionAsync(Stream input)
     {
         try
         {
             var r = await _transfer.ImportAsync(input);
+            await LoadGroupsAsync();
             await RefreshAllAsync();
             StatusText = $"Imported '{r.CollectionName}' — {r.Groups} group(s), {r.Items} item(s)"
                        + (r.UnknownTypes > 0
@@ -483,8 +561,12 @@ public class InvLevelViewModel : ReactiveObject
         OpenInItemBrowserCommand     = ReactiveCommand.Create(OpenSelectedInItemBrowser,
             this.WhenAnyValue(x => x.IsItemRowSelected));
 
+        // ⚠️ Gated and labelled. Off until the tool is opened, because every view model is
+        // built at launch; labelled because the error log otherwise cannot tell one periodic
+        // refresh from another once it is on the UI thread.
         Observable.Interval(TimeSpan.FromMinutes(1))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .Where(_ => AutoRefreshEnabled)
+            .ObserveOnUi("InvLevel.AutoRefresh")
             .SubscribeAsyncSafe(_ => RefreshAllAsync(), null, "InvLevel.AutoRefresh");
 
         _ = InitAsync();
@@ -586,7 +668,10 @@ public class InvLevelViewModel : ReactiveObject
             IncludeContractsBuying = groupRow.IncludeContractsBuying,
         };
         var typeIds = groupRow.AllItems.Select(r => r.TypeId).ToList();
-        var avail   = await _svc.LoadAvailableAsync(group, typeIds);
+        // ⚠️ Task.Run, not a bare await: SQLite has no real async I/O, so awaiting the service
+        // directly runs the whole query on whatever thread called — and this is called from a
+        // main-thread timer, which is how a background refresh froze the window for seconds.
+        var avail   = await Task.Run(() => _svc.LoadAvailableAsync(group, typeIds));
 
         foreach (var itemRow in groupRow.AllItems)
         {
@@ -992,6 +1077,24 @@ public class InvLevelViewModel : ReactiveObject
         group.AllItems.AddRange(sorted);
     }
 
+    /// <summary>
+    /// Re-stripes the item rows in whatever order they are currently in.
+    ///
+    /// <para>Counted over item rows only. Collection and group headers carry their own colours and
+    /// are what a reader uses to keep their place, so including them in the count would put two
+    /// banded item rows side by side across a header and undo the point of the stripe.</para>
+    ///
+    /// <para>⚠️ Must be called again after sorting. Banding is positional, and the row that was
+    /// second is not second once the grid is re-ordered — the view's sort handler calls this.</para>
+    /// </summary>
+    public void ApplyRowBanding()
+    {
+        var n = 0;
+        foreach (var row in GridRows)
+            if (row is InvItemRow item)
+                item.IsAltRow = n++ % 2 == 1;
+    }
+
     private void RebuildGridRows()
     {
         var desired = new List<object>();
@@ -1023,6 +1126,7 @@ public class InvLevelViewModel : ReactiveObject
         }
 
         SyncGridRows(desired);
+        ApplyRowBanding();
         PersistExpansion();
     }
 

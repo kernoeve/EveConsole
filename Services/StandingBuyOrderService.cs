@@ -31,7 +31,11 @@ public sealed record StandingBuyOrderRow(
     bool   IsLocationTracked,      // false when this station isn't a configured market source
     string CompetingBidText,
     bool   IsOutbid,
-    decimal? OutbidBy);
+    decimal? OutbidBy,
+    /// <summary>Who holds the order, when exactly one owner does. ⚠️ Zero where several back the
+    /// same declaration — the cell then reads "3 owners", which names nobody to open.</summary>
+    long   OwnerId = 0,
+    string OwnerType = "");
 
 /// <summary>
 /// Standing buy orders: the user declares a buy order they intend to keep up at a
@@ -306,7 +310,10 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
                 IsLocationTracked    : tracked,
                 CompetingBidText     : rivalText,
                 IsOutbid             : rivalBid is { } rival && bestPrice < rival,
-                OutbidBy             : rivalBid is { } r2 && bestPrice < r2 ? r2 - bestPrice : null));
+                OutbidBy             : rivalBid is { } r2 && bestPrice < r2 ? r2 - bestPrice : null,
+                // Only when one owner backs the declaration; several make the cell a count.
+                OwnerId              : distinctOwners.Count == 1 ? distinctOwners[0].OwnerId   : 0,
+                OwnerType            : distinctOwners.Count == 1 ? distinctOwners[0].OwnerType : ""));
         }
 
         return rows;

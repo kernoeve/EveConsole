@@ -17,6 +17,25 @@
       <Setter Property="FontWeight"  Value="SemiBold" />
       <Setter Property="Padding"     Value="6 5 2 5" />
     </Style>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,Auto,*">
@@ -195,7 +214,21 @@
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Balance"     Binding="{Binding BalanceText}" SortMemberPath="BalanceRaw" Width="110" />
-                <DataGridTextColumn Header="Owner"       Binding="{Binding OwnerText}"   Width="140" />
+                <DataGridTemplateColumn Header="Owner" Width="140" SortMemberPath="OwnerText">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:WalletJournalRowVm">
+                      <Panel>
+                        <Button Classes="link" Click="OnOpenJournalOwner" IsVisible="{Binding HasOwnerLink}"
+                                ToolTip.Tip="Open in the entity browser">
+                          <TextBlock Text="{Binding OwnerText}" Classes="linktext"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Text="{Binding OwnerText}" IsVisible="{Binding !HasOwnerLink}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      </Panel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Div"         Binding="{Binding DivisionText}" Width="100" />
                 <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" />
               </DataGrid.Columns>
@@ -260,7 +293,21 @@
                       CanUserSortColumns="False">
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Date"       Binding="{Binding DateText}"  Width="130" />
-                <DataGridTextColumn Header="Item"       Binding="{Binding TypeName}"  Width="220" />
+                <DataGridTemplateColumn Header="Item" Width="220" SortMemberPath="TypeName">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:WalletTransactionRowVm">
+                      <Panel>
+                        <Button Classes="link" Click="OnOpenTxItem" IsVisible="{Binding HasItemLink}"
+                                ToolTip.Tip="Open in the Item Browser">
+                          <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      </Panel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Qty"        Binding="{Binding Quantity}"  SortMemberPath="QuantityRaw"  Width="80" />
                 <DataGridTextColumn Header="Unit Price" Binding="{Binding UnitPrice}" SortMemberPath="UnitPriceRaw" Width="110" />
                 <DataGridTemplateColumn Header="Total"  Width="120" SortMemberPath="TotalRaw">
@@ -276,8 +323,36 @@
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Header="B/S"        Binding="{Binding Direction}"    Width="50" />
-                <DataGridTextColumn Header="Location"   Binding="{Binding LocationName}" Width="200" />
-                <DataGridTextColumn Header="Owner"      Binding="{Binding OwnerText}"    Width="140" />
+                <DataGridTemplateColumn Header="Location" Width="200" SortMemberPath="LocationName">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:WalletTransactionRowVm">
+                      <Panel>
+                        <Button Classes="link" Click="OnOpenTxLocation" IsVisible="{Binding HasLocationLink}"
+                                ToolTip.Tip="Open this station or structure">
+                          <TextBlock Text="{Binding LocationName}" Classes="linktext"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Text="{Binding LocationName}" IsVisible="{Binding !HasLocationLink}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      </Panel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Owner" Width="140" SortMemberPath="OwnerText">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:WalletTransactionRowVm">
+                      <Panel>
+                        <Button Classes="link" Click="OnOpenTxOwner" IsVisible="{Binding HasOwnerLink}"
+                                ToolTip.Tip="Open in the entity browser">
+                          <TextBlock Text="{Binding OwnerText}" Classes="linktext"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Text="{Binding OwnerText}" IsVisible="{Binding !HasOwnerLink}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      </Panel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Div"        Binding="{Binding DivisionText}" Width="100" />
               </DataGrid.Columns>
             </DataGrid>

@@ -5,6 +5,28 @@
              x:DataType="vm:EveMailViewModel"
              Background="#0d0d12">
 
+  <UserControl.Styles>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+  </UserControl.Styles>
+
   <Grid RowDefinitions="Auto,*">
 
     <!-- ── Toolbar ────────────────────────────────────────────────────────── -->
@@ -141,13 +163,42 @@
                          TextTrimming="CharacterEllipsis" />
               <Grid ColumnDefinitions="36,*">
                 <TextBlock Grid.Column="0" Text="From:" FontSize="11" Foreground="#555566" />
-                <TextBlock Grid.Column="1" Text="{Binding SelectedMail.FromText}"
-                           FontSize="11" Foreground="#888899" />
+                <Panel Grid.Column="1">
+                  <Button Classes="link" Click="OnOpenMailFrom"
+                          IsVisible="{Binding SelectedMail.HasFromLink}"
+                          ToolTip.Tip="Open in the entity browser">
+                    <TextBlock Text="{Binding SelectedMail.FromText}" Classes="linktext"
+                               FontSize="11" Foreground="#888899" />
+                  </Button>
+                  <TextBlock Text="{Binding SelectedMail.FromText}"
+                             IsVisible="{Binding !SelectedMail.HasFromLink}"
+                             FontSize="11" Foreground="#888899" VerticalAlignment="Center" />
+                </Panel>
               </Grid>
               <Grid ColumnDefinitions="36,*">
                 <TextBlock Grid.Column="0" Text="To:" FontSize="11" Foreground="#555566" />
-                <TextBlock Grid.Column="1" Text="{Binding SelectedMail.ToText}"
-                           FontSize="11" Foreground="#888899" TextTrimming="CharacterEllipsis" />
+                <!-- Each addressee on its own, so a mail to five people gives five links rather
+                     than one unclickable joined string. -->
+                <ItemsControl Grid.Column="1" ItemsSource="{Binding SelectedMail.Recipients}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:EveMailPartyVm">
+                      <Panel Margin="0 0 8 0">
+                        <Button Classes="link" Click="OnOpenRecipient" IsVisible="{Binding HasLink}"
+                                ToolTip.Tip="Open in the entity browser">
+                          <TextBlock Text="{Binding Name}" Classes="linktext"
+                                     FontSize="11" Foreground="#888899" />
+                        </Button>
+                        <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasLink}"
+                                   FontSize="11" Foreground="#888899" VerticalAlignment="Center" />
+                      </Panel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
               </Grid>
               <Grid ColumnDefinitions="36,*">
                 <TextBlock Grid.Column="0" Text="Date:" FontSize="11" Foreground="#555566" />

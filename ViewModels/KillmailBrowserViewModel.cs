@@ -90,6 +90,7 @@ public class KillmailListRowVm : ReactiveObject
         OpenFbCorpCommand         = ReactiveCommand.Create(OpenFbCorp);
         OpenFbAllianceCommand     = ReactiveCommand.Create(OpenFbAlliance);
         OpenRegionCommand         = ReactiveCommand.Create(() => Nav.Region(RegionId));
+        OpenSystemCommand         = ReactiveCommand.Create(OpenSystem);
     }
 
     // Links live on the row rather than on a host view model. The same row renders in the
@@ -104,6 +105,12 @@ public class KillmailListRowVm : ReactiveObject
     public ReactiveCommand<Unit, Unit> OpenFbCorpCommand         { get; }
     public ReactiveCommand<Unit, Unit> OpenFbAllianceCommand     { get; }
     public ReactiveCommand<Unit, Unit> OpenRegionCommand         { get; }
+    public ReactiveCommand<Unit, Unit> OpenSystemCommand         { get; }
+
+    /// <summary>A name is only a link when there is something behind it to open — rows built
+    /// from a killmail with no resolved system or region fall back to plain text.</summary>
+    public bool HasSystemLink => SystemId > 0 && SystemName.Length > 0;
+    public bool HasRegionLink => RegionId > 0 && RegionName.Length > 0;
 
     public void OpenVictim()         => Nav.Entity(EveConsole.Services.EntityKind.Pilot,      _victimCharId);
     public void OpenVictimCorp()     => Nav.Entity(EveConsole.Services.EntityKind.PlayerCorp, _victimCorpId);

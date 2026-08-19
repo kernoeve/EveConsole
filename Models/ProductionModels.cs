@@ -27,9 +27,28 @@ public class PlanJob
     /// be counted, which is reported as unknown rather than as everything missing.</summary>
     public long?   StationId       { get; set; }
     public string  StationName     { get; set; } = "";
+    /// <summary>The system the facility sits in, so its name can open the map. Zero when the park
+    /// structure names a system the SDE does not know — possible for a hand-typed entry.</summary>
+    public int     SolarSystemId   { get; set; }
     public string  StructureDisplay => StructureName.Length > 0 && SystemName.Length > 0
         ? $"{StructureName} @ {SystemName}"
         : StructureName.Length > 0 ? StructureName : SystemName;
+
+    // ── Links on the Jobs tab ─────────────────────────────────────────────────
+    //
+    // The structure line reads "Name @ System". Both halves point somewhere: the facility at the
+    // Structure Browser, the system at the map. Split here rather than in the view so the display
+    // string and the two links cannot drift apart.
+    public bool HasStationLink => StationId is > 0 && StructureName.Length > 0;
+    public bool HasSystemLink  => SolarSystemId > 0 && SystemName.Length   > 0;
+    public bool ShowStationPlain => StructureName.Length > 0 && !HasStationLink;
+    public bool ShowSystemPlain  => SystemName.Length    > 0 && !HasSystemLink;
+    /// <summary>Shown between the two only when both are present, so a job with one of them does
+    /// not read as "Name @" or "@ System".</summary>
+    public bool ShowAtSeparator => StructureName.Length > 0 && SystemName.Length > 0;
+
+    public void OpenStation() => EveConsole.Services.EntityNavigator.Instance.Structure(StationId ?? 0);
+    public void OpenSystem()  => EveConsole.Services.EntityNavigator.Instance.System(SolarSystemId);
     public List<PlanJobMaterial> Materials      { get; set; } = [];
     public List<int>             ChildTypeIds   { get; set; } = [];
     public List<int>             ParentTypeIds  { get; set; } = [];
@@ -97,6 +116,10 @@ public class PlanRawMaterial : System.ComponentModel.INotifyPropertyChanged
 
     public int     TypeId    { get; set; }
     public string  TypeName  { get; set; } = "";
+
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
+
     public int     Quantity  { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal TotalCost { get; set; }
@@ -141,6 +164,10 @@ public class PlanIntermediate
 {
     public int     TypeId           { get; set; }
     public string  TypeName         { get; set; } = "";
+
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
+
     public int     QuantityNeeded   { get; set; }
     public int     QuantityProduced { get; set; }
     public int     Leftover         { get; set; }
@@ -152,6 +179,10 @@ public class PlanFinalProduct
 {
     public int     TypeId            { get; set; }
     public string  TypeName          { get; set; } = "";
+
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
+
     public int     QuantityRequested { get; set; }
     public int     QuantityProduced  { get; set; }
     public int     MeLevel           { get; set; }
@@ -169,6 +200,10 @@ public class PlanLeftoverItem
 {
     public int     TypeId    { get; set; }
     public string  TypeName  { get; set; } = "";
+
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
+
     public int     Quantity  { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal TotalValue { get; set; }

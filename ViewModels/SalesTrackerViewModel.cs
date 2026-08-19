@@ -72,6 +72,40 @@ public class SaleRowVm : ReactiveObject
     public int    TypeId      { get; }
     public string MarketGroup { get; }
 
+    // ── Where each name goes when clicked ─────────────────────────────────────
+    //
+    // Ids alongside the names, so a row is not just a sentence about a sale but a way into the
+    // four things it mentions. Nothing here is displayed; it exists to make the text clickable.
+    public long       LocationId        { get; }
+    /// <summary>NPC station rather than player structure — the two have different browsers.</summary>
+    public bool       LocationIsStation { get; }
+    public long       BuyerId           { get; }
+    public EntityKind BuyerKind         { get; }
+
+    public bool HasOwnerLink    => OwnerId    > 0;
+    public bool HasLocationLink => LocationId > 0 && Location.Length > 0;
+    public bool HasBuyerLink    => BuyerId    > 0 && Buyer.Length    > 0;
+    public bool HasItemLink     => TypeId     > 0;
+
+    // ⚠️ Routed through the shared EntityNavigator rather than a callback threaded in from the
+    // host. These rows are built inside SalesQuery and rendered by the Sales Tracker, both Sale
+    // Listing tools and the Overview; a per-host callback would be four copies to keep in step.
+    public void OpenOwner() => EntityNavigator.Instance.Entity(
+        OwnerType == "corporation" ? EntityKind.PlayerCorp : EntityKind.Pilot, OwnerId);
+
+    /// <summary>A station goes to the entity browser, a player structure to its own tool.</summary>
+    public void OpenLocation()
+    {
+        if (LocationIsStation) EntityNavigator.Instance.Entity(EntityKind.Station, LocationId);
+        else                   EntityNavigator.Instance.Structure(LocationId);
+    }
+
+    public void OpenBuyer() => EntityNavigator.Instance.Entity(BuyerKind, BuyerId);
+
+    /// <summary>The item itself. On a multi-item contract this is the first one — the "+3 more"
+    /// stands for a list the row does not carry, so it is text rather than a link.</summary>
+    public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
+
     // Green when profit (for the active cost basis) is positive, red when negative, grey when unknown.
     public IBrush ProfitBrush => ProfitRaw == double.MinValue ? ProfitBrushes.Gray
                                : ProfitRaw >= 0 ? ProfitBrushes.Green : ProfitBrushes.Red;
@@ -79,11 +113,17 @@ public class SaleRowVm : ReactiveObject
     public SaleRowVm(DateTimeOffset when, string kind, string ownerType, long ownerId, bool ownerIsPersonal,
         string owner, string location, string buyer,
         string items, string units, double total, double? build, double? market,
-        int typeId = 0, string marketGroup = "—", long saleId = 0)
+        int typeId = 0, string marketGroup = "—", long saleId = 0,
+        long locationId = 0, bool locationIsStation = false, long buyerId = 0,
+        EntityKind buyerKind = EntityKind.Pilot)
     {
         SaleId      = saleId;
         TypeId      = typeId;
         MarketGroup = marketGroup;
+        LocationId        = locationId;
+        LocationIsStation = locationIsStation;
+        BuyerId           = buyerId;
+        BuyerKind         = buyerKind;
         When     = when;
         WhenSort = when.UtcTicks;
         WhenText = when.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
@@ -145,9 +185,16 @@ public class GroupRowVm
     public string Name      { get; }
     public string Amount    { get; }
     public double AmountRaw { get; }
-    public GroupRowVm(string name, double amount)
+
+    /// <summary>Where the group's name goes when clicked, or null when it names nothing with a
+    /// page of its own. Taken from the first sale in the group — every sale in it shares the
+    /// name, so they share the id behind it.</summary>
+    public Action? Open    { get; }
+    public bool    HasLink => Open is not null;
+
+    public GroupRowVm(string name, double amount, Action? open = null)
     {
-        Name = name; AmountRaw = amount; Amount = MarketFmt.Isk(amount);
+        Name = name; AmountRaw = amount; Amount = MarketFmt.Isk(amount); Open = open;
     }
 }
 
@@ -160,9 +207,16 @@ public class ProfitGroupRowVm
     public string Profit    { get; }
     public double ProfitRaw { get; }
     public string ProfitPct { get; }
-    public ProfitGroupRowVm(string name, double? profit, double? pctAvg)
+
+    /// <summary>As <see cref="GroupRowVm.Open"/>. Null on the market-group rollup, whose rows
+    /// name a category rather than a thing with a page.</summary>
+    public Action? Open    { get; }
+    public bool    HasLink => Open is not null;
+
+    public ProfitGroupRowVm(string name, double? profit, double? pctAvg, Action? open = null)
     {
         Name      = name;
+        Open      = open;
         ProfitRaw = profit ?? double.MinValue;
         Profit    = profit is double p  ? MarketFmt.Isk(p) : "—";
         ProfitPct = pctAvg is double pp ? $"{pp:N1}%"      : "—";
@@ -252,7 +306,7 @@ public class SalesTrackerViewModel : ReactiveObject
         _dateFrom      = DateTime.UtcNow.AddDays(-90).ToString("yyyy-MM-dd"); // last 90 days
 
         Observable.Interval(TimeSpan.FromMinutes(5))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOnUi("SalesTracker.AutoRefresh")
             .Subscribe(tick => { _ = LoadAsync(); });
 
         _ = LoadAsync();
@@ -351,25 +405,31 @@ public class SalesTrackerViewModel : ReactiveObject
                       : $" · {excluded:N0} not for profit, hidden"
                   : "");
 
-        FillGroup(TopBuyers,          forProfit, r => r.Buyer);
+        // Buyers and items link the same way their columns in the grid below do. Market group is
+        // deliberately plain: "Standard Dreadnoughts" is a category, not a thing with a page.
+        FillGroup(TopBuyers,          forProfit, r => r.Buyer,
+                  r => r.HasBuyerLink ? r.OpenBuyer : null);
         FillProfitGroup(MarketGroups, forProfit, r => r.MarketGroup);
-        FillProfitGroup(TopItems,     forProfit, r => r.Items);
+        FillProfitGroup(TopItems,     forProfit, r => r.Items,
+                  r => r.HasItemLink ? r.OpenItem : null);
     }
 
-    private static void FillGroup(ObservableCollection<GroupRowVm> target, List<SaleRowVm> rows, Func<SaleRowVm, string> key)
+    private static void FillGroup(ObservableCollection<GroupRowVm> target, List<SaleRowVm> rows,
+                                  Func<SaleRowVm, string> key, Func<SaleRowVm, Action?>? link = null)
     {
         target.Clear();
         var groups = rows
             .Where(r => !string.IsNullOrEmpty(key(r)))
             .GroupBy(key)
-            .Select(g => new GroupRowVm(g.Key, g.Sum(r => r.TotalRaw)))
+            .Select(g => new GroupRowVm(g.Key, g.Sum(r => r.TotalRaw), link?.Invoke(g.First())))
             .OrderByDescending(g => g.AmountRaw);
         foreach (var g in groups) target.Add(g);
     }
 
     // Group sales and sum build-based profit, plus the average profit % over the sales that had a
     // cost basis. Ordered by profit amount (still by amount, not by percent).
-    private static void FillProfitGroup(ObservableCollection<ProfitGroupRowVm> target, List<SaleRowVm> rows, Func<SaleRowVm, string> key)
+    private static void FillProfitGroup(ObservableCollection<ProfitGroupRowVm> target, List<SaleRowVm> rows,
+                                        Func<SaleRowVm, string> key, Func<SaleRowVm, Action?>? link = null)
     {
         target.Clear();
         var groups = rows
@@ -381,7 +441,7 @@ public class SalesTrackerViewModel : ReactiveObject
                 var pcts    = g.Where(r => r.ProfitPctRaw != double.MinValue).Select(r => r.ProfitPctRaw).ToList();
                 double? profit = profits.Count > 0 ? profits.Sum()     : (double?)null;
                 double? pctAvg = pcts.Count    > 0 ? pcts.Average()    : (double?)null;
-                return new ProfitGroupRowVm(g.Key, profit, pctAvg);
+                return new ProfitGroupRowVm(g.Key, profit, pctAvg, link?.Invoke(g.First()));
             })
             .OrderByDescending(g => g.ProfitRaw);
         foreach (var g in groups) target.Add(g);

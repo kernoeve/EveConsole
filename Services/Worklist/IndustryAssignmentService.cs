@@ -63,7 +63,9 @@ public sealed class IndustryCandidate
 /// the list unreadable, and would undermine the item keys, which deliberately exclude the
 /// assigned character so that snooze and age survive a reassignment.</para>
 /// </summary>
-public class IndustryAssignmentService(IDbContextFactory<AppDbContext> dbFactory)
+public class IndustryAssignmentService(
+    IDbContextFactory<AppDbContext> dbFactory,
+    AppErrorLogger                  errorLogger)
 {
     // Each level of these adds one slot to its pool, on top of the one every character has.
     private const int MassProduction         = 3387;
@@ -127,6 +129,67 @@ public class IndustryAssignmentService(IDbContextFactory<AppDbContext> dbFactory
 
         return new PrintOwnership(characters, corps);
     }
+
+    /// <summary>
+    /// Gives any tracked character without an industry row one, with all three activities on.
+    ///
+    /// <para>⚠️ Insert-only. A row already present is left exactly as it is. The grid is where the
+    /// player turns activities off, and re-asserting the defaults over an existing row would undo
+    /// that on the next pass — switches appearing to reset themselves for no visible reason.</para>
+    ///
+    /// <para>All three on rather than none, because a character enrolled with nothing ticked can
+    /// never be given a job: it would sit in the grid looking enabled and quietly contribute
+    /// nothing. Clearing what you do not want is the visible act, matching how the rest of the
+    /// tool defaults.</para>
+    ///
+    /// <para>⚠️ Called once before a worklist build, and by the settings grid — never from
+    /// <see cref="LoadCandidatesAsync"/>. That runs inside every generator, and generators run in
+    /// parallel, so each one raced to insert the same rows and whichever lost hit the unique index
+    /// on CharacterId. The throw took out the losing generator's whole section, and took the
+    /// industry settings view model down with it, leaving park, job lengths and asset scope blank.
+    /// The lock below makes a second caller safe anyway; the placement is what makes it correct.</para>
+    ///
+    /// <para>Failures are logged and swallowed. Enrolling a character is a convenience, and it must
+    /// never be able to stop the thing that asked for it from loading.</para>
+    /// </summary>
+    public async Task<int> EnrolMissingAsync(CancellationToken ct = default)
+    {
+        await _enrolGate.WaitAsync(ct);
+        try
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+            var known = await db.WorklistIndyChars.AsNoTracking()
+                .Select(c => c.CharacterId).ToListAsync(ct);
+
+            var missing = await db.Characters.AsNoTracking()
+                .Where(c => c.RefreshToken != "" && !known.Contains(c.Id))
+                .Select(c => new { c.Id, c.Name })
+                .ToListAsync(ct);
+
+            if (missing.Count == 0) return 0;
+
+            db.WorklistIndyChars.AddRange(missing.Select(m => new WorklistIndyChar
+            {
+                CharacterId   = m.Id,
+                CharacterName = m.Name,
+                Manufacturing = true,
+                Reactions     = true,
+                Science       = true,
+            }));
+            await db.SaveChangesAsync(ct);
+            return missing.Count;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            errorLogger.Log(nameof(IndustryAssignmentService), nameof(EnrolMissingAsync), ex);
+            return 0;
+        }
+        finally { _enrolGate.Release(); }
+    }
+
+    private readonly SemaphoreSlim _enrolGate = new(1, 1);
 
     public async Task<List<IndustryCandidate>> LoadCandidatesAsync(CancellationToken ct = default)
     {

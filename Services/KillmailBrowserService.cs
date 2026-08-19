@@ -237,54 +237,10 @@ public class KillmailBrowserService(
             .Where(c => constellationIds.Contains(c.ConstellationId))
             .ToDictionaryAsync(c => c.ConstellationId, c => c.Name, ct);
 
-        // ISK calculation — includes the victim's own hull (a bare pod's total really is
-        // just its implants, since a pod hull has no meaningful market price) and is
-        // Blueprint-Copy-aware: an item is only priced off MarketItemPrices (which
-        // reflects Blueprint ORIGINAL prices) when it isn't a BPC. The SAME blueprint
-        // type can appear as both a BPO and a BPC line on one kill, so this branches
-        // per-item, not per-type. See GetDetailAsync/GroupItemsBySlot for the matching
-        // per-kill logic — the two must stay consistent.
-        var iskMap = new Dictionary<int, double>();
-        var defaultSettings = await db.MarketDefaultSettings.AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == 1, ct);
-        if (defaultSettings?.AssetValueConfigId is int configId && killIds.Count > 0)
-        {
-            var priceType = defaultSettings.AssetValuePriceType;
-
-            var items = await db.KillMailItems.AsNoTracking()
-                .Where(i => killIds.Contains(i.KillMailId))
-                .Select(i => new { i.KillMailId, i.ItemTypeId, i.QuantityDestroyed, i.QuantityDropped, i.Singleton })
-                .ToListAsync(ct);
-
-            var itemTypeIds = items.Select(i => i.ItemTypeId).Distinct().ToList();
-            var blueprintIds = await GetBlueprintTypeIdsAsync(db, itemTypeIds, ct);
-            var bpcTypeIds = items.Where(i => i.Singleton == 2 && blueprintIds.Contains(i.ItemTypeId))
-                .Select(i => i.ItemTypeId).Distinct().ToList();
-            var bpcPerRun = await GetCheapestBpcPerRunAsync(db, bpcTypeIds, ct);
-
-            var priceTypeIds = itemTypeIds.Concat(details.Select(d => d.VictimShipTypeId)).Distinct().ToList();
-            var marketPrices = await db.MarketItemPrices.AsNoTracking()
-                .Where(p => p.ConfigId == configId && priceTypeIds.Contains(p.TypeId))
-                .ToDictionaryAsync(p => p.TypeId, p => priceType switch
-                {
-                    "Buy"  => p.BuyPrice,
-                    "Sell" => p.SellPrice,
-                    _      => p.Midpoint,
-                }, ct);
-
-            foreach (var item in items)
-            {
-                var qty = (item.QuantityDestroyed ?? 0) + (item.QuantityDropped ?? 0);
-                var unitPrice = item.Singleton == 2 && blueprintIds.Contains(item.ItemTypeId)
-                    ? bpcPerRun.GetValueOrDefault(item.ItemTypeId)
-                    : marketPrices.GetValueOrDefault(item.ItemTypeId);
-                iskMap[item.KillMailId] = iskMap.GetValueOrDefault(item.KillMailId) + qty * unitPrice;
-            }
-
-            foreach (var d in details)
-                iskMap[d.KillMailId] = iskMap.GetValueOrDefault(d.KillMailId)
-                    + marketPrices.GetValueOrDefault(d.VictimShipTypeId);
-        }
+        // Shared with the Overview and Corp Activity kill lists, which used to value kills their
+        // own way and disagreed with this one. See KillmailValuation.
+        var iskMap = await KillmailValuation.ValueKillsAsync(
+            db, details.ToDictionary(d => d.KillMailId, d => d.VictimShipTypeId), ct);
 
         string Res(long? id) => id.HasValue && id.Value != 0 && names.TryGetValue(id.Value, out var n) ? n : "";
 
@@ -373,75 +329,6 @@ public class KillmailBrowserService(
         return esiIds.Select(id => (long)id).ToList();
     }
 
-    /// <summary>Which of <paramref name="typeIds"/> are blueprint types at all (BPO or
-    /// BPC) — a killmail item is only a Blueprint Copy when it's both this AND
-    /// Singleton == 2; the same underlying EVE item_type_id is used for a type's BPO
-    /// and BPC alike, so singleton is what disambiguates a given line, not the type id.</summary>
-    /// <summary>
-    /// SdeBlueprintProducts also carries "invention" rows where the TypeId key is a
-    /// consumed INPUT MATERIAL, not a real blueprint you'd hold — confirmed via the SDE
-    /// for T3 reverse-engineering relics ("Wrecked Armor Nanobot", "Intact Hull
-    /// Section", etc.): every row for those is Activity=invention and nothing else,
-    /// which is exactly how they were wrongly getting BPO icon/grouping treatment. A
-    /// genuine blueprint always either has a non-invention (manufacturing/reaction) row
-    /// too, or — for a handful of invention-only structure-rig blueprints — its name
-    /// still ends in "Blueprint" even with no other activity row. Both conditions
-    /// together correctly include real blueprints/reaction formulas and exclude relic
-    /// materials.
-    /// </summary>
-    private static async Task<HashSet<int>> GetBlueprintTypeIdsAsync(
-        AppDbContext db, IReadOnlyCollection<int> typeIds, CancellationToken ct)
-    {
-        if (typeIds.Count == 0) return [];
-
-        var candidates = await db.SdeBlueprintProducts.AsNoTracking()
-            .Where(p => typeIds.Contains(p.TypeId))
-            .Select(p => new { p.TypeId, p.Activity })
-            .Distinct()
-            .ToListAsync(ct);
-        if (candidates.Count == 0) return [];
-
-        var candidateIds = candidates.Select(c => c.TypeId).Distinct().ToList();
-        var namesById = await db.SdeTypes.AsNoTracking()
-            .Where(t => candidateIds.Contains(t.TypeId))
-            .Select(t => new { t.TypeId, t.Name })
-            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
-
-        return candidates
-            .GroupBy(c => c.TypeId)
-            .Where(g => g.Any(c => c.Activity != "invention")
-                     || (namesById.TryGetValue(g.Key, out var name) && name.EndsWith("Blueprint", StringComparison.Ordinal)))
-            .Select(g => g.Key)
-            .ToHashSet();
-    }
-
-    /// <summary>Cheapest known per-run BPC contract price for each blueprint type in
-    /// <paramref name="blueprintTypeIds"/>, using the same best-vs-30-day-average rule
-    /// (ContractPricing.EffectivePerRun) BuildCostService already applies elsewhere —
-    /// the lowest across all ME rows, since a killmail item gives no runs/ME to pick a
-    /// specific one. A type with no contract price on file is simply absent from the
-    /// result; callers should treat that as unpriced (0), never fall back to the BPO
-    /// market price.</summary>
-    private static async Task<Dictionary<int, double>> GetCheapestBpcPerRunAsync(
-        AppDbContext db, IReadOnlyCollection<int> blueprintTypeIds, CancellationToken ct)
-    {
-        if (blueprintTypeIds.Count == 0) return [];
-
-        var rows = await db.ContractBpcPrices.AsNoTracking()
-            .Where(p => blueprintTypeIds.Contains(p.TypeId))
-            .ToListAsync(ct);
-
-        var result = new Dictionary<int, double>();
-        foreach (var row in rows)
-        {
-            if (ContractPricing.EffectivePerRun(row) is not { } effective) continue;
-            var value = (double)effective;
-            if (!result.TryGetValue(row.TypeId, out var existing) || value < existing)
-                result[row.TypeId] = value;
-        }
-        return result;
-    }
-
     public async Task<KillmailDetailData?> GetDetailAsync(int killMailId, CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();
@@ -493,10 +380,10 @@ public class KillmailBrowserService(
         // per-run contract price instead of the BPO market price in `prices`, since the
         // same type id can be either a BPO or BPC line depending on this kill's items.
         var itemTypeIds = items.Select(i => i.ItemTypeId).Distinct().ToList();
-        var blueprintIds = await GetBlueprintTypeIdsAsync(db, itemTypeIds, ct);
+        var blueprintIds = await KillmailValuation.BlueprintTypeIdsAsync(db, itemTypeIds, ct);
         var bpcTypeIds = items.Where(i => i.Singleton == 2 && blueprintIds.Contains(i.ItemTypeId))
             .Select(i => i.ItemTypeId).Distinct().ToList();
-        var bpcPerRun = await GetCheapestBpcPerRunAsync(db, bpcTypeIds, ct);
+        var bpcPerRun = await KillmailValuation.CheapestBpcPerRunAsync(db, bpcTypeIds, ct);
 
         // Market group per item type, for the Cargo Hold sub-grouping — same value for a
         // blueprint regardless of BPO/BPC (both share the one EVE type id).

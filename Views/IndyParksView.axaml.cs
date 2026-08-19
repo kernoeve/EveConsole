@@ -44,4 +44,17 @@ public partial class IndyParksView : UserControl
         await using var stream = await files[0].OpenReadAsync();
         await vm.ImportParkAsync(stream);
     }
+
+    // ── Row links ─────────────────────────────────────────────────────────────
+    //
+    // Both rows carry their own navigation, so these reach the row through the button's own
+    // DataContext rather than back through the park view model.
+    private void OnOpenFacility(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as StructureVm)?.OpenFacility();
+
+    private void OnOpenServiceModule(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as ServiceModuleVm)?.OpenItem();
+
+    private void OnOpenRig(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as RigSlotVm)?.OpenRig();
 }

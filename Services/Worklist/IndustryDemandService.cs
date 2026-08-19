@@ -89,7 +89,8 @@ public sealed record ScopeStock(
 /// </summary>
 public class IndustryDemandService(
     InvLevelService             invLevels,
-    ProductionCalculatorService production)
+    ProductionCalculatorService production,
+    WorklistSettings            settings)
 {
     /// <summary>Everything one item is wanted for, before anything is netted off.</summary>
     private sealed class Gross
@@ -196,7 +197,8 @@ public class IndustryDemandService(
 
         // ── Customer orders ───────────────────────────────────────────────────
 
-        foreach (var (typeId, units, outstanding, count, rank) in await OrderDemandAsync(db, scope, wrapped, corps, ct))
+        foreach (var (typeId, units, outstanding, count, rank) in
+                 await OrderDemandAsync(db, settings.PlanCustomerOrders, scope, wrapped, corps, ct))
         {
             if (!ctx.BlueprintByProduct.ContainsKey(typeId)) continue;
 
@@ -345,10 +347,11 @@ public class IndustryDemandService(
             .ToList();
 
     private static async Task<List<(int TypeId, long Units, long Outstanding, int Count, int Rank)>> OrderDemandAsync(
-        AppDbContext db, HashSet<long>? scope, HashSet<long> wrapped, HashSet<long>? corps,
+        AppDbContext db, bool enabled, HashSet<long>? scope, HashSet<long> wrapped, HashSet<long>? corps,
         CancellationToken ct)
     {
-        if (!await db.WorklistOrderRules.AsNoTracking().AnyAsync(r => r.Enabled, ct)) return [];
+        // The Customer orders switch on the Sources tab is what says orders should be planned.
+        if (!enabled) return [];
 
         var orders = await db.TrackedOrders.AsNoTracking()
             .Where(o => o.Status == "pending").ToListAsync(ct);

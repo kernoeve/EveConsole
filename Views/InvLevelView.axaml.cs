@@ -157,5 +157,15 @@ public partial class InvLevelView : UserControl
         }
     }
 
+    // ── Row links ─────────────────────────────────────────────────────────────
+    //
+    // One template covers collection, group and item rows in the first column, so both handlers
+    // live here and each casts to the row kind its button belongs to.
+    private void OnOpenItem(object? sender, RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as InvItemRow)?.OpenItem();
+
+    private void OnOpenGroupLocation(object? sender, RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as InvGroupRow)?.OpenLocation();
+
     private Window GetWindow() => (TopLevel.GetTopLevel(this) as Window)!;
 }

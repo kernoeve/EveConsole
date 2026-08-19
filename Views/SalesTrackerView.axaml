@@ -14,9 +14,25 @@
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding"    Value="6 5 2 5" />
     </Style>
-    <Style Selector="DataGridCell.num TextBlock">
-      <Setter Property="HorizontalAlignment" Value="Right" />
-      <Setter Property="Margin" Value="0 0 8 0" />
+
+    <!-- A link in a grid cell. The button carries no chrome, so the row still reads as a row.
+         ⚠️ No Foreground, matching the killmail tool and the system page: a link keeps whatever
+         colour its column already had. In a grid where nearly every name is clickable, colouring
+         them all would say nothing about which ones matter. The cursor and the hover underline
+         carry the affordance instead, and at rest the row looks exactly as it did. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
     </Style>
   </UserControl.Styles>
 
@@ -73,7 +89,20 @@
           <DataGrid Grid.Row="1" ItemsSource="{Binding TopBuyers}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Buyer" Binding="{Binding Name}"   Width="*" />
+              <DataGridTemplateColumn Header="Buyer" SortMemberPath="Name" Width="*">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:GroupRowVm">
+                    <Panel>
+                      <Button Classes="link" Click="OnOpenGroup" IsVisible="{Binding HasLink}"
+                              ToolTip.Tip="Open in the entity browser">
+                        <TextBlock Text="{Binding Name}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                      </Button>
+                      <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasLink}"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Panel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTextColumn Header="ISK"   Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="Auto" CellStyleClasses="num" />
             </DataGrid.Columns>
           </DataGrid>
@@ -102,7 +131,20 @@
           <DataGrid Grid.Row="1" ItemsSource="{Binding TopItems}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Item"   Binding="{Binding Name}"      Width="*" />
+              <DataGridTemplateColumn Header="Item" SortMemberPath="Name" Width="*">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:ProfitGroupRowVm">
+                    <Panel>
+                      <Button Classes="link" Click="OnOpenProfitGroup" IsVisible="{Binding HasLink}"
+                              ToolTip.Tip="Open in the Item Browser">
+                        <TextBlock Text="{Binding Name}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                      </Button>
+                      <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasLink}"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Panel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTextColumn Header="Profit" Binding="{Binding Profit}"    SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
               <DataGridTextColumn Header="%"      Binding="{Binding ProfitPct}" Width="Auto" CellStyleClasses="num" />
             </DataGrid.Columns>
@@ -128,10 +170,68 @@
                             CanUserSort="False" />
         <DataGridTextColumn Header="Date / Time"  Binding="{Binding WhenText}" SortMemberPath="WhenSort" Width="130" />
         <DataGridTextColumn Header="Type"         Binding="{Binding Kind}"     Width="80" />
-        <DataGridTextColumn Header="Owner"        Binding="{Binding Owner}"    Width="150" />
-        <DataGridTextColumn Header="Location"     Binding="{Binding Location}" Width="220" />
-        <DataGridTextColumn Header="Buyer"        Binding="{Binding Buyer}"    Width="150" />
-        <DataGridTextColumn Header="Item(s)"      Binding="{Binding Items}"    Width="220" />
+        <!-- Owner, Location, Buyer and Item(s) are links: each one names something with a page of
+             its own, and a sale is mostly a set of pointers at those four things. A row whose id
+             is missing renders the same text without the button rather than a dead link. -->
+        <DataGridTemplateColumn Header="Owner" SortMemberPath="Owner" Width="150">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleRowVm">
+              <Panel>
+                <Button Classes="link" Click="OnOpenOwner" IsVisible="{Binding HasOwnerLink}"
+                        ToolTip.Tip="Open in the entity browser">
+                  <TextBlock Text="{Binding Owner}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding Owner}" IsVisible="{Binding !HasOwnerLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="Location" SortMemberPath="Location" Width="220">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleRowVm">
+              <Panel>
+                <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
+                        ToolTip.Tip="Open this station or structure">
+                  <TextBlock Text="{Binding Location}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding Location}" IsVisible="{Binding !HasLocationLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="Buyer" SortMemberPath="Buyer" Width="150">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleRowVm">
+              <Panel>
+                <Button Classes="link" Click="OnOpenBuyer" IsVisible="{Binding HasBuyerLink}"
+                        ToolTip.Tip="Open in the entity browser">
+                  <TextBlock Text="{Binding Buyer}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding Buyer}" IsVisible="{Binding !HasBuyerLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="Item(s)" SortMemberPath="Items" Width="220">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleRowVm">
+              <Panel>
+                <Button Classes="link" Click="OnOpenItem" IsVisible="{Binding HasItemLink}"
+                        ToolTip.Tip="Open in the Item Browser">
+                  <TextBlock Text="{Binding Items}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding Items}" IsVisible="{Binding !HasItemLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="Units"        Binding="{Binding Units}"    Width="90"  CellStyleClasses="num" />
         <DataGridTextColumn Header="Total Sale"   Binding="{Binding Total}"    SortMemberPath="TotalRaw"     Width="110" CellStyleClasses="num" />
         <DataGridTextColumn Header="Build Price"  Binding="{Binding Build}"    SortMemberPath="BuildRaw"     Width="110" CellStyleClasses="num" />

@@ -666,6 +666,11 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     // Left null otherwise, which the availability pass reports as unknown.
                     StationId      = structure?.RealStructureId,
                     StationName    = structure?.RealStructureName ?? "",
+                    // Resolved from the same name→id map the cost-index lookup uses, so the
+                    // system link and the cost index always agree about which system this is.
+                    SolarSystemId  = structure is not null
+                                     && systemIds.TryGetValue(structure.SystemName, out var jobSysId)
+                                         ? jobSysId : 0,
                     MeReductionPct = meLevel,
                     RigBonusPct    = rigBonus * 100.0,
                     RoleBonusPct   = matRoleBonus * 100.0,

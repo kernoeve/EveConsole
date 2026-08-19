@@ -467,10 +467,12 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         var idList = string.Join(",", ids);
+#pragma warning disable EF1002 // idList is built from a List<long>, not user text — a literal int list
         foreach (var row in await db.Database.SqlQueryRaw<CachedName>(
                      $"""SELECT "EntityId" AS "Id", "Name" FROM "UniverseNames" WHERE "EntityId" IN ({idList})""")
                      .ToListAsync(ct))
             map[row.Id] = row.Name;
+#pragma warning restore EF1002
 
         var missing = ids.Where(i => !map.ContainsKey(i)).ToList();
         if (missing.Count == 0 || esi is null) return map;
@@ -689,10 +691,17 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     public async Task<List<EntityMemberRow>> FactionCorpsAsync(long factionId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
+        // ⚠️ Every column EntityMemberRow declares has to be in the SELECT, even the ones this
+        // query has nothing to say about. The record gives Level, Division, Station and StationId
+        // C# defaults, but a default applies to a constructor called from C# — EF materialising a
+        // FromSql result demands the column exist and fails the whole query otherwise ("The
+        // required column 'Division' was not present"). The agent queries above happen to select
+        // all seven, which is why this was the only one that broke.
         return await db.Database.SqlQueryRaw<EntityMemberRow>("""
             SELECT n."CorporationId" AS "Id", n."Name",
                    (SELECT COUNT(*) FROM "SdeStations" s WHERE s."CorporationId" = n."CorporationId")
-                       || ' station(s)' AS "Subtitle"
+                       || ' station(s)' AS "Subtitle",
+                   0 AS "Level", '' AS "Division", '' AS "Station", 0 AS "StationId"
             FROM "SdeNpcCorporations" n
             WHERE n."FactionId" = @id
             ORDER BY n."Name"

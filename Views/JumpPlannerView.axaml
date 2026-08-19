@@ -35,6 +35,25 @@
       <Setter Property="FontSize" Value="10" />
       <Setter Property="Foreground" Value="#7788aa" />
     </Style>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
   </UserControl.Styles>
 
   <Grid ColumnDefinitions="330,1,*">
@@ -209,9 +228,51 @@
                 Background="#0d0d12">
         <DataGrid.Columns>
           <DataGridTextColumn Header="#"        Binding="{Binding Number}"       Width="44" />
-          <DataGridTextColumn Header="From"     Binding="{Binding From}"         Width="130" />
-          <DataGridTextColumn Header="Jump to"  Binding="{Binding To}"           Width="130" />
-          <DataGridTextColumn Header="Region"   Binding="{Binding ToRegion}"     Width="160" />
+          <DataGridTemplateColumn Header="From" Width="130" SortMemberPath="From">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:JumpLegVm">
+                <Panel>
+                  <Button Classes="link" Click="OnOpenLegFrom" IsVisible="{Binding HasFromLink}"
+                          ToolTip.Tip="Open this system">
+                    <TextBlock Text="{Binding From}" Classes="linktext"
+                               TextTrimming="CharacterEllipsis" />
+                  </Button>
+                  <TextBlock Text="{Binding From}" IsVisible="{Binding !HasFromLink}"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Panel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="Jump to" Width="130" SortMemberPath="To">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:JumpLegVm">
+                <Panel>
+                  <Button Classes="link" Click="OnOpenLegTo" IsVisible="{Binding HasToLink}"
+                          ToolTip.Tip="Open this system">
+                    <TextBlock Text="{Binding To}" Classes="linktext"
+                               TextTrimming="CharacterEllipsis" />
+                  </Button>
+                  <TextBlock Text="{Binding To}" IsVisible="{Binding !HasToLink}"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Panel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="Region" Width="160" SortMemberPath="ToRegion">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:JumpLegVm">
+                <Panel>
+                  <Button Classes="link" Click="OnOpenLegRegion" IsVisible="{Binding HasRegionLink}"
+                          ToolTip.Tip="Frame this region on the map">
+                    <TextBlock Text="{Binding ToRegion}" Classes="linktext"
+                               TextTrimming="CharacterEllipsis" />
+                  </Button>
+                  <TextBlock Text="{Binding ToRegion}" IsVisible="{Binding !HasRegionLink}"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Panel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
           <DataGridTextColumn Header="Sec"      Binding="{Binding SecurityText}" Width="70" />
           <DataGridTextColumn Header="Distance" Binding="{Binding DistanceText}" Width="110" />
           <DataGridTextColumn Header="Fuel"     Binding="{Binding FuelText}"     Width="110" />

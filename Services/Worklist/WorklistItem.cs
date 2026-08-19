@@ -30,8 +30,40 @@ public enum WorklistReadiness
 /// </summary>
 public enum WorklistKind { Buy, Haul, Job, CorpProject, AssetSafety, SkillQueue }
 
-/// <summary>One item on a task that moves or acquires several things at once.</summary>
-public sealed record WorklistLine(int TypeId, string TypeName, long Quantity);
+/// <summary>
+/// One item on a task that moves or acquires several things at once.
+///
+/// <para><see cref="Volume"/> and <see cref="Value"/> are filled in by
+/// <c>WorklistService.ApplyVolumeAsync</c> off the same single price and volume lookup the task's
+/// own totals come from — a generator that priced its own lines would be a second opinion about
+/// the same numbers, and the manifest's figures have to add up to the row's.</para>
+/// </summary>
+public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
+{
+    public double Volume { get; init; }
+    public double Value  { get; init; }
+
+    /// <summary>Blank rather than "0 ISK" when unpriced: a manifest line whose type has no price
+    /// on file is not worth nothing, it is worth an amount nobody has quoted.</summary>
+    public string ValueText  => Value  > 0 ? Isk(Value) : "";
+    public string VolumeText => Volume > 0 ? M3(Volume) : "";
+
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
+
+    // Same abbreviations MarketFmt uses, restated here rather than referenced: that lives in the
+    // view-model layer, and a record in Services reaching up into it to format a string would
+    // point the dependency the wrong way for two short methods.
+    private static string Isk(double v) => v >= 1e12 ? $"{v / 1e12:N2}T"
+                                         : v >= 1e9  ? $"{v / 1e9:N2}B"
+                                         : v >= 1e6  ? $"{v / 1e6:N2}M"
+                                         : v >= 1e3  ? $"{v / 1e3:N1}K"
+                                         : v.ToString("N0");
+
+    private static string M3(double v) => v >= 1_000_000 ? $"{v / 1_000_000:N1}M m³"
+                                        : v >= 1_000     ? $"{v / 1_000:N0}k m³"
+                                        : $"{v:N0} m³";
+}
 
 /// <summary>
 /// One suggested piece of work.

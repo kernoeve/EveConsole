@@ -55,6 +55,48 @@ public static class AppConfig
         Save(c);
     }
 
+    /// <summary>
+    /// Whether a database shrink was requested and has not run yet.
+    ///
+    /// <para>Kept here rather than in AppPreferences because the shrink happens before the
+    /// database is opened — a flag living inside the file being rebuilt would be unreadable at
+    /// exactly the moment it is needed.</para>
+    /// </summary>
+    public static bool GetShrinkPending() => Load().ShrinkPending == true;
+
+    public static void SetShrinkPending(bool pending)
+    {
+        var c = Load();
+        c.ShrinkPending = pending ? true : null;   // absent rather than false — keeps the file tidy
+        Save(c);
+    }
+
+    /// <summary>
+    /// A database move requested by the user, to be performed at next startup.
+    ///
+    /// <para>Here rather than in AppPreferences for the same reason as the shrink flag: it is read
+    /// before the database is opened, and what it describes is the database moving.</para>
+    /// </summary>
+    public static string? GetPendingRelocation()
+    {
+        var to = Load().RelocateTo;
+        return string.IsNullOrWhiteSpace(to) ? null : to;
+    }
+
+    public static void SetPendingRelocation(string target)
+    {
+        var c = Load();
+        c.RelocateTo = target;
+        Save(c);
+    }
+
+    public static void ClearPendingRelocation()
+    {
+        var c = Load();
+        c.RelocateTo = null;
+        Save(c);
+    }
+
     // ── One-time migration from the pre-rename "EveCortex" folder ─────────────
 
     /// <summary>
@@ -145,5 +187,7 @@ public static class AppConfig
         [JsonPropertyName("dbPath")]  public string? DbPath  { get; set; }
         [JsonPropertyName("windowX")] public int?    WindowX { get; set; }
         [JsonPropertyName("windowY")] public int?    WindowY { get; set; }
+        [JsonPropertyName("shrinkPending")] public bool? ShrinkPending { get; set; }
+        [JsonPropertyName("relocateTo")]   public string? RelocateTo   { get; set; }
     }
 }

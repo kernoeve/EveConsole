@@ -953,10 +953,43 @@ public class TrackedOrder
     public int    Id            { get; set; }   // autoincrement
     public int    TypeId        { get; set; }
     public int    Units         { get; set; } = 1;
-    public string Buyer         { get; set; } = "";   // who the item is sent to (free text)
+    public string Buyer         { get; set; } = "";   // who the item is sent to — the picked name
+
+    /// <summary>
+    /// The picked buyer's id, and whether it names a character or a corporation.
+    ///
+    /// <para>⚠️ Zero on any order created while the buyer was still free text. Those keep the
+    /// typed name and simply do not link; re-picking the buyer on the row fills them in. Nothing
+    /// back-fills automatically — a name alone does not identify a pilot, and guessing would
+    /// attach the wrong id to somebody's order history.</para>
+    /// </summary>
+    public long   BuyerId       { get; set; }
+    public string BuyerType     { get; set; } = "";   // "character" | "corporation" | ""
+
     public string? EstimatedDate { get; set; }        // "yyyy-MM-dd", user's estimate
     public double PurchasePrice { get; set; }         // total agreed price for the order
     public string Status        { get; set; } = "pending";   // pending | completed | canceled
+
+    /// <summary>
+    /// Where the units are expected to come from, worked out by OrderFulfilmentService:
+    /// "" (nothing found), "stock", "job", or "contract" once one has delivered it.
+    /// </summary>
+    public string FulfilmentSource { get; set; } = "";
+
+    /// <summary>The industry job expected to produce this order, when the source is a job.</summary>
+    public int?   LinkedJobId      { get; set; }
+
+    /// <summary>
+    /// The contract that delivered this order — issued by one of our characters or personal
+    /// corporations, to this order's buyer, carrying the item.
+    /// </summary>
+    public int?   LinkedContractId { get; set; }
+
+    /// <summary>
+    /// When the order was settled — completed or cancelled. Set from the contract-s acceptance
+    /// date when a contract closed it, and to today when the user sets the status by hand.
+    /// </summary>
+    public string? CompletedOn { get; set; }
 
     /// <summary>Hand-marked to jump the queue, ahead of every order ranked by date.</summary>
     public bool   IsPriority    { get; set; }

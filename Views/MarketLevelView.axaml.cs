@@ -110,5 +110,9 @@ public partial class MarketLevelView : UserControl
             vm.SortByProperty(propName);
     }
 
+
+    /// <summary>The row carries its own navigation; the button's DataContext is that row.</summary>
+    private void OnOpenItem(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as MarketItemRow)?.OpenItem();
     private Window GetWindow() => (TopLevel.GetTopLevel(this) as Window)!;
 }

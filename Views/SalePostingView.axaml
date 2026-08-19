@@ -6,6 +6,28 @@
              x:DataType="vm:SalePostingViewModel"
              Background="#0d0d12">
 
+  <UserControl.Styles>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+  </UserControl.Styles>
+
   <TabControl Padding="0" Background="#0d0d12">
     <TabItem Header="Definitions" FontSize="12">
 
@@ -147,8 +169,21 @@
                           Background="#2a1010" Foreground="#aa4444"
                           BorderBrush="#3a2020" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
-                  <TextBlock Text="{Binding ScopeDisplay}" FontSize="10" Foreground="#445566"
-                             VerticalAlignment="Center" Margin="8 0 0 0" />
+                  <!-- ScopeDisplay split so the location name can link while the scope word stays
+                       plain. Falls back to the joined string on an "Everywhere" posting, which
+                       has no location and nothing to open. -->
+                  <StackPanel Orientation="Horizontal" Spacing="0" Margin="8 0 0 0">
+                    <Button Classes="link" Click="OnOpenPostingLocation"
+                            IsVisible="{Binding HasLocationLink}"
+                            ToolTip.Tip="Open this location">
+                      <TextBlock Text="{Binding LocationName}" Classes="linktext"
+                                 FontSize="10" Foreground="#445566" />
+                    </Button>
+                    <TextBlock Text="{Binding ScopeDisplay}" IsVisible="{Binding !HasLocationLink}"
+                               FontSize="10" Foreground="#445566" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding ScopeSuffix}" IsVisible="{Binding HasLocationLink}"
+                               FontSize="10" Foreground="#445566" VerticalAlignment="Center" />
+                  </StackPanel>
                   <TextBlock Text="{Binding PricingDisplay}" FontSize="10" Foreground="#6a5a2a"
                              VerticalAlignment="Center" Margin="4 0 0 0" />
                 </StackPanel>
@@ -179,8 +214,15 @@
                 </StackPanel>
 
                 <!-- Item row -->
-                <TextBlock IsVisible="{Binding IsItem}" Text="{Binding TypeName}"
-                           FontSize="11" Foreground="#c8c8d8" Canvas.Left="32" Canvas.Top="5" />
+                <!-- ⚠️ Canvas.Left/Top go on the Button, not the inner TextBlock: the Canvas
+                     positions its direct children, and leaving them on the text would stack every
+                     item name at the origin. -->
+                <Button IsVisible="{Binding IsItem}" Classes="link" Click="OnOpenItem"
+                        Canvas.Left="32" Canvas.Top="5"
+                        ToolTip.Tip="Open in the Item Browser">
+                  <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                             FontSize="11" Foreground="#c8c8d8" />
+                </Button>
               </Canvas>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>

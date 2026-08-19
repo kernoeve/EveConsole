@@ -11,6 +11,25 @@
     <Style Selector="DataGridCell TextBlock">
       <Setter Property="FontSize" Value="10"/>
     </Style>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
   </UserControl.Styles>
 
   <Grid ColumnDefinitions="320,8,*" Background="#0d0d14">
@@ -259,7 +278,21 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
-                <DataGridTextColumn Header="Material" Binding="{Binding TypeName}" Width="*"/>
+                <DataGridTemplateColumn Header="Material" SortMemberPath="TypeName" Width="*">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanRawMaterial">
+                      <Panel>
+                        <Button Classes="link" Click="OnOpenPlanItem" IsVisible="{Binding HasItemLink}"
+                                ToolTip.Tip="Open in the Item Browser">
+                          <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      </Panel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="Quantity" Width="90" SortMemberPath="Quantity">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">
@@ -297,6 +330,133 @@
             </DataGrid>
           </Grid>
         </TabItem>
+        <!-- ── Intermediates ──────────────────────────────────────────────── -->
+        <TabItem Header="Intermediates">
+          <Grid RowDefinitions="Auto,*" Margin="8">
+            <TextBlock Grid.Row="0" FontSize="11" Foreground="#555566" Margin="0 0 0 4"
+                       Text="Double-click row to open in Item Browser"/>
+            <DataGrid Grid.Row="1" x:Name="IntermediatesGrid"
+                      ItemsSource="{Binding Plan.Intermediates}"
+                      IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                      Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                      DoubleTapped="OnDataGridDoubleTapped">
+              <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanIntermediate">
+                      <Panel>
+                        <Button Classes="link" Click="OnOpenPlanItem" IsVisible="{Binding HasItemLink}"
+                                ToolTip.Tip="Open in the Item Browser">
+                          <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      </Panel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Needed" Width="80" SortMemberPath="QuantityNeeded">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanIntermediate">
+                      <TextBlock Text="{Binding QuantityNeeded, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Produced" Width="80" SortMemberPath="QuantityProduced">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanIntermediate">
+                      <TextBlock Text="{Binding QuantityProduced, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Leftover" Width="80" SortMemberPath="Leftover">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanIntermediate">
+                      <TextBlock Text="{Binding Leftover, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Build Value" Width="90" SortMemberPath="MarketUnitPrice">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanIntermediate">
+                      <TextBlock Text="{Binding MarketUnitPrice, StringFormat=N2}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Leftover Value" Width="110" SortMemberPath="LeftoverValue">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanIntermediate">
+                      <TextBlock Text="{Binding LeftoverValue, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+          </Grid>
+        </TabItem>
+
+        <!-- ── Leftovers ──────────────────────────────────────────────────── -->
+        <TabItem Header="Leftovers">
+          <Grid RowDefinitions="Auto,*" Margin="8">
+            <TextBlock Grid.Row="0" FontSize="11" Foreground="#555566" Margin="0 0 0 4"
+                       Text="{Binding Plan.Leftovers.Count, StringFormat='{}{0} leftover items valued at build cost — double-click to open in Item Browser'}"/>
+            <DataGrid Grid.Row="1" x:Name="LeftoversGrid"
+                      ItemsSource="{Binding Plan.Leftovers}"
+                      IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                      Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                      DoubleTapped="OnDataGridDoubleTapped">
+              <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanLeftoverItem">
+                      <Panel>
+                        <Button Classes="link" Click="OnOpenPlanItem" IsVisible="{Binding HasItemLink}"
+                                ToolTip.Tip="Open in the Item Browser">
+                          <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      </Panel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Source" Binding="{Binding Source}"   Width="110"/>
+                <DataGridTemplateColumn Header="Quantity" Width="80" SortMemberPath="Quantity">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanLeftoverItem">
+                      <TextBlock Text="{Binding Quantity, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Build Value" Width="100" SortMemberPath="UnitPrice">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanLeftoverItem">
+                      <TextBlock Text="{Binding UnitPrice, StringFormat=N2}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Total Value" Width="100" SortMemberPath="TotalValue">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanLeftoverItem">
+                      <TextBlock Text="{Binding TotalValue, StringFormat=N0}" FontSize="10"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+          </Grid>
+        </TabItem>
+
 
         <!-- ── Final Products ─────────────────────────────────────────────── -->
         <TabItem Header="Final Products">
@@ -309,7 +469,21 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
-                <DataGridTextColumn Header="Item" Binding="{Binding TypeName}" Width="*"/>
+                <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanFinalProduct">
+                      <Panel>
+                        <Button Classes="link" Click="OnOpenPlanItem" IsVisible="{Binding HasItemLink}"
+                                ToolTip.Tip="Open in the Item Browser">
+                          <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      </Panel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="Req" Width="70" SortMemberPath="QuantityRequested">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
@@ -395,105 +569,6 @@
           </Grid>
         </TabItem>
 
-        <!-- ── Intermediates ──────────────────────────────────────────────── -->
-        <TabItem Header="Intermediates">
-          <Grid RowDefinitions="Auto,*" Margin="8">
-            <TextBlock Grid.Row="0" FontSize="11" Foreground="#555566" Margin="0 0 0 4"
-                       Text="Double-click row to open in Item Browser"/>
-            <DataGrid Grid.Row="1" x:Name="IntermediatesGrid"
-                      ItemsSource="{Binding Plan.Intermediates}"
-                      IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
-                      Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
-                      DoubleTapped="OnDataGridDoubleTapped">
-              <DataGrid.Columns>
-                <DataGridTextColumn Header="Item" Binding="{Binding TypeName}" Width="*"/>
-                <DataGridTemplateColumn Header="Needed" Width="80" SortMemberPath="QuantityNeeded">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate x:DataType="models:PlanIntermediate">
-                      <TextBlock Text="{Binding QuantityNeeded, StringFormat=N0}" FontSize="10"
-                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Produced" Width="80" SortMemberPath="QuantityProduced">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate x:DataType="models:PlanIntermediate">
-                      <TextBlock Text="{Binding QuantityProduced, StringFormat=N0}" FontSize="10"
-                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Leftover" Width="80" SortMemberPath="Leftover">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate x:DataType="models:PlanIntermediate">
-                      <TextBlock Text="{Binding Leftover, StringFormat=N0}" FontSize="10"
-                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Build Value" Width="90" SortMemberPath="MarketUnitPrice">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate x:DataType="models:PlanIntermediate">
-                      <TextBlock Text="{Binding MarketUnitPrice, StringFormat=N2}" FontSize="10"
-                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Leftover Value" Width="110" SortMemberPath="LeftoverValue">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate x:DataType="models:PlanIntermediate">
-                      <TextBlock Text="{Binding LeftoverValue, StringFormat=N0}" FontSize="10"
-                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-              </DataGrid.Columns>
-            </DataGrid>
-          </Grid>
-        </TabItem>
-
-        <!-- ── Leftovers ──────────────────────────────────────────────────── -->
-        <TabItem Header="Leftovers">
-          <Grid RowDefinitions="Auto,*" Margin="8">
-            <TextBlock Grid.Row="0" FontSize="11" Foreground="#555566" Margin="0 0 0 4"
-                       Text="{Binding Plan.Leftovers.Count, StringFormat='{}{0} leftover items valued at build cost — double-click to open in Item Browser'}"/>
-            <DataGrid Grid.Row="1" x:Name="LeftoversGrid"
-                      ItemsSource="{Binding Plan.Leftovers}"
-                      IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
-                      Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
-                      DoubleTapped="OnDataGridDoubleTapped">
-              <DataGrid.Columns>
-                <DataGridTextColumn Header="Item"   Binding="{Binding TypeName}" Width="*"/>
-                <DataGridTextColumn Header="Source" Binding="{Binding Source}"   Width="110"/>
-                <DataGridTemplateColumn Header="Quantity" Width="80" SortMemberPath="Quantity">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate x:DataType="models:PlanLeftoverItem">
-                      <TextBlock Text="{Binding Quantity, StringFormat=N0}" FontSize="10"
-                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Build Value" Width="100" SortMemberPath="UnitPrice">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate x:DataType="models:PlanLeftoverItem">
-                      <TextBlock Text="{Binding UnitPrice, StringFormat=N2}" FontSize="10"
-                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Total Value" Width="100" SortMemberPath="TotalValue">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate x:DataType="models:PlanLeftoverItem">
-                      <TextBlock Text="{Binding TotalValue, StringFormat=N0}" FontSize="10"
-                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-              </DataGrid.Columns>
-            </DataGrid>
-          </Grid>
-        </TabItem>
-
         <!-- ── Jobs (Tree) ────────────────────────────────────────────────── -->
         <TabItem Header="Jobs">
           <ScrollViewer Padding="8 8 8 8">
@@ -524,7 +599,32 @@
                           <StackPanel Orientation="Horizontal" Spacing="10">
                             <TextBlock Text="{Binding Job.MaterialCost, StringFormat='Mat: {0:N0} ISK'}" FontSize="11" Foreground="#aaa"/>
                             <TextBlock Text="{Binding Job.JobCost,      StringFormat='Job: {0:N0} ISK'}" FontSize="11" Foreground="#c8a84b"/>
-                            <TextBlock Text="{Binding Job.StructureDisplay}" FontSize="11" Foreground="#555566"/>
+                            <!-- StructureDisplay's two halves, split so each can link: the
+                                 facility to the Structure Browser, the system to the map. The
+                                 "@" shows only when both are present, so a job with one of them
+                                 does not read as "Name @" or "@ System". -->
+                            <StackPanel Orientation="Horizontal" Spacing="3">
+                              <Button Classes="link" Click="OnOpenJobStation"
+                                      IsVisible="{Binding Job.HasStationLink}"
+                                      ToolTip.Tip="Open in the Structure Browser">
+                                <TextBlock Text="{Binding Job.StructureName}" Classes="linktext"
+                                           FontSize="11" Foreground="#555566"/>
+                              </Button>
+                              <TextBlock Text="{Binding Job.StructureName}"
+                                         IsVisible="{Binding Job.ShowStationPlain}"
+                                         FontSize="11" Foreground="#555566" VerticalAlignment="Center"/>
+                              <TextBlock Text="@" IsVisible="{Binding Job.ShowAtSeparator}"
+                                         FontSize="11" Foreground="#555566" VerticalAlignment="Center"/>
+                              <Button Classes="link" Click="OnOpenJobSystem"
+                                      IsVisible="{Binding Job.HasSystemLink}"
+                                      ToolTip.Tip="Open on the map">
+                                <TextBlock Text="{Binding Job.SystemName}" Classes="linktext"
+                                           FontSize="11" Foreground="#555566"/>
+                              </Button>
+                              <TextBlock Text="{Binding Job.SystemName}"
+                                         IsVisible="{Binding Job.ShowSystemPlain}"
+                                         FontSize="11" Foreground="#555566" VerticalAlignment="Center"/>
+                            </StackPanel>
                           </StackPanel>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"

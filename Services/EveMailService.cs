@@ -17,8 +17,13 @@ public sealed record EveMailRow(
     bool           IsRead,
     string         Labels,
     bool           BodyFetched,
-    string         RecipientSummary
+    string         RecipientSummary,
+    IReadOnlyList<EveMailRecipient> Recipients
 );
+
+/// <summary>One addressee on a mail, kept as its own row so the header can link each name
+/// rather than rendering the joined summary as a single unclickable string.</summary>
+public sealed record EveMailRecipient(long Id, string Name, string Type);
 
 public sealed record EveMailLabelOption(
     long   CharacterId,
@@ -287,8 +292,13 @@ public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient
                 ? string.Join(", ", mailRecs.Select(r =>
                     !string.IsNullOrEmpty(r.RecipientName) ? r.RecipientName : $"#{r.RecipientId}"))
                 : "";
+            var recipients = mailRecs
+                .Select(r => new EveMailRecipient(r.RecipientId,
+                    !string.IsNullOrEmpty(r.RecipientName) ? r.RecipientName : $"#{r.RecipientId}",
+                    r.RecipientType))
+                .ToList();
             return new EveMailRow(h.MailId, h.CharacterId, h.FromId, h.FromName,
-                h.Subject, h.Timestamp, h.IsRead, h.Labels, h.BodyFetched, recSummary);
+                h.Subject, h.Timestamp, h.IsRead, h.Labels, h.BodyFetched, recSummary, recipients);
         }).ToList();
     }
 

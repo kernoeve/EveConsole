@@ -12,6 +12,17 @@ public partial class JumpPlannerView : UserControl
 
     public JumpPlannerView() => InitializeComponent();
 
+    // Each leg carries its own navigation; the button's DataContext is the leg it sits in.
+    private static JumpLegVm? Leg(object? sender)
+        => (sender as Control)?.DataContext as JumpLegVm;
+
+    private void OnOpenLegFrom(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Leg(sender)?.OpenFrom();
+    private void OnOpenLegTo(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Leg(sender)?.OpenTo();
+    private void OnOpenLegRegion(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Leg(sender)?.OpenRegion();
+
     private async void OnWaypointPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Control control || control.DataContext is not WaypointVm waypoint) return;

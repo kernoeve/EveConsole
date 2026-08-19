@@ -53,6 +53,13 @@ public class SovStructureVm(SystemViewService.SovStructureRow r) : IconRowVm
     protected override string? IconUrl => $"https://images.evetech.net/types/{r.TypeId}/icon?size=32";
 
     public long? AllianceId { get; } = r.AllianceId;
+
+    // The hull type and the alliance holding it. Both ids were already on the row.
+    public bool HasTypeLink  => r.TypeId > 0 && TypeName.Length > 0;
+    public bool HasOwnerLink => r.AllianceId is > 0 && Owner.Length > 0;
+
+    public void OpenType()  => EntityNavigator.Instance.Item(r.TypeId);
+    public void OpenOwner() => EntityNavigator.Instance.Entity(EntityKind.Alliance, r.AllianceId ?? 0);
 }
 
 public class CelestialVm(SystemViewService.CelestialRow r) : IconRowVm
@@ -392,6 +399,11 @@ public class GateVm(SystemViewService.GateRow r)
     public string SecurityTrue  { get; } = EveConsole.Services.SecurityColors.TrueText(r.Security);
     public string SecurityColor { get; } = EveConsole.Services.SecurityColors.Hex(r.Security);
     public string SecurityTip   { get; } = EveConsole.Services.SecurityColors.Tip(r.Security);
+
+    /// <summary>Where the gate goes. Opening it navigates the map to that system, which is the
+    /// same thing clicking the node would do.</summary>
+    public bool HasSystemLink => SystemId > 0 && Name.Length > 0;
+    public void OpenSystem() => EntityNavigator.Instance.System(SystemId);
 }
 
 /// <summary>
@@ -474,6 +486,21 @@ public class SystemPageViewModel : ReactiveObject
 
     private string _localPirates = "";
     public string LocalPirates { get => _localPirates; private set => this.RaiseAndSetIfChanged(ref _localPirates, value); }
+
+    // ── Header links ──────────────────────────────────────────────────────────
+    //
+    // Region and constellation frame themselves on the map; the pirate faction opens in the NPC
+    // entity browser. Every id comes off the header the page already loads.
+    private int _regionId, _constellationId, _pirateFactionId;
+
+    public bool HasRegionLink        => _regionId        > 0 && Region.Length        > 0;
+    public bool HasConstellationLink => _constellationId > 0 && Constellation.Length > 0;
+    public bool HasPirateLink        => _pirateFactionId > 0 && LocalPirates.Length  > 0;
+
+    public void OpenRegion() => EntityNavigator.Instance.Region(_regionId);
+    /// <summary>⚠️ By name — the map graph is keyed on constellation name, not id.</summary>
+    public void OpenConstellation() => EntityNavigator.Instance.Constellation(Constellation);
+    public void OpenPirates() => EntityNavigator.Instance.Entity(EntityKind.Faction, _pirateFactionId);
 
     private string _holder = "";
     public string Holder { get => _holder; private set => this.RaiseAndSetIfChanged(ref _holder, value); }
@@ -710,6 +737,13 @@ public class SystemPageViewModel : ReactiveObject
             SecurityTip   = EveConsole.Services.SecurityColors.Tip(header.Security);
             SecurityClass = header.SecurityClass;
             LocalPirates  = header.LocalPirates;
+
+            _regionId        = header.RegionId;
+            _constellationId = header.ConstellationId;
+            _pirateFactionId = header.LocalPirateFactionId;
+            this.RaisePropertyChanged(nameof(HasRegionLink));
+            this.RaisePropertyChanged(nameof(HasConstellationLink));
+            this.RaisePropertyChanged(nameof(HasPirateLink));
 
             HasAdm = header.Adm is not null;
             Adm    = header.Adm is { } adm ? adm.ToString("F1") : "";

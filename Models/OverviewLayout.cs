@@ -40,6 +40,11 @@ public sealed class OverviewLayout
         ("IncomeExpense",     "Income & Expense"),
         ("StandingProjects",  "Standing Projects"),
         ("StandingBuyOrders", "Standing Buy Orders"),
+        ("WorklistAll",       "Worklist (All)"),
+        ("WorklistBuy",       "Worklist (Buy)"),
+        ("WorklistHaul",      "Worklist (Haul)"),
+        ("WorklistJobs",      "Worklist (Jobs)"),
+        ("WorklistNeeds",     "Worklist (Station Needs)"),
     ];
 
     // Default layout: Sale Listing (Build) / Income & Expense / Personal Killmails across the top

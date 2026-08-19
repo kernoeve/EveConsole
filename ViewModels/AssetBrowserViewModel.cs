@@ -29,6 +29,8 @@ public class AssetBrowserViewModel : ReactiveObject
     public static readonly HashSet<string> HiddenColumns =
     [
         "Owner Id", "Root Location Id",
+        // Carried so the names above them can be links; never a column of their own.
+        "Solar System Id", "Region Id", "Is Station",
     ];
 
     public string? SortColumn    => _sortColumn;
@@ -440,6 +442,13 @@ public class AssetBrowserViewModel : ReactiveObject
                 END AS "Solar System",
                 COALESCE(r_st.Name, r_ss.Name, r_s.Name)             AS "Region Name",
                 ROUND(COALESCE(ss_sta.Security, ss.Security, ss_s.Security), 1) AS "Security",
+                -- Hidden: what the names above open. Carried in Base so the three aggregate views
+                -- inherit them rather than each re-deriving the joins.
+                COALESCE(ss_sta.SolarSystemId, ss.SolarSystemId, ss_s.SolarSystemId, 0) AS "Solar System Id",
+                COALESCE(r_st.RegionId, r_ss.RegionId, r_s.RegionId, 0)                 AS "Region Id",
+                -- NPC station to the entity browser, player structure to its own tool.
+                -- RootLocationType already tells the two apart.
+                CASE WHEN a.RootLocationType = 'station' THEN 1 ELSE 0 END              AS "Is Station",
                 a.LocationType    AS "Location Type",
                 t.Volume          AS "Volume",
                 t.Volume * CAST(a.Quantity AS REAL)                   AS "Total Volume",
@@ -548,7 +557,16 @@ public class AssetBrowserViewModel : ReactiveObject
                 'Industry Job'                                                     AS "Flag",
                 jf.FacilitySolarSystem                                             AS "Solar System",
                 jf.FacilityRegion                                                  AS "Region Name",
-                jf.FacilitySecurity                                                AS "Security",
+                -- ⚠️ ROUNDed to match the asset branch above. The aggregate views GROUP BY Security, so an
+                -- unrounded -0.29999 and a rounded -0.3 became two rows for one system, identical
+                -- on screen and each holding part of the total.
+                ROUND(jf.FacilitySecurity, 1)                                      AS "Security",
+                -- Hidden ids, matching the asset branch so the UNION lines up. A job facility is
+                -- named but never resolved to ids here, so these are zero: such a row still shows
+                -- its system and region, they simply are not links.
+                0                                                                  AS "Solar System Id",
+                0                                                                  AS "Region Id",
+                0                                                                  AS "Is Station",
                 'item'                                                             AS "Location Type",
                 bt.Volume                                                          AS "Volume",
                 bt.Volume                                                          AS "Total Volume",
@@ -585,7 +603,16 @@ public class AssetBrowserViewModel : ReactiveObject
                 'Industry Job'                                                     AS "Flag",
                 jf.FacilitySolarSystem                                             AS "Solar System",
                 jf.FacilityRegion                                                  AS "Region Name",
-                jf.FacilitySecurity                                                AS "Security",
+                -- ⚠️ ROUNDed to match the asset branch above. The aggregate views GROUP BY Security, so an
+                -- unrounded -0.29999 and a rounded -0.3 became two rows for one system, identical
+                -- on screen and each holding part of the total.
+                ROUND(jf.FacilitySecurity, 1)                                      AS "Security",
+                -- Hidden ids, matching the asset branch so the UNION lines up. A job facility is
+                -- named but never resolved to ids here, so these are zero: such a row still shows
+                -- its system and region, they simply are not links.
+                0                                                                  AS "Solar System Id",
+                0                                                                  AS "Region Id",
+                0                                                                  AS "Is Station",
                 'item'                                                             AS "Location Type",
                 pt.Volume                                                          AS "Volume",
                 pt.Volume * CAST(jf.ItemsProduced AS REAL)                        AS "Total Volume",
@@ -651,30 +678,36 @@ public class AssetBrowserViewModel : ReactiveObject
     private static string LocationAggSql(string where) => $"""
         SELECT
             "Root Location Id" AS "Location Id", "Location Name", "Solar System", "Region Name", "Security",
+            "Solar System Id", "Region Id", "Is Station",
             SUM("Quantity") AS "Item Count",
             SUM("Total Volume") AS "Total Volume",
             SUM("Value") AS "Total Value",
             CASE WHEN SUM("Total Volume") > 0 THEN SUM("Value") / SUM("Total Volume") ELSE NULL END AS "ISK/m³"
         FROM Base {where}
-        GROUP BY "Root Location Id", "Location Name", "Solar System", "Region Name", "Security"
+        GROUP BY "Root Location Id", "Location Name", "Solar System", "Region Name", "Security",
+                 "Solar System Id", "Region Id", "Is Station"
         ORDER BY SUM("Value") DESC NULLS LAST
         """;
 
     private static string SystemAggSql(string where) => $"""
         SELECT
             "Solar System", "Region Name", "Security",
+            "Solar System Id", "Region Id",
             SUM("Quantity") AS "Item Count",
             SUM("Total Volume") AS "Total Volume",
             SUM("Value") AS "Total Value",
             CASE WHEN SUM("Total Volume") > 0 THEN SUM("Value") / SUM("Total Volume") ELSE NULL END AS "ISK/m³"
         FROM Base {where}
-        GROUP BY "Solar System", "Region Name", "Security"
+        GROUP BY "Solar System", "Region Name", "Security", "Solar System Id", "Region Id"
         ORDER BY SUM("Value") DESC NULLS LAST
         """;
 
     private static string RegionAggSql(string where) => $"""
         SELECT
             "Region Name",
+            -- ⚠️ MAX, not MIN. A row whose region resolved to no id contributes 0, and MIN would
+            -- let that one row blank the link for a region every other row identified.
+            MAX("Region Id") AS "Region Id",
             MIN("Security") AS "Security",
             SUM("Quantity") AS "Item Count",
             SUM("Total Volume") AS "Total Volume",

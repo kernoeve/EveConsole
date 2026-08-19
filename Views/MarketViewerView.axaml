@@ -15,10 +15,6 @@
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding"    Value="6 5 2 5" />
     </Style>
-    <Style Selector="DataGridCell.num TextBlock">
-      <Setter Property="HorizontalAlignment" Value="Right" />
-      <Setter Property="Margin" Value="0 0 8 0" />
-    </Style>
     <Style Selector="TextBlock.flabel">
       <Setter Property="FontSize" Value="11" /><Setter Property="Foreground" Value="#555566" />
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -55,6 +51,25 @@
       <Setter Property="FontSize" Value="11" /><Setter Property="Foreground" Value="#444455" />
       <Setter Property="HorizontalAlignment" Value="Center" /><Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
   </UserControl.Styles>
 
   <Grid>
@@ -83,7 +98,10 @@
               <Border Grid.Column="0" Classes="chartcard">
                 <StackPanel Spacing="6">
                   <TextBlock Classes="title" Text="Sell Orders by Type" />
+                  <!-- ⚠️ The slice is the click target, not the legend label: LiveCharts draws the
+                       legend itself, so its text is not a control anything can be attached to. -->
                   <lvc:PieChart IsVisible="{Binding HasSellCorp}" Series="{Binding SellCorpSeries}"
+                                ChartPointPointerDown="OnSellSliceClicked"
                                 LegendPosition="Right" LegendTextSize="10" Background="Transparent" Height="190" />
                   <TextBlock Classes="nodata" IsVisible="{Binding !HasSellCorp}" Margin="0 60"
                              Text="No sell orders for this selection." />
@@ -93,6 +111,7 @@
                 <StackPanel Spacing="6">
                   <TextBlock Classes="title" Text="Buy Orders by Type" />
                   <lvc:PieChart IsVisible="{Binding HasBuyCorp}" Series="{Binding BuyCorpSeries}"
+                                ChartPointPointerDown="OnBuySliceClicked"
                                 LegendPosition="Right" LegendTextSize="10" Background="Transparent" Height="190" />
                   <TextBlock Classes="nodata" IsVisible="{Binding !HasBuyCorp}" Margin="0 60"
                              Text="No buy orders for this selection." />
@@ -154,7 +173,20 @@
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="#0d0d12">
           <DataGrid.Columns>
-            <DataGridTextColumn Header="Type"             Binding="{Binding Type}"       Width="260" />
+            <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="260">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:MarketTypeSummaryVm">
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}" ToolTip.Tip="Open in the Item Browser">
+                      <TextBlock Text="{Binding Type}" Classes="linktext"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <TextBlock Text="{Binding Type}" IsVisible="{Binding !HasTypeLink}"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Panel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
             <DataGridTextColumn Header="Sell Order Units" Binding="{Binding SellUnits}"  SortMemberPath="SellUnitsRaw"  Width="130" CellStyleClasses="num" />
             <DataGridTextColumn Header="Sell Order ISK"   Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="130" CellStyleClasses="num" />
             <DataGridTextColumn Header="Buy Order Units"  Binding="{Binding BuyUnits}"   SortMemberPath="BuyUnitsRaw"   Width="130" CellStyleClasses="num" />
@@ -172,7 +204,20 @@
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="#0d0d12">
           <DataGrid.Columns>
-            <DataGridTextColumn Header="Type"  Binding="{Binding Type}"  Width="280" />
+            <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="280">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:MarketOrderByTypeVm">
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}" ToolTip.Tip="Open in the Item Browser">
+                      <TextBlock Text="{Binding Type}" Classes="linktext"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <TextBlock Text="{Binding Type}" IsVisible="{Binding !HasTypeLink}"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Panel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
             <DataGridTextColumn Header="Units" Binding="{Binding Units}" SortMemberPath="UnitsRaw" Width="140" CellStyleClasses="num" />
             <DataGridTextColumn Header="ISK"   Binding="{Binding Isk}"   SortMemberPath="IskRaw"   Width="140" CellStyleClasses="num" />
           </DataGrid.Columns>
@@ -186,7 +231,20 @@
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="#0d0d12">
           <DataGrid.Columns>
-            <DataGridTextColumn Header="Type"  Binding="{Binding Type}"  Width="280" />
+            <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="280">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:MarketOrderByTypeVm">
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}" ToolTip.Tip="Open in the Item Browser">
+                      <TextBlock Text="{Binding Type}" Classes="linktext"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <TextBlock Text="{Binding Type}" IsVisible="{Binding !HasTypeLink}"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Panel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
             <DataGridTextColumn Header="Units" Binding="{Binding Units}" SortMemberPath="UnitsRaw" Width="140" CellStyleClasses="num" />
             <DataGridTextColumn Header="ISK"   Binding="{Binding Isk}"   SortMemberPath="IskRaw"   Width="140" CellStyleClasses="num" />
           </DataGrid.Columns>

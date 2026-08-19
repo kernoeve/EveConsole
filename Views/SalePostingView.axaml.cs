@@ -106,5 +106,15 @@ public partial class SalePostingView : UserControl
         }
     }
 
+    // ── Row links (Definitions tab) ───────────────────────────────────────────
+    //
+    // One template covers posting, section and item rows in the first column, so both handlers
+    // live here and each casts to the row kind its own button belongs to.
+    private void OnOpenItem(object? sender, RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as SalePostingItemRow)?.OpenItem();
+
+    private void OnOpenPostingLocation(object? sender, RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as SalePostingRow)?.OpenLocation();
+
     private Window GetWindow() => (TopLevel.GetTopLevel(this) as Window)!;
 }

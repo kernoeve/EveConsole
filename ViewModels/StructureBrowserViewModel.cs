@@ -44,6 +44,26 @@ public class StructureRow
     public long ConstellationId { get; init; }
     public long RegionId        { get; init; }
     public long TypeId          { get; init; }
+
+    // ── Links ─────────────────────────────────────────────────────────────────
+    //
+    // Every id here was already carried for filtering and doubles as a destination, so nothing
+    // new had to be fetched. A zero means either a structure we cannot see into (IsKnown false)
+    // or no SDE match, and that name renders as plain text.
+    public bool HasTypeLink          => TypeId          > 0 && TypeName.Length      > 0;
+    public bool HasSystemLink        => SystemId        > 0 && SystemName.Length    > 0;
+    public bool HasConstellationLink => ConstellationId > 0 && Constellation.Length > 0;
+    public bool HasRegionLink        => RegionId        > 0 && Region.Length        > 0;
+    public bool HasCorpLink          => CorpId          > 0 && CorpName.Length      > 0;
+    public bool HasAllianceLink      => AllianceId      > 0 && AllianceName.Length  > 0;
+
+    public void OpenType()   => EntityNavigator.Instance.Item((int)TypeId);
+    public void OpenSystem() => EntityNavigator.Instance.System((int)SystemId);
+    /// <summary>⚠️ By name, not id — the map graph is keyed on constellation name.</summary>
+    public void OpenConstellation() => EntityNavigator.Instance.Constellation(Constellation);
+    public void OpenRegion()   => EntityNavigator.Instance.Region((int)RegionId);
+    public void OpenCorp()     => EntityNavigator.Instance.Entity(EntityKind.PlayerCorp, CorpId);
+    public void OpenAlliance() => EntityNavigator.Instance.Entity(EntityKind.Alliance,   AllianceId);
 }
 
 /// <summary>One fitted item in the viewer. Slot is the ESI LocationFlag it came from, or was
@@ -59,6 +79,9 @@ public class FittingRow : ReactiveObject
     public bool FromAssets { get; init; }
 
     public string Source => FromAssets ? "assets" : "manual";
+
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
 }
 
 /// <summary>An asset sitting in the selected structure, at any depth.</summary>
@@ -72,6 +95,19 @@ public class StructureAssetRow
     public long   Quantity  { get; init; }
     public string Owner     { get; init; } = "";
 
+    /// <summary>Ids behind the two names. The owner may be a character or a corporation — an
+    /// asset row can be either — so the row carries the type rather than assuming.</summary>
+    public int    TypeId    { get; init; }
+    public long   OwnerId   { get; init; }
+    public string OwnerType { get; init; } = "";
+
+    public bool HasItemLink  => TypeId  > 0 && TypeName.Length > 0;
+    public bool HasOwnerLink => OwnerId > 0 && Owner.Length    > 0;
+
+    public void OpenItem()  => EntityNavigator.Instance.Item(TypeId);
+    public void OpenOwner() => EntityNavigator.Instance.Entity(
+        OwnerType == "corporation" ? EntityKind.PlayerCorp : EntityKind.Pilot, OwnerId);
+
     /// <summary>Grouped for reading — a fuel bay holds hundreds of thousands of blocks, and
     /// bare digits at that length take a moment to size up. The column sorts on
     /// <see cref="Quantity"/> so the display format cannot turn the ordering alphabetical.</summary>
@@ -83,6 +119,11 @@ public class StructureJobRow
 {
     public string   Activity { get; init; } = "";
     public string   Product  { get; init; } = "";
+    /// <summary>Zero on research and copying jobs, which produce no item type.</summary>
+    public int      ProductTypeId { get; init; }
+    public bool HasProductLink => ProductTypeId > 0;
+    public void OpenProduct() => EntityNavigator.Instance.Item(ProductTypeId);
+
     public int      Runs     { get; init; }
     public string   Status   { get; init; } = "";
     public string   EndDate  { get; init; } = "";
@@ -996,6 +1037,9 @@ public class StructureBrowserViewModel : ReactiveObject
                 var vm = new StructureAssetRow
                 {
                     TypeName  = typeNames.GetValueOrDefault(a.TypeId, $"Type {a.TypeId}"),
+                    TypeId    = a.TypeId,
+                    OwnerId   = a.OwnerId,
+                    OwnerType = a.OwnerType,
                     Location  = WhereFrom(a.OwnerId, a.OwnerType, a.LocationFlag),
                     Container = ContainerPath(a.LocationId, a.LocationFlag, a.OwnerId, a.OwnerType),
                     Quantity  = a.Quantity,
@@ -1049,6 +1093,7 @@ public class StructureBrowserViewModel : ReactiveObject
                 Product  = j.ProductTypeId is { } pid
                              ? typeNames.GetValueOrDefault(pid, $"Type {pid}")
                              : "—",
+                ProductTypeId = j.ProductTypeId ?? 0,
                 Runs     = j.Runs,
                 Status   = j.Status,
                 EndDate  = j.EndDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),

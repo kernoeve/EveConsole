@@ -44,7 +44,7 @@ public class MaterialPurchaseGenerator(
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        var parkId = settings.IndustryParkId;
+        var parkId = await WorklistSettings.ResolveParkIdAsync(db, settings.IndustryParkId, ct);
         if (parkId <= 0) return [];
 
         var candidates = await assignment.LoadCandidatesAsync(ct);
@@ -80,7 +80,7 @@ public class MaterialPurchaseGenerator(
         }
 
         await AddStockDemandAsync(db, ctx, Want, ct);
-        await AddOrderDemandAsync(db, ctx, reach, scope, Want, ct);
+        await AddOrderDemandAsync(db, settings.PlanCustomerOrders, ctx, reach, scope, Want, ct);
 
         if (serving.Count == 0) return [];
 
@@ -129,8 +129,18 @@ public class MaterialPurchaseGenerator(
         var buyName = settings.IndustryBuyLocationName;
         var alt     = buyAt > 0 ? (await marketAlts.GetByLocationAsync(ct)).GetValueOrDefault(buyAt) : null;
 
+        // Prints the blueprints table does not know about but the assets table does. Without this
+        // a copy sitting in a structure the blueprints feed omits reads as no copy at all, and the
+        // tool asks you to buy one you already own.
+        var queueBpIds = queue
+            .Select(q => ctx.BlueprintByProduct.TryGetValue(q.TypeId, out var b) ? b.TypeId : 0)
+            .Where(id => id > 0).Distinct().ToList();
+        var inAssets = await blueprints.OwnedInAssetsAsync(queueBpIds, owned, ct);
+
+        var shelfWant = await BlueprintShelfWantAsync(db, ctx, ct);
+
         var items = new List<WorklistItem>();
-        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, bpShortfalls,
+        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, bpShortfalls, inAssets, shelfWant,
                                   buyAt, buyName, alt));
 
         var onOrder = await OnOrderAsync(db, shortfalls.Select(s => s.TypeId).ToList(), ct);
@@ -229,6 +239,53 @@ public class MaterialPurchaseGenerator(
     }
 
     /// <summary>Shortfalls against inventory targets, for groups whose rule says to build.</summary>
+    /// <summary>
+    /// What the stocking rules want of each blueprint, <b>before</b> any stock is deducted.
+    ///
+    /// <para>⚠️ Gross on purpose. <see cref="InvRuleShortfall"/> subtracts what is on hand and
+    /// returns nothing at all once stock covers the target — correct for a rule read on its own,
+    /// wrong here, because the same copies are also about to be spent by jobs. The subtraction has
+    /// to happen once, against both demands together, so this hands over the raw target and lets
+    /// <see cref="PrintTasks"/> do the arithmetic.</para>
+    ///
+    /// <para>Rules at different stations take the larger target rather than the sum: a print is
+    /// bought once and moved, so two stations each wanting one is one print to acquire, not two.</para>
+    /// </summary>
+    private async Task<Dictionary<int, long>> BlueprintShelfWantAsync(
+        AppDbContext db, ProductionContext ctx, CancellationToken ct)
+    {
+        var want = new Dictionary<int, long>();
+
+        var rules = await db.WorklistInvRules.AsNoTracking()
+            .Where(r => r.Enabled && r.Action != "Build")
+            .ToListAsync(ct);
+        if (rules.Count == 0) return want;
+
+        var groupIds = rules.Select(r => r.GroupId).Distinct().ToList();
+        var groups = await db.InvLevelGroups.AsNoTracking()
+            .Where(g => groupIds.Contains(g.Id)).ToDictionaryAsync(g => g.Id, ct);
+        var items = await db.InvLevelItems.AsNoTracking()
+            .Where(i => groupIds.Contains(i.GroupId)).ToListAsync(ct);
+
+        foreach (var rule in rules)
+        {
+            if (!groups.TryGetValue(rule.GroupId, out var group)) continue;
+
+            foreach (var gi in items.Where(i => i.GroupId == group.Id))
+            {
+                if (!ctx.BpTypeIds.Contains(gi.TypeId)) continue;
+
+                var target = (long)gi.TargetQuantity * Math.Max(1, group.Multiplier);
+                if (target <= 0) continue;
+
+                var wanted = (long)Math.Ceiling(target * (rule.FillTargetPercent / 100.0));
+                if (wanted > want.GetValueOrDefault(gi.TypeId)) want[gi.TypeId] = wanted;
+            }
+        }
+
+        return want;
+    }
+
     private async Task AddStockDemandAsync(
         AppDbContext db, ProductionContext ctx,
         Action<int, long, string> want, CancellationToken ct)
@@ -267,11 +324,11 @@ public class MaterialPurchaseGenerator(
 
     /// <summary>Outstanding customer orders, less what is built or building.</summary>
     private static async Task AddOrderDemandAsync(
-        AppDbContext db, ProductionContext ctx, ProductionCalculatorService.AssetReach reach,
+        AppDbContext db, bool enabled, ProductionContext ctx, ProductionCalculatorService.AssetReach reach,
         HashSet<long>? scope, Action<int, long, string> want, CancellationToken ct)
     {
-        // The Order Rules tab is what says orders should be planned at all.
-        if (!await db.WorklistOrderRules.AsNoTracking().AnyAsync(r => r.Enabled, ct)) return;
+        // The Customer orders switch on the Sources tab is what says orders should be planned.
+        if (!enabled) return;
 
         var orders = await db.TrackedOrders.AsNoTracking()
             .Where(o => o.Status == "pending").ToListAsync(ct);
@@ -310,52 +367,96 @@ public class MaterialPurchaseGenerator(
         }
     }
 
-    /// <summary>Blueprints nothing in the queue can be built without, because none is owned.</summary>
+    /// <summary>
+    /// Every blueprint that has to be acquired: what the jobs need, plus what the shelf wants,
+    /// less what is already owned — worked out once, here.
+    ///
+    /// <para>⚠️ This is the only place blueprint demand is totalled, and
+    /// <see cref="InventoryLevelGenerator"/> deliberately skips blueprint types so it stays that
+    /// way. Two Avatar copies, two builds queued and a standing target of one used to produce
+    /// nothing at all: the job side subtracted the two copies from its two, the stocking side
+    /// subtracted the same two copies from its one, and both fell to zero. One pile of supply
+    /// cannot be spent twice. Summed and subtracted once it is 2 + 1 − 2 = 1, which is the print
+    /// actually missing.</para>
+    ///
+    /// <para>Jobs take from stock first and the shelf gets the remainder, which is why the sum is
+    /// taken before the subtraction rather than after: the copies are consumed by the builds, and
+    /// it is the standing target that ends up short.</para>
+    /// </summary>
     private static List<WorklistItem> PrintTasks(
         ProductionContext ctx, List<ProductionQueueEntry> queue,
         List<BlueprintStock> allPrints, PrintOwnership owned,
-        HashSet<int> alreadyCounted,
+        HashSet<int> alreadyCounted, Dictionary<int, int> ownedInAssets,
+        Dictionary<int, long> shelfWant,
         long buyAt, string buyName, WorklistMarketAlt? alt)
     {
         var items = new List<WorklistItem>();
 
+        // What the queued builds need, one print per run — a copy is spent by the job that uses
+        // it, so two builds need two.
+        var jobNeed = new Dictionary<int, long>();
+        var forWhat = new Dictionary<int, string>();
         foreach (var entry in queue.OrderBy(q => q.TypeId))
         {
             if (!ctx.BlueprintByProduct.TryGetValue(entry.TypeId, out var bp)) continue;
-            if (alreadyCounted.Contains(bp.TypeId)) continue;   // the plan is already buying it
+            jobNeed[bp.TypeId] = jobNeed.GetValueOrDefault(bp.TypeId)
+                               + IndustryJobSplit.RunsFor(entry.Quantity, Math.Max(1, bp.Quantity));
+            forWhat.TryAdd(bp.TypeId, entry.TypeName);
+        }
 
-            var mine = allPrints.Where(p => p.TypeId == bp.TypeId).ToList();
-            if (IndustryBlueprintService.OwnedAnywhere(mine, owned)) continue;
+        // The union, so a blueprint that is only stocked — nothing queued to build with it — is
+        // still acquired. Iterating the queue alone would lose it the moment this became the one
+        // place the demand is totalled.
+        foreach (var bpTypeId in jobNeed.Keys.Concat(shelfWant.Keys).Distinct().OrderBy(id => id))
+        {
+            if (alreadyCounted.Contains(bpTypeId)) continue;   // the plan is already buying it
 
-            var bpName = ctx.TypeNames.GetValueOrDefault(bp.TypeId, $"Blueprint {bp.TypeId}");
-            var price  = ctx.BpcPerRun.TryGetValue(bp.TypeId, out var opts) && opts.Count > 0
+            // Supply from both tables. The blueprints table does not cover every structure the
+            // assets table does — this corporation has 5,518 blueprint rows and none at UALX-3,
+            // where assets list two Avatar copies — and "absent from that table" is not the same
+            // fact as "not owned". Assets contribute a count only: no runs, ME or TE on those
+            // rows, so they cannot be planned against, merely counted.
+            var held = allPrints.Count(p => p.TypeId == bpTypeId && owned.Owns(p));
+            if (held == 0) held = ownedInAssets.GetValueOrDefault(bpTypeId);
+
+            var jobs  = jobNeed.GetValueOrDefault(bpTypeId);
+            var shelf = shelfWant.GetValueOrDefault(bpTypeId);
+
+            // An original is never spent by the job it runs, so one covers every run — but it does
+            // not fill a shelf target, which asks for a print to be there.
+            var anyOriginal = allPrints.Any(p => p.TypeId == bpTypeId && p.IsOriginal && owned.Owns(p));
+            var demand      = (anyOriginal ? 0 : jobs) + shelf;
+
+            var stillNeeded = Math.Max(0, demand - held);
+            if (stillNeeded <= 0) continue;
+
+            var bpName = ctx.TypeNames.GetValueOrDefault(bpTypeId, $"Blueprint {bpTypeId}");
+            var price  = ctx.BpcPerRun.TryGetValue(bpTypeId, out var opts) && opts.Count > 0
                 ? $" Copies have been seen on contract from {opts.Min(o => o.PerRun):N0} ISK a run."
                 : "";
 
-            // One print per run. These are bought as copies, and a copy is spent by the job that
-            // uses it, so two builds need two. The count carried no number at all until now, on
-            // the reasoning that a single original would cover every run — true of an original,
-            // but not of what actually gets bought, and it made this demand contribute nothing
-            // when it merged with a stocking rule for the same print.
-            var printsNeeded = IndustryJobSplit.RunsFor(entry.Quantity, Math.Max(1, bp.Quantity));
+            // Spelled out, because the number is a subtraction the reader cannot see.
+            var parts = new List<string>(3);
+            if (jobs  > 0) parts.Add($"{jobs:N0} for {forWhat.GetValueOrDefault(bpTypeId, "queued builds")}");
+            if (shelf > 0) parts.Add($"{shelf:N0} to stock");
+            var haveText = held > 0 ? $", {held:N0} owned" : ", none owned";
 
             items.Add(new WorklistItem
             {
-                Key           = $"industry_print:{bp.TypeId}",
+                Key           = $"industry_print:{bpTypeId}",
                 Source        = "material_purchases",
                 Kind          = WorklistKind.Buy,
-                Title         = $"{bpName} — BPO/BPC × {printsNeeded:N0}",
+                Title         = $"{bpName} — BPO/BPC × {stillNeeded:N0}",
                 TitleTag      = "BPO/BPC",
-                Quantity      = printsNeeded,
-                MergeKey      = WorklistItem.BuyMergeKey(buyAt, bp.TypeId),
-                Detail        = $"No blueprint owned, so {entry.TypeName} cannot be built at all. "
-                              + $"{entry.Quantity:N0} wanted.{price}",
+                Quantity      = stillNeeded,
+                MergeKey      = WorklistItem.BuyMergeKey(buyAt, bpTypeId),
+                Detail        = $"{string.Join(" + ", parts)}{haveText} — short {stillNeeded:N0}.{price}",
                 Readiness     = WorklistReadiness.Ready,
                 CharacterId   = alt?.CharacterId   ?? 0,
                 CharacterName = alt?.CharacterName ?? "",
                 LocationId    = buyAt,
                 LocationName  = buyName,
-                TypeId        = bp.TypeId,
+                TypeId        = bpTypeId,
                 TypeName      = bpName,
                 Priority      = WorklistPriority.OrderDriven,
             });
