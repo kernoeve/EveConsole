@@ -1,9 +1,10 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:models="clr-namespace:EveConsole.Models"
              xmlns:wl="clr-namespace:EveConsole.Services.Worklist"
              xmlns:conv="clr-namespace:EveConsole.Views"
+             xmlns:collections="clr-namespace:Avalonia.Collections;assembly=Avalonia.Controls.DataGrid"
              x:Class="EveConsole.Views.WorklistView"
              x:DataType="vm:WorklistViewModel">
 
@@ -25,6 +26,25 @@
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding"    Value="6 5 2 5" />
     </Style>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
   </UserControl.Styles>
 
   <TabControl Padding="0" Background="Transparent" SelectedIndex="{Binding OuterTabIndex}">
@@ -34,10 +54,11 @@
     <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
       <TextBlock Text="Worklist" FontSize="15" FontWeight="SemiBold" Foreground="#c8a84b"
                  VerticalAlignment="Center"/>
+      <!-- No status line here. Everything it said — ready, blocked, waiting — is in the strip
+           immediately below, in larger type, and a second copy beside Refresh was one more place
+           for the same numbers to be read and reconciled. -->
       <Button Content="Refresh" Command="{Binding RefreshCommand}"
               IsEnabled="{Binding !IsLoading}" FontSize="11" Padding="10 4"/>
-      <TextBlock Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
-                 VerticalAlignment="Center"/>
     </StackPanel>
 
     <TextBlock Grid.Row="1" Text="{Binding Errors}" IsVisible="{Binding HasErrors}"
@@ -45,139 +66,66 @@
 
     <StackPanel Grid.Row="2" Spacing="6" Margin="0 0 0 8">
 
-      <!-- Summary. Six equal sections, height fixed to the tallest of the five stat lists —
-           Haul, at five lines — so the panel never grows. The character list is the one that
-           would, so it scrolls inside that height instead. All of it is computed from the
-           filtered rows, so it describes what is on screen rather than the whole run. -->
-      <Grid ColumnDefinitions="*,*,*,*,*,*" Height="104">
-        <Grid.Styles>
-          <Style Selector="Border.stat">
-            <Setter Property="Background"      Value="#12121a"/>
-            <Setter Property="BorderBrush"     Value="#252530"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius"    Value="2"/>
-            <Setter Property="Padding"         Value="8 6"/>
-            <Setter Property="Margin"          Value="0 0 4 0"/>
-          </Style>
-          <Style Selector="TextBlock.statHead">
-            <Setter Property="FontSize"   Value="10"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#c8a84b"/>
-            <Setter Property="Margin"     Value="0 0 0 3"/>
-          </Style>
-          <Style Selector="TextBlock.statLabel">
-            <Setter Property="FontSize"   Value="10"/>
-            <Setter Property="Foreground" Value="#666677"/>
-          </Style>
-          <Style Selector="TextBlock.statValue">
-            <Setter Property="FontSize"   Value="10"/>
-            <Setter Property="Foreground" Value="#c8c8d8"/>
-            <Setter Property="HorizontalAlignment" Value="Right"/>
-          </Style>
-        </Grid.Styles>
+      <!-- The strip: one headline figure, then chips.
+           ⚠️ Every figure here is counted off the run, not off the rows below, so the filters and
+           the two checkboxes leave it alone. That is the point: it says how much is blocked
+           without making you show the blocked ones.
+           ⚠️ Counts only. Every per-kind total — tasks, value, volume — is on that kind's group
+           header a few pixels below, so carrying them here printed the same figures twice. And
+           ready appears once, as the headline; the state chips are blocked and waiting only. -->
+      <Border Background="#12121a" BorderBrush="#252530" BorderThickness="1"
+              CornerRadius="3" Padding="16 12">
+        <StackPanel Orientation="Horizontal" Spacing="22" VerticalAlignment="Center">
 
-        <Border Grid.Column="0" Classes="stat">
-          <DockPanel>
-            <TextBlock DockPanel.Dock="Top" Classes="statHead" Text="Buy"/>
-            <ItemsControl ItemsSource="{Binding BuySummary}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:SummaryStatVm">
-                  <Grid ColumnDefinitions="*,Auto" Margin="0 1">
-                    <TextBlock Grid.Column="0" Classes="statLabel" Text="{Binding Label}"/>
-                    <TextBlock Grid.Column="1" Classes="statValue" Text="{Binding Value}"/>
-                  </Grid>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </DockPanel>
-        </Border>
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="{Binding ReadyCountText}" FontSize="30" FontWeight="SemiBold"
+                       Foreground="#e8e8f0"/>
+            <TextBlock Text="ready now" FontSize="11" Foreground="#7a7a88" Margin="0 2 0 0"/>
+          </StackPanel>
 
-        <Border Grid.Column="1" Classes="stat">
-          <DockPanel>
-            <TextBlock DockPanel.Dock="Top" Classes="statHead" Text="Haul"/>
-            <ItemsControl ItemsSource="{Binding HaulSummary}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:SummaryStatVm">
-                  <Grid ColumnDefinitions="*,Auto" Margin="0 1">
-                    <TextBlock Grid.Column="0" Classes="statLabel" Text="{Binding Label}"/>
-                    <TextBlock Grid.Column="1" Classes="statValue" Text="{Binding Value}"/>
-                  </Grid>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </DockPanel>
-        </Border>
+          <Rectangle Width="1" Fill="#252530" VerticalAlignment="Stretch" Margin="0 2"/>
 
-        <Border Grid.Column="2" Classes="stat">
-          <DockPanel>
-            <TextBlock DockPanel.Dock="Top" Classes="statHead" Text="Manufacturing"/>
-            <ItemsControl ItemsSource="{Binding MfgSummary}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:SummaryStatVm">
-                  <Grid ColumnDefinitions="*,Auto" Margin="0 1">
-                    <TextBlock Grid.Column="0" Classes="statLabel" Text="{Binding Label}"/>
-                    <TextBlock Grid.Column="1" Classes="statValue" Text="{Binding Value}"/>
-                  </Grid>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </DockPanel>
-        </Border>
+          <ItemsControl ItemsSource="{Binding KindSummary}" VerticalAlignment="Center">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" Spacing="20"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:SummaryStatVm">
+                <StackPanel>
+                  <TextBlock Text="{Binding Value}" FontSize="17" FontWeight="SemiBold"
+                             Foreground="#c8c8d8"/>
+                  <TextBlock Text="{Binding Label}" FontSize="11" Foreground="#7a7a88"
+                             Margin="0 1 0 0"/>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
 
-        <Border Grid.Column="3" Classes="stat">
-          <DockPanel>
-            <TextBlock DockPanel.Dock="Top" Classes="statHead" Text="Reactions"/>
-            <ItemsControl ItemsSource="{Binding RxnSummary}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:SummaryStatVm">
-                  <Grid ColumnDefinitions="*,Auto" Margin="0 1">
-                    <TextBlock Grid.Column="0" Classes="statLabel" Text="{Binding Label}"/>
-                    <TextBlock Grid.Column="1" Classes="statValue" Text="{Binding Value}"/>
-                  </Grid>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </DockPanel>
-        </Border>
+          <Rectangle Width="1" Fill="#252530" VerticalAlignment="Stretch" Margin="0 2"
+                     IsVisible="{Binding StateSummary.Count}"/>
 
-        <Border Grid.Column="4" Classes="stat">
-          <DockPanel>
-            <TextBlock DockPanel.Dock="Top" Classes="statHead" Text="Science"/>
-            <ItemsControl ItemsSource="{Binding SciSummary}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:SummaryStatVm">
-                  <Grid ColumnDefinitions="*,Auto" Margin="0 1">
-                    <TextBlock Grid.Column="0" Classes="statLabel" Text="{Binding Label}"/>
-                    <TextBlock Grid.Column="1" Classes="statValue" Text="{Binding Value}"/>
-                  </Grid>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </DockPanel>
-        </Border>
+          <ItemsControl ItemsSource="{Binding StateSummary}" VerticalAlignment="Center">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" Spacing="20"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:SummaryStatVm">
+                <StackPanel>
+                  <TextBlock Text="{Binding Value}" FontSize="17" FontWeight="SemiBold"
+                             Foreground="#c8c8d8"/>
+                  <TextBlock Text="{Binding Label}" FontSize="11" Foreground="#7a7a88"
+                             Margin="0 1 0 0"/>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
 
-        <!-- The long one. Scrolls rather than setting the panel's height. -->
-        <Border Grid.Column="5" Classes="stat" Margin="0">
-          <DockPanel>
-            <TextBlock DockPanel.Dock="Top" Classes="statHead" Text="By character"/>
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-              <!-- Right padding clears the scrollbar, which Avalonia floats over the content
-                   rather than reserving space for — without it the counts sit underneath it. -->
-              <ItemsControl ItemsSource="{Binding CharSummary}" Padding="0 0 12 0">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="vm:SummaryStatVm">
-                    <Grid ColumnDefinitions="*,Auto" Margin="0 1">
-                      <TextBlock Grid.Column="0" Classes="statLabel" Text="{Binding Label}"
-                                 TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Label}"/>
-                      <TextBlock Grid.Column="1" Classes="statValue" Text="{Binding Value}"/>
-                    </Grid>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </ScrollViewer>
-          </DockPanel>
-        </Border>
-      </Grid>
+        </StackPanel>
+      </Border>
 
       <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
                  Text="Items are rebuilt from live data each refresh — one disappears once the work is done. Detection runs off polled ESI data, so each row shows how old the data behind it is. The summary above follows the filters."/>
@@ -194,43 +142,112 @@
                   FontSize="11" VerticalAlignment="Center"/>
       </StackPanel>
 
-      <!-- Column widths match the grid's so each control sits under what it filters. Volume and
-           Age have none: one is a computed size and the other a timestamp, and neither is a
-           thing you look for by name. -->
-      <Grid ColumnDefinitions="68,72,90,230,130,190,190,*,Auto">
-        <ComboBox Grid.Column="1" ItemsSource="{Binding StateOptions}"
-                  SelectedItem="{Binding StateFilter}" FontSize="10"
+      <!-- ⚠️ Labelled, because these no longer sit under the columns they filter. They used to
+           line up one-for-one; now the row body is a single Task cell and character, source and
+           destination have no column of their own to sit beneath, so an unlabelled control was a
+           dropdown with no way to tell what it narrowed. -->
+      <Grid ColumnDefinitions="0,80,90,230,150,190,190,230,Auto,*" RowDefinitions="Auto,Auto">
+        <Grid.Styles>
+          <Style Selector="TextBlock.filterLabel">
+            <Setter Property="FontSize"   Value="10"/>
+            <Setter Property="Foreground" Value="#555566"/>
+            <Setter Property="Margin"     Value="2 0 0 2"/>
+          </Style>
+        </Grid.Styles>
+
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="State"       Classes="filterLabel"/>
+        <TextBlock Grid.Row="0" Grid.Column="2" Text="Task"        Classes="filterLabel"/>
+        <TextBlock Grid.Row="0" Grid.Column="3" Text="Task"        Classes="filterLabel"/>
+        <TextBlock Grid.Row="0" Grid.Column="4" Text="Character"   Classes="filterLabel"/>
+        <TextBlock Grid.Row="0" Grid.Column="5" Text="Source"      Classes="filterLabel"/>
+        <TextBlock Grid.Row="0" Grid.Column="6" Text="Destination" Classes="filterLabel"/>
+        <TextBlock Grid.Row="0" Grid.Column="7" Text="Note"        Classes="filterLabel"/>
+
+        <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding StateOptions}"
+                  SelectedItem="{Binding StateFilter}" FontSize="11"
                   HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
-        <ComboBox Grid.Column="2" ItemsSource="{Binding TaskOptions}"
-                  SelectedItem="{Binding TaskFilter}" FontSize="10"
+        <ComboBox Grid.Row="1" Grid.Column="2" ItemsSource="{Binding TaskOptions}"
+                  SelectedItem="{Binding TaskFilter}" FontSize="11"
                   HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
-        <TextBox  Grid.Column="3" Text="{Binding DescriptionFilter}" FontSize="10"
+        <TextBox  Grid.Row="1" Grid.Column="3" Text="{Binding DescriptionFilter}" FontSize="11"
                   Watermark="contains…" Margin="0 0 2 0"/>
-        <ComboBox Grid.Column="4" ItemsSource="{Binding CharacterOptions}"
-                  SelectedItem="{Binding CharacterFilter}" FontSize="10"
+        <ComboBox Grid.Row="1" Grid.Column="4" ItemsSource="{Binding CharacterOptions}"
+                  SelectedItem="{Binding CharacterFilter}" FontSize="11"
                   HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
-        <ComboBox Grid.Column="5" ItemsSource="{Binding SourceOptions}"
-                  SelectedItem="{Binding SourceFilter}" FontSize="10"
+        <ComboBox Grid.Row="1" Grid.Column="5" ItemsSource="{Binding SourceOptions}"
+                  SelectedItem="{Binding SourceFilter}" FontSize="11"
                   HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
-        <ComboBox Grid.Column="6" ItemsSource="{Binding DestOptions}"
-                  SelectedItem="{Binding DestFilter}" FontSize="10"
+        <ComboBox Grid.Row="1" Grid.Column="6" ItemsSource="{Binding DestOptions}"
+                  SelectedItem="{Binding DestFilter}" FontSize="11"
                   HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
-        <TextBox  Grid.Column="7" Text="{Binding NoteFilter}" FontSize="10"
-                  Watermark="contains…" Margin="100 0 2 0"
-                  ToolTip.Tip="Searches the detail, the blocked reason and the snooze line together — everything the Note column shows."/>
-        <Button   Grid.Column="8" Content="Clear" Command="{Binding ClearFiltersCommand}"
+        <TextBox  Grid.Row="1" Grid.Column="7" Text="{Binding NoteFilter}" FontSize="11"
+                  Watermark="contains…" Margin="0 0 2 0"
+                  ToolTip.Tip="Searches the detail, the blocked reason and the snooze line together — everything behind the row's information marker."/>
+        <Button   Grid.Row="1" Grid.Column="8" Content="Clear" Command="{Binding ClearFiltersCommand}"
                   IsVisible="{Binding HasFilters}"
-                  FontSize="10" Padding="8 3" Background="Transparent"
+                  FontSize="11" Padding="8 3" Background="Transparent"
                   BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
       </Grid>
     </StackPanel>
 
-    <DataGrid Grid.Row="3" ItemsSource="{Binding Rows}"
-              IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+    <DataGrid Grid.Row="3" ItemsSource="{Binding RowsView}"
+              IsReadOnly="True" AutoGenerateColumns="False" FontSize="12"
               Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
               AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed">
 
+      <!-- ⚠️ A resource, not a style. DataGridDetailsPresenter takes its background straight from
+           this brush in the stock template, so `Selector="DataGridRow /template/
+           DataGridDetailsPresenter"` never wins — the template's own value is not something a
+           style can override. Left at the theme default it paints a grey several steps lighter
+           than the grid across the full width of the expanded row, while the manifest panel
+           inside is narrow and left-aligned, so the grey read as a selection highlight rather
+           than as an expanded detail. -->
+      <DataGrid.Resources>
+        <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
+      </DataGrid.Resources>
+
       <DataGrid.Styles>
+        <!-- Group header: the task name once, with its count and total, instead of a Task column
+             repeating the name on every row.
+             ⚠️ Retemplated rather than styled, because the stock template renders at 15px with a
+             32px minimum and its own indent — three times the weight of the rows it heads. The
+             ToggleButton must keep the name PART_ExpanderButton: the grid finds collapse/expand by
+             that name, and renaming it leaves a header that looks right and does nothing. -->
+        <Style Selector="DataGridRowGroupHeader">
+          <Setter Property="Background" Value="#12121a"/>
+          <Setter Property="Foreground" Value="#c8a84b"/>
+          <Setter Property="MinHeight"  Value="34"/>
+          <Setter Property="Template">
+            <ControlTemplate x:DataType="collections:DataGridCollectionViewGroup">
+              <Border Background="{TemplateBinding Background}"
+                      BorderBrush="#1e1e2a" BorderThickness="0 1 0 1">
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="6 0"
+                            VerticalAlignment="Center">
+                  <!-- DynamicResource: the theme lives in the DataGrid's own dictionary, merged
+                       through Application.Styles, which a parse-time StaticResource lookup from
+                       here cannot be relied on to see. -->
+                  <ToggleButton Name="PART_ExpanderButton" Width="12" Height="12"
+                                Theme="{DynamicResource FluentDataGridRowGroupExpanderButtonTheme}"
+                                Background="Transparent" BorderThickness="0"/>
+                  <!-- The name still leads, but the figures are read too, so they are only one
+                       step down rather than the footnote they were. -->
+                  <TextBlock Text="{Binding Key}" FontSize="16" FontWeight="SemiBold"
+                             Foreground="#c8a84b" VerticalAlignment="Center"/>
+                  <TextBlock FontSize="13" Foreground="#8a8a99" VerticalAlignment="Center"
+                             Text="{Binding Items, Converter={x:Static conv:GroupTotalConverter.Instance},
+                                             ConverterParameter=Count}"/>
+                  <TextBlock FontSize="13" Foreground="#7a7a88" VerticalAlignment="Center"
+                             Text="{Binding Items, Converter={x:Static conv:GroupTotalConverter.Instance},
+                                             ConverterParameter=Volume}"/>
+                  <TextBlock FontSize="13" Foreground="#7a7a88" VerticalAlignment="Center"
+                             Text="{Binding Items, Converter={x:Static conv:GroupTotalConverter.Instance},
+                                             ConverterParameter=Value}"/>
+                </StackPanel>
+              </Border>
+            </ControlTemplate>
+          </Setter>
+        </Style>
+
         <!-- The expander is a glyph, not a button: the default chrome draws a filled box on hover
              and press, which reads as a selected cell sitting in the corner of the row. -->
         <Style Selector="Button.expander /template/ ContentPresenter">
@@ -245,27 +262,71 @@
 
       <!-- The manifest for tasks that carry several items. Shown only while the row's own +/- is
            pressed; single-item tasks have no manifest and never expand. -->
+      <!-- The manifest for tasks that carry several items.
+           ⚠️ Sizes to its contents. It was a fixed 300 + 110 grid, so a one-item haul drew a
+           410px panel with the name at one end and the quantity stranded at the other, reading
+           as a broken layout rather than a short list. Now the name column takes what it needs
+           and the quantity sits against it, with a minimum so a list of short names still lines
+           up its figures. -->
       <DataGrid.RowDetailsTemplate>
         <DataTemplate x:DataType="vm:WorklistRowVm">
-          <Border Margin="34 2 0 6" Padding="8 6"
-                  Background="#12121a" BorderBrush="#252530" BorderThickness="1"
-                  CornerRadius="2" HorizontalAlignment="Left">
-            <ItemsControl ItemsSource="{Binding Lines}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="wl:WorklistLine">
-                  <Grid ColumnDefinitions="300,110" Margin="0 1">
-                    <TextBlock Grid.Column="0" Text="{Binding TypeName}" FontSize="10" Foreground="#c8c8d8"/>
-                    <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
-                               FontSize="10" Foreground="#7a8896" HorizontalAlignment="Right"/>
-                  </Grid>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
+          <Border Margin="70 0 0 8" Padding="12 8"
+                  Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                  CornerRadius="3" HorizontalAlignment="Left" MinWidth="260">
+            <StackPanel Spacing="5">
+              <TextBlock Text="MANIFEST" FontSize="11" FontWeight="SemiBold"
+                         Foreground="#555566" LetterSpacing="1"/>
+              <ItemsControl ItemsSource="{Binding Lines}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="wl:WorklistLine">
+                    <!-- Count, then value, then volume — each in its own fixed column so the
+                         figures line up down the list rather than drifting with name length.
+                         Value and volume are dimmer than the count: the count is what the task
+                         is about, the other two are what it costs to do. -->
+                    <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 2">
+                      <Panel Grid.Column="0" Margin="0 0 24 0">
+                        <Button Classes="link" Click="OnOpenLineItem" IsVisible="{Binding HasItemLink}"
+                                ToolTip.Tip="Open in the Item Browser">
+                          <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                     FontSize="14" Foreground="#c8c8d8"/>
+                        </Button>
+                        <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                   FontSize="14" Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                      </Panel>
+                      <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
+                                 FontSize="14" Foreground="#8a8a99"
+                                 MinWidth="60" TextAlignment="Right"/>
+                      <TextBlock Grid.Column="2" Text="{Binding ValueText}"
+                                 FontSize="14" Foreground="#6e6e80"
+                                 MinWidth="76" TextAlignment="Right" Margin="16 0 0 0"/>
+                      <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
+                                 FontSize="14" Foreground="#6e6e80"
+                                 MinWidth="76" TextAlignment="Right" Margin="16 0 0 0"/>
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
           </Border>
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>
 
       <DataGrid.Columns>
+
+        <!-- State, as the row's leading edge rather than a column of words.
+             With blocked and waiting hidden — the default — a State column reads "Ready" on every
+             one of 147 rows, which is a column that says nothing in the position that costs most.
+             As a bar it is read peripherally: you notice the amber and red, and the rest recedes.
+             The text is still available on hover, and the filter dropdown above still names it. -->
+        <DataGridTemplateColumn Header="" Width="4" CanUserSort="False" CanUserResize="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:WorklistRowVm">
+              <Border Background="{Binding ReadinessBarColor}" Width="3"
+                      HorizontalAlignment="Left" VerticalAlignment="Stretch"
+                      ToolTip.Tip="{Binding ReadinessText}"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
 
         <!-- Expander. Only drawn where there is a manifest, so an empty cell reads as "this task
              is the one item named in the description" rather than as a control that does nothing. -->
@@ -274,7 +335,7 @@
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <Button Classes="expander" Click="OnManifestToggle"
                       IsVisible="{Binding HasLines}"
-                      Content="{Binding ExpandGlyph}" FontSize="11" FontWeight="Bold"
+                      Content="{Binding ExpandGlyph}" FontSize="14" FontWeight="Bold"
                       Padding="0" Width="16" Height="16" MinWidth="0" MinHeight="0"
                       Background="Transparent" BorderThickness="0" Foreground="#7a8896" Cursor="Hand"
                       HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -285,58 +346,129 @@
         </DataGridTemplateColumn>
 
         <!-- Sort here to get back to the tool's own ranking after sorting on anything else. -->
-        <DataGridTextColumn Header="#" Binding="{Binding Sequence}" FontSize="10" Width="44"
+        <DataGridTextColumn Header="#" Binding="{Binding Sequence}" FontSize="12" Width="44"
                             IsReadOnly="True"/>
 
-        <DataGridTemplateColumn Header="State" Width="72" SortMemberPath="ReadinessText">
+        <!-- No Task column: it is the group header now. -->
+
+        <!-- The task itself, drawn per kind.
+             ⚠️ One cell rather than the Description / Character / Location 1 / Location 2 / Note
+             columns it replaces. A DataGrid has one column set for every row, so those five had to
+             satisfy all four kinds at once and none of them well: Character was an em dash on every
+             Haul row, Location 2 was blank on every Buy and Job row, and Description read
+             "1 item(s)" where the actual content sat in Note. Each kind now shows what that kind
+             is about. What is lost is sorting on those five as columns — the filter row above still
+             narrows by character, source and destination, and #, Value and Volume remain sortable. -->
+        <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="Title">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
-              <TextBlock Text="{Binding ReadinessText}" Foreground="{Binding ReadinessColor}"
-                         FontWeight="SemiBold" VerticalAlignment="Center"/>
+              <Panel VerticalAlignment="Center">
+
+                <!-- Haul: where from, where to, and how much of it. -->
+                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsHaul}">
+                  <TextBlock Text="{Binding RouteText}" Foreground="#e0e0ea" FontSize="16"
+                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding RouteText}"/>
+                  <!-- How many items are on the run: it decides whether this is a quick courier
+                       trip or a packing job, so it sits with the route rather than under it. -->
+                  <TextBlock Text="{Binding Title}" Foreground="#8a8a99" FontSize="14"
+                             VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Job: what is being made, by whom, and where — one line, like the rest. -->
+                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsJob}">
+                  <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="16"
+                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
+                            ToolTip.Tip="Open this station or structure">
+                      <TextBlock Text="{Binding LocationName}" Classes="linktext"
+                                 Foreground="#7a7a88" FontSize="14" TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding LocationName}" IsVisible="{Binding !HasLocationLink}"
+                               Foreground="#7a7a88" FontSize="14"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                  </Panel>
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenCharacter" IsVisible="{Binding HasCharacterLink}"
+                            ToolTip.Tip="Open in the entity browser">
+                      <TextBlock Text="{Binding CharacterName}" Classes="linktext"
+                                 Foreground="#8a8a99" FontSize="14"/>
+                    </Button>
+                    <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}"
+                               Foreground="#8a8a99" FontSize="14" VerticalAlignment="Center"/>
+                  </Panel>
+                </StackPanel>
+
+                <!-- Buy: what to buy, where, and who places it. The reasoning is a paragraph, so
+                     it lives on the marker rather than on the row. -->
+                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsBuy}">
+                  <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="16"
+                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
+                            ToolTip.Tip="Open this station or structure">
+                      <TextBlock Text="{Binding LocationName}" Classes="linktext"
+                                 Foreground="#7a7a88" FontSize="14" TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding LocationName}" IsVisible="{Binding !HasLocationLink}"
+                               Foreground="#7a7a88" FontSize="14"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                  </Panel>
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenCharacter" IsVisible="{Binding HasCharacterLink}"
+                            ToolTip.Tip="Open in the entity browser">
+                      <TextBlock Text="{Binding CharacterName}" Classes="linktext"
+                                 Foreground="#8a8a99" FontSize="14"/>
+                    </Button>
+                    <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}"
+                               Foreground="#8a8a99" FontSize="14" VerticalAlignment="Center"/>
+                  </Panel>
+                </StackPanel>
+
+                <!-- Corp projects, asset safety, skill queues: no shared shape between them, so
+                     they keep the plain title. -->
+                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsOther}">
+                  <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="16"
+                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  <!-- Skill-queue rows land here and name a character; corp projects and asset
+                       safety do not, and their link simply never shows. -->
+                  <Panel IsVisible="{Binding HasCharacterLink}">
+                    <Button Classes="link" Click="OnOpenCharacter"
+                            ToolTip.Tip="Open in the entity browser">
+                      <TextBlock Text="{Binding CharacterName}" Classes="linktext"
+                                 Foreground="#8a8a99" FontSize="14"/>
+                    </Button>
+                  </Panel>
+                </StackPanel>
+
+              </Panel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTextColumn Header="Task"        Binding="{Binding KindText}"        FontSize="10" Width="90"/>
-        <!-- Templated rather than a text column purely for the tooltip: the column is too narrow
-             for a long item name, and the run count is at the far end where it gets clipped. -->
-        <DataGridTemplateColumn Header="Description" Width="230" SortMemberPath="Title">
+        <!-- The reasoning, behind a marker. It runs to a paragraph on a buy — what it feeds, what
+             is on hand, what is on order — worth reading on the one row you are looking at and
+             not worth printing on the other hundred and forty. Red when there is a note attached,
+             since that is the case that wants noticing rather than seeking out. -->
+        <DataGridTemplateColumn Header="" Width="26" CanUserSort="False" CanUserResize="False">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
-              <TextBlock Text="{Binding Title}" ToolTip.Tip="{Binding Title}"
-                         FontSize="10" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-        <DataGridTextColumn Header="Character"   Binding="{Binding CharacterName}"   FontSize="10" Width="130"/>
-        <DataGridTextColumn Header="Location 1 (Source)" Binding="{Binding LocationName}"    FontSize="10" Width="190"/>
-        <DataGridTextColumn Header="Location 2 (Dest)"   Binding="{Binding DestinationName}" FontSize="10" Width="190"/>
-        <DataGridTextColumn Header="Volume"      Binding="{Binding VolumeText}"      FontSize="10" Width="100"/>
-
-        <DataGridTemplateColumn Header="Note" Width="*" SortMemberPath="Detail">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate x:DataType="vm:WorklistRowVm">
-              <StackPanel Spacing="1" VerticalAlignment="Center">
-                <TextBlock Text="{Binding Detail}" Foreground="#c8c8d8" TextWrapping="Wrap"/>
-                <TextBlock Text="{Binding Note}" Foreground="#c85a5a"
-                           IsVisible="{Binding HasNote}" TextWrapping="Wrap"/>
-                <TextBlock Text="{Binding SnoozeText}" Foreground="#666677"
-                           IsVisible="{Binding IsSnoozed}"/>
-              </StackPanel>
+              <TextBlock Text="&#x24D8;" FontSize="16"
+                         IsVisible="{Binding HasDetailTip}"
+                         Foreground="{Binding ReadinessBarColor}"
+                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                         ToolTip.Tip="{Binding DetailTip}"/>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Age" Width="120" SortMemberPath="AgeText">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate x:DataType="vm:WorklistRowVm">
-              <StackPanel Spacing="1" VerticalAlignment="Center">
-                <TextBlock Text="{Binding AgeText}"     Foreground="#7a8896"/>
-                <TextBlock Text="{Binding DataAgeText}" Foreground="#555566" FontSize="9"/>
-              </StackPanel>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
+        <!-- Value and Volume: the two figures worth comparing across every kind, and the pair a
+             hauler and a buyer each reach for. Blank rather than zero when unpriced — a science
+             job has no stored blueprint value per ME level. -->
+        <DataGridTextColumn Header="Value" Binding="{Binding ValueText}" FontSize="12" Width="100"
+                            CellStyleClasses="num" SortMemberPath="Value"/>
+        <DataGridTextColumn Header="Volume" Binding="{Binding VolumeText}" FontSize="12" Width="110"
+                            CellStyleClasses="num" SortMemberPath="VolumeRaw"/>
 
         <DataGridTemplateColumn Header="" Width="80">
           <DataGridTemplateColumn.CellTemplate>
@@ -344,7 +476,7 @@
               <Button Content="Snooze"
                       Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).SnoozeCommand}"
                       CommandParameter="{Binding Key}"
-                      FontSize="9" Padding="6 2" Background="Transparent"
+                      FontSize="11" Padding="6 2" Background="Transparent"
                       BorderBrush="#252530" BorderThickness="1" Cursor="Hand"
                       ToolTip.Tip="Hide this item for 8 hours"/>
             </DataTemplate>
@@ -373,7 +505,7 @@
         <TextBlock Grid.Row="1" Text="{Binding NeedsStatus}" FontSize="10" Foreground="#7a8896"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
-        <DataGrid Grid.Row="2" ItemsSource="{Binding Needs}"
+        <DataGrid Grid.Row="2" ItemsSource="{Binding NeedsView}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   CanUserSortColumns="True"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
@@ -381,13 +513,52 @@
             <Style Selector="DataGridCell TextBlock">
               <Setter Property="FontSize" Value="10" />
             </Style>
+
+            <!-- Group header: the station once, with what its rows add up to, rather than the
+                 Station column repeating it on every line. Same retemplate as the task grid above
+                 — see that comment for why the stock template is replaced rather than styled, and
+                 why PART_ExpanderButton must keep its name.
+                 ⚠️ The station name here is deliberately plain. The header is a
+                 DataGridCollectionViewGroup and knows only its key string, not the row behind it,
+                 so it has no id to open; the Station column on each row carries the link. -->
+            <Style Selector="DataGridRowGroupHeader">
+              <Setter Property="Background" Value="#12121a"/>
+              <Setter Property="Foreground" Value="#c8a84b"/>
+              <Setter Property="MinHeight"  Value="28"/>
+              <Setter Property="Template">
+                <ControlTemplate x:DataType="collections:DataGridCollectionViewGroup">
+                  <Border Background="{TemplateBinding Background}"
+                          BorderBrush="#1e1e2a" BorderThickness="0 1 0 1">
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="6 0"
+                                VerticalAlignment="Center">
+                      <ToggleButton Name="PART_ExpanderButton" Width="12" Height="12"
+                                    Theme="{DynamicResource FluentDataGridRowGroupExpanderButtonTheme}"
+                                    Background="Transparent" BorderThickness="0"/>
+                      <TextBlock Text="{Binding Key}" FontSize="13" FontWeight="SemiBold"
+                                 Foreground="#c8a84b" VerticalAlignment="Center"/>
+                      <TextBlock FontSize="11" Foreground="#8a8a99" VerticalAlignment="Center"
+                                 Text="{Binding Items, Converter={x:Static conv:GroupTotalConverter.Instance},
+                                                 ConverterParameter=Count}"/>
+                    </StackPanel>
+                  </Border>
+                </ControlTemplate>
+              </Setter>
+            </Style>
           </DataGrid.Styles>
           <DataGrid.Columns>
             <DataGridTemplateColumn Header="Station" Width="230" SortMemberPath="Station">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
-                  <TextBlock Text="{Binding Station}" ToolTip.Tip="{Binding Station}"
-                             TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenNeedStation" IsVisible="{Binding HasStationLink}"
+                            ToolTip.Tip="Open this station or structure">
+                      <TextBlock Text="{Binding Station}" Classes="linktext"
+                                 TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding Station}" IsVisible="{Binding !HasStationLink}"
+                               ToolTip.Tip="{Binding Station}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                  </Panel>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
@@ -395,8 +566,16 @@
             <DataGridTemplateColumn Header="Item" Width="230" SortMemberPath="Item">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
-                  <TextBlock Text="{Binding Item}" ToolTip.Tip="{Binding Item}"
-                             TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenNeedItem" IsVisible="{Binding HasItemLink}"
+                            ToolTip.Tip="Open in the Item Browser">
+                      <TextBlock Text="{Binding Item}" Classes="linktext"
+                                 TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding Item}" IsVisible="{Binding !HasItemLink}"
+                               ToolTip.Tip="{Binding Item}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                  </Panel>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
@@ -434,17 +613,81 @@
     <TabItem Header="Config">
     <TabControl Padding="0" Background="Transparent">
 
-    <TabItem Header="Market Alts">
+    <!-- First, because what the tool raises at all is the question you answer before any of the
+         detail below matters. -->
+    <TabItem Header="Sources">
+      <ScrollViewer>
+        <StackPanel Margin="14 12" Spacing="16" MaxWidth="640" HorizontalAlignment="Left">
+
+          <StackPanel Spacing="6">
+            <TextBlock Text="Sources" FontSize="12" FontWeight="SemiBold" Foreground="#c8a84b"/>
+            <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                       Text="A source that is off is skipped entirely — it costs no queries rather than running and having its output discarded."/>
+            <ItemsControl ItemsSource="{Binding Sources}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:WorklistToggleVm">
+                  <StackPanel Margin="0 6 0 0">
+                    <CheckBox Content="{Binding Label}" IsChecked="{Binding IsOn}" FontSize="11"/>
+                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="#555566"
+                               Margin="24 0 0 0" TextWrapping="Wrap"/>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <StackPanel Spacing="6">
+            <TextBlock Text="Standing buy orders — what to raise" FontSize="12"
+                       FontWeight="SemiBold" Foreground="#c8a84b"/>
+            <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                       Text="Which conditions become tasks. Each is a different job, so they switch independently."/>
+            <ItemsControl ItemsSource="{Binding Conditions}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:WorklistToggleVm">
+                  <StackPanel Margin="0 6 0 0">
+                    <CheckBox Content="{Binding Label}" IsChecked="{Binding IsOn}" FontSize="11"/>
+                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="#555566"
+                               Margin="24 0 0 0" TextWrapping="Wrap"/>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <TabItem Header="Market">
       <!-- x:DataType scoped to the market alts VM so the bindings below compile against it rather
-           than silently falling back to reflection against the parent. -->
-      <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="14 12"
+           than silently falling back to reflection against the parent. The buy location is the
+           exception: it belongs to the industry settings, so it reaches up to that view model
+           explicitly. It sits here because it is a market decision — where purchases are raised,
+           and therefore which of the alts below ends up doing them. -->
+      <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*" Margin="14 12"
             DataContext="{Binding MarketAltsVm}" x:DataType="vm:WorklistMarketAltsViewModel">
 
         <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
                    Margin="0 0 0 10"
-                   Text="Which character maintains orders at each station. Items route through these, so a station with no alt assigned produces blocked items that name no owner."/>
+                   Text="Where shortfalls are bought, and which character maintains orders at each station. Items route through these, so a station with no alt assigned produces blocked items that name no owner."/>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,180,180,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
+        <StackPanel Grid.Row="1" Spacing="4" HorizontalAlignment="Left" Margin="0 0 0 4"
+                    x:CompileBindings="False">
+          <TextBlock Text="Buy shortfalls at" Classes="fieldLabel"/>
+          <AutoCompleteBox Width="260"
+                           Text="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).IndustryVm.BuyLocationText}"
+                           SelectedItem="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).IndustryVm.SelectedBuyLocation}"
+                           AsyncPopulator="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).IndustryVm.LocationPopulator}"
+                           FilterMode="None" MinimumPrefixLength="2"
+                           MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
+                           FontSize="11" Watermark="Trade hub…"
+                           ToolTip.Tip="Where purchases are raised, and whose market alt gets them. Blueprints are left unassigned — a BPO or BPC comes from contracts, not a market order."/>
+          <TextBlock Text="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).IndustryVm.BuyWarning}"
+                     IsVisible="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).IndustryVm.HasBuyWarning}"
+                     FontSize="10" Foreground="#c8a84b" TextWrapping="Wrap" MaxWidth="560"/>
+        </StackPanel>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,180,180,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
           <TextBlock Grid.Row="0" Grid.Column="0" Text="Station or structure" Classes="fieldLabel"/>
           <TextBlock Grid.Row="0" Grid.Column="1" Text="Character"           Classes="fieldLabel"/>
           <TextBlock Grid.Row="0" Grid.Column="2" Text="Note"                Classes="fieldLabel"/>
@@ -461,14 +704,14 @@
                     PlaceholderText="Character…" HorizontalAlignment="Stretch"/>
           <TextBox Grid.Row="1" Grid.Column="2" Margin="0 0 8 0" FontSize="11"
                    Text="{Binding Note}" Watermark="optional"/>
-          <Button Grid.Row="1" Grid.Column="3" Content="Add / Update" Command="{Binding AddCommand}"
+          <Button Grid.Row="1" Grid.Column="3" Content="Add" Command="{Binding AddCommand}"
                   FontSize="11" Padding="10 4"/>
         </Grid>
 
-        <TextBlock Grid.Row="2" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+        <TextBlock Grid.Row="3" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
-        <DataGrid Grid.Row="3" ItemsSource="{Binding MarketAlts}"
+        <DataGrid Grid.Row="5" ItemsSource="{Binding MarketAlts}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <DataGrid.Columns>
@@ -514,79 +757,8 @@
       </Grid>
     </TabItem>
 
-    <TabItem Header="Corp Projects">
-      <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="14 12"
-            DataContext="{Binding CorpAltsVm}" x:DataType="vm:WorklistCorpAltsViewModel">
-
-        <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
-                   Margin="0 0 0 10"
-                   Text="Standing projects are defined in Corp Activity; the only thing the worklist needs is who maintains them. Projects belong to a corporation, so this routes by corporation rather than by station. Only corporations that actually have standing projects are listed."/>
-
-        <Grid Grid.Row="1" ColumnDefinitions="*,200,200,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
-          <TextBlock Grid.Row="0" Grid.Column="0" Text="Corporation" Classes="fieldLabel"/>
-          <TextBlock Grid.Row="0" Grid.Column="1" Text="Maintained by" Classes="fieldLabel"/>
-          <TextBlock Grid.Row="0" Grid.Column="2" Text="Note" Classes="fieldLabel"/>
-          <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" FontSize="11"
-                    ItemsSource="{Binding Corps}" SelectedItem="{Binding SelectedCorp}"
-                    PlaceholderText="Pick a corporation…" HorizontalAlignment="Stretch"/>
-          <ComboBox Grid.Row="1" Grid.Column="1" Margin="0 0 8 0" FontSize="11"
-                    ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}"
-                    PlaceholderText="Character…" HorizontalAlignment="Stretch"/>
-          <TextBox Grid.Row="1" Grid.Column="2" Margin="0 0 8 0" FontSize="11"
-                   Text="{Binding Note}" Watermark="optional"/>
-          <Button Grid.Row="1" Grid.Column="3" Content="Add / Update" Command="{Binding AddCommand}"
-                  FontSize="11" Padding="10 4"/>
-        </Grid>
-
-        <TextBlock Grid.Row="2" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
-                   TextWrapping="Wrap" Margin="0 0 0 8"/>
-
-        <DataGrid Grid.Row="3" ItemsSource="{Binding Alts}"
-                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
-                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
-          <DataGrid.Columns>
-            <DataGridTextColumn Header="Corporation" Binding="{Binding CorporationName}" FontSize="10" Width="*"
-                                IsReadOnly="True"/>
-
-            <!-- Character and note edit in place and save on change, as on Market Alts. -->
-            <DataGridTemplateColumn Header="Character" Width="200" SortMemberPath="CharacterName" IsReadOnly="True">
-              <DataGridTemplateColumn.CellTemplate>
-                <DataTemplate x:DataType="vm:CorpAltRow">
-                  <ComboBox ItemsSource="{Binding CharacterOptions}"
-                            SelectedItem="{Binding Character, Mode=TwoWay}"
-                            FontSize="10" Background="Transparent" BorderThickness="0"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
-                </DataTemplate>
-              </DataGridTemplateColumn.CellTemplate>
-            </DataGridTemplateColumn>
-
-            <DataGridTemplateColumn Header="Note" Width="220" SortMemberPath="Note" IsReadOnly="True">
-              <DataGridTemplateColumn.CellTemplate>
-                <DataTemplate x:DataType="vm:CorpAltRow">
-                  <TextBox Text="{Binding Note, Mode=TwoWay}" Watermark="optional"
-                           FontSize="10" Background="Transparent" BorderThickness="0"
-                           Foreground="#c8c8d8" VerticalAlignment="Center"/>
-                </DataTemplate>
-              </DataGridTemplateColumn.CellTemplate>
-            </DataGridTemplateColumn>
-            <DataGridTemplateColumn Header="" Width="80">
-              <DataGridTemplateColumn.CellTemplate>
-                <DataTemplate x:DataType="vm:CorpAltRow">
-                  <Button Content="Remove"
-                          Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).CorpAltsVm.DeleteCommand}"
-                          CommandParameter="{Binding}"
-                          FontSize="9" Padding="6 2" Background="Transparent"
-                          BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
-                </DataTemplate>
-              </DataGridTemplateColumn.CellTemplate>
-            </DataGridTemplateColumn>
-          </DataGrid.Columns>
-        </DataGrid>
-      </Grid>
-    </TabItem>
-
     <TabItem Header="Inventory Rules">
-      <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="14 12"
+      <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Margin="14 12"
             DataContext="{Binding RulesVm}" x:DataType="vm:WorklistInvRulesViewModel">
 
         <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
@@ -610,7 +782,7 @@
           <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" FontSize="11"
                     ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}"
                     PlaceholderText="Pick a group…" HorizontalAlignment="Stretch"/>
-          <AutoCompleteBox Grid.Row="1" Grid.Column="1" Margin="0 0 8 0"
+          <AutoCompleteBox Grid.Row="1" Grid.Column="1" Margin="0 0 8 0" Classes="selectall"
                            Text="{Binding LocationText}"
                            SelectedItem="{Binding SelectedLocation}"
                            AsyncPopulator="{Binding LocationPopulator}"
@@ -638,7 +810,12 @@
         <TextBlock Grid.Row="2" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
-        <DataGrid Grid.Row="3" ItemsSource="{Binding Rules}"
+        <!-- Amber, like the park and buy warnings on the Other tab: the rule is saved and valid,
+             it just cannot produce work anybody can do. -->
+        <TextBlock Grid.Row="3" Text="{Binding AltWarning}" IsVisible="{Binding HasAltWarning}"
+                   FontSize="11" Foreground="#c8a84b" TextWrapping="Wrap" Margin="0 0 0 8"/>
+
+        <DataGrid Grid.Row="4" ItemsSource="{Binding Rules}"
                   IsReadOnly="False" AutoGenerateColumns="False" FontSize="10"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <!-- Editable in place. Each cell is a live control rather than a click-to-edit one, so a
@@ -763,7 +940,7 @@
           <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" FontSize="11"
                     ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}"
                     PlaceholderText="Group…" HorizontalAlignment="Stretch"/>
-          <AutoCompleteBox Grid.Row="1" Grid.Column="1" Margin="0 0 8 0"
+          <AutoCompleteBox Grid.Row="1" Grid.Column="1" Margin="0 0 8 0" Classes="selectall"
                            Text="{Binding LocationText}"
                            SelectedItem="{Binding SelectedLocation}"
                            AsyncPopulator="{Binding LocationPopulator}"
@@ -773,7 +950,7 @@
           <CheckBox Grid.Row="1" Grid.Column="2" Content="Accepts surplus" FontSize="11"
                     Margin="0 0 8 0" IsChecked="{Binding AcceptsSurplus}"
                     ToolTip.Tip="Spare stock of this group collects here when no station needs it."/>
-          <Button Grid.Row="1" Grid.Column="3" Content="Add / Update" Command="{Binding AddCommand}"
+          <Button Grid.Row="1" Grid.Column="3" Content="Add" Command="{Binding AddCommand}"
                   FontSize="11" Padding="10 4"/>
         </Grid>
 
@@ -861,25 +1038,32 @@
       </Grid>
     </TabItem>
 
-    <TabItem Header="Industry">
-      <!-- No ScrollViewer: it gives the DataGrid unbounded width, which breaks star sizing and
-           pushes the last column out of view. The final * row fills the tab instead. -->
-      <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*" Margin="14 12"
+    <!-- Last: the settings here are set once and then left, unlike the tabs above them. Which
+         characters may be given jobs lives on Settings → Industry. -->
+    <TabItem Header="Other">
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="14 12" Spacing="18"
             DataContext="{Binding IndustryVm}" x:DataType="vm:WorklistIndustryViewModel">
 
-        <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
-                   Margin="0 0 0 10"
-                   Text="Which characters may be given jobs, and on what. Slots on alts in corps that never run industry are not available for work, so this is opt-in. Jobs go to the least capable character who can run them, keeping the high-skill alts free for the work only they can do."/>
+        <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                   Text="Where industry work is planned, where its materials are counted, and where what is missing gets bought."/>
 
-        <Grid Grid.Row="1" ColumnDefinitions="240,Auto,Auto,Auto,*" RowDefinitions="Auto,Auto" Margin="0 0 0 8">
-          <TextBlock Grid.Row="0" Grid.Column="0" Text="Plan against park" Classes="fieldLabel"/>
+        <!-- ── Industry ──────────────────────────────────────────────────── -->
+        <TextBlock Text="Industry" FontSize="12" FontWeight="SemiBold" Foreground="#c8a84b"/>
+
+        <Grid ColumnDefinitions="240,Auto,Auto,Auto,*" RowDefinitions="Auto,Auto">
+          <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="6">
+            <TextBlock Text="Plan against park" Classes="fieldLabel"/>
+            <TextBlock Text="{Binding ParkResolvedText}" Classes="fieldLabel" Foreground="#7a8896"/>
+          </StackPanel>
           <TextBlock Grid.Row="0" Grid.Column="1" Text="Max job length — manufacturing" Classes="fieldLabel"/>
           <TextBlock Grid.Row="0" Grid.Column="2" Text="reactions" Classes="fieldLabel"/>
           <TextBlock Grid.Row="0" Grid.Column="3" Text="science" Classes="fieldLabel"/>
 
           <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 16 0" FontSize="11"
                     ItemsSource="{Binding Parks}" SelectedItem="{Binding SelectedPark}"
-                    PlaceholderText="Pick a park…" HorizontalAlignment="Stretch"/>
+                    HorizontalAlignment="Stretch"
+                    ToolTip.Tip="&lt;Default&gt; follows whichever park is starred in Indy Parks, resolved each time work is planned — so moving the star moves the planning with it."/>
           <TextBox Grid.Row="1" Grid.Column="1" Width="70" Margin="0 0 8 0" FontSize="11"
                    Text="{Binding MaxJobDaysMfg}"
                    ToolTip.Tip="Days. A shortfall needing longer is split into several jobs, which can run on different slots and characters. Blank for no limit — only the blueprint's own run cap then applies."/>
@@ -893,15 +1077,15 @@
                      VerticalAlignment="Center"/>
         </Grid>
 
-        <TextBlock Grid.Row="2" Text="{Binding ParkWarning}" IsVisible="{Binding HasParkWarning}"
-                   FontSize="10" Foreground="#c8a84b" TextWrapping="Wrap" Margin="0 0 0 10"/>
+        <TextBlock Text="{Binding ParkWarning}" IsVisible="{Binding HasParkWarning}"
+                   FontSize="10" Foreground="#c8a84b" TextWrapping="Wrap"/>
 
-        <!-- Where material is looked for, and where what is missing gets bought. -->
-        <Grid Grid.Row="3" ColumnDefinitions="130,240,Auto,260" RowDefinitions="Auto,Auto,Auto,Auto"
-              Margin="0 0 0 6">
+        <!-- ── Asset Scope ───────────────────────────────────────────────── -->
+        <TextBlock Text="Asset Scope" FontSize="12" FontWeight="SemiBold" Foreground="#c8a84b"/>
+
+        <Grid ColumnDefinitions="130,240,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
           <TextBlock Grid.Row="0" Grid.Column="0" Text="Count material" Classes="fieldLabel"/>
           <TextBlock Grid.Row="0" Grid.Column="1" Text="Region / system" Classes="fieldLabel"/>
-          <TextBlock Grid.Row="0" Grid.Column="3" Text="Buy shortfalls at" Classes="fieldLabel"/>
 
           <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" FontSize="11"
                     ItemsSource="{Binding Scopes}" SelectedItem="{Binding SelectedScope}"
@@ -915,21 +1099,12 @@
                            FilterMode="None" MinimumPrefixLength="2"
                            MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
                            FontSize="11" Watermark="Type two characters…"/>
-          <AutoCompleteBox Grid.Row="1" Grid.Column="3"
-                           Text="{Binding BuyLocationText}"
-                           SelectedItem="{Binding SelectedBuyLocation}"
-                           AsyncPopulator="{Binding LocationPopulator}"
-                           FilterMode="None" MinimumPrefixLength="2"
-                           MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
-                           FontSize="11" Watermark="Trade hub…"
-                           ToolTip.Tip="Where purchases are raised, and whose market alt gets them. Blueprints are left unassigned — a BPO or BPC comes from contracts, not a market order."/>
-
-          <CheckBox Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Margin="0 8 0 0"
-                    Content="Count other corporations' assets" FontSize="11"
+          <CheckBox Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" VerticalAlignment="Center"
+                    Content="Include Non Personal Corp Assets" FontSize="11"
                     IsChecked="{Binding IncludeNonPersonalCorps}"
                     ToolTip.Tip="Off by default. Only corporations flagged personal on the Corporations tab count as material — authorising a character in a large alliance corp otherwise hands the tool that corp's entire hangar, none of which is yours."/>
 
-          <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0 8 0 0"
+          <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0 10 0 0"
                      Text="Also count these stations" Classes="fieldLabel"/>
           <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="6">
             <AutoCompleteBox Width="290"
@@ -959,159 +1134,82 @@
           </ItemsControl>
         </Grid>
 
-        <TextBlock Grid.Row="4" Text="{Binding BuyWarning}" IsVisible="{Binding HasBuyWarning}"
-                   FontSize="10" Foreground="#c8a84b" TextWrapping="Wrap" Margin="0 0 0 10"/>
+        <TextBlock Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+                   TextWrapping="Wrap"/>
 
-        <!-- Slots only. What a character may build is a scheduling choice; what material is
-             available is the asset scope's business and applies to every character alike. -->
-        <Grid Grid.Row="5" ColumnDefinitions="200,Auto,Auto,Auto,Auto,*" RowDefinitions="Auto,Auto" Margin="0 8 0 6">
-          <TextBlock Grid.Row="0" Grid.Column="0" Text="Character" Classes="fieldLabel"/>
-          <TextBlock Grid.Row="0" Grid.Column="1" Text="Slots used for" Classes="fieldLabel"/>
-          <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 12 0" FontSize="11"
-                    ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}"
-                    PlaceholderText="Character…" HorizontalAlignment="Stretch"/>
-          <CheckBox Grid.Row="1" Grid.Column="1" Content="Manufacturing" IsChecked="{Binding Manufacturing}" FontSize="11" Margin="0 0 8 0"/>
-          <CheckBox Grid.Row="1" Grid.Column="2" Content="Reactions"     IsChecked="{Binding Reactions}"     FontSize="11" Margin="0 0 8 0"/>
-          <CheckBox Grid.Row="1" Grid.Column="3" Content="Science"       IsChecked="{Binding Science}"       FontSize="11" Margin="0 0 12 0"/>
-          <Button   Grid.Row="1" Grid.Column="4" Content="Add / Update" Command="{Binding AddCommand}"
+        <!-- ── Corp Projects ─────────────────────────────────────────────── -->
+        <!-- Its own view model, reached explicitly because the panel around it is bound to the
+             industry settings. -->
+        <TextBlock Text="Corp Projects" FontSize="12" FontWeight="SemiBold" Foreground="#c8a84b"/>
+
+        <StackPanel Spacing="6" x:CompileBindings="False"
+                    DataContext="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).CorpAltsVm}">
+          <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                     Text="Standing projects are defined in Corp Activity; the only thing the worklist needs is who maintains them. Projects belong to a corporation, so this routes by corporation rather than by station. Only corporations that actually have standing projects are listed."/>
+
+          <Grid ColumnDefinitions="*,200,200,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Corporation" Classes="fieldLabel"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="Maintained by" Classes="fieldLabel"/>
+            <TextBlock Grid.Row="0" Grid.Column="2" Text="Note" Classes="fieldLabel"/>
+            <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" FontSize="11"
+                      ItemsSource="{Binding Corps}" SelectedItem="{Binding SelectedCorp}"
+                      PlaceholderText="Pick a corporation…" HorizontalAlignment="Stretch"/>
+            <ComboBox Grid.Row="1" Grid.Column="1" Margin="0 0 8 0" FontSize="11"
+                      ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}"
+                      PlaceholderText="Character…" HorizontalAlignment="Stretch"/>
+            <TextBox Grid.Row="1" Grid.Column="2" Margin="0 0 8 0" FontSize="11"
+                     Text="{Binding Note}" Watermark="optional"/>
+            <Button Grid.Row="1" Grid.Column="3" Content="Add" Command="{Binding AddCommand}"
                     FontSize="11" Padding="10 4"/>
-        </Grid>
+          </Grid>
 
-        <TextBlock Grid.Row="6" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
-                   TextWrapping="Wrap" Margin="0 0 0 8"/>
+          <TextBlock Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+                     TextWrapping="Wrap" Margin="0 0 0 8"/>
 
-        <DataGrid Grid.Row="7" ItemsSource="{Binding Chars}"
-                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
-                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
-          <DataGrid.Columns>
-            <DataGridTextColumn Header="Character" Binding="{Binding CharacterName}" FontSize="10" Width="200"
-                                IsReadOnly="True"/>
+          <DataGrid ItemsSource="{Binding Alts}" MinHeight="140" MaxHeight="320"
+                    IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Corporation" Binding="{Binding CorporationName}" FontSize="10" Width="*"
+                                  IsReadOnly="True"/>
 
-            <!-- Editable in place, saving on change. -->
-            <DataGridTemplateColumn Header="Slots used for" Width="260" SortMemberPath="Activities" IsReadOnly="True">
-              <DataGridTemplateColumn.CellTemplate>
-                <DataTemplate x:DataType="vm:IndyCharRow">
-                  <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <CheckBox Content="Mfg"  IsChecked="{Binding Manufacturing, Mode=TwoWay}" FontSize="10"
-                              MinHeight="0" ToolTip.Tip="Manufacturing"/>
-                    <CheckBox Content="Rxn"  IsChecked="{Binding Reactions, Mode=TwoWay}"     FontSize="10"
-                              MinHeight="0" ToolTip.Tip="Reactions"/>
-                    <CheckBox Content="Sci"  IsChecked="{Binding Science, Mode=TwoWay}"       FontSize="10"
-                              MinHeight="0" ToolTip.Tip="Science — copying, research, invention"/>
-                  </StackPanel>
-                </DataTemplate>
-              </DataGridTemplateColumn.CellTemplate>
-            </DataGridTemplateColumn>
+              <!-- Character and note edit in place and save on change, as on Market. -->
+              <DataGridTemplateColumn Header="Character" Width="200" SortMemberPath="CharacterName" IsReadOnly="True">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:CorpAltRow">
+                    <ComboBox ItemsSource="{Binding CharacterOptions}"
+                              SelectedItem="{Binding Character, Mode=TwoWay}"
+                              FontSize="10" Background="Transparent" BorderThickness="0"
+                              HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
 
-            <DataGridTextColumn Header="Free / total" Binding="{Binding Slots}" FontSize="10" Width="*"
-                                IsReadOnly="True"/>
-            <DataGridTemplateColumn Header="" Width="80">
-              <DataGridTemplateColumn.CellTemplate>
-                <DataTemplate x:DataType="vm:IndyCharRow">
-                  <Button Content="Remove"
-                          Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).IndustryVm.DeleteCommand}"
-                          CommandParameter="{Binding}"
-                          FontSize="9" Padding="6 2" Background="Transparent"
-                          BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
-                </DataTemplate>
-              </DataGridTemplateColumn.CellTemplate>
-            </DataGridTemplateColumn>
-          </DataGrid.Columns>
-        </DataGrid>
-      </Grid>
-    </TabItem>
-
-    <TabItem Header="Order Rules">
-      <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="14 12"
-            DataContext="{Binding OrderRulesVm}" x:DataType="vm:WorklistOrderRulesViewModel">
-
-        <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
-                   Margin="0 0 0 10"
-                   Text="Plans your pending customer orders and buys what they are short of. Quantities already built or already in production are subtracted first, then the rest is planned against the park — so its facilities and rigs decide how much material a build really needs."/>
-
-        <Grid Grid.Row="1" ColumnDefinitions="240,*,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
-          <TextBlock Grid.Row="0" Grid.Column="0" Text="Plan against park" Classes="fieldLabel"/>
-          <TextBlock Grid.Row="0" Grid.Column="1" Text="Buy at" Classes="fieldLabel"/>
-          <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" FontSize="11"
-                    ItemsSource="{Binding Parks}" SelectedItem="{Binding SelectedPark}"
-                    PlaceholderText="Pick a park…" HorizontalAlignment="Stretch"/>
-          <AutoCompleteBox Grid.Row="1" Grid.Column="1" Margin="0 0 8 0"
-                           Text="{Binding LocationText}"
-                           SelectedItem="{Binding SelectedLocation}"
-                           AsyncPopulator="{Binding LocationPopulator}"
-                           FilterMode="None" MinimumPrefixLength="2"
-                           MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
-                           FontSize="11" Watermark="Type two characters…"/>
-          <Button Grid.Row="1" Grid.Column="2" Content="Add rule" Command="{Binding AddCommand}"
-                  FontSize="11" Padding="10 4"/>
-        </Grid>
-
-        <TextBlock Grid.Row="2" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
-                   TextWrapping="Wrap" Margin="0 0 0 8"/>
-
-        <DataGrid Grid.Row="3" ItemsSource="{Binding Rules}"
-                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
-                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
-          <DataGrid.Columns>
-            <DataGridTextColumn Header="Park"      Binding="{Binding ParkName}"     FontSize="10" Width="240"/>
-            <DataGridTextColumn Header="Buy at"    Binding="{Binding LocationName}" FontSize="10" Width="*"/>
-            <DataGridTextColumn Header="Character" Binding="{Binding AltText}"      FontSize="10" Width="160"/>
-            <DataGridTemplateColumn Header="" Width="80">
-              <DataGridTemplateColumn.CellTemplate>
-                <DataTemplate x:DataType="vm:OrderRuleRow">
-                  <Button Content="Remove"
-                          Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).OrderRulesVm.DeleteCommand}"
-                          CommandParameter="{Binding}"
-                          FontSize="9" Padding="6 2" Background="Transparent"
-                          BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
-                </DataTemplate>
-              </DataGridTemplateColumn.CellTemplate>
-            </DataGridTemplateColumn>
-          </DataGrid.Columns>
-        </DataGrid>
-      </Grid>
-    </TabItem>
-
-    <TabItem Header="Sources">
-      <ScrollViewer>
-        <StackPanel Margin="14 12" Spacing="16" MaxWidth="640" HorizontalAlignment="Left">
-
-          <StackPanel Spacing="6">
-            <TextBlock Text="Sources" FontSize="12" FontWeight="SemiBold" Foreground="#c8a84b"/>
-            <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
-                       Text="A source that is off is skipped entirely — it costs no queries rather than running and having its output discarded."/>
-            <ItemsControl ItemsSource="{Binding Sources}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:WorklistToggleVm">
-                  <StackPanel Margin="0 6 0 0">
-                    <CheckBox Content="{Binding Label}" IsChecked="{Binding IsOn}" FontSize="11"/>
-                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="#555566"
-                               Margin="24 0 0 0" TextWrapping="Wrap"/>
-                  </StackPanel>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
-
-          <StackPanel Spacing="6">
-            <TextBlock Text="Standing buy orders — what to raise" FontSize="12"
-                       FontWeight="SemiBold" Foreground="#c8a84b"/>
-            <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
-                       Text="Which conditions become tasks. Each is a different job, so they switch independently."/>
-            <ItemsControl ItemsSource="{Binding Conditions}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:WorklistToggleVm">
-                  <StackPanel Margin="0 6 0 0">
-                    <CheckBox Content="{Binding Label}" IsChecked="{Binding IsOn}" FontSize="11"/>
-                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="#555566"
-                               Margin="24 0 0 0" TextWrapping="Wrap"/>
-                  </StackPanel>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
-
+              <DataGridTemplateColumn Header="Note" Width="220" SortMemberPath="Note" IsReadOnly="True">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:CorpAltRow">
+                    <TextBox Text="{Binding Note, Mode=TwoWay}" Watermark="optional"
+                             FontSize="10" Background="Transparent" BorderThickness="0"
+                             Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="" Width="80">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:CorpAltRow">
+                    <Button Content="Remove"
+                            Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).CorpAltsVm.DeleteCommand}"
+                            CommandParameter="{Binding}"
+                            FontSize="9" Padding="6 2" Background="Transparent"
+                            BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
         </StackPanel>
+
+      </StackPanel>
       </ScrollViewer>
     </TabItem>
 

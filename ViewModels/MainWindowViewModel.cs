@@ -277,6 +277,7 @@ public class MainWindowViewModel : ReactiveObject
     /// <summary>Held here because SettingsViewModel is built by hand when the window is
     /// opened rather than resolved from DI.</summary>
     public OtherSettingsViewModel OtherSettingsVm { get; private set; } = null!;
+    public DataRetentionSettingsViewModel DataRetentionVm { get; private set; } = null!;
 
     public string EveTimeUrl    => _uiLinks?.EveTimeUrl ?? UiLinkSettings.EveOnlineTimeUrl;
     public string EveTimeLinkTip => $"EVE time (UTC) — click to open {EveTimeUrl}";
@@ -400,6 +401,10 @@ public class MainWindowViewModel : ReactiveObject
             _                => throw new ArgumentException($"Unknown tool: {toolId}")
         };
 
+
+        // From here the tool is on screen, so its own refresh timer is allowed to run. A latch,
+        // not a visibility check — see IPeriodicRefresh.
+        if (vm is IPeriodicRefresh periodic) periodic.AutoRefreshEnabled = true;
         var tab = new ToolTab(toolId, title, vm, canClose);
         OpenTabs.Add(tab);
         SelectedTab = tab;
@@ -510,6 +515,7 @@ public class MainWindowViewModel : ReactiveObject
         EntityNameBackfillService       entityNames,
         EveServerStatusService          serverStatus,
         UiLinkSettings                  uiLinks,
+        DataRetentionService        dataRetention,
         ExportFormatSettings            exportFormat,
         AlarmService                    alarmService,
         AlarmSoundService               alarmSounds,
@@ -521,6 +527,7 @@ public class MainWindowViewModel : ReactiveObject
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
         OtherSettingsVm = new OtherSettingsViewModel(uiLinks);
+        DataRetentionVm = new DataRetentionSettingsViewModel(dataRetention);
         BindServerStatus(serverStatus);
 
         Slack             = slackService;
@@ -605,10 +612,14 @@ public class MainWindowViewModel : ReactiveObject
         WorklistVm             = new WorklistViewModel(worklistService,
                                      new WorklistMarketAltsViewModel(worklistMarketAltService, corpActivityService, dbFactory),
                                      new WorklistInvRulesViewModel(dbFactory, corpActivityService, worklistMarketAltService),
-                                     new WorklistOrderRulesViewModel(dbFactory, corpActivityService, worklistMarketAltService),
                                      new WorklistCorpAltsViewModel(dbFactory, worklistCorpAltService),
                                      new WorklistIndustryViewModel(dbFactory, industryAssignmentService, worklistSettings, errorLogger, corpActivityService, worklistMarketAltService),
                                      new WorklistStationLevelsViewModel(dbFactory, corpActivityService, worklistSettings));
+
+        // ⚠️ After construction, not with the other Overview wiring above — WorklistVm does not
+        // exist until this line, so assigning it earlier set null and left every worklist section
+        // on the Overview permanently blank.
+        OverviewVm.Worklist = WorklistVm;
 
         // Adding, renaming or deleting an inventory group changes what the Worklist's group
         // pickers should offer. They load once, so without this a new group is missing until a
@@ -653,6 +664,8 @@ public class MainWindowViewModel : ReactiveObject
         // the system page still returns to it. A region is now territory you zoom to on the
         // one continuous universe map.
         EntityNavigator.Instance.OpenRegion   = id => { OpenTool("universe"); _ = UniverseVm.FocusRegionAsync(id); };
+        EntityNavigator.Instance.OpenConstellation =
+            name => { OpenTool("universe"); _ = UniverseVm.FocusConstellationAsync(name); };
 
         // Resolve the overlay here rather than in the agent tool: this is the list's home, so
         // an overlay added to the map is reachable by name without touching the tool.
@@ -766,7 +779,7 @@ public class MainWindowViewModel : ReactiveObject
 
         // BuildCostService.StatusText is set from a background thread — poll it via a timer.
         Observable.Interval(TimeSpan.FromSeconds(3))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOnUi("MainWindow.BuildCostStatus")
             .Subscribe(_ => BuildCostStatusText = _buildCostService.StatusText);
 
         // ── Navigation setup ──────────────────────────────────────────────────

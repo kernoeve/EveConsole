@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
+using EveConsole.Services;
 using System.Reactive;
+using Avalonia.Collections;
 using Avalonia.Threading;
 using EveConsole.Services.Worklist;
 using ReactiveUI;
@@ -35,6 +37,33 @@ public class WorklistRowVm : ReactiveObject
     public string SourceName    => _item.Source;
     public string CharacterName => _item.CharacterName.Length > 0 ? _item.CharacterName : "—";
     public string LocationName  => _item.LocationName;
+
+    // ── Links ─────────────────────────────────────────────────────────────────
+    //
+    // Every id was already on the item for routing, so nothing new is fetched. A zero means the
+    // generator could not route the task — an unrouted item still shows, its name just is not a
+    // link. ⚠️ The em dash CharacterName falls back to is not a name, so HasCharacterLink tests
+    // the id rather than the displayed text.
+    public bool HasCharacterLink => _item.CharacterId > 0 && _item.CharacterName.Length > 0;
+    public bool HasLocationLink  => _item.LocationId  > 0 && _item.LocationName.Length  > 0;
+    public bool HasItemLink      => _item.TypeId      > 0 && _item.TypeName.Length      > 0;
+
+    public void OpenCharacter() =>
+        EntityNavigator.Instance.Entity(EntityKind.Pilot, _item.CharacterId);
+
+    /// <summary>⚠️ Station versus structure by int range: SdeStations keys on an int, so an id
+    /// above that range cannot be a station. Worklist locations carry no discriminator.</summary>
+    public void OpenLocation() => OpenPlace(_item.LocationId);
+    public void OpenDestination() => OpenPlace(_item.DestinationId);
+
+    private static void OpenPlace(long id)
+    {
+        if (id <= 0) return;
+        if (id <= int.MaxValue) EntityNavigator.Instance.Entity(EntityKind.Station, id);
+        else                    EntityNavigator.Instance.Structure(id);
+    }
+
+    public void OpenItem() => EntityNavigator.Instance.Item(_item.TypeId);
     public int    TypeId        => _item.TypeId;
     public int    Priority      => _item.Priority;
     public bool   IsSnoozed     => _item.IsSnoozed;
@@ -93,6 +122,82 @@ public class WorklistRowVm : ReactiveObject
         _                         => "Waiting",
     };
 
+    // Which shape the row draws in. A DataGrid has one column set for every row, so per-type
+    // presentation has to happen inside the cell — one panel per kind, only one of them visible.
+    // Selection by kind rather than by CLR type because every row is the same class; splitting the
+    // view model per kind would mean four near-identical types to keep in step.
+    public bool IsHaul  => _item.Kind == WorklistKind.Haul;
+    public bool IsJob   => _item.Kind == WorklistKind.Job;
+    public bool IsBuy   => _item.Kind == WorklistKind.Buy;
+    public bool IsOther => !IsHaul && !IsJob && !IsBuy;
+
+    /// <summary>Source and destination as one phrase, since a haul is the pairing rather than two
+    /// independent facts.</summary>
+    /// <summary>
+    /// What the Task cell actually reads as, for sorting on it.
+    ///
+    /// <para>⚠️ The cell shows a different thing per kind — a haul shows its route, everything else
+    /// its title — so sorting on Title alone rearranged haul rows by text the user could not see.
+    /// Sorting has to follow what is on screen or it looks random.</para>
+    /// </summary>
+    public string TaskSortText => IsHaul ? RouteText : Title;
+
+    public string RouteText => $"{_item.LocationName}  →  {_item.DestinationName}";
+
+    /// <summary>What the task is worth — the goods hauled, the purchase, the job's output.
+    ///
+    /// <para>Blank rather than zero when unpriced. Science jobs are the case that matters: a
+    /// blueprint copy has no stored value per ME level, so the honest answer is nothing at all
+    /// rather than a confident 0 ISK.</para></summary>
+    public string ValueText => _item.Value > 0 ? StationNeedRowVm.Isk(_item.Value) : "";
+
+    /// <summary>
+    /// Everything the row knows that is not worth a line of its own, gathered for one tooltip.
+    ///
+    /// <para>The detail runs to a paragraph on a buy — what it feeds, what is on hand, what is on
+    /// order — which is genuinely useful and genuinely not wanted on 141 rows at once. Behind a
+    /// marker it costs a hover for the reader who wants it and nothing for the reader who does
+    /// not.</para>
+    /// </summary>
+    public string DetailTip
+    {
+        get
+        {
+            var parts = new List<string>(3);
+            if (!string.IsNullOrWhiteSpace(_item.Detail)) parts.Add(_item.Detail);
+            if (HasNote)   parts.Add(Note);
+            if (IsSnoozed) parts.Add(SnoozeText);
+            return string.Join("\n\n", parts);
+        }
+    }
+
+    public bool HasDetailTip => DetailTip.Length > 0;
+
+    /// <summary>
+    /// Where this row's task sits in the group order — the declaration order of
+    /// <see cref="WorklistKind"/>, which is the one place to change it.
+    ///
+    /// <para>Sorted on rather than <see cref="KindText"/> so the groups do not fall into
+    /// alphabetical order, which would put Buy before Haul for no reason a reader could name.</para>
+    /// </summary>
+    public int KindRank => (int)_item.Kind;
+
+    /// <summary>
+    /// The row's leading edge bar.
+    ///
+    /// <para>⚠️ Ready is deliberately dim — near the row background rather than the green
+    /// <see cref="ReadinessColor"/> uses for text. Ready is the overwhelming majority and the
+    /// normal case, and a full-strength bar on all of it would restate the noise the State column
+    /// was removed for. Blocked and waiting keep their full colour, so the eye lands on the rows
+    /// that want something, and the rail still reads as continuous down the list.</para>
+    /// </summary>
+    public string ReadinessBarColor => _item.Readiness switch
+    {
+        WorklistReadiness.Ready   => "#24402c",
+        WorklistReadiness.Blocked => "#c85a5a",
+        _                         => "#c8a84b",
+    };
+
     public string ReadinessColor => _item.Readiness switch
     {
         WorklistReadiness.Ready   => "#5aa469",
@@ -137,6 +242,23 @@ public sealed class StationNeedRowVm(StationNeed n)
 {
     public string Station => n.StationName;
     public string Item    => n.TypeName;
+
+    // Both names on a need point somewhere; the ids were already on the record.
+    public bool HasStationLink => n.StationId > 0 && n.StationName.Length > 0;
+    public bool HasItemLink    => n.TypeId    > 0 && n.TypeName.Length    > 0;
+
+    /// <summary>⚠️ Station versus structure by int range — SdeStations keys on an int, so an id
+    /// above that range cannot be a station. A station need carries no discriminator.</summary>
+    public void OpenStation()
+    {
+        if (n.StationId <= 0) return;
+        if (n.StationId <= int.MaxValue)
+            EntityNavigator.Instance.Entity(EntityKind.Station, n.StationId);
+        else
+            EntityNavigator.Instance.Structure(n.StationId);
+    }
+
+    public void OpenItem() => EntityNavigator.Instance.Item(n.TypeId);
 
     public long   TotalRaw  => n.Total;
     public string Total     => n.Total.ToString("N0");
@@ -192,12 +314,40 @@ public class WorklistViewModel : ReactiveObject
 
     public ObservableCollection<WorklistRowVm> Rows { get; } = [];
 
+    /// <summary>
+    /// What the grid actually binds to: <see cref="Rows"/> grouped by task.
+    ///
+    /// <para>Task takes three values and the list is already ordered by it, so as a column it was
+    /// a heading repeated on every row. As a group header it says the same thing once and carries
+    /// the count with it.</para>
+    ///
+    /// <para>⚠️ A view over the same collection, not a copy. <see cref="ApplyFilters"/> keeps
+    /// clearing and refilling <see cref="Rows"/>, and the view follows — so filtering, the
+    /// summary and the status line all still read from one list. Building a second grouped list
+    /// here would be a second thing to keep in step, which is the failure this codebase keeps
+    /// running into.</para>
+    /// </summary>
+    public DataGridCollectionView RowsView { get; }
+
     // ── Station Needs ─────────────────────────────────────────────────────────
     //
     // What each station wants and which demand is asking for it. The worklist says what to do;
     // this says why, which is the question asked when a suggestion looks wrong.
 
     public ObservableCollection<StationNeedRowVm> Needs { get; } = [];
+
+    /// <summary>
+    /// The needs grouped by station, the way the task grid groups by kind.
+    ///
+    /// <para>A station's wants are read together — you are deciding what one trip carries — and a
+    /// flat list ordered by shortfall scattered each station's rows through the whole grid. The
+    /// group header names the station once instead of every row repeating it.</para>
+    ///
+    /// <para>⚠️ The station sort has to stay first in SortDescriptions or the groups themselves
+    /// reorder when a column is sorted. <see cref="PinNeedsGroupOrder"/> re-pins it, the same fix
+    /// the task grid needed.</para>
+    /// </summary>
+    public DataGridCollectionView NeedsView { get; }
 
     private bool _needsLoading;
     public bool NeedsLoading { get => _needsLoading; private set => this.RaiseAndSetIfChanged(ref _needsLoading, value); }
@@ -225,6 +375,44 @@ public class WorklistViewModel : ReactiveObject
     }
 
     private const int StationNeedsTab = 1;
+
+    /// <summary>Selects the Station Needs tab — what the Overview's link to it needs, so that
+    /// following it lands on the report rather than on whatever tab was last open.</summary>
+    public void ShowStationNeedsTab() => OuterTabIndex = StationNeedsTab;
+
+    /// <summary>
+    /// A tab the tool should show once its view exists.
+    ///
+    /// <para>⚠️ Not just setting <see cref="OuterTabIndex"/>. Opening the tool from the Overview
+    /// creates the WorklistView, whose TabControl binds SelectedIndex two-way and writes its own
+    /// default (0) back over anything set beforehand — and posting the change afterwards is a race
+    /// against view creation that was lost twice. The view applies this on load instead, after its
+    /// own binding is established, and clears it so it fires once.</para>
+    /// </summary>
+    public int? RequestedTab { get; set; }
+
+    /// <summary>Applied by the view once it is loaded. Returns the tab to show, if one was asked
+    /// for, and forgets it.</summary>
+    public int? TakeRequestedTab()
+    {
+        var t = RequestedTab;
+        RequestedTab = null;
+        return t;
+    }
+
+    /// <summary>Selects the Station Needs tab — what the Overview's link to it needs, so that
+    /// following it lands on the report rather than on whatever tab was last open.</summary>
+    public void RequestStationNeedsTab() => RequestedTab = StationNeedsTab;
+
+    /// <summary>
+    /// Loads the station-needs report if it has not been loaded yet.
+    ///
+    /// <para>⚠️ Needs is normally filled only when the user opens that tab, which left the
+    /// Overview's Station Needs section permanently empty — nothing on the Overview opens a tab.
+    /// </para>
+    /// </summary>
+    public Task EnsureNeedsLoadedAsync()
+        => Needs.Count > 0 || NeedsLoading ? Task.CompletedTask : LoadNeedsAsync();
 
     private async Task LoadNeedsAsync()
     {
@@ -269,9 +457,6 @@ public class WorklistViewModel : ReactiveObject
     /// <summary>Inventory-level rules: thresholds, stations and fill targets.</summary>
     public WorklistInvRulesViewModel RulesVm { get; }
 
-    /// <summary>Rules turning pending customer orders into buys.</summary>
-    public WorklistOrderRulesViewModel OrderRulesVm { get; }
-
     /// <summary>Who maintains each corporation's standing projects.</summary>
     public WorklistCorpAltsViewModel CorpAltsVm { get; }
 
@@ -290,17 +475,33 @@ public class WorklistViewModel : ReactiveObject
 
     public WorklistViewModel(WorklistService service, WorklistMarketAltsViewModel marketAlts,
                              WorklistInvRulesViewModel rules,
-                             WorklistOrderRulesViewModel orderRules,
                              WorklistCorpAltsViewModel corpAlts,
                              WorklistIndustryViewModel industry,
                              WorklistStationLevelsViewModel stationLevels)
     {
         _service = service;
+
+        RowsView = new DataGridCollectionView(Rows);
+        RowsView.GroupDescriptions.Add(new DataGridPathGroupDescription(nameof(WorklistRowVm.KindText)));
+        PinGroupOrder();
+
+        // ⚠️ Re-pinned whenever the sort changes, not set once. Groups are built from the view's
+        // sorted sequence, so a column sort decided group order too — sorting by volume put
+        // whichever group held the largest single row first, and the groups reshuffled on every
+        // header click for a reason nothing on screen explained. Clicking a header replaces the
+        // sort wholesale, so the group key has to be put back at the head of it each time; after
+        // that the user's sort still applies, inside each group.
+        RowsView.SortDescriptions.CollectionChanged += (_, _) => PinGroupOrder();
+
+        // Station Needs, grouped the same way and for the same reason.
+        NeedsView = new DataGridCollectionView(Needs);
+        NeedsView.GroupDescriptions.Add(new DataGridPathGroupDescription(nameof(StationNeedRowVm.Station)));
+        PinNeedsGroupOrder();
+        NeedsView.SortDescriptions.CollectionChanged += (_, _) => PinNeedsGroupOrder();
+
         MarketAltsVm  = marketAlts;
         RulesVm  = rules;
         RulesVm.RulesChanged = RefreshAsync;
-        OrderRulesVm = orderRules;
-        OrderRulesVm.RulesChanged = RefreshAsync;
         CorpAltsVm = corpAlts;
         CorpAltsVm.CorpAltsChanged = RefreshAsync;
         IndustryVm = industry;
@@ -340,6 +541,17 @@ public class WorklistViewModel : ReactiveObject
                 s.IsSourceEnabled(g.Id),
                 on => s.SetSourceEnabledAsync(g.Id, on),
                 RefreshAsync));
+
+        // Listed here but not a generator: pending customer orders are demand that the industry
+        // and material-purchase generators both read. It belongs on this tab because this is where
+        // a player looks to answer "what is the worklist built from".
+        Sources.Add(new WorklistToggleVm(
+            "Customer orders",
+            "Plan the pending orders from the Order Tracker, netted against what is already built "
+          + "or in production. Uses the park and buy location set on the Industry tab.",
+            s.PlanCustomerOrders,
+            on => s.SetPlanCustomerOrdersAsync(on),
+            RefreshAsync));
 
         // Standing-buy conditions are separate switches because they are separate jobs: an
         // outbid order needs a price change, a missing one needs creating, a low one topping up.
@@ -418,6 +630,27 @@ public class WorklistViewModel : ReactiveObject
     public const string AnyValue = "(any)";
 
     private List<WorklistRowVm> _pool = [];
+
+    /// <summary>
+    /// Every row this run produced, before the column filters — what the Overview's worklist
+    /// sections show. Kept separate from <see cref="Rows"/> so a filter typed in the tool does not
+    /// silently reshape a dashboard panel that has no filter row to explain it.
+    /// </summary>
+    public ObservableCollection<WorklistRowVm> PoolRows { get; } = [];
+
+    private DateTimeOffset? _lastRefreshUtc;
+
+    /// <summary>
+    /// Rebuilds the worklist only if the last run is older than <paramref name="maxAge"/>.
+    ///
+    /// <para>⚠️ The Overview refreshes every 60 seconds and a worklist run is expensive — it walks
+    /// every generator. Refreshing it on that cadence would put the tool's whole cost on a panel
+    /// the user may not be looking at, so the sections accept data that is a few minutes old.</para>
+    /// </summary>
+    public Task RefreshIfStaleAsync(TimeSpan maxAge)
+        => _lastRefreshUtc is { } last && DateTimeOffset.UtcNow - last < maxAge
+            ? Task.CompletedTask
+            : RefreshAsync();
     private string _hiddenTail = "";
 
     public ObservableCollection<string> StateOptions     { get; } = [];
@@ -495,6 +728,41 @@ public class WorklistViewModel : ReactiveObject
         }
     }
 
+    /// <summary>Keeps the group-key sort first, so groups always appear in the order
+    /// <see cref="WorklistRowVm.KindRank"/> defines whatever else is being sorted on.</summary>
+    private bool _pinningGroupOrder;
+
+    private void PinGroupOrder()
+    {
+        if (_pinningGroupOrder) return;              // the insert below re-raises this
+        var sorts = RowsView.SortDescriptions;
+        if (sorts.Count > 0 && sorts[0].PropertyPath == nameof(WorklistRowVm.KindRank)) return;
+
+        _pinningGroupOrder = true;
+        try   { sorts.Insert(0, DataGridSortDescription.FromPath(nameof(WorklistRowVm.KindRank))); }
+        finally { _pinningGroupOrder = false; }
+    }
+
+    private bool _pinningNeedsGroupOrder;
+
+    /// <summary>
+    /// <see cref="PinGroupOrder"/> for the Station Needs grid.
+    ///
+    /// <para>Groups here sort on the station name itself rather than a rank: there is no natural
+    /// order among stations, and alphabetical is at least the one a reader can predict. Inside a
+    /// group the user's own column sort still applies.</para>
+    /// </summary>
+    private void PinNeedsGroupOrder()
+    {
+        if (_pinningNeedsGroupOrder) return;
+        var sorts = NeedsView.SortDescriptions;
+        if (sorts.Count > 0 && sorts[0].PropertyPath == nameof(StationNeedRowVm.Station)) return;
+
+        _pinningNeedsGroupOrder = true;
+        try   { sorts.Insert(0, DataGridSortDescription.FromPath(nameof(StationNeedRowVm.Station))); }
+        finally { _pinningNeedsGroupOrder = false; }
+    }
+
     private void ApplyFilters()
     {
         var rows = _pool.Where(Matches).ToList();
@@ -502,72 +770,59 @@ public class WorklistViewModel : ReactiveObject
         Rows.Clear();
         foreach (var r in rows) Rows.Add(r);
 
-        UpdateSummary(rows);
         UpdateStatus();
         this.RaisePropertyChanged(nameof(HasFilters));
     }
 
-    // ── Summary panel ─────────────────────────────────────────────────────────
+    // ── Summary strip ─────────────────────────────────────────────────────────
     //
-    // Computed from the filtered rows rather than the whole run, so it always describes what is
-    // on screen. Filtering to one character and reading a total for everybody would be worse
-    // than no total at all.
+    // ⚠️ Counted off the run, not off the rows on screen — hence WorklistItem rather than
+    // WorklistRowVm. The whole point of the strip is to say how many items are blocked without
+    // having to show the blocked ones, and a count that emptied the moment a filter narrowed the
+    // view answered a question nobody was asking. Snoozed items are the one exclusion, matching
+    // _readyTotal: those the user has deliberately parked.
 
-    public ObservableCollection<SummaryStatVm> BuySummary   { get; } = [];
-    public ObservableCollection<SummaryStatVm> HaulSummary  { get; } = [];
-    public ObservableCollection<SummaryStatVm> MfgSummary   { get; } = [];
-    public ObservableCollection<SummaryStatVm> RxnSummary   { get; } = [];
-    public ObservableCollection<SummaryStatVm> SciSummary   { get; } = [];
-    public ObservableCollection<SummaryStatVm> CharSummary  { get; } = [];
+    /// <summary>
+    /// The strip's chips: how the work divides, and nothing the grid already says.
+    ///
+    /// <para>Counts only. Every per-kind total — tasks, value, volume — is on that kind's group
+    /// header a few pixels below, so the panels that used to carry them were the same figures
+    /// printed twice. What is left is the mix (how much of this is buying versus hauling versus
+    /// building) and the state split, neither of which a single group header can show.</para>
+    ///
+    /// <para>⚠️ Ready is deliberately absent from <see cref="StateSummary"/>: it is the headline
+    /// figure sitting immediately to its left. One number, one place on screen.</para>
+    /// </summary>
+    public ObservableCollection<SummaryStatVm> KindSummary  { get; } = [];
+    public ObservableCollection<SummaryStatVm> StateSummary { get; } = [];
 
-    private void UpdateSummary(List<WorklistRowVm> rows)
+    private void UpdateSummary(List<WorklistItem> items)
     {
-        Fill(BuySummary, Buy(rows));
-        Fill(HaulSummary, Haul(rows));
-        Fill(MfgSummary, Jobs(rows, IndustryPool.Manufacturing));
-        Fill(RxnSummary, Jobs(rows, IndustryPool.Reaction));
-        Fill(SciSummary, Jobs(rows, IndustryPool.Science));
+        // Buy and Haul as themselves; Job split into its three pools, because "116 jobs" does not
+        // tell you whether the evening is manufacturing or reactions. Empty ones are simply absent
+        // rather than shown as zero.
+        Fill(KindSummary, new[]
+            {
+                new SummaryStatVm("buy",           items.Count(i => i.Kind == WorklistKind.Buy).ToString("N0")),
+                new SummaryStatVm("haul",          items.Count(i => i.Kind == WorklistKind.Haul).ToString("N0")),
+                new SummaryStatVm("manufacturing", items.Count(i => i.Pool == IndustryPool.Manufacturing).ToString("N0")),
+                new SummaryStatVm("reactions",     items.Count(i => i.Pool == IndustryPool.Reaction).ToString("N0")),
+                new SummaryStatVm("science",       items.Count(i => i.Pool == IndustryPool.Science).ToString("N0")),
+            }
+            .Where(s => s.Value != "0"));
 
-        Fill(CharSummary, rows
-            .GroupBy(r => r.CharacterName)
-            .OrderByDescending(g => g.Count()).ThenBy(g => g.Key)
-            .Select(g => new SummaryStatVm(g.Key, g.Count().ToString("N0"))));
+        Fill(StateSummary, new[]
+            {
+                new SummaryStatVm("blocked", items.Count(i => i.Readiness == WorklistReadiness.Blocked).ToString("N0")),
+                new SummaryStatVm("waiting", items.Count(i => i.Readiness == WorklistReadiness.Waiting).ToString("N0")),
+            }
+            .Where(s => s.Value != "0"));
 
         static void Fill(ObservableCollection<SummaryStatVm> into, IEnumerable<SummaryStatVm> from)
         {
             into.Clear();
             foreach (var s in from) into.Add(s);
         }
-
-        static IEnumerable<SummaryStatVm> Buy(List<WorklistRowVm> rows)
-        {
-            var b = rows.Where(r => r.KindText == "Buy").ToList();
-            yield return new("Tasks",  b.Count.ToString("N0"));
-            yield return new("Value",  StationNeedRowVm.Isk(b.Sum(r => r.Value)));
-            yield return new("Volume", M3(b.Sum(r => r.VolumeRaw)));
-        }
-
-        static IEnumerable<SummaryStatVm> Haul(List<WorklistRowVm> rows)
-        {
-            var h = rows.Where(r => r.KindText == "Haul").ToList();
-            yield return new("Tasks",   h.Count.ToString("N0"));
-            yield return new("Sources", h.Select(r => r.LocationName).Distinct().Count().ToString("N0"));
-            yield return new("Dests",   h.Select(r => r.DestinationName).Distinct().Count().ToString("N0"));
-            yield return new("Value",   StationNeedRowVm.Isk(h.Sum(r => r.Value)));
-            yield return new("Volume",  M3(h.Sum(r => r.VolumeRaw)));
-        }
-
-        static IEnumerable<SummaryStatVm> Jobs(List<WorklistRowVm> rows, IndustryPool pool)
-        {
-            var j = rows.Where(r => r.Pool == pool).ToList();
-            yield return new("Jobs",          j.Count.ToString("N0"));
-            yield return new("Output value",  StationNeedRowVm.Isk(j.Sum(r => r.Value)));
-            yield return new("Output volume", M3(j.Sum(r => r.VolumeRaw)));
-        }
-
-        static string M3(double v) => v >= 1_000_000 ? $"{v / 1_000_000:N1}M m³"
-                                    : v >= 1_000     ? $"{v / 1_000:N0}k m³"
-                                    : $"{v:N0} m³";
     }
 
     private bool Matches(WorklistRowVm r) =>
@@ -603,16 +858,35 @@ public class WorklistViewModel : ReactiveObject
         ApplyFilters();
     }
 
+    /// <summary>
+    /// How many items are actually ready, counted off the data rather than off what is on screen.
+    ///
+    /// <para>⚠️ Not <c>_pool.Count</c>. The pool is what the two checkboxes allow through, so with
+    /// blocked and waiting shown it counted those as ready too — 433 ready where 147 were. Nor is
+    /// it <c>Rows.Count</c>: filtering to one character does not make the other characters' work
+    /// unready, it just stops showing it.</para>
+    /// </summary>
+    private int _readyTotal;
+
+    /// <summary>The ready count on its own, for the summary strip's headline figure. Same number
+    /// as <see cref="Status"/> opens with — one field, shown twice, rather than two counts that
+    /// could disagree.</summary>
+    private string _readyCountText = "0";
+    public string ReadyCountText { get => _readyCountText; private set => this.RaiseAndSetIfChanged(ref _readyCountText, value); }
+
     private void UpdateStatus()
     {
-        var shown = Rows.Count;
-        var pool  = _pool.Count;
+        ReadyCountText = _readyTotal.ToString("N0");
 
-        Status = pool == 0
-            ? $"Nothing ready{_hiddenTail}."
-            : HasFilters
-                ? $"{shown:N0} of {pool:N0} ready{_hiddenTail}"
-                : $"{pool:N0} ready{_hiddenTail}";
+        var shown = Rows.Count;
+
+        // "Shown" is only worth saying when it differs from the ready count — otherwise the two
+        // numbers are the same fact stated twice.
+        var shownPart = shown == _readyTotal ? "" : $"  ·  {shown:N0} shown";
+
+        Status = _readyTotal == 0
+            ? $"Nothing ready{shownPart}{_hiddenTail}."
+            : $"{_readyTotal:N0} ready{shownPart}{_hiddenTail}";
     }
 
     private bool _isLoading;
@@ -651,12 +925,24 @@ public class WorklistViewModel : ReactiveObject
                 // Numbered here, off the ordered list, so the sequence is the default order itself
                 // rather than a second guess at it.
                 _pool = visible.Select((i, n) => new WorklistRowVm(i, n + 1)).ToList();
+
+                // The Overview sections bind here rather than to Rows: they have no filter row of
+                // their own, and inheriting whatever the tool happened to be filtered to would make
+                // a dashboard panel change behind the user for reasons not visible on it.
+                PoolRows.Clear();
+                foreach (var r in _pool) PoolRows.Add(r);
+                _lastRefreshUtc = DateTimeOffset.UtcNow;
+
                 RebuildFilterOptions();
                 ApplyFilters();
 
                 var snoozed  = run.AllItems.Count(i => i.IsSnoozed);
                 var blocked  = unsnoozed.Count(i => i.Readiness == WorklistReadiness.Blocked);
                 var waiting  = unsnoozed.Count(i => i.Readiness == WorklistReadiness.Waiting);
+
+                // Counted here, off the data, so neither checkbox nor filter can change it.
+                _readyTotal = unsnoozed.Count(i => i.Readiness == WorklistReadiness.Ready);
+                UpdateSummary(unsnoozed);
 
                 // Hidden counts are always reported, even when nothing is actionable. "Nothing to
                 // do" beside nine blocked items would be a lie of omission — there is plenty to

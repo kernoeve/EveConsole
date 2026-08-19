@@ -1,3 +1,4 @@
+using Avalonia.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -450,10 +451,138 @@ public class OverviewViewModel : ReactiveObject
 
         // Auto-refresh every 60 seconds — overview only reads local DB so this is fast.
         Observable.Interval(TimeSpan.FromSeconds(60))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOnUi("Overview.AutoRefresh")
             .Subscribe(n => _ = LoadAsync());
     }
 
+
+    /// <summary>
+    /// The Overview's first load, run once however many callers ask for it.
+    ///
+    /// <para>Startup awaits this before showing the main window, so the Overview is populated when
+    /// it appears rather than filling in underneath the user. The window asks for it too — a view
+    /// model can reach a window without going through startup — and the cached task makes the
+    /// second caller free rather than a duplicate pass over every section.</para>
+    /// </summary>
+    private Task? _firstLoad;
+    public Task EnsureLoadedAsync() => _firstLoad ??= LoadAsync();
+
+    // ── Worklist sections ─────────────────────────────────────────────────────
+    //
+    // The tool's own view model, shared rather than re-queried: a worklist run walks every
+    // generator, and a second copy on the Overview would double that cost to show the same rows.
+    // Set by MainWindowViewModel, like the sale-listing and income panels.
+
+    private WorklistViewModel? _worklist;
+    public WorklistViewModel? Worklist
+    {
+        get => _worklist;
+        set
+        {
+            _worklist = value;
+            if (value is null) return;
+
+            // ⚠️ Plain collections rebuilt on change, NOT DataGridCollectionView slices with a
+            // filter. The first attempt built filtered views here, at construction — when the
+            // worklist's first refresh is still running and PoolRows is empty — and the sections
+            // stayed blank after it arrived. Rebuilding on CollectionChanged is deterministic and
+            // does not depend on how a filtered view reacts to a source that fills later.
+            value.PoolRows.CollectionChanged += (_, _) => RebuildWorklistSections();
+            value.Needs.CollectionChanged    += (_, _) => this.RaisePropertyChanged(nameof(HasWorklistNeeds));
+
+            RebuildWorklistSections();
+            BuildGroupedViews();
+            this.RaisePropertyChanged(nameof(WorklistNeeds));
+            this.RaisePropertyChanged(nameof(HasWorklistNeeds));
+        }
+    }
+
+    public ObservableCollection<WorklistRowVm> WorklistAll  { get; } = [];
+    public ObservableCollection<WorklistRowVm> WorklistBuy  { get; } = [];
+    public ObservableCollection<WorklistRowVm> WorklistHaul { get; } = [];
+    public ObservableCollection<WorklistRowVm> WorklistJobs { get; } = [];
+
+    /// <summary>
+    /// The All section and Station Needs, grouped the way the tool groups them — by task kind and
+    /// by station. The grouping is what makes a mixed list readable; a dashboard copy without it
+    /// is just a longer list.
+    ///
+    /// <para>Built once the worklist is attached, as views over the collections above. Buy, Haul
+    /// and Jobs are deliberately ungrouped: every row in them is the same kind, so grouping would
+    /// add one header that repeats the section title.</para>
+    /// </summary>
+    private DataGridCollectionView? _worklistAllView;
+    private DataGridCollectionView? _worklistNeedsView;
+
+    public DataGridCollectionView? WorklistAllView   => _worklistAllView;
+    public DataGridCollectionView? WorklistNeedsView => _worklistNeedsView;
+
+
+    /// <summary>
+    /// Keeps the group key first in each grouped view's sort, so sorting a column reorders rows
+    /// INSIDE the groups and never moves the groups themselves.
+    ///
+    /// <para>⚠️ Without this, clicking a header replaces the sort outright and the grid regroups
+    /// around the new order — the groups shuffle and the panel looks like it sorted at random.
+    /// The tool solves it the same way; this is that logic for the Overview's two grouped
+    /// sections.</para>
+    /// </summary>
+    private bool _pinningGroups;
+
+    private void PinGroupOrder(DataGridCollectionView view, string groupPath)
+    {
+        if (_pinningGroups) return;                    // the insert below re-raises this
+        var sorts = view.SortDescriptions;
+        if (sorts.Count > 0 && sorts[0].PropertyPath == groupPath) return;
+
+        _pinningGroups = true;
+        try   { sorts.Insert(0, DataGridSortDescription.FromPath(groupPath)); }
+        finally { _pinningGroups = false; }
+    }
+
+    private void BuildGroupedViews()
+    {
+        if (_worklist is null || _worklistAllView is not null) return;
+
+        _worklistAllView = new DataGridCollectionView(WorklistAll);
+        _worklistAllView.GroupDescriptions.Add(
+            new DataGridPathGroupDescription(nameof(WorklistRowVm.KindText)));
+
+        _worklistAllView.SortDescriptions.CollectionChanged += (_, _) =>
+            PinGroupOrder(_worklistAllView, nameof(WorklistRowVm.KindRank));
+        PinGroupOrder(_worklistAllView, nameof(WorklistRowVm.KindRank));
+
+        _worklistNeedsView = new DataGridCollectionView(_worklist.Needs);
+        _worklistNeedsView.GroupDescriptions.Add(
+            new DataGridPathGroupDescription(nameof(StationNeedRowVm.Station)));
+
+        _worklistNeedsView.SortDescriptions.CollectionChanged += (_, _) =>
+            PinGroupOrder(_worklistNeedsView, nameof(StationNeedRowVm.Station));
+        PinGroupOrder(_worklistNeedsView, nameof(StationNeedRowVm.Station));
+
+        this.RaisePropertyChanged(nameof(WorklistAllView));
+        this.RaisePropertyChanged(nameof(WorklistNeedsView));
+    }
+
+    /// <summary>The needs report is the tool's own collection — no slicing needed, so no copy.</summary>
+    public ObservableCollection<StationNeedRowVm>? WorklistNeeds => _worklist?.Needs;
+    public bool HasWorklistNeeds => _worklist?.Needs.Count > 0;
+
+    private void RebuildWorklistSections()
+    {
+        if (_worklist is null) return;
+
+        Fill(WorklistAll,  _worklist.PoolRows);
+        Fill(WorklistBuy,  _worklist.PoolRows.Where(r => r.IsBuy));
+        Fill(WorklistHaul, _worklist.PoolRows.Where(r => r.IsHaul));
+        Fill(WorklistJobs, _worklist.PoolRows.Where(r => r.IsJob));
+
+        static void Fill(ObservableCollection<WorklistRowVm> target, IEnumerable<WorklistRowVm> rows)
+        {
+            target.Clear();
+            foreach (var r in rows) target.Add(r);
+        }
+    }
     private bool _loadPending;
 
     public async Task LoadAsync()
@@ -716,6 +845,20 @@ public class OverviewViewModel : ReactiveObject
             await LoadStandingProjectsAsync();
 
             // ── Standing buy orders section ─────────────────────────────────────
+            // Worklist sections. Staleness-guarded rather than run every time: a worklist run walks
+            // every generator, and the Overview reloads once a minute.
+            if (Worklist is not null &&
+                (Shown("WorklistAll") || Shown("WorklistBuy") || Shown("WorklistHaul") ||
+                 Shown("WorklistJobs") || Shown("WorklistNeeds")))
+            {
+                Step("Worklist");
+                await Worklist.RefreshIfStaleAsync(TimeSpan.FromMinutes(5));
+
+                // The needs report is loaded lazily by the tool when its tab is opened, which the
+                // Overview never does — without this the section stays empty forever.
+                if (Shown("WorklistNeeds")) await Worklist.EnsureNeedsLoadedAsync();
+            }
+
             Step("Standing buy orders");
             await LoadStandingBuyOrdersAsync();
 
@@ -1054,7 +1197,10 @@ public class OverviewViewModel : ReactiveObject
 
         try
         {
-            var rows = await _standingBuyOrders!.BuildGridRowsAsync();
+            // ⚠️ Off() like every other section: awaiting the service directly ran its queries on
+            // the UI thread, which showed up as a quarter-second hitch once a minute and grows
+            // with every standing order defined.
+            var rows = await Off(() => _standingBuyOrders!.BuildGridRowsAsync());
 
             // Anything wrong floats to the top: missing first, then running low or
             // nearly expired, then the healthy ones. A panel this size is only worth
