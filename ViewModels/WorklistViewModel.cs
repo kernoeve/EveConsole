@@ -795,26 +795,47 @@ public class WorklistViewModel : ReactiveObject
     /// </summary>
     public ObservableCollection<SummaryStatVm> KindSummary  { get; } = [];
     public ObservableCollection<SummaryStatVm> StateSummary { get; } = [];
+    /// <summary>
+    /// When the last run finished. Absolute rather than "4 minutes ago": a relative label is only
+    /// honest while something keeps it ticking, and every row already carries its own data age.
+    /// </summary>
+    private string _refreshedText = "";
+    public string RefreshedText
+    {
+        get => _refreshedText;
+        private set => this.RaiseAndSetIfChanged(ref _refreshedText, value);
+    }
+
+    /// <summary>
+    /// How the list is built. Was a permanent paragraph above the grid, read once and then taking
+    /// three lines forever. Now shown only when the grid is empty — which is the one moment someone
+    /// is asking why there is nothing here.
+    /// </summary>
+    public const string HelpText =
+        "Items are rebuilt from live data each refresh — one disappears once the work is done. " +
+        "Detection runs off polled ESI data, so each row shows how old the data behind it is. " +
+        "The summary above is counted off the whole run, not the filters.";
+
 
     private void UpdateSummary(List<WorklistItem> items)
     {
         // Buy and Haul as themselves; Job split into its three pools, because "116 jobs" does not
         // tell you whether the evening is manufacturing or reactions. Empty ones are simply absent
         // rather than shown as zero.
+        //
+        // ⚠️ Ready items only, so the chips sum to the headline beside them. They used to count
+        // every unsnoozed item including blocked and waiting, which made "166 ready now" sit next
+        // to chips totalling 496 — two different questions answered in one row, with nothing
+        // saying so. How much is blocked is on the checkbox below, where it is acted on.
+        var ready = items.Where(i => i.Readiness == WorklistReadiness.Ready).ToList();
+
         Fill(KindSummary, new[]
             {
-                new SummaryStatVm("buy",           items.Count(i => i.Kind == WorklistKind.Buy).ToString("N0")),
-                new SummaryStatVm("haul",          items.Count(i => i.Kind == WorklistKind.Haul).ToString("N0")),
-                new SummaryStatVm("manufacturing", items.Count(i => i.Pool == IndustryPool.Manufacturing).ToString("N0")),
-                new SummaryStatVm("reactions",     items.Count(i => i.Pool == IndustryPool.Reaction).ToString("N0")),
-                new SummaryStatVm("science",       items.Count(i => i.Pool == IndustryPool.Science).ToString("N0")),
-            }
-            .Where(s => s.Value != "0"));
-
-        Fill(StateSummary, new[]
-            {
-                new SummaryStatVm("blocked", items.Count(i => i.Readiness == WorklistReadiness.Blocked).ToString("N0")),
-                new SummaryStatVm("waiting", items.Count(i => i.Readiness == WorklistReadiness.Waiting).ToString("N0")),
+                new SummaryStatVm("buy",           ready.Count(i => i.Kind == WorklistKind.Buy).ToString("N0")),
+                new SummaryStatVm("haul",          ready.Count(i => i.Kind == WorklistKind.Haul).ToString("N0")),
+                new SummaryStatVm("manufacturing", ready.Count(i => i.Pool == IndustryPool.Manufacturing).ToString("N0")),
+                new SummaryStatVm("reactions",     ready.Count(i => i.Pool == IndustryPool.Reaction).ToString("N0")),
+                new SummaryStatVm("science",       ready.Count(i => i.Pool == IndustryPool.Science).ToString("N0")),
             }
             .Where(s => s.Value != "0"));
 
@@ -932,6 +953,7 @@ public class WorklistViewModel : ReactiveObject
                 PoolRows.Clear();
                 foreach (var r in _pool) PoolRows.Add(r);
                 _lastRefreshUtc = DateTimeOffset.UtcNow;
+                RefreshedText   = $"Refreshed {DateTime.Now:HH:mm}";
 
                 RebuildFilterOptions();
                 ApplyFilters();

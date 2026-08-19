@@ -59,6 +59,10 @@
            for the same numbers to be read and reconciled. -->
       <Button Content="Refresh" Command="{Binding RefreshCommand}"
               IsEnabled="{Binding !IsLoading}" FontSize="11" Padding="10 4"/>
+      <!-- When the run happened. The rows carry their own data age, but nothing said when the list
+           itself was last built. -->
+      <TextBlock Text="{Binding RefreshedText}" FontSize="10" Foreground="#555566"
+                 VerticalAlignment="Center"/>
     </StackPanel>
 
     <TextBlock Grid.Row="1" Text="{Binding Errors}" IsVisible="{Binding HasErrors}"
@@ -103,32 +107,8 @@
             </ItemsControl.ItemTemplate>
           </ItemsControl>
 
-          <Rectangle Width="1" Fill="#252530" VerticalAlignment="Stretch" Margin="0 2"
-                     IsVisible="{Binding StateSummary.Count}"/>
-
-          <ItemsControl ItemsSource="{Binding StateSummary}" VerticalAlignment="Center">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate>
-                <StackPanel Orientation="Horizontal" Spacing="20"/>
-              </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="vm:SummaryStatVm">
-                <StackPanel>
-                  <TextBlock Text="{Binding Value}" FontSize="17" FontWeight="SemiBold"
-                             Foreground="#c8c8d8"/>
-                  <TextBlock Text="{Binding Label}" FontSize="11" Foreground="#7a7a88"
-                             Margin="0 1 0 0"/>
-                </StackPanel>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-
         </StackPanel>
       </Border>
-
-      <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
-                 Text="Items are rebuilt from live data each refresh — one disappears once the work is done. Detection runs off polled ESI data, so each row shows how old the data behind it is. The summary above follows the filters."/>
 
       <!-- Sat with the filters rather than up beside Refresh, because that is what they are: two
            more controls over which rows appear. The counts are of what each governs across the
@@ -142,53 +122,45 @@
                   FontSize="11" VerticalAlignment="Center"/>
       </StackPanel>
 
-      <!-- ⚠️ Labelled, because these no longer sit under the columns they filter. They used to
-           line up one-for-one; now the row body is a single Task cell and character, source and
-           destination have no column of their own to sit beneath, so an unlabelled control was a
-           dropdown with no way to tell what it narrowed. -->
-      <Grid ColumnDefinitions="0,80,90,230,150,190,190,230,Auto,*" RowDefinitions="Auto,Auto">
-        <Grid.Styles>
-          <Style Selector="TextBlock.filterLabel">
-            <Setter Property="FontSize"   Value="10"/>
-            <Setter Property="Foreground" Value="#555566"/>
-            <Setter Property="Margin"     Value="2 0 0 2"/>
-          </Style>
-        </Grid.Styles>
-
-        <TextBlock Grid.Row="0" Grid.Column="1" Text="State"       Classes="filterLabel"/>
-        <TextBlock Grid.Row="0" Grid.Column="2" Text="Task"        Classes="filterLabel"/>
-        <TextBlock Grid.Row="0" Grid.Column="3" Text="Task"        Classes="filterLabel"/>
-        <TextBlock Grid.Row="0" Grid.Column="4" Text="Character"   Classes="filterLabel"/>
-        <TextBlock Grid.Row="0" Grid.Column="5" Text="Source"      Classes="filterLabel"/>
-        <TextBlock Grid.Row="0" Grid.Column="6" Text="Destination" Classes="filterLabel"/>
-        <TextBlock Grid.Row="0" Grid.Column="7" Text="Note"        Classes="filterLabel"/>
-
-        <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding StateOptions}"
+      <!-- ⚠️ One row, with each control naming itself. Labels above doubled the height of the
+           filter band, and two adjacent controls were both labelled "Task" — one narrows the kind,
+           the other searches the text. They are now Type and Search. -->
+      <Grid ColumnDefinitions="80,90,230,150,190,190,230,Auto,*">
+        <ComboBox Grid.Column="0" ItemsSource="{Binding StateOptions}"
                   SelectedItem="{Binding StateFilter}" FontSize="11"
-                  HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
-        <ComboBox Grid.Row="1" Grid.Column="2" ItemsSource="{Binding TaskOptions}"
+                  PlaceholderText="State" HorizontalAlignment="Stretch" Margin="0 0 2 0"
+                  ToolTip.Tip="Ready, blocked or waiting"/>
+        <ComboBox Grid.Column="1" ItemsSource="{Binding TaskOptions}"
                   SelectedItem="{Binding TaskFilter}" FontSize="11"
-                  HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
-        <TextBox  Grid.Row="1" Grid.Column="3" Text="{Binding DescriptionFilter}" FontSize="11"
-                  Watermark="contains…" Margin="0 0 2 0"/>
-        <ComboBox Grid.Row="1" Grid.Column="4" ItemsSource="{Binding CharacterOptions}"
+                  PlaceholderText="Type" HorizontalAlignment="Stretch" Margin="0 0 2 0"
+                  ToolTip.Tip="Buy, haul, job and the rest"/>
+        <TextBox  Grid.Column="2" Text="{Binding DescriptionFilter}" FontSize="11"
+                  Watermark="Search task…" Margin="0 0 2 0"/>
+        <ComboBox Grid.Column="3" ItemsSource="{Binding CharacterOptions}"
                   SelectedItem="{Binding CharacterFilter}" FontSize="11"
-                  HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
-        <ComboBox Grid.Row="1" Grid.Column="5" ItemsSource="{Binding SourceOptions}"
+                  PlaceholderText="Character" HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
+        <ComboBox Grid.Column="4" ItemsSource="{Binding SourceOptions}"
                   SelectedItem="{Binding SourceFilter}" FontSize="11"
-                  HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
-        <ComboBox Grid.Row="1" Grid.Column="6" ItemsSource="{Binding DestOptions}"
+                  PlaceholderText="Source" HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
+        <ComboBox Grid.Column="5" ItemsSource="{Binding DestOptions}"
                   SelectedItem="{Binding DestFilter}" FontSize="11"
-                  HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
-        <TextBox  Grid.Row="1" Grid.Column="7" Text="{Binding NoteFilter}" FontSize="11"
-                  Watermark="contains…" Margin="0 0 2 0"
-                  ToolTip.Tip="Searches the detail, the blocked reason and the snooze line together — everything behind the row's information marker."/>
-        <Button   Grid.Row="1" Grid.Column="8" Content="Clear" Command="{Binding ClearFiltersCommand}"
+                  PlaceholderText="Destination" HorizontalAlignment="Stretch" Margin="0 0 2 0"/>
+        <TextBox  Grid.Column="6" Text="{Binding NoteFilter}" FontSize="11"
+                  Watermark="Search note…" Margin="0 0 2 0"
+                  ToolTip.Tip="Searches the detail, the blocked reason and the snooze line together — everything behind the row-s information marker."/>
+        <Button   Grid.Column="7" Content="Clear" Command="{Binding ClearFiltersCommand}"
                   IsVisible="{Binding HasFilters}"
                   FontSize="11" Padding="8 3" Background="Transparent"
                   BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
       </Grid>
     </StackPanel>
+
+    <!-- The explanation, in full, exactly when someone is asking why the list is empty. It sits
+         in the same cell as the grid rather than above it, so it costs nothing when there are rows. -->
+    <TextBlock Grid.Row="3" IsVisible="{Binding !Rows.Count}"
+               Text="{x:Static vm:WorklistViewModel.HelpText}"
+               FontSize="11" Foreground="#555566" TextWrapping="Wrap" MaxWidth="520"
+               HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
     <DataGrid Grid.Row="3" ItemsSource="{Binding RowsView}"
               IsReadOnly="True" AutoGenerateColumns="False" FontSize="12"
@@ -213,6 +185,21 @@
              32px minimum and its own indent — three times the weight of the rows it heads. The
              ToggleButton must keep the name PART_ExpanderButton: the grid finds collapse/expand by
              that name, and renaming it leaves a header that looks right and does nothing. -->
+
+        <!-- Snooze is a per-row action, revealed on hover. Opacity, not IsVisible: hiding it would
+             let the column collapse and the grid would twitch as the pointer moved. -->
+        <Style Selector="Button.snooze">
+          <Setter Property="Opacity" Value="0"/>
+        </Style>
+        <Style Selector="DataGridRow:pointerover Button.snooze">
+          <Setter Property="Opacity" Value="1"/>
+        </Style>
+
+        <!-- Right-aligned figures deserve right-aligned headers, or the label sits away from the
+             digits it names. -->
+        <Style Selector="DataGridColumnHeader.num">
+          <Setter Property="HorizontalContentAlignment" Value="Right"/>
+        </Style>
         <Style Selector="DataGridRowGroupHeader">
           <Setter Property="Background" Value="#12121a"/>
           <Setter Property="Foreground" Value="#c8a84b"/>
@@ -465,15 +452,26 @@
         <!-- Value and Volume: the two figures worth comparing across every kind, and the pair a
              hauler and a buyer each reach for. Blank rather than zero when unpriced — a science
              job has no stored blueprint value per ME level. -->
-        <DataGridTextColumn Header="Value" Binding="{Binding ValueText}" FontSize="12" Width="100"
-                            CellStyleClasses="num" SortMemberPath="Value"/>
-        <DataGridTextColumn Header="Volume" Binding="{Binding VolumeText}" FontSize="12" Width="110"
-                            CellStyleClasses="num" SortMemberPath="VolumeRaw"/>
+        <DataGridTextColumn Binding="{Binding ValueText}" FontSize="12" Width="100"
+                            CellStyleClasses="num" SortMemberPath="Value">
+          <DataGridTextColumn.Header>
+            <TextBlock Text="Value" HorizontalAlignment="Right"/>
+          </DataGridTextColumn.Header>
+        </DataGridTextColumn>
+        <DataGridTextColumn Binding="{Binding VolumeText}" FontSize="12" Width="110"
+                            CellStyleClasses="num" SortMemberPath="VolumeRaw">
+          <DataGridTextColumn.Header>
+            <TextBlock Text="Volume" HorizontalAlignment="Right"/>
+          </DataGridTextColumn.Header>
+        </DataGridTextColumn>
 
         <DataGridTemplateColumn Header="" Width="80">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
-              <Button Content="Snooze"
+              <!-- Shown on row hover. A button on all 166 rows is a lot of permanent chrome for
+                   an action taken on one of them; Opacity rather than IsVisible so the column does
+                   not resize as the pointer moves down the list. -->
+              <Button Content="Snooze" Classes="snooze"
                       Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).SnoozeCommand}"
                       CommandParameter="{Binding Key}"
                       FontSize="11" Padding="6 2" Background="Transparent"
