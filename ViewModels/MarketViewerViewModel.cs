@@ -344,14 +344,18 @@ public class MarketViewerViewModel : ReactiveObject
             var orderWhere = region is int r1
                 ? $"WHERE {PlayerOrders} AND {RegionExpr} = {r1}"
                 : $"WHERE {PlayerOrders} AND {RegionExpr} IS NOT NULL";
+            // Every SUM is wrapped: an ungrouped SUM over zero matching rows is NULL, not zero,
+            // and these columns map to non-nullable properties. COUNT is left alone — it already
+            // returns zero. Before this the whole summary threw on any empty order book, which
+            // every new install has until the first market poll lands.
             var o = (await db.Database.SqlQueryRaw<KpiOrderAgg>(
                 "SELECT " +
-                "SUM(CASE WHEN o.IsBuyOrder = 0 THEN 1 ELSE 0 END)                        AS SellCount, " +
-                "SUM(CASE WHEN o.IsBuyOrder = 0 THEN o.Price * o.VolumeRemain ELSE 0 END) AS SellIsk, " +
-                "COUNT(DISTINCT CASE WHEN o.IsBuyOrder = 0 THEN o.TypeId END)             AS SellTypes, " +
-                "SUM(CASE WHEN o.IsBuyOrder = 1 THEN 1 ELSE 0 END)                        AS BuyCount, " +
-                "SUM(CASE WHEN o.IsBuyOrder = 1 THEN o.Price * o.VolumeRemain ELSE 0 END) AS BuyIsk, " +
-                "COUNT(DISTINCT CASE WHEN o.IsBuyOrder = 1 THEN o.TypeId END)             AS BuyTypes " +
+                "COALESCE(SUM(CASE WHEN o.IsBuyOrder = 0 THEN 1 ELSE 0 END), 0)                        AS SellCount, " +
+                "COALESCE(SUM(CASE WHEN o.IsBuyOrder = 0 THEN o.Price * o.VolumeRemain ELSE 0 END), 0) AS SellIsk, " +
+                "COUNT(DISTINCT CASE WHEN o.IsBuyOrder = 0 THEN o.TypeId END)                          AS SellTypes, " +
+                "COALESCE(SUM(CASE WHEN o.IsBuyOrder = 1 THEN 1 ELSE 0 END), 0)                        AS BuyCount, " +
+                "COALESCE(SUM(CASE WHEN o.IsBuyOrder = 1 THEN o.Price * o.VolumeRemain ELSE 0 END), 0) AS BuyIsk, " +
+                "COUNT(DISTINCT CASE WHEN o.IsBuyOrder = 1 THEN o.TypeId END)                          AS BuyTypes " +
                 OrdersFrom + " " + orderWhere).ToListAsync()).FirstOrDefault() ?? new KpiOrderAgg();
 
             // Sales KPIs — driven by the selected period.
@@ -360,7 +364,7 @@ public class MarketViewerViewModel : ReactiveObject
             if (cutoff is not null)     saleConds.Add($"Date >= '{cutoff}'");
             var saleWhere = saleConds.Count > 0 ? "WHERE " + string.Join(" AND ", saleConds) + " " : "";
             var s = (await db.Database.SqlQueryRaw<KpiSalesAgg>(
-                "SELECT SUM(Volume) AS Units, SUM(Volume * Average) AS Isk, " +
+                "SELECT COALESCE(SUM(Volume), 0) AS Units, COALESCE(SUM(Volume * Average), 0) AS Isk, " +
                 "COUNT(DISTINCT CASE WHEN Volume > 0 THEN TypeId END) AS Types " +
                 "FROM MarketTypeHistories " + saleWhere).ToListAsync()).FirstOrDefault() ?? new KpiSalesAgg();
 
