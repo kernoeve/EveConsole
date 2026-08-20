@@ -460,7 +460,7 @@ public class MarketPricingService
                 [configId, deleteBatch], ct);
 
             if (removed < deleteBatch) break;
-            await Task.Yield();   // let a polling write in between passes
+            await BreatheAsync(ct);   // a real gap, so a polling write can actually get in
         }
 
         if (orders.Count == 0) return;
@@ -481,8 +481,7 @@ public class MarketPricingService
                 db.ChangeTracker.Clear();
             }
             await tx.CommitAsync(ct);
-            // Yield briefly so other async work (polling writes, UI events) can run.
-            await Task.Yield();
+            await BreatheAsync(ct);
         }
         db.ChangeTracker.AutoDetectChangesEnabled = true;
 
@@ -553,9 +552,21 @@ public class MarketPricingService
     private static async Task UpsertPricesAsync(
         int configId, List<MarketItemPrice> prices, AppDbContext db, CancellationToken ct)
     {
-        await db.MarketItemPrices
-            .Where(p => p.ConfigId == configId)
-            .ExecuteDeleteAsync(ct);
+        // Chunked and paced for the same reason as the orders delete beside it: one statement over
+        // a whole config is one transaction holding the write lock for all of it.
+        const int deleteBatch = 20_000;
+        while (true)
+        {
+            var removed = await db.Database.ExecuteSqlRawAsync(
+                """
+                DELETE FROM "MarketItemPrices" WHERE rowid IN (
+                    SELECT rowid FROM "MarketItemPrices" WHERE "ConfigId" = {0} LIMIT {1})
+                """,
+                [configId, deleteBatch], ct);
+
+            if (removed < deleteBatch) break;
+            await BreatheAsync(ct);
+        }
 
         if (prices.Count == 0) return;
 
@@ -573,10 +584,28 @@ public class MarketPricingService
                 db.ChangeTracker.Clear();
             }
             await tx.CommitAsync(ct);
-            await Task.Yield();
+            await BreatheAsync(ct);
         }
         db.ChangeTracker.AutoDetectChangesEnabled = true;
     }
+
+    /// <summary>
+    /// A real gap between batches, so another writer can actually get in.
+    ///
+    /// <para>⚠️ This was <c>Task.Yield()</c>, on the reasoning that it let other async work run. It
+    /// does — but it reschedules in microseconds, so the next batch retook the write lock before
+    /// anything else could reach it, and the refresh held the lock effectively without pause for
+    /// its whole run. SQLite does not queue writers fairly: a competing write retries into a lock
+    /// that has already been retaken, again and again, until its thirty-second timeout expires and
+    /// it is refused. That is what produced dozens of "database is locked" failures across every
+    /// other service while this ran, and none of them could name what was in the way, because
+    /// nothing was holding the lock for long — it was simply never free for long enough.</para>
+    ///
+    /// <para>Fifty milliseconds is far longer than any of those writes needs and costs this refresh
+    /// a few seconds an hour, which is the trade worth making — it runs once an hour and everything
+    /// else runs constantly.</para>
+    /// </summary>
+    private static Task BreatheAsync(CancellationToken ct) => Task.Delay(50, ct);
 
     // ── Price gap fill ────────────────────────────────────────────────────────
     // After market data is stored, every published SDE type gets a row:
