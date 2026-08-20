@@ -108,6 +108,16 @@ public class IndyStructureLinkService(IDbContextFactory<AppDbContext> dbFactory,
                 ? await RealToParkAsync(db, link, ct)
                 : await ParkToRealAsync(db, link, ct);
 
+            // Then fill in whatever the structure still cannot describe. A facility can know its
+            // rigs and nothing about its services — an imported park writes the rigs, so the next
+            // adopt lands exactly there — and taking only what it knows would leave the services
+            // sitting in the park with nothing to show for them in the browser. Skipped when
+            // assets describe the structure, because then the game has already answered for every
+            // band and the park has nothing to add. Writing what is already there changes nothing,
+            // so this is a no-op whenever the two sides already agree.
+            if (!await IsAssetFedAsync(db, link.RealId, ct))
+                changed += await ParkToRealAsync(db, link, ct);
+
             if (changed > 0) await db.SaveChangesAsync(ct);
             LastChanged = changed;
             return changed;
@@ -183,8 +193,25 @@ public class IndyStructureLinkService(IDbContextFactory<AppDbContext> dbFactory,
     {
         var (rigs, services) = await ReadRealAsync(db, link.RealId, ct);
 
-        return await WriteParkRigsAsync(db, link.ParkId, rigs, ct)
-             + await WriteParkServicesAsync(db, link.ParkId, services, ct);
+        // ⚠️ Decided per BAND, not per structure. A structure can know about its rigs and nothing
+        // about its services, and rewriting both from it then erases the park's services on the
+        // strength of knowing about rigs. That is not hypothetical: importing a park writes its
+        // rigs onto the facility, so the next adopt sees rigs there, comes down this path, and
+        // deletes the services the same import had just stored — measured, twice.
+        //
+        // The rule ReadRealAsync already states for assets applies to each band on its own: empty
+        // means "nobody has said" and must not overwrite the park, which may hold the only record.
+        // Assets are the one source entitled to say a structure has none, so only then is an empty
+        // band an answer rather than a silence.
+        var assetFed = await IsAssetFedAsync(db, link.RealId, ct);
+
+        var changed = 0;
+        if (assetFed || rigs.Count > 0)
+            changed += await WriteParkRigsAsync(db, link.ParkId, rigs, ct);
+        if (assetFed || services.Count > 0)
+            changed += await WriteParkServicesAsync(db, link.ParkId, services, ct);
+
+        return changed;
     }
 
     /// <summary>

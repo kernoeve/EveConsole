@@ -544,17 +544,24 @@ public class IndyParksViewModel : ReactiveObject
     private readonly IndyStructureLinkService? _indyLink;
     private readonly IndyBulkAddService?       _bulkAdd;
 
+    /// <summary>Asks ESI about the structures an imported park links to. Optional like the rest:
+    /// without it the import still stands up the rows, and the next structure sweep resolves
+    /// them.</summary>
+    private readonly EsiPollingService?        _polling;
+
     public IndyParksViewModel(IDbContextFactory<AppDbContext> dbFactory,
                               CorpActivityService? corpActivity = null,
                               AppErrorLogger? errorLogger = null,
                               IndyStructureLinkService? indyLink = null,
-                              IndyBulkAddService? bulkAdd = null)
+                              IndyBulkAddService? bulkAdd = null,
+                              EsiPollingService? polling = null)
     {
         _dbFactory    = dbFactory;
         _corpActivity = corpActivity;
         _errorLogger  = errorLogger;
         _indyLink     = indyLink;
         _bulkAdd      = bulkAdd;
+        _polling      = polling;
 
         LoadRigsFromSde();
 
@@ -574,6 +581,24 @@ public class IndyParksViewModel : ReactiveObject
         AddServiceCommand         = ReactiveCommand.CreateFromTask<StructureVm>(AddServiceAsync);
         RemoveServiceCommand      = ReactiveCommand.CreateFromTask<ServiceModuleVm>(
                                         s => RemoveServiceAsync(s.Owner, s));
+
+        // ⚠️ A ReactiveCommand that throws does not merely fail that click — the exception breaks
+        // its observable pipeline and the command is dead for the rest of the session, silently.
+        // Deleting a park did exactly that: one "database is locked" while the pollers were busy,
+        // and the button stopped responding entirely, which reads as a hang rather than an error.
+        // Observing ThrownExceptions keeps the pipeline alive and puts the reason in the log.
+        foreach (var thrown in new[]
+                 {
+                     AddParkCommand.ThrownExceptions,          DeleteParkCommand.ThrownExceptions,
+                     SetDefaultParkCommand.ThrownExceptions,   AddStructureCommand.ThrownExceptions,
+                     AddAllInSystemCommand.ThrownExceptions,   AutoAssignCommand.ThrownExceptions,
+                     RemoveStructureCommand.ThrownExceptions,  SaveStructureCommand.ThrownExceptions,
+                     SearchFacilityCommand.ThrownExceptions,   LinkFacilityCommand.ThrownExceptions,
+                     UnlinkFacilityCommand.ThrownExceptions,   AddItemExceptionCommand.ThrownExceptions,
+                     RemoveItemExceptionCommand.ThrownExceptions, AddServiceCommand.ThrownExceptions,
+                     RemoveServiceCommand.ThrownExceptions,
+                 })
+            thrown.Subscribe(ex => _errorLogger?.Log(nameof(IndyParksViewModel), "command", ex));
 
         this.WhenAnyValue(x => x.ParkName)
             .Skip(1)
@@ -700,14 +725,26 @@ public class IndyParksViewModel : ReactiveObject
         var id = _selectedPark.Id;
 
         await using var db = await _dbFactory.CreateDbContextAsync();
-        await db.IndyCategoryAssignments.Where(a => a.ParkId == id).ExecuteDeleteAsync();
-        await db.IndyItemExceptions.Where(e => e.ParkId == id).ExecuteDeleteAsync();
+
         var structIds = await db.IndyStructures.Where(s => s.ParkId == id)
             .Select(s => s.Id).ToListAsync();
-        foreach (var sid in structIds)
-            await db.IndyStructureRigs.Where(r => r.StructureId == sid).ExecuteDeleteAsync();
+
+        // ⚠️ One transaction, not six. Each ExecuteDelete takes the write lock on its own, so a
+        // park deleted while the pollers are busy could fail partway and leave a park stripped of
+        // its assignments but still listed. It also took the lock once per structure for the rigs,
+        // which is where a fourteen-facility park spent its time.
+        await using var tx = await db.Database.BeginTransactionAsync();
+
+        await db.IndyCategoryAssignments.Where(a => a.ParkId == id).ExecuteDeleteAsync();
+        await db.IndyItemExceptions.Where(e => e.ParkId == id).ExecuteDeleteAsync();
+        await db.IndyStructureRigs.Where(r => structIds.Contains(r.StructureId)).ExecuteDeleteAsync();
+        // Services were never deleted here, so every park removed since they were added left its
+        // service rows behind, orphaned against structure ids that no longer exist.
+        await db.IndyStructureServices.Where(v => structIds.Contains(v.StructureId)).ExecuteDeleteAsync();
         await db.IndyStructures.Where(s => s.ParkId == id).ExecuteDeleteAsync();
         await db.IndyParks.Where(p => p.Id == id).ExecuteDeleteAsync();
+
+        await tx.CommitAsync();
 
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
@@ -1511,6 +1548,7 @@ public class IndyParksViewModel : ReactiveObject
         var structures = await db.IndyStructures.AsNoTracking().Where(s => s.ParkId == parkId).OrderBy(s => s.Id).ToListAsync();
         var structIds  = structures.Select(s => s.Id).ToList();
         var rigs       = await db.IndyStructureRigs.AsNoTracking().Where(r => structIds.Contains(r.StructureId)).ToListAsync();
+        var services   = await db.IndyStructureServices.AsNoTracking().Where(s => structIds.Contains(s.StructureId)).ToListAsync();
         var catAsgn    = await db.IndyCategoryAssignments.AsNoTracking().Where(a => a.ParkId == parkId).ToListAsync();
         var itemExc    = await db.IndyItemExceptions.AsNoTracking().Where(e => e.ParkId == parkId).ToListAsync();
 
@@ -1521,7 +1559,8 @@ public class IndyParksViewModel : ReactiveObject
                 Enumerable.Range(0, 3).Select(slot =>
                     rigs.FirstOrDefault(r => r.StructureId == s.Id && r.SlotIndex == slot)?.RigTypeId ?? 0
                 ).ToList(),
-                s.RealStructureId, s.RealStructureName
+                s.RealStructureId, s.RealStructureName,
+                services.Where(v => v.StructureId == s.Id).Select(v => v.TypeId).ToList()
             )).ToList(),
             catAsgn.Select(a => new CategoryAssignmentExportDto(
                 a.CategoryKey,
@@ -1550,7 +1589,7 @@ public class IndyParksViewModel : ReactiveObject
         await db.SaveChangesAsync();
 
         var structureIds = new List<int>();
-        var pendingRigs  = new List<(IndyStructure Structure, List<int> RigTypeIds)>();
+        var pendingRigs  = new List<(IndyStructure Structure, List<int> RigTypeIds, List<int> ServiceTypeIds)>();
 
         foreach (var s in dto.Structures)
         {
@@ -1567,7 +1606,7 @@ public class IndyParksViewModel : ReactiveObject
                 RealStructureName = s.RealStructureName,
             };
             db.IndyStructures.Add(structure);
-            pendingRigs.Add((structure, s.RigTypeIds));
+            pendingRigs.Add((structure, s.RigTypeIds, s.ServiceTypeIds ?? []));
         }
 
         // One write for every structure, then one for every rig slot — not two per structure in
@@ -1576,7 +1615,59 @@ public class IndyParksViewModel : ReactiveObject
         await db.SaveChangesAsync();   // assigns the ids the rigs need
         structureIds.AddRange(pendingRigs.Select(p => p.Structure.Id));
 
-        foreach (var (structure, rigTypeIds) in pendingRigs)
+        // ── The facilities the park is linked to ───────────────────────────────
+        //
+        // A park shared with someone else names structures they have very likely never met, and a
+        // link to an id with no row behind it is a link to nothing: the fitting push refuses to
+        // invent a structure record (IndyStructureLinkService.ParkToRealAsync), so the facility
+        // would be missing from the Structure Browser and the park's rigs would never reach it.
+        //
+        // So the import seeds the row itself, the same way the Structure Browser's add-by-id does
+        // for a structure ESI cannot resolve — id, the name the export carried, the hull the park
+        // entry names, and marked as the user's rather than ESI's.
+        //
+        // ⚠️ The system is deliberately NOT taken from the park entry. A park's structures need not
+        // all be in the park's own system: of the fourteen entries in the C-FD0D park here, two
+        // link to structures in 78R-PI and RH0-EG. So SolarSystemId, the owner and the position
+        // stay empty until something that actually knows — ESI, or the EVE Ref snapshot — fills
+        // them in. The resolve kicked off below is what asks.
+        var linkedIds = pendingRigs
+            .Select(p => p.Structure)
+            .Where(s => s.RealStructureId is > 0)
+            .ToList();
+
+        // The facilities this import is the first to mention. Only these are seeded, and only
+        // these are worth an ESI call — a structure already in the table has been through the
+        // lookup once and is kept current by the sweep like any other.
+        var newFacilityIds = new List<long>();
+
+        if (linkedIds.Count > 0)
+        {
+            var wanted = linkedIds.Select(s => s.RealStructureId!.Value).Distinct().ToList();
+            var known  = await db.Structures.AsNoTracking()
+                .Where(s => wanted.Contains(s.StructureId))
+                .Select(s => s.StructureId)
+                .ToListAsync();
+
+            newFacilityIds.AddRange(wanted.Except(known));
+
+            foreach (var missing in newFacilityIds)
+            {
+                var named = linkedIds.First(s => s.RealStructureId == missing);
+                db.Structures.Add(new Structure
+                {
+                    StructureId = missing,
+                    Name        = named.RealStructureName,
+                    TypeId      = IndyBulkAddService.TypeIdForKey(named.StructureTypeKey),
+                    UpdatedBy   = StructureSource.User,
+                    UpdatedAt   = DateTimeOffset.UtcNow,
+                });
+            }
+
+            if (newFacilityIds.Count > 0) await db.SaveChangesAsync();
+        }
+
+        foreach (var (structure, rigTypeIds, serviceTypeIds) in pendingRigs)
         {
             for (int slot = 0; slot < 3; slot++)
             {
@@ -1587,8 +1678,32 @@ public class IndyParksViewModel : ReactiveObject
                     RigTypeId   = slot < rigTypeIds.Count ? rigTypeIds[slot] : 0,
                 });
             }
+
+            foreach (var typeId in serviceTypeIds.Where(t => t > 0).Distinct())
+                db.IndyStructureServices.Add(new IndyStructureService
+                {
+                    StructureId = structure.Id,
+                    TypeId      = typeId,
+                });
         }
         await db.SaveChangesAsync();
+
+        // With the rigs and services stored, settle the fitting on each linked facility.
+        // AdoptOnLinkAsync rather than a push: this is a link being made, not an edit, so a
+        // structure the importer already knows something about — from assets or from a fitting
+        // they typed themselves — keeps what it knows, and only one nobody can describe takes the
+        // park's word for it. That is also what makes a re-import safe.
+        if (_indyLink is not null)
+            foreach (var s in linkedIds)
+                await _indyLink.AdoptOnLinkAsync(s.Id);
+
+        // Ask ESI about the facilities this import introduced, and wait for the answer: when the
+        // import returns the park should be finished, not still filling itself in. Only the new
+        // ones — a facility already in the table needs no call, and the sweep keeps it current the
+        // same as every other structure. A structure the importer cannot dock at keeps the name
+        // and hull the export carried, which is what those are for.
+        if (newFacilityIds.Count > 0 && _polling is not null)
+            await _polling.ResolveStructuresNowAsync(newFacilityIds);
 
         foreach (var a in dto.Assignments)
         {
@@ -1648,7 +1763,10 @@ file record StructureExportDto(
     // Optional with defaults so files written before the link existed still deserialise. They
     // import unlinked, which is exactly what they were.
     long? RealStructureId = null,
-    string RealStructureName = ""
+    string RealStructureName = "",
+    // Likewise: a file written before services were exported imports with none, which is what it
+    // described. Null rather than an empty list so the two cases stay distinguishable.
+    List<int>? ServiceTypeIds = null
 );
 
 file record CategoryAssignmentExportDto(string CategoryKey, int? StructureIndex);

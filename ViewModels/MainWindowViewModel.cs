@@ -595,7 +595,7 @@ public class MainWindowViewModel : ReactiveObject
         CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);
         ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService, dbFactory, appPrefs);
         IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger,
-                                                        indyStructureLink, indyBulkAdd);
+                                                        indyStructureLink, indyBulkAdd, pollingService);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
