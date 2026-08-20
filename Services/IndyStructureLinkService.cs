@@ -108,6 +108,16 @@ public class IndyStructureLinkService(IDbContextFactory<AppDbContext> dbFactory,
                 ? await RealToParkAsync(db, link, ct)
                 : await ParkToRealAsync(db, link, ct);
 
+            // Then fill in whatever the structure still cannot describe. A facility can know its
+            // rigs and nothing about its services — an imported park writes the rigs, so the next
+            // adopt lands exactly there — and taking only what it knows would leave the services
+            // sitting in the park with nothing to show for them in the browser. Skipped when
+            // assets describe the structure, because then the game has already answered for every
+            // band and the park has nothing to add. Writing what is already there changes nothing,
+            // so this is a no-op whenever the two sides already agree.
+            if (!await IsAssetFedAsync(db, link.RealId, ct))
+                changed += await ParkToRealAsync(db, link, ct);
+
             if (changed > 0) await db.SaveChangesAsync(ct);
             LastChanged = changed;
             return changed;
