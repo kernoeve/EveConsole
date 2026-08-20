@@ -1606,6 +1606,11 @@ public class IndyParksViewModel : ReactiveObject
             .Where(s => s.RealStructureId is > 0)
             .ToList();
 
+        // The facilities this import is the first to mention. Only these are seeded, and only
+        // these are worth an ESI call — a structure already in the table has been through the
+        // lookup once and is kept current by the sweep like any other.
+        var newFacilityIds = new List<long>();
+
         if (linkedIds.Count > 0)
         {
             var wanted = linkedIds.Select(s => s.RealStructureId!.Value).Distinct().ToList();
@@ -1614,7 +1619,9 @@ public class IndyParksViewModel : ReactiveObject
                 .Select(s => s.StructureId)
                 .ToListAsync();
 
-            foreach (var missing in wanted.Except(known))
+            newFacilityIds.AddRange(wanted.Except(known));
+
+            foreach (var missing in newFacilityIds)
             {
                 var named = linkedIds.First(s => s.RealStructureId == missing);
                 db.Structures.Add(new Structure
@@ -1627,7 +1634,7 @@ public class IndyParksViewModel : ReactiveObject
                 });
             }
 
-            if (wanted.Count != known.Count) await db.SaveChangesAsync();
+            if (newFacilityIds.Count > 0) await db.SaveChangesAsync();
         }
 
         foreach (var (structure, rigTypeIds, serviceTypeIds) in pendingRigs)
@@ -1660,13 +1667,13 @@ public class IndyParksViewModel : ReactiveObject
             foreach (var s in linkedIds)
                 await _indyLink.AdoptOnLinkAsync(s.Id);
 
-        // Ask ESI about the facilities, and wait for the answer: when the import returns the park
-        // should be finished, not still filling itself in. Only these ids are resolved, so this is
-        // one call per facility rather than the full sweep. A structure the importer cannot dock
-        // at keeps the name and hull the export carried, which is what those are for.
-        if (linkedIds.Count > 0 && _polling is not null)
-            await _polling.ResolveStructuresNowAsync(
-                linkedIds.Select(s => s.RealStructureId!.Value).Distinct().ToList());
+        // Ask ESI about the facilities this import introduced, and wait for the answer: when the
+        // import returns the park should be finished, not still filling itself in. Only the new
+        // ones — a facility already in the table needs no call, and the sweep keeps it current the
+        // same as every other structure. A structure the importer cannot dock at keeps the name
+        // and hull the export carried, which is what those are for.
+        if (newFacilityIds.Count > 0 && _polling is not null)
+            await _polling.ResolveStructuresNowAsync(newFacilityIds);
 
         foreach (var a in dto.Assignments)
         {
