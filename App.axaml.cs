@@ -2586,9 +2586,14 @@ public class App : Application
         // Database — path can be overridden via config.json (see AppConfig)
         var dbPath = AppConfig.GetDbPath();
         Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
-        services.AddDbContextFactory<AppDbContext>(options =>
+        // ⚠️ The provider is resolved here only for the error logger the contention interceptor
+        // reports through. It is a singleton whose own dependency is IServiceScopeFactory, so
+        // nothing is constructed early and there is no cycle back into this factory.
+        services.AddDbContextFactory<AppDbContext>((sp, options) =>
             options.UseSqlite($"Data Source={dbPath}")
-                   .AddInterceptors(new DisableForeignKeysInterceptor()));
+                   .AddInterceptors(
+                       new DisableForeignKeysInterceptor(),
+                       new WriteContentionInterceptor(sp.GetRequiredService<AppErrorLogger>())));
 
         // Named HTTP client for the ESI API (used by singleton EsiClient)
         services.AddHttpClient("esi", client =>
