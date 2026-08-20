@@ -183,8 +183,25 @@ public class IndyStructureLinkService(IDbContextFactory<AppDbContext> dbFactory,
     {
         var (rigs, services) = await ReadRealAsync(db, link.RealId, ct);
 
-        return await WriteParkRigsAsync(db, link.ParkId, rigs, ct)
-             + await WriteParkServicesAsync(db, link.ParkId, services, ct);
+        // ⚠️ Decided per BAND, not per structure. A structure can know about its rigs and nothing
+        // about its services, and rewriting both from it then erases the park's services on the
+        // strength of knowing about rigs. That is not hypothetical: importing a park writes its
+        // rigs onto the facility, so the next adopt sees rigs there, comes down this path, and
+        // deletes the services the same import had just stored — measured, twice.
+        //
+        // The rule ReadRealAsync already states for assets applies to each band on its own: empty
+        // means "nobody has said" and must not overwrite the park, which may hold the only record.
+        // Assets are the one source entitled to say a structure has none, so only then is an empty
+        // band an answer rather than a silence.
+        var assetFed = await IsAssetFedAsync(db, link.RealId, ct);
+
+        var changed = 0;
+        if (assetFed || rigs.Count > 0)
+            changed += await WriteParkRigsAsync(db, link.ParkId, rigs, ct);
+        if (assetFed || services.Count > 0)
+            changed += await WriteParkServicesAsync(db, link.ParkId, services, ct);
+
+        return changed;
     }
 
     /// <summary>
