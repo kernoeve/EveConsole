@@ -123,11 +123,28 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
-            // Most likely a primary-key collision from a concurrent write of the same bucket,
-            // which is exactly the case the design intends to be harmless.
+            // ⚠️ A constraint violation here is the expected outcome, not a fault. The check above
+            // cannot be atomic with the insert, so the live poller and the archive backfill can
+            // both pass it for the same hour and both write — which is precisely what the unique
+            // key is for, and the loser simply has nothing to add. Logging it filled the error log
+            // with a race the design already handles.
+            //
+            // Anything else is real and still reported.
+            if (IsConstraintViolation(ex)) return -1;
+
             errors?.Log("MapStats", $"store {dataset} {bucket}", ex);
             return -1;
         }
+    }
+
+    /// <summary>Whether this is SQLite refusing a duplicate, anywhere down the chain — EF wraps
+    /// the provider's exception, so the outer type says nothing about the cause.</summary>
+    private static bool IsConstraintViolation(Exception? ex)
+    {
+        for (; ex is not null; ex = ex.InnerException)
+            if (ex is Microsoft.Data.Sqlite.SqliteException { SqliteErrorCode: 19 })
+                return true;
+        return false;
     }
 
     // ── Reads for the overlays ───────────────────────────────────────────────
