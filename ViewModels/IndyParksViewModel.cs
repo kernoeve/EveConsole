@@ -1660,13 +1660,13 @@ public class IndyParksViewModel : ReactiveObject
             foreach (var s in linkedIds)
                 await _indyLink.AdoptOnLinkAsync(s.Id);
 
-        // Ask ESI about the facilities now rather than leaving them blank until the next sweep.
-        // Not awaited: the sweep resolves every outstanding structure, not only these, and the
-        // import has nothing further to do with the answer — the park is already usable, and each
-        // row fills in as the lookup returns. A structure the importer cannot dock at simply stays
-        // as the name and hull the export carried, which is the point of seeding those.
+        // Ask ESI about the facilities, and wait for the answer: when the import returns the park
+        // should be finished, not still filling itself in. Only these ids are resolved, so this is
+        // one call per facility rather than the full sweep. A structure the importer cannot dock
+        // at keeps the name and hull the export carried, which is what those are for.
         if (linkedIds.Count > 0 && _polling is not null)
-            _ = _polling.ForceResolveStructureNamesAsync();
+            await _polling.ResolveStructuresNowAsync(
+                linkedIds.Select(s => s.RealStructureId!.Value).Distinct().ToList());
 
         foreach (var a in dto.Assignments)
         {
