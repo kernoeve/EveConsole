@@ -1511,6 +1511,7 @@ public class IndyParksViewModel : ReactiveObject
         var structures = await db.IndyStructures.AsNoTracking().Where(s => s.ParkId == parkId).OrderBy(s => s.Id).ToListAsync();
         var structIds  = structures.Select(s => s.Id).ToList();
         var rigs       = await db.IndyStructureRigs.AsNoTracking().Where(r => structIds.Contains(r.StructureId)).ToListAsync();
+        var services   = await db.IndyStructureServices.AsNoTracking().Where(s => structIds.Contains(s.StructureId)).ToListAsync();
         var catAsgn    = await db.IndyCategoryAssignments.AsNoTracking().Where(a => a.ParkId == parkId).ToListAsync();
         var itemExc    = await db.IndyItemExceptions.AsNoTracking().Where(e => e.ParkId == parkId).ToListAsync();
 
@@ -1521,7 +1522,8 @@ public class IndyParksViewModel : ReactiveObject
                 Enumerable.Range(0, 3).Select(slot =>
                     rigs.FirstOrDefault(r => r.StructureId == s.Id && r.SlotIndex == slot)?.RigTypeId ?? 0
                 ).ToList(),
-                s.RealStructureId, s.RealStructureName
+                s.RealStructureId, s.RealStructureName,
+                services.Where(v => v.StructureId == s.Id).Select(v => v.TypeId).ToList()
             )).ToList(),
             catAsgn.Select(a => new CategoryAssignmentExportDto(
                 a.CategoryKey,
@@ -1550,7 +1552,7 @@ public class IndyParksViewModel : ReactiveObject
         await db.SaveChangesAsync();
 
         var structureIds = new List<int>();
-        var pendingRigs  = new List<(IndyStructure Structure, List<int> RigTypeIds)>();
+        var pendingRigs  = new List<(IndyStructure Structure, List<int> RigTypeIds, List<int> ServiceTypeIds)>();
 
         foreach (var s in dto.Structures)
         {
@@ -1567,7 +1569,7 @@ public class IndyParksViewModel : ReactiveObject
                 RealStructureName = s.RealStructureName,
             };
             db.IndyStructures.Add(structure);
-            pendingRigs.Add((structure, s.RigTypeIds));
+            pendingRigs.Add((structure, s.RigTypeIds, s.ServiceTypeIds ?? []));
         }
 
         // One write for every structure, then one for every rig slot — not two per structure in
@@ -1576,7 +1578,46 @@ public class IndyParksViewModel : ReactiveObject
         await db.SaveChangesAsync();   // assigns the ids the rigs need
         structureIds.AddRange(pendingRigs.Select(p => p.Structure.Id));
 
-        foreach (var (structure, rigTypeIds) in pendingRigs)
+        // ── The facilities the park is linked to ───────────────────────────────
+        //
+        // A park shared with someone else names structures they have very likely never met, and a
+        // link to an id with no row behind it is a link to nothing: the fitting push refuses to
+        // invent a structure record (IndyStructureLinkService.ParkToRealAsync), so the facility
+        // would be missing from the Structure Browser and the park's rigs would never reach it.
+        //
+        // So the import seeds the row itself, the same way the Structure Browser's add-by-id does
+        // for a structure ESI cannot resolve — id, the name the export carried, and marked as the
+        // user's rather than ESI's. System and type are left at zero: the export does not carry
+        // them, and the next sync fills them in if ESI or EVE Ref can describe the structure.
+        var linkedIds = pendingRigs
+            .Select(p => p.Structure)
+            .Where(s => s.RealStructureId is > 0)
+            .ToList();
+
+        if (linkedIds.Count > 0)
+        {
+            var wanted = linkedIds.Select(s => s.RealStructureId!.Value).Distinct().ToList();
+            var known  = await db.Structures.AsNoTracking()
+                .Where(s => wanted.Contains(s.StructureId))
+                .Select(s => s.StructureId)
+                .ToListAsync();
+
+            foreach (var missing in wanted.Except(known))
+            {
+                var named = linkedIds.First(s => s.RealStructureId == missing);
+                db.Structures.Add(new Structure
+                {
+                    StructureId = missing,
+                    Name        = named.RealStructureName,
+                    UpdatedBy   = StructureSource.User,
+                    UpdatedAt   = DateTimeOffset.UtcNow,
+                });
+            }
+
+            if (wanted.Count != known.Count) await db.SaveChangesAsync();
+        }
+
+        foreach (var (structure, rigTypeIds, serviceTypeIds) in pendingRigs)
         {
             for (int slot = 0; slot < 3; slot++)
             {
@@ -1587,8 +1628,24 @@ public class IndyParksViewModel : ReactiveObject
                     RigTypeId   = slot < rigTypeIds.Count ? rigTypeIds[slot] : 0,
                 });
             }
+
+            foreach (var typeId in serviceTypeIds.Where(t => t > 0).Distinct())
+                db.IndyStructureServices.Add(new IndyStructureService
+                {
+                    StructureId = structure.Id,
+                    TypeId      = typeId,
+                });
         }
         await db.SaveChangesAsync();
+
+        // With the rigs and services stored, settle the fitting on each linked facility.
+        // AdoptOnLinkAsync rather than a push: this is a link being made, not an edit, so a
+        // structure the importer already knows something about — from assets or from a fitting
+        // they typed themselves — keeps what it knows, and only one nobody can describe takes the
+        // park's word for it. That is also what makes a re-import safe.
+        if (_indyLink is not null)
+            foreach (var s in linkedIds)
+                await _indyLink.AdoptOnLinkAsync(s.Id);
 
         foreach (var a in dto.Assignments)
         {
@@ -1648,7 +1705,10 @@ file record StructureExportDto(
     // Optional with defaults so files written before the link existed still deserialise. They
     // import unlinked, which is exactly what they were.
     long? RealStructureId = null,
-    string RealStructureName = ""
+    string RealStructureName = "",
+    // Likewise: a file written before services were exported imports with none, which is what it
+    // described. Null rather than an empty list so the two cases stay distinguishable.
+    List<int>? ServiceTypeIds = null
 );
 
 file record CategoryAssignmentExportDto(string CategoryKey, int? StructureIndex);
