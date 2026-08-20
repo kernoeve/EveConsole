@@ -22,40 +22,92 @@ Keep in mind this application is still very green.  You are free to play around 
 <table align="center">
   <tr>
     <td align="center" width="33%">
-      <a href="media/screenshots/Screenshot1.png"><img src="media/screenshots/Screenshot1.png" alt="EVE Console screenshot" width="280"></a>
+      <a href="media/screenshots/Screenshot11.png"><img src="media/screenshots/Screenshot11.png" alt="Overview dashboard" width="280"></a>
+      <br><sub>Overview</sub>
     </td>
     <td align="center" width="33%">
-      <a href="media/screenshots/Screenshot2.png"><img src="media/screenshots/Screenshot2.png" alt="EVE Console screenshot" width="280"></a>
+      <a href="media/screenshots/Screenshot19.png"><img src="media/screenshots/Screenshot19.png" alt="Worklist across all characters" width="280"></a>
+      <br><sub>Worklist</sub>
     </td>
     <td align="center" width="33%">
-      <a href="media/screenshots/Screenshot3.png"><img src="media/screenshots/Screenshot3.png" alt="EVE Console screenshot" width="280"></a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="33%">
-      <a href="media/screenshots/Screenshot4.png"><img src="media/screenshots/Screenshot4.png" alt="EVE Console screenshot" width="280"></a>
-    </td>
-    <td align="center" width="33%">
-      <a href="media/screenshots/Screenshot5.png"><img src="media/screenshots/Screenshot5.png" alt="EVE Console screenshot" width="280"></a>
-    </td>
-    <td align="center" width="33%">
-      <a href="media/screenshots/Screenshot6.png"><img src="media/screenshots/Screenshot6.png" alt="EVE Console screenshot" width="280"></a>
+      <a href="media/screenshots/Screenshot12.png"><img src="media/screenshots/Screenshot12.png" alt="Universe map with sovereignty overlay" width="280"></a>
+      <br><sub>Universe Map</sub>
     </td>
   </tr>
   <tr>
     <td align="center" width="33%">
-      <a href="media/screenshots/Screenshot7.png"><img src="media/screenshots/Screenshot7.png" alt="EVE Console screenshot" width="280"></a>
+      <a href="media/screenshots/Screenshot13.png"><img src="media/screenshots/Screenshot13.png" alt="Region view with security overlay" width="280"></a>
+      <br><sub>Region View</sub>
     </td>
     <td align="center" width="33%">
-      <a href="media/screenshots/Screenshot8.png"><img src="media/screenshots/Screenshot8.png" alt="EVE Console screenshot" width="280"></a>
+      <a href="media/screenshots/Screenshot14.png"><img src="media/screenshots/Screenshot14.png" alt="System view" width="280"></a>
+      <br><sub>System View</sub>
     </td>
     <td align="center" width="33%">
-      <a href="media/screenshots/Screenshot9.png"><img src="media/screenshots/Screenshot9.png" alt="EVE Console screenshot" width="280"></a>
+      <a href="media/screenshots/Screenshot15.png"><img src="media/screenshots/Screenshot15.png" alt="Jump Planner capital route" width="280"></a>
+      <br><sub>Jump Planner</sub>
     </td>
   </tr>
   <tr>
     <td align="center" width="33%">
-      <a href="media/screenshots/Screenshot10.png"><img src="media/screenshots/Screenshot10.png" alt="EVE Console screenshot" width="280"></a>
+      <a href="media/screenshots/Screenshot4.png"><img src="media/screenshots/Screenshot4.png" alt="Market Overview dashboard" width="280"></a>
+      <br><sub>Market Overview</sub>
+    </td>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot16.png"><img src="media/screenshots/Screenshot16.png" alt="Sales Tracker" width="280"></a>
+      <br><sub>Sales Tracker</sub>
+    </td>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot17.png"><img src="media/screenshots/Screenshot17.png" alt="LP Market Values" width="280"></a>
+      <br><sub>LP Market Values</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot18.png"><img src="media/screenshots/Screenshot18.png" alt="Sale Posting builder" width="280"></a>
+      <br><sub>Sale Posting</sub>
+    </td>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot2.png"><img src="media/screenshots/Screenshot2.png" alt="Item Browser price history" width="280"></a>
+      <br><sub>Item Browser — Price History</sub>
+    </td>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot1.png"><img src="media/screenshots/Screenshot1.png" alt="Item Browser market orders" width="280"></a>
+      <br><sub>Item Browser — Market Orders</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot3.png"><img src="media/screenshots/Screenshot3.png" alt="Production Calculator" width="280"></a>
+      <br><sub>Production Calculator</sub>
+    </td>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot7.png"><img src="media/screenshots/Screenshot7.png" alt="Industry Opportunities" width="280"></a>
+      <br><sub>Industry Opportunities</sub>
+    </td>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot9.png"><img src="media/screenshots/Screenshot9.png" alt="Industry Jobs" width="280"></a>
+      <br><sub>Industry Jobs</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot6.png"><img src="media/screenshots/Screenshot6.png" alt="Trade Opportunities" width="280"></a>
+      <br><sub>Trade Opportunities</sub>
+    </td>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot8.png"><img src="media/screenshots/Screenshot8.png" alt="Inventory Levels" width="280"></a>
+      <br><sub>Inventory Levels</sub>
+    </td>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot5.png"><img src="media/screenshots/Screenshot5.png" alt="Market price-source settings" width="280"></a>
+      <br><sub>Market Settings</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot10.png"><img src="media/screenshots/Screenshot10.png" alt="Corp Activity" width="280"></a>
+      <br><sub>Corp Activity</sub>
     </td>
     <td align="center" width="33%"></td>
     <td align="center" width="33%"></td>
