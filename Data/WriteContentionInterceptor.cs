@@ -51,14 +51,36 @@ public sealed class WriteContentionInterceptor(AppErrorLogger log)
     /// </summary>
     public static string DescribeLongRunning(TimeSpan olderThan)
     {
-        var cutoff = DateTimeOffset.UtcNow - olderThan;
-        var stuck  = Running.Values.Where(v => v.StartedAt < cutoff)
-            .OrderBy(v => v.StartedAt).Take(3).ToList();
+        var now    = DateTimeOffset.UtcNow;
+        var cutoff = now - olderThan;
 
-        if (stuck.Count == 0) return "No statement has been in flight that long.";
+        var stuck = Running.Values.Where(v => v.StartedAt < cutoff)
+            .OrderBy(v => v.StartedAt).Take(3)
+            .Select(v => $"statement {(now - v.StartedAt).TotalSeconds:N0}s and counting: {v.Sql}")
+            .ToList();
 
-        return string.Join("  |  ", stuck.Select(v =>
-            $"{(DateTimeOffset.UtcNow - v.StartedAt).TotalSeconds:N0}s and counting: {v.Sql}"));
+        // ⚠️ Open transactions matter more than running statements, and were the missing half.
+        // A transaction with nothing currently executing still holds the write lock and still
+        // pins the log — so everyone queues behind it, nothing can be reclaimed, and there is not
+        // one long statement anywhere to find. Measured exactly that: the log at 787 MB, the lock
+        // held for thirty seconds at a time, and "no statement has been in flight that long".
+        // Transaction timing alone did not catch it either, because that reports on COMMIT and
+        // the commit is what never came.
+        stuck.AddRange(Transactions.Values.Where(started => started < cutoff)
+            .OrderBy(started => started).Take(3)
+            .Select(started => $"TRANSACTION open {(now - started).TotalSeconds:N0}s with nothing running in it"));
+
+        return stuck.Count == 0
+            ? "Nothing has been in flight or open that long."
+            : string.Join("  |  ", stuck);
+    }
+
+    /// <summary>How long the oldest open transaction has been open, or zero if none.</summary>
+    public static TimeSpan OldestOpenTransaction()
+    {
+        if (Transactions.IsEmpty) return TimeSpan.Zero;
+        var oldest = Transactions.Values.Min();
+        return DateTimeOffset.UtcNow - oldest;
     }
 
     private static readonly ConcurrentDictionary<Guid, InFlight> Running = new();

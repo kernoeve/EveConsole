@@ -321,7 +321,7 @@ public partial class CharacterView : UserControl
 
         foreach (var c in grid.Columns)
         {
-            c.IsVisible = c.Header as string switch
+            c.IsVisible = (c.Header as string) switch
             {
                 "Total" or "On hand"                                  => showContext,
                 "Order jobs" or "Jobs" or "Inv levels" or "Stn levels" => showSources,

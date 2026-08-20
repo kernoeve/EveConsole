@@ -42,6 +42,7 @@ public class WalCheckpointService(IDbContextFactory<AppDbContext> dbFactory, App
     private System.Timers.Timer? _timer;
     private int  _running;
     private bool _warned;
+    private bool _warnedTransaction;
 
     /// <summary>For the background-processes view.</summary>
     public string StatusText { get; private set; } = "WAL checkpoint: waiting";
@@ -81,6 +82,26 @@ public class WalCheckpointService(IDbContextFactory<AppDbContext> dbFactory, App
             if (took >= SlowCheckpointMs)
                 errorLogger.Log(nameof(WalCheckpointService), "slow checkpoint",
                     $"A passive checkpoint took {took / 1000.0:N1}s with the log at {before} MB.");
+
+            // ⚠️ Reported here rather than at commit, because the case that matters is the one
+            // that has not committed. A write transaction left open holds the lock against every
+            // other writer and stops the log being reclaimed, and it does so with no statement
+            // running — invisible to everything that watches statements finish. This pass runs
+            // every twenty seconds and is the only thing looking while it is still happening.
+            var openFor = WriteContentionInterceptor.OldestOpenTransaction();
+            if (openFor >= TimeSpan.FromSeconds(30) && !_warnedTransaction)
+            {
+                _warnedTransaction = true;
+                errorLogger.Log(nameof(WalCheckpointService), "transaction left open",
+                    $"A write transaction has been open {openFor.TotalSeconds:N0}s. While it is, no " +
+                    $"other write can proceed and the log cannot be reclaimed — the log is at " +
+                    $"{LastWalMb} MB. In flight: " +
+                    WriteContentionInterceptor.DescribeLongRunning(TimeSpan.FromSeconds(5)));
+            }
+            else if (openFor < TimeSpan.FromSeconds(5))
+            {
+                _warnedTransaction = false;
+            }
 
             // The log not coming down is the symptom worth chasing — it means something is holding
             // a read snapshot open, and no amount of checkpointing will help until it lets go.
