@@ -1607,14 +1607,24 @@ public class App : Application
             // buy orders below 10% of build cost as lowball. Runs only when the singleton
             // row is absent (fresh install). Resolves the Forge config id by region so it
             // does not depend on autoincrement ordering.
+            //
+            // EVERY NOT NULL COLUMN IS NAMED, and must stay that way. The CREATE TABLE above
+            // is dead code on a fresh install — EnsureCreated() has already built this table
+            // from the entity, and it emits no DEFAULT clauses, because a C# initialiser is
+            // not a SQL default. So the defaults written there only ever reach a database
+            // through the ALTERs, which is to say only on machines that predate the column.
+            // Omitting PurchaseWhenCheaper here is what stopped v0.9.10 starting for every
+            // new user while working perfectly for everyone who already had it installed.
             db.Database.ExecuteSqlRaw("""
                 INSERT INTO "MarketDefaultSettings"
                     ("Id", "AssetValueConfigId", "AssetValuePriceType", "ManufacturingConfigId", "ManufacturingPriceType",
-                     "MissingPriceMarkupPct", "FilterLowballBuyOrders", "LowballBuyOrderThresholdPct")
+                     "MissingPriceMarkupPct", "FilterLowballBuyOrders", "LowballBuyOrderThresholdPct",
+                     "PurchaseWhenCheaper", "PurchaseThresholdPct")
                 SELECT 1,
                        (SELECT "Id" FROM "MarketPricingConfigs" WHERE "LocationId" = 10000002 LIMIT 1), 'Sell',
                        (SELECT "Id" FROM "MarketPricingConfigs" WHERE "LocationId" = 10000002 LIMIT 1), 'Sell',
-                       15.0, 1, 10.0
+                       15.0, 1, 10.0,
+                       0, 100.0
                 WHERE NOT EXISTS (SELECT 1 FROM "MarketDefaultSettings")
                 """);
 
@@ -1909,8 +1919,16 @@ public class App : Application
             // Existing installs predate these alerts.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "UnriggedIndustryJobs" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+            // Every alert on by default. Named in full for the same reason as the market seed
+            // above, and with an extra sting: OR IGNORE swallows a NOT NULL violation rather
+            // than raising it, so the short form did not fail — it inserted nothing at all, and
+            // new users simply had no alert settings row. Silence, not a crash, which is why it
+            // survived a release unnoticed.
             db.Database.ExecuteSqlRaw("""
-                INSERT OR IGNORE INTO "AlertSettings" ("Id") VALUES (1)
+                INSERT OR IGNORE INTO "AlertSettings"
+                    ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
+                     "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs")
+                VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1)
                 """);
 
             db.Database.ExecuteSqlRaw("""
