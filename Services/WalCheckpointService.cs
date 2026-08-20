@@ -6,9 +6,10 @@ namespace EveConsole.Services;
 /// <summary>
 /// Helps drain the write-ahead log, without ever blocking anyone to do it.
 ///
-/// <para><b>⚠️ PASSIVE only, and never TRUNCATE.</b> This service first shipped running TRUNCATE
-/// once the file passed 64 MB, with SQLite's automatic checkpoint turned off so that no ordinary
-/// write would pay for one. That was wrong in both halves and the numbers were emphatic: TRUNCATE
+/// <para><b>⚠️ PASSIVE, and TRUNCATE only once the log is already empty.</b> This service first
+/// shipped running TRUNCATE whenever the file passed 64 MB, with SQLite's automatic checkpoint
+/// turned off so that no ordinary write would pay for one. That was wrong in both halves and the
+/// numbers were emphatic: TRUNCATE
 /// blocks writers and cannot complete while any reader holds a snapshot, so it timed out at thirty
 /// seconds — three times a minute — while the log grew from 213 MB to over a gigabyte, and each
 /// checkpoint finished with MORE in the log than it started with, because writers kept appending
@@ -35,9 +36,12 @@ public class WalCheckpointService(IDbContextFactory<AppDbContext> dbFactory, App
     /// the log has grown far past anything this app should be producing.</summary>
     private const int SlowCheckpointMs = 3_000;
 
-    /// <summary>Past this the log is not being reclaimed, which means a reader is holding a
-    /// snapshot open. Reported once per crossing rather than every pass.</summary>
-    private const long AlarmingWalMb = 512;
+    /// <summary>Pages still in the log after a passive pass, expressed as MB. This is a real
+    /// backlog — unlike the file size, which never comes down on its own.</summary>
+    private const long BacklogAlarmMb = 256;
+
+    /// <summary>Only worth handing the disk back above this, and only when the log is empty.</summary>
+    private const long ReclaimAboveMb = 256;
 
     private System.Timers.Timer? _timer;
     private int  _running;
@@ -71,7 +75,22 @@ public class WalCheckpointService(IDbContextFactory<AppDbContext> dbFactory, App
             var started = System.Diagnostics.Stopwatch.StartNew();
 
             await using var db = await dbFactory.CreateDbContextAsync(ct);
-            await db.Database.ExecuteSqlRawAsync("PRAGMA wal_checkpoint(PASSIVE)", ct);
+            var (busy, pagesInLog, copied) = await CheckpointAsync(db, "PASSIVE", ct);
+
+            // ⚠️ The file size is not the backlog, and building this alarm on it was wrong. A
+            // passive checkpoint copies pages out and lets SQLite reuse the space from the start
+            // of the file — it never shrinks the file. So after any large burst the file stays at
+            // its high-water mark for ever while the log inside it is empty, and a file-size alarm
+            // reports a stall that is not happening. Measured: 612.1 MB, unchanged across every
+            // sample, with nothing in flight and nothing blocked — a fully drained log.
+            //
+            // What the pragma returns is the truth: pages still in the log, and pages it managed
+            // to copy. Only the first of those is a backlog.
+            //
+            // With nothing left in it, TRUNCATE is near-instant and hands the disk back — the only
+            // safe moment for the mode that otherwise blocks writers for as long as it takes.
+            if (busy == 0 && pagesInLog == 0 && WalSizeMb() >= ReclaimAboveMb)
+                await CheckpointAsync(db, "TRUNCATE", ct);
 
             var took = (int)started.ElapsedMilliseconds;
 
@@ -103,18 +122,22 @@ public class WalCheckpointService(IDbContextFactory<AppDbContext> dbFactory, App
                 _warnedTransaction = false;
             }
 
-            // The log not coming down is the symptom worth chasing — it means something is holding
-            // a read snapshot open, and no amount of checkpointing will help until it lets go.
-            if (LastWalMb >= AlarmingWalMb && !_warned)
+            // A real backlog: pages still in the log that a passive checkpoint could not copy,
+            // which means a reader is holding a snapshot it cannot advance past. Measured in
+            // PAGES, not in file size — see above for why that distinction is the whole point.
+            var backlogMb = pagesInLog * 4096L / 1_048_576L;
+
+            if (backlogMb >= BacklogAlarmMb && !_warned)
             {
                 _warned = true;
                 errorLogger.Log(nameof(WalCheckpointService), "write-ahead log not draining",
-                    $"The log has reached {LastWalMb} MB and passive checkpoints are not reclaiming " +
-                    $"it. That happens when a read transaction stays open: the log cannot be reused " +
-                    $"past the oldest snapshot still in use. Still in flight: " +
+                    $"{backlogMb} MB is still in the log after a passive checkpoint " +
+                    $"({copied:N0} of {pagesInLog:N0} pages copied, busy={busy}). The log cannot be " +
+                    $"reused past the oldest snapshot still in use, so something is holding a read " +
+                    $"open. In flight: " +
                     WriteContentionInterceptor.DescribeLongRunning(TimeSpan.FromSeconds(30)));
             }
-            else if (LastWalMb < AlarmingWalMb / 2)
+            else if (backlogMb < BacklogAlarmMb / 2)
             {
                 _warned = false;   // rearm once it has genuinely recovered
             }
@@ -125,6 +148,30 @@ public class WalCheckpointService(IDbContextFactory<AppDbContext> dbFactory, App
             errorLogger.Log(nameof(WalCheckpointService), nameof(RunOnceAsync), ex);
         }
         finally { Interlocked.Exchange(ref _running, 0); }
+    }
+
+    /// <summary>
+    /// Runs a checkpoint and returns what it reports: whether it was blocked, how many pages are
+    /// in the log, and how many it copied out.
+    ///
+    /// <para>⚠️ Run through the raw connection rather than <c>ExecuteSqlRawAsync</c>, which
+    /// discards the row. Those three numbers are the only honest measure of the backlog — the file
+    /// size is a high-water mark and says nothing about what is still in it.</para>
+    /// </summary>
+    private static async Task<(long Busy, long PagesInLog, long Copied)> CheckpointAsync(
+        AppDbContext db, string mode, CancellationToken ct)
+    {
+        var conn = db.Database.GetDbConnection();
+        if (conn.State != System.Data.ConnectionState.Open)
+            await conn.OpenAsync(ct);
+
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = $"PRAGMA wal_checkpoint({mode})";
+
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct)) return (0, 0, 0);
+
+        return (reader.GetInt64(0), reader.GetInt64(1), reader.GetInt64(2));
     }
 
     private static long WalSizeMb()
