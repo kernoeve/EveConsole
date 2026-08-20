@@ -2509,6 +2509,27 @@ public class App : Application
             Start("market history",     () => marketHistory?.Start());
             Start("contracts",          () => contracts?.Start());
             Start("LP store",           () => lpStore?.Start());
+
+            // ⚠️ Force Now on the Timers tab only reset the polling loop's schedule, which does
+            // nothing for any of these — each runs on its own timer and never consults it. So each
+            // says here how to run itself now, against the same key its row uses.
+            Start("force-now hooks", () =>
+            {
+                var force = Services.GetRequiredService<TimerForceService>();
+
+                if (marketPricing is not null)
+                    force.Register("market.refresh",  ct => marketPricing.RefreshAllAsync(ct));
+                if (marketHistory is not null)
+                    force.Register("market.history",  ct => marketHistory.SweepAsync(ct));
+                if (contracts is not null)
+                {
+                    force.Register("contract.public",  ct => contracts.SweepPublicContractsAsync(ct));
+                    force.Register("contract.items",   ct => contracts.SweepContractItemsAsync(ct));
+                    force.Register("contract.pricing", ct => contracts.RecomputePricingAsync(ct));
+                }
+                if (lpStore is not null)
+                    force.Register("lpstore.offers",   ct => lpStore.SweepAsync(ct));
+            });
             Start("database backup",    () => Services.GetRequiredService<DatabaseBackupService>().Start());
             Start("game logs",          () => gameLogs?.Start());
             Start("chat logs",          () => chatLogs?.Start());
@@ -2800,6 +2821,7 @@ public class App : Application
         services.AddSingleton<DataRetentionService>();
         services.AddSingleton<OrderFulfilmentService>();
         services.AddSingleton<WalCheckpointService>();
+        services.AddSingleton<TimerForceService>();
         services.AddSingleton<ExportFormatSettings>();
 
         // ViewModels
