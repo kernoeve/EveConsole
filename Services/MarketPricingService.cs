@@ -440,9 +440,28 @@ public class MarketPricingService
         // ESI paginates market orders and can return the same OrderId on multiple pages.
         orders = orders.DistinctBy(o => o.OrderId).ToList();
 
-        await db.MarketRawOrders
-            .Where(o => o.ConfigId == configId)
-            .ExecuteDeleteAsync(ct);
+        // ⚠️ Chunked for the same reason the insert below is, and it was missed the first time:
+        // deleting a whole config in one statement is one transaction covering every row it owns —
+        // upwards of 600 000 for Jita — which writes that much into the write-ahead log at once
+        // and holds the write lock for the duration. The insert beside it was already careful; the
+        // delete in front of it undid the benefit.
+        //
+        // Raw SQL with a rowid subquery rather than Take(): LIMIT inside ExecuteDelete is not
+        // something to find out about at runtime, and this is exactly what SQLite wants anyway.
+        // ConfigId leads IX_MarketRawOrders_TypeId, so each pass is an index scan, not a table one.
+        const int deleteBatch = 20_000;
+        while (true)
+        {
+            var removed = await db.Database.ExecuteSqlRawAsync(
+                """
+                DELETE FROM "MarketRawOrders" WHERE rowid IN (
+                    SELECT rowid FROM "MarketRawOrders" WHERE "ConfigId" = {0} LIMIT {1})
+                """,
+                [configId, deleteBatch], ct);
+
+            if (removed < deleteBatch) break;
+            await Task.Yield();   // let a polling write in between passes
+        }
 
         if (orders.Count == 0) return;
 

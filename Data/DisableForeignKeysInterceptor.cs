@@ -27,11 +27,24 @@ public class DisableForeignKeysInterceptor : DbConnectionInterceptor
         // recommends it for WAL applications. An application crash loses nothing, since the OS
         // still flushes; only an OS crash or power cut can lose the last seconds of commits, and
         // nearly everything written here is re-fetchable.
+        // ⚠️ autocheckpoint OFF, and checkpointing handed to WalCheckpointService instead.
+        //
+        // At the default of 1000 pages, whichever connection happens to commit past the threshold
+        // performs the checkpoint INLINE — doing the work for every other writer while they queue
+        // behind it. With a write-ahead log that had grown to 213 MB, that cost the unlucky writer
+        // more than twenty seconds. Measured: sixteen updates to a 639-row table, all completing
+        // within the same second, every one of them reported as having "held" the lock for over
+        // twenty seconds when all they did was wait. The statement in the log was never the cause,
+        // because the cause is whichever statement drew the short straw.
+        //
+        // Off, no writer ever pays for it, and one service does it deliberately where it can be
+        // measured and kept off the critical path.
         cmd.CommandText = """
-            PRAGMA foreign_keys = OFF;
-            PRAGMA journal_mode  = WAL;
-            PRAGMA synchronous   = NORMAL;
-            PRAGMA busy_timeout  = 30000;
+            PRAGMA foreign_keys      = OFF;
+            PRAGMA journal_mode      = WAL;
+            PRAGMA synchronous       = NORMAL;
+            PRAGMA busy_timeout      = 30000;
+            PRAGMA wal_autocheckpoint = 0;
             """;
         cmd.ExecuteNonQuery();
     }
