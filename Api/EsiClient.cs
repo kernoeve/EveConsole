@@ -786,6 +786,7 @@ public class EsiClient
         {
             tokens = await _auth.RefreshAsync(tokens.RefreshToken, ct);
             _corpTokens[corpId] = tokens;
+            NotifyScopes(corpId, "corporation", tokens);
         }
         return tokens;
     }
@@ -800,7 +801,37 @@ public class EsiClient
         {
             tokens = await _auth.RefreshAsync(tokens.RefreshToken, ct);
             _tokens[characterId] = tokens;
+            NotifyScopes(characterId, "character", tokens);
         }
         return tokens;
+    }
+
+    /// <summary>
+    /// Raised whenever a token is refreshed, carrying the scopes the new one actually holds.
+    ///
+    /// <para>A delegate rather than a database write because this class holds tokens in a
+    /// dictionary and knows nothing about persistence — the same arrangement the killmail and
+    /// mining hooks use. Wired up in <c>App.axaml.cs</c>.</para>
+    ///
+    /// <para>It exists so a character recorded before scopes were read honestly corrects itself.
+    /// Tokens are refreshed lazily, on the first call after the roughly twenty-minute expiry, so
+    /// every character in regular use is put right within the hour without anyone re-authorising
+    /// anything.</para>
+    /// </summary>
+    public Func<long, string, string[], Task>? AfterTokenRefreshed { get; set; }
+
+    private void NotifyScopes(long ownerId, string ownerType, TokenSet tokens)
+    {
+        if (AfterTokenRefreshed is null) return;
+
+        var scopes = JwtHelper.GetScopes(tokens.AccessToken);
+        if (scopes.Length == 0) return;   // unreadable claim: leave the stored list alone
+
+        // Fire-and-forget: a refresh happens on the path of an API call, and bookkeeping must
+        // never delay or fail it. Errors are swallowed here for the same reason.
+        _ = Task.Run(async () =>
+        {
+            try { await AfterTokenRefreshed(ownerId, ownerType, scopes); } catch { }
+        });
     }
 }

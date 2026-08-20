@@ -187,6 +187,26 @@ public class App : Application
             zkbBackfill   = Services.GetRequiredService<ZkillboardBackfillService>();
             zkbPost       = Services.GetRequiredService<ZkillboardPostService>();
 
+            // Record what each refreshed token actually grants. The stored scope list used to be
+            // the set requested at login, which is a different thing: a login reusing an existing
+            // SSO authorisation can return a token scoped to the earlier grant, and the UI would
+            // still show every scope as held while ESI answered 401. Writing it on refresh rather
+            // than only at login means characters authorised before this correct themselves, since
+            // tokens renew lazily about every twenty minutes of use — no re-authorising needed.
+            Services.GetRequiredService<EsiClient>().AfterTokenRefreshed = async (ownerId, ownerType, scopes) =>
+            {
+                var joined = string.Join(' ', scopes);
+                await using var db = await Services
+                    .GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContextAsync();
+
+                if (ownerType == "corporation")
+                    await db.Corporations.Where(c => c.Id == (int)ownerId && c.GrantedScopes != joined)
+                            .ExecuteUpdateAsync(s => s.SetProperty(c => c.GrantedScopes, joined));
+                else
+                    await db.Characters.Where(c => c.Id == ownerId && c.GrantedScopes != joined)
+                            .ExecuteUpdateAsync(s => s.SetProperty(c => c.GrantedScopes, joined));
+            };
+
             var buildCostService = Services.GetRequiredService<BuildCostService>();
             var reprService      = Services.GetRequiredService<ReprocessingValueService>();
             var typePriceHistory = Services.GetRequiredService<TypePriceHistoryService>();

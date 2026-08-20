@@ -328,9 +328,11 @@ public class CharacterViewModel : ReactiveObject
             var tokens      = await _auth.LoginAsync(scopes, _authCts.Token);
             var characterId = JwtHelper.GetCharacterId(tokens.AccessToken);
             _esi.SetTokens(characterId, tokens);
-            var character = await UpsertCharacterAsync(characterId, tokens.RefreshToken, scopes, tokens.ExpiresAt);
+
+            var (granted, missing) = ScopesOf(tokens, scopes);
+            var character = await UpsertCharacterAsync(characterId, tokens.RefreshToken, granted, tokens.ExpiresAt);
             SelectedCharacter = character;
-            StatusMessage = $"Character '{character.Name}' added.";
+            StatusMessage = $"Character '{character.Name}' added.{ScopeShortfall(missing)}";
         }
         catch (OperationCanceledException) { StatusMessage = "Login cancelled."; }
         finally { IsAuthBusy = false; _authCts?.Dispose(); _authCts = null; }
@@ -377,9 +379,11 @@ public class CharacterViewModel : ReactiveObject
             }
 
             _esi.SetTokens(characterId, tokens);
-            var character = await UpsertCharacterAsync(characterId, tokens.RefreshToken, scopes, tokens.ExpiresAt);
+
+            var (granted, missing) = ScopesOf(tokens, scopes);
+            var character = await UpsertCharacterAsync(characterId, tokens.RefreshToken, granted, tokens.ExpiresAt);
             SelectedCharacter = character;
-            StatusMessage = $"Character '{character.Name}' updated.";
+            StatusMessage = $"Character '{character.Name}' updated.{ScopeShortfall(missing)}";
         }
         catch (OperationCanceledException) { StatusMessage = "Update cancelled."; }
         finally { IsAuthBusy = false; _authCts?.Dispose(); _authCts = null; }
@@ -476,7 +480,7 @@ public class CharacterViewModel : ReactiveObject
             corpEntity.Ticker               = esiCorp.Ticker;
             corpEntity.AuthCharacterId      = characterId;
             corpEntity.RefreshToken         = tokens.RefreshToken;
-            corpEntity.GrantedScopes        = string.Join(' ', scopes);
+            corpEntity.GrantedScopes        = string.Join(' ', ScopesOf(tokens, scopes).Granted);
             corpEntity.AccessTokenExpiresAt = tokens.ExpiresAt;
             corpEntity.LastUpdated          = DateTimeOffset.UtcNow;
 
@@ -507,7 +511,8 @@ public class CharacterViewModel : ReactiveObject
             _esi.SetCorpTokens(corpEntity.Id, tokens);
 
             var verb = isNew ? "added" : "updated";
-            StatusMessage = $"Corporation [{esiCorp.Ticker}] {esiCorp.Name} {verb} (auth via {charInfo.Name}).";
+            StatusMessage = $"Corporation [{esiCorp.Ticker}] {esiCorp.Name} {verb} (auth via {charInfo.Name})."
+                          + ScopeShortfall(ScopesOf(tokens, scopes).Missing);
         }
         catch (OperationCanceledException) { StatusMessage = "Login cancelled."; }
         finally { IsAuthBusy = false; _authCts?.Dispose(); _authCts = null; }
@@ -647,6 +652,43 @@ public class CharacterViewModel : ReactiveObject
                .Where(i => i.IsSelected)
                .Select(i => i.Scope)
                .ToArray();
+
+    /// <summary>
+    /// What the new token actually carries, and which requested scopes EVE withheld.
+    ///
+    /// <para>The two are not the same thing, and recording the request as though it were the grant
+    /// is what made a scope problem undiagnosable: three characters each displayed forty-eight
+    /// granted scopes while ESI answered 401 for a third of them, because the column held the
+    /// checkbox list rather than the token's own <c>scp</c> claim.</para>
+    ///
+    /// <para>A token whose claim cannot be read falls back to the requested list. An unknown scope
+    /// set must not be recorded as an empty one — that would read as a token granted nothing, and
+    /// would be a worse lie than the one being fixed.</para>
+    /// </summary>
+    private static (string[] Granted, string[] Missing) ScopesOf(TokenSet tokens, string[] requested)
+    {
+        var granted = JwtHelper.GetScopes(tokens.AccessToken);
+        if (granted.Length == 0) return (requested, []);
+
+        var missing = requested
+            .Except(granted, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(s => s, StringComparer.Ordinal)
+            .ToArray();
+
+        return (granted, missing);
+    }
+
+    /// <summary>
+    /// Says so plainly when EVE granted less than was asked for, and names what is missing.
+    ///
+    /// <para>Silence here is how the last one was lost: the calls simply failed later, one endpoint
+    /// at a time, with nothing connecting them back to the login that caused it.</para>
+    /// </summary>
+    private static string ScopeShortfall(string[] missing) =>
+        missing.Length == 0
+            ? ""
+            : $"  EVE did not grant {missing.Length} requested scope(s): {string.Join(", ", missing)}. "
+            + "Re-add the character and approve the EVE consent screen to grant them.";
 
     private void SetAllScopes(bool selected)
     {
