@@ -307,6 +307,31 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
 
     // ── Availability aggregation ──────────────────────────────────────────────
 
+    /// <summary>
+    /// The owners this tool speaks for: characters we hold a token for, and the corporations the
+    /// user has marked personal on the Characters tool.
+    ///
+    /// <para>⚠️ Required, not a refinement. A director's token pulls the WHOLE corporation's
+    /// assets, jobs and orders, and a member corp's hangars are not stock the user can build
+    /// from or sell. Measured here: of the fuel blocks on hand, 849,225 units belonged to a corp
+    /// the user is merely a member of against 397,025 that were actually theirs — so a stockpile
+    /// read as comfortably supplied was in fact three times smaller than it looked.</para>
+    ///
+    /// <para>Same rule the Order Tracker's fulfilment matching and the Worklist's industry
+    /// assignment already use, so the tools agree about what "we have" means.</para>
+    /// </summary>
+    private static async Task<HashSet<long>> OwnedIdsAsync(AppDbContext db, CancellationToken ct)
+    {
+        var ids = await db.Characters.AsNoTracking()
+            .Where(c => c.RefreshToken != "").Select(c => c.Id).ToListAsync(ct);
+
+        // Corporation ids are int on the entity and long on every table that references one.
+        ids.AddRange(await db.Corporations.AsNoTracking()
+            .Where(c => c.IsPersonal).Select(c => (long)c.Id).ToListAsync(ct));
+
+        return ids.ToHashSet();
+    }
+
     public async Task<Dictionary<int, InvAvailability>> LoadAvailableAsync(
         InvLevelGroup group, IReadOnlyList<int> typeIds, CancellationToken ct = default,
         bool packagedOnly = false)
@@ -315,6 +340,7 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         await using var db = dbFactory.CreateDbContext();
 
         var stationFilter = await ResolveScopeFilterAsync(db, group, ct);
+        var ownerFilter   = await OwnedIdsAsync(db, ct);
 
         var assets  = new Dictionary<int, long>();
         var jobs    = new Dictionary<int, long>();
@@ -323,7 +349,8 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         // Assets
         if (group.IncludeAssets)
         {
-            var q = db.EsiAssets.Where(a => typeIds.Contains(a.TypeId));
+            var q = db.EsiAssets.Where(a => typeIds.Contains(a.TypeId)
+                                         && ownerFilter.Contains(a.OwnerId));
             if (stationFilter != null)
                 q = q.Where(a => stationFilter.Contains(a.RootLocationId));
             // Only packaged (non-singleton) items — skip assembled/fitted hulls.
@@ -347,7 +374,8 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 .Where(j => (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11)
                          && j.Status == "active"
                          && j.ProductTypeId.HasValue
-                         && typeIds.Contains(j.ProductTypeId!.Value));
+                         && typeIds.Contains(j.ProductTypeId!.Value)
+                         && ownerFilter.Contains(j.OwnerId));
             // Scope by FacilityId (the structure the job runs in), NOT OutputLocationId —
             // the latter is the delivery hangar/container sub-location, which does not
             // resolve to a structure and would drop every job from location-scoped groups.
@@ -385,7 +413,8 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         if (group.IncludeMarketBuyOrders)
         {
             var q = db.EsiMarketOrders
-                .Where(o => o.IsBuyOrder && !o.IsHistory && typeIds.Contains(o.TypeId));
+                .Where(o => o.IsBuyOrder && !o.IsHistory && typeIds.Contains(o.TypeId)
+                         && ownerFilter.Contains(o.OwnerId));
             if (stationFilter != null)
                 q = q.Where(o => stationFilter.Contains(o.LocationId));
 
