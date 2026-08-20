@@ -62,6 +62,15 @@
     <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.5" />
   </ItemGroup>
 
+  <!-- Developer tooling lives under tools/ with its own project files. This csproj sits at the
+       repo root and globs **/*.cs, so without these removals the tools would be compiled into
+       the shipped application — a second Main, and code no user should ever receive. -->
+  <ItemGroup>
+    <Compile          Remove="tools/**" />
+    <EmbeddedResource Remove="tools/**" />
+    <None             Remove="tools/**" />
+  </ItemGroup>
+
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
