@@ -544,17 +544,24 @@ public class IndyParksViewModel : ReactiveObject
     private readonly IndyStructureLinkService? _indyLink;
     private readonly IndyBulkAddService?       _bulkAdd;
 
+    /// <summary>Asks ESI about the structures an imported park links to. Optional like the rest:
+    /// without it the import still stands up the rows, and the next structure sweep resolves
+    /// them.</summary>
+    private readonly EsiPollingService?        _polling;
+
     public IndyParksViewModel(IDbContextFactory<AppDbContext> dbFactory,
                               CorpActivityService? corpActivity = null,
                               AppErrorLogger? errorLogger = null,
                               IndyStructureLinkService? indyLink = null,
-                              IndyBulkAddService? bulkAdd = null)
+                              IndyBulkAddService? bulkAdd = null,
+                              EsiPollingService? polling = null)
     {
         _dbFactory    = dbFactory;
         _corpActivity = corpActivity;
         _errorLogger  = errorLogger;
         _indyLink     = indyLink;
         _bulkAdd      = bulkAdd;
+        _polling      = polling;
 
         LoadRigsFromSde();
 
@@ -1586,9 +1593,14 @@ public class IndyParksViewModel : ReactiveObject
         // would be missing from the Structure Browser and the park's rigs would never reach it.
         //
         // So the import seeds the row itself, the same way the Structure Browser's add-by-id does
-        // for a structure ESI cannot resolve — id, the name the export carried, and marked as the
-        // user's rather than ESI's. System and type are left at zero: the export does not carry
-        // them, and the next sync fills them in if ESI or EVE Ref can describe the structure.
+        // for a structure ESI cannot resolve — id, the name the export carried, the hull the park
+        // entry names, and marked as the user's rather than ESI's.
+        //
+        // ⚠️ The system is deliberately NOT taken from the park entry. A park's structures need not
+        // all be in the park's own system: of the fourteen entries in the C-FD0D park here, two
+        // link to structures in 78R-PI and RH0-EG. So SolarSystemId, the owner and the position
+        // stay empty until something that actually knows — ESI, or the EVE Ref snapshot — fills
+        // them in. The resolve kicked off below is what asks.
         var linkedIds = pendingRigs
             .Select(p => p.Structure)
             .Where(s => s.RealStructureId is > 0)
@@ -1609,6 +1621,7 @@ public class IndyParksViewModel : ReactiveObject
                 {
                     StructureId = missing,
                     Name        = named.RealStructureName,
+                    TypeId      = IndyBulkAddService.TypeIdForKey(named.StructureTypeKey),
                     UpdatedBy   = StructureSource.User,
                     UpdatedAt   = DateTimeOffset.UtcNow,
                 });
@@ -1646,6 +1659,14 @@ public class IndyParksViewModel : ReactiveObject
         if (_indyLink is not null)
             foreach (var s in linkedIds)
                 await _indyLink.AdoptOnLinkAsync(s.Id);
+
+        // Ask ESI about the facilities now rather than leaving them blank until the next sweep.
+        // Not awaited: the sweep resolves every outstanding structure, not only these, and the
+        // import has nothing further to do with the answer — the park is already usable, and each
+        // row fills in as the lookup returns. A structure the importer cannot dock at simply stays
+        // as the name and hull the export carried, which is the point of seeding those.
+        if (linkedIds.Count > 0 && _polling is not null)
+            _ = _polling.ForceResolveStructureNamesAsync();
 
         foreach (var a in dto.Assignments)
         {

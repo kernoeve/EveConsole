@@ -3005,6 +3005,12 @@ public class EsiPollingService : ReactiveObject
             foreach (var id in await db.EsiWalletTransactions.Where(w => w.LocationId > T)
                 .Select(w => w.LocationId).Distinct().ToListAsync(ct)) ids.Add(id);
 
+            // Facilities an Indy Parks entry is linked to. Unlike everything above, these need not
+            // be anywhere in our own data at all — a park imported from someone else names their
+            // structures, and this is the only place those ids appear.
+            foreach (var id in await db.IndyStructures.Where(s => s.RealStructureId != null && s.RealStructureId > T)
+                .Select(s => s.RealStructureId!.Value).Distinct().ToListAsync(ct)) ids.Add(id);
+
             // Any already-tracked structure that isn't fully resolved yet (old name-only rows, or
             // placeholders whose source data has since rolled out of the other tables).
             foreach (var id in await db.EsiStructureNames
