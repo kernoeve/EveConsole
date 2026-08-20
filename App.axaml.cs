@@ -2533,9 +2533,8 @@ public class App : Application
 
             Start("alarms",             () => Services.GetRequiredService<AlarmService>().Start());
 
-            // ⚠️ Must run. The automatic checkpoint is off (see DisableForeignKeysInterceptor), so
-            // this is the only thing draining the write-ahead log — without it the log grows
-            // without bound and every read has to search it.
+            // Helps SQLite's own automatic checkpoint keep the write-ahead log small, and reports
+            // when it stops draining. Never blocks: see WalCheckpointService for why that matters.
             Start("WAL checkpoint",     () => Services.GetRequiredService<WalCheckpointService>().Start());
 
             // Diagnostic only, and the error log is the sole place it reports — so when the switch

@@ -27,24 +27,26 @@ public class DisableForeignKeysInterceptor : DbConnectionInterceptor
         // recommends it for WAL applications. An application crash loses nothing, since the OS
         // still flushes; only an OS crash or power cut can lose the last seconds of commits, and
         // nearly everything written here is re-fetchable.
-        // ⚠️ autocheckpoint OFF, and checkpointing handed to WalCheckpointService instead.
+        // ⚠️ The automatic checkpoint stays ON, and the attempt to take it off is worth recording
+        // because it made things markedly worse.
         //
-        // At the default of 1000 pages, whichever connection happens to commit past the threshold
-        // performs the checkpoint INLINE — doing the work for every other writer while they queue
-        // behind it. With a write-ahead log that had grown to 213 MB, that cost the unlucky writer
-        // more than twenty seconds. Measured: sixteen updates to a 639-row table, all completing
-        // within the same second, every one of them reported as having "held" the lock for over
-        // twenty seconds when all they did was wait. The statement in the log was never the cause,
-        // because the cause is whichever statement drew the short straw.
+        // The reasoning was that it runs INLINE on whichever connection commits past the page
+        // threshold, so that writer does the work for everyone — which is true, and with a 213 MB
+        // log cost the unlucky one twenty seconds. Turning it off removed the only thing draining
+        // the log incrementally. WalCheckpointService could not keep up: its TRUNCATE blocks
+        // writers and cannot finish while any reader holds a snapshot, so it timed out at thirty
+        // seconds, three times a minute, while the log kept growing. Measured after the change:
+        // checkpoints of 30-33s each, with the log at 643 MB, 990 MB, and larger AFTER the
+        // checkpoint than before because writers kept appending throughout.
         //
-        // Off, no writer ever pays for it, and one service does it deliberately where it can be
-        // measured and kept off the critical path.
+        // So the automatic PASSIVE checkpoint is doing real work, cheaply, all the time. The way
+        // to make it cheap is to stop the log growing — see WalCheckpointService for the
+        // non-blocking help, and the chunked deletes for the bulk writes that inflate it.
         cmd.CommandText = """
-            PRAGMA foreign_keys      = OFF;
-            PRAGMA journal_mode      = WAL;
-            PRAGMA synchronous       = NORMAL;
-            PRAGMA busy_timeout      = 30000;
-            PRAGMA wal_autocheckpoint = 0;
+            PRAGMA foreign_keys = OFF;
+            PRAGMA journal_mode  = WAL;
+            PRAGMA synchronous   = NORMAL;
+            PRAGMA busy_timeout  = 30000;
             """;
         cmd.ExecuteNonQuery();
     }
