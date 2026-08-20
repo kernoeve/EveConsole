@@ -844,6 +844,8 @@
                               FontSize="11" Padding="8 2" Margin="0 0 10 0"
                               VerticalAlignment="Center"
                               ToolTip.Tip="Reset the in-memory timer so this endpoint fires on the next poll cycle (within ~10 seconds)." />
+                      <TextBlock Grid.Column="4" Text="{Binding ForceStatus}"
+                                 FontSize="10" Foreground="#6a8a5a" VerticalAlignment="Center" />
                       <TextBlock Grid.Column="4"
                                  Text="{Binding MinMinutes, StringFormat='(min: {0} min)'}"
                                  FontSize="11" Foreground="#555"
@@ -880,6 +882,8 @@
                               FontSize="11" Padding="8 2" Margin="0 0 10 0"
                               VerticalAlignment="Center"
                               ToolTip.Tip="Reset the in-memory timer so this endpoint fires on the next poll cycle (within ~10 seconds)." />
+                      <TextBlock Grid.Column="4" Text="{Binding ForceStatus}"
+                                 FontSize="10" Foreground="#6a8a5a" VerticalAlignment="Center" />
                       <TextBlock Grid.Column="4"
                                  Text="{Binding MinMinutes, StringFormat='(min: {0} min)'}"
                                  FontSize="11" Foreground="#555"
@@ -916,6 +920,8 @@
                               FontSize="11" Padding="8 2" Margin="0 0 10 0"
                               VerticalAlignment="Center"
                               ToolTip.Tip="Reset the in-memory timer so this endpoint fires on the next poll cycle (within ~10 seconds)." />
+                      <TextBlock Grid.Column="4" Text="{Binding ForceStatus}"
+                                 FontSize="10" Foreground="#6a8a5a" VerticalAlignment="Center" />
                       <TextBlock Grid.Column="4"
                                  Text="{Binding MinMinutes, StringFormat='(min: {0} min)'}"
                                  FontSize="11" Foreground="#555"

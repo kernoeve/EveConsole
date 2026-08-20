@@ -2509,6 +2509,27 @@ public class App : Application
             Start("market history",     () => marketHistory?.Start());
             Start("contracts",          () => contracts?.Start());
             Start("LP store",           () => lpStore?.Start());
+
+            // ⚠️ Force Now on the Timers tab only reset the polling loop's schedule, which does
+            // nothing for any of these — each runs on its own timer and never consults it. So each
+            // says here how to run itself now, against the same key its row uses.
+            Start("force-now hooks", () =>
+            {
+                var force = Services.GetRequiredService<TimerForceService>();
+
+                if (marketPricing is not null)
+                    force.Register("market.refresh",  ct => marketPricing.RefreshAllAsync(ct));
+                if (marketHistory is not null)
+                    force.Register("market.history",  ct => marketHistory.SweepAsync(ct));
+                if (contracts is not null)
+                {
+                    force.Register("contract.public",  ct => contracts.SweepPublicContractsAsync(ct));
+                    force.Register("contract.items",   ct => contracts.SweepContractItemsAsync(ct));
+                    force.Register("contract.pricing", ct => contracts.RecomputePricingAsync(ct));
+                }
+                if (lpStore is not null)
+                    force.Register("lpstore.offers",   ct => lpStore.SweepAsync(ct));
+            });
             Start("database backup",    () => Services.GetRequiredService<DatabaseBackupService>().Start());
             Start("game logs",          () => gameLogs?.Start());
             Start("chat logs",          () => chatLogs?.Start());
@@ -2532,6 +2553,10 @@ public class App : Application
             Start("order fulfilment",   () => Services.GetRequiredService<OrderFulfilmentService>().Start());
 
             Start("alarms",             () => Services.GetRequiredService<AlarmService>().Start());
+
+            // Helps SQLite's own automatic checkpoint keep the write-ahead log small, and reports
+            // when it stops draining. Never blocks: see WalCheckpointService for why that matters.
+            Start("WAL checkpoint",     () => Services.GetRequiredService<WalCheckpointService>().Start());
 
             // Diagnostic only, and the error log is the sole place it reports — so when the switch
             // is off it is not started at all, which also drops its half-second heartbeat.
@@ -2586,9 +2611,14 @@ public class App : Application
         // Database — path can be overridden via config.json (see AppConfig)
         var dbPath = AppConfig.GetDbPath();
         Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
-        services.AddDbContextFactory<AppDbContext>(options =>
+        // ⚠️ The provider is resolved here only for the error logger the contention interceptor
+        // reports through. It is a singleton whose own dependency is IServiceScopeFactory, so
+        // nothing is constructed early and there is no cycle back into this factory.
+        services.AddDbContextFactory<AppDbContext>((sp, options) =>
             options.UseSqlite($"Data Source={dbPath}")
-                   .AddInterceptors(new DisableForeignKeysInterceptor()));
+                   .AddInterceptors(
+                       new DisableForeignKeysInterceptor(),
+                       new WriteContentionInterceptor(sp.GetRequiredService<AppErrorLogger>())));
 
         // Named HTTP client for the ESI API (used by singleton EsiClient)
         services.AddHttpClient("esi", client =>
@@ -2790,6 +2820,8 @@ public class App : Application
         services.AddSingleton<UiLinkSettings>();
         services.AddSingleton<DataRetentionService>();
         services.AddSingleton<OrderFulfilmentService>();
+        services.AddSingleton<WalCheckpointService>();
+        services.AddSingleton<TimerForceService>();
         services.AddSingleton<ExportFormatSettings>();
 
         // ViewModels

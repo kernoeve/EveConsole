@@ -264,6 +264,7 @@ public class WorklistService(
 
         var now      = DateTimeOffset.UtcNow;
         var newState = new List<WorklistItemState>();
+        var seen     = new HashSet<string>();
 
         for (int si = 0; si < sections.Count; si++)
         {
@@ -282,7 +283,15 @@ public class WorklistService(
                 else
                 {
                     section.Items[i] = item with { FirstSeenAt = now };
-                    newState.Add(new WorklistItemState { Key = item.Key, FirstSeenAt = now });
+
+                    // ⚠️ Only once per key. The same suggestion can appear in more than one
+                    // section — the key is what makes it the same suggestion — and adding a row
+                    // per appearance put two rows with one key into a single SaveChanges. That
+                    // failed the whole batch on the unique constraint, so EVERY new item lost its
+                    // first-seen stamp, not just the repeated one, and the "age" column stayed
+                    // empty for all of them.
+                    if (seen.Add(item.Key))
+                        newState.Add(new WorklistItemState { Key = item.Key, FirstSeenAt = now });
                 }
             }
         }
@@ -291,10 +300,27 @@ public class WorklistService(
 
         db.WorklistItemStates.AddRange(newState);
         try { await db.SaveChangesAsync(ct); }
-        catch (Exception ex)
+        catch
         {
-            // Losing a first-seen timestamp costs an "age" column, not the list.
-            errorLogger.Log("WorklistService", "ApplyState", ex);
+            // A rebuild running at the same time — the tool and the Overview's sections both do
+            // one — can insert the same key between the read above and here. Retry a row at a
+            // time so one collision costs one stamp instead of the whole batch. A row that fails
+            // now is one somebody else has already written, which is the outcome we wanted.
+            db.ChangeTracker.Clear();
+
+            var failed = 0;
+            foreach (var row in newState)
+            {
+                db.WorklistItemStates.Add(row);
+                try { await db.SaveChangesAsync(ct); }
+                catch { failed++; db.ChangeTracker.Clear(); }
+            }
+
+            // Every single one failing is not a race, it is something else.
+            if (failed == newState.Count)
+                errorLogger.Log("WorklistService", "ApplyState",
+                    $"None of {newState.Count} first-seen row(s) could be stored. Items will show " +
+                    $"no age until this is resolved.");
         }
     }
 

@@ -484,6 +484,7 @@ public class MainWindowViewModel : ReactiveObject
         ProductionCalculatorService     prodCalcService,
         IServiceScopeFactory            scopeFactory,
         TimerSettingsService            timerSettings,
+        TimerForceService               timerForce,
         AgentService                    agentService,
         AppErrorLogger                  errorLogger,
         KillMailService                 killMailService,
@@ -586,7 +587,7 @@ public class MainWindowViewModel : ReactiveObject
             KillmailBrowserVm.SelectById(killMailId);
         };
         OverviewVm.OpenToolRequested = OpenTool;
-        TimerVm           = new TimerSettingsViewModel(pollingService, timerSettings);
+        TimerVm           = new TimerSettingsViewModel(pollingService, timerSettings, timerForce);
         _pollingService   = pollingService;
         _buildCostService = buildCostService;
 
