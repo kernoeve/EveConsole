@@ -90,8 +90,8 @@ public class WalCheckpointService(IDbContextFactory<AppDbContext> dbFactory, App
                 errorLogger.Log(nameof(WalCheckpointService), "write-ahead log not draining",
                     $"The log has reached {LastWalMb} MB and passive checkpoints are not reclaiming " +
                     $"it. That happens when a read transaction stays open: the log cannot be reused " +
-                    $"past the oldest snapshot still in use. Look for a long-running query rather " +
-                    $"than forcing a checkpoint.");
+                    $"past the oldest snapshot still in use. Still in flight: " +
+                    WriteContentionInterceptor.DescribeLongRunning(TimeSpan.FromSeconds(30)));
             }
             else if (LastWalMb < AlarmingWalMb / 2)
             {

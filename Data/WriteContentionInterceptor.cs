@@ -41,6 +41,26 @@ public sealed class WriteContentionInterceptor(AppErrorLogger log)
 
     private sealed record InFlight(string Sql, DateTimeOffset StartedAt, bool IsWrite);
 
+    /// <summary>
+    /// Statements that started more than <paramref name="olderThan"/> ago and have not finished.
+    ///
+    /// <para>For whoever is asking why the write-ahead log will not drain. A passive checkpoint
+    /// cannot reclaim past the oldest snapshot still in use, so a read that never finishes pins
+    /// the log open — and unlike a slow write, nothing ever reports it, because from the outside
+    /// it simply has not returned yet.</para>
+    /// </summary>
+    public static string DescribeLongRunning(TimeSpan olderThan)
+    {
+        var cutoff = DateTimeOffset.UtcNow - olderThan;
+        var stuck  = Running.Values.Where(v => v.StartedAt < cutoff)
+            .OrderBy(v => v.StartedAt).Take(3).ToList();
+
+        if (stuck.Count == 0) return "No statement has been in flight that long.";
+
+        return string.Join("  |  ", stuck.Select(v =>
+            $"{(DateTimeOffset.UtcNow - v.StartedAt).TotalSeconds:N0}s and counting: {v.Sql}"));
+    }
+
     private static readonly ConcurrentDictionary<Guid, InFlight> Running = new();
     private static readonly ConcurrentDictionary<Guid, DateTimeOffset> Transactions = new();
 
