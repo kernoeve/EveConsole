@@ -54,8 +54,10 @@
         </Grid>
       </StackPanel>
 
-      <!-- App name just above the progress section -->
-      <StackPanel DockPanel.Dock="Bottom" Spacing="3" Margin="0 0 0 18">
+      <!-- App name just above the progress section. The block is bottom-docked, so trimming the
+           margin beneath it drops the name and version a few pixels and opens up the gap between
+           them and the artwork above. -->
+      <StackPanel DockPanel.Dock="Bottom" Spacing="3" Margin="0 0 0 10">
         <!-- Two-tone name: EVE in white, Console in amber -->
         <StackPanel Orientation="Horizontal">
           <TextBlock Text="EVE "
