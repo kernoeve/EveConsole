@@ -27,7 +27,18 @@ public class EsiClient
     // Written by authenticated-endpoint responses; checked by all callers including market refresh.
     private long _errorLimitBlockedTicks; // UTC ticks; 0 = not blocked
 
-    internal bool IsErrorLimitBlocked
+    // Set by EveServerStatusService from ESI's public /status/ endpoint. While Tranquility
+    // is down every authenticated call fails anyway, and each failure spends error-limit
+    // budget, so the whole client stands down until the server is back. The status check
+    // itself uses its own HttpClient and is unaffected — see EveServerStatusService.
+    private volatile bool _serverOffline;
+    public bool ServerOffline
+    {
+        get => _serverOffline;
+        set => _serverOffline = value;
+    }
+
+    private bool IsErrorLimited
     {
         get
         {
@@ -35,6 +46,10 @@ public class EsiClient
             return ticks > 0 && DateTimeOffset.UtcNow.UtcTicks < ticks;
         }
     }
+
+    /// <summary>Callers should hold off entirely: either ESI's error budget is nearly
+    /// spent, or Tranquility is down. Both mean "do not spend a request right now".</summary>
+    internal bool IsErrorLimitBlocked => _serverOffline || IsErrorLimited;
 
     private void UpdateErrorLimitState(int statusCode, int? errorLimitRemain, int? errorLimitReset)
     {
@@ -130,7 +145,9 @@ public class EsiClient
     }
 
     private sealed record EsiSearchResult(
-        [property: JsonPropertyName("character")] List<int>? Character);
+        [property: JsonPropertyName("character")]   List<int>? Character,
+        [property: JsonPropertyName("corporation")] List<int>? Corporation,
+        [property: JsonPropertyName("alliance")]    List<int>? Alliance);
 
     private sealed record EsiUniverseIdsResult(
         [property: JsonPropertyName("characters")]   List<EsiIdItem>? Characters,
@@ -164,6 +181,33 @@ public class EsiClient
         catch { return []; }
     }
 
+    private sealed record EsiAffiliationRaw(
+        [property: JsonPropertyName("character_id")]   long  CharacterId,
+        [property: JsonPropertyName("corporation_id")] long  CorporationId,
+        [property: JsonPropertyName("alliance_id")]    long? AllianceId);
+
+    /// <summary>
+    /// Who a character flies for, via the public POST /characters/affiliation/ endpoint — no
+    /// auth, and up to 1,000 ids per call. Returns nothing rather than throwing, since every
+    /// caller treats an unknown affiliation as simply unknown.
+    /// </summary>
+    public async Task<List<(long CharacterId, long CorporationId, long? AllianceId)>>
+        GetAffiliationsAsync(IReadOnlyList<long> ids, CancellationToken ct = default)
+    {
+        if (ids.Count == 0) return [];
+        try
+        {
+            var response = await _http.PostAsJsonAsync("characters/affiliation/", ids, JsonOptions, ct);
+            if (!response.IsSuccessStatusCode) return [];
+
+            var result = await response.Content
+                .ReadFromJsonAsync<List<EsiAffiliationRaw>>(JsonOptions, ct);
+
+            return result?.Select(r => (r.CharacterId, r.CorporationId, r.AllianceId)).ToList() ?? [];
+        }
+        catch { return []; }
+    }
+
     public async Task<List<int>> SearchCharacterIdsAsync(long charId, string name, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(name)) return [];
@@ -172,6 +216,41 @@ public class EsiClient
         {
             var result = await GetAuthAsync<EsiSearchResult>(charId, url, ct);
             return result?.Character ?? [];
+        }
+        catch { return []; }
+    }
+
+    public async Task<List<int>> SearchCorporationIdsAsync(long charId, string name, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return [];
+        var url = $"characters/{charId}/search/?categories=corporation&search={Uri.EscapeDataString(name)}&strict=false";
+        try
+        {
+            var result = await GetAuthAsync<EsiSearchResult>(charId, url, ct);
+            return result?.Corporation ?? [];
+        }
+        catch { return []; }
+    }
+
+    /// <summary>
+    /// Public, unauthenticated GET returning the payload or null. Wraps the internal
+    /// paged/result plumbing for the many endpoints that need neither — character,
+    /// corporation and alliance public info among them.
+    /// </summary>
+    public async Task<T?> GetPublicAsync<T>(string path, CancellationToken ct = default)
+    {
+        var r = await ExecutePublicAsync<T>(path, ct);
+        return r.IsSuccess ? r.Data : default;
+    }
+
+    public async Task<List<int>> SearchAllianceIdsAsync(long charId, string name, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return [];
+        var url = $"characters/{charId}/search/?categories=alliance&search={Uri.EscapeDataString(name)}&strict=false";
+        try
+        {
+            var result = await GetAuthAsync<EsiSearchResult>(charId, url, ct);
+            return result?.Alliance ?? [];
         }
         catch { return []; }
     }
@@ -278,6 +357,26 @@ public class EsiClient
     public Task<EsiKillMailFull?> GetKillMailAsync(int killMailId, string hash, CancellationToken ct = default)
         => GetAsync<EsiKillMailFull>($"killmails/{killMailId}/{hash}/", ct);
 
+    /// <summary>
+    /// Every player structure whose owner has made it public, as bare ids. Public, no auth.
+    ///
+    /// <para>The only way to learn of a structure nobody here has bumped into: everything else we
+    /// know about structures arrives incidentally, from a killmail, a contract or an asset
+    /// location, so that coverage stops where our characters have been.</para>
+    ///
+    /// <para>⚠️ The converse also holds — a structure we merely have docking rights to is NOT
+    /// listed unless its owner also made it public. This supplements the incidental sources, it
+    /// does not replace them.</para>
+    ///
+    /// <para>Null on error rather than throwing: a missed refresh of a slow-moving list is not
+    /// worth failing a polling cycle over.</para>
+    /// </summary>
+    public async Task<List<long>?> GetPublicStructureIdsAsync(CancellationToken ct = default)
+    {
+        try { return await GetAsync<List<long>>("universe/structures/", ct); }
+        catch { return null; }
+    }
+
     // Moon detail (public). Returns null on error. name is e.g. "X-1QGA VI - Moon 3".
     public async Task<EsiMoonDetail?> GetMoonAsync(int moonId, CancellationToken ct = default)
     {
@@ -357,6 +456,9 @@ public class EsiClient
                 ErrorLimitRemain   = errorLimitRemain,
                 ErrorLimitReset    = errorLimitReset,
                 RetryAfterSeconds  = TryGetInt("Retry-After"),
+                // Off Content rather than the response headers: Expires is a content header, and
+                // response.Headers does not carry it.
+                Expires            = response.Content.Headers.Expires,
                 Error              = error,
             };
         }
@@ -476,12 +578,15 @@ public class EsiClient
         }
 
         var allItems = new List<T>(firstPage.Data ?? []);
+        bool complete = true;
         for (int p = 2; p <= firstPage.TotalPages; p++)
         {
             ct.ThrowIfCancellationRequested();
             var page = await ExecuteAuthAsync<List<T>>(characterId, path, ct, page: p);
             if (page.IsSuccess && page.Data is not null)
                 allItems.AddRange(page.Data);
+            else
+                complete = false;   // a page dropped — Data is now an incomplete set
         }
 
         return new EsiCallResult<List<T>>
@@ -489,6 +594,7 @@ public class EsiClient
             Data               = allItems,
             StatusCode         = firstPage.StatusCode,
             TotalPages         = firstPage.TotalPages,
+            Complete           = complete,
             RateLimitGroup     = firstPage.RateLimitGroup,
             RateLimitRemaining = firstPage.RateLimitRemaining,
             RateLimitLimit     = firstPage.RateLimitLimit,
@@ -588,12 +694,15 @@ public class EsiClient
         }
 
         var allItems = new List<T>(firstPage.Data ?? []);
+        bool complete = true;
         for (int p = 2; p <= firstPage.TotalPages; p++)
         {
             ct.ThrowIfCancellationRequested();
             var page = await ExecuteCorpAuthAsync<List<T>>(corpId, path, ct, page: p, extraHeaders: extraHeaders);
             if (page.IsSuccess && page.Data is not null)
                 allItems.AddRange(page.Data);
+            else
+                complete = false;   // a page dropped — Data is now an incomplete set
         }
 
         return new EsiCallResult<List<T>>
@@ -601,6 +710,7 @@ public class EsiClient
             Data               = allItems,
             StatusCode         = firstPage.StatusCode,
             TotalPages         = firstPage.TotalPages,
+            Complete           = complete,
             RateLimitGroup     = firstPage.RateLimitGroup,
             RateLimitRemaining = firstPage.RateLimitRemaining,
             RateLimitLimit     = firstPage.RateLimitLimit,

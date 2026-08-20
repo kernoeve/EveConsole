@@ -1,0 +1,185 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="EveConsole.Views.LpMarketValuesView"
+             x:DataType="vm:LpMarketValuesViewModel">
+
+  <UserControl.Styles>
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+  </UserControl.Styles>
+
+  <TabControl SelectedIndex="{Binding SelectedTabIndex}" Padding="0" Background="Transparent">
+
+    <!-- ── Current Values ──────────────────────────────────────────────────── -->
+    <TabItem Header="Current Values">
+      <Grid RowDefinitions="Auto,*" Margin="14 12">
+
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0 0 0 8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="{Binding Status}" FontSize="12" Foreground="#c8a84b"
+                       VerticalAlignment="Center" TextWrapping="Wrap"/>
+            <Button Grid.Column="1" Content="Recalculate" Click="OnRecalculateClick"
+                    IsEnabled="{Binding CanRecalculate}"
+                    Padding="10 4" FontSize="11" Margin="10 0 0 0"
+                    ToolTip.Tip="Re-price every offer against current market and contract prices. Happens automatically when market prices refresh; this runs it now."/>
+          </Grid>
+          <TextBlock FontSize="11" Foreground="#555566" TextWrapping="Wrap"
+                     Text="Mean ISK per loyalty point across the offers in each store that price out above zero. Offers worth nothing or less are shown per item in the Item Browser but are not counted here, since nobody spends LP on them; the median covers exactly the same offers. Corporations you hold LP with are listed first. Double-click a row for its history."/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1" x:Name="CorpGrid"
+                  ItemsSource="{Binding Corps}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                  DoubleTapped="OnCorpDoubleTapped">
+          <DataGrid.Columns>
+            <DataGridTemplateColumn Header="Corporation" Width="240" SortMemberPath="CorporationName">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:LpCorpValueVm">
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenCorporation" IsVisible="{Binding HasCorpLink}"
+                            ToolTip.Tip="Open in NPC Entities">
+                      <TextBlock Text="{Binding CorporationName}" Classes="linktext"
+                                 TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <TextBlock Text="{Binding CorporationName}" IsVisible="{Binding !HasCorpLink}"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Panel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTemplateColumn Header="ISK / LP" Width="130" SortMemberPath="IskPerLp">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:LpCorpValueVm">
+                  <TextBlock Text="{Binding IskPerLpText}" FontSize="11" Foreground="#c8a84b"
+                             TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"
+                             ToolTip.Tip="Mean ISK per LP across the offers counted for this corporation."/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTemplateColumn Header="Median" Width="120" SortMemberPath="MedianIskPerLp">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:LpCorpValueVm">
+                  <TextBlock Text="{Binding MedianText}" FontSize="11"
+                             Foreground="{Binding MedianColor}"
+                             TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"
+                             ToolTip.Tip="The middle offer, over the same counted offers as the mean. Highlighted when it sits well below the mean, which means a few very high offers are lifting the average above what a typical offer returns."/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTemplateColumn Header="Best Offer" Width="110" SortMemberPath="BestIskPerLp">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:LpCorpValueVm">
+                  <TextBlock Text="{Binding BestText}" FontSize="11" Foreground="#4caf50"
+                             TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTemplateColumn Header="Best Item" Width="*" SortMemberPath="BestOfferName">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:LpCorpValueVm">
+                  <Button Content="{Binding BestOfferName}"
+                          Command="{Binding $parent[UserControl].((vm:LpMarketValuesViewModel)DataContext).OpenInItemBrowserCommand}"
+                          CommandParameter="{Binding BestTypeId}"
+                          Background="Transparent" BorderThickness="0" Padding="0"
+                          FontSize="11" Foreground="#c8a84b" Cursor="Hand"
+                          HorizontalContentAlignment="Left" VerticalAlignment="Center"
+                          ToolTip.Tip="Open in Item Browser"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTemplateColumn Header="Counted" Width="90" SortMemberPath="ValuedOffers">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:LpCorpValueVm">
+                  <TextBlock Text="{Binding CoverageText}" FontSize="11"
+                             Foreground="{Binding CoverageColor}"
+                             TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"
+                             ToolTip.Tip="Offers behind these figures, out of the store total. Excludes offers that could not be priced, and offers worth zero or less — nobody spends LP on those, so they are shown per item but not averaged here."/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTemplateColumn Header="Your LP" Width="110" SortMemberPath="LpHeld">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:LpCorpValueVm">
+                  <TextBlock Text="{Binding HeldText}" FontSize="11" Foreground="{Binding HeldColor}"
+                             TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTextColumn Header="Holding Worth" Binding="{Binding HoldingValueText}" Width="150"
+                                SortMemberPath="HoldingValue"/>
+            <!-- Sorted on the timestamp, not the "d MMM HH:mm" text, which would order by day
+                 number and put 1 April ahead of 2 March. -->
+            <DataGridTextColumn Header="Updated"       Binding="{Binding UpdatedText}"      Width="130"
+                                SortMemberPath="ComputedAt"/>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
+    <!-- ── History ─────────────────────────────────────────────────────────── -->
+    <TabItem Header="History">
+      <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
+          <TextBlock Text="Corporation:" FontSize="12" Foreground="#666677" VerticalAlignment="Center"/>
+          <ComboBox ItemsSource="{Binding HistoryCorps}"
+                    SelectedItem="{Binding SelectedHistoryCorp}"
+                    MinWidth="240" FontSize="12">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:LpCorpValueVm">
+                <TextBlock Text="{Binding CorporationName}"/>
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+
+          <TextBlock Text="Period:" FontSize="12" Foreground="#666677" VerticalAlignment="Center" Margin="10 0 0 0"/>
+          <ComboBox ItemsSource="{x:Static vm:LpMarketValuesViewModel.Periods}"
+                    SelectedItem="{Binding SelectedPeriod}"
+                    MinWidth="150" FontSize="12">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:LpHistoryPeriod">
+                <TextBlock Text="{Binding Label}"/>
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </StackPanel>
+
+        <TextBlock Grid.Row="1" Text="{Binding HistoryStatus}" FontSize="11"
+                   Foreground="#555566" TextWrapping="Wrap" Margin="0 0 0 8"/>
+
+        <lvc:CartesianChart Grid.Row="2"
+                            Series="{Binding Series}"
+                            XAxes="{Binding XAxes}"
+                            YAxes="{Binding YAxes}"
+                            TooltipPosition="Top"/>
+      </Grid>
+    </TabItem>
+
+  </TabControl>
+</UserControl>

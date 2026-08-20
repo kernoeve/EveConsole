@@ -31,6 +31,10 @@ public partial class TradeOpportunitiesView : UserControl
 
     private Window GetWindow() => (TopLevel.GetTopLevel(this) as Window)!;
 
+    /// <summary>Row-level link: the button's DataContext is the row it sits in.</summary>
+    private void OnOpenItem(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as TradeRow)?.OpenItem();
+
     private void OnGridDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (DataContext is TradeOpportunitiesViewModel vm &&

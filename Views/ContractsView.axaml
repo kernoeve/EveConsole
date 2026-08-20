@@ -23,9 +23,28 @@
       <Setter Property="Foreground" Value="#555566" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
   </UserControl.Styles>
 
-  <TabControl Background="#0d0d12">
+  <TabControl Background="#0d0d12" SelectedIndex="{Binding TabIndex}">
 
     <!-- ══ Tab 1: Corporation & Personal ═══════════════════════════════════════ -->
     <TabItem Header="Corporation &amp; Personal">
@@ -70,9 +89,51 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Contents" Binding="{Binding Contents}" Width="*" />
-              <DataGridTextColumn Header="Issuer"   Binding="{Binding Issuer}"   Width="150" />
-              <DataGridTextColumn Header="Assignee" Binding="{Binding Assignee}" Width="140" />
+              <DataGridTemplateColumn Header="Contents" Width="*" SortMemberPath="Contents">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:ContractRowVm">
+                    <Panel>
+                      <Button Classes="link" Click="OnOpenContents" IsVisible="{Binding HasContentsLink}"
+                              ToolTip.Tip="Open in the Item Browser">
+                        <TextBlock Text="{Binding Contents}" Classes="linktext"
+                                   TextTrimming="CharacterEllipsis" />
+                      </Button>
+                      <TextBlock Text="{Binding Contents}" IsVisible="{Binding !HasContentsLink}"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Panel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="Issuer" Width="150" SortMemberPath="Issuer">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:ContractRowVm">
+                    <Panel>
+                      <Button Classes="link" Click="OnOpenIssuer" IsVisible="{Binding HasIssuerLink}"
+                              ToolTip.Tip="Open in the entity browser">
+                        <TextBlock Text="{Binding Issuer}" Classes="linktext"
+                                   TextTrimming="CharacterEllipsis" />
+                      </Button>
+                      <TextBlock Text="{Binding Issuer}" IsVisible="{Binding !HasIssuerLink}"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Panel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="Assignee" Width="140" SortMemberPath="Assignee">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:ContractRowVm">
+                    <Panel>
+                      <Button Classes="link" Click="OnOpenAssignee" IsVisible="{Binding HasAssigneeLink}"
+                              ToolTip.Tip="Open in the entity browser">
+                        <TextBlock Text="{Binding Assignee}" Classes="linktext"
+                                   TextTrimming="CharacterEllipsis" />
+                      </Button>
+                      <TextBlock Text="{Binding Assignee}" IsVisible="{Binding !HasAssigneeLink}"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Panel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTextColumn Header="Acceptor" Binding="{Binding Acceptor}" Width="140" />
               <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" />
               <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" />
@@ -163,9 +224,37 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Contents" Binding="{Binding Contents}"   Width="*" />
+              <DataGridTemplateColumn Header="Contents" Width="*" SortMemberPath="Contents">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:ContractRowVm">
+                    <Panel>
+                      <Button Classes="link" Click="OnOpenContents" IsVisible="{Binding HasContentsLink}"
+                              ToolTip.Tip="Open in the Item Browser">
+                        <TextBlock Text="{Binding Contents}" Classes="linktext"
+                                   TextTrimming="CharacterEllipsis" />
+                      </Button>
+                      <TextBlock Text="{Binding Contents}" IsVisible="{Binding !HasContentsLink}"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Panel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTextColumn Header="Region"   Binding="{Binding Region}"     Width="140" />
-              <DataGridTextColumn Header="Issuer"   Binding="{Binding Issuer}"     Width="150" />
+              <DataGridTemplateColumn Header="Issuer" Width="150" SortMemberPath="Issuer">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:ContractRowVm">
+                    <Panel>
+                      <Button Classes="link" Click="OnOpenIssuer" IsVisible="{Binding HasIssuerLink}"
+                              ToolTip.Tip="Open in the entity browser">
+                        <TextBlock Text="{Binding Issuer}" Classes="linktext"
+                                   TextTrimming="CharacterEllipsis" />
+                      </Button>
+                      <TextBlock Text="{Binding Issuer}" IsVisible="{Binding !HasIssuerLink}"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Panel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" />
               <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" />
               <DataGridTextColumn Header="Vol m³"   Binding="{Binding Volume}"     Width="80" />

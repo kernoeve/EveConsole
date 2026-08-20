@@ -1,0 +1,909 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="EveConsole.Views.SystemPageView"
+             x:DataType="vm:SystemPageViewModel"
+             Background="#0b0b10">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.hlabel">
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="Foreground" Value="#6a6a7c" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.hvalue">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="#d8d8e4" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="0 0 18 0" />
+    </Style>
+    <Style Selector="TextBlock.col">
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Foreground" Value="#c8c8d8" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.colmuted">
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="Foreground" Value="#6a6a7c" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- A link in a grid cell. The button carries no chrome of its own so the row still reads as
+         a row; the text underneath is what says it is clickable. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <!-- ⚠️ No Foreground. A link here keeps whatever colour its column already had — the
+         killmail tool established that, and recolouring everything clickable to blue turns a
+         page where nearly every name links into a page that is mostly blue, which tells you
+         nothing about which ones matter. The cursor and the hover underline carry the
+         affordance instead; at rest the row looks exactly as it did. -->
+    <Style Selector="TextBlock.linktext">
+      <Setter Property="FontSize"          Value="11.5" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+    <Style Selector="TextBlock.colhead">
+      <Setter Property="FontSize" Value="9.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#55556a" />
+    </Style>
+    <Style Selector="TextBlock.note">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="#6a6a7c" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Margin" Value="0 0 0 8" />
+    </Style>
+    <Style Selector="Border.rowline">
+      <Setter Property="BorderBrush" Value="#16161f" />
+      <Setter Property="BorderThickness" Value="0 0 0 1" />
+      <Setter Property="Padding" Value="0 4" />
+    </Style>
+    <!-- ⚠️ MinHeight 30, not 0. The Fluent TabItem template lays its selection underline out
+         against the item's height, so collapsing that to zero left the underline running through
+         the middle of the label instead of sitting beneath it. 30 fits a 12px label plus the
+         indicator and is still far shorter than the theme's own 48. -->
+    <Style Selector="TabItem">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Padding" Value="12 6 12 8" />
+      <Setter Property="MinHeight" Value="30" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- ══ Header ═══════════════════════════════════════════════════════════ -->
+    <Border Grid.Row="0" Background="#101018" BorderBrush="#1e1e2a"
+            BorderThickness="0 0 0 1" Padding="16 12">
+      <Grid ColumnDefinitions="Auto,16,*,Auto">
+
+        <Border Grid.Column="0" Width="64" Height="64" Background="#16161f"
+                CornerRadius="4" VerticalAlignment="Top">
+          <Image Source="{Binding HolderLogo}" Width="64" Height="64" />
+        </Border>
+
+        <StackPanel Grid.Column="2" Spacing="6">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="{Binding Name}" FontSize="22" FontWeight="SemiBold" Foreground="#e8e8f2" />
+            <!-- The rounded band decides high/low/null, so it is the headline; true security
+                 sits beside it because ore, spawns and bounties all scale off the real value. -->
+            <TextBlock Text="{Binding Security}" FontSize="14" FontWeight="SemiBold"
+                       ToolTip.Tip="{Binding SecurityTip}"
+                       Foreground="{Binding SecurityColor}" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding SecurityTrue}" FontSize="10" Foreground="#666677"
+                       ToolTip.Tip="True security" VerticalAlignment="Center" Margin="-4 0 0 0" />
+            <TextBlock Text="{Binding SecurityClass}" Classes="hlabel" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Classes="hlabel" Text="Region" Margin="0 0 6 0" />
+            <Panel>
+              <Button Classes="link" Click="OnOpenRegion" IsVisible="{Binding HasRegionLink}">
+                <TextBlock Text="{Binding Region}" Classes="linktext hvalue" Margin="0" />
+              </Button>
+              <TextBlock Classes="hvalue" Text="{Binding Region}" IsVisible="{Binding !HasRegionLink}" />
+            </Panel>
+            <TextBlock Classes="hlabel" Text="Constellation" Margin="0 0 6 0" />
+            <Panel>
+              <Button Classes="link" Click="OnOpenConstellation" IsVisible="{Binding HasConstellationLink}">
+                <TextBlock Text="{Binding Constellation}" Classes="linktext hvalue" Margin="0" />
+              </Button>
+              <TextBlock Classes="hvalue" Text="{Binding Constellation}" IsVisible="{Binding !HasConstellationLink}" />
+            </Panel>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Classes="hlabel" Text="Sovereignty" Margin="0 0 6 0" />
+            <!-- Split into its two halves so each can be clicked. The combined string is kept for
+                 the case where neither is a link, which is how "Unclaimed" still appears. -->
+            <Button Classes="link" Command="{Binding OpenSovAllianceCommand}"
+                    IsVisible="{Binding HasSovAlliance}">
+              <TextBlock Text="{Binding SovAlliance}" Classes="linktext hvalue" Margin="0" />
+            </Button>
+            <TextBlock Classes="hvalue" Text="  ·  " Margin="0"
+                       IsVisible="{Binding HasSovCorporation}" />
+            <Button Classes="link" Command="{Binding OpenSovCorpCommand}"
+                    IsVisible="{Binding HasSovCorporation}" Margin="0 0 18 0">
+              <TextBlock Text="{Binding SovCorporation}" Classes="linktext hvalue" Margin="0" />
+            </Button>
+            <TextBlock Classes="hvalue" Text="{Binding Holder}"
+                       IsVisible="{Binding HasSovNeither}" />
+            <TextBlock Classes="hlabel" Text="Local pirates" Margin="0 0 6 0"
+                       IsVisible="{Binding LocalPirates, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            <Panel>
+              <Button Classes="link" Click="OnOpenPirates" IsVisible="{Binding HasPirateLink}">
+                <TextBlock Text="{Binding LocalPirates}" Classes="linktext hvalue" Margin="0" Foreground="#c88a6a" />
+              </Button>
+              <TextBlock Classes="hvalue" Text="{Binding LocalPirates}" IsVisible="{Binding !HasPirateLink}" Foreground="#c88a6a" />
+            </Panel>
+            <TextBlock Classes="hlabel" Text="ADM" Margin="0 0 6 0" IsVisible="{Binding HasAdm}" />
+            <TextBlock Classes="hvalue" Text="{Binding Adm}" IsVisible="{Binding HasAdm}"
+                       Foreground="{Binding AdmColor}" FontWeight="SemiBold" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" IsVisible="{Binding HasIndustryIndex}">
+            <TextBlock Classes="hlabel" Text="Industry indices" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding IndustryIndex}" Foreground="#9ab8e0"
+                       ToolTip.Tip="Manufacturing · time efficiency · material efficiency · copying · invention · reactions" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" IsVisible="{Binding HasProduction}">
+            <TextBlock Classes="hlabel" Text="Production" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding Production}" Foreground="#8fc8a8" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Counters, mirroring dotlan's 1h / 24h pairing -->
+        <Grid Grid.Column="3" ColumnDefinitions="Auto,Auto"
+              RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" VerticalAlignment="Top">
+          <TextBlock Grid.Row="0" Grid.Column="0" Classes="hlabel" Text="Planets"        Margin="0 0 12 2" />
+          <TextBlock Grid.Row="0" Grid.Column="1" Classes="col"    Text="{Binding PlanetCount}" />
+          <TextBlock Grid.Row="1" Grid.Column="0" Classes="hlabel" Text="Moons"          Margin="0 0 12 2" />
+          <TextBlock Grid.Row="1" Grid.Column="1" Classes="col"    Text="{Binding MoonCount}" />
+          <TextBlock Grid.Row="2" Grid.Column="0" Classes="hlabel" Text="Belts"          Margin="0 0 12 2" />
+          <TextBlock Grid.Row="2" Grid.Column="1" Classes="col"    Text="{Binding BeltCount}" />
+          <TextBlock Grid.Row="3" Grid.Column="0" Classes="hlabel" Text="Jumps 1h / 24h" Margin="0 6 12 2" />
+          <TextBlock Grid.Row="3" Grid.Column="1" Classes="col"    Text="{Binding Jumps}" Margin="0 6 0 2" />
+          <TextBlock Grid.Row="4" Grid.Column="0" Classes="hlabel" Text="Ship kills"     Margin="0 0 12 2" />
+          <TextBlock Grid.Row="4" Grid.Column="1" Classes="col"    Text="{Binding ShipKills}" />
+          <TextBlock Grid.Row="5" Grid.Column="0" Classes="hlabel" Text="NPC kills"      Margin="0 0 12 2" />
+          <TextBlock Grid.Row="5" Grid.Column="1" Classes="col"    Text="{Binding NpcKills}" />
+          <TextBlock Grid.Row="6" Grid.Column="0" Classes="hlabel" Text="Pod kills"      Margin="0 0 12 2" />
+          <TextBlock Grid.Row="6" Grid.Column="1" Classes="col"    Text="{Binding PodKills}" />
+        </Grid>
+      </Grid>
+    </Border>
+
+    <!-- ══ Tabs ═════════════════════════════════════════════════════════════ -->
+    <TabControl Grid.Row="1" Background="Transparent" Padding="0">
+
+      <!-- ── Overview ──────────────────────────────────────────────────── -->
+      <TabItem Header="Overview">
+        <ScrollViewer>
+          <StackPanel Margin="16" Spacing="16">
+
+            <!-- Hourly activity at a glance, the way dotlan heads its overview. -->
+            <StackPanel>
+              <TextBlock Classes="note" Text="{Binding HourNote}" />
+              <Grid ColumnDefinitions="*,12,*,12,*,12,*">
+                <StackPanel Grid.Column="0">
+                  <TextBlock Classes="colhead" Text="JUMPS" />
+                  <lvc:CartesianChart Height="110" Series="{Binding HourJumpSeries}"
+                                      XAxes="{Binding HourXAxes}" YAxes="{Binding HourYAxes}"
+                                      EasingFunction="{x:Null}" Background="Transparent" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                  <TextBlock Classes="colhead" Text="NPC KILLS" />
+                  <lvc:CartesianChart Height="110" Series="{Binding HourNpcSeries}"
+                                      XAxes="{Binding HourXAxes}" YAxes="{Binding HourYAxes}"
+                                      EasingFunction="{x:Null}" Background="Transparent" />
+                </StackPanel>
+                <StackPanel Grid.Column="4">
+                  <TextBlock Classes="colhead" Text="SHIP KILLS" />
+                  <lvc:CartesianChart Height="110" Series="{Binding HourShipSeries}"
+                                      XAxes="{Binding HourXAxes}" YAxes="{Binding HourYAxes}"
+                                      EasingFunction="{x:Null}" Background="Transparent" />
+                </StackPanel>
+                <StackPanel Grid.Column="6">
+                  <TextBlock Classes="colhead" Text="POD KILLS" />
+                  <lvc:CartesianChart Height="110" Series="{Binding HourPodSeries}"
+                                      XAxes="{Binding HourXAxes}" YAxes="{Binding HourYAxes}"
+                                      EasingFunction="{x:Null}" Background="Transparent" />
+                </StackPanel>
+              </Grid>
+            </StackPanel>
+
+            <StackPanel>
+              <TextBlock Classes="colhead" Text="SOVEREIGNTY STRUCTURES" Margin="0 0 0 6" />
+              <TextBlock Classes="note" Text="No sovereignty structures in this system."
+                         IsVisible="{Binding !SovStructures.Count}" />
+              <Grid ColumnDefinitions="36,2*,2*,60,110,3*" IsVisible="{Binding SovStructures.Count}">
+                <TextBlock Grid.Column="1" Classes="colhead" Text="TYPE" />
+                <TextBlock Grid.Column="2" Classes="colhead" Text="OWNER" />
+                <TextBlock Grid.Column="3" Classes="colhead" Text="ADM" Margin="0 0 14 0" />
+                <TextBlock Grid.Column="4" Classes="colhead" Text="STATE" Margin="0 0 14 0" />
+                <TextBlock Grid.Column="5" Classes="colhead" Text="VULNERABILITY WINDOW" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding SovStructures}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:SovStructureVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="36,2*,2*,60,110,3*">
+                        <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
+                        <Panel Grid.Column="1">
+                          <Button Classes="link" Click="OnOpenSovType" IsVisible="{Binding HasTypeLink}"
+                                  ToolTip.Tip="Open in the Item Browser">
+                            <TextBlock Text="{Binding TypeName}" Classes="linktext col" Margin="0" />
+                          </Button>
+                          <TextBlock Classes="col" Text="{Binding TypeName}"
+                                     IsVisible="{Binding !HasTypeLink}" />
+                        </Panel>
+                        <Panel Grid.Column="2">
+                          <Button Classes="link" Click="OnOpenSovOwner" IsVisible="{Binding HasOwnerLink}"
+                                  ToolTip.Tip="Open in the entity browser">
+                            <TextBlock Text="{Binding Owner}" Classes="linktext col" Margin="0" />
+                          </Button>
+                          <TextBlock Classes="col" Text="{Binding Owner}"
+                                     IsVisible="{Binding !HasOwnerLink}" />
+                        </Panel>
+                        <TextBlock Grid.Column="3" Classes="col" Text="{Binding Adm}" Margin="0 0 14 0" />
+                        <TextBlock Grid.Column="4" Classes="col" Text="{Binding State}"
+                                   Foreground="{Binding StateColor}" Margin="0 0 14 0" />
+                        <TextBlock Grid.Column="5" Classes="colmuted" Text="{Binding Window}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <StackPanel>
+              <TextBlock Classes="colhead" Text="SOVEREIGNTY CHANGES" Margin="0 0 0 6" />
+              <TextBlock Classes="note" Text="{Binding HistoryNote}" />
+              <TextBlock Classes="note" Text="No changes recorded in the stored window."
+                         IsVisible="{Binding !SovChanges.Count}" />
+              <ItemsControl ItemsSource="{Binding SovChanges}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:SystemEventVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="36,150,150,*">
+                        <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
+                        <TextBlock Grid.Column="1" Classes="colmuted" Text="{Binding When}" />
+                        <TextBlock Grid.Column="2" Classes="col" Text="{Binding Kind}"
+                                   Foreground="{Binding KindColor}" />
+                        <TextBlock Grid.Column="3" Classes="col" Text="{Binding Summary}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <StackPanel>
+              <TextBlock Classes="colhead" Text="GATES" Margin="0 0 0 6" />
+              <ItemsControl ItemsSource="{Binding Gates}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:GateVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="150,Auto,*">
+                        <Panel Grid.Column="0">
+                          <Button Classes="link" Click="OnOpenGateSystem" IsVisible="{Binding HasSystemLink}"
+                                  ToolTip.Tip="Open this system">
+                            <TextBlock Text="{Binding Name}" Classes="linktext col"
+                                       Foreground="#7fb8d8" Margin="0" />
+                          </Button>
+                          <TextBlock Classes="col" Text="{Binding Name}" Foreground="#7fb8d8"
+                                     IsVisible="{Binding !HasSystemLink}" />
+                        </Panel>
+                        <TextBlock Grid.Column="1" Classes="col" Text="{Binding Security}"
+                                   Foreground="{Binding SecurityColor}" Margin="0 0 14 0" />
+                        <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding RegionName}"
+                                   IsVisible="{Binding OutOfRegion}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <!-- The grid the Structures tab used to hold, split in two. Two lists rather than one
+                 with a Source column: they lead to different tools, and which you are looking at
+                 should be settled before you click rather than after. Each hides when the system
+                 has none of that kind. -->
+            <StackPanel IsVisible="{Binding HasPlayerStructures}">
+              <TextBlock Classes="colhead" Text="PLAYER STRUCTURES" Margin="0 0 0 6" />
+              <Grid ColumnDefinitions="36,3*,140,2*,140,2*">
+                <TextBlock Grid.Column="1" Classes="colhead" Text="NAME" />
+                <TextBlock Grid.Column="2" Classes="colhead" Text="TYPE" />
+                <TextBlock Grid.Column="3" Classes="colhead" Text="CORPORATION" />
+                <TextBlock Grid.Column="4" Classes="colhead" Text="ALLIANCE" />
+                <TextBlock Grid.Column="5" Classes="colhead" Text="LOCATION" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding PlayerStructures}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:SysStructureVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="36,3*,140,2*,140,2*">
+                        <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
+                        <Button Grid.Column="1" Classes="link" Command="{Binding OpenCommand}"
+                                ToolTip.Tip="Open in the Structure Browser">
+                          <TextBlock Text="{Binding Name}" Classes="linktext" Foreground="#c8c8d8"
+                                     TextWrapping="Wrap" />
+                        </Button>
+                        <Button Grid.Column="2" Classes="link" Command="{Binding OpenTypeCommand}"
+                                ToolTip.Tip="Open in the Item Browser">
+                          <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10.5"
+                                     Foreground="#6a6a7c" />
+                        </Button>
+                        <Button Grid.Column="3" Classes="link" Command="{Binding OpenCorpCommand}"
+                                IsVisible="{Binding HasCorporation}">
+                          <TextBlock Text="{Binding Corporation}" Classes="linktext" FontSize="10.5"
+                                     Foreground="#6a6a7c" TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <Button Grid.Column="4" Classes="link" Command="{Binding OpenAllianceCommand}"
+                                IsVisible="{Binding HasAlliance}">
+                          <TextBlock Text="{Binding Alliance}" Classes="linktext" FontSize="10.5"
+                                     Foreground="#6a6a7c" TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Grid.Column="5" Classes="colmuted" Text="{Binding Location}"
+                                   TextTrimming="CharacterEllipsis" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <StackPanel IsVisible="{Binding HasNpcStations}">
+              <TextBlock Classes="colhead" Text="NPC STATIONS" Margin="0 0 0 6" />
+              <Grid ColumnDefinitions="36,3*,140,2*,140,2*">
+                <TextBlock Grid.Column="1" Classes="colhead" Text="NAME" />
+                <TextBlock Grid.Column="2" Classes="colhead" Text="TYPE" />
+                <TextBlock Grid.Column="3" Classes="colhead" Text="CORPORATION" />
+                <TextBlock Grid.Column="5" Classes="colhead" Text="LOCATION" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding NpcStations}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:SysStructureVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="36,3*,140,2*,140,2*">
+                        <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
+                        <Button Grid.Column="1" Classes="link" Command="{Binding OpenCommand}"
+                                ToolTip.Tip="Open in NPC Entities">
+                          <TextBlock Text="{Binding Name}" Classes="linktext" Foreground="#c8c8d8"
+                                     TextWrapping="Wrap" />
+                        </Button>
+                        <Button Grid.Column="2" Classes="link" Command="{Binding OpenTypeCommand}"
+                                ToolTip.Tip="Open in the Item Browser">
+                          <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10.5"
+                                     Foreground="#6a6a7c" />
+                        </Button>
+                        <Button Grid.Column="3" Classes="link" Command="{Binding OpenCorpCommand}"
+                                IsVisible="{Binding HasCorporation}"
+                                ToolTip.Tip="Open in NPC Entities">
+                          <TextBlock Text="{Binding Corporation}" Classes="linktext" FontSize="10.5"
+                                     Foreground="#6a6a7c" TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Grid.Column="5" Classes="colmuted" Text="{Binding Location}"
+                                   TextTrimming="CharacterEllipsis" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- ── Celestials ────────────────────────────────────────────────── -->
+      <TabItem Header="Celestials">
+        <ScrollViewer>
+          <StackPanel Margin="16">
+            <TextBlock Classes="note"
+                       Text="Laid out as the system is arranged in space: the star, the gates, then each planet in orbital order with its belts, moons and anything docked at them nested beneath." />
+            <Grid ColumnDefinitions="*,2*,180,70,80,150">
+              <TextBlock Grid.Column="0" Classes="colhead" Text="OBJECT" />
+              <TextBlock Grid.Column="1" Classes="colhead" Text="OWNER" />
+              <TextBlock Grid.Column="2" Classes="colhead" Text="TYPE" />
+              <TextBlock Grid.Column="3" Classes="colhead" Text="POWER" />
+              <TextBlock Grid.Column="4" Classes="colhead" Text="WORKFORCE" />
+              <TextBlock Grid.Column="5" Classes="colhead" Text="REAGENT" />
+            </Grid>
+            <ItemsControl ItemsSource="{Binding Celestials}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:CelestialNodeVm">
+                  <Border Classes="rowline">
+                    <Grid ColumnDefinitions="*,2*,180,70,80,150">
+                      <!-- Icon and name indent together in one panel. Indenting them in
+                           separate fixed columns pushed the icon out of its own column. -->
+                      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
+                                  Margin="{Binding Indent}" VerticalAlignment="Center">
+                        <Image Source="{Binding Icon}" Width="22" Height="22"
+                               Stretch="Uniform" VerticalAlignment="Center" />
+                        <!-- Only the docked rows are links; a planet or a gate is a place, not a
+                             thing with a viewer. Both keep the kind colouring either way. -->
+                        <Button Classes="link" Command="{Binding OpenCommand}"
+                                IsVisible="{Binding HasLocation}">
+                          <TextBlock Text="{Binding Name}" Classes="linktext"
+                                     Foreground="{Binding NameColor}"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Text="{Binding Name}" FontSize="11.5"
+                                   Foreground="{Binding NameColor}"
+                                   IsVisible="{Binding !HasLocation}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+
+                      <!-- Owner splits into its two halves so each links; the combined string
+                           remains for rows that have one but no id to reach it by. -->
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                                  VerticalAlignment="Center">
+                        <Button Classes="link" Command="{Binding OpenCorpCommand}"
+                                IsVisible="{Binding HasCorporation}">
+                          <TextBlock Text="{Binding Corporation}" Classes="linktext" FontSize="10.5"
+                                     Foreground="#6a6a7c" TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Text="·" Classes="colmuted"
+                                   IsVisible="{Binding HasAlliance}" />
+                        <Button Classes="link" Command="{Binding OpenAllianceCommand}"
+                                IsVisible="{Binding HasAlliance}">
+                          <TextBlock Text="{Binding Alliance}" Classes="linktext" FontSize="10.5"
+                                     Foreground="#6a6a7c" TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Classes="colmuted" Text="{Binding Owner}"
+                                   IsVisible="{Binding !HasCorporation}"
+                                   TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+
+                      <Button Grid.Column="2" Classes="link" Command="{Binding OpenTypeCommand}"
+                              IsVisible="{Binding HasType}"
+                              ToolTip.Tip="Open in the Item Browser">
+                        <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10.5"
+                                   Foreground="#6a6a7c" TextTrimming="CharacterEllipsis" />
+                      </Button>
+                      <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding Power}" />
+                      <TextBlock Grid.Column="4" Classes="colmuted" Text="{Binding Workforce}" />
+                      <TextBlock Grid.Column="5" Text="{Binding Reagent}" FontSize="10.5"
+                                 Foreground="{Binding ReagentColor}" VerticalAlignment="Center" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- ── Graphs ────────────────────────────────────────────────────── -->
+      <TabItem Header="Graphs">
+        <ScrollViewer>
+          <StackPanel Margin="16" Spacing="14">
+            <TextBlock Classes="note" Text="{Binding GraphNote}" />
+
+            <!-- Two columns of three. Each measure keeps its own chart rather than sharing one:
+                 jumps run to thousands while ship and pod kills are single digits, so a shared
+                 axis flattens the kill lines onto zero. -->
+            <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,14,Auto,14,Auto">
+
+              <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                <TextBlock Classes="colhead" Text="SHIP JUMPS" />
+                <lvc:CartesianChart Height="255" Series="{Binding JumpSeries}"
+                                    XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
+                                    EasingFunction="{x:Null}" Background="Transparent" />
+              </StackPanel>
+
+              <StackPanel Grid.Row="0" Grid.Column="2" Spacing="4">
+                <TextBlock Classes="colhead" Text="NPC KILLS" />
+                <lvc:CartesianChart Height="255" Series="{Binding NpcKillSeries}"
+                                    XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
+                                    EasingFunction="{x:Null}" Background="Transparent" />
+              </StackPanel>
+
+              <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">
+                <TextBlock Classes="colhead" Text="SHIP KILLS" />
+                <lvc:CartesianChart Height="255" Series="{Binding ShipKillSeries}"
+                                    XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
+                                    EasingFunction="{x:Null}" Background="Transparent" />
+              </StackPanel>
+
+              <StackPanel Grid.Row="2" Grid.Column="2" Spacing="4">
+                <TextBlock Classes="colhead" Text="POD KILLS" />
+                <lvc:CartesianChart Height="255" Series="{Binding PodKillSeries}"
+                                    XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
+                                    EasingFunction="{x:Null}" Background="Transparent" />
+              </StackPanel>
+
+              <!-- ADM keeps a fixed 0–6 axis: autoscaling would turn routine drift between 5.8
+                   and 6.0 into a dramatic-looking collapse. -->
+              <StackPanel Grid.Row="4" Grid.Column="0" Spacing="4">
+                <TextBlock Classes="colhead" Text="ACTIVITY DEFENSE MULTIPLIER" />
+                <TextBlock Classes="note" Text="{Binding AdmNote}" />
+                <lvc:CartesianChart Height="255" Series="{Binding AdmSeries}"
+                                    IsVisible="{Binding HasAdmGraph}"
+                                    XAxes="{Binding AdmXAxes}" YAxes="{Binding AdmYAxes}"
+                                    EasingFunction="{x:Null}" Background="Transparent" />
+              </StackPanel>
+
+              <!-- All six indices share one chart: they share a scale, and reading them against
+                   each other is the point. -->
+              <StackPanel Grid.Row="4" Grid.Column="2" Spacing="4">
+                <TextBlock Classes="colhead" Text="INDUSTRY COST INDICES" />
+                <TextBlock Classes="note" Text="{Binding IndexNote}" />
+                <lvc:CartesianChart Height="255" Series="{Binding IndexSeries}"
+                                    IsVisible="{Binding HasIndexGraph}"
+                                    XAxes="{Binding IndexXAxes}" YAxes="{Binding IndexYAxes}"
+                                    LegendPosition="Bottom" LegendTextSize="11"
+                                    LegendTextPaint="{Binding LegendPaint}"
+                                    LegendBackgroundPaint="{Binding LegendBackPaint}"
+                                    EasingFunction="{x:Null}" Background="Transparent" />
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- ── Agents ────────────────────────────────────────────────────── -->
+      <TabItem Header="Agents">
+        <ScrollViewer>
+          <StackPanel Margin="16">
+            <TextBlock Classes="note" Text="{Binding AgentNote}" />
+            <Grid ColumnDefinitions="2*,2*,140,190,60,70" IsVisible="{Binding Agents.Count}">
+              <TextBlock Grid.Column="0" Classes="colhead" Text="NAME" />
+              <TextBlock Grid.Column="1" Classes="colhead" Text="CORPORATION" />
+              <TextBlock Grid.Column="2" Classes="colhead" Text="DIVISION" />
+              <TextBlock Grid.Column="3" Classes="colhead" Text="TYPE" />
+              <TextBlock Grid.Column="4" Classes="colhead" Text="LEVEL" Margin="0 0 12 0" />
+              <TextBlock Grid.Column="5" Classes="colhead" Text="LOCATOR" />
+            </Grid>
+            <ItemsControl ItemsSource="{Binding Agents}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:AgentVm">
+                  <Border Classes="rowline">
+                    <Grid ColumnDefinitions="2*,2*,140,190,60,70">
+                      <StackPanel Grid.Column="0">
+                        <Button Classes="link" Command="{Binding OpenCommand}"
+                                ToolTip.Tip="Open in NPC Entities">
+                          <TextBlock Text="{Binding Name}" Classes="linktext" Foreground="#c8c8d8" />
+                        </Button>
+                        <!-- The station is on each row rather than as a group header, so the
+                             list stays sortable and copies out intact. -->
+                        <Button Classes="link" Command="{Binding OpenStationCommand}"
+                                IsVisible="{Binding HasStation}"
+                                ToolTip.Tip="Open the station in NPC Entities">
+                          <TextBlock Text="{Binding Location}" Classes="linktext"
+                                     FontSize="10.5" Foreground="#6a6a7c"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Button>
+                      </StackPanel>
+                      <Button Grid.Column="1" Classes="link" Command="{Binding OpenCorpCommand}"
+                              IsVisible="{Binding HasCorporation}"
+                              ToolTip.Tip="Open in NPC Entities">
+                        <TextBlock Text="{Binding Corporation}" Classes="linktext" FontSize="10.5"
+                                   Foreground="#6a6a7c" TextTrimming="CharacterEllipsis" />
+                      </Button>
+                      <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding Division}" />
+                      <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding AgentType}"
+                                 Foreground="#8a7fb0" TextTrimming="CharacterEllipsis"
+                                 Margin="0 0 10 0" ToolTip.Tip="{Binding AgentType}" />
+                      <TextBlock Grid.Column="4" Classes="col" Text="{Binding Level}"
+                                 Margin="0 0 12 0" />
+                      <TextBlock Grid.Column="5" Classes="colmuted" Text="{Binding Locator}"
+                                 Foreground="#6a9f7a" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- ── Structures ────────────────────────────────────────────────── -->
+      <!-- The Structures tab moved to the Overview, where it sits beside the gates and reads as
+           part of what the system is rather than a place to go and look. -->
+
+      <!-- ── Kills ─────────────────────────────────────────────────────── -->
+      <TabItem Header="Kills">
+        <ScrollViewer>
+          <StackPanel Margin="16">
+            <TextBlock Classes="note" Text="{Binding KillsNote}" />
+            <ItemsControl ItemsSource="{Binding Kills}">
+              <ItemsControl.ItemTemplate>
+                <!-- Same column widths as the Kills tool's own list. The identity columns are
+                     fixed at 160 there; leaving them proportional here stretched them across
+                     the width and left the row mostly gaps. Column 2 carries the ship instead
+                     of the system, which is the same for every row on this page. -->
+                <DataTemplate DataType="vm:KillmailListRowVm">
+                  <!-- Double-click opens the kill in the Killmail Browser. Handled on the row
+                       rather than as a link so the whole row is the target — the identity links
+                       inside it already claim their own clicks. -->
+                  <Border Classes="rowline" Background="Transparent"
+                          DoubleTapped="OnKillRowDoubleTapped"
+                          ToolTip.Tip="Double-click to open in the Killmail Browser">
+                    <Grid ColumnDefinitions="70,50,*,160,160" Margin="4">
+
+                      <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
+                        <TextBlock Text="{Binding DateText}" FontSize="10" Foreground="#888899" />
+                        <TextBlock Text="{Binding TimeText}" FontSize="10" Foreground="#c8c8d8"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding TotalIskText}" FontSize="10" Foreground="#c8a84b"
+                                   IsVisible="{Binding TotalIskText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                      </StackPanel>
+
+                      <Image Grid.Column="1" Source="{Binding ShipRender}" Width="48" Height="48"
+                             Stretch="Uniform" VerticalAlignment="Center"
+                             ToolTip.Tip="{Binding ShipName}" Margin="0 0 6 0" />
+
+                      <!-- Security / system / constellation / region, the same block every
+                           other killmail list carries. The system is the page's own, but the
+                           row still reads like the ones in Corp Activity and the Killmail
+                           tool rather than a one-off; the ship keeps its name on the render's
+                           tooltip, as it does there. -->
+                      <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
+                        <StackPanel Orientation="Horizontal" Spacing="3">
+                          <TextBlock Text="{Binding SecurityText}" FontSize="10" FontWeight="SemiBold"
+                                     ToolTip.Tip="{Binding SecurityTip}" Foreground="{Binding SecurityColor}" />
+                          <Panel>
+                            <Button Classes="link" Command="{Binding OpenSystemCommand}"
+                                    IsVisible="{Binding HasSystemLink}">
+                              <TextBlock Text="{Binding SystemName}" Classes="linktext" FontSize="10"
+                                         Foreground="#c8c8d8" FontWeight="SemiBold"
+                                         TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding SystemName}" IsVisible="{Binding !HasSystemLink}"
+                                       FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Panel>
+                        </StackPanel>
+                        <TextBlock Text="{Binding ConstellationName}" FontSize="9" Foreground="#888899"
+                                   TextTrimming="CharacterEllipsis"
+                                   IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        <Panel>
+                          <Button Classes="link" Command="{Binding OpenRegionCommand}"
+                                  IsVisible="{Binding HasRegionLink}">
+                            <TextBlock Text="{Binding RegionName}" Classes="linktext" FontSize="9"
+                                       Foreground="#666677" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding RegionName}" IsVisible="{Binding !HasRegionLink}"
+                                     FontSize="9" Foreground="#666677"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </StackPanel>
+
+                      <Grid Grid.Column="3" ColumnDefinitions="32,*" Margin="0 0 4 0">
+                        <Button Grid.Column="0" Classes="link" Command="{Binding OpenVictimAllianceCommand}"
+                                ToolTip.Tip="{Binding VictimAlliance}" Margin="0 0 4 0">
+                          <Image Source="{Binding VictimLogo}" Width="32" Height="32"
+                                 Stretch="Uniform" VerticalAlignment="Center" />
+                        </Button>
+                        <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                          <Button Classes="link" Command="{Binding OpenVictimCommand}">
+                            <TextBlock Text="{Binding VictimName}" Classes="linktext" FontSize="10"
+                                       Foreground="#c8c8d8" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <Button Classes="link" Command="{Binding OpenVictimCorpCommand}">
+                            <TextBlock Text="{Binding VictimCorp}" Classes="linktext" FontSize="9"
+                                       Foreground="#888899" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <Button Classes="link" Command="{Binding OpenVictimAllianceCommand}"
+                                  IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock Text="{Binding VictimAlliance}" Classes="linktext" FontSize="9"
+                                       Foreground="#666677" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                        </StackPanel>
+                      </Grid>
+
+                      <Grid Grid.Column="4" ColumnDefinitions="32,*">
+                        <Button Grid.Column="0" Classes="link" Command="{Binding OpenFbAllianceCommand}"
+                                ToolTip.Tip="{Binding FbAlliance}" Margin="0 0 4 0">
+                          <Image Source="{Binding FbLogo}" Width="32" Height="32"
+                                 Stretch="Uniform" VerticalAlignment="Center" />
+                        </Button>
+                        <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                          <Button Classes="link" Command="{Binding OpenFbCommand}">
+                            <TextBlock Text="{Binding FbName}" Classes="linktext" FontSize="10"
+                                       Foreground="#c8c8d8" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <Button Classes="link" Command="{Binding OpenFbCorpCommand}">
+                            <TextBlock Text="{Binding FbCorp}" Classes="linktext" FontSize="9"
+                                       Foreground="#888899" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <Button Classes="link" Command="{Binding OpenFbAllianceCommand}"
+                                  IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock Text="{Binding FbAlliance}" Classes="linktext" FontSize="9"
+                                       Foreground="#666677" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                        </StackPanel>
+                      </Grid>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- ── Events ────────────────────────────────────────────────────── -->
+      <TabItem Header="Events">
+        <ScrollViewer>
+          <StackPanel Margin="16">
+            <TextBlock Classes="note" Text="{Binding HistoryNote}" />
+            <TextBlock Classes="note" Text="No events recorded in the stored window."
+                       IsVisible="{Binding !Events.Count}" />
+            <ItemsControl ItemsSource="{Binding Events}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:SystemEventVm">
+                  <Border Classes="rowline">
+                    <Grid ColumnDefinitions="36,150,160,*">
+                      <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
+                      <TextBlock Grid.Column="1" Classes="colmuted" Text="{Binding When}" />
+                      <TextBlock Grid.Column="2" Classes="col" Text="{Binding Kind}"
+                                 Foreground="{Binding KindColor}" />
+                      <TextBlock Grid.Column="3" Classes="col" Text="{Binding Summary}" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- ── Intel ─────────────────────────────────────────────────────── -->
+      <TabItem Header="Intel">
+        <ScrollViewer>
+          <StackPanel Margin="16" Spacing="8">
+            <TextBlock Classes="note" Text="{Binding IntelNote}"
+                       IsVisible="{Binding !HasIntel}" />
+            <TextBlock Classes="note" Text="{Binding IntelSummary}"
+                       IsVisible="{Binding HasIntel}" />
+
+            <Grid ColumnDefinitions="120,40,34,3*,150,2*,190,80" IsVisible="{Binding HasIntel}">
+              <TextBlock Grid.Column="0" Classes="colhead" Text="WHEN (UTC)" />
+              <TextBlock Grid.Column="1" Classes="colhead" Text="N" />
+              <TextBlock Grid.Column="2" Classes="colhead" Text="NV" />
+              <TextBlock Grid.Column="3" Classes="colhead" Text="PILOTS" />
+              <TextBlock Grid.Column="4" Classes="colhead" Text="SHIP" />
+              <TextBlock Grid.Column="5" Classes="colhead" Text="NOTE" />
+              <TextBlock Grid.Column="6" Classes="colhead" Text="REPORTED BY" />
+              <TextBlock Grid.Column="7" Classes="colhead" Text="STATUS" />
+            </Grid>
+
+            <ItemsControl ItemsSource="{Binding Intel}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:IntelRowVm">
+                  <Border Background="#12121a" CornerRadius="3" Padding="6 4" Margin="0 0 0 3"
+                          Opacity="{Binding RowOpacity}">
+                    <Grid ColumnDefinitions="120,40,34,3*,150,2*,190,80"
+                          ToolTip.Tip="{Binding Message}">
+                      <TextBlock Grid.Column="0" Text="{Binding When}" FontSize="11"
+                                 Foreground="#8a8a9a" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Text="{Binding Count}" FontSize="11"
+                                 Foreground="{Binding CountColor}"
+                                 VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="2" Text="{Binding NoVisual}" FontSize="10"
+                                 Foreground="#c88a6a" VerticalAlignment="Center"
+                                 ToolTip.Tip="No visual — reported present but not seen" />
+                      <ItemsControl Grid.Column="3" ItemsSource="{Binding Pilots}" Margin="0 0 8 0"
+                                    VerticalAlignment="Center">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:IntelFaceVm">
+                            <!-- Same line height as the ship column beside it, so the two stay
+                                 in step when a report names several pilots.
+
+                                 ⚠️ Each badge names itself. The row carries the raw chat line as
+                                 its tooltip, and a logo inheriting that said what was reported
+                                 rather than whose logo it is — which is the one question a logo
+                                 raises. -->
+                            <StackPanel Orientation="Horizontal" Spacing="3" Margin="0 1" Height="18">
+                              <Button Classes="link" Command="{Binding OpenCommand}"
+                                      ToolTip.Tip="{Binding Name}">
+                                <Image Source="{Binding Portrait}" Width="18" Height="18" />
+                              </Button>
+                              <Button Classes="link" Command="{Binding OpenCorpCommand}"
+                                      IsVisible="{Binding HasCorporation}"
+                                      ToolTip.Tip="{Binding CorporationName}">
+                                <Image Source="{Binding CorpLogo}" Width="14" Height="14"
+                                       VerticalAlignment="Center" />
+                              </Button>
+                              <Button Classes="link" Command="{Binding OpenAllianceCommand}"
+                                      IsVisible="{Binding HasAlliance}"
+                                      ToolTip.Tip="{Binding AllianceName}">
+                                <Image Source="{Binding AllianceLogo}" Width="14" Height="14"
+                                       VerticalAlignment="Center" />
+                              </Button>
+                              <Button Classes="link" Command="{Binding OpenCommand}"
+                                      Margin="2 0 0 0" ToolTip.Tip="Open in Player Entities">
+                                <TextBlock Text="{Binding Name}" Classes="linktext"
+                                           Foreground="#d8d8e4" FontSize="11" />
+                              </Button>
+                            </StackPanel>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+
+                      <!-- Iterates the same pilots in the same order, so a hull sits on the
+                           line of the pilot it belongs to however many were named. -->
+                      <ItemsControl Grid.Column="4" ItemsSource="{Binding Pilots}" Margin="0 0 8 0"
+                                    VerticalAlignment="Center">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:IntelFaceVm">
+                            <StackPanel Orientation="Horizontal" Spacing="3" Margin="0 1" Height="18">
+                              <Image Source="{Binding ShipIcon}" Width="16" Height="16"
+                                     VerticalAlignment="Center" />
+                              <Button Command="{Binding $parent[UserControl].DataContext.OpenInItemBrowserCommand}"
+                                      CommandParameter="{Binding ShipTypeId}"
+                                      Background="Transparent" BorderThickness="0" Padding="0"
+                                      HorizontalContentAlignment="Left" Cursor="Hand"
+                                      VerticalAlignment="Center"
+                                      ToolTip.Tip="Open in the Item Browser">
+                                <TextBlock Text="{Binding Ship}" FontSize="11" Foreground="#9ab8e0"
+                                           TextDecorations="Underline"
+                                           TextTrimming="CharacterEllipsis" />
+                              </Button>
+                            </StackPanel>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+
+                      <TextBlock Grid.Column="5" Text="{Binding Note}" FontSize="11"
+                                 Foreground="#7a7a8a" TextTrimming="CharacterEllipsis"
+                                 ToolTip.Tip="{Binding Note}" Margin="0 0 8 0"
+                                 VerticalAlignment="Center" />
+                      <!-- The reporter, shown and linked exactly like the pilots they called.
+                           The channel moves onto the name, where it belongs to the report rather
+                           than to whichever badge the cursor happened to land on. -->
+                      <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="3"
+                                  VerticalAlignment="Center">
+                        <Button Classes="link" Command="{Binding ReportedBy.OpenCommand}"
+                                ToolTip.Tip="{Binding ReportedBy.Name}">
+                          <Image Source="{Binding ReportedBy.Portrait}" Width="18" Height="18" />
+                        </Button>
+                        <Button Classes="link" Command="{Binding ReportedBy.OpenCorpCommand}"
+                                IsVisible="{Binding ReportedBy.HasCorporation}"
+                                ToolTip.Tip="{Binding ReportedBy.CorporationName}">
+                          <Image Source="{Binding ReportedBy.CorpLogo}" Width="14" Height="14"
+                                 VerticalAlignment="Center" />
+                        </Button>
+                        <Button Classes="link" Command="{Binding ReportedBy.OpenAllianceCommand}"
+                                IsVisible="{Binding ReportedBy.HasAlliance}"
+                                ToolTip.Tip="{Binding ReportedBy.AllianceName}">
+                          <Image Source="{Binding ReportedBy.AllianceLogo}" Width="14" Height="14"
+                                 VerticalAlignment="Center" />
+                        </Button>
+                        <Button Classes="link" Command="{Binding ReportedBy.OpenCommand}"
+                                Margin="2 0 0 0" ToolTip.Tip="{Binding Channel}">
+                          <TextBlock Text="{Binding Reporter}" Classes="linktext" FontSize="11"
+                                     Foreground="#8a8a9a" TextTrimming="CharacterEllipsis" />
+                        </Button>
+                      </StackPanel>
+                      <TextBlock Grid.Column="7" Text="{Binding Status}" FontSize="10"
+                                 Foreground="#6a6a7c" VerticalAlignment="Center" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+    </TabControl>
+  </Grid>
+</UserControl>

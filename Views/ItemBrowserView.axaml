@@ -6,6 +6,28 @@
              x:DataType="vm:ItemBrowserViewModel"
              Background="#0d0d12">
 
+  <UserControl.Styles>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
+         already had, with the cursor and a hover underline as the only cues — the same rule the
+         Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+  </UserControl.Styles>
+
   <!-- Root Grid: row 0 = main content, row 1 = status bar (guaranteed no overlap) -->
   <Grid RowDefinitions="*,Auto">
 
@@ -179,24 +201,28 @@
           </Border>
 
           <!-- Tabs -->
+          <!-- ⚠️ BorderThickness 0. The TabControl draws its own rule beneath the tab strip and
+               the header Border above already draws one — two lines bracketing the tabs where one
+               belongs. The header's is kept; the selected tab's gold underline is what marks the
+               tab, and it reads better without a second full-width rule beneath it. -->
           <TabControl Grid.Row="1"
                       x:Name="ItemDetailTabs"
                       Background="Transparent"
+                      BorderThickness="0"
                       SelectedIndex="{Binding SelectedDetailTabIndex}"
                       SelectionChanged="OnDetailTabChanged">
             <TabControl.Styles>
+              <!-- ⚠️ No bottom border here. Fluent draws its own selected-tab pipe, so adding a
+                   BorderThickness underline on top of it gives the tab two lines. Colour only. -->
               <Style Selector="TabItem">
                 <Setter Property="FontSize" Value="13" />
                 <Setter Property="Foreground" Value="#666677" />
                 <Setter Property="Padding" Value="12 8" />
                 <Setter Property="Background" Value="Transparent" />
-                <Setter Property="BorderThickness" Value="0 0 0 2" />
-                <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="Margin" Value="0" />
               </Style>
               <Style Selector="TabItem:selected">
                 <Setter Property="Foreground" Value="#c8a84b" />
-                <Setter Property="BorderBrush" Value="#c8a84b" />
               </Style>
               <Style Selector="TabItem:pointerover">
                 <Setter Property="Foreground" Value="#e8d870" />
@@ -602,6 +628,69 @@
               </ScrollViewer>
             </TabItem>
 
+            <!-- LP Store tab — hidden unless some NPC corporation sells this item -->
+            <TabItem Header="LP Store" IsVisible="{Binding HasLpOffers}">
+              <Grid RowDefinitions="Auto,8,*" Margin="16 12">
+
+                <TextBlock Grid.Row="0" FontSize="11" Foreground="#555566" TextWrapping="Wrap"
+                           Text="Offered by the loyalty point stores below. An item can be sold by several corporations at different rates — the one worth using is whichever you hold LP with. Your balance is the highest any single character holds."/>
+
+                <DataGrid Grid.Row="2" ItemsSource="{Binding LpOffers}"
+                          IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                          Background="Transparent" GridLinesVisibility="None"
+                          RowBackground="Transparent">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Corporation" Binding="{Binding CorporationName}" Width="220"/>
+                    <DataGridTemplateColumn Header="Qty" Width="60" SortMemberPath="Quantity">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:LpOfferVm">
+                          <TextBlock Text="{Binding QuantityText}" FontSize="11" Foreground="#ccc"
+                                     TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="LP Cost" Width="110" SortMemberPath="LpCost">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:LpOfferVm">
+                          <TextBlock Text="{Binding LpText}" FontSize="11" Foreground="#c8a84b"
+                                     TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="ISK Cost" Width="140" SortMemberPath="IskCost">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:LpOfferVm">
+                          <TextBlock Text="{Binding IskText}" FontSize="11" Foreground="#ccc"
+                                     TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Your LP" Width="110" SortMemberPath="LpHeld">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:LpOfferVm">
+                          <TextBlock Text="{Binding HeldText}" FontSize="11"
+                                     Foreground="{Binding HeldColor}"
+                                     TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="LP Est. Value" Width="130" SortMemberPath="IskPerLp">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:LpOfferVm">
+                          <TextBlock Text="{Binding IskPerLpText}" FontSize="11"
+                                     Foreground="{Binding IskPerLpColor}"
+                                     TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"
+                                     ToolTip.Tip="Item value less ISK and required items, per LP, both reduced to a single unit."/>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Required Items" Binding="{Binding RequiredText}" Width="*"/>
+                    <DataGridTextColumn Header="AK" Binding="{Binding AkText}" Width="80"/>
+                  </DataGrid.Columns>
+                </DataGrid>
+              </Grid>
+            </TabItem>
+
             <!-- Market Orders tab -->
             <TabItem Header="Market Orders">
               <Grid RowDefinitions="Auto,8,*,8,*" Margin="16 12">
@@ -651,10 +740,32 @@
                                           Binding="{ReflectionBinding PriceText}"
                                           SortMemberPath="Price"
                                           Width="130" />
-                      <DataGridTextColumn Header="Location"
-                                          Binding="{ReflectionBinding LocationName}"
-                                          SortMemberPath="LocationName"
-                                          Width="*" />
+                      <DataGridTemplateColumn Header="Location" SortMemberPath="LocationName" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate x:DataType="vm:OrderRowVm">
+                            <Panel>
+                              <Button Classes="link" Click="OnOpenOrderLocation"
+                                      IsVisible="{Binding HasLocationLink}"
+                                      ToolTip.Tip="Open this station or structure">
+                                <TextBlock Text="{Binding LocationName}" Classes="linktext"
+                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                              </Button>
+                              <TextBlock Text="{Binding LocationName}" IsVisible="{Binding !HasLocationLink}"
+                                         VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            </Panel>
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
+                      <DataGridTemplateColumn Header="Sec" SortMemberPath="Security" Width="55">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate>
+                            <TextBlock Text="{ReflectionBinding SecurityText}"
+                                       Foreground="{ReflectionBinding SecurityColor}"
+                                       ToolTip.Tip="{ReflectionBinding SecurityTip}"
+                                       FontWeight="SemiBold" VerticalAlignment="Center" />
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
                       <DataGridTextColumn Header="Expires"
                                           Binding="{ReflectionBinding ExpiresText}"
                                           SortMemberPath="Expires"
@@ -698,10 +809,32 @@
                                           Binding="{ReflectionBinding MinVolumeText}"
                                           SortMemberPath="MinVolume"
                                           Width="75" />
-                      <DataGridTextColumn Header="Location"
-                                          Binding="{ReflectionBinding LocationName}"
-                                          SortMemberPath="LocationName"
-                                          Width="*" />
+                      <DataGridTemplateColumn Header="Location" SortMemberPath="LocationName" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate x:DataType="vm:OrderRowVm">
+                            <Panel>
+                              <Button Classes="link" Click="OnOpenOrderLocation"
+                                      IsVisible="{Binding HasLocationLink}"
+                                      ToolTip.Tip="Open this station or structure">
+                                <TextBlock Text="{Binding LocationName}" Classes="linktext"
+                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                              </Button>
+                              <TextBlock Text="{Binding LocationName}" IsVisible="{Binding !HasLocationLink}"
+                                         VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            </Panel>
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
+                      <DataGridTemplateColumn Header="Sec" SortMemberPath="Security" Width="55">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate>
+                            <TextBlock Text="{ReflectionBinding SecurityText}"
+                                       Foreground="{ReflectionBinding SecurityColor}"
+                                       ToolTip.Tip="{ReflectionBinding SecurityTip}"
+                                       FontWeight="SemiBold" VerticalAlignment="Center" />
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
                       <DataGridTextColumn Header="Expires"
                                           Binding="{ReflectionBinding ExpiresText}"
                                           SortMemberPath="Expires"
@@ -762,17 +895,15 @@
                             IsVisible="{Binding !HistoryIsEmpty}"
                             Background="Transparent">
                   <TabControl.Styles>
+                    <!-- Colour only — Fluent's own pipe is the underline. -->
                     <Style Selector="TabItem">
                       <Setter Property="FontSize" Value="12" />
                       <Setter Property="Foreground" Value="#555566" />
                       <Setter Property="Padding" Value="10 6" />
                       <Setter Property="Background" Value="Transparent" />
-                      <Setter Property="BorderThickness" Value="0 0 0 2" />
-                      <Setter Property="BorderBrush" Value="Transparent" />
                     </Style>
                     <Style Selector="TabItem:selected">
                       <Setter Property="Foreground" Value="#c8a84b" />
-                      <Setter Property="BorderBrush" Value="#c8a84b" />
                     </Style>
                   </TabControl.Styles>
 

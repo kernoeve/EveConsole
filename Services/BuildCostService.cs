@@ -9,11 +9,8 @@ namespace EveConsole.Services;
 
 public class BuildCostService
 {
-    // Blueprint ME assumption for manufactured items.
-    // Reactions use ME0 (no blueprint ME research applies to reactions).
-    private const double MfgBlueprintMeFactor        = 0.90; // ME10 — T1 and most items
-    private const double T2MfgBlueprintMeFactor       = 0.97; // ME3  — T2 items (invention cap)
-    private const double FactionMfgBlueprintMeFactor  = 1.00; // ME0  — faction BPCs (not researchable)
+    // Blueprint ME assumptions live in IndustryMe (shared with the Production Calculator):
+    // ME10 default, T2 ME3, BPC-only/faction ME0, titans & Keepstars ME9, reactions ME0.
 
     // Upwell role bonuses: -3% job gross cost, -1% material requirements (Engineering Complexes).
     private const double UpwellRoleBonus     = 0.97;
@@ -163,6 +160,16 @@ public class BuildCostService
                 CostIndex     = ci.CostIndex,
             })));
         await db.SaveChangesAsync(ct);
+    }
+
+    // EVE material consumption for a whole job: per-run adjusted quantity (base × ME/rig/role
+    // modifiers) rounded to 2 dp, × run count, ceilinged ONCE, floored at one per run. Must match
+    // ProductionCalculatorService.JobMaterialTotal so the two calculators agree.
+    private static int JobMaterialTotal(int baseQty, double factor, int runs)
+    {
+        double perRun = Math.Round(baseQty * factor, 2);
+        double total  = Math.Round(perRun * runs, 4);
+        return Math.Max(runs, (int)Math.Ceiling(total));
     }
 
     // ── Core calculation ──────────────────────────────────────────────────────
@@ -335,6 +342,11 @@ public class BuildCostService
         var defaultSettings = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(ct);
         int? mktConfigId    = defaultSettings?.ManufacturingConfigId;
         string mktPriceType = defaultSettings?.ManufacturingPriceType ?? "Sell";
+        // Opt-in cheaper-of-buy: only replace building with buying when the user has enabled it, and
+        // then only when market value <= threshold% of build. Items that can't be costed are still
+        // bought regardless. Off by default (bouncy/thin component markets make it unreliable).
+        bool    buyWhenCheaper  = defaultSettings?.PurchaseWhenCheaper ?? false;
+        decimal buyThresholdPct = defaultSettings?.PurchaseThresholdPct ?? 100m;
 
         if (!mktConfigId.HasValue)
         {
@@ -383,7 +395,11 @@ public class BuildCostService
             .Select(t => new { t.TypeId, t.MetaGroupId })
             .ToListAsync(ct);
         var t2TypeIds      = metaGroupTypes.Where(t => t.MetaGroupId == 2).Select(t => t.TypeId).ToHashSet();
-        var factionTypeIds = metaGroupTypes.Where(t => t.MetaGroupId == 4).Select(t => t.TypeId).ToHashSet();
+        // Titans (group 30) and the Keepstar get ME9; other items follow the standard rule.
+        var titanKeepstarIds = (await db.SdeTypes.AsNoTracking()
+            .Where(t => productTypeIds.Contains(t.TypeId)
+                     && (t.GroupId == IndustryMe.TitanGroupId || t.TypeId == IndustryMe.KeepstarTypeId))
+            .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
 
         // BPO-sourced blueprints: the blueprint type is buyable on the market (has a market group)
         // OR is invented from a source blueprint that is buyable (T2 from a T1 BPO). Anything else
@@ -446,7 +462,9 @@ public class BuildCostService
                 {
                     712             => "react_bio_gas",
                     428             => "react_biochemical",
-                    429 or 974 or 4096 => "react_composite",
+                    // 4932 Unrefined Mineral — the eight Unrefined Tritanium/Pyerite/… products,
+                    // reaction-produced and bonused by the composite rig. See IndyRigMatching.
+                    429 or 974 or 4096 or 4932 => "react_composite",
                     _               => "",
                 };
             }
@@ -457,8 +475,10 @@ public class BuildCostService
                 // ── Category 6: Ships ────────────────────────────────────────────────
                 (6, "Frigate" or "Destroyer" or "Shuttle" or "Corvette" or "Rookie Ship"
                    or "Hauler" or "Mining Barge")                                           => "small_ships",
+                // "Special Edition Yachts" — Victorieux, the Opux pair, the YC128 buses. All
+                // cruiser-hulled at 115,000 m³. See IndyRigMatching.
                 (6, "Cruiser" or "Battlecruiser" or "Combat Battlecruiser"
-                   or "Attack Battlecruiser")                                               => "medium_ships",
+                   or "Attack Battlecruiser" or "Special Edition Yachts")                   => "medium_ships",
                 (6, "Battleship" or "Freighter")                                            => "large_ships",
                 // T2 frigates/destroyers; SDE group is "Interdictor" not "Interdiction Destroyer"
                 (6, "Interceptor" or "Assault Frigate" or "Covert Ops"
@@ -480,10 +500,55 @@ public class BuildCostService
                 // Structure Modules — service modules and all structure rigs — are built at
                 // engineering complexes like equipment.
                 (66, _)         => "modules_equipment",
+                // T3 subsystems — Loki/Tengu/Legion/Proteus. Previously unmapped, so every
+                // subsystem threw "cannot be assigned to a structure" and lost its chain cost.
+                (32, _)         => "modules_equipment",
+                // Implants and boosters (20), starbase structures and POS modules (23),
+                // and sovereignty / infrastructure hub upgrades (39). Each category holds
+                // nothing but its own kind, so matching the whole category is safe.
+                (20, _)         => "modules_equipment",
+                (23, _)         => "modules_equipment",
+                (39, _)         => "modules_equipment",
+                // Special Edition Assets — the Deactivated Station Key Pass is the only
+                // manufacturable member of the category. See IndyRigMatching.
+                (63, _)         => "modules_equipment",
+                // Sovereignty Structures (40) and Orbitals (46) take the structure rig. Five
+                // manufacturable members between them, all structures. See IndyRigMatching.
+                (40, _)         => "structure_ammo",
+                (46, _)         => "structure_ammo",
+                // Category 2 (Celestial) is a junk drawer — planets, suns, wrecks, 1,697
+                // non-interactable objects. Only its container groups are manufacturable.
+                (2, var celestial) when celestial.Contains("Container") => "modules_equipment",
+                // Mutaplasmids. Matched by group, not category — category 17 also holds
+                // fuel blocks and capital components, which have their own rigs below.
+                (17, "Mutaplasmids")                                    => "modules_equipment",
+                // Abyssal, jump and warp matrix filaments. The other filament groups in
+                // category 17 have no manufacturable members, so this cannot reach them.
+                (17, var fil) when fil.Contains("Filament")             => "modules_equipment",
+                // Individually classified — these sit in category 17's junk-drawer groups,
+                // so the type id is the only thing precise enough to match on.
+                // 76203 Stellar Transmuter Datacore, 76204 Transport Relay Datacore,
+                // 29226 Basic Robotics, 3585 Mangled Sansha Data Analyzer,
+                // 29202 Modified Augumene Antidote.
+                _ when typeId is 76203 or 76204 or 29226                => "structure_ammo",
+                _ when typeId == 3585                                   => "modules_equipment",
+                _ when typeId == 29202                                  => "ammo_charges",
+                // 88172-88177 Narrow/Mid/Wideband Emission Amplifiers and Limiters —
+                // a contiguous block holding exactly those six and nothing else.
+                _ when typeId is >= 88172 and <= 88177                  => "adv_components",
                 (8, _)          => "ammo_charges",
                 (18, _) or (87, _)                                                          => "drones_fighters",
                 _ when tg.GroupId == 1136                                  => "structure_ammo",   // Fuel Blocks
-                _ when gc.Name.Contains("Capital") && gc.CategoryId == 4   => "capital_components",
+                // Capital Construction Components (group 873) are category 17, not 4 —
+                // the old guard matched nothing, so capital parts were costed with the
+                // advanced-component rig. "Advanced" is excluded because group 913 is
+                // genuinely bonused by the advanced rig. See IndyRigMatching.
+                _ when gc.Name.Contains("Capital") && gc.Name.Contains("Component")
+                                                   && !gc.Name.Contains("Advanced")
+                                                                           => "capital_components",
+                // Group 536 "Structure Components" ahead of the generic match, which claims it
+                // on the group name alone. See IndyRigMatching.
+                _ when tg.GroupId == 536                                    => "structure_ammo",
                 _ when gc.Name.Contains("Component")                        => "adv_components",
                 _ when gc.CategoryId is 22 or 65                           => "structure_ammo",
                 // R.A.M. items and Data Interfaces are manufactured at standard facilities
@@ -514,6 +579,26 @@ public class BuildCostService
         foreach (var typeId in productMap.Keys)
             Visit(typeId);
 
+        // Per-run BPC contract prices grouped by blueprint type → [(ME, per-run price)]. A BPC-only
+        // item is built by consuming one run of its (purchased) BPC; we pick the ME that minimises
+        // total cost. Empty for BPCs we've never seen on contracts.
+        var bpcPerRun = (await db.ContractBpcPrices.AsNoTracking().ToListAsync(ct))
+            .Select(c => new { c.TypeId, c.Me, Price = ContractPricing.EffectivePerRun(c) })
+            .Where(x => x.Price is > 0m)
+            .GroupBy(x => x.TypeId)
+            .ToDictionary(g => g.Key, g => g.Select(x => (Me: x.Me, PerRun: x.Price!.Value)).ToList());
+
+        // User price overrides. A market override replaces the buy price (so it drives the
+        // build-vs-buy comparison and any use of this item as a leaf); a contract override
+        // replaces the per-run BPC price at every ME. Build-cost overrides are applied per type
+        // inside the loop below.
+        var overrides = await db.PriceOverrides.AsNoTracking().ToDictionaryAsync(o => o.TypeId, ct);
+        foreach (var o in overrides.Values)
+        {
+            if (o.MarketValue.HasValue)   marketPrices[o.TypeId] = o.MarketValue.Value;
+            if (o.ContractValue.HasValue) bpcPerRun[o.TypeId]    = [(0, o.ContractValue.Value)];
+        }
+
         // ── Bottom-up cost calculation ────────────────────────────────────────
         // rawMatCosts: pure market-purchase cost of all leaf inputs (no job fees anywhere).
         // totalJobCosts: sum of every job fee in the build chain per unit of this item.
@@ -525,6 +610,19 @@ public class BuildCostService
         var rawMatCosts   = new Dictionary<int, decimal>(); // leaf-input market cost only
         var totalJobCosts = new Dictionary<int, decimal>(); // all job fees through the chain
         var buildSeconds  = new Dictionary<int, double>();  // time to build ONE unit of this item
+        var boughtTypes   = new HashSet<int>();             // items cheaper to buy than build
+
+        // Per-type build recipe captured during the pass below, then walked as a FULL CHAIN (not a
+        // per-unit rollup) to get accurate quantities — building 2 items in one job may need 9 of a
+        // sub-material, not 2 × ceil(4.5) = 10. See RecomputeFullChain at the end.
+        var recOutputQty = new Dictionary<int, int>();               // units produced per run
+        var recMeFactor  = new Dictionary<int, double>();            // material factor used to build it
+        var recMeLevel   = new Dictionary<int, int>();               // the ME level behind that factor
+        var recIsReaction = new HashSet<int>();                      // made by a reaction, not a job
+        var recJobPerRun = new Dictionary<int, decimal>();           // job fee for one run
+        var recBpcPerRun = new Dictionary<int, decimal>();           // BPC contract cost per run (0 if none)
+        var recMaterials = new Dictionary<int, List<(int Mat, int Qty)>>();
+        var recOverride  = new Dictionary<int, decimal>();           // pinned build cost (fixed leaf)
 
         foreach (var typeId in ordering)
         {
@@ -552,58 +650,117 @@ public class BuildCostService
 
             string catKey       = ItemCategoryKey(typeId, isReaction);
             var    structure    = StructureFor(catKey, typeId);
-            double bpMeFactor   = isReaction                    ? 1.0
-                                : factionTypeIds.Contains(typeId) ? FactionMfgBlueprintMeFactor
-                                : t2TypeIds.Contains(typeId)      ? T2MfgBlueprintMeFactor
-                                : MfgBlueprintMeFactor;
+            // Default ME assumption: ME10, except T2 (ME3), BPC-only/faction (ME0), titans &
+            // Keepstars (ME9), reactions (ME0). Shared with the Production Calculator via IndustryMe.
+            bool   bpcItem      = !isReaction && !BlueprintIsBpoSourced(bpTypeId);
+            int    defaultMe    = IndustryMe.DefaultMe(isReaction, bpcItem,
+                                      t2TypeIds.Contains(typeId), titanKeepstarIds.Contains(typeId));
+            double bpMeFactor   = IndustryMe.Factor(defaultMe);
             double rigMeBonus   = isReaction ? RigBonus(structure, catKey, rxnRigBonus)
                                              : RigBonus(structure, catKey, mfgRigBonus);
             double matRoleBonus = (!isReaction && IsUpwell(structure)) ? UpwellMaterialBonus : 0.0;
             double meFactor     = bpMeFactor * (1.0 - rigMeBonus) * (1.0 - matRoleBonus);
 
-            decimal rawMatRun    = 0m; // market price of leaf inputs for this run
-            decimal subJobRun    = 0m; // job fees of sub-components for this run
-            double  eivRun       = 0.0;
-
+            // EIV uses base (ME0) quantities and is independent of the ME chosen.
+            double eivRun = 0.0;
             foreach (var mat in materials)
-            {
-                int effectiveQty = Math.Max(1, (int)Math.Ceiling(mat.Quantity * meFactor));
+                eivRun += mat.Quantity * (adjustedPrices.TryGetValue(mat.MaterialTypeId, out var ap) ? ap : 0);
 
-                // Use the sub-component's raw material cost (not its full unitCost) so that
-                // its job fees are counted in subJobRun rather than inflating rawMatRun.
-                decimal subRaw = rawMatCosts.TryGetValue(mat.MaterialTypeId, out var rm) ? rm : 0m;
-                decimal subJob = totalJobCosts.TryGetValue(mat.MaterialTypeId, out var tj) ? tj : 0m;
-                rawMatRun += effectiveQty * subRaw;
-                subJobRun += effectiveQty * subJob;
-
-                double adjPrice = adjustedPrices.TryGetValue(mat.MaterialTypeId, out var ap) ? ap : 0;
-                eivRun          += mat.Quantity * adjPrice; // EIV always uses base (ME0) quantities
-            }
-
-            // Non-BPO items consume a blueprint copy bought from contracts. Treat the BPC as one
-            // more purchased input per run, valued at its contract-derived market value (set on
-            // blueprint types by MarketPricingService). EIV/job cost is unaffected — a BPC has no
-            // adjusted price and does not enter the job-fee base.
-            if (!isReaction && !BlueprintIsBpoSourced(bpTypeId)
-                && marketPrices.TryGetValue(bpTypeId, out var bpcPrice) && bpcPrice > 0)
-                rawMatRun += bpcPrice;
-
-            // Job cost using the formula from the in-game breakdown.
+            // Job cost — driven by EIV, independent of ME.
             string activity   = isReaction ? "reaction" : "manufacturing";
             double costIndex  = GetCostIndex(structure, activity);
             double facTax     = structure is not null ? (double)structure.FacilityTax / 100.0 : 0.0;
             double roleBonus  = IsUpwell(structure) ? UpwellRoleBonus : 1.0;
+            decimal thisJobRun = Math.Round((decimal)(eivRun * costIndex * roleBonus), 0)
+                               + Math.Round((decimal)(eivRun * (facTax + SccSurcharge)), 0);
 
-            decimal jobGrossRun = Math.Round((decimal)(eivRun * costIndex * roleBonus), 0);
-            decimal taxesRun    = Math.Round((decimal)(eivRun * (facTax + SccSurcharge)), 0);
-            decimal thisJobRun  = jobGrossRun + taxesRun;
+            // Material + sub-component-job cost for one run at a given material factor.
+            (decimal Raw, decimal SubJob) RunAt(double mf)
+            {
+                decimal raw = 0m, sub = 0m;
+                foreach (var mat in materials)
+                {
+                    int q = Math.Max(1, (int)Math.Ceiling(mat.Quantity * mf));
+                    raw += q * (rawMatCosts.TryGetValue(mat.MaterialTypeId, out var rm) ? rm : 0m);
+                    sub += q * (totalJobCosts.TryGetValue(mat.MaterialTypeId, out var tj) ? tj : 0m);
+                }
+                return (raw, sub);
+            }
+            double structRig = (1.0 - rigMeBonus) * (1.0 - matRoleBonus);
 
-            decimal rawMatPerUnit   = rawMatRun                  / outputQty;
-            decimal totalJobPerUnit = (subJobRun + thisJobRun)   / outputQty;
+            bool    bpcOnly = bpcItem;
+            decimal buildRawRun, buildSubJobRun, bpcRun = 0m;
+            bool    costable = true;
+            double  usedMeFactor = meFactor;   // factor the full-chain walk will reuse
 
-            unitCosts[typeId]     = rawMatPerUnit + totalJobPerUnit;
-            rawMatCosts[typeId]   = rawMatPerUnit;
-            totalJobCosts[typeId] = totalJobPerUnit;
+            if (bpcOnly && bpcPerRun.TryGetValue(bpTypeId, out var meOptions) && meOptions.Count > 0)
+            {
+                // Consumes one run of a purchased BPC. Pick the ME that minimises materials + BPC.
+                decimal bestTotal = decimal.MaxValue; (decimal Raw, decimal SubJob) best = default;
+                foreach (var (me, perRun) in meOptions)
+                {
+                    double mf = (1.0 - me / 100.0) * structRig;
+                    var r = RunAt(mf);
+                    decimal total = r.Raw + r.SubJob + perRun;
+                    if (total < bestTotal) { bestTotal = total; best = r; bpcRun = perRun; usedMeFactor = mf; }
+                }
+                (buildRawRun, buildSubJobRun) = best;
+            }
+            else if (bpcOnly)
+            {
+                // BPC-only but never seen on contracts — we can't cost the build; prefer buying.
+                costable = false;
+                usedMeFactor = structRig;
+                (buildRawRun, buildSubJobRun) = RunAt(structRig);   // ME0 placeholder
+            }
+            else
+            {
+                // BPO-sourced (or reaction): researched-BPO ME assumption, no BPC cost.
+                (buildRawRun, buildSubJobRun) = RunAt(meFactor);
+            }
+
+            // Capture the recipe for the full-chain recompute (quantities rounded per whole job).
+            recOutputQty[typeId] = outputQty;
+            recMeFactor[typeId]  = usedMeFactor;
+            recMeLevel[typeId]   = defaultMe;
+            if (isReaction) recIsReaction.Add(typeId);
+            recJobPerRun[typeId] = thisJobRun;
+            recBpcPerRun[typeId] = bpcRun;
+            recMaterials[typeId] = materials.Select(m => (m.MaterialTypeId, m.Quantity)).ToList();
+
+            decimal buildRawPerUnit = (buildRawRun + bpcRun) / outputQty;
+            decimal buildJobPerUnit = (buildSubJobRun + thisJobRun) / outputQty;
+            decimal buildTotal      = buildRawPerUnit + buildJobPerUnit;
+
+            // A build-cost override pins the build side to a fixed value (counted entirely as
+            // material, no job fee) — cheaper-of vs buying still applies below.
+            if (overrides.TryGetValue(typeId, out var ov) && ov.BuildCost.HasValue)
+            {
+                costable        = true;
+                buildRawPerUnit = ov.BuildCost.Value;
+                buildJobPerUnit = 0m;
+                buildTotal      = ov.BuildCost.Value;
+                recOverride[typeId] = ov.BuildCost.Value;   // fixed-value leaf in the full-chain walk
+            }
+
+            // Cheaper-of build vs buy the finished item on the configured market. When buying wins
+            // (or the build can't be costed), the item becomes a purchased leaf — its cost is the
+            // buy price and it carries no job fees for its parents.
+            decimal buyPrice = marketPrices.TryGetValue(typeId, out var fin) ? fin : 0m;
+            bool    cheaperToBuy = buyWhenCheaper && buyPrice <= buildTotal * buyThresholdPct / 100m;
+            if (buyPrice > 0 && (!costable || cheaperToBuy))
+            {
+                unitCosts[typeId]     = buyPrice;
+                rawMatCosts[typeId]   = buyPrice;
+                totalJobCosts[typeId] = 0m;
+                boughtTypes.Add(typeId);
+            }
+            else
+            {
+                unitCosts[typeId]     = buildTotal;
+                rawMatCosts[typeId]   = buildRawPerUnit;
+                totalJobCosts[typeId] = buildJobPerUnit;
+            }
 
             // Build time for ONE unit. A manufacturing job for this item ties up only its
             // own slot (sub-components are separate jobs), so this is not a chain sum:
@@ -621,6 +778,214 @@ public class BuildCostService
             }
         }
 
+        // ── Full-chain recompute ──────────────────────────────────────────────
+        {
+            // Cost every item through the Production Calculator itself, so the stored figure and
+            // what the calculator shows cannot drift apart. The context is loaded once — it is
+            // the same for every item and is nearly all of a plan's cost, so paying it per item
+            // would turn a minute into twenty.
+            var calc = new ProductionCalculatorService(
+                scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>());
+            var planContext = await calc.LoadContextAsync(defaultPark.Id, ct);
+
+            // ── Batch size ────────────────────────────────────────────────────
+            // Costing one run at a time charges every unit for a whole run's worth of rounding,
+            // and leaves a big surplus that then has to be credited back at a per-unit figure
+            // computed the same inflated way — which compounds down the chain.
+            //
+            // Reactions and components are built in batches in practice, so they are costed at
+            // 100 runs and divided by what that yields. The saving is the ceil() on material
+            // quantities being applied once to the batch rather than once per run, so it
+            // amortises: nearly all of it appears in the first handful of runs and 100 versus
+            // 200 barely moves the per-unit figure.
+            var marketGroups = await db.SdeMarketGroups.AsNoTracking()
+                .Select(g => new { g.MarketGroupId, g.ParentGroupId, g.Name })
+                .ToListAsync(ct);
+            var mgById = marketGroups.ToDictionary(g => g.MarketGroupId);
+
+            // The parts of the market tree whose items are built in batches in practice.
+            // Anything beneath one of these paths is costed as a batch.
+            string[][] batchPaths =
+            [
+                // "Manufacture & Research", not "Manufacturing" — the SDE's name, and getting it
+                // wrong silently batched none of the components.
+                ["Manufacture & Research", "Components"],
+                ["Drones"],
+                ["Ammunition & Charges"],
+                ["Ship and Module Modifications"],
+                ["Ship Equipment"],
+                ["Structure Equipment"],
+                ["Ships", "Shuttles"],
+                ["Ships", "Frigates"],
+                ["Ships", "Destroyers"],
+            ];
+
+            var childrenOf = marketGroups
+                .Where(g => g.ParentGroupId != null)
+                .GroupBy(g => g.ParentGroupId!.Value)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.MarketGroupId).ToList());
+
+            var batchGroupIds = new HashSet<int>();
+            foreach (var path in batchPaths)
+            {
+                // Walk the named path down from a top-level group, then take everything under it.
+                var current = marketGroups
+                    .Where(g => g.ParentGroupId == null && g.Name == path[0])
+                    .Select(g => g.MarketGroupId)
+                    .ToList();
+
+                foreach (var segment in path.Skip(1))
+                    current = current
+                        .SelectMany(id => childrenOf.GetValueOrDefault(id, []))
+                        .Where(id => mgById[id].Name == segment)
+                        .ToList();
+
+                if (current.Count == 0)
+                {
+                    _errorLogger.Log("BuildCostService", "batch groups",
+                        $"market group path \"{string.Join(" > ", path)}\" matched nothing — " +
+                        "its items will be costed one run at a time.");
+                    continue;
+                }
+
+                var stack = new Stack<int>(current);
+                while (stack.Count > 0)
+                {
+                    var id = stack.Pop();
+                    if (!batchGroupIds.Add(id)) continue;      // also guards a malformed cycle
+                    foreach (var child in childrenOf.GetValueOrDefault(id, []))
+                        stack.Push(child);
+                }
+            }
+
+            var componentTypes = (await db.SdeTypes.AsNoTracking()
+                    .Where(t => t.MarketGroupId != null)
+                    .Select(t => new { t.TypeId, MarketGroupId = t.MarketGroupId!.Value })
+                    .ToListAsync(ct))
+                .Where(t => batchGroupIds.Contains(t.MarketGroupId))
+                .Select(t => t.TypeId)
+                .ToHashSet();
+
+            // Named exceptions: not things anyone builds a hundred of at a time.
+            var batchByName = new Dictionary<string, int>
+            {
+                ["Enhanced Neurolink Protection Cell"] = 1,
+                ["Neurolink Protection Cell"]          = 10,
+                ["Capital Core Temperature Regulator"] = 10,
+            };
+            var batchExceptions = typeNames
+                .Where(kv => batchByName.ContainsKey(kv.Value))
+                .ToDictionary(kv => kv.Key, kv => batchByName[kv.Value]);
+
+            // No clamp to the blueprint's maxProductionLimit here. That field looks like a per-job
+            // run cap and is not one — the only limit the game imposes on an original is thirty
+            // days of run time, which a hundred runs of anything costed here comes nowhere near.
+            // Clamping to it costed capital components in batches of 40 rather than 100.
+            int BatchRuns(int typeId) =>
+                batchExceptions.TryGetValue(typeId, out var runs) ? runs
+              : recIsReaction.Contains(typeId) || componentTypes.Contains(typeId) ? 100
+              : 1;
+
+            // Order matters, and it is what makes crediting leftovers possible at all.
+            //
+            // The calculator values leftover sub-components at their build cost. Costing items in
+            // arbitrary order means reading the PREVIOUS pass's figures — the inflated ones this
+            // is replacing — and over-crediting against them, which drove 1,522 items negative.
+            //
+            // Costing a component before anything that consumes it means every leftover is valued
+            // at a figure already recomputed in this same pass. Leftovers only arise where a
+            // blueprint yields more than one unit per run, and those outputs always sit strictly
+            // below their consumers in the material graph, so such an order exists.
+            var builtTypes = productMap.Keys
+                .Where(t => !boughtTypes.Contains(t) && recMaterials.ContainsKey(t))
+                .ToHashSet();
+
+            var consumers = new Dictionary<int, List<int>>();
+            var remaining = builtTypes.ToDictionary(t => t, _ => 0);
+            foreach (var t in builtTypes)
+                foreach (var (mat, _) in recMaterials[t])
+                    if (builtTypes.Contains(mat))
+                    {
+                        if (!consumers.TryGetValue(mat, out var list)) consumers[mat] = list = [];
+                        list.Add(t);
+                        remaining[t]++;
+                    }
+
+            var ready = new Queue<int>(remaining.Where(kv => kv.Value == 0).Select(kv => kv.Key));
+            var order = new List<int>(builtTypes.Count);
+            while (ready.Count > 0)
+            {
+                var t = ready.Dequeue();
+                order.Add(t);
+                if (!consumers.TryGetValue(t, out var cons)) continue;
+                foreach (var c in cons)
+                    if (--remaining[c] == 0) ready.Enqueue(c);
+            }
+
+            // Whatever is left sits in a cycle. EVE's material graph is not guaranteed acyclic,
+            // and composite reactions consuming intermediate reaction products are exactly where
+            // that shows up. Cost them last; their leftovers fall back on the previous figure,
+            // which is the best available when a thing transitively depends on itself.
+            //
+            // ⚠️ Deliberately not logged as an error. This is the designed handling of a graph EVE
+            // genuinely has, it fires on every recalculation, and a recurring note about working
+            // behaviour buries the faults the log exists to surface. The count goes on StatusText,
+            // where it is visible while the recalculation is being watched and gone afterwards.
+            var ordered = order.ToHashSet();
+            var cyclic  = builtTypes.Where(t => !ordered.Contains(t)).ToList();
+            order.AddRange(cyclic);
+            if (cyclic.Count > 0)
+                StatusText = $"Build costs: calculating… ({cyclic.Count} in a dependency cycle, costed last)";
+
+            foreach (var typeId in order)
+            {
+                int outQ = recOutputQty.TryGetValue(typeId, out var oq) ? Math.Max(1, oq) : 1;
+                var me   = recMeLevel.TryGetValue(typeId, out var m) ? m : 10;
+
+                try
+                {
+                    // Cost a realistic batch, then divide by what it yields.
+                    var plan = calc.Calculate(
+                        [new ProductionQueueEntry
+                        {
+                            TypeId   = typeId,
+                            Quantity = outQ * BatchRuns(typeId),
+                            MeLevel  = me,
+                        }],
+                        planContext);
+
+                    // Unclassified items no longer abort the plan, so they arrive as
+                    // warnings instead of an exception. Still logged — a gap in the rig
+                    // rules is worth knowing about — but the cost below is now real
+                    // rather than a stale estimate from the previous pass.
+                    if (plan.Warnings.Count > 0)
+                        _errorLogger.Log("BuildCostService", $"chain cost for type {typeId}",
+                            string.Join("; ", plan.Warnings.Take(5))
+                            + (plan.Warnings.Count > 5 ? $"; …and {plan.Warnings.Count - 5} more" : ""));
+
+                    var produced = Math.Max(1, plan.FinalProducts.Count > 0
+                        ? plan.FinalProducts[0].QuantityProduced
+                        : outQ * BatchRuns(typeId));
+
+                    // Net of leftovers: over-produced sub-components are stock, not cost.
+                    rawMatCosts[typeId]   = plan.TotalRawMaterialCost / produced;
+                    totalJobCosts[typeId] = plan.TotalJobCost / produced;
+                    unitCosts[typeId]     = plan.NetCost / produced;
+
+                    // Publish it into the context, so everything costed after this — which, by
+                    // the ordering above, is everything that consumes it — values leftovers of
+                    // this component at the figure just computed rather than the stale one.
+                    planContext.BuildCostLookup[typeId] = unitCosts[typeId];
+                }
+                catch (Exception ex)
+                {
+                    // One unplannable item must not lose the whole recalculation. It keeps the
+                    // per-unit estimate from the pass above rather than getting no cost at all.
+                    _errorLogger.Log("BuildCostService", $"chain cost for type {typeId}", ex);
+                }
+            }
+        }
+
         // ── Persist results ───────────────────────────────────────────────────
 
         using var handle = _log.StartCall(defaultPark.Name, "build.costs");
@@ -635,6 +1000,7 @@ public class BuildCostService
                 MaterialCost = rawMatCosts.TryGetValue(tid, out var rm) ? rm : 0m,
                 JobCost      = totalJobCosts.TryGetValue(tid, out var tj) ? tj : 0m,
                 BuildSeconds = buildSeconds.TryGetValue(tid, out var bs) ? bs : 0.0,
+                Bought       = boughtTypes.Contains(tid),
                 UpdatedAt    = now,
             })
             .ToList();

@@ -1,0 +1,57 @@
+namespace EveConsole.Services;
+
+/// <summary>
+/// One place to ask "open this thing", wherever you are.
+///
+/// A killmail row appears in the Killmail Browser, in Corp Activity, on the map's system
+/// page and in the entity viewers. Its links have to work in all four, and threading a
+/// navigation callback down through every host that renders one is how the shared row
+/// template ends up with four slightly different copies. Instead the row asks this, and the
+/// main window wires it once at startup.
+///
+/// Every callback is optional: a host that has not wired one simply produces a link that
+/// does nothing rather than a crash, which matters for design-time and for the settings
+/// windows that render rows outside the main shell.
+/// </summary>
+public class EntityNavigator
+{
+    public Action<EntityKind, long>? OpenEntity   { get; set; }
+    public Action<int>?              OpenSystem   { get; set; }
+    public Action<int>?              OpenItem     { get; set; }
+    public Action<int>?              OpenKillmail { get; set; }
+    public Action<int>?              OpenRegion   { get; set; }
+
+    /// <summary>A constellation, framed on the map — like a region, but tighter.
+    /// ⚠️ By name rather than id, unlike its neighbours here: the map graph is keyed on
+    /// constellation name, and resolving an id would be a lookup performed for nobody.</summary>
+    public Action<string>?           OpenConstellation { get; set; }
+
+    /// <summary>A contract, in the Contracts tool. Opens the tool on its first tab and selects
+    /// the contract, so following a link from elsewhere lands on the thing itself.</summary>
+    public Action<int>?              OpenContract { get; set; }
+
+    /// <summary>A player structure, by location id, in the Structure Browser. Separate from
+    /// <see cref="OpenEntity"/> because a structure is not one of the entity kinds — it has a
+    /// tool of its own, where an NPC station belongs to the entity browser.</summary>
+    public Action<long>?             OpenStructure { get; set; }
+
+    /// <summary>Map overlay by key — "security", "sovereignty", "adm" and so on.</summary>
+    public Func<string, string>?     SetOverlay   { get; set; }
+
+    public void Entity(EntityKind kind, long id) { if (id > 0) OpenEntity?.Invoke(kind, id); }
+    public void System(int systemId)             { if (systemId > 0) OpenSystem?.Invoke(systemId); }
+    public void Item(int typeId)                 { if (typeId > 0) OpenItem?.Invoke(typeId); }
+    public void Killmail(int killMailId)         { if (killMailId > 0) OpenKillmail?.Invoke(killMailId); }
+    public void Region(int regionId)             { if (regionId > 0) OpenRegion?.Invoke(regionId); }
+    public void Constellation(string name)       { if (name.Length > 0) OpenConstellation?.Invoke(name); }
+    public void Contract(int contractId)         { if (contractId > 0) OpenContract?.Invoke(contractId); }
+    public void Structure(long structureId)      { if (structureId > 0) OpenStructure?.Invoke(structureId); }
+
+    /// <summary>
+    /// Shared instance. A static rather than an injected dependency on purpose: the row view
+    /// models are constructed from plain records in half a dozen places, several of them
+    /// deep inside LINQ projections, and threading a service into all of them to reach one
+    /// window would be a lot of plumbing for no extra safety.
+    /// </summary>
+    public static EntityNavigator Instance { get; } = new();
+}

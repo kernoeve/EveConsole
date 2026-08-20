@@ -32,6 +32,22 @@ public class SlackSettingsViewModel : ReactiveObject
             Channels.Add(_corpTop10Channel);
         }
 
+        var savedMsName = slack.ChannelName(SlackService.AreaCorpMonthly);
+        var savedMsId   = slack.ChannelId(SlackService.AreaCorpMonthly);
+        if (!string.IsNullOrEmpty(savedMsId))
+        {
+            _corpMonthlyChannel = new SlackChannel { Id = savedMsId, Name = savedMsName ?? savedMsId };
+            Channels.Add(_corpMonthlyChannel);
+        }
+
+        var savedSpName = slack.ChannelName(SlackService.AreaSalePosting);
+        var savedSpId   = slack.ChannelId(SlackService.AreaSalePosting);
+        if (!string.IsNullOrEmpty(savedSpId))
+        {
+            _salePostingChannel = new SlackChannel { Id = savedSpId, Name = savedSpName ?? savedSpId };
+            Channels.Add(_salePostingChannel);
+        }
+
         SaveAndTestCommand   = ReactiveCommand.CreateFromTask(SaveAndTestAsync);
         LoadChannelsCommand  = ReactiveCommand.CreateFromTask(LoadChannelsAsync);
         OpenSlackAppsCommand = ReactiveCommand.Create(() => OpenUrl(AppsUrl));
@@ -108,6 +124,10 @@ public class SlackSettingsViewModel : ReactiveObject
         Channels.Clear();
         _corpTop10Channel = null;
         this.RaisePropertyChanged(nameof(CorpTop10Channel));
+        _corpMonthlyChannel = null;
+        this.RaisePropertyChanged(nameof(CorpMonthlyChannel));
+        _salePostingChannel = null;
+        this.RaisePropertyChanged(nameof(SalePostingChannel));
         Status = "Disconnected.";
     }
 
@@ -174,6 +194,28 @@ public class SlackSettingsViewModel : ReactiveObject
         }
     }
 
+    private SlackChannel? _corpMonthlyChannel;
+    public SlackChannel? CorpMonthlyChannel
+    {
+        get => _corpMonthlyChannel;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _corpMonthlyChannel, value);
+            _ = _slack.SetChannelAsync(SlackService.AreaCorpMonthly, value);
+        }
+    }
+
+    private SlackChannel? _salePostingChannel;
+    public SlackChannel? SalePostingChannel
+    {
+        get => _salePostingChannel;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _salePostingChannel, value);
+            _ = _slack.SetChannelAsync(SlackService.AreaSalePosting, value);
+        }
+    }
+
     private async Task LoadChannelsAsync()
     {
         if (!_slack.HasToken) { Status = "Enter a token first."; return; }
@@ -184,8 +226,10 @@ public class SlackSettingsViewModel : ReactiveObject
             var (channels, error) = await _slack.ListChannelsAsync();
             if (error is not null) { Status = $"Could not load channels: {error}"; return; }
 
-            // Keep the current selection by id — the list is rebuilt from Slack each time.
-            var selectedId = _corpTop10Channel?.Id;
+            // Keep the current selections by id — the list is rebuilt from Slack each time.
+            var selectedId   = _corpTop10Channel?.Id;
+            var selectedMsId = _corpMonthlyChannel?.Id;
+            var selectedSpId = _salePostingChannel?.Id;
             Channels.Clear();
             foreach (var c in channels) Channels.Add(c);
 
@@ -196,6 +240,24 @@ public class SlackSettingsViewModel : ReactiveObject
                 {
                     _corpTop10Channel = match;
                     this.RaisePropertyChanged(nameof(CorpTop10Channel));
+                }
+            }
+            if (selectedMsId is not null)
+            {
+                var match = Channels.FirstOrDefault(c => c.Id == selectedMsId);
+                if (match is not null)
+                {
+                    _corpMonthlyChannel = match;
+                    this.RaisePropertyChanged(nameof(CorpMonthlyChannel));
+                }
+            }
+            if (selectedSpId is not null)
+            {
+                var match = Channels.FirstOrDefault(c => c.Id == selectedSpId);
+                if (match is not null)
+                {
+                    _salePostingChannel = match;
+                    this.RaisePropertyChanged(nameof(SalePostingChannel));
                 }
             }
             Status = $"{Channels.Count:N0} channel(s) available.";

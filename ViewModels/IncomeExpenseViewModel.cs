@@ -115,7 +115,7 @@ public class IncomeExpenseViewModel : ReactiveObject
         _errorLogger    = errorLogger;
 
         Observable.Interval(TimeSpan.FromMinutes(5))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOnUi("IncomeExpense.AutoRefresh")
             .Subscribe(tick => { _ = LoadAsync(); });
 
         _ = LoadAsync();

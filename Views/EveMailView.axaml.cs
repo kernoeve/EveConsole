@@ -34,5 +34,12 @@ public partial class EveMailView : UserControl
         throw new InvalidOperationException("EveMailService not available.");
     }
 
+
+    // The From line reads the page's own view model; each recipient carries its own link.
+    private void OnOpenMailFrom(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => (DataContext as EveMailViewModel)?.SelectedMail?.OpenFrom();
+
+    private void OnOpenRecipient(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as EveMailPartyVm)?.Open();
     private Window GetWindow() => (TopLevel.GetTopLevel(this) as Window)!;
 }

@@ -15,6 +15,10 @@ class Program
         // with special args and exit before the UI starts).
         VelopackApp.Build().Run();
 
+        // One instance per user. Must come after the Velopack hooks — those invoke this exe with
+        // special arguments and exit, and blocking them would break installs and updates.
+        if (!SingleInstance.TryAcquire(args)) return;
+
         // One-time carry-forward from a pre-rename Eve Cortex install — must happen before any
         // config or database is read.
         AppConfig.MigrateLegacyDataIfNeeded();

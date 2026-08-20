@@ -36,6 +36,11 @@ public class TradeRow
     public string TotalCostDisplay   => FormatIsk(TotalCost);
     public string TotalProfitDisplay => FormatIsk(TotalProfit);
 
+    /// <summary>Single-click opens the Item Browser. Double-clicking the row still routes
+    /// through the tool's own RequestItemNavigation, which keeps the trade context.</summary>
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
+
     private static string FormatIsk(double v) => v switch
     {
         >= 1_000_000_000_000 => $"{v / 1_000_000_000_000:N2}T",
@@ -480,9 +485,10 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
         using var cmd = conn.CreateCommand();
 
-        // NPC station: resolve via the station's solar system. (SdeStations.RegionId is
-        // not populated by the SDE import — it is 0 for every row — so we must not read
-        // it directly; join through SolarSystemId instead.)
+        // NPC station: resolve via the station's solar system. SdeStations.RegionId is
+        // populated now (by the importer, and by a startup repair for databases imported
+        // before that fix), but the join is kept deliberately — it is correct whatever
+        // state the column is in.
         cmd.CommandText = """
             SELECT ss."RegionId"
             FROM "SdeStations"     s

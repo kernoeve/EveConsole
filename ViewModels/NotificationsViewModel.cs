@@ -21,6 +21,31 @@ public class NotificationRowVm
     public string SenderType { get; }
     public string ReadText   { get; }
 
+    // ── Links ─────────────────────────────────────────────────────────────────
+    private readonly long   _characterId;
+    private readonly long   _senderId;
+    private readonly string _senderTypeRaw;
+
+    /// <summary>A notification that arrived under several characters names them all in one
+    /// cell, and CharacterId is only one of them — so that row stays plain rather than
+    /// opening whichever happened to sort first.</summary>
+    public bool HasCharacterLink { get; }
+    public bool HasSenderLink => _senderId > 0;
+
+    public void OpenCharacter()
+        => EntityNavigator.Instance.Entity(EntityKind.Pilot, _characterId);
+
+    /// <summary>ESI names the sender's type outright, including "faction", which the id-range
+    /// guess would read as a character.</summary>
+    public void OpenSender()
+    {
+        if (_senderId <= 0) return;
+        var kind = _senderTypeRaw == "faction"
+            ? EntityKind.Faction
+            : EntityLinks.KindOf(_senderId, _senderTypeRaw);
+        EntityNavigator.Instance.Entity(kind, _senderId);
+    }
+
     // characters = the (comma-joined) names of every character the notification arrived under.
     public NotificationRowVm(
         CharacterNotification n, string characters,
@@ -38,6 +63,10 @@ public class NotificationRowVm
             ? char.ToUpperInvariant(n.SenderType[0]) + n.SenderType[1..] : "";
         // n.IsRead here is MIN(IsRead) across recipients → Unread if any recipient hasn't read it.
         ReadText       = n.IsRead ? "Read" : "Unread";
+        _characterId     = n.CharacterId;
+        _senderId        = n.SenderId;
+        _senderTypeRaw   = n.SenderType;
+        HasCharacterLink = n.CharacterId > 0 && !Character.Contains(',');
     }
 }
 

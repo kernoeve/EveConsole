@@ -21,7 +21,21 @@
                FontSize="12" Padding="8 5"
                TextChanged="OnSearchChanged" />
 
-      <Border Background="#12121a" CornerRadius="3"
+      <!-- Collapses once something is picked, so the choice and the quantity are what is left on
+           screen rather than a list the reader has finished with. Typing again brings it back. -->
+      <Border x:Name="SelectedPanel" IsVisible="False"
+              Background="#12121a" CornerRadius="3"
+              BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Grid.Column="0" x:Name="SelectedText" FontSize="12" Foreground="#c8a84b"
+                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+          <Button Grid.Column="1" Content="Change" Click="OnChangeClick"
+                  Background="Transparent" Foreground="#888899"
+                  BorderBrush="#2a2a3a" BorderThickness="1" Padding="8 3" FontSize="11"/>
+        </Grid>
+      </Border>
+
+      <Border x:Name="ResultsPanel" Background="#12121a" CornerRadius="3"
               BorderBrush="#1e1e2a" BorderThickness="1" Height="200">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
           <ListBox x:Name="ResultsList"
@@ -44,13 +58,17 @@
         </ScrollViewer>
       </Border>
 
-      <StackPanel Spacing="5">
+      <StackPanel x:Name="QtyPanel" Spacing="5">
         <TextBlock Text="TARGET QUANTITY" FontSize="10" FontWeight="SemiBold"
                    Foreground="#555566" LetterSpacing="1" />
+        <!-- Six digits was too small to say what these groups actually hold: the reaction
+             targets here run to twenty million, and anything larger silently clamped. The cap is
+             now the column's own limit rather than an arbitrary one. -->
         <NumericUpDown x:Name="QtyBox"
-                       Value="1" Minimum="1" Maximum="999999"
+                       Value="1" Minimum="1" Maximum="2000000000"
                        Increment="1" ShowButtonSpinner="True"
-                       Width="140" FontSize="12"
+                       FormatString="N0"
+                       Width="160" FontSize="12"
                        Background="#131320" BorderBrush="#2a2a3a"
                        Foreground="#c8c8d8" />
       </StackPanel>

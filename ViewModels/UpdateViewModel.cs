@@ -38,7 +38,7 @@ public class UpdateViewModel : ReactiveObject
         // Startup check + hourly re-check.
         _ = CheckAsync(auto: true);
         Observable.Interval(TimeSpan.FromHours(1))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOnUi("Update.AutoCheck")
             .Subscribe(tick => { _ = CheckAsync(auto: true); });
     }
 

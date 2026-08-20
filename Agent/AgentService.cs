@@ -32,6 +32,19 @@ public sealed class AgentService : ReactiveObject
 
     // Targeted navigation/filter callbacks — set by MainWindow after startup.
     public Action<int, string>?                       NavigateItemCallback    { get; set; }
+
+    /// <summary>Opens an entity viewer. Set alongside <see cref="EntityBrowser"/>.</summary>
+    public Action<Services.EntityKind, long, string>? NavigateEntityCallback  { get; set; }
+
+    /// <summary>
+    /// Supplied by the host so the entity tool can resolve names the same way the viewers
+    /// do. Absent in contexts that have no database, in which case the tool is not offered.
+    /// </summary>
+    public Services.EntityBrowserService?             EntityBrowser           { get; set; }
+
+    /// <summary>Resolves system and region names for the map tool. Same contract as
+    /// <see cref="EntityBrowser"/> — absent means the tool is not offered.</summary>
+    public Services.UniverseMapService?               MapService              { get; set; }
     public Action<string?, string?, string?>?          FilterAssetsCallback   { get; set; }
     public Action<string?, string?, string?, string?>? FilterIndustryCallback { get; set; }
     public Action<string>?                             SelectCharacterCallback { get; set; }
@@ -88,17 +101,31 @@ public sealed class AgentService : ReactiveObject
             - set_industry_filter, set_asset_filter: Apply visual filters in the Industry or Assets tab.
             - navigate_to_item: Open a specific item in the Item Browser.
             - open_window: ALWAYS call this when the capsuleer asks to open, switch to, or navigate to any tool. Never just say you opened it — call the tool so the UI actually switches.
+            - manage_alarms: Whenever the capsuleer asks to be TOLD or ALERTED when something happens, set up an alarm with this rather than answering once. An alarm keeps working after this conversation ends; an intention to watch does not.
+
+            ## When an alarm fires
+            You will sometimes receive a message beginning "ALARM FIRED". That is an alarm the capsuleer set up reaching you — it is the prompt itself, not a request to investigate. Report what it says in a sentence or two, using the detail supplied. Do not call tools to verify it, and do not ask what they would like you to do about it.
 
             {verbosityInstruction}
 
             ## Tone and format
             You are displayed in a narrow side panel. Prefer plain text over markdown. Format ISK values with commas and two decimal places (e.g. 1,234,567.89 ISK).
 
+            ## System names
+            Write null-security system names exactly as they appear — C-FD0D, Y-ORBJ, 6-IAFR. Do not spell them out in your reply; when spoken aloud they are expanded for you.
+            They are said character by character, with the hyphen pronounced "tac": C-FD0D is "C tac F D zero D", 6-IAFR is "six tac I A F R". Use that form only if the capsuleer asks how a name is pronounced, or if you are spelling one out on purpose.
+
             Speak as {name}: calm, knowledgeable, slightly formal, with subtle warmth. You may address the capsuleer respectfully. Occasionally reference the broader state of New Eden to add colour, but keep the focus on what is useful to the capsuleer right now.
             """;
     }
 
     public AgentService() => Load();
+
+    /// <summary>
+    /// Supplies the alarm tool. Set before <see cref="Initialize"/> — without it the agent
+    /// simply has no alarm tool, rather than a broken one.
+    /// </summary>
+    public Func<Tools.IAgentTool>? AlarmToolFactory { get; set; }
 
     public void Initialize(string dbConnectionString)
     {
@@ -132,6 +159,17 @@ public sealed class AgentService : ReactiveObject
                 tabName => CaptureTabCallback?.Invoke(tabName)
                            ?? Task.FromResult<(byte[]?, string)>((null, ""))),
         ];
+
+        if (EntityBrowser is { } entities)
+            Tools = [.. Tools, new NavigateToEntityTool(entities,
+                (kind, id, name) => NavigateEntityCallback?.Invoke(kind, id, name))];
+
+        if (MapService is { } mapService)
+            Tools = [.. Tools, new OpenMapTool(mapService), new SetMapOverlayTool()];
+
+        if (AlarmToolFactory?.Invoke() is { } alarmTool)
+            Tools = [.. Tools, alarmTool];
+
         this.RaisePropertyChanged(nameof(Tools));
     }
 

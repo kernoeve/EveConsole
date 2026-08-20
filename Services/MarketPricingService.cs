@@ -440,9 +440,28 @@ public class MarketPricingService
         // ESI paginates market orders and can return the same OrderId on multiple pages.
         orders = orders.DistinctBy(o => o.OrderId).ToList();
 
-        await db.MarketRawOrders
-            .Where(o => o.ConfigId == configId)
-            .ExecuteDeleteAsync(ct);
+        // ⚠️ Chunked for the same reason the insert below is, and it was missed the first time:
+        // deleting a whole config in one statement is one transaction covering every row it owns —
+        // upwards of 600 000 for Jita — which writes that much into the write-ahead log at once
+        // and holds the write lock for the duration. The insert beside it was already careful; the
+        // delete in front of it undid the benefit.
+        //
+        // Raw SQL with a rowid subquery rather than Take(): LIMIT inside ExecuteDelete is not
+        // something to find out about at runtime, and this is exactly what SQLite wants anyway.
+        // ConfigId leads IX_MarketRawOrders_TypeId, so each pass is an index scan, not a table one.
+        const int deleteBatch = 20_000;
+        while (true)
+        {
+            var removed = await db.Database.ExecuteSqlRawAsync(
+                """
+                DELETE FROM "MarketRawOrders" WHERE rowid IN (
+                    SELECT rowid FROM "MarketRawOrders" WHERE "ConfigId" = {0} LIMIT {1})
+                """,
+                [configId, deleteBatch], ct);
+
+            if (removed < deleteBatch) break;
+            await BreatheAsync(ct);   // a real gap, so a polling write can actually get in
+        }
 
         if (orders.Count == 0) return;
 
@@ -462,18 +481,92 @@ public class MarketPricingService
                 db.ChangeTracker.Clear();
             }
             await tx.CommitAsync(ct);
-            // Yield briefly so other async work (polling writes, UI events) can run.
-            await Task.Yield();
+            await BreatheAsync(ct);
         }
         db.ChangeTracker.AutoDetectChangesEnabled = true;
+
+        await BackfillStructureSystemsAsync(db, ct);
+    }
+
+    /// <summary>
+    /// Records which system a structure sits in, from the orders listed there.
+    ///
+    /// <para>A structure's own details come from /universe/structures/, which 403s unless one of
+    /// our characters can dock — so for a private structure the system would otherwise stay 0
+    /// forever. A market order carries its system_id regardless of that, and an order listed at a
+    /// structure is proof of where the structure is.</para>
+    ///
+    /// <para>⚠️ Writes to <c>Structures</c>, the app's own table, and never to
+    /// <c>EsiStructureNames</c>. Only ESI's own responses go into the polled tables; this is a
+    /// conclusion drawn from one endpoint's data about another endpoint's subject, and putting it
+    /// there would make a derived value indistinguishable from something ESI actually said about
+    /// that structure. It would also be pointless: the sync only copies resolved rows onward, and
+    /// a structure that needs this is by definition one that never resolves.</para>
+    ///
+    /// <para>Only fills zeroes, so a system from the structure endpoint — or one typed by hand —
+    /// is left alone. UpdatedBy is deliberately not stamped either: filling an empty field is not
+    /// the same as rewriting the row, and claiming it would tell someone their hand-written
+    /// description had been overwritten when it had not.</para>
+    /// </summary>
+    private static async Task BackfillStructureSystemsAsync(AppDbContext db, CancellationToken ct)
+    {
+        try
+        {
+            // Read first, write second, and only what changes.
+            //
+            // ⚠️ This was one UPDATE with two correlated subqueries over MarketRawOrders, which
+            // has no index on LocationId and holds ~665,000 rows. SQLite planned it as a full
+            // scan per candidate structure, twice — around a billion row reads, inside the write
+            // transaction, at the end of every market refresh. It made the Jita pull hold the
+            // database long enough for unrelated saves to time out.
+            //
+            // One grouped read costs a single scan, and the write touches only the two or three
+            // rows that actually gain a system.
+            var unknown = await db.Structures
+                .Where(s => s.SolarSystemId == 0)
+                .Select(s => s.StructureId)
+                .ToListAsync(ct);
+            if (unknown.Count == 0) return;
+
+            var found = await db.MarketRawOrders.AsNoTracking()
+                .Where(o => o.SystemId > 0 && unknown.Contains(o.LocationId))
+                .GroupBy(o => o.LocationId)
+                .Select(g => new { LocationId = g.Key, SystemId = g.Min(o => o.SystemId) })
+                .ToListAsync(ct);
+            if (found.Count == 0) return;
+
+            var ids = found.Select(f => f.LocationId).ToList();
+            var rows = await db.Structures.Where(s => ids.Contains(s.StructureId)).ToListAsync(ct);
+
+            foreach (var row in rows)
+            {
+                var hit = found.First(f => f.LocationId == row.StructureId);
+                if (row.SolarSystemId == 0) row.SolarSystemId = hit.SystemId;
+            }
+
+            await db.SaveChangesAsync(ct);
+        }
+        catch { /* an unfilled system id is cosmetic — never fail a market pull over it */ }
     }
 
     private static async Task UpsertPricesAsync(
         int configId, List<MarketItemPrice> prices, AppDbContext db, CancellationToken ct)
     {
-        await db.MarketItemPrices
-            .Where(p => p.ConfigId == configId)
-            .ExecuteDeleteAsync(ct);
+        // Chunked and paced for the same reason as the orders delete beside it: one statement over
+        // a whole config is one transaction holding the write lock for all of it.
+        const int deleteBatch = 20_000;
+        while (true)
+        {
+            var removed = await db.Database.ExecuteSqlRawAsync(
+                """
+                DELETE FROM "MarketItemPrices" WHERE rowid IN (
+                    SELECT rowid FROM "MarketItemPrices" WHERE "ConfigId" = {0} LIMIT {1})
+                """,
+                [configId, deleteBatch], ct);
+
+            if (removed < deleteBatch) break;
+            await BreatheAsync(ct);
+        }
 
         if (prices.Count == 0) return;
 
@@ -491,10 +584,28 @@ public class MarketPricingService
                 db.ChangeTracker.Clear();
             }
             await tx.CommitAsync(ct);
-            await Task.Yield();
+            await BreatheAsync(ct);
         }
         db.ChangeTracker.AutoDetectChangesEnabled = true;
     }
+
+    /// <summary>
+    /// A real gap between batches, so another writer can actually get in.
+    ///
+    /// <para>⚠️ This was <c>Task.Yield()</c>, on the reasoning that it let other async work run. It
+    /// does — but it reschedules in microseconds, so the next batch retook the write lock before
+    /// anything else could reach it, and the refresh held the lock effectively without pause for
+    /// its whole run. SQLite does not queue writers fairly: a competing write retries into a lock
+    /// that has already been retaken, again and again, until its thirty-second timeout expires and
+    /// it is refused. That is what produced dozens of "database is locked" failures across every
+    /// other service while this ran, and none of them could name what was in the way, because
+    /// nothing was holding the lock for long — it was simply never free for long enough.</para>
+    ///
+    /// <para>Fifty milliseconds is far longer than any of those writes needs and costs this refresh
+    /// a few seconds an hour, which is the trade worth making — it runs once an hour and everything
+    /// else runs constantly.</para>
+    /// </summary>
+    private static Task BreatheAsync(CancellationToken ct) => Task.Delay(50, ct);
 
     // ── Price gap fill ────────────────────────────────────────────────────────
     // After market data is stored, every published SDE type gets a row:
@@ -524,6 +635,18 @@ public class MarketPricingService
         double markup  = 1.0 + (double)(defaults?.MissingPriceMarkupPct ?? 15m) / 100.0;
         var    fetched = DateTimeOffset.UtcNow;
 
+        // ⚠️ All three steps below ignore BuildCosts rows with Bought = 1, on purpose.
+        //
+        // A "bought" row is one BuildCostService could not cost as a build — BPC-only with the
+        // BPC never seen on contracts, or cheaper-to-buy when that option is enabled — so it
+        // sets TotalCost to the item's own MARKET PRICE. Feeding that back through
+        // "price = TotalCost × markup" is circular: every refresh multiplies the price by the
+        // markup again. Seen live at ~15 refreshes/day against a 15% markup: 1.15^15 = 8.137x
+        // per day, taking a Prototype Cerebral Accelerator from 2.9M to 98.8B in four days and
+        // a 'Roaring' Small Graviton Smartbomb past a trillion ISK.
+        //
+        // Rows that genuinely cost out a build (Bought = 0) are unaffected.
+
         // Step 1 — insert a row for every published SDE type that has no row yet for this config.
         // Build cost × markup is the initial price; types with no build cost get 0.
         await db.Database.ExecuteSqlInterpolatedAsync(
@@ -536,7 +659,7 @@ public class MarketPricingService
                 {fetched},
                 0
             FROM SdeTypes t
-            LEFT JOIN BuildCosts bc ON bc.TypeId = t.TypeId
+            LEFT JOIN BuildCosts bc ON bc.TypeId = t.TypeId AND bc.Bought = 0
             WHERE t.Published = 1
               AND NOT EXISTS (
                   SELECT 1 FROM MarketItemPrices p
@@ -553,6 +676,7 @@ public class MarketPricingService
             WITH costs AS (
                 SELECT TypeId, CAST(TotalCost AS REAL) * {markup} AS EffSell
                 FROM BuildCosts
+                WHERE Bought = 0
             )
             UPDATE MarketItemPrices
             SET SellPrice = COALESCE((SELECT c.EffSell FROM costs c WHERE c.TypeId = MarketItemPrices.TypeId), 0.0),
@@ -581,6 +705,7 @@ public class MarketPricingService
             WITH costs AS (
                 SELECT TypeId, CAST(TotalCost AS REAL) * {markup} AS EffSell
                 FROM BuildCosts
+                WHERE Bought = 0
             )
             UPDATE MarketItemPrices
             SET SellPrice = c.EffSell,
@@ -594,15 +719,28 @@ public class MarketPricingService
               AND MarketItemPrices.SellPrice     != c.EffSell
             """, ct);
 
-        // Step 4 — give BPCs (blueprint types) a market value from contracts. Blueprint copies
-        // aren't sold on the regular market, so faction/limited-run blueprints otherwise have no
-        // price at all. Real (buyable) BPOs carry FromMarketData = 1 rows and are left untouched.
-        await FillBpcContractPricesAsync(configId, db, fetched, ct);
+        // Step 4 — price anything that sells on contracts rather than the market from contract
+        // data. Runs last so it wins over the build-cost estimate above, which is the weaker
+        // signal for these items. Real market rows (FromMarketData = 1) are never touched.
+        await FillContractPricesAsync(configId, db, fetched, ct);
     }
 
-    // Sets the market value of blueprint types (SDE category 9) to their contract-derived price,
-    // so a BPC can be treated as a normal purchased input by the build-cost / production-calc code.
-    private static async Task FillBpcContractPricesAsync(
+    /// <summary>
+    /// Sets the market value of contract-traded types to their contract-derived price, so they
+    /// can be treated as normal purchased inputs by the build-cost / production-calc code.
+    ///
+    /// Applies to ANY type with contract observations, not just blueprints. It was originally
+    /// blueprint-only (SDE category 9) because BPCs are the obvious case — they never appear on
+    /// the regular market. But the same is true of plenty of non-blueprints: measured on a live
+    /// database, 510 non-blueprint types had contract prices and no market orders at all. Those
+    /// were left to the build-cost estimate, which for an uncostable item is its own market
+    /// price — the circular path described in FillPriceGapsAsync.
+    ///
+    /// The price comes from ContractPricing.EffectivePrice, so the existing rule applies: the
+    /// lowest active contract price, unless that is more than 50% above the 30-day average of
+    /// the daily best, in which case the steadier average is used.
+    /// </summary>
+    private static async Task FillContractPricesAsync(
         int configId, AppDbContext db, DateTimeOffset fetched, CancellationToken ct)
     {
         var eff = new Dictionary<int, double>();
@@ -614,22 +752,14 @@ public class MarketPricingService
         if (eff.Count == 0) return;
 
         var ids = eff.Keys.ToList();
-        var bpTypeIds = await db.SdeTypes.AsNoTracking()
-            .Where(t => ids.Contains(t.TypeId))
-            .Join(db.SdeGroups.AsNoTracking(), t => t.GroupId, g => g.GroupId,
-                  (t, g) => new { t.TypeId, g.CategoryId })
-            .Where(x => x.CategoryId == 9)   // Blueprint category
-            .Select(x => x.TypeId)
-            .ToListAsync(ct);
-        if (bpTypeIds.Count == 0) return;
 
         var existing = await db.MarketItemPrices
-            .Where(p => p.ConfigId == configId && bpTypeIds.Contains(p.TypeId))
+            .Where(p => p.ConfigId == configId && ids.Contains(p.TypeId))
             .ToListAsync(ct);
         var existingIds = existing.Select(p => p.TypeId).ToHashSet();
 
-        // Refresh non-market blueprint rows (gap-filled / prior contract value) to the current
-        // contract price; never overwrite a real buyable-BPO market row (FromMarketData = 1).
+        // Refresh non-market rows (gap-filled / prior contract value) to the current contract
+        // price; never overwrite a row backed by real market orders.
         foreach (var p in existing)
         {
             if (p.FromMarketData) continue;
@@ -637,9 +767,9 @@ public class MarketPricingService
             p.BuyPrice = v; p.SellPrice = v; p.Midpoint = v; p.FetchedAt = fetched;
         }
 
-        // Insert rows for contract-priced blueprint types the published-types gap fill skipped
+        // Insert rows for contract-priced types the published-types gap fill skipped
         // (e.g. unpublished faction blueprints).
-        foreach (var tid in bpTypeIds.Where(t => !existingIds.Contains(t)))
+        foreach (var tid in ids.Where(t => !existingIds.Contains(t)))
         {
             var v = eff[tid];
             db.MarketItemPrices.Add(new MarketItemPrice

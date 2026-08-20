@@ -18,7 +18,11 @@
       <Grid ColumnDefinitions="*,Auto,Auto">
 
         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-          <Image Source="avares://EveConsole/Assets/logo.png"
+          <!-- logo_mark.png, not logo.png: the full logo has the "EVE Console"
+               wordmark composited into its bottom eighth, which at 30px is under
+               four pixels tall — illegible, and redundant beside the text label
+               to its right. This is the same emblem as the app icon. -->
+          <Image Source="avares://EveConsole/Assets/logo_mark.png"
                  Width="30" Height="30"
                  RenderOptions.BitmapInterpolationMode="HighQuality" />
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -34,13 +38,43 @@
         <!-- Eve Time clock -->
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
                     VerticalAlignment="Center" Margin="0 0 16 0">
+
+          <!-- My characters online. Hover lists who, where, and in what. -->
+          <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center"
+                      Margin="0 0 12 0" Background="Transparent"
+                      ToolTip.Tip="{Binding OnlineCharactersTip}">
+            <Ellipse Width="7" Height="7" VerticalAlignment="Center"
+                     Fill="{Binding OnlineCharactersColor}" />
+            <TextBlock Text="{Binding OnlineCharactersText}"
+                       FontSize="10" Foreground="#7a7a8a" VerticalAlignment="Center" />
+          </StackPanel>
+
           <TextBlock Text="EVE"
                      FontSize="10" Foreground="#555566"
                      VerticalAlignment="Center" />
           <TextBlock Text="{Binding EveTimeText}"
                      FontSize="14" FontWeight="SemiBold" FontFamily="Consolas,Courier New,monospace"
                      Foreground="#7799bb"
-                     VerticalAlignment="Center" />
+                     VerticalAlignment="Center"
+                     Cursor="Hand"
+                     ToolTip.Tip="{Binding EveTimeLinkTip}"
+                     PointerPressed="OnEveTimeClick" />
+
+          <!-- Tranquility status: dot + label, with the concurrent player count when up.
+               The whole group is clickable and opens CCP's service status page. -->
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                      Margin="10 0 0 0" Cursor="Hand"
+                      Background="Transparent"
+                      ToolTip.Tip="{Binding ServerStatusTip}"
+                      PointerPressed="OnServerStatusClick">
+            <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                     Fill="{Binding ServerStatusColor}" />
+            <TextBlock Text="{Binding ServerStatusText}"
+                       FontSize="10" VerticalAlignment="Center"
+                       Foreground="{Binding ServerStatusColor}" />
+            <TextBlock Text="{Binding ServerPlayersText}"
+                       FontSize="10" Foreground="#555566" VerticalAlignment="Center" />
+          </StackPanel>
         </StackPanel>
 
         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
@@ -51,6 +85,55 @@
                   ToolTip.Tip="{Binding AgentVm.AgentName, StringFormat='Toggle {0} AI companion'}"
                   IsVisible="{Binding AgentVm.IsAgentEnabled}"
                   Click="OnAgentToggleClick" />
+
+          <!-- Alarm light. Lit while anything is armed, with the count of armed alarms in the
+               corner. Drawn rather than set as a glyph so the colour is ours to control. -->
+          <Button x:Name="AlarmButton"
+                  Background="Transparent" BorderThickness="0"
+                  Padding="6 4" VerticalAlignment="Center"
+                  ToolTip.Tip="{Binding AlarmsTip}"
+                  Click="OnAlarmsClick">
+            <Grid Width="29" Height="22">
+              <!-- A beacon: dome on a stacked base, with light thrown off it while armed.
+                   Drawn on a 24x22 canvas so the pieces line up at any size. -->
+              <Canvas Width="24" Height="22" HorizontalAlignment="Left" VerticalAlignment="Center">
+
+                <!-- Light rays. Only present when something is actually armed. -->
+                <Canvas IsVisible="{Binding HasActiveAlarms}">
+                  <Path Data="M 12,7.2 L 12,3.0"     Stroke="{Binding AlarmLightRing}" StrokeThickness="1.7" StrokeLineCap="Round" />
+                  <Path Data="M 7.4,8.9 L 4.4,5.6"   Stroke="{Binding AlarmLightRing}" StrokeThickness="1.5" StrokeLineCap="Round" />
+                  <Path Data="M 16.6,8.9 L 19.6,5.6" Stroke="{Binding AlarmLightRing}" StrokeThickness="1.5" StrokeLineCap="Round" />
+                  <Path Data="M 5.2,13.4 L 1.2,12.6" Stroke="{Binding AlarmLightRing}" StrokeThickness="1.5" StrokeLineCap="Round" />
+                  <Path Data="M 18.8,13.4 L 22.8,12.6" Stroke="{Binding AlarmLightRing}" StrokeThickness="1.5" StrokeLineCap="Round" />
+                </Canvas>
+
+                <!-- Dome -->
+                <Path Data="M 6,16.2 A 6,6 0 0 1 18,16.2 Z" Fill="{Binding AlarmLightColor}" />
+
+                <!-- Glass highlight, the curved gleam on the left of the dome -->
+                <Path Data="M 8.7,15.4 A 4.3,4.3 0 0 1 10.9,11.5"
+                      Stroke="#ffffff" StrokeThickness="1.3" StrokeLineCap="Round"
+                      Opacity="{Binding AlarmGleamOpacity}" />
+
+                <!-- Housing: two stacked tiers, the lower one wider -->
+                <Rectangle Canvas.Left="4.6" Canvas.Top="16.2" Width="14.8" Height="2.5"
+                           RadiusX="0.7" RadiusY="0.7" Fill="#23232c" />
+                <Rectangle Canvas.Left="3.0" Canvas.Top="18.7" Width="18.0" Height="2.7"
+                           RadiusX="0.9" RadiusY="0.9" Fill="#16161d" />
+              </Canvas>
+
+              <Border IsVisible="{Binding HasActiveAlarms}"
+                      HorizontalAlignment="Right" VerticalAlignment="Top"
+                      Background="#12121a" CornerRadius="6"
+                      BorderBrush="#3a3a4a" BorderThickness="1"
+                      MinWidth="12" Height="12" Padding="2 0">
+                <TextBlock Text="{Binding ActiveAlarmCount}"
+                           FontSize="8" FontWeight="SemiBold"
+                           Foreground="#d8d8e4"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+            </Grid>
+          </Button>
 
           <Button x:Name="GearButton" Content="⚙" FontSize="18"
                   Background="Transparent" BorderThickness="0"
@@ -264,11 +347,29 @@
               <DataTemplate DataType="vm:ProductionCalculatorViewModel">
                 <views:ProductionCalculatorView />
               </DataTemplate>
+              <DataTemplate DataType="vm:PriceOverrideViewModel">
+                <views:PriceOverrideView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:StructureBrowserViewModel">
+                <views:StructureBrowserView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:UniverseViewModel">
+                <views:UniverseView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:AlarmsViewModel">
+                <views:AlarmsView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:JumpPlannerViewModel">
+                <views:JumpPlannerView />
+              </DataTemplate>
               <DataTemplate DataType="vm:MarketLevelViewModel">
                 <views:MarketLevelView />
               </DataTemplate>
               <DataTemplate DataType="vm:InvLevelViewModel">
                 <views:InvLevelView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:SalePostingViewModel">
+                <views:SalePostingView />
               </DataTemplate>
               <DataTemplate DataType="vm:TradeOpportunitiesViewModel">
                 <views:TradeOpportunitiesView />
@@ -317,6 +418,27 @@
               </DataTemplate>
               <DataTemplate DataType="vm:ErrorLogViewModel">
                 <views:ErrorLogView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:StandingBuyOrdersViewModel">
+                <views:StandingBuyOrdersView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:WorklistViewModel">
+                <views:WorklistView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:LpMarketValuesViewModel">
+                <views:LpMarketValuesView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:PlayerEntitiesViewModel">
+                <views:PlayerEntitiesView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:NpcEntitiesViewModel">
+                <views:NpcEntitiesView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:GameLogViewerViewModel">
+                <views:GameLogViewerView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:ChatLogViewerViewModel">
+                <views:ChatLogViewerView />
               </DataTemplate>
             </ContentControl.DataTemplates>
           </ContentControl>

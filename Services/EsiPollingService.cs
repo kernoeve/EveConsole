@@ -17,7 +17,9 @@ public record PollingResult(
     int?    RateLimitRemaining = null,
     int?    RetryAfterSeconds  = null,
     int?    ErrorLimitRemain   = null,
-    int?    ErrorLimitReset    = null);
+    int?    ErrorLimitReset    = null,
+    /// <summary>When the server says its copy goes stale. Drives when this is next polled.</summary>
+    DateTimeOffset? Expires    = null);
 
 public record EndpointInfo(string Key, string DisplayName, int MinSeconds, int DefaultSeconds);
 
@@ -32,6 +34,9 @@ public class EsiPollingService : ReactiveObject
     private readonly NetWorthService         _netWorth;
     private readonly AppPreferencesService   _prefs;
     private readonly EveMailService          _mailService;
+    private readonly StructureSyncService    _structureSync;
+    private readonly IndyStructureLinkService _indyLink;
+    private readonly EveRefStructureService   _eveRefStructures;
 
     private static readonly HashSet<string> s_netWorthCharEndpoints = [
         "char.wallet.balance", "char.industry.jobs", "char.orders.active", "char.assets", "char.contracts"
@@ -44,6 +49,57 @@ public class EsiPollingService : ReactiveObject
     public IReadOnlyList<EndpointInfo> CorpEndpointInfos      { get; private set; } = [];
 
     private readonly ConcurrentDictionary<string, DateTimeOffset> _lastCallTimes  = new();
+
+    /// <summary>
+    /// When the server said each cached response goes stale, by the same key as
+    /// <see cref="_lastCallTimes"/>. Absent until an endpoint has answered once with an
+    /// <c>Expires</c>, and absent permanently for anything that never sends one.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, DateTimeOffset> _expiresAt = new();
+
+    /// <summary>
+    /// How long after a cached copy lapses to wait before asking for the next one.
+    ///
+    /// <para>Small but not zero. Client and server clocks disagree by seconds, and an
+    /// <c>Expires</c> that has only just passed by our reckoning may not have passed by theirs —
+    /// which would spend a call to be handed the same copy and a stale expiry to wait on again.
+    /// A few seconds of deliberate lateness costs nothing against a cache measured in minutes.</para>
+    /// </summary>
+    private static readonly TimeSpan ExpiryGrace = TimeSpan.FromSeconds(15);
+
+    /// <summary>Never re-poll one key faster than this, whatever a header claims.</summary>
+    /// <remarks>
+    /// A guard against a hot loop, not a rate policy. An <c>Expires</c> already in the past —
+    /// a clock far out of step, a malformed header, an error response — would otherwise make the
+    /// endpoint due on every cycle.
+    /// </remarks>
+    private static readonly TimeSpan MinimumSpacing = TimeSpan.FromSeconds(60);
+
+    /// <summary>
+    /// Whether an endpoint is due.
+    ///
+    /// <para>The server's expiry wins where there is one, and the configured interval governs
+    /// everything else. That is deliberate rather than a compromise: for a cached endpoint the
+    /// cache <i>is</i> the rate limit, and no interval can beat it — polling on a clock of our
+    /// own only changes where in the window the call lands, which is the whole problem. One
+    /// call just after each lapse is both the freshest and the cheapest schedule there is.</para>
+    ///
+    /// <para>Taking the later of the two instead would keep the drift forever: a poll landing
+    /// fifty minutes into a sixty-minute window sets the next one an hour out, by which point
+    /// the cache has rolled again and the data is fifty minutes old — the same miss, every time.
+    /// Re-phasing costs one short cycle, once.</para>
+    /// </summary>
+    private bool IsDue(string callKey, string endpointKey, int defaultInterval, DateTimeOffset now)
+    {
+        if (!_lastCallTimes.TryGetValue(callKey, out var lastCalled)) return true;
+        if (now - lastCalled < MinimumSpacing) return false;
+
+        if (_expiresAt.TryGetValue(callKey, out var expires))
+            return now >= expires + ExpiryGrace;
+
+        return (now - lastCalled).TotalSeconds
+               >= _timerSettings.GetInterval(endpointKey, defaultInterval);
+    }
     private readonly ConcurrentDictionary<string, GroupState>     _rateLimits     = new();
     private readonly ConcurrentDictionary<string, string>         _endpointGroups = new(); // endpoint→group
     private readonly ConcurrentDictionary<long, string>           _charNames      = new();
@@ -101,6 +157,9 @@ public class EsiPollingService : ReactiveObject
         ["char.roles"]            = "Roles",
         ["char.fittings"]         = "Fittings",
         ["char.mail"]             = "Eve Mail",
+        ["char.online"]           = "Online Status",
+        ["char.location"]         = "Location",
+        ["char.ship"]             = "Current Ship",
         ["corp.wallet.balances"]  = "Wallet Balances",
         ["corp.divisions"]        = "Divisions",
         ["corp.wallet.journal"]   = "Wallet Journal",
@@ -118,6 +177,7 @@ public class EsiPollingService : ReactiveObject
         ["corp.starbases"]        = "Starbases",
         ["corp.facilities"]       = "Facilities",
         ["corp.members"]          = "Members",
+        ["corp.membertracking"]   = "Member Tracking",
         ["corp.roles"]            = "Roles",
         ["corp.titles"]           = "Titles",
         ["corp.medals"]           = "Medals",
@@ -130,7 +190,7 @@ public class EsiPollingService : ReactiveObject
         ["contract.items"]        = "Contract Items",
     };
 
-    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService)
+    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService, StructureSyncService structureSync, IndyStructureLinkService indyLink, EveRefStructureService eveRefStructures)
     {
         _scopeFactory       = scopeFactory;
         _esi                = esi;
@@ -141,6 +201,9 @@ public class EsiPollingService : ReactiveObject
         _killMailService    = killMailService;
         _prefs              = prefs;
         _mailService        = mailService;
+        _structureSync      = structureSync;
+        _indyLink           = indyLink;
+        _eveRefStructures   = eveRefStructures;
         _characterEndpoints = BuildEndpoints();
         _corpEndpoints      = BuildCorpEndpoints();
         CharacterEndpointInfos = _characterEndpoints
@@ -171,6 +234,61 @@ public class EsiPollingService : ReactiveObject
 
     // ── Main loop ────────────────────────────────────────────────────────────
 
+    // Full structure sweep (all location-ID sources + nearest-celestial backfill) cadence. The
+    // per-poll asset resolution (FetchAssetsAsync) keeps asset structures current continuously; this
+    // periodic sweep folds in contracts, market, wallet, and industry, and re-checks structures whose
+    // 30-day freshness has lapsed (catching unanchors → 404 → Unanchored status).
+    private static readonly TimeSpan StructureSweepInterval = TimeSpan.FromHours(1);
+
+    /// <summary>
+    /// How long after startup the first sweep runs. Short, because an hour of uptime before the
+    /// app notices a structure is a long time to sit waiting — but not zero: the first poll cycle
+    /// should land first, so the sweep has the new assets and contracts to work from and is not
+    /// competing with the busiest moment of startup.
+    /// </summary>
+    private static readonly TimeSpan StructureSweepStartupDelay = TimeSpan.FromMinutes(3);
+
+    private DateTimeOffset _lastStructureSweepUtc = DateTimeOffset.MinValue;
+
+    // ── Structure sweep, reported to Background Processes ────────────────────
+    // Structure work runs as a side task of the polling loop rather than as a declared endpoint,
+    // so it appears in neither the call schedule nor the activity log except during the brief
+    // bursts when it is actually resolving. These make it visible.
+
+    private DateTimeOffset? _structureSweepAt;
+    /// <summary>When the structure sweep last completed. Null before the first one.</summary>
+    public DateTimeOffset? StructureSweepAt
+    {
+        get => _structureSweepAt;
+        private set => this.RaiseAndSetIfChanged(ref _structureSweepAt, value);
+    }
+
+    /// <summary>When the next loop-driven sweep is due.</summary>
+    public DateTimeOffset StructureSweepNextAt => _lastStructureSweepUtc == DateTimeOffset.MinValue
+        ? DateTimeOffset.UtcNow
+        : _lastStructureSweepUtc + StructureSweepInterval;
+
+    private string _structureSweepSummary = "Not run yet this session";
+    public string StructureSweepSummary
+    {
+        get => _structureSweepSummary;
+        private set => this.RaiseAndSetIfChanged(ref _structureSweepSummary, value);
+    }
+
+    private string _publicStructureSummary = "Not run yet";
+    public string PublicStructureSummary
+    {
+        get => _publicStructureSummary;
+        private set => this.RaiseAndSetIfChanged(ref _publicStructureSummary, value);
+    }
+
+    private bool _structureSweepRunning;
+    public bool StructureSweepRunning
+    {
+        get => _structureSweepRunning;
+        private set => this.RaiseAndSetIfChanged(ref _structureSweepRunning, value);
+    }
+
     private async Task RunPollingLoopAsync(CancellationToken ct)
     {
         await LoadLastCallTimesAsync(ct);
@@ -178,14 +296,37 @@ public class EsiPollingService : ReactiveObject
         await LoadCorpTokensAsync(ct);
         StatusText = "Polling: Running";
 
+        // ⚠️ Backdated so the first sweep is due StructureSweepStartupDelay from now, not a full
+        // hour. This used to be set to UtcNow with a comment claiming the app kicked a sweep at
+        // startup — nothing did, so a fresh launch went an hour before noticing any new structure.
+        _lastStructureSweepUtc =
+            DateTimeOffset.UtcNow - StructureSweepInterval + StructureSweepStartupDelay;
+
         while (!ct.IsCancellationRequested)
         {
             try
             {
+                // Tranquility down: every authenticated call would fail and spend
+                // error-limit budget doing it. Idle instead of running the cycle. The
+                // status check itself is a separate public endpoint on its own client,
+                // so it keeps polling and will lift this on its own.
+                if (_esi.ServerOffline)
+                {
+                    StatusText = "Polling: Paused — Tranquility is offline";
+                    await Task.Delay(TimeSpan.FromSeconds(20), ct);
+                    continue;
+                }
+
                 await Task.WhenAll(
                     RunOneCycleAsync(ct),
                     RunCorpCycleAsync(ct),
                     _killMailService.FetchMissingAsync(ct: ct));
+
+                if (DateTimeOffset.UtcNow - _lastStructureSweepUtc >= StructureSweepInterval)
+                {
+                    _lastStructureSweepUtc = DateTimeOffset.UtcNow;
+                    await ForceResolveStructureNamesAsync(ct);
+                }
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
@@ -236,8 +377,25 @@ public class EsiPollingService : ReactiveObject
     // the character must be re-added to grant the scope.
     private static readonly Dictionary<string, string> s_charEndpointScopes = new()
     {
-        ["char.roles"] = "esi-characters.read_corporation_roles.v1",
+        ["char.roles"]    = "esi-characters.read_corporation_roles.v1",
+        ["char.online"]   = "esi-location.read_online.v1",
+        ["char.location"] = "esi-location.read_location.v1",
+        ["char.ship"]     = "esi-location.read_ship_type.v1",
     };
+
+    // Endpoints not worth re-polling while a character is logged off. ESI still
+    // answers them when offline — it reports where the character logged off — so
+    // each one is fetched ONCE per app run even for offline characters, giving every
+    // alt a last-known position, and skipped thereafter until they log back in.
+    // An idle account therefore costs one /online/ call a minute, not three calls
+    // every ten seconds.
+    private static readonly HashSet<string> s_onlineOnlyEndpoints =
+        ["char.location", "char.ship"];
+
+    private readonly ConcurrentDictionary<long, bool> _onlineState = new();
+
+    // (characterId, endpointKey) pairs already fetched since startup.
+    private readonly ConcurrentDictionary<(long, string), bool> _offlineFixTaken = new();
 
     private async Task ProcessCharacterAsync(Character character, DateTimeOffset now, CancellationToken ct)
     {
@@ -250,10 +408,17 @@ public class EsiPollingService : ReactiveObject
             if (s_charEndpointScopes.TryGetValue(ep.Key, out var reqScope) && !character.HasScope(reqScope))
                 continue;
 
+            // Skip before the call so no API-activity record is written for a request
+            // that was never made. Offline characters still get one fix per app run
+            // so their last-known location and ship are recorded.
+            if (s_onlineOnlyEndpoints.Contains(ep.Key)
+                && _onlineState.TryGetValue(character.Id, out var isOnline) && !isOnline
+                && _offlineFixTaken.ContainsKey((character.Id, ep.Key)))
+                continue;
+
             var callKey = $"{ep.Key}:{character.Id}:character";
 
-            if (_lastCallTimes.TryGetValue(callKey, out var lastCalled) &&
-                (now - lastCalled).TotalSeconds < _timerSettings.GetInterval(ep.Key, ep.DefaultIntervalSeconds))
+            if (!IsDue(callKey, ep.Key, ep.DefaultIntervalSeconds, now))
                 continue;
 
             if (_endpointGroups.TryGetValue(ep.Key, out var groupName) &&
@@ -285,7 +450,8 @@ public class EsiPollingService : ReactiveObject
 
             var callTime = DateTimeOffset.UtcNow;
             _lastCallTimes[callKey] = callTime;
-            await PersistCallRecordAsync(character.Id, "character", ep.Key, callTime, result.StatusCode, ct);
+            RecordExpiry(callKey, result);
+            await PersistCallRecordAsync(character.Id, "character", ep.Key, callTime, result.StatusCode, result.Expires, ct);
 
             UpdateRateLimitState(ep.Key, result);
             handle.Complete(result.Success, result.StatusCode, result.ErrorMessage);
@@ -296,6 +462,9 @@ public class EsiPollingService : ReactiveObject
 
             if (result.Success && s_netWorthCharEndpoints.Contains(ep.Key))
                 netWorthDirty = true;
+
+            if (result.Success && s_onlineOnlyEndpoints.Contains(ep.Key))
+                _offlineFixTaken[(character.Id, ep.Key)] = true;
 
             await Task.Delay(500, ct);
         }
@@ -313,6 +482,25 @@ public class EsiPollingService : ReactiveObject
         var prefix = endpointKey + ":";
         foreach (var key in _lastCallTimes.Keys.Where(k => k.StartsWith(prefix)).ToList())
             _lastCallTimes.TryRemove(key, out _);
+
+        // The stored expiry has to go too. Left in place it would hold the endpoint back until
+        // the server's window lapses, which is exactly what a reset is asking to bypass.
+        foreach (var key in _expiresAt.Keys.Where(k => k.StartsWith(prefix)).ToList())
+            _expiresAt.TryRemove(key, out _);
+    }
+
+    /// <summary>
+    /// Keeps the expiry a successful call reported, and drops it when one fails.
+    ///
+    /// <para>Dropped on failure because a 4xx or 5xx carries no useful expiry, and holding the
+    /// previous one would park the endpoint until a window that has nothing to do with the
+    /// error. Without a stored expiry the configured interval takes over, which is the right
+    /// retry behaviour.</para>
+    /// </summary>
+    private void RecordExpiry(string callKey, PollingResult result)
+    {
+        if (result.Success && result.Expires is { } e) _expiresAt[callKey] = e;
+        else                                           _expiresAt.TryRemove(callKey, out _);
     }
 
     private async Task LoadLastCallTimesAsync(CancellationToken ct)
@@ -321,12 +509,19 @@ public class EsiPollingService : ReactiveObject
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var records = await db.EsiCallRecords.AsNoTracking().ToListAsync(ct);
         foreach (var r in records)
-            _lastCallTimes[$"{r.Endpoint}:{r.OwnerId}:{r.OwnerType}"] = r.LastCalledAt;
+        {
+            var key = $"{r.Endpoint}:{r.OwnerId}:{r.OwnerType}";
+            _lastCallTimes[key] = r.LastCalledAt;
+
+            // Survives a restart, so the app comes back already in phase with the server rather
+            // than re-learning every schedule from a cold poll of everything.
+            if (r.ExpiresAt is { } e) _expiresAt[key] = e;
+        }
     }
 
     private async Task PersistCallRecordAsync(
         long ownerId, string ownerType, string endpoint,
-        DateTimeOffset calledAt, int statusCode, CancellationToken ct)
+        DateTimeOffset calledAt, int statusCode, DateTimeOffset? expiresAt, CancellationToken ct)
     {
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -343,12 +538,14 @@ public class EsiPollingService : ReactiveObject
                 Endpoint       = endpoint,
                 LastCalledAt   = calledAt,
                 LastStatusCode = statusCode,
+                ExpiresAt      = expiresAt,
             });
         }
         else
         {
             existing.LastCalledAt   = calledAt;
             existing.LastStatusCode = statusCode;
+            existing.ExpiresAt      = expiresAt;
         }
 
         await db.SaveChangesAsync(ct);
@@ -398,11 +595,19 @@ public class EsiPollingService : ReactiveObject
         new(r.IsSuccess, r.StatusCode,
             r.IsSuccess ? null : r.Error,
             r.RateLimitGroup, r.RateLimitRemaining, r.RetryAfterSeconds,
-            r.ErrorLimitRemain, r.ErrorLimitReset);
+            r.ErrorLimitRemain, r.ErrorLimitReset, r.Expires);
 
     // Walks the parent-chain for every asset and returns {ItemId → (RootLocationId, RootLocationType)}.
     // A terminal is reached when LocationType is not 'item', or when the LocationId is not found
     // among the asset ItemIds (meaning it's an external player structure > 1T, or an unknown ref).
+    //
+    // A structure you own is the awkward case. It appears in your own asset list as an item
+    // anchored in space, so a plain walk climbs straight through it and roots everything inside
+    // to the solar system — 6,391 rows on the account this was found on, all of it real dockable
+    // stock that no station-keyed query could then see. An owned structure is a location, not a
+    // step on the way to one, so the walk stops there.
+    private const string AnchoredInSpace = "AutoFit";
+
     private static Dictionary<long, (long RootId, string RootType)> ComputeRootLocations(
         IReadOnlyList<EsiAsset> assets)
     {
@@ -415,6 +620,21 @@ public class EsiPollingService : ReactiveObject
             int depth   = 0;
             while (true)
             {
+                // Reached an owned structure by climbing into it: that structure is the location.
+                // Typed "other", the same as an external player structure, so it resolves through
+                // the structure-name cache like any other dockable place.
+                //
+                // Only when climbing — a structure asked about itself really is in space. And only
+                // for AutoFit, which is what anchored structures and starbases carry; a ship in
+                // space carries ActiveShip and genuinely is in space.
+                if (current.ItemId != asset.ItemId
+                    && current.LocationType == "solar_system"
+                    && current.LocationFlag == AnchoredInSpace)
+                {
+                    result[asset.ItemId] = (current.ItemId, "other");
+                    break;
+                }
+
                 if (current.LocationType is "station" or "solar_system" or "other")
                 {
                     result[asset.ItemId] = (current.LocationId, current.LocationType);
@@ -671,6 +891,31 @@ public class EsiPollingService : ReactiveObject
         return lastResult ?? new PollingResult(true, 200);
     }
 
+    // ESI's industry-jobs feed only carries jobs within roughly the past 90 days. A long job (e.g.
+    // capital ME/TE research) can outlive that window and drop out of the feed while its last-seen
+    // status is still "active" — leaving a finished, since-delivered job stuck showing as active /
+    // ready-to-deliver forever, because the upsert above only touches jobs ESI still returns.
+    //
+    // Reconcile that: a stored job whose timer has elapsed but that a COMPLETE pull no longer returns
+    // has left the active set — it was delivered (or cancelled) and aged out. Mark it delivered so it
+    // stops surfacing as active. Gated on `complete` so a silently-dropped page can never be mistaken
+    // for a vanished job.
+    private static void ReconcileVanishedJobs(
+        IEnumerable<IndustryJob> stored, HashSet<int> returnedIds, bool complete)
+    {
+        if (!complete) return;
+        var now = DateTimeOffset.UtcNow;
+        foreach (var row in stored)
+        {
+            if (!returnedIds.Contains(row.JobId)
+                && row.EndDate < now
+                && row.Status is "active" or "paused" or "ready")
+            {
+                row.Status = "delivered";
+            }
+        }
+    }
+
     private async Task<PollingResult> FetchIndustryJobsAsync(long charId, AppDbContext db, CancellationToken ct)
     {
         var r = await _esi.ExecuteAuthAsync<List<EsiIndustryJob>>(charId,
@@ -725,6 +970,10 @@ public class EsiPollingService : ReactiveObject
                 });
             }
         }
+
+        // Single-page fetch: complete only if the endpoint didn't paginate beyond page 1.
+        ReconcileVanishedJobs(existingMap.Values,
+            r.Data!.Select(j => j.JobId).ToHashSet(), r.Complete && r.TotalPages <= 1);
 
         await db.SaveChangesAsync(ct);
         return FromResult(r);
@@ -828,6 +1077,47 @@ public class EsiPollingService : ReactiveObject
             RootLocationType = roots[a.ItemId].RootType,
         }));
         await db.SaveChangesAsync(ct);
+
+        // ESI's assets endpoint omits the character's ACTIVE ship (the one they are currently
+        // in — e.g. a titan a character is logged off in). Pull it via the ship + location
+        // endpoints and synthesize an asset for the hull so every asset-consuming tool counts
+        // it. Hull only — ESI does not expose the active ship's cargo or fittings. Best-effort:
+        // never fail the assets poll over it.
+        try
+        {
+            var shipR = await _esi.ExecuteAuthAsync<EsiCharacterShip>(charId, $"characters/{charId}/ship/", ct);
+            var locR  = await _esi.ExecuteAuthAsync<EsiCharacterLocation>(charId, $"characters/{charId}/location/", ct);
+            if (shipR.IsSuccess && shipR.Data is { } ship && ship.ShipItemId > 0
+                && locR.IsSuccess && locR.Data is { } loc)
+            {
+                (long rootId, string rootType) =
+                      loc.StructureId is long stru ? (stru,        "other")
+                    : loc.StationId  is int  sta   ? ((long)sta,   "station")
+                    :                                ((long)loc.SolarSystemId, "solar_system");
+
+                // Guard against the rare case ESI does list the active ship (avoid a PK clash).
+                if (!await db.EsiAssets.AnyAsync(a => a.ItemId == ship.ShipItemId, ct))
+                {
+                    db.EsiAssets.Add(new CharacterAsset
+                    {
+                        ItemId           = ship.ShipItemId,
+                        OwnerId          = charId,
+                        OwnerType        = "character",
+                        TypeId           = ship.ShipTypeId,
+                        LocationId       = rootId,
+                        LocationType     = rootType,
+                        LocationFlag     = "ActiveShip",
+                        Quantity         = 1,
+                        IsSingleton      = true,
+                        IsBlueprintCopy  = false,
+                        RootLocationId   = rootId,
+                        RootLocationType = rootType,
+                    });
+                    await db.SaveChangesAsync(ct);
+                }
+            }
+        }
+        catch { /* active ship is a bonus; never fail the assets poll over it */ }
 
         // A LocationId > 1T is a real player structure only if it doesn't appear as an
         // ItemId in this asset list. Office folders, CorpSAG divisions, ships, and
@@ -1045,6 +1335,147 @@ public class EsiPollingService : ReactiveObject
         }
 
         await db.SaveChangesAsync(ct);
+        return FromResult(r);
+    }
+
+    // ── Live session state ───────────────────────────────────────────────────
+    // Current online / location / ship per character, stored in CharacterStatuses.
+    // Unlike the other endpoints these overwrite rather than accumulate — only the
+    // present state matters. Location and ship are skipped while a character is
+    // offline, which is what keeps the call volume reasonable at a 10s cadence.
+
+    private static async Task<CharacterStatus> GetOrCreateStatusAsync(
+        AppDbContext db, long charId, CancellationToken ct)
+    {
+        var status = await db.CharacterStatuses.FindAsync([charId], ct);
+        if (status is null)
+        {
+            status = new CharacterStatus { CharacterId = charId };
+            db.CharacterStatuses.Add(status);
+        }
+        return status;
+    }
+
+    /// <summary>
+    /// How stale a "checked at" stamp may get before it is written for its own sake.
+    ///
+    /// <para>⚠️ These three endpoints poll every ten seconds and the answer is the same almost
+    /// every time — a character sits in one system, in one ship, logged in. The row was written
+    /// anyway, because the stamp was set to UtcNow unconditionally and EF then saw a modified
+    /// entity every pass. With five characters online that is roughly 1.3 writes a second and
+    /// 110,000 a day, each one taking the exclusive write lock to record that nothing happened.
+    /// </para>
+    ///
+    /// <para>The stamp cannot simply stop being written: consumers tell live data from stale by
+    /// it, so a character parked for an hour would read as an hour out of date. Writing it only
+    /// when it has drifted this far keeps freshness accurate to within the window, and errs
+    /// toward looking staler than it is rather than fresher.</para>
+    /// </summary>
+    private static readonly TimeSpan StampWriteEvery = TimeSpan.FromMinutes(5);
+
+    /// <summary>True when the stamp is old enough to be worth a write on its own. Null counts as
+    /// due, which is what makes a newly created status row save immediately.</summary>
+    private static bool StampDue(DateTimeOffset? checkedAt) =>
+        checkedAt is null || DateTimeOffset.UtcNow - checkedAt.Value >= StampWriteEvery;
+
+    private async Task<PollingResult> FetchOnlineAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        var r = await _esi.ExecuteAuthAsync<EsiCharacterOnline>(charId,
+            $"characters/{charId}/online/", ct);
+        if (!r.IsSuccess || r.Data is null) return FromResult(r);
+
+        var status = await GetOrCreateStatusAsync(db, charId, ct);
+
+        // Written only when something actually moved, or when the stamp has drifted — see
+        // StampWriteEvery. Online state is the same on the overwhelming majority of passes.
+        var changed = status.Online     != r.Data.Online
+                   || status.LastLogin  != r.Data.LastLogin
+                   || status.LastLogout != r.Data.LastLogout
+                   || status.LoginCount != r.Data.Logins;
+
+        if (changed || StampDue(status.OnlineCheckedAt))
+        {
+            status.Online          = r.Data.Online;
+            status.LastLogin       = r.Data.LastLogin;
+            status.LastLogout      = r.Data.LastLogout;
+            status.LoginCount      = r.Data.Logins;
+            status.OnlineCheckedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(ct);
+        }
+
+        // ⚠️ Everything below runs whether or not the row was written. It is in-memory state that
+        // decides which endpoints run next, and skipping it on an unchanged pass would stop
+        // location and ship polling for a character who is still online.
+        // Cached so the endpoint loop can skip location/ship without a DB read.
+        var wasOnline = _onlineState.TryGetValue(charId, out var prev) && prev;
+        _onlineState[charId] = r.Data.Online;
+
+        // Location and ship are deliberately NOT cleared on logout. Last-known
+        // position is the whole point for cross-alt planning ("which of my
+        // characters is nearest system X"), which has to work for logged-off alts.
+        // Consumers distinguish live from stale via Online and LocationCheckedAt.
+
+        // On the online→offline transition, drop the once-per-run guard so location
+        // and ship are read one final time. ESI still answers both while offline, and
+        // the last in-session poll could be a whole interval — and several jumps —
+        // out of date, so this captures where they actually logged off.
+        if (wasOnline && !r.Data.Online)
+        {
+            _offlineFixTaken.TryRemove((charId, "char.location"), out _);
+            _offlineFixTaken.TryRemove((charId, "char.ship"), out _);
+        }
+
+        return FromResult(r);
+    }
+
+    private async Task<PollingResult> FetchLocationAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        var status = await GetOrCreateStatusAsync(db, charId, ct);
+
+        var r = await _esi.ExecuteAuthAsync<EsiCharacterLocation>(charId,
+            $"characters/{charId}/location/", ct);
+        if (!r.IsSuccess || r.Data is null) return FromResult(r);
+
+        // A docked character reports the same three values every ten seconds; only a jump or a
+        // dock changes any of them. See StampWriteEvery.
+        var changed = status.SolarSystemId != r.Data.SolarSystemId
+                   || status.StationId     != r.Data.StationId
+                   || status.StructureId   != r.Data.StructureId;
+
+        if (changed || StampDue(status.LocationCheckedAt))
+        {
+            status.SolarSystemId     = r.Data.SolarSystemId;
+            status.StationId         = r.Data.StationId;
+            status.StructureId       = r.Data.StructureId;
+            status.LocationCheckedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(ct);
+        }
+
+        return FromResult(r);
+    }
+
+    private async Task<PollingResult> FetchShipAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        var status = await GetOrCreateStatusAsync(db, charId, ct);
+
+        var r = await _esi.ExecuteAuthAsync<EsiCharacterShip>(charId,
+            $"characters/{charId}/ship/", ct);
+        if (!r.IsSuccess || r.Data is null) return FromResult(r);
+
+        // The ship only changes when the character boards another one. See StampWriteEvery.
+        var changed = status.ShipTypeId != r.Data.ShipTypeId
+                   || status.ShipItemId != r.Data.ShipItemId
+                   || status.ShipName   != r.Data.ShipName;
+
+        if (changed || StampDue(status.ShipCheckedAt))
+        {
+            status.ShipTypeId    = r.Data.ShipTypeId;
+            status.ShipItemId    = r.Data.ShipItemId;
+            status.ShipName      = r.Data.ShipName;
+            status.ShipCheckedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(ct);
+        }
+
         return FromResult(r);
     }
 
@@ -1464,6 +1895,11 @@ public class EsiPollingService : ReactiveObject
         new("char.roles",           3600,  7200, FetchRolesAsync),
         new("char.fittings",        300,   1800, FetchFittingsAsync),
         new("char.mail",            300,    600, FetchMailAsync),
+        // Live session state. Much faster cadence than everything else here — these
+        // endpoints cache for 5s (location, ship) and 60s (online) rather than minutes.
+        new("char.online",          60,      60, FetchOnlineAsync),
+        new("char.location",         5,      10, FetchLocationAsync),
+        new("char.ship",             5,      10, FetchShipAsync),
     ];
 
     // ── Token loading ────────────────────────────────────────────────────────
@@ -1538,8 +1974,7 @@ public class EsiPollingService : ReactiveObject
 
             var callKey = $"{ep.Key}:{corp.Id}:corporation";
 
-            if (_lastCallTimes.TryGetValue(callKey, out var lastCalled) &&
-                (now - lastCalled).TotalSeconds < _timerSettings.GetInterval(ep.Key, ep.DefaultIntervalSeconds))
+            if (!IsDue(callKey, ep.Key, ep.DefaultIntervalSeconds, now))
                 continue;
 
             if (_endpointGroups.TryGetValue(ep.Key, out var groupName) &&
@@ -1570,7 +2005,8 @@ public class EsiPollingService : ReactiveObject
 
             var callTime = DateTimeOffset.UtcNow;
             _lastCallTimes[callKey] = callTime;
-            await PersistCallRecordAsync(corp.Id, "corporation", ep.Key, callTime, result.StatusCode, ct);
+            RecordExpiry(callKey, result);
+            await PersistCallRecordAsync(corp.Id, "corporation", ep.Key, callTime, result.StatusCode, result.Expires, ct);
 
             UpdateRateLimitState(ep.Key, result);
             handle.Complete(result.Success, result.StatusCode, result.ErrorMessage);
@@ -1838,6 +2274,9 @@ public class EsiPollingService : ReactiveObject
                 });
             }
         }
+
+        ReconcileVanishedJobs(existingMap.Values,
+            r.Data!.Select(j => j.JobId).ToHashSet(), r.Complete);
 
         await db.SaveChangesAsync(ct);
         return FromResult(r);
@@ -2118,11 +2557,103 @@ public class EsiPollingService : ReactiveObject
         return FromResult(r);
     }
 
+    /// <summary>
+    /// Ceiling on newly-discovered public structures per sweep. A guard rail against some future
+    /// world where the list is enormous, NOT the pacing mechanism — the resolver's own 200 ms
+    /// gap between structures is that, and it is already slower per call than the contract poll's
+    /// 100-150 ms. High enough to clear a normal backlog in one sweep: the 744 unknown at the
+    /// time of writing cost about two and a half minutes, against a structure sweep that is
+    /// already the longest thing polling does.
+    ///
+    /// <para>The real safety is elsewhere and does not depend on this number: refusals count
+    /// toward ESI's error limit, and the resolve loop stops the moment that limit is blocked.</para>
+    /// </summary>
+    private const int PublicStructureBatch = 1000;
+
+    /// <summary>Between sweeps. The public list changes on the order of days, not minutes.</summary>
+    private static readonly TimeSpan PublicStructureSweepEvery = TimeSpan.FromHours(24);
+
+    /// <summary>
+    /// Walks the public structure list and hands anything unknown to the normal resolver.
+    ///
+    /// <para>Every other source of structures is incidental — a killmail, a contract, an asset
+    /// location — so what we know stops where our characters have been. This is the one source
+    /// that is not about us, and it is where the structures on the map come from for space nobody
+    /// here has visited.</para>
+    ///
+    /// <para>⚠️ Public is not the same as accessible, in either direction. A structure we can dock
+    /// at but whose owner has not made it public will not appear, and a public structure may still
+    /// refuse the name lookup — which the resolver already records as a failure with a 30-day
+    /// backoff, so a refusal costs one call a month rather than one a cycle.</para>
+    /// </summary>
+    private async Task SweepPublicStructuresAsync(AppDbContext db, CancellationToken ct)
+    {
+        var lastSwept = _prefs.GetLong(AppPreferencesService.PublicStructureSweepKey, 0);
+        var now       = DateTimeOffset.UtcNow;
+
+        if (lastSwept > 0 &&
+            now - DateTimeOffset.FromUnixTimeSeconds(lastSwept) < PublicStructureSweepEvery)
+            return;
+
+        var ids = await _esi.GetPublicStructureIdsAsync(ct);
+        if (ids is null || ids.Count == 0) return;
+
+        // Stamp the sweep even if the batch below is capped or the resolve loop stops early on
+        // the error limit: the timer's job is the daily cadence, and any remainder is picked up
+        // on the next sweep.
+        await _prefs.SetLongAsync(AppPreferencesService.PublicStructureSweepKey,
+                                  now.ToUnixTimeSeconds());
+
+        // Only ones we have never resolved at all. The resolver filters again itself, but doing
+        // it here is what keeps the batch to structures that are genuinely new rather than
+        // handing it 885 ids it will mostly discard.
+        var known = (await db.EsiStructureNames
+            .Select(s => s.StructureId).ToListAsync(ct)).ToHashSet();
+
+        // ⚠️ Recent failures are excluded HERE as well as in the resolver. A public structure can
+        // still refuse the lookup, and those refusals never produce a row in EsiStructureNames —
+        // so without this they would look "unknown" forever and fill the daily batch with the
+        // same doomed ids, starving the ones that would actually resolve.
+        var failBackoff = DateTimeOffset.UtcNow.AddDays(-30);
+        var recentlyFailed = (await db.EsiStructureNameFailures
+            .Select(f => new { f.StructureId, f.FailedAt })
+            .ToListAsync(ct))
+            .Where(f => f.FailedAt > failBackoff)
+            .Select(f => f.StructureId)
+            .ToHashSet();
+
+        var unknown = ids
+            .Where(id => !known.Contains(id) && !recentlyFailed.Contains(id))
+            .Take(PublicStructureBatch)
+            .ToList();
+
+        PublicStructureSummary =
+            $"{ids.Count:N0} listed · {ids.Count(known.Contains):N0} already known · " +
+            $"{unknown.Count:N0} new to resolve";
+
+        if (unknown.Count == 0) return;
+
+        StatusText = $"Polling: Resolving {unknown.Count} public structure(s)…";
+
+        var primary = await db.Characters
+            .Where(c => c.RefreshToken != "")
+            .Select(c => c.Id).FirstOrDefaultAsync(ct);
+
+        await ResolveNewStructureNamesAsync(primary, unknown, db, ct);
+    }
+
     // Fetches and caches names for structure IDs missing from EsiStructureNames or older than 30 days.
     // Tries primaryAuthCharId first, then falls back to any other character in the DB.
     // ESI requires esi-universe.read_structures.v1 and docking access to the structure.
+    /// <param name="force">
+    /// Ignores both skip lists — the freshness window and the failure backoff. Set only for a
+    /// user-initiated pull: both gates exist to stop the automatic sweep spending calls on answers
+    /// it already has or cannot get, and neither can know that the user just granted themselves
+    /// docking rights. A forced call is the user asserting the world changed since we last looked.
+    /// </param>
     private async Task ResolveNewStructureNamesAsync(
-        long primaryAuthCharId, IReadOnlyList<long> candidateIds, AppDbContext db, CancellationToken ct)
+        long primaryAuthCharId, IReadOnlyList<long> candidateIds, AppDbContext db, CancellationToken ct,
+        bool force = false)
     {
         if (candidateIds.Count == 0) return;
 
@@ -2131,9 +2662,11 @@ public class EsiPollingService : ReactiveObject
         var cutoff = DateTimeOffset.UtcNow.AddDays(-30);
         var fresh = (await db.EsiStructureNames
             .Where(s => candidateIds.Contains(s.StructureId))
-            .Select(s => new { s.StructureId, s.PulledAt })
+            .Select(s => new { s.StructureId, s.PulledAt, s.Status })
             .ToListAsync(ct))
-            .Where(s => s.PulledAt > cutoff)
+            // Fresh only if fully resolved recently — rows from the old name-only resolver (Status 0)
+            // are re-queried once to backfill owner/type/position.
+            .Where(s => s.PulledAt > cutoff && s.Status == (int)StructureStatus.Resolved)
             .Select(s => s.StructureId)
             .ToHashSet();
 
@@ -2151,7 +2684,7 @@ public class EsiPollingService : ReactiveObject
             .ToHashSet();
 
         var toResolve = candidateIds
-            .Where(id => !fresh.Contains(id) && !recentlyFailed.Contains(id))
+            .Where(id => force || (!fresh.Contains(id) && !recentlyFailed.Contains(id)))
             .Distinct().ToList();
         if (toResolve.Count == 0) return;
 
@@ -2217,6 +2750,19 @@ public class EsiPollingService : ReactiveObject
                     }
                     fail.FailedAt   = DateTimeOffset.UtcNow;
                     fail.StatusCode = sc;
+
+                    // Record the structure itself with a status so the Structure Browser still lists
+                    // it (403 = no docking rights; 404 = gone). Don't clobber a previously-resolved
+                    // name/details — a 404 after unanchor keeps the last known info.
+                    var srow = await db.EsiStructureNames.FindAsync([structId], ct);
+                    if (srow is null)
+                    {
+                        srow = new StructureName { StructureId = structId };
+                        db.EsiStructureNames.Add(srow);
+                    }
+                    if (srow.Status != (int)StructureStatus.Resolved || sc == 404)
+                        srow.Status = sc == 403 ? (int)StructureStatus.NoAccess : (int)StructureStatus.NotFound;
+
                     await db.SaveChangesAsync(ct);
                 }
                 // 403/404/502 are expected ESI responses — not app errors.
@@ -2231,23 +2777,30 @@ public class EsiPollingService : ReactiveObject
             {
                 handle.Complete(true, lastResult?.StatusCode ?? 200);
 
+                // The owning corp's alliance (public endpoint) — for the Structure Browser filter.
+                long allianceId = 0;
+                if (detail.OwnerId is > 0 and <= int.MaxValue)
+                {
+                    try { allianceId = (await _esi.GetCorporationPublicAsync((int)detail.OwnerId, ct))?.AllianceId ?? 0; }
+                    catch { /* alliance is best-effort; leave 0 on failure */ }
+                }
+
                 var entry = await db.EsiStructureNames.FindAsync([structId], ct);
                 if (entry is null)
                 {
-                    db.EsiStructureNames.Add(new StructureName
-                    {
-                        StructureId   = structId,
-                        Name          = detail.Name,
-                        SolarSystemId = detail.SolarSystemId,
-                        PulledAt      = DateTimeOffset.UtcNow,
-                    });
+                    entry = new StructureName { StructureId = structId };
+                    db.EsiStructureNames.Add(entry);
                 }
-                else
-                {
-                    entry.Name          = detail.Name;
-                    entry.SolarSystemId = detail.SolarSystemId;
-                    entry.PulledAt      = DateTimeOffset.UtcNow;
-                }
+                entry.Name          = detail.Name;
+                entry.SolarSystemId = detail.SolarSystemId;
+                entry.OwnerId       = detail.OwnerId;
+                entry.AllianceId    = allianceId;
+                entry.TypeId        = detail.TypeId ?? 0;
+                entry.X             = detail.Position?.X ?? 0;
+                entry.Y             = detail.Position?.Y ?? 0;
+                entry.Z             = detail.Position?.Z ?? 0;
+                entry.Status        = (int)StructureStatus.Resolved;
+                entry.PulledAt      = DateTimeOffset.UtcNow;
 
                 // Access regained — clear any prior failure flag.
                 var oldFail = await db.EsiStructureNameFailures.FindAsync([structId], ct);
@@ -2261,9 +2814,207 @@ public class EsiPollingService : ReactiveObject
         }
     }
 
+    // Local-only (no ESI): compute nearest celestials for any pending structures. Cheap and
+    // idempotent — the Structure Browser calls this on refresh so nearest fills after an SDE import
+    // without needing a full ESI resolve pass.
+    public async Task RefreshNearestCelestialsAsync(CancellationToken ct = default)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await BackfillNearestCelestialsAsync(db, ct);
+    }
+
+    // Labels each resolved structure with the nearest planet/moon/stargate in its system (3D
+    // distance). Only fills structures that have a position but no nearest yet; no-ops until the SDE
+    // celestial table is populated (a re-import). Structures don't move, so this runs once per row.
+    private async Task BackfillNearestCelestialsAsync(AppDbContext db, CancellationToken ct)
+    {
+        var pending = await db.EsiStructureNames
+            .Where(s => s.NearestCelestialId == 0 && (s.X != 0 || s.Y != 0 || s.Z != 0))
+            .ToListAsync(ct);
+        if (pending.Count == 0) return;
+
+        foreach (var group in pending.GroupBy(s => s.SolarSystemId))
+        {
+            if (group.Key == 0) continue;
+            var cels = await db.SdeCelestials.AsNoTracking()
+                .Where(c => c.SolarSystemId == group.Key).ToListAsync(ct);
+            if (cels.Count == 0) continue;   // celestials not imported for this system yet
+
+            foreach (var s in group)
+            {
+                SdeCelestial? best = null;
+                double bestD = double.MaxValue;
+                foreach (var c in cels)
+                {
+                    double dx = c.X - s.X, dy = c.Y - s.Y, dz = c.Z - s.Z;
+                    double d = dx * dx + dy * dy + dz * dz;
+                    if (d < bestD) { bestD = d; best = c; }
+                }
+                if (best is not null)
+                {
+                    s.NearestCelestialId = best.ItemId;
+                    s.NearestCelestial   = best.Name;
+                }
+            }
+        }
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// Tries one structure now, on demand, and reports the status it ended on.
+    ///
+    /// <para>Forced past both skip lists: a 403 parks a structure for thirty days and a success
+    /// parks it for thirty more, which is right for the sweep but wrong for a button whose whole
+    /// purpose is to ask again. Everything else — the failure row, the status, the celestial —
+    /// is written by the same resolver the sweep uses, so a manual pull and an automatic one
+    /// leave the row in the same state.</para>
+    /// </summary>
+    public async Task<StructureStatus> RetryStructureAsync(long structureId, CancellationToken ct = default)
+    {
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            await ResolveNewStructureNamesAsync(0, [structureId], db, ct, force: true);
+            await BackfillNearestCelestialsAsync(db, ct);
+            await _structureSync.SyncAsync(ct);
+
+            var row = await db.EsiStructureNames.AsNoTracking()
+                .FirstOrDefaultAsync(s => s.StructureId == structureId, ct);
+
+            return row is null ? StructureStatus.Pending : (StructureStatus)row.Status;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(EsiPollingService), nameof(RetryStructureAsync), ex);
+            return StructureStatus.Pending;
+        }
+    }
+
+    /// <summary>
+    /// Imports EVE Ref's structure snapshot, no more than once a day.
+    ///
+    /// <para>Gated on its own watermark rather than the sweep's cadence: the sweep runs hourly and
+    /// this is a third-party file that is neither ours to hammer nor changing that fast.</para>
+    /// </summary>
+    private async Task<(int Seen, int Filled)> SweepEveRefStructuresAsync(CancellationToken ct)
+    {
+        var last = _prefs.GetLong(AppPreferencesService.EveRefStructureFetchKey, 0);
+        var now  = DateTimeOffset.UtcNow;
+
+        if (last > 0 && now - DateTimeOffset.FromUnixTimeSeconds(last) < TimeSpan.FromDays(1))
+            return (0, 0);
+
+        var (imported, filled) = await _eveRefStructures.RefreshAsync(ct);
+
+        // Stamped only on a real answer, so a failed fetch is retried on the next sweep rather
+        // than parked for a day.
+        if (imported > 0)
+            await _prefs.SetLongAsync(AppPreferencesService.EveRefStructureFetchKey,
+                                      now.ToUnixTimeSeconds());
+
+        return (imported, filled);
+    }
+
+    /// <summary>
+    /// Asks ESI about one structure and hands back what it said, without committing anything to
+    /// the app's own table.
+    ///
+    /// <para>Split from <see cref="RetryStructureAsync"/> so "add by location ID" can show the
+    /// caller what an id turns out to be before they accept it. A typed id can be a typo, and
+    /// there is no way to remove a structure from the table once it is in — so the look is
+    /// deliberately separate from the commit.</para>
+    ///
+    /// <para>Writing to EsiStructureNames is not a commitment: that table is ESI's cache, and
+    /// caching an answer we just paid a call for is the point of it.</para>
+    /// </summary>
+    public async Task<StructureName?> LookupStructureAsync(long structureId, CancellationToken ct = default)
+    {
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            await ResolveNewStructureNamesAsync(0, [structureId], db, ct, force: true);
+            await BackfillNearestCelestialsAsync(db, ct);
+
+            return await db.EsiStructureNames.AsNoTracking()
+                .FirstOrDefaultAsync(s => s.StructureId == structureId, ct);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(EsiPollingService), nameof(LookupStructureAsync), ex);
+            return null;
+        }
+    }
+
+    /// <summary>Copies what ESI resolved into the app's own structure table. Exposed so the
+    /// Structure Browser can commit an added id without taking a second dependency on the sync
+    /// service — this class already owns it.</summary>
+    public Task<int> SyncStructuresAsync(CancellationToken ct = default) => _structureSync.SyncAsync(ct);
+
+    /// <summary>
+    /// Resolves these structure ids now and copies the answers into the browser's table, awaited,
+    /// so a caller that has just introduced ids nothing else knows about can hand back a finished
+    /// picture rather than one that fills in later.
+    ///
+    /// <para>⚠️ Not <see cref="ForceResolveStructureNamesAsync"/> with a shorter list. That one
+    /// gathers every id from every source and then runs the public-structure sweep and the
+    /// celestial backfill behind it — minutes of work whose result the caller does not need, with
+    /// the handful of ids it does care about buried inside. This resolves exactly what it is
+    /// given.</para>
+    ///
+    /// <para>Freshness and the 30-day refusal backoff still apply, so calling it for a structure
+    /// that has just been asked about costs nothing, and one we have no docking rights to is not
+    /// re-asked on every import.</para>
+    /// </summary>
+    public async Task ResolveStructuresNowAsync(IReadOnlyList<long> structureIds, CancellationToken ct = default)
+    {
+        var ids = structureIds.Distinct().ToList();
+        if (ids.Count == 0) return;
+
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            // The resolver reads freshness off these rows, and the periodic sweep finds any that
+            // stayed unresolved and retries them later.
+            var known = new HashSet<long>(await db.EsiStructureNames
+                .Where(s => ids.Contains(s.StructureId))
+                .Select(s => s.StructureId).ToListAsync(ct));
+
+            var epoch = DateTimeOffset.FromUnixTimeSeconds(0);
+            foreach (var id in ids.Where(id => !known.Contains(id)))
+                db.EsiStructureNames.Add(new StructureName
+                {
+                    StructureId = id, Status = (int)StructureStatus.Pending, PulledAt = epoch,
+                });
+            await db.SaveChangesAsync(ct);
+
+            StatusText = $"Resolving {ids.Count} structure(s)…";
+            await ResolveNewStructureNamesAsync(0, ids, db, ct);
+
+            // ⚠️ The copy is part of the job. Without it the answers sit in the ESI table and the
+            // browser, which reads the app's own, still shows nothing — which is the whole
+            // complaint this method exists to answer.
+            await _structureSync.SyncAsync(ct);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("EsiPollingService", nameof(ResolveStructuresNowAsync), ex);
+        }
+    }
+
     public async Task ForceResolveStructureNamesAsync(CancellationToken ct = default)
     {
         StatusText = "Resolving structure names…";
+        StructureSweepRunning = true;
         try
         {
             using var scope = _scopeFactory.CreateScope();
@@ -2273,28 +3024,130 @@ public class EsiPollingService : ReactiveObject
             // an ItemId in EsiAssets. Office folders, CorpSAG divisions, ships, and
             // containers all have ItemId > 1T and self-exclude. The chain walks itself:
             // item→CorpSAG→OfficeFolder→structure; only the terminal structure escapes.
+            const long T = EveIds.PlayerStructureThreshold;
+            var ids = new HashSet<long>();
+
+            // Assets — a location ID > 1T is a real external structure only if it is NOT itself an
+            // owned ItemId (offices, CorpSAG divisions, ships, containers all self-exclude).
             var knownItemIds = new HashSet<long>(await db.EsiAssets
-                .Where(a => a.ItemId > 1_000_000_000_000L)
-                .Select(a => a.ItemId)
-                .ToListAsync(ct));
+                .Where(a => a.ItemId > T).Select(a => a.ItemId).ToListAsync(ct));
+            foreach (var id in await db.EsiAssets.Where(a => a.LocationId > T)
+                .Select(a => a.LocationId).Distinct().ToListAsync(ct))
+                if (!knownItemIds.Contains(id)) ids.Add(id);
 
-            var assetStructureIds = (await db.EsiAssets
-                .Where(a => a.LocationId > 1_000_000_000_000L)
-                .Select(a => a.LocationId)
-                .Distinct()
-                .ToListAsync(ct))
-                .Where(id => !knownItemIds.Contains(id))
-                .ToList();
+            // Corp structures.
+            foreach (var id in await db.EsiCorpStructures.Select(s => s.StructureId).Distinct().ToListAsync(ct))
+                ids.Add(id);
 
-            var corpStructureIds = await db.EsiCorpStructures
-                .Select(s => s.StructureId)
-                .Distinct()
-                .ToListAsync(ct);
+            // Contracts (incl. public) — start/end locations are always stations or structures.
+            foreach (var id in await db.EsiContracts.Where(c => c.StartLocationId != null && c.StartLocationId > T)
+                .Select(c => c.StartLocationId!.Value).Distinct().ToListAsync(ct)) ids.Add(id);
+            foreach (var id in await db.EsiContracts.Where(c => c.EndLocationId != null && c.EndLocationId > T)
+                .Select(c => c.EndLocationId!.Value).Distinct().ToListAsync(ct)) ids.Add(id);
 
-            var structureIds = assetStructureIds.Union(corpStructureIds).ToList();
+            // Industry job facilities and blueprint/output locations.
+            foreach (var id in await db.EsiIndustryJobs.Where(j => j.StationId > T)
+                .Select(j => j.StationId).Distinct().ToListAsync(ct)) ids.Add(id);
+            foreach (var id in await db.EsiIndustryJobs.Where(j => j.BlueprintLocationId > T)
+                .Select(j => j.BlueprintLocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+            foreach (var id in await db.EsiIndustryJobs.Where(j => j.OutputLocationId > T)
+                .Select(j => j.OutputLocationId).Distinct().ToListAsync(ct)) ids.Add(id);
 
+            // Market orders and wallet transactions.
+            foreach (var id in await db.EsiMarketOrders.Where(o => o.LocationId > T)
+                .Select(o => o.LocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+            foreach (var id in await db.EsiWalletTransactions.Where(w => w.LocationId > T)
+                .Select(w => w.LocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+
+            // Facilities an Indy Parks entry is linked to. Unlike everything above, these need not
+            // be anywhere in our own data at all — a park imported from someone else names their
+            // structures, and this is the only place those ids appear.
+            foreach (var id in await db.IndyStructures.Where(s => s.RealStructureId != null && s.RealStructureId > T)
+                .Select(s => s.RealStructureId!.Value).Distinct().ToListAsync(ct)) ids.Add(id);
+
+            // Any already-tracked structure that isn't fully resolved yet (old name-only rows, or
+            // placeholders whose source data has since rolled out of the other tables).
+            foreach (var id in await db.EsiStructureNames
+                .Where(s => s.Status != (int)StructureStatus.Resolved)
+                .Select(s => s.StructureId).ToListAsync(ct)) ids.Add(id);
+
+            // Drop anything our own assets identify as something other than a structure before it
+            // is seeded. The heuristic above cannot catch a ship whose own asset row arrived on a
+            // different page, and an Asset Safety Wrap almost always does.
+            ids = (await _structureSync.RejectNonStructuresAsync(db, ids, ct)).ToHashSet();
+
+            // Seed placeholder rows so newly-seen structures appear in the browser (as Pending)
+            // even before their details resolve.
+            var existing = new HashSet<long>(await db.EsiStructureNames.Select(s => s.StructureId).ToListAsync(ct));
+            var epoch    = DateTimeOffset.FromUnixTimeSeconds(0);
+            foreach (var id in ids)
+                if (!existing.Contains(id))
+                    db.EsiStructureNames.Add(new StructureName
+                    {
+                        StructureId = id, Status = (int)StructureStatus.Pending, PulledAt = epoch,
+                    });
+            await db.SaveChangesAsync(ct);
+
+            var structureIds = ids.ToList();
             StatusText = $"Polling: Resolving {structureIds.Count} structure(s)…";
             await ResolveNewStructureNamesAsync(0, structureIds, db, ct);
+
+            // Last, and on its own daily timer: everything above is a structure we have touched,
+            // this is the one source that finds structures we have not. Kept after the others so
+            // a large public backlog never delays resolving the ones we actually use.
+            await SweepPublicStructuresAsync(db, ct);
+
+            await BackfillNearestCelestialsAsync(db, ct);
+
+            // Clear out anything already in the table that our assets identify as not a structure,
+            // before the sync copies it into the table the user is about to curate by hand.
+            var purged = await _structureSync.PurgeNonStructuresAsync(ct);
+            if (purged > 0)
+                _errorLogger.Log(nameof(EsiPollingService), "Structure hygiene",
+                    $"Removed {purged:N0} row(s) our assets identify as ships, containers or " +
+                     "asset-safety wraps rather than structures.");
+
+            // Copy what ESI resolved into the app's own table, which is what the Structure Browser
+            // reads and edits. One direction only — nothing the user types can travel back into
+            // the polled table.
+            var synced = await _structureSync.SyncAsync(ct);
+
+            // Assets supersede hand-entered fittings. Once the game says what is fitted, a typed
+            // answer can only agree redundantly or contradict it, so it goes.
+            var superseded = await _structureSync.ClearSupersededFittingsAsync(ct);
+
+            // EVE Ref's snapshot, for the structures ESI will not describe. Daily: it is
+            // published hourly, but a name or system changes on the scale of months and the file
+            // is ~855 KB. Runs before the Indy Parks step so a system it supplies is in place
+            // before anything reads the structure table.
+            var (everefSeen, everefFilled) = await SweepEveRefStructuresAsync(ct);
+
+            // Bring linked Indy Parks entries into agreement with the structures they describe.
+            // Runs after the others on purpose: it decides direction from what assets say, so
+            // it must see the same picture they have just settled.
+            var linked = await _indyLink.SyncAllAsync(ct);
+
+            // Counted after the work, from the table itself, so the figures describe what is
+            // actually there rather than what this pass happened to touch.
+            var total    = await db.Structures.CountAsync(ct);
+            var resolved = await db.Structures.CountAsync(s => s.TypeId != 0, ct);
+
+            // ⚠️ Reported here, not to the error log. Both of these change data behind the user's
+            // back — a hand-entered fitting deleted, a park's rigs rewritten — so they have to be
+            // visible somewhere, but neither is a fault and filing them as errors makes that log
+            // useless for finding the things that are. Only mentioned when non-zero: a summary
+            // that always ends "0 superseded · 0 linked" trains people to stop reading it.
+            var extra = "";
+            if (superseded > 0)   extra += $" · {superseded:N0} fitting(s) superseded by assets";
+            if (everefSeen > 0)   extra += $" · EVE Ref: {everefSeen:N0} known, {everefFilled:N0} filled";
+            if (linked > 0)       extra += $" · {linked:N0} linked park fitting(s) updated";
+
+            StructureSweepSummary =
+                $"{structureIds.Count:N0} id(s) checked · {synced:N0} synced · " +
+                $"{purged:N0} purged · {total:N0} structures held, {resolved:N0} identified{extra}";
+
+            StructureSweepAt = DateTimeOffset.UtcNow;
+
             StatusText = structureIds.Count == 0
                 ? "Polling: No structure IDs found in assets"
                 : $"Polling: Structure names resolved ({structureIds.Count} IDs)";
@@ -2303,8 +3156,10 @@ public class EsiPollingService : ReactiveObject
         catch (Exception ex)
         {
             StatusText = "Polling: Structure name resolve failed";
+            StructureSweepSummary = $"Failed — {ex.Message}";
             _errorLogger.Log("EsiPollingService", "ForceResolveStructureNamesAsync", ex);
         }
+        finally { StructureSweepRunning = false; }
     }
 
     private async Task<PollingResult> FetchCorpStructuresAsync(long corpId, AppDbContext db, CancellationToken ct)
@@ -2398,6 +3253,67 @@ public class EsiPollingService : ReactiveObject
             CorporationId = corpId,
             CharacterId   = charId,
         }));
+        await db.SaveChangesAsync(ct);
+        return FromResult(r);
+    }
+
+    /// <summary>
+    /// Corp member tracking. Stores the current values, and — because ESI only ever reports
+    /// the LAST logon rather than a history — also appends a row to EsiCorpMemberSessions
+    /// whenever a member's logon timestamp differs from the one already recorded. That is
+    /// the only way to build the dated login history that per-month reporting needs; it is
+    /// necessarily forward-only and cannot reconstruct months that predate it, and a member
+    /// who logs in and out again between two polls is missed entirely.
+    /// </summary>
+    private async Task<PollingResult> FetchCorpMemberTrackingAsync(long corpId, AppDbContext db, CancellationToken ct)
+    {
+        var r = await _esi.ExecuteCorpAuthAsync<List<EsiMemberTrackingEntry>>(
+            corpId, $"corporations/{corpId}/membertracking/", ct);
+        if (!r.IsSuccess) return FromResult(r);
+
+        var now      = DateTimeOffset.UtcNow;
+        var existing = await db.EsiCorpMemberTracking
+            .Where(t => t.CorporationId == corpId)
+            .ToDictionaryAsync(t => t.CharacterId, ct);
+
+        // Logons already recorded, so a re-poll cannot insert the same one twice.
+        var knownLogons = (await db.EsiCorpMemberSessions
+                .Where(s => s.CorporationId == corpId)
+                .Select(s => new { s.CharacterId, s.LogonDate })
+                .ToListAsync(ct))
+            .Select(s => (s.CharacterId, s.LogonDate))
+            .ToHashSet();
+
+        foreach (var m in r.Data!)
+        {
+            if (!existing.TryGetValue(m.CharacterId, out var row))
+            {
+                row = new CorpMemberTracking { CorporationId = corpId, CharacterId = m.CharacterId };
+                db.EsiCorpMemberTracking.Add(row);
+                existing[m.CharacterId] = row;
+            }
+
+            row.StartDate  = m.StartDate;
+            row.LogonDate  = m.LogonDate;
+            row.LogoffDate = m.LogoffDate;
+            row.LocationId = m.LocationId;
+            row.ShipTypeId = m.ShipTypeId;
+            row.BaseId     = m.BaseId;
+            row.UpdatedAt  = now;
+
+            if (m.LogonDate is { } logon && knownLogons.Add((m.CharacterId, logon)))
+                db.EsiCorpMemberSessions.Add(new CorpMemberSession
+                {
+                    CorporationId = corpId,
+                    CharacterId   = m.CharacterId,
+                    LogonDate     = logon,
+                    LogoffDate    = m.LogoffDate,
+                    LocationId    = m.LocationId,
+                    ShipTypeId    = m.ShipTypeId,
+                    RecordedAt    = now,
+                });
+        }
+
         await db.SaveChangesAsync(ct);
         return FromResult(r);
     }
@@ -2836,6 +3752,9 @@ public class EsiPollingService : ReactiveObject
         new("corp.starbases",          3600,  7200, FetchCorpStarbasesAsync),
         new("corp.facilities",         3600, 86400, FetchCorpFacilitiesAsync),
         new("corp.members",             600,  3600, FetchCorpMembersAsync),
+        // Polled often: each poll can only see the CURRENT logon, so a longer interval
+        // means more logins collapse into one observation and never reach the history.
+        new("corp.membertracking",      600,   900, FetchCorpMemberTrackingAsync),
         new("corp.roles",              3600,  7200, FetchCorpRolesAsync),
         new("corp.titles",             3600, 86400, FetchCorpTitlesAsync),
         new("corp.medals",             3600, 86400, FetchCorpMedalsAsync),

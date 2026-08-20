@@ -29,6 +29,8 @@ public class AssetBrowserViewModel : ReactiveObject
     public static readonly HashSet<string> HiddenColumns =
     [
         "Owner Id", "Root Location Id",
+        // Carried so the names above them can be links; never a column of their own.
+        "Solar System Id", "Region Id", "Is Station",
     ];
 
     public string? SortColumn    => _sortColumn;
@@ -300,7 +302,7 @@ public class AssetBrowserViewModel : ReactiveObject
     //   Base — all display-ready columns. Aggregation queries wrap Base with GROUP BY.
     private static readonly string QueryPrefix = """
         WITH
-        ContainerJoins AS (
+        ContainerHops AS (
             SELECT
                 a.ItemId, a.OwnerId, a.OwnerType,
                 p1.TypeId AS CP1TypeId,
@@ -313,7 +315,23 @@ public class AssetBrowserViewModel : ReactiveObject
                     WHEN p2.LocationId = a.RootLocationId  THEN 2
                     WHEN p3.LocationId = a.RootLocationId  THEN 3
                     ELSE 0
-                END AS ContainerDepth
+                END AS ContainerDepth,
+                -- Which hop's flag names the corp hangar division.
+                --
+                -- A division is not an item, so it owns no hop of its own: it is expressed as the
+                -- LocationFlag of whatever sits directly inside the office. Verified against the
+                -- data -- Morphite (Unlocked) -> Station Container (CorpSAG3) -> Office
+                -- (OfficeFolder) -- so the flag that matters is one hop further out at each
+                -- depth, which is why the path used to jump straight from Office to the
+                -- container and lose the division between them.
+                CASE
+                    WHEN a.LocationType != 'item'          THEN NULL
+                    WHEN a.LocationId = a.RootLocationId   THEN NULL
+                    WHEN p1.LocationId = a.RootLocationId  THEN a.LocationFlag
+                    WHEN p2.LocationId = a.RootLocationId  THEN p1.LocationFlag
+                    WHEN p3.LocationId = a.RootLocationId  THEN p2.LocationFlag
+                    ELSE NULL
+                END AS DivFlag
             FROM EsiAssets a
             LEFT JOIN EsiAssets p1 ON p1.ItemId = a.LocationId  AND p1.OwnerId = a.OwnerId AND p1.OwnerType = a.OwnerType
                                    AND a.LocationType = 'item' AND a.LocationId != a.RootLocationId
@@ -321,6 +339,27 @@ public class AssetBrowserViewModel : ReactiveObject
                                    AND p1.LocationId != a.RootLocationId
             LEFT JOIN EsiAssets p3 ON p3.ItemId = p2.LocationId AND p3.OwnerId = a.OwnerId AND p3.OwnerType = a.OwnerType
                                    AND p2.LocationId != a.RootLocationId
+        ),
+        -- Second pass only because SQLite cannot reference a computed alias from the same SELECT,
+        -- and resolving the division name needs DivFlag to already exist.
+        ContainerJoins AS (
+            SELECT
+                h.ItemId, h.OwnerId, h.OwnerType,
+                h.CP1TypeId, h.CP2TypeId, h.CP3TypeId, h.ContainerDepth,
+                -- 'CorpSAG_' is one character, so divisions 1-7 match and CorporationGoalDeliveries
+                -- (which also sits under the office, but is not a hangar) does not. Falls back to
+                -- the number when the corp has not named the division, or when we hold no
+                -- divisions for that corp at all -- "Division 6" still beats showing nothing.
+                CASE WHEN h.DivFlag LIKE 'CorpSAG_'
+                     THEN COALESCE(NULLIF(cd.Name, ''), 'Division ' || SUBSTR(h.DivFlag, 8))
+                     ELSE NULL
+                END AS DivName
+            FROM ContainerHops h
+            LEFT JOIN EsiCorpDivisions cd ON h.OwnerType     = 'corporation'
+                                         AND cd.CorporationId = h.OwnerId
+                                         AND cd.DivisionType  = 'hangar'
+                                         AND h.DivFlag LIKE 'CorpSAG_'
+                                         AND cd.Division = CAST(SUBSTR(h.DivFlag, 8) AS INTEGER)
         ),
         JobFacilities AS (
             SELECT
@@ -378,12 +417,18 @@ public class AssetBrowserViewModel : ReactiveObject
                     WHEN 'other'        THEN COALESCE(NULLIF(sn.Name,''), '<Unknown Structure>')
                     ELSE                     '<Unresolved - Please Refresh>'
                 END AS "Location Name",
+                -- The division slots in immediately after the outermost name, which is the office
+                -- whenever there is a division at all. Concatenating NULL yields NULL in SQLite,
+                -- so the COALESCE is what makes the segment vanish rather than erase the path.
                 CASE cj.ContainerDepth
                     WHEN 0 THEN NULL
                     WHEN 1 THEN COALESCE(ct1.Name, CAST(cj.CP1TypeId AS TEXT))
+                              || COALESCE(' > ' || cj.DivName, '')
                     WHEN 2 THEN COALESCE(ct2.Name, CAST(cj.CP2TypeId AS TEXT))
+                              || COALESCE(' > ' || cj.DivName, '')
                               || ' > ' || COALESCE(ct1.Name, CAST(cj.CP1TypeId AS TEXT))
                     WHEN 3 THEN COALESCE(ct3.Name, CAST(cj.CP3TypeId AS TEXT))
+                              || COALESCE(' > ' || cj.DivName, '')
                               || ' > ' || COALESCE(ct2.Name, CAST(cj.CP2TypeId AS TEXT))
                               || ' > ' || COALESCE(ct1.Name, CAST(cj.CP1TypeId AS TEXT))
                     ELSE NULL
@@ -397,6 +442,13 @@ public class AssetBrowserViewModel : ReactiveObject
                 END AS "Solar System",
                 COALESCE(r_st.Name, r_ss.Name, r_s.Name)             AS "Region Name",
                 ROUND(COALESCE(ss_sta.Security, ss.Security, ss_s.Security), 1) AS "Security",
+                -- Hidden: what the names above open. Carried in Base so the three aggregate views
+                -- inherit them rather than each re-deriving the joins.
+                COALESCE(ss_sta.SolarSystemId, ss.SolarSystemId, ss_s.SolarSystemId, 0) AS "Solar System Id",
+                COALESCE(r_st.RegionId, r_ss.RegionId, r_s.RegionId, 0)                 AS "Region Id",
+                -- NPC station to the entity browser, player structure to its own tool.
+                -- RootLocationType already tells the two apart.
+                CASE WHEN a.RootLocationType = 'station' THEN 1 ELSE 0 END              AS "Is Station",
                 a.LocationType    AS "Location Type",
                 t.Volume          AS "Volume",
                 t.Volume * CAST(a.Quantity AS REAL)                   AS "Total Volume",
@@ -505,7 +557,16 @@ public class AssetBrowserViewModel : ReactiveObject
                 'Industry Job'                                                     AS "Flag",
                 jf.FacilitySolarSystem                                             AS "Solar System",
                 jf.FacilityRegion                                                  AS "Region Name",
-                jf.FacilitySecurity                                                AS "Security",
+                -- ⚠️ ROUNDed to match the asset branch above. The aggregate views GROUP BY Security, so an
+                -- unrounded -0.29999 and a rounded -0.3 became two rows for one system, identical
+                -- on screen and each holding part of the total.
+                ROUND(jf.FacilitySecurity, 1)                                      AS "Security",
+                -- Hidden ids, matching the asset branch so the UNION lines up. A job facility is
+                -- named but never resolved to ids here, so these are zero: such a row still shows
+                -- its system and region, they simply are not links.
+                0                                                                  AS "Solar System Id",
+                0                                                                  AS "Region Id",
+                0                                                                  AS "Is Station",
                 'item'                                                             AS "Location Type",
                 bt.Volume                                                          AS "Volume",
                 bt.Volume                                                          AS "Total Volume",
@@ -542,7 +603,16 @@ public class AssetBrowserViewModel : ReactiveObject
                 'Industry Job'                                                     AS "Flag",
                 jf.FacilitySolarSystem                                             AS "Solar System",
                 jf.FacilityRegion                                                  AS "Region Name",
-                jf.FacilitySecurity                                                AS "Security",
+                -- ⚠️ ROUNDed to match the asset branch above. The aggregate views GROUP BY Security, so an
+                -- unrounded -0.29999 and a rounded -0.3 became two rows for one system, identical
+                -- on screen and each holding part of the total.
+                ROUND(jf.FacilitySecurity, 1)                                      AS "Security",
+                -- Hidden ids, matching the asset branch so the UNION lines up. A job facility is
+                -- named but never resolved to ids here, so these are zero: such a row still shows
+                -- its system and region, they simply are not links.
+                0                                                                  AS "Solar System Id",
+                0                                                                  AS "Region Id",
+                0                                                                  AS "Is Station",
                 'item'                                                             AS "Location Type",
                 pt.Volume                                                          AS "Volume",
                 pt.Volume * CAST(jf.ItemsProduced AS REAL)                        AS "Total Volume",
@@ -608,30 +678,36 @@ public class AssetBrowserViewModel : ReactiveObject
     private static string LocationAggSql(string where) => $"""
         SELECT
             "Root Location Id" AS "Location Id", "Location Name", "Solar System", "Region Name", "Security",
+            "Solar System Id", "Region Id", "Is Station",
             SUM("Quantity") AS "Item Count",
             SUM("Total Volume") AS "Total Volume",
             SUM("Value") AS "Total Value",
             CASE WHEN SUM("Total Volume") > 0 THEN SUM("Value") / SUM("Total Volume") ELSE NULL END AS "ISK/m³"
         FROM Base {where}
-        GROUP BY "Root Location Id", "Location Name", "Solar System", "Region Name", "Security"
+        GROUP BY "Root Location Id", "Location Name", "Solar System", "Region Name", "Security",
+                 "Solar System Id", "Region Id", "Is Station"
         ORDER BY SUM("Value") DESC NULLS LAST
         """;
 
     private static string SystemAggSql(string where) => $"""
         SELECT
             "Solar System", "Region Name", "Security",
+            "Solar System Id", "Region Id",
             SUM("Quantity") AS "Item Count",
             SUM("Total Volume") AS "Total Volume",
             SUM("Value") AS "Total Value",
             CASE WHEN SUM("Total Volume") > 0 THEN SUM("Value") / SUM("Total Volume") ELSE NULL END AS "ISK/m³"
         FROM Base {where}
-        GROUP BY "Solar System", "Region Name", "Security"
+        GROUP BY "Solar System", "Region Name", "Security", "Solar System Id", "Region Id"
         ORDER BY SUM("Value") DESC NULLS LAST
         """;
 
     private static string RegionAggSql(string where) => $"""
         SELECT
             "Region Name",
+            -- ⚠️ MAX, not MIN. A row whose region resolved to no id contributes 0, and MIN would
+            -- let that one row blank the link for a region every other row identified.
+            MAX("Region Id") AS "Region Id",
             MIN("Security") AS "Security",
             SUM("Quantity") AS "Item Count",
             SUM("Total Volume") AS "Total Volume",

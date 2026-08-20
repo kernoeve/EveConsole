@@ -1,3 +1,4 @@
+using EveConsole.Services;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -57,11 +58,8 @@ public partial class SettingsWindow : Window
 
     private DatabaseSettingsViewModel? _dbVm;
 
-    private void OnMoveDatabaseClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => _ = _dbVm?.MoveDatabaseAsync();
-
-    private void OnRenameDatabaseClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => _ = _dbVm?.RenameDatabaseAsync();
+    private void OnRelocateDatabaseClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = _dbVm?.RelocateDatabaseAsync();
 
     private void OnPointToDbClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = _dbVm?.PointToExistingDatabaseAsync();
@@ -69,17 +67,54 @@ public partial class SettingsWindow : Window
     private void OnBackupNowClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = _dbVm?.BackupNowAsync();
 
+    /// <summary>On demand — the breakdown scans the database, so it is never run automatically.</summary>
+    private void OnAnalyseDbSizeClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = _dbVm?.AnalyseSizesAsync();
+
+    private void OnShrinkDatabaseClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = _dbVm?.ShrinkDatabaseAsync();
+
+    // One handler per retention section; each drives its own RetentionSectionVm.
+    private DataRetentionSettingsViewModel? Retention => (DataContext as SettingsViewModel)?.RetentionVm;
+
+    private void OnPurgeErrorLogClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.ErrorLog.PurgeNowAsync();
+    private void OnPurgeKillmailsClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.Killmails.PurgeNowAsync();
+    private void OnPurgePriceHistoryClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.PriceHistory.PurgeNowAsync();
+    private void OnPurgeGameLogClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.GameLog.PurgeNowAsync();
+    private void OnPurgeChatClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.ChatMessages.PurgeNowAsync();
+
     public void WireDatabase(DatabaseSettingsViewModel dbVm, Window ownerWindow)
     {
         _dbVm = dbVm;
+        // ⚠️ Both pickers start in the folder the database is in now. Without this the dialog
+        // opens wherever the shell last left it — which is how a "rename" typed into the filename
+        // box landed the database on a mapped network drive, taking a cross-volume copy the user
+        // had every reason to expect to be instant.
+        async Task<IStorageFolder?> CurrentDbFolder()
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(dbVm.DbPath);
+                return string.IsNullOrWhiteSpace(dir) ? null
+                     : await StorageProvider.TryGetFolderFromPathAsync(dir);
+            }
+            catch { return null; }   // a database on a path the shell cannot resolve is not fatal
+        }
+
         dbVm.ShowSaveFileDialog = async (title, suggestedName) =>
         {
             var sp = StorageProvider;
             var file = await sp.SaveFilePickerAsync(new FilePickerSaveOptions
             {
-                Title             = title,
-                SuggestedFileName = suggestedName,
-                FileTypeChoices   =
+                Title                  = title,
+                SuggestedFileName      = suggestedName,
+                SuggestedStartLocation = await CurrentDbFolder(),
+                FileTypeChoices        =
                 [
                     new FilePickerFileType("SQLite Database") { Patterns = ["*.db"] }
                 ]
@@ -92,8 +127,9 @@ public partial class SettingsWindow : Window
             var sp    = StorageProvider;
             var files = await sp.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title         = title,
-                AllowMultiple = false,
+                Title                  = title,
+                AllowMultiple          = false,
+                SuggestedStartLocation = await CurrentDbFolder(),
                 FileTypeFilter =
                 [
                     new FilePickerFileType("SQLite Database") { Patterns = ["*.db"] }
@@ -112,7 +148,19 @@ public partial class SettingsWindow : Window
         {
             var exe = Process.GetCurrentProcess().MainModule?.FileName;
             if (exe is not null)
-                Process.Start(new ProcessStartInfo(exe) { UseShellExecute = true });
+            {
+                // ⚠️ Hand the single-instance lock over BEFORE spawning the replacement. This
+                // process is still alive for a moment after Process.Start, so without the release
+                // the new instance sees the lock held, focuses this window and exits — and then
+                // this one exits too, leaving nothing running. The argument makes the newcomer
+                // wait for the handover rather than treat it as a rival.
+                SingleInstance.Release();
+                Process.Start(new ProcessStartInfo(exe)
+                {
+                    UseShellExecute = true,
+                    Arguments       = SingleInstance.RestartingArgument,
+                });
+            }
             Environment.Exit(0);
         };
     }

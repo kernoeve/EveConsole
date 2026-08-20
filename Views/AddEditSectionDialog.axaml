@@ -1,0 +1,140 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveConsole.Views.AddEditSectionDialog"
+        Title="Section"
+        Width="470" Height="660"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <Grid RowDefinitions="*,Auto" Margin="20">
+
+    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="16">
+
+        <!-- Section name -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="SECTION NAME" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <TextBox x:Name="NameBox"
+                   Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                   CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                   FontSize="13" Padding="8 5" />
+        </StackPanel>
+
+        <!-- Prefix (output only) -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="SECTION PREFIX  (output only — e.g. Slack :macro:)" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <TextBox x:Name="PrefixBox" Watermark="e.g. :ships:"
+                   Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                   CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b" FontSize="12" Padding="8 5" />
+        </StackPanel>
+
+        <Rectangle Height="1" Fill="#1e1e2a" />
+
+        <!-- Scope override -->
+        <CheckBox x:Name="OverrideScopeBox" Content="Override inventory scope for this section"
+                  Foreground="#c8a84b" FontSize="12" />
+        <StackPanel x:Name="ScopePanel" Spacing="10" IsVisible="False" Margin="12 0 0 0">
+          <StackPanel Spacing="5">
+            <TextBlock Text="SCOPE" FontSize="10" FontWeight="SemiBold" Foreground="#555566" LetterSpacing="1" />
+            <WrapPanel>
+              <RadioButton x:Name="ScopeStation"    Content="Station"    GroupName="SecScope"
+                           Foreground="#c8c8d8" FontSize="12" Margin="0 0 16 4" />
+              <RadioButton x:Name="ScopeSystem"     Content="System"     GroupName="SecScope"
+                           Foreground="#c8c8d8" FontSize="12" Margin="0 0 16 4" />
+              <RadioButton x:Name="ScopeRegion"     Content="Region"     GroupName="SecScope"
+                           Foreground="#c8c8d8" FontSize="12" Margin="0 0 16 4" />
+              <RadioButton x:Name="ScopeEverywhere" Content="Everywhere" GroupName="SecScope"
+                           Foreground="#c8c8d8" FontSize="12" IsChecked="True" />
+            </WrapPanel>
+          </StackPanel>
+          <StackPanel x:Name="LocationPanel" Spacing="5" IsVisible="False">
+            <TextBlock x:Name="LocationLabel" Text="LOCATION" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" />
+            <TextBox x:Name="LocationSearchBox" Watermark="Type to search…"
+                     Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                     CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b" FontSize="12" Padding="8 5" />
+            <Border x:Name="LocationResultsBorder" Background="#131320" BorderBrush="#2a2a3a" BorderThickness="1"
+                    CornerRadius="3" MaxHeight="120" IsVisible="False">
+              <ListBox x:Name="LocationListBox" Background="Transparent" BorderThickness="0"
+                       FontSize="12" Foreground="#c8c8d8" />
+            </Border>
+            <TextBlock x:Name="SelectedLocationText" FontSize="11" Foreground="#888899" />
+          </StackPanel>
+        </StackPanel>
+
+        <Rectangle Height="1" Fill="#1e1e2a" />
+
+        <!-- Pricing override -->
+        <CheckBox x:Name="OverridePricingBox" Content="Override sale price basis for this section"
+                  Foreground="#c8a84b" FontSize="12" />
+        <StackPanel x:Name="PricingPanel" Spacing="10" IsVisible="False" Margin="12 0 0 0">
+          <StackPanel Spacing="5">
+            <TextBlock Text="SALE PRICE BASIS" FontSize="10" FontWeight="SemiBold" Foreground="#555566" LetterSpacing="1" />
+            <WrapPanel>
+              <RadioButton x:Name="BasisBuild"    Content="Build Cost"      GroupName="SecBasis"
+                           Foreground="#c8c8d8" FontSize="12" Margin="0 0 16 4" IsChecked="True" />
+              <RadioButton x:Name="BasisContract" Content="Contract Cost"   GroupName="SecBasis"
+                           Foreground="#c8c8d8" FontSize="12" Margin="0 0 16 4" />
+              <RadioButton x:Name="BasisMarket"   Content="Specific Market" GroupName="SecBasis"
+                           Foreground="#c8c8d8" FontSize="12" />
+            </WrapPanel>
+          </StackPanel>
+
+          <StackPanel x:Name="MarketPanel" Spacing="5" IsVisible="False">
+            <TextBlock Text="MARKET (current orders)" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" />
+            <ComboBox x:Name="MarketStationBox" Background="#1a1a28" BorderBrush="#2a2a3a" Foreground="#c8c8d8"
+                      FontSize="12" HorizontalAlignment="Stretch">
+              <ComboBox.ItemTemplate>
+                <DataTemplate><TextBlock Text="{Binding Name}" /></DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock x:Name="NoStationsText"
+                       Text="No polled markets yet — add a Market config under Market Overview first."
+                       FontSize="11" Foreground="#aa6644" IsVisible="False" TextWrapping="Wrap" />
+            <TextBlock Text="PRICE TYPE" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" Margin="0 6 0 0" />
+            <ComboBox x:Name="PriceTypeBox" Background="#1a1a28" BorderBrush="#2a2a3a" Foreground="#c8c8d8"
+                      FontSize="12" HorizontalAlignment="Stretch" />
+          </StackPanel>
+
+          <StackPanel Spacing="5">
+            <TextBlock Text="SALE PRICE = BASIS ×  %" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <NumericUpDown x:Name="PercentBox" Value="110" Minimum="0" Maximum="100000"
+                             Increment="5" ShowButtonSpinner="True" Width="120" FontSize="12"
+                             Background="#131320" BorderBrush="#2a2a3a" Foreground="#c8c8d8" />
+              <TextBlock Text="%  (Build 110%, Contract/Market 100%)"
+                         FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+
+        <Rectangle Height="1" Fill="#1e1e2a" />
+
+        <!-- Packaged-only override -->
+        <CheckBox x:Name="OverrideOnlyPackagedBox" Content="Override packaged-only setting for this section"
+                  Foreground="#c8a84b" FontSize="12" />
+        <StackPanel x:Name="OnlyPackagedPanel" IsVisible="False" Margin="12 0 0 0">
+          <CheckBox x:Name="OnlyPackagedBox" Content="Only include packaged items (skip assembled / fitted hulls)"
+                    Foreground="#c8c8d8" FontSize="12" />
+        </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0 16 0 0">
+      <TextBlock Grid.Column="0" x:Name="ErrorText" Foreground="#aa4444" FontSize="11"
+                 VerticalAlignment="Center" TextWrapping="Wrap" />
+      <Button Grid.Column="1" Content="Cancel" Background="#1a1a28" Foreground="#888899"
+              BorderBrush="#2a2a3a" BorderThickness="1" Padding="14 6" Margin="0 0 8 0" Click="OnCancelClick" />
+      <Button Grid.Column="2" Content="OK" Background="#1a2030" Foreground="#c8a84b"
+              BorderBrush="#3a3020" BorderThickness="1" Padding="14 6" Click="OnOkClick" />
+    </Grid>
+
+  </Grid>
+</Window>

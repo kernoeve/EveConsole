@@ -1,3 +1,4 @@
+using Avalonia.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -12,6 +13,7 @@ using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
+using EveConsole.Services.Worklist;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
@@ -143,18 +145,50 @@ public class AlertRowVm : ReactiveObject
 
 // A recent notification rendered in the in-game style: icon + one-liner + age,
 // with the full detail in a tooltip.
-public class NotificationBoxVm
+public class NotificationBoxVm : ReactiveObject
 {
     public string OneLiner    { get; init; } = "";
     public string AgeText     { get; init; } = "";
-    public string TooltipText { get; init; } = "";
     public bool   IsUnread    { get; init; }
     public string UnreadDot   => IsUnread ? "●" : "";
 
-    public Bitmap? Icon          { get; init; }
+    /// <summary>
+    /// The header of the tooltip — type, time, recipients, sender — which is cheap and built
+    /// with the row. The notification's own body is appended later by
+    /// <see cref="AppendBody"/>, because formatting it costs a database context and several
+    /// queries EACH, and the tooltip is not read for most rows.
+    /// </summary>
+    private string _tooltipText = "";
+    public string TooltipText
+    {
+        get => _tooltipText;
+        set => this.RaiseAndSetIfChanged(ref _tooltipText, value);
+    }
+
+    public void AppendBody(string body)
+    {
+        if (!string.IsNullOrEmpty(body)) TooltipText = $"{_tooltipText}\n\n{body}";
+    }
+
+    private Bitmap? _icon;
+    public Bitmap? Icon
+    {
+        get => _icon;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _icon, value);
+            this.RaisePropertyChanged(nameof(HasIcon));
+            this.RaisePropertyChanged(nameof(NoIcon));
+        }
+    }
+
     public string  FallbackGlyph { get; init; } = "✉";
     public bool HasIcon => Icon is not null;
     public bool NoIcon  => Icon is null;
+
+    /// <summary>Carried so the body and icon can be filled in after the list is on screen.</summary>
+    public string? RawText  { get; init; }
+    public string? IconPath { get; init; }
 }
 
 public class OverviewViewModel : ReactiveObject
@@ -296,18 +330,27 @@ public class OverviewViewModel : ReactiveObject
     public bool HasStandingProjects { get => _hasStandingProjects; private set => this.RaiseAndSetIfChanged(ref _hasStandingProjects, value); }
     public bool NoStandingProjects  => !HasStandingProjects;
 
+    public ObservableCollection<StandingBuyOrderRowVm> StandingBuyOrders { get; } = [];
+    private bool _hasStandingBuyOrders;
+    public bool HasStandingBuyOrders { get => _hasStandingBuyOrders; private set => this.RaiseAndSetIfChanged(ref _hasStandingBuyOrders, value); }
+    public bool NoStandingBuyOrders  => !HasStandingBuyOrders;
+
     // ── Loading state ─────────────────────────────────────────────────────────
     private bool _isLoading;
     public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
 
     private const string PeriodPrefKey = "overview.period_hours";
     private readonly AppPreferencesService? _prefs;
-    private readonly CorpActivityService?   _corpActivity;
+    private readonly CorpActivityService?     _corpActivity;
+    private readonly StandingBuyOrderService?  _standingBuyOrders;
+    private readonly IndyFacilityCheckService? _indyFacilityCheck;
 
     // Wired by MainWindowViewModel after construction — lets alert rows jump to the
     // relevant UI (character skills tab, corp activity standing projects tab).
     public Action<string>? NavigateToCharacterSkills               { get; set; }
     public Action?          NavigateToStandingProjects              { get; set; }
+    public Action?          NavigateToStandingBuyOrders             { get; set; }
+    public Action?          NavigateToIndustryJobs                  { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
     public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
     public Action?          OpenAlertSettingsRequested              { get; set; }  // Settings ▸ Alerts
@@ -343,6 +386,17 @@ public class OverviewViewModel : ReactiveObject
     private OverviewLayout _layout = OverviewLayout.Default();
     public OverviewLayout Layout => _layout;
 
+    /// <summary>
+    /// Whether a section is actually on the Overview grid.
+    ///
+    /// <para>Sections not placed by the user are disabled, and the default layout leaves four of
+    /// the eleven off — so the load was querying for panels nobody could see. Every section below
+    /// is gated on this. Safe because <see cref="ApplyLayoutAsync"/> reloads when the layout
+    /// changes, so enabling a section fills it immediately rather than showing blanks until the
+    /// next refresh.</para>
+    /// </summary>
+    private bool Shown(string key) => _layout.Sections.Any(s => s.Key == key && s.Enabled);
+
     // Raised when the layout changes; the view rebuilds its section grid in response.
     public event Action? LayoutChanged;
 
@@ -362,14 +416,18 @@ public class OverviewViewModel : ReactiveObject
                              AppPreferencesService? prefs = null,
                              CorpActivityService? corpActivity = null,
                              IDbContextFactory<AppDbContext>? dbFactory = null,
-                             EsiClient? esi = null)
+                             EsiClient? esi = null,
+                             StandingBuyOrderService? standingBuyOrders = null,
+                             IndyFacilityCheckService? indyFacilityCheck = null)
     {
+        _indyFacilityCheck = indyFacilityCheck;
         _db             = db;
         _alertSettings  = alertSettings;
         _errorLogger    = errorLogger;
         _newsService    = newsService;
         _prefs          = prefs;
         _corpActivity   = corpActivity;
+        _standingBuyOrders = standingBuyOrders;
         _dbFactory      = dbFactory;
         _layout         = OverviewLayout.FromJsonOrDefault(prefs?.Get(LayoutPrefKey));
         if (dbFactory is not null && esi is not null)
@@ -393,10 +451,138 @@ public class OverviewViewModel : ReactiveObject
 
         // Auto-refresh every 60 seconds — overview only reads local DB so this is fast.
         Observable.Interval(TimeSpan.FromSeconds(60))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOnUi("Overview.AutoRefresh")
             .Subscribe(n => _ = LoadAsync());
     }
 
+
+    /// <summary>
+    /// The Overview's first load, run once however many callers ask for it.
+    ///
+    /// <para>Startup awaits this before showing the main window, so the Overview is populated when
+    /// it appears rather than filling in underneath the user. The window asks for it too — a view
+    /// model can reach a window without going through startup — and the cached task makes the
+    /// second caller free rather than a duplicate pass over every section.</para>
+    /// </summary>
+    private Task? _firstLoad;
+    public Task EnsureLoadedAsync() => _firstLoad ??= LoadAsync();
+
+    // ── Worklist sections ─────────────────────────────────────────────────────
+    //
+    // The tool's own view model, shared rather than re-queried: a worklist run walks every
+    // generator, and a second copy on the Overview would double that cost to show the same rows.
+    // Set by MainWindowViewModel, like the sale-listing and income panels.
+
+    private WorklistViewModel? _worklist;
+    public WorklistViewModel? Worklist
+    {
+        get => _worklist;
+        set
+        {
+            _worklist = value;
+            if (value is null) return;
+
+            // ⚠️ Plain collections rebuilt on change, NOT DataGridCollectionView slices with a
+            // filter. The first attempt built filtered views here, at construction — when the
+            // worklist's first refresh is still running and PoolRows is empty — and the sections
+            // stayed blank after it arrived. Rebuilding on CollectionChanged is deterministic and
+            // does not depend on how a filtered view reacts to a source that fills later.
+            value.PoolRows.CollectionChanged += (_, _) => RebuildWorklistSections();
+            value.Needs.CollectionChanged    += (_, _) => this.RaisePropertyChanged(nameof(HasWorklistNeeds));
+
+            RebuildWorklistSections();
+            BuildGroupedViews();
+            this.RaisePropertyChanged(nameof(WorklistNeeds));
+            this.RaisePropertyChanged(nameof(HasWorklistNeeds));
+        }
+    }
+
+    public ObservableCollection<WorklistRowVm> WorklistAll  { get; } = [];
+    public ObservableCollection<WorklistRowVm> WorklistBuy  { get; } = [];
+    public ObservableCollection<WorklistRowVm> WorklistHaul { get; } = [];
+    public ObservableCollection<WorklistRowVm> WorklistJobs { get; } = [];
+
+    /// <summary>
+    /// The All section and Station Needs, grouped the way the tool groups them — by task kind and
+    /// by station. The grouping is what makes a mixed list readable; a dashboard copy without it
+    /// is just a longer list.
+    ///
+    /// <para>Built once the worklist is attached, as views over the collections above. Buy, Haul
+    /// and Jobs are deliberately ungrouped: every row in them is the same kind, so grouping would
+    /// add one header that repeats the section title.</para>
+    /// </summary>
+    private DataGridCollectionView? _worklistAllView;
+    private DataGridCollectionView? _worklistNeedsView;
+
+    public DataGridCollectionView? WorklistAllView   => _worklistAllView;
+    public DataGridCollectionView? WorklistNeedsView => _worklistNeedsView;
+
+
+    /// <summary>
+    /// Keeps the group key first in each grouped view's sort, so sorting a column reorders rows
+    /// INSIDE the groups and never moves the groups themselves.
+    ///
+    /// <para>⚠️ Without this, clicking a header replaces the sort outright and the grid regroups
+    /// around the new order — the groups shuffle and the panel looks like it sorted at random.
+    /// The tool solves it the same way; this is that logic for the Overview's two grouped
+    /// sections.</para>
+    /// </summary>
+    private bool _pinningGroups;
+
+    private void PinGroupOrder(DataGridCollectionView view, string groupPath)
+    {
+        if (_pinningGroups) return;                    // the insert below re-raises this
+        var sorts = view.SortDescriptions;
+        if (sorts.Count > 0 && sorts[0].PropertyPath == groupPath) return;
+
+        _pinningGroups = true;
+        try   { sorts.Insert(0, DataGridSortDescription.FromPath(groupPath)); }
+        finally { _pinningGroups = false; }
+    }
+
+    private void BuildGroupedViews()
+    {
+        if (_worklist is null || _worklistAllView is not null) return;
+
+        _worklistAllView = new DataGridCollectionView(WorklistAll);
+        _worklistAllView.GroupDescriptions.Add(
+            new DataGridPathGroupDescription(nameof(WorklistRowVm.KindText)));
+
+        _worklistAllView.SortDescriptions.CollectionChanged += (_, _) =>
+            PinGroupOrder(_worklistAllView, nameof(WorklistRowVm.KindRank));
+        PinGroupOrder(_worklistAllView, nameof(WorklistRowVm.KindRank));
+
+        _worklistNeedsView = new DataGridCollectionView(_worklist.Needs);
+        _worklistNeedsView.GroupDescriptions.Add(
+            new DataGridPathGroupDescription(nameof(StationNeedRowVm.Station)));
+
+        _worklistNeedsView.SortDescriptions.CollectionChanged += (_, _) =>
+            PinGroupOrder(_worklistNeedsView, nameof(StationNeedRowVm.Station));
+        PinGroupOrder(_worklistNeedsView, nameof(StationNeedRowVm.Station));
+
+        this.RaisePropertyChanged(nameof(WorklistAllView));
+        this.RaisePropertyChanged(nameof(WorklistNeedsView));
+    }
+
+    /// <summary>The needs report is the tool's own collection — no slicing needed, so no copy.</summary>
+    public ObservableCollection<StationNeedRowVm>? WorklistNeeds => _worklist?.Needs;
+    public bool HasWorklistNeeds => _worklist?.Needs.Count > 0;
+
+    private void RebuildWorklistSections()
+    {
+        if (_worklist is null) return;
+
+        Fill(WorklistAll,  _worklist.PoolRows);
+        Fill(WorklistBuy,  _worklist.PoolRows.Where(r => r.IsBuy));
+        Fill(WorklistHaul, _worklist.PoolRows.Where(r => r.IsHaul));
+        Fill(WorklistJobs, _worklist.PoolRows.Where(r => r.IsJob));
+
+        static void Fill(ObservableCollection<WorklistRowVm> target, IEnumerable<WorklistRowVm> rows)
+        {
+            target.Clear();
+            foreach (var r in rows) target.Add(r);
+        }
+    }
     private bool _loadPending;
 
     public async Task LoadAsync()
@@ -414,28 +600,90 @@ public class OverviewViewModel : ReactiveObject
             } while (_loadPending);
         }
         finally { IsLoading = false; }
+
+        // Only once everything else has finished. Task.Run rather than a bare call because an
+        // async method runs synchronously on its caller until it genuinely suspends, and this
+        // caller is the UI thread — SQLite's async is synchronous underneath, so a bare call
+        // would put those queries straight back onto it.
+        if (_pendingDetailFill is { } pending)
+        {
+            _pendingDetailFill = null;
+            _ = Task.Run(() => FillNotificationDetailAsync(pending));
+        }
     }
+
+    /// <summary>Notification rows whose body and icon still need filling in, held until the
+    /// Overview has finished loading so the two do not compete for the database.</summary>
+    private List<NotificationBoxVm>? _pendingDetailFill;
+
+    /// <summary>
+    /// Runs a database query on the threadpool.
+    ///
+    /// Microsoft.Data.Sqlite has no real async I/O: ToListAsync and its siblings block the
+    /// calling thread for the whole query however async the signature looks. This view model is
+    /// driven from the UI thread — including a 60-second auto-refresh — so every one of those
+    /// awaits froze the window for its duration. Measured at 5,351 ms across ten sections, with
+    /// no single query at fault; it was simply all of it, on the wrong thread.
+    ///
+    /// The continuation still resumes on the UI thread, so assignments and collection updates
+    /// after the await stay exactly as they were.
+    /// </summary>
+    private static Task<T> Off<T>(Func<Task<T>> query) => Task.Run(query);
 
     private async Task LoadCoreAsync()
     {
-        LoadStatus = "Querying scope...";
+        // Step() names the section under way, which shows as progress text while the Overview
+        // builds. The per-section timings this used to log to the error log are gone — they had
+        // served their purpose (664 database contexts building tooltips nobody had opened) and
+        // were filling the log on every refresh.
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+
+        // Section timing, reinstated but quiet: only a slow section is logged, so this cannot
+        // fill the error log the way the old per-section timings did.
+        //
+        // ⚠️ This is WALL CLOCK for the section, not UI-thread blocking: it includes time spent
+        // awaiting queries that Off() put on the threadpool, during which the UI thread is free.
+        // A slow section here is a lead, not a verdict — UiStallMonitor is what says whether the
+        // window actually froze. Worded accordingly, because reading it the other way sends you
+        // hunting for a freeze that isn't there.
+        const int SlowSectionMs = 250;
+        var sectionAt   = 0L;
+        var sectionName = "Querying scope";
+
+        void Step(string next)
+        {
+            var now  = sw.ElapsedMilliseconds;
+            var took = now - sectionAt;
+            // Timing still runs — it costs a subtraction — but reporting is behind the switch,
+            // because a section over the threshold is a lead for someone investigating, not a
+            // fault worth a row in the log of every session. See PerfDiagnostics.
+            if (PerfDiagnostics.Enabled && took >= SlowSectionMs)
+                _errorLogger.Log(nameof(OverviewViewModel), "Slow Overview section",
+                    $"\"{sectionName}\" took {took:N0} ms (wall clock, background queries included).");
+
+            sectionAt   = now;
+            sectionName = next;
+            LoadStatus  = next;
+        }
+
+        LoadStatus = "Querying scope";
         try
         {
-            await _alertSettings.LoadAsync();
+            if (Shown("Alerts")) await _alertSettings.LoadAsync();
 
             // ── Scope ─────────────────────────────────────────────────────────
             // Only characters we have auth tokens for (i.e. authenticated characters).
-            var charIds = await _db.Characters.AsNoTracking()
+            var charIds = await Off(() => _db.Characters.AsNoTracking()
                 .Where(c => c.RefreshToken != "")
                 .Select(c => c.Id)
-                .ToListAsync();
+                .ToListAsync());
 
             // Only personal corporations (IsPersonal = true). Corp data is stored
             // with OwnerType = "corporation" (not "corp").
-            var corpIds = await _db.Corporations.AsNoTracking()
+            var corpIds = await Off(() => _db.Corporations.AsNoTracking()
                 .Where(c => c.IsPersonal)
                 .Select(c => (long)c.Id)
-                .ToListAsync();
+                .ToListAsync());
 
             if (charIds.Count == 0 && corpIds.Count == 0)
             {
@@ -448,7 +696,7 @@ public class OverviewViewModel : ReactiveObject
 
             // Start news fetch in the background immediately — it hits the network and is
             // the slowest step. We await it last so everything else renders first.
-            var newsTask = _newsService.GetNewsAsync();
+            var newsTask = Shown("News") ? _newsService.GetNewsAsync() : null;
 
             // Per-owner list — avoids List<long>.Contains() which EF Core 9 SQLite
             // fails to translate. Corp OwnerType must be "corporation" to match the DB.
@@ -456,16 +704,25 @@ public class OverviewViewModel : ReactiveObject
                                 .Concat(corpIds.Select(id => ("corporation", id)))
                                 .ToList();
 
+            // Which owners each group of sections should query. Empty when the panel that
+            // consumes them is not on the grid, which makes every per-owner loop below a no-op
+            // and leaves its aggregate at zero — no restructuring, and nothing queried for a
+            // panel nobody can see. Both are among the sections the default layout leaves off.
+            List<(string, long)> activityOwners =
+                Shown("ActivitySummary") ? owners : [];
+            List<(string, long)> pieOwners =
+                Shown("IncomePie") || Shown("ExpensePie") ? owners : [];
+
             // ── Market transactions ────────────────────────────────────────────
-            LoadStatus = "Loading market transactions...";
+            Step("Loading market transactions");
             // Aggregate in SQL with date filter — avoids loading all rows and the
             // DateTimeOffset LINQ translation bug. UnitPrice stored as TEXT so CAST
             // to REAL for arithmetic; result arrives as double, converted to decimal.
             decimal mktSellTotal = 0m, mktBuyTotal = 0m;
             int     mktSellCnt   = 0,  mktBuyCnt   = 0;
-            foreach (var (ot, oid) in owners)
+            foreach (var (ot, oid) in activityOwners)
             {
-                var s = await _db.Database.SqlQuery<TxnSummary>(
+                var s = await Off(() => _db.Database.SqlQuery<TxnSummary>(
                     $"""
                     SELECT
                         COALESCE(SUM(CASE WHEN "IsBuy" = 0 THEN "Quantity" * CAST("UnitPrice" AS REAL) ELSE 0.0 END), 0.0) AS "SellTotal",
@@ -474,8 +731,12 @@ public class OverviewViewModel : ReactiveObject
                         COALESCE(SUM(CASE WHEN "IsBuy" = 1 THEN 1 ELSE 0 END), 0)                                          AS "BuyCount"
                     FROM "EsiWalletTransactions"
                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
+                      -- Sales marked "not for profit" in the Sales Tracker are left out of
+                      -- every figure that reckons trading performance, including this one.
+                      AND NOT EXISTS (SELECT 1 FROM "SaleExclusions" x
+                                      WHERE x."Kind" = 'Market' AND x."SaleId" = "TransactionId")
                     """
-                ).FirstOrDefaultAsync();
+                ).FirstOrDefaultAsync());
 
                 if (s != null)
                 {
@@ -491,13 +752,13 @@ public class OverviewViewModel : ReactiveObject
             MktBuyIsk    = FormatIsk(mktBuyTotal);
 
             // ── Active market orders ───────────────────────────────────────────
-            LoadStatus = "Loading market orders...";
+            Step("Loading market orders");
             var orders = new List<(bool IsBuy, int VolRemain, decimal Price)>();
-            foreach (var (ot, oid) in owners)
-                orders.AddRange((await _db.EsiMarketOrders.AsNoTracking()
+            foreach (var (ot, oid) in activityOwners)
+                orders.AddRange((await Off(() => _db.EsiMarketOrders.AsNoTracking()
                     .Where(o => !o.IsHistory && o.OwnerType == ot && o.OwnerId == oid)
                     .Select(o => new { o.IsBuyOrder, o.VolumeRemain, o.Price })
-                    .ToListAsync())
+                    .ToListAsync()))
                     .Select(o => (o.IsBuyOrder, o.VolumeRemain, o.Price)));
 
             decimal sellOrderIsk = 0m, buyOrderIsk = 0m;
@@ -513,24 +774,24 @@ public class OverviewViewModel : ReactiveObject
             BuyOrderIsk    = FormatIsk(buyOrderIsk);
 
             // ── Contracts ─────────────────────────────────────────────────────
-            LoadStatus = "Loading contracts...";
+            Step("Loading contracts");
             var contracts = new List<string>();
-            foreach (var (ot, oid) in owners)
-                contracts.AddRange(await _db.EsiContracts.AsNoTracking()
+            foreach (var (ot, oid) in activityOwners)
+                contracts.AddRange(await Off(() => _db.EsiContracts.AsNoTracking()
                     .Where(c => c.OwnerType == ot && c.OwnerId == oid)
                     .Select(c => c.Status)
-                    .ToListAsync());
+                    .ToListAsync()));
 
             CtrActiveCount = contracts.Count(s => s == "outstanding").ToString("N0");
 
             // ── Industry jobs ──────────────────────────────────────────────────
-            LoadStatus = "Loading industry jobs...";
+            Step("Loading industry jobs");
             var jobs = new List<(string Status, DateTimeOffset? Completed)>();
-            foreach (var (ot, oid) in owners)
-                jobs.AddRange((await _db.EsiIndustryJobs.AsNoTracking()
+            foreach (var (ot, oid) in activityOwners)
+                jobs.AddRange((await Off(() => _db.EsiIndustryJobs.AsNoTracking()
                     .Where(j => j.OwnerType == ot && j.OwnerId == oid)
                     .Select(j => new { j.Status, j.CompletedDate })
-                    .ToListAsync())
+                    .ToListAsync()))
                     .Select(j => (j.Status, j.CompletedDate)));
 
             ActiveJobCount    = jobs.Count(j => j.Status == "active").ToString("N0");
@@ -543,30 +804,35 @@ public class OverviewViewModel : ReactiveObject
             // where one of our characters is an attacker but not the victim. KillMailDetails
             // only exist for killmails we hold (from character OR corp refs), so two aggregate
             // queries replace the old per-character/per-corp loop (much faster).
-            LoadStatus = "Counting kills and losses...";
+            Step("Counting kills and losses");
             int totalKills = 0, totalLosses = 0;
-            if (charIds.Count > 0)
+            if (activityOwners.Count > 0 && charIds.Count > 0)
             {
                 var cutoffStr  = DateTimeOffset.UtcNow.AddHours(-SelectedPeriod.Hours)
                     .UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
                 var charIdList = string.Join(",", charIds);
 #pragma warning disable EF1002
-                totalLosses = await _db.Database.SqlQueryRaw<int>($"""
+                totalLosses = await Off(() => _db.Database.SqlQueryRaw<int>($"""
                     SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
                     FROM "KillMailDetails" d
                     WHERE d."KillMailTime" >= '{cutoffStr}' AND d."VictimCharId" IN ({charIdList})
-                    """).FirstAsync();
+                    """).FirstAsync());
                 // Non-correlated IN-subquery: computes the attacker killmail set once. A
-                // correlated EXISTS here scans the 100k-row attackers table per killmail
-                // (~26s); this is ~20ms.
-                totalKills = await _db.Database.SqlQueryRaw<int>($"""
+                // correlated EXISTS here scans the attackers table per killmail (~26s at the
+                // 100k rows it had then).
+                //
+                // That table is now 7.8M rows, and the sub-query below was itself a full scan
+                // costing ~600 ms on every 60-second refresh until
+                // IX_KillMailAttackers_CharacterId (CharacterId, KillMailId) was added — it
+                // covers this query outright, taking it under a millisecond.
+                totalKills = await Off(() => _db.Database.SqlQueryRaw<int>($"""
                     SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
                     FROM "KillMailDetails" d
                     WHERE d."KillMailTime" >= '{cutoffStr}'
                       AND d."VictimCharId" NOT IN ({charIdList})
                       AND d."KillMailId" IN (SELECT a."KillMailId" FROM "KillMailAttackers" a
                                              WHERE a."CharacterId" IN ({charIdList}))
-                    """).FirstAsync();
+                    """).FirstAsync());
 #pragma warning restore EF1002
             }
 
@@ -574,26 +840,46 @@ public class OverviewViewModel : ReactiveObject
             ShipLossCount = totalLosses.ToString("N0");
 
             // ── Personal killmails section (bound to the same period) ───────────
+            Step("Personal killmails");
             await LoadPersonalKillsAsync(charIds, Math.Max(1, SelectedPeriod.Hours / 24));
 
             // ── Standing projects section ───────────────────────────────────────
+            Step("Standing projects");
             await LoadStandingProjectsAsync();
 
+            // ── Standing buy orders section ─────────────────────────────────────
+            // Worklist sections. Staleness-guarded rather than run every time: a worklist run walks
+            // every generator, and the Overview reloads once a minute.
+            if (Worklist is not null &&
+                (Shown("WorklistAll") || Shown("WorklistBuy") || Shown("WorklistHaul") ||
+                 Shown("WorklistJobs") || Shown("WorklistNeeds")))
+            {
+                Step("Worklist");
+                await Worklist.RefreshIfStaleAsync(TimeSpan.FromMinutes(5));
+
+                // The needs report is loaded lazily by the tool when its tab is opened, which the
+                // Overview never does — without this the section stays empty forever.
+                if (Shown("WorklistNeeds")) await Worklist.EnsureNeedsLoadedAsync();
+            }
+
+            Step("Standing buy orders");
+            await LoadStandingBuyOrdersAsync();
+
             // ── Wallet journal — pie chart categorisation ──────────────────────
-            LoadStatus = "Loading journal data...";
+            Step("Loading journal data");
             // Group by RefType in SQL with date filter — avoids loading all rows.
             // Amount stored as TEXT; CAST to REAL for SUM. Aggregated per RefType.
             var journalGroups = new List<(string RefType, decimal Total)>();
-            foreach (var (ot, oid) in owners)
+            foreach (var (ot, oid) in pieOwners)
             {
-                var rows = await _db.Database.SqlQuery<JournalGroup>(
+                var rows = await Off(() => _db.Database.SqlQuery<JournalGroup>(
                     $"""
                     SELECT "RefType", COALESCE(SUM(CAST("Amount" AS REAL)), 0.0) AS "TotalAmount"
                     FROM "EsiWalletJournal"
                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                     GROUP BY "RefType"
                     """
-                ).ToListAsync();
+                ).ToListAsync());
                 journalGroups.AddRange(rows.Select(r => (r.RefType, (decimal)r.TotalAmount)));
             }
 
@@ -602,23 +888,27 @@ public class OverviewViewModel : ReactiveObject
                 .GroupBy(g => g.RefType, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.Total), StringComparer.OrdinalIgnoreCase);
 
-            LoadStatus = "Building charts...";
+            Step("Building charts");
             BuildPieCharts(WalletCategorizer.Categorize(journalByType));
 
-            LoadStatus = "Evaluating alerts...";
-            await EvaluateAlertsAsync(charIds);
+            Step("Evaluating alerts");
+            if (Shown("Alerts")) await EvaluateAlertsAsync(charIds);
 
-            LoadStatus = "Loading news...";
-            var newsItems = await newsTask;
-            NewsItems.Clear();
-            foreach (var item in newsItems) NewsItems.Add(new NewsItemVm(item));
-            HasNews = NewsItems.Count > 0;
-            this.RaisePropertyChanged(nameof(NoNews));
+            Step("Loading news");
+            if (newsTask is not null)
+            {
+                var newsItems = await newsTask;
+                NewsItems.Clear();
+                foreach (var item in newsItems) NewsItems.Add(new NewsItemVm(item));
+                HasNews = NewsItems.Count > 0;
+                this.RaisePropertyChanged(nameof(NoNews));
+            }
 
-            LoadStatus = "Loading notifications...";
-            await LoadNotificationsAsync();
+            Step("Loading notifications");
+            if (Shown("Notifications")) await LoadNotificationsAsync();
 
-            LoadStatus = $"Loaded — {owners.Count} owner(s), period: {_selectedPeriod.Label}";
+            Step("done");   // closes out the last section so it is timed like the rest
+            LoadStatus = $"Loaded in {sw.ElapsedMilliseconds:N0} ms — {owners.Count} owner(s), period: {_selectedPeriod.Label}";
         }
         catch (Exception ex)
         {
@@ -628,9 +918,23 @@ public class OverviewViewModel : ReactiveObject
     }
 
     // ── Notifications (one per NotificationId, within the selected period) ─────────
-    private async Task LoadNotificationsAsync()
+    /// <summary>Identifies the notification set last put on screen, so an unchanged refresh can
+    /// skip rebuilding it. On a 60-second auto-refresh most passes change nothing.</summary>
+    private string _notificationSignature = "";
+
+    /// <summary>
+    /// ⚠️ Threadpool only. Everything here — both queries, name resolution and the whole
+    /// formatting loop — used to run on the UI thread, because this section is awaited directly
+    /// rather than through <see cref="Off"/>. SQLite's async is synchronous underneath, and the
+    /// loop formats up to a thousand rows, so the cost landed on the UI thread in full and froze
+    /// the window for seconds on every refresh.
+    ///
+    /// <para>Returns null when there is nothing to do: not wired, failed, or the same
+    /// notifications as last time.</para>
+    /// </summary>
+    private async Task<List<NotificationBoxVm>?> BuildNotificationBoxesAsync()
     {
-        if (_names is null || _dbFactory is null) return;   // not wired for name resolution/formatting
+        if (_names is null || _dbFactory is null) return null;   // not wired for name resolution/formatting
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
@@ -651,6 +955,12 @@ public class OverviewViewModel : ReactiveObject
                     "WHERE Timestamp >= {0} " +
                     "GROUP BY NotificationId ORDER BY Timestamp DESC LIMIT 1000", cutoff)
                 .AsNoTracking().ToListAsync();
+
+            // Nothing new? Then neither the formatting below nor the collection rebuild that
+            // follows it is worth doing. Read state is included so marking one read still shows.
+            var signature = string.Join(',', rows.Select(r => $"{r.NotificationId}:{(r.IsRead ? 1 : 0)}"));
+            if (signature == _notificationSignature) return null;
+            _notificationSignature = signature;
 
             var ids = rows.Select(r => r.NotificationId).ToList();
             var recipients = ids.Count == 0
@@ -691,7 +1001,6 @@ public class OverviewViewModel : ReactiveObject
                 var f        = parsed[r.NotificationId];
                 var oneLiner = NotificationSummary.OneLiner(r.Type, f, names, structNames);
                 var (iconPath, glyph) = NotificationSummary.Icon(r.Type, r.SenderId, r.SenderType, f);
-                var icon     = iconPath is null ? null : await GetImageAsync(iconPath);
 
                 var chars = recipientsByNotif.TryGetValue(r.NotificationId, out var cids)
                     ? string.Join(", ", cids.Select(id => names.TryGetValue(id, out var cn) && cn.Length > 0 ? cn : $"ID {id}").OrderBy(s => s))
@@ -699,14 +1008,11 @@ public class OverviewViewModel : ReactiveObject
                 var sender = r.SenderId > 0
                     ? (names.TryGetValue(r.SenderId, out var sn) && sn.Length > 0 ? sn : $"ID {r.SenderId}")
                     : "—";
-                var body = await NotificationFormatter.FormatAsync(r.Text, _names, _dbFactory);
-
                 var tip = new StringBuilder();
                 tip.Append(NotificationFormatter.Humanize(r.Type)).Append('\n');
                 tip.Append(r.Timestamp.ToLocalTime().ToString("MMM d, yyyy HH:mm"));
                 if (chars.Length > 0) tip.Append("\nTo: ").Append(chars);
                 if (sender != "—")    tip.Append("\nFrom: ").Append(sender);
-                if (body.Length > 0)  tip.Append("\n\n").Append(body);
 
                 boxes.Add(new NotificationBoxVm
                 {
@@ -714,25 +1020,90 @@ public class OverviewViewModel : ReactiveObject
                     AgeText       = NotificationSummary.Age(r.Timestamp),
                     TooltipText   = tip.ToString(),
                     IsUnread      = !r.IsRead,
-                    Icon          = icon,
                     FallbackGlyph = glyph,
+                    RawText       = r.Text,
+                    IconPath      = iconPath,
                 });
             }
 
-            RecentNotifications.Clear();
-            foreach (var b in boxes) RecentNotifications.Add(b);
-            HasNotifications = RecentNotifications.Count > 0;
-            this.RaisePropertyChanged(nameof(NoNotifications));
+            return boxes;
         }
-        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadNotifications", ex); }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("OverviewViewModel", "LoadNotifications", ex);
+
+            // A failed pass must not leave the signature claiming the screen is up to date.
+            _notificationSignature = "";
+            return null;
+        }
+    }
+
+    private async Task LoadNotificationsAsync()
+    {
+        // Task.Run, not a bare call: an async method runs on its caller until it genuinely
+        // suspends, and SQLite's async suspends for nothing — a bare call would put the queries
+        // and the formatting straight back onto the UI thread. Same reasoning as Off().
+        var boxes = await Task.Run(BuildNotificationBoxesAsync);
+        if (boxes is null) return;   // nothing to do, or unchanged since last refresh
+
+        // The only part that must be here. Everything above it is off the UI thread now.
+        RecentNotifications.Clear();
+        foreach (var b in boxes) RecentNotifications.Add(b);
+        HasNotifications = RecentNotifications.Count > 0;
+        this.RaisePropertyChanged(nameof(NoNotifications));
+
+        // Bodies and icons after the list is on screen, not before it. Formatting one body
+        // costs its own database context and several queries, so doing all of them inline
+        // was the whole reason this section took so long to appear — for text that is only
+        // read if the user hovers that particular row.
+        // Handed to LoadAsync rather than started here. This runs part-way through the
+        // Overview load, and four background readers competing with the queries still to
+        // come only slow down the very thing they were meant to get out of the way of.
+        _pendingDetailFill = boxes;
+    }
+
+    /// <summary>
+    /// Fills in each notification's icon and formatted body once the list is already showing.
+    ///
+    /// Four at a time: every body opens its own database context, so letting several hundred
+    /// run at once would trade a slow load for a stalled one.
+    /// </summary>
+    private async Task FillNotificationDetailAsync(List<NotificationBoxVm> boxes)
+    {
+        if (_names is null || _dbFactory is null) return;
+
+        using var gate = new SemaphoreSlim(4, 4);
+        try
+        {
+            await Task.WhenAll(boxes.Select(async box =>
+            {
+                await gate.WaitAsync();
+                try
+                {
+                    var icon = box.IconPath is null ? null : await GetImageAsync(box.IconPath);
+                    var body = await NotificationFormatter.FormatAsync(box.RawText, _names, _dbFactory);
+
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        if (icon is not null)        box.Icon = icon;
+                        if (body.Length > 0)         box.AppendBody(body);
+                    });
+                }
+                finally { gate.Release(); }
+            }));
+        }
+        catch (Exception ex)
+        {
+            // A tooltip that will not format is not worth surfacing, and nothing awaits this.
+            _errorLogger.Log("OverviewViewModel", "FillNotificationDetail", ex);
+        }
     }
 
     // ── Personal killmails ────────────────────────────────────────────────────
     private async Task LoadPersonalKillsAsync(List<long> charIds, int days)
     {
         // Skip the (heavier) listing query entirely unless the section is on the grid.
-        bool sectionEnabled = _layout.Sections.Any(s => s.Key == "PersonalKillmails" && s.Enabled);
-        if (!sectionEnabled || _corpActivity is null || charIds.Count == 0)
+        if (!Shown("PersonalKillmails") || _corpActivity is null || charIds.Count == 0)
         {
             _lastPersonalKillIds = [];
             PersonalKills.Clear();
@@ -775,9 +1146,7 @@ public class OverviewViewModel : ReactiveObject
     // ── Standing projects ─────────────────────────────────────────────────────
     private async Task LoadStandingProjectsAsync()
     {
-        bool enabled = _corpActivity is not null
-                    && _layout.Sections.Any(s => s.Key == "StandingProjects" && s.Enabled);
-        if (!enabled)
+        if (_corpActivity is null || !Shown("StandingProjects"))
         {
             StandingProjects.Clear();
             HasStandingProjects = false;
@@ -787,20 +1156,73 @@ public class OverviewViewModel : ReactiveObject
 
         try
         {
-            var corpIds = await _db.CorpStandingProjects.AsNoTracking()
-                .Select(sp => sp.CorporationId).Distinct().ToListAsync();
+            // Off() like every other query in this view model: awaited directly, SQLite's
+            // synchronous-underneath async would run both this and the per-corp grid builds on
+            // the UI thread.
+            var corpIds = await Off(() => _db.CorpStandingProjects.AsNoTracking()
+                .Select(sp => sp.CorporationId).Distinct().ToListAsync());
 
             var rows = new List<StandingProjectGridRow>();
             foreach (var corpId in corpIds)
-                rows.AddRange(await _corpActivity!.BuildMaintainGridRowsAsync(corpId));
+                rows.AddRange(await Off(() => _corpActivity!.BuildMaintainGridRowsAsync(corpId)));
+
+            // Sorted by SeverityRank, matching the Standing Buy Orders panel: red
+            // first, orange second, then grey, then healthy. The rank is derived
+            // alongside the status colour so the order always follows what is on
+            // screen — an inactive project that is also nearly complete shows orange,
+            // and sorts as orange.
+            var ordered = rows
+                .Select(r => new StandingProjectRowVm(r, _ => { }, _ => { }))
+                .OrderBy(v => v.SeverityRank)
+                .ThenBy(v => v.DescriptionText)
+                .ToList();
 
             StandingProjects.Clear();
-            foreach (var r in rows)
-                StandingProjects.Add(new StandingProjectRowVm(r, _ => { }, _ => { }));
+            foreach (var vm in ordered) StandingProjects.Add(vm);
             HasStandingProjects = StandingProjects.Count > 0;
             this.RaisePropertyChanged(nameof(NoStandingProjects));
         }
         catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadStandingProjects", ex); }
+    }
+
+    // ── Standing buy orders ───────────────────────────────────────────────────
+    private async Task LoadStandingBuyOrdersAsync()
+    {
+        bool enabled = _standingBuyOrders is not null
+                    && _layout.Sections.Any(s => s.Key == "StandingBuyOrders" && s.Enabled);
+        if (!enabled)
+        {
+            StandingBuyOrders.Clear();
+            HasStandingBuyOrders = false;
+            this.RaisePropertyChanged(nameof(NoStandingBuyOrders));
+            return;
+        }
+
+        try
+        {
+            // ⚠️ Off() like every other section: awaiting the service directly ran its queries on
+            // the UI thread, which showed up as a quarter-second hitch once a minute and grows
+            // with every standing order defined.
+            var rows = await Off(() => _standingBuyOrders!.BuildGridRowsAsync());
+
+            // Anything wrong floats to the top: missing first, then running low or
+            // nearly expired, then the healthy ones. A panel this size is only worth
+            // the space if the problems are the part you can see without scrolling.
+            // Sorted by SeverityRank, which the row view model derives alongside its
+            // status colour — red first, orange second, healthy last. Ordering the
+            // view models rather than the records keeps sort and colour from drifting.
+            var ordered = rows
+                .Select(r => new StandingBuyOrderRowVm(r))
+                .OrderBy(v => v.SeverityRank)
+                .ThenBy(v => v.TypeName)
+                .ToList();
+
+            StandingBuyOrders.Clear();
+            foreach (var vm in ordered) StandingBuyOrders.Add(vm);
+            HasStandingBuyOrders = StandingBuyOrders.Count > 0;
+            this.RaisePropertyChanged(nameof(NoStandingBuyOrders));
+        }
+        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadStandingBuyOrders", ex); }
     }
 
     // ── DTOs for raw SQL results ──────────────────────────────────────────────
@@ -861,9 +1283,9 @@ public class OverviewViewModel : ReactiveObject
         bool checkSafety   = _alertSettings.AssetSafety;
         bool checkInactive = _alertSettings.InactiveStandingProjects;
 
-        var characters = await _db.Characters.AsNoTracking()
+        var characters = await Off(() => _db.Characters.AsNoTracking()
             .Where(c => charIds.Contains(c.Id))
-            .ToListAsync();
+            .ToListAsync());
 
         int warnDays   = (int)Math.Max(1, _alertSettings.SkillQueueEmptyDays);
         var warnCutoff = DateTimeOffset.UtcNow.AddDays(warnDays);
@@ -871,12 +1293,20 @@ public class OverviewViewModel : ReactiveObject
 
         if (checkEmpty || checkPaused || checkDays)
         {
+            // Every character's queue in one query, grouped here. It was one query per
+            // character, run sequentially, each with its own hop back to the UI thread — at 18
+            // authenticated characters that was 18 round trips for what the database can answer
+            // once. Ordering moves in-memory for the same reason.
+            var queuesByChar = (await Off(() => _db.EsiSkillQueue.AsNoTracking()
+                    .Where(q => charIds.Contains(q.CharacterId) && q.QueuePosition >= 0)
+                    .ToListAsync()))
+                .GroupBy(q => q.CharacterId)
+                .ToDictionary(g => g.Key,
+                              g => g.OrderByDescending(q => q.QueuePosition).ToList());
+
             foreach (var ch in characters)
             {
-                var queue = await _db.EsiSkillQueue.AsNoTracking()
-                    .Where(q => q.CharacterId == ch.Id && q.QueuePosition >= 0)
-                    .OrderByDescending(q => q.QueuePosition)
-                    .ToListAsync();
+                if (!queuesByChar.TryGetValue(ch.Id, out var queue)) queue = [];
 
                 var skillsNavCommand = NavigateToCharacterSkills is not null
                     ? ReactiveCommand.Create(() => NavigateToCharacterSkills!(ch.Name))
@@ -932,16 +1362,23 @@ public class OverviewViewModel : ReactiveObject
 
         if (checkSafety)
         {
-            var dismissedIds = await _db.DismissedAlerts.AsNoTracking()
+            var dismissedIds = await Off(() => _db.DismissedAlerts.AsNoTracking()
                 .Where(d => charIds.Contains(d.CharacterId))
                 .Select(d => d.NotificationId)
-                .ToHashSetAsync();
+                .ToHashSetAsync());
 
-            var safetyNotifs = (await _db.EsiNotifications.AsNoTracking()
+            var safetyNotifs = (await Off(() => _db.EsiNotifications.AsNoTracking()
                 .Where(n => charIds.Contains(n.CharacterId) &&
-                            n.Type == "StructureItemsMovedIntoSafety" &&
+                            // "MovedToSafety", not "MovedIntoSafety". The latter is not a type ESI
+                            // ever sends, so this alert matched nothing at all until it was fixed.
+                            n.Type == AssetSafetyGenerator.SafetyNotification &&
                             !dismissedIds.Contains(n.NotificationId))
-                .ToListAsync())
+                .ToListAsync()))
+                // Only while the items are still in safety. The delivery deadline is in the
+                // notification body, and once it has passed the game has already moved them —
+                // there is nothing left to decide, so it is history rather than an alert. Without
+                // this the corrected type string surfaced every event since 2022 in one go.
+                .Where(n => AssetSafetyGenerator.WindowEnd(n.Text) is { } end && end > now)
                 .OrderBy(n => n.Timestamp)
                 .ToList();
 
@@ -957,7 +1394,11 @@ public class OverviewViewModel : ReactiveObject
                 AlertRowVm? row = null;
                 row = new AlertRowVm
                 {
-                    Message       = $"{charName}: Items moved to Asset Safety on {dateText}.",
+                    Message       = AssetSafetyGenerator.WindowEnd(notif.Text) is { } deadline
+                        ? $"{charName}: Items moved to Asset Safety on {dateText} — "
+                          + $"choose a destination by {deadline.ToLocalTime():d MMM HH:mm} "
+                          + $"({(int)(deadline - now).TotalDays}d left) or the game picks one."
+                        : $"{charName}: Items moved to Asset Safety on {dateText}.",
                     IsDismissible = true,
                     DismissCommand = ReactiveCommand.CreateFromTask(async () =>
                     {
@@ -982,10 +1423,10 @@ public class OverviewViewModel : ReactiveObject
         {
             // Scope to corps that actually have standing projects configured, not just
             // "personal" ones — the corp running standing projects may not be flagged personal.
-            var standingCorpIds = await _db.CorpStandingProjects.AsNoTracking()
+            var standingCorpIds = await Off(() => _db.CorpStandingProjects.AsNoTracking()
                 .Select(sp => sp.CorporationId)
                 .Distinct()
-                .ToListAsync();
+                .ToListAsync());
 
             int inactiveCount = 0;
             foreach (var corpId in standingCorpIds)
@@ -1002,6 +1443,105 @@ public class OverviewViewModel : ReactiveObject
                         : null
                 });
         }
+
+        // Standing buy orders that are missing, nearly exhausted or nearly expired.
+        if (_alertSettings.StandingBuyOrdersAttention && _standingBuyOrders is not null)
+        {
+            try
+            {
+                var sboRows = await _standingBuyOrders.BuildGridRowsAsync();
+
+                var missing  = sboRows.Count(r => r.MatchStatus != "matched");
+                var outbid   = sboRows.Count(r => r.MatchStatus == "matched" && r.IsOutbid);
+                // Each order is reported once, under its most urgent reason, so the
+                // numbers add up to the number of orders rather than double-counting.
+                var low      = sboRows.Count(r => r.MatchStatus == "matched" && !r.IsOutbid && r.IsLow);
+                var expiring = sboRows.Count(r => r.MatchStatus == "matched" && !r.IsOutbid && !r.IsLow && r.IsExpiringSoon);
+
+                // Broken out rather than a single total: "3 need attention" doesn't say
+                // whether to place an order, raise a price, top one up or renew one, and
+                // those are different jobs.
+                var reasons = new List<string>();
+                if (missing > 0)  reasons.Add(missing == 1  ? "1 is missing"          : $"{missing} are missing");
+                if (outbid > 0)   reasons.Add(outbid == 1   ? "1 is outbid"           : $"{outbid} are outbid");
+                if (low > 0)      reasons.Add(low == 1      ? "1 is nearly bought out": $"{low} are nearly bought out");
+                if (expiring > 0) reasons.Add(expiring == 1 ? "1 is close to expiry"  : $"{expiring} are close to expiry");
+
+                if (reasons.Count > 0)
+                    newAlerts.Add(new AlertRowVm
+                    {
+                        Message = "Standing buy orders: " + string.Join(", ", reasons) + ".",
+                        NavigateCommand = NavigateToStandingBuyOrders is not null
+                            ? ReactiveCommand.Create(NavigateToStandingBuyOrders)
+                            : null
+                    });
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "StandingBuyOrderAlert", ex); }
+        }
+
+        // Running jobs in a facility with no rig bonus for them. Active only — a
+        // finished job cannot be moved, so flagging it is noise rather than a task.
+        if (_alertSettings.UnriggedIndustryJobs && _indyFacilityCheck is not null)
+        {
+            try
+            {
+                var unrigged = await _indyFacilityCheck.CountUnriggedRunningAsync();
+                if (unrigged > 0)
+                    newAlerts.Add(new AlertRowVm
+                    {
+                        Message = unrigged == 1
+                            ? "1 running job is using a facility not rigged for it."
+                            : $"{unrigged} running jobs are using a facility not rigged for them.",
+                        NavigateCommand = NavigateToIndustryJobs is not null
+                            ? ReactiveCommand.Create(NavigateToIndustryJobs)
+                            : null
+                    });
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "UnriggedJobAlert", ex); }
+        }
+
+        // Alerts raised by the user's own alarms. Listed first and unconditionally: unlike the
+        // checks above there is nothing to enable, because the user asked for each of these
+        // explicitly when they built the alarm.
+        var alarmAlerts = await Off(() => _db.AlarmAlerts.AsNoTracking()
+            .Where(a => !a.Dismissed)
+            .OrderByDescending(a => a.Id)
+            .Take(50)
+            .ToListAsync());
+
+        var alarmRows = new List<AlertRowVm>();
+        foreach (var alert in alarmAlerts)
+        {
+            var alertId = alert.Id;
+            var text    = string.IsNullOrWhiteSpace(alert.Body)
+                ? alert.Title
+                : $"{alert.Title} — {alert.Body}";
+
+            AlertRowVm? row = null;
+            row = new AlertRowVm
+            {
+                Message       = text,
+                IsDismissible = true,
+                DismissCommand = ReactiveCommand.CreateFromTask(async () =>
+                {
+                    await _db.Database.ExecuteSqlInterpolatedAsync($"""
+                        UPDATE "AlarmAlerts" SET "Dismissed" = 1, "DismissedAt" = {DateTimeOffset.UtcNow}
+                        WHERE "Id" = {alertId}
+                        """);
+                    var toRemove = Alerts.FirstOrDefault(a => ReferenceEquals(a, row));
+                    if (toRemove is not null)
+                    {
+                        Alerts.Remove(toRemove);
+                        HasAlerts = Alerts.Count > 0;
+                        this.RaisePropertyChanged(nameof(NoAlerts));
+                    }
+                }),
+            };
+            alarmRows.Add(row);
+        }
+
+        // Inserted as a block so the newest alarm alert stays at the top of the box.
+        newAlerts.InsertRange(0, alarmRows);
 
         Alerts.Clear();
         foreach (var a in newAlerts) Alerts.Add(a);

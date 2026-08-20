@@ -61,6 +61,20 @@ public record EsiIndustryJob(
     [property: JsonPropertyName("successful_runs")]      int?   SuccessfulRuns
 );
 
+// ── Active ship + location ──────────────────────────────────────────────────────
+// ESI omits a character's active ship from the assets endpoint, so we pull these two
+// and synthesize an asset for the hull (see EsiPollingService.FetchAssetsAsync).
+
+public record EsiCharacterShip(
+    [property: JsonPropertyName("ship_item_id")] long   ShipItemId,
+    [property: JsonPropertyName("ship_name")]    string ShipName,
+    [property: JsonPropertyName("ship_type_id")] int    ShipTypeId);
+
+public record EsiCharacterLocation(
+    [property: JsonPropertyName("solar_system_id")] int   SolarSystemId,
+    [property: JsonPropertyName("station_id")]      int?  StationId,
+    [property: JsonPropertyName("structure_id")]    long? StructureId);
+
 // ── Market orders ─────────────────────────────────────────────────────────────
 
 public record EsiMarketOrder(
@@ -326,6 +340,86 @@ public record EsiAgentResearch(
 
 // ── Loyalty points ────────────────────────────────────────────────────────────
 
+// ── Public entity info, for the entity viewer ─────────────────────────────────
+
+public record EsiPublicCharacter(
+    [property: JsonPropertyName("name")]            string  Name,
+    [property: JsonPropertyName("description")]     string? Description,
+    [property: JsonPropertyName("corporation_id")]  int     CorporationId,
+    [property: JsonPropertyName("alliance_id")]     int?    AllianceId,
+    [property: JsonPropertyName("birthday")]        DateTimeOffset? Birthday,
+    [property: JsonPropertyName("security_status")] double? SecurityStatus,
+    [property: JsonPropertyName("race_id")]         int?    RaceId,
+    [property: JsonPropertyName("bloodline_id")]    int?    BloodlineId,
+    [property: JsonPropertyName("title")]           string? Title,
+    [property: JsonPropertyName("gender")]          string? Gender,
+    [property: JsonPropertyName("faction_id")]      int?    FactionId,
+    /// <summary>Only returned when X-Compatibility-Date pins a new enough schema.</summary>
+    [property: JsonPropertyName("achievement_score")] int?  AchievementScore
+);
+
+public record EsiPublicCorporation(
+    [property: JsonPropertyName("name")]            string  Name,
+    [property: JsonPropertyName("ticker")]          string? Ticker,
+    [property: JsonPropertyName("description")]     string? Description,
+    [property: JsonPropertyName("member_count")]    int     MemberCount,
+    [property: JsonPropertyName("ceo_id")]          int     CeoId,
+    [property: JsonPropertyName("creator_id")]      int?    CreatorId,
+    [property: JsonPropertyName("alliance_id")]     int?    AllianceId,
+    [property: JsonPropertyName("faction_id")]      int?    FactionId,
+    [property: JsonPropertyName("date_founded")]    DateTimeOffset? DateFounded,
+    [property: JsonPropertyName("home_station_id")] int?    HomeStationId,
+    [property: JsonPropertyName("tax_rate")]        double? TaxRate,
+    [property: JsonPropertyName("url")]             string? Url,
+    [property: JsonPropertyName("shares")]          long?   Shares,
+    [property: JsonPropertyName("war_eligible")]    bool?   WarEligible
+);
+
+public record EsiPublicAlliance(
+    [property: JsonPropertyName("name")]                    string  Name,
+    [property: JsonPropertyName("ticker")]                  string? Ticker,
+    [property: JsonPropertyName("creator_id")]              int     CreatorId,
+    [property: JsonPropertyName("creator_corporation_id")]  int     CreatorCorporationId,
+    [property: JsonPropertyName("executor_corporation_id")] int?    ExecutorCorporationId,
+    [property: JsonPropertyName("date_founded")]            DateTimeOffset? DateFounded,
+    [property: JsonPropertyName("faction_id")]              int?    FactionId
+);
+
+public record EsiBloodline(
+    [property: JsonPropertyName("bloodline_id")] int    BloodlineId,
+    [property: JsonPropertyName("name")]         string Name
+);
+
+public record EsiCorpHistory(
+    [property: JsonPropertyName("corporation_id")] int CorporationId,
+    [property: JsonPropertyName("record_id")]      int RecordId,
+    [property: JsonPropertyName("start_date")]     DateTimeOffset StartDate,
+    [property: JsonPropertyName("is_deleted")]     bool? IsDeleted
+);
+
+public record EsiAllianceHistory(
+    [property: JsonPropertyName("alliance_id")] int? AllianceId,
+    [property: JsonPropertyName("record_id")]   int  RecordId,
+    [property: JsonPropertyName("start_date")]  DateTimeOffset StartDate,
+    [property: JsonPropertyName("is_deleted")]  bool? IsDeleted
+);
+
+// LP store offer (/loyalty/stores/{corporation_id}/offers/) — public, no token.
+public record EsiLpStoreOffer(
+    [property: JsonPropertyName("offer_id")]       int    OfferId,
+    [property: JsonPropertyName("type_id")]        int    TypeId,
+    [property: JsonPropertyName("quantity")]       int    Quantity,
+    [property: JsonPropertyName("lp_cost")]        int    LpCost,
+    [property: JsonPropertyName("isk_cost")]       long   IskCost,
+    [property: JsonPropertyName("ak_cost")]        int?   AkCost,
+    [property: JsonPropertyName("required_items")] List<EsiLpRequiredItem>? RequiredItems
+);
+
+public record EsiLpRequiredItem(
+    [property: JsonPropertyName("type_id")]  int TypeId,
+    [property: JsonPropertyName("quantity")] int Quantity
+);
+
 public record EsiLoyaltyPoint(
     [property: JsonPropertyName("corporation_id")]  int CorporationId,
     [property: JsonPropertyName("loyalty_points")]  int LoyaltyPoints
@@ -407,6 +501,18 @@ public record EsiCorpRoleEntry(
     [property: JsonPropertyName("roles_at_hq")]    List<string>? RolesAtHq,
     [property: JsonPropertyName("roles_at_base")]  List<string>? RolesAtBase,
     [property: JsonPropertyName("roles_at_other")] List<string>? RolesAtOther
+);
+
+// /corporations/{id}/membertracking/ — current values only; logon_date is the LAST logon,
+// not a history. See CorpMemberSession for how a dated history is accumulated from it.
+public record EsiMemberTrackingEntry(
+    [property: JsonPropertyName("character_id")] long            CharacterId,
+    [property: JsonPropertyName("start_date")]   DateTimeOffset? StartDate,
+    [property: JsonPropertyName("logon_date")]   DateTimeOffset? LogonDate,
+    [property: JsonPropertyName("logoff_date")]  DateTimeOffset? LogoffDate,
+    [property: JsonPropertyName("location_id")]  long?           LocationId,
+    [property: JsonPropertyName("ship_type_id")] int?            ShipTypeId,
+    [property: JsonPropertyName("base_id")]      long?           BaseId
 );
 
 public record EsiCorpTitleEntry(
@@ -560,9 +666,18 @@ public record EsiStationDetail(
     [property: JsonPropertyName("system_id")]    int    SystemId
 );
 
+public record EsiStructurePosition(
+    [property: JsonPropertyName("x")] double X,
+    [property: JsonPropertyName("y")] double Y,
+    [property: JsonPropertyName("z")] double Z
+);
+
 public record EsiStructureDetail(
-    [property: JsonPropertyName("name")]          string Name,
-    [property: JsonPropertyName("solar_system_id")] int  SolarSystemId
+    [property: JsonPropertyName("name")]            string Name,
+    [property: JsonPropertyName("solar_system_id")] int    SolarSystemId,
+    [property: JsonPropertyName("owner_id")]        long   OwnerId,
+    [property: JsonPropertyName("type_id")]         int?   TypeId,
+    [property: JsonPropertyName("position")]        EsiStructurePosition? Position
 );
 
 public record EsiLocationSearch(
@@ -618,4 +733,15 @@ public record EsiMailLabelInfo(
 public record EsiMailLabelsWrapper(
     [property: JsonPropertyName("labels")]             List<EsiMailLabelInfo>? Labels,
     [property: JsonPropertyName("total_unread_count")] int?                   TotalUnreadCount
+);
+
+// ── Session (used by the activity monitoring subsystem) ──────────────────────
+// EsiCharacterLocation and EsiCharacterShip already exist above — they were
+// defined but never actually polled until the monitoring subsystem arrived.
+
+public record EsiCharacterOnline(
+    [property: JsonPropertyName("online")]      bool            Online,
+    [property: JsonPropertyName("last_login")]  DateTimeOffset? LastLogin,
+    [property: JsonPropertyName("last_logout")] DateTimeOffset? LastLogout,
+    [property: JsonPropertyName("logins")]      int?            Logins
 );

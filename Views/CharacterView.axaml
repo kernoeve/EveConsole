@@ -2,6 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:views="clr-namespace:EveConsole.Views"
+             xmlns:collections="clr-namespace:Avalonia.Collections;assembly=Avalonia.Controls.DataGrid"
+             xmlns:wl="clr-namespace:EveConsole.Services.Worklist"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.CharacterView"
              x:DataType="vm:OverviewViewModel"
@@ -19,6 +21,115 @@
     </Style>
     <Style Selector="Button.newslink:pressed /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour it already
+         had, and the cursor plus the hover underline carry the affordance — the same rule the
+         Killmail tool, the system page and Corp Activity follow. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+
+    <!-- The worklist dashboard sections. A smaller row than the tool's own grids: these panels
+         are read at a glance and share a cell with five others, so fitting more rows matters more
+         than comfortable spacing. -->
+    <Style Selector="DataGrid.wl DataGridCell TextBlock">
+      <Setter Property="FontSize" Value="10" />
+    </Style>
+    <Style Selector="DataGrid.wl DataGridCell">
+      <Setter Property="Padding" Value="4 0" />
+    </Style>
+    <Style Selector="DataGrid.wl DataGridColumnHeader">
+      <Setter Property="Background" Value="#12121a" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="FontSize"   Value="9" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding"    Value="4 4 2 4" />
+    </Style>
+
+    <!-- ⚠️ Group headers, mirroring the tool's own so a section reads the same as the grid it came
+         from — including the per-group totals, which are most of why the grouping is worth having.
+         Scoped to DataGrid.wl so none of this reaches the tools themselves.
+
+         Sized at about three quarters of the tool's: these panels share the window with five
+         others, and the tool's 34px header and 16px key eat a dashboard cell. -->
+    <Style Selector="DataGrid.wl DataGridRowGroupHeader">
+      <Setter Property="Background" Value="#12121a"/>
+      <Setter Property="Foreground" Value="#c8a84b"/>
+      <Setter Property="MinHeight"  Value="28"/>
+      <Setter Property="Template">
+        <ControlTemplate x:DataType="collections:DataGridCollectionViewGroup">
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="#1e1e2a" BorderThickness="0 1 0 1">
+            <StackPanel Orientation="Horizontal" Spacing="6" Margin="5 0"
+                        VerticalAlignment="Center">
+              <!-- DynamicResource: the theme lives in the DataGrid's own dictionary, merged through
+                   Application.Styles, which a parse-time StaticResource lookup cannot see. -->
+              <ToggleButton Name="PART_ExpanderButton" Width="10" Height="10"
+                            Theme="{DynamicResource FluentDataGridRowGroupExpanderButtonTheme}"
+                            Background="Transparent" BorderThickness="0"/>
+              <TextBlock Text="{Binding Key}" FontSize="13" FontWeight="SemiBold"
+                         Foreground="#c8a84b" VerticalAlignment="Center"/>
+              <TextBlock FontSize="11" Foreground="#8a8a99" VerticalAlignment="Center"
+                         Text="{Binding Items, Converter={x:Static views:GroupTotalConverter.Instance},
+                                         ConverterParameter=Count}"/>
+              <TextBlock FontSize="11" Foreground="#7a7a88" VerticalAlignment="Center"
+                         Text="{Binding Items, Converter={x:Static views:GroupTotalConverter.Instance},
+                                         ConverterParameter=Volume}"/>
+              <TextBlock FontSize="11" Foreground="#7a7a88" VerticalAlignment="Center"
+                         Text="{Binding Items, Converter={x:Static views:GroupTotalConverter.Instance},
+                                         ConverterParameter=Value}"/>
+            </StackPanel>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+
+    <!-- Station Needs: the same header without the volume and value totals, which the needs rows
+         do not carry in the same sense. -->
+    <Style Selector="DataGrid.wlneeds DataGridRowGroupHeader">
+      <Setter Property="MinHeight" Value="23"/>
+      <Setter Property="Template">
+        <ControlTemplate x:DataType="collections:DataGridCollectionViewGroup">
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="#1e1e2a" BorderThickness="0 1 0 1">
+            <StackPanel Orientation="Horizontal" Spacing="6" Margin="5 0"
+                        VerticalAlignment="Center">
+              <ToggleButton Name="PART_ExpanderButton" Width="10" Height="10"
+                            Theme="{DynamicResource FluentDataGridRowGroupExpanderButtonTheme}"
+                            Background="Transparent" BorderThickness="0"/>
+              <TextBlock Text="{Binding Key}" FontSize="11" FontWeight="SemiBold"
+                         Foreground="#c8a84b" VerticalAlignment="Center"/>
+              <TextBlock FontSize="10" Foreground="#8a8a99" VerticalAlignment="Center"
+                         Text="{Binding Items, Converter={x:Static views:GroupTotalConverter.Instance},
+                                         ConverterParameter=Count}"/>
+            </StackPanel>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+
+    <!-- The manifest expander. A glyph, not a button: the default chrome draws a filled box on
+         hover and press, which reads as a selected cell sitting in the row. -->
+    <Style Selector="Button.expander /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="Button.expander:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="TextElement.Foreground" Value="#c8a84b"/>
     </Style>
   </UserControl.Styles>
 
@@ -493,15 +604,26 @@
                           <StackPanel Orientation="Horizontal" Spacing="3">
                             <TextBlock Text="{Binding SecurityText}" FontSize="10" FontWeight="SemiBold"
                                        Foreground="{Binding SecurityColor}" />
-                            <TextBlock Text="{Binding SystemName}" FontSize="10" Foreground="#c8c8d8"
-                                       FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            <Panel>
+                            <Button Classes="link" Click="OnOpenKillSystem" IsVisible="{Binding HasSystemLink}">
+                              <TextBlock Text="{Binding SystemName}" Classes="linktext" FontSize="10" Foreground="#c8c8d8"
+                                         FontWeight="SemiBold"  TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding SystemName}" IsVisible="{Binding ShowSystemPlain}" FontSize="10" Foreground="#c8c8d8"
+                                       FontWeight="SemiBold"  TextTrimming="CharacterEllipsis" />
+                          </Panel>
                           </StackPanel>
                           <TextBlock Text="{Binding ConstellationName}" FontSize="9" Foreground="#888899"
                                      TextTrimming="CharacterEllipsis"
                                      IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                          <TextBlock Text="{Binding RegionName}" FontSize="9" Foreground="#666677"
-                                     TextTrimming="CharacterEllipsis"
-                                     IsVisible="{Binding RegionName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          <Panel>
+                            <Button Classes="link" Click="OnOpenKillRegion" IsVisible="{Binding HasRegionLink}">
+                              <TextBlock Text="{Binding RegionName}" Classes="linktext" FontSize="9" Foreground="#666677"
+                                          TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding RegionName}" IsVisible="{Binding ShowRegionPlain}" FontSize="9" Foreground="#666677"
+                                        TextTrimming="CharacterEllipsis" />
+                          </Panel>
                         </StackPanel>
 
                         <!-- Victim -->
@@ -510,13 +632,30 @@
                                  Stretch="Uniform" VerticalAlignment="Center"
                                  ToolTip.Tip="{Binding VictimAlliance}" Margin="0 0 4 0" />
                           <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding VictimName}" FontSize="10" Foreground="#c8c8d8"
-                                       FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{Binding VictimCorp}" FontSize="9" Foreground="#888899"
-                                       TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{Binding VictimAlliance}" FontSize="9" Foreground="#666677"
-                                       TextTrimming="CharacterEllipsis"
-                                       IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            <Panel>
+                            <Button Classes="link" Click="OnOpenKillVictim" IsVisible="{Binding HasVictimLink}">
+                              <TextBlock Text="{Binding VictimName}" Classes="linktext" FontSize="10" Foreground="#c8c8d8"
+                                         FontWeight="SemiBold"  TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding VictimName}" IsVisible="{Binding ShowVictimPlain}" FontSize="10" Foreground="#c8c8d8"
+                                       FontWeight="SemiBold"  TextTrimming="CharacterEllipsis" />
+                          </Panel>
+                            <Panel>
+                            <Button Classes="link" Click="OnOpenKillVictimCorp" IsVisible="{Binding HasVictimCorpLink}">
+                              <TextBlock Text="{Binding VictimCorp}" Classes="linktext" FontSize="9" Foreground="#888899"
+                                          TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding VictimCorp}" IsVisible="{Binding ShowVictimCorpPlain}" FontSize="9" Foreground="#888899"
+                                        TextTrimming="CharacterEllipsis" />
+                          </Panel>
+                            <Panel>
+                            <Button Classes="link" Click="OnOpenKillVictimAlliance" IsVisible="{Binding HasVictimAllianceLink}">
+                              <TextBlock Text="{Binding VictimAlliance}" Classes="linktext" FontSize="9" Foreground="#666677"
+                                          TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding VictimAlliance}" IsVisible="{Binding ShowVictimAlliancePlain}" FontSize="9" Foreground="#666677"
+                                        TextTrimming="CharacterEllipsis" />
+                          </Panel>
                           </StackPanel>
                         </Grid>
 
@@ -526,13 +665,30 @@
                                  Stretch="Uniform" VerticalAlignment="Center"
                                  ToolTip.Tip="{Binding FbAlliance}" Margin="0 0 4 0" />
                           <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding FbName}" FontSize="10" Foreground="#c8c8d8"
-                                       FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{Binding FbCorp}" FontSize="9" Foreground="#888899"
-                                       TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{Binding FbAlliance}" FontSize="9" Foreground="#666677"
-                                       TextTrimming="CharacterEllipsis"
-                                       IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            <Panel>
+                            <Button Classes="link" Click="OnOpenKillFb" IsVisible="{Binding HasFbLink}">
+                              <TextBlock Text="{Binding FbName}" Classes="linktext" FontSize="10" Foreground="#c8c8d8"
+                                         FontWeight="SemiBold"  TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding FbName}" IsVisible="{Binding ShowFbPlain}" FontSize="10" Foreground="#c8c8d8"
+                                       FontWeight="SemiBold"  TextTrimming="CharacterEllipsis" />
+                          </Panel>
+                            <Panel>
+                            <Button Classes="link" Click="OnOpenKillFbCorp" IsVisible="{Binding HasFbCorpLink}">
+                              <TextBlock Text="{Binding FbCorp}" Classes="linktext" FontSize="9" Foreground="#888899"
+                                          TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding FbCorp}" IsVisible="{Binding ShowFbCorpPlain}" FontSize="9" Foreground="#888899"
+                                        TextTrimming="CharacterEllipsis" />
+                          </Panel>
+                            <Panel>
+                            <Button Classes="link" Click="OnOpenKillFbAlliance" IsVisible="{Binding HasFbAllianceLink}">
+                              <TextBlock Text="{Binding FbAlliance}" Classes="linktext" FontSize="9" Foreground="#666677"
+                                          TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBlock Text="{Binding FbAlliance}" IsVisible="{Binding ShowFbAlliancePlain}" FontSize="9" Foreground="#666677"
+                                        TextTrimming="CharacterEllipsis" />
+                          </Panel>
                           </StackPanel>
                         </Grid>
 
@@ -607,6 +763,715 @@
             <views:IncomeExpenseView DataContext="{Binding IncomeExpense}" />
           </Border>
 
+          <!-- ════ Standing Buy Orders ══════════════════════════════════ -->
+          <Border x:Name="SectionStandingBuyOrders" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Standing Buy Orders" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="newslink" Click="OnOpenStandingBuyOrders" VerticalAlignment="Center">
+                  <TextBlock Text="Standing Buy Orders →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                </Button>
+              </Grid>
+
+              <TextBlock Grid.Row="1" IsVisible="{Binding NoStandingBuyOrders}"
+                         Text="No standing buy orders." FontSize="12" Foreground="#444455" FontStyle="Italic"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+              <DataGrid Grid.Row="1" IsVisible="{Binding HasStandingBuyOrders}"
+                        ItemsSource="{Binding StandingBuyOrders}"
+                        AutoGenerateColumns="False" IsReadOnly="True" RowHeight="22"
+                        CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                        Background="Transparent">
+                <DataGrid.Styles>
+                  <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+                  <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                    <Setter Property="FontSize" Value="10" /><Setter Property="FontWeight" Value="SemiBold" />
+                    <Setter Property="Padding" Value="6 5 2 5" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenBuyOrderItem"
+                                  IsVisible="{Binding HasItemLink}"
+                                  ToolTip.Tip="Open in the Item Browser">
+                            <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="11"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                     FontSize="11" VerticalAlignment="Center"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Status" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+                        <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
+                                   FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" Padding="6 0" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Our bid" Width="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+                        <TextBlock Text="{Binding Price}" Foreground="{Binding PriceColor}"
+                                   FontSize="11" VerticalAlignment="Center" Padding="6 0"
+                                   TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding PriceTooltip}" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Rem." Binding="{Binding RemainingPct}" Width="70" />
+                  <DataGridTemplateColumn Header="Expires" Width="140">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+                        <TextBlock Text="{Binding Expiry}" Foreground="{Binding ExpiryColor}"
+                                   FontSize="11" VerticalAlignment="Center" Padding="6 0"
+                                   TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Note}" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
+
+          <!-- Worklist (All) -->
+          <Border x:Name="SectionWorklistAll" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Worklist (All)" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklist" VerticalAlignment="Center">
+                  <TextBlock Text="Worklist →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                </Button>
+              </Grid>
+
+              <!-- No filters, no summary strip, no refresh button and no blocked/waiting/snoozed
+                   toggles: this is a dashboard panel, and the tool is one click away for all of
+                   that. It refreshes with the rest of the Overview. -->
+              <DataGrid Grid.Row="1" ItemsSource="{Binding WorklistAllView}" Classes="wl"
+                        AutoGenerateColumns="False" IsReadOnly="True" RowHeight="19"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
+                        CanUserReorderColumns="False" CanUserResizeColumns="True"
+                        CanUserSortColumns="True" Background="Transparent">
+                <!-- ⚠️ A resource, not a style. DataGridDetailsPresenter takes its background
+                     straight from this brush in the stock template, so a style selector on it never
+                     wins. Left at the theme default it paints a grey several steps lighter than the
+                     grid across the full width of the expanded row, which reads as a selection
+                     highlight rather than an expanded detail. Same fix as the Worklist tool. -->
+                <DataGrid.Resources>
+                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
+                </DataGrid.Resources>
+
+                <!-- The task's items, shown on demand — same manifest the tool expands, sized for a
+                     dashboard cell. Collapsed by default: the point of the panel is the task list. -->
+                <DataGrid.RowDetailsTemplate>
+                  <DataTemplate x:DataType="vm:WorklistRowVm">
+                    <Border Margin="30 0 0 6" Padding="8 6"
+                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="220">
+                      <ItemsControl ItemsSource="{Binding Lines}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="wl:WorklistLine">
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 1">
+                              <Panel Grid.Column="0" Margin="0 0 16 0">
+                                <Button Classes="link" Click="OnOpenManifestItem"
+                                        IsVisible="{Binding HasItemLink}"
+                                        ToolTip.Tip="Open in the Item Browser">
+                                  <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                             FontSize="10" Foreground="#c8c8d8"/>
+                                </Button>
+                                <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                           FontSize="10" Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                              </Panel>
+                              <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
+                                         FontSize="10" Foreground="#8a8a99"
+                                         MinWidth="48" TextAlignment="Right"/>
+                              <TextBlock Grid.Column="2" Text="{Binding ValueText}"
+                                         FontSize="10" Foreground="#6e6e80"
+                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
+                              <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
+                                         FontSize="10" Foreground="#6e6e80"
+                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Border>
+                  </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+
+                <DataGrid.Columns>
+                  <!-- Only drawn where there is a manifest, so an empty cell reads as "nothing to
+                       expand" rather than a broken button. -->
+                  <DataGridTemplateColumn Header="" Width="18" CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WorklistRowVm">
+                        <Button Classes="expander" Click="OnOverviewManifestToggle"
+                                IsVisible="{Binding HasLines}"
+                                Content="{Binding ExpandGlyph}" FontSize="11" FontWeight="Bold"
+                                Padding="0" Width="14" Height="14" MinWidth="0" MinHeight="0"
+                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                ToolTip.Tip="Show the items on this task"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <!-- One column carrying whatever the row's kind actually needs, as the tool's
+                       grid does. Separate station and character columns were mostly empty: a haul
+                       has two stations and no character, a job has a character and one station, a
+                       buy has neither in the same sense. Value and Volume stay as their own columns
+                       because every kind has them and they are read down the list. -->
+                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WorklistRowVm">
+                        <Panel VerticalAlignment="Center">
+
+                          <!-- Haul: where from, where to, and how much of it. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsHaul}">
+                            <TextBlock Text="{Binding RouteText}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding RouteText}"/>
+                            <TextBlock Text="{Binding Title}" Foreground="#8a8a99" FontSize="9"
+                                       VerticalAlignment="Center"/>
+                          </StackPanel>
+
+                          <!-- Job: what is being made, where, and by whom. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsJob}">
+                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                                       VerticalAlignment="Center"/>
+                          </StackPanel>
+
+                          <!-- Buy: what to buy, how much, and where. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsBuy}">
+                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                          </StackPanel>
+
+                          <!-- Corp projects, asset safety, skill queues: no shared shape, so the
+                               plain title, plus the character where there is one. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsOther}">
+                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                                       IsVisible="{Binding HasCharacterLink}" VerticalAlignment="Center"/>
+                          </StackPanel>
+
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Value"     Binding="{Binding ValueText}"     Width="80"
+                                      SortMemberPath="Value" />
+                  <DataGridTextColumn Header="Volume"    Binding="{Binding VolumeText}"    Width="90"
+                                      SortMemberPath="VolumeRaw" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
+
+          <!-- Worklist (Buy) -->
+          <Border x:Name="SectionWorklistBuy" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Worklist (Buy)" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklist" VerticalAlignment="Center">
+                  <TextBlock Text="Worklist →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                </Button>
+              </Grid>
+
+              <!-- No filters, no summary strip, no refresh button and no blocked/waiting/snoozed
+                   toggles: this is a dashboard panel, and the tool is one click away for all of
+                   that. It refreshes with the rest of the Overview. -->
+              <DataGrid Grid.Row="1" ItemsSource="{Binding WorklistBuy}" Classes="wl"
+                        AutoGenerateColumns="False" IsReadOnly="True" RowHeight="19"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
+                        CanUserReorderColumns="False" CanUserResizeColumns="True"
+                        CanUserSortColumns="True" Background="Transparent">
+                <!-- ⚠️ A resource, not a style. DataGridDetailsPresenter takes its background
+                     straight from this brush in the stock template, so a style selector on it never
+                     wins. Left at the theme default it paints a grey several steps lighter than the
+                     grid across the full width of the expanded row, which reads as a selection
+                     highlight rather than an expanded detail. Same fix as the Worklist tool. -->
+                <DataGrid.Resources>
+                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
+                </DataGrid.Resources>
+
+                <!-- The task's items, shown on demand — same manifest the tool expands, sized for a
+                     dashboard cell. Collapsed by default: the point of the panel is the task list. -->
+                <DataGrid.RowDetailsTemplate>
+                  <DataTemplate x:DataType="vm:WorklistRowVm">
+                    <Border Margin="30 0 0 6" Padding="8 6"
+                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="220">
+                      <ItemsControl ItemsSource="{Binding Lines}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="wl:WorklistLine">
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 1">
+                              <Panel Grid.Column="0" Margin="0 0 16 0">
+                                <Button Classes="link" Click="OnOpenManifestItem"
+                                        IsVisible="{Binding HasItemLink}"
+                                        ToolTip.Tip="Open in the Item Browser">
+                                  <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                             FontSize="10" Foreground="#c8c8d8"/>
+                                </Button>
+                                <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                           FontSize="10" Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                              </Panel>
+                              <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
+                                         FontSize="10" Foreground="#8a8a99"
+                                         MinWidth="48" TextAlignment="Right"/>
+                              <TextBlock Grid.Column="2" Text="{Binding ValueText}"
+                                         FontSize="10" Foreground="#6e6e80"
+                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
+                              <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
+                                         FontSize="10" Foreground="#6e6e80"
+                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Border>
+                  </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+
+                <DataGrid.Columns>
+                  <!-- Only drawn where there is a manifest, so an empty cell reads as "nothing to
+                       expand" rather than a broken button. -->
+                  <DataGridTemplateColumn Header="" Width="18" CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WorklistRowVm">
+                        <Button Classes="expander" Click="OnOverviewManifestToggle"
+                                IsVisible="{Binding HasLines}"
+                                Content="{Binding ExpandGlyph}" FontSize="11" FontWeight="Bold"
+                                Padding="0" Width="14" Height="14" MinWidth="0" MinHeight="0"
+                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                ToolTip.Tip="Show the items on this task"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <!-- One column carrying whatever the row's kind actually needs, as the tool's
+                       grid does. Separate station and character columns were mostly empty: a haul
+                       has two stations and no character, a job has a character and one station, a
+                       buy has neither in the same sense. Value and Volume stay as their own columns
+                       because every kind has them and they are read down the list. -->
+                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WorklistRowVm">
+                        <Panel VerticalAlignment="Center">
+
+                          <!-- Haul: where from, where to, and how much of it. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsHaul}">
+                            <TextBlock Text="{Binding RouteText}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding RouteText}"/>
+                            <TextBlock Text="{Binding Title}" Foreground="#8a8a99" FontSize="9"
+                                       VerticalAlignment="Center"/>
+                          </StackPanel>
+
+                          <!-- Job: what is being made, where, and by whom. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsJob}">
+                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                                       VerticalAlignment="Center"/>
+                          </StackPanel>
+
+                          <!-- Buy: what to buy, how much, and where. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsBuy}">
+                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                          </StackPanel>
+
+                          <!-- Corp projects, asset safety, skill queues: no shared shape, so the
+                               plain title, plus the character where there is one. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsOther}">
+                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                                       IsVisible="{Binding HasCharacterLink}" VerticalAlignment="Center"/>
+                          </StackPanel>
+
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Value"     Binding="{Binding ValueText}"     Width="80"
+                                      SortMemberPath="Value" />
+                  <DataGridTextColumn Header="Volume"    Binding="{Binding VolumeText}"    Width="90"
+                                      SortMemberPath="VolumeRaw" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
+
+          <!-- Worklist (Haul) -->
+          <Border x:Name="SectionWorklistHaul" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Worklist (Haul)" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklist" VerticalAlignment="Center">
+                  <TextBlock Text="Worklist →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                </Button>
+              </Grid>
+
+              <!-- No filters, no summary strip, no refresh button and no blocked/waiting/snoozed
+                   toggles: this is a dashboard panel, and the tool is one click away for all of
+                   that. It refreshes with the rest of the Overview. -->
+              <DataGrid Grid.Row="1" ItemsSource="{Binding WorklistHaul}" Classes="wl"
+                        AutoGenerateColumns="False" IsReadOnly="True" RowHeight="19"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
+                        CanUserReorderColumns="False" CanUserResizeColumns="True"
+                        CanUserSortColumns="True" Background="Transparent">
+                <!-- ⚠️ A resource, not a style. DataGridDetailsPresenter takes its background
+                     straight from this brush in the stock template, so a style selector on it never
+                     wins. Left at the theme default it paints a grey several steps lighter than the
+                     grid across the full width of the expanded row, which reads as a selection
+                     highlight rather than an expanded detail. Same fix as the Worklist tool. -->
+                <DataGrid.Resources>
+                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
+                </DataGrid.Resources>
+
+                <!-- The task's items, shown on demand — same manifest the tool expands, sized for a
+                     dashboard cell. Collapsed by default: the point of the panel is the task list. -->
+                <DataGrid.RowDetailsTemplate>
+                  <DataTemplate x:DataType="vm:WorklistRowVm">
+                    <Border Margin="30 0 0 6" Padding="8 6"
+                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="220">
+                      <ItemsControl ItemsSource="{Binding Lines}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="wl:WorklistLine">
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 1">
+                              <Panel Grid.Column="0" Margin="0 0 16 0">
+                                <Button Classes="link" Click="OnOpenManifestItem"
+                                        IsVisible="{Binding HasItemLink}"
+                                        ToolTip.Tip="Open in the Item Browser">
+                                  <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                             FontSize="10" Foreground="#c8c8d8"/>
+                                </Button>
+                                <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                           FontSize="10" Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                              </Panel>
+                              <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
+                                         FontSize="10" Foreground="#8a8a99"
+                                         MinWidth="48" TextAlignment="Right"/>
+                              <TextBlock Grid.Column="2" Text="{Binding ValueText}"
+                                         FontSize="10" Foreground="#6e6e80"
+                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
+                              <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
+                                         FontSize="10" Foreground="#6e6e80"
+                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Border>
+                  </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+
+                <DataGrid.Columns>
+                  <!-- Only drawn where there is a manifest, so an empty cell reads as "nothing to
+                       expand" rather than a broken button. -->
+                  <DataGridTemplateColumn Header="" Width="18" CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WorklistRowVm">
+                        <Button Classes="expander" Click="OnOverviewManifestToggle"
+                                IsVisible="{Binding HasLines}"
+                                Content="{Binding ExpandGlyph}" FontSize="11" FontWeight="Bold"
+                                Padding="0" Width="14" Height="14" MinWidth="0" MinHeight="0"
+                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                ToolTip.Tip="Show the items on this task"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <!-- One column carrying whatever the row's kind actually needs, as the tool's
+                       grid does. Separate station and character columns were mostly empty: a haul
+                       has two stations and no character, a job has a character and one station, a
+                       buy has neither in the same sense. Value and Volume stay as their own columns
+                       because every kind has them and they are read down the list. -->
+                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WorklistRowVm">
+                        <Panel VerticalAlignment="Center">
+
+                          <!-- Haul: where from, where to, and how much of it. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsHaul}">
+                            <TextBlock Text="{Binding RouteText}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding RouteText}"/>
+                            <TextBlock Text="{Binding Title}" Foreground="#8a8a99" FontSize="9"
+                                       VerticalAlignment="Center"/>
+                          </StackPanel>
+
+                          <!-- Job: what is being made, where, and by whom. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsJob}">
+                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                                       VerticalAlignment="Center"/>
+                          </StackPanel>
+
+                          <!-- Buy: what to buy, how much, and where. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsBuy}">
+                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                          </StackPanel>
+
+                          <!-- Corp projects, asset safety, skill queues: no shared shape, so the
+                               plain title, plus the character where there is one. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsOther}">
+                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                                       IsVisible="{Binding HasCharacterLink}" VerticalAlignment="Center"/>
+                          </StackPanel>
+
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Value"     Binding="{Binding ValueText}"     Width="80"
+                                      SortMemberPath="Value" />
+                  <DataGridTextColumn Header="Volume"    Binding="{Binding VolumeText}"    Width="90"
+                                      SortMemberPath="VolumeRaw" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
+
+          <!-- Worklist (Jobs) -->
+          <Border x:Name="SectionWorklistJobs" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Worklist (Jobs)" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklist" VerticalAlignment="Center">
+                  <TextBlock Text="Worklist →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                </Button>
+              </Grid>
+
+              <!-- No filters, no summary strip, no refresh button and no blocked/waiting/snoozed
+                   toggles: this is a dashboard panel, and the tool is one click away for all of
+                   that. It refreshes with the rest of the Overview. -->
+              <DataGrid Grid.Row="1" ItemsSource="{Binding WorklistJobs}" Classes="wl"
+                        AutoGenerateColumns="False" IsReadOnly="True" RowHeight="19"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
+                        CanUserReorderColumns="False" CanUserResizeColumns="True"
+                        CanUserSortColumns="True" Background="Transparent">
+                <!-- ⚠️ A resource, not a style. DataGridDetailsPresenter takes its background
+                     straight from this brush in the stock template, so a style selector on it never
+                     wins. Left at the theme default it paints a grey several steps lighter than the
+                     grid across the full width of the expanded row, which reads as a selection
+                     highlight rather than an expanded detail. Same fix as the Worklist tool. -->
+                <DataGrid.Resources>
+                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
+                </DataGrid.Resources>
+
+                <!-- The task's items, shown on demand — same manifest the tool expands, sized for a
+                     dashboard cell. Collapsed by default: the point of the panel is the task list. -->
+                <DataGrid.RowDetailsTemplate>
+                  <DataTemplate x:DataType="vm:WorklistRowVm">
+                    <Border Margin="30 0 0 6" Padding="8 6"
+                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="220">
+                      <ItemsControl ItemsSource="{Binding Lines}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="wl:WorklistLine">
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 1">
+                              <Panel Grid.Column="0" Margin="0 0 16 0">
+                                <Button Classes="link" Click="OnOpenManifestItem"
+                                        IsVisible="{Binding HasItemLink}"
+                                        ToolTip.Tip="Open in the Item Browser">
+                                  <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                             FontSize="10" Foreground="#c8c8d8"/>
+                                </Button>
+                                <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                           FontSize="10" Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                              </Panel>
+                              <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
+                                         FontSize="10" Foreground="#8a8a99"
+                                         MinWidth="48" TextAlignment="Right"/>
+                              <TextBlock Grid.Column="2" Text="{Binding ValueText}"
+                                         FontSize="10" Foreground="#6e6e80"
+                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
+                              <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
+                                         FontSize="10" Foreground="#6e6e80"
+                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Border>
+                  </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+
+                <DataGrid.Columns>
+                  <!-- Only drawn where there is a manifest, so an empty cell reads as "nothing to
+                       expand" rather than a broken button. -->
+                  <DataGridTemplateColumn Header="" Width="18" CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WorklistRowVm">
+                        <Button Classes="expander" Click="OnOverviewManifestToggle"
+                                IsVisible="{Binding HasLines}"
+                                Content="{Binding ExpandGlyph}" FontSize="11" FontWeight="Bold"
+                                Padding="0" Width="14" Height="14" MinWidth="0" MinHeight="0"
+                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                ToolTip.Tip="Show the items on this task"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <!-- One column carrying whatever the row's kind actually needs, as the tool's
+                       grid does. Separate station and character columns were mostly empty: a haul
+                       has two stations and no character, a job has a character and one station, a
+                       buy has neither in the same sense. Value and Volume stay as their own columns
+                       because every kind has them and they are read down the list. -->
+                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WorklistRowVm">
+                        <Panel VerticalAlignment="Center">
+
+                          <!-- Haul: where from, where to, and how much of it. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsHaul}">
+                            <TextBlock Text="{Binding RouteText}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding RouteText}"/>
+                            <TextBlock Text="{Binding Title}" Foreground="#8a8a99" FontSize="9"
+                                       VerticalAlignment="Center"/>
+                          </StackPanel>
+
+                          <!-- Job: what is being made, where, and by whom. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsJob}">
+                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                                       VerticalAlignment="Center"/>
+                          </StackPanel>
+
+                          <!-- Buy: what to buy, how much, and where. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsBuy}">
+                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                          </StackPanel>
+
+                          <!-- Corp projects, asset safety, skill queues: no shared shape, so the
+                               plain title, plus the character where there is one. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsOther}">
+                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                                       IsVisible="{Binding HasCharacterLink}" VerticalAlignment="Center"/>
+                          </StackPanel>
+
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Value"     Binding="{Binding ValueText}"     Width="80"
+                                      SortMemberPath="Value" />
+                  <DataGridTextColumn Header="Volume"    Binding="{Binding VolumeText}"    Width="90"
+                                      SortMemberPath="VolumeRaw" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
+
+          <!-- Worklist (Station Needs) -->
+          <Border x:Name="SectionWorklistNeeds" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Worklist (Station Needs)" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklistNeeds" VerticalAlignment="Center">
+                  <TextBlock Text="Station Needs →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                </Button>
+              </Grid>
+
+              <!-- ⚠️ Columns are shown or hidden by width in code-behind (OnNeedsGridSizeChanged).
+                   A dashboard cell can be a third of the window or the whole of it, and a fixed
+                   column set either wastes a wide panel or squeezes the three that matter out of a
+                   narrow one. Station, Item and Short always survive; the rest earn their place in
+                   the order the widths below allow. -->
+              <DataGrid Grid.Row="1" x:Name="NeedsGrid" Classes="wl wlneeds"
+                        ItemsSource="{Binding WorklistNeedsView}"
+                        SizeChanged="OnNeedsGridSizeChanged"
+                        AutoGenerateColumns="False" IsReadOnly="True" RowHeight="19"
+                        CanUserReorderColumns="False" CanUserResizeColumns="True"
+                        CanUserSortColumns="True" Background="Transparent">
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StationNeedRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenNeedItem" IsVisible="{Binding HasItemLink}"
+                                  ToolTip.Tip="Open in the Item Browser">
+                            <TextBlock Text="{Binding Item}" Classes="linktext"
+                                       TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding Item}" IsVisible="{Binding !HasItemLink}"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Short"   Binding="{Binding Short}"   Width="80"
+                                      SortMemberPath="ShortRaw" />
+                  <DataGridTextColumn Header="Total"   Binding="{Binding Total}"   Width="80"
+                                      SortMemberPath="TotalRaw" />
+                  <DataGridTextColumn Header="On hand" Binding="{Binding OnHand}"  Width="80"
+                                      SortMemberPath="OnHandRaw" />
+                  <DataGridTextColumn Header="Order jobs"       Binding="{Binding OrderJobs}" Width="80"
+                                      SortMemberPath="OrderJobsRaw" />
+                  <DataGridTextColumn Header="Jobs"             Binding="{Binding Jobs}"      Width="70"
+                                      SortMemberPath="JobsRaw" />
+                  <DataGridTextColumn Header="Inv levels"       Binding="{Binding InvLevels}" Width="90"
+                                      SortMemberPath="InvLevelsRaw" />
+                  <DataGridTextColumn Header="Stn levels"       Binding="{Binding StnLevels}" Width="90"
+                                      SortMemberPath="StnLevelsRaw" />
+                  <DataGridTextColumn Header="Short value"  Binding="{Binding ShortValue}"  Width="100"
+                                      SortMemberPath="ShortValueRaw" />
+                  <DataGridTextColumn Header="Short volume" Binding="{Binding ShortVolume}" Width="110"
+                                      SortMemberPath="ShortVolumeRaw" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
+
           <!-- ════ Standing Projects ════════════════════════════════════ -->
           <Border x:Name="SectionStandingProjects" Background="#12121a" BorderBrush="#1e1e2a"
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
@@ -637,7 +1502,26 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Description" Binding="{Binding DescriptionText}" Width="*" />
+                  <!-- The description is the item on a delivery project, so it is what opens the
+                       Item Browser. Projects that name no item stay plain text. -->
+                  <DataGridTemplateColumn Header="Description" SortMemberPath="DescriptionText" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                        <Panel>
+                          <Button Click="OnOpenProjectItem" IsVisible="{Binding HasItemLink}"
+                                  Background="Transparent" BorderThickness="0" Padding="6 0"
+                                  Cursor="Hand" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                  ToolTip.Tip="Open in the Item Browser">
+                            <TextBlock Text="{Binding DescriptionText}" FontSize="11"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding DescriptionText}" IsVisible="{Binding !HasItemLink}"
+                                     FontSize="11" VerticalAlignment="Center" Padding="6 0"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTemplateColumn Header="Project Status" Width="170">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingProjectRowVm">
@@ -649,8 +1533,12 @@
                   <DataGridTemplateColumn Header="Remaining" Width="90">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingProjectRowVm">
+                        <!-- ⚠️ TextAlignment, not HorizontalAlignment. A template column's cell
+                             does not stretch its content the way a text column's does, so
+                             HorizontalAlignment="Right" has nothing to align against. -->
                         <TextBlock Text="{Binding RemainingText}" Foreground="{Binding RemainingColor}"
-                                   FontSize="11" VerticalAlignment="Center" Padding="6 0" />
+                                   FontSize="11" VerticalAlignment="Center" Padding="6 0"
+                                   HorizontalAlignment="Stretch" TextAlignment="Right" />
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -658,7 +1546,8 @@
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingProjectRowVm">
                         <TextBlock Text="{Binding RemainingPercentText}" Foreground="{Binding RemainingColor}"
-                                   FontSize="11" VerticalAlignment="Center" Padding="6 0" />
+                                   FontSize="11" VerticalAlignment="Center" Padding="6 0"
+                                   HorizontalAlignment="Stretch" TextAlignment="Right" />
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>

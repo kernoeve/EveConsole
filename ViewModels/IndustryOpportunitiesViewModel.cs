@@ -18,6 +18,10 @@ public class IndustryRow
 {
     public int    TypeId           { get; init; }
     public string TypeName         { get; init; } = "";
+
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
+
     public double BuildCost        { get; init; }
     public double SellPrice        { get; init; }   // market number we sell into (sell or buy order)
     public bool   HasSellOrders    { get; init; } = true; // false → priced from 30-day history avg
@@ -562,8 +566,9 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         var region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 
-        // NPC station: resolve via its solar system. (SdeStations.RegionId is not
-        // populated by the SDE import — join through SolarSystemId instead.)
+        // NPC station: resolve via its solar system. SdeStations.RegionId is populated now
+        // (by the importer, and by a startup repair for databases imported before that fix),
+        // but the join is kept deliberately — it is correct whatever state the column is in.
         cmd.CommandText = """
             SELECT ss."RegionId"
             FROM "SdeStations"     s

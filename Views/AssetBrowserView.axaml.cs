@@ -11,6 +11,7 @@ using Avalonia.Media;
 using Avalonia.ReactiveUI;
 using Avalonia.VisualTree;
 using EveConsole.ViewModels;
+using EveConsole.Services;
 using ReactiveUI;
 
 namespace EveConsole.Views;
@@ -18,6 +19,9 @@ namespace EveConsole.Views;
 public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewModel>
 {
     private record FilterRowUi(ComboBox ColPicker, ComboBox OpPicker, TextBox ValBox, StackPanel Row);
+
+    /// <summary>What the first filter row starts on. Must be a value from FilterableColumns.</summary>
+    private const string DefaultFilterColumn = "Type Name";
     private readonly List<FilterRowUi> _filterControls = [];
 
     private bool _handlersAdded;
@@ -130,6 +134,19 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         {
             if (!noHide && AssetBrowserViewModel.HiddenColumns.Contains(col)) continue;
             var captured = col;
+            // Five columns name something with a page of its own. Every grid is given the same
+            // map; the aggregate tabs simply do not have all five columns, so the rest never
+            // apply there.
+            Action<GridRow>? onClick = captured switch
+            {
+                "Type Name"     => OpenType,
+                "Owner Name"    => OpenOwner,
+                "Location Name" => OpenLocation,
+                "Solar System"  => OpenSystem,
+                "Region Name"   => OpenRegion,
+                _               => null,
+            };
+
             grid.Columns.Add(new DataGridTemplateColumn
             {
                 Header      = captured,
@@ -137,7 +154,7 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
                 IsReadOnly  = true,
                 CanUserSort = true,
                 CellTemplate = new FuncDataTemplate<GridRow>(
-                    (_, _) => new SelectableCell(grid, captured, _selectionSvc)),
+                    (_, _) => new SelectableCell(grid, captured, _selectionSvc, onClick)),
             });
         }
 
@@ -438,6 +455,11 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
             ItemsSource       = AssetBrowserViewModel.FilterableColumns,
             PlaceholderText   = "column…",
             MaxDropDownHeight = 300,
+
+            // The first row starts on Type Name — searching for an item is what this tool is
+            // opened for. Added rows start empty instead: they exist to narrow a search that is
+            // already running, so repeating the first row's column would only be in the way.
+            SelectedItem      = withRemove ? null : DefaultFilterColumn,
         };
 
         var opPicker = new ComboBox
@@ -506,7 +528,9 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         }
         if (_filterControls.Count > 0)
         {
-            _filterControls[0].ColPicker.SelectedItem = null;
+            // Back to the starting state, which includes the default column — clearing to an
+            // empty picker would leave the tool needing one more click than a fresh open.
+            _filterControls[0].ColPicker.SelectedItem = DefaultFilterColumn;
             _filterControls[0].OpPicker.SelectedIndex  = 0;
             _filterControls[0].ValBox.Text              = "";
         }
@@ -555,4 +579,39 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
     {
         _ = ViewModel?.LoadMoreAsync();
     }
+
+    // ── Row links ─────────────────────────────────────────────────────────────
+    //
+    // A GridRow is a string dictionary, so ids arrive as text. Every hidden id column is
+    // COALESCEd to 0 rather than left null, so a missing one parses to zero and EntityNavigator
+    // ignores it. ⚠️ A column absent from this grid also reads as "" — the aggregate tabs have no
+    // Type Name or Owner Name — which parses to zero for the same reason and does nothing.
+    private static long Id(GridRow row, string col) =>
+        long.TryParse(row[col], out var v) ? v : 0;
+
+    private static void OpenType(GridRow row)
+        => EntityNavigator.Instance.Item((int)Id(row, "Type Id"));
+
+    /// <summary>Owner is a character or a corporation, and the row says which.</summary>
+    private static void OpenOwner(GridRow row)
+        => EntityNavigator.Instance.Entity(
+            row["Owner Type"] == "corporation" ? EntityKind.PlayerCorp : EntityKind.Pilot,
+            Id(row, "Owner Id"));
+
+    /// <summary>NPC station to the entity browser, player structure to its own tool. The query
+    /// reports which from RootLocationType rather than this guessing at the id.</summary>
+    private static void OpenLocation(GridRow row)
+    {
+        // The detail grid names the column "Location Id"; the By Location tab aliases
+        // "Root Location Id" to the same name, so one lookup serves both.
+        var id = Id(row, "Location Id");
+        if (row["Is Station"] == "1") EntityNavigator.Instance.Entity(EntityKind.Station, id);
+        else                          EntityNavigator.Instance.Structure(id);
+    }
+
+    private static void OpenSystem(GridRow row)
+        => EntityNavigator.Instance.System((int)Id(row, "Solar System Id"));
+
+    private static void OpenRegion(GridRow row)
+        => EntityNavigator.Instance.Region((int)Id(row, "Region Id"));
 }

@@ -9,6 +9,16 @@ public class ApiCallRecord
     public string Endpoint     { get; set; } = "";
     public DateTimeOffset LastCalledAt   { get; set; }
     public int    LastStatusCode { get; set; } = 200;
+
+    /// <summary>
+    /// The <c>Expires</c> the server sent with the last response, or null when it sent none.
+    ///
+    /// <para>This is what makes a poll land shortly after fresh data exists rather than at an
+    /// arbitrary point in the cache window. Polling on our own interval, the two clocks drift:
+    /// a call one minute before a sixty-minute cache lapses returns the old copy and the next
+    /// attempt is an hour later, so the worst case is close to twice the cache.</para>
+    /// </summary>
+    public DateTimeOffset? ExpiresAt { get; set; }
 }
 
 // ── Single-row-per-character ─────────────────────────────────────────────────
@@ -275,6 +285,37 @@ public class ContractPrice
     public DateTimeOffset UpdatedAt { get; set; }
 }
 
+// Per-run BPC contract price, keyed by (blueprint TypeId, ME). Unlike ContractPrice (a per-unit
+// finished-item price), this divides a BPC contract's ask by the copy's runs so consumers can
+// cost a single build run, and separates ME levels (which change material cost — matters for
+// titans/supers). BestPerRun / Avg30PerRun mirror ContractPrice's best-vs-30-day-average rule.
+public class ContractBpcPrice
+{
+    public int      TypeId      { get; set; }   // blueprint type id  (key part 1)
+    public int      Me          { get; set; }   // material efficiency (key part 2)
+    public decimal? BestPerRun  { get; set; }
+    public decimal? Avg30PerRun { get; set; }
+    public int      ActiveCount { get; set; }
+    public int      SampleDays  { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
+// Manual, user-supplied price corrections for a single type. Each field is null unless the user
+// has explicitly pinned it; a non-null value REPLACES the computed value in its channel:
+//   BuildCost     → the item's build cost (cheaper-of still applies vs the market buy price)
+//   MarketValue   → the item's market price (buy/build comparison, raw-material valuation)
+//   ContractValue → the item's contract price; for a BLUEPRINT type it is the PER-RUN BPC price
+// Used to work around contract/market manipulation (e.g. someone milking single-item BPC contracts).
+public class PriceOverride
+{
+    public int      TypeId        { get; set; }   // key
+    public string   TypeName      { get; set; } = "";
+    public decimal? BuildCost     { get; set; }
+    public decimal? MarketValue   { get; set; }
+    public decimal? ContractValue { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
 // ── Assets & blueprints ───────────────────────────────────────────────────────
 
 public class CharacterAsset
@@ -403,6 +444,35 @@ public class KillMailItem
     public int   Singleton         { get; set; }
 }
 
+/// <summary>
+/// Per-killmail zKillboard state: whether zKillboard is known to already have the kill,
+/// and the outcome of any submission we made for it.
+///
+/// A side table rather than columns on KillMailDetails, because killmails themselves are
+/// immutable once stored (nothing in this app ever updates or deletes one) — this is our
+/// own bookkeeping about a kill, not part of the kill.
+///
+/// There is no separate "zKillboard kill id" to store: zKillboard keys kills by the same
+/// ESI killmail_id that is already this row's primary key.
+/// </summary>
+public class ZkbKillFlag
+{
+    public int KillMailId { get; set; }
+
+    /// <summary>When we first observed this kill coming from a zKillboard source (live
+    /// poll, firehose, or daily-dump backfill), or confirmed it via a submission. Null
+    /// means we have no evidence zKillboard has it.</summary>
+    public DateTimeOffset? SeenOnZkbAt { get; set; }
+
+    /// <summary>When we last submitted this kill to zKillboard's add endpoint. Set on
+    /// both success and failure so a failing kill isn't retried in a tight loop.</summary>
+    public DateTimeOffset? PostedAt { get; set; }
+
+    /// <summary>Outcome of that submission: "new" (zKillboard accepted it as one it did
+    /// not have), "duplicate" (it already had it), or an error description.</summary>
+    public string PostResult { get; set; } = "";
+}
+
 public class PlanetaryColony
 {
     public long   CharacterId   { get; set; }
@@ -429,6 +499,96 @@ public class LoyaltyPoint
     public long CharacterId   { get; set; }
     public int  CorporationId { get; set; }
     public int  Points        { get; set; }
+}
+
+/// <summary>
+/// One LP store offer. Public data from /loyalty/stores/{corp}/offers/ — the only source
+/// there is: CCP does not ship loyalty store offers in the SDE.
+///
+/// Keyed on (CorporationId, OfferId), not OfferId alone. Offer ids are reused across
+/// corporations: id 3414 is the same 5,250 LP offer in Perkone's, Lai Dai's and Federal
+/// Navy Academy's stores, and all 132 of Perkone's ids also appear in Lai Dai's.
+/// </summary>
+public class LpStoreOffer
+{
+    public int      OfferId       { get; set; }
+    public int      CorporationId { get; set; }
+    public int      TypeId        { get; set; }
+    public int      Quantity      { get; set; }
+    public int      LpCost        { get; set; }
+    public long     IskCost       { get; set; }
+    /// <summary>Analysis Kredits. Zero for all but a handful of offers.</summary>
+    public int      AkCost        { get; set; }
+    public DateTime UpdatedAt     { get; set; }
+}
+
+/// <summary>
+/// An item the offer consumes in addition to LP and ISK. Most offers have none; the ones
+/// that do are usually the interesting ones, since the required item's market value is
+/// what decides whether the trade is worth making.
+/// </summary>
+public class LpStoreOfferItem
+{
+    /// <summary>Part of the key — see <see cref="LpStoreOffer"/> on why OfferId alone
+    /// is not unique.</summary>
+    public int CorporationId { get; set; }
+    public int OfferId       { get; set; }
+    public int TypeId        { get; set; }
+    public int Quantity      { get; set; }
+}
+
+/// <summary>
+/// Per-corporation sweep state. Most NPC corporations have no LP store and answer 404;
+/// recording that means the next sweep skips them instead of firing a hundred 404s into
+/// ESI's global error limit every time.
+/// </summary>
+/// <summary>
+/// What a loyalty point is worth at one corporation right now — the mean ISK/LP across
+/// every offer in its store that could be valued.
+///
+/// Double throughout, deliberately. A single LP is worth on the order of 1,000 ISK, but
+/// plenty of offers land in the tens or hundredths, and decimal rounding at those
+/// magnitudes loses the distinction between a poor offer and a worthless one.
+/// </summary>
+public class LpCorpValue
+{
+    public int      CorporationId { get; set; }
+    /// <summary>Mean across the store. Kept, but see the median — a few tag-heavy offers
+    /// or one billion-ISK vanity ask can put the mean where no real offer sits.</summary>
+    public double   IskPerLp      { get; set; }
+    /// <summary>Middle offer. The robust figure, and what the tool leads with.</summary>
+    public double   MedianIskPerLp { get; set; }
+    /// <summary>Offers that could be valued — both the output and every required item had
+    /// a price.</summary>
+    public int      ValuedOffers  { get; set; }
+    /// <summary>Offers in the store, valued or not. The gap between the two says how much
+    /// of the catalogue the average actually rests on.</summary>
+    public int      TotalOffers   { get; set; }
+    public double   BestIskPerLp  { get; set; }
+    public int      BestTypeId    { get; set; }
+    public DateTimeOffset ComputedAt { get; set; }
+}
+
+/// <summary>
+/// Daily snapshot of <see cref="LpCorpValue"/>. LP value drifts with the market, so the
+/// trend is the useful part — the same reason build costs and type prices are snapshotted.
+/// </summary>
+public class LpCorpValueSnapshot
+{
+    public int      CorporationId { get; set; }
+    public string   Date          { get; set; } = "";   // "yyyy-MM-dd" UTC
+    public double   IskPerLp      { get; set; }
+    public double   MedianIskPerLp { get; set; }
+    public int      ValuedOffers  { get; set; }
+    public DateTimeOffset ComputedAt { get; set; }
+}
+
+public class LpStoreCorp
+{
+    public int       CorporationId { get; set; }
+    public bool      HasStore      { get; set; }
+    public int       OfferCount    { get; set; }
+    public DateTime? LastCheckedAt { get; set; }
 }
 
 public class CharacterMedal
@@ -502,6 +662,46 @@ public class CorpMember
     public long CharacterId   { get; set; }
 }
 
+/// <summary>
+/// Corp member tracking (/corporations/{id}/membertracking/). Current values only — ESI
+/// reports the LAST logon/logoff, not a history, so a row is overwritten on every poll and
+/// cannot answer "was this character active in March". CorpMemberSession exists for that.
+/// </summary>
+public class CorpMemberTracking
+{
+    public long            CorporationId { get; set; }
+    public long            CharacterId   { get; set; }
+    public DateTimeOffset? StartDate     { get; set; }   // joined the corp
+    public DateTimeOffset? LogonDate     { get; set; }
+    public DateTimeOffset? LogoffDate    { get; set; }
+    public long?           LocationId    { get; set; }
+    public int?            ShipTypeId    { get; set; }
+    public long?           BaseId        { get; set; }
+    public DateTimeOffset  UpdatedAt     { get; set; }
+}
+
+/// <summary>
+/// One observed login, derived by watching CorpMemberTracking.LogonDate change between
+/// polls. ESI only ever exposes the latest logon, so this is the only way to accumulate the
+/// dated history that per-month activity reporting needs.
+///
+/// Forward-only by nature: it can say nothing about months that elapsed before tracking
+/// started, and a login is missed entirely if the member logs in and out again between two
+/// polls of the same corp.
+/// </summary>
+public class CorpMemberSession
+{
+    public long            Id            { get; set; }
+    public long            CorporationId { get; set; }
+    public long            CharacterId   { get; set; }
+    /// <summary>The logon timestamp ESI reported — the login itself, not when we saw it.</summary>
+    public DateTimeOffset  LogonDate     { get; set; }
+    public DateTimeOffset? LogoffDate    { get; set; }
+    public long?           LocationId    { get; set; }
+    public int?            ShipTypeId    { get; set; }
+    public DateTimeOffset  RecordedAt    { get; set; }
+}
+
 public class CorpMemberRole
 {
     public long   CorporationId { get; set; }
@@ -547,12 +747,33 @@ public class CorpStructure
     public int?   ReinforceHour      { get; set; }
 }
 
-// Universal cache of player-structure names resolved via /universe/structures/{id}/
+// Resolution status of a tracked player structure.
+public enum StructureStatus
+{
+    Pending  = 0,   // seen as a location ID, not yet queried
+    Resolved = 1,   // /universe/structures returned data
+    NoAccess = 2,   // 403 — no docking rights; we can't read its details
+    NotFound = 3,   // 404 — structure gone/unanchored
+}
+
+// The formal table of player-owned structures anchored in space. Seeded from any location ID we
+// receive (assets, contracts, industry, market, wallet, notifications) and enriched via
+// /universe/structures/{id}/ when a character has docking access. NPC stations live in the SDE
+// (SdeStations) — this table is player structures only.
 public class StructureName
 {
     public long          StructureId   { get; set; }
     public string        Name          { get; set; } = "";
     public int           SolarSystemId { get; set; }
+    public long          OwnerId       { get; set; }   // owning corporation id (0 if unknown)
+    public long          AllianceId    { get; set; }   // owning corp's alliance (0 if none/unknown)
+    public int           TypeId        { get; set; }   // structure type id (Keepstar = 35834)
+    public double        X             { get; set; }   // position within the solar system
+    public double        Y             { get; set; }
+    public double        Z             { get; set; }
+    public long          NearestCelestialId { get; set; }  // Phase 2 — nearest planet/moon/gate
+    public string        NearestCelestial   { get; set; } = "";
+    public int           Status        { get; set; }   // StructureStatus
     public DateTimeOffset PulledAt     { get; set; }
 }
 
@@ -732,10 +953,46 @@ public class TrackedOrder
     public int    Id            { get; set; }   // autoincrement
     public int    TypeId        { get; set; }
     public int    Units         { get; set; } = 1;
-    public string Buyer         { get; set; } = "";   // who the item is sent to (free text)
+    public string Buyer         { get; set; } = "";   // who the item is sent to — the picked name
+
+    /// <summary>
+    /// The picked buyer's id, and whether it names a character or a corporation.
+    ///
+    /// <para>⚠️ Zero on any order created while the buyer was still free text. Those keep the
+    /// typed name and simply do not link; re-picking the buyer on the row fills them in. Nothing
+    /// back-fills automatically — a name alone does not identify a pilot, and guessing would
+    /// attach the wrong id to somebody's order history.</para>
+    /// </summary>
+    public long   BuyerId       { get; set; }
+    public string BuyerType     { get; set; } = "";   // "character" | "corporation" | ""
+
     public string? EstimatedDate { get; set; }        // "yyyy-MM-dd", user's estimate
     public double PurchasePrice { get; set; }         // total agreed price for the order
     public string Status        { get; set; } = "pending";   // pending | completed | canceled
+
+    /// <summary>
+    /// Where the units are expected to come from, worked out by OrderFulfilmentService:
+    /// "" (nothing found), "stock", "job", or "contract" once one has delivered it.
+    /// </summary>
+    public string FulfilmentSource { get; set; } = "";
+
+    /// <summary>The industry job expected to produce this order, when the source is a job.</summary>
+    public int?   LinkedJobId      { get; set; }
+
+    /// <summary>
+    /// The contract that delivered this order — issued by one of our characters or personal
+    /// corporations, to this order's buyer, carrying the item.
+    /// </summary>
+    public int?   LinkedContractId { get; set; }
+
+    /// <summary>
+    /// When the order was settled — completed or cancelled. Set from the contract-s acceptance
+    /// date when a contract closed it, and to today when the user sets the status by hand.
+    /// </summary>
+    public string? CompletedOn { get; set; }
+
+    /// <summary>Hand-marked to jump the queue, ahead of every order ranked by date.</summary>
+    public bool   IsPriority    { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 }
 
@@ -749,4 +1006,301 @@ public class AppErrorEntry
     public string Context     { get; set; } = "";
     public string Message     { get; set; } = "";
     public string? InnerMessage { get; set; }
+}
+
+// ── Client activity monitoring ────────────────────────────────────────────────
+
+/// <summary>
+/// Current live session state for a character, refreshed by the char.online /
+/// char.location / char.ship polling endpoints.
+///
+/// Kept in its own table rather than as columns on Character so that fast-changing
+/// session state never collides with the identity/skill upserts that write the
+/// Character row.
+/// </summary>
+public class CharacterStatus
+{
+    public long CharacterId { get; set; }
+
+    public bool            Online      { get; set; }
+    public DateTimeOffset? LastLogin   { get; set; }
+    public DateTimeOffset? LastLogout  { get; set; }
+    public int?            LoginCount  { get; set; }
+
+    // Location. StationId and StructureId are both null when in space.
+    //
+    // RETAINED AFTER LOGOUT — deliberately. These hold last-known position, which is
+    // what cross-alt planning needs ("which of my characters is nearest system X"),
+    // and that has to work for logged-off alts. Use Online to tell whether the
+    // character is there right now, and LocationCheckedAt for how fresh it is.
+    public int?  SolarSystemId { get; set; }
+    public long? StationId     { get; set; }
+    public long? StructureId   { get; set; }
+
+    public int?    ShipTypeId { get; set; }
+    public long?   ShipItemId { get; set; }
+    public string? ShipName   { get; set; }
+
+    public DateTimeOffset? OnlineCheckedAt   { get; set; }
+    public DateTimeOffset? LocationCheckedAt { get; set; }
+    public DateTimeOffset? ShipCheckedAt     { get; set; }
+
+    /// <summary>True when the character is docked (station or structure).</summary>
+    public bool IsDocked => StationId is not null || StructureId is not null;
+}
+
+/// <summary>
+/// Per-file parse position for the game log importer, so a restart resumes exactly
+/// where it stopped instead of re-reading or skipping.
+/// </summary>
+public class GameLogFile
+{
+    public string Path { get; set; } = "";
+
+    public long?   CharacterId   { get; set; }
+    public string? CharacterName { get; set; }
+
+    /// <summary>Byte offset already consumed.</summary>
+    public long LastOffset { get; set; }
+    /// <summary>Lines already consumed; combined with Path this makes rows unique.</summary>
+    public long LastLineNumber { get; set; }
+    /// <summary>File length at last read — a smaller length means truncation or replacement.</summary>
+    public long LastFileLength { get; set; }
+
+    public DateTimeOffset FirstSeenAt  { get; set; }
+    public DateTimeOffset LastParsedAt { get; set; }
+}
+
+/// <summary>
+/// One parsed game log line worth keeping.
+///
+/// ⚠ OccurredAt is an ISO-8601 STRING, not DateTimeOffset. EF Core's SQLite provider
+/// cannot translate DateTimeOffset comparisons inside a LINQ Where — it throws at
+/// runtime and the failure is easy to swallow in a background loop. Tools will
+/// certainly want to filter by date, so this follows the same string-date pattern as
+/// MarketTypeHistory.Date. Format "yyyy-MM-ddTHH:mm:ssZ" sorts lexicographically.
+/// </summary>
+public class GameLogEvent
+{
+    public int    Id         { get; set; }
+    public string OccurredAt { get; set; } = "";
+    public string Kind       { get; set; } = "";
+
+    public long?   CharacterId   { get; set; }
+    public string? CharacterName { get; set; }
+
+    /// <summary>Provenance. With LineNumber this identifies the source line exactly.</summary>
+    public string SourceFile { get; set; } = "";
+    public long   LineNumber { get; set; }
+
+    /// <summary>Damage, GJ neutralised, repair amount, units mined, ISK bounty —
+    /// whatever the line quantified. Long because bounty payouts are ISK.</summary>
+    public long? Amount { get; set; }
+
+    /// <summary>Second quantity where a line carries one — currently only mining,
+    /// where it holds the lost residue.</summary>
+    public long? SecondaryAmount { get; set; }
+
+    public string? SourceName     { get; set; }
+    public string? SourceShip     { get; set; }
+    public string? SourceCorp     { get; set; }
+    public string? SourceAlliance { get; set; }
+
+    public string? TargetName     { get; set; }
+    public string? TargetShip     { get; set; }
+    public string? TargetCorp     { get; set; }
+    public string? TargetAlliance { get; set; }
+
+    public string? Weapon  { get; set; }
+    public string? Quality { get; set; }
+
+    public string? FromSystem   { get; set; }
+    public string? ToSystem     { get; set; }
+    public string? LocationName { get; set; }
+
+    /// <summary>Markup-stripped original line, for diagnosing parse gaps.</summary>
+    public string? RawText { get; set; }
+}
+
+// ── Chat log import ───────────────────────────────────────────────────────────
+
+/// <summary>
+/// Per-file parse position for the chat log importer. Separate from GameLogFiles
+/// because chat files also carry channel identity, and the two importers are
+/// independently enabled.
+/// </summary>
+public class ChatLogFile
+{
+    public string Path { get; set; } = "";
+
+    /// <summary>Channel name taken from the filename, available before the file is
+    /// opened — this is what the allowlist is matched against.</summary>
+    public string ChannelName { get; set; } = "";
+    /// <summary>Channel ID from the file header, e.g. "local" or "player_&lt;guid&gt;".</summary>
+    public string? ChannelId { get; set; }
+
+    public long?   ListenerCharacterId { get; set; }
+    public string? ListenerName        { get; set; }
+
+    public long LastOffset     { get; set; }
+    public long LastLineNumber { get; set; }
+    public long LastFileLength { get; set; }
+
+    public DateTimeOffset FirstSeenAt  { get; set; }
+    public DateTimeOffset LastParsedAt { get; set; }
+}
+
+/// <summary>
+/// One chat message.
+///
+/// ⚠ PRIVACY. Unlike game logs, this stores other people's words — including private
+/// conversations, which appear as channels named "Private Chat (2)", "Private Chat (3)"
+/// and so on. Those are generic SLOT names, reused for different people over time, so
+/// one such channel can cover DMs with many different players.
+/// Import is therefore off by default AND gated on an explicit per-channel allowlist,
+/// so nothing is stored until the user names the channels they want kept.
+///
+/// OccurredAt is an ISO-8601 string for the same reason as GameLogEvent: EF Core's
+/// SQLite provider cannot translate DateTimeOffset comparisons in a LINQ Where.
+/// </summary>
+public class ChatMessage
+{
+    public int    Id         { get; set; }
+    public string OccurredAt { get; set; } = "";
+
+    public string  ChannelName { get; set; } = "";
+    public string? ChannelId   { get; set; }
+
+    /// <summary>Which of the user's characters logged this — whose client wrote the file.</summary>
+    public long?   ListenerCharacterId { get; set; }
+    public string? ListenerName        { get; set; }
+
+    public string  SenderName { get; set; } = "";
+    public string  Message    { get; set; } = "";
+
+    /// <summary>True for "EVE System" lines — MOTD, "Channel changed to Local : X",
+    /// chat server connect/disconnect. These carry no player speech.</summary>
+    public bool IsSystemMessage { get; set; }
+
+    /// <summary>For system "Channel changed to Local : &lt;system&gt;" lines, the solar
+    /// system name. Gives per-character presence independent of the game logs.</summary>
+    public string? SystemName { get; set; }
+
+    public string SourceFile { get; set; } = "";
+    public long   LineNumber { get; set; }
+}
+
+/// <summary>
+/// One parsed sighting from an intel channel: who was seen where, and when.
+///
+/// ReportedAt is an ISO-8601 string for the same reason as ChatMessage.OccurredAt — EF Core's
+/// SQLite provider cannot translate DateTimeOffset comparisons in a LINQ Where.
+/// </summary>
+public class IntelReport
+{
+    public int    Id         { get; set; }
+    public string ReportedAt { get; set; } = "";
+
+    public string ChannelName  { get; set; } = "";
+    public string ReporterName { get; set; } = "";
+
+    public int    SystemId   { get; set; }
+    public string SystemName { get; set; } = "";
+
+    /// <summary>Named pilots plus any "+N" the reporter added. A line naming one pilot and
+    /// saying "+2" reports three.</summary>
+    public int PlayerCount { get; set; }
+
+    /// <summary>Whatever text was left after the system, the names and the count — ship types,
+    /// "nv", gate names. Kept because it is often the useful part for a human reader.</summary>
+    public string? Note { get; set; }
+
+    /// <summary>
+    /// Superseded by a later sighting of the same pilots elsewhere, or by a "clear" call on
+    /// this system. Set rather than deleted so the paths overlays can still trace where a
+    /// gang has been.
+    /// </summary>
+    public bool            Obsolete      { get; set; }
+    public DateTimeOffset? ObsoleteSetOn { get; set; }
+
+    /// <summary>The line exactly as posted. Kept so the tab can show what was actually said
+    /// alongside what we made of it — the parse is a best effort, and seeing the original is how
+    /// a wrong one gets noticed.</summary>
+    public string Message { get; set; } = "";
+
+    /// <summary>The reporter said "no visual" — they know someone is there but cannot see
+    /// them, usually cloaked or off grid. Its own field rather than noise in the note.</summary>
+    public bool NoVisual { get; set; }
+
+    /// <summary>The reporter resolved to a character, where the name is known — so their
+    /// portrait and corp can be shown beside what they called.</summary>
+    public long? ReporterCharacterId { get; set; }
+
+    /// <summary>The message this came from — provenance, and what makes re-parsing idempotent.</summary>
+    public int ChatMessageId { get; set; }
+}
+
+/// <summary>A pilot named on an intel report. Separate table because one line often drags in
+/// several, and because superseding works pilot by pilot.</summary>
+/// <summary>
+/// Who a character flies for, cached from ESI. Affiliations change, so PulledAt is kept — but
+/// nothing expires them today: for reading old intel, the corp someone was in is roughly as
+/// useful as the one they are in now, and refetching thousands of pilots to chase that would
+/// cost far more than it is worth.
+/// </summary>
+public class CharacterAffiliation
+{
+    public long CharacterId   { get; set; }
+    public long CorporationId { get; set; }
+    public long AllianceId    { get; set; }
+    public DateTimeOffset PulledAt { get; set; }
+}
+
+/// <summary>
+/// A name asked about and found NOT to be a character. Positives already persist in
+/// UniverseNames; without recording the negatives too, every re-parse asks ESI again about the
+/// same thousands of ship types, gate names and stray words, which is most of what a re-parse
+/// spends its time on.
+/// </summary>
+public class NameLookupMiss
+{
+    public string Name      { get; set; } = "";
+    public DateTimeOffset CheckedAt { get; set; }
+}
+
+public class IntelReportCharacter
+{
+    public int    IntelReportId { get; set; }
+    public long   CharacterId   { get; set; }
+    public string CharacterName { get; set; } = "";
+
+    /// <summary>Hull the pilot was called in, where the reporter gave one — "Sevra (Loki)",
+    /// "Levanin  Sabre". Null when only the pilot was named.</summary>
+    public int?    ShipTypeId { get; set; }
+    public string? ShipName   { get; set; }
+}
+
+// ── Standing buy orders ───────────────────────────────────────────────────────
+
+/// <summary>
+/// A buy order the user intends to keep standing at a particular station or
+/// structure. Purely a declaration of intent — the live counterpart lives in
+/// EsiMarketOrders and is matched at display time on (TypeId, LocationId).
+///
+/// Modelled on CorpStandingProject, which does the same thing for corp projects:
+/// define what should exist, then report whether it actually does.
+/// </summary>
+public class StandingBuyOrder
+{
+    public long Id { get; set; }
+
+    public int    TypeId   { get; set; }
+    public string TypeName { get; set; } = "";
+
+    /// <summary>NPC station, player structure or corp structure — all three are
+    /// searchable through CorpActivityService.SearchSdeStationsAsync.</summary>
+    public long   LocationId   { get; set; }
+    public string LocationName { get; set; } = "";
+
+    public DateTimeOffset CreatedAt { get; set; }
 }

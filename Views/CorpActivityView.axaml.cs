@@ -31,6 +31,19 @@ public partial class CorpActivityView : UserControl
             _ = vm.PostTop10ToSlackAsync(includeIsk: false);
         };
 
+        ExportSummaryButton.Click += (_, _) =>
+        {
+            if (DataContext is not CorpActivityViewModel vm) return;
+            var text = vm.BuildMonthlySummaryExport();
+            _ = TopLevel.GetTopLevel(this)?.Clipboard?.SetTextAsync(text);
+        };
+
+        PostSummarySlackButton.Click += (_, _) =>
+        {
+            if (DataContext is not CorpActivityViewModel vm) return;
+            _ = vm.PostMonthlySummaryToSlackAsync();
+        };
+
         Kill24hList.DoubleTapped += OnKill24hDoubleTapped;
         DataContextChanged += OnDataContextChanged;
     }
@@ -65,12 +78,94 @@ public partial class CorpActivityView : UserControl
         };
     }
 
-    private void OnKill24hDoubleTapped(object? sender, TappedEventArgs e)
+    // Click rather than Command: the row already carries the navigation itself, and reaching it
+    // through the button's own DataContext avoids another ICommand per row.
+    private void OnOpenProjectItem(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as StandingProjectRowVm)?.OpenItem();
+
+    private void OnOpenProjectLocation(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as StandingProjectRowVm)?.OpenLocation();
+
+    // ── Row links ─────────────────────────────────────────────────────────────
+    //
+    // One handler per kind of link rather than per grid, matched on the row type. Half a dozen
+    // lists across this view show a character name, and they are backed by six different row
+    // types that share no base class; a handler each would be six near-identical methods, while
+    // a switch here keeps every "open the pilot" link on one line of code.
+    private void OnOpenRowCharacter(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        switch ((sender as Control)?.DataContext)
+        {
+            case Activity24hPlayerRowVm r: r.OpenCharacter(); break;
+            case CorpTopPlayerRowVm     r: r.OpenCharacter(); break;
+            case CorpKillCharRowVm      r: r.OpenCharacter(); break;
+            case MiningLedgerRowVm      r: r.OpenCharacter(); break;
+            case ProjectContributorVm   r: r.OpenCharacter(); break;
+        }
+    }
+
+    /// <summary>Wallet counterparties — a donor or a tax payer can be a corporation as easily as
+    /// a pilot, so the row decides the kind from the id.</summary>
+    private void OnOpenRowParty(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as WalletDetailRowVm)?.OpenParty();
+
+    private void OnOpenRowEntity(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as TaxPayerRowVm)?.OpenEntity();
+
+    /// <summary>The ore on a mining row, in the Item Browser.</summary>
+    private void OnOpenRowType(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as MiningLedgerRowVm)?.OpenType();
+
+    private void OnOpenProjectCreator(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as CorpProjectRowVm)?.OpenCreator();
+
+    // ── Killmail rows ─────────────────────────────────────────────────────────
+    private void OnOpenKillVictim(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Kill(sender)?.OpenVictim();
+    private void OnOpenKillVictimCorp(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Kill(sender)?.OpenVictimCorp();
+    private void OnOpenKillVictimAlliance(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Kill(sender)?.OpenVictimAlliance();
+    private void OnOpenKillFb(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Kill(sender)?.OpenFb();
+    private void OnOpenKillFbCorp(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Kill(sender)?.OpenFbCorp();
+    private void OnOpenKillFbAlliance(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Kill(sender)?.OpenFbAlliance();
+    private void OnOpenKillShip(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Kill(sender)?.OpenShip();
+    private void OnOpenKillSystem(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Kill(sender)?.OpenSystem();
+    private void OnOpenKillRegion(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Kill(sender)?.OpenRegion();
+
+    private static Activity24hKillRowVm? Kill(object? sender)
+        => (sender as Control)?.DataContext as Activity24hKillRowVm;
+
+    /// <summary>
+    /// Double-click a killmail row to open it in the Killmail tool.
+    ///
+    /// <para>Walks up from whatever was actually tapped to find the row's own view model, rather
+    /// than reading the list's SelectedItem: the row is full of links now, and a double-click that
+    /// lands on one of those names must still open the kill.</para>
+    /// </summary>
+    private void OnKillRowDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (DataContext is not CorpActivityViewModel vm) return;
-        if (Kill24hList.SelectedItem is not Activity24hKillRowVm row) return;
-        vm.RequestOpenKillmail?.Invoke(row.KillMailId);
+
+        for (var c = e.Source as Control; c is not null; c = c.Parent as Control)
+            if (c.DataContext is Activity24hKillRowVm row)
+            {
+                vm.RequestOpenKillmail?.Invoke(row.KillMailId);
+                return;
+            }
     }
+
+    // ⚠️ Shares OnKillRowDoubleTapped rather than reading Kill24hList.SelectedItem. Now that the
+    // rows carry links, a double-click can land on a Button, which does not select the row it
+    // sits in — so the selection was the wrong row, or the previous one, or none at all.
+    private void OnKill24hDoubleTapped(object? sender, TappedEventArgs e)
+        => OnKillRowDoubleTapped(sender, e);
 
     private void UpdateProjectsGridRows(bool showDetail)
     {

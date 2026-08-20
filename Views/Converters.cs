@@ -100,6 +100,24 @@ public class NullableDecimalToPositiveIntConverter : IValueConverter
     }
 }
 
+// Converts decimal? (NumericUpDown.Value) ↔ double for the percentage fields on the worklist's
+// inventory rules. Same contract as the int converter above: null while a cell is being cleared
+// returns UnsetValue, so the rule keeps its last valid percentage instead of taking a zero and
+// saving it — these fields write straight to the database on change.
+public class NullableDecimalToPositiveDoubleConverter : IValueConverter
+{
+    public static readonly NullableDecimalToPositiveDoubleConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is double d ? (decimal)d : (object?)null;
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not decimal v || v <= 0) return AvaloniaProperty.UnsetValue;
+        return (double)v;
+    }
+}
+
 // Display name for the LLM provider dropdown — flags Local as untested.
 public class AgentProviderDisplayConverter : IValueConverter
 {

@@ -74,13 +74,80 @@ public sealed class QueryDatabaseTool : IAgentTool
         MarketItemPrices: ConfigId, TypeId, BuyMax, SellMin, UpdatedAt
         MarketRawOrders: ConfigId, OrderId, TypeId, Price, VolumeRemain, IsBuyOrder, LocationId
 
+        LIVE CHARACTER STATE (polled from ESI while a character is online)
+        CharacterStatuses: CharacterId(PK), Online(0/1), LastLogin, LastLogout, LoginCount,
+            SolarSystemId, StationId, StructureId, ShipTypeId, ShipItemId,
+            ShipName(the player's name for the ship, NOT the hull),
+            OnlineCheckedAt, LocationCheckedAt, ShipCheckedAt
+            - Current state only, one row per character — there is no history here.
+            - Hull name: JOIN SdeTypes ON SdeTypes.TypeId = CharacterStatuses.ShipTypeId
+            - In space (undocked) = StationId IS NULL AND StructureId IS NULL.
+            - ShipItemId changes when the character boards a different ship.
+
+        GAME LOGS (read from the EVE client's own log files on this PC)
+        GameLogEvents: Id, OccurredAt(ISO 8601 UTC text, e.g. '2026-08-04T17:39:40Z'), Kind,
+            CharacterId, CharacterName, SourceFile, LineNumber, Amount, SecondaryAmount,
+            SourceName, SourceShip, SourceCorp, SourceAlliance,
+            TargetName, TargetShip, TargetCorp, TargetAlliance,
+            Weapon, Quality, FromSystem, ToSystem, LocationName, RawText
+            - The message text column is RawText. There is NO "Message" column: querying one
+              silently returns the string 'Message' for every row instead of failing.
+            - Kind values in use: combat.damage_dealt, combat.damage_taken, combat.ewar,
+              combat.miss_dealt, combat.miss_taken, combat.capsule_destroyed, combat.bounty,
+              combat.remote_assist, movement.jumped, movement.undocked, unmatched.
+            - movement.jumped fills FromSystem and ToSystem.
+            - movement.undocked fills LocationName (the station) and ToSystem, but NOT
+              SourceShip — the client does not name the ship on that line. For the ship, join
+              CharacterStatuses on CharacterId.
+            - "unmatched" is any line the parser did not classify; its text is still in RawText.
+            - Only covers characters whose logs are on this PC, and only since log import was
+              switched on.
+
+        CHAT LOGS (read from the EVE client's own chat log files on this PC)
+        ChatMessages: Id, OccurredAt(ISO 8601 UTC text), ChannelName, ChannelId,
+            ListenerCharacterId, ListenerName, SenderName, Message, IsSystemMessage,
+            SystemName, SourceFile, LineNumber
+            - One row per message per listening character, deduplicated.
+
+        INTEL (parsed from the chat channels marked as intel in Settings → Chat Logs)
+        IntelReports: Id, ReportedAt, ChannelName, ReporterName, ReporterCharacterId,
+            SystemId, SystemName, PlayerCount, Note, NoVisual, Obsolete, ObsoleteSetOn,
+            ChatMessageId, Message(the original posted line)
+        IntelReportCharacters: IntelReportId, CharacterId, CharacterName, ShipTypeId, ShipName
+            - Obsolete=1 means a later report supersedes this one.
+
+        ALARMS (see the manage_alarms tool rather than writing to these directly)
+        Alarms: Id, Name, Enabled, ConditionType, ConditionJson, Repeat, PollSeconds,
+            CooldownSeconds, Primed, CreatedBy, CreatedAt, LastCheckedAt, LastFiredAt,
+            FireCount, LastError
+        AlarmEvents: Id, AlarmId, FiredAt, Summary, DetailJson, MatchCount
+        AlarmAlerts: Id, AlarmId, AlarmEventId, CreatedAt, Title, Body, Dismissed, DismissedAt
+
         KEY JOIN PATTERNS:
         - Skill/item name from TypeId: JOIN SdeTypes ON SdeTypes.TypeId = <table>.SkillId|TypeId → Name
         - Character's main wallet: WHERE OwnerType='character' AND Division=0
         - Active market orders: WHERE IsHistory=0
         - Solar system name from LocationId (approximate for known stations): JOIN SdeStations ON SdeStations.StationId = LocationId, then JOIN SdeSolarSystems ON SdeSolarSystems.SolarSystemId = SdeStations.SolarSystemId
 
-        Always use LIMIT to cap large result sets. Dates are stored as ISO 8601 text.
+        Always use LIMIT to cap large result sets.
+
+        DATES — READ THIS BEFORE WRITING ANY DATE COMPARISON
+        There are two different text formats in this database and comparing across them
+        returns wrong rows silently rather than failing:
+
+          Log-style, written by the log importers:   2026-08-05T02:05:55Z   ('T', trailing Z)
+            GameLogEvents.OccurredAt, ChatMessages.OccurredAt, IntelReports.ReportedAt
+          EF-style, everything else:                 2026-08-05 01:26:22+00:00   (space, offset)
+            CharacterStatuses.*, EsiContracts.*, EsiIndustryJobs.*, AlarmEvents.FiredAt, …
+
+        SQLite compares these as plain strings, and 'T' sorts above a space. So
+            WHERE "OccurredAt" >= datetime('now','-10 minutes')     -- on a log-style column
+        is true for EVERY row sharing today's date whatever its time. Measured: with a
+        one-second window that returns 3 rows instead of 0.
+
+        Match the column's own shape:
+          log-style:  WHERE "OccurredAt" >= strftime('%Y-%m-%dT%H:%M:%SZ','now','-10 minutes')
+          EF-style:   WHERE "LastLogin"  >= datetime('now','-10 minutes')
         """;
 
     public object InputSchema => new

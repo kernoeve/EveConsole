@@ -1,4 +1,6 @@
+using System.Reactive;
 using System.Collections.ObjectModel;
+using System.Reactive.Linq;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using EveConsole.Models;
@@ -11,8 +13,10 @@ namespace EveConsole.ViewModels;
 public class KillmailListRowVm : ReactiveObject
 {
     private readonly int  _victimShipTypeId;
+    private readonly long _victimCharId;
     private readonly long _victimCorpId;
     private readonly long _victimAllianceId;
+    private readonly long _fbCharId;
     private readonly long _fbCorpId;
     private readonly long _fbAllianceId;
 
@@ -22,11 +26,17 @@ public class KillmailListRowVm : ReactiveObject
     public string         TimeText          { get; }
     public string         TotalIskText      { get; }
     public string         ShipName          { get; }
+    public int            SystemId          { get; }
     public string         SystemName        { get; }
     public string         ConstellationName { get; }
+    public int            RegionId          { get; }
     public string         RegionName        { get; }
     public string         SecurityText      { get; }
     public string         SecurityColor     { get; }
+
+    /// <summary>True security, on hover. The headline is the rounded band; this is the detail
+    /// behind it — and the only place a null-sec system's real depth is visible.</summary>
+    public string         SecurityTip       { get; }
     public string         VictimName        { get; }
     public string         VictimCorp        { get; }
     public string         VictimAlliance    { get; }
@@ -49,8 +59,10 @@ public class KillmailListRowVm : ReactiveObject
         TimeText          = r.KillMailTime.UtcDateTime.ToString("HH:mm");
         TotalIskText      = r.TotalIsk > 0 ? FmtIsk(r.TotalIsk) : "";
         ShipName          = r.ShipName;
+        SystemId          = r.SystemId;
         SystemName        = r.SystemName;
         ConstellationName = r.ConstellationName;
+        RegionId          = r.RegionId;
         RegionName        = r.RegionName;
         VictimName        = r.VictimName;
         VictimCorp        = r.VictimCorp;
@@ -59,15 +71,55 @@ public class KillmailListRowVm : ReactiveObject
         FbCorp            = r.FbCorp;
         FbAlliance        = r.FbAlliance;
         _victimShipTypeId = r.VictimShipTypeId;
+        _victimCharId     = r.VictimCharId;
         _victimCorpId     = r.VictimCorpId;
         _victimAllianceId = r.VictimAllianceId;
+        _fbCharId         = r.FbCharId;
         _fbCorpId         = r.FbCorpId;
         _fbAllianceId     = r.FbAllianceId;
 
         var sec       = r.SecurityStatus;
-        SecurityText  = sec >= 0.05 ? $"{sec:F1}" : "0.0";
-        SecurityColor = sec >= 0.5 ? "#44bb44" : sec >= 0.1 ? "#cccc44" : "#cc4444";
+        SecurityText  = EveConsole.Services.SecurityColors.Text(sec);
+        SecurityColor = EveConsole.Services.SecurityColors.Hex(sec);
+        SecurityTip   = EveConsole.Services.SecurityColors.Tip(sec);
+
+        OpenVictimCommand         = ReactiveCommand.Create(OpenVictim);
+        OpenVictimCorpCommand     = ReactiveCommand.Create(OpenVictimCorp);
+        OpenVictimAllianceCommand = ReactiveCommand.Create(OpenVictimAlliance);
+        OpenFbCommand             = ReactiveCommand.Create(OpenFb);
+        OpenFbCorpCommand         = ReactiveCommand.Create(OpenFbCorp);
+        OpenFbAllianceCommand     = ReactiveCommand.Create(OpenFbAlliance);
+        OpenRegionCommand         = ReactiveCommand.Create(() => Nav.Region(RegionId));
+        OpenSystemCommand         = ReactiveCommand.Create(OpenSystem);
     }
+
+    // Links live on the row rather than on a host view model. The same row renders in the
+    // Killmail Browser, Corp Activity, the map's system page and the entity viewers, and a
+    // link that only worked in one of them would be worse than none.
+    private static EveConsole.Services.EntityNavigator Nav => EveConsole.Services.EntityNavigator.Instance;
+
+    public ReactiveCommand<Unit, Unit> OpenVictimCommand         { get; }
+    public ReactiveCommand<Unit, Unit> OpenVictimCorpCommand     { get; }
+    public ReactiveCommand<Unit, Unit> OpenVictimAllianceCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenFbCommand             { get; }
+    public ReactiveCommand<Unit, Unit> OpenFbCorpCommand         { get; }
+    public ReactiveCommand<Unit, Unit> OpenFbAllianceCommand     { get; }
+    public ReactiveCommand<Unit, Unit> OpenRegionCommand         { get; }
+    public ReactiveCommand<Unit, Unit> OpenSystemCommand         { get; }
+
+    /// <summary>A name is only a link when there is something behind it to open — rows built
+    /// from a killmail with no resolved system or region fall back to plain text.</summary>
+    public bool HasSystemLink => SystemId > 0 && SystemName.Length > 0;
+    public bool HasRegionLink => RegionId > 0 && RegionName.Length > 0;
+
+    public void OpenVictim()         => Nav.Entity(EveConsole.Services.EntityKind.Pilot,      _victimCharId);
+    public void OpenVictimCorp()     => Nav.Entity(EveConsole.Services.EntityKind.PlayerCorp, _victimCorpId);
+    public void OpenVictimAlliance() => Nav.Entity(EveConsole.Services.EntityKind.Alliance,   _victimAllianceId);
+    public void OpenFb()             => Nav.Entity(EveConsole.Services.EntityKind.Pilot,      _fbCharId);
+    public void OpenFbCorp()         => Nav.Entity(EveConsole.Services.EntityKind.PlayerCorp, _fbCorpId);
+    public void OpenFbAlliance()     => Nav.Entity(EveConsole.Services.EntityKind.Alliance,   _fbAllianceId);
+    public void OpenSystem()         => Nav.System(SystemId);
+    public void OpenKillmail()       => Nav.Killmail(KillMailId);
 
     public Task LoadImagesAsync() => Task.WhenAll(
         _victimShipTypeId > 0
@@ -103,8 +155,10 @@ public class KillmailListRowVm : ReactiveObject
 // ── Detail VMs ────────────────────────────────────────────────────────────────
 public class KillmailItemVm : ReactiveObject
 {
-    private readonly int _typeId;
+    private readonly int    _typeId;
+    private readonly string _iconVariant;
 
+    public int    TypeId        => _typeId;
     public string TypeName      { get; }
     public string QtyDestroyed  { get; }
     public string QtyDropped    { get; }
@@ -118,6 +172,10 @@ public class KillmailItemVm : ReactiveObject
     public KillmailItemVm(KillmailItemRow r)
     {
         _typeId      = r.TypeId;
+        // Blueprint render variant, same "bp"/"bpc" path-segment trick the Industry Jobs
+        // UI uses (Views/EveImageLoader.cs) — driven by Singleton==2 here rather than
+        // industry ActivityId, since a killmail item has no activity to check.
+        _iconVariant = r.IsBpc ? "bpc" : r.IsBpo ? "bp" : "icon";
         TypeName     = r.TypeName;
         HasDestroyed = r.QtyDestroyed > 0;
         HasDropped   = r.QtyDropped   > 0;
@@ -129,7 +187,7 @@ public class KillmailItemVm : ReactiveObject
     public Task LoadIconAsync()
     {
         if (_typeId <= 0) return Task.CompletedTask;
-        var url = $"https://images.evetech.net/types/{_typeId}/icon?size=32";
+        var url = $"https://images.evetech.net/types/{_typeId}/{_iconVariant}?size=32";
         return EveImageCache.GetAsync(url).ContinueWith(t =>
         {
             var bmp = t.Result;
@@ -146,21 +204,38 @@ public class KillmailItemVm : ReactiveObject
     };
 }
 
+/// <summary>One sub-group within a slot section. SubGroupName is empty for every slot
+/// except Cargo Hold (which is split further by market group) — the View only renders a
+/// sub-header when it's non-empty.</summary>
+public class KillmailSubGroupVm
+{
+    public string               SubGroupName { get; }
+    public List<KillmailItemVm> Items        { get; }
+
+    public KillmailSubGroupVm(KillmailSubGroupRow r)
+    {
+        SubGroupName = r.SubGroupName;
+        Items        = r.Items.Select(i => new KillmailItemVm(i)).ToList();
+    }
+}
+
 public class KillmailSlotGroupVm
 {
-    public string                    GroupName { get; }
-    public List<KillmailItemVm>      Items     { get; }
+    public string                    GroupName  { get; }
+    public List<KillmailSubGroupVm>  SubGroups  { get; }
 
-    public KillmailSlotGroupVm(string groupName, List<KillmailItemRow> items)
+    public KillmailSlotGroupVm(KillmailSlotGroupRow r)
     {
-        GroupName = groupName;
-        Items     = items.Select(i => new KillmailItemVm(i)).ToList();
+        GroupName = r.GroupName;
+        SubGroups = r.SubGroups.Select(g => new KillmailSubGroupVm(g)).ToList();
     }
 }
 
 public class KillmailAttackerVm : ReactiveObject
 {
     private readonly long _characterId;
+    private readonly long _corporationId;
+    private readonly long _allianceId;
     private readonly int  _shipTypeId;
     private readonly int  _weaponTypeId;
 
@@ -194,10 +269,22 @@ public class KillmailAttackerVm : ReactiveObject
         DamageText    = $"{r.DamageDone:N0}";
         FinalBlow     = r.FinalBlow;
         _characterId  = r.CharacterId;
+        _corporationId = r.CorporationId;
+        _allianceId    = r.AllianceId;
         _shipTypeId   = r.ShipTypeId;
         _weaponTypeId = r.WeaponTypeId;
         if (r.FinalBlow) { RoleLabel = "★ FB"; RoleColor = "#c8a84b"; }
+
+        OpenCharCommand     = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.Pilot, _characterId));
+        OpenCorpCommand     = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.PlayerCorp, _corporationId));
+        OpenAllianceCommand = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.Alliance, _allianceId));
     }
+
+    private static EveConsole.Services.EntityNavigator Nav => EveConsole.Services.EntityNavigator.Instance;
+
+    public ReactiveCommand<Unit, Unit> OpenCharCommand     { get; }
+    public ReactiveCommand<Unit, Unit> OpenCorpCommand     { get; }
+    public ReactiveCommand<Unit, Unit> OpenAllianceCommand { get; }
 
     public void MarkTopDamage()
     {
@@ -219,44 +306,104 @@ public class KillmailAttackerVm : ReactiveObject
     }
 }
 
-public class KillmailDetailVm
+public class KillmailDetailVm : ReactiveObject
 {
+    private readonly long _victimCharId;
+    private readonly long _victimCorpId;
+    private readonly long _victimAllianceId;
+    private readonly int  _victimShipTypeId;
+
+    public int VictimShipTypeId => _victimShipTypeId;
+
     public string ShipName        { get; }
     public string VictimName      { get; }
     public string VictimCorp      { get; }
     public string VictimAlliance  { get; }
     public string TimeText        { get; }
+    public int    SystemId        { get; }
     public string SystemText      { get; }
+    public string LocationText    { get; }
     public string DamageTakenText { get; }
     public string DestroyedText   { get; }
     public string DroppedText     { get; }
     public string TotalIskText    { get; }
 
+    private Bitmap? _victimPortrait;
+    private Bitmap? _victimCorpLogo;
+    private Bitmap? _victimAllianceLogo;
+    private Bitmap? _shipRender;
+    public Bitmap? VictimPortrait     { get => _victimPortrait;     private set => this.RaiseAndSetIfChanged(ref _victimPortrait,     value); }
+    public Bitmap? VictimCorpLogo     { get => _victimCorpLogo;     private set => this.RaiseAndSetIfChanged(ref _victimCorpLogo,     value); }
+    public Bitmap? VictimAllianceLogo { get => _victimAllianceLogo; private set => this.RaiseAndSetIfChanged(ref _victimAllianceLogo, value); }
+    public Bitmap? ShipRender         { get => _shipRender;         private set => this.RaiseAndSetIfChanged(ref _shipRender,         value); }
+
     public List<KillmailSlotGroupVm>  SlotGroups { get; }
     public List<KillmailAttackerVm>   Attackers  { get; }
 
+    private static EveConsole.Services.EntityNavigator Nav => EveConsole.Services.EntityNavigator.Instance;
+
+    public ReactiveCommand<Unit, Unit> OpenVictimCommand         { get; }
+    public ReactiveCommand<Unit, Unit> OpenVictimCorpCommand     { get; }
+    public ReactiveCommand<Unit, Unit> OpenVictimAllianceCommand { get; }
+
     public KillmailDetailVm(KillmailDetailData d)
     {
+        _victimCharId     = d.VictimCharId;
+        _victimCorpId     = d.VictimCorpId;
+        _victimAllianceId = d.VictimAllianceId;
+        _victimShipTypeId = d.VictimShipTypeId;
+
         ShipName       = d.ShipName;
         VictimName     = d.VictimName;
         VictimCorp     = d.VictimCorp;
         VictimAlliance = d.VictimAlliance;
         TimeText       = d.KillMailTime.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+        SystemId       = d.SystemId;
         SystemText     = string.IsNullOrEmpty(d.RegionName)
             ? d.SystemName : $"{d.SystemName}  ({d.RegionName})";
+        LocationText   = d.LocationText;
         DamageTakenText= $"{d.VictimDamageTaken:N0} dmg";
         DestroyedText  = FmtIsk(d.DestroyedIsk);
         DroppedText    = FmtIsk(d.DroppedIsk);
         TotalIskText   = FmtIsk(d.DestroyedIsk + d.DroppedIsk);
-        SlotGroups = d.SlotGroups.Select(g => new KillmailSlotGroupVm(g.SlotGroup, g.Items)).ToList();
+        SlotGroups = d.SlotGroups.Select(g => new KillmailSlotGroupVm(g)).ToList();
         Attackers  = d.Attackers.Select(a => new KillmailAttackerVm(a)).ToList();
+
+        OpenVictimCommand         = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.Pilot, _victimCharId));
+        OpenVictimCorpCommand     = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.PlayerCorp, _victimCorpId));
+        OpenVictimAllianceCommand = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.Alliance, _victimAllianceId));
 
         // Mark the highest-damage attacker (may differ from final blow)
         Attackers.OrderByDescending(a => a.DamageDone).FirstOrDefault()?.MarkTopDamage();
 
-        // Load portraits/ship/weapon icons and item icons asynchronously
+        // Load header portrait/logo/ship render, attacker portraits/ship/weapon icons,
+        // and item icons asynchronously.
+        _ = LoadHeaderImagesAsync();
         _ = Task.WhenAll(Attackers.Select(a => a.LoadImagesAsync()));
-        _ = Task.WhenAll(SlotGroups.SelectMany(g => g.Items).Select(i => i.LoadIconAsync()));
+        _ = Task.WhenAll(SlotGroups.SelectMany(g => g.SubGroups).SelectMany(sg => sg.Items).Select(i => i.LoadIconAsync()));
+    }
+
+    // Portrait is the same height as the ship render (64px); corp/alliance are shown
+    // separately (not one-wins-the-other) at half that height (32px) each.
+    private Task LoadHeaderImagesAsync() => Task.WhenAll(
+        _victimCharId > 0
+            ? LoadAsync($"https://images.evetech.net/characters/{_victimCharId}/portrait?size=64", v => VictimPortrait = v)
+            : Task.CompletedTask,
+        _victimCorpId > 0
+            ? LoadAsync($"https://images.evetech.net/corporations/{_victimCorpId}/logo?size=32", v => VictimCorpLogo = v)
+            : Task.CompletedTask,
+        _victimAllianceId > 0
+            ? LoadAsync($"https://images.evetech.net/alliances/{_victimAllianceId}/logo?size=32", v => VictimAllianceLogo = v)
+            : Task.CompletedTask,
+        _victimShipTypeId > 0
+            ? LoadAsync($"https://images.evetech.net/types/{_victimShipTypeId}/render?size=64", v => ShipRender = v)
+            : Task.CompletedTask
+    );
+
+    private static async Task LoadAsync(string url, Action<Bitmap?> set)
+    {
+        var bmp = await EveImageCache.GetAsync(url);
+        Dispatcher.UIThread.Post(() => set(bmp));
     }
 
     private static string FmtIsk(double v) => v switch
@@ -273,54 +420,51 @@ public class KillmailBrowserViewModel : ReactiveObject
 {
     private readonly KillmailBrowserService _service;
 
-    // Corp selection — Id=0 means "all corps"
-    public static readonly Corporation AllCorps = new() { Id = 0, Name = "All Corps" };
-    public ObservableCollection<Corporation> Corps       { get; }
-    public ObservableCollection<Corporation> CorpsWithAll { get; }
-
-    private Corporation? _selectedCorp;
-    public Corporation? SelectedCorp
-    {
-        get => _selectedCorp;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _selectedCorp, value);
-            if (value is not null) _ = LoadAsync();
-        }
-    }
-
-    // Filters
+    // Filters — all run server-side in KillmailBrowserService.GetListAsync, not against
+    // whatever page happens to already be loaded (with 100K+ rows total and one page
+    // loaded at a time, a client-side filter would silently miss anything outside the
+    // loaded window). Changing any of them re-queries from scratch via the debounced
+    // subscription set up in the constructor, rather than firing on every keystroke.
+    // Corp used to be a dropdown of only our own tracked corps (joined through
+    // EsiKillMailRefs) — that could only ever show "my corp"'s kills by construction, so
+    // it's now a free-text search like Character/Ship/System, matching victim or
+    // final-blow-attacker corp by name (any corp, not just tracked ones).
     private DateTime? _filterFrom, _filterThru;
-    private string    _filterChar = "", _filterShip = "", _filterSystem = "";
+    private string    _filterChar = "", _filterCorp = "", _filterShip = "", _filterSystem = "";
 
     public DateTime? FilterFrom
     {
         get => _filterFrom;
-        set { this.RaiseAndSetIfChanged(ref _filterFrom, value); ApplyFilter(); }
+        set => this.RaiseAndSetIfChanged(ref _filterFrom, value);
     }
     public DateTime? FilterThru
     {
         get => _filterThru;
-        set { this.RaiseAndSetIfChanged(ref _filterThru, value); ApplyFilter(); }
+        set => this.RaiseAndSetIfChanged(ref _filterThru, value);
     }
     public string FilterChar
     {
         get => _filterChar;
-        set { this.RaiseAndSetIfChanged(ref _filterChar, value); ApplyFilter(); }
+        set => this.RaiseAndSetIfChanged(ref _filterChar, value);
+    }
+    public string FilterCorp
+    {
+        get => _filterCorp;
+        set => this.RaiseAndSetIfChanged(ref _filterCorp, value);
     }
     public string FilterShip
     {
         get => _filterShip;
-        set { this.RaiseAndSetIfChanged(ref _filterShip, value); ApplyFilter(); }
+        set => this.RaiseAndSetIfChanged(ref _filterShip, value);
     }
     public string FilterSystem
     {
         get => _filterSystem;
-        set { this.RaiseAndSetIfChanged(ref _filterSystem, value); ApplyFilter(); }
+        set => this.RaiseAndSetIfChanged(ref _filterSystem, value);
     }
 
-    // List
-    private List<KillmailListRowVm> _allRows = [];
+    // List — populated directly from whatever the server already filtered/paged, no
+    // client-side re-filtering step.
     public ObservableCollection<KillmailListRowVm> KillmailRows { get; } = [];
 
     private KillmailListRowVm? _selectedKillmail;
@@ -353,114 +497,156 @@ public class KillmailBrowserViewModel : ReactiveObject
 
     public ReactiveUI.ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> RefreshCommand      { get; }
     public ReactiveUI.ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> ClearFiltersCommand { get; }
+    public ReactiveUI.ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> LoadMoreCommand     { get; }
 
-    public KillmailBrowserViewModel(KillmailBrowserService service,
-                                    ObservableCollection<Corporation> corps)
+    /// <summary>Set by MainWindowViewModel — opens the Item Browser tool and selects the
+    /// given type id, same wiring as ProductionCalculatorViewModel/
+    /// CharacterViewerViewModel's identical property.</summary>
+    public Action<int>? NavigateToItemAction { get; set; }
+
+    /// <summary>Set by the shell so a system name opens that system on the Universe map.</summary>
+    public Action<int>? NavigateToSystemAction { get; set; }
+    public ReactiveUI.ReactiveCommand<int, System.Reactive.Unit> OpenInItemBrowserCommand { get; }
+    public ReactiveUI.ReactiveCommand<int, System.Reactive.Unit> OpenSystemMapCommand     { get; }
+
+    // Paging — the underlying table can now hold 100K+ rows (zKillboard backfill/firehose),
+    // so the browser loads a page at a time instead of one hard-capped query.
+    private int  _offset;
+    private bool _hasMore;
+    public bool HasMore { get => _hasMore; private set => this.RaiseAndSetIfChanged(ref _hasMore, value); }
+
+    private bool _isLoadingMore;
+    public bool IsLoadingMore { get => _isLoadingMore; private set => this.RaiseAndSetIfChanged(ref _isLoadingMore, value); }
+
+    public KillmailBrowserViewModel(KillmailBrowserService service)
     {
         _service = service;
-        Corps    = corps;
-
-        CorpsWithAll = new ObservableCollection<Corporation> { AllCorps };
-        foreach (var c in corps) CorpsWithAll.Add(c);
-        corps.CollectionChanged += (_, e) =>
-        {
-            if (e.NewItems is not null)
-                foreach (Corporation c in e.NewItems) CorpsWithAll.Add(c);
-            if (e.OldItems is not null)
-                foreach (Corporation c in e.OldItems) CorpsWithAll.Remove(c);
-        };
 
         RefreshCommand = ReactiveUI.ReactiveCommand.CreateFromTask(LoadAsync);
         RefreshCommand.ThrownExceptions.Subscribe(_ => { });
 
+        LoadMoreCommand = ReactiveUI.ReactiveCommand.CreateFromTask(LoadMoreAsync,
+            this.WhenAnyValue(x => x.HasMore, x => x.IsLoadingMore, (more, loading) => more && !loading));
+        LoadMoreCommand.ThrownExceptions.Subscribe(_ => { });
+
+        OpenInItemBrowserCommand = ReactiveUI.ReactiveCommand.Create<int>(typeId => NavigateToItemAction?.Invoke(typeId));
+        OpenSystemMapCommand     = ReactiveUI.ReactiveCommand.Create<int>(id => { if (id > 0) NavigateToSystemAction?.Invoke(id); });
+
         ClearFiltersCommand = ReactiveUI.ReactiveCommand.Create(() =>
         {
-            _filterFrom   = null; this.RaisePropertyChanged(nameof(FilterFrom));
-            _filterThru   = null; this.RaisePropertyChanged(nameof(FilterThru));
-            _filterChar   = "";   this.RaisePropertyChanged(nameof(FilterChar));
-            _filterShip   = "";   this.RaisePropertyChanged(nameof(FilterShip));
-            _filterSystem = "";   this.RaisePropertyChanged(nameof(FilterSystem));
-            ApplyFilter();
+            FilterFrom   = null;
+            FilterThru   = null;
+            FilterChar   = "";
+            FilterCorp   = "";
+            FilterShip   = "";
+            FilterSystem = "";
         });
 
-        // Default date range: last 90 days
-        _filterFrom = DateTime.Today.AddDays(-90);
+        // Filter changes re-query the server, so debounce rather than firing on every
+        // keystroke — 400ms after the user stops typing/picking dates.
+        this.WhenAnyValue(x => x.FilterFrom, x => x.FilterThru, x => x.FilterChar, x => x.FilterCorp, x => x.FilterShip, x => x.FilterSystem)
+            .Skip(1)
+            .Throttle(TimeSpan.FromMilliseconds(400), RxApp.TaskpoolScheduler)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(_ => { var task = LoadAsync(); });
+
+        // Default date range: last 30 days
+        _filterFrom = DateTime.Today.AddDays(-30);
         _filterThru = DateTime.Today;
 
-        // Default to "All Corps" so the list loads immediately on first open
-        SelectedCorp = AllCorps;
+        _ = LoadAsync();
     }
 
     private async Task LoadAsync(CancellationToken ct = default)
     {
-        if (_selectedCorp is null) { StatusText = "Select a corporation"; return; }
-        var corpId = (long)_selectedCorp.Id;  // 0 = all corps, positive = specific corp
-
         IsLoading   = true;
         StatusColor = "#555566";
         StatusText  = "Loading killmails…";
+        _offset     = 0;
+        HasMore     = false;
         try
         {
-            var rows = await _service.GetListAsync(corpId, ct);
-            _allRows = rows.Select(r => new KillmailListRowVm(r)).ToList();
-            _ = Task.WhenAll(_allRows.Select(r => r.LoadImagesAsync()));
-            ApplyFilter();
+            var page = await _service.GetListAsync(
+                _offset, KillmailBrowserService.PageSize,
+                _filterFrom is { } f ? DateOnly.FromDateTime(f) : null,
+                _filterThru is { } t ? DateOnly.FromDateTime(t) : null,
+                _filterChar, _filterCorp, _filterShip, _filterSystem, ct: ct);
+
+            var rows = page.Rows.Select(r => new KillmailListRowVm(r)).ToList();
+            KillmailRows.Clear();
+            foreach (var r in rows) KillmailRows.Add(r);
+            _offset = rows.Count;
+            HasMore = page.HasMore;
+            _ = Task.WhenAll(rows.Select(r => r.LoadImagesAsync()));
+            UpdateStatusText();
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) { StatusText = $"Error: {ex.Message}"; StatusColor = "#cc4444"; }
         finally { IsLoading = false; }
     }
 
-    private void ApplyFilter()
+    /// <summary>Fetches the next page (same filters/order as the current load) and
+    /// appends it — never re-sorts, so it stays consistent with what's already
+    /// rendered above it (GetListAsync's ORDER BY KillMailTime DESC is the single
+    /// source of truth for row order throughout).</summary>
+    private async Task LoadMoreAsync(CancellationToken ct = default)
     {
-        var charF = _filterChar.Trim();
-        var shipF = _filterShip.Trim();
-        var sysF  = _filterSystem.Trim();
+        if (!HasMore || IsLoadingMore) return;
 
-        KillmailRows.Clear();
-        foreach (var r in _allRows)
+        IsLoadingMore = true;
+        try
         {
-            if (_filterFrom.HasValue && r.TimeRaw.UtcDateTime.Date < _filterFrom.Value.Date) continue;
-            if (_filterThru.HasValue && r.TimeRaw.UtcDateTime.Date > _filterThru.Value.Date) continue;
-            if (charF.Length > 0 &&
-                !r.VictimName.Contains(charF, StringComparison.OrdinalIgnoreCase) &&
-                !r.FbName.Contains(charF, StringComparison.OrdinalIgnoreCase)) continue;
-            if (shipF.Length > 0 && !r.ShipName.Contains(shipF, StringComparison.OrdinalIgnoreCase)) continue;
-            if (sysF.Length  > 0 &&
-                !r.SystemName.Contains(sysF, StringComparison.OrdinalIgnoreCase) &&
-                !r.RegionName.Contains(sysF, StringComparison.OrdinalIgnoreCase)) continue;
-            KillmailRows.Add(r);
+            var page = await _service.GetListAsync(
+                _offset, KillmailBrowserService.PageSize,
+                _filterFrom is { } f ? DateOnly.FromDateTime(f) : null,
+                _filterThru is { } t ? DateOnly.FromDateTime(t) : null,
+                _filterChar, _filterCorp, _filterShip, _filterSystem, ct: ct);
+
+            var newRows = page.Rows.Select(r => new KillmailListRowVm(r)).ToList();
+            foreach (var r in newRows) KillmailRows.Add(r);
+            _offset += newRows.Count;
+            HasMore  = page.HasMore;
+            _ = Task.WhenAll(newRows.Select(r => r.LoadImagesAsync()));
+            UpdateStatusText();
         }
-        StatusText = $"{KillmailRows.Count:N0} killmails";
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { StatusText = $"Error: {ex.Message}"; StatusColor = "#cc4444"; }
+        finally { IsLoadingMore = false; }
     }
 
-    public void SelectById(int killMailId)
+    private void UpdateStatusText()
     {
-        // If no corp selected yet, pick the first available one
-        if (_selectedCorp is null && Corps.Count > 0)
-        {
-            _selectedCorp = Corps[0];
-            this.RaisePropertyChanged(nameof(SelectedCorp));
-        }
-
-        var row = KillmailRows.FirstOrDefault(r => r.KillMailId == killMailId)
-                  ?? _allRows.FirstOrDefault(r => r.KillMailId == killMailId);
-        if (row is not null)
-        {
-            SelectedKillmail = row;
-        }
-        else
-        {
-            // Kill not loaded yet — reload then select
-            _ = LoadAndSelectAsync(killMailId);
-        }
+        StatusText = HasMore
+            ? $"{KillmailRows.Count:N0} killmails loaded — more available, click Load More"
+            : $"{KillmailRows.Count:N0} killmails";
     }
 
-    private async Task LoadAndSelectAsync(int killMailId)
+    public void SelectById(int killMailId) => _ = SelectByIdAsync(killMailId);
+
+    /// <summary>
+    /// Show a kill that arrived from somewhere else — an entity viewer, the map, corp activity.
+    /// </summary>
+    private async Task SelectByIdAsync(int killMailId)
     {
+        var row = KillmailRows.FirstOrDefault(r => r.KillMailId == killMailId);
+        if (row is not null) { SelectedKillmail = row; return; }
+
+        // Not on screen, and reloading as-is would not help: the list defaults to the last 30
+        // days, while a kill picked out of a pilot's history is usually older than that. Widen
+        // the range before looking again.
+        _filterFrom = null;
+        _filterThru = null;
+        this.RaisePropertyChanged(nameof(FilterFrom));
+        this.RaisePropertyChanged(nameof(FilterThru));
         await LoadAsync();
-        var row = _allRows.FirstOrDefault(r => r.KillMailId == killMailId);
-        if (row is not null) SelectedKillmail = row;
+
+        row = KillmailRows.FirstOrDefault(r => r.KillMailId == killMailId);
+        if (row is not null) { SelectedKillmail = row; return; }
+
+        // Older than the first page of an unfiltered list. The row cannot be highlighted
+        // without paging an unknown distance to reach it, but the detail pane is what was
+        // actually asked for, so load that on its own.
+        await LoadDetailAsync(killMailId);
     }
 
     private async Task LoadDetailAsync(int killMailId, CancellationToken ct = default)

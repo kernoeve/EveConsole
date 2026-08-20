@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
+using EveConsole.Services;
 using ReactiveUI;
 
 namespace EveConsole.ViewModels;
@@ -50,9 +51,13 @@ public class IndustryBrowserViewModel : ReactiveObject
     public static readonly string[] DisplayColumns =
     [
         "Status", "Time Remaining", "Activity", "Product", "Runs", "Successful Runs",
-        "Items Produced", "Build Cost", "Market Value", "Facility", "Installer", "Owner",
+        "Items Produced", "Build Cost", "Market Value", "Facility", "Note", "Installer", "Owner",
         "Created", "Completed",
     ];
+
+    /// <summary>Populated after the query from IndyFacilityCheckService — see
+    /// ApplyFacilityRigNotesAsync.</summary>
+    public const string ColNote = "Note";
 
     // Hidden detail-panel accessors
     public const string ColBlueprintTypeId  = "Blueprint Type Id";
@@ -62,6 +67,16 @@ public class IndustryBrowserViewModel : ReactiveObject
     public const string ColTE               = "TE";
     public const string ColCompletedBy      = "Completed By";
     public const string ColActivityId       = "Activity Id";
+
+    // What each name on a row opens. Hidden like the ids above — the grid never shows these,
+    // they exist so the visible text can be a link.
+    public const string ColOwnerId          = "Owner Id";
+    public const string ColOwnerType        = "Owner Type";
+    public const string ColInstallerId      = "Installer Id";
+    public const string ColFacilityId       = "Facility Id";
+    public const string ColFacilityIsStation = "Facility Is Station";
+    public const string ColSolarSystemId    = "Solar System Id";
+    public const string ColRegionId         = "Region Id";
 
     // ── Filter options ────────────────────────────────────────────────────────
 
@@ -76,9 +91,15 @@ public class IndustryBrowserViewModel : ReactiveObject
         "All Statuses", "active", "paused", "ready", "delivered", "cancelled", "reverted",
     ];
 
-    public IndustryBrowserViewModel(string connectionString)
+    /// <summary>Optional so the designer and any bare construction still work; the
+    /// Note column simply stays empty without it.</summary>
+    private readonly IndyFacilityCheckService? _facilityCheck;
+
+    public IndustryBrowserViewModel(string connectionString,
+                                    IndyFacilityCheckService? facilityCheck = null)
     {
         _connectionString = connectionString;
+        _facilityCheck    = facilityCheck;
         EnsureSchema();
     }
 
@@ -144,6 +165,8 @@ public class IndustryBrowserViewModel : ReactiveObject
 
             var ownerOpts = await Task.Run(() => LoadOwnerOptions(), ct);
 
+            await ApplyFacilityRigNotesAsync(rows, ct);
+
             Dispatcher.UIThread.Post(() =>
             {
                 Rows        = new ObservableCollection<GridRow>(rows);
@@ -155,6 +178,50 @@ public class IndustryBrowserViewModel : ReactiveObject
         }
         catch (OperationCanceledException) { }
     }
+
+    /// <summary>
+    /// Fill the Note column for jobs whose facility gives them no rig bonus, and flag
+    /// those rows so the grid paints them orange.
+    ///
+    /// Only says anything where the facility is linked to an Indy Parks structure.
+    /// Unlinked facilities have unknown rigs — ESI cannot report a structure's
+    /// fittings — so they are left blank rather than accused of being unrigged.
+    /// </summary>
+    private async Task ApplyFacilityRigNotesAsync(List<GridRow> rows, CancellationToken ct)
+    {
+        if (_facilityCheck is null || rows.Count == 0) return;
+
+        try
+        {
+            var byJobId = new Dictionary<int, GridRow>();
+            foreach (var r in rows)
+                if (int.TryParse(r["Job Id"].Replace(",", ""), out var id))
+                    byJobId[id] = r;
+
+            if (byJobId.Count == 0) return;
+
+            var checks = await _facilityCheck.CheckAsync(byJobId.Keys.ToList(), ct);
+
+            foreach (var (jobId, result) in checks)
+            {
+                if (result.Verdict != FacilityRigVerdict.NotRigged) continue;
+                if (!byJobId.TryGetValue(jobId, out var row))        continue;
+
+                row.Set(ColNote, result.Note);
+                row.Set(GridWarningColumn, "1");
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception)
+        {
+            // A rig note is decoration on a jobs list; failing to compute one must not
+            // take the grid down with it.
+        }
+    }
+
+    /// <summary>Mirrors Views/GridHelpers.GridWarning.ColumnName, which is internal to
+    /// the view layer.</summary>
+    private const string GridWarningColumn = "Row Warning";
 
     private (List<GridRow>, List<long>) RunQuery(
         string? activity, string? status, string? search,
@@ -500,7 +567,15 @@ public class IndustryBrowserViewModel : ReactiveObject
                 j.ActivityId                                                                  AS "Activity Id",
                 j.Probability                                                                 AS "Probability",
                 j.OwnerId                                                                     AS "Owner Id",
-                j.OwnerType                                                                   AS "Owner Type"
+                j.OwnerType                                                                   AS "Owner Type",
+                -- Hidden: what the names in the grid and the detail panel open.
+                j.InstallerId                                                                 AS "Installer Id",
+                j.FacilityId                                                                  AS "Facility Id",
+                -- Only an NPC station is named by SdeStations, which is also what decides whether
+                -- the facility link opens the entity browser or the Structure Browser.
+                CASE WHEN st.StationId IS NULL THEN 0 ELSE 1 END                              AS "Facility Is Station",
+                COALESCE(ss_st.SolarSystemId, ss_sn.SolarSystemId, 0)                         AS "Solar System Id",
+                COALESCE(r_st.RegionId, r_sn.RegionId, 0)                                     AS "Region Id"
             FROM EsiIndustryJobs j
             LEFT JOIN Characters       ch_inst  ON ch_inst.Id        = j.InstallerId
             LEFT JOIN UniverseNames    un_inst  ON un_inst.EntityId   = j.InstallerId

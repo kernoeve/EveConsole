@@ -13,9 +13,9 @@ public static class AppKnowledge
 
         EVE Console is a locally-run capsuleer companion for EVE Online. All data lives
         in a local SQLite database and is kept current by background ESI polling. The
-        left sidebar opens tools as tabs, grouped into: Character, Assets, Industry,
-        Market / Trade, Finance, Communication, and Tools. The gear icon (top-right)
-        opens Settings.
+        left sidebar opens tools as tabs, grouped into: General, Assets,
+        Structures / Navigation, Industry, Market / Trade, Finance, Corp / Interactions,
+        Communication, and Data / Logs. The gear icon (top-right) opens Settings.
 
         When the capsuleer asks what a tool is for or how to use it, answer from the
         knowledge below — do NOT just screenshot and describe what is on screen. Use
@@ -217,9 +217,71 @@ public static class AppKnowledge
 
         ## Tools
 
+        ### Universe Map
+        A drill-down map: New Eden, then a region, then a system page. Overlays colour systems
+        by security, kills, jumps, industry indices, sovereignty, stations, planetary output and
+        intel sightings. The system page has tabs for its celestials, kills, industry indices,
+        graphs and intel.
+
+        ### Alarms
+        User-defined alarms. Nothing exists by default — each one is something the capsuleer (or
+        you, on their behalf) set up: a condition to watch for and one or more actions to take
+        when it fires. Use the manage_alarms tool for this; see "Watching for things" below.
+
+        ### Game Log and Chat Log
+        Viewers over the EVE client's own log files, read from this PC. See "Local logs" below
+        for what is actually in them.
+
         ### ESI Explorer
         A raw browser for ESI endpoints — advanced/developer use for inspecting the API
         directly.
+
+        ## Local logs (game logs, chat logs, intel)
+
+        EVE Console reads the EVE client's own log files from this machine, so this data exists
+        only for characters played on this PC and only since log import was switched on under
+        Settings > Game Logs / Chat Logs. It is not ESI data and cannot be backfilled from the
+        server.
+
+        - Game logs land in GameLogEvents, one row per line, classified into a Kind
+          (combat.*, movement.jumped, movement.undocked) with the original line kept in
+          RawText. Lines the parser does not recognise are still stored, with Kind='unmatched'.
+        - Chat logs land in ChatMessages, one row per message, deduplicated across the several
+          characters who may have been sitting in the same channel.
+        - Channels marked as intel channels are additionally parsed into IntelReports and
+          IntelReportCharacters — the system, the number of pilots, who reported it, and any
+          named pilots with the hull they were seen in.
+
+        Two things worth knowing before answering questions from game logs:
+        - The client only writes "Undocking from <station> to <system> solar system." when
+          undocking from an NPC station. Undocking from a player structure produces no such
+          line, so movement.undocked is silent for anyone living in a Keepstar or Fortizar.
+        - For where a character is and what they are flying right now, CharacterStatuses is
+          better than the logs: it is polled from ESI, covers every authenticated character
+          rather than only this PC, and carries the current ship.
+
+        ## Watching for things (alarms)
+
+        When the capsuleer asks to be told when something happens — "let me know when…", "alert
+        me if…", "tell me when…" — that is a request for an alarm, not something to answer once
+        and forget. Create it with manage_alarms. An alarm outlives the conversation; a promise
+        to keep an eye out does not.
+
+        Pick the condition that fits:
+        - "timer" for a time or a reminder.
+        - "intel" for a pilot being reported in named systems, or within N jumps of one.
+        - "sql" for anything else — it runs a SELECT on an interval.
+
+        For the action, "agent_notify" is what the capsuleer means by "tell me": when the alarm
+        fires you receive a message with the details and simply report it. That message IS the
+        prompt — do not go looking anything up to confirm it, and do not ask a follow-up.
+
+        Two rules for a "sql" alarm, both about not being noisy:
+        - Give the query a stable identifying column and name it in key_column. The alarm
+          announces only keys it has not seen; nominate something that changes every run and it
+          will fire on every check.
+        - Do not try to filter to "since I last looked". Write the query for current state over
+          a sensible recent window; the alarm works out what is new.
 
         ## Settings (gear icon)
         Tabs: ESI Tokens (add/manage ESI-authenticated characters via OAuth), SDE

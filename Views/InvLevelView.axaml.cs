@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
@@ -94,6 +95,49 @@ public partial class InvLevelView : UserControl
             var dlg = new NameDialog("Rename Collection", "COLLECTION NAME", currentName);
             return await dlg.ShowDialog<string?>(GetWindow());
         };
+
+        vm.ExportCollection = async (collectionId, name) =>
+        {
+            var top = TopLevel.GetTopLevel(this);
+            if (top is null) return;
+
+            var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title             = "Export Collection",
+                SuggestedFileName = $"{Safe(name)}.json",
+                FileTypeChoices   = [new FilePickerFileType("JSON") { Patterns = ["*.json"] }],
+            });
+            if (file is null) return;
+
+            await using var stream = await file.OpenWriteAsync();
+            await vm.ExportCollectionAsync(collectionId, stream);
+        };
+
+        vm.ImportCollection = async () =>
+        {
+            var top = TopLevel.GetTopLevel(this);
+            if (top is null) return;
+
+            var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title          = "Import Collection",
+                AllowMultiple  = false,
+                FileTypeFilter = [new FilePickerFileType("JSON") { Patterns = ["*.json"] }],
+            });
+            if (files.Count == 0) return;
+
+            await using var stream = await files[0].OpenReadAsync();
+            await vm.ImportCollectionAsync(stream);
+        };
+    }
+
+    /// <summary>Collection names are free text and may hold characters a filename cannot.</summary>
+    private static string Safe(string name)
+    {
+        var cleaned = new string(name
+            .Select(c => System.IO.Path.GetInvalidFileNameChars().Contains(c) ? '_' : c)
+            .ToArray()).Trim();
+        return cleaned.Length > 0 ? cleaned : "collection";
     }
 
     private void OnGridSorting(object? sender, DataGridColumnEventArgs e)
@@ -112,6 +156,16 @@ public partial class InvLevelView : UserControl
             e.Handled = true;
         }
     }
+
+    // ── Row links ─────────────────────────────────────────────────────────────
+    //
+    // One template covers collection, group and item rows in the first column, so both handlers
+    // live here and each casts to the row kind its button belongs to.
+    private void OnOpenItem(object? sender, RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as InvItemRow)?.OpenItem();
+
+    private void OnOpenGroupLocation(object? sender, RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as InvGroupRow)?.OpenLocation();
 
     private Window GetWindow() => (TopLevel.GetTopLevel(this) as Window)!;
 }

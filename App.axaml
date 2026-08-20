@@ -5,6 +5,11 @@
 
   <Application.Resources>
     <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <!-- Shared so the Killmail Browser and the entity viewer render the same row. -->
+        <ResourceInclude Source="avares://EveConsole/Views/KillmailRowTemplate.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+
       <!-- Eve amber replaces Fluent blue everywhere: tab underlines, focus rings,
            checkbox fills, progress bar fill, selection highlights -->
       <Color x:Key="SystemAccentColor">#c8a84b</Color>
@@ -14,6 +19,13 @@
       <Color x:Key="SystemAccentColorLight1">#d4b865</Color>
       <Color x:Key="SystemAccentColorLight2">#dfc87a</Color>
       <Color x:Key="SystemAccentColorLight3">#e8d898</Color>
+
+      <!-- How much room every column header reserves for its sort arrow.
+           Fluent's default is 32, against a glyph the same theme draws at 12 high — and the
+           column reserves it whether or not that header is the sorted one, so a 50px numeric
+           column was left about 12px for its label and showed "Pr". 14 fits the arrow with a
+           pixel either side. -->
+      <x:Double x:Key="DataGridSortIconMinWidth">14</x:Double>
     </ResourceDictionary>
   </Application.Resources>
 
@@ -154,13 +166,32 @@
         <Setter Property="Foreground"     Value="#55556a" />
         <Setter Property="FontSize"       Value="11" />
         <Setter Property="FontWeight"     Value="Normal" />
-        <Setter Property="Padding"        Value="6 5" />
+        <!-- Asymmetric: the right side abuts the sort-arrow column, which brings its own gap,
+             so padding there was spending width twice. -->
+        <Setter Property="Padding"        Value="6 5 2 5" />
         <Setter Property="SeparatorBrush" Value="#1e1e28" />
       </Style>
       <Style Selector="DataGridRow">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="#c8c8cc" />
       </Style>
+
+      <!-- Alternating rows.
+           ⚠️ Must stay above the pointerover and selected rules below. Avalonia resolves equally
+           specific styles in declaration order, so a banding rule declared last would paint over
+           the hover and selection states and the grid would stop responding to the cursor.
+           Deliberately a very small step from #0d0d12: enough to carry the eye across a wide
+           desktop row, not enough to read as a striped table. -->
+      <!-- ⚠️ Skipped on a grid marked "tinted". This paints the row template's background
+           rectangle, which sits on top of DataGridRow.Background — so on any grid that colours
+           rows by meaning (Inventory Levels shades amber and red when stock is under target) the
+           banding silently replaced the signal on every other row. A grid that says something
+           with row colour opts out with Classes="tinted". -->
+      <Style Selector="DataGrid:not(.tinted) DataGridRow:nth-child(even) /template/ Rectangle#BackgroundRectangle">
+        <Setter Property="Fill"    Value="#111118" />
+        <Setter Property="Opacity" Value="1" />
+      </Style>
+
       <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
         <Setter Property="Fill"    Value="#16161e" />
         <Setter Property="Opacity" Value="1" />
@@ -171,6 +202,22 @@
       </Style>
       <Style Selector="DataGridCell">
         <Setter Property="Padding" Value="6 0" />
+      </Style>
+
+      <!-- Shared cell classes, so a view says what a column means rather than restating the
+           same alignment and colour. Both were being redeclared per view; the numeric one alone
+           appears in the Worklist, Sale Listing, Killmail and Sales Tracker grids. -->
+      <!-- TextAlignment as well as HorizontalAlignment: a DataGridTemplateColumn does not stretch
+           its cell content, so alignment alone leaves the text wherever the presenter put it.
+           TextAlignment right-aligns within the TextBlock either way, which makes this class
+           behave the same on text and template columns. -->
+      <Style Selector="DataGridCell.num TextBlock">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="TextAlignment"       Value="Right" />
+        <Setter Property="Margin"              Value="0 0 8 0" />
+      </Style>
+      <Style Selector="DataGridCell.dim TextBlock">
+        <Setter Property="Foreground" Value="#7a7a88" />
       </Style>
 
       <!-- ── CheckBox ─────────────────────────────────────────────────────── -->

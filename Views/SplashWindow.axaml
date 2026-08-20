@@ -54,8 +54,12 @@
         </Grid>
       </StackPanel>
 
-      <!-- App name just above the progress section -->
-      <StackPanel DockPanel.Dock="Bottom" Spacing="3" Margin="0 0 0 18">
+      <!-- The app name, which sits at the TOP of the splash.
+           ⚠️ Reads as bottom-docked and is not. As the DockPanel's LAST child it takes the panel's
+           LastChildFill, so the Dock is ignored, the block fills whatever the progress section
+           left, and its content renders at the top of that space. Which is why the margin that
+           positions the name is the TOP one — changing the bottom margin moves nothing. -->
+      <StackPanel DockPanel.Dock="Bottom" Spacing="3" Margin="0 14 0 18">
         <!-- Two-tone name: EVE in white, Console in amber -->
         <StackPanel Orientation="Horizontal">
           <TextBlock Text="EVE "

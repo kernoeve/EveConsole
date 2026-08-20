@@ -135,6 +135,26 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         agentService.DataRefreshRequested += ()   => Dispatcher.UIThread.Post(() => vm.ForceResolveNamesAsync());
         agentService.ContextProvider       = () => BuildAgentContext(vm);
 
+        // Alarm actions that need the UI. The dialog is deliberately owner-less and top-most —
+        // an alarm is usually wanted precisely when EVE Console is behind the game client.
+        vm.AlarmActions.ShowDialogCallback = (title, message) =>
+            new Views.AlarmDialogWindow(title, message).Show();
+
+        vm.AlarmActions.NotifyAgentCallback = message => vm.AgentVm.NotifyAsync(message);
+        vm.AlarmActions.AgentAvailable      =
+            () => agentService.Settings.Enabled && agentService.Provider is { IsConfigured: true };
+
+        agentService.NavigateEntityCallback = (kind, id, _) =>
+            Dispatcher.UIThread.Post(() =>
+            {
+                var player = kind is EveConsole.Services.EntityKind.Pilot
+                                  or EveConsole.Services.EntityKind.PlayerCorp
+                                  or EveConsole.Services.EntityKind.Alliance;
+                vm.OpenTool(player ? "player_entities" : "npc_entities");
+                if (player) vm.PlayerEntitiesVm.Open(kind, id);
+                else        vm.NpcEntitiesVm.Open(kind, id);
+            });
+
         agentService.NavigateItemCallback = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {
@@ -190,6 +210,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             });
 
         vm.InvLevelVm.OpenInItemBrowser = (typeId, name) =>
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
+                else vm.OpenTool("items");
+                _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
+            });
+
+        vm.SalePostingVm.OpenInItemBrowser = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {
                 if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
@@ -288,7 +316,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         vm.OverviewVm.OpenAlertSettingsRequested = () => _ = OpenSettingsAsync(vm, "Alerts");
 
-        _ = vm.OverviewVm.LoadAsync();
+        // Normally already done during startup, while the splash was up; the cached task makes this
+        // a no-op in that case.
+        _ = vm.OverviewVm.EnsureLoadedAsync();
     }
 
     // ── Agent navigation ──────────────────────────────────────────────────────
@@ -357,6 +387,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         await new AboutWindow().ShowDialog(this);
     }
 
+    private void OnAlarmsClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) vm.OpenTool("alarms");
+    }
+
     private async void OnGearClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm)
@@ -373,10 +408,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         await vm.PollingSettingsVm.LoadAsync(vm.CharacterVm.Characters);
         vm.CorpTop10SettingsVm.Load();
         var dbVm = new DatabaseSettingsViewModel(vm.AppPrefs, vm.DbBackup);
-        var settingsVm = new SettingsViewModel(vm.CharacterVm, vm.SdeVm, vm.UpdateVm, vm.MarketVm, vm.TimerVm,
+        // The Worklist tool's own industry view model, not a second one: the Industry tab edits
+        // the character list that tool plans against, and two instances over one table would not
+        // see each other's edits.
+        var settingsVm = new SettingsViewModel(vm.WorklistVm.IndustryVm,
+                                               vm.CharacterVm, vm.SdeVm, vm.UpdateVm, vm.MarketVm, vm.TimerVm,
                                                vm.AgentVm.Service, vm.PriceHistorySettingsVm,
                                                vm.AlertSettingsVm, vm.PollingSettingsVm,
                                                vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm,
+                                               vm.GameLogSettingsVm, vm.ChatLogSettingsVm, vm.ZkbSettingsVm,
+                                               vm.MapStatsSettingsVm, vm.OtherSettingsVm, vm.DataRetentionVm,
                                                vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
         var settingsWin = new SettingsWindow { DataContext = settingsVm };
         settingsWin.WireDatabase(dbVm, this);
@@ -384,12 +425,38 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         await settingsWin.ShowDialog(this);
         // Slack token / channel may have changed — re-evaluate the post buttons' visibility.
         vm.CorpActivityVm.RefreshSlackState();
+        vm.SalePostingVm.RefreshSlackState();
     }
 
     private void OnResolveNamesClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm) return;
         _ = vm.ForceResolveNamesAsync();
+    }
+
+    private void OnEveTimeClick(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm) return;
+        OpenInBrowser(vm.EveTimeUrl);
+    }
+
+    private void OnServerStatusClick(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+        => OpenInBrowser(EveConsole.Services.UiLinkSettings.ServerStatusUrl);
+
+    /// <summary>Hands the URL to the OS default browser. Guarded because a user-supplied
+    /// EVE-time URL can be anything, and a malformed one must not take the app down.</summary>
+    private static void OpenInBrowser(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return;
+        try
+        {
+            System.Diagnostics.Process.Start(
+                new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Link] could not open {url}: {ex.Message}");
+        }
     }
 
     private void OnPollingStatusClick(object? sender, RoutedEventArgs e)
@@ -537,7 +604,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (_industryBrowserWindow?.IsVisible == true) detached.Add("Industry");
         if (_itemBrowserWindow?.IsVisible     == true) detached.Add("Items");
         if (_explorerWindow?.IsVisible        == true) detached.Add("ESI Explorer");
-        if (_activityWindow?.IsVisible        == true) detached.Add("API Activity");
+        if (_activityWindow?.IsVisible        == true) detached.Add("Background Processes");
         if (detached.Count > 0)
             sb.AppendLine($"Detached windows: {string.Join(", ", detached)}");
 

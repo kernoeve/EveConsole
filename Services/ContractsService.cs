@@ -402,10 +402,35 @@ public class ContractsService : ReactiveObject
             return status is 400 or 403 or 404;
         }
 
-        if (items.Count > 0) db.EsiContractItems.AddRange(items);
-        await db.SaveChangesAsync(ct);
-        db.ChangeTracker.Clear();   // don't let saved items accumulate across the sweep
-        return true;
+        // Dedupe by RecordId. ESI has been observed returning the same record twice inside
+        // one contract's paged item list, and EF rejects the pair on the (ContractId,
+        // RecordId) key before anything reaches the database. The method comment above has
+        // always claimed this happened; it did not, which is the whole bug.
+        var deduped = items.Count > 1
+            ? items.GroupBy(i => i.RecordId).Select(g => g.First()).ToList()
+            : items;
+
+        try
+        {
+            if (deduped.Count > 0) db.EsiContractItems.AddRange(deduped);
+            await db.SaveChangesAsync(ct);
+            return true;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            // Retried next sweep rather than marked pulled — but not at the cost of the
+            // rest of this one.
+            _errorLogger.Log("ContractsService", $"items contract={contractId} owner={ownerType}", ex);
+            return false;
+        }
+        finally
+        {
+            // Must clear on failure too, not just success. A rejected SaveChanges leaves the
+            // offending entities in the tracker, so every later contract in the same sweep
+            // throws the same conflict — which is how one bad contract took out whole passes.
+            db.ChangeTracker.Clear();
+        }
     }
 
     // ── Contract pricing (single-item-type sells) ───────────────────────────────
@@ -457,34 +482,57 @@ public class ContractsService : ReactiveObject
 
         // TypeId → per-contract (per-unit price, active window, whether currently active).
         var byType = new Dictionary<int, List<(decimal PerUnit, DateTime Start, DateTime End, bool ActiveNow)>>();
+        // (BlueprintTypeId, ME) → per-contract PER-RUN price for BPC sales.
+        var byBpc  = new Dictionary<(int TypeId, int Me), List<(decimal PerUnit, DateTime Start, DateTime End, bool ActiveNow)>>();
+
+        // BPC items on offer (only PUBLIC contracts carry runs/ME — personal/corp items don't).
+        var bpcByContract = (await db.EsiContractItems
+                .Where(i => i.IsIncluded && i.IsBlueprintCopy == true && i.Runs != null && i.Runs > 0)
+                .Select(i => new { i.ContractId, i.TypeId, i.Quantity, Runs = i.Runs!.Value, Me = i.MaterialEfficiency ?? 0 })
+                .ToListAsync(ct))
+            .GroupBy(i => i.ContractId)
+            .ToDictionary(g => g.Key, g => g.ToList());
 
         foreach (var c in contractRows)
         {
             if (!itemAgg.TryGetValue(c.ContractId, out var agg) || agg.Qty <= 0) continue;
 
-            decimal perUnit = c.Price / agg.Qty;
             var start = c.DateIssued.UtcDateTime;
             var end   = (c.DateAccepted ?? c.DateCompleted ?? c.DateExpired ?? now).UtcDateTime;
             bool activeNow = c.Status == "outstanding" && (c.DateExpired is null || c.DateExpired > now);
 
+            // BPC sale: single-type contract whose items are all BPCs of that type with a uniform ME.
+            // Price per RUN = ask ÷ total runs offered, keyed by (type, ME). Not also priced as a
+            // finished item.
+            if (bpcByContract.TryGetValue(c.ContractId, out var bpcs) && bpcs.All(b => b.TypeId == agg.MinType))
+            {
+                var mes = bpcs.Select(b => b.Me).Distinct().ToList();
+                long totalRuns = bpcs.Sum(b => (long)b.Runs * Math.Max(1L, b.Quantity));
+                if (mes.Count == 1 && totalRuns > 0)
+                {
+                    var bkey = (agg.MinType, mes[0]);
+                    if (!byBpc.TryGetValue(bkey, out var blist)) byBpc[bkey] = blist = new();
+                    blist.Add((c.Price / totalRuns, start, end, activeNow));
+                }
+                continue;
+            }
+
+            decimal perUnit = c.Price / agg.Qty;
             if (!byType.TryGetValue(agg.MinType, out var list))
                 byType[agg.MinType] = list = new();
             list.Add((perUnit, start, end, activeNow));
         }
 
-        var results = new List<ContractPrice>(byType.Count);
-        foreach (var (typeId, list) in byType)
+        // Current best = lowest price among contracts active now; 30-day average = mean over the
+        // last 30 days of each day's lowest price among contracts whose active window overlapped it.
+        (decimal? Best, int ActiveCount, decimal? Avg30, int SampleDays) Summarize(
+            List<(decimal PerUnit, DateTime Start, DateTime End, bool ActiveNow)> list)
         {
-            // Current best = lowest per-unit among contracts active right now.
-            decimal? best = null;
-            int activeCount = 0;
+            decimal? best = null; int activeCount = 0;
             foreach (var e in list)
                 if (e.ActiveNow) { activeCount++; if (best is null || e.PerUnit < best) best = e.PerUnit; }
 
-            // 30-day average of the daily-best: for each of the last 30 days, the lowest per-unit
-            // among contracts whose active window overlapped that day; averaged over days with data.
-            decimal daySum = 0m;
-            int sampleDays = 0;
+            decimal daySum = 0m; int sampleDays = 0;
             for (int k = 0; k < 30; k++)
             {
                 var dayStart = todayUtc.AddDays(-k);
@@ -495,27 +543,42 @@ public class ContractsService : ReactiveObject
                         dayBest = e.PerUnit;
                 if (dayBest is not null) { daySum += dayBest.Value; sampleDays++; }
             }
+            return (best, activeCount, sampleDays > 0 ? daySum / sampleDays : null, sampleDays);
+        }
+        static decimal? Round2(decimal? v) => v is { } x ? Math.Round(x, 2, MidpointRounding.AwayFromZero) : null;
 
-            decimal? avg30 = sampleDays > 0 ? daySum / sampleDays : null;
-            if (best is null && avg30 is null) continue;   // nothing active and nothing in 30 days
-
+        var results = new List<ContractPrice>(byType.Count);
+        foreach (var (typeId, list) in byType)
+        {
+            var (best, activeCount, avg30, sampleDays) = Summarize(list);
+            if (best is null && avg30 is null) continue;
             results.Add(new ContractPrice
             {
-                TypeId      = typeId,
-                BestPrice   = best  is { } b ? Math.Round(b, 2, MidpointRounding.AwayFromZero) : null,
-                Avg30Best   = avg30 is { } a ? Math.Round(a, 2, MidpointRounding.AwayFromZero) : null,
-                ActiveCount = activeCount,
-                SampleDays  = sampleDays,
-                UpdatedAt   = now,
+                TypeId = typeId, BestPrice = Round2(best), Avg30Best = Round2(avg30),
+                ActiveCount = activeCount, SampleDays = sampleDays, UpdatedAt = now,
             });
         }
 
-        // Full replace — the table is a small per-type summary.
+        var bpcResults = new List<ContractBpcPrice>(byBpc.Count);
+        foreach (var ((typeId, me), list) in byBpc)
+        {
+            var (best, activeCount, avg30, sampleDays) = Summarize(list);
+            if (best is null && avg30 is null) continue;
+            bpcResults.Add(new ContractBpcPrice
+            {
+                TypeId = typeId, Me = me, BestPerRun = Round2(best), Avg30PerRun = Round2(avg30),
+                ActiveCount = activeCount, SampleDays = sampleDays, UpdatedAt = now,
+            });
+        }
+
+        // Full replace — both are small per-type summaries.
         await db.ContractPrices.ExecuteDeleteAsync(ct);
         if (results.Count > 0) db.ContractPrices.AddRange(results);
+        await db.ContractBpcPrices.ExecuteDeleteAsync(ct);
+        if (bpcResults.Count > 0) db.ContractBpcPrices.AddRange(bpcResults);
         await db.SaveChangesAsync(ct);
 
-        StatusText = $"Contracts: priced {results.Count:N0} types — {DateTimeOffset.Now:t}";
+        StatusText = $"Contracts: priced {results.Count:N0} types, {bpcResults.Count:N0} BPCs — {DateTimeOffset.Now:t}";
 
         if (AfterPricing is not null && !ct.IsCancellationRequested)
         {

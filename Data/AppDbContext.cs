@@ -32,6 +32,8 @@ public class AppDbContext : DbContext
     public DbSet<ContractRecord>             EsiContracts            => Set<ContractRecord>();
     public DbSet<ContractItem>               EsiContractItems        => Set<ContractItem>();
     public DbSet<ContractPrice>              ContractPrices          => Set<ContractPrice>();
+    public DbSet<ContractBpcPrice>           ContractBpcPrices       => Set<ContractBpcPrice>();
+    public DbSet<PriceOverride>              PriceOverrides          => Set<PriceOverride>();
     public DbSet<WalletBackfillState>        WalletBackfillStates    => Set<WalletBackfillState>();
     public DbSet<UniverseName>               UniverseNames           => Set<UniverseName>();
     public DbSet<CharacterAsset>             EsiAssets               => Set<CharacterAsset>();
@@ -42,11 +44,17 @@ public class AppDbContext : DbContext
     public DbSet<ContactEntry>               EsiContacts             => Set<ContactEntry>();
     public DbSet<KillMailRef>                EsiKillMailRefs         => Set<KillMailRef>();
     public DbSet<KillMailDetail>             KillMailDetails         => Set<KillMailDetail>();
+    public DbSet<ZkbKillFlag>                ZkbKillFlags            => Set<ZkbKillFlag>();
     public DbSet<KillMailAttacker>           KillMailAttackers       => Set<KillMailAttacker>();
     public DbSet<KillMailItem>               KillMailItems           => Set<KillMailItem>();
     public DbSet<PlanetaryColony>            EsiPlanetaryColonies    => Set<PlanetaryColony>();
     public DbSet<AgentResearch>              EsiAgentResearch        => Set<AgentResearch>();
     public DbSet<LoyaltyPoint>               EsiLoyaltyPoints        => Set<LoyaltyPoint>();
+    public DbSet<LpStoreOffer>               EsiLpStoreOffers        => Set<LpStoreOffer>();
+    public DbSet<LpStoreOfferItem>           EsiLpStoreOfferItems    => Set<LpStoreOfferItem>();
+    public DbSet<LpStoreCorp>                EsiLpStoreCorps         => Set<LpStoreCorp>();
+    public DbSet<LpCorpValue>                LpCorpValues            => Set<LpCorpValue>();
+    public DbSet<LpCorpValueSnapshot>        LpCorpValueSnapshots    => Set<LpCorpValueSnapshot>();
     public DbSet<CharacterMedal>             EsiMedals               => Set<CharacterMedal>();
     public DbSet<StandingEntry>              EsiStandings            => Set<StandingEntry>();
     public DbSet<CharacterTitle>             EsiTitles               => Set<CharacterTitle>();
@@ -57,6 +65,8 @@ public class AppDbContext : DbContext
     // ── Polled corporation data ───────────────────────────────────────────
     public DbSet<CorpDivision>          EsiCorpDivisions         => Set<CorpDivision>();
     public DbSet<CorpMember>            EsiCorpMembers           => Set<CorpMember>();
+    public DbSet<CorpMemberTracking>    EsiCorpMemberTracking    => Set<CorpMemberTracking>();
+    public DbSet<CorpMemberSession>     EsiCorpMemberSessions    => Set<CorpMemberSession>();
     public DbSet<CorpMemberRole>        EsiCorpMemberRoles       => Set<CorpMemberRole>();
     public DbSet<CorpTitle>             EsiCorpTitles            => Set<CorpTitle>();
     public DbSet<CorpMedal>             EsiCorpMedals            => Set<CorpMedal>();
@@ -88,8 +98,30 @@ public class AppDbContext : DbContext
     // ── Order Tracker (user-entered) ─────────────────────────────────────
     public DbSet<TrackedOrder> TrackedOrders => Set<TrackedOrder>();
 
+    // ── Standing buy orders (user-defined intent) ────────────────────────
+    public DbSet<StandingBuyOrder> StandingBuyOrders => Set<StandingBuyOrder>();
+    public DbSet<WorklistMarketAlt>      WorklistMarketAlts      => Set<WorklistMarketAlt>();
+    public DbSet<WorklistInvRule>   WorklistInvRules   => Set<WorklistInvRule>();
+    public DbSet<WorklistCorpAlt>   WorklistCorpAlts   => Set<WorklistCorpAlt>();
+    public DbSet<WorklistIndyChar>  WorklistIndyChars  => Set<WorklistIndyChar>();
+    public DbSet<WorklistItemState> WorklistItemStates => Set<WorklistItemState>();
+    public DbSet<WorklistIndyScopeStation> WorklistIndyScopeStations => Set<WorklistIndyScopeStation>();
+    public DbSet<WorklistStationLevel>     WorklistStationLevels     => Set<WorklistStationLevel>();
+
     // ── Application error log ────────────────────────────────────────────
     public DbSet<AppErrorEntry> AppErrors => Set<AppErrorEntry>();
+
+    // ── Client activity monitoring ───────────────────────────────────────
+    public DbSet<CharacterStatus> CharacterStatuses => Set<CharacterStatus>();
+    public DbSet<GameLogFile>     GameLogFiles      => Set<GameLogFile>();
+    public DbSet<GameLogEvent>    GameLogEvents     => Set<GameLogEvent>();
+    public DbSet<ChatLogFile>     ChatLogFiles      => Set<ChatLogFile>();
+    public DbSet<ChatMessage>     ChatMessages      => Set<ChatMessage>();
+
+    public DbSet<IntelReport>          IntelReports          => Set<IntelReport>();
+    public DbSet<IntelReportCharacter> IntelReportCharacters => Set<IntelReportCharacter>();
+    public DbSet<CharacterAffiliation> CharacterAffiliations  => Set<CharacterAffiliation>();
+    public DbSet<NameLookupMiss>       NameLookupMisses       => Set<NameLookupMiss>();
 
     // ── Market pricing ───────────────────────────────────────────────
     public DbSet<MarketPricingConfig>   MarketPricingConfigs   => Set<MarketPricingConfig>();
@@ -115,11 +147,30 @@ public class AppDbContext : DbContext
     public DbSet<SdeBlueprintMaterial>  SdeBlueprintMaterials  => Set<SdeBlueprintMaterial>();
     public DbSet<SdeBlueprintProduct>   SdeBlueprintProducts   => Set<SdeBlueprintProduct>();
     public DbSet<SdeBlueprintSkill>     SdeBlueprintSkills     => Set<SdeBlueprintSkill>();
+    // Map statistics — hourly buckets plus their daily rollup.
+    public DbSet<MapSystemJump>     MapSystemJumps     => Set<MapSystemJump>();
+    public DbSet<MapSystemKill>     MapSystemKills     => Set<MapSystemKill>();
+    public DbSet<MapSystemDaily>    MapSystemDailies   => Set<MapSystemDaily>();
+    public DbSet<MapSovereignty>    MapSovereignties   => Set<MapSovereignty>();
+    public DbSet<MapSovStructure>   MapSovStructures   => Set<MapSovStructure>();
+    public DbSet<MapIndustryIndex>  MapIndustryIndices => Set<MapIndustryIndex>();
+    public DbSet<MapFactionWarfare> MapFactionWarfares => Set<MapFactionWarfare>();
+    public DbSet<MapIncursion>      MapIncursions      => Set<MapIncursion>();
+    public DbSet<MapStatBucket>     MapStatBuckets     => Set<MapStatBucket>();
+
     public DbSet<SdeRegion>             SdeRegions             => Set<SdeRegion>();
     public DbSet<SdeConstellation>      SdeConstellations      => Set<SdeConstellation>();
     public DbSet<SdeSolarSystem>        SdeSolarSystems        => Set<SdeSolarSystem>();
     public DbSet<SdeStargate>           SdeStargates           => Set<SdeStargate>();
+    public DbSet<SdePlanetResource>     SdePlanetResources     => Set<SdePlanetResource>();
+    public DbSet<SdeAgent>              SdeAgents              => Set<SdeAgent>();
+    public DbSet<SdeAgentType>          SdeAgentTypes          => Set<SdeAgentType>();
+    public DbSet<SdeCorpDivision>       SdeCorpDivisions       => Set<SdeCorpDivision>();
+    public DbSet<SdeCelestial>          SdeCelestials          => Set<SdeCelestial>();
     public DbSet<SdeStation>            SdeStations            => Set<SdeStation>();
+    public DbSet<SdeStationService>          SdeStationServices          => Set<SdeStationService>();
+    public DbSet<SdeStationOperation>        SdeStationOperations        => Set<SdeStationOperation>();
+    public DbSet<SdeStationOperationService> SdeStationOperationServices => Set<SdeStationOperationService>();
     public DbSet<SdeFaction>            SdeFactions            => Set<SdeFaction>();
     public DbSet<SdeNpcCorporation>     SdeNpcCorporations     => Set<SdeNpcCorporation>();
     public DbSet<SdeRace>               SdeRaces               => Set<SdeRace>();
@@ -156,18 +207,45 @@ public class AppDbContext : DbContext
     public DbSet<InvLevelGroup>      InvLevelGroups      => Set<InvLevelGroup>();
     public DbSet<InvLevelItem>       InvLevelItems       => Set<InvLevelItem>();
 
+    // ── Sale Posting ─────────────────────────────────────────────────────────
+    public DbSet<SalePosting>        SalePostings        => Set<SalePosting>();
+    public DbSet<SalePostingSection> SalePostingSections => Set<SalePostingSection>();
+    public DbSet<SalePostingItem>    SalePostingItems    => Set<SalePostingItem>();
+    public DbSet<SalePostingPost>    SalePostingPosts    => Set<SalePostingPost>();
+
     // ── Indy Parks ──────────────────────────────────────────────────────────
     public DbSet<IndyPark>               IndyParks               => Set<IndyPark>();
     public DbSet<IndyStructure>          IndyStructures          => Set<IndyStructure>();
     public DbSet<IndyStructureRig>       IndyStructureRigs       => Set<IndyStructureRig>();
     public DbSet<IndyCategoryAssignment> IndyCategoryAssignments => Set<IndyCategoryAssignment>();
     public DbSet<IndyItemException>      IndyItemExceptions      => Set<IndyItemException>();
+    public DbSet<IndyStructureService>   IndyStructureServices   => Set<IndyStructureService>();
+
+    // ── Structures ───────────────────────────────────────────────────────────
+    // The app's own record, fed from EsiStructureNames and editable. Deliberately separate from
+    // that table so the UI never writes into polled data.
+    public DbSet<Structure>              Structures              => Set<Structure>();
+    public DbSet<StructureFitting>       StructureFittings       => Set<StructureFitting>();
+
+    // EVE Ref's published structure snapshot. A third source, kept apart from both the polled
+    // table and our own — see EveRefStructure.
+    public DbSet<EveRefStructure>        EveRefStructures        => Set<EveRefStructure>();
 
     // ── Build cost calculation ───────────────────────────────────────────────
     public DbSet<EsiAdjustedPrice>   EsiAdjustedPrices   => Set<EsiAdjustedPrice>();
     public DbSet<IndustryCostIndex>  IndustryCostIndices => Set<IndustryCostIndex>();
     public DbSet<BuildCost>              BuildCosts              => Set<BuildCost>();
     public DbSet<ReprocessingItemValue>  ReprocessingItemValues  => Set<ReprocessingItemValue>();
+
+    // ── Sales ────────────────────────────────────────────────────────────────
+    public DbSet<SaleExclusion> SaleExclusions => Set<SaleExclusion>();
+
+    // ── Alarms ───────────────────────────────────────────────────────────────
+    public DbSet<Alarm>        Alarms        => Set<Alarm>();
+    public DbSet<AlarmAction>  AlarmActions  => Set<AlarmAction>();
+    public DbSet<AlarmSeenKey> AlarmSeenKeys => Set<AlarmSeenKey>();
+    public DbSet<AlarmEvent>   AlarmEvents   => Set<AlarmEvent>();
+    public DbSet<AlarmAlert>   AlarmAlerts   => Set<AlarmAlert>();
 
     // ── App settings ─────────────────────────────────────────────────────────
     public DbSet<AlertSettings>      AlertSettings       => Set<AlertSettings>();
@@ -303,6 +381,46 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.RegionId);
             e.Property(x => x.RegionId).ValueGeneratedNever(); });
 
+        // Map statistics. Every hourly table is keyed by (Bucket, …) so that a row
+        // written by the live ESI poll and the same row recovered later from the EVE Ref
+        // archive collide on the primary key instead of duplicating.
+        mb.Entity<MapSystemJump>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId });
+            e.ToTable("MapSystemJumps"); });
+
+        mb.Entity<MapSystemKill>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId });
+            e.ToTable("MapSystemKills"); });
+
+        mb.Entity<MapSystemDaily>(e => {
+            e.HasKey(x => new { x.Day, x.SystemId });
+            e.ToTable("MapSystemDailies"); });
+
+        mb.Entity<MapSovereignty>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId });
+            e.ToTable("MapSovereignties"); });
+
+        mb.Entity<MapSovStructure>(e => {
+            e.HasKey(x => new { x.Bucket, x.StructureId });
+            e.HasIndex(x => x.SystemId);
+            e.ToTable("MapSovStructures"); });
+
+        mb.Entity<MapIndustryIndex>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId, x.Activity });
+            e.ToTable("MapIndustryIndices"); });
+
+        mb.Entity<MapFactionWarfare>(e => {
+            e.HasKey(x => new { x.Bucket, x.SystemId });
+            e.ToTable("MapFactionWarfares"); });
+
+        mb.Entity<MapIncursion>(e => {
+            e.HasKey(x => new { x.Bucket, x.ConstellationId });
+            e.ToTable("MapIncursions"); });
+
+        mb.Entity<MapStatBucket>(e => {
+            e.HasKey(x => new { x.Dataset, x.Bucket });
+            e.ToTable("MapStatBuckets"); });
+
         mb.Entity<SdeConstellation>(e => {
             e.HasKey(x => x.ConstellationId);
             e.Property(x => x.ConstellationId).ValueGeneratedNever(); });
@@ -311,13 +429,51 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.SolarSystemId);
             e.Property(x => x.SolarSystemId).ValueGeneratedNever(); });
 
+        mb.Entity<SdeAgent>(e => {
+            e.HasKey(x => x.AgentId);
+            e.Property(x => x.AgentId).ValueGeneratedNever();
+            e.HasIndex(x => x.LocationId);
+            e.ToTable("SdeAgents"); });
+
+        mb.Entity<SdeAgentType>(e => {
+            e.HasKey(x => x.AgentTypeId);
+            e.Property(x => x.AgentTypeId).ValueGeneratedNever();
+            e.ToTable("SdeAgentTypes"); });
+
+        mb.Entity<SdeCorpDivision>(e => {
+            e.HasKey(x => x.DivisionId);
+            e.Property(x => x.DivisionId).ValueGeneratedNever();
+            e.ToTable("SdeCorpDivisions"); });
+
+        mb.Entity<SdePlanetResource>(e => {
+            e.HasKey(x => x.PlanetId);
+            e.Property(x => x.PlanetId).ValueGeneratedNever();
+            e.ToTable("SdePlanetResources"); });
+
         mb.Entity<SdeStargate>(e => {
             e.HasKey(x => x.StargateId);
             e.Property(x => x.StargateId).ValueGeneratedNever(); });
 
+        mb.Entity<SdeCelestial>(e => {
+            e.HasKey(x => x.ItemId);
+            e.Property(x => x.ItemId).ValueGeneratedNever();
+            e.HasIndex(x => x.SolarSystemId); });
+
         mb.Entity<SdeStation>(e => {
             e.HasKey(x => x.StationId);
             e.Property(x => x.StationId).ValueGeneratedNever(); });
+
+        mb.Entity<SdeStationService>(e => {
+            e.HasKey(x => x.ServiceId);
+            e.Property(x => x.ServiceId).ValueGeneratedNever(); });
+
+        mb.Entity<SdeStationOperation>(e => {
+            e.HasKey(x => x.OperationId);
+            e.Property(x => x.OperationId).ValueGeneratedNever(); });
+
+        mb.Entity<SdeStationOperationService>(e => {
+            e.HasKey(x => new { x.OperationId, x.ServiceId });
+            e.Property(x => x.OperationId).ValueGeneratedNever(); });
 
         mb.Entity<SdeFaction>(e => {
             e.HasKey(x => x.FactionId);
@@ -523,6 +679,15 @@ public class AppDbContext : DbContext
             e.Property(x => x.TypeId).ValueGeneratedNever();
             e.ToTable("ContractPrices"); });
 
+        mb.Entity<ContractBpcPrice>(e => {
+            e.HasKey(x => new { x.TypeId, x.Me });
+            e.ToTable("ContractBpcPrices"); });
+
+        mb.Entity<PriceOverride>(e => {
+            e.HasKey(x => x.TypeId);
+            e.Property(x => x.TypeId).ValueGeneratedNever();
+            e.ToTable("PriceOverrides"); });
+
         mb.Entity<UniverseName>(e => {
             e.HasKey(x => x.EntityId);
             e.Property(x => x.EntityId).ValueGeneratedNever();
@@ -587,6 +752,11 @@ public class AppDbContext : DbContext
             e.Property(x => x.Id).ValueGeneratedOnAdd();
             e.ToTable("KillMailItems"); });
 
+        mb.Entity<ZkbKillFlag>(e => {
+            e.HasKey(x => x.KillMailId);
+            e.Property(x => x.KillMailId).ValueGeneratedNever();
+            e.ToTable("ZkbKillFlags"); });
+
         mb.Entity<PlanetaryColony>(e => {
             e.HasKey(x => new { x.CharacterId, x.PlanetId });
             e.Property(x => x.CharacterId).ValueGeneratedNever();
@@ -601,6 +771,31 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.CharacterId, x.CorporationId });
             e.Property(x => x.CharacterId).ValueGeneratedNever();
             e.ToTable("EsiLoyaltyPoints"); });
+
+        mb.Entity<LpStoreOffer>(e => {
+            e.HasKey(x => new { x.CorporationId, x.OfferId });
+            e.Property(x => x.OfferId).ValueGeneratedNever();
+            e.ToTable("EsiLpStoreOffers"); });
+
+        mb.Entity<LpStoreOfferItem>(e => {
+            e.HasKey(x => new { x.CorporationId, x.OfferId, x.TypeId });
+            e.Property(x => x.OfferId).ValueGeneratedNever();
+            e.ToTable("EsiLpStoreOfferItems"); });
+
+        mb.Entity<LpStoreCorp>(e => {
+            e.HasKey(x => x.CorporationId);
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.ToTable("EsiLpStoreCorps"); });
+
+        mb.Entity<LpCorpValue>(e => {
+            e.HasKey(x => x.CorporationId);
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.ToTable("LpCorpValues"); });
+
+        mb.Entity<LpCorpValueSnapshot>(e => {
+            e.HasKey(x => new { x.CorporationId, x.Date });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.ToTable("LpCorpValueSnapshots"); });
 
         mb.Entity<CharacterMedal>(e => {
             e.HasKey(x => x.Id);
@@ -644,6 +839,18 @@ public class AppDbContext : DbContext
             e.Property(x => x.CharacterId).ValueGeneratedNever();
             e.ToTable("EsiCorpMembers"); });
 
+        mb.Entity<CorpMemberTracking>(e => {
+            e.HasKey(x => new { x.CorporationId, x.CharacterId });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.ToTable("EsiCorpMemberTracking"); });
+
+        mb.Entity<CorpMemberSession>(e => {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).ValueGeneratedOnAdd();
+            e.HasIndex(x => new { x.CorporationId, x.CharacterId, x.LogonDate }).IsUnique();
+            e.ToTable("EsiCorpMemberSessions"); });
+
         mb.Entity<CorpMemberRole>(e => {
             e.HasKey(x => new { x.CorporationId, x.CharacterId, x.Role, x.RoleType });
             e.Property(x => x.CorporationId).ValueGeneratedNever();
@@ -677,6 +884,30 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.StructureId);
             e.Property(x => x.StructureId).ValueGeneratedNever();
             e.ToTable("EsiStructureNameFailures"); });
+
+        // The app's own structure record. StructureId is the in-game location id, so it is never
+        // generated — a row's identity is the structure it describes.
+        mb.Entity<Structure>(e => {
+            e.HasKey(x => x.StructureId);
+            e.Property(x => x.StructureId).ValueGeneratedNever();
+            e.ToTable("Structures"); });
+
+        mb.Entity<StructureFitting>(e => {
+            e.HasKey(x => x.Id);
+            // One module per slot: the unique index is what stops a double-click leaving two
+            // modules in the same hole.
+            e.HasIndex(x => new { x.StructureId, x.Band, x.SlotIndex }).IsUnique();
+            e.ToTable("StructureFittings"); });
+
+        mb.Entity<EveRefStructure>(e => {
+            e.HasKey(x => x.StructureId);
+            e.Property(x => x.StructureId).ValueGeneratedNever();
+            e.ToTable("EveRefStructures"); });
+
+        mb.Entity<IndyStructureService>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.StructureId);
+            e.ToTable("IndyStructureServices"); });
 
         mb.Entity<CorpStarbase>(e => {
             e.HasKey(x => new { x.CorporationId, x.StarbaseId });
@@ -768,6 +999,114 @@ public class AppDbContext : DbContext
         mb.Entity<AppErrorEntry>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("AppErrorLog"); });
+
+        mb.Entity<StandingBuyOrder>(e => {
+            e.HasKey(x => x.Id);
+            // One standing order per type per location — a second would just be a
+            // duplicate row matching the same live orders.
+            e.HasIndex(x => new { x.TypeId, x.LocationId }).IsUnique(); });
+
+        mb.Entity<WorklistMarketAlt>(e => {
+            e.HasKey(x => x.Id);
+            // One character per location: the desk answers "who works here", and two
+            // answers for one station is not a routing rule, it is an ambiguity.
+            e.HasIndex(x => x.LocationId).IsUnique(); });
+
+        mb.Entity<WorklistInvRule>(e => {
+            e.HasKey(x => x.Id); });
+
+        mb.Entity<WorklistCorpAlt>(e => {
+            e.HasKey(x => x.Id);
+            // One maintainer per corporation, for the same reason a station has one trader.
+            e.HasIndex(x => x.CorporationId).IsUnique(); });
+
+        mb.Entity<WorklistStationLevel>(e => {
+            e.HasKey(x => x.Id);
+            // One row per group per station; a station may hold several groups.
+            e.HasIndex(x => new { x.GroupId, x.LocationId }).IsUnique(); });
+
+        mb.Entity<WorklistIndyScopeStation>(e => {
+            e.HasKey(x => x.Id);
+            // One row per station: adding Jita twice is not two scopes.
+            e.HasIndex(x => x.LocationId).IsUnique(); });
+
+        mb.Entity<WorklistIndyChar>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.CharacterId).IsUnique(); });
+
+        mb.Entity<WorklistItemState>(e => {
+            e.HasKey(x => x.Key); });
+
+        mb.Entity<CharacterStatus>(e => {
+            e.HasKey(x => x.CharacterId);
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.Ignore(x => x.IsDocked); });
+
+        mb.Entity<GameLogFile>(e => {
+            e.HasKey(x => x.Path);
+            e.Property(x => x.Path).ValueGeneratedNever(); });
+
+        mb.Entity<GameLogEvent>(e => {
+            e.HasKey(x => x.Id);
+            // Re-importing a file must not duplicate rows.
+            e.HasIndex(x => new { x.SourceFile, x.LineNumber }).IsUnique();
+            e.HasIndex(x => x.OccurredAt);
+            e.HasIndex(x => new { x.CharacterId, x.Kind }); });
+
+        mb.Entity<ChatLogFile>(e => {
+            e.HasKey(x => x.Path);
+            e.Property(x => x.Path).ValueGeneratedNever(); });
+
+        mb.Entity<ChatMessage>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.SourceFile, x.LineNumber }).IsUnique();
+            e.HasIndex(x => x.OccurredAt);
+            // Also what the import's duplicate check reads: the same conversation logged by a
+            // second character, or imported from another PC's folder, is found by channel and
+            // time rather than by file, which cannot see across files at all.
+            e.HasIndex(x => new { x.ChannelName, x.OccurredAt }); });
+
+        mb.Entity<IntelReport>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.ChatMessageId).IsUnique();          // re-parsing cannot duplicate
+            e.HasIndex(x => new { x.SystemId, x.ReportedAt });    // the overlays' query
+            e.HasIndex(x => new { x.Obsolete, x.ReportedAt }); });
+
+        mb.Entity<NameLookupMiss>(e => {
+            e.HasKey(x => x.Name);
+            e.Property(x => x.Name).ValueGeneratedNever(); });
+
+        mb.Entity<CharacterAffiliation>(e => {
+            e.HasKey(x => x.CharacterId);
+            e.Property(x => x.CharacterId).ValueGeneratedNever(); });
+
+        mb.Entity<IntelReportCharacter>(e => {
+            e.HasKey(x => new { x.IntelReportId, x.CharacterId });
+            e.HasIndex(x => x.CharacterId); });                   // "where was this pilot last seen"
+
+        mb.Entity<SaleExclusion>(e => {
+            e.HasKey(x => new { x.Kind, x.SaleId }); });
+
+        mb.Entity<Alarm>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.Enabled); });
+
+        mb.Entity<AlarmAction>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.AlarmId); });
+
+        mb.Entity<AlarmSeenKey>(e => {
+            e.HasKey(x => new { x.AlarmId, x.MatchKey });
+            // Pruning walks the ledger oldest-first per alarm.
+            e.HasIndex(x => new { x.AlarmId, x.FirstSeenAt }); });
+
+        mb.Entity<AlarmEvent>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.AlarmId, x.FiredAt }); });
+
+        mb.Entity<AlarmAlert>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.Dismissed, x.CreatedAt }); });
 
         mb.Entity<MarketTypeHistory>(e => {
             e.HasKey(x => new { x.RegionId, x.TypeId, x.Date });
