@@ -582,6 +582,24 @@ public class IndyParksViewModel : ReactiveObject
         RemoveServiceCommand      = ReactiveCommand.CreateFromTask<ServiceModuleVm>(
                                         s => RemoveServiceAsync(s.Owner, s));
 
+        // ⚠️ A ReactiveCommand that throws does not merely fail that click — the exception breaks
+        // its observable pipeline and the command is dead for the rest of the session, silently.
+        // Deleting a park did exactly that: one "database is locked" while the pollers were busy,
+        // and the button stopped responding entirely, which reads as a hang rather than an error.
+        // Observing ThrownExceptions keeps the pipeline alive and puts the reason in the log.
+        foreach (var thrown in new[]
+                 {
+                     AddParkCommand.ThrownExceptions,          DeleteParkCommand.ThrownExceptions,
+                     SetDefaultParkCommand.ThrownExceptions,   AddStructureCommand.ThrownExceptions,
+                     AddAllInSystemCommand.ThrownExceptions,   AutoAssignCommand.ThrownExceptions,
+                     RemoveStructureCommand.ThrownExceptions,  SaveStructureCommand.ThrownExceptions,
+                     SearchFacilityCommand.ThrownExceptions,   LinkFacilityCommand.ThrownExceptions,
+                     UnlinkFacilityCommand.ThrownExceptions,   AddItemExceptionCommand.ThrownExceptions,
+                     RemoveItemExceptionCommand.ThrownExceptions, AddServiceCommand.ThrownExceptions,
+                     RemoveServiceCommand.ThrownExceptions,
+                 })
+            thrown.Subscribe(ex => _errorLogger?.Log(nameof(IndyParksViewModel), "command", ex));
+
         this.WhenAnyValue(x => x.ParkName)
             .Skip(1)
             .Throttle(TimeSpan.FromMilliseconds(500))
@@ -707,14 +725,26 @@ public class IndyParksViewModel : ReactiveObject
         var id = _selectedPark.Id;
 
         await using var db = await _dbFactory.CreateDbContextAsync();
-        await db.IndyCategoryAssignments.Where(a => a.ParkId == id).ExecuteDeleteAsync();
-        await db.IndyItemExceptions.Where(e => e.ParkId == id).ExecuteDeleteAsync();
+
         var structIds = await db.IndyStructures.Where(s => s.ParkId == id)
             .Select(s => s.Id).ToListAsync();
-        foreach (var sid in structIds)
-            await db.IndyStructureRigs.Where(r => r.StructureId == sid).ExecuteDeleteAsync();
+
+        // ⚠️ One transaction, not six. Each ExecuteDelete takes the write lock on its own, so a
+        // park deleted while the pollers are busy could fail partway and leave a park stripped of
+        // its assignments but still listed. It also took the lock once per structure for the rigs,
+        // which is where a fourteen-facility park spent its time.
+        await using var tx = await db.Database.BeginTransactionAsync();
+
+        await db.IndyCategoryAssignments.Where(a => a.ParkId == id).ExecuteDeleteAsync();
+        await db.IndyItemExceptions.Where(e => e.ParkId == id).ExecuteDeleteAsync();
+        await db.IndyStructureRigs.Where(r => structIds.Contains(r.StructureId)).ExecuteDeleteAsync();
+        // Services were never deleted here, so every park removed since they were added left its
+        // service rows behind, orphaned against structure ids that no longer exist.
+        await db.IndyStructureServices.Where(v => structIds.Contains(v.StructureId)).ExecuteDeleteAsync();
         await db.IndyStructures.Where(s => s.ParkId == id).ExecuteDeleteAsync();
         await db.IndyParks.Where(p => p.Id == id).ExecuteDeleteAsync();
+
+        await tx.CommitAsync();
 
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
