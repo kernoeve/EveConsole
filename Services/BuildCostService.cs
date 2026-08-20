@@ -1005,9 +1005,45 @@ public class BuildCostService
             })
             .ToList();
 
-        await db.BuildCosts.ExecuteDeleteAsync(ct);
-        db.BuildCosts.AddRange(results);
-        await db.SaveChangesAsync(ct);
+        // ⚠️ The largest single write this app makes: every craftable item in the game, deleted
+        // and reinserted. As one delete plus one SaveChanges that was a single transaction, and
+        // measured during a market refresh it put over 500 MB into the write-ahead log in four
+        // seconds — more than the entire Jita order rewrite that triggered it. There is one log,
+        // shared by everything, so while that transaction ran nothing else could write and none
+        // of it could be reclaimed.
+        //
+        // Chunked and paced like MarketPricingService.UpsertRawOrdersAsync, for the same reason.
+        // This runs after every market refresh; the pauses cost it a few seconds.
+        const int deleteBatch = 20_000;
+        while (true)
+        {
+            var removed = await db.Database.ExecuteSqlRawAsync(
+                """DELETE FROM "BuildCosts" WHERE rowid IN (SELECT rowid FROM "BuildCosts" LIMIT {0})""",
+                [deleteBatch], ct);
+
+            if (removed < deleteBatch) break;
+            await Task.Delay(50, ct);
+        }
+
+        var autoDetect = db.ChangeTracker.AutoDetectChangesEnabled;
+        db.ChangeTracker.AutoDetectChangesEnabled = false;
+        try
+        {
+            const int rowsPerTx = 5_000;
+            for (int start = 0; start < results.Count; start += rowsPerTx)
+            {
+                await using var tx = await db.Database.BeginTransactionAsync(ct);
+                db.BuildCosts.AddRange(results.Skip(start).Take(rowsPerTx));
+                await db.SaveChangesAsync(ct);
+                db.ChangeTracker.Clear();
+                await tx.CommitAsync(ct);
+
+                // A real gap. Task.Yield() would reschedule in microseconds and retake the lock
+                // before another writer could reach it — the exact mistake being corrected here.
+                await Task.Delay(50, ct);
+            }
+        }
+        finally { db.ChangeTracker.AutoDetectChangesEnabled = autoDetect; }
 
         handle.Complete(true, results.Count, $"{results.Count:N0} items");
         StatusText = $"Build costs: last updated {DateTimeOffset.Now:t} ({results.Count:N0} items)";
