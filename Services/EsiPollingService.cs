@@ -2957,6 +2957,60 @@ public class EsiPollingService : ReactiveObject
     /// service — this class already owns it.</summary>
     public Task<int> SyncStructuresAsync(CancellationToken ct = default) => _structureSync.SyncAsync(ct);
 
+    /// <summary>
+    /// Resolves these structure ids now and copies the answers into the browser's table, awaited,
+    /// so a caller that has just introduced ids nothing else knows about can hand back a finished
+    /// picture rather than one that fills in later.
+    ///
+    /// <para>⚠️ Not <see cref="ForceResolveStructureNamesAsync"/> with a shorter list. That one
+    /// gathers every id from every source and then runs the public-structure sweep and the
+    /// celestial backfill behind it — minutes of work whose result the caller does not need, with
+    /// the handful of ids it does care about buried inside. This resolves exactly what it is
+    /// given.</para>
+    ///
+    /// <para>Freshness and the 30-day refusal backoff still apply, so calling it for a structure
+    /// that has just been asked about costs nothing, and one we have no docking rights to is not
+    /// re-asked on every import.</para>
+    /// </summary>
+    public async Task ResolveStructuresNowAsync(IReadOnlyList<long> structureIds, CancellationToken ct = default)
+    {
+        var ids = structureIds.Distinct().ToList();
+        if (ids.Count == 0) return;
+
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            // The resolver reads freshness off these rows, and the periodic sweep finds any that
+            // stayed unresolved and retries them later.
+            var known = new HashSet<long>(await db.EsiStructureNames
+                .Where(s => ids.Contains(s.StructureId))
+                .Select(s => s.StructureId).ToListAsync(ct));
+
+            var epoch = DateTimeOffset.FromUnixTimeSeconds(0);
+            foreach (var id in ids.Where(id => !known.Contains(id)))
+                db.EsiStructureNames.Add(new StructureName
+                {
+                    StructureId = id, Status = (int)StructureStatus.Pending, PulledAt = epoch,
+                });
+            await db.SaveChangesAsync(ct);
+
+            StatusText = $"Resolving {ids.Count} structure(s)…";
+            await ResolveNewStructureNamesAsync(0, ids, db, ct);
+
+            // ⚠️ The copy is part of the job. Without it the answers sit in the ESI table and the
+            // browser, which reads the app's own, still shows nothing — which is the whole
+            // complaint this method exists to answer.
+            await _structureSync.SyncAsync(ct);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("EsiPollingService", nameof(ResolveStructuresNowAsync), ex);
+        }
+    }
+
     public async Task ForceResolveStructureNamesAsync(CancellationToken ct = default)
     {
         StatusText = "Resolving structure names…";
@@ -3004,6 +3058,12 @@ public class EsiPollingService : ReactiveObject
                 .Select(o => o.LocationId).Distinct().ToListAsync(ct)) ids.Add(id);
             foreach (var id in await db.EsiWalletTransactions.Where(w => w.LocationId > T)
                 .Select(w => w.LocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+
+            // Facilities an Indy Parks entry is linked to. Unlike everything above, these need not
+            // be anywhere in our own data at all — a park imported from someone else names their
+            // structures, and this is the only place those ids appear.
+            foreach (var id in await db.IndyStructures.Where(s => s.RealStructureId != null && s.RealStructureId > T)
+                .Select(s => s.RealStructureId!.Value).Distinct().ToListAsync(ct)) ids.Add(id);
 
             // Any already-tracked structure that isn't fully resolved yet (old name-only rows, or
             // placeholders whose source data has since rolled out of the other tables).

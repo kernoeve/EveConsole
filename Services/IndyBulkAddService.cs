@@ -36,6 +36,17 @@ public class IndyBulkAddService(IDbContextFactory<AppDbContext> dbFactory)
         [35836] = ("tatara",  "Tatara"),
     };
 
+    /// <summary>
+    /// The hull type id behind a park's own type key, or 0 for a key that names no player
+    /// structure — <c>npc_station</c>, or anything unrecognised.
+    ///
+    /// <para>Read off <see cref="IndyTypes"/> rather than written out a second time, so the two
+    /// cannot drift. Lowest id wins where a hull has more than one published variant: they are the
+    /// same structure, and the canonical id is the one everything else reports.</para>
+    /// </summary>
+    public static int TypeIdForKey(string key)
+        => IndyTypes.Where(p => p.Value.Key == key).Select(p => p.Key).DefaultIfEmpty(0).Min();
+
     /// <summary>Refineries are the moon-mining ones; the skip option applies only to these.</summary>
     private static readonly HashSet<string> RefineryKeys = ["athanor", "tatara"];
 
