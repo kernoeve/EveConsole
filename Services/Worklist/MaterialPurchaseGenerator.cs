@@ -116,8 +116,9 @@ public class MaterialPurchaseGenerator(
             return [];
         }
 
-        // Anything a Build rule covers is made, not bought.
-        var buildManaged = await BuildManagedTypesAsync(db, ct);
+        // Anything a Build rule covers is made, not bought — unless nothing can make it, in which
+        // case buying is the only way it ever arrives.
+        var buildManaged = await BuildManagedTypesAsync(db, ctx, ct);
 
         // Blueprints the plan itself asks to buy — BPC-only items carry their copies as a raw
         // material with a real quantity. Those are better handled there than by the
@@ -574,12 +575,32 @@ public class MaterialPurchaseGenerator(
         return scope;
     }
 
-    private static async Task<HashSet<int>> BuildManagedTypesAsync(AppDbContext db, CancellationToken ct) =>
+    /// <summary>
+    /// Types a Build rule has taken responsibility for, so this generator leaves them alone.
+    ///
+    /// <para>⚠️ Only the ones something can actually make. A group is a list of items and a rule
+    /// applies to all of them, so a Build rule routinely covers something with no blueprint at
+    /// all — a planetary product like Self-Harmonizing Power Core sitting in a group beside
+    /// components that are built. Claiming those here dropped them from the worklist entirely:
+    /// nothing bought them because a Build rule covered them, and no job could be made because
+    /// nothing manufactures them. No row, no warning, and the job generator's own comment on
+    /// skipping them says "a Buy rule's job, not this" — the rule that had just been switched
+    /// away.</para>
+    ///
+    /// <para>Tested against the same index the job generator uses, so the two agree by
+    /// construction rather than by both remembering to. This does not second-guess a rule: a
+    /// buildable item under a Buy rule is still bought, which is a legitimate choice, and a
+    /// buildable item under a Build rule is still left to the job side. Only the impossible case
+    /// falls back.</para>
+    /// </summary>
+    private static async Task<HashSet<int>> BuildManagedTypesAsync(
+        AppDbContext db, ProductionContext ctx, CancellationToken ct) =>
         (await db.InvLevelItems.AsNoTracking()
             .Where(i => db.WorklistInvRules.Any(r => r.Enabled && r.Action == "Build"
                                                   && r.GroupId == i.GroupId))
             .Select(i => i.TypeId)
             .ToListAsync(ct))
+        .Where(ctx.BlueprintByProduct.ContainsKey)
         .ToHashSet();
 
     /// <summary>Open buy orders, deduped the way the rest of the tool does: a corp order placed
