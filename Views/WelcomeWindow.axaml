@@ -28,6 +28,14 @@
                Margin="0 0 0 16"
                Text="EVE Console is downloading the EVE game data it needs (the Static Data Export and Hoboleaks data) in the background. This can take a few minutes — item lookups, market pricing, and industry tools will fill in as it completes. You can watch progress on the SDE tab in Settings." />
 
+    <!-- Restart advice. Several tools read their reference data once, when they are first
+         opened, so a tool opened before the import finishes can hold an empty picture of the
+         game for the rest of the session. Restarting is the reliable way to clear that, and
+         saying so here costs a sentence; leaving it out costs a confused first impression. -->
+    <TextBlock FontSize="13" Foreground="#c8a84b" TextWrapping="Wrap" LineHeight="20"
+               Margin="0 0 0 16"
+               Text="Once that finishes, restart EVE Console. Some tools load their reference data when they first open, so a restart makes sure everything sees the freshly imported data." />
+
     <!-- ESI setup notice -->
     <TextBlock FontSize="13" Foreground="#aaaabc" TextWrapping="Wrap" LineHeight="20"
                Margin="0 0 0 4"

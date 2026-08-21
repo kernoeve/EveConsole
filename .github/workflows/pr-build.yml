@@ -20,3 +20,12 @@ jobs:
 
       - name: Build
         run: dotnet build EveConsole.csproj -c Release --no-restore
+
+      # Would this build start for someone who has never run EveConsole before?
+      #
+      # Cannot be answered by running the app here or on a developer machine, where the
+      # database carries years of ALTER TABLE history. v0.9.10 shipped a startup crash
+      # that only new users ever saw. Fails the check on any statement that would abort
+      # startup or silently seed nothing.
+      - name: Fresh-install check
+        run: dotnet run --project tools/FreshInstallCheck/FreshInstallCheck.csproj -c Release

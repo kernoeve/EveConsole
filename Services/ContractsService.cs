@@ -281,6 +281,18 @@ public class ContractsService : ReactiveObject
                 .ToListAsync(ct))
             .Where(c => ItemBearingTypes.Contains(c.Type))
             .GroupBy(c => c.ContractId)
+            // The player's own contracts first, then everyone else's.
+            //
+            // This list had no order at all, which in practice meant insertion order — and with
+            // forty thousand public listings against a few hundred owned ones, a player's own
+            // contracts sat scattered through the queue behind a delay apiece. They were never
+            // skipped, merely always last, so they read as permanently empty while the public
+            // backfill ground on. Public contracts are browsing; a contract you issued or were
+            // assigned is one you are waiting on.
+            .OrderByDescending(g => g.Any(c => c.OwnerType == "character"
+                                            || (c.OwnerType == "corporation"
+                                                && (long)c.IssuerCorporationId == c.OwnerId)))
+            .ThenBy(g => g.Key)
             .ToList();
 
         int done = 0, deferred = 0, skipped = 0;
