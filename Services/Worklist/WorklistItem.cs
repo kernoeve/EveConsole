@@ -153,14 +153,46 @@ public sealed record WorklistItem
     ///
     /// <para>Two generators can independently want the same thing at the same station — the job
     /// materials need 33,013 Dysprosium at Jita and an inventory rule wants another 109,268 — and
-    /// as separate rows that reads as two errands when it is one order for 142,281. The service
-    /// folds every item sharing a key into a single task.</para>
+    /// as separate rows that reads as two errands when it is one order. The service folds every
+    /// item sharing a key into a single task.</para>
+    ///
+    /// <para>⚠️ Their quantities are NOT added. Each generator has already subtracted the same
+    /// stock from its own demand, so adding the two answers credits that stock twice — see
+    /// <see cref="GrossDemand"/>.</para>
     ///
     /// <para>Null means never merge, which is the default and the right answer for anything that
     /// is not simply "acquire this many of this type here": a BPO/BPC bought on contract, or an
     /// order-maintenance task like raising a bid, which has no quantity to add up.</para>
     /// </summary>
     public string? MergeKey { get; init; }
+
+    /// <summary>
+    /// What this demand needs in total, before any supply is counted against it — and
+    /// <see cref="SupplyCredited"/> is what it then subtracted.
+    ///
+    /// <para><b>⚠️ Why the merge cannot just add quantities.</b> Demands are additive; the stock
+    /// that fills them is not. A job needing 540,933 gas and a rule wanting 500,000 on the shelf
+    /// are two demands on one pile, and each generator independently subtracted the whole pile —
+    /// the same 125,298 on hand, the same 12,886 on order, the same 333,374 recoverable from
+    /// compressed. Adding the two answers gave 97,817 where the real requirement was 569,375: the
+    /// entire supply had been credited twice.</para>
+    ///
+    /// <para>So a merging item reports both halves and the service nets once. Null on anything
+    /// that cannot express itself that way, which falls back to adding — right for a lone item,
+    /// and no worse than what it did before for anything else.</para>
+    /// </summary>
+    public long? GrossDemand { get; init; }
+
+    /// <summary>
+    /// The supply this item already subtracted from <see cref="GrossDemand"/> to reach its
+    /// <see cref="Quantity"/> — on hand, on order, and anything recoverable.
+    ///
+    /// <para>⚠️ Counted ONCE across a merge, at the largest figure any contributor claimed, not
+    /// summed. Two views of one pile are still one pile. Where the contributors' scopes differ the
+    /// largest view is an approximation — it is the pile most of them can reach — but it can never
+    /// credit more stock than genuinely exists, which is the direction that matters.</para>
+    /// </summary>
+    public long? SupplyCredited { get; init; }
 
     /// <summary>
     /// How stale the data behind this item is. Detection runs off polled ESI data, so a

@@ -189,6 +189,12 @@ public class MaterialPurchaseGenerator(
                 // mineral are one order — the contract-versus-market distinction only matters
                 // against a market row for the same type, and a blueprint never has one.
                 MergeKey      = WorklistItem.BuyMergeKey(buyAt, raw.TypeId),
+                // Both halves of the subtraction, so a merge with an inventory rule wanting the
+                // same material nets the shared stock once rather than once per demand.
+                // raw.Missing already has Available taken off it, so the gross figure is the
+                // requirement itself and Available belongs with the supply.
+                GrossDemand    = raw.Quantity,
+                SupplyCredited = (long)raw.Available + ordered + building + held.Units,
                 Detail        = $"{WantedBy(plan, raw.TypeId)}: need {raw.Quantity:N0}; "
                               + $"{raw.Available:N0} on hand{settings.IndustryScopeSuffix}"
                               + (ordered  > 0 ? $", {ordered:N0} on order" : "")

@@ -101,7 +101,23 @@ public class WorklistService(
             var parts = group.OrderByDescending(x => x.Item.Priority).ToList();
             var lead  = parts[0];
 
-            var total = parts.Sum(p => p.Item.Quantity);
+            // ⚠️ Demands add up; the stock that fills them does not. Every contributor has already
+            // subtracted the same pile from its own demand, so summing their answers credits that
+            // pile once per contributor. Measured on Fullerite-C32: a job wanting 540,933 and a
+            // rule wanting 500,000 both subtracted the same 125,298 on hand, 12,886 on order and
+            // 333,374 recoverable, and the row asked for 97,817 against a real requirement of
+            // 569,375 — the whole supply credited twice.
+            //
+            // So pooled demand less supply counted once, at the largest figure any contributor
+            // claimed. Falls back to the old sum when a contributor cannot report its halves,
+            // which is right for anything that is genuinely a separate errand.
+            var pooled = parts.All(p => p.Item.GrossDemand is not null && p.Item.SupplyCredited is not null);
+
+            var demand = pooled ? parts.Sum(p => p.Item.GrossDemand!.Value)      : 0;
+            var supply = pooled ? parts.Max(p => p.Item.SupplyCredited!.Value)   : 0;
+
+            var total = pooled ? Math.Max(0, demand - supply)
+                               : parts.Sum(p => p.Item.Quantity);
 
             // Each contributor's reason is kept verbatim. The point of merging is one errand, not
             // one explanation — "why am I buying this many" is the question the row has to answer.
@@ -130,7 +146,14 @@ public class WorklistService(
                     _         => $"{lead.Item.TypeName} — {tag} × {total:N0}",
                 },
                 Quantity  = total,
-                Detail    = $"{total:N0} in total. {reasons}",
+                // ⚠️ The contributors' own figures do not add up to this, and saying so is the
+                // point. Each was computed against the whole of the shared stock, so a reader
+                // adding the "short" numbers gets a figure that credits that stock once per
+                // demand — which is what this row used to print. The sum is spelled out instead.
+                Detail    = pooled
+                    ? $"{total:N0} in total — {demand:N0} wanted between them, less {supply:N0} " +
+                      $"already on hand, on order or recoverable, counted once. {reasons}"
+                    : $"{total:N0} in total. {reasons}",
                 Priority  = parts.Max(p => p.Item.Priority),
                 Readiness = blocked is not null ? blocked.Readiness : lead.Item.Readiness,
                 BlockedBy = blocked?.BlockedBy ?? "",

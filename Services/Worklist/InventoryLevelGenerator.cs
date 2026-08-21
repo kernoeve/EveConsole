@@ -181,6 +181,11 @@ public class InventoryLevelGenerator(
                         Detail        = $"{group.Name} · below {rule.ThresholdPercent:0.#}% · {detail}",
                         Quantity      = shortfall > 0 ? shortfall : 0,
                         MergeKey      = mergeKey,
+                        // Both halves of the subtraction, so merging with a job's demand for the
+                        // same material nets the shared stock once instead of once per demand.
+                        // Only meaningful on a row that merges.
+                        GrossDemand    = mergeKey is null ? null : need.Wanted,
+                        SupplyCredited = mergeKey is null ? null : need.Have + ordered + held.Units,
                         Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
                         BlockedBy     = blocked ? "No character assigned to this location" : "",
                         CharacterId   = alt?.CharacterId   ?? 0,
