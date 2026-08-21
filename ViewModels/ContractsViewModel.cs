@@ -522,12 +522,20 @@ public class ContractNameResolver
         {
             try
             {
-                var have = (await db.UniverseNames.AsNoTracking()
-                        .Where(u => fresh.Select(f => f.EntityId).Contains(u.EntityId))
-                        .Select(u => u.EntityId).ToListAsync()).ToHashSet();
-                var toAdd = fresh.Where(f => !have.Contains(f.EntityId))
-                    .GroupBy(f => f.EntityId).Select(g => g.First()).ToList();
-                if (toAdd.Count > 0) { db.UniverseNames.AddRange(toAdd); await db.SaveChangesAsync(); }
+                // INSERT OR IGNORE rather than read-then-add. The old form asked which ids were
+                // already stored and inserted the rest, which is only safe if nothing else writes
+                // in between — and something does: two resolvers running together both saw a moon
+                // missing and both tried to add it, failing on the primary key a millisecond
+                // apart. Letting the database settle it removes the window entirely.
+                //
+                // Every NOT NULL column is named. PulledAt is the only nullable one, and it is
+                // given a value rather than skipped so the row records when it was fetched.
+                foreach (var f in fresh.GroupBy(x => x.EntityId).Select(g => g.First()))
+                    await db.Database.ExecuteSqlInterpolatedAsync(
+                        $"""
+                         INSERT OR IGNORE INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
+                         VALUES ({f.EntityId}, {f.Name}, {f.Category}, {DateTimeOffset.UtcNow:o})
+                         """);
             }
             catch (Exception ex) { _errorLogger.Log("ContractNameResolver", "PersistMoons", ex); }
         }
