@@ -358,6 +358,18 @@ public class EsiClient
         => GetAsync<EsiKillMailFull>($"killmails/{killMailId}/{hash}/", ct);
 
     /// <summary>
+    /// The same kill mail, with the status and rate-limit headers the caller needs to pace itself.
+    ///
+    /// <para>Backfilling kill mails is the one place that walks thousands of ids in a row, so it is
+    /// the one place that must be able to tell "not found" from "you are being refused". The
+    /// throwing form above cannot: it raises the same exception either way, which is how a rate
+    /// limit turned into a tight retry loop against ESI.</para>
+    /// </summary>
+    internal Task<EsiCallResult<EsiKillMailFull>> GetKillMailResultAsync(
+        int killMailId, string hash, CancellationToken ct = default)
+        => ExecutePublicAsync<EsiKillMailFull>($"killmails/{killMailId}/{hash}/", ct);
+
+    /// <summary>
     /// Every player structure whose owner has made it public, as bare ids. Public, no auth.
     ///
     /// <para>The only way to learn of a structure nobody here has bumped into: everything else we
@@ -541,12 +553,23 @@ public class EsiClient
             else
                 error = await response.Content.ReadAsStringAsync(ct);
 
+            // Public calls spend the same error budget as authenticated ones, and until this was
+            // added they neither reported into it nor were bound by it. That let the killmail
+            // backfill — a public endpoint — take 607 rejections in seven minutes while the rest
+            // of the app believed the budget was untouched.
+            var errorLimitRemain = TryGetInt("X-Esi-Error-Limit-Remain");
+            var errorLimitReset  = TryGetInt("X-Esi-Error-Limit-Reset");
+            UpdateErrorLimitState(statusCode, errorLimitRemain, errorLimitReset);
+
             return new EsiCallResult<T>
             {
-                Data       = data,
-                StatusCode = statusCode,
-                TotalPages = totalPages,
-                Error      = error,
+                Data              = data,
+                StatusCode        = statusCode,
+                TotalPages        = totalPages,
+                Error             = error,
+                ErrorLimitRemain  = errorLimitRemain,
+                ErrorLimitReset   = errorLimitReset,
+                RetryAfterSeconds = TryGetInt("Retry-After"),
             };
         }
         catch (OperationCanceledException) { throw; }
@@ -786,6 +809,7 @@ public class EsiClient
         {
             tokens = await _auth.RefreshAsync(tokens.RefreshToken, ct);
             _corpTokens[corpId] = tokens;
+            NotifyScopes(corpId, "corporation", tokens);
         }
         return tokens;
     }
@@ -800,7 +824,37 @@ public class EsiClient
         {
             tokens = await _auth.RefreshAsync(tokens.RefreshToken, ct);
             _tokens[characterId] = tokens;
+            NotifyScopes(characterId, "character", tokens);
         }
         return tokens;
+    }
+
+    /// <summary>
+    /// Raised whenever a token is refreshed, carrying the scopes the new one actually holds.
+    ///
+    /// <para>A delegate rather than a database write because this class holds tokens in a
+    /// dictionary and knows nothing about persistence — the same arrangement the killmail and
+    /// mining hooks use. Wired up in <c>App.axaml.cs</c>.</para>
+    ///
+    /// <para>It exists so a character recorded before scopes were read honestly corrects itself.
+    /// Tokens are refreshed lazily, on the first call after the roughly twenty-minute expiry, so
+    /// every character in regular use is put right within the hour without anyone re-authorising
+    /// anything.</para>
+    /// </summary>
+    public Func<long, string, string[], Task>? AfterTokenRefreshed { get; set; }
+
+    private void NotifyScopes(long ownerId, string ownerType, TokenSet tokens)
+    {
+        if (AfterTokenRefreshed is null) return;
+
+        var scopes = JwtHelper.GetScopes(tokens.AccessToken);
+        if (scopes.Length == 0) return;   // unreadable claim: leave the stored list alone
+
+        // Fire-and-forget: a refresh happens on the path of an API call, and bookkeeping must
+        // never delay or fail it. Errors are swallowed here for the same reason.
+        _ = Task.Run(async () =>
+        {
+            try { await AfterTokenRefreshed(ownerId, ownerType, scopes); } catch { }
+        });
     }
 }

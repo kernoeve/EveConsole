@@ -97,22 +97,32 @@ internal static class SalesQuery
         // "nearest date" subquery can't reference the outer sale date in SQLite).
         var snaps = await db.TypePriceSnapshots.AsNoTracking().Where(s => typeIds.Contains(s.TypeId))
             .Select(s => new { s.TypeId, s.Date, s.BuildCost, s.MarketValue }).ToListAsync();
-        var snapByType = snaps
-            .Select(s => (s.TypeId, Date: ParseDay(s.Date), s.BuildCost, s.MarketValue))
-            .GroupBy(s => s.TypeId)
-            .ToDictionary(g => g.Key, g => g.ToList());
+
+        // Build and market are resolved separately, each from the days that actually carry that
+        // figure. They used to be read off one nearest-by-distance row, so a snapshot with a market
+        // value and no build cost — every day before build costs were first calculated — answered
+        // "no build cost" and the caller showed a market price in its place. They are two series
+        // that happen to share a table, not one record.
+        static List<(string Date, double Value)> Series(
+            IEnumerable<(string Date, double? Value)> rows) =>
+            rows.Where(r => r.Value is not null)
+                .Select(r => (r.Date, r.Value!.Value))
+                .OrderBy(r => r.Date, StringComparer.Ordinal)
+                .ToList();
+
+        var buildByType = snaps.GroupBy(s => s.TypeId).ToDictionary(
+            g => g.Key, g => Series(g.Select(s => (s.Date, s.BuildCost))));
+        var marketByType = snaps.GroupBy(s => s.TypeId).ToDictionary(
+            g => g.Key, g => Series(g.Select(s => (s.Date, s.MarketValue))));
 
         (double? Build, double? Market) Snap(int typeId, DateTimeOffset when)
         {
-            if (!snapByType.TryGetValue(typeId, out var list) || list.Count == 0) return (null, null);
-            var target = when.UtcDateTime.Date;
-            var best = list[0]; var bestDist = double.MaxValue;
-            foreach (var s in list)
-            {
-                var d = Math.Abs((s.Date - target).TotalDays);
-                if (d < bestDist) { bestDist = d; best = s; }
-            }
-            return (best.BuildCost, best.MarketValue);
+            var day = when.UtcDateTime.ToString("yyyy-MM-dd");
+            return (
+                buildByType.TryGetValue(typeId, out var b)
+                    ? TypePriceHistoryService.ValueAsOf(b, day) : null,
+                marketByType.TryGetValue(typeId, out var m)
+                    ? TypePriceHistoryService.ValueAsOf(m, day) : null);
         }
 
         // Owner names + the personal-corp flag.

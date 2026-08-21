@@ -75,4 +75,34 @@ public class TypePriceHistoryService(IDbContextFactory<AppDbContext> dbFactory, 
             errorLogger.Log("TypePriceHistoryService", "Recalculate", ex);
         }
     }
+
+    /// <summary>
+    /// The value that stood on a given day, from a type's snapshots.
+    ///
+    /// <para>Snapshots exist only for days the app was running, so any lookup by date has to cope
+    /// with the day simply not being there. The order is: that exact day, else <b>the next day that
+    /// has one</b>, else the most recent day before.</para>
+    ///
+    /// <para>Looking forward first is what makes a new database usable. Every snapshot it holds is
+    /// dated from the day the app was installed, so a sale from last month has nothing before it —
+    /// only after. Carrying backwards alone returned nothing, and the caller then fell back to
+    /// market value, quietly reporting a market price where a build cost belonged. The same gap
+    /// opens for an established install whenever the app is closed for a few days.</para>
+    ///
+    /// <para>Falling back to the last day before covers the other end: a sale later than every
+    /// snapshot, which happens between a sale landing and that night's snapshot being written.</para>
+    /// </summary>
+    /// <param name="ascending">The type's snapshots that actually carry a value, oldest first.
+    /// Rows with none must be filtered out by the caller — a day whose build cost was never
+    /// computed is a day with no answer, not an answer of zero.</param>
+    public static double? ValueAsOf(IReadOnlyList<(string Date, double Value)> ascending, string date)
+    {
+        if (ascending.Count == 0 || date.Length == 0) return null;
+
+        foreach (var row in ascending)
+            if (string.CompareOrdinal(row.Date, date) >= 0)
+                return row.Value;      // the day itself, or the first one after it
+
+        return ascending[^1].Value;    // nothing on or after: the last day that stood
+    }
 }

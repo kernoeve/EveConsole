@@ -30,6 +30,44 @@ public static class JwtHelper
         return id;
     }
 
+    /// <summary>
+    /// The scopes the token actually carries, from the "scp" claim.
+    ///
+    /// <para>This is the only honest answer to "what may this token do". What the application
+    /// asked for at login is a different question, and the two can differ — a login that reuses an
+    /// existing SSO authorisation can return a token scoped to the earlier grant. Storing the
+    /// request in place of the grant is what left a character showing forty-eight scopes in the UI
+    /// while ESI answered 401 for a third of them.</para>
+    ///
+    /// <para>Returns an empty array rather than throwing when the claim is absent or the token is
+    /// unreadable: an unknown scope list must never be mistaken for an empty one, and callers are
+    /// expected to leave what they already hold alone in that case.</para>
+    /// </summary>
+    public static string[] GetScopes(string accessToken)
+    {
+        try
+        {
+            var payload = DecodePayload(accessToken);
+            if (!payload.TryGetProperty("scp", out var scp)) return [];
+
+            // EVE sends a JSON array for several scopes and a bare string for exactly one.
+            return scp.ValueKind switch
+            {
+                JsonValueKind.Array  => scp.EnumerateArray()
+                                           .Select(e => e.GetString() ?? "")
+                                           .Where(s => s.Length > 0)
+                                           .ToArray(),
+                JsonValueKind.String => (scp.GetString() ?? "")
+                                           .Split(' ', StringSplitOptions.RemoveEmptyEntries),
+                _                    => [],
+            };
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
     private static JsonElement DecodePayload(string jwt)
     {
         var parts = jwt.Split('.');

@@ -229,15 +229,22 @@ public class OrderTrackerViewModel : ReactiveObject
                 .Select(s => new { s.TypeId, s.Date, s.BuildCost })
                 .ToListAsync();
 
-            var asOf = history.GroupBy(s => s.TypeId)
-                              .ToDictionary(g => g.Key, g => g.OrderBy(s => s.Date, StringComparer.Ordinal).ToList());
+            var asOf = history.GroupBy(s => s.TypeId).ToDictionary(
+                g => g.Key,
+                g => g.Where(s => s.BuildCost is not null)
+                      .Select(s => (s.Date, Value: s.BuildCost!.Value))
+                      .OrderBy(s => s.Date, StringComparer.Ordinal)
+                      .ToList());
 
-            // The most recent snapshot on or before the settled day. Not an exact-date match: a day
-            // with the app closed leaves no row, and that has to fall back to the last price that
-            // stood rather than report nothing.
+            // That day, else the next day carrying a cost, else the last one before — the shared
+            // rule, so this and the Sales Tracker cannot answer the same question differently.
+            //
+            // This used to look only backwards, which reports nothing at all on a database whose
+            // snapshots all postdate the order. That is every new install, and it is why a build
+            // cost went missing and a market price took its place.
             double? CostAsOf(int typeId, string? date)
                 => date is { Length: > 0 } && asOf.TryGetValue(typeId, out var rows)
-                    ? rows.LastOrDefault(r => string.CompareOrdinal(r.Date, date) <= 0)?.BuildCost
+                    ? TypePriceHistoryService.ValueAsOf(rows, date)
                     : null;
 
             // Contract titles for the linked contracts, so the column can name one rather than

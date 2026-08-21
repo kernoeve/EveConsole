@@ -11,7 +11,7 @@
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
     <ApplicationIcon>Assets\ec.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>0.9.10</Version>
+    <Version>0.9.11</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -60,6 +60,15 @@
 
     <!-- Charting -->
     <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.5" />
+  </ItemGroup>
+
+  <!-- Developer tooling lives under tools/ with its own project files. This csproj sits at the
+       repo root and globs **/*.cs, so without these removals the tools would be compiled into
+       the shipped application — a second Main, and code no user should ever receive. -->
+  <ItemGroup>
+    <Compile          Remove="tools/**" />
+    <EmbeddedResource Remove="tools/**" />
+    <None             Remove="tools/**" />
   </ItemGroup>
 
   <ItemGroup>

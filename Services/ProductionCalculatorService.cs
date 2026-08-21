@@ -190,10 +190,15 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             .ToDictionary(g => g.Key, g => g.ToDictionary(c => c.Activity, c => c.CostIndex));
 
         // ── Category → structure mapping ────────────────────────────────────
+        // A category can be listed with no structure chosen yet — park 2 has seven such rows. The
+        // null-forgiving .Value here threw "Nullable object must have a value" and took the whole
+        // context load with it, so selecting a half-configured park broke the production calculator
+        // and build costs outright. An unassigned category is a gap to fall back from, not an error:
+        // it now resolves to no structure, exactly as an assignment pointing at a missing one does.
         var structByCategory = assignments
             .GroupBy(a => a.CategoryKey)
             .ToDictionary(g => g.Key,
-                g => structures.FirstOrDefault(s => s.Id == g.First().StructureId!.Value));
+                g => structures.FirstOrDefault(s => g.Any(a => a.StructureId is { } id && s.Id == id)));
 
         // ── Market prices ──────────────────────────────────────────────────
         var defaults       = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(ct);
@@ -546,6 +551,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // Tracks items whose category could not be determined or is not assigned in this park.
         var unmappedItems = new SortedSet<string>();
 
+        // Items currently being expanded — the ancestor chain, not a visited set. See the guard
+        // inside ExpandItem for why the distinction matters.
+        var expanding = new HashSet<int>();
+
         void ExpandItem(int typeId, int qty, bool isFinal)
         {
             // Cheaper to buy than build (per the build-cost calc), or pinned to a fixed build cost by
@@ -562,6 +571,27 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 rawPool[typeId] = rawPool.GetValueOrDefault(typeId, 0) + qty;
                 return;
             }
+
+            // An item already being expanded further up this branch cannot be expanded again —
+            // it is bought, not built, and building it is what the caller is already doing.
+            //
+            // Fifty-one products in the SDE list themselves as a material of their own blueprint:
+            // the legacy POS modules, Silos, Assembly Arrays, the Sovereignty Blockade Unit. With
+            // no guard, expanding one recursed until the stack ran out, which took down the whole
+            // application on a build-cost recalculation rather than failing the one item. Nothing
+            // caught it, because a StackOverflowException cannot be caught.
+            //
+            // Tracked as a path rather than a visited-set: an item legitimately appears many times
+            // across a tree, and marking it done on first sight would silently drop demand from
+            // every later branch. Only being its own ancestor is the error.
+            if (!expanding.Add(typeId))
+            {
+                rawPool[typeId] = rawPool.GetValueOrDefault(typeId, 0) + qty;
+                return;
+            }
+
+            try
+            {
 
             var    activity   = bpProd.Activity;
             bool   isReaction = activity == RxnActivity;
@@ -719,6 +749,8 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 }
                 jobPool[typeId] = job;
             }
+            }
+            finally { expanding.Remove(typeId); }
         }
 
         foreach (var req in requests)

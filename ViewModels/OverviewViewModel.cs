@@ -275,7 +275,10 @@ public class OverviewViewModel : ReactiveObject
     // EVE image-server images (portraits, corp/alliance logos, type icons) used as alert
     // and notification icons, cached by path across polls so each is fetched at most once.
     private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(10) };
-    private readonly Dictionary<string, Bitmap> _imageCache = [];
+    // Concurrent because notification detail fills four boxes at once, each fetching an icon.
+    // As a plain Dictionary, two simultaneous inserts corrupted it — and a torn dictionary stays
+    // broken for the life of the view model, losing entries silently long after the exception.
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, Bitmap> _imageCache = new();
 
     // path is relative to https://images.evetech.net/ (e.g. "characters/123/portrait?size=64").
     private async Task<Bitmap?> GetImageAsync(string path)
