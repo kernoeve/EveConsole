@@ -439,8 +439,21 @@ public class CharacterViewModel : ReactiveObject
             var scopes      = GetSelectedScopes();
             var tokens      = await _auth.LoginAsync(scopes, _authCts.Token);
             var characterId = JwtHelper.GetCharacterId(tokens.AccessToken);
-            // Register tokens with EsiClient for corp API calls — Character entity untouched.
-            _esi.SetTokens(characterId, tokens);
+
+            // Deliberately NOT SetTokens(characterId, tokens) here.
+            //
+            // This login carries the corporation scope set, and the same character is very often
+            // also authorised in their own right — one pilot serves as both. Registering a corp
+            // token under their character id replaced the character token for the rest of the
+            // session, so every character endpoint answered 401 "Token is not valid for any
+            // required scope" until the app was restarted and the real token reloaded from the
+            // database. That is what made it look like it healed itself.
+            //
+            // The old comment claimed the character was untouched. The Character *row* was, but
+            // the token dictionary is keyed by character id and was overwritten.
+            //
+            // Nothing here needs it: both calls below are public endpoints, and the corp token is
+            // registered under the corporation's own id by SetCorpTokens once the corp is known.
 
             var charInfo = await _esi.GetCharacterPublicAsync(characterId)
                            ?? throw new InvalidOperationException("Could not fetch character info from ESI.");
