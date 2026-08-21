@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using EveConsole.Api;
@@ -368,7 +369,25 @@ public class ContractNameResolver
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly EsiClient                       _esi;
     private readonly AppErrorLogger                  _errorLogger;
-    private readonly Dictionary<long, string> _names = new();
+    /// <summary>
+    /// Concurrent because one resolver instance serves the Contracts tab and the Overview's
+    /// notification detail, and the latter formats four notifications at once. As a plain
+    /// Dictionary, simultaneous writes corrupted it — and a torn dictionary does not merely throw
+    /// once, it goes on losing entries and returning wrong names for the life of the view model.
+    /// </summary>
+    private readonly ConcurrentDictionary<long, string> _names = new();
+
+    /// <summary>
+    /// Only one resolve runs at a time.
+    ///
+    /// <para>The concurrent dictionary makes each individual write safe; it does not make the
+    /// method's check-fetch-store cycle atomic. Two callers still both find an id missing, both
+    /// wait on the database and ESI, and both fetch it — which matters here because the
+    /// bad-id binary split deliberately spends 400s against ESI's shared error limit, and paying
+    /// that twice for the same ids is exactly what the limit exists to discourage. Holding the
+    /// gate across the whole cycle means the second caller finds the answer already cached.</para>
+    /// </summary>
+    private readonly SemaphoreSlim _resolveGate = new(1, 1);
 
     public ContractNameResolver(IDbContextFactory<AppDbContext> dbFactory, EsiClient esi, AppErrorLogger errorLogger)
     {
@@ -382,6 +401,9 @@ public class ContractNameResolver
     // fetched from ESI is written to UniverseNames and never fetched again (this session or future).
     public async Task<IReadOnlyDictionary<long, string>> ResolveAsync(IEnumerable<long> ids)
     {
+        await _resolveGate.WaitAsync();
+        try
+        {
         var need = ids.Where(id => id > 0 && !_names.ContainsKey(id)).Distinct().ToList();
         if (need.Count > 0)
         {
@@ -486,6 +508,8 @@ public class ContractNameResolver
         foreach (var id in ids.Where(id => id > 0).Distinct())
             map[id] = _names.TryGetValue(id, out var n) ? n : "";
         return map;
+        }
+        finally { _resolveGate.Release(); }
     }
 
     // Resolves moon IDs to names via /universe/moons/{id}/ (universe/names can't) — cached in
