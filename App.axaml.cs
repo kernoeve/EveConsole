@@ -2788,6 +2788,8 @@ public class App : Application
                               EveConsole.Services.Worklist.SkillQueueGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.AssetSafetyGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.RefiningGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.InventionService>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.InventionGenerator>();

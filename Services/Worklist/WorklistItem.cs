@@ -28,7 +28,13 @@ public enum WorklistReadiness
 /// BPO/BPC" are all buying — and reading the kind out of prose is work the reader should not have
 /// to do.</para>
 /// </summary>
-public enum WorklistKind { Buy, Haul, Job, CorpProject, AssetSafety, SkillQueue }
+/// <summary>
+/// ⚠️ Order matters: <see cref="WorklistItem.Kind"/>'s ordinal is what groups sort by, so this
+/// reads top to bottom as the list does. Refining and decompressing sit next to hauling because
+/// they are the same sort of errand — material you already own, in the wrong form rather than the
+/// wrong place.
+/// </summary>
+public enum WorklistKind { Buy, Haul, Refine, Decompress, Job, CorpProject, AssetSafety, SkillQueue }
 
 /// <summary>
 /// One item on a task that moves or acquires several things at once.

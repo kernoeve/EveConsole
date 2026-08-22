@@ -76,6 +76,8 @@ public class WorklistRowVm : ReactiveObject
     {
         WorklistKind.Buy         => "Buy",
         WorklistKind.Haul        => "Haul",
+        WorklistKind.Refine      => "Refine",
+        WorklistKind.Decompress  => "Decompress",
         WorklistKind.Job         => "Job",
         WorklistKind.AssetSafety => "Asset Safety",
         WorklistKind.SkillQueue  => "Skill Queue",
@@ -104,6 +106,15 @@ public class WorklistRowVm : ReactiveObject
         // Arrow between two points: something to move.
         (WorklistKind.Haul, _) =>
             "M2,8 H11 M8.5,5 L12,8 L8.5,11 M13.5,4 V12",
+
+        // A rock breaking into pieces: reprocessing.
+        (WorklistKind.Refine, _) =>
+            "M8,1.5 L13,4.5 V10 L8,13.5 L3,10 V4.5 Z M3,4.5 L8,7.5 L13,4.5 M8,7.5 V13.5",
+
+        // Opening outward: decompression.
+        (WorklistKind.Decompress, _) =>
+            "M4,7 H2 M12,7 H14 M4,9.5 H2 M12,9.5 H14 M5.5,3.5 L8,1.5 L10.5,3.5 " +
+            "M5,6 H11 V11 H5 Z",
 
         // Factory roofline.
         (WorklistKind.Job, IndustryPool.Manufacturing) =>
@@ -160,6 +171,8 @@ public class WorklistRowVm : ReactiveObject
     {
         (WorklistKind.Buy,  _)                        => "Buy",
         (WorklistKind.Haul, _)                        => "Haul",
+        (WorklistKind.Refine, _)                      => "Reprocess ore",
+        (WorklistKind.Decompress, _)                  => "Decompress gas",
         (WorklistKind.Job, IndustryPool.Manufacturing) => "Manufacturing job",
         (WorklistKind.Job, IndustryPool.Reaction)      => "Reaction job",
         (WorklistKind.Job, IndustryPool.Science)       => "Science job — copying or invention",
@@ -234,7 +247,11 @@ public class WorklistRowVm : ReactiveObject
     public bool IsHaul  => _item.Kind == WorklistKind.Haul;
     public bool IsJob   => _item.Kind == WorklistKind.Job;
     public bool IsBuy   => _item.Kind == WorklistKind.Buy;
-    public bool IsOther => !IsHaul && !IsJob && !IsBuy;
+    /// <summary>Reprocessing and decompressing share a shape: what to do, and the one station to
+    /// do it at.</summary>
+    public bool IsRefining => _item.Kind is WorklistKind.Refine or WorklistKind.Decompress;
+
+    public bool IsOther => !IsHaul && !IsJob && !IsBuy && !IsRefining;
 
     /// <summary>Source and destination as one phrase, since a haul is the pairing rather than two
     /// independent facts.</summary>

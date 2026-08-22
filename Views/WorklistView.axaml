@@ -437,6 +437,24 @@
                   </Panel>
                 </StackPanel>
 
+                <!-- Reprocessing and decompressing: what to do, and the one station to do it at.
+                     No character, because the action needs whoever is already there rather than a
+                     particular pilot. -->
+                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsRefining}">
+                  <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="16"
+                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
+                            ToolTip.Tip="Open this station or structure">
+                      <TextBlock Text="{Binding LocationName}" Classes="linktext"
+                                 Foreground="#7a7a88" FontSize="14" TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding LocationName}" IsVisible="{Binding !HasLocationLink}"
+                               Foreground="#7a7a88" FontSize="14"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                  </Panel>
+                </StackPanel>
+
                 <!-- Corp projects, asset safety, skill queues: no shared shape between them, so
                      they keep the plain title. -->
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsOther}">
