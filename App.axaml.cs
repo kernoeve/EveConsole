@@ -2598,7 +2598,7 @@ public class App : Application
 
             // Diagnostic only, and the error log is the sole place it reports — so when the switch
             // is off it is not started at all, which also drops its half-second heartbeat.
-            if (PerfDiagnostics.Enabled)
+            if (PerfDiagnostics.UiStalls)
                 Start("UI stall monitor", () => Services.GetRequiredService<UiStallMonitor>().Start());
 
             void Start(string name, Action start)
