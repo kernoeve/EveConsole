@@ -63,6 +63,10 @@ public class WorklistService(
 
         var sections = (await Task.WhenAll(tasks)).ToList();
 
+        // Before the merge, because these carry no quantity and would not merge — two rows saying
+        // the same bid is losing is a duplicate however the amounts work out.
+        DropDuplicateOutbid(sections);
+
         // Before volume and state: the merged task must be sized and aged as the one task it is,
         // not as whichever fragment happened to be written first.
         MergeDuplicatePurchases(sections);
@@ -71,6 +75,40 @@ public class WorklistService(
         await ApplyStateAsync(sections, ct);
 
         return new WorklistRun(sections, DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>
+    /// One row per losing bid, however many reasons there are to care about it.
+    ///
+    /// <para>An order can be needed by a build plan, by a stocking rule, and be a standing order
+    /// the player maintains on its own terms — three sources, one price to change. Each finds it
+    /// honestly and independently, which is what keeps them from having to know about each other,
+    /// and the reader would get the same sentence three times.</para>
+    ///
+    /// <para>Matched on the order's type and station rather than on the task key, because that is
+    /// what identifies the order; the sources key their tasks differently and rightly so. The most
+    /// specific survivor wins: a standing order the player configured explicitly says more about
+    /// what to do than a shortfall that merely happens to depend on it, so a source that names the
+    /// order outright is kept over one that inferred it from a need.</para>
+    /// </summary>
+    private static void DropDuplicateOutbid(List<WorklistSection> sections)
+    {
+        var dupes = sections
+            .SelectMany(s => s.Items.Select(i => (Section: s, Item: i)))
+            .Where(x => x.Item.Priority == WorklistPriority.Outbid && x.Item.TypeId > 0)
+            .GroupBy(x => (x.Item.TypeId, x.Item.LocationId))
+            .Where(g => g.Count() > 1);
+
+        foreach (var group in dupes)
+        {
+            // Anything that is not this service's own inferred row is a source that knows the
+            // order first-hand. Falls back to the first when they all are.
+            var keep = group.FirstOrDefault(x => x.Item.Source != "outbid");
+            if (keep.Item is null) keep = group.First();
+
+            foreach (var x in group)
+                if (!ReferenceEquals(x.Item, keep.Item)) x.Section.Items.Remove(x.Item);
+        }
     }
 
     /// <summary>

@@ -2777,6 +2777,7 @@ public class App : Application
         services.AddSingleton<EveConsole.Services.Worklist.IndustryTimeService>();
         services.AddSingleton<EveConsole.Services.Worklist.IndustryDemandService>();
         services.AddSingleton<EveConsole.Services.Worklist.MaterialSubstitutionService>();
+        services.AddSingleton<EveConsole.Services.Worklist.OutbidOrderService>();
         services.AddSingleton<EveConsole.Services.Worklist.JumpDistanceService>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.LogisticsGenerator>();

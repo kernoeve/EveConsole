@@ -25,7 +25,8 @@ public class InventoryLevelGenerator(
     InvLevelService                 invLevels,
     WorklistMarketAltService             marketAlts,
     MaterialSubstitutionService     substitution,
-    MarketCompetitionService        competition) : IWorklistGenerator
+    MarketCompetitionService        competition,
+    OutbidOrderService              outbidOrders) : IWorklistGenerator
 {
     public string Id          => "inventory_levels";
     public string DisplayName => "Inventory Levels";
@@ -60,8 +61,8 @@ public class InventoryLevelGenerator(
 
         // ⚠️ Every open order for the type, wherever it sits — not just orders at the rule's own
         // station. An order is material already bought, and where it fills is a hauling question,
-        // not a reason to spend the ISK a second time. The Gas rule buys at Jita and measures
-        // stock in Tenerifis, so a station-matched count saw none of its own orders at all.
+        // not a reason to spend the ISK a second time. A rule that buys at a trade hub and
+        // measures its stock somewhere else saw none of its own orders under a station match.
         var onOrderAnywhere = ourOrders
             .GroupBy(o => o.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(o => (long)o.VolumeRemain));
@@ -73,6 +74,13 @@ public class InventoryLevelGenerator(
         var subs = await substitution.LoadAsync(ct);
 
         var items = new List<WorklistItem>();
+
+        // Types a rule would still be short of on stock alone. An order buying one of these is
+        // buying something wanted, so its being outbid is a failure worth a task; an order for
+        // anything else is not this list's business, however it is priced. Collected across the
+        // rules and reported once at the end — two rules on one group both reach the same
+        // conclusion, and deciding it inside the loop would say it twice.
+        var needed = new HashSet<int>();
 
         foreach (var ruleGroup in rules.GroupBy(r => r.GroupId))
         {
@@ -126,47 +134,39 @@ public class InventoryLevelGenerator(
 
                     var name = names.GetValueOrDefault(gi.TypeId, $"Type {gi.TypeId}");
 
-                    // Being outbid is worth saying even when the shortfall is covered: the order
-                    // exists, looks healthy, and is buying nothing.
-                    var rival = bids.BestBuy(gi.TypeId, rule.LocationId);
-                    var best  = mine.Count > 0 ? mine.Max(o => o.Price) : (decimal?)null;
-                    var outbid = best is { } b && rival is { } r && b < r;
+                    // ⚠️ Everything except the orders. What is left is whether this rule would
+                    // still be short if no order existed — which is exactly the question of
+                    // whether its orders are buying anything wanted. Subtracting them too would
+                    // ask a healthy order to justify itself and a failing one to prove it had
+                    // already failed.
+                    if (need.Shortfall - held.Units > 0) needed.Add(gi.TypeId);
 
-                    string title, detail;
-                    int priority;
-                    // Only a shortfall is an amount to acquire, and only an amount can be added
-                    // to what another source wants of the same thing at the same station.
-                    string? mergeKey = null;
+                    // Below threshold, but what is already bought covers the gap. The order that
+                    // covers it may still be losing, which is now a separate task rather than a
+                    // replacement for this one — a bid to raise and a shortfall to order are two
+                    // different actions, and one is not evidence against the other.
+                    if (shortfall <= 0) continue;
 
                     var stock = need.StockText;
-                    // "Here" and "elsewhere" kept apart: both count against the shortfall, but
-                    // only the one here can be the order that is sitting outbid.
+                    // "Here" and "elsewhere" kept apart so the detail says where the incoming
+                    // material actually is; both count the same against the shortfall.
                     var away  = ordered - onOrder;
                     var order = (onOrder > 0 ? $", {onOrder:N0} on order here" : "")
                               + (away    > 0 ? $", {away:N0} on order elsewhere" : "")
                               + held.Note;
                     var fill  = need.FillText(rule);
 
-                    // The name leads in every case. The column sorts on this string, so a leading
-                    // verb sorted every shortfall in the list under "P" for "Place order".
-                    if (outbid)
-                    {
-                        title    = $"{name} — raise bid";
-                        detail   = $"{stock}{order}. Outbid — best bid {rival:N2} ISK, "
-                                 + $"yours {best:N2} ISK.";
-                        priority = WorklistPriority.Outbid;
-                    }
-                    else if (shortfall > 0)
-                    {
-                        title    = $"{name} × {shortfall:N0}";
-                        detail   = $"{stock}{order}.{fill} Short {shortfall:N0}."
+                    // The name leads. The column sorts on this string, so a leading verb sorted
+                    // every shortfall in the list under "P" for "Place order".
+                    var title    = $"{name} × {shortfall:N0}";
+                    var detail   = $"{stock}{order}.{fill} Short {shortfall:N0}."
                                  + (bids.IsTracked(rule.LocationId)
                                       ? ""
                                       : " Competing bids unknown — this location is not a configured market source.");
-                        priority = WorklistPriority.ForStock(need.Percent);
-                        mergeKey = WorklistItem.BuyMergeKey(rule.LocationId, gi.TypeId);
-                    }
-                    else continue;   // below threshold, but existing orders already cover it
+                    var priority = WorklistPriority.ForStock(need.Percent);
+                    // Only a shortfall is an amount to acquire, and only an amount can be added
+                    // to what another source wants of the same thing at the same station.
+                    var mergeKey = WorklistItem.BuyMergeKey(rule.LocationId, gi.TypeId);
 
                     var blocked = alt is null;
 
@@ -179,13 +179,12 @@ public class InventoryLevelGenerator(
                         Kind          = WorklistKind.Buy,
                         Title         = title,
                         Detail        = $"{group.Name} · below {rule.ThresholdPercent:0.#}% · {detail}",
-                        Quantity      = shortfall > 0 ? shortfall : 0,
+                        Quantity      = shortfall,
                         MergeKey      = mergeKey,
                         // Both halves of the subtraction, so merging with a job's demand for the
                         // same material nets the shared stock once instead of once per demand.
-                        // Only meaningful on a row that merges.
-                        GrossDemand    = mergeKey is null ? null : need.Wanted,
-                        SupplyCredited = mergeKey is null ? null : need.Have + ordered + held.Units,
+                        GrossDemand    = need.Wanted,
+                        SupplyCredited = need.Have + ordered + held.Units,
                         Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
                         BlockedBy     = blocked ? "No character assigned to this location" : "",
                         CharacterId   = alt?.CharacterId   ?? 0,
@@ -199,6 +198,11 @@ public class InventoryLevelGenerator(
                 }
             }
         }
+
+        // Orders failing to buy what these rules still want. Independent of the tasks above: an
+        // order can be losing while its shortfall is covered, and a shortfall can need a second
+        // order placed while the first is also underbid.
+        items.AddRange((await outbidOrders.FindAsync(needed, ct)).Select(OutbidOrderService.Task));
 
         return items;
     }

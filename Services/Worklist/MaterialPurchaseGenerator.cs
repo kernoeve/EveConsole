@@ -32,6 +32,7 @@ public class MaterialPurchaseGenerator(
     ProductionCalculatorService     production,
     WorklistMarketAltService        marketAlts,
     WorklistSettings                settings,
+    OutbidOrderService              outbidOrders,
     AppErrorLogger                  errorLogger) : IWorklistGenerator
 {
     public string Id          => "material_purchases";
@@ -157,6 +158,10 @@ public class MaterialPurchaseGenerator(
         var inFlight = await InFlightOutputAsync(
             db, ctx, shortfalls.Select(s => s.TypeId).ToList(), scope, ct);
 
+        // Materials the plan would still be missing if none of our orders existed — the ones an
+        // order is actually needed for. See the note where these are reported.
+        var needed = new HashSet<int>();
+
         foreach (var raw in shortfalls.OrderBy(r => r.TypeName))
         {
             if (buildManaged.Contains(raw.TypeId)) continue;
@@ -165,6 +170,12 @@ public class MaterialPurchaseGenerator(
             var building = inFlight.GetValueOrDefault(raw.TypeId);
             var held     = subsStock.GetValueOrDefault(raw.TypeId);
             var short_   = raw.Missing - ordered - building - held.Units;
+
+            // ⚠️ Everything except the orders. An order covering the last of a shortfall is the
+            // reason that shortfall is not a task, which makes it the one order whose failing
+            // matters most — and subtracting it here would hide exactly that case.
+            if (raw.Missing - building - held.Units > 0) needed.Add(raw.TypeId);
+
             if (short_ <= 0) continue;
 
             // A blueprint is acquired, not market-ordered, so it is titled the way the print
@@ -216,6 +227,13 @@ public class MaterialPurchaseGenerator(
                 Priority      = WorklistPriority.OrderDriven,
             });
         }
+
+        // Orders failing to buy what the plan still needs. Reported alongside the purchase tasks
+        // rather than instead of them: an order can be losing while it is the only thing covering
+        // the shortfall, and a shortfall can want a second order placed while the first is also
+        // underbid. Keyed by type and station, so an order the inventory rules also depend on is
+        // one task, not one per reason it is wanted.
+        items.AddRange((await outbidOrders.FindAsync(needed, ct)).Select(OutbidOrderService.Task));
 
         return items;
     }
