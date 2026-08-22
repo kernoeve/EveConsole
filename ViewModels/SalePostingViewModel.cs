@@ -244,6 +244,11 @@ internal sealed class OutputFormat
         new("Discord",    x => $"**{x}**",              x => $"__{x}__",      Identity,    s => Tokenize(EmojiPh(s), DiscordRules, Identity)),
         new("Markdown",   x => $"**{x}**",              Identity,             Identity,    s => Tokenize(MdLists(s), MdRules, Identity)),
         new("HTML",       x => $"<strong>{x}</strong>", x => $"<u>{x}</u>",   HtmlBreaks,  HtmlDisplay),
+        // ⚠️ EVE mail is HTML, but only a little of it. The client renders <b>, <i>, <u>, <br>,
+        // <font> and showinfo links, and ignores or mangles the rest — <strong> among them, which
+        // is why this cannot just reuse the HTML row above. Line breaks must be <br>: a raw
+        // newline in a mail body collapses to a space.
+        new("EVE Mail",   x => $"<b>{x}</b>",           x => $"<u>{x}</u>",   HtmlBreaks,  HtmlDisplay),
         new("BBCode",     x => $"[b]{x}[/b]",           x => $"[u]{x}[/u]",   Identity,    s => Tokenize(BbLists(s), BbRules, t => BbTag.Replace(t, ""))),
     ];
 
@@ -681,10 +686,16 @@ public class SalePostingItemRow : ReactiveObject
     // ── Earliest job completion (shown only when out of stock but building, and the posting opts in) ──
     private DateTimeOffset? _earliestJobEnd;
     private bool _showCompletion;
-    public string CompletionDateText =>
-        _showCompletion && _inStock == 0 && _inBuild >= 1 && _earliestJobEnd is DateTimeOffset d
-            ? d.ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)
-            : "";
+    // Through the renderer, so the grid column and the posting text cannot disagree about when
+    // a date is worth showing — the rule has three parts and two copies of it would drift.
+    public string CompletionDateText => SalePostingRenderer.CompletionText(ToView(), _showCompletion);
+
+    /// <summary>This row as plain data for <see cref="SalePostingRenderer"/>.</summary>
+    internal PostingItemView ToView() => new(
+        TypeName, _nameOverride, _namePrefix,
+        _inStock, _inBuild, _reserved,
+        _inStockOverride, _inBuildOverride, _reservedOverride,
+        _salePrice, _earliestJobEnd);
 
     public void ApplyCalc(SalePostingCalc c, string basis, bool showCompletion)
     {
@@ -912,20 +923,10 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         pr.RecomputeTotals();
     }
 
-    // Resolve a section's effective posting settings — its overrides where set, else the posting's.
-    private static SalePosting BuildEffectivePosting(SalePosting p, SalePostingSection s) => new()
-    {
-        Scope                 = s.OverrideScope   ? s.Scope             : p.Scope,
-        LocationId            = s.OverrideScope   ? s.LocationId        : p.LocationId,
-        LocationName          = s.OverrideScope   ? s.LocationName      : p.LocationName,
-        PricingBasis          = s.OverridePricing ? s.PricingBasis      : p.PricingBasis,
-        PricePercent          = s.OverridePricing ? s.PricePercent      : p.PricePercent,
-        MarketStationId       = s.OverridePricing ? s.MarketStationId   : p.MarketStationId,
-        MarketStationName     = s.OverridePricing ? s.MarketStationName : p.MarketStationName,
-        MarketPriceType       = s.OverridePricing ? s.MarketPriceType   : p.MarketPriceType,
-        OnlyPackaged          = s.OverrideOnlyPackaged ? s.OnlyPackaged  : p.OnlyPackaged,
-        IncludeCompletionDate = p.IncludeCompletionDate,
-    };
+    // Moved to the service: the headless render resolves overrides the same way, and two copies
+    // of this would let a mailed listing price a section differently from the one on screen.
+    private static SalePosting BuildEffectivePosting(SalePosting p, SalePostingSection s)
+        => SalePostingService.EffectiveFor(p, s);
 
     private void ApplyProfitBasis()
     {
@@ -978,12 +979,10 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         var posts = await _svc.LoadPostsAsync(pr.PostingId);
         foreach (var post in posts.OrderBy(p => p.Ordinal))
         {
-            string body = post.PostType switch
-            {
-                "Summary" => RenderSummary(pr, fmt, post),
-                "Detail"  => RenderDetail(pr, fmt, post),
-                _         => post.StaticContent ?? "",   // Static
-            };
+            // Rendered through the shared renderer, off a snapshot of the rows. The tool and the
+            // mail responder must produce the same listing from the same posting, and the surest
+            // way to guarantee that is for there to be one implementation.
+            var body = SalePostingRenderer.Render(Snapshot(pr), fmt, post);
             var clip = fmt.Finalize(body);        // clipboard: raw markup + literal :emoji:
             var segs = fmt.ToDisplay(clip);       // preview: real bold + emoji placeholder
 
@@ -1065,13 +1064,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             int posted = 0;
             foreach (var post in posts)
             {
-                string body = post.PostType switch
-                {
-                    "Summary" => RenderSummary(pr, fmt, post),
-                    "Detail"  => RenderDetail(pr, fmt, post),
-                    _         => post.StaticContent ?? "",
-                };
-                var markup = fmt.Finalize(body);
+                var markup = fmt.Finalize(SalePostingRenderer.Render(Snapshot(pr), fmt, post));
                 if (string.IsNullOrWhiteSpace(markup)) continue;
 
                 // Slack's legacy mrkdwn `text` field can't underline, so the real message is a
@@ -1092,61 +1085,23 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         finally { IsPostingToSlack = false; }
     }
 
-    private static string RenderSummary(SalePostingRow pr, OutputFormat fmt, SalePostingPost post)
-    {
-        var sb = new StringBuilder();
-        AppendBlock(sb, post.Header);
-        foreach (var s in pr.Sections)
-        {
-            var line = new StringBuilder();
-            line.Append(Pfx(s.Model.Prefix)).Append(s.SectionName);
-            var prices = s.AllItems.Select(i => i.SalePriceValue).Where(p => p.HasValue).Select(p => p!.Value).ToList();
-            if (prices.Count > 0)
-                line.Append(" - ").Append(SalePostFmt.Isk(prices.Min())).Append('-').Append(SalePostFmt.Isk(prices.Max()));
-            sb.AppendLine(fmt.Bold(line.ToString()));   // section lines bold
-        }
-        AppendBlock(sb, post.Footer);
-        return sb.ToString().TrimEnd();
-    }
-
-    private static string RenderDetail(SalePostingRow pr, OutputFormat fmt, SalePostingPost post)
+    /// <summary>
+    /// The grid's rows as plain data, for <see cref="SalePostingRenderer"/>.
+    ///
+    /// <para>Taken from the rows rather than re-read from the database on purpose: the tool
+    /// renders what is on screen, including edits typed a moment ago that have been persisted
+    /// but not reloaded. A re-read would show the posting as it was, which is not what the person
+    /// looking at it is about to copy.</para>
+    /// </summary>
+    private static PostingView Snapshot(SalePostingRow pr)
     {
         var m = pr.Model;
-        var sb = new StringBuilder();
-        AppendBlock(sb, post.Header);
-        foreach (var s in pr.Sections)
-        {
-            sb.AppendLine(fmt.Bold(fmt.Underline(s.SectionName)));   // bold + underlined, no prefix in Detail
-            foreach (var it in s.AllItems)
-                sb.AppendLine(RenderItemLine(it, m));
-        }
-        AppendBlock(sb, post.Footer);
-        return sb.ToString().TrimEnd();
+        return new PostingView(
+            m.ShowInStock, m.ShowInBuild, m.ShowReserved, m.IncludeCompletionDate,
+            pr.Sections.Select(s => new PostingSectionView(
+                s.SectionName, s.Model.Prefix,
+                s.AllItems.Select(i => i.ToView()).ToList())).ToList());
     }
-
-    private static string RenderItemLine(SalePostingItemRow it, SalePosting m)
-    {
-        var name = Pfx(it.NamePrefix) + (string.IsNullOrWhiteSpace(it.NameOverride) ? it.TypeName : it.NameOverride);
-
-        // Counts: just the numbers for the enabled columns, e.g. (9,2,0).
-        var counts = new List<string>();
-        if (m.ShowInStock)  counts.Add(it.EffectiveInStock.ToString(CultureInfo.InvariantCulture));
-        if (m.ShowInBuild)  counts.Add(it.EffectiveInBuild.ToString(CultureInfo.InvariantCulture));
-        if (m.ShowReserved) counts.Add(it.EffectiveReserved.ToString(CultureInfo.InvariantCulture));
-
-        var sb = new StringBuilder(name);
-        if (counts.Count > 0) sb.Append(" (").Append(string.Join(",", counts)).Append(')');
-        sb.Append(" - ").Append(it.SalePriceText);
-        if (!string.IsNullOrEmpty(it.CompletionDateText)) sb.Append(" - ").Append(it.CompletionDateText);
-        return sb.ToString();
-    }
-
-    private static void AppendBlock(StringBuilder sb, string? text)
-    {
-        if (!string.IsNullOrWhiteSpace(text)) sb.AppendLine(text.TrimEnd());
-    }
-
-    private static string Pfx(string? p) => string.IsNullOrWhiteSpace(p) ? "" : p.Trim() + " ";
 
     // ── Posting factory + CRUD ──────────────────────────────────────────────────
     private SalePostingRow MakePostingRow(SalePosting p)

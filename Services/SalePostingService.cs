@@ -278,6 +278,111 @@ public class SalePostingService(
     // (industry jobs) reuse InvLevelService's scope aggregation; Reserved sums pending
     // Order Tracker units; contract value uses ContractPricing.EffectivePrice; sale price
     // applies the posting's basis × percent (region 30-day average for the Market basis).
+    /// <summary>
+    /// A section's effective settings: its own overrides where set, otherwise the posting's.
+    ///
+    /// <para>⚠️ The one place this is decided. The tool and the headless render both price
+    /// through it, so a section that overrides its scope or its basis cannot come out one way on
+    /// screen and another way in a mail.</para>
+    /// </summary>
+    public static SalePosting EffectiveFor(SalePosting p, SalePostingSection s) => new()
+    {
+        Scope                 = s.OverrideScope   ? s.Scope             : p.Scope,
+        LocationId            = s.OverrideScope   ? s.LocationId        : p.LocationId,
+        LocationName          = s.OverrideScope   ? s.LocationName      : p.LocationName,
+        PricingBasis          = s.OverridePricing ? s.PricingBasis      : p.PricingBasis,
+        PricePercent          = s.OverridePricing ? s.PricePercent      : p.PricePercent,
+        MarketStationId       = s.OverridePricing ? s.MarketStationId   : p.MarketStationId,
+        MarketStationName     = s.OverridePricing ? s.MarketStationName : p.MarketStationName,
+        MarketPriceType       = s.OverridePricing ? s.MarketPriceType   : p.MarketPriceType,
+        OnlyPackaged          = s.OverrideOnlyPackaged ? s.OnlyPackaged  : p.OnlyPackaged,
+        IncludeCompletionDate = p.IncludeCompletionDate,
+    };
+
+    // ── Headless render ───────────────────────────────────────────────────────
+    //
+    // What the Sale Posting tab does when it draws itself, without the tab. Needed because a
+    // mailed request for prices is answered by a background service, which has no view models
+    // and no dispatcher — see SalePostingRenderer for why the rendering moved out of one.
+
+    /// <summary>
+    /// The posting as plain data, priced and counted, ready to render.
+    ///
+    /// <para>Sections and items are ordered exactly as the tool orders them — sections by name,
+    /// items by type name — because a buyer comparing a mailed list against the one posted in
+    /// chat should not have to wonder whether they are looking at the same thing.</para>
+    /// </summary>
+    internal async Task<PostingView?> BuildViewAsync(int postingId, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+
+        var posting = await db.SalePostings.FirstOrDefaultAsync(p => p.Id == postingId, ct);
+        if (posting is null) return null;
+
+        var sections = await db.SalePostingSections
+            .Where(s => s.PostingId == postingId).OrderBy(s => s.Name).ToListAsync(ct);
+
+        var views = new List<PostingSectionView>();
+
+        foreach (var section in sections)
+        {
+            var items = await db.SalePostingItems
+                .Where(i => i.SectionId == section.Id).ToListAsync(ct);
+            if (items.Count == 0)
+            {
+                views.Add(new PostingSectionView(section.Name, section.Prefix, []));
+                continue;
+            }
+
+            // Per section, because each resolves its own scope and pricing.
+            var calc = await ComputeAsync(
+                EffectiveFor(posting, section),
+                items.Select(i => i.TypeId).Distinct().ToList(), ct);
+
+            var rows = items
+                .Select(i =>
+                {
+                    calc.TryGetValue(i.TypeId, out var c);
+                    return new PostingItemView(
+                        c?.Name ?? $"Type {i.TypeId}",
+                        i.NameOverride, i.NamePrefix,
+                        c?.InStock  ?? 0, c?.InBuild ?? 0, c?.Reserved ?? 0,
+                        i.InStockOverride, i.InBuildOverride, i.ReservedOverride,
+                        c?.SalePrice, c?.EarliestJobEnd);
+                })
+                .OrderBy(r => r.TypeName, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            views.Add(new PostingSectionView(section.Name, section.Prefix, rows));
+        }
+
+        return new PostingView(
+            posting.ShowInStock, posting.ShowInBuild, posting.ShowReserved,
+            posting.IncludeCompletionDate, views);
+    }
+
+    /// <summary>
+    /// Every post block of a posting, rendered in one output format.
+    ///
+    /// <para>Returns them in Ordinal order, the same sequence the tool previews and Slack posts
+    /// in — block 0 is the parent and the rest are supporting detail.</para>
+    /// </summary>
+    internal async Task<List<RenderedPost>> RenderAsync(
+        int postingId, string formatName, CancellationToken ct = default)
+    {
+        var view = await BuildViewAsync(postingId, ct);
+        if (view is null) return [];
+
+        var fmt   = OutputFormat.ByName(formatName);
+        var posts = await LoadPostsAsync(postingId, ct);
+
+        return posts.OrderBy(p => p.Ordinal)
+            .Select(p => new RenderedPost(
+                p.Name, p.PostType,
+                fmt.Finalize(SalePostingRenderer.Render(view, fmt, p))))
+            .ToList();
+    }
+
     public async Task<Dictionary<int, SalePostingCalc>> ComputeAsync(
         SalePosting posting, IReadOnlyList<int> typeIds, CancellationToken ct = default)
     {
