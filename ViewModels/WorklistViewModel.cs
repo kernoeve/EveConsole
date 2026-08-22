@@ -149,14 +149,20 @@ public class WorklistRowVm : ReactiveObject
     };
 
     /// <summary>
-    /// The efficiency the job's materials were planned at — "ME9" — or blank.
+    /// The print the job was planned against — "ME9 TE20" — or blank.
+    ///
+    /// <para>One string rather than two labels: the row's panel spaces its children eight pixels
+    /// apart, which would read as two separate facts when the pair is how a blueprint is described
+    /// everywhere else.</para>
     ///
     /// <para>⚠️ Manufacturing only. A reaction formula has no efficiency to speak of and a copy or
-    /// invention job does not consume by it, so the figure would be a meaningless "ME0" on every
-    /// one of those rows.</para>
+    /// invention job does not consume by it, so both figures would be a meaningless "ME0 TE0" on
+    /// every one of those rows.</para>
     /// </summary>
     public string BlueprintMeText =>
-        _item.Pool == IndustryPool.Manufacturing && _item.BlueprintMe is { } me ? $"ME{me}" : "";
+        _item.Pool == IndustryPool.Manufacturing && _item.BlueprintMe is { } me
+            ? $"ME{me} TE{_item.BlueprintTe ?? 0}"
+            : "";
 
     public bool HasBlueprintMe => BlueprintMeText.Length > 0;
 

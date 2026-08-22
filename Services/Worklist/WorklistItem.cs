@@ -155,6 +155,13 @@ public sealed record WorklistItem
     /// </summary>
     public int? BlueprintMe { get; init; }
 
+    /// <summary>
+    /// Time efficiency of the same blueprint. Shown beside the ME because the pair is how a print
+    /// is described everywhere else — and it is the figure behind the job's duration, just as ME
+    /// is the one behind its materials.
+    /// </summary>
+    public int? BlueprintTe { get; init; }
+
     /// <summary>Higher sorts first. Generators set this relative to their own items; the
     /// service does not renormalise across sources.</summary>
     public int Priority { get; init; }

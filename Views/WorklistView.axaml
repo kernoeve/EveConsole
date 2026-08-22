@@ -388,7 +388,7 @@
                        than part of its name. Manufacturing only; see BlueprintMeText. -->
                   <TextBlock Text="{Binding BlueprintMeText}" IsVisible="{Binding HasBlueprintMe}"
                              Foreground="#7a7a88" FontSize="14" VerticalAlignment="Center"
-                             ToolTip.Tip="Material efficiency of the blueprint this job would use"/>
+                             ToolTip.Tip="Material and time efficiency of the blueprint this job would use"/>
                   <Panel>
                     <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
                             ToolTip.Tip="Open this station or structure">
