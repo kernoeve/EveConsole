@@ -60,6 +60,14 @@ public sealed class UiStallMonitor(AppErrorLogger errorLogger)
             // If neither moved, the UI thread genuinely ran our code for that long.
             var gcPause = GC.GetTotalPauseDuration();
             var gen2    = GC.CollectionCount(2);
+            var gen0    = GC.CollectionCount(0);
+            // ⚠️ How much was allocated during the stall, which is the one number that separates
+            // "slow" from "enormous". A stall with three gen2 collections in it was not merely
+            // busy — something materialised far more than it needed, and the size points at
+            // which query or list it was. Reported because the earlier stalls could not be
+            // explained without it: the UI thread was blamed for running code, with no way to
+            // tell whether that code was working or drowning.
+            var alloc   = GC.GetTotalAllocatedBytes();
             ThreadPool.GetAvailableThreads(out var freeWorkersBefore, out _);
 
             // Background priority on purpose: it must queue behind real UI work, so what it
@@ -76,21 +84,38 @@ public sealed class UiStallMonitor(AppErrorLogger errorLogger)
 
                 var gcMs      = (int)(GC.GetTotalPauseDuration() - gcPause).TotalMilliseconds;
                 var gen2Runs  = GC.CollectionCount(2) - gen2;
+                var gen0Runs  = GC.CollectionCount(0) - gen0;
+                var allocMb   = (GC.GetTotalAllocatedBytes() - alloc) / (1024d * 1024d);
                 ThreadPool.GetAvailableThreads(out var freeWorkers, out _);
                 var queued    = ThreadPool.PendingWorkItemCount;
 
                 // Name the cause in the message itself, so the log is readable without having
                 // to reason about the numbers every time.
+                //
+                // ⚠️ "Allocating hard" sits above the plain busy case deliberately. A stall that
+                // ran a full collection while allocating hundreds of megabytes is a different
+                // defect from one that spent the time computing: the first is a query bringing
+                // back more than it needs, the second is an algorithm. Both used to read as
+                // "UI thread ran code", which said only where the time went, not why.
                 var cause =
-                    gcMs > waited / 2         ? "GC pause"
-                  : freeWorkers == 0          ? "thread pool starved"
-                  : queued > 50               ? "thread pool backlog"
-                  :                             "UI thread ran code";
+                    gcMs > waited / 2                     ? "GC pause"
+                  : freeWorkers == 0                      ? "thread pool starved"
+                  : queued > 50                           ? "thread pool backlog"
+                  : gen2Runs > 0 && allocMb > 200          ? "UI thread allocating hard"
+                  :                                         "UI thread ran code";
 
                 errorLogger.Log(nameof(UiStallMonitor), $"UI stalled — {cause}",
-                    $"Blocked {waited:N0} ms. GC paused {gcMs:N0} ms ({gen2Runs} gen2). " +
+                    $"Blocked {waited:N0} ms. Allocated {allocMb:N0} MB. " +
+                    $"GC paused {gcMs:N0} ms ({gen2Runs} gen2, {gen0Runs} gen0). " +
                     $"Pool: {freeWorkers} free workers (was {freeWorkersBefore}), " +
                     $"{queued:N0} queued. " +
+                    // ⚠️ Read this against the stall length, not on its own. A label from within
+                    // the stall window is a suspect; one from long before it means the UI thread
+                    // has run nothing that names itself for that whole time, and the blockage is
+                    // somewhere ReactiveUI never sees — which is what the stalls this was
+                    // reopened for looked like, with no scheduler entry to go with them.
+                    $"Last named UI work: {UiWork.Last ?? "(nothing this session)"}" +
+                    (UiWork.MsSinceLast is { } ago ? $" {ago:N0} ms ago" : "") + ". " +
                     $"Stall {StallCount} this session, worst {WorstStallMs:N0} ms.");
             }, DispatcherPriority.Background);
         };
