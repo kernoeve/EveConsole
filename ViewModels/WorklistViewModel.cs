@@ -434,7 +434,7 @@ public class WorklistViewModel : ReactiveObject
 {
     private readonly WorklistService _service;
 
-    public ObservableCollection<WorklistRowVm> Rows { get; } = [];
+    public BulkObservableCollection<WorklistRowVm> Rows { get; } = [];
 
     /// <summary>
     /// What the grid actually binds to: <see cref="Rows"/> grouped by task.
@@ -758,7 +758,7 @@ public class WorklistViewModel : ReactiveObject
     /// sections show. Kept separate from <see cref="Rows"/> so a filter typed in the tool does not
     /// silently reshape a dashboard panel that has no filter row to explain it.
     /// </summary>
-    public ObservableCollection<WorklistRowVm> PoolRows { get; } = [];
+    public BulkObservableCollection<WorklistRowVm> PoolRows { get; } = [];
 
     private DateTimeOffset? _lastRefreshUtc;
 
@@ -902,10 +902,8 @@ public class WorklistViewModel : ReactiveObject
 
     private void ApplyFilters()
     {
-        var rows = _pool.Where(Matches).ToList();
-
-        Rows.Clear();
-        foreach (var r in rows) Rows.Add(r);
+        // One notification, not one per row: this is the grid's ItemsSource.
+        Rows.ResetTo(_pool.Where(Matches));
 
         UpdateStatus();
         this.RaisePropertyChanged(nameof(HasFilters));
@@ -1062,33 +1060,51 @@ public class WorklistViewModel : ReactiveObject
         IsLoading = true;
         try
         {
-            var run = await _service.BuildAsync();
+            // ⚠️ Task.Run around the whole computation, not just the build. RefreshAsync is
+            // called from the UI thread (the Overview's refresh, the toolbar button), and
+            // awaiting BuildAsync does NOT get off it: EF Core on SQLite completes its "async"
+            // work synchronously, so every generator, every query and every sort below ran
+            // inline on the UI thread. That was the freeze — thirteen seconds of worklist build
+            // with ten seconds of it holding the UI, once every six minutes.
+            //
+            // Only the collection updates need the UI thread, and they are the cheap part.
+            var (run, unsnoozed, pool, failed) = await Task.Run(async () =>
+            {
+                var built = await _service.BuildAsync();
 
-            var unsnoozed = run.AllItems.Where(i => ShowSnoozed || !i.IsSnoozed).ToList();
+                var alive = built.AllItems.Where(i => ShowSnoozed || !i.IsSnoozed).ToList();
 
-            var visible = unsnoozed
-                .Where(i => ShowNotReady || i.Readiness == WorklistReadiness.Ready)
-                // Blocked last: the list is read top-down looking for something to do, and an
-                // item that cannot be actioned does not belong at the top of that read.
-                .OrderBy(i => i.Readiness == WorklistReadiness.Blocked ? 1 : 0)
-                .ThenByDescending(i => i.Priority)
-                .ThenBy(i => i.CharacterName)
-                .ThenBy(i => i.Title)
-                .ToList();
+                var visible = alive
+                    .Where(i => ShowNotReady || i.Readiness == WorklistReadiness.Ready)
+                    // Blocked last: the list is read top-down looking for something to do, and an
+                    // item that cannot be actioned does not belong at the top of that read.
+                    .OrderBy(i => i.Readiness == WorklistReadiness.Blocked ? 1 : 0)
+                    .ThenByDescending(i => i.Priority)
+                    .ThenBy(i => i.CharacterName)
+                    .ThenBy(i => i.Title)
+                    .ToList();
 
-            var failed = run.Sections.Where(s => s.Error is not null).ToList();
+                // Numbered here, off the ordered list, so the sequence is the default order itself
+                // rather than a second guess at it. Built off-thread with everything else — the
+                // rows are plain view models until something binds to them.
+                var rows = visible.Select((i, n) => new WorklistRowVm(i, n + 1)).ToList();
+
+                return (built, alive, rows,
+                        built.Sections.Where(s => s.Error is not null).ToList());
+            });
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                // Numbered here, off the ordered list, so the sequence is the default order itself
-                // rather than a second guess at it.
-                _pool = visible.Select((i, n) => new WorklistRowVm(i, n + 1)).ToList();
+                _pool = pool;
 
                 // The Overview sections bind here rather than to Rows: they have no filter row of
                 // their own, and inheriting whatever the tool happened to be filtered to would make
                 // a dashboard panel change behind the user for reasons not visible on it.
-                PoolRows.Clear();
-                foreach (var r in _pool) PoolRows.Add(r);
+                //
+                // ⚠️ One Reset, not one notification per row. The Overview rebuilds four more
+                // bound collections whenever this changes, so an item-by-item fill here was
+                // quadratic — see BulkObservableCollection.
+                PoolRows.ResetTo(_pool);
                 _lastRefreshUtc = DateTimeOffset.UtcNow;
                 RefreshedText   = $"Refreshed {DateTime.Now:HH:mm}";
 

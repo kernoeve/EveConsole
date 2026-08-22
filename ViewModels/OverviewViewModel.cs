@@ -490,6 +490,11 @@ public class OverviewViewModel : ReactiveObject
             // worklist's first refresh is still running and PoolRows is empty — and the sections
             // stayed blank after it arrived. Rebuilding on CollectionChanged is deterministic and
             // does not depend on how a filtered view reacts to a source that fills later.
+            //
+            // ⚠️ This makes PoolRows' notification count the cost of a refresh, which is why it
+            // is a BulkObservableCollection and is replaced in one Reset. Filled item by item it
+            // ran this handler once per row, and each run refilled four bound collections the
+            // same way — ten seconds of frozen UI on every worklist refresh.
             value.PoolRows.CollectionChanged += (_, _) => RebuildWorklistSections();
             value.Needs.CollectionChanged    += (_, _) => this.RaisePropertyChanged(nameof(HasWorklistNeeds));
 
@@ -500,10 +505,10 @@ public class OverviewViewModel : ReactiveObject
         }
     }
 
-    public ObservableCollection<WorklistRowVm> WorklistAll  { get; } = [];
-    public ObservableCollection<WorklistRowVm> WorklistBuy  { get; } = [];
-    public ObservableCollection<WorklistRowVm> WorklistHaul { get; } = [];
-    public ObservableCollection<WorklistRowVm> WorklistJobs { get; } = [];
+    public BulkObservableCollection<WorklistRowVm> WorklistAll  { get; } = [];
+    public BulkObservableCollection<WorklistRowVm> WorklistBuy  { get; } = [];
+    public BulkObservableCollection<WorklistRowVm> WorklistHaul { get; } = [];
+    public BulkObservableCollection<WorklistRowVm> WorklistJobs { get; } = [];
 
     /// <summary>
     /// The All section and Station Needs, grouped the way the tool groups them — by task kind and
@@ -575,16 +580,13 @@ public class OverviewViewModel : ReactiveObject
     {
         if (_worklist is null) return;
 
-        Fill(WorklistAll,  _worklist.PoolRows);
-        Fill(WorklistBuy,  _worklist.PoolRows.Where(r => r.IsBuy));
-        Fill(WorklistHaul, _worklist.PoolRows.Where(r => r.IsHaul));
-        Fill(WorklistJobs, _worklist.PoolRows.Where(r => r.IsJob));
-
-        static void Fill(ObservableCollection<WorklistRowVm> target, IEnumerable<WorklistRowVm> rows)
-        {
-            target.Clear();
-            foreach (var r in rows) target.Add(r);
-        }
+        // ⚠️ One notification each. These are bound to Overview panels, so an item-by-item fill
+        // lays each panel out once per row — and this method is itself driven by PoolRows
+        // changing, so the two together were quadratic.
+        WorklistAll .ResetTo(_worklist.PoolRows);
+        WorklistBuy .ResetTo(_worklist.PoolRows.Where(r => r.IsBuy));
+        WorklistHaul.ResetTo(_worklist.PoolRows.Where(r => r.IsHaul));
+        WorklistJobs.ResetTo(_worklist.PoolRows.Where(r => r.IsJob));
     }
     private bool _loadPending;
 
