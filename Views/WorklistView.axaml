@@ -365,7 +365,11 @@
              "1 item(s)" where the actual content sat in Note. Each kind now shows what that kind
              is about. What is lost is sorting on those five as columns — the filter row above still
              narrows by character, source and destination, and #, Value and Volume remain sortable. -->
-        <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="Title">
+        <!-- ⚠️ Sorts on TaskSortText, not Title. A haul row shows its route rather than its title,
+             so sorting on the title ordered those rows by text nobody can see — which reads as no
+             ordering at all. The Overview's sections were fixed this way already; the tool's own
+             grid kept the old path. -->
+        <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <Panel VerticalAlignment="Center">
