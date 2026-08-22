@@ -721,6 +721,19 @@ public class OverviewViewModel : ReactiveObject
             // Aggregate in SQL with date filter — avoids loading all rows and the
             // DateTimeOffset LINQ translation bug. UnitPrice stored as TEXT so CAST
             // to REAL for arithmetic; result arrives as double, converted to decimal.
+            //
+            // ⚠️ Every transaction, with nothing filtered out. This panel and the income pie
+            // both print a figure called "Market Sales", and two different numbers under one
+            // name is a defect however well each is justified on its own. The pie reads the
+            // wallet journal, which records what the wallet received and knows nothing about
+            // any marking done elsewhere in the app; this reads the transaction log, which is
+            // the same events from the other side. Left alone they agree to the ISK — measured
+            // per owner across 7, 30, 90 and 180 day windows.
+            //
+            // Sales the Sales Tracker has marked "not for profit" used to be subtracted here.
+            // That is a profit question and this is not a profit figure: it is a summary of
+            // what happened in the period. The mark still does its job everywhere profit is
+            // actually reckoned — the Sales Tracker's own totals and the Sale Posting tool.
             decimal mktSellTotal = 0m, mktBuyTotal = 0m;
             int     mktSellCnt   = 0,  mktBuyCnt   = 0;
             foreach (var (ot, oid) in activityOwners)
@@ -734,10 +747,6 @@ public class OverviewViewModel : ReactiveObject
                         COALESCE(SUM(CASE WHEN "IsBuy" = 1 THEN 1 ELSE 0 END), 0)                                          AS "BuyCount"
                     FROM "EsiWalletTransactions"
                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
-                      -- Sales marked "not for profit" in the Sales Tracker are left out of
-                      -- every figure that reckons trading performance, including this one.
-                      AND NOT EXISTS (SELECT 1 FROM "SaleExclusions" x
-                                      WHERE x."Kind" = 'Market' AND x."SaleId" = "TransactionId")
                     """
                 ).FirstOrDefaultAsync());
 
