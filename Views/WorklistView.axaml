@@ -320,7 +320,8 @@
              that header is gone the moment the list is sorted on something else, and a shape is
              read faster than a word when scanning. Stroked rather than filled so it stays legible
              at row height and takes its weight from the theme. -->
-        <DataGridTemplateColumn Header="" Width="22" CanUserSort="False" CanUserResize="False">
+        <DataGridTemplateColumn Header="" Width="22" CanUserResize="False"
+                                SortMemberPath="KindSort">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <Path Data="{Binding KindGlyph, Converter={x:Static views:PathGeometryConverter.Instance}}"

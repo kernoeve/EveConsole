@@ -109,13 +109,18 @@ public class WorklistRowVm : ReactiveObject
         (WorklistKind.Job, IndustryPool.Manufacturing) =>
             "M2,13 V6 L6,8.5 V6 L10,8.5 V6 L14,8.5 V13 Z",
 
-        // Flask: a reaction.
+        // ⚠️ Atom, not a flask. The flask is what EVE draws for science, so using it here read as
+        // "copying" on every reaction row — the two got swapped on first writing. In the client's
+        // facility list the reaction icon is the last of the activity marks and is the round one.
         (WorklistKind.Job, IndustryPool.Reaction) =>
-            "M6.5,2 V6 L3,12.5 A1,1 0 0,0 4,14 H12 A1,1 0 0,0 13,12.5 L9.5,6 V2 Z M5.5,2 H10.5",
+            "M8,6.75 A1.25,1.25 0 1,0 8,9.25 A1.25,1.25 0 1,0 8,6.75 " +
+            "M4.3,11.7 A5.2,2.4 45 1,1 11.7,4.3 A5.2,2.4 45 1,1 4.3,11.7 " +
+            "M4.3,4.3 A5.2,2.4 -45 1,1 11.7,11.7 A5.2,2.4 -45 1,1 4.3,4.3",
 
-        // Two sheets: copying and invention, which share the science slots.
+        // Flask: copying and invention, which share the science slots — and which is what the
+        // client marks those activities with.
         (WorklistKind.Job, IndustryPool.Science) =>
-            "M3,2 H9.5 L11.5,4 V11 H3 Z M5,13 H13 V5.5",
+            "M6.5,2 V6 L3,12.5 A1,1 0 0,0 4,14 H12 A1,1 0 0,0 13,12.5 L9.5,6 V2 Z M5.5,2 H10.5",
 
         // Gear, for a job whose pool is not known.
         (WorklistKind.Job, _) =>
@@ -132,6 +137,22 @@ public class WorklistRowVm : ReactiveObject
 
         // Rising bars: a skill queue.
         _ => "M3,13 V9.5 M6.5,13 V7 M10,13 V4.5 M13.5,13 V2",
+    };
+
+    /// <summary>
+    /// What the glyph column sorts on: the same distinction the glyph draws, so rows showing the
+    /// same icon land together.
+    ///
+    /// <para><see cref="KindRank"/> alone would scatter the three job icons, since it cannot see
+    /// the pool. Kind leads so the order stays the enum's — buy, haul, job, and so on — with jobs
+    /// sub-ordered manufacturing, reaction, science.</para>
+    /// </summary>
+    public int KindSort => (int)_item.Kind * 10 + _item.Pool switch
+    {
+        IndustryPool.Manufacturing => 1,
+        IndustryPool.Reaction      => 2,
+        IndustryPool.Science       => 3,
+        _                          => 0,
     };
 
     /// <summary>Names the glyph, since a shape at row height can only hint.</summary>
