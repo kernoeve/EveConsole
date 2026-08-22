@@ -144,6 +144,17 @@ public sealed record WorklistItem
     /// </summary>
     public IndustryPool? Pool { get; init; }
 
+    /// <summary>
+    /// Material efficiency of the blueprint this job would actually install, or null where no
+    /// blueprint is involved.
+    ///
+    /// <para>The materials were planned at this figure rather than at a default, so it is the
+    /// number that explains the quantities on the row — a job planned against an ME10 original
+    /// asks for less than the same job against a fresh copy, and without it the difference looks
+    /// arbitrary.</para>
+    /// </summary>
+    public int? BlueprintMe { get; init; }
+
     /// <summary>Higher sorts first. Generators set this relative to their own items; the
     /// service does not renormalise across sources.</summary>
     public int Priority { get; init; }

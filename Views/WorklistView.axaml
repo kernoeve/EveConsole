@@ -383,6 +383,12 @@
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsJob}">
                   <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="16"
                              TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  <!-- The efficiency the materials were planned at. Sits with the station and the
+                       character because it is the same sort of fact — context for the job rather
+                       than part of its name. Manufacturing only; see BlueprintMeText. -->
+                  <TextBlock Text="{Binding BlueprintMeText}" IsVisible="{Binding HasBlueprintMe}"
+                             Foreground="#7a7a88" FontSize="14" VerticalAlignment="Center"
+                             ToolTip.Tip="Material efficiency of the blueprint this job would use"/>
                   <Panel>
                     <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
                             ToolTip.Tip="Open this station or structure">

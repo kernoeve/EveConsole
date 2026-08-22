@@ -148,6 +148,18 @@ public class WorklistRowVm : ReactiveObject
         _                                              => "Skill queue",
     };
 
+    /// <summary>
+    /// The efficiency the job's materials were planned at — "ME9" — or blank.
+    ///
+    /// <para>⚠️ Manufacturing only. A reaction formula has no efficiency to speak of and a copy or
+    /// invention job does not consume by it, so the figure would be a meaningless "ME0" on every
+    /// one of those rows.</para>
+    /// </summary>
+    public string BlueprintMeText =>
+        _item.Pool == IndustryPool.Manufacturing && _item.BlueprintMe is { } me ? $"ME{me}" : "";
+
+    public bool HasBlueprintMe => BlueprintMeText.Length > 0;
+
     /// <summary>Only a haul has a far end.</summary>
     public string DestinationName => _item.DestinationName;
 
