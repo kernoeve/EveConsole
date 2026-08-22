@@ -76,11 +76,129 @@ public class WorklistRowVm : ReactiveObject
     {
         WorklistKind.Buy         => "Buy",
         WorklistKind.Haul        => "Haul",
+        WorklistKind.Refine      => "Refine",
+        WorklistKind.Decompress  => "Decompress",
         WorklistKind.Job         => "Job",
         WorklistKind.AssetSafety => "Asset Safety",
         WorklistKind.SkillQueue  => "Skill Queue",
         _                        => "Corp Project",
     };
+
+    /// <summary>
+    /// What kind of work this is, at a glance, before the row is read.
+    ///
+    /// <para>⚠️ Drawn rather than fetched. EVE's image server serves types, characters and corps —
+    /// there is no endpoint for "manufacturing" or "reaction", and the client's own activity icons
+    /// are CCP's art rather than ours to redistribute. These are simple shapes on the same 16-unit
+    /// grid, which also means they stay crisp at row height and take their colour from the theme
+    /// instead of arriving as a fixed-colour bitmap.</para>
+    ///
+    /// <para>A job is split by the slot pool it occupies, because "run a reaction" and "copy a
+    /// blueprint" are different errands in different places — the distinction the group header
+    /// alone cannot make once the list is sorted by anything else.</para>
+    /// </summary>
+    public string KindGlyph => (_item.Kind, _item.Pool) switch
+    {
+        // Cart: something to acquire.
+        (WorklistKind.Buy, _) =>
+            "M2,3 H4.5 L6.5,10.5 H13 L14.5,5.5 H5.5 M7,13 A1,1 0 1,0 7,12.9 M12,13 A1,1 0 1,0 12,12.9",
+
+        // Arrow between two points: something to move.
+        (WorklistKind.Haul, _) =>
+            "M2,8 H11 M8.5,5 L12,8 L8.5,11 M13.5,4 V12",
+
+        // A rock breaking into pieces: reprocessing.
+        (WorklistKind.Refine, _) =>
+            "M8,1.5 L13,4.5 V10 L8,13.5 L3,10 V4.5 Z M3,4.5 L8,7.5 L13,4.5 M8,7.5 V13.5",
+
+        // Opening outward: decompression.
+        (WorklistKind.Decompress, _) =>
+            "M4,7 H2 M12,7 H14 M4,9.5 H2 M12,9.5 H14 M5.5,3.5 L8,1.5 L10.5,3.5 " +
+            "M5,6 H11 V11 H5 Z",
+
+        // Factory roofline.
+        (WorklistKind.Job, IndustryPool.Manufacturing) =>
+            "M2,13 V6 L6,8.5 V6 L10,8.5 V6 L14,8.5 V13 Z",
+
+        // ⚠️ Atom, not a flask. The flask is what EVE draws for science, so using it here read as
+        // "copying" on every reaction row — the two got swapped on first writing. In the client's
+        // facility list the reaction icon is the last of the activity marks and is the round one.
+        (WorklistKind.Job, IndustryPool.Reaction) =>
+            "M8,6.75 A1.25,1.25 0 1,0 8,9.25 A1.25,1.25 0 1,0 8,6.75 " +
+            "M4.3,11.7 A5.2,2.4 45 1,1 11.7,4.3 A5.2,2.4 45 1,1 4.3,11.7 " +
+            "M4.3,4.3 A5.2,2.4 -45 1,1 11.7,11.7 A5.2,2.4 -45 1,1 4.3,4.3",
+
+        // Flask: copying and invention, which share the science slots — and which is what the
+        // client marks those activities with.
+        (WorklistKind.Job, IndustryPool.Science) =>
+            "M6.5,2 V6 L3,12.5 A1,1 0 0,0 4,14 H12 A1,1 0 0,0 13,12.5 L9.5,6 V2 Z M5.5,2 H10.5",
+
+        // Gear, for a job whose pool is not known.
+        (WorklistKind.Job, _) =>
+            "M8,5.5 A2.5,2.5 0 1,0 8,10.5 A2.5,2.5 0 1,0 8,5.5 M8,1.5 V3.5 M8,12.5 V14.5 " +
+            "M1.5,8 H3.5 M12.5,8 H14.5 M3.5,3.5 L5,5 M11,11 L12.5,12.5 M12.5,3.5 L11,5 M5,11 L3.5,12.5",
+
+        // Flag: a corp project.
+        (WorklistKind.CorpProject, _) =>
+            "M4,2 V14 M4,3 H13 L10.5,6 L13,9 H4",
+
+        // Shield: asset safety.
+        (WorklistKind.AssetSafety, _) =>
+            "M8,2 L13.5,4 V8 C13.5,11 11,13.2 8,14 C5,13.2 2.5,11 2.5,8 V4 Z",
+
+        // Rising bars: a skill queue.
+        _ => "M3,13 V9.5 M6.5,13 V7 M10,13 V4.5 M13.5,13 V2",
+    };
+
+    /// <summary>
+    /// What the glyph column sorts on: the same distinction the glyph draws, so rows showing the
+    /// same icon land together.
+    ///
+    /// <para><see cref="KindRank"/> alone would scatter the three job icons, since it cannot see
+    /// the pool. Kind leads so the order stays the enum's — buy, haul, job, and so on — with jobs
+    /// sub-ordered manufacturing, reaction, science.</para>
+    /// </summary>
+    public int KindSort => (int)_item.Kind * 10 + _item.Pool switch
+    {
+        IndustryPool.Manufacturing => 1,
+        IndustryPool.Reaction      => 2,
+        IndustryPool.Science       => 3,
+        _                          => 0,
+    };
+
+    /// <summary>Names the glyph, since a shape at row height can only hint.</summary>
+    public string KindGlyphTip => (_item.Kind, _item.Pool) switch
+    {
+        (WorklistKind.Buy,  _)                        => "Buy",
+        (WorklistKind.Haul, _)                        => "Haul",
+        (WorklistKind.Refine, _)                      => "Reprocess ore",
+        (WorklistKind.Decompress, _)                  => "Decompress gas",
+        (WorklistKind.Job, IndustryPool.Manufacturing) => "Manufacturing job",
+        (WorklistKind.Job, IndustryPool.Reaction)      => "Reaction job",
+        (WorklistKind.Job, IndustryPool.Science)       => "Science job — copying or invention",
+        (WorklistKind.Job, _)                          => "Industry job",
+        (WorklistKind.CorpProject, _)                  => "Corp project",
+        (WorklistKind.AssetSafety, _)                  => "Asset safety",
+        _                                              => "Skill queue",
+    };
+
+    /// <summary>
+    /// The print the job was planned against — "ME9 TE20" — or blank.
+    ///
+    /// <para>One string rather than two labels: the row's panel spaces its children eight pixels
+    /// apart, which would read as two separate facts when the pair is how a blueprint is described
+    /// everywhere else.</para>
+    ///
+    /// <para>⚠️ Manufacturing only. A reaction formula has no efficiency to speak of and a copy or
+    /// invention job does not consume by it, so both figures would be a meaningless "ME0 TE0" on
+    /// every one of those rows.</para>
+    /// </summary>
+    public string BlueprintMeText =>
+        _item.Pool == IndustryPool.Manufacturing && _item.BlueprintMe is { } me
+            ? $"ME{me} TE{_item.BlueprintTe ?? 0}"
+            : "";
+
+    public bool HasBlueprintMe => BlueprintMeText.Length > 0;
 
     /// <summary>Only a haul has a far end.</summary>
     public string DestinationName => _item.DestinationName;
@@ -129,7 +247,11 @@ public class WorklistRowVm : ReactiveObject
     public bool IsHaul  => _item.Kind == WorklistKind.Haul;
     public bool IsJob   => _item.Kind == WorklistKind.Job;
     public bool IsBuy   => _item.Kind == WorklistKind.Buy;
-    public bool IsOther => !IsHaul && !IsJob && !IsBuy;
+    /// <summary>Reprocessing and decompressing share a shape: what to do, and the one station to
+    /// do it at.</summary>
+    public bool IsRefining => _item.Kind is WorklistKind.Refine or WorklistKind.Decompress;
+
+    public bool IsOther => !IsHaul && !IsJob && !IsBuy && !IsRefining;
 
     /// <summary>Source and destination as one phrase, since a haul is the pairing rather than two
     /// independent facts.</summary>
@@ -312,7 +434,7 @@ public class WorklistViewModel : ReactiveObject
 {
     private readonly WorklistService _service;
 
-    public ObservableCollection<WorklistRowVm> Rows { get; } = [];
+    public BulkObservableCollection<WorklistRowVm> Rows { get; } = [];
 
     /// <summary>
     /// What the grid actually binds to: <see cref="Rows"/> grouped by task.
@@ -636,7 +758,7 @@ public class WorklistViewModel : ReactiveObject
     /// sections show. Kept separate from <see cref="Rows"/> so a filter typed in the tool does not
     /// silently reshape a dashboard panel that has no filter row to explain it.
     /// </summary>
-    public ObservableCollection<WorklistRowVm> PoolRows { get; } = [];
+    public BulkObservableCollection<WorklistRowVm> PoolRows { get; } = [];
 
     private DateTimeOffset? _lastRefreshUtc;
 
@@ -707,17 +829,32 @@ public class WorklistViewModel : ReactiveObject
         Keep(ref _sourceFilter,    SourceOptions,    nameof(SourceFilter));
         Keep(ref _destFilter,      DestOptions,      nameof(DestFilter));
 
+        // ⚠️ Reconciled in place, never cleared and refilled. Clearing removes the item the
+        // dropdown has selected, so the control sets SelectedItem to null and the two-way binding
+        // writes that straight back into the filter — before the Keep below can protect it. Every
+        // refresh dropped the filters, even when the value was about to reappear in the same list,
+        // which is why a refresh looked like it was resetting them on purpose.
         void Fill(ObservableCollection<string> target, IEnumerable<string> values)
         {
-            var distinct = values
+            var wanted = new List<string> { AnyValue };
+            wanted.AddRange(values
                 .Select(v => string.IsNullOrWhiteSpace(v) ? "—" : v)
                 .Distinct()
-                .OrderBy(v => v, StringComparer.OrdinalIgnoreCase)
-                .ToList();
+                .OrderBy(v => v, StringComparer.OrdinalIgnoreCase));
 
-            target.Clear();
-            target.Add(AnyValue);
-            foreach (var v in distinct) target.Add(v);
+            // What has gone, first — so the pass below only ever inserts.
+            var keep = wanted.ToHashSet(StringComparer.Ordinal);
+            for (var i = target.Count - 1; i >= 0; i--)
+                if (!keep.Contains(target[i]))
+                    target.RemoveAt(i);
+
+            // Both sides are in the same order, so one pass lines them up. A value that survives
+            // is never touched, and that is what keeps the selection alive.
+            for (var i = 0; i < wanted.Count; i++)
+                if (i >= target.Count || !string.Equals(target[i], wanted[i], StringComparison.Ordinal))
+                    target.Insert(i, wanted[i]);
+
+            while (target.Count > wanted.Count) target.RemoveAt(target.Count - 1);
         }
 
         void Keep(ref string field, ObservableCollection<string> options, string propertyName)
@@ -765,10 +902,8 @@ public class WorklistViewModel : ReactiveObject
 
     private void ApplyFilters()
     {
-        var rows = _pool.Where(Matches).ToList();
-
-        Rows.Clear();
-        foreach (var r in rows) Rows.Add(r);
+        // One notification, not one per row: this is the grid's ItemsSource.
+        Rows.ResetTo(_pool.Where(Matches));
 
         UpdateStatus();
         this.RaisePropertyChanged(nameof(HasFilters));
@@ -925,33 +1060,51 @@ public class WorklistViewModel : ReactiveObject
         IsLoading = true;
         try
         {
-            var run = await _service.BuildAsync();
+            // ⚠️ Task.Run around the whole computation, not just the build. RefreshAsync is
+            // called from the UI thread (the Overview's refresh, the toolbar button), and
+            // awaiting BuildAsync does NOT get off it: EF Core on SQLite completes its "async"
+            // work synchronously, so every generator, every query and every sort below ran
+            // inline on the UI thread. That was the freeze — thirteen seconds of worklist build
+            // with ten seconds of it holding the UI, once every six minutes.
+            //
+            // Only the collection updates need the UI thread, and they are the cheap part.
+            var (run, unsnoozed, pool, failed) = await Task.Run(async () =>
+            {
+                var built = await _service.BuildAsync();
 
-            var unsnoozed = run.AllItems.Where(i => ShowSnoozed || !i.IsSnoozed).ToList();
+                var alive = built.AllItems.Where(i => ShowSnoozed || !i.IsSnoozed).ToList();
 
-            var visible = unsnoozed
-                .Where(i => ShowNotReady || i.Readiness == WorklistReadiness.Ready)
-                // Blocked last: the list is read top-down looking for something to do, and an
-                // item that cannot be actioned does not belong at the top of that read.
-                .OrderBy(i => i.Readiness == WorklistReadiness.Blocked ? 1 : 0)
-                .ThenByDescending(i => i.Priority)
-                .ThenBy(i => i.CharacterName)
-                .ThenBy(i => i.Title)
-                .ToList();
+                var visible = alive
+                    .Where(i => ShowNotReady || i.Readiness == WorklistReadiness.Ready)
+                    // Blocked last: the list is read top-down looking for something to do, and an
+                    // item that cannot be actioned does not belong at the top of that read.
+                    .OrderBy(i => i.Readiness == WorklistReadiness.Blocked ? 1 : 0)
+                    .ThenByDescending(i => i.Priority)
+                    .ThenBy(i => i.CharacterName)
+                    .ThenBy(i => i.Title)
+                    .ToList();
 
-            var failed = run.Sections.Where(s => s.Error is not null).ToList();
+                // Numbered here, off the ordered list, so the sequence is the default order itself
+                // rather than a second guess at it. Built off-thread with everything else — the
+                // rows are plain view models until something binds to them.
+                var rows = visible.Select((i, n) => new WorklistRowVm(i, n + 1)).ToList();
+
+                return (built, alive, rows,
+                        built.Sections.Where(s => s.Error is not null).ToList());
+            });
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                // Numbered here, off the ordered list, so the sequence is the default order itself
-                // rather than a second guess at it.
-                _pool = visible.Select((i, n) => new WorklistRowVm(i, n + 1)).ToList();
+                _pool = pool;
 
                 // The Overview sections bind here rather than to Rows: they have no filter row of
                 // their own, and inheriting whatever the tool happened to be filtered to would make
                 // a dashboard panel change behind the user for reasons not visible on it.
-                PoolRows.Clear();
-                foreach (var r in _pool) PoolRows.Add(r);
+                //
+                // ⚠️ One Reset, not one notification per row. The Overview rebuilds four more
+                // bound collections whenever this changes, so an item-by-item fill here was
+                // quadratic — see BulkObservableCollection.
+                PoolRows.ResetTo(_pool);
                 _lastRefreshUtc = DateTimeOffset.UtcNow;
                 RefreshedText   = $"Refreshed {DateTime.Now:HH:mm}";
 

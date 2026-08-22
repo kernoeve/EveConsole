@@ -1,6 +1,7 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
              xmlns:models="clr-namespace:EveConsole.Models"
              xmlns:wl="clr-namespace:EveConsole.Services.Worklist"
              xmlns:conv="clr-namespace:EveConsole.Views"
@@ -315,6 +316,24 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
+        <!-- What kind of work this is, drawn rather than spelled out. The rows group by kind, but
+             that header is gone the moment the list is sorted on something else, and a shape is
+             read faster than a word when scanning. Stroked rather than filled so it stays legible
+             at row height and takes its weight from the theme. -->
+        <DataGridTemplateColumn Header="" Width="22" CanUserResize="False"
+                                SortMemberPath="KindSort">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:WorklistRowVm">
+              <Path Data="{Binding KindGlyph, Converter={x:Static views:PathGeometryConverter.Instance}}"
+                    Stroke="#8f9dab" StrokeThickness="1.15"
+                    StrokeLineCap="Round" StrokeJoin="Round"
+                    Width="16" Height="16"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    ToolTip.Tip="{Binding KindGlyphTip}"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
         <!-- Expander. Only drawn where there is a manifest, so an empty cell reads as "this task
              is the one item named in the description" rather than as a control that does nothing. -->
         <DataGridTemplateColumn Header="" Width="24" CanUserSort="False" CanUserResize="False">
@@ -346,7 +365,11 @@
              "1 item(s)" where the actual content sat in Note. Each kind now shows what that kind
              is about. What is lost is sorting on those five as columns — the filter row above still
              narrows by character, source and destination, and #, Value and Volume remain sortable. -->
-        <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="Title">
+        <!-- ⚠️ Sorts on TaskSortText, not Title. A haul row shows its route rather than its title,
+             so sorting on the title ordered those rows by text nobody can see — which reads as no
+             ordering at all. The Overview's sections were fixed this way already; the tool's own
+             grid kept the old path. -->
+        <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <Panel VerticalAlignment="Center">
@@ -365,6 +388,12 @@
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsJob}">
                   <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="16"
                              TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  <!-- The efficiency the materials were planned at. Sits with the station and the
+                       character because it is the same sort of fact — context for the job rather
+                       than part of its name. Manufacturing only; see BlueprintMeText. -->
+                  <TextBlock Text="{Binding BlueprintMeText}" IsVisible="{Binding HasBlueprintMe}"
+                             Foreground="#7a7a88" FontSize="14" VerticalAlignment="Center"
+                             ToolTip.Tip="Material and time efficiency of the blueprint this job would use"/>
                   <Panel>
                     <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
                             ToolTip.Tip="Open this station or structure">
@@ -409,6 +438,24 @@
                     </Button>
                     <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}"
                                Foreground="#8a8a99" FontSize="14" VerticalAlignment="Center"/>
+                  </Panel>
+                </StackPanel>
+
+                <!-- Reprocessing and decompressing: what to do, and the one station to do it at.
+                     No character, because the action needs whoever is already there rather than a
+                     particular pilot. -->
+                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsRefining}">
+                  <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="16"
+                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
+                            ToolTip.Tip="Open this station or structure">
+                      <TextBlock Text="{Binding LocationName}" Classes="linktext"
+                                 Foreground="#7a7a88" FontSize="14" TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding LocationName}" IsVisible="{Binding !HasLocationLink}"
+                               Foreground="#7a7a88" FontSize="14"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                   </Panel>
                 </StackPanel>
 

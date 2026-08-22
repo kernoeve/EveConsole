@@ -32,6 +32,7 @@ public class MaterialPurchaseGenerator(
     ProductionCalculatorService     production,
     WorklistMarketAltService        marketAlts,
     WorklistSettings                settings,
+    OutbidOrderService              outbidOrders,
     AppErrorLogger                  errorLogger) : IWorklistGenerator
 {
     public string Id          => "material_purchases";
@@ -116,8 +117,9 @@ public class MaterialPurchaseGenerator(
             return [];
         }
 
-        // Anything a Build rule covers is made, not bought.
-        var buildManaged = await BuildManagedTypesAsync(db, ct);
+        // Anything a Build rule covers is made, not bought — unless nothing can make it, in which
+        // case buying is the only way it ever arrives.
+        var buildManaged = await BuildManagedTypesAsync(db, ctx, ct);
 
         // Blueprints the plan itself asks to buy — BPC-only items carry their copies as a raw
         // material with a real quantity. Those are better handled there than by the
@@ -156,6 +158,10 @@ public class MaterialPurchaseGenerator(
         var inFlight = await InFlightOutputAsync(
             db, ctx, shortfalls.Select(s => s.TypeId).ToList(), scope, ct);
 
+        // Materials the plan would still be missing if none of our orders existed — the ones an
+        // order is actually needed for. See the note where these are reported.
+        var needed = new HashSet<int>();
+
         foreach (var raw in shortfalls.OrderBy(r => r.TypeName))
         {
             if (buildManaged.Contains(raw.TypeId)) continue;
@@ -164,6 +170,12 @@ public class MaterialPurchaseGenerator(
             var building = inFlight.GetValueOrDefault(raw.TypeId);
             var held     = subsStock.GetValueOrDefault(raw.TypeId);
             var short_   = raw.Missing - ordered - building - held.Units;
+
+            // ⚠️ Everything except the orders. An order covering the last of a shortfall is the
+            // reason that shortfall is not a task, which makes it the one order whose failing
+            // matters most — and subtracting it here would hide exactly that case.
+            if (raw.Missing - building - held.Units > 0) needed.Add(raw.TypeId);
+
             if (short_ <= 0) continue;
 
             // A blueprint is acquired, not market-ordered, so it is titled the way the print
@@ -189,6 +201,12 @@ public class MaterialPurchaseGenerator(
                 // mineral are one order — the contract-versus-market distinction only matters
                 // against a market row for the same type, and a blueprint never has one.
                 MergeKey      = WorklistItem.BuyMergeKey(buyAt, raw.TypeId),
+                // Both halves of the subtraction, so a merge with an inventory rule wanting the
+                // same material nets the shared stock once rather than once per demand.
+                // raw.Missing already has Available taken off it, so the gross figure is the
+                // requirement itself and Available belongs with the supply.
+                GrossDemand    = raw.Quantity,
+                SupplyCredited = (long)raw.Available + ordered + building + held.Units,
                 Detail        = $"{WantedBy(plan, raw.TypeId)}: need {raw.Quantity:N0}; "
                               + $"{raw.Available:N0} on hand{settings.IndustryScopeSuffix}"
                               + (ordered  > 0 ? $", {ordered:N0} on order" : "")
@@ -209,6 +227,13 @@ public class MaterialPurchaseGenerator(
                 Priority      = WorklistPriority.OrderDriven,
             });
         }
+
+        // Orders failing to buy what the plan still needs. Reported alongside the purchase tasks
+        // rather than instead of them: an order can be losing while it is the only thing covering
+        // the shortfall, and a shortfall can want a second order placed while the first is also
+        // underbid. Keyed by type and station, so an order the inventory rules also depend on is
+        // one task, not one per reason it is wanted.
+        items.AddRange((await outbidOrders.FindAsync(needed, ct)).Select(OutbidOrderService.Task));
 
         return items;
     }
@@ -568,12 +593,32 @@ public class MaterialPurchaseGenerator(
         return scope;
     }
 
-    private static async Task<HashSet<int>> BuildManagedTypesAsync(AppDbContext db, CancellationToken ct) =>
+    /// <summary>
+    /// Types a Build rule has taken responsibility for, so this generator leaves them alone.
+    ///
+    /// <para>⚠️ Only the ones something can actually make. A group is a list of items and a rule
+    /// applies to all of them, so a Build rule routinely covers something with no blueprint at
+    /// all — a planetary product like Self-Harmonizing Power Core sitting in a group beside
+    /// components that are built. Claiming those here dropped them from the worklist entirely:
+    /// nothing bought them because a Build rule covered them, and no job could be made because
+    /// nothing manufactures them. No row, no warning, and the job generator's own comment on
+    /// skipping them says "a Buy rule's job, not this" — the rule that had just been switched
+    /// away.</para>
+    ///
+    /// <para>Tested against the same index the job generator uses, so the two agree by
+    /// construction rather than by both remembering to. This does not second-guess a rule: a
+    /// buildable item under a Buy rule is still bought, which is a legitimate choice, and a
+    /// buildable item under a Build rule is still left to the job side. Only the impossible case
+    /// falls back.</para>
+    /// </summary>
+    private static async Task<HashSet<int>> BuildManagedTypesAsync(
+        AppDbContext db, ProductionContext ctx, CancellationToken ct) =>
         (await db.InvLevelItems.AsNoTracking()
             .Where(i => db.WorklistInvRules.Any(r => r.Enabled && r.Action == "Build"
                                                   && r.GroupId == i.GroupId))
             .Select(i => i.TypeId)
             .ToListAsync(ct))
+        .Where(ctx.BlueprintByProduct.ContainsKey)
         .ToHashSet();
 
     /// <summary>Open buy orders, deduped the way the rest of the tool does: a corp order placed

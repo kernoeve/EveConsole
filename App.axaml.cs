@@ -2598,7 +2598,7 @@ public class App : Application
 
             // Diagnostic only, and the error log is the sole place it reports — so when the switch
             // is off it is not started at all, which also drops its half-second heartbeat.
-            if (PerfDiagnostics.Enabled)
+            if (PerfDiagnostics.UiStalls)
                 Start("UI stall monitor", () => Services.GetRequiredService<UiStallMonitor>().Start());
 
             void Start(string name, Action start)
@@ -2777,6 +2777,7 @@ public class App : Application
         services.AddSingleton<EveConsole.Services.Worklist.IndustryTimeService>();
         services.AddSingleton<EveConsole.Services.Worklist.IndustryDemandService>();
         services.AddSingleton<EveConsole.Services.Worklist.MaterialSubstitutionService>();
+        services.AddSingleton<EveConsole.Services.Worklist.OutbidOrderService>();
         services.AddSingleton<EveConsole.Services.Worklist.JumpDistanceService>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.LogisticsGenerator>();
@@ -2788,6 +2789,8 @@ public class App : Application
                               EveConsole.Services.Worklist.SkillQueueGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.AssetSafetyGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.RefiningGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.InventionService>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.InventionGenerator>();

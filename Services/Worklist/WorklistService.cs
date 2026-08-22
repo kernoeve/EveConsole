@@ -63,6 +63,10 @@ public class WorklistService(
 
         var sections = (await Task.WhenAll(tasks)).ToList();
 
+        // Before the merge, because these carry no quantity and would not merge — two rows saying
+        // the same bid is losing is a duplicate however the amounts work out.
+        DropDuplicateOutbid(sections);
+
         // Before volume and state: the merged task must be sized and aged as the one task it is,
         // not as whichever fragment happened to be written first.
         MergeDuplicatePurchases(sections);
@@ -71,6 +75,40 @@ public class WorklistService(
         await ApplyStateAsync(sections, ct);
 
         return new WorklistRun(sections, DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>
+    /// One row per losing bid, however many reasons there are to care about it.
+    ///
+    /// <para>An order can be needed by a build plan, by a stocking rule, and be a standing order
+    /// the player maintains on its own terms — three sources, one price to change. Each finds it
+    /// honestly and independently, which is what keeps them from having to know about each other,
+    /// and the reader would get the same sentence three times.</para>
+    ///
+    /// <para>Matched on the order's type and station rather than on the task key, because that is
+    /// what identifies the order; the sources key their tasks differently and rightly so. The most
+    /// specific survivor wins: a standing order the player configured explicitly says more about
+    /// what to do than a shortfall that merely happens to depend on it, so a source that names the
+    /// order outright is kept over one that inferred it from a need.</para>
+    /// </summary>
+    private static void DropDuplicateOutbid(List<WorklistSection> sections)
+    {
+        var dupes = sections
+            .SelectMany(s => s.Items.Select(i => (Section: s, Item: i)))
+            .Where(x => x.Item.Priority == WorklistPriority.Outbid && x.Item.TypeId > 0)
+            .GroupBy(x => (x.Item.TypeId, x.Item.LocationId))
+            .Where(g => g.Count() > 1);
+
+        foreach (var group in dupes)
+        {
+            // Anything that is not this service's own inferred row is a source that knows the
+            // order first-hand. Falls back to the first when they all are.
+            var keep = group.FirstOrDefault(x => x.Item.Source != "outbid");
+            if (keep.Item is null) keep = group.First();
+
+            foreach (var x in group)
+                if (!ReferenceEquals(x.Item, keep.Item)) x.Section.Items.Remove(x.Item);
+        }
     }
 
     /// <summary>
@@ -101,7 +139,23 @@ public class WorklistService(
             var parts = group.OrderByDescending(x => x.Item.Priority).ToList();
             var lead  = parts[0];
 
-            var total = parts.Sum(p => p.Item.Quantity);
+            // ⚠️ Demands add up; the stock that fills them does not. Every contributor has already
+            // subtracted the same pile from its own demand, so summing their answers credits that
+            // pile once per contributor. Measured on Fullerite-C32: a job wanting 540,933 and a
+            // rule wanting 500,000 both subtracted the same 125,298 on hand, 12,886 on order and
+            // 333,374 recoverable, and the row asked for 97,817 against a real requirement of
+            // 569,375 — the whole supply credited twice.
+            //
+            // So pooled demand less supply counted once, at the largest figure any contributor
+            // claimed. Falls back to the old sum when a contributor cannot report its halves,
+            // which is right for anything that is genuinely a separate errand.
+            var pooled = parts.All(p => p.Item.GrossDemand is not null && p.Item.SupplyCredited is not null);
+
+            var demand = pooled ? parts.Sum(p => p.Item.GrossDemand!.Value)      : 0;
+            var supply = pooled ? parts.Max(p => p.Item.SupplyCredited!.Value)   : 0;
+
+            var total = pooled ? Math.Max(0, demand - supply)
+                               : parts.Sum(p => p.Item.Quantity);
 
             // Each contributor's reason is kept verbatim. The point of merging is one errand, not
             // one explanation — "why am I buying this many" is the question the row has to answer.
@@ -130,7 +184,14 @@ public class WorklistService(
                     _         => $"{lead.Item.TypeName} — {tag} × {total:N0}",
                 },
                 Quantity  = total,
-                Detail    = $"{total:N0} in total. {reasons}",
+                // ⚠️ The contributors' own figures do not add up to this, and saying so is the
+                // point. Each was computed against the whole of the shared stock, so a reader
+                // adding the "short" numbers gets a figure that credits that stock once per
+                // demand — which is what this row used to print. The sum is spelled out instead.
+                Detail    = pooled
+                    ? $"{total:N0} in total — {demand:N0} wanted between them, less {supply:N0} " +
+                      $"already on hand, on order or recoverable, counted once. {reasons}"
+                    : $"{total:N0} in total. {reasons}",
                 Priority  = parts.Max(p => p.Item.Priority),
                 Readiness = blocked is not null ? blocked.Readiness : lead.Item.Readiness,
                 BlockedBy = blocked?.BlockedBy ?? "",

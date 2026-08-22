@@ -562,28 +562,11 @@ public class LogisticsGenerator(
         AppDbContext db, ProductionContext ctx, int parkId,
         Dictionary<(long Station, int TypeId), long> stock, CancellationToken ct)
     {
-        var facilities = await db.IndyStructures.AsNoTracking()
-            .Where(s => s.ParkId == parkId && s.RealStructureId != null)
-            .ToListAsync(ct);
-        var assignments = await db.IndyCategoryAssignments.AsNoTracking()
-            .Where(a => a.ParkId == parkId && a.StructureId != null)
-            .ToListAsync(ct);
-
-        long? Facility(string key)
-        {
-            var a = assignments.FirstOrDefault(x => x.CategoryKey == key)
-                 ?? assignments.FirstOrDefault(x => x.CategoryKey == "reprocessing");
-            if (a is null) return null;
-            return facilities.FirstOrDefault(f => f.Id == a.StructureId)?.RealStructureId;
-        }
-
-        var target = new Dictionary<string, long?>
-        {
-            ["refine_ore"]      = Facility("refine_ore"),
-            ["refine_moon_ore"] = Facility("refine_moon_ore"),
-            ["refine_ice"]      = Facility("refine_ice"),
-            ["decompress_gas"]  = Facility("decompress_gas"),
-        };
+        // ⚠️ Shared with RefiningGenerator, which raises the task once this haul has landed. Two
+        // copies of the routing could disagree, and the failure would be silent: material hauled
+        // to a facility the other generator never looks at, sitting there with nothing ever saying
+        // to process it.
+        var target = await RefiningRoutes.TargetsAsync(db, parkId, ct);
         if (target.Values.All(v => v is null)) return [];
 
         // Classify by SDE group so ice and moon ore separate from ordinary ore.
@@ -594,7 +577,7 @@ public class LogisticsGenerator(
                   (t, g) => new { t.TypeId, g.CategoryId, g.GroupId })
             .ToListAsync(ct);
 
-        var routeOf = kinds.ToDictionary(k => k.TypeId, k => Route(k.CategoryId, k.GroupId));
+        var routeOf = kinds.ToDictionary(k => k.TypeId, k => RefiningRoutes.Route(k.CategoryId, k.GroupId));
 
         var moves = new List<Move>();
         foreach (var ((station, typeId), qty) in stock)
@@ -610,35 +593,9 @@ public class LogisticsGenerator(
         return moves;
     }
 
-    // Gas lives in the Celestial category alongside cargo containers, wrecks and planetary
-    // clouds, so the category is far too broad to route on — matching it sent every secure
-    // container in Jita to the refinery. Only the compressed group is routed: group 711,
-    // Harvestable Cloud, is the raw gas decompression yields and needs no processing at all.
-    private const int CompressedGas    = 4168;
+    // Routing, and where the park does each kind of processing, live in RefiningRoutes — shared
+    // with RefiningGenerator so the haul and the task that follows it cannot disagree.
 
-    private const int Ice              = 465;
-    private const int AncientCompressedIce = 903;
-
-    /// <summary>Moon asteroid groups: Ubiquitous, Common, Uncommon, Rare, Exceptional.</summary>
-    private static readonly HashSet<int> MoonOre = [1884, 1920, 1921, 1922, 1923];
-
-    private const int AsteroidCategory = 25;
-
-    /// <summary>Which processing a type needs, or null when it is not raw material at all.</summary>
-    private static string? Route(int categoryId, int groupId) => groupId switch
-    {
-        // Compressed gas only. Harvestable Cloud is the raw gas that decompression produces, so
-        // sending it to be decompressed asks for a process it has already been through — and it
-        // is not reprocessed either, it is consumed as-is by reactions. Where a job needs it, the
-        // job demand hauls it to that job's facility, which is both the right destination and
-        // the right reason; this rule was sending it to the reactor labelled "for refining or
-        // decompression" whether anything wanted it there or not.
-        CompressedGas                              => "decompress_gas",
-        Ice or AncientCompressedIce                => "refine_ice",
-        _ when MoonOre.Contains(groupId)           => "refine_moon_ore",
-        _ when categoryId == AsteroidCategory      => "refine_ore",
-        _                                          => null,
-    };
 
     // ── Matching ──────────────────────────────────────────────────────────────
 

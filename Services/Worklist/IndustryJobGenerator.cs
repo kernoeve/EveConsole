@@ -390,6 +390,10 @@ public class IndustryJobGenerator(
                         // pieces of one split independently snoozable.
                         Key           = $"industry_job:{d.TypeId}:{job.Index}",
                         Pool          = pool,
+                        // The print the materials above were planned against, so the row can say
+                        // what its quantities and its duration were worked out from.
+                        BlueprintMe   = job.Print.Me,
+                        BlueprintTe   = job.Print.Te,
                         Source        = Id,
                         Kind          = WorklistKind.Job,
                         Title         = runsText,

@@ -60,6 +60,20 @@ public static class WorklistPriority
     /// <summary>Where work for the order at <paramref name="rank"/> sits. Rank 0 is first.</summary>
     public static int ForOrder(int rank) => Math.Max(OrderDriven, OrderBandTop - rank);
 
+    /// <summary>
+    /// Ore to reprocess, and compressed gas to decompress.
+    ///
+    /// <para>High for two reasons that rarely meet. It is material other work is already waiting
+    /// on — a job short of Tritanium while the Veldspar sits in the same hangar is blocked by a
+    /// wrapper, not by a shortage — and it is among the cheapest things on the list to do: no
+    /// trip, no ISK, one action where the material already is. Work that unblocks other work and
+    /// costs nothing should not queue behind a stockpile top-up.</para>
+    ///
+    /// <para>Below <see cref="OrderDriven"/> all the same. The order is the point; this only ever
+    /// serves it.</para>
+    /// </summary>
+    public const int Refining        = 110;
+
     public const int Missing         = 90;
     public const int StandingProject = 85;
     public const int Housekeeping    = 30;
