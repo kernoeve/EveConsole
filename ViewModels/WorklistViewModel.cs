@@ -82,6 +82,72 @@ public class WorklistRowVm : ReactiveObject
         _                        => "Corp Project",
     };
 
+    /// <summary>
+    /// What kind of work this is, at a glance, before the row is read.
+    ///
+    /// <para>⚠️ Drawn rather than fetched. EVE's image server serves types, characters and corps —
+    /// there is no endpoint for "manufacturing" or "reaction", and the client's own activity icons
+    /// are CCP's art rather than ours to redistribute. These are simple shapes on the same 16-unit
+    /// grid, which also means they stay crisp at row height and take their colour from the theme
+    /// instead of arriving as a fixed-colour bitmap.</para>
+    ///
+    /// <para>A job is split by the slot pool it occupies, because "run a reaction" and "copy a
+    /// blueprint" are different errands in different places — the distinction the group header
+    /// alone cannot make once the list is sorted by anything else.</para>
+    /// </summary>
+    public string KindGlyph => (_item.Kind, _item.Pool) switch
+    {
+        // Cart: something to acquire.
+        (WorklistKind.Buy, _) =>
+            "M2,3 H4.5 L6.5,10.5 H13 L14.5,5.5 H5.5 M7,13 A1,1 0 1,0 7,12.9 M12,13 A1,1 0 1,0 12,12.9",
+
+        // Arrow between two points: something to move.
+        (WorklistKind.Haul, _) =>
+            "M2,8 H11 M8.5,5 L12,8 L8.5,11 M13.5,4 V12",
+
+        // Factory roofline.
+        (WorklistKind.Job, IndustryPool.Manufacturing) =>
+            "M2,13 V6 L6,8.5 V6 L10,8.5 V6 L14,8.5 V13 Z",
+
+        // Flask: a reaction.
+        (WorklistKind.Job, IndustryPool.Reaction) =>
+            "M6.5,2 V6 L3,12.5 A1,1 0 0,0 4,14 H12 A1,1 0 0,0 13,12.5 L9.5,6 V2 Z M5.5,2 H10.5",
+
+        // Two sheets: copying and invention, which share the science slots.
+        (WorklistKind.Job, IndustryPool.Science) =>
+            "M3,2 H9.5 L11.5,4 V11 H3 Z M5,13 H13 V5.5",
+
+        // Gear, for a job whose pool is not known.
+        (WorklistKind.Job, _) =>
+            "M8,5.5 A2.5,2.5 0 1,0 8,10.5 A2.5,2.5 0 1,0 8,5.5 M8,1.5 V3.5 M8,12.5 V14.5 " +
+            "M1.5,8 H3.5 M12.5,8 H14.5 M3.5,3.5 L5,5 M11,11 L12.5,12.5 M12.5,3.5 L11,5 M5,11 L3.5,12.5",
+
+        // Flag: a corp project.
+        (WorklistKind.CorpProject, _) =>
+            "M4,2 V14 M4,3 H13 L10.5,6 L13,9 H4",
+
+        // Shield: asset safety.
+        (WorklistKind.AssetSafety, _) =>
+            "M8,2 L13.5,4 V8 C13.5,11 11,13.2 8,14 C5,13.2 2.5,11 2.5,8 V4 Z",
+
+        // Rising bars: a skill queue.
+        _ => "M3,13 V9.5 M6.5,13 V7 M10,13 V4.5 M13.5,13 V2",
+    };
+
+    /// <summary>Names the glyph, since a shape at row height can only hint.</summary>
+    public string KindGlyphTip => (_item.Kind, _item.Pool) switch
+    {
+        (WorklistKind.Buy,  _)                        => "Buy",
+        (WorklistKind.Haul, _)                        => "Haul",
+        (WorklistKind.Job, IndustryPool.Manufacturing) => "Manufacturing job",
+        (WorklistKind.Job, IndustryPool.Reaction)      => "Reaction job",
+        (WorklistKind.Job, IndustryPool.Science)       => "Science job — copying or invention",
+        (WorklistKind.Job, _)                          => "Industry job",
+        (WorklistKind.CorpProject, _)                  => "Corp project",
+        (WorklistKind.AssetSafety, _)                  => "Asset safety",
+        _                                              => "Skill queue",
+    };
+
     /// <summary>Only a haul has a far end.</summary>
     public string DestinationName => _item.DestinationName;
 

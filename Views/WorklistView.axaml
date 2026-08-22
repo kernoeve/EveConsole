@@ -1,6 +1,7 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
              xmlns:models="clr-namespace:EveConsole.Models"
              xmlns:wl="clr-namespace:EveConsole.Services.Worklist"
              xmlns:conv="clr-namespace:EveConsole.Views"
@@ -311,6 +312,23 @@
               <Border Background="{Binding ReadinessBarColor}" Width="3"
                       HorizontalAlignment="Left" VerticalAlignment="Stretch"
                       ToolTip.Tip="{Binding ReadinessText}"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- What kind of work this is, drawn rather than spelled out. The rows group by kind, but
+             that header is gone the moment the list is sorted on something else, and a shape is
+             read faster than a word when scanning. Stroked rather than filled so it stays legible
+             at row height and takes its weight from the theme. -->
+        <DataGridTemplateColumn Header="" Width="22" CanUserSort="False" CanUserResize="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:WorklistRowVm">
+              <Path Data="{Binding KindGlyph, Converter={x:Static views:PathGeometryConverter.Instance}}"
+                    Stroke="#8f9dab" StrokeThickness="1.15"
+                    StrokeLineCap="Round" StrokeJoin="Round"
+                    Width="16" Height="16"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    ToolTip.Tip="{Binding KindGlyphTip}"/>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
