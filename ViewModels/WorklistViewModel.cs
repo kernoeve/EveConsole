@@ -707,17 +707,32 @@ public class WorklistViewModel : ReactiveObject
         Keep(ref _sourceFilter,    SourceOptions,    nameof(SourceFilter));
         Keep(ref _destFilter,      DestOptions,      nameof(DestFilter));
 
+        // ⚠️ Reconciled in place, never cleared and refilled. Clearing removes the item the
+        // dropdown has selected, so the control sets SelectedItem to null and the two-way binding
+        // writes that straight back into the filter — before the Keep below can protect it. Every
+        // refresh dropped the filters, even when the value was about to reappear in the same list,
+        // which is why a refresh looked like it was resetting them on purpose.
         void Fill(ObservableCollection<string> target, IEnumerable<string> values)
         {
-            var distinct = values
+            var wanted = new List<string> { AnyValue };
+            wanted.AddRange(values
                 .Select(v => string.IsNullOrWhiteSpace(v) ? "—" : v)
                 .Distinct()
-                .OrderBy(v => v, StringComparer.OrdinalIgnoreCase)
-                .ToList();
+                .OrderBy(v => v, StringComparer.OrdinalIgnoreCase));
 
-            target.Clear();
-            target.Add(AnyValue);
-            foreach (var v in distinct) target.Add(v);
+            // What has gone, first — so the pass below only ever inserts.
+            var keep = wanted.ToHashSet(StringComparer.Ordinal);
+            for (var i = target.Count - 1; i >= 0; i--)
+                if (!keep.Contains(target[i]))
+                    target.RemoveAt(i);
+
+            // Both sides are in the same order, so one pass lines them up. A value that survives
+            // is never touched, and that is what keeps the selection alive.
+            for (var i = 0; i < wanted.Count; i++)
+                if (i >= target.Count || !string.Equals(target[i], wanted[i], StringComparison.Ordinal))
+                    target.Insert(i, wanted[i]);
+
+            while (target.Count > wanted.Count) target.RemoveAt(target.Count - 1);
         }
 
         void Keep(ref string field, ObservableCollection<string> options, string propertyName)
