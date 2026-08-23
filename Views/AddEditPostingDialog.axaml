@@ -10,8 +10,11 @@
 
   <Grid RowDefinitions="*,Auto" Margin="20">
 
+    <!-- ⚠️ The right margin is the scrollbar's lane. Avalonia's scrollbar is an overlay drawn on
+         top of the content rather than beside it, so without this the rightmost control on every
+         row sits underneath it — which is where the colour swatches ended up. -->
     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
-      <StackPanel Spacing="16">
+      <StackPanel Spacing="16" Margin="0 0 14 0">
 
         <!-- Posting Name -->
         <StackPanel Spacing="5">
