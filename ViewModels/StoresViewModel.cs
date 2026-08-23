@@ -63,7 +63,7 @@ public class StoreMailRowVm(StoreMail m)
 
     /// <summary>Rejections and failures are the rows worth finding, so they say so rather than
     /// relying on the reader to notice a word in a column.</summary>
-    public bool IsProblem => m.Outcome is "rejected" or "error";
+    public bool IsProblem => m.Outcome is "rejected" or "error" or "failed";
 }
 
 /// <summary>One allow-list entry.</summary>

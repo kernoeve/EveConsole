@@ -1112,16 +1112,15 @@ public class StoreMailService(
     /// <summary>
     /// The ceiling on a mail body, <b>in UTF-8 bytes</b>.
     ///
-    /// <para><b>⚠️ Not the 10,000 the ESI schema advertises.</b> A send was refused at about
-    /// 8,120 characters, so whatever the real rule is, the documented number is not it — and
-    /// there is no way to ask. 8,000 is the nearest round ceiling under the one send known to
-    /// fail, and a round number is what a limit usually is.</para>
+    /// <para><b>⚠️ 8,000, not the 10,000 the ESI schema advertises.</b> The schema is wrong and
+    /// the endpoint says so itself: a refused send answers
+    /// <c>{"error":"Maximum body length is 8000"}</c>. Taken from that error, not deduced.</para>
     ///
-    /// <para>⚠️ Counted in bytes, not characters, because that is safe under either reading of a
-    /// rule we cannot see. A body inside 8,000 bytes is inside 8,000 characters as well — never
-    /// the reverse — and our messages are full of —, × and ·, each one character and two or three
-    /// bytes. If the rule counts characters we are simply a little conservative; if it counts
-    /// bytes we are exact.</para>
+    /// <para>⚠️ Counted in bytes, because the error does not say which unit its 8,000 is in and
+    /// bytes are safe under either reading. A body inside 8,000 bytes is inside 8,000 characters
+    /// as well — never the reverse — and our messages are full of —, × and ·, each one character
+    /// and two or three bytes. If EVE counts characters we are slightly conservative; if it
+    /// counts bytes we are exact.</para>
     /// </summary>
     private const int MaxBodyBytes = 8_000;
 
@@ -1137,6 +1136,43 @@ public class StoreMailService(
 
     /// <summary>The body's size in the unit the limit is enforced in.</summary>
     private static int Weigh(string s) => Encoding.UTF8.GetByteCount(s);
+
+    /// <summary>Whether a send was refused for length — which no retry can change.</summary>
+    private static bool TooLong(string? error) =>
+        error is not null && error.Contains("body length", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Cuts a body down to something EVE will accept, at a line end, saying that it did.
+    ///
+    /// <para>⚠️ Only ever reached when pagination could not help — a single line longer than a
+    /// whole mail. Losing the tail of one answer beats losing all of it, which is what an
+    /// over-long send actually costs: the mail is refused, not trimmed.</para>
+    /// </summary>
+    private static string Fit(string full)
+    {
+        if (Weigh(full) <= MaxBodyBytes) return full;
+
+        const string cut = "<br><br>… this message was too long for EVE mail and has been cut here.";
+        var room = MaxBodyBytes - Weigh(cut);
+
+        var kept = new StringBuilder();
+        foreach (var line in full.Split("<br>", StringSplitOptions.None))
+        {
+            var piece = kept.Length > 0 ? "<br>" + line : line;
+            if (Weigh(kept.ToString()) + Weigh(piece) > room) break;
+            kept.Append(piece);
+        }
+
+        // A first line already over the limit leaves nothing to keep. Cut it by characters
+        // instead — it is markup by then, so the note explains what the mess is.
+        if (kept.Length == 0)
+        {
+            var chars = Math.Min(full.Length, room / 3);
+            kept.Append(full[..Math.Max(0, chars)]);
+        }
+
+        return kept + cut;
+    }
 
     /// <summary>How many parts one answer may run to.</summary>
     private const int MaxParts = 5;
@@ -1253,13 +1289,21 @@ public class StoreMailService(
 
     private async Task ReplyAsync(Store store, StoreMail log, string subject, string body, CancellationToken ct)
     {
+        // ⚠️ Last line of defence, after pagination has already sized the parts. A body with no
+        // line ends to break at can still come out over — and EVE refuses an over-long mail
+        // whole, so the buyer gets silence rather than a long answer. Cut, say so, and send.
+        var full = Fit(Wrap(store, body));
+
         var (ok, error) = await mail.SendMailAsync(
-            store.CharacterId, Trim(subject), Wrap(store, body),
+            store.CharacterId, Trim(subject), full,
             [new EsiMailRecipientItem(log.PartyId, "character")], ct);
 
         if (!ok)
         {
-            log.Outcome = "error";
+            // ⚠️ "failed", not "error", when the mail can never be accepted. Only an error is
+            // retried, and retrying a body EVE has already measured and refused spends three
+            // more calls against the character's allowance to be told the same thing again.
+            log.Outcome = TooLong(error) ? "failed" : "error";
             log.Detail  = $"Reply failed: {error}";
         }
         else if (log.Outcome.Length == 0) log.Outcome = "ok";
@@ -1275,10 +1319,12 @@ public class StoreMailService(
             PartyId   = log.PartyId,
             PartyName = log.PartyName,
             Subject   = subject,
-            Body      = body,
+            Body      = full,
             Command   = log.Command,
-            Outcome   = ok ? "ok" : "error",
-            Detail    = ok ? "" : $"Not sent: {error} ({body.Length:N0} characters)",
+            Outcome   = ok ? "ok" : TooLong(error) ? "failed" : "error",
+            Detail    = ok
+                ? (full.Length < Wrap(store, body).Length ? "Trimmed to fit the mail length limit." : "")
+                : $"Not sent: {error} ({full.Length:N0} characters, {Weigh(full):N0} bytes)",
             OrderRef  = log.OrderRef,
             At        = DateTimeOffset.UtcNow,
         });
