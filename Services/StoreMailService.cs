@@ -726,17 +726,19 @@ public class StoreMailService(
         {
             var line = byType.GetValueOrDefault(item.TypeId);
 
+            // ⚠️ Total first, unit price after in brackets. The totals are what a reader scans
+            // down and adds up, so they belong in one column; putting the unit price between the
+            // name and the total pushed every total to a different place on the line.
             sb.Append("<b>").Append(units.ToString("N0")).Append(" × ").Append("</b>")
-              .Append(Link(item));
+              .Append(Link(item))
+              .Append(" — <b>").Append(Isk(line?.PurchasePrice ?? 0)).Append("</b>");
 
-            // The unit price only earns its place when there is more than one — on a single
-            // item it would print the same number twice with an "each" between them.
+            // Only when there is more than one — on a single item it would print the same
+            // number twice with an "each" between them.
             if (units > 1)
-                sb.Append(Dim($" @ {Isk(MarketFmt.RoundToDisplay(item.SalePrice ?? 0))} each"));
+                sb.Append(Dim($" ({Isk(MarketFmt.RoundToDisplay(item.SalePrice ?? 0))} each)"));
 
-            sb.Append(" — <b>").Append(Isk(line?.PurchasePrice ?? 0)).Append("</b>").Append(Br)
-              .Append(Ind).Append(Dim(Expect(line)))
-              .Append(Br);
+            sb.Append(Br).Append(Ind).Append(Dim(Expect(line))).Append(Br);
         }
 
         sb.Append(Br).Append("<font size=\"14\"><b>Total ").Append(Isk(total)).Append("</b></font>").Append(Br);
@@ -816,16 +818,16 @@ public class StoreMailService(
             {
                 var unit = o.Units > 0 ? MarketFmt.RoundToDisplay(o.PurchasePrice / o.Units) : 0;
 
+                // Same shape as the confirmation: total first, unit price after in brackets, so
+                // the two mails read alike and the totals line up down the page.
                 block.Append("<b>").Append(o.Units.ToString("N0")).Append(" × </b>")
                      .Append("<a href=\"showinfo:").Append(o.TypeId).Append("\">")
-                     .Append(Esc(names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"))).Append("</a>");
+                     .Append(Esc(names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"))).Append("</a>")
+                     .Append(" — <b>").Append(Isk(o.PurchasePrice)).Append("</b>");
 
-                // Only worth printing when the two figures differ; on one unit it would be the
-                // same number twice with an "each" between them.
-                if (o.Units > 1) block.Append(Dim($" @ {Isk(unit)} each"));
+                if (o.Units > 1) block.Append(Dim($" ({Isk(unit)} each)"));
 
-                block.Append(" — <b>").Append(Isk(o.PurchasePrice)).Append("</b>").Append(Br)
-                     .Append(Ind).Append(Dim(Describe(o))).Append(Br);
+                block.Append(Br).Append(Ind).Append(Dim(Describe(o))).Append(Br);
             }
 
             // Per order, not per line: every line of one order shares its buyer and its
