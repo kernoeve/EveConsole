@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive;
+using System.Reactive.Linq;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
@@ -173,7 +174,7 @@ public class OrderTrackerViewModel : ReactiveObject
 
     private readonly List<TrackedOrderRowVm> _all = new();
 
-    public ObservableCollection<TrackedOrderRowVm> Rows { get; } = new();
+    public BulkObservableCollection<TrackedOrderRowVm> Rows { get; } = [];
 
     // Set by the view — shows the add/edit dialog (null initial = add) and returns the result.
     public Func<OrderDialogResult?, Task<OrderDialogResult?>>? ShowOrderDialog { get; set; }
@@ -226,11 +227,29 @@ public class OrderTrackerViewModel : ReactiveObject
         // written straight to the database, so this is how they reach the grid without a restart.
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadAsync);
 
+        // ⚠️ There was no automatic refresh at all. Everything that moves an order moves it in
+        // the database — the fulfilment poll linking a contract, a store taking an order by mail
+        // — and none of it went through this view model, so the grid was only ever as current as
+        // the last time somebody pressed Refresh or reopened the tab.
+        //
+        // A minute matches the two things that feed it: the store checks its mail every minute,
+        // and the fulfilment pass runs every five.
+        Observable.Interval(TimeSpan.FromSeconds(60))
+            .ObserveOnUi("OrderTracker.AutoRefresh")
+            .SubscribeAsyncSafe(_ => LoadAsync(), errorLogger, "OrderTracker.AutoRefresh");
+
         _ = LoadAsync();
     }
 
+    /// <summary>⚠️ Guards against a slow load overlapping the next tick. Two passes filling the
+    /// same collection would fight over it, and the second would finish with rows the first was
+    /// still building.</summary>
+    private bool _loading;
+
     private async Task LoadAsync()
     {
+        if (_loading) return;
+        _loading = true;
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
@@ -323,6 +342,7 @@ public class OrderTrackerViewModel : ReactiveObject
             _errorLogger.Log("OrderTrackerViewModel", "Load", ex);
             StatusText = "Error loading orders.";
         }
+        finally { _loading = false; }
     }
 
     private void ApplyFilters()
@@ -342,8 +362,9 @@ public class OrderTrackerViewModel : ReactiveObject
         var keepId = Selected?.Id;
 
         var list = q.ToList();
-        Rows.Clear();
-        foreach (var r in list) Rows.Add(r);
+        // One notification rather than one per row: this now runs on a timer, and a grid that
+        // relaid itself once per order every minute would be felt on a long list.
+        Rows.ResetTo(list);
 
         if (keepId is { } id) Selected = Rows.FirstOrDefault(r => r.Id == id);
         StatusText = $"{list.Count:N0} order(s)";

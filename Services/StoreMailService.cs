@@ -621,9 +621,16 @@ public class StoreMailService(
         var reference = await NewReferenceAsync(db, ct);
         var now       = DateTimeOffset.UtcNow;
 
-        // Who the contract goes to, if they dragged somebody in. The link carries the id, so
-        // there is no name to resolve and nothing to guess between a character and a corporation.
-        var to = parsed.ContractTo;
+        // Who the contract goes to. A dragged link carries the id, so there is no name to
+        // resolve and nothing to guess between a character and a corporation.
+        //
+        // ⚠️ Defaults to whoever sent the mail, so every store order names a recipient. "Nobody
+        // named means the buyer" was a rule held in this code and nowhere else — the Order
+        // Tracker showed a blank, and whoever came to fill the order had to know the convention
+        // to read it. Writing the sender in says the same thing where it can be seen.
+        var toId   = parsed.ContractTo?.EntityId  ?? log.PartyId;
+        var toName = parsed.ContractTo?.Text      ?? log.PartyName;
+        var toKind = parsed.ContractTo?.EntityKind ?? "character";
 
         var created = new List<TrackedOrder>();
         foreach (var (item, units) in parsed.Lines)
@@ -653,9 +660,9 @@ public class StoreMailService(
                 StoreId       = store.Id,
                 OrderRef      = reference,
                 NotifiedState = "pending||",
-                ContractToId   = to?.EntityId ?? 0,
-                ContractToName = to?.Text ?? "",
-                ContractToType = to is null ? "" : to.EntityKind,
+                ContractToId   = toId,
+                ContractToName = toName,
+                ContractToType = toKind,
                 CreatedAt     = now,
             };
             db.TrackedOrders.Add(order);
@@ -734,8 +741,11 @@ public class StoreMailService(
 
         sb.Append(Br).Append("<font size=\"14\"><b>Total ").Append(Isk(total)).Append("</b></font>").Append(Br);
 
-        if (to is not null)
-            sb.Append("Contract will be made out to <b>").Append(Esc(to.Text)).Append("</b>.<br>");
+        // Always stated, even when it is simply the sender. It is the one detail a buyer cannot
+        // check afterwards, and someone who meant to name a third party and whose link did not
+        // parse finds out here rather than when the contract lands on the wrong name.
+        if (toName.Length > 0)
+            sb.Append("Contract will be made out to <b>").Append(Esc(toName)).Append("</b>.").Append(Br);
 
         sb.Append("<br>");
 
