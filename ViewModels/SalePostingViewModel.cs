@@ -91,14 +91,59 @@ internal sealed class OutputFormat
     private readonly Func<string, string> _finalize;             // whole block -> clipboard text
     private readonly Func<string, List<DisplaySeg>> _toDisplay;  // clipboard text -> preview segments
 
+    /// <summary>
+    /// Turn an item name into a link to that type, where the target has such a thing.
+    ///
+    /// <para>Defaults to plain text, and that is the right default for nearly everywhere: Slack
+    /// and Discord have no way to open an EVE type, and emitting an anchor into them would print
+    /// raw markup at the reader. EVE mail is the exception — the client resolves
+    /// <c>showinfo:</c> links, so a hull name becomes something the buyer can click to open the
+    /// item, which is most of the value of answering in-game rather than in chat.</para>
+    /// </summary>
+    private readonly Func<int, string, string> _link;
+
+    /// <summary>Wraps text in a colour, given an eight-digit ARGB hex. Null where the format has
+    /// no colours, which is every format except EVE mail.</summary>
+    private readonly Func<string, string, string>? _color;
+
     private OutputFormat(string name, Func<string, string> bold, Func<string, string> underline,
-        Func<string, string> finalize, Func<string, List<DisplaySeg>> toDisplay)
-    { Name = name; _bold = bold; _underline = underline; _finalize = finalize; _toDisplay = toDisplay; }
+        Func<string, string> finalize, Func<string, List<DisplaySeg>> toDisplay,
+        Func<int, string, string>? link = null,
+        Func<string, string, string>? color = null)
+    {
+        Name = name; _bold = bold; _underline = underline;
+        _finalize = finalize; _toDisplay = toDisplay;
+        _link = link ?? ((_, text) => text);
+        _color = color;
+    }
 
     public string Bold(string s) => _bold(s);
     public string Underline(string s) => _underline(s);
     public string Finalize(string s) => _finalize(s);
     public List<DisplaySeg> ToDisplay(string s) => _toDisplay(s);
+
+    /// <summary>The name, linked to its type where the format supports it.</summary>
+    public string ItemLink(int typeId, string text) => typeId > 0 ? _link(typeId, text) : text;
+
+    /// <summary>
+    /// Text in a colour, where the target has colours.
+    ///
+    /// <para><b>⚠️ Applied at render time, not carried as markup.</b> Colour could have been a
+    /// tag in the text that each format strips on the way out, the way <c>&lt;u&gt;</c> is — and
+    /// that is exactly why it is not. That marker has to be stripped explicitly at the Slack copy
+    /// site, and anything that forgets prints raw tags at the reader. A capability cannot be
+    /// forgotten: every format that has no colours returns the text untouched, so there is
+    /// nothing to strip anywhere.</para>
+    ///
+    /// <para>EVE's colours are ARGB and the alpha is not optional — <c>#ffRRGGBB</c>. A
+    /// six-digit value is read as ARGB with a zero alpha, which is invisible text.</para>
+    /// </summary>
+    public string Color(string? hex, string text)
+    {
+        if (_color is null || string.IsNullOrWhiteSpace(hex)) return text;
+        var rgb = hex.TrimStart('#');
+        return rgb.Length is 6 or 8 ? _color(rgb.Length == 6 ? "ff" + rgb : rgb, text) : text;
+    }
 
     // ── clipboard-side transforms ──
     private static string Identity(string s) => s;
@@ -248,7 +293,14 @@ internal sealed class OutputFormat
         // <font> and showinfo links, and ignores or mangles the rest — <strong> among them, which
         // is why this cannot just reuse the HTML row above. Line breaks must be <br>: a raw
         // newline in a mail body collapses to a space.
-        new("EVE Mail",   x => $"<b>{x}</b>",           x => $"<u>{x}</u>",   HtmlBreaks,  HtmlDisplay),
+        //
+        // The link is the reason to answer in-game at all: showinfo:<typeId> opens the item in
+        // the client, so the buyer reads a list they can click rather than one they have to
+        // search for. The preview strips the anchor and shows the name, which is what it looks
+        // like in the mail.
+        new("EVE Mail",   x => $"<b>{x}</b>",           x => $"<u>{x}</u>",   HtmlBreaks,  HtmlDisplay,
+            (typeId, text) => $"<a href=\"showinfo:{typeId}\">{text}</a>",
+            (argb,   text) => $"<font color=\"#{argb}\">{text}</font>"),
         new("BBCode",     x => $"[b]{x}[/b]",           x => $"[u]{x}[/u]",   Identity,    s => Tokenize(BbLists(s), BbRules, t => BbTag.Replace(t, ""))),
     ];
 
@@ -692,7 +744,7 @@ public class SalePostingItemRow : ReactiveObject
 
     /// <summary>This row as plain data for <see cref="SalePostingRenderer"/>.</summary>
     internal PostingItemView ToView() => new(
-        TypeName, _nameOverride, _namePrefix,
+        TypeId, TypeName, _nameOverride, _namePrefix,
         _inStock, _inBuild, _reserved,
         _inStockOverride, _inBuildOverride, _reservedOverride,
         _salePrice, _earliestJobEnd);

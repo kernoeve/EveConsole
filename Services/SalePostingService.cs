@@ -344,6 +344,7 @@ public class SalePostingService(
                 {
                     calc.TryGetValue(i.TypeId, out var c);
                     return new PostingItemView(
+                        i.TypeId,
                         c?.Name ?? $"Type {i.TypeId}",
                         i.NameOverride, i.NamePrefix,
                         c?.InStock  ?? 0, c?.InBuild ?? 0, c?.Reserved ?? 0,

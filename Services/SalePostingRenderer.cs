@@ -15,6 +15,7 @@ namespace EveConsole.Services;
 /// both inputs have to survive the trip.</para>
 /// </summary>
 internal sealed record PostingItemView(
+    int TypeId,
     string TypeName,
     string? NameOverride,
     string? NamePrefix,
@@ -101,16 +102,20 @@ internal static class SalePostingRenderer
             // Bold and underlined, and no prefix: the prefix is a Summary device (a Slack icon
             // standing in for the section) and repeating it here would print the shortcode twice.
             sb.AppendLine(fmt.Bold(fmt.Underline(s.Name)));
-            foreach (var it in s.Items) sb.AppendLine(ItemLine(it, v));
+            foreach (var it in s.Items) sb.AppendLine(ItemLine(it, v, fmt));
         }
         AppendBlock(sb, post.Footer);
         return sb.ToString().TrimEnd();
     }
 
-    private static string ItemLine(PostingItemView it, PostingView v)
+    private static string ItemLine(PostingItemView it, PostingView v, OutputFormat fmt)
     {
-        var name = Pfx(it.NamePrefix) +
-                   (string.IsNullOrWhiteSpace(it.NameOverride) ? it.TypeName : it.NameOverride);
+        // ⚠️ The prefix stays outside the link. It is a decoration — a chat icon shortcode in
+        // practice — and wrapping it would make the clickable region include a token that is not
+        // part of the item's name. The override is linked, though: it is still this type, just
+        // called something the seller prefers.
+        var shown = string.IsNullOrWhiteSpace(it.NameOverride) ? it.TypeName : it.NameOverride;
+        var name  = Pfx(it.NamePrefix) + fmt.ItemLink(it.TypeId, shown);
 
         // Just the numbers for the enabled columns, e.g. (9,2,0).
         var counts = new List<string>();
