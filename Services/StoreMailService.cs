@@ -916,6 +916,12 @@ public class StoreMailService(
         {
             o.Status      = "canceled";
             o.CompletedOn = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd");
+
+            // ⚠️ Marked as told, because this reply IS the telling. Without it the update sweep
+            // finds the status changed a minute later and sends a second mail about the same
+            // cancellation — one saying it happened, one saying what was in it, and the buyer
+            // left to work out that they are the same event.
+            o.NotifiedState = StateOf(o);
         }
 
         if (open.Count > 0)
@@ -924,13 +930,31 @@ public class StoreMailService(
             db.ChangeTracker.Clear();
         }
 
+        var names = await TypeNamesAsync(db, orders.Select(o => o.TypeId).Distinct().ToList(), ct);
+
         var sb = new StringBuilder();
-        sb.Append("Order <b>").Append(orders[0].OrderRef).Append("</b><br><br>");
-        sb.Append(open.Count > 0
-            ? $"{open.Count} line(s) cancelled.<br>"
-            : "Nothing left to cancel.<br>");
+        sb.Append(Head($"Order {orders[0].OrderRef} cancelled"));
+
+        if (open.Count > 0)
+        {
+            // Says WHAT was cancelled, not just how many lines. A count is a receipt for the
+            // app's benefit; the buyer wants to see the thing they will not be getting.
+            foreach (var o in open)
+                sb.Append("<b>").Append(o.Units.ToString("N0")).Append(" × </b>")
+                  .Append("<a href=\"showinfo:").Append(o.TypeId).Append("\">")
+                  .Append(Esc(names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"))).Append("</a>")
+                  .Append(Dim($" — {Isk(o.PurchasePrice)}")).Append(Br);
+
+            sb.Append(Br).Append(Dim("Nothing further is owed on these."));
+        }
+        else
+        {
+            sb.Append("Nothing on this order was still open to cancel.");
+        }
+
         if (kept > 0)
-            sb.Append(kept).Append(" line(s) were already delivered or cancelled and were left as they are.<br>");
+            sb.Append(Br).Append(Dim(
+                $"{kept} line(s) were already delivered or cancelled and have been left as they are."));
 
         await ReplyAsync(store, log, $"{store.Name} — order {orders[0].OrderRef} cancelled", sb.ToString(), ct);
     }
