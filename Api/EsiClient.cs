@@ -776,6 +776,41 @@ public class EsiClient
     }
 
     /// <summary>
+    /// Authenticated POST that keeps ESI's own explanation when it refuses.
+    ///
+    /// <para><b>⚠️ The error body is the whole point.</b> A bare status code says a request was
+    /// rejected but not which part of it was wrong, and ESI always answers a 400 with
+    /// <c>{"error": "..."}</c> naming the field. Discarding that turned a one-line diagnosis into
+    /// an investigation — measured on the first mail a store ever tried to send.</para>
+    /// </summary>
+    internal async Task<(int StatusCode, string? Error)> PostAuthRawAsync(
+        long characterId, string path, object body, CancellationToken ct)
+    {
+        try
+        {
+            var token = await EnsureValidTokenAsync(characterId, ct);
+            using var request = new HttpRequestMessage(HttpMethod.Post, path);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+            request.Content = JsonContent.Create(body, options: JsonOptions);
+
+            await _httpGate.WaitAsync(ct);
+            HttpResponseMessage response;
+            try { response = await _http.SendAsync(request, ct); }
+            finally { _httpGate.Release(); }
+
+            var statusCode = (int)response.StatusCode;
+            if (response.IsSuccessStatusCode) return (statusCode, null);
+
+            // Capped: an error body is a sentence, and anything longer is a page of HTML from a
+            // proxy that has no business filling the log.
+            var text = await response.Content.ReadAsStringAsync(ct);
+            return (statusCode, text.Length > 400 ? text[..400] : text);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex) { return (0, ex.Message); }
+    }
+
+    /// <summary>
     /// Authenticated PUT with JSON body. Returns true on 2xx.
     /// </summary>
     internal async Task<bool> PutAuthAsync(

@@ -414,11 +414,17 @@ public class App : Application
                     "At"        TEXT    NOT NULL DEFAULT ''
                 )
                 """);
-            // ⚠️ A received mail must be processed once. The shop's poll re-reads whatever is in
-            // the inbox, so without this a mail answered before a restart is answered again.
+            // ⚠️ Deliberately NOT unique any more. It began as a unique index to stop a mail
+            // being answered twice, but that put the rule in the wrong place: a reply that fails
+            // because ESI refused it should be retried, and a unique row made the first failure
+            // permanent. StoreMailService decides what may be retried — only the commands that
+            // create nothing — and each attempt is a row, so the history is visible and the
+            // attempt count is countable. Dropped first, because existing installs have the
+            // unique version.
+            db.Database.ExecuteSqlRaw("""DROP INDEX IF EXISTS "IX_StoreMails_In" """);
             db.Database.ExecuteSqlRaw("""
-                CREATE UNIQUE INDEX IF NOT EXISTS "IX_StoreMails_In"
-                ON "StoreMails" ("StoreId", "MailId") WHERE "Direction" = 'in' AND "MailId" <> 0
+                CREATE INDEX IF NOT EXISTS "IX_StoreMails_In"
+                ON "StoreMails" ("StoreId", "MailId", "Direction")
                 """);
             db.Database.ExecuteSqlRaw("""
                 CREATE INDEX IF NOT EXISTS "IX_StoreMails_Store_At" ON "StoreMails" ("StoreId", "At")

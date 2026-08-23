@@ -372,12 +372,15 @@ public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient
             }).ToList(),
         };
 
-        var (statusCode, _) = await esi.PostAuthAsync<int>(
+        var (statusCode, error) = await esi.PostAuthRawAsync(
             fromCharId, $"characters/{fromCharId}/mail/", payload, ct);
 
         return statusCode is >= 200 and < 300
             ? (true, null)
-            : (false, $"ESI returned HTTP {statusCode}");
+            // ⚠️ ESI's own words, not just the code. A 400 from this endpoint names the field it
+            // objected to — body too long, recipient not found — and the code alone sends the
+            // reader hunting through every field the request had.
+            : (false, $"HTTP {statusCode}{(string.IsNullOrWhiteSpace(error) ? "" : $": {error.Trim()}")}");
     }
 
     // Resolve character name → id using ESI search

@@ -132,9 +132,19 @@
                 <ComboBox Grid.Column="0" ItemsSource="{Binding SenderKinds}"
                           SelectedItem="{Binding SenderKind}" FontSize="11" MinWidth="110"
                           Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
-                <TextBox Grid.Column="1" Text="{Binding SenderName}" Watermark="Name"
-                         FontSize="11" Background="#1a1a28" Foreground="#c8c8d8"
-                         BorderBrush="#2a2a3a" Margin="8 0" />
+                <!-- ⚠️ AsyncPopulator, not ItemsSource: the name cache holds 267,000 characters
+                     and 39,000 corporations, and handing the box that list would have it lay out
+                     every one. FilterMode must be None — the populator has already narrowed the
+                     list, and letting the box filter again would drop matches it never got. -->
+                <AutoCompleteBox Grid.Column="1"
+                                 AsyncPopulator="{Binding SenderPopulator}"
+                                 SelectedItem="{Binding SenderMatch}"
+                                 Text="{Binding SenderName}"
+                                 ValueMemberBinding="{Binding Name}"
+                                 FilterMode="None" MinimumPrefixLength="2"
+                                 Watermark="Type two letters of the name…"
+                                 FontSize="11" Background="#1a1a28" Foreground="#c8c8d8"
+                                 BorderBrush="#2a2a3a" Margin="8 0" />
                 <Button Grid.Column="2" Command="{Binding AddSenderCommand}" Content="Add"
                         Background="#0d1a12" Foreground="#4a8a5a"
                         BorderBrush="#1e3a28" BorderThickness="1" Padding="12 4" FontSize="11" />
@@ -177,7 +187,16 @@
                   <DataGridTextColumn Header="Subject"   Binding="{Binding Subject}"   Width="*" />
                   <DataGridTextColumn Header="Order"     Binding="{Binding OrderRef}"  Width="80" />
                   <DataGridTextColumn Header="Outcome"   Binding="{Binding Outcome}"   Width="80" />
-                  <DataGridTextColumn Header="Note"      Binding="{Binding Detail}"    Width="240" />
+                  <!-- Wrapped, not truncated: the note is where a rejection explains itself, and
+                       an ellipsis in the one column that says why is the column doing nothing. -->
+                  <DataGridTemplateColumn Header="Note" Width="320">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StoreMailRowVm">
+                        <TextBlock Text="{Binding Detail}" TextWrapping="Wrap"
+                                   FontSize="11" Margin="4 2" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                 </DataGrid.Columns>
               </DataGrid>
             </StackPanel>

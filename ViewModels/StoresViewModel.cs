@@ -236,6 +236,79 @@ public class StoresViewModel : ReactiveObject
 
     public IReadOnlyList<string> SenderKinds { get; } = ["Character", "Corporation", "Alliance"];
 
+    /// <summary>One suggestion in the name box.</summary>
+    public sealed record SenderOption(long Id, string Name)
+    {
+        public override string ToString() => Name;
+    }
+
+    /// <summary>What the user picked from the dropdown, if they picked rather than typed.</summary>
+    private SenderOption? _senderMatch;
+    public SenderOption? SenderMatch
+    {
+        get => _senderMatch;
+        set => this.RaiseAndSetIfChanged(ref _senderMatch, value);
+    }
+
+    /// <summary>How many suggestions the name box offers at once. Anyone after a particular
+    /// corporation types more of its name; nobody scrolls forty thousand rows.</summary>
+    private const int NameMatchLimit = 50;
+
+    /// <summary>
+    /// Names matching what has been typed so far, from the ids the app has already resolved.
+    ///
+    /// <para><b>⚠️ AsyncPopulator, not ItemsSource.</b> The name cache holds 267,000 characters
+    /// and 39,000 corporations; handing the box that list would have it lay out every one.
+    /// FilterMode must be None to match — this has already narrowed the list, and letting the box
+    /// filter again would drop matches it never received.</para>
+    ///
+    /// <para>The point is being able to see whether a name is right before pressing Add. Without
+    /// it the only feedback was Add working or not working, with nothing to say which character
+    /// of a long corporation name was wrong.</para>
+    /// </summary>
+    public Func<string?, CancellationToken, Task<IEnumerable<object>>> SenderPopulator => async (text, ct) =>
+    {
+        var needle = (text ?? "").Trim();
+        if (needle.Length < 2) return [];
+
+        var category = CategoryOf(SenderKind);
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+            // ⚠️ LIKE, not ==. SQLite compares text with = case-sensitively, which is the whole
+            // reason this box needed fixing; LIKE is case-insensitive for ASCII and is what makes
+            // "ytiri" find "Ytiri". A contained match rather than a prefix because the
+            // distinctive word of a corporation name is often not its first.
+            //
+            // No index exists on this table, so this is a scan — but LIMIT stops it early and it
+            // measured between 1 and 28 ms across the categories, which is well inside what a
+            // keystroke can absorb.
+            var hits = await db.UniverseNames.AsNoTracking()
+                .Where(n => n.Category == category && EF.Functions.Like(n.Name, $"%{needle}%"))
+                .OrderBy(n => n.Name)
+                .Take(NameMatchLimit)
+                .Select(n => new { n.EntityId, n.Name })
+                .ToListAsync(ct);
+
+            return hits.Select(h => (object)new SenderOption(h.EntityId, h.Name)).ToList();
+        }
+        catch (OperationCanceledException) { return []; }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(StoresViewModel), nameof(SenderPopulator), ex);
+            return [];
+        }
+    };
+
+    private static string CategoryOf(string kind) => kind switch
+    {
+        "Corporation" => "corporation",
+        "Alliance"    => "alliance",
+        _             => "character",
+    };
+
     private StoreSenderRowVm? _selectedSender;
     public StoreSenderRowVm? SelectedSender
     {
@@ -448,12 +521,7 @@ public class StoresViewModel : ReactiveObject
         if (SelectedStore is not StoreRowVm row) return;
         if (string.IsNullOrWhiteSpace(SenderName)) return;
 
-        var kind = SenderKind switch
-        {
-            "Corporation" => "corporation",
-            "Alliance"    => "alliance",
-            _             => "character",
-        };
+        var kind = CategoryOf(SenderKind);
 
         try
         {
@@ -463,10 +531,20 @@ public class StoresViewModel : ReactiveObject
             // — in EVE they cannot, short of a petition — but because a name is not unique
             // across categories and is easy to mistype. An id either matches the sender or does
             // not, which is what an authorisation check needs.
-            var resolved = await ResolveAsync(db, SenderName.Trim(), kind);
+            //
+            // A pick from the dropdown already carries its id, so it is trusted over a fresh
+            // lookup — but only while the text still matches it. Picking a suggestion and then
+            // editing the box would otherwise add the entity that was picked rather than the one
+            // now written, which is the sort of thing nobody notices until the wrong person is
+            // being served.
+            var typed = SenderName.Trim();
+            var resolved = SenderMatch is { } picked
+                        && string.Equals(picked.Name, typed, StringComparison.OrdinalIgnoreCase)
+                ? (picked.Id, picked.Name)
+                : await ResolveAsync(db, typed, kind);
             if (resolved is null)
             {
-                Status = $"Could not find a {kind} called \"{SenderName.Trim()}\".";
+                Status = $"Could not find a {kind} called \"{typed}\".";
                 return;
             }
 
@@ -484,7 +562,12 @@ public class StoresViewModel : ReactiveObject
             });
             await db.SaveChangesAsync();
 
-            await Dispatcher.UIThread.InvokeAsync(() => { SenderName = ""; Status = $"Added {name}."; });
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                SenderName  = "";
+                SenderMatch = null;
+                Status      = $"Added {name}.";
+            });
             await LoadSelectedAsync();
         }
         catch (Exception ex)
@@ -511,6 +594,14 @@ public class StoresViewModel : ReactiveObject
     private static async Task<(long Id, string Name)?> ResolveAsync(
         AppDbContext db, string name, string kind)
     {
+        // ⚠️ NOT `n.Name == name`. SQLite compares TEXT with = case-sensitively, so "ytiri" found
+        // nothing while "Ytiri" found the corporation — the box appeared to reject a name that
+        // was perfectly correct apart from a capital letter. LIKE with no wildcards is an exact
+        // match that ignores ASCII case, which is what a name box should do.
+        //
+        // ⚠️ Escaped first: a name containing % or _ would otherwise become a pattern and match
+        // something else entirely. EVE allows neither today, but a lookup that silently matches
+        // the wrong entity is not a thing to leave resting on that.
         var category = kind switch
         {
             "corporation" => "corporation",
@@ -518,12 +609,23 @@ public class StoresViewModel : ReactiveObject
             _             => "character",
         };
 
-        var hit = await db.UniverseNames.AsNoTracking()
-            .Where(n => n.Category == category && n.Name == name)
-            .Select(n => new { n.EntityId, n.Name })
-            .FirstOrDefaultAsync();
+        var pattern = name.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
 
-        return hit is null ? null : (hit.EntityId, hit.Name);
+        var hits = await db.UniverseNames.AsNoTracking()
+            .Where(n => n.Category == category && EF.Functions.Like(n.Name, pattern, "\\"))
+            .Select(n => new { n.EntityId, n.Name })
+            .Take(5)
+            .ToListAsync();
+
+        if (hits.Count == 0) return null;
+
+        // An exact-case match wins if there is one; otherwise the single case-insensitive hit.
+        // Two entities differing only in case is not something EVE allows, so more than one hit
+        // means the pattern escaped — and picking arbitrarily between them would be a guess.
+        var exact = hits.FirstOrDefault(h => h.Name == name);
+        if (exact is not null) return (exact.EntityId, exact.Name);
+
+        return hits.Count == 1 ? (hits[0].EntityId, hits[0].Name) : null;
     }
 
     private async Task CheckMailNowAsync()

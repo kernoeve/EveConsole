@@ -44,6 +44,16 @@ public class StoreMailService(
     /// </summary>
     private const int MaxRepliesPerPass = 10;
 
+    /// <summary>
+    /// How many times a failed read-only command is tried again before it is left alone.
+    ///
+    /// <para>⚠️ Bounded, because the failure may be permanent — a body ESI will always refuse is
+    /// not going to be accepted on the fifth attempt, and retrying it every minute forever would
+    /// fill the log with the same rejection. Three attempts covers a transient outage and stops
+    /// well short of that.</para>
+    /// </summary>
+    private const int MaxAttempts = 3;
+
     private Task? _loop;
 
     // ── What the background-process view shows ────────────────────────────────
@@ -206,13 +216,33 @@ public class StoreMailService(
             .ToList();
         if (fresh.Count == 0) return 0;
 
-        var seen = await db.StoreMails
-            .Where(m => m.StoreId == store.Id && m.Direction == "in")
-            .Select(m => m.MailId)
-            .ToListAsync(ct);
-        var seenSet = seen.ToHashSet();
+        var prior = (await db.StoreMails
+                .Where(m => m.StoreId == store.Id && m.Direction == "in")
+                .Select(m => new { m.MailId, m.Outcome, m.Command })
+                .ToListAsync(ct))
+            .GroupBy(m => m.MailId)
+            .ToDictionary(g => g.Key, g => g.ToList());
 
-        var todo = fresh.Where(h => !seenSet.Contains(h.MailId)).Take(MaxRepliesPerPass).ToList();
+        var todo = fresh.Where(h => !Handled(h.MailId)).Take(MaxRepliesPerPass).ToList();
+
+        // Whether this mail is finished with, or may be looked at again.
+        bool Handled(int mailId)
+        {
+            if (!prior.TryGetValue(mailId, out var attempts)) return false;
+
+            // Anything that did not end in an error is done: answered, rejected, or left for a
+            // person. Only a failure is worth revisiting.
+            if (attempts.Any(a => a.Outcome != "error")) return true;
+
+            // ⚠️ Retried only where a second attempt cannot do damage. PRICES and STATUS read and
+            // report; running either again costs one more mail. ORDER and CANCEL change orders,
+            // and a retry after a reply that failed halfway would place the order twice or cancel
+            // something already cancelled — so those stay one attempt, with the failure on the
+            // record for a person to answer by hand.
+            if (attempts.Any(a => a.Command is not ("PRICES" or "STATUS"))) return true;
+
+            return attempts.Count >= MaxAttempts;
+        }
         if (todo.Count == 0) return 0;
 
         var handled = 0;
@@ -563,11 +593,12 @@ public class StoreMailService(
         {
             log.Outcome = "error";
             log.Detail  = $"Reply failed: {error}";
-            return;
         }
+        else if (log.Outcome.Length == 0) log.Outcome = "ok";
 
-        if (log.Outcome.Length == 0) log.Outcome = "ok";
-
+        // ⚠️ Recorded either way. A reply that failed is the one worth keeping: it holds the body
+        // that was rejected and the length of it, which is most of what says why. Dropping it left
+        // the inbound row saying "error" with nothing to inspect.
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         db.StoreMails.Add(new StoreMail
         {
@@ -578,7 +609,8 @@ public class StoreMailService(
             Subject   = subject,
             Body      = body,
             Command   = log.Command,
-            Outcome   = "ok",
+            Outcome   = ok ? "ok" : "error",
+            Detail    = ok ? "" : $"Not sent: {error} ({body.Length:N0} characters)",
             OrderRef  = log.OrderRef,
             At        = DateTimeOffset.UtcNow,
         });
