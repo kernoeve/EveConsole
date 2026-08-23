@@ -470,6 +470,7 @@ public class MainWindowViewModel : ReactiveObject
         InvLevelService                 invLevelService,
         SalePostingService              salePostingService,
         StoreMailService                storeMailService,
+        OrderLabelService               orderLabels,
         BatchAddService                 batchAddService,
         CorpActivityService             corpActivityService,
         CharacterSummaryService         characterSummaryService,
@@ -613,7 +614,7 @@ public class MainWindowViewModel : ReactiveObject
         OverviewVm.IncomeExpense     = IncomeExpenseVm;
         SaleListingBuildVm.OpenSalesTracker  = () => OpenTool("sales_tracker");
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
-        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
+        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
         WorklistVm             = new WorklistViewModel(worklistService,
                                      new WorklistMarketAltsViewModel(worklistMarketAltService, corpActivityService, dbFactory),

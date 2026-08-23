@@ -78,15 +78,30 @@
           <TextBox Text="{Binding TypeFilter}" Watermark="item name" Width="150" />
           <TextBlock Classes="fl" Text="Buyer" Margin="8 0 0 0" />
           <TextBox Text="{Binding BuyerFilter}" Watermark="buyer" Width="130" />
+          <TextBlock Classes="fl" Text="Label" Margin="8 0 0 0" />
+          <!-- "(any)" is no filter at all; "(labelled)" is anything tagged, whatever the tag —
+               the two questions people actually ask, alongside picking one label. -->
+          <ComboBox ItemsSource="{Binding LabelOptions}" SelectedItem="{Binding LabelFilter}"
+                    MinWidth="160" />
         </StackPanel>
 
       </StackPanel>
     </Border>
 
-    <DataGrid Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}"
+    <!-- ⚠️ Extended selection, so a right-click can label a batch. Labelling twenty orders one
+         at a time is not a feature anybody would use. -->
+    <DataGrid Grid.Row="1" x:Name="OrdersGrid"
+              ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}"
+              SelectionMode="Extended"
               AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
               Background="#0d0d12" DoubleTapped="OnRowDoubleTapped">
+      <DataGrid.ContextMenu>
+        <ContextMenu>
+          <MenuItem x:Name="AddLabelMenu"    Header="Add label" />
+          <MenuItem x:Name="RemoveLabelMenu" Header="Remove label" />
+        </ContextMenu>
+      </DataGrid.ContextMenu>
       <DataGrid.Columns>
         <DataGridTextColumn Header="Created"        Binding="{Binding CreatedText}" SortMemberPath="CreatedSort" Width="100" />
         <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="230">
@@ -121,6 +136,7 @@
         <!-- Shared by every row of one order, so several rows repeating a code is a multi-item
              order rather than a duplicate. -->
         <DataGridTextColumn Header="Order #" Binding="{Binding OrderRef}" Width="90" />
+        <DataGridTextColumn Header="Labels"  Binding="{Binding Labels}"   Width="180" />
         <!-- Blank means entered by hand rather than taken by mail. -->
         <DataGridTextColumn Header="Store" Binding="{Binding Store}" Width="130" />
         <!-- Blank means the buyer, not "unknown": a contract with nobody named goes to whoever

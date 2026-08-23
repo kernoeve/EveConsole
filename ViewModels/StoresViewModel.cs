@@ -227,6 +227,18 @@ public class StoresViewModel : ReactiveObject
         }
     }
 
+    private string _storeOrderLabels = "";
+    public string StoreOrderLabels
+    {
+        get => _storeOrderLabels;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _storeOrderLabels, value);
+            _ = SaveAsync(s => s.OrderLabels =
+                string.Join(", ", OrderLabelService.Split(value)));
+        }
+    }
+
     private string _messageHeader = "";
     public string MessageHeader
     {
@@ -495,6 +507,7 @@ public class StoresViewModel : ReactiveObject
                     StoreEnabled     = store.Enabled;
                     AutoEstimate     = store.AutoEstimateInStock;
                     AutoEstimateDays = store.AutoEstimateDays;
+                    StoreOrderLabels   = store.OrderLabels;
                     MessageHeader      = store.MessageHeader;
                     MessageHeaderColor = store.MessageHeaderColor;
                     MessageFooter      = store.MessageFooter;

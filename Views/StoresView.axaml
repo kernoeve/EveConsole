@@ -116,6 +116,19 @@
 
               <Rectangle Height="1" Fill="#1e1e2a" Margin="0 4" />
 
+              <!-- Put on every order this store takes, so a shop can be a programme: tag the
+                   orders once here rather than remembering to tag each one later. -->
+              <TextBlock Text="ORDER LABELS  (on every order this store takes)" FontSize="10"
+                         FontWeight="SemiBold" Foreground="#555566" LetterSpacing="1" />
+              <TextBox Text="{Binding StoreOrderLabels, UpdateSourceTrigger=LostFocus}"
+                       Watermark="e.g. BNI First Capital Program — separate several with commas"
+                       FontSize="11" Background="#1a1a28" Foreground="#c8c8d8"
+                       BorderBrush="#2a2a3a" />
+              <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                         Text="Labels appear on the Order Tracker and can be filtered there. Anything typed here is offered in its label pickers, so a programme can be set up before its first order arrives." />
+
+              <Rectangle Height="1" Fill="#1e1e2a" Margin="0 4" />
+
               <!-- On every mail the shop sends: answers, rejections and unprompted order updates
                    alike. EVE's own markup works here — <b>, <i>, <u>, <br>, font tags and dragged
                    links — because this is the owner's text, not a buyer's. -->

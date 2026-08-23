@@ -20,10 +20,76 @@ public partial class OrderTrackerView : ReactiveUserControl<OrderTrackerViewMode
             vm.ShowOrderDialog = async initial =>
             {
                 if (TopLevel.GetTopLevel(this) is not Window owner) return null;
-                var dialog = new OrderEditDialog(vm.SearchTypesAsync, initial, vm.SearchBuyersAsync);
+                var dialog = new OrderEditDialog(vm.SearchTypesAsync, initial, vm.SearchBuyersAsync,
+                                                 await vm.KnownLabelsAsync());
                 return await dialog.ShowDialog<OrderDialogResult?>(owner);
             };
         };
+
+        // Built when the menu opens, not once at startup: the label list changes as orders are
+        // tagged, and a menu populated at construction would offer yesterday's labels.
+        if (OrdersGrid.ContextMenu is { } menu)
+            menu.Opening += async (_, _) => await BuildLabelMenusAsync();
+    }
+
+    /// <summary>The rows a right-click should act on — the whole selection, not just the row
+    /// under the pointer.</summary>
+    private List<TrackedOrderRowVm> SelectedRows() =>
+        OrdersGrid.SelectedItems.OfType<TrackedOrderRowVm>().ToList();
+
+    private async Task BuildLabelMenusAsync()
+    {
+        if (DataContext is not OrderTrackerViewModel vm) return;
+
+        var rows = SelectedRows();
+        AddLabelMenu.Items.Clear();
+        RemoveLabelMenu.Items.Clear();
+
+        AddLabelMenu.IsEnabled    = rows.Count > 0;
+        RemoveLabelMenu.IsEnabled = rows.Count > 0;
+        if (rows.Count == 0) return;
+
+        AddLabelMenu.Header    = rows.Count > 1 ? $"Add label to {rows.Count} orders" : "Add label";
+        RemoveLabelMenu.Header = rows.Count > 1 ? $"Remove label from {rows.Count} orders" : "Remove label";
+
+        foreach (var label in await vm.KnownLabelsAsync())
+        {
+            var item = new MenuItem { Header = label };
+            item.Click += async (_, _) => await vm.AddLabelToAsync(SelectedRows(), label);
+            AddLabelMenu.Items.Add(item);
+        }
+
+        // ⚠️ Typing a new one is how labels are created; there is no manage-labels screen and
+        // deliberately so. Without this entry the menu would only ever offer what already exists,
+        // and the first label could never be made from here at all.
+        if (AddLabelMenu.Items.Count > 0) AddLabelMenu.Items.Add(new Separator());
+        var newItem = new MenuItem { Header = "New label…" };
+        newItem.Click += async (_, _) => await PromptForLabelAsync(vm);
+        AddLabelMenu.Items.Add(newItem);
+
+        // Only what the selection actually carries — offering to remove a label nothing has is
+        // an action with no effect dressed as a choice.
+        foreach (var label in rows.SelectMany(r => r.LabelList)
+                                  .Distinct(StringComparer.OrdinalIgnoreCase)
+                                  .OrderBy(l => l, StringComparer.OrdinalIgnoreCase))
+        {
+            var item = new MenuItem { Header = label };
+            item.Click += async (_, _) => await vm.RemoveLabelFromAsync(SelectedRows(), label);
+            RemoveLabelMenu.Items.Add(item);
+        }
+
+        RemoveLabelMenu.IsEnabled = RemoveLabelMenu.Items.Count > 0;
+    }
+
+    private async Task PromptForLabelAsync(OrderTrackerViewModel vm)
+    {
+        if (TopLevel.GetTopLevel(this) is not Window owner) return;
+
+        var rows  = SelectedRows();
+        var typed = await new TextPromptDialog(
+            "New label", "Label", "e.g. BNI First Capital Program").ShowDialog<string?>(owner);
+
+        if (!string.IsNullOrWhiteSpace(typed)) await vm.AddLabelToAsync(rows, typed);
     }
 
     private void OnRowDoubleTapped(object? sender, TappedEventArgs e)

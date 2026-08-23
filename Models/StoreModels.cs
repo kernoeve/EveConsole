@@ -86,6 +86,14 @@ public class Store
     /// &lt;i&gt;, &lt;u&gt;, &lt;br&gt;, font tags and showinfo links. Nothing is escaped, which
     /// is deliberate — this is the shop owner's text, not a buyer's.</para>
     /// </summary>
+    /// <summary>
+    /// Labels put on every order this store takes, comma-separated. Empty for none.
+    ///
+    /// <para>A flat string rather than rows, because this is a setting somebody types once — the
+    /// orders themselves carry proper label rows, which is where filtering and counting happen.</para>
+    /// </summary>
+    public string OrderLabels        { get; set; } = "";
+
     public string MessageHeader      { get; set; } = "";
     public string MessageHeaderColor { get; set; } = "";
     public string MessageFooter      { get; set; } = "";

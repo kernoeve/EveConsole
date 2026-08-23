@@ -35,6 +35,7 @@ public class StoreMailService(
     SalePostingService              postings,
     OrderFulfilmentService          fulfilment,
     MailBudget                      budget,
+    OrderLabelService               labels,
     AppErrorLogger                  errorLogger)
 {
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(1);
@@ -670,6 +671,12 @@ public class StoreMailService(
         }
 
         await db.SaveChangesAsync(ct);
+
+        // ⚠️ After the save, because the rows need their ids. Applied here rather than left to
+        // whoever looks at the order later: a shop that IS a programme should tag its own orders,
+        // and a tag remembered by hand is a tag missing from a report.
+        await labels.ApplyStoreLabelsAsync(db, store.OrderLabels, created.Select(o => o.Id), ct);
+
         db.ChangeTracker.Clear();
 
         log.OrderRef = reference;
@@ -775,7 +782,10 @@ public class StoreMailService(
         // Without one, they get everything of theirs that is still open.
         var orders = await FindOrderAsync(db, store, log, ct);
 
-        if (orders.Count > 0) log.OrderRef = orders[0].OrderRef;
+        if (orders.Count > 0)
+            log.OrderRef = string.Join(", ", orders.Select(o => o.OrderRef)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(r => r, StringComparer.OrdinalIgnoreCase));
         else
         {
             // Everything still open for this sender. Matched on the buyer, so nobody can read
@@ -945,7 +955,14 @@ public class StoreMailService(
             return;
         }
 
-        log.OrderRef = orders[0].OrderRef;
+        // ⚠️ Every reference in the mail, not the first. Somebody cancelling two orders writes
+        // two references in one message, and answering about one of them while leaving the other
+        // open is worse than refusing outright — the reply reads like both were dealt with.
+        var refs = orders.Select(o => o.OrderRef)
+                         .Distinct(StringComparer.OrdinalIgnoreCase)
+                         .OrderBy(r => r, StringComparer.OrdinalIgnoreCase).ToList();
+
+        log.OrderRef = string.Join(", ", refs);
 
         // ⚠️ Only what is still pending. A line already delivered is not cancellable by mail —
         // the goods have moved — and quietly marking it cancelled would erase the sale.
@@ -972,37 +989,54 @@ public class StoreMailService(
 
         var names = await TypeNamesAsync(db, orders.Select(o => o.TypeId).Distinct().ToList(), ct);
 
+        var word = refs.Count == 1 ? "Order" : "Orders";
+        var list = string.Join(", ", refs);
+
         var sb = new StringBuilder();
-        sb.Append(Head($"Order {orders[0].OrderRef} cancelled"));
+        sb.Append(Head($"{word} {list} cancelled"));
 
         if (open.Count > 0)
         {
             // Says WHAT was cancelled, not just how many lines. A count is a receipt for the
             // app's benefit; the buyer wants to see the thing they will not be getting.
-            foreach (var o in open)
-                sb.Append("<b>").Append(o.Units.ToString("N0")).Append(" × </b>")
-                  .Append("<a href=\"showinfo:").Append(o.TypeId).Append("\">")
-                  .Append(Esc(names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"))).Append("</a>")
-                  .Append(Dim($" — {Isk(o.PurchasePrice)}")).Append(Br);
+            foreach (var group in refs)
+            {
+                var lines = open.Where(o =>
+                    string.Equals(o.OrderRef, group, StringComparison.OrdinalIgnoreCase)).ToList();
+                if (lines.Count == 0) continue;
 
-            sb.Append(Br).Append(Dim("Nothing further is owed on these."));
+                // Grouped under its reference when there is more than one, because the buyer is
+                // cancelling orders — plural — and a flat list of items loses which was which.
+                if (refs.Count > 1) sb.Append(Dim(group)).Append(Br);
+
+                foreach (var o in lines)
+                    sb.Append("<b>").Append(o.Units.ToString("N0")).Append(" × </b>")
+                      .Append("<a href=\"showinfo:").Append(o.TypeId).Append("\">")
+                      .Append(Esc(names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"))).Append("</a>")
+                      .Append(Dim($" — {Isk(o.PurchasePrice)}")).Append(Br);
+
+                if (refs.Count > 1) sb.Append(Br);
+            }
         }
         else
         {
-            sb.Append("Nothing on this order was still open to cancel.");
+            sb.Append(refs.Count == 1
+                ? "Nothing on this order was still open to cancel."
+                : "Nothing on these orders was still open to cancel.");
         }
 
         if (kept > 0)
             sb.Append(Br).Append(Dim(
                 $"{kept} line(s) were already delivered or cancelled and have been left as they are."));
 
-        await ReplyAsync(store, log, $"{store.Name} — order {orders[0].OrderRef} cancelled", sb.ToString(), ct);
+        await ReplyAsync(store, log, $"{store.Name} — {word.ToLowerInvariant()} {list} cancelled",
+                         sb.ToString(), ct);
     }
 
     // ── Shared ────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// The order a mail is about: its reference, and only if it belongs to this sender.
+    /// The orders a mail is about: every reference it names, and only ones belonging to this sender.
     ///
     /// <para>⚠️ Matched on the buyer as well as the reference. References are short enough to
     /// guess, and without this a stranger could read or cancel somebody else's order.</para>
@@ -1028,8 +1062,10 @@ public class StoreMailService(
                      && candidates.Contains(o.OrderRef))
             .ToListAsync(ct);
 
-        // If the text somehow named two of the buyer's own orders, answer about the first.
-        return hits.GroupBy(o => o.OrderRef).OrderBy(g => g.Key).FirstOrDefault()?.ToList() ?? [];
+        // ⚠️ Every match, across every reference named. One mail can be about two orders, and
+        // the caller — not this lookup — decides whether that means answering about all of them
+        // or about the first.
+        return hits;
     }
 
     /// <summary>What the buyer wrote that could have been a reference, in the order it appeared.</summary>

@@ -1049,6 +1049,24 @@ public class TrackedOrder
     public DateTimeOffset CreatedAt { get; set; }
 }
 
+/// <summary>
+/// One tag on one order.
+///
+/// <para><b>Free text, and no table of its own.</b> A label is whatever somebody typed — "BNI
+/// First Capital Program" — and the list offered in the pickers is simply the distinct values in
+/// use. That means a label nothing carries any more stops being offered, which is the right
+/// behaviour: a list of tags nobody uses is a list nobody reads.</para>
+///
+/// <para>⚠️ A row per label rather than a delimited string on the order. Orders are filtered and
+/// counted by label, and a LIKE against a comma-separated column matches "Capital" inside
+/// "First Capital Program" — which is the kind of wrong answer nobody checks.</para>
+/// </summary>
+public class OrderLabel
+{
+    public int    OrderId { get; set; }
+    public string Label   { get; set; } = "";
+}
+
 // ── Error logging ─────────────────────────────────────────────────────────────
 
 public class AppErrorEntry

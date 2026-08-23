@@ -374,6 +374,17 @@ public class App : Application
 
             // Sale Posting — postings → sections → items (see SalePostingModels.cs)
             db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "OrderLabels" (
+                    "OrderId" INTEGER NOT NULL,
+                    "Label"   TEXT    NOT NULL,
+                    PRIMARY KEY ("OrderId", "Label")
+                )
+                """);
+            // Filtering is by label, so that is the way the index has to read.
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_OrderLabels_Label" ON "OrderLabels" ("Label")
+                """);
+            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "Stores" (
                     "Id"            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     "Name"          TEXT    NOT NULL DEFAULT '',
@@ -387,6 +398,7 @@ public class App : Application
                     "Enabled"       INTEGER NOT NULL DEFAULT 0,
                     "ListenFrom"    TEXT    NOT NULL DEFAULT '',
                     "IsDeleted"     INTEGER NOT NULL DEFAULT 0,
+                    "OrderLabels"        TEXT NOT NULL DEFAULT '',
                     "MessageHeader"      TEXT NOT NULL DEFAULT '',
                     "MessageHeaderColor" TEXT NOT NULL DEFAULT '',
                     "MessageFooter"      TEXT NOT NULL DEFAULT '',
@@ -409,6 +421,8 @@ public class App : Application
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "AutoEstimateInStock" INTEGER NOT NULL DEFAULT 1"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "AutoEstimateDays" INTEGER NOT NULL DEFAULT 1"""); } catch { }
             // Text the shop puts on every mail it sends, with a colour each.
+            // Labels put on every order this store takes.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "OrderLabels" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageHeader" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageHeaderColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooter" TEXT NOT NULL DEFAULT ''"""); } catch { }
@@ -2990,6 +3004,7 @@ public class App : Application
         services.AddSingleton<DataRetentionService>();
         services.AddSingleton<OrderFulfilmentService>();
         services.AddSingleton<MailBudget>();
+        services.AddSingleton<OrderLabelService>();
         services.AddSingleton<StoreMailService>();
         services.AddSingleton<WalCheckpointService>();
         services.AddSingleton<TimerForceService>();
