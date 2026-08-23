@@ -1276,6 +1276,10 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         m.MarketStationId = r.MarketStationId; m.MarketStationName = r.MarketStationName; m.MarketPriceType = r.MarketPriceType;
         m.ShowInStock = r.ShowInStock; m.ShowInBuild = r.ShowInBuild; m.ShowReserved = r.ShowReserved;
         m.IncludeCompletionDate = r.IncludeCompletionDate; m.OnlyPackaged = r.OnlyPackaged;
+        // ⚠️ Same trap as the section edit below: a field added to PostingDialogResult and not
+        // copied here saves correctly and then appears not to have.
+        m.ColorByState = r.ColorByState; m.ColorInStock = r.ColorInStock;
+        m.ColorInBuild = r.ColorInBuild; m.ColorNone     = r.ColorNone;
         row.ApplyData(m);
 
         await ComputePostingAsync(row);
@@ -1323,8 +1327,13 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         await _svc.UpdateSectionAsync(row.SectionId, r);
 
         // Apply to the in-memory model so display + compute reflect the edit.
+        //
+        // ⚠️ Every field of SectionDialogResult has to be copied here, and nothing checks that.
+        // Colour was saved to the database and left out of this list: the row kept the old value,
+        // so reopening the dialog showed the colour blank and the preview rendered without it —
+        // indistinguishable from the save having failed, which is exactly how it was reported.
         var m = row.Model;
-        m.Name = r.Name; m.Prefix = r.Prefix;
+        m.Name = r.Name; m.Prefix = r.Prefix; m.Color = r.Color;
         m.OverrideScope = r.OverrideScope; m.Scope = r.Scope; m.LocationId = r.LocationId; m.LocationName = r.LocationName;
         m.OverridePricing = r.OverridePricing; m.PricingBasis = r.PricingBasis; m.PricePercent = r.PricePercent;
         m.MarketStationId = r.MarketStationId; m.MarketStationName = r.MarketStationName; m.MarketPriceType = r.MarketPriceType;
