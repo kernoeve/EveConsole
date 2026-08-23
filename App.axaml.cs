@@ -382,6 +382,12 @@ public class App : Application
                     "CreatedAt"     TEXT    NOT NULL DEFAULT ''
                 )
                 """);
+            // ⚠️ Listed in the CREATE above AND altered in here, like every other column added
+            // after a table shipped. The CREATE only runs on an install that has never had the
+            // table; anyone who ran the previous build already has Stores without this column,
+            // and IF NOT EXISTS silently does nothing for them. That is the whole trap: it works
+            // on a fresh machine and fails on every existing one.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "ListenFrom" TEXT NOT NULL DEFAULT ''"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "StoreSenders" (
                     "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
