@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:EveConsole.ViewModels"
+             xmlns:controls="using:EveConsole.Controls"
              x:Class="EveConsole.Views.StoresView"
              x:DataType="vm:StoresViewModel">
 
@@ -99,8 +100,11 @@
                 <CheckBox IsChecked="{Binding AutoEstimate}"
                           Content="Give in-stock orders an expected date" FontSize="11"
                           Foreground="#c8c8d8" VerticalAlignment="Center" />
+                <!-- ⚠️ Wide enough for the DIGITS. A NumericUpDown spends most of its width on
+                     the two spinner buttons, so 88 left the text box narrower than one character
+                     and the value could not be read at all. -->
                 <NumericUpDown Value="{Binding AutoEstimateDays}" Minimum="0" Maximum="60"
-                               Increment="1" FormatString="0" Width="88" FontSize="11"
+                               Increment="1" FormatString="0" Width="130" FontSize="11"
                                IsEnabled="{Binding AutoEstimate}"
                                Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
                 <TextBlock Text="day(s) from the order" FontSize="11" Foreground="#888899"
@@ -108,7 +112,36 @@
               </StackPanel>
 
               <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
-                         Text="Buyers put the command in the mail SUBJECT: PRICES, ORDER, STATUS or CANCEL. An ORDER body is one item per line, as &quot;2 x Hulk&quot;. STATUS and CANCEL need the order reference from the confirmation." />
+                         Text="Buyers put the command in the mail SUBJECT: PRICES, ORDER, STATUS, CANCEL or HELP. An ORDER body is one item per line — dragging the item in is easiest. STATUS on its own lists every open order; CANCEL needs the reference from the confirmation mail." />
+
+              <Rectangle Height="1" Fill="#1e1e2a" Margin="0 4" />
+
+              <!-- On every mail the shop sends: answers, rejections and unprompted order updates
+                   alike. EVE's own markup works here — <b>, <i>, <u>, <br>, font tags and dragged
+                   links — because this is the owner's text, not a buyer's. -->
+              <TextBlock Text="MESSAGE HEADER  (on every mail this store sends)" FontSize="10"
+                         FontWeight="SemiBold" Foreground="#555566" LetterSpacing="1" />
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0" Text="{Binding MessageHeader, UpdateSourceTrigger=LostFocus}"
+                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="110"
+                         Watermark="e.g. Thanks for shopping with us." FontSize="11"
+                         Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+                <controls:ColorField Grid.Column="1" Width="160" Margin="8 0 0 0"
+                                     VerticalAlignment="Top"
+                                     Value="{Binding MessageHeaderColor, Mode=TwoWay}" />
+              </Grid>
+
+              <TextBlock Text="MESSAGE FOOTER" FontSize="10"
+                         FontWeight="SemiBold" Foreground="#555566" LetterSpacing="1" Margin="0 6 0 0" />
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0" Text="{Binding MessageFooter, UpdateSourceTrigger=LostFocus}"
+                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="110"
+                         Watermark="e.g. Contracts are issued from UALX-3." FontSize="11"
+                         Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+                <controls:ColorField Grid.Column="1" Width="160" Margin="8 0 0 0"
+                                     VerticalAlignment="Top"
+                                     Value="{Binding MessageFooterColor, Mode=TwoWay}" />
+              </Grid>
             </StackPanel>
           </Border>
 

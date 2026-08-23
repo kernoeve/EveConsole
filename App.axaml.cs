@@ -387,6 +387,10 @@ public class App : Application
                     "Enabled"       INTEGER NOT NULL DEFAULT 0,
                     "ListenFrom"    TEXT    NOT NULL DEFAULT '',
                     "IsDeleted"     INTEGER NOT NULL DEFAULT 0,
+                    "MessageHeader"      TEXT NOT NULL DEFAULT '',
+                    "MessageHeaderColor" TEXT NOT NULL DEFAULT '',
+                    "MessageFooter"      TEXT NOT NULL DEFAULT '',
+                    "MessageFooterColor" TEXT NOT NULL DEFAULT '',
                     "AutoEstimateInStock" INTEGER NOT NULL DEFAULT 1,
                     "AutoEstimateDays"    INTEGER NOT NULL DEFAULT 1,
                     "CreatedAt"     TEXT    NOT NULL DEFAULT ''
@@ -404,6 +408,11 @@ public class App : Application
             // An expected date for orders filled from stock, which have no job to take one from.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "AutoEstimateInStock" INTEGER NOT NULL DEFAULT 1"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "AutoEstimateDays" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+            // Text the shop puts on every mail it sends, with a colour each.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageHeader" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageHeaderColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooter" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooterColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "StoreSenders" (
                     "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

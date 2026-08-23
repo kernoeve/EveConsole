@@ -221,7 +221,7 @@ public class StoreMailService(
             var (ok, error) = await mail.SendMailAsync(
                 store.CharacterId,
                 Trim($"{store.Name} — order {group.Key.OrderRef}"),
-                sb.ToString(),
+                Wrap(store, sb.ToString()),
                 [new EsiMailRecipientItem(group.Key.BuyerId, "character")], ct);
 
             log.Subject = $"{store.Name} — order {group.Key.OrderRef}";
@@ -437,8 +437,8 @@ public class StoreMailService(
         // These render exactly as a dragged one does, because they are the same thing.
         Ind + Item(23757, "Archon") + " x2" + Br +
         Ind + Item(24483, "Nidhoggur") + Br +
-        Dim("Typing the name works too:") + Br +
-        Eg("Archon x2     Archon 2     2 x Archon     Archon") + Gap +
+        Dim("Typing the name works too. The quantity always goes AFTER the item:") + Br +
+        Eg("Archon x2     Archon 2     Archon") + Gap +
 
         Cmd("STATUS") + "where your orders have got to." + Br +
         Dim("No reference needed — you will get all of your open ones.") + Br +
@@ -1008,9 +1008,16 @@ public class StoreMailService(
         var parts = new List<string>();
         var sb    = new StringBuilder();
 
+        // ⚠️ Room reserved for what gets added AFTER the chunking: the store's own header and
+        // footer, which ReplyAsync wraps around every message, plus this part's heading. Measure
+        // the blocks alone and a mail that just fits becomes one that just does not, and EVE
+        // refuses the whole thing.
+        var room = MaxBodyChars - Wrap(store, "").Length - Head(heading).Length - 200;
+        if (room < 1_000) room = 1_000;
+
         foreach (var block in blocks)
         {
-            if (sb.Length > 0 && sb.Length + block.Length > MaxBodyChars)
+            if (sb.Length > 0 && sb.Length + block.Length > room)
             {
                 parts.Add(sb.ToString());
                 sb.Clear();
@@ -1045,7 +1052,7 @@ public class StoreMailService(
     private async Task ReplyAsync(Store store, StoreMail log, string subject, string body, CancellationToken ct)
     {
         var (ok, error) = await mail.SendMailAsync(
-            store.CharacterId, Trim(subject), body,
+            store.CharacterId, Trim(subject), Wrap(store, body),
             [new EsiMailRecipientItem(log.PartyId, "character")], ct);
 
         if (!ok)
@@ -1196,8 +1203,7 @@ public class StoreMailService(
         """<a\s+href\s*=\s*"?showinfo:(\d+)(?://(\d+))?"?[^>]*>(.*?)</a>""",
         RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
-    /// <summary>Quantity forms, most specific first: "x2", "2x", a bare trailing number.</summary>
-    private static readonly Regex QtyLeading  = new(@"^\s*(\d[\d,]*)\s*[x*×]?\s+(.+?)\s*$", RegexOptions.Compiled);
+    /// <summary>Quantity forms — the count always after the item, never before it.</summary>
     private static readonly Regex QtyTrailing = new(@"^\s*(.+?)\s*[x*×]\s*(\d[\d,]*)\s*$",   RegexOptions.Compiled);
     private static readonly Regex QtyBare     = new(@"^\s*(.+?)\s+(\d[\d,]*)\s*$",           RegexOptions.Compiled);
 
@@ -1222,8 +1228,8 @@ public class StoreMailService(
     /// strip that turned it into its own label would throw away the one unambiguous thing in the
     /// message and leave a name to guess at.</para>
     ///
-    /// <para>Quantities are read in whichever form arrives — <c>Archon x2</c>, <c>Archon 2</c>,
-    /// <c>2 x Archon</c>, <c>x2</c> beside a link, or nothing at all meaning one. The forms are
+    /// <para>Quantities follow the item — <c>Archon x2</c>, <c>Archon 2</c>, <c>x2</c> beside a
+    /// dragged link, or nothing at all meaning one. Never before it: see ByName. The forms are
     /// tried against the catalogue rather than assumed, because an item name can legitimately end
     /// in a number and "Archon 2" would otherwise become an item called "Archon" only by luck.</para>
     ///
@@ -1316,10 +1322,14 @@ public class StoreMailService(
         // Whole line first: an item whose name ends in a number is still just its name.
         if (byName.TryGetValue(Clean(text), out var whole)) return (whole, 1);
 
+        // ⚠️ The count always FOLLOWS the item. "2 x Archon" used to be accepted too, and the
+        // trouble is what happens when somebody puts two items on one line: in "Archon 2 Chimera"
+        // the 2 could belong to either, and no rule can tell which was meant. Accepting only one
+        // side removes the question — the number attaches to the thing before it, always — and a
+        // line written the other way round is reported as unrecognised rather than guessed at.
         foreach (var (pattern, nameGroup, qtyGroup) in new[]
                  {
                      (QtyTrailing, 1, 2),   // Archon x2, Archon x 2
-                     (QtyLeading,  2, 1),   // 2 x Archon, 2 Archon
                      (QtyBare,     1, 2),   // Archon 2
                  })
         {
@@ -1411,6 +1421,42 @@ public class StoreMailService(
     /// <see cref="MarketFmt.RoundToDisplay"/> — at billions the decimals are always ".00", and
     /// printing them suggests a precision the price does not have.</summary>
     private static string Isk(double v) => v.ToString("N0") + " ISK";
+
+    /// <summary>
+    /// The store's own header and footer around a message body.
+    ///
+    /// <para>⚠️ Applied at the point of sending, so EVERY mail carries it — the answers, the
+    /// rejections and the unprompted order updates alike. Adding it where each message is built
+    /// would mean remembering it in six places, and the one forgotten would be the one somebody
+    /// noticed.</para>
+    ///
+    /// <para>The text goes in exactly as written. It is the shop owner's, not a buyer's, so
+    /// their markup is theirs to use.</para>
+    /// </summary>
+    private static string Wrap(Store store, string body)
+    {
+        var head = store.MessageHeader?.Trim() ?? "";
+        var foot = store.MessageFooter?.Trim() ?? "";
+
+        var sb = new StringBuilder();
+        if (head.Length > 0) sb.Append(Tint(store.MessageHeaderColor, head)).Append(Gap);
+        sb.Append(body);
+        if (foot.Length > 0) sb.Append(Gap).Append(Tint(store.MessageFooterColor, foot));
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Text in a colour, given the six-digit hex the pickers produce.
+    ///
+    /// <para>⚠️ EVE's colours are ARGB and the alpha is not optional — a six-digit value is read
+    /// with a zero alpha, which is invisible text. The same widening the posting renderer does.</para>
+    /// </summary>
+    private static string Tint(string? hex, string text)
+    {
+        var rgb = (hex ?? "").Trim().TrimStart('#');
+        if (rgb.Length == 6) rgb = "ff" + rgb;
+        return rgb.Length == 8 ? $"<font color=\"#{rgb}\">{text}</font>" : text;
+    }
 
     /// <summary>EVE rejects an over-long subject outright, which would lose the whole reply.</summary>
     private static string Trim(string subject) =>

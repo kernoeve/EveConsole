@@ -227,6 +227,50 @@ public class StoresViewModel : ReactiveObject
         }
     }
 
+    private string _messageHeader = "";
+    public string MessageHeader
+    {
+        get => _messageHeader;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _messageHeader, value);
+            _ = SaveAsync(s => s.MessageHeader = value?.Trim() ?? "");
+        }
+    }
+
+    private string _messageHeaderColor = "";
+    public string MessageHeaderColor
+    {
+        get => _messageHeaderColor;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _messageHeaderColor, value);
+            _ = SaveAsync(s => s.MessageHeaderColor = value?.Trim() ?? "");
+        }
+    }
+
+    private string _messageFooter = "";
+    public string MessageFooter
+    {
+        get => _messageFooter;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _messageFooter, value);
+            _ = SaveAsync(s => s.MessageFooter = value?.Trim() ?? "");
+        }
+    }
+
+    private string _messageFooterColor = "";
+    public string MessageFooterColor
+    {
+        get => _messageFooterColor;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _messageFooterColor, value);
+            _ = SaveAsync(s => s.MessageFooterColor = value?.Trim() ?? "");
+        }
+    }
+
     private bool _autoEstimate = true;
     public bool AutoEstimate
     {
@@ -451,6 +495,10 @@ public class StoresViewModel : ReactiveObject
                     StoreEnabled     = store.Enabled;
                     AutoEstimate     = store.AutoEstimateInStock;
                     AutoEstimateDays = store.AutoEstimateDays;
+                    MessageHeader      = store.MessageHeader;
+                    MessageHeaderColor = store.MessageHeaderColor;
+                    MessageFooter      = store.MessageFooter;
+                    MessageFooterColor = store.MessageFooterColor;
                 }
                 finally { _suppressSave = false; }
 

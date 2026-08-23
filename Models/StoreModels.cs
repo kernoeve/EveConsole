@@ -75,6 +75,22 @@ public class Store
     /// forecast rather than a promise, and overwriting that with a guess would be worse than
     /// having no guess at all.</para>
     /// </summary>
+    /// <summary>
+    /// Text put above and below every mail this store sends, with a colour each. Empty for none.
+    ///
+    /// <para>What a shop says on all of its correspondence and nowhere else — a greeting, a
+    /// standing note about delivery, a line about who to talk to. It belongs on the store rather
+    /// than in each message because it is the same regardless of what was asked.</para>
+    ///
+    /// <para>⚠️ Written into the mail exactly as typed, so EVE's own markup works here: &lt;b&gt;,
+    /// &lt;i&gt;, &lt;u&gt;, &lt;br&gt;, font tags and showinfo links. Nothing is escaped, which
+    /// is deliberate — this is the shop owner's text, not a buyer's.</para>
+    /// </summary>
+    public string MessageHeader      { get; set; } = "";
+    public string MessageHeaderColor { get; set; } = "";
+    public string MessageFooter      { get; set; } = "";
+    public string MessageFooterColor { get; set; } = "";
+
     public bool AutoEstimateInStock { get; set; } = true;
 
     /// <summary>Days from the order date. One by default — a shelf item is a contract to write,
