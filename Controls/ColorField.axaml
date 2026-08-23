@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="EveConsole.Controls.ColorField">
+
+  <Grid ColumnDefinitions="*,Auto">
+
+    <TextBox x:Name="HexBox" Grid.Column="0"
+             Watermark="#rrggbb — blank for none"
+             Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+             CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+             FontSize="12" Padding="8 5" />
+
+    <!-- The swatch doubles as the preview: what is in the box, shown as the colour it is. A hex
+         value is not something anyone can picture, and the whole point of this control is not
+         having to leave the app to find out. -->
+    <Button x:Name="PickButton" Grid.Column="1" Margin="6 0 0 0"
+            Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+            CornerRadius="3" Padding="6 4" Cursor="Hand"
+            ToolTip.Tip="Pick a colour">
+      <Border x:Name="Preview" Width="28" Height="16" CornerRadius="2"
+              Background="Transparent" BorderBrush="#3a3a4a" BorderThickness="1" />
+      <Button.Flyout>
+        <Flyout Placement="Bottom">
+          <StackPanel Spacing="8" Width="228">
+            <TextBlock Text="EVE MAIL COLOURS" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" />
+            <!-- Filled in code-behind: a fixed palette chosen to stay legible on EVE's dark mail
+                 background, which is most of what makes a colour usable here. -->
+            <WrapPanel x:Name="Swatches" />
+            <Button x:Name="ClearButton" Content="No colour"
+                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Background="#1a1a28" Foreground="#888899"
+                    BorderBrush="#2a2a3a" BorderThickness="1"
+                    Padding="6 3" FontSize="11" Cursor="Hand" />
+          </StackPanel>
+        </Flyout>
+      </Button.Flyout>
+    </Button>
+  </Grid>
+</UserControl>

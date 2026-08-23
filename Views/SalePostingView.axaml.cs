@@ -56,7 +56,7 @@ public partial class SalePostingView : UserControl
         {
             var m = row.Model;
             var existing = new SectionDialogResult(
-                m.Name, m.Prefix, m.Color,
+                m.Name, m.Prefix, m.HeaderColor, m.RowColor,
                 m.OverrideScope, m.Scope, m.LocationId, m.LocationName,
                 m.OverridePricing, m.PricingBasis, m.PricePercent,
                 m.MarketStationId, m.MarketStationName, m.MarketPriceType,

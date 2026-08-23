@@ -25,6 +25,7 @@ public class PostBlockRow : ReactiveObject
             this.RaiseAndSetIfChanged(ref _postType, value);
             this.RaisePropertyChanged(nameof(IsStatic));
             this.RaisePropertyChanged(nameof(ShowHeaderFooter));
+            this.RaisePropertyChanged(nameof(HeaderColorLabel));
         }
     }
     public bool IsStatic => _postType == "Static";
@@ -42,13 +43,28 @@ public class PostBlockRow : ReactiveObject
     private string _footer;
     public string Footer { get => _footer; set => this.RaiseAndSetIfChanged(ref _footer, value); }
 
-    public PostBlockRow(string postType, string name, string? staticContent, string header, string footer)
+    /// <summary>Colour for the header text — or, on a Static block, for all of its content.
+    /// Empty for none, and only EVE mail shows it.</summary>
+    private string _headerColor;
+    public string HeaderColor { get => _headerColor; set => this.RaiseAndSetIfChanged(ref _headerColor, value); }
+
+    private string _footerColor;
+    public string FooterColor { get => _footerColor; set => this.RaiseAndSetIfChanged(ref _footerColor, value); }
+
+    /// <summary>What the colour field beside a Static block is labelled. It colours the content
+    /// rather than a header, and calling it "header colour" there would be a lie.</summary>
+    public string HeaderColorLabel => IsStatic ? "TEXT COLOUR" : "HEADER COLOUR";
+
+    public PostBlockRow(string postType, string name, string? staticContent, string header, string footer,
+                        string headerColor = "", string footerColor = "")
     {
         _postType      = postType;
         _name          = name;
         _staticContent = staticContent;
         _header        = header;
         _footer        = footer;
+        _headerColor   = headerColor;
+        _footerColor   = footerColor;
     }
 }
 
@@ -66,7 +82,8 @@ public class PostsEditorViewModel : ReactiveObject
     public PostsEditorViewModel(IEnumerable<PostBlockDraft> existing)
     {
         foreach (var d in existing)
-            Posts.Add(new PostBlockRow(d.PostType, d.Name, d.StaticContent, d.Header, d.Footer));
+            Posts.Add(new PostBlockRow(d.PostType, d.Name, d.StaticContent, d.Header, d.Footer,
+                                       d.HeaderColor, d.FooterColor));
 
         // Default a new posting to a single "Detail" block named "Detail".
         if (Posts.Count == 0)
@@ -91,5 +108,9 @@ public class PostsEditorViewModel : ReactiveObject
             p.PostType, p.Name,
             p.IsStatic ? p.StaticContent : null,
             p.IsStatic ? "" : p.Header,
-            p.IsStatic ? "" : p.Footer)).ToList();
+            p.IsStatic ? "" : p.Footer,
+            // ⚠️ Kept on a Static block: there it colours the content, which is the only text it
+            // has. Blanking it with the header would throw the setting away on save.
+            p.HeaderColor,
+            p.IsStatic ? "" : p.FooterColor)).ToList();
 }

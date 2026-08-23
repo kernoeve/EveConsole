@@ -136,6 +136,9 @@ public class SalePostingService(
                 StaticContent = isStatic ? d.StaticContent : null,
                 Header        = isStatic ? "" : d.Header,
                 Footer        = isStatic ? "" : d.Footer,
+                // HeaderColor survives on a Static block — there it colours the content.
+                HeaderColor   = d.HeaderColor,
+                FooterColor   = isStatic ? "" : d.FooterColor,
             });
         }
         await db.SaveChangesAsync(ct);
@@ -172,7 +175,8 @@ public class SalePostingService(
     {
         s.Name              = r.Name;
         s.Prefix            = r.Prefix;
-        s.Color             = r.Color;
+        s.HeaderColor       = r.HeaderColor;
+        s.RowColor          = r.RowColor;
         s.OverrideScope     = r.OverrideScope;
         s.Scope             = r.Scope;
         s.LocationId        = r.LocationId;
@@ -342,11 +346,14 @@ public class SalePostingService(
         long? MarketStationId, string MarketStationName, string MarketPriceType,
         bool OverrideOnlyPackaged, bool OnlyPackaged,
         List<PostingItemExportDto> Items,
-        string? Color = null);
+        string? Color = null,          // ⚠️ the old single colour; kept so older files still load
+        string? HeaderColor = null,
+        string? RowColor = null);
 
     public sealed record PostingPostExportDto(
         int Ordinal, string PostType, string Name,
-        string? StaticContent, string Header, string Footer);
+        string? StaticContent, string Header, string Footer,
+        string? HeaderColor = null, string? FooterColor = null);
 
     public sealed record PostingExportDto(
         string Name, string Scope, long? LocationId, string LocationName,
@@ -400,10 +407,11 @@ public class SalePostingService(
                          i.TypeId, i.NameOverride, i.NamePrefix,
                          i.InStockOverride, i.InBuildOverride, i.ReservedOverride, i.Color))
                      .ToList(),
-                s.Color))
+                null, s.HeaderColor, s.RowColor))
                 .ToList(),
             posts.Select(x => new PostingPostExportDto(
-                x.Ordinal, x.PostType, x.Name, x.StaticContent, x.Header, x.Footer)).ToList(),
+                x.Ordinal, x.PostType, x.Name, x.StaticContent, x.Header, x.Footer,
+                x.HeaderColor, x.FooterColor)).ToList(),
             p.ColorByState, p.ColorInStock, p.ColorInBuild, p.ColorNone);
 
         await JsonSerializer.SerializeAsync(stream, dto, ExportJson, ct);
@@ -480,7 +488,9 @@ public class SalePostingService(
             MarketPriceType      = s.MarketPriceType,
             OverrideOnlyPackaged = s.OverrideOnlyPackaged,
             OnlyPackaged         = s.OnlyPackaged,
-            Color                = s.Color ?? "",
+            // An older file carries one colour, which was the heading's.
+            HeaderColor          = s.HeaderColor ?? s.Color ?? "",
+            RowColor             = s.RowColor ?? "",
         }).ToList();
 
         db.SalePostingSections.AddRange(sections);
@@ -511,6 +521,8 @@ public class SalePostingService(
             StaticContent = x.StaticContent,
             Header        = x.Header ?? "",
             Footer        = x.Footer ?? "",
+            HeaderColor   = x.HeaderColor ?? "",
+            FooterColor   = x.FooterColor ?? "",
         }));
 
         await db.SaveChangesAsync(ct);
@@ -548,7 +560,8 @@ public class SalePostingService(
                 .Where(i => i.SectionId == section.Id).ToListAsync(ct);
             if (items.Count == 0)
             {
-                views.Add(new PostingSectionView(section.Name, section.Prefix, section.Color, []));
+                views.Add(new PostingSectionView(
+                    section.Name, section.Prefix, section.HeaderColor, section.RowColor, []));
                 continue;
             }
 
@@ -572,7 +585,8 @@ public class SalePostingService(
                 .OrderBy(r => r.TypeName, StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-            views.Add(new PostingSectionView(section.Name, section.Prefix, section.Color, rows));
+            views.Add(new PostingSectionView(
+                section.Name, section.Prefix, section.HeaderColor, section.RowColor, rows));
         }
 
         return new PostingView(

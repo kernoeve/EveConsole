@@ -473,6 +473,12 @@ public class App : Application
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorInBuild" TEXT NOT NULL DEFAULT '#c8a84b'"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorNone" TEXT NOT NULL DEFAULT '#888899'"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingSections" ADD COLUMN "Color" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            // One colour became two: the heading and the rows under it. The old single value was
+            // the heading's, so it moves there. Guarded on HeaderColor being empty so it runs
+            // once and never overwrites anything set since.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingSections" ADD COLUMN "HeaderColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingSections" ADD COLUMN "RowColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""UPDATE "SalePostingSections" SET "HeaderColor" = "Color" WHERE "HeaderColor" = '' AND "Color" <> ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingItems" ADD COLUMN "Color" TEXT NOT NULL DEFAULT ''"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "SalePostingSections" (
@@ -492,7 +498,9 @@ public class App : Application
                     "MarketPriceType"   TEXT    NOT NULL DEFAULT 'Sell',
                     "OverrideOnlyPackaged" INTEGER NOT NULL DEFAULT 0,
                     "OnlyPackaged"      INTEGER NOT NULL DEFAULT 0,
-                    "Color"             TEXT    NOT NULL DEFAULT ''
+                    "Color"             TEXT    NOT NULL DEFAULT '',
+                    "HeaderColor"       TEXT    NOT NULL DEFAULT '',
+                    "RowColor"          TEXT    NOT NULL DEFAULT ''
                 )
                 """);
             // Existing installs created before section-level overrides.
@@ -533,11 +541,15 @@ public class App : Application
                     "Name"          TEXT    NOT NULL DEFAULT '',
                     "StaticContent" TEXT,
                     "Header"        TEXT    NOT NULL DEFAULT '',
-                    "Footer"        TEXT    NOT NULL DEFAULT ''
+                    "Footer"        TEXT    NOT NULL DEFAULT '',
+                    "HeaderColor"   TEXT    NOT NULL DEFAULT '',
+                    "FooterColor"   TEXT    NOT NULL DEFAULT ''
                 )
                 """);
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingPosts" ADD COLUMN "Header" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingPosts" ADD COLUMN "Footer" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingPosts" ADD COLUMN "HeaderColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingPosts" ADD COLUMN "FooterColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
 
             // Market price history — on-demand ESI fetch cache
             db.Database.ExecuteSqlRaw("""

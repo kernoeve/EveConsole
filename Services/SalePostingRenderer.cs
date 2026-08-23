@@ -34,8 +34,12 @@ internal sealed record PostingItemView(
     public long EffectiveReserved => ReservedOverride ?? Reserved;
 }
 
+/// <param name="HeaderColor">The heading line.</param>
+/// <param name="RowColor">The item lines under it — ⚠️ only reached when the posting is not
+/// colouring by state, which is per line and therefore wins.</param>
 internal sealed record PostingSectionView(
-    string Name, string Prefix, string? Color, IReadOnlyList<PostingItemView> Items);
+    string Name, string Prefix, string? HeaderColor, string? RowColor,
+    IReadOnlyList<PostingItemView> Items);
 
 /// <param name="ColorByState">Colour each item line by whether it is on the shelf, being built,
 /// or neither — the one colouring rule that cannot go stale, because stock moves and a colour set
@@ -72,14 +76,26 @@ internal static class SalePostingRenderer
         {
             "Summary" => Summary(v, fmt, post),
             "Detail"  => Detail(v, fmt, post),
-            _         => post.StaticContent ?? "",
+            // A Static block is all content and no header, so its one colour setting colours the
+            // content. Applied per line, not to the whole block: a colour wrapped around text
+            // containing line breaks would put a <font> across them, which EVE renders unevenly.
+            _         => Lines(post.StaticContent ?? "", fmt, post.HeaderColor),
         };
+
+    /// <summary>Colours each line of a free-text block, leaving blank lines alone.</summary>
+    private static string Lines(string text, OutputFormat fmt, string? color)
+    {
+        if (string.IsNullOrEmpty(text) || string.IsNullOrWhiteSpace(color)) return text;
+
+        return string.Join("\n", text.Replace("\r\n", "\n").Split('\n')
+            .Select(line => line.Length == 0 ? line : fmt.Color(color, line)));
+    }
 
     /// <summary>Section names and their price ranges — the short form.</summary>
     public static string Summary(PostingView v, OutputFormat fmt, SalePostingPost post)
     {
         var sb = new StringBuilder();
-        AppendBlock(sb, post.Header);
+        AppendBlock(sb, Lines(post.Header ?? "", fmt, post.HeaderColor));
         foreach (var s in v.Sections)
         {
             var line = new StringBuilder();
@@ -93,7 +109,7 @@ internal static class SalePostingRenderer
 
             sb.AppendLine(fmt.Bold(line.ToString()));   // section lines bold
         }
-        AppendBlock(sb, post.Footer);
+        AppendBlock(sb, Lines(post.Footer ?? "", fmt, post.FooterColor));
         return sb.ToString().TrimEnd();
     }
 
@@ -101,15 +117,15 @@ internal static class SalePostingRenderer
     public static string Detail(PostingView v, OutputFormat fmt, SalePostingPost post)
     {
         var sb = new StringBuilder();
-        AppendBlock(sb, post.Header);
+        AppendBlock(sb, Lines(post.Header ?? "", fmt, post.HeaderColor));
         foreach (var s in v.Sections)
         {
             // Bold and underlined, and no prefix: the prefix is a Summary device (a Slack icon
             // standing in for the section) and repeating it here would print the shortcode twice.
-            sb.AppendLine(fmt.Color(s.Color, fmt.Bold(fmt.Underline(s.Name))));
+            sb.AppendLine(fmt.Color(s.HeaderColor, fmt.Bold(fmt.Underline(s.Name))));
             foreach (var it in s.Items) sb.AppendLine(ItemLine(it, v, fmt, s));
         }
-        AppendBlock(sb, post.Footer);
+        AppendBlock(sb, Lines(post.Footer ?? "", fmt, post.FooterColor));
         return sb.ToString().TrimEnd();
     }
 
@@ -131,7 +147,7 @@ internal static class SalePostingRenderer
                  : it.EffectiveInBuild > 0 ? v.ColorInBuild
                  :                           v.ColorNone;
 
-        return section.Color;
+        return section.RowColor;
     }
 
     private static string ItemLine(PostingItemView it, PostingView v, OutputFormat fmt,

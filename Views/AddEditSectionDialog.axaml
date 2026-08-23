@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:EveConsole.Controls"
         x:Class="EveConsole.Views.AddEditSectionDialog"
         Title="Section"
         Width="470" Height="660"
@@ -33,13 +34,15 @@
 
         <!-- Colour (EVE mail only) -->
         <StackPanel Spacing="5">
-          <TextBlock Text="SECTION COLOUR  (EVE mail only — six-digit hex)" FontSize="10" FontWeight="SemiBold"
+          <TextBlock Text="SECTION HEADER COLOUR  (EVE mail only)" FontSize="10" FontWeight="SemiBold"
                      Foreground="#555566" LetterSpacing="1" />
-          <TextBox x:Name="ColorBox" Watermark="e.g. #c8a84b — blank for none"
-                   Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
-                   CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b" FontSize="12" Padding="8 5" />
-          <TextBlock Text="Colours the heading, and the items under it unless they set their own."
-                     FontSize="10" Foreground="#555566" TextWrapping="Wrap" />
+          <controls:ColorField x:Name="HeaderColorField" />
+
+          <TextBlock Text="SECTION ROW COLOUR" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" Margin="0 6 0 0" />
+          <controls:ColorField x:Name="RowColorField" />
+          <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="#8a7a4a"
+                     Text="⚠ Only used when the posting is NOT colouring by state. That setting is per line and takes precedence, so with it on this has no effect. An item's own colour beats both." />
         </StackPanel>
 
         <Rectangle Height="1" Fill="#1e1e2a" />

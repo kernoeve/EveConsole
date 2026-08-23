@@ -18,7 +18,12 @@ using ReactiveUI;
 namespace EveConsole.ViewModels;
 
 // Result of the Add/Edit Posting dialog.
-public record PostBlockDraft(string PostType, string Name, string? StaticContent, string Header, string Footer);
+/// <param name="HeaderColor">Colour for the header text — or for a Static block's whole content,
+/// which has no header of its own.</param>
+/// <param name="FooterColor">Colour for the footer text. Unused by a Static block.</param>
+public record PostBlockDraft(
+    string PostType, string Name, string? StaticContent, string Header, string Footer,
+    string HeaderColor = "", string FooterColor = "");
 
 // Inline styles a preview run can carry (combinable). Emoji render as a placeholder glyph.
 [Flags]
@@ -39,7 +44,7 @@ public class RenderedBlock
 }
 
 public record SectionDialogResult(
-    string Name, string Prefix, string Color,
+    string Name, string Prefix, string HeaderColor, string RowColor,
     bool OverrideScope, string Scope, long? LocationId, string LocationName,
     bool OverridePricing, string PricingBasis, double PricePercent,
     long? MarketStationId, string MarketStationName, string MarketPriceType,
@@ -962,7 +967,8 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
 
     public async Task<List<PostBlockDraft>> GetPostsAsync(int postingId)
         => (await _svc.LoadPostsAsync(postingId))
-            .Select(p => new PostBlockDraft(p.PostType, p.Name, p.StaticContent, p.Header, p.Footer)).ToList();
+            .Select(p => new PostBlockDraft(p.PostType, p.Name, p.StaticContent, p.Header, p.Footer,
+                                            p.HeaderColor, p.FooterColor)).ToList();
 
     // ── Export / import ───────────────────────────────────────────────────────
     //
@@ -1231,7 +1237,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             m.ShowInStock, m.ShowInBuild, m.ShowReserved, m.IncludeCompletionDate,
             m.ColorByState, m.ColorInStock, m.ColorInBuild, m.ColorNone,
             pr.Sections.Select(s => new PostingSectionView(
-                s.SectionName, s.Model.Prefix, s.Model.Color,
+                s.SectionName, s.Model.Prefix, s.Model.HeaderColor, s.Model.RowColor,
                 s.AllItems.Select(i => i.ToView()).ToList())).ToList());
     }
 
@@ -1333,7 +1339,8 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         // so reopening the dialog showed the colour blank and the preview rendered without it —
         // indistinguishable from the save having failed, which is exactly how it was reported.
         var m = row.Model;
-        m.Name = r.Name; m.Prefix = r.Prefix; m.Color = r.Color;
+        m.Name = r.Name; m.Prefix = r.Prefix;
+        m.HeaderColor = r.HeaderColor; m.RowColor = r.RowColor;
         m.OverrideScope = r.OverrideScope; m.Scope = r.Scope; m.LocationId = r.LocationId; m.LocationName = r.LocationName;
         m.OverridePricing = r.OverridePricing; m.PricingBasis = r.PricingBasis; m.PricePercent = r.PricePercent;
         m.MarketStationId = r.MarketStationId; m.MarketStationName = r.MarketStationName; m.MarketPriceType = r.MarketPriceType;

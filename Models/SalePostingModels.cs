@@ -91,12 +91,27 @@ public class SalePostingSection
     public bool   OnlyPackaged         { get; set; }
 
     /// <summary>
-    /// Colour for this section's heading and, unless overridden, its items. Empty for none.
+    /// ⚠️ Superseded by <see cref="HeaderColor"/> and <see cref="RowColor"/>, and kept only so the
+    /// one-time copy in App.axaml.cs has somewhere to read from. Nothing writes it any more.
+    /// </summary>
+    public string Color { get; set; } = "";
+
+    /// <summary>
+    /// Colour for this section's heading line. Empty for none.
     ///
     /// <para>Held as the six-digit hex a person types. The alpha EVE needs is added at render
     /// time, because a colour picked here is a colour, not an EVE encoding detail.</para>
     /// </summary>
-    public string Color { get; set; } = "";
+    public string HeaderColor { get; set; } = "";
+
+    /// <summary>
+    /// Colour for the item lines under this section.
+    ///
+    /// <para>⚠️ Only reached when the posting is not colouring by state. That rule is per line and
+    /// this is per section, so a posting with by-state on never gets here — which is worth saying
+    /// on the field itself, since a colour that is set and never appears reads as a bug.</para>
+    /// </summary>
+    public string RowColor { get; set; } = "";
 }
 
 // A post block within a posting. The first (Ordinal 0) is the parent; the rest are supporting
@@ -112,6 +127,10 @@ public class SalePostingPost
     public string? StaticContent { get; set; }              // only used by "Static"
     public string  Header        { get; set; } = "";        // Summary/Detail: text before the content
     public string  Footer        { get; set; } = "";        // Summary/Detail: text after the content
+
+    /// <summary>Colour for the header text — or, on a Static block, for all of its content.</summary>
+    public string  HeaderColor   { get; set; } = "";
+    public string  FooterColor   { get; set; } = "";
 }
 
 public class SalePostingItem

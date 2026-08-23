@@ -85,9 +85,9 @@ public partial class AddEditPostingDialog : Window
             IncludeCompletionBox.IsChecked = existing.IncludeCompletionDate;
             OnlyPackagedBox.IsChecked     = existing.OnlyPackaged;
             ColorByStateBox.IsChecked     = existing.ColorByState;
-            ColorInStockBox.Text          = existing.ColorInStock;
-            ColorInBuildBox.Text          = existing.ColorInBuild;
-            ColorNoneBox.Text             = existing.ColorNone;
+            ColorInStockField.Value       = existing.ColorInStock;
+            ColorInBuildField.Value       = existing.ColorInBuild;
+            ColorNoneField.Value          = existing.ColorNone;
         }
 
         _loaded = true;
@@ -182,9 +182,9 @@ public partial class AddEditPostingDialog : Window
             IncludeCompletionBox.IsChecked == true,
             OnlyPackagedBox.IsChecked == true,
             ColorByStateBox.IsChecked == true,
-            Hex(ColorInStockBox.Text, "#4a9a5a"),
-            Hex(ColorInBuildBox.Text, "#c8a84b"),
-            Hex(ColorNoneBox.Text,    "#888899"),
+            Hex(ColorInStockField.Value, "#4a9a5a"),
+            Hex(ColorInBuildField.Value, "#c8a84b"),
+            Hex(ColorNoneField.Value,    "#888899"),
             _postsVm.ToDrafts()));
     }
 
