@@ -395,11 +395,12 @@ public class BuildCostService
             .Select(t => new { t.TypeId, t.MetaGroupId })
             .ToListAsync(ct);
         var t2TypeIds      = metaGroupTypes.Where(t => t.MetaGroupId == 2).Select(t => t.TypeId).ToHashSet();
-        // Titans (group 30), the Keepstar and the Fortizar get ME9; other items follow the
-        // standard rule.
+        // Titans (30), supercarriers (659), the Keepstar and the Fortizar get ME9; other items
+        // follow the standard rule.
         var titanKeepstarIds = (await db.SdeTypes.AsNoTracking()
             .Where(t => productTypeIds.Contains(t.TypeId)
                      && (t.GroupId == IndustryMe.TitanGroupId
+                      || t.GroupId == IndustryMe.SuperGroupId
                       || t.TypeId  == IndustryMe.KeepstarTypeId
                       || t.TypeId  == IndustryMe.FortizarTypeId))
             .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
@@ -432,13 +433,13 @@ public class BuildCostService
         bool BlueprintIsBpoSourced(int bpTypeId) =>
             marketBlueprints.Contains(bpTypeId) || inventedFromMarket.Contains(bpTypeId);
 
-        // ⚠️ Titans, the Keepstar and the Fortizar are costed as BPC purchases even though a BPO
-        // exists for each of them. The BPO is priced in the hundreds of billions, so treating one
-        // as owned and free — which is what "has a BPO, so no blueprint cost" amounts to — was
-        // pricing a titan below what anyone can actually build one for.
+        // ⚠️ Titans, supercarriers, the Keepstar and the Fortizar are costed as BPC purchases
+        // even though a BPO exists for each of them. Those BPOs are priced in the hundreds of
+        // billions, so treating one as owned and free — which is what "has a BPO, so no blueprint
+        // cost" amounts to — was pricing a titan below what anyone can actually build one for.
         //
-        // ⚠️ Faction titans are excluded: they are already loot BPCs at ME0, and a Molok costed
-        // as an ME9 researched copy would be as wrong in the other direction.
+        // ⚠️ Faction hulls are excluded: they are already loot BPCs at ME0, and a Molok or a
+        // Revenant costed as an ME9 researched copy would be as wrong in the other direction.
         var boughtBpcIds = productTypeIds
             .Where(id => titanKeepstarIds.Contains(id) && !bpcOnlyProductIds.Contains(id))
             .ToHashSet();

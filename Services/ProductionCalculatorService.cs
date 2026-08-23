@@ -103,6 +103,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             .Where(t => t.MetaGroupId == 2).Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
         var titanKeepstarIds = (await db.SdeTypes.AsNoTracking()
             .Where(t => t.GroupId == IndustryMe.TitanGroupId
+                     || t.GroupId == IndustryMe.SuperGroupId
                      || t.TypeId  == IndustryMe.KeepstarTypeId
                      || t.TypeId  == IndustryMe.FortizarTypeId)
             .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
@@ -983,6 +984,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
         bool isT2 = meta == 2;
         bool isTitanKeepstar = group == IndustryMe.TitanGroupId
+                            || group == IndustryMe.SuperGroupId
                             || productTypeId == IndustryMe.KeepstarTypeId
                             || productTypeId == IndustryMe.FortizarTypeId;
         return IndustryMe.DefaultMe(isReaction, bpcOnly, isT2, isTitanKeepstar);

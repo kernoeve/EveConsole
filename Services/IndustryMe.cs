@@ -5,11 +5,12 @@ namespace EveConsole.Services;
 //   • ME10 for most manufacturable items (well-researched T1 BPO)
 //   • ME3  for T2 items (typical invention/research level)
 //   • ME0  for BPC-only items (faction/loot BPCs can't be researched)
-//   • ME9  for titans, Keepstars and Fortizars (ME10 is impractically slow; ME9 is the real cap)
+//   • ME9  for titans, supers, Keepstars and Fortizars (ME10 is impractically slow; ME9 is real)
 //   • ME0  for reactions (no material research exists)
 public static class IndustryMe
 {
     public const int TitanGroupId   = 30;     // SDE group "Titan"
+    public const int SuperGroupId   = 659;    // SDE group "Supercarrier"
     public const int KeepstarTypeId = 35834;  // the Keepstar (other Citadels stay at the default)
     public const int FortizarTypeId = 35833;  // the Fortizar — same story as the Keepstar
 

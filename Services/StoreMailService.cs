@@ -569,12 +569,19 @@ public class StoreMailService(
             return;
         }
 
-        // Every block, in order, in one mail. They exist as separate posts because Slack wants a
-        // parent message with detail in a thread; EVE mail has no threading, so three mails would
-        // arrive at once with nothing to relate them.
-        var body = string.Join("<br><br>", blocks.Select(b => b.Text).Where(t => t.Length > 0));
+        // Every block, in order, in as few mails as it takes. They exist as separate posts
+        // because Slack wants a parent message with detail in a thread; EVE mail has no
+        // threading, so sending them as separate mails would put three unrelated-looking
+        // messages in the buyer's inbox.
+        //
+        // ⚠️ Sent through the splitter rather than as one body. A price list grows with the
+        // stock behind it, and one that outgrows the limit is refused whole — the buyer asks for
+        // prices and gets nothing back.
+        var parts = blocks.Select(b => b.Text).Where(t => t.Length > 0)
+                          .Select((t, i) => i == 0 ? t : "<br><br>" + t)
+                          .ToList();
 
-        await ReplyAsync(store, log, $"{store.Name} — price list", body, ct);
+        await ReplyInPartsAsync(store, log, $"{store.Name} — price list", "", parts, ct);
     }
 
     // ── ORDER ─────────────────────────────────────────────────────────────────
@@ -1077,10 +1084,21 @@ public class StoreMailService(
     }
 
     /// <summary>
-    /// EVE's ceiling on a mail body, from the ESI schema. Left some room under it: the heading,
-    /// the part marker and the closing line are added after the blocks are measured.
+    /// The ceiling on a mail body, <b>in UTF-8 bytes</b>.
+    ///
+    /// <para><b>⚠️ Not the 10,000 the ESI schema advertises.</b> A send was refused at about
+    /// 8,120 characters, so whatever the real rule is, the documented number is not it — and
+    /// there is no way to ask. Budgeting in bytes is safe under either reading: if the limit
+    /// counts characters, bytes are never fewer; if it counts bytes, this is the right unit. Our
+    /// messages are full of —, × and ·, each of which is two or three bytes and one character.</para>
+    ///
+    /// <para>Left some room under the observed failure: the heading, the part marker and the
+    /// closing line are added after the blocks are measured.</para>
     /// </summary>
-    private const int MaxBodyChars = 9_000;
+    private const int MaxBodyBytes = 7_600;
+
+    /// <summary>The body's size in the unit the limit is enforced in.</summary>
+    private static int Weigh(string s) => Encoding.UTF8.GetByteCount(s);
 
     /// <summary>How many parts one answer may run to.</summary>
     private const int MaxParts = 5;
@@ -1094,9 +1112,9 @@ public class StoreMailService(
     /// because its author controls its length; this is a list of whatever somebody has ordered,
     /// and nobody controls that.</para>
     ///
-    /// <para>Blocks are whole orders, so a split never lands inside one. If a single order is
-    /// itself over the limit it goes in a part of its own and is allowed to be too long — better
-    /// a mail EVE may refuse than one that silently loses half an order.</para>
+    /// <para>Blocks are whole orders, so a split never lands inside one. A block that is over the
+    /// limit on its own is broken at line ends rather than sent — an over-long mail is refused
+    /// outright, which loses all of it rather than splitting it awkwardly.</para>
     ///
     /// <para>Bounded, because every part is a send against the same rate limit as everything
     /// else. What does not fit says so rather than vanishing.</para>
@@ -1112,12 +1130,12 @@ public class StoreMailService(
         // footer, which ReplyAsync wraps around every message, plus this part's heading. Measure
         // the blocks alone and a mail that just fits becomes one that just does not, and EVE
         // refuses the whole thing.
-        var room = MaxBodyChars - Wrap(store, "").Length - Head(heading).Length - 200;
+        var room = MaxBodyBytes - Weigh(Wrap(store, "")) - Weigh(Head(heading)) - 200;
         if (room < 1_000) room = 1_000;
 
-        foreach (var block in blocks)
+        foreach (var block in blocks.SelectMany(b => AtLineEnds(b, room)))
         {
-            if (sb.Length > 0 && sb.Length + block.Length > room)
+            if (sb.Length > 0 && Weigh(sb.ToString()) + Weigh(block) > room)
             {
                 parts.Add(sb.ToString());
                 sb.Clear();
@@ -1136,17 +1154,51 @@ public class StoreMailService(
 
         for (var i = 0; i < parts.Count; i++)
         {
-            var last  = i == parts.Count - 1;
-            var title = parts.Count > 1 ? $"{heading} ({i + 1} of {parts.Count})" : heading;
+            var last = i == parts.Count - 1;
+
+            // An empty heading means the blocks carry their own — a price list already opens with
+            // the posting's own title, and a second one above it reads as a mistake. It still
+            // needs saying which page this is, so that much is added and nothing more.
+            var title = heading.Length == 0
+                ? (parts.Count > 1 ? $"Page {i + 1} of {parts.Count}" : "")
+                : parts.Count > 1 ? $"{heading} ({i + 1} of {parts.Count})" : heading;
+
             var tail  = last && dropped > 0
-                ? Dim($"{dropped} further page(s) of orders were not included — reply STATUS "
-                    + "with an order reference to ask about one of them.")
+                ? Dim($"{dropped} further page(s) did not fit — reply again to see the rest, "
+                    + "or STATUS with an order reference to ask about one order.")
                 : "";
 
             await ReplyAsync(store, log,
                 parts.Count > 1 ? $"{subject} ({i + 1}/{parts.Count})" : subject,
-                Head(title) + parts[i] + tail, ct);
+                (title.Length > 0 ? Head(title) : "") + parts[i] + tail, ct);
         }
+    }
+
+    /// <summary>
+    /// Breaks one over-long block at line ends so it can be sent at all.
+    ///
+    /// <para>⚠️ Only at <c>&lt;br&gt;</c>. Cutting at a byte offset lands inside a tag or an
+    /// anchor as often as not, and half a <c>&lt;font color&gt;</c> colours the rest of the
+    /// message. A block already inside the budget comes back untouched, which is every block in
+    /// an ordinary reply.</para>
+    /// </summary>
+    private static IEnumerable<string> AtLineEnds(string block, int room)
+    {
+        if (Weigh(block) <= room) { yield return block; yield break; }
+
+        var sb = new StringBuilder();
+        foreach (var line in block.Split("<br>", StringSplitOptions.None))
+        {
+            var piece = sb.Length > 0 ? "<br>" + line : line;
+            if (sb.Length > 0 && Weigh(sb.ToString()) + Weigh(piece) > room)
+            {
+                yield return sb.ToString();
+                sb.Clear();
+                piece = line;
+            }
+            sb.Append(piece);
+        }
+        if (sb.Length > 0) yield return sb.ToString();
     }
 
     private async Task ReplyAsync(Store store, StoreMail log, string subject, string body, CancellationToken ct)
