@@ -314,109 +314,217 @@ public class IndustryJobGenerator(
                         WorklistIndyCharReach.Of(c, corps).CanUse(job.Print))
                         ?? eligible[0];
 
-                    var readiness = WorklistReadiness.Ready;
-                    var blockedBy = "";
+                    var perRun = (long)Math.Max(1, product.Quantity);
 
                     // Materials for this job at this print's ME, against what is left at the site
                     // after the jobs already planned in this pass.
-                    var wanted   = job.Runs * (long)Math.Max(1, product.Quantity);
-                    var cacheKey = (d.TypeId, wanted, job.Print.Me);
-                    if (!planCache.TryGetValue(cacheKey, out var needed))
-                        planCache[cacheKey] = needed =
-                            await MaterialsForAsync(ctx, d.TypeId, wanted, job.Print.Me, ct);
-
+                    var needed  = await MaterialsFor(job.Runs);
                     var missing = MissingAtSite(
                         stock, inScope, ctx, owner, needed, siteId.Value, committed);
 
-                    if (missing.Count > 0)
+                    // ── How much of this job can actually start ───────────────────────
+                    //
+                    // ⚠️ The whole point of this branch. Sizing a job to the entire shortfall and
+                    // then refusing to start it means nothing is built until every last unit of
+                    // material is on hand — and with orders still arriving, that moment may never
+                    // come. Production stalls behind a job that was never startable, and the
+                    // components waiting on it stall behind that.
+                    //
+                    // So a job the materials cannot cover is cut where the materials run out:
+                    // one row that can be installed now, and one for the rest that names what is
+                    // missing. Nothing is lost — the second row is the same work, still counted.
+                    var runnable = missing.Count == 0
+                        ? job.Runs
+                        : await AffordableRunsAsync(job.Runs);
+
+                    // What the startable half takes, whether or not it can start today. Used only
+                    // to measure the remainder honestly: those materials are spoken for by the
+                    // first row, so counting them as available to the second would understate the
+                    // shortage — and when every slot happens to be busy, would report no shortage
+                    // at all and print an empty list of missing things.
+                    var claimed = committed;
+
+                    if (runnable > 0)
+                    {
+                        var mats = runnable == job.Runs ? needed : await MaterialsFor(runnable);
+
+                        if (runnable < job.Runs)
+                        {
+                            claimed = new Dictionary<(long, int), long>(committed);
+                            foreach (var (typeId, qty) in mats)
+                                claimed[(siteId.Value, typeId)] =
+                                    claimed.GetValueOrDefault((siteId.Value, typeId)) + qty;
+                        }
+
+                        // Waiting rather than Ready when every slot is busy: real information,
+                        // and different from being unable to do it at all.
+                        var readiness = busy ? WorklistReadiness.Waiting : WorklistReadiness.Ready;
+                        var blockedBy = busy ? "Every character who can run this has all slots busy" : "";
+
+                        if (!busy)
+                        {
+                            // Only a job that can actually start consumes a slot and its materials.
+                            slotsLeft[owner.Config.CharacterId][pool] -= 1;
+                            foreach (var (typeId, qty) in mats)
+                                committed[(siteId.Value, typeId)] =
+                                    committed.GetValueOrDefault((siteId.Value, typeId)) + qty;
+                        }
+
+                        Emit(runnable, readiness, blockedBy, "",
+                             runnable < job.Runs
+                                 ? $" Cut to what the materials on hand cover — {job.Runs - runnable:N0} "
+                                 + "more run(s) are on a separate row."
+                                 : "");
+                    }
+
+                    // ── The rest, if the materials did not reach ──────────────────────
+                    if (runnable < job.Runs)
                     {
                         // Named by what would fix it. "Not here" and "not owned" both stop the
                         // job, but one is answered by a hauler and the other by a wallet.
-                        var haul = missing.Where(m => !m.MustBuy).Select(m => m.Name).ToList();
-                        var buy  = missing.Where(m =>  m.MustBuy).Select(m => m.Name).ToList();
+                        //
+                        // ⚠️ Measured against the remainder, not the whole job. Once the runnable
+                        // half has claimed its share, what is short is what the rest still needs
+                        // — and naming a material the first row just consumed all of would send
+                        // someone hunting for a shortage that the plan itself created.
+                        var restRuns = job.Runs - runnable;
+                        var restMats = await MaterialsFor(restRuns);
+                        var short_   = MissingAtSite(
+                            stock, inScope, ctx, owner, restMats, siteId.Value, claimed);
 
-                        readiness = WorklistReadiness.Blocked;
-                        blockedBy = buy.Count == 0
+                        var haul = short_.Where(m => !m.MustBuy).Select(m => m.Name).ToList();
+                        var buy  = short_.Where(m =>  m.MustBuy).Select(m => m.Name).ToList();
+
+                        var why = buy.Count == 0
                             ? $"Materials not at {siteName}: " + Names(haul)
                             : haul.Count == 0
                                 ? $"Not owned{settings.IndustryScopeSuffix}: " + Names(buy)
                                 : $"Not owned{settings.IndustryScopeSuffix}: {Names(buy)}; "
                                   + $"elsewhere: {Names(haul)}";
-                    }
-                    else if (busy)
-                    {
-                        // Everyone able to do it is busy — real information, and different from
-                        // being unable to do it at all.
-                        readiness = WorklistReadiness.Waiting;
-                        blockedBy = "Every character who can run this has all slots busy";
-                    }
-                    else
-                    {
-                        // Only a job that can actually start consumes a slot and its materials.
-                        slotsLeft[owner.Config.CharacterId][pool] -= 1;
-                        foreach (var (typeId, qty) in needed)
-                            committed[(siteId.Value, typeId)] =
-                                committed.GetValueOrDefault((siteId.Value, typeId)) + qty;
+
+                        // ⚠️ A distinct key, so this and the startable half snooze and age
+                        // separately. The startable half keeps the original key: it is the row
+                        // that was already there, and moving it would reset its age and silently
+                        // drop a snooze the moment materials ran short.
+                        Emit(restRuns, WorklistReadiness.Blocked, why,
+                             runnable > 0 ? ":short" : "",
+                             runnable > 0 ? " The rest of this job, waiting on materials." : "");
                     }
 
-                    // Name first. The column sorts on this string, and a leading run count sorts
-                    // by digit — scattering the several jobs of one split across the whole list.
-                    var runsText = product.Quantity > 1
-                        ? $"{name} — {job.Runs:N0} run(s) → {wanted:N0}"
-                        : $"{name} — {job.Runs:N0} run(s)";
-                    var ofText   = split.Jobs.Count > 1 ? $" (job {job.Index} of {job.Of})" : "";
-                    var duration = IndustryJobSplit.Duration(job.Seconds);
-                    var durText  = duration.Length > 0 ? $" ~{duration}." : "";
-                    var leftover = i == split.Jobs.Count - 1 && split.RunsUnassigned > 0
-                        ? $" {split.RunsUnassigned:N0} further run(s) need a print — none free."
-                        : "";
-
-                    // Named only on a real split. A job well under the configured length looks
-                    // like a miscalculation unless it says what stopped it, and the usual answer
-                    // is the blueprint's own run cap rather than the clock.
-                    var capText = split.Jobs.Count == 1 && split.RunsUnassigned == 0 ? "" : job.Cap switch
+                    // Builds one row for part or all of this planned job.
+                    void Emit(int runs, WorklistReadiness readiness, string blockedBy,
+                              string keySuffix, string extraDetail)
                     {
-                        SplitCap.GameLimit => " Capped by EVE's 30-day limit on a single job.",
-                        SplitCap.CopyRuns  => " Capped by the runs left on the copy.",
-                        SplitCap.JobLength => $" Capped by the {settings.MaxJobDaysFor(pool):0.#}-day job length.",
-                        _                  => "",
-                    };
+                        var produced = runs * perRun;
 
-                    items.Add(new WorklistItem
+                        // Name first. The column sorts on this string, and a leading run count
+                        // sorts by digit — scattering the several jobs of one split across the
+                        // whole list.
+                        var runsText = product.Quantity > 1
+                            ? $"{name} — {runs:N0} run(s) → {produced:N0}"
+                            : $"{name} — {runs:N0} run(s)";
+
+                        var ofText   = split.Jobs.Count > 1 ? $" (job {job.Index} of {job.Of})" : "";
+
+                        // Scaled: job.Seconds covers the whole planned job, and a row for part of
+                        // it that quoted the whole duration would be wrong in the direction that
+                        // matters — it would look like the longer job someone was trying to avoid.
+                        var seconds  = job.Runs > 0 ? job.Seconds * runs / job.Runs : 0;
+                        var duration = IndustryJobSplit.Duration(seconds);
+                        var durText  = duration.Length > 0 ? $" ~{duration}." : "";
+
+                        var leftover = i == split.Jobs.Count - 1 && split.RunsUnassigned > 0
+                            ? $" {split.RunsUnassigned:N0} further run(s) need a print — none free."
+                            : "";
+
+                        // Named only on a real split. A job well under the configured length looks
+                        // like a miscalculation unless it says what stopped it, and the usual
+                        // answer is the blueprint's own run cap rather than the clock.
+                        var capText = split.Jobs.Count == 1 && split.RunsUnassigned == 0 ? "" : job.Cap switch
+                        {
+                            SplitCap.GameLimit => " Capped by EVE's 30-day limit on a single job.",
+                            SplitCap.CopyRuns  => " Capped by the runs left on the copy.",
+                            SplitCap.JobLength => $" Capped by the {settings.MaxJobDaysFor(pool):0.#}-day job length.",
+                            _                  => "",
+                        };
+
+                        items.Add(new WorklistItem
+                        {
+                            // No character in the key. Assignment can legitimately move between
+                            // refreshes as slots free up, and a key that moved with it would reset
+                            // the item's age and silently drop its snooze. The index keeps the
+                            // pieces of one split independently snoozable.
+                            Key           = $"industry_job:{d.TypeId}:{job.Index}{keySuffix}",
+                            Pool          = pool,
+                            // The print the materials above were planned against, so the row can say
+                            // what its quantities and its duration were worked out from.
+                            BlueprintMe   = job.Print.Me,
+                            BlueprintTe   = job.Print.Te,
+                            Source        = Id,
+                            Kind          = WorklistKind.Job,
+                            Title         = runsText,
+                            Quantity      = produced,
+                            Detail        = $"{head} Short {d.Units:N0}{ofText}. "
+                                          + $"{job.Print.Describe()} at {siteName}.{durText}{capText}{extraDetail}{leftover}",
+                            Readiness     = readiness,
+                            BlockedBy     = blockedBy,
+                            // ⚠️ Only a job that can start names a character. An owner is still picked
+                            // above — material reach is per character, so the check needs one — but
+                            // reporting it on a job that cannot run reads as an instruction, and the
+                            // fallback owner is whoever comes first in the eligible list. Every
+                            // blocked and waiting job in the run landed on that same alt, a queue
+                            // they could never work through and which says nothing about who will
+                            // actually take the job once it frees up.
+                            CharacterId   = readiness == WorklistReadiness.Ready ? owner.Config.CharacterId   : 0,
+                            CharacterName = readiness == WorklistReadiness.Ready ? owner.Config.CharacterName : "",
+                            LocationId    = siteId.Value,
+                            LocationName  = siteName,
+                            TypeId        = d.TypeId,
+                            TypeName      = name,
+                            Priority      = priority,
+                        });
+                    }
+
+                    // Materials for a given run count on this print, cached across the search.
+                    async Task<Dictionary<int, long>> MaterialsFor(int runs)
                     {
-                        // No character in the key. Assignment can legitimately move between
-                        // refreshes as slots free up, and a key that moved with it would reset
-                        // the item's age and silently drop its snooze. The index keeps the
-                        // pieces of one split independently snoozable.
-                        Key           = $"industry_job:{d.TypeId}:{job.Index}",
-                        Pool          = pool,
-                        // The print the materials above were planned against, so the row can say
-                        // what its quantities and its duration were worked out from.
-                        BlueprintMe   = job.Print.Me,
-                        BlueprintTe   = job.Print.Te,
-                        Source        = Id,
-                        Kind          = WorklistKind.Job,
-                        Title         = runsText,
-                        Quantity      = wanted,
-                        Detail        = $"{head} Short {d.Units:N0}{ofText}. "
-                                      + $"{job.Print.Describe()} at {siteName}.{durText}{capText}{leftover}",
-                        Readiness     = readiness,
-                        BlockedBy     = blockedBy,
-                        // ⚠️ Only a job that can start names a character. An owner is still picked
-                        // above — material reach is per character, so the check needs one — but
-                        // reporting it on a job that cannot run reads as an instruction, and the
-                        // fallback owner is whoever comes first in the eligible list. Every
-                        // blocked and waiting job in the run landed on that same alt, a queue
-                        // they could never work through and which says nothing about who will
-                        // actually take the job once it frees up.
-                        CharacterId   = readiness == WorklistReadiness.Ready ? owner.Config.CharacterId   : 0,
-                        CharacterName = readiness == WorklistReadiness.Ready ? owner.Config.CharacterName : "",
-                        LocationId    = siteId.Value,
-                        LocationName  = siteName,
-                        TypeId        = d.TypeId,
-                        TypeName      = name,
-                        Priority      = priority,
-                    });
+                        var qty = runs * perRun;
+                        var key = (d.TypeId, qty, job.Print.Me);
+                        if (!planCache.TryGetValue(key, out var mats))
+                            planCache[key] = mats =
+                                await MaterialsForAsync(ctx, d.TypeId, qty, job.Print.Me, ct);
+                        return mats;
+                    }
+
+                    /// <summary>
+                    /// The largest run count below <paramref name="ceiling"/> whose materials are
+                    /// all on hand, or zero if not even one run is covered.
+                    ///
+                    /// <para>⚠️ Searched rather than divided. Material efficiency rounds per JOB,
+                    /// not per run, so the amount a job consumes is not proportional to its runs
+                    /// and "available ÷ per-run" is wrong in both directions. It is monotonic
+                    /// though — more runs never need less of anything — which is what makes a
+                    /// bisection correct, at a dozen or so probes against a plan already in
+                    /// memory.</para>
+                    /// </summary>
+                    async Task<int> AffordableRunsAsync(int ceiling)
+                    {
+                        var lo = 0;         // known covered
+                        var hi = ceiling;   // known short — the caller established this
+
+                        while (hi - lo > 1)
+                        {
+                            var mid  = lo + (hi - lo) / 2;
+                            var mats = await MaterialsFor(mid);
+                            if (MissingAtSite(stock, inScope, ctx, owner, mats,
+                                              siteId.Value, committed).Count == 0)
+                                lo = mid;
+                            else
+                                hi = mid;
+                        }
+
+                        return lo;
+                    }
                 }
         }
 
