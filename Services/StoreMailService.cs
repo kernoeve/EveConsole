@@ -415,34 +415,67 @@ public class StoreMailService(
     /// a reason to doubt both.</para>
     /// </summary>
     private static string Usage(Store store) =>
-        "Put one of these in the mail <b>subject</b>:<br><br>" +
+        Head($"{store.Name} — how to order") +
 
-        "<b>PRICES</b> — the current price list.<br><br>" +
+        "Put one of these words in the mail <b>subject</b>." + Gap +
 
-        "<b>ORDER</b> — place an order. One item per line in the body.<br>" +
-        // ⚠️ Dragging is offered first because it is the thing that cannot go wrong. The link
-        // carries the item's id, so there is no spelling to get right and nothing to match on;
-        // typing is the fallback, not the instruction.
-        "The easiest way is to <b>drag the item</b> into the mail — from this price list, from " +
-        "the market, from your hangar. Then put the quantity beside it if you want more than " +
-        "one:<br>" +
-        Ind + "[Archon] x2<br>" +
-        Ind + "[Nidhoggur]<br>" +
-        "Typing the name works too, in any of these forms:<br>" +
-        Ind + "Archon x2   ·   Archon 2   ·   2 x Archon   ·   Archon<br><br>" +
+        Cmd("PRICES") + "the current price list." + Br + Gap +
 
-        "<b>Contracting to someone else?</b> Drag that character or corporation into the body " +
-        "anywhere and the contract will be made out to them instead of you.<br><br>" +
+        Cmd("ORDER") + "place an order, one item per line in the body." + Br +
+        // ⚠️ Dragging is offered first because it is the thing that cannot go wrong: the link
+        // carries the item's id, so there is nothing to spell and nothing to match.
+        "The easiest way is to <b>drag the item in</b> — from this price list, from the market, " +
+        "from your hangar — then put the quantity beside it if you want more than one." + Br +
+        Eg("[Archon] x2") + Br +
+        Eg("[Nidhoggur]") + Br +
+        Dim("Typing the name works too:") + Br +
+        Eg("Archon x2     Archon 2     2 x Archon     Archon") + Gap +
 
-        "<b>STATUS</b> — where your orders have got to. No reference needed; you will get all of " +
-        "your open ones. Add a reference to ask about just that one.<br><br>" +
+        Cmd("STATUS") + "where your orders have got to." + Br +
+        Dim("No reference needed — you will get all of your open ones. " +
+            "Add a reference to ask about just that one.") + Gap +
 
-        "<b>CANCEL</b> — withdraw an order. This one does need its reference, from the " +
-        "confirmation mail.<br><br>" +
+        Cmd("CANCEL") + "withdraw an order." + Br +
+        Dim("This one does need its reference, from the confirmation mail.") + Gap +
 
-        "<b>HELP</b> — this message.<br><br>" +
+        Cmd("HELP") + "this message." + Gap +
 
-        $"Prices are those on the list at the moment the order is read. — {store.Name}";
+        Rule + Gap +
+
+        "<b>Sending it to someone else?</b> Drag that character or corporation anywhere into the " +
+        "body and the contract will be made out to them instead of you." + Gap +
+
+        Dim($"Prices are those on the list at the moment your order is read. — {store.Name}");
+
+    // ── Mail styling ──────────────────────────────────────────────────────────
+    //
+    // ⚠️ What EVE actually renders, established by testing rather than assumed: <b>, <i>, <u>,
+    // <br>, <font size> and <font color>, plus showinfo links. NOT <ul>/<li>, NOT <table>, NOT
+    // <strong>, and NOT HTML entities of any kind — those are drawn rather than decoded. EVE's
+    // own composer offers bold, underline, colour, size and url, which is the same list from the
+    // other direction.
+    //
+    // Whitespace is NOT collapsed, so plain spaces indent.
+
+    private const string Br  = "<br>";
+    private const string Gap = "<br><br>";
+
+    /// <summary>Muted grey, for the asides — the sentence under a command rather than the
+    /// command.</summary>
+    private static string Dim(string s) => $"<font color=\"#ff8a8a99\">{s}</font>";
+
+    /// <summary>The shop's own line at the top, a size up so the mail opens with its name.</summary>
+    private static string Head(string s) =>
+        $"<font size=\"16\" color=\"#ffc8a84b\"><b>{s}</b></font>{Gap}";
+
+    /// <summary>A command word: the thing a reader is scanning for, so it gets the weight.</summary>
+    private static string Cmd(string s) =>
+        $"<font color=\"#ffc8a84b\"><b>{s}</b></font> — ";
+
+    /// <summary>An example line, indented and in a colour that says "this is literal".</summary>
+    private static string Eg(string s) => $"    <font color=\"#ff4ac8a8\">{s}</font>";
+
+    private static string Rule => Dim("————————————————————");
     /// <summary>
     /// Whether this sender has already been sent the usage lately.
     ///
@@ -629,19 +662,18 @@ public class StoreMailService(
         var total = parsed.Lines.Sum(l => (l.Item.SalePrice ?? 0) * l.Units);
 
         var sb = new StringBuilder();
-        sb.Append("Order <b>").Append(reference).Append("</b> received.<br><br>");
+        sb.Append(Head($"Order {reference} received"));
 
         foreach (var (item, units) in parsed.Lines)
         {
-            sb.Append(units.ToString("N0")).Append(" × ")
-              .Append(Link(item)).Append(" — ")
-              .Append(Isk((item.SalePrice ?? 0) * units)).Append("<br>")
-              .Append(Ind)
-              .Append(Expect(byType.GetValueOrDefault(item.TypeId)))
-              .Append("<br>");
+            sb.Append("<b>").Append(units.ToString("N0")).Append(" × ").Append("</b>")
+              .Append(Link(item)).Append(" — <b>")
+              .Append(Isk((item.SalePrice ?? 0) * units)).Append("</b>").Append(Br)
+              .Append(Ind).Append(Dim(Expect(byType.GetValueOrDefault(item.TypeId))))
+              .Append(Br);
         }
 
-        sb.Append("<br><b>Total ").Append(Isk(total)).Append("</b><br>");
+        sb.Append(Br).Append("<font size=\"14\"><b>Total ").Append(Isk(total)).Append("</b></font>").Append(Br);
 
         if (to is not null)
             sb.Append("Contract will be made out to <b>").Append(Esc(to.Text)).Append("</b>.<br>");
@@ -652,8 +684,7 @@ public class StoreMailService(
             sb.Append("Not on the list, so not ordered: ").Append(Esc(string.Join(", ", parsed.Unknown)))
               .Append("<br><br>");
 
-        sb.Append("Reply with <b>STATUS</b> for progress, or <b>CANCEL</b> and this reference to ")
-          .Append("withdraw it.");
+        sb.Append(Dim("Reply with STATUS for progress, or CANCEL and this reference to withdraw it."));
 
         await ReplyAsync(store, log, $"{store.Name} — order {reference}", sb.ToString(), ct);
     }
@@ -667,7 +698,6 @@ public class StoreMailService(
         // ask "where is my stuff" is the app's filing system leaking into the conversation.
         // Without one, they get everything of theirs that is still open.
         var orders = await FindOrderAsync(db, store, log, ct);
-        var scope  = orders.Count > 0 ? $"Order <b>{orders[0].OrderRef}</b>" : "Your open orders";
 
         if (orders.Count > 0) log.OrderRef = orders[0].OrderRef;
         else
@@ -692,7 +722,9 @@ public class StoreMailService(
         var names = await TypeNamesAsync(db, orders.Select(o => o.TypeId).Distinct().ToList(), ct);
 
         var sb = new StringBuilder();
-        sb.Append(scope).Append("<br><br>");
+        sb.Append(Head(orders.Count > 0 && log.OrderRef.Length > 0
+            ? $"Order {log.OrderRef}"
+            : "Your open orders"));
 
         // Grouped by order, because that is the unit the buyer placed and the reference they
         // would quote back to cancel one of several.
@@ -948,15 +980,28 @@ public class StoreMailService(
     {
         public bool IsItem => EntityId == 0;
 
-        /// <summary>Which kind of entity, from the type it is an instance of. Corporations are
-        /// type 2 and alliances 16159; every other instance link is a character, whose type is
-        /// whichever bloodline they were born to.</summary>
+        /// <summary>
+        /// Which kind of entity, from the type it is an instance of — or "" for a kind that
+        /// cannot be contracted to.
+        ///
+        /// <para>⚠️ A whitelist, not a fallback. This used to read every unrecognised instance
+        /// link as a character, which is fine until somebody drags a STRUCTURE into an order —
+        /// and people do, to say where they want it delivered. That would have made the contract
+        /// out to a "character" whose id is a Keepstar.</para>
+        ///
+        /// <para>Characters carry their bloodline's type rather than one shared id, which is why
+        /// this is a range and not a single number.</para>
+        /// </summary>
         public string EntityKind => TypeId switch
         {
-            2     => "corporation",
-            16159 => "alliance",
-            _     => "character",
+            2                              => "corporation",
+            16159                          => "alliance",
+            >= 1373 and <= 1386 or 34574   => "character",
+            _                              => "",
         };
+
+        /// <summary>Something a contract could actually be made out to.</summary>
+        public bool IsContractable => !IsItem && EntityKind.Length > 0;
     }
 
     private static readonly Regex ShowInfo = new(
@@ -1024,7 +1069,10 @@ public class StoreMailService(
                     Tags.Replace(m.Groups[3].Value, "").Trim()))
                 .ToList();
 
-            contractTo ??= links.FirstOrDefault(l => !l.IsItem);
+            // A structure, a station or a ship dragged in is not a mistake — people paste them to
+            // say where they want things — it simply is not somebody a contract can be made out
+            // to, so it is passed over rather than misread.
+            contractTo ??= links.FirstOrDefault(l => l.IsContractable);
 
             // The line with its links taken out, which is where any count is.
             var rest = Decode(Tags.Replace(ShowInfo.Replace(line, " "), "")).Trim();
