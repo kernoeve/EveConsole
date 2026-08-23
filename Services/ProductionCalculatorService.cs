@@ -730,7 +730,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 // item's ME. It's a priced job material (not expanded into the raw pool) so its cost
                 // is counted once and matches the build-cost calc.
                 bool bpcOnly = !isReaction && !BlueprintIsBpoSourced(bpProd.TypeId);
-                if (bpcOnly || (!isReaction && isFinal && includeBpcCost))
+
+                // ⚠️ AlwaysBpcTypes is a caller's instruction, not a property of the blueprint:
+                // a BPO exists, but the caller knows nobody uses it. Only the background
+                // build-cost pass sets it; on this screen the checkbox is the user's to tick.
+                bool alwaysBpc = !isReaction && ctx.AlwaysBpcTypes.Contains(typeId);
+
+                if (bpcOnly || alwaysBpc || (!isReaction && isFinal && includeBpcCost))
                 {
                     // Overlay the BPC's PER-RUN price (at this item's ME) into the price table so both
                     // the raw-material total and the job-material line value it identically.

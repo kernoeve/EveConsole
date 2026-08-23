@@ -395,10 +395,13 @@ public class BuildCostService
             .Select(t => new { t.TypeId, t.MetaGroupId })
             .ToListAsync(ct);
         var t2TypeIds      = metaGroupTypes.Where(t => t.MetaGroupId == 2).Select(t => t.TypeId).ToHashSet();
-        // Titans (group 30) and the Keepstar get ME9; other items follow the standard rule.
+        // Titans (group 30), the Keepstar and the Fortizar get ME9; other items follow the
+        // standard rule.
         var titanKeepstarIds = (await db.SdeTypes.AsNoTracking()
             .Where(t => productTypeIds.Contains(t.TypeId)
-                     && (t.GroupId == IndustryMe.TitanGroupId || t.TypeId == IndustryMe.KeepstarTypeId))
+                     && (t.GroupId == IndustryMe.TitanGroupId
+                      || t.TypeId  == IndustryMe.KeepstarTypeId
+                      || t.TypeId  == IndustryMe.FortizarTypeId))
             .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
 
         // BPO-sourced blueprints: the blueprint type is buyable on the market (has a market group)
@@ -428,6 +431,17 @@ public class BuildCostService
             .Select(r => r.ProductTypeId).ToHashSet();
         bool BlueprintIsBpoSourced(int bpTypeId) =>
             marketBlueprints.Contains(bpTypeId) || inventedFromMarket.Contains(bpTypeId);
+
+        // ⚠️ Titans, the Keepstar and the Fortizar are costed as BPC purchases even though a BPO
+        // exists for each of them. The BPO is priced in the hundreds of billions, so treating one
+        // as owned and free — which is what "has a BPO, so no blueprint cost" amounts to — was
+        // pricing a titan below what anyone can actually build one for.
+        //
+        // ⚠️ Faction titans are excluded: they are already loot BPCs at ME0, and a Molok costed
+        // as an ME9 researched copy would be as wrong in the other direction.
+        var boughtBpcIds = productTypeIds
+            .Where(id => titanKeepstarIds.Contains(id) && !bpcOnlyProductIds.Contains(id))
+            .ToHashSet();
 
         // Load all blueprint materials (manufacturing + reaction).
         var allMaterials = await db.SdeBlueprintMaterials.AsNoTracking()
@@ -652,8 +666,14 @@ public class BuildCostService
             var    structure    = StructureFor(catKey, typeId);
             // Default ME assumption: ME10, except T2 (ME3), BPC-only/faction (ME0), titans &
             // Keepstars (ME9), reactions (ME0). Shared with the Production Calculator via IndustryMe.
-            bool   bpcItem      = !isReaction && !BlueprintIsBpoSourced(bpTypeId);
-            int    defaultMe    = IndustryMe.DefaultMe(isReaction, bpcItem,
+            // A BPO exists, but nobody uses it — cost the bought copy instead. See boughtBpcIds.
+            bool   boughtBpc    = boughtBpcIds.Contains(typeId);
+            bool   bpcItem      = !isReaction && (!BlueprintIsBpoSourced(bpTypeId) || boughtBpc);
+
+            // ⚠️ bpcOnly is passed FALSE for these. It means "loot BPC, not researchable" and
+            // returns ME0; a bought titan copy is a researched one, and the ME9 branch below it
+            // is the answer we want.
+            int    defaultMe    = IndustryMe.DefaultMe(isReaction, bpcItem && !boughtBpc,
                                       t2TypeIds.Contains(typeId), titanKeepstarIds.Contains(typeId));
             double bpMeFactor   = IndustryMe.Factor(defaultMe);
             double rigMeBonus   = isReaction ? RigBonus(structure, catKey, rxnRigBonus)
@@ -693,8 +713,20 @@ public class BuildCostService
             bool    costable = true;
             double  usedMeFactor = meFactor;   // factor the full-chain walk will reuse
 
-            if (bpcOnly && bpcPerRun.TryGetValue(bpTypeId, out var meOptions) && meOptions.Count > 0)
+            if (bpcOnly && bpcPerRun.TryGetValue(bpTypeId, out var allMeOptions) && allMeOptions.Count > 0)
             {
+                // ⚠️ For a bought-BPC exception the ME is fixed, not shopped for. Cheapest-total
+                // would always land on the lowest-ME copy — those are the ones going cheap — and
+                // cost a titan as though it were built from a barely-researched print. The
+                // assumption is an ME9 copy, so that is the copy we price; the nearest ME stands
+                // in when nobody is selling one, since a build still happens at the ME bought.
+                var meOptions = boughtBpc
+                    ? [allMeOptions
+                        .OrderBy(o => Math.Abs(o.Me - defaultMe))
+                        .ThenBy(o => o.PerRun)
+                        .First()]
+                    : allMeOptions;
+
                 // Consumes one run of a purchased BPC. Pick the ME that minimises materials + BPC.
                 decimal bestTotal = decimal.MaxValue; (decimal Raw, decimal SubJob) best = default;
                 foreach (var (me, perRun) in meOptions)
@@ -787,6 +819,11 @@ public class BuildCostService
             var calc = new ProductionCalculatorService(
                 scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>());
             var planContext = await calc.LoadContextAsync(defaultPark.Id, ct);
+
+            // ⚠️ This is where the titan fix actually lands. The stored cost comes from the
+            // calculator, not from the pass above, so telling the pass to include a BPC and not
+            // telling the calculator would have changed nothing anyone can see.
+            planContext.AlwaysBpcTypes = boughtBpcIds;
 
             // ── Batch size ────────────────────────────────────────────────────
             // Costing one run at a time charges every unit for a whole run's worth of rounding,
