@@ -310,7 +310,9 @@ public class StoreMailService(
             ct.ThrowIfCancellationRequested();
 
             var body = "";
-            try { body = await mail.GetBodyAsync(store.CharacterId, header.MailId, ct); }
+            // ⚠️ RAW. The order parser reads links out of the markup, and the stripped version
+            // has already thrown every one of them away.
+            try { body = await mail.GetRawBodyAsync(store.CharacterId, header.MailId, ct); }
             catch { /* an unreadable body is still a mail we must record and not retry forever */ }
 
             var log = new StoreMail

@@ -323,12 +323,29 @@ public class EveMailService(
             .ToList();
     }
 
-    public async Task<string> GetBodyAsync(long charId, int mailId, CancellationToken ct = default)
+    /// <summary>A mail body as readable text, for showing a person.</summary>
+    public async Task<string> GetBodyAsync(long charId, int mailId, CancellationToken ct = default) =>
+        StripHtml(await GetRawBodyAsync(charId, mailId, ct));
+
+    /// <summary>
+    /// A mail body exactly as EVE wrote it, markup and all.
+    ///
+    /// <para><b>⚠️ Anything reading the CONTENT of a mail must use this, not
+    /// <see cref="GetBodyAsync"/>.</b> Everything a buyer drags into a mail — an item, a
+    /// character, a structure — arrives as an anchor carrying its id, and stripping the markup
+    /// throws that id away and leaves a name to guess at. The store's order parser was reading
+    /// the stripped text and seeing "Apostle  Kerno Adler": two links, both flattened, matching
+    /// nothing.</para>
+    ///
+    /// <para>The raw body was in the database the whole time — it is what gets cached — and only
+    /// the return value was stripped, which is why this is a split rather than a re-fetch.</para>
+    /// </summary>
+    public async Task<string> GetRawBodyAsync(long charId, int mailId, CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();
 
         var stored = await db.EsiMailBodies.FindAsync([mailId], ct);
-        if (stored is not null) return StripHtml(stored.Body);
+        if (stored is not null) return stored.Body;
 
         var header = await db.EsiMailHeaders.FindAsync([mailId, charId], ct);
         if (header?.BodyFetched == true) return "";
@@ -348,7 +365,7 @@ public class EveMailService(
         if (header is not null) header.BodyFetched = true;
         await db.SaveChangesAsync(ct);
 
-        return StripHtml(rawBody);
+        return rawBody;
     }
 
     public async Task<bool> MarkReadAsync(long charId, int mailId, CancellationToken ct = default)
