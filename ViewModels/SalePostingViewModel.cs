@@ -148,6 +148,17 @@ internal sealed class OutputFormat
     // ── clipboard-side transforms ──
     private static string Identity(string s) => s;
     private static string HtmlBreaks(string s) => s.Replace("\n", "<br>\n");
+
+    /// <summary>
+    /// Line breaks for EVE mail, and nothing else on the line.
+    ///
+    /// <para>⚠️ No literal newline after the tag, unlike <see cref="HtmlBreaks"/>. A browser
+    /// ignores whitespace in the source, so keeping the newline there makes the HTML readable at
+    /// no cost — but EVE's mail renderer draws it, and every line in the first price list sent
+    /// ended in a stray box glyph.</para>
+    /// </summary>
+    private static string EveBreaks(string s) =>
+        s.Replace("\r\n", "\n").Replace("\n", "<br>");
     private static string StripMarkup(string s)   // best-effort for Plain (unknown source format)
     {
         s = Regex.Replace(s, @"<a\b[^>]*>(.*?)</a>", "$1", RegexOptions.IgnoreCase | RegexOptions.Singleline);
@@ -298,7 +309,7 @@ internal sealed class OutputFormat
         // the client, so the buyer reads a list they can click rather than one they have to
         // search for. The preview strips the anchor and shows the name, which is what it looks
         // like in the mail.
-        new("EVE Mail",   x => $"<b>{x}</b>",           x => $"<u>{x}</u>",   HtmlBreaks,  HtmlDisplay,
+        new("EVE Mail",   x => $"<b>{x}</b>",           x => $"<u>{x}</u>",   EveBreaks,   HtmlDisplay,
             (typeId, text) => $"<a href=\"showinfo:{typeId}\">{text}</a>",
             (argb,   text) => $"<font color=\"#{argb}\">{text}</font>"),
         new("BBCode",     x => $"[b]{x}[/b]",           x => $"[u]{x}[/u]",   Identity,    s => Tokenize(BbLists(s), BbRules, t => BbTag.Replace(t, ""))),

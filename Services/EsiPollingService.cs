@@ -1894,7 +1894,12 @@ public class EsiPollingService : ReactiveObject
         new("char.titles",          3600,  7200, FetchTitlesAsync),
         new("char.roles",           3600,  7200, FetchRolesAsync),
         new("char.fittings",        300,   1800, FetchFittingsAsync),
-        new("char.mail",            300,    600, FetchMailAsync),
+        // ⚠️ 30s, which is what ESI actually caches this at (x-server-cache-ttl on
+        // /characters/{id}/mail). It was 300 — an order of magnitude over-conservative, and it
+        // put a five-minute floor under how fast a store could answer a buyer for no reason at
+        // all. The rate limit is the real constraint: 600 calls per 15 minutes on the
+        // char-social group, which a minute's cadence per character sits comfortably inside.
+        new("char.mail",             30,    600, FetchMailAsync),
         // Live session state. Much faster cadence than everything else here — these
         // endpoints cache for 5s (location, ship) and 60s (online) rather than minutes.
         new("char.online",          60,      60, FetchOnlineAsync),

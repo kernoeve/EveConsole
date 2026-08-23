@@ -54,6 +54,9 @@ public class StoreMailService(
     /// </summary>
     private const int MaxAttempts = 3;
 
+    /// <summary>How long after sending someone the usage before it would be sent again.</summary>
+    private static readonly TimeSpan HelpSilence = TimeSpan.FromHours(24);
+
     private Task? _loop;
 
     // ── What the background-process view shows ────────────────────────────────
@@ -285,6 +288,16 @@ public class StoreMailService(
             await db.SaveChangesAsync(ct);
             db.ChangeTracker.Clear();
 
+            // ⚠️ Marked read only once the row is safely written. The unread flag is the shop
+            // owner's own view of its inbox, and marking first would leave a mail that looks
+            // dealt with after a crash that lost the record of dealing with it.
+            //
+            // Failure here is not worth reporting: the mail was answered, and an unread flag that
+            // did not clear is a cosmetic difference in a mailbox nobody reads by hand.
+            try { await mail.MarkReadAsync(store.CharacterId, header.MailId, ct); }
+            catch (OperationCanceledException) { throw; }
+            catch { }
+
             handled++;
         }
 
@@ -297,21 +310,32 @@ public class StoreMailService(
         var command = ParseCommand(log.Subject);
         log.Command = command;
 
-        if (command.Length == 0)
-        {
-            // ⚠️ Silent. Anyone can mail this character, and most of what arrives will be
-            // ordinary correspondence — replying "I did not understand" to every one of those
-            // would turn the shop into a bot that argues with people. It is recorded so the
-            // owner can see what was ignored and answer it themselves.
-            log.Outcome = "unknown";
-            log.Detail  = "No command keyword in the subject — left for a person.";
-            return;
-        }
-
+        // ⚠️ The allow list is checked before anything is said back, including help. A shop that
+        // explained itself to anyone who wrote in would be answering strangers, and the whole
+        // point of the list is deciding who gets served.
         if (!await IsAllowedAsync(db, store, log.PartyId, ct))
         {
             log.Outcome = "rejected";
             log.Detail  = "Sender is not on this store's list.";
+            return;
+        }
+
+        if (command.Length == 0)
+        {
+            // Someone entitled to order wrote in and did not use a keyword. Most of that will be
+            // ordinary conversation, so this answers with the usage once and then stays quiet —
+            // a shop that replied to every message would be arguing with its own customers.
+            if (await ToldRecentlyAsync(db, store, log.PartyId, ct))
+            {
+                log.Outcome = "unknown";
+                log.Detail  = "No keyword in the subject — already sent the usage recently, left for a person.";
+                return;
+            }
+
+            log.Command = "HELP";
+            log.Detail  = "No keyword in the subject — sent the usage.";
+            await ReplyAsync(store, log, $"{store.Name} — how to order",
+                "I did not recognise that as an order.<br><br>" + Usage(store), ct);
             return;
         }
 
@@ -321,7 +345,51 @@ public class StoreMailService(
             case "ORDER":  await OrderAsync(db, store, log, ct); break;
             case "STATUS": await StatusAsync(db, store, log, ct); break;
             case "CANCEL": await CancelAsync(db, store, log, ct); break;
+            case "HELP":
+                await ReplyAsync(store, log, $"{store.Name} — how to order", Usage(store), ct);
+                break;
         }
+    }
+
+    /// <summary>
+    /// How to use the shop, in the shop's own words.
+    ///
+    /// <para>One place, so the answer to HELP and the answer to a mail that could not be read are
+    /// the same words — a buyer told two different things about the same commands has been given
+    /// a reason to doubt both.</para>
+    /// </summary>
+    private static string Usage(Store store) =>
+        "Put one of these in the mail <b>subject</b>:<br><br>" +
+        "<b>PRICES</b> — the current price list.<br>" +
+        "<b>ORDER</b> — place an order. One item per line in the body:<br>" +
+        "&nbsp;&nbsp;2 x Archon<br>" +
+        "&nbsp;&nbsp;1 x Nidhoggur<br>" +
+        "<b>STATUS</b> — progress on an order. Put its reference in the subject or body, " +
+        "as <b>STATUS K7P2QX</b>.<br>" +
+        "<b>CANCEL</b> — withdraw an order, same reference.<br>" +
+        "<b>HELP</b> — this message.<br><br>" +
+        $"Prices are those on the list at the moment the order is read. — {store.Name}";
+
+    /// <summary>
+    /// Whether this sender has already been sent the usage lately.
+    ///
+    /// <para>⚠️ What stops a conversation becoming a loop. Without it, someone replying "thanks"
+    /// to a help mail gets another help mail, and answers that one too.</para>
+    /// </summary>
+    private static async Task<bool> ToldRecentlyAsync(
+        AppDbContext db, Store store, long partyId, CancellationToken ct)
+    {
+        var since = DateTimeOffset.UtcNow - HelpSilence;
+
+        // ⚠️ In memory: EF cannot translate a DateTimeOffset comparison on SQLite, and putting it
+        // in the query throws at runtime rather than failing to compile.
+        var sent = await db.StoreMails
+            .Where(m => m.StoreId == store.Id && m.Direction == "out"
+                     && m.PartyId == partyId && m.Command == "HELP")
+            .Select(m => m.At)
+            .ToListAsync(ct);
+
+        return sent.Any(at => at >= since);
     }
 
     // ── Who may be served ─────────────────────────────────────────────────────
@@ -412,12 +480,10 @@ public class StoreMailService(
                 : "No order lines found in the body.";
             await ReplyAsync(store, log, $"{store.Name} — order not understood",
                 "Nothing on this order matched the price list.<br><br>" +
-                "One item per line, as <b>quantity x item name</b> — for example:<br>" +
-                "2 x Hulk<br>1 x Orca<br><br>" +
                 (unknown.Count > 0
                     ? "Not found: " + Esc(string.Join(", ", unknown)) + "<br><br>"
                     : "") +
-                "Reply with <b>PRICES</b> in the subject for the current list.", ct);
+                Usage(store), ct);
             return;
         }
 
@@ -480,9 +546,7 @@ public class StoreMailService(
             log.Outcome = "rejected";
             log.Detail  = "No order of that reference for this sender.";
             await ReplyAsync(store, log, $"{store.Name} — order not found",
-                "No order of that reference was found against your name.<br><br>" +
-                "Put the reference in the subject or the body — for example: " +
-                "<b>STATUS K7P2QX</b>.", ct);
+                "No order of that reference was found against your name.<br><br>" + Usage(store), ct);
             return;
         }
 
@@ -528,7 +592,7 @@ public class StoreMailService(
             log.Outcome = "rejected";
             log.Detail  = "No order of that reference for this sender.";
             await ReplyAsync(store, log, $"{store.Name} — order not found",
-                "No order of that reference was found against your name.", ct);
+                "No order of that reference was found against your name.<br><br>" + Usage(store), ct);
             return;
         }
 
@@ -656,6 +720,7 @@ public class StoreMailService(
              : word is "ORDER" or "BUY"              ? "ORDER"
              : word is "STATUS"                      ? "STATUS"
              : word is "CANCEL"                      ? "CANCEL"
+             : word is "HELP" or "COMMANDS" or "INFO" ? "HELP"
              : "";
     }
 
