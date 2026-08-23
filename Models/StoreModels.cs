@@ -63,6 +63,24 @@ public class Store
     /// </summary>
     public bool IsDeleted { get; set; }
 
+    /// <summary>
+    /// Give an in-stock order an expected date of its own, this many days out.
+    ///
+    /// <para>An order filled from the shelf has no job behind it, so nothing else would ever set
+    /// a date — it would sit blank until a contract appeared. Blank reads as "no idea", when the
+    /// truth is "as soon as somebody gets to it", and a date is what lets the order be ranked
+    /// against everything else waiting.</para>
+    ///
+    /// <para>⚠️ Only for stock. A job-sourced order takes its date from the job, which is a real
+    /// forecast rather than a promise, and overwriting that with a guess would be worse than
+    /// having no guess at all.</para>
+    /// </summary>
+    public bool AutoEstimateInStock { get; set; } = true;
+
+    /// <summary>Days from the order date. One by default — a shelf item is a contract to write,
+    /// not a thing to build.</summary>
+    public int  AutoEstimateDays    { get; set; } = 1;
+
     public DateTimeOffset CreatedAt { get; set; }
 }
 

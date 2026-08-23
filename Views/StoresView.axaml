@@ -92,6 +92,21 @@
                           Content="Open — read and answer mail" FontSize="11" Foreground="#c8c8d8" />
               </Grid>
 
+              <!-- An order filled from the shelf has no job behind it, so nothing else would ever
+                   give it a date. Blank reads as "no idea" when the truth is "as soon as someone
+                   writes the contract". -->
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <CheckBox IsChecked="{Binding AutoEstimate}"
+                          Content="Give in-stock orders an expected date" FontSize="11"
+                          Foreground="#c8c8d8" VerticalAlignment="Center" />
+                <NumericUpDown Value="{Binding AutoEstimateDays}" Minimum="0" Maximum="60"
+                               Increment="1" FormatString="0" Width="88" FontSize="11"
+                               IsEnabled="{Binding AutoEstimate}"
+                               Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+                <TextBlock Text="day(s) from the order" FontSize="11" Foreground="#888899"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+
               <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
                          Text="Buyers put the command in the mail SUBJECT: PRICES, ORDER, STATUS or CANCEL. An ORDER body is one item per line, as &quot;2 x Hulk&quot;. STATUS and CANCEL need the order reference from the confirmation." />
             </StackPanel>

@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
+using EveConsole.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
@@ -634,7 +635,11 @@ public class StoreMailService(
                 // ⚠️ The price quoted, times the units — not a price looked up when the order is
                 // filled. The buyer agreed to what the list said at the moment they wrote, and
                 // the list moves with the market.
-                PurchasePrice = (item.SalePrice ?? 0) * units,
+                //
+                // Rounded to the precision it is quoted at, so the record says the same number
+                // the buyer was shown. Storing 3,705,101,922.94 against a quote of "3.71B" is
+                // two figures for one agreement, and only one of them was ever visible to them.
+                PurchasePrice = MarketFmt.RoundToDisplay((item.SalePrice ?? 0) * units),
                 Status        = "pending",
                 StoreId       = store.Id,
                 OrderRef      = reference,
@@ -671,23 +676,50 @@ public class StoreMailService(
         // and then the update sweep found the row disagreeing with the marker and sent a second
         // mail a minute later saying "ready now". Two mails, one event, and the second one added
         // nothing.
+        // ⚠️ An expected date for anything coming off the shelf, before the state is stamped.
+        // Nothing else would ever give one: only a job-sourced order gets a date, from its job,
+        // so a stock order would sit blank until a contract appeared. Blank reads as "no idea"
+        // when the truth is "as soon as somebody writes the contract".
+        if (store.AutoEstimateInStock)
+        {
+            var due = DateTimeOffset.UtcNow.AddDays(Math.Max(0, store.AutoEstimateDays))
+                                    .UtcDateTime.ToString("yyyy-MM-dd");
+
+            foreach (var o in settled)
+                // Only stock, and only where nothing has set one. A job's date is a real
+                // forecast and must not be replaced by a guess.
+                if (o.FulfilmentSource == "stock" && string.IsNullOrEmpty(o.EstimatedDate))
+                    o.EstimatedDate = due;
+        }
+
         foreach (var o in settled) o.NotifiedState = StateOf(o);
         await db.SaveChangesAsync(ct);
         db.ChangeTracker.Clear();
 
         var byType = settled.ToDictionary(o => o.TypeId);
 
-        var total = parsed.Lines.Sum(l => (l.Item.SalePrice ?? 0) * l.Units);
+        // Summed from the ROUNDED line prices, so the total is what the lines add up to. Summing
+        // the raw figures and rounding once at the end gives a total that does not match its own
+        // arithmetic, which is the sort of thing a buyer checks.
+        var total = created.Sum(o => o.PurchasePrice);
 
         var sb = new StringBuilder();
         sb.Append(Head($"Order {reference} received"));
 
         foreach (var (item, units) in parsed.Lines)
         {
+            var line = byType.GetValueOrDefault(item.TypeId);
+
             sb.Append("<b>").Append(units.ToString("N0")).Append(" × ").Append("</b>")
-              .Append(Link(item)).Append(" — <b>")
-              .Append(Isk((item.SalePrice ?? 0) * units)).Append("</b>").Append(Br)
-              .Append(Ind).Append(Dim(Expect(byType.GetValueOrDefault(item.TypeId))))
+              .Append(Link(item));
+
+            // The unit price only earns its place when there is more than one — on a single
+            // item it would print the same number twice with an "each" between them.
+            if (units > 1)
+                sb.Append(Dim($" @ {Isk(MarketFmt.RoundToDisplay(item.SalePrice ?? 0))} each"));
+
+            sb.Append(" — <b>").Append(Isk(line?.PurchasePrice ?? 0)).Append("</b>").Append(Br)
+              .Append(Ind).Append(Dim(Expect(line)))
               .Append(Br);
         }
 
@@ -739,28 +771,55 @@ public class StoreMailService(
 
         var names = await TypeNamesAsync(db, orders.Select(o => o.TypeId).Distinct().ToList(), ct);
 
-        var sb = new StringBuilder();
-        sb.Append(Head(orders.Count > 0 && log.OrderRef.Length > 0
+        var titled  = orders.Count > 0 && log.OrderRef.Length > 0
             ? $"Order {log.OrderRef}"
-            : "Your open orders"));
+            : "Your open orders";
 
-        // Grouped by order, because that is the unit the buyer placed and the reference they
-        // would quote back to cancel one of several.
+        var several = orders.Select(o => o.OrderRef).Distinct().Count() > 1;
+
+        // One chunk per order, built whole so a split never lands inside one. Grouped by order
+        // because that is the unit the buyer placed and the reference they quote back to cancel.
+        var blocks = new List<string>();
+
         foreach (var group in orders.GroupBy(o => o.OrderRef).OrderBy(g => g.Key))
         {
-            if (orders.Select(o => o.OrderRef).Distinct().Count() > 1)
-                sb.Append("<b>").Append(group.Key).Append("</b><br>");
+            var lines = group.ToList();
+            var block = new StringBuilder();
 
-            foreach (var o in group)
-                sb.Append(o.Units.ToString("N0")).Append(" × ")
-                  .Append("<a href=\"showinfo:").Append(o.TypeId).Append("\">")
-                  .Append(Esc(names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"))).Append("</a>")
-                  .Append(" — ").Append(Describe(o)).Append("<br>");
+            if (several) block.Append("<b>").Append(group.Key).Append("</b>").Append(Br);
 
-            sb.Append("<br>");
+            foreach (var o in lines)
+            {
+                var unit = o.Units > 0 ? MarketFmt.RoundToDisplay(o.PurchasePrice / o.Units) : 0;
+
+                block.Append("<b>").Append(o.Units.ToString("N0")).Append(" × </b>")
+                     .Append("<a href=\"showinfo:").Append(o.TypeId).Append("\">")
+                     .Append(Esc(names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"))).Append("</a>");
+
+                // Only worth printing when the two figures differ; on one unit it would be the
+                // same number twice with an "each" between them.
+                if (o.Units > 1) block.Append(Dim($" @ {Isk(unit)} each"));
+
+                block.Append(" — <b>").Append(Isk(o.PurchasePrice)).Append("</b>").Append(Br)
+                     .Append(Ind).Append(Dim(Describe(o))).Append(Br);
+            }
+
+            // Per order, not per line: every line of one order shares its buyer and its
+            // destination, and repeating them under each item would be noise.
+            var contractTo = lines.Select(o => o.ContractToName)
+                                  .FirstOrDefault(n => !string.IsNullOrWhiteSpace(n));
+            if (contractTo is not null)
+                block.Append(Ind).Append(Dim($"Contract to: {Esc(contractTo)}")).Append(Br);
+
+            if (lines.Count > 1)
+                block.Append(Ind).Append(Dim($"Order total: {Isk(lines.Sum(o => o.PurchasePrice))}"))
+                     .Append(Br);
+
+            block.Append(Br);
+            blocks.Add(block.ToString());
         }
 
-        await ReplyAsync(store, log, $"{store.Name} — order status", sb.ToString(), ct);
+        await ReplyInPartsAsync(store, log, $"{store.Name} — order status", titled, blocks, ct);
     }
 
     /// <summary>
@@ -780,7 +839,8 @@ public class StoreMailService(
             ? "A contract is already waiting for you to accept."
             : o?.FulfilmentSource switch
         {
-            "stock" => "In stock and reserved for you — wait for the contract to be created.",
+            "stock" => "In stock and reserved for you — you will be notified when the contract "
+                     + "has been created.",
             "job"   => o.EstimatedDate is { Length: > 0 } d
                         ? $"Already in build, expected {d}."
                         : "Already in build.",
@@ -806,7 +866,9 @@ public class StoreMailService(
 
         _ => o.FulfilmentSource switch
         {
-            "stock" => "ready — wait for the contract to be created",
+            "stock" => o.EstimatedDate is { Length: > 0 } sd
+                        ? $"ready now — contract expected {sd}"
+                        : "ready now — you will be notified when the contract has been created",
             "job"   => o.EstimatedDate is { Length: > 0 } d
                         ? $"in production, expected {d}"
                         : "in production",
@@ -823,10 +885,23 @@ public class StoreMailService(
         var orders = await FindOrderAsync(db, store, log, ct);
         if (orders.Count == 0)
         {
+            // ⚠️ Says which reference it looked for. "No order of that reference" without naming
+            // it leaves the reader unable to tell a typo from a missing order from a bug — and
+            // when the bug was ours, it left them nothing to report either.
+            var tried = What(log.Subject, log.Body);
+
             log.Outcome = "rejected";
-            log.Detail  = "No order of that reference for this sender.";
+            log.Detail  = tried.Length > 0
+                ? $"No order matching {tried} for this sender."
+                : "No order reference found in the mail.";
+
             await ReplyAsync(store, log, $"{store.Name} — order not found",
-                "No order of that reference was found against your name.<br><br>" + Usage(store), ct);
+                (tried.Length > 0
+                    ? $"No open order of yours matches <b>{Esc(tried)}</b>."
+                    : "I could not find an order reference in that mail.") +
+                Br + Dim("References look like K7P2QX and are in the confirmation mail. " +
+                         "Reply STATUS on its own to list your open orders.") + Gap +
+                Usage(store), ct);
             return;
         }
 
@@ -871,14 +946,100 @@ public class StoreMailService(
     private static async Task<List<TrackedOrder>> FindOrderAsync(
         AppDbContext db, Store store, StoreMail log, CancellationToken ct)
     {
-        var reference = FindReference(log.Subject) ?? FindReference(log.Body);
-        if (reference is null) return [];
+        var candidates = References(log.Subject).Concat(References(log.Body))
+                         .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (candidates.Count == 0) return [];
 
-        return await db.TrackedOrders
+        // ⚠️ EVERY candidate is offered to the database, and the one that exists wins. Taking
+        // only the first match found in the text is what broke CANCEL: "CANCEL" is six letters
+        // and every one of them — C, A, N, E, L — is in the reference alphabet, so the command
+        // word itself looked like a reference and the real one was never reached.
+        //
+        // Filtering out the known commands would fix that one case and leave the next: any
+        // six-letter word drawn from this alphabet reads as a reference. Asking which of them is
+        // real settles all of them at once, and costs one query either way.
+        var hits = await db.TrackedOrders
             .Where(o => o.StoreId == store.Id
-                     && o.OrderRef == reference
-                     && o.BuyerId == log.PartyId)
+                     && o.BuyerId == log.PartyId
+                     && candidates.Contains(o.OrderRef))
             .ToListAsync(ct);
+
+        // If the text somehow named two of the buyer's own orders, answer about the first.
+        return hits.GroupBy(o => o.OrderRef).OrderBy(g => g.Key).FirstOrDefault()?.ToList() ?? [];
+    }
+
+    /// <summary>What the buyer wrote that could have been a reference, in the order it appeared.</summary>
+    internal static string What(string? subject, string? body)
+    {
+        var all = References(subject).Concat(References(body))
+                  .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        return all.Count == 0 ? "" : string.Join(", ", all);
+    }
+
+    /// <summary>
+    /// EVE's ceiling on a mail body, from the ESI schema. Left some room under it: the heading,
+    /// the part marker and the closing line are added after the blocks are measured.
+    /// </summary>
+    private const int MaxBodyChars = 9_000;
+
+    /// <summary>How many parts one answer may run to.</summary>
+    private const int MaxParts = 5;
+
+    /// <summary>
+    /// Sends a reply as however many mails it takes.
+    ///
+    /// <para><b>⚠️ Split, not truncated.</b> A buyer with enough open orders would push a status
+    /// reply past EVE's 10,000-character body limit, and the whole mail would be refused — so the
+    /// answer to "where are my orders" would be silence. A sale posting can be designed to fit
+    /// because its author controls its length; this is a list of whatever somebody has ordered,
+    /// and nobody controls that.</para>
+    ///
+    /// <para>Blocks are whole orders, so a split never lands inside one. If a single order is
+    /// itself over the limit it goes in a part of its own and is allowed to be too long — better
+    /// a mail EVE may refuse than one that silently loses half an order.</para>
+    ///
+    /// <para>Bounded, because every part is a send against the same rate limit as everything
+    /// else. What does not fit says so rather than vanishing.</para>
+    /// </summary>
+    private async Task ReplyInPartsAsync(
+        Store store, StoreMail log, string subject, string heading,
+        IReadOnlyList<string> blocks, CancellationToken ct)
+    {
+        var parts = new List<string>();
+        var sb    = new StringBuilder();
+
+        foreach (var block in blocks)
+        {
+            if (sb.Length > 0 && sb.Length + block.Length > MaxBodyChars)
+            {
+                parts.Add(sb.ToString());
+                sb.Clear();
+            }
+            sb.Append(block);
+        }
+        if (sb.Length > 0) parts.Add(sb.ToString());
+        if (parts.Count == 0) parts.Add("");
+
+        var dropped = 0;
+        if (parts.Count > MaxParts)
+        {
+            dropped = parts.Count - MaxParts;
+            parts   = parts.Take(MaxParts).ToList();
+        }
+
+        for (var i = 0; i < parts.Count; i++)
+        {
+            var last  = i == parts.Count - 1;
+            var title = parts.Count > 1 ? $"{heading} ({i + 1} of {parts.Count})" : heading;
+            var tail  = last && dropped > 0
+                ? Dim($"{dropped} further page(s) of orders were not included — reply STATUS "
+                    + "with an order reference to ask about one of them.")
+                : "";
+
+            await ReplyAsync(store, log,
+                parts.Count > 1 ? $"{subject} ({i + 1}/{parts.Count})" : subject,
+                Head(title) + parts[i] + tail, ct);
+        }
     }
 
     private async Task ReplyAsync(Store store, StoreMail log, string subject, string body, CancellationToken ct)
@@ -965,9 +1126,18 @@ public class StoreMailService(
     private static readonly Regex RefPattern =
         new(@"\b([ABCDEFGHJKLMNPQRTUVWXYZ2346789]{6})\b", RegexOptions.Compiled);
 
-    internal static string? FindReference(string? text) =>
-        string.IsNullOrWhiteSpace(text) ? null
-        : RefPattern.Match(Strip(text)) is { Success: true } m ? m.Groups[1].Value : null;
+    /// <summary>
+    /// Everything in the text shaped like an order reference.
+    ///
+    /// <para>⚠️ All of them, not the first. The alphabet excludes the characters that misread
+    /// when typed back — no O against 0, no I or 1, no S against 5 — but plenty of ordinary
+    /// words survive it, "CANCEL" among them. Which of these is a real order is a question for
+    /// the database, not for a regex.</para>
+    /// </summary>
+    internal static IEnumerable<string> References(string? text) =>
+        string.IsNullOrWhiteSpace(text)
+            ? []
+            : RefPattern.Matches(Strip(text)).Select(m => m.Groups[1].Value);
 
     private async Task<string> NewReferenceAsync(AppDbContext db, CancellationToken ct)
     {
@@ -1237,7 +1407,10 @@ public class StoreMailService(
     private static string Link(PostingItemView item) =>
         $"<a href=\"showinfo:{item.TypeId}\">{Esc(item.NameOverride is { Length: > 0 } n ? n : item.TypeName)}</a>";
 
-    private static string Isk(double v) => v.ToString("N2") + " ISK";
+    /// <summary>⚠️ Whole ISK, because every figure reaching a mail has been through
+    /// <see cref="MarketFmt.RoundToDisplay"/> — at billions the decimals are always ".00", and
+    /// printing them suggests a precision the price does not have.</summary>
+    private static string Isk(double v) => v.ToString("N0") + " ISK";
 
     /// <summary>EVE rejects an over-long subject outright, which would lose the whole reply.</summary>
     private static string Trim(string subject) =>

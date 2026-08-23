@@ -227,6 +227,28 @@ public class StoresViewModel : ReactiveObject
         }
     }
 
+    private bool _autoEstimate = true;
+    public bool AutoEstimate
+    {
+        get => _autoEstimate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _autoEstimate, value);
+            _ = SaveAsync(s => s.AutoEstimateInStock = value);
+        }
+    }
+
+    private int _autoEstimateDays = 1;
+    public int AutoEstimateDays
+    {
+        get => _autoEstimateDays;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _autoEstimateDays, value);
+            _ = SaveAsync(s => s.AutoEstimateDays = Math.Max(0, value));
+        }
+    }
+
     /// <summary>Typed name for the allow list, resolved when added.</summary>
     private string _senderName = "";
     public string SenderName { get => _senderName; set => this.RaiseAndSetIfChanged(ref _senderName, value); }
@@ -426,7 +448,9 @@ public class StoresViewModel : ReactiveObject
                     StoreCharacter = CharacterOptions.FirstOrDefault(c => c.Id == store.CharacterId);
                     StorePosting   = PostingOptions.FirstOrDefault(p => p.Id == store.PostingId);
                     SenderPolicy   = store.SenderPolicy;
-                    StoreEnabled   = store.Enabled;
+                    StoreEnabled     = store.Enabled;
+                    AutoEstimate     = store.AutoEstimateInStock;
+                    AutoEstimateDays = store.AutoEstimateDays;
                 }
                 finally { _suppressSave = false; }
 

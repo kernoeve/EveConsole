@@ -118,6 +118,8 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
+        <!-- Blank means entered by hand rather than taken by mail. -->
+        <DataGridTextColumn Header="Store" Binding="{Binding Store}" Width="130" />
         <!-- Blank means the buyer, not "unknown": a contract with nobody named goes to whoever
              ordered. Only orders where someone said otherwise carry a name here. -->
         <DataGridTemplateColumn Header="Contract To" SortMemberPath="ContractTo" Width="150">

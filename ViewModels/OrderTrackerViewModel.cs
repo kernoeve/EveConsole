@@ -102,9 +102,19 @@ public class TrackedOrderRowVm
         if (LinkedContractId is > 0 and { } id) EntityNavigator.Instance.Contract(id);
     }
 
+    /// <summary>
+    /// Which store took this order, or "" for one entered by hand.
+    ///
+    /// <para>⚠️ Empty on an order whose store was deleted BEFORE stores were soft-deleted — that
+    /// row is genuinely gone and its name is unrecoverable. Everything since keeps its name.</para>
+    /// </summary>
+    public string Store { get; private set; } = "";
+
     public TrackedOrderRowVm(TrackedOrder o, string typeName, double? buildCost,
+                             string storeName = "",
                              string contractLabel = "", string buildAsOf = "")
     {
+        Store = storeName;
         Id             = o.Id;
         ContractToId   = o.ContractToId;
         ContractTo     = o.ContractToName;
@@ -227,6 +237,12 @@ public class OrderTrackerViewModel : ReactiveObject
             var orders = await db.TrackedOrders.AsNoTracking().ToListAsync();
 
             var typeIds = orders.Select(o => o.TypeId).Distinct().ToList();
+            // ⚠️ Includes deleted stores. A soft-deleted shop keeps its row precisely so its
+            // orders can still name it; filtering them out here would undo that.
+            var storeNames = await db.Stores.AsNoTracking()
+                .Select(s => new { s.Id, s.Name })
+                .ToDictionaryAsync(s => s.Id, s => s.Name);
+
             var typeNames = await db.SdeTypes.AsNoTracking().Where(t => typeIds.Contains(t.TypeId))
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name);
             var buildCosts = await db.BuildCosts.AsNoTracking().Where(b => typeIds.Contains(b.TypeId))
@@ -296,6 +312,7 @@ public class OrderTrackerViewModel : ReactiveObject
 
                 _all.Add(new TrackedOrderRowVm(
                     o, typeNames.TryGetValue(o.TypeId, out var n) ? n : $"Type {o.TypeId}", build, label,
+                    storeNames.GetValueOrDefault(o.StoreId, ""),
                     settled is not null ? o.CompletedOn ?? "" : ""));
             }
             _all.Sort((a, b) => b.CreatedSort.CompareTo(a.CreatedSort));

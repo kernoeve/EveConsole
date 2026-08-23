@@ -387,6 +387,8 @@ public class App : Application
                     "Enabled"       INTEGER NOT NULL DEFAULT 0,
                     "ListenFrom"    TEXT    NOT NULL DEFAULT '',
                     "IsDeleted"     INTEGER NOT NULL DEFAULT 0,
+                    "AutoEstimateInStock" INTEGER NOT NULL DEFAULT 1,
+                    "AutoEstimateDays"    INTEGER NOT NULL DEFAULT 1,
                     "CreatedAt"     TEXT    NOT NULL DEFAULT ''
                 )
                 """);
@@ -399,6 +401,9 @@ public class App : Application
             // Deleting a store hides it rather than removing the row, so orders and messages
             // that point at it still resolve.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "IsDeleted" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            // An expected date for orders filled from stock, which have no job to take one from.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "AutoEstimateInStock" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "AutoEstimateDays" INTEGER NOT NULL DEFAULT 1"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "StoreSenders" (
                     "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
