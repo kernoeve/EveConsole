@@ -213,6 +213,11 @@ public class AppDbContext : DbContext
     public DbSet<SalePostingItem>    SalePostingItems    => Set<SalePostingItem>();
     public DbSet<SalePostingPost>    SalePostingPosts    => Set<SalePostingPost>();
 
+    // ── Stores (EVE mail order desk) ────────────────────────────────────────
+    public DbSet<Store>       Stores       => Set<Store>();
+    public DbSet<StoreSender> StoreSenders => Set<StoreSender>();
+    public DbSet<StoreMail>   StoreMails   => Set<StoreMail>();
+
     // ── Indy Parks ──────────────────────────────────────────────────────────
     public DbSet<IndyPark>               IndyParks               => Set<IndyPark>();
     public DbSet<IndyStructure>          IndyStructures          => Set<IndyStructure>();
@@ -995,6 +1000,18 @@ public class AppDbContext : DbContext
         mb.Entity<TrackedOrder>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("TrackedOrders"); });
+
+        mb.Entity<Store>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("Stores"); });
+
+        mb.Entity<StoreSender>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("StoreSenders"); });
+
+        mb.Entity<StoreMail>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("StoreMails"); });
 
         mb.Entity<AppErrorEntry>(e => {
             e.HasKey(x => x.Id);

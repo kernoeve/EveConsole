@@ -993,6 +993,31 @@ public class TrackedOrder
 
     /// <summary>Hand-marked to jump the queue, ahead of every order ranked by date.</summary>
     public bool   IsPriority    { get; set; }
+
+    /// <summary>
+    /// The store this order came from, or zero for one entered by hand.
+    ///
+    /// <para>Also what marks an order as having arrived by mail, which decides whether the buyer
+    /// is told about changes to it. An order typed in after a conversation in chat has no thread
+    /// to reply to, and mailing its owner out of the blue about a date they already know would be
+    /// noise.</para>
+    /// </summary>
+    public int    StoreId       { get; set; }
+
+    /// <summary>
+    /// What ties the rows of one order together, and what the buyer quotes back.
+    ///
+    /// <para>⚠️ An order is one row per item type, but a buyer orders several things at once and
+    /// then asks about "my order" as one thing. This is that thing. Empty on orders entered by
+    /// hand, which are already single items in practice.</para>
+    ///
+    /// <para>Held on the rows rather than in a header table so the Order Tracker keeps working
+    /// exactly as it does — every row is still an order of one item, with its own status and its
+    /// own fulfilment. Cancelling "the order" cancels its rows; a partly-delivered order is
+    /// simply rows in different states, which is the truth of it.</para>
+    /// </summary>
+    public string OrderRef      { get; set; } = "";
+
     public DateTimeOffset CreatedAt { get; set; }
 }
 

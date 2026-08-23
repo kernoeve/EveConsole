@@ -337,13 +337,20 @@ public class App : Application
                     "FulfilmentSource" TEXT NOT NULL DEFAULT '',
                     "LinkedJobId"      INTEGER NULL,
                     "LinkedContractId" INTEGER NULL,
-                    "CompletedOn"      TEXT NULL
+                    "CompletedOn"      TEXT NULL,
+                    "StoreId"          INTEGER NOT NULL DEFAULT 0,
+                    "OrderRef"         TEXT    NOT NULL DEFAULT ''
                 )
                 """);
 
             // Hand-marked to jump the queue, for an order whose urgency the estimated date does
             // not capture. Everything it needs outranks every other order.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "IsPriority" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+
+            // Orders that arrived by EVE mail: which shop took them, and what ties the rows of
+            // one multi-item order together. Zero and empty on everything entered by hand.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "StoreId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "OrderRef" TEXT NOT NULL DEFAULT ''"""); } catch { }
 
             // The buyer became a picked character or corporation rather than typed text. Existing
             // rows keep their name with a zero id and simply do not link until re-picked.
@@ -357,6 +364,56 @@ public class App : Application
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "CompletedOn" TEXT NULL"""); } catch { }
 
             // Sale Posting — postings → sections → items (see SalePostingModels.cs)
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "Stores" (
+                    "Id"            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "Name"          TEXT    NOT NULL DEFAULT '',
+                    "CharacterId"   INTEGER NOT NULL DEFAULT 0,
+                    "CharacterName" TEXT    NOT NULL DEFAULT '',
+                    "PostingId"     INTEGER NOT NULL DEFAULT 0,
+                    -- ⚠️ Both default to the closed position. A shop that served everyone the
+                    -- moment it was created would start answering strangers before its owner had
+                    -- decided that was wanted, and a mail cannot be unsent.
+                    "SenderPolicy"  TEXT    NOT NULL DEFAULT 'List',
+                    "Enabled"       INTEGER NOT NULL DEFAULT 0,
+                    "CreatedAt"     TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "StoreSenders" (
+                    "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "StoreId"    INTEGER NOT NULL DEFAULT 0,
+                    "EntityId"   INTEGER NOT NULL DEFAULT 0,
+                    "EntityType" TEXT    NOT NULL DEFAULT '',
+                    "Name"       TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "StoreMails" (
+                    "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "StoreId"   INTEGER NOT NULL DEFAULT 0,
+                    "Direction" TEXT    NOT NULL DEFAULT 'in',
+                    "MailId"    INTEGER NOT NULL DEFAULT 0,
+                    "PartyId"   INTEGER NOT NULL DEFAULT 0,
+                    "PartyName" TEXT    NOT NULL DEFAULT '',
+                    "Subject"   TEXT    NOT NULL DEFAULT '',
+                    "Body"      TEXT    NOT NULL DEFAULT '',
+                    "Command"   TEXT    NOT NULL DEFAULT '',
+                    "Outcome"   TEXT    NOT NULL DEFAULT '',
+                    "Detail"    TEXT    NOT NULL DEFAULT '',
+                    "OrderRef"  TEXT    NOT NULL DEFAULT '',
+                    "At"        TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            // ⚠️ A received mail must be processed once. The shop's poll re-reads whatever is in
+            // the inbox, so without this a mail answered before a restart is answered again.
+            db.Database.ExecuteSqlRaw("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_StoreMails_In"
+                ON "StoreMails" ("StoreId", "MailId") WHERE "Direction" = 'in' AND "MailId" <> 0
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_StoreMails_Store_At" ON "StoreMails" ("StoreId", "At")
+                """);
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "SalePostings" (
                     "Id"               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
