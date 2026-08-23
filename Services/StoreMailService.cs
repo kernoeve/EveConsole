@@ -426,17 +426,26 @@ public class StoreMailService(
         // carries the item's id, so there is nothing to spell and nothing to match.
         "The easiest way is to <b>drag the item in</b> — from this price list, from the market, " +
         "from your hangar — then put the quantity beside it if you want more than one." + Br +
-        Eg("[Archon] x2") + Br +
-        Eg("[Nidhoggur]") + Br +
+        // ⚠️ Real links, not "[Archon]". The bracketed form was meant to picture a dragged item
+        // and instead looked like syntax — someone would reasonably have typed the brackets.
+        // These render exactly as a dragged one does, because they are the same thing.
+        Ind + Item(23757, "Archon") + " x2" + Br +
+        Ind + Item(24483, "Nidhoggur") + Br +
         Dim("Typing the name works too:") + Br +
         Eg("Archon x2     Archon 2     2 x Archon     Archon") + Gap +
 
         Cmd("STATUS") + "where your orders have got to." + Br +
-        Dim("No reference needed — you will get all of your open ones. " +
-            "Add a reference to ask about just that one.") + Gap +
+        Dim("No reference needed — you will get all of your open ones.") + Br +
+        Dim("To ask about one order, put its reference in the subject or the body:") + Br +
+        Eg("STATUS 3FVPA9") + Gap +
 
         Cmd("CANCEL") + "withdraw an order." + Br +
-        Dim("This one does need its reference, from the confirmation mail.") + Gap +
+        // ⚠️ Says WHERE the reference goes. "It needs its reference" left the reader to guess
+        // between the subject and the body, and a cancel that silently matches nothing is the
+        // worst kind of guess to get wrong.
+        Dim("This one always needs its reference, from the confirmation mail. " +
+            "Subject or body, either works:") + Br +
+        Eg("CANCEL 3FVPA9") + Gap +
 
         Cmd("HELP") + "this message." + Gap +
 
@@ -476,6 +485,10 @@ public class StoreMailService(
     private static string Eg(string s) => $"    <font color=\"#ff4ac8a8\">{s}</font>";
 
     private static string Rule => Dim("————————————————————");
+
+    /// <summary>An item link, exactly as EVE writes one when an item is dragged in.</summary>
+    private static string Item(int typeId, string name) =>
+        $"<a href=\"showinfo:{typeId}\">{name}</a>";
     /// <summary>
     /// Whether this sender has already been sent the usage lately.
     ///

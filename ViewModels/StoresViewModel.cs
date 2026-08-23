@@ -532,9 +532,18 @@ public class StoresViewModel : ReactiveObject
         }
 
         await using var db = await _dbFactory.CreateDbContextAsync();
+
+        // ⚠️ One transaction. ExecuteDeleteAsync commits on its own, so three of them in a
+        // row is three chances to stop halfway — and a failure after the first would leave a
+        // store with no allow list, or an allow list with no store. Together they either all
+        // go or none do.
+        await using var tx = await db.Database.BeginTransactionAsync();
+
         await db.StoreSenders.Where(s => s.StoreId == row.Id).ExecuteDeleteAsync();
         await db.StoreMails.Where(m => m.StoreId == row.Id).ExecuteDeleteAsync();
         await db.Stores.Where(s => s.Id == row.Id).ExecuteDeleteAsync();
+
+        await tx.CommitAsync();
 
         // ⚠️ Orders are NOT deleted with the store. They are real orders somebody placed, some of
         // them delivered and paid for, and the Order Tracker is where they belong. They simply
