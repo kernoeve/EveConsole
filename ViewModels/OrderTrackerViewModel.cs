@@ -111,11 +111,20 @@ public class TrackedOrderRowVm
     /// </summary>
     public string Store { get; private set; } = "";
 
+    /// <summary>
+    /// The order's code — what a buyer quotes to ask about it or cancel it.
+    ///
+    /// <para>⚠️ Shared by every row of one order: three items ordered together are three rows
+    /// under one code. Blank only on orders that predate codes being issued.</para>
+    /// </summary>
+    public string OrderRef { get; private set; } = "";
+
     public TrackedOrderRowVm(TrackedOrder o, string typeName, double? buildCost,
                              string storeName = "",
                              string contractLabel = "", string buildAsOf = "")
     {
-        Store = storeName;
+        Store    = storeName;
+        OrderRef = o.OrderRef;
         Id             = o.Id;
         ContractToId   = o.ContractToId;
         ContractTo     = o.ContractToName;
@@ -397,6 +406,10 @@ public class OrderTrackerViewModel : ReactiveObject
                 Status        = r.Status,
                 IsPriority    = r.IsPriority,
                 CompletedOn   = r.CompletedOn ?? SettledOn(r.Status, null),
+                // ⚠️ From the same pool as the store's, so a code identifies one order whichever
+                // way it arrived. An order typed in after a conversation is still an order
+                // somebody may ask about by number.
+                OrderRef      = await OrderReference.NewAsync(db),
                 CreatedAt     = DateTimeOffset.UtcNow,
             });
             await db.SaveChangesAsync();

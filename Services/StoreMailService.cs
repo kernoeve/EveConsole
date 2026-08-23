@@ -618,7 +618,7 @@ public class StoreMailService(
             return;
         }
 
-        var reference = await NewReferenceAsync(db, ct);
+        var reference = await OrderReference.NewAsync(db, ct);
         var now       = DateTimeOffset.UtcNow;
 
         // Who the contract goes to. A dragged link carries the id, so there is no name to
@@ -1190,10 +1190,6 @@ public class StoreMailService(
              : "";
     }
 
-    /// <summary>Reference characters, chosen so nothing in them can be misread when typed back:
-    /// no O against 0, no I or 1, no S against 5.</summary>
-    private const string RefAlphabet = "ABCDEFGHJKLMNPQRTUVWXYZ2346789";
-
     private static readonly Regex RefPattern =
         new(@"\b([ABCDEFGHJKLMNPQRTUVWXYZ2346789]{6})\b", RegexOptions.Compiled);
 
@@ -1210,23 +1206,9 @@ public class StoreMailService(
             ? []
             : RefPattern.Matches(Strip(text)).Select(m => m.Groups[1].Value);
 
-    private async Task<string> NewReferenceAsync(AppDbContext db, CancellationToken ct)
-    {
-        var used = await db.TrackedOrders.Where(o => o.OrderRef != "")
-            .Select(o => o.OrderRef).Distinct().ToListAsync(ct);
-        var taken = used.ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        for (var attempt = 0; attempt < 50; attempt++)
-        {
-            var candidate = string.Concat(Enumerable.Range(0, 6)
-                .Select(_ => RefAlphabet[Random.Shared.Next(RefAlphabet.Length)]));
-            if (taken.Add(candidate)) return candidate;
-        }
-
-        // Every attempt collided, which at thirty characters to the sixth power means something
-        // is wrong rather than unlucky. A timestamp is ugly but unique and keeps the order.
-        return "T" + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()[^5..];
-    }
+    // Codes come from OrderReference, shared with orders entered by hand — they draw from one
+    // pool because a buyer quoting a code is answered by a lookup that knows nothing about which
+    // shop, or whether a shop was involved at all.
     /// <summary>
     /// A link the buyer dragged into the mail.
     ///

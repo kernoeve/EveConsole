@@ -118,6 +118,9 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
+        <!-- Shared by every row of one order, so several rows repeating a code is a multi-item
+             order rather than a duplicate. -->
+        <DataGridTextColumn Header="Order #" Binding="{Binding OrderRef}" Width="90" />
         <!-- Blank means entered by hand rather than taken by mail. -->
         <DataGridTextColumn Header="Store" Binding="{Binding Store}" Width="130" />
         <!-- Blank means the buyer, not "unknown": a contract with nobody named goes to whoever
