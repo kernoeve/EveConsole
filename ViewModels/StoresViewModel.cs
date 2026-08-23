@@ -91,6 +91,7 @@ public class StoresViewModel : ReactiveObject
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly SalePostingService              _postings;
     private readonly StoreMailService                _storeMail;
+    private readonly OrderLabelService               _labels;
     private readonly AppErrorLogger                  _errorLogger;
 
     public ObservableCollection<StoreRowVm>       Stores  { get; } = [];
@@ -117,11 +118,13 @@ public class StoresViewModel : ReactiveObject
         IDbContextFactory<AppDbContext> dbFactory,
         SalePostingService              postings,
         StoreMailService                storeMail,
+        OrderLabelService               labels,
         AppErrorLogger                  errorLogger)
     {
         _dbFactory   = dbFactory;
         _postings    = postings;
         _storeMail   = storeMail;
+        _labels      = labels;
         _errorLogger = errorLogger;
 
         AddStoreCommand    = ReactiveCommand.CreateFromTask(AddStoreAsync);
@@ -226,6 +229,12 @@ public class StoresViewModel : ReactiveObject
             });
         }
     }
+
+    private readonly ObservableCollection<string> _knownLabels = [];
+
+    /// <summary>What the label box offers: every label already in use anywhere, plus the ones
+    /// other stores are set to apply.</summary>
+    public ObservableCollection<string> KnownLabels => _knownLabels;
 
     private string _storeOrderLabels = "";
     public string StoreOrderLabels
@@ -413,6 +422,12 @@ public class StoresViewModel : ReactiveObject
             var stores = await db.Stores.AsNoTracking()
                 .Where(s => !s.IsDeleted)
                 .OrderBy(s => s.Name).ToListAsync();
+
+            // Offered in the label box below. Loaded here rather than on demand because this list
+            // barely changes and the box needs it the moment a store is selected.
+            var known = await _labels.AllAsync();
+            _knownLabels.Clear();
+            foreach (var label in known) _knownLabels.Add(label);
 
             // Only characters we hold a token for: a shop's address has to be a mailbox we can
             // read and send from, and one we cannot is a store that silently never answers.

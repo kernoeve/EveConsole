@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive;
 using System.Reactive.Linq;
+using EveConsole.Controls;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
@@ -124,10 +125,17 @@ public class TrackedOrderRowVm
     /// <summary>Tags on this order, for display and for filtering.</summary>
     public IReadOnlyList<string> LabelList { get; private set; } = [];
 
+    /// <summary>The same labels as coloured chips, so the grid draws them like the editor does.</summary>
+    public List<LabelChip> LabelChips { get; private set; } = [];
+
     /// <summary>The column's text — the tags, comma-separated.</summary>
     public string Labels => string.Join(", ", LabelList);
 
-    public void SetLabels(IReadOnlyList<string> labels) => LabelList = labels;
+    public void SetLabels(IReadOnlyList<string> labels)
+    {
+        LabelList  = labels;
+        LabelChips = LabelPalette.Chips(labels);
+    }
 
     public TrackedOrderRowVm(TrackedOrder o, string typeName, double? buildCost,
                              string storeName = "",

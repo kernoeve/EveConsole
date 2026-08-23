@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
+using Avalonia.Data;
 using Avalonia.Media;
 using EveConsole.Services;
 
@@ -20,9 +21,37 @@ namespace EveConsole.Controls;
 /// </summary>
 public partial class LabelsBox : UserControl
 {
-    private readonly List<string> _labels = [];
-    private List<string>          _known  = [];
+    private readonly List<string> _labels  = [];
+    private List<string>          _known   = [];
     private readonly TextBox      _entry;
+    private bool                  _syncing;
+
+    /// <summary>
+    /// The labels as one comma-separated string, for callers that bind rather than call.
+    ///
+    /// <para>Two-way: typing in the box writes back through it. Comma-separated because that is
+    /// how a store stores its own labels — the box is an editor for that setting, not a new
+    /// shape for it.</para>
+    /// </summary>
+    public static readonly StyledProperty<string> LabelsTextProperty =
+        AvaloniaProperty.Register<LabelsBox, string>(
+            nameof(LabelsText), "", defaultBindingMode: BindingMode.TwoWay);
+
+    public string LabelsText
+    {
+        get => GetValue(LabelsTextProperty);
+        set => SetValue(LabelsTextProperty, value);
+    }
+
+    /// <summary>What the suggestion list offers, for callers that bind rather than call.</summary>
+    public static readonly StyledProperty<IEnumerable<string>?> KnownLabelsProperty =
+        AvaloniaProperty.Register<LabelsBox, IEnumerable<string>?>(nameof(KnownLabels));
+
+    public IEnumerable<string>? KnownLabels
+    {
+        get => GetValue(KnownLabelsProperty);
+        set => SetValue(KnownLabelsProperty, value);
+    }
 
     public LabelsBox()
     {
@@ -82,6 +111,27 @@ public partial class LabelsBox : UserControl
             if (!_labels.Contains(label, StringComparer.OrdinalIgnoreCase))
                 _labels.Add(label);
         Rebuild();
+        Publish();
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == KnownLabelsProperty)
+            SetKnown(change.GetNewValue<IEnumerable<string>?>() ?? []);
+
+        // ⚠️ Guarded, because Publish writes this property back. Without the guard, adding a chip
+        // would re-enter SetLabels and rebuild the box mid-keystroke.
+        else if (change.Property == LabelsTextProperty && !_syncing)
+            SetLabels(OrderLabelService.Split(change.GetNewValue<string>()));
+    }
+
+    private void Publish()
+    {
+        _syncing = true;
+        try { SetValue(LabelsTextProperty, string.Join(", ", _labels)); }
+        finally { _syncing = false; }
     }
 
     private void OnFramePressed(object? sender, PointerPressedEventArgs e)
@@ -107,6 +157,7 @@ public partial class LabelsBox : UserControl
             case Key.Back when string.IsNullOrEmpty(_entry.Text) && _labels.Count > 0:
                 _labels.RemoveAt(_labels.Count - 1);
                 Rebuild();
+                Publish();
                 e.Handled = true;
                 break;
 
@@ -146,6 +197,7 @@ public partial class LabelsBox : UserControl
             _known.Sort(StringComparer.OrdinalIgnoreCase);
         }
         Rebuild();
+        Publish();
     }
 
     private void RefreshSuggestions()
@@ -185,11 +237,14 @@ public partial class LabelsBox : UserControl
 
         foreach (var label in _labels)
         {
+            // Colour comes from the text, so the same tag looks the same here as in the grid.
+            var chip = LabelPalette.Chip(label);
+
             var text = new TextBlock
             {
                 Text              = label,
                 FontSize          = 11,
-                Foreground        = Brush.Parse("#c8c8d8"),
+                Foreground        = chip.Ink,
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
@@ -201,7 +256,8 @@ public partial class LabelsBox : UserControl
                 Margin            = new Thickness(3, 0, -2, 0),
                 Background        = Brushes.Transparent,
                 BorderThickness   = new Thickness(0),
-                Foreground        = Brush.Parse("#777788"),
+                Foreground        = chip.Ink,
+                Opacity           = 0.7,
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
@@ -210,12 +266,13 @@ public partial class LabelsBox : UserControl
             {
                 _labels.RemoveAll(l => string.Equals(l, captured, StringComparison.OrdinalIgnoreCase));
                 Rebuild();
+                Publish();
             };
 
             Host.Children.Add(new Border
             {
-                Background      = Brush.Parse("#1a2030"),
-                BorderBrush     = Brush.Parse("#3a4a6a"),
+                Background      = chip.Fill,
+                BorderBrush     = chip.Stroke,
                 BorderThickness = new Thickness(1),
                 CornerRadius    = new CornerRadius(2),
                 Padding         = new Thickness(6, 1),

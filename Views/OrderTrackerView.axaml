@@ -136,7 +136,29 @@
         <!-- Shared by every row of one order, so several rows repeating a code is a multi-item
              order rather than a duplicate. -->
         <DataGridTextColumn Header="Order #" Binding="{Binding OrderRef}" Width="90" />
-        <DataGridTextColumn Header="Labels"  Binding="{Binding Labels}"   Width="180" />
+        <!-- Chips rather than a comma-separated string: colour is what makes a column of tags
+             readable at a glance, which is the only reason to have the column at all. Read-only
+             here — labels are added by right-click or in the edit window. -->
+        <DataGridTemplateColumn Header="Labels" Width="180">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <ItemsControl ItemsSource="{Binding LabelChips}" Margin="0 2" VerticalAlignment="Center">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Background="{Binding Fill}" BorderBrush="{Binding Stroke}"
+                            BorderThickness="1" CornerRadius="2" Padding="5 0"
+                            Margin="0 1 3 1" ToolTip.Tip="{Binding Text}">
+                      <TextBlock Text="{Binding Text}" FontSize="10" Foreground="{Binding Ink}" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <!-- Blank means entered by hand rather than taken by mail. -->
         <DataGridTextColumn Header="Store" Binding="{Binding Store}" Width="130" />
         <!-- Blank means the buyer, not "unknown": a contract with nobody named goes to whoever
