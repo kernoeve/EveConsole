@@ -4,8 +4,12 @@
 
   <Grid ColumnDefinitions="*,Auto">
 
-    <TextBox x:Name="HexBox" Grid.Column="0"
-             Watermark="#rrggbb — blank for none"
+    <!-- ⚠️ MinWidth, not just a star column. Three of these sit side by side in the posting
+         dialog's by-state row, and a star column divides whatever is left — which was less than
+         a seven-character hex value needs, so every one of them showed a truncated colour. The
+         floor keeps the value readable however the dialog is squeezed. -->
+    <TextBox x:Name="HexBox" Grid.Column="0" MinWidth="92"
+             Watermark="#rrggbb"
              Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
              CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
              FontSize="12" Padding="8 5" />

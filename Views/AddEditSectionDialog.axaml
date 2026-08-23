@@ -3,7 +3,7 @@
         xmlns:controls="using:EveConsole.Controls"
         x:Class="EveConsole.Views.AddEditSectionDialog"
         Title="Section"
-        Width="470" Height="660"
+        Width="540" Height="660"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
         Background="#0d0d12">

@@ -3,7 +3,7 @@
         xmlns:controls="using:EveConsole.Controls"
         x:Class="EveConsole.Views.AddEditPostingDialog"
         Title="Posting"
-        Width="480" Height="720"
+        Width="560" Height="720"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
         Background="#0d0d12">
