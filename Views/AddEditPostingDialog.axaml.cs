@@ -84,6 +84,10 @@ public partial class AddEditPostingDialog : Window
             ShowReservedBox.IsChecked     = existing.ShowReserved;
             IncludeCompletionBox.IsChecked = existing.IncludeCompletionDate;
             OnlyPackagedBox.IsChecked     = existing.OnlyPackaged;
+            ColorByStateBox.IsChecked     = existing.ColorByState;
+            ColorInStockBox.Text          = existing.ColorInStock;
+            ColorInBuildBox.Text          = existing.ColorInBuild;
+            ColorNoneBox.Text             = existing.ColorNone;
         }
 
         _loaded = true;
@@ -177,7 +181,21 @@ public partial class AddEditPostingDialog : Window
             ShowReservedBox.IsChecked == true,
             IncludeCompletionBox.IsChecked == true,
             OnlyPackagedBox.IsChecked == true,
+            ColorByStateBox.IsChecked == true,
+            Hex(ColorInStockBox.Text, "#4a9a5a"),
+            Hex(ColorInBuildBox.Text, "#c8a84b"),
+            Hex(ColorNoneBox.Text,    "#888899"),
             _postsVm.ToDrafts()));
+    }
+
+    /// <summary>A hex colour, or the default when the box is empty or not one.</summary>
+    private static string Hex(string? text, string fallback)
+    {
+        var s = (text ?? "").Trim();
+        if (s.Length == 0) return fallback;
+        if (!s.StartsWith('#')) s = "#" + s;
+        return System.Text.RegularExpressions.Regex.IsMatch(s, "^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$")
+            ? s : fallback;
     }
 
     private void OnCancelClick(object? sender, RoutedEventArgs e) => Close(null);

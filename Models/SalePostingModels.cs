@@ -39,6 +39,29 @@ public class SalePosting
     // When set, only packaged (non-singleton) assets count toward In Stock — assembled/fitted
     // hulls are skipped, so your personal ships don't show as sale stock.
     public bool OnlyPackaged { get; set; }
+
+    // ── Colour ────────────────────────────────────────────────────────────────
+    //
+    // ⚠️ Only EVE mail shows any of this. Slack, Discord and the rest have no colour in a
+    // message, so their output is identical whether these are set or not — see OutputFormat,
+    // where colour is a capability a format either has or does not.
+
+    /// <summary>
+    /// Colour each item line by what it says: on the shelf, being built, or neither.
+    ///
+    /// <para>The one colour rule that stays right without upkeep — stock moves, and a line
+    /// coloured by hand goes stale the moment it does.</para>
+    /// </summary>
+    public bool   ColorByState { get; set; }
+
+    /// <summary>Something to sell now.</summary>
+    public string ColorInStock { get; set; } = "#4a9a5a";
+
+    /// <summary>Nothing on the shelf but a job running.</summary>
+    public string ColorInBuild { get; set; } = "#c8a84b";
+
+    /// <summary>Neither — a build-to-order line.</summary>
+    public string ColorNone    { get; set; } = "#888899";
 }
 
 public class SalePostingSection
@@ -66,6 +89,14 @@ public class SalePostingSection
 
     public bool   OverrideOnlyPackaged { get; set; }
     public bool   OnlyPackaged         { get; set; }
+
+    /// <summary>
+    /// Colour for this section's heading and, unless overridden, its items. Empty for none.
+    ///
+    /// <para>Held as the six-digit hex a person types. The alpha EVE needs is added at render
+    /// time, because a colour picked here is a colour, not an EVE encoding detail.</para>
+    /// </summary>
+    public string Color { get; set; } = "";
 }
 
 // A post block within a posting. The first (Ordinal 0) is the parent; the rest are supporting
@@ -97,4 +128,8 @@ public class SalePostingItem
     public int? InStockOverride  { get; set; }
     public int? InBuildOverride  { get; set; }
     public int? ReservedOverride { get; set; }
+
+    /// <summary>Colour for this one line, beating both the section's and the by-state rule.
+    /// Empty for none.</summary>
+    public string Color { get; set; } = "";
 }

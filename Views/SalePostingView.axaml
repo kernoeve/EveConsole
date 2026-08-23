@@ -266,6 +266,19 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
+        <!-- COLOUR — six-digit hex, EVE mail only. Blank falls back to the section's colour, or
+             to whatever the by-state rule says if the posting has one. -->
+        <DataGridTemplateColumn Header="COLOUR" Width="90" MinWidth="70">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBox x:CompileBindings="False" Classes="cell"
+                       IsVisible="{Binding IsItem}"
+                       Watermark="#rrggbb"
+                       Text="{Binding ColorHex, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
         <!-- IN STOCK -->
         <DataGridTemplateColumn Header="IN STOCK" Width="80" MinWidth="70" IsReadOnly="True">
           <DataGridTemplateColumn.CellTemplate>

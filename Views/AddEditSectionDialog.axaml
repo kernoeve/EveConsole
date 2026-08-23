@@ -31,6 +31,17 @@
                    CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b" FontSize="12" Padding="8 5" />
         </StackPanel>
 
+        <!-- Colour (EVE mail only) -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="SECTION COLOUR  (EVE mail only — six-digit hex)" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <TextBox x:Name="ColorBox" Watermark="e.g. #c8a84b — blank for none"
+                   Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                   CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b" FontSize="12" Padding="8 5" />
+          <TextBlock Text="Colours the heading, and the items under it unless they set their own."
+                     FontSize="10" Foreground="#555566" TextWrapping="Wrap" />
+        </StackPanel>
+
         <Rectangle Height="1" Fill="#1e1e2a" />
 
         <!-- Scope override -->

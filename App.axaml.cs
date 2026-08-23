@@ -452,7 +452,11 @@ public class App : Application
                     "ShowInBuild"       INTEGER NOT NULL DEFAULT 1,
                     "ShowReserved"      INTEGER NOT NULL DEFAULT 1,
                     "IncludeCompletionDate" INTEGER NOT NULL DEFAULT 0,
-                    "OnlyPackaged"      INTEGER NOT NULL DEFAULT 0
+                    "OnlyPackaged"      INTEGER NOT NULL DEFAULT 0,
+                    "ColorByState"      INTEGER NOT NULL DEFAULT 0,
+                    "ColorInStock"      TEXT    NOT NULL DEFAULT '#4a9a5a',
+                    "ColorInBuild"      TEXT    NOT NULL DEFAULT '#c8a84b',
+                    "ColorNone"         TEXT    NOT NULL DEFAULT '#888899'
                 )
                 """);
             // Existing installs created before the Market-basis reworked to station pricing.
@@ -461,6 +465,15 @@ public class App : Application
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "MarketPriceType" TEXT NOT NULL DEFAULT 'Sell'"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "IncludeCompletionDate" INTEGER NOT NULL DEFAULT 0"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "OnlyPackaged" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+
+            // Colour, which only EVE mail shows. ⚠️ In the CREATEs above as well as here — the
+            // CREATE runs only where the table has never existed, and the ALTER only where it has.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorByState" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorInStock" TEXT NOT NULL DEFAULT '#4a9a5a'"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorInBuild" TEXT NOT NULL DEFAULT '#c8a84b'"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorNone" TEXT NOT NULL DEFAULT '#888899'"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingSections" ADD COLUMN "Color" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingItems" ADD COLUMN "Color" TEXT NOT NULL DEFAULT ''"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "SalePostingSections" (
                     "Id"                INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -478,7 +491,8 @@ public class App : Application
                     "MarketStationName" TEXT    NOT NULL DEFAULT '',
                     "MarketPriceType"   TEXT    NOT NULL DEFAULT 'Sell',
                     "OverrideOnlyPackaged" INTEGER NOT NULL DEFAULT 0,
-                    "OnlyPackaged"      INTEGER NOT NULL DEFAULT 0
+                    "OnlyPackaged"      INTEGER NOT NULL DEFAULT 0,
+                    "Color"             TEXT    NOT NULL DEFAULT ''
                 )
                 """);
             // Existing installs created before section-level overrides.
@@ -506,7 +520,8 @@ public class App : Application
                     "NamePrefix"       TEXT,
                     "InStockOverride"  INTEGER,
                     "InBuildOverride"  INTEGER,
-                    "ReservedOverride" INTEGER
+                    "ReservedOverride" INTEGER,
+                    "Color"            TEXT    NOT NULL DEFAULT ''
                 )
                 """);
             db.Database.ExecuteSqlRaw("""

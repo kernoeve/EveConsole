@@ -50,6 +50,7 @@ public partial class AddEditSectionDialog : Window
         {
             NameBox.Text   = existing.Name;
             PrefixBox.Text = existing.Prefix;
+            ColorBox.Text  = existing.Color;
 
             OverrideScopeBox.IsChecked = existing.OverrideScope;
             ScopePanel.IsVisible       = existing.OverrideScope;
@@ -151,6 +152,7 @@ public partial class AddEditSectionDialog : Window
         Close(new SectionDialogResult(
             name,
             PrefixBox.Text?.Trim() ?? "",
+            ColorBox.Text?.Trim() ?? "",
             ovScope,
             scope,
             ovScope && scope != "Everywhere" ? _selectedLocationId : null,

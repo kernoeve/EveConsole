@@ -131,6 +131,36 @@
 
         <Rectangle Height="1" Fill="#1e1e2a" />
 
+        <!-- Colour by state (EVE mail only) -->
+        <StackPanel Spacing="6">
+          <TextBlock Text="COLOUR  (EVE mail only — other formats ignore it)" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <CheckBox x:Name="ColorByStateBox"
+                    Content="Colour each item line by whether it is in stock, in build, or neither"
+                    Foreground="#c8c8d8" FontSize="12" />
+          <Grid ColumnDefinitions="Auto,*,Auto,*,Auto,*" Margin="0 2 0 0">
+            <TextBlock Grid.Column="0" Text="In stock" FontSize="11" Foreground="#888899"
+                       VerticalAlignment="Center" Margin="0 0 6 0" />
+            <TextBox Grid.Column="1" x:Name="ColorInStockBox" Watermark="#4a9a5a"
+                     Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                     CornerRadius="3" Foreground="#e8e8f0" FontSize="12" Padding="6 4" />
+            <TextBlock Grid.Column="2" Text="In build" FontSize="11" Foreground="#888899"
+                       VerticalAlignment="Center" Margin="10 0 6 0" />
+            <TextBox Grid.Column="3" x:Name="ColorInBuildBox" Watermark="#c8a84b"
+                     Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                     CornerRadius="3" Foreground="#e8e8f0" FontSize="12" Padding="6 4" />
+            <TextBlock Grid.Column="4" Text="Neither" FontSize="11" Foreground="#888899"
+                       VerticalAlignment="Center" Margin="10 0 6 0" />
+            <TextBox Grid.Column="5" x:Name="ColorNoneBox" Watermark="#888899"
+                     Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
+                     CornerRadius="3" Foreground="#e8e8f0" FontSize="12" Padding="6 4" />
+          </Grid>
+          <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                     Text="A colour set on an item beats this; a section's colour applies where neither is set. In header, footer and static text, write [color=#rrggbb]text[/color] — every other format strips it." />
+        </StackPanel>
+
+        <Rectangle Height="1" Fill="#1e1e2a" />
+
         <!-- Post blocks -->
         <StackPanel Spacing="6">
           <Grid ColumnDefinitions="*,Auto">

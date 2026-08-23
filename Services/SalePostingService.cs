@@ -61,6 +61,10 @@ public class SalePostingService(
             ShowReserved      = r.ShowReserved,
             IncludeCompletionDate = r.IncludeCompletionDate,
             OnlyPackaged      = r.OnlyPackaged,
+            ColorByState      = r.ColorByState,
+            ColorInStock      = r.ColorInStock,
+            ColorInBuild      = r.ColorInBuild,
+            ColorNone         = r.ColorNone,
         };
         db.SalePostings.Add(p);
         await db.SaveChangesAsync(ct);
@@ -86,6 +90,10 @@ public class SalePostingService(
         p.ShowReserved      = r.ShowReserved;
         p.IncludeCompletionDate = r.IncludeCompletionDate;
         p.OnlyPackaged      = r.OnlyPackaged;
+        p.ColorByState      = r.ColorByState;
+        p.ColorInStock      = r.ColorInStock;
+        p.ColorInBuild      = r.ColorInBuild;
+        p.ColorNone         = r.ColorNone;
         await db.SaveChangesAsync(ct);
     }
 
@@ -164,6 +172,7 @@ public class SalePostingService(
     {
         s.Name              = r.Name;
         s.Prefix            = r.Prefix;
+        s.Color             = r.Color;
         s.OverrideScope     = r.OverrideScope;
         s.Scope             = r.Scope;
         s.LocationId        = r.LocationId;
@@ -215,6 +224,15 @@ public class SalePostingService(
         await using var db = dbFactory.CreateDbContext();
         await db.SalePostingItems.Where(i => i.Id == itemId)
             .ExecuteUpdateAsync(u => u.SetProperty(i => i.NameOverride, value), ct);
+    }
+
+    public async Task UpdateItemColorAsync(int itemId, string? value, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        var item = await db.SalePostingItems.FirstOrDefaultAsync(i => i.Id == itemId, ct);
+        if (item is null) return;
+        item.Color = value ?? "";
+        await db.SaveChangesAsync(ct);
     }
 
     public async Task UpdateItemNamePrefixAsync(int itemId, string? value, CancellationToken ct = default)
@@ -314,7 +332,8 @@ public class SalePostingService(
 
     public sealed record PostingItemExportDto(
         int TypeId, string? NameOverride, string? NamePrefix,
-        int? InStockOverride, int? InBuildOverride, int? ReservedOverride);
+        int? InStockOverride, int? InBuildOverride, int? ReservedOverride,
+        string? Color = null);
 
     public sealed record PostingSectionExportDto(
         string Name, string Prefix,
@@ -322,7 +341,8 @@ public class SalePostingService(
         bool OverridePricing, string PricingBasis, double PricePercent,
         long? MarketStationId, string MarketStationName, string MarketPriceType,
         bool OverrideOnlyPackaged, bool OnlyPackaged,
-        List<PostingItemExportDto> Items);
+        List<PostingItemExportDto> Items,
+        string? Color = null);
 
     public sealed record PostingPostExportDto(
         int Ordinal, string PostType, string Name,
@@ -335,7 +355,13 @@ public class SalePostingService(
         bool ShowInStock, bool ShowInBuild, bool ShowReserved,
         bool IncludeCompletionDate, bool OnlyPackaged,
         List<PostingSectionExportDto> Sections,
-        List<PostingPostExportDto> Posts);
+        List<PostingPostExportDto> Posts,
+        // ⚠️ Defaulted, so a file written before colour existed still imports. Every field added
+        // here from now on has to be, or an older export becomes unreadable the day it is needed.
+        bool ColorByState = false,
+        string ColorInStock = "#4a9a5a",
+        string ColorInBuild = "#c8a84b",
+        string ColorNone    = "#888899");
 
     private static readonly JsonSerializerOptions ExportJson = new() { WriteIndented = true };
 
@@ -372,11 +398,13 @@ public class SalePostingService(
                 items.Where(i => i.SectionId == s.Id)
                      .Select(i => new PostingItemExportDto(
                          i.TypeId, i.NameOverride, i.NamePrefix,
-                         i.InStockOverride, i.InBuildOverride, i.ReservedOverride))
-                     .ToList()))
+                         i.InStockOverride, i.InBuildOverride, i.ReservedOverride, i.Color))
+                     .ToList(),
+                s.Color))
                 .ToList(),
             posts.Select(x => new PostingPostExportDto(
-                x.Ordinal, x.PostType, x.Name, x.StaticContent, x.Header, x.Footer)).ToList());
+                x.Ordinal, x.PostType, x.Name, x.StaticContent, x.Header, x.Footer)).ToList(),
+            p.ColorByState, p.ColorInStock, p.ColorInBuild, p.ColorNone);
 
         await JsonSerializer.SerializeAsync(stream, dto, ExportJson, ct);
     }
@@ -423,6 +451,10 @@ public class SalePostingService(
             ShowReserved          = dto.ShowReserved,
             IncludeCompletionDate = dto.IncludeCompletionDate,
             OnlyPackaged          = dto.OnlyPackaged,
+            ColorByState          = dto.ColorByState,
+            ColorInStock          = dto.ColorInStock,
+            ColorInBuild          = dto.ColorInBuild,
+            ColorNone             = dto.ColorNone,
         };
         db.SalePostings.Add(posting);
         await db.SaveChangesAsync(ct);
@@ -448,6 +480,7 @@ public class SalePostingService(
             MarketPriceType      = s.MarketPriceType,
             OverrideOnlyPackaged = s.OverrideOnlyPackaged,
             OnlyPackaged         = s.OnlyPackaged,
+            Color                = s.Color ?? "",
         }).ToList();
 
         db.SalePostingSections.AddRange(sections);
@@ -465,6 +498,7 @@ public class SalePostingService(
                     InStockOverride  = it.InStockOverride,
                     InBuildOverride  = it.InBuildOverride,
                     ReservedOverride = it.ReservedOverride,
+                    Color            = it.Color ?? "",
                 });
         db.SalePostingItems.AddRange(items);
 
@@ -514,7 +548,7 @@ public class SalePostingService(
                 .Where(i => i.SectionId == section.Id).ToListAsync(ct);
             if (items.Count == 0)
             {
-                views.Add(new PostingSectionView(section.Name, section.Prefix, []));
+                views.Add(new PostingSectionView(section.Name, section.Prefix, section.Color, []));
                 continue;
             }
 
@@ -530,7 +564,7 @@ public class SalePostingService(
                     return new PostingItemView(
                         i.TypeId,
                         c?.Name ?? $"Type {i.TypeId}",
-                        i.NameOverride, i.NamePrefix,
+                        i.NameOverride, i.NamePrefix, i.Color,
                         c?.InStock  ?? 0, c?.InBuild ?? 0, c?.Reserved ?? 0,
                         i.InStockOverride, i.InBuildOverride, i.ReservedOverride,
                         c?.SalePrice, c?.EarliestJobEnd);
@@ -538,12 +572,14 @@ public class SalePostingService(
                 .OrderBy(r => r.TypeName, StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-            views.Add(new PostingSectionView(section.Name, section.Prefix, rows));
+            views.Add(new PostingSectionView(section.Name, section.Prefix, section.Color, rows));
         }
 
         return new PostingView(
             posting.ShowInStock, posting.ShowInBuild, posting.ShowReserved,
-            posting.IncludeCompletionDate, views);
+            posting.IncludeCompletionDate,
+            posting.ColorByState, posting.ColorInStock, posting.ColorInBuild, posting.ColorNone,
+            views);
     }
 
     /// <summary>

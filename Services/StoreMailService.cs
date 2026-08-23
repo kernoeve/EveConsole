@@ -155,7 +155,7 @@ public class StoreMailService(
             var sb = new StringBuilder();
             sb.Append("Order <b>").Append(group.Key.OrderRef).Append("</b> — update<br><br>");
             foreach (var o in lines)
-                sb.Append(o.Units.ToString("N0")).Append(" &#215; ")
+                sb.Append(o.Units.ToString("N0")).Append(" × ")
                   .Append("<a href=\"showinfo:").Append(o.TypeId).Append("\">")
                   .Append(Esc(names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"))).Append("</a>")
                   .Append(" — ").Append(Describe(o)).Append("<br>");
@@ -371,11 +371,10 @@ public class StoreMailService(
         "The easiest way is to <b>drag the item</b> into the mail — from this price list, from " +
         "the market, from your hangar. Then put the quantity beside it if you want more than " +
         "one:<br>" +
-        "&#160;&#160;&#160;[Archon] x2<br>" +
-        "&#160;&#160;&#160;[Nidhoggur]<br>" +
+        Ind + "[Archon] x2<br>" +
+        Ind + "[Nidhoggur]<br>" +
         "Typing the name works too, in any of these forms:<br>" +
-        "&#160;&#160;&#160;Archon x2&#160;&#160;·&#160;&#160;Archon 2&#160;&#160;·&#160;&#160;" +
-        "2 x Archon&#160;&#160;·&#160;&#160;Archon<br><br>" +
+        Ind + "Archon x2   ·   Archon 2   ·   2 x Archon   ·   Archon<br><br>" +
 
         "<b>Contracting to someone else?</b> Drag that character or corporation into the body " +
         "anywhere and the contract will be made out to them instead of you.<br><br>" +
@@ -556,9 +555,19 @@ public class StoreMailService(
         catch (OperationCanceledException) { throw; }
         catch (Exception ex) { errorLogger.Log(nameof(StoreMailService), "fulfilment after order", ex); }
 
-        var settled = await db.TrackedOrders.AsNoTracking()
+        var settled = await db.TrackedOrders
             .Where(o => o.OrderRef == reference)
             .ToListAsync(ct);
+
+        // ⚠️ Marked as told with what the confirmation is ABOUT to say, not with what was true a
+        // moment ago. NotifiedState was being stamped at creation, before the fulfilment pass
+        // ran — so an order filled from stock had its confirmation say "in stock and reserved",
+        // and then the update sweep found the row disagreeing with the marker and sent a second
+        // mail a minute later saying "ready now". Two mails, one event, and the second one added
+        // nothing.
+        foreach (var o in settled) o.NotifiedState = StateOf(o);
+        await db.SaveChangesAsync(ct);
+        db.ChangeTracker.Clear();
 
         var byType = settled.ToDictionary(o => o.TypeId);
 
@@ -569,10 +578,10 @@ public class StoreMailService(
 
         foreach (var (item, units) in parsed.Lines)
         {
-            sb.Append(units.ToString("N0")).Append(" &#215; ")
+            sb.Append(units.ToString("N0")).Append(" × ")
               .Append(Link(item)).Append(" — ")
               .Append(Isk((item.SalePrice ?? 0) * units)).Append("<br>")
-              .Append("&#160;&#160;&#160;")
+              .Append(Ind)
               .Append(Expect(byType.GetValueOrDefault(item.TypeId)))
               .Append("<br>");
         }
@@ -638,7 +647,7 @@ public class StoreMailService(
                 sb.Append("<b>").Append(group.Key).Append("</b><br>");
 
             foreach (var o in group)
-                sb.Append(o.Units.ToString("N0")).Append(" &#215; ")
+                sb.Append(o.Units.ToString("N0")).Append(" × ")
                   .Append("<a href=\"showinfo:").Append(o.TypeId).Append("\">")
                   .Append(Esc(names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"))).Append("</a>")
                   .Append(" — ").Append(Describe(o)).Append("<br>");
@@ -680,11 +689,13 @@ public class StoreMailService(
         _ => o.EstimatedDate is { Length: > 0 } d
                 ? o.FulfilmentSource switch
                 {
-                    "stock" => $"ready now (expected {d})",
+                    "stock" => "ready now — it will be contracted shortly",
                     "job"   => $"in production, expected {d}",
                     _       => $"expected {d}",
                 }
-                : o.FulfilmentSource == "stock" ? "ready now" : "waiting on materials",
+                : o.FulfilmentSource == "stock"
+                    ? "ready now — it will be contracted shortly"
+                    : "waiting on materials",
     };
 
     // ── CANCEL ────────────────────────────────────────────────────────────────
@@ -1065,7 +1076,28 @@ public class StoreMailService(
         s = Tags.Replace(s, "");
         return Decode(s).Replace("\r\n", "\n").Replace('\r', '\n');
     }
-    private static string Esc(string s) => System.Net.WebUtility.HtmlEncode(s);
+    /// <summary>
+    /// A name made safe to drop into a mail body.
+    ///
+    /// <para>⚠️ Angle brackets removed rather than entity-encoded, and nothing else touched.
+    /// EVE's mail renderer does not decode HTML entities — it draws them — so HtmlEncode turned
+    /// an ampersand in a corporation name into a literal "&amp;amp;" in front of the buyer, and
+    /// the same mistake made the usage text's indentation appear as "&amp;nbsp;". The only
+    /// characters that must not survive are the two that would be read as markup, and EVE type
+    /// names contain neither.</para>
+    /// </summary>
+    private static string Esc(string s) => s.Replace("<", "").Replace(">", "");
+
+    /// <summary>
+    /// An indent that survives.
+    ///
+    /// <para>⚠️ Real non-breaking-space CHARACTERS, not <c>&amp;nbsp;</c> and not
+    /// <c>&amp;#160;</c>. EVE's mail renderer does not decode entities — it draws them, so both
+    /// spellings appeared verbatim in front of buyers. Ordinary spaces would decode fine but
+    /// collapse, since the body really is HTML. A literal U+00A0 is neither decoded nor
+    /// collapsed.</para>
+    /// </summary>
+    private const string Ind = "   ";
 
     private static string Link(PostingItemView item) =>
         $"<a href=\"showinfo:{item.TypeId}\">{Esc(item.NameOverride is { Length: > 0 } n ? n : item.TypeName)}</a>";

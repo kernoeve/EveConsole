@@ -39,7 +39,7 @@ public class RenderedBlock
 }
 
 public record SectionDialogResult(
-    string Name, string Prefix,
+    string Name, string Prefix, string Color,
     bool OverrideScope, string Scope, long? LocationId, string LocationName,
     bool OverridePricing, string PricingBasis, double PricePercent,
     long? MarketStationId, string MarketStationName, string MarketPriceType,
@@ -50,7 +50,9 @@ public record PostingDialogResult(
     string PricingBasis, double PricePercent,
     long? MarketStationId, string MarketStationName, string MarketPriceType,
     bool ShowInStock, bool ShowInBuild, bool ShowReserved, bool IncludeCompletionDate,
-    bool OnlyPackaged, IReadOnlyList<PostBlockDraft> Posts);
+    bool OnlyPackaged,
+    bool ColorByState, string ColorInStock, string ColorInBuild, string ColorNone,
+    IReadOnlyList<PostBlockDraft> Posts);
 
 // ── Shared display helpers ──────────────────────────────────────────────────────
 internal static class SalePostFmt
@@ -119,7 +121,23 @@ internal sealed class OutputFormat
 
     public string Bold(string s) => _bold(s);
     public string Underline(string s) => _underline(s);
-    public string Finalize(string s) => _finalize(s);
+    /// <summary>
+    /// ⚠️ Colour markup is resolved here, for every format, before its own finalizer runs.
+    ///
+    /// <para>Header, footer and Static blocks are free text the user writes, so colour in them
+    /// cannot be a render-time capability the way a section's or an item's is — there is nothing
+    /// to call it on. It has to be a marker in the text: <c>[color=#ff9900]…[/color]</c>.</para>
+    ///
+    /// <para>Doing it in Finalize rather than at the call sites is what makes it safe. The
+    /// &lt;u&gt; marker took the other route and has to be stripped explicitly where Slack is
+    /// copied; anything that forgets prints raw tags at the reader. Here a format without colour
+    /// returns the inner text, so the markup disappears whether anyone remembered it or not.</para>
+    /// </summary>
+    private static readonly Regex ColorTag = new(
+        @"\[color=(#?[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?)\](.*?)\[/color\]",
+        RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+
+    public string Finalize(string s) => _finalize(ColorTag.Replace(s, m => Color(m.Groups[1].Value, m.Groups[2].Value)));
     public List<DisplaySeg> ToDisplay(string s) => _toDisplay(s);
 
     /// <summary>The name, linked to its type where the format supports it.</summary>
@@ -655,6 +673,7 @@ public class SalePostingItemRow : ReactiveObject
         TypeName        = typeName;
         _nameOverride   = model.NameOverride;
         _namePrefix     = model.NamePrefix;
+        _color          = string.IsNullOrWhiteSpace(model.Color) ? null : model.Color;
         _inStockOverride  = model.InStockOverride;
         _inBuildOverride  = model.InBuildOverride;
         _reservedOverride = model.ReservedOverride;
@@ -671,6 +690,23 @@ public class SalePostingItemRow : ReactiveObject
             if (v == _nameOverride) return;
             this.RaiseAndSetIfChanged(ref _nameOverride, v);
             _ = _svc.UpdateItemNameOverrideAsync(ItemId, v);
+        }
+    }
+
+    /// <summary>
+    /// Colour for this line, as a six-digit hex. Empty means the section's colour, or whatever
+    /// the by-state rule says.
+    /// </summary>
+    private string? _color;
+    public string? ColorHex
+    {
+        get => _color;
+        set
+        {
+            var v = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            if (v == _color) return;
+            this.RaiseAndSetIfChanged(ref _color, v);
+            _ = _svc.UpdateItemColorAsync(ItemId, v);
         }
     }
 
@@ -755,7 +791,7 @@ public class SalePostingItemRow : ReactiveObject
 
     /// <summary>This row as plain data for <see cref="SalePostingRenderer"/>.</summary>
     internal PostingItemView ToView() => new(
-        TypeId, TypeName, _nameOverride, _namePrefix,
+        TypeId, TypeName, _nameOverride, _namePrefix, _color,
         _inStock, _inBuild, _reserved,
         _inStockOverride, _inBuildOverride, _reservedOverride,
         _salePrice, _earliestJobEnd);
@@ -1193,8 +1229,9 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         var m = pr.Model;
         return new PostingView(
             m.ShowInStock, m.ShowInBuild, m.ShowReserved, m.IncludeCompletionDate,
+            m.ColorByState, m.ColorInStock, m.ColorInBuild, m.ColorNone,
             pr.Sections.Select(s => new PostingSectionView(
-                s.SectionName, s.Model.Prefix,
+                s.SectionName, s.Model.Prefix, s.Model.Color,
                 s.AllItems.Select(i => i.ToView()).ToList())).ToList());
     }
 

@@ -36,6 +36,7 @@ public partial class SalePostingView : UserControl
                 m.Name, m.Scope, m.LocationId, m.LocationName,
                 m.PricingBasis, m.PricePercent, m.MarketStationId, m.MarketStationName, m.MarketPriceType,
                 m.ShowInStock, m.ShowInBuild, m.ShowReserved, m.IncludeCompletionDate, m.OnlyPackaged,
+                m.ColorByState, m.ColorInStock, m.ColorInBuild, m.ColorNone,
                 new List<PostBlockDraft>());
             var stations = await vm.GetMarketStationsAsync();
             var posts    = await vm.GetPostsAsync(row.PostingId);
@@ -55,7 +56,7 @@ public partial class SalePostingView : UserControl
         {
             var m = row.Model;
             var existing = new SectionDialogResult(
-                m.Name, m.Prefix,
+                m.Name, m.Prefix, m.Color,
                 m.OverrideScope, m.Scope, m.LocationId, m.LocationName,
                 m.OverridePricing, m.PricingBasis, m.PricePercent,
                 m.MarketStationId, m.MarketStationName, m.MarketPriceType,

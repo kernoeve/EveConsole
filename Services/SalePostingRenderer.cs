@@ -19,6 +19,7 @@ internal sealed record PostingItemView(
     string TypeName,
     string? NameOverride,
     string? NamePrefix,
+    string? Color,
     long InStock,
     long InBuild,
     long Reserved,
@@ -34,10 +35,14 @@ internal sealed record PostingItemView(
 }
 
 internal sealed record PostingSectionView(
-    string Name, string Prefix, IReadOnlyList<PostingItemView> Items);
+    string Name, string Prefix, string? Color, IReadOnlyList<PostingItemView> Items);
 
+/// <param name="ColorByState">Colour each item line by whether it is on the shelf, being built,
+/// or neither — the one colouring rule that cannot go stale, because stock moves and a colour set
+/// by hand does not move with it.</param>
 internal sealed record PostingView(
     bool ShowInStock, bool ShowInBuild, bool ShowReserved, bool IncludeCompletionDate,
+    bool ColorByState, string ColorInStock, string ColorInBuild, string ColorNone,
     IReadOnlyList<PostingSectionView> Sections);
 
 /// <summary>One post block, rendered.</summary>
@@ -101,14 +106,36 @@ internal static class SalePostingRenderer
         {
             // Bold and underlined, and no prefix: the prefix is a Summary device (a Slack icon
             // standing in for the section) and repeating it here would print the shortcode twice.
-            sb.AppendLine(fmt.Bold(fmt.Underline(s.Name)));
-            foreach (var it in s.Items) sb.AppendLine(ItemLine(it, v, fmt));
+            sb.AppendLine(fmt.Color(s.Color, fmt.Bold(fmt.Underline(s.Name))));
+            foreach (var it in s.Items) sb.AppendLine(ItemLine(it, v, fmt, s));
         }
         AppendBlock(sb, post.Footer);
         return sb.ToString().TrimEnd();
     }
 
-    private static string ItemLine(PostingItemView it, PostingView v, OutputFormat fmt)
+    /// <summary>
+    /// The colour for one item line, by precedence: the item's own, then what its state says,
+    /// then its section's.
+    ///
+    /// <para>⚠️ Most specific wins, and a colour set on the item is the most specific thing
+    /// anyone can say. The by-state rule sits under it rather than over it so that marking one
+    /// line by hand is not silently undone the next time stock moves — someone who coloured a
+    /// row meant that row.</para>
+    /// </summary>
+    private static string? ColorFor(PostingItemView it, PostingView v, PostingSectionView section)
+    {
+        if (!string.IsNullOrWhiteSpace(it.Color)) return it.Color;
+
+        if (v.ColorByState)
+            return it.EffectiveInStock > 0 ? v.ColorInStock
+                 : it.EffectiveInBuild > 0 ? v.ColorInBuild
+                 :                           v.ColorNone;
+
+        return section.Color;
+    }
+
+    private static string ItemLine(PostingItemView it, PostingView v, OutputFormat fmt,
+                                   PostingSectionView section)
     {
         // ⚠️ The prefix stays outside the link. It is a decoration — a chat icon shortcode in
         // practice — and wrapping it would make the clickable region include a token that is not
@@ -129,7 +156,10 @@ internal static class SalePostingRenderer
 
         var done = CompletionText(it, v.IncludeCompletionDate);
         if (done.Length > 0) sb.Append(" - ").Append(done);
-        return sb.ToString();
+
+        // The whole line, so the price and counts carry the colour too — a coloured name beside
+        // uncoloured numbers reads as a link rather than as a state.
+        return fmt.Color(ColorFor(it, v, section), sb.ToString());
     }
 
     /// <summary>
