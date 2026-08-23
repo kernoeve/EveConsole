@@ -2971,6 +2971,7 @@ public class App : Application
         services.AddSingleton<UiLinkSettings>();
         services.AddSingleton<DataRetentionService>();
         services.AddSingleton<OrderFulfilmentService>();
+        services.AddSingleton<MailBudget>();
         services.AddSingleton<StoreMailService>();
         services.AddSingleton<WalCheckpointService>();
         services.AddSingleton<TimerForceService>();

@@ -33,6 +33,7 @@ public class StoreMailService(
     EsiClient                       esi,
     SalePostingService              postings,
     OrderFulfilmentService          fulfilment,
+    MailBudget                      budget,
     AppErrorLogger                  errorLogger)
 {
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(1);
@@ -54,6 +55,13 @@ public class StoreMailService(
     /// well short of that.</para>
     /// </summary>
     private const int MaxAttempts = 3;
+
+    /// <summary>
+    /// What answering one mail costs against the rate limit: fetch its body, send the reply, mark
+    /// it read. All three are char-social, the same 600-per-15-minutes as everything else the
+    /// character's mail does.
+    /// </summary>
+    private const int CallsPerMail = 3;
 
     /// <summary>How long after sending someone the usage before it would be sent again.</summary>
     private static readonly TimeSpan HelpSilence = TimeSpan.FromHours(24);
@@ -181,6 +189,11 @@ public class StoreMailService(
         foreach (var group in changed.GroupBy(o => (o.OrderRef, o.BuyerId, o.Buyer))
                                      .Take(MaxRepliesPerPass))
         {
+            // Updates yield to the same ceiling. They are worth less than an answer to a direct
+            // question — nobody is waiting on one — so they stop first and resume when the
+            // allowance recovers, with the marker unadvanced so nothing is lost.
+            if (!budget.StoreMayUse(store.CharacterId, 1)) break;
+
             var lines = group.ToList();
 
             var sb = new StringBuilder();
@@ -259,6 +272,17 @@ public class StoreMailService(
             .ToDictionary(g => g.Key, g => g.ToList());
 
         var todo = fresh.Where(h => !Handled(h.MailId)).Take(MaxRepliesPerPass).ToList();
+
+        // ⚠️ Every mail costs three calls against char-social — read the body, send the reply,
+        // mark it read — and reading the inbox costs more on top. A mailbox anyone can write to
+        // is a mailbox anyone can flood, and without this a hundred junk mails would spend the
+        // character's whole allowance in minutes. What breaks then is not the shop but the
+        // character's mail itself, and anything else on that group.
+        if (todo.Count > 0 && !budget.StoreMayUse(store.CharacterId, todo.Count * CallsPerMail))
+        {
+            StatusText = $"Holding off — {budget.Describe(store.CharacterId)}.";
+            return 0;
+        }
 
         // Whether this mail is finished with, or may be looked at again.
         bool Handled(int mailId)

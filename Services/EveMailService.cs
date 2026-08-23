@@ -37,7 +37,8 @@ public sealed record EveMailResolvedRecipient(
     string Type  // "character" | "corporation" | "alliance"
 );
 
-public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient esi, AppErrorLogger errorLogger)
+public class EveMailService(
+    IDbContextFactory<AppDbContext> dbFactory, EsiClient esi, MailBudget budget, AppErrorLogger errorLogger)
 {
     // Uses raw ADO.NET so table creation is completely independent of EF's connection lifecycle.
     // Idempotent (CREATE TABLE IF NOT EXISTS) but only worth running once per process — the tables
@@ -119,6 +120,10 @@ public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient
 
     public async Task<PollingResult> FetchHeadersAsync(long charId, AppDbContext db, CancellationToken ct)
     {
+        // The ordinary poll counts too — same bucket. It is not throttled by this, only measured:
+        // a person's mail must keep syncing, and if anything has to give way it is the shop.
+        budget.Spend(charId);
+
         await EnsureTablesAsync(db);
         var r = await esi.ExecuteAuthAsync<List<EsiMailListEntry>>(
             charId, $"characters/{charId}/mail/", ct);
@@ -328,8 +333,14 @@ public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient
         var header = await db.EsiMailHeaders.FindAsync([mailId, charId], ct);
         if (header?.BodyFetched == true) return "";
 
+        // ⚠️ Counted, because it is the same bucket as sending. A body fetch looks like a read
+        // and therefore free, and it is neither: char-social pays for reading the mail AND for
+        // answering it, so a shop that answers a hundred mails spends two hundred calls.
+        budget.Spend(charId);
+
         var r = await esi.ExecuteAuthAsync<EsiMailDetail>(
             charId, $"characters/{charId}/mail/{mailId}/", ct);
+        budget.Observe(charId, r.RateLimitRemaining);
         if (!r.IsSuccess || r.Data is null) return "(could not load mail body)";
 
         var rawBody = r.Data.Body ?? "";
@@ -342,6 +353,7 @@ public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient
 
     public async Task<bool> MarkReadAsync(long charId, int mailId, CancellationToken ct = default)
     {
+        budget.Spend(charId);
         await esi.PutAuthAsync(charId, $"characters/{charId}/mail/{mailId}/",
             new { read = true }, ct);
 
@@ -372,8 +384,15 @@ public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient
             }).ToList(),
         };
 
-        var (statusCode, error) = await esi.PostAuthRawAsync(
+        // ⚠️ Recorded before the answer comes back. The token is spent when the request goes out,
+        // whatever ESI says about it — counting only successes would let a run of failures look
+        // free and keep the shop hammering a limit it had already reached.
+        budget.Spend(fromCharId);
+
+        var (statusCode, error, remaining) = await esi.PostAuthRawAsync(
             fromCharId, $"characters/{fromCharId}/mail/", payload, ct);
+
+        budget.Observe(fromCharId, remaining);
 
         return statusCode is >= 200 and < 300
             ? (true, null)

@@ -805,7 +805,7 @@ public class EsiClient
     /// <c>{"error": "..."}</c> naming the field. Discarding that turned a one-line diagnosis into
     /// an investigation — measured on the first mail a store ever tried to send.</para>
     /// </summary>
-    internal async Task<(int StatusCode, string? Error)> PostAuthRawAsync(
+    internal async Task<(int StatusCode, string? Error, int? RateRemaining)> PostAuthRawAsync(
         long characterId, string path, object body, CancellationToken ct)
     {
         try
@@ -821,15 +821,23 @@ public class EsiClient
             finally { _httpGate.Release(); }
 
             var statusCode = (int)response.StatusCode;
-            if (response.IsSuccessStatusCode) return (statusCode, null);
+
+            // ⚠️ Read on every response, success or not. This is the only truthful figure for
+            // what is left of the rate limit — an estimate kept locally cannot know what another
+            // client on the same token has already spent.
+            var remaining =
+                response.Headers.TryGetValues("X-Ratelimit-Remaining", out var rv)
+                && int.TryParse(rv.FirstOrDefault(), out var r) ? r : (int?)null;
+
+            if (response.IsSuccessStatusCode) return (statusCode, null, remaining);
 
             // Capped: an error body is a sentence, and anything longer is a page of HTML from a
             // proxy that has no business filling the log.
             var text = await response.Content.ReadAsStringAsync(ct);
-            return (statusCode, text.Length > 400 ? text[..400] : text);
+            return (statusCode, text.Length > 400 ? text[..400] : text, remaining);
         }
         catch (OperationCanceledException) { throw; }
-        catch (Exception ex) { return (0, ex.Message); }
+        catch (Exception ex) { return (0, ex.Message, null); }
     }
 
     /// <summary>
