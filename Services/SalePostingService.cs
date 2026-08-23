@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -298,6 +300,188 @@ public class SalePostingService(
         OnlyPackaged          = s.OverrideOnlyPackaged ? s.OnlyPackaged  : p.OnlyPackaged,
         IncludeCompletionDate = p.IncludeCompletionDate,
     };
+
+    // ── Export / import ───────────────────────────────────────────────────────
+    //
+    // A posting is a lot of setup — sections with their own scope and pricing overrides, every
+    // item with its name tweaks, and the post blocks with their header and footer text. Building
+    // a second one that differs in a few places means rebuilding all of it by hand, which is why
+    // this exists: export the one that works, import it, change what differs.
+    //
+    // ⚠️ Everything in the file is an EVE id or a plain setting — type ids, station ids, region
+    // ids. Nothing carries a row id from this database, so a file is portable between installs
+    // and can be shared. Nesting and ordinals carry the structure instead.
+
+    public sealed record PostingItemExportDto(
+        int TypeId, string? NameOverride, string? NamePrefix,
+        int? InStockOverride, int? InBuildOverride, int? ReservedOverride);
+
+    public sealed record PostingSectionExportDto(
+        string Name, string Prefix,
+        bool OverrideScope, string Scope, long? LocationId, string LocationName,
+        bool OverridePricing, string PricingBasis, double PricePercent,
+        long? MarketStationId, string MarketStationName, string MarketPriceType,
+        bool OverrideOnlyPackaged, bool OnlyPackaged,
+        List<PostingItemExportDto> Items);
+
+    public sealed record PostingPostExportDto(
+        int Ordinal, string PostType, string Name,
+        string? StaticContent, string Header, string Footer);
+
+    public sealed record PostingExportDto(
+        string Name, string Scope, long? LocationId, string LocationName,
+        string PricingBasis, double PricePercent,
+        long? MarketStationId, string MarketStationName, string MarketPriceType,
+        bool ShowInStock, bool ShowInBuild, bool ShowReserved,
+        bool IncludeCompletionDate, bool OnlyPackaged,
+        List<PostingSectionExportDto> Sections,
+        List<PostingPostExportDto> Posts);
+
+    private static readonly JsonSerializerOptions ExportJson = new() { WriteIndented = true };
+
+    /// <summary>Writes one posting, whole, as JSON.</summary>
+    public async Task ExportPostingAsync(int postingId, Stream stream, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+
+        var p = await db.SalePostings.AsNoTracking().FirstOrDefaultAsync(x => x.Id == postingId, ct);
+        if (p is null) return;
+
+        var sections = await db.SalePostingSections.AsNoTracking()
+            .Where(s => s.PostingId == postingId).OrderBy(s => s.Name).ToListAsync(ct);
+        var sectionIds = sections.Select(s => s.Id).ToList();
+
+        var items = await db.SalePostingItems.AsNoTracking()
+            .Where(i => sectionIds.Contains(i.SectionId)).ToListAsync(ct);
+
+        var posts = await db.SalePostingPosts.AsNoTracking()
+            .Where(x => x.PostingId == postingId).OrderBy(x => x.Ordinal).ToListAsync(ct);
+
+        var dto = new PostingExportDto(
+            p.Name, p.Scope, p.LocationId, p.LocationName,
+            p.PricingBasis, p.PricePercent,
+            p.MarketStationId, p.MarketStationName, p.MarketPriceType,
+            p.ShowInStock, p.ShowInBuild, p.ShowReserved,
+            p.IncludeCompletionDate, p.OnlyPackaged,
+            sections.Select(s => new PostingSectionExportDto(
+                s.Name, s.Prefix,
+                s.OverrideScope, s.Scope, s.LocationId, s.LocationName,
+                s.OverridePricing, s.PricingBasis, s.PricePercent,
+                s.MarketStationId, s.MarketStationName, s.MarketPriceType,
+                s.OverrideOnlyPackaged, s.OnlyPackaged,
+                items.Where(i => i.SectionId == s.Id)
+                     .Select(i => new PostingItemExportDto(
+                         i.TypeId, i.NameOverride, i.NamePrefix,
+                         i.InStockOverride, i.InBuildOverride, i.ReservedOverride))
+                     .ToList()))
+                .ToList(),
+            posts.Select(x => new PostingPostExportDto(
+                x.Ordinal, x.PostType, x.Name, x.StaticContent, x.Header, x.Footer)).ToList());
+
+        await JsonSerializer.SerializeAsync(stream, dto, ExportJson, ct);
+    }
+
+    /// <summary>
+    /// Reads a posting file and creates a new posting from it. Null if the file is not one of ours.
+    ///
+    /// <para>⚠️ Always a new posting, never an overwrite of one with the same name. Import is used
+    /// to make a variant of something that already works, so silently replacing the original would
+    /// destroy the very thing being copied. A clashing name is suffixed instead — visible, and
+    /// renamed in one edit.</para>
+    /// </summary>
+    public async Task<SalePosting?> ImportPostingAsync(Stream stream, CancellationToken ct = default)
+    {
+        PostingExportDto? dto;
+        try { dto = await JsonSerializer.DeserializeAsync<PostingExportDto>(stream, cancellationToken: ct); }
+        catch { return null; }
+        if (dto is null || string.IsNullOrWhiteSpace(dto.Name)) return null;
+
+        await using var db = dbFactory.CreateDbContext();
+
+        var name     = dto.Name.Trim();
+        var existing = await db.SalePostings.AsNoTracking().Select(x => x.Name).ToListAsync(ct);
+        if (existing.Contains(name, StringComparer.OrdinalIgnoreCase))
+        {
+            var n = 2;
+            while (existing.Contains($"{name} ({n})", StringComparer.OrdinalIgnoreCase)) n++;
+            name = $"{name} ({n})";
+        }
+
+        var posting = new SalePosting
+        {
+            Name                  = name,
+            Scope                 = dto.Scope,
+            LocationId            = dto.LocationId,
+            LocationName          = dto.LocationName ?? "",
+            PricingBasis          = dto.PricingBasis,
+            PricePercent          = dto.PricePercent,
+            MarketStationId       = dto.MarketStationId,
+            MarketStationName     = dto.MarketStationName ?? "",
+            MarketPriceType       = dto.MarketPriceType,
+            ShowInStock           = dto.ShowInStock,
+            ShowInBuild           = dto.ShowInBuild,
+            ShowReserved          = dto.ShowReserved,
+            IncludeCompletionDate = dto.IncludeCompletionDate,
+            OnlyPackaged          = dto.OnlyPackaged,
+        };
+        db.SalePostings.Add(posting);
+        await db.SaveChangesAsync(ct);
+
+        // Sections in one write, then every item in one more — not a save per section. A posting
+        // with a dozen sections would take the write lock a dozen times in a row, and anything
+        // else saving during that stretch queues behind all of them.
+        var dtoSections = dto.Sections ?? [];
+        var sections = dtoSections.Select(s => new SalePostingSection
+        {
+            PostingId            = posting.Id,
+            Name                 = s.Name,
+            Prefix               = s.Prefix ?? "",
+            OverrideScope        = s.OverrideScope,
+            Scope                = s.Scope,
+            LocationId           = s.LocationId,
+            LocationName         = s.LocationName ?? "",
+            OverridePricing      = s.OverridePricing,
+            PricingBasis         = s.PricingBasis,
+            PricePercent         = s.PricePercent,
+            MarketStationId      = s.MarketStationId,
+            MarketStationName    = s.MarketStationName ?? "",
+            MarketPriceType      = s.MarketPriceType,
+            OverrideOnlyPackaged = s.OverrideOnlyPackaged,
+            OnlyPackaged         = s.OnlyPackaged,
+        }).ToList();
+
+        db.SalePostingSections.AddRange(sections);
+        await db.SaveChangesAsync(ct);   // assigns the ids the items need
+
+        var items = new List<SalePostingItem>();
+        for (var i = 0; i < sections.Count; i++)
+            foreach (var it in dtoSections[i].Items ?? [])
+                items.Add(new SalePostingItem
+                {
+                    SectionId        = sections[i].Id,
+                    TypeId           = it.TypeId,
+                    NameOverride     = it.NameOverride,
+                    NamePrefix       = it.NamePrefix,
+                    InStockOverride  = it.InStockOverride,
+                    InBuildOverride  = it.InBuildOverride,
+                    ReservedOverride = it.ReservedOverride,
+                });
+        db.SalePostingItems.AddRange(items);
+
+        db.SalePostingPosts.AddRange((dto.Posts ?? []).Select(x => new SalePostingPost
+        {
+            PostingId     = posting.Id,
+            Ordinal       = x.Ordinal,
+            PostType      = x.PostType,
+            Name          = x.Name,
+            StaticContent = x.StaticContent,
+            Header        = x.Header ?? "",
+            Footer        = x.Footer ?? "",
+        }));
+
+        await db.SaveChangesAsync(ct);
+        return posting;
+    }
 
     // ── Headless render ───────────────────────────────────────────────────────
     //

@@ -4,6 +4,7 @@ using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
@@ -115,6 +116,62 @@ public partial class SalePostingView : UserControl
 
     private void OnOpenPostingLocation(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as SalePostingRow)?.OpenLocation();
+
+    // ── Export / import ───────────────────────────────────────────────────────
+    //
+    // In the code-behind because both open a file picker, which needs the window. The view model
+    // is handed a stream and knows nothing about pickers, which is also what lets it be tested
+    // and reused without one.
+
+    private async void OnExportPosting(object? sender, RoutedEventArgs e)
+    {
+        // The row the button sits on, not the grid selection: pressing Export on one posting
+        // while another is selected would otherwise export the wrong one, silently.
+        if ((sender as Control)?.DataContext is not SalePostingRow row) return;
+        if (DataContext is not SalePostingViewModel vm) return;
+
+        var top = TopLevel.GetTopLevel(this);
+        if (top is null) return;
+
+        var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title             = "Export Posting",
+            SuggestedFileName = $"{Sanitise(row.PostingName)}.json",
+            DefaultExtension  = "json",
+            FileTypeChoices   = [new FilePickerFileType("JSON") { Patterns = ["*.json"] }],
+        });
+        if (file is null) return;
+
+        await using var stream = await file.OpenWriteAsync();
+        await vm.ExportPostingAsync(row.PostingId, stream);
+    }
+
+    private async void OnImportPosting(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not SalePostingViewModel vm) return;
+
+        var top = TopLevel.GetTopLevel(this);
+        if (top is null) return;
+
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title          = "Import Posting",
+            AllowMultiple  = false,
+            FileTypeFilter = [new FilePickerFileType("JSON") { Patterns = ["*.json"] }],
+        });
+        if (files.Count == 0) return;
+
+        await using var stream = await files[0].OpenReadAsync();
+        await vm.ImportPostingAsync(stream);
+    }
+
+    /// <summary>A posting name is free text and can hold characters a filename cannot.</summary>
+    private static string Sanitise(string name)
+    {
+        var clean = new string(name.Select(
+            c => System.IO.Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray()).Trim();
+        return clean.Length == 0 ? "posting" : clean;
+    }
 
     private Window GetWindow() => (TopLevel.GetTopLevel(this) as Window)!;
 }

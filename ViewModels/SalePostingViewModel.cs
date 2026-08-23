@@ -917,6 +917,38 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         => (await _svc.LoadPostsAsync(postingId))
             .Select(p => new PostBlockDraft(p.PostType, p.Name, p.StaticContent, p.Header, p.Footer)).ToList();
 
+    // ── Export / import ───────────────────────────────────────────────────────
+    //
+    // Thin: the service owns the file format, because it owns every other way a posting is
+    // written. These exist so the view can hand over a stream from the file picker and get a
+    // status line back.
+
+    public async Task ExportPostingAsync(int postingId, Stream stream)
+    {
+        try
+        {
+            await _svc.ExportPostingAsync(postingId, stream);
+            StatusText = "Posting exported.";
+        }
+        catch (Exception ex) { StatusText = $"Export failed: {ex.Message}"; }
+    }
+
+    public async Task ImportPostingAsync(Stream stream)
+    {
+        try
+        {
+            var posting = await _svc.ImportPostingAsync(stream);
+            if (posting is null) { StatusText = "That file is not a sale posting."; return; }
+
+            // Reloaded rather than appended: the import wrote sections, items and post blocks,
+            // and the grid is built from all of them. Rebuilding the one posting by hand here
+            // would be a second implementation of what InitAsync already does correctly.
+            await InitAsync();
+            StatusText = $"Imported \"{posting.Name}\".";
+        }
+        catch (Exception ex) { StatusText = $"Import failed: {ex.Message}"; }
+    }
+
     // ── Load ──────────────────────────────────────────────────────────────────
     private async Task InitAsync()
     {
