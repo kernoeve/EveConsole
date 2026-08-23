@@ -332,7 +332,9 @@ public class StoresViewModel : ReactiveObject
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
 
-            var stores = await db.Stores.AsNoTracking().OrderBy(s => s.Name).ToListAsync();
+            var stores = await db.Stores.AsNoTracking()
+                .Where(s => !s.IsDeleted)
+                .OrderBy(s => s.Name).ToListAsync();
 
             // Only characters we hold a token for: a shop's address has to be a mailbox we can
             // read and send from, and one we cannot is a store that silently never answers.
@@ -518,37 +520,33 @@ public class StoresViewModel : ReactiveObject
         // rather than after.
         if (ConfirmDelete is { } ask)
         {
-            var mails  = Mails.Count;
-            var people = Senders.Count;
-
             var confirmed = await ask(
                 $"Delete the store \"{row.Name}\"?\n\n" +
-                $"This removes its settings, its list of {people} allowed sender(s), and " +
-                $"{mails} logged message(s). It cannot be undone.\n\n" +
-                "Orders placed through it are kept — they stay in the Order Tracker and simply " +
-                "stop being answerable by mail.");
+                "It closes and disappears from this list.\n\n" +
+                "Nothing is destroyed: its orders stay in the Order Tracker, and its settings, " +
+                "allow list and message history are kept so anything referring to it still " +
+                "resolves. It simply stops reading and answering mail.");
 
             if (!confirmed) return;
         }
 
         await using var db = await _dbFactory.CreateDbContextAsync();
 
-        // ⚠️ One transaction. ExecuteDeleteAsync commits on its own, so three of them in a
-        // row is three chances to stop halfway — and a failure after the first would leave a
-        // store with no allow list, or an allow list with no store. Together they either all
-        // go or none do.
-        await using var tx = await db.Database.BeginTransactionAsync();
+        var store = await db.Stores.FirstOrDefaultAsync(s => s.Id == row.Id);
+        if (store is null) return;
 
-        await db.StoreSenders.Where(s => s.StoreId == row.Id).ExecuteDeleteAsync();
-        await db.StoreMails.Where(m => m.StoreId == row.Id).ExecuteDeleteAsync();
-        await db.Stores.Where(s => s.Id == row.Id).ExecuteDeleteAsync();
+        // ⚠️ Hidden, not removed. Orders keep their StoreId for life — they outlive the shop on
+        // purpose — and deleting the row left that id pointing at nothing, so an order could no
+        // longer say which shop took it. The senders and the message log stay for the same
+        // reason: they are the record of what was agreed and with whom.
+        store.IsDeleted = true;
 
-        await tx.CommitAsync();
+        // Closed as well as hidden. The poll already skips deleted stores, but a shop that is
+        // invisible and still marked open is a state waiting to be misread by the next thing
+        // that queries this table.
+        store.Enabled = false;
 
-        // ⚠️ Orders are NOT deleted with the store. They are real orders somebody placed, some of
-        // them delivered and paid for, and the Order Tracker is where they belong. They simply
-        // stop being answerable by mail, which is what closing a shop means.
-
+        await db.SaveChangesAsync();
         await LoadAsync();
     }
 

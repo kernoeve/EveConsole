@@ -50,6 +50,19 @@ public class Store
     /// </summary>
     public DateTimeOffset ListenFrom { get; set; }
 
+    /// <summary>
+    /// Hidden rather than removed.
+    ///
+    /// <para>⚠️ The row stays so everything that points at it still resolves. Orders keep their
+    /// StoreId for life — they outlive the shop deliberately — and deleting the row left that id
+    /// pointing at nothing, so an order could no longer say which shop took it. Its messages
+    /// stay too, for the same reason: they are the record of what was agreed.</para>
+    ///
+    /// <para>A deleted store is closed as well as hidden, so nothing can leave it quietly
+    /// answering mail from behind the list.</para>
+    /// </summary>
+    public bool IsDeleted { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; }
 }
 

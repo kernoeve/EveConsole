@@ -386,6 +386,7 @@ public class App : Application
                     "SenderPolicy"  TEXT    NOT NULL DEFAULT 'List',
                     "Enabled"       INTEGER NOT NULL DEFAULT 0,
                     "ListenFrom"    TEXT    NOT NULL DEFAULT '',
+                    "IsDeleted"     INTEGER NOT NULL DEFAULT 0,
                     "CreatedAt"     TEXT    NOT NULL DEFAULT ''
                 )
                 """);
@@ -395,6 +396,9 @@ public class App : Application
             // and IF NOT EXISTS silently does nothing for them. That is the whole trap: it works
             // on a fresh machine and fails on every existing one.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "ListenFrom" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            // Deleting a store hides it rather than removing the row, so orders and messages
+            // that point at it still resolve.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "IsDeleted" INTEGER NOT NULL DEFAULT 0"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "StoreSenders" (
                     "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

@@ -103,8 +103,11 @@ public class StoreMailService(
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
+        // ⚠️ !IsDeleted as well as Enabled. A deleted store is closed on the way out, but relying
+        // on that alone would mean one row edited by hand — or a future path that forgets — could
+        // leave a shop nobody can see quietly answering mail.
         var stores = await db.Stores
-            .Where(s => s.Enabled && s.CharacterId != 0 && s.PostingId != 0)
+            .Where(s => !s.IsDeleted && s.Enabled && s.CharacterId != 0 && s.PostingId != 0)
             .ToListAsync(ct);
 
         if (stores.Count == 0) { StatusText = "No open stores."; return; }
