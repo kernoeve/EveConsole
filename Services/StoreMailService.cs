@@ -479,6 +479,9 @@ public class StoreMailService(
     /// command.</summary>
     private static string Dim(string s) => $"<font color=\"#ff8a8a99\">{s}</font>";
 
+    /// <summary>Bad news in a message that is otherwise good news, so it cannot be skimmed past.</summary>
+    private static string Warn(string s) => $"<font color=\"#ffc85a5a\"><b>{s}</b></font>";
+
     /// <summary>The shop's own line at the top, a size up so the mail opens with its name.</summary>
     private static string Head(string s) =>
         $"<font size=\"16\" color=\"#ffc8a84b\"><b>{s}</b></font>{Gap}";
@@ -609,7 +612,7 @@ public class StoreMailService(
             await ReplyAsync(store, log, $"{store.Name} — order not understood",
                 "Nothing on this order matched the price list.<br><br>" +
                 (parsed.Unknown.Count > 0
-                    ? "Not found: " + Esc(string.Join(", ", parsed.Unknown)) + "<br><br>"
+                    ? Warn("Not found: " + Esc(string.Join(", ", parsed.Unknown))) + Gap
                     : "") +
                 Usage(store), ct);
             return;
@@ -639,7 +642,13 @@ public class StoreMailService(
                 // Rounded to the precision it is quoted at, so the record says the same number
                 // the buyer was shown. Storing 3,705,101,922.94 against a quote of "3.71B" is
                 // two figures for one agreement, and only one of them was ever visible to them.
-                PurchasePrice = MarketFmt.RoundToDisplay((item.SalePrice ?? 0) * units),
+                //
+                // ⚠️ The UNIT is rounded and then multiplied, not the other way round. Rounding
+                // the total independently gave a line that failed its own arithmetic: two
+                // Phoenix at a quoted 3,720,000,000 each came to 7,450,000,000, because the
+                // total was rounded from the raw figure rather than from the price shown. The
+                // buyer can multiply.
+                PurchasePrice = MarketFmt.RoundToDisplay(item.SalePrice ?? 0) * units,
                 Status        = "pending",
                 StoreId       = store.Id,
                 OrderRef      = reference,
@@ -730,9 +739,14 @@ public class StoreMailService(
 
         sb.Append("<br>");
 
+        // ⚠️ In red, because it is the one line in a confirmation that is bad news. Everything
+        // around it says what WAS ordered, and a rejection set in the same grey as the rest is
+        // read as part of the receipt — the buyer discovers what is missing when it does not
+        // arrive.
         if (parsed.Unknown.Count > 0)
-            sb.Append("Not on the list, so not ordered: ").Append(Esc(string.Join(", ", parsed.Unknown)))
-              .Append("<br><br>");
+            sb.Append(Warn("Not on the list, so NOT ordered: "
+                         + Esc(string.Join(", ", parsed.Unknown))))
+              .Append(Gap);
 
         sb.Append(Dim("Reply with STATUS for progress, or CANCEL and this reference to withdraw it."));
 
@@ -834,19 +848,33 @@ public class StoreMailService(
     /// owns which order claims which stock — running the same reasoning here would be a second
     /// opinion, and the two would disagree the moment either changed.</para>
     /// </summary>
-    private static string Expect(TrackedOrder? o) =>
-        o?.LinkedContractId is not null
-            ? "A contract is already waiting for you to accept."
-            : o?.FulfilmentSource switch
+    private static string Expect(TrackedOrder? o)
+    {
+        if (o?.LinkedContractId is not null)
+            return "A contract is already waiting for you to accept.";
+
+        // ⚠️ The date, wherever there is one. A stock order gets one from the store's own
+        // setting and a job order from its job, and a confirmation that says "reserved for you"
+        // without saying when answers half the question the buyer asked.
+        var due = o?.EstimatedDate is { Length: > 0 } d ? d : null;
+
+        return o?.FulfilmentSource switch
         {
-            "stock" => "In stock and reserved for you — you will be notified when the contract "
-                     + "has been created.",
-            "job"   => o.EstimatedDate is { Length: > 0 } d
-                        ? $"Already in build, expected {d}."
-                        : "Already in build.",
-            _       => "Out of stock — your reservation is placed, and you will be told the "
-                     + "completion date once the build starts.",
+            "stock" => due is null
+                        ? "In stock and reserved for you — you will be notified when the "
+                        + "contract has been created."
+                        : $"In stock and reserved for you — contract expected {due}.",
+
+            "job"   => due is null
+                        ? "Already in build."
+                        : $"Already in build, expected {due}.",
+
+            _       => due is null
+                        ? "Out of stock — your reservation is placed, and you will be told the "
+                        + "completion date once the build starts."
+                        : $"Out of stock — your reservation is placed, expected {due}.",
         };
+    }
 
     /// <summary>What one line of an order is doing, in words a buyer can act on.</summary>
     private static string Describe(TrackedOrder o) => o.Status switch
