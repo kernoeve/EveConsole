@@ -27,11 +27,18 @@
             <!-- Filled in code-behind: a fixed palette chosen to stay legible on EVE's dark mail
                  background, which is most of what makes a colour usable here. -->
             <WrapPanel x:Name="Swatches" />
-            <Button x:Name="ClearButton" Content="No colour"
-                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                    Background="#1a1a28" Foreground="#888899"
-                    BorderBrush="#2a2a3a" BorderThickness="1"
-                    Padding="6 3" FontSize="11" Cursor="Hand" />
+            <Grid ColumnDefinitions="*,*">
+              <Button Grid.Column="0" x:Name="CustomButton" Content="Custom…"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                      Background="#1a1a28" Foreground="#c8a84b"
+                      BorderBrush="#3a3020" BorderThickness="1"
+                      Padding="6 3" FontSize="11" Cursor="Hand" Margin="0 0 3 0" />
+              <Button Grid.Column="1" x:Name="ClearButton" Content="No colour"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                      Background="#1a1a28" Foreground="#888899"
+                      BorderBrush="#2a2a3a" BorderThickness="1"
+                      Padding="6 3" FontSize="11" Cursor="Hand" Margin="3 0 0 0" />
+            </Grid>
           </StackPanel>
         </Flyout>
       </Button.Flyout>

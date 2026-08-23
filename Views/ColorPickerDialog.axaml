@@ -1,0 +1,42 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveConsole.Views.ColorPickerDialog"
+        Title="Custom colour"
+        Width="380" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12">
+
+  <StackPanel Margin="14" Spacing="12">
+
+    <!-- ColorView rather than ColorPicker: the picker is a dropdown wrapper, and this is already
+         inside a dialog whose whole purpose is choosing. Alpha is hidden — EVE takes ARGB but the
+         alpha is not a choice here, it is always fully opaque, and offering it would let someone
+         pick an invisible colour. -->
+    <ColorView x:Name="Picker"
+               IsAlphaEnabled="False"
+               IsAlphaVisible="False"
+               Height="330" />
+
+    <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="#555566"
+               Text="EVE mail is drawn on a near-black background, so very dark colours all but disappear in it. The swatch below is on that background rather than on this dialog's." />
+
+    <Border Background="#0a0a0e" CornerRadius="3" Padding="10 8"
+            BorderBrush="#2a2a3a" BorderThickness="1">
+      <TextBlock x:Name="Sample" Text="Archon  (10,0,0) - 2.12B" FontSize="12" />
+    </Border>
+
+    <Grid ColumnDefinitions="*,Auto,Auto">
+      <TextBlock Grid.Column="0" x:Name="HexLabel" Text="" FontSize="11"
+                 Foreground="#888899" VerticalAlignment="Center" />
+      <Button Grid.Column="1" x:Name="CancelButton" Content="Cancel"
+              Background="#1a1a28" Foreground="#888899"
+              BorderBrush="#2a2a3a" BorderThickness="1"
+              Padding="14 5" FontSize="12" Margin="0 0 8 0" />
+      <Button Grid.Column="2" x:Name="OkButton" Content="Use this colour"
+              Background="#1a1a28" Foreground="#c8a84b"
+              BorderBrush="#3a3020" BorderThickness="1"
+              Padding="14 5" FontSize="12" />
+    </Grid>
+  </StackPanel>
+</Window>

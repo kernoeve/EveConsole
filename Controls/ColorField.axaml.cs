@@ -47,6 +47,19 @@ public partial class ColorField : UserControl
 
         ClearButton.Click += (_, _) => { Value = ""; CloseFlyout(); };
 
+        CustomButton.Click += async (_, _) =>
+        {
+            // ⚠️ Closed FIRST. Opening a modal dialog from inside a flyout leaves the flyout
+            // behind the dialog and still open when it returns, and the palette then sits over
+            // whatever the user does next.
+            CloseFlyout();
+
+            if (TopLevel.GetTopLevel(this) is not Window owner) return;
+
+            var picked = await new Views.ColorPickerDialog(Value).ShowDialog<string?>(owner);
+            if (picked is not null) Value = picked;
+        };
+
         HexBox.TextChanged += (_, _) =>
         {
             if (_settingText) return;

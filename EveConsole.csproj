@@ -22,6 +22,10 @@
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.3" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.3" />
     <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.3" />
+    <!-- Avalonia's own colour picker, pinned to the same version as the rest of Avalonia.
+         Added for the "Custom" option on ColorField; the curated palette covers the common
+         cases and this covers everything else. -->
+    <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.2.3" />
     <PackageReference Include="KokoroSharp.CPU" Version="0.6.7" />
     <PackageReference Include="PiperSharp" Version="1.0.6" />
 
