@@ -17,8 +17,7 @@ public static class IndustryMe
     {
         if (isReaction)        return 0;
         if (bpcOnly)           return 0;   // faction / loot BPC — not researchable
-        if (isTitanKeepstarFortizar)
-                               return 9;
+        if (isTitanKeepstarFortizar) return 9;
         if (isT2)              return 3;
         return 10;
     }

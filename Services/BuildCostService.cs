@@ -667,14 +667,14 @@ public class BuildCostService
             // Default ME assumption: ME10, except T2 (ME3), BPC-only/faction (ME0), titans &
             // Keepstars & Fortizars (ME9), reactions (ME0). Shared with the Production Calculator
             // via IndustryMe.
-            // A BPO exists, but nobody uses it — cost the bought copy instead. See boughtBpcIds.
+            // A BPO exists, but nobody uses it — add the copy's price further down. See
+            // boughtBpcIds. ⚠️ Deliberately NOT folded into bpcItem: that flag also decides
+            // whether an item is costable at all, and routing a titan through the BPC-only path
+            // made "no contract price" mean "cannot be built, buy it at market" — which flipped
+            // every titan to bought and moved the stored figure by far more than a blueprint.
             bool   boughtBpc    = boughtBpcIds.Contains(typeId);
-            bool   bpcItem      = !isReaction && (!BlueprintIsBpoSourced(bpTypeId) || boughtBpc);
-
-            // ⚠️ bpcOnly is passed FALSE for these. It means "loot BPC, not researchable" and
-            // returns ME0; a bought titan copy is a researched one, and the ME9 branch below it
-            // is the answer we want.
-            int    defaultMe    = IndustryMe.DefaultMe(isReaction, bpcItem && !boughtBpc,
+            bool   bpcItem      = !isReaction && !BlueprintIsBpoSourced(bpTypeId);
+            int    defaultMe    = IndustryMe.DefaultMe(isReaction, bpcItem,
                                       t2TypeIds.Contains(typeId), titanKeepstarIds.Contains(typeId));
             double bpMeFactor   = IndustryMe.Factor(defaultMe);
             double rigMeBonus   = isReaction ? RigBonus(structure, catKey, rxnRigBonus)
@@ -714,20 +714,8 @@ public class BuildCostService
             bool    costable = true;
             double  usedMeFactor = meFactor;   // factor the full-chain walk will reuse
 
-            if (bpcOnly && bpcPerRun.TryGetValue(bpTypeId, out var allMeOptions) && allMeOptions.Count > 0)
+            if (bpcOnly && bpcPerRun.TryGetValue(bpTypeId, out var meOptions) && meOptions.Count > 0)
             {
-                // ⚠️ For a bought-BPC exception the ME is fixed, not shopped for. Cheapest-total
-                // would always land on the lowest-ME copy — those are the ones going cheap — and
-                // cost a titan as though it were built from a barely-researched print. The
-                // assumption is an ME9 copy, so that is the copy we price; the nearest ME stands
-                // in when nobody is selling one, since a build still happens at the ME bought.
-                var meOptions = boughtBpc
-                    ? [allMeOptions
-                        .OrderBy(o => Math.Abs(o.Me - defaultMe))
-                        .ThenBy(o => o.PerRun)
-                        .First()]
-                    : allMeOptions;
-
                 // Consumes one run of a purchased BPC. Pick the ME that minimises materials + BPC.
                 decimal bestTotal = decimal.MaxValue; (decimal Raw, decimal SubJob) best = default;
                 foreach (var (me, perRun) in meOptions)
@@ -750,6 +738,14 @@ public class BuildCostService
             {
                 // BPO-sourced (or reaction): researched-BPO ME assumption, no BPC cost.
                 (buildRawRun, buildSubJobRun) = RunAt(meFactor);
+
+                // …except the few nobody owns the original of. Add the copy's price at this
+                // item's ME and change nothing else: the item stays costable, stays built, and
+                // moves by exactly the price of one blueprint copy.
+                if (boughtBpc && bpcPerRun.TryGetValue(bpTypeId, out var opts) && opts.Count > 0)
+                    bpcRun = opts.OrderBy(o => Math.Abs(o.Me - defaultMe))
+                                 .ThenBy(o => o.PerRun)
+                                 .First().PerRun;
             }
 
             // Capture the recipe for the full-chain recompute (quantities rounded per whole job).
