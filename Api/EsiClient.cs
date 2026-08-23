@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using EveConsole.Auth;
@@ -758,7 +759,7 @@ public class EsiClient
             var token = await EnsureValidTokenAsync(characterId, ct);
             using var request = new HttpRequestMessage(HttpMethod.Post, path);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
-            request.Content = JsonContent.Create(body, options: JsonOptions);
+            request.Content = JsonBody(body);
 
             await _httpGate.WaitAsync(ct);
             HttpResponseMessage response;
@@ -776,6 +777,27 @@ public class EsiClient
     }
 
     /// <summary>
+    /// A JSON request body that declares its length.
+    ///
+    /// <para><b>⚠️ Not <c>JsonContent.Create</c>.</b> JsonContent cannot compute its length up
+    /// front, so HttpClient sends it with <c>Transfer-Encoding: chunked</c> and no
+    /// <c>Content-Length</c> — and ESI does not read a chunked request body. It answers as though
+    /// nothing was sent at all: <c>'recipients' is required, 'subject' is required, 'body' is
+    /// required, 'mail' is required</c>, naming every field of a payload that was in fact
+    /// complete and correctly serialised.</para>
+    ///
+    /// <para>That cost an afternoon to find, because every symptom pointed at the payload. The
+    /// same request from curl worked, which was the clue: curl sets Content-Length. Serialising
+    /// to a string first does the same here.</para>
+    ///
+    /// <para>⚠️ Every authenticated POST and PUT must go through this. The app had exactly one
+    /// such call when this was found — sending mail — so nothing else had ever exercised the
+    /// path, and the next one added would have hit the same wall.</para>
+    /// </summary>
+    private static StringContent JsonBody(object body) =>
+        new(JsonSerializer.Serialize(body, JsonOptions), Encoding.UTF8, "application/json");
+
+    /// <summary>
     /// Authenticated POST that keeps ESI's own explanation when it refuses.
     ///
     /// <para><b>⚠️ The error body is the whole point.</b> A bare status code says a request was
@@ -791,7 +813,7 @@ public class EsiClient
             var token = await EnsureValidTokenAsync(characterId, ct);
             using var request = new HttpRequestMessage(HttpMethod.Post, path);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
-            request.Content = JsonContent.Create(body, options: JsonOptions);
+            request.Content = JsonBody(body);
 
             await _httpGate.WaitAsync(ct);
             HttpResponseMessage response;
@@ -821,7 +843,7 @@ public class EsiClient
             var token = await EnsureValidTokenAsync(characterId, ct);
             using var request = new HttpRequestMessage(HttpMethod.Put, path);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
-            request.Content = JsonContent.Create(body, options: JsonOptions);
+            request.Content = JsonBody(body);
 
             await _httpGate.WaitAsync(ct);
             HttpResponseMessage response;
