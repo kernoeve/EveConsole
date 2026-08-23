@@ -1,0 +1,536 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
+using Avalonia.Threading;
+using EveConsole.Data;
+using EveConsole.Models;
+using EveConsole.Services;
+using Microsoft.EntityFrameworkCore;
+using ReactiveUI;
+
+namespace EveConsole.ViewModels;
+
+/// <summary>
+/// One store in the list on the left.
+///
+/// <para>⚠️ Updated in place rather than replaced. The settings panel writes through as the user
+/// types, and swapping the row object on each save would rebuild the list item and drop the
+/// selection out from under them — mid-word, on every character.</para>
+/// </summary>
+public class StoreRowVm : ReactiveObject
+{
+    private Store _model;
+
+    public StoreRowVm(Store model) => _model = model;
+
+    public Store Model => _model;
+    public int   Id    => _model.Id;
+
+    public string Name          => _model.Name.Length > 0 ? _model.Name : "(unnamed)";
+    public string CharacterName => _model.CharacterName;
+    public bool   Enabled       => _model.Enabled;
+
+    /// <summary>Open or closed, said plainly — the list is the first place someone looks to
+    /// find out why a buyer got no answer.</summary>
+    public string StateText => _model.Enabled ? "Open" : "Closed";
+
+    public void Refresh(Store model)
+    {
+        _model = model;
+        this.RaisePropertyChanged(nameof(Name));
+        this.RaisePropertyChanged(nameof(CharacterName));
+        this.RaisePropertyChanged(nameof(Enabled));
+        this.RaisePropertyChanged(nameof(StateText));
+    }
+}
+
+/// <summary>One message in the log.</summary>
+public class StoreMailRowVm(StoreMail m)
+{
+    public string When      => m.At.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+    public string Direction => m.Direction == "in" ? "Received" : "Sent";
+    public string Party     => m.PartyName.Length > 0 ? m.PartyName : m.PartyId.ToString();
+    public string Command   => m.Command;
+    public string Subject   => m.Subject;
+    public string Outcome   => m.Outcome;
+    public string Detail    => m.Detail;
+    public string OrderRef  => m.OrderRef;
+    public string Body      => StoreMailService.Strip(m.Body).Trim();
+
+    /// <summary>Rejections and failures are the rows worth finding, so they say so rather than
+    /// relying on the reader to notice a word in a column.</summary>
+    public bool IsProblem => m.Outcome is "rejected" or "error";
+}
+
+/// <summary>One allow-list entry.</summary>
+public class StoreSenderRowVm(StoreSender s)
+{
+    public int    Id   => s.Id;
+    public string Name => s.Name.Length > 0 ? s.Name : s.EntityId.ToString();
+    public string Kind => s.EntityType switch
+    {
+        "corporation" => "Corporation",
+        "alliance"    => "Alliance",
+        _             => "Character",
+    };
+}
+
+/// <summary>
+/// The shop front: which stores exist, who may write to them, and everything that has been said.
+///
+/// <para>Deliberately not a place where an order is edited. Orders live in the Order Tracker and
+/// always have — a store order is an ordinary tracked order with a reference on it — and a second
+/// screen that edited them would be a second set of rules about what an order is.</para>
+/// </summary>
+public class StoresViewModel : ReactiveObject
+{
+    private readonly IDbContextFactory<AppDbContext> _dbFactory;
+    private readonly SalePostingService              _postings;
+    private readonly StoreMailService                _storeMail;
+    private readonly AppErrorLogger                  _errorLogger;
+
+    public ObservableCollection<StoreRowVm>       Stores  { get; } = [];
+    public ObservableCollection<StoreMailRowVm>   Mails   { get; } = [];
+    public ObservableCollection<StoreSenderRowVm> Senders { get; } = [];
+
+    /// <summary>Characters we hold a token for — the only ones that can be a shop's address.</summary>
+    public ObservableCollection<CharacterOption> CharacterOptions { get; } = [];
+    public ObservableCollection<PostingOption>   PostingOptions   { get; } = [];
+
+    public IReadOnlyList<string> PolicyOptions { get; } = ["List", "Anyone"];
+
+    public sealed record CharacterOption(long Id, string Name)
+    {
+        public override string ToString() => Name;
+    }
+
+    public sealed record PostingOption(int Id, string Name)
+    {
+        public override string ToString() => Name;
+    }
+
+    public StoresViewModel(
+        IDbContextFactory<AppDbContext> dbFactory,
+        SalePostingService              postings,
+        StoreMailService                storeMail,
+        AppErrorLogger                  errorLogger)
+    {
+        _dbFactory   = dbFactory;
+        _postings    = postings;
+        _storeMail   = storeMail;
+        _errorLogger = errorLogger;
+
+        AddStoreCommand    = ReactiveCommand.CreateFromTask(AddStoreAsync);
+        DeleteStoreCommand = ReactiveCommand.CreateFromTask(DeleteStoreAsync);
+        RefreshCommand     = ReactiveCommand.CreateFromTask(LoadAsync);
+        CheckMailCommand   = ReactiveCommand.CreateFromTask(CheckMailNowAsync);
+        AddSenderCommand   = ReactiveCommand.CreateFromTask(AddSenderAsync);
+
+        foreach (var c in new[] { AddStoreCommand, DeleteStoreCommand, RefreshCommand,
+                                  CheckMailCommand, AddSenderCommand })
+            c.ThrownExceptions.Subscribe(ex => errorLogger.Log(nameof(StoresViewModel), "command", ex));
+
+        this.WhenAnyValue(x => x.SelectedStore)
+            .Skip(1)
+            .SubscribeAsyncSafe(_ => LoadSelectedAsync(), errorLogger, "Stores.SelectStore");
+
+        // The log is the only sign the shop is doing anything, and it changes without anyone
+        // touching this screen.
+        Observable.Interval(TimeSpan.FromSeconds(30))
+            .ObserveOnUi("Stores.AutoRefresh")
+            .SubscribeAsyncSafe(_ => LoadSelectedAsync(), errorLogger, "Stores.AutoRefresh");
+
+        _ = LoadAsync();
+    }
+
+    public ReactiveCommand<Unit, Unit> AddStoreCommand    { get; }
+    public ReactiveCommand<Unit, Unit> DeleteStoreCommand { get; }
+    public ReactiveCommand<Unit, Unit> RefreshCommand     { get; }
+    public ReactiveCommand<Unit, Unit> CheckMailCommand   { get; }
+    public ReactiveCommand<Unit, Unit> AddSenderCommand   { get; }
+
+    private StoreRowVm? _selectedStore;
+    public StoreRowVm? SelectedStore
+    {
+        get => _selectedStore;
+        set => this.RaiseAndSetIfChanged(ref _selectedStore, value);
+    }
+
+    private string _status = "";
+    public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
+
+    public bool HasSelection => SelectedStore is not null;
+
+    // ── Editable settings for the selected store ──────────────────────────────
+    //
+    // Written straight through on change. A shop has four settings and a Save button would be one
+    // more thing to forget; the one that matters — Enabled — is the switch that makes it live, so
+    // it is better applied the moment it is flipped than left pending.
+
+    private string _storeName = "";
+    public string StoreName
+    {
+        get => _storeName;
+        set { this.RaiseAndSetIfChanged(ref _storeName, value); _ = SaveAsync(s => s.Name = value?.Trim() ?? ""); }
+    }
+
+    private CharacterOption? _storeCharacter;
+    public CharacterOption? StoreCharacter
+    {
+        get => _storeCharacter;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _storeCharacter, value);
+            if (value is null) return;
+            _ = SaveAsync(s => { s.CharacterId = value.Id; s.CharacterName = value.Name; });
+        }
+    }
+
+    private PostingOption? _storePosting;
+    public PostingOption? StorePosting
+    {
+        get => _storePosting;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _storePosting, value);
+            if (value is null) return;
+            _ = SaveAsync(s => s.PostingId = value.Id);
+        }
+    }
+
+    private string _senderPolicy = "List";
+    public string SenderPolicy
+    {
+        get => _senderPolicy;
+        set { this.RaiseAndSetIfChanged(ref _senderPolicy, value); _ = SaveAsync(s => s.SenderPolicy = value); }
+    }
+
+    private bool _storeEnabled;
+    public bool StoreEnabled
+    {
+        get => _storeEnabled;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _storeEnabled, value);
+            _ = SaveAsync(s =>
+            {
+                s.Enabled = value;
+                // ⚠️ The listening mark moves forward every time the shop opens. Without this,
+                // reopening after a week would answer the week's backlog at once — real mail, to
+                // real people, that cannot be recalled.
+                if (value) s.ListenFrom = DateTimeOffset.UtcNow;
+            });
+        }
+    }
+
+    /// <summary>Typed name for the allow list, resolved when added.</summary>
+    private string _senderName = "";
+    public string SenderName { get => _senderName; set => this.RaiseAndSetIfChanged(ref _senderName, value); }
+
+    private string _senderKind = "Character";
+    public string SenderKind { get => _senderKind; set => this.RaiseAndSetIfChanged(ref _senderKind, value); }
+
+    public IReadOnlyList<string> SenderKinds { get; } = ["Character", "Corporation", "Alliance"];
+
+    private StoreSenderRowVm? _selectedSender;
+    public StoreSenderRowVm? SelectedSender
+    {
+        get => _selectedSender;
+        set => this.RaiseAndSetIfChanged(ref _selectedSender, value);
+    }
+
+    // ── Stats ─────────────────────────────────────────────────────────────────
+
+    private string _statInquiries = "0", _statActive = "0", _statCompleted = "0", _statCancelled = "0";
+    public string StatInquiries { get => _statInquiries; private set => this.RaiseAndSetIfChanged(ref _statInquiries, value); }
+    public string StatActive    { get => _statActive;    private set => this.RaiseAndSetIfChanged(ref _statActive,    value); }
+    public string StatCompleted { get => _statCompleted; private set => this.RaiseAndSetIfChanged(ref _statCompleted, value); }
+    public string StatCancelled { get => _statCancelled; private set => this.RaiseAndSetIfChanged(ref _statCancelled, value); }
+
+    // ── Load ──────────────────────────────────────────────────────────────────
+
+    public async Task LoadAsync()
+    {
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+
+            var stores = await db.Stores.AsNoTracking().OrderBy(s => s.Name).ToListAsync();
+
+            // Only characters we hold a token for: a shop's address has to be a mailbox we can
+            // read and send from, and one we cannot is a store that silently never answers.
+            var chars = await db.Characters.AsNoTracking()
+                .Where(c => c.RefreshToken != "")
+                .Select(c => new { c.Id, c.Name })
+                .OrderBy(c => c.Name).ToListAsync();
+
+            var postings = await db.SalePostings.AsNoTracking()
+                .Select(p => new { p.Id, p.Name }).OrderBy(p => p.Name).ToListAsync();
+
+            var keepId = SelectedStore?.Id;
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                CharacterOptions.Clear();
+                foreach (var c in chars) CharacterOptions.Add(new CharacterOption(c.Id, c.Name));
+
+                PostingOptions.Clear();
+                foreach (var p in postings) PostingOptions.Add(new PostingOption(p.Id, p.Name));
+
+                Stores.Clear();
+                foreach (var s in stores) Stores.Add(new StoreRowVm(s));
+
+                SelectedStore = keepId is int id
+                    ? Stores.FirstOrDefault(s => s.Id == id) ?? Stores.FirstOrDefault()
+                    : Stores.FirstOrDefault();
+
+                Status = Stores.Count == 0
+                    ? "No stores yet — add one to let buyers ask by EVE mail."
+                    : "";
+            });
+
+            await LoadSelectedAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(StoresViewModel), nameof(LoadAsync), ex);
+            Status = $"Load failed: {ex.Message}";
+        }
+    }
+
+    private async Task LoadSelectedAsync()
+    {
+        if (SelectedStore is not StoreRowVm row)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => { Mails.Clear(); Senders.Clear(); });
+            return;
+        }
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+
+            var store = await db.Stores.AsNoTracking().FirstOrDefaultAsync(s => s.Id == row.Id);
+            if (store is null) return;
+
+            var mails = await db.StoreMails.AsNoTracking()
+                .Where(m => m.StoreId == row.Id)
+                .OrderByDescending(m => m.Id)
+                .Take(200)
+                .ToListAsync();
+
+            var senders = await db.StoreSenders.AsNoTracking()
+                .Where(s => s.StoreId == row.Id).OrderBy(s => s.Name).ToListAsync();
+
+            // ⚠️ Counted off orders, not off the mail log. A mail says what was asked for; only
+            // the order says what became of it, and an order cancelled in the Order Tracker by
+            // hand never produced a mail at all.
+            var orders = await db.TrackedOrders.AsNoTracking()
+                .Where(o => o.StoreId == row.Id && o.OrderRef != "")
+                .Select(o => new { o.OrderRef, o.Status })
+                .ToListAsync();
+
+            // By order, not by line: six items on one order is one order.
+            var byRef = orders.GroupBy(o => o.OrderRef).ToList();
+            var active    = byRef.Count(g => g.Any(o => o.Status == "pending"));
+            var completed = byRef.Count(g => g.All(o => o.Status == "completed"));
+            var cancelled = byRef.Count(g => g.All(o => o.Status == "canceled"));
+
+            var inquiries = mails.Count(m => m.Direction == "in");
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _suppressSave = true;
+                try
+                {
+                    StoreName      = store.Name;
+                    StoreCharacter = CharacterOptions.FirstOrDefault(c => c.Id == store.CharacterId);
+                    StorePosting   = PostingOptions.FirstOrDefault(p => p.Id == store.PostingId);
+                    SenderPolicy   = store.SenderPolicy;
+                    StoreEnabled   = store.Enabled;
+                }
+                finally { _suppressSave = false; }
+
+                Mails.Clear();
+                foreach (var m in mails) Mails.Add(new StoreMailRowVm(m));
+
+                Senders.Clear();
+                foreach (var s in senders) Senders.Add(new StoreSenderRowVm(s));
+
+                StatInquiries = inquiries.ToString("N0");
+                StatActive    = active.ToString("N0");
+                StatCompleted = completed.ToString("N0");
+                StatCancelled = cancelled.ToString("N0");
+
+                this.RaisePropertyChanged(nameof(HasSelection));
+            });
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(StoresViewModel), nameof(LoadSelectedAsync), ex);
+        }
+    }
+
+    // ── Editing ───────────────────────────────────────────────────────────────
+
+    /// <summary>⚠️ Set while the fields are being filled from the database. Without it, loading a
+    /// store writes every one of its own settings straight back — and worse, writes the previous
+    /// store's values onto it in the instant before the rest arrive.</summary>
+    private bool _suppressSave;
+
+    private async Task SaveAsync(Action<Store> apply)
+    {
+        if (_suppressSave || SelectedStore is not StoreRowVm row) return;
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var store = await db.Stores.FirstOrDefaultAsync(s => s.Id == row.Id);
+            if (store is null) return;
+
+            apply(store);
+            await db.SaveChangesAsync();
+
+            // The list shows the name and whether it is open, so it has to follow — in place, so
+            // the row the user is editing stays the row that is selected.
+            await Dispatcher.UIThread.InvokeAsync(() => row.Refresh(store));
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(StoresViewModel), nameof(SaveAsync), ex);
+            Status = $"Save failed: {ex.Message}";
+        }
+    }
+
+    private async Task AddStoreAsync()
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+
+        var store = new Store
+        {
+            Name       = "New store",
+            CreatedAt  = DateTimeOffset.UtcNow,
+            // Closed, with nothing before now to answer. Both are the safe position: a shop is
+            // configured first and opened deliberately.
+            Enabled    = false,
+            ListenFrom = DateTimeOffset.UtcNow,
+        };
+        db.Stores.Add(store);
+        await db.SaveChangesAsync();
+
+        await LoadAsync();
+        await Dispatcher.UIThread.InvokeAsync(() =>
+            SelectedStore = Stores.FirstOrDefault(s => s.Id == store.Id));
+    }
+
+    private async Task DeleteStoreAsync()
+    {
+        if (SelectedStore is not StoreRowVm row) return;
+
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        await db.StoreSenders.Where(s => s.StoreId == row.Id).ExecuteDeleteAsync();
+        await db.StoreMails.Where(m => m.StoreId == row.Id).ExecuteDeleteAsync();
+        await db.Stores.Where(s => s.Id == row.Id).ExecuteDeleteAsync();
+
+        // ⚠️ Orders are NOT deleted with the store. They are real orders somebody placed, some of
+        // them delivered and paid for, and the Order Tracker is where they belong. They simply
+        // stop being answerable by mail, which is what closing a shop means.
+
+        await LoadAsync();
+    }
+
+    private async Task AddSenderAsync()
+    {
+        if (SelectedStore is not StoreRowVm row) return;
+        if (string.IsNullOrWhiteSpace(SenderName)) return;
+
+        var kind = SenderKind switch
+        {
+            "Corporation" => "corporation",
+            "Alliance"    => "alliance",
+            _             => "character",
+        };
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+
+            // Resolved to an id now rather than matched by name later. Not because names change
+            // — in EVE they cannot, short of a petition — but because a name is not unique
+            // across categories and is easy to mistype. An id either matches the sender or does
+            // not, which is what an authorisation check needs.
+            var resolved = await ResolveAsync(db, SenderName.Trim(), kind);
+            if (resolved is null)
+            {
+                Status = $"Could not find a {kind} called \"{SenderName.Trim()}\".";
+                return;
+            }
+
+            var (id, name) = resolved.Value;
+
+            if (await db.StoreSenders.AnyAsync(s => s.StoreId == row.Id && s.EntityId == id))
+            {
+                Status = $"{name} is already on the list.";
+                return;
+            }
+
+            db.StoreSenders.Add(new StoreSender
+            {
+                StoreId = row.Id, EntityId = id, EntityType = kind, Name = name,
+            });
+            await db.SaveChangesAsync();
+
+            await Dispatcher.UIThread.InvokeAsync(() => { SenderName = ""; Status = $"Added {name}."; });
+            await LoadSelectedAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(StoresViewModel), nameof(AddSenderAsync), ex);
+            Status = $"Could not add: {ex.Message}";
+        }
+    }
+
+    public async Task RemoveSenderAsync(StoreSenderRowVm sender)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        await db.StoreSenders.Where(s => s.Id == sender.Id).ExecuteDeleteAsync();
+        await LoadSelectedAsync();
+    }
+
+    /// <summary>
+    /// A name to an id, from what the app already knows.
+    ///
+    /// <para>UniverseNames is the app's own cache of every id it has ever resolved, which for a
+    /// corporation or alliance the user deals with is almost always a hit. It is checked before
+    /// anything is asked of ESI.</para>
+    /// </summary>
+    private static async Task<(long Id, string Name)?> ResolveAsync(
+        AppDbContext db, string name, string kind)
+    {
+        var category = kind switch
+        {
+            "corporation" => "corporation",
+            "alliance"    => "alliance",
+            _             => "character",
+        };
+
+        var hit = await db.UniverseNames.AsNoTracking()
+            .Where(n => n.Category == category && n.Name == name)
+            .Select(n => new { n.EntityId, n.Name })
+            .FirstOrDefaultAsync();
+
+        return hit is null ? null : (hit.EntityId, hit.Name);
+    }
+
+    private async Task CheckMailNowAsync()
+    {
+        Status = "Checking…";
+        await _storeMail.RunOnceAsync();
+        await LoadSelectedAsync();
+        Status = _storeMail.StatusText;
+    }
+}

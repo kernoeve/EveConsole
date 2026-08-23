@@ -1018,6 +1018,19 @@ public class TrackedOrder
     /// </summary>
     public string OrderRef      { get; set; } = "";
 
+    /// <summary>
+    /// What the buyer was last told about this line: its status and estimated date, joined.
+    ///
+    /// <para>⚠️ How a mailed order knows it owes an update, without the fulfilment pass having to
+    /// know anything about mail. OrderFulfilmentService writes the estimate; the store's own pass
+    /// notices that what is on the row differs from what was sent and sends the difference. No
+    /// call between them, and it survives a restart mid-change — the comparison is against
+    /// persisted state, not an event nobody caught.</para>
+    ///
+    /// <para>Set when the order is created, so the confirmation mail counts as having told them.</para>
+    /// </summary>
+    public string NotifiedState  { get; set; } = "";
+
     public DateTimeOffset CreatedAt { get; set; }
 }
 

@@ -339,7 +339,8 @@ public class App : Application
                     "LinkedContractId" INTEGER NULL,
                     "CompletedOn"      TEXT NULL,
                     "StoreId"          INTEGER NOT NULL DEFAULT 0,
-                    "OrderRef"         TEXT    NOT NULL DEFAULT ''
+                    "OrderRef"         TEXT    NOT NULL DEFAULT '',
+                    "NotifiedState"    TEXT    NOT NULL DEFAULT ''
                 )
                 """);
 
@@ -351,6 +352,7 @@ public class App : Application
             // one multi-item order together. Zero and empty on everything entered by hand.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "StoreId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "OrderRef" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "NotifiedState" TEXT NOT NULL DEFAULT ''"""); } catch { }
 
             // The buyer became a picked character or corporation rather than typed text. Existing
             // rows keep their name with a zero id and simply do not link until re-picked.
@@ -376,6 +378,7 @@ public class App : Application
                     -- decided that was wanted, and a mail cannot be unsent.
                     "SenderPolicy"  TEXT    NOT NULL DEFAULT 'List',
                     "Enabled"       INTEGER NOT NULL DEFAULT 0,
+                    "ListenFrom"    TEXT    NOT NULL DEFAULT '',
                     "CreatedAt"     TEXT    NOT NULL DEFAULT ''
                 )
                 """);
@@ -2647,6 +2650,10 @@ public class App : Application
             // Links pending orders to stock, jobs and the contracts that deliver them.
             Start("order fulfilment",   () => Services.GetRequiredService<OrderFulfilmentService>().Start());
 
+            // Answers mail sent to a store's character. Does nothing at all until a store exists
+            // and has been switched on, and never replies to mail older than that moment.
+            Start("store mail",         () => Services.GetRequiredService<StoreMailService>().Start());
+
             Start("alarms",             () => Services.GetRequiredService<AlarmService>().Start());
 
             // Helps SQLite's own automatic checkpoint keep the write-ahead log small, and reports
@@ -2918,6 +2925,7 @@ public class App : Application
         services.AddSingleton<UiLinkSettings>();
         services.AddSingleton<DataRetentionService>();
         services.AddSingleton<OrderFulfilmentService>();
+        services.AddSingleton<StoreMailService>();
         services.AddSingleton<WalCheckpointService>();
         services.AddSingleton<TimerForceService>();
         services.AddSingleton<ExportFormatSettings>();

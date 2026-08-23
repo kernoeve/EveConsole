@@ -39,6 +39,17 @@ public class Store
     /// air.</summary>
     public bool   Enabled       { get; set; }
 
+    /// <summary>
+    /// ⚠️ Mail older than this is never answered, and the mark moves forward every time the shop
+    /// is switched on.
+    ///
+    /// <para>A character's inbox holds months of unrelated mail. Without this, opening a shop
+    /// would reply to all of it at once — hundreds of messages, to real people, that cannot be
+    /// recalled. Moving it on each enable also means a shop closed for a week does not answer the
+    /// week it missed when it reopens.</para>
+    /// </summary>
+    public DateTimeOffset ListenFrom { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; }
 }
 
