@@ -45,6 +45,23 @@ public class IndustryJobGenerator(
     public string Id          => "industry_jobs";
     public string DisplayName => "Industry Jobs";
 
+    /// <summary>
+    /// Time efficiency assumed for runs that have no print at all — a fully researched original,
+    /// which is what would be bought. Optimistic, and said so on the row: an assumed duration is
+    /// better than a run that never appears in the list.
+    /// </summary>
+    private const int FullyResearchedTe = 20;
+
+    /// <summary>
+    /// How many rows the runs with no free print may occupy.
+    ///
+    /// <para>⚠️ A guard against a pathological demand filling the list with hundreds of identical
+    /// blocked rows, not a limit on what is reported. The last allowed row absorbs everything
+    /// still remaining and says that it does, so the jobs always sum to the demand — which is the
+    /// property these rows exist to preserve.</para>
+    /// </summary>
+    private const int MaxUnprintedRows = 12;
+
     public async Task<List<WorklistItem>> GenerateAsync(CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
@@ -433,8 +450,11 @@ public class IndustryJobGenerator(
                         var duration = IndustryJobSplit.Duration(seconds);
                         var durText  = duration.Length > 0 ? $" ~{duration}." : "";
 
+                        // Points at the rows rather than replacing them. This used to be the ONLY
+                        // mention of those runs, which is how a need for 3,375 showed up as one
+                        // 40-run task; they are their own blocked rows now, and this says so.
                         var leftover = i == split.Jobs.Count - 1 && split.RunsUnassigned > 0
-                            ? $" {split.RunsUnassigned:N0} further run(s) need a print — none free."
+                            ? $" {split.RunsUnassigned:N0} further run(s) have no free print — listed separately."
                             : "";
 
                         // Named only on a real split. A job well under the configured length looks
@@ -524,6 +544,110 @@ public class IndustryJobGenerator(
                         }
 
                         return lo;
+                    }
+                }
+
+                // ── Runs that no print could carry ────────────────────────────────
+                //
+                // ⚠️ These are tasks, not a footnote. They used to be one sentence appended to the
+                // last row — "3,335 further run(s) need a print" — which meant the list showed 40
+                // units of work against a need for 3,375 and nothing said where the rest went. The
+                // jobs in this list have to add up to what is being asked for, or the list cannot
+                // be used to plan anything.
+                //
+                // Blocked, obviously: there is no free blueprint. But blocked and absent are very
+                // different things — the first is work waiting on one purchase or one job
+                // finishing, and the second is invisible.
+                if (split.RunsUnassigned > 0)
+                {
+                    // The print these runs would use if one were free: the best owned, wherever it
+                    // is and whatever it is doing. Its real ME and TE, rather than an assumption —
+                    // the BPO sitting in a job right now is the one that will run them.
+                    var reference = printsByType.GetValueOrDefault(product.TypeId, [])
+                        .OrderByDescending(b => b.IsOriginal)
+                        .ThenByDescending(b => b.Me)
+                        .ThenByDescending(b => b.Te)
+                        .ThenBy(b => b.ItemId)
+                        .FirstOrDefault();
+
+                    // Nothing owned: assume the print that would be bought, fully researched.
+                    // Optimistic on purpose — an assumed figure that flattered a blueprint nobody
+                    // has is better than no row at all, and the row says the assumption out loud.
+                    var refTe = reference?.Te ?? FullyResearchedTe;
+
+                    var refSecs = IndustryTimeService.PerRunSeconds(
+                        timeCtx, product.TypeId, isReaction, refTe, structure, catKey,
+                        eligible[0].Skills);
+
+                    // The same two ceilings a real job gets. Without them one row would claim a
+                    // job EVE would refuse to install.
+                    var refCap = long.MaxValue;
+                    if (refSecs is > 0)
+                    {
+                        refCap = Math.Max(1, (long)Math.Ceiling(
+                            IndustryJobSplit.GameMaxJobSeconds / refSecs.Value));
+                        var days = settings.MaxJobDaysFor(pool);
+                        if (days > 0)
+                        {
+                            var byClock = Math.Max(1, (long)(days * 86400.0 / refSecs.Value));
+                            if (byClock < refCap) refCap = byClock;
+                        }
+                    }
+
+                    var printWhy = reference is null
+                        ? "No blueprint owned — one has to be acquired"
+                        : reference.LockedInJob
+                            ? $"Blueprint busy in a running job ({reference.Describe()})"
+                            : $"No blueprint free at {siteName} ({reference.Describe()})";
+
+                    var assumed = reference is null
+                        ? $" Sized against a fully researched print (TE{FullyResearchedTe}) — none is owned."
+                        : $" Sized against {reference.Describe()}.";
+
+                    var left  = split.RunsUnassigned;
+                    var piece = 0;
+
+                    while (left > 0)
+                    {
+                        piece++;
+
+                        // ⚠️ The last allowed row takes everything still left, however much that
+                        // is. Truncating instead would break the one property this whole block
+                        // exists for: the jobs have to sum to the demand. A row larger than a
+                        // single job can be says so in its own text rather than silently going
+                        // missing.
+                        var last = piece >= MaxUnprintedRows;
+                        var runs = last ? left : Math.Min(left, refCap);
+                        var over = last && runs > refCap;
+
+                        items.Add(new WorklistItem
+                        {
+                            Key           = $"industry_job:{d.TypeId}:np{piece}",
+                            Pool          = pool,
+                            BlueprintMe   = reference?.Me,
+                            BlueprintTe   = reference?.Te,
+                            Source        = Id,
+                            Kind          = WorklistKind.Job,
+                            Title         = product.Quantity > 1
+                                ? $"{name} — {runs:N0} run(s) → {runs * (long)Math.Max(1, product.Quantity):N0}"
+                                : $"{name} — {runs:N0} run(s)",
+                            Quantity      = runs * (long)Math.Max(1, product.Quantity),
+                            Detail        = $"{head} Short {d.Units:N0}. Needs a blueprint at "
+                                          + $"{siteName}.{assumed}"
+                                          + (over
+                                              ? $" Covers every remaining run; more than one job can "
+                                              + "hold, so it will take several once a print is free."
+                                              : ""),
+                            Readiness     = WorklistReadiness.Blocked,
+                            BlockedBy     = printWhy,
+                            LocationId    = siteId.Value,
+                            LocationName  = siteName,
+                            TypeId        = d.TypeId,
+                            TypeName      = name,
+                            Priority      = priority,
+                        });
+
+                        left -= runs;
                     }
                 }
         }
