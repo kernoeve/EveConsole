@@ -158,6 +158,7 @@
               AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
               SelectionMode="Extended"
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+              DoubleTapped="OnRowDoubleTapped"
               Background="#0d0d12">
       <DataGrid.ContextMenu>
         <ContextMenu>
@@ -249,6 +250,19 @@
             <DataTemplate x:DataType="vm:SaleRowVm">
               <TextBlock Text="{Binding ProfitPct}" Foreground="{Binding ProfitBrush}" FontSize="11"
                          HorizontalAlignment="Right" Margin="0 0 8 0" VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- The description typed on the contract. Blank on market rows, which have nowhere to
+             carry one. Trimmed with the whole note on hover, since these run long and the point
+             is to recognise a sale, not to read the note in the grid. -->
+        <DataGridTemplateColumn Header="Note" SortMemberPath="Note" Width="200">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleRowVm">
+              <TextBlock Text="{Binding Note}" FontSize="11" VerticalAlignment="Center"
+                         Margin="0 0 8 0" TextTrimming="CharacterEllipsis"
+                         ToolTip.Tip="{Binding Note}" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

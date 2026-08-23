@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using EveConsole.ViewModels;
@@ -19,6 +20,18 @@ public partial class SalesTrackerView : ReactiveUserControl<SalesTrackerViewMode
     private void OnOpenLocation(object? sender, RoutedEventArgs e) => Row(sender)?.OpenLocation();
     private void OnOpenBuyer(object? sender, RoutedEventArgs e)    => Row(sender)?.OpenBuyer();
     private void OnOpenItem(object? sender, RoutedEventArgs e)     => Row(sender)?.OpenItem();
+
+    /// <summary>
+    /// Opens the contract behind a sale, the way the Order Tracker does.
+    ///
+    /// <para>Double-click rather than a link in a cell: the whole row is the sale, and there is
+    /// no one column that means "the contract". Market rows do nothing — a wallet transaction has
+    /// no contract to open.</para>
+    /// </summary>
+    private void OnRowDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (SalesGrid.SelectedItem is SaleRowVm row) row.OpenContract();
+    }
 
     private static SaleRowVm? Row(object? sender) => (sender as Control)?.DataContext as SaleRowVm;
 
