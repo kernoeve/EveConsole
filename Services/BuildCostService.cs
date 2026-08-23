@@ -10,7 +10,7 @@ namespace EveConsole.Services;
 public class BuildCostService
 {
     // Blueprint ME assumptions live in IndustryMe (shared with the Production Calculator):
-    // ME10 default, T2 ME3, BPC-only/faction ME0, titans & Keepstars ME9, reactions ME0.
+    // ME10 default, T2 ME3, BPC-only/faction ME0, titans/Keepstar/Fortizar ME9, reactions ME0.
 
     // Upwell role bonuses: -3% job gross cost, -1% material requirements (Engineering Complexes).
     private const double UpwellRoleBonus     = 0.97;
@@ -665,7 +665,8 @@ public class BuildCostService
             string catKey       = ItemCategoryKey(typeId, isReaction);
             var    structure    = StructureFor(catKey, typeId);
             // Default ME assumption: ME10, except T2 (ME3), BPC-only/faction (ME0), titans &
-            // Keepstars (ME9), reactions (ME0). Shared with the Production Calculator via IndustryMe.
+            // Keepstars & Fortizars (ME9), reactions (ME0). Shared with the Production Calculator
+            // via IndustryMe.
             // A BPO exists, but nobody uses it — cost the bought copy instead. See boughtBpcIds.
             bool   boughtBpc    = boughtBpcIds.Contains(typeId);
             bool   bpcItem      = !isReaction && (!BlueprintIsBpoSourced(bpTypeId) || boughtBpc);

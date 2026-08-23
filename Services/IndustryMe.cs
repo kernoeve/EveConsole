@@ -13,11 +13,12 @@ public static class IndustryMe
     public const int KeepstarTypeId = 35834;  // the Keepstar (other Citadels stay at the default)
     public const int FortizarTypeId = 35833;  // the Fortizar — same story as the Keepstar
 
-    public static int DefaultMe(bool isReaction, bool bpcOnly, bool isT2, bool isTitanOrKeepstar)
+    public static int DefaultMe(bool isReaction, bool bpcOnly, bool isT2, bool isTitanKeepstarFortizar)
     {
         if (isReaction)        return 0;
         if (bpcOnly)           return 0;   // faction / loot BPC — not researchable
-        if (isTitanOrKeepstar) return 9;
+        if (isTitanKeepstarFortizar)
+                               return 9;
         if (isT2)              return 3;
         return 10;
     }
