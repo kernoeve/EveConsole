@@ -378,10 +378,15 @@ public class OrderTrackerViewModel : ReactiveObject
                         : $"Contract {cid}")
                     : "";
 
+                // ⚠️ Named, not positional. storeName, contractLabel and buildAsOf are three
+                // optional strings in a row: passing them in the wrong order compiles perfectly
+                // and puts the store's name in the Contract column, which is exactly what
+                // happened when the Store column was added.
                 _all.Add(new TrackedOrderRowVm(
-                    o, typeNames.TryGetValue(o.TypeId, out var n) ? n : $"Type {o.TypeId}", build, label,
-                    storeNames.GetValueOrDefault(o.StoreId, ""),
-                    settled is not null ? o.CompletedOn ?? "" : ""));
+                    o, typeNames.TryGetValue(o.TypeId, out var n) ? n : $"Type {o.TypeId}", build,
+                    storeName:     storeNames.GetValueOrDefault(o.StoreId, ""),
+                    contractLabel: label,
+                    buildAsOf:     settled is not null ? o.CompletedOn ?? "" : ""));
             }
             // One query for every row's labels rather than one per row.
             var labels = await _labels.ForOrdersAsync(_all.Select(r => r.Id).ToList());
