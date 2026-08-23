@@ -5,6 +5,14 @@
              x:Class="EveConsole.Views.StoresView"
              x:DataType="vm:StoresViewModel">
 
+  <UserControl.Styles>
+    <!-- Amber only once the price list actually splits. A size line that is always coloured is a
+         warning nobody reads by the third time they see it. -->
+    <Style Selector="TextBlock.warn">
+      <Setter Property="Foreground" Value="#c8a84b" />
+    </Style>
+  </UserControl.Styles>
+
   <Grid RowDefinitions="Auto,*">
 
     <!-- Toolbar -->
@@ -75,11 +83,21 @@
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Price list" FontSize="11"
                            Foreground="#888899" VerticalAlignment="Center" Margin="0 0 0 6" />
-                <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding PostingOptions}"
-                          SelectedItem="{Binding StorePosting}" FontSize="11" MinWidth="220"
-                          HorizontalAlignment="Left"
-                          Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a"
-                          Margin="0 0 0 6" />
+                <StackPanel Grid.Row="2" Grid.Column="1" Spacing="3" Margin="0 0 0 6">
+                  <ComboBox ItemsSource="{Binding PostingOptions}"
+                            SelectedItem="{Binding StorePosting}" FontSize="11" MinWidth="220"
+                            HorizontalAlignment="Left"
+                            Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+
+                  <!-- Measured through the same pagination the send uses, so what this says and
+                       what a buyer receives cannot disagree. Amber once it splits; the byte count
+                       is there either way, because knowing the headroom is what lets a posting be
+                       trimmed back under the limit rather than guessed at. -->
+                  <TextBlock Text="{Binding PostingSizeText}" FontSize="10" TextWrapping="Wrap"
+                             MaxWidth="420" HorizontalAlignment="Left" Foreground="#555566"
+                             Classes.warn="{Binding PostingSplits}"
+                             IsVisible="{Binding PostingSizeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
 
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Serve" FontSize="11"
                            Foreground="#888899" VerticalAlignment="Center" Margin="0 0 0 6" />

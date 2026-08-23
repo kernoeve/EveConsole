@@ -559,6 +559,35 @@ public class StoreMailService(
 
     // ── PRICES ────────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// How big this store's price list is, and how many mails it would take.
+    ///
+    /// <para>For the store screen, so the size is visible while the posting is being edited
+    /// rather than discovered when a buyer gets two mails. Measured through the same pagination
+    /// the send uses.</para>
+    /// </summary>
+    /// <returns>Null when the store has no posting, or the posting renders to nothing.</returns>
+    public async Task<PriceListSize?> MeasurePriceListAsync(Store store, CancellationToken ct = default)
+    {
+        var blocks = await postings.RenderAsync(store.PostingId, "EVE Mail", ct);
+        if (blocks.Count == 0) return null;
+
+        var body = PriceListBlocks(blocks);
+
+        // What one mail would weigh, wrapper included — the number to compare against the limit,
+        // because the limit applies to the body as sent, not to the posting on its own.
+        var whole = Weigh(Wrap(store, string.Concat(body)));
+
+        // ⚠️ Reported against what a mail can carry, not the raw ceiling. Quoting the ceiling
+        // would tell someone they have 300 bytes of room that the heading is going to spend.
+        return new PriceListSize(whole, UsableBodyBytes, Paginate(store, "", body).Count);
+    }
+
+    private static List<string> PriceListBlocks(IReadOnlyList<RenderedPost> blocks) =>
+        blocks.Select(b => b.Text).Where(t => t.Length > 0)
+              .Select((t, i) => i == 0 ? t : "<br><br>" + t)
+              .ToList();
+
     private async Task PricesAsync(Store store, StoreMail log, CancellationToken ct)
     {
         var blocks = await postings.RenderAsync(store.PostingId, "EVE Mail", ct);
@@ -577,11 +606,8 @@ public class StoreMailService(
         // ⚠️ Sent through the splitter rather than as one body. A price list grows with the
         // stock behind it, and one that outgrows the limit is refused whole — the buyer asks for
         // prices and gets nothing back.
-        var parts = blocks.Select(b => b.Text).Where(t => t.Length > 0)
-                          .Select((t, i) => i == 0 ? t : "<br><br>" + t)
-                          .ToList();
-
-        await ReplyInPartsAsync(store, log, $"{store.Name} — price list", "", parts, ct);
+        await ReplyInPartsAsync(store, log, $"{store.Name} — price list", "",
+                                PriceListBlocks(blocks), ct);
     }
 
     // ── ORDER ─────────────────────────────────────────────────────────────────
@@ -1088,14 +1114,26 @@ public class StoreMailService(
     ///
     /// <para><b>⚠️ Not the 10,000 the ESI schema advertises.</b> A send was refused at about
     /// 8,120 characters, so whatever the real rule is, the documented number is not it — and
-    /// there is no way to ask. Budgeting in bytes is safe under either reading: if the limit
-    /// counts characters, bytes are never fewer; if it counts bytes, this is the right unit. Our
-    /// messages are full of —, × and ·, each of which is two or three bytes and one character.</para>
+    /// there is no way to ask. 8,000 is the nearest round ceiling under the one send known to
+    /// fail, and a round number is what a limit usually is.</para>
     ///
-    /// <para>Left some room under the observed failure: the heading, the part marker and the
-    /// closing line are added after the blocks are measured.</para>
+    /// <para>⚠️ Counted in bytes, not characters, because that is safe under either reading of a
+    /// rule we cannot see. A body inside 8,000 bytes is inside 8,000 characters as well — never
+    /// the reverse — and our messages are full of —, × and ·, each one character and two or three
+    /// bytes. If the rule counts characters we are simply a little conservative; if it counts
+    /// bytes we are exact.</para>
     /// </summary>
-    private const int MaxBodyBytes = 7_600;
+    private const int MaxBodyBytes = 8_000;
+
+    /// <summary>
+    /// Held back from every body for what is added after the blocks are measured: the heading,
+    /// the part marker, the closing line. Measure the blocks alone and a mail that just fits
+    /// becomes one that just does not — and an over-long mail is refused whole, not trimmed.
+    /// </summary>
+    private const int HeadroomBytes = 200;
+
+    /// <summary>What one mail can actually carry, wrapper and all.</summary>
+    private const int UsableBodyBytes = MaxBodyBytes - HeadroomBytes;
 
     /// <summary>The body's size in the unit the limit is enforced in.</summary>
     private static int Weigh(string s) => Encoding.UTF8.GetByteCount(s);
@@ -1123,27 +1161,7 @@ public class StoreMailService(
         Store store, StoreMail log, string subject, string heading,
         IReadOnlyList<string> blocks, CancellationToken ct)
     {
-        var parts = new List<string>();
-        var sb    = new StringBuilder();
-
-        // ⚠️ Room reserved for what gets added AFTER the chunking: the store's own header and
-        // footer, which ReplyAsync wraps around every message, plus this part's heading. Measure
-        // the blocks alone and a mail that just fits becomes one that just does not, and EVE
-        // refuses the whole thing.
-        var room = MaxBodyBytes - Weigh(Wrap(store, "")) - Weigh(Head(heading)) - 200;
-        if (room < 1_000) room = 1_000;
-
-        foreach (var block in blocks.SelectMany(b => AtLineEnds(b, room)))
-        {
-            if (sb.Length > 0 && Weigh(sb.ToString()) + Weigh(block) > room)
-            {
-                parts.Add(sb.ToString());
-                sb.Clear();
-            }
-            sb.Append(block);
-        }
-        if (sb.Length > 0) parts.Add(sb.ToString());
-        if (parts.Count == 0) parts.Add("");
+        var parts = Paginate(store, heading, blocks);
 
         var dropped = 0;
         if (parts.Count > MaxParts)
@@ -1172,6 +1190,38 @@ public class StoreMailService(
                 parts.Count > 1 ? $"{subject} ({i + 1}/{parts.Count})" : subject,
                 (title.Length > 0 ? Head(title) : "") + parts[i] + tail, ct);
         }
+    }
+
+    /// <summary>
+    /// Splits blocks into however many mail bodies they need.
+    ///
+    /// <para>⚠️ Room is reserved for what every message is wrapped in — the store's own header
+    /// and footer — and for this part's heading, on top of the standing headroom.</para>
+    ///
+    /// <para>Shared with the store screen's size warning, so what it predicts and what actually
+    /// gets sent cannot disagree.</para>
+    /// </summary>
+    private List<string> Paginate(Store store, string heading, IReadOnlyList<string> blocks)
+    {
+        var parts = new List<string>();
+        var sb    = new StringBuilder();
+
+        var room = UsableBodyBytes - Weigh(Wrap(store, "")) - Weigh(Head(heading));
+        if (room < 1_000) room = 1_000;
+
+        foreach (var block in blocks.SelectMany(b => AtLineEnds(b, room)))
+        {
+            if (sb.Length > 0 && Weigh(sb.ToString()) + Weigh(block) > room)
+            {
+                parts.Add(sb.ToString());
+                sb.Clear();
+            }
+            sb.Append(block);
+        }
+        if (sb.Length > 0) parts.Add(sb.ToString());
+        if (parts.Count == 0) parts.Add("");
+
+        return parts;
     }
 
     /// <summary>
@@ -1608,4 +1658,21 @@ public class StoreMailService(
     /// <summary>EVE rejects an over-long subject outright, which would lose the whole reply.</summary>
     private static string Trim(string subject) =>
         subject.Length <= 100 ? subject : subject[..100];
+}
+
+/// <summary>
+/// The size of a store's rendered price list against the limit one mail can carry.
+///
+/// <para>⚠️ <see cref="Bytes"/> and <see cref="Limit"/> are UTF-8 bytes, not characters — see
+/// the limit's own note. A posting of plain ASCII weighs what it looks like; one full of ×, —
+/// and · weighs more than its character count suggests, which is exactly the case where a
+/// posting that looks well inside the limit is not.</para>
+/// </summary>
+public record PriceListSize(int Bytes, int Limit, int Parts)
+{
+    /// <summary>True when the buyer would receive more than one mail.</summary>
+    public bool Splits => Parts > 1;
+
+    /// <summary>How far past the limit, or zero when it fits.</summary>
+    public int Over => Math.Max(0, Bytes - Limit);
 }

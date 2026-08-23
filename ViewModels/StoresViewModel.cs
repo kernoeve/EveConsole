@@ -200,6 +200,7 @@ public class StoresViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _storePosting, value);
+            _ = MeasurePostingAsync();
             if (value is null) return;
             _ = SaveAsync(s => s.PostingId = value.Id);
         }
@@ -228,6 +229,70 @@ public class StoresViewModel : ReactiveObject
                 if (value) s.ListenFrom = DateTimeOffset.UtcNow;
             });
         }
+    }
+
+    private string _postingSizeText = "";
+
+    /// <summary>The rendered price list's size against what one mail can carry.</summary>
+    public string PostingSizeText
+    {
+        get => _postingSizeText;
+        private set => this.RaiseAndSetIfChanged(ref _postingSizeText, value);
+    }
+
+    private bool _postingSplits;
+
+    /// <summary>True when the price list would arrive as more than one mail.</summary>
+    public bool PostingSplits
+    {
+        get => _postingSplits;
+        private set => this.RaiseAndSetIfChanged(ref _postingSplits, value);
+    }
+
+    /// <summary>
+    /// Measures the price list this store would send.
+    ///
+    /// <para>Shown while the posting is being edited, because the alternative is finding out from
+    /// a buyer who received two mails. The figure is in bytes rather than characters: that is the
+    /// unit the limit is enforced in, and a posting full of × and — weighs more than it reads.</para>
+    /// </summary>
+    private async Task MeasurePostingAsync()
+    {
+        if (SelectedStore is not StoreRowVm row) { Clear(); return; }
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var store = await db.Stores.AsNoTracking().FirstOrDefaultAsync(s => s.Id == row.Id);
+            if (store is null) { Clear(); return; }
+
+            var size = await _storeMail.MeasurePriceListAsync(store);
+            if (size is null) { Clear(); return; }
+
+            var text = size.Splits
+                ? $"⚠  Price list is {size.Bytes:N0} of {size.Limit:N0} bytes — "
+                + $"{size.Over:N0} over, so it will arrive as {size.Parts} mails. "
+                + "Shorten the posting to send it as one."
+                : $"Price list is {size.Bytes:N0} of {size.Limit:N0} bytes — fits in one mail "
+                + $"with {size.Limit - size.Bytes:N0} to spare.";
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                PostingSizeText = text;
+                PostingSplits   = size.Splits;
+            });
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("StoresViewModel", "MeasurePosting", ex);
+            Clear();
+        }
+
+        void Clear() => Dispatcher.UIThread.Post(() =>
+        {
+            PostingSizeText = "";
+            PostingSplits   = false;
+        });
     }
 
     private readonly ObservableCollection<string> _knownLabels = [];
