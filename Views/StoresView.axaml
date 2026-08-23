@@ -125,6 +125,7 @@
                 <TextBox Grid.Column="0" Text="{Binding MessageHeader, UpdateSourceTrigger=LostFocus}"
                          AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="110"
                          Watermark="e.g. Thanks for shopping with us." FontSize="11"
+                         ToolTip.Tip="EVE markup works here: &lt;b&gt;, &lt;i&gt;, &lt;u&gt;, dragged links, and [color=#rrggbb]text[/color]. The colour beside this box tints the whole block; the tag colours part of it."
                          Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
                 <controls:ColorField Grid.Column="1" Width="160" Margin="8 0 0 0"
                                      VerticalAlignment="Top"
@@ -133,6 +134,8 @@
 
               <TextBlock Text="MESSAGE FOOTER" FontSize="10"
                          FontWeight="SemiBold" Foreground="#555566" LetterSpacing="1" Margin="0 6 0 0" />
+              <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                         Text="Both accept EVE markup — bold, italic, underline, dragged links — and [color=#rrggbb]text[/color] for part of a line. The picker beside each box tints the whole block." />
               <Grid ColumnDefinitions="*,Auto">
                 <TextBox Grid.Column="0" Text="{Binding MessageFooter, UpdateSourceTrigger=LostFocus}"
                          AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="110"

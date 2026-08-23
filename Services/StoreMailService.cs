@@ -1459,8 +1459,14 @@ public class StoreMailService(
     /// </summary>
     private static string Wrap(Store store, string body)
     {
-        var head = store.MessageHeader?.Trim() ?? "";
-        var foot = store.MessageFooter?.Trim() ?? "";
+        // ⚠️ Through the EVE Mail output format, the same one a posting's static blocks use.
+        // That is what turns [color=#rrggbb]…[/color] into a font tag and a typed newline into
+        // <br>. Without it the markup that works in a posting arrived here as literal text, and
+        // a multi-line footer came out as one long line — the same box, the same syntax, two
+        // different behaviours depending on which screen it was typed into.
+        var fmt  = OutputFormat.ByName("EVE Mail");
+        var head = Mark(fmt, store.MessageHeader);
+        var foot = Mark(fmt, store.MessageFooter);
 
         var sb = new StringBuilder();
         if (head.Length > 0) sb.Append(Tint(store.MessageHeaderColor, head)).Append(Gap);
@@ -1475,6 +1481,13 @@ public class StoreMailService(
     /// <para>⚠️ EVE's colours are ARGB and the alpha is not optional — a six-digit value is read
     /// with a zero alpha, which is invisible text. The same widening the posting renderer does.</para>
     /// </summary>
+    /// <summary>Free text as EVE mail: colour markup resolved, newlines turned into breaks.</summary>
+    private static string Mark(OutputFormat fmt, string? text)
+    {
+        var s = (text ?? "").Trim();
+        return s.Length == 0 ? "" : fmt.Finalize(s);
+    }
+
     private static string Tint(string? hex, string text)
     {
         var rgb = (hex ?? "").Trim().TrimStart('#');
