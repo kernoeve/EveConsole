@@ -142,16 +142,27 @@
           <CheckBox x:Name="ColorByStateBox"
                     Content="Colour each item line by whether it is in stock, in build, or neither"
                     Foreground="#c8c8d8" FontSize="12" />
-          <Grid ColumnDefinitions="Auto,*,Auto,*,Auto,*" Margin="0 2 0 0">
-            <TextBlock Grid.Column="0" Text="In stock" FontSize="11" Foreground="#888899"
-                       VerticalAlignment="Center" Margin="0 0 6 0" />
-            <controls:ColorField Grid.Column="1" x:Name="ColorInStockField" />
-            <TextBlock Grid.Column="2" Text="In build" FontSize="11" Foreground="#888899"
-                       VerticalAlignment="Center" Margin="10 0 6 0" />
-            <controls:ColorField Grid.Column="3" x:Name="ColorInBuildField" />
-            <TextBlock Grid.Column="4" Text="Neither" FontSize="11" Foreground="#888899"
-                       VerticalAlignment="Center" Margin="10 0 6 0" />
-            <controls:ColorField Grid.Column="5" x:Name="ColorNoneField" />
+          <!-- ⚠️ Label above field, not beside it. Three colour fields on one line need three
+               hex boxes at their 92px floor, three swatch buttons and three labels — about forty
+               pixels more than the dialog has, so the row overflowed and the labels drew over the
+               fields beside them, clipping the leading "#". Stacking gives each cell a third of
+               the width, which is more than any of them needs. -->
+          <Grid ColumnDefinitions="*,*,*" Margin="0 2 0 0">
+            <StackPanel Grid.Column="0" Spacing="3" Margin="0 0 5 0">
+              <TextBlock Text="IN STOCK" FontSize="9" FontWeight="SemiBold"
+                         Foreground="#555566" LetterSpacing="1" />
+              <controls:ColorField x:Name="ColorInStockField" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="3" Margin="5 0 5 0">
+              <TextBlock Text="IN BUILD" FontSize="9" FontWeight="SemiBold"
+                         Foreground="#555566" LetterSpacing="1" />
+              <controls:ColorField x:Name="ColorInBuildField" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Spacing="3" Margin="5 0 0 0">
+              <TextBlock Text="NEITHER" FontSize="9" FontWeight="SemiBold"
+                         Foreground="#555566" LetterSpacing="1" />
+              <controls:ColorField x:Name="ColorNoneField" />
+            </StackPanel>
           </Grid>
           <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
                      Text="A colour set on an item beats this; a section's colour applies where neither is set. In header, footer and static text, write [color=#rrggbb]text[/color] — every other format strips it." />
