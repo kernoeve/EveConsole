@@ -13,7 +13,14 @@
          inside a dialog whose whole purpose is choosing. Alpha is hidden — EVE takes ARGB but the
          alpha is not a choice here, it is always fully opaque, and offering it would let someone
          pick an invisible colour. -->
+    <!-- ⚠️ Saturation across, Value down — so the slider beside the box is HUE.
+         The default puts hue in the box and value on the slider, and Avalonia draws that slider
+         as a ramp from black to the current hue at FULL saturation, ignoring where you are
+         vertically. Slide it and the sample goes black to white while the slider itself stays
+         blue, which reads as the control being broken. Hue on the slider has no such coupling:
+         it is a rainbow whatever the box says, and this is the arrangement most pickers use. -->
     <ColorView x:Name="Picker"
+               ColorSpectrumComponents="SaturationValue"
                IsAlphaEnabled="False"
                IsAlphaVisible="False"
                Height="330" />
