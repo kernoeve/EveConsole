@@ -340,7 +340,10 @@ public class App : Application
                     "CompletedOn"      TEXT NULL,
                     "StoreId"          INTEGER NOT NULL DEFAULT 0,
                     "OrderRef"         TEXT    NOT NULL DEFAULT '',
-                    "NotifiedState"    TEXT    NOT NULL DEFAULT ''
+                    "NotifiedState"    TEXT    NOT NULL DEFAULT '',
+                    "ContractToId"     INTEGER NOT NULL DEFAULT 0,
+                    "ContractToName"   TEXT    NOT NULL DEFAULT '',
+                    "ContractToType"   TEXT    NOT NULL DEFAULT ''
                 )
                 """);
 
@@ -353,6 +356,10 @@ public class App : Application
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "StoreId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "OrderRef" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "NotifiedState" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            // Who the contract is made out to, when that is not the buyer.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "ContractToId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "ContractToName" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "ContractToType" TEXT NOT NULL DEFAULT ''"""); } catch { }
 
             // The buyer became a picked character or corporation rather than typed text. Existing
             // rows keep their name with a zero id and simply do not link until re-picked.

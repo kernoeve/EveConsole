@@ -32,6 +32,7 @@ public class StoreMailService(
     EveMailService                  mail,
     EsiClient                       esi,
     SalePostingService              postings,
+    OrderFulfilmentService          fulfilment,
     AppErrorLogger                  errorLogger)
 {
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(1);
@@ -360,16 +361,34 @@ public class StoreMailService(
     /// </summary>
     private static string Usage(Store store) =>
         "Put one of these in the mail <b>subject</b>:<br><br>" +
-        "<b>PRICES</b> — the current price list.<br>" +
-        "<b>ORDER</b> — place an order. One item per line in the body:<br>" +
-        "&nbsp;&nbsp;2 x Archon<br>" +
-        "&nbsp;&nbsp;1 x Nidhoggur<br>" +
-        "<b>STATUS</b> — progress on an order. Put its reference in the subject or body, " +
-        "as <b>STATUS K7P2QX</b>.<br>" +
-        "<b>CANCEL</b> — withdraw an order, same reference.<br>" +
-        "<b>HELP</b> — this message.<br><br>" +
-        $"Prices are those on the list at the moment the order is read. — {store.Name}";
 
+        "<b>PRICES</b> — the current price list.<br><br>" +
+
+        "<b>ORDER</b> — place an order. One item per line in the body.<br>" +
+        // ⚠️ Dragging is offered first because it is the thing that cannot go wrong. The link
+        // carries the item's id, so there is no spelling to get right and nothing to match on;
+        // typing is the fallback, not the instruction.
+        "The easiest way is to <b>drag the item</b> into the mail — from this price list, from " +
+        "the market, from your hangar. Then put the quantity beside it if you want more than " +
+        "one:<br>" +
+        "&#160;&#160;&#160;[Archon] x2<br>" +
+        "&#160;&#160;&#160;[Nidhoggur]<br>" +
+        "Typing the name works too, in any of these forms:<br>" +
+        "&#160;&#160;&#160;Archon x2&#160;&#160;·&#160;&#160;Archon 2&#160;&#160;·&#160;&#160;" +
+        "2 x Archon&#160;&#160;·&#160;&#160;Archon<br><br>" +
+
+        "<b>Contracting to someone else?</b> Drag that character or corporation into the body " +
+        "anywhere and the contract will be made out to them instead of you.<br><br>" +
+
+        "<b>STATUS</b> — where your orders have got to. No reference needed; you will get all of " +
+        "your open ones. Add a reference to ask about just that one.<br><br>" +
+
+        "<b>CANCEL</b> — withdraw an order. This one does need its reference, from the " +
+        "confirmation mail.<br><br>" +
+
+        "<b>HELP</b> — this message.<br><br>" +
+
+        $"Prices are those on the list at the moment the order is read. — {store.Name}";
     /// <summary>
     /// Whether this sender has already been sent the usage lately.
     ///
@@ -460,28 +479,31 @@ public class StoreMailService(
             return;
         }
 
-        // The catalogue is the posting: what it quotes is what can be bought. A name override is
-        // matched as well as the real type name, because the override is what the buyer was
-        // shown and so what they will write back.
-        var catalogue = new Dictionary<string, PostingItemView>(StringComparer.OrdinalIgnoreCase);
+        // The catalogue is the posting: what it quotes is what can be bought. Indexed both ways —
+        // by type id for a dragged link, which is exact, and by name for anyone who types. A name
+        // override is included because that is what the buyer was shown, so that is what they
+        // will write back.
+        var byName   = new Dictionary<string, PostingItemView>(StringComparer.OrdinalIgnoreCase);
+        var byTypeId = new Dictionary<int, PostingItemView>();
         foreach (var item in view.Sections.SelectMany(s => s.Items))
         {
-            catalogue[item.TypeName] = item;
-            if (!string.IsNullOrWhiteSpace(item.NameOverride)) catalogue[item.NameOverride!] = item;
+            byTypeId[item.TypeId] = item;
+            byName[item.TypeName] = item;
+            if (!string.IsNullOrWhiteSpace(item.NameOverride)) byName[item.NameOverride!] = item;
         }
 
-        var (lines, unknown) = ParseOrderLines(log.Body, catalogue);
+        var parsed = ParseOrder(log.Body, byName, byTypeId);
 
-        if (lines.Count == 0)
+        if (parsed.Lines.Count == 0)
         {
             log.Outcome = "rejected";
-            log.Detail  = unknown.Count > 0
-                ? $"Nothing recognised. Unmatched: {string.Join(", ", unknown)}"
+            log.Detail  = parsed.Unknown.Count > 0
+                ? $"Nothing recognised. Unmatched: {string.Join(", ", parsed.Unknown)}"
                 : "No order lines found in the body.";
             await ReplyAsync(store, log, $"{store.Name} — order not understood",
                 "Nothing on this order matched the price list.<br><br>" +
-                (unknown.Count > 0
-                    ? "Not found: " + Esc(string.Join(", ", unknown)) + "<br><br>"
+                (parsed.Unknown.Count > 0
+                    ? "Not found: " + Esc(string.Join(", ", parsed.Unknown)) + "<br><br>"
                     : "") +
                 Usage(store), ct);
             return;
@@ -490,8 +512,14 @@ public class StoreMailService(
         var reference = await NewReferenceAsync(db, ct);
         var now       = DateTimeOffset.UtcNow;
 
-        foreach (var (item, units) in lines)
-            db.TrackedOrders.Add(new TrackedOrder
+        // Who the contract goes to, if they dragged somebody in. The link carries the id, so
+        // there is no name to resolve and nothing to guess between a character and a corporation.
+        var to = parsed.ContractTo;
+
+        var created = new List<TrackedOrder>();
+        foreach (var (item, units) in parsed.Lines)
+        {
+            var order = new TrackedOrder
             {
                 TypeId    = item.TypeId,
                 Units     = (int)units,
@@ -505,33 +533,63 @@ public class StoreMailService(
                 Status        = "pending",
                 StoreId       = store.Id,
                 OrderRef      = reference,
-                // The confirmation below IS the first notification, so the order starts already
-                // told. Without this every new order would trigger an update mail a minute later
-                // saying exactly what the confirmation just said.
                 NotifiedState = "pending||",
+                ContractToId   = to?.EntityId ?? 0,
+                ContractToName = to?.Text ?? "",
+                ContractToType = to is null ? "" : to.EntityKind,
                 CreatedAt     = now,
-            });
+            };
+            db.TrackedOrders.Add(order);
+            created.Add(order);
+        }
 
         await db.SaveChangesAsync(ct);
         db.ChangeTracker.Clear();
 
         log.OrderRef = reference;
 
-        var total = lines.Sum(l => (l.Item.SalePrice ?? 0) * l.Units);
+        // ⚠️ Worked out before the confirmation is written, not after. The buyer's first question
+        // is "when", and an answer of "we will let you know" when the item is on the shelf is a
+        // worse answer than the truth. This is the same pass that runs every five minutes; asking
+        // for it now just means the reply can say what it found.
+        try { await fulfilment.RunOnceAsync(ct); }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex) { errorLogger.Log(nameof(StoreMailService), "fulfilment after order", ex); }
+
+        var settled = await db.TrackedOrders.AsNoTracking()
+            .Where(o => o.OrderRef == reference)
+            .ToListAsync(ct);
+
+        var byType = settled.ToDictionary(o => o.TypeId);
+
+        var total = parsed.Lines.Sum(l => (l.Item.SalePrice ?? 0) * l.Units);
+
         var sb = new StringBuilder();
         sb.Append("Order <b>").Append(reference).Append("</b> received.<br><br>");
-        foreach (var (item, units) in lines)
+
+        foreach (var (item, units) in parsed.Lines)
+        {
             sb.Append(units.ToString("N0")).Append(" &#215; ")
               .Append(Link(item)).Append(" — ")
-              .Append(Isk((item.SalePrice ?? 0) * units)).Append("<br>");
-        sb.Append("<br><b>Total ").Append(Isk(total)).Append("</b><br><br>");
+              .Append(Isk((item.SalePrice ?? 0) * units)).Append("<br>")
+              .Append("&#160;&#160;&#160;")
+              .Append(Expect(byType.GetValueOrDefault(item.TypeId)))
+              .Append("<br>");
+        }
 
-        if (unknown.Count > 0)
-            sb.Append("Not on the list, so not ordered: ").Append(Esc(string.Join(", ", unknown)))
+        sb.Append("<br><b>Total ").Append(Isk(total)).Append("</b><br>");
+
+        if (to is not null)
+            sb.Append("Contract will be made out to <b>").Append(Esc(to.Text)).Append("</b>.<br>");
+
+        sb.Append("<br>");
+
+        if (parsed.Unknown.Count > 0)
+            sb.Append("Not on the list, so not ordered: ").Append(Esc(string.Join(", ", parsed.Unknown)))
               .Append("<br><br>");
 
-        sb.Append("Reply with <b>STATUS</b> and this reference for progress, ")
-          .Append("or <b>CANCEL</b> to withdraw it.");
+        sb.Append("Reply with <b>STATUS</b> for progress, or <b>CANCEL</b> and this reference to ")
+          .Append("withdraw it.");
 
         await ReplyAsync(store, log, $"{store.Name} — order {reference}", sb.ToString(), ct);
     }
@@ -540,32 +598,79 @@ public class StoreMailService(
 
     private async Task StatusAsync(AppDbContext db, Store store, StoreMail log, CancellationToken ct)
     {
+        // ⚠️ A reference is accepted but not required. A buyer knows what they ordered, not what
+        // this app called it, and asking them to dig a six-character code out of an old mail to
+        // ask "where is my stuff" is the app's filing system leaking into the conversation.
+        // Without one, they get everything of theirs that is still open.
         var orders = await FindOrderAsync(db, store, log, ct);
-        if (orders.Count == 0)
+        var scope  = orders.Count > 0 ? $"Order <b>{orders[0].OrderRef}</b>" : "Your open orders";
+
+        if (orders.Count > 0) log.OrderRef = orders[0].OrderRef;
+        else
         {
-            log.Outcome = "rejected";
-            log.Detail  = "No order of that reference for this sender.";
-            await ReplyAsync(store, log, $"{store.Name} — order not found",
-                "No order of that reference was found against your name.<br><br>" + Usage(store), ct);
-            return;
+            // Everything still open for this sender. Matched on the buyer, so nobody can read
+            // anyone else's orders by asking.
+            orders = await db.TrackedOrders
+                .Where(o => o.StoreId == store.Id && o.BuyerId == log.PartyId
+                         && o.OrderRef != "" && o.Status == "pending")
+                .ToListAsync(ct);
         }
 
-        log.OrderRef = orders[0].OrderRef;
+        if (orders.Count == 0)
+        {
+            log.Outcome = "ok";
+            log.Detail  = "Nothing open for this sender.";
+            await ReplyAsync(store, log, $"{store.Name} — no open orders",
+                "You have no open orders with us.<br><br>" + Usage(store), ct);
+            return;
+        }
 
         var names = await TypeNamesAsync(db, orders.Select(o => o.TypeId).Distinct().ToList(), ct);
 
         var sb = new StringBuilder();
-        sb.Append("Order <b>").Append(orders[0].OrderRef).Append("</b><br><br>");
-        foreach (var o in orders)
+        sb.Append(scope).Append("<br><br>");
+
+        // Grouped by order, because that is the unit the buyer placed and the reference they
+        // would quote back to cancel one of several.
+        foreach (var group in orders.GroupBy(o => o.OrderRef).OrderBy(g => g.Key))
         {
-            sb.Append(o.Units.ToString("N0")).Append(" &#215; ")
-              .Append("<a href=\"showinfo:").Append(o.TypeId).Append("\">")
-              .Append(Esc(names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"))).Append("</a>")
-              .Append(" — ").Append(Describe(o)).Append("<br>");
+            if (orders.Select(o => o.OrderRef).Distinct().Count() > 1)
+                sb.Append("<b>").Append(group.Key).Append("</b><br>");
+
+            foreach (var o in group)
+                sb.Append(o.Units.ToString("N0")).Append(" &#215; ")
+                  .Append("<a href=\"showinfo:").Append(o.TypeId).Append("\">")
+                  .Append(Esc(names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"))).Append("</a>")
+                  .Append(" — ").Append(Describe(o)).Append("<br>");
+
+            sb.Append("<br>");
         }
 
-        await ReplyAsync(store, log, $"{store.Name} — order {orders[0].OrderRef}", sb.ToString(), ct);
+        await ReplyAsync(store, log, $"{store.Name} — order status", sb.ToString(), ct);
     }
+
+    /// <summary>
+    /// What happens next for one line of a new order, in the buyer's terms.
+    ///
+    /// <para>Three answers, and the difference between them is the whole value of replying at
+    /// all: it is on the shelf and reserved for you; it is already being built and here is the
+    /// date; nothing exists yet and you are in the queue. "We will get back to you" is what this
+    /// exists to avoid.</para>
+    ///
+    /// <para>⚠️ Reads what OrderFulfilmentService decided rather than deciding again. That pass
+    /// owns which order claims which stock — running the same reasoning here would be a second
+    /// opinion, and the two would disagree the moment either changed.</para>
+    /// </summary>
+    private static string Expect(TrackedOrder? o) => o?.FulfilmentSource switch
+    {
+        "stock"    => "In stock and reserved for you — it will be contracted shortly.",
+        "contract" => "Already contracted to you.",
+        "job"      => o.EstimatedDate is { Length: > 0 } d
+                        ? $"Already in build, expected {d}."
+                        : "Already in build.",
+        _          => "Out of stock — your reservation is placed, and you will be told the "
+                    + "completion date once the build starts.",
+    };
 
     /// <summary>What one line of an order is doing, in words a buyer can act on.</summary>
     private static string Describe(TrackedOrder o) => o.Status switch
@@ -752,62 +857,168 @@ public class StoreMailService(
         // is wrong rather than unlucky. A timestamp is ugly but unique and keeps the order.
         return "T" + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()[^5..];
     }
+    /// <summary>
+    /// A link the buyer dragged into the mail.
+    ///
+    /// <para>EVE writes these as <c>showinfo:&lt;typeId&gt;</c> for a thing, and
+    /// <c>showinfo:&lt;typeId&gt;//&lt;entityId&gt;</c> for a particular one of something — a
+    /// character, a corporation, an alliance. The presence of the second number is what tells
+    /// the two apart.</para>
+    /// </summary>
+    internal sealed record Dragged(int TypeId, long EntityId, string Text)
+    {
+        public bool IsItem => EntityId == 0;
 
-    /// <summary>An order line: "2 x Hulk", "2 Hulk", "Hulk x 2", or a bare item name meaning one.</summary>
-    private static readonly Regex LeadingQty = new(@"^\s*(\d[\d,\s]*)\s*(?:x|\*|×)?\s+(.+?)\s*$", RegexOptions.Compiled);
-    private static readonly Regex TrailingQty = new(@"^\s*(.+?)\s*(?:x|\*|×)\s*(\d[\d,\s]*)\s*$", RegexOptions.Compiled);
+        /// <summary>Which kind of entity, from the type it is an instance of. Corporations are
+        /// type 2 and alliances 16159; every other instance link is a character, whose type is
+        /// whichever bloodline they were born to.</summary>
+        public string EntityKind => TypeId switch
+        {
+            2     => "corporation",
+            16159 => "alliance",
+            _     => "character",
+        };
+    }
+
+    private static readonly Regex ShowInfo = new(
+        """<a\s+href\s*=\s*"?showinfo:(\d+)(?://(\d+))?"?[^>]*>(.*?)</a>""",
+        RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+
+    /// <summary>Quantity forms, most specific first: "x2", "2x", a bare trailing number.</summary>
+    private static readonly Regex QtyLeading  = new(@"^\s*(\d[\d,]*)\s*[x*×]?\s+(.+?)\s*$", RegexOptions.Compiled);
+    private static readonly Regex QtyTrailing = new(@"^\s*(.+?)\s*[x*×]\s*(\d[\d,]*)\s*$",   RegexOptions.Compiled);
+    private static readonly Regex QtyBare     = new(@"^\s*(.+?)\s+(\d[\d,]*)\s*$",           RegexOptions.Compiled);
+
+    /// <summary>Just a count, with or without an x — what is left beside a dragged item link.</summary>
+    private static readonly Regex CountOnly   = new(@"^\s*[x*×]?\s*(\d[\d,]*)\s*[x*×]?\s*$", RegexOptions.Compiled);
+
+    /// <summary>What one mail asked to buy.</summary>
+    internal sealed record ParsedOrder(
+        List<(PostingItemView Item, long Units)> Lines,
+        List<string> Unknown,
+        Dragged? ContractTo);
 
     /// <summary>
-    /// Reads the body into order lines, matched against the catalogue.
+    /// Reads the body into order lines.
     ///
-    /// <para>Anything that does not match is returned rather than dropped: a buyer who asked for
-    /// four things and gets three needs to be told which one was not understood, and the seller
-    /// needs to see it to decide whether the catalogue is missing something.</para>
+    /// <para><b>Links first, names second.</b> Dragging an item out of the price list, the market
+    /// or a hangar is one gesture and carries the type id, so there is nothing to spell and
+    /// nothing to match — the buyer cannot get it wrong and neither can this. Typed names still
+    /// work, because someone will always type.</para>
+    ///
+    /// <para>⚠️ Parsed from the HTML rather than from stripped text. The anchor IS the item; a
+    /// strip that turned it into its own label would throw away the one unambiguous thing in the
+    /// message and leave a name to guess at.</para>
+    ///
+    /// <para>Quantities are read in whichever form arrives — <c>Archon x2</c>, <c>Archon 2</c>,
+    /// <c>2 x Archon</c>, <c>x2</c> beside a link, or nothing at all meaning one. The forms are
+    /// tried against the catalogue rather than assumed, because an item name can legitimately end
+    /// in a number and "Archon 2" would otherwise become an item called "Archon" only by luck.</para>
+    ///
+    /// <para>An entity link anywhere in the body — a character, a corporation — is read as who
+    /// the contract should be made out to. Anywhere, because it is unambiguous wherever it sits:
+    /// the link says what it is.</para>
     /// </summary>
-    internal static (List<(PostingItemView Item, long Units)> Lines, List<string> Unknown)
-        ParseOrderLines(string? body, IReadOnlyDictionary<string, PostingItemView> catalogue)
+    internal static ParsedOrder ParseOrder(
+        string? body, IReadOnlyDictionary<string, PostingItemView> byName,
+        IReadOnlyDictionary<int, PostingItemView> byTypeId)
     {
         var lines   = new List<(PostingItemView, long)>();
         var unknown = new List<string>();
-        if (string.IsNullOrWhiteSpace(body)) return (lines, unknown);
+        Dragged? contractTo = null;
 
-        foreach (var raw in Strip(body).Split('\n'))
+        if (string.IsNullOrWhiteSpace(body)) return new ParsedOrder(lines, unknown, null);
+
+        foreach (var raw in Lines(body))
         {
-            var line = raw.Trim().TrimEnd('.', ';', ',');
+            var line = raw.Trim();
             if (line.Length == 0) continue;
 
-            // A quoted reply carries our own mail back. Skipping these stops the confirmation we
-            // just sent from being read as a second order for the same things.
+            // A quoted reply carries our own mail back, links and all. Skipping these stops the
+            // confirmation we just sent from being read as a second order for the same things.
             if (line.StartsWith('>')) continue;
 
-            string name;
-            long   units = 1;
+            var links = ShowInfo.Matches(line)
+                .Select(m => new Dragged(
+                    int.TryParse(m.Groups[1].Value, out var t) ? t : 0,
+                    m.Groups[2].Success && long.TryParse(m.Groups[2].Value, out var e) ? e : 0,
+                    Tags.Replace(m.Groups[3].Value, "").Trim()))
+                .ToList();
 
-            if (LeadingQty.Match(line) is { Success: true } a)
+            contractTo ??= links.FirstOrDefault(l => !l.IsItem);
+
+            // The line with its links taken out, which is where any count is.
+            var rest = Decode(Tags.Replace(ShowInfo.Replace(line, " "), "")).Trim();
+
+            var items = links.Where(l => l.IsItem).ToList();
+            if (items.Count > 0)
             {
-                units = Qty(a.Groups[1].Value);
-                name  = a.Groups[2].Value;
-            }
-            else if (TrailingQty.Match(line) is { Success: true } b)
-            {
-                name  = b.Groups[1].Value;
-                units = Qty(b.Groups[2].Value);
-            }
-            else name = line;
+                // A count beside the link applies to it. Several links on one line each mean one,
+                // since a single number could not say which of them it belonged to.
+                var units = items.Count == 1 && CountOnly.Match(rest) is { Success: true } c
+                    ? Qty(c.Groups[1].Value)
+                    : 1;
 
-            name = name.Trim().Trim('-', ':').Trim();
-            if (name.Length == 0 || units <= 0) continue;
+                foreach (var link in items)
+                {
+                    if (byTypeId.TryGetValue(link.TypeId, out var known))
+                        lines.Add((known, Math.Max(1, units)));
+                    else
+                        unknown.Add(link.Text.Length > 0 ? link.Text : $"type {link.TypeId}");
+                }
+                continue;
+            }
 
-            if (catalogue.TryGetValue(name, out var item)) lines.Add((item, units));
-            else if (!IsChatter(name)) unknown.Add(name);
+            if (rest.Length == 0) continue;
+
+            // No link: read it as text, trying each shape against the catalogue rather than
+            // picking one and hoping.
+            var parsed = ByName(rest, byName);
+            if (parsed is { } hit) lines.Add(hit);
+            else if (!IsChatter(rest)) unknown.Add(rest);
         }
 
         // The same item twice on one order is one line for that many.
-        return (lines.GroupBy(l => l.Item1.TypeId)
-                     .Select(g => (g.First().Item1, g.Sum(x => x.Item2)))
-                     .ToList(),
-                unknown.Distinct(StringComparer.OrdinalIgnoreCase).ToList());
+        return new ParsedOrder(
+            lines.GroupBy(l => l.Item1.TypeId)
+                 .Select(g => (g.First().Item1, g.Sum(x => x.Item2)))
+                 .ToList(),
+            unknown.Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
+            contractTo);
     }
+
+    /// <summary>
+    /// A typed line as an item and a count, or null when nothing in the catalogue fits.
+    ///
+    /// <para>⚠️ Every shape is tested against the catalogue and the first that MATCHES wins —
+    /// not the first that parses. "Archon 2" splits happily into "Archon" and 2, but so would an
+    /// item genuinely called something ending in a number, and only the catalogue knows which is
+    /// which.</para>
+    /// </summary>
+    private static (PostingItemView, long)? ByName(
+        string text, IReadOnlyDictionary<string, PostingItemView> byName)
+    {
+        // Whole line first: an item whose name ends in a number is still just its name.
+        if (byName.TryGetValue(Clean(text), out var whole)) return (whole, 1);
+
+        foreach (var (pattern, nameGroup, qtyGroup) in new[]
+                 {
+                     (QtyTrailing, 1, 2),   // Archon x2, Archon x 2
+                     (QtyLeading,  2, 1),   // 2 x Archon, 2 Archon
+                     (QtyBare,     1, 2),   // Archon 2
+                 })
+        {
+            if (pattern.Match(text) is not { Success: true } m) continue;
+
+            var name  = Clean(m.Groups[nameGroup].Value);
+            var units = Qty(m.Groups[qtyGroup].Value);
+            if (units > 0 && byName.TryGetValue(name, out var item)) return (item, units);
+        }
+
+        return null;
+    }
+
+    private static string Clean(string s) => s.Trim().Trim('-', ':', '.', ',', ';').Trim();
 
     private static long Qty(string s) =>
         long.TryParse(s.Replace(",", "").Replace(" ", ""), out var n) ? n : 0;
@@ -820,34 +1031,40 @@ public class StoreMailService(
     {
         var l = line.Trim().TrimEnd('!', '.', '?');
         if (l.Length <= 2) return true;
-        return l.StartsWith("thank",  StringComparison.OrdinalIgnoreCase)
-            || l.StartsWith("hi",     StringComparison.OrdinalIgnoreCase)
-            || l.StartsWith("hello",  StringComparison.OrdinalIgnoreCase)
-            || l.StartsWith("please", StringComparison.OrdinalIgnoreCase)
-            || l.StartsWith("cheers", StringComparison.OrdinalIgnoreCase)
-            || l.StartsWith("o7",     StringComparison.OrdinalIgnoreCase)
+        return l.StartsWith("thank",   StringComparison.OrdinalIgnoreCase)
+            || l.StartsWith("hi",      StringComparison.OrdinalIgnoreCase)
+            || l.StartsWith("hello",   StringComparison.OrdinalIgnoreCase)
+            || l.StartsWith("please",  StringComparison.OrdinalIgnoreCase)
+            || l.StartsWith("cheers",  StringComparison.OrdinalIgnoreCase)
+            || l.StartsWith("o7",      StringComparison.OrdinalIgnoreCase)
             || l.StartsWith("regards", StringComparison.OrdinalIgnoreCase);
     }
 
     // ── Text ──────────────────────────────────────────────────────────────────
 
+    private static readonly Regex Tags   = new(@"<[^>]+>", RegexOptions.Compiled);
+    private static readonly Regex Breaks = new(@"<br\s*/?>|</p\s*>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    /// <summary>The body split into lines, with the markup left in place.</summary>
+    private static IEnumerable<string> Lines(string html) =>
+        Breaks.Replace(html, "\n").Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+
+    private static string Decode(string s) => System.Net.WebUtility.HtmlDecode(s);
+
     /// <summary>
-    /// A mail body as plain text. EVE bodies are HTML — line breaks are &lt;br&gt; and an item
-    /// the buyer dragged in arrives as a showinfo anchor, so a naive split on newlines finds one
-    /// enormous line and no items at all.
+    /// A mail body as plain text, for the record rather than for parsing. EVE bodies are HTML —
+    /// line breaks are &lt;br&gt; and anything dragged in arrives as an anchor — so a naive split
+    /// on newlines finds one enormous line.
     /// </summary>
     internal static string Strip(string html)
     {
         if (string.IsNullOrEmpty(html)) return "";
-        var s = Regex.Replace(html, @"<br\s*/?>", "\n", RegexOptions.IgnoreCase);
-        s = Regex.Replace(s, @"</p\s*>", "\n", RegexOptions.IgnoreCase);
-        // The anchor's TEXT is the item name, which is exactly what we want to match on.
+        var s = Breaks.Replace(html, "\n");
+        // The anchor's TEXT is the name a person would read.
         s = Regex.Replace(s, @"<a\b[^>]*>(.*?)</a>", "$1", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-        s = Regex.Replace(s, @"<[^>]+>", "");
-        s = System.Net.WebUtility.HtmlDecode(s);
-        return s.Replace("\r\n", "\n").Replace('\r', '\n');
+        s = Tags.Replace(s, "");
+        return Decode(s).Replace("\r\n", "\n").Replace('\r', '\n');
     }
-
     private static string Esc(string s) => System.Net.WebUtility.HtmlEncode(s);
 
     private static string Link(PostingItemView item) =>

@@ -1031,6 +1031,21 @@ public class TrackedOrder
     /// </summary>
     public string NotifiedState  { get; set; } = "";
 
+    /// <summary>
+    /// Who the contract should be made out to, when that is not the buyer.
+    ///
+    /// <para>Optional, and empty on most orders — a contract goes to whoever ordered unless told
+    /// otherwise. A buyer ordering on behalf of their corporation, or for an alt that will
+    /// actually fly the thing, needs somewhere to say so, and saying it in the order is better
+    /// than saying it in a separate conversation nobody can find later.</para>
+    ///
+    /// <para>⚠️ Set from a dragged link rather than typed text. A character and a corporation can
+    /// share a name, and "make the contract out to Kerno" is not something to guess at.</para>
+    /// </summary>
+    public long   ContractToId   { get; set; }
+    public string ContractToName { get; set; } = "";
+    public string ContractToType { get; set; } = "";   // "character" | "corporation" | ""
+
     public DateTimeOffset CreatedAt { get; set; }
 }
 

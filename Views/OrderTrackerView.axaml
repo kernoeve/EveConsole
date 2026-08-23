@@ -118,6 +118,22 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
+        <!-- Blank means the buyer, not "unknown": a contract with nobody named goes to whoever
+             ordered. Only orders where someone said otherwise carry a name here. -->
+        <DataGridTemplateColumn Header="Contract To" SortMemberPath="ContractTo" Width="150">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrackedOrderRowVm">
+              <Panel>
+                <Button Classes="link" Click="OnOpenRowContractTo" IsVisible="{Binding HasContractToLink}" ToolTip.Tip="Open in the entity browser">
+                  <TextBlock Text="{Binding ContractTo}" Classes="linktext"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding ContractTo}" IsVisible="{Binding !HasContractToLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <!-- Three separate facts, deliberately not one "source" field: what is on the shelf, what
              is making it, and what delivered it. Folding them together meant linking a contract
              erased the job that built the thing. -->

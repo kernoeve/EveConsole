@@ -43,6 +43,21 @@ public class TrackedOrderRowVm
     public long   BuyerId   { get; }
     public string BuyerType { get; }
 
+    /// <summary>
+    /// Who the contract is made out to, when that is not the buyer.
+    ///
+    /// <para>Blank on most orders, and blank means "the buyer" rather than "unknown" — a contract
+    /// with nobody named goes to whoever ordered.</para>
+    /// </summary>
+    public long   ContractToId   { get; }
+    public string ContractTo     { get; }
+    public string ContractToType { get; }
+
+    public bool HasContractToLink => ContractToId > 0 && ContractTo.Length > 0;
+
+    public void OpenContractTo() => EntityNavigator.Instance.Entity(
+        ContractToType == "corporation" ? EntityKind.PlayerCorp : EntityKind.Pilot, ContractToId);
+
     public bool HasTypeLink  => TypeId  > 0 && Type.Length  > 0;
     public bool HasBuyerLink => BuyerId > 0 && Buyer.Length > 0;
 
@@ -90,7 +105,10 @@ public class TrackedOrderRowVm
     public TrackedOrderRowVm(TrackedOrder o, string typeName, double? buildCost,
                              string contractLabel = "", string buildAsOf = "")
     {
-        Id          = o.Id;
+        Id             = o.Id;
+        ContractToId   = o.ContractToId;
+        ContractTo     = o.ContractToName;
+        ContractToType = o.ContractToType;
         Created     = o.CreatedAt;
         CreatedSort = o.CreatedAt.UtcTicks;
         CreatedText = o.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd");

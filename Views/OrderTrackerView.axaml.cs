@@ -51,4 +51,7 @@ public partial class OrderTrackerView : ReactiveUserControl<OrderTrackerViewMode
 
     private void OnOpenRowBuyer(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => ((sender as Control)?.DataContext as TrackedOrderRowVm)?.OpenBuyer();
+
+    private void OnOpenRowContractTo(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as TrackedOrderRowVm)?.OpenContractTo();
 }
