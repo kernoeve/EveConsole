@@ -1058,6 +1058,17 @@ public class EsiPollingService : ReactiveObject
         if (!r.IsSuccess) return FromResult(r);
 
         var roots = ComputeRootLocations(r.Data!);
+
+        // ⚠️ Delete and replace in ONE transaction. ExecuteDeleteAsync commits on its own, so
+        // without this the character's assets are simply absent from the database between the
+        // two statements — and anything reading in that window sees a hangar with nothing in it.
+        // Measured: an order filled from stock was downgraded to "waiting on materials" by a
+        // fulfilment pass that landed in the gap, and the store mailed the buyer about it.
+        //
+        // No extra lock time worth speaking of: the delete and the insert already ran back to
+        // back, each taking the write lock in turn. This merges them rather than adding anything.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
         await db.EsiAssets
             .Where(a => a.OwnerId == charId && a.OwnerType == "character")
             .ExecuteDeleteAsync(ct);
@@ -1077,6 +1088,7 @@ public class EsiPollingService : ReactiveObject
             RootLocationType = roots[a.ItemId].RootType,
         }));
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
 
         // ESI's assets endpoint omits the character's ACTIVE ship (the one they are currently
         // in — e.g. a titan a character is logged off in). Pull it via the ship + location

@@ -161,6 +161,16 @@ public class OrderFulfilmentService(
                     continue;   // settled; nothing left to forecast
                 }
 
+                if (hit.IsDeclined)
+                {
+                    // Offered exactly what they asked for and turned down. Reserving stock for
+                    // them after that holds goods nobody is waiting on.
+                    order.Status      = "canceled";
+                    order.CompletedOn = DateTimeOffset.UtcNow.UtcDateTime.ToString("yyyy-MM-dd");
+                    changed = true;
+                    continue;
+                }
+
                 // Not accepted yet, so the order is still pending and still wants a supply —
                 // fall through to stock and jobs below.
             }
@@ -245,6 +255,19 @@ public class OrderFulfilmentService(
     {
         /// <summary>Accepted is the only status that means the buyer actually took it.</summary>
         public bool IsAccepted => Status is "finished";
+
+        /// <summary>
+        /// The buyer turned it down. That ends the order — they were offered exactly what they
+        /// asked for and said no, so continuing to reserve stock for them would hold goods
+        /// nobody is waiting on.
+        ///
+        /// <para>⚠️ Only "rejected", not "cancelled" or "failed". Those two are the ISSUER's
+        /// side — a contract withdrawn to re-cut at a different price is not the buyer changing
+        /// their mind, and cancelling the order for it would throw away a sale still in progress.
+        /// Neither is matched at all, so such an order simply goes back to being forecast from
+        /// stock and jobs.</para>
+        /// </summary>
+        public bool IsDeclined => Status is "rejected";
     }
 
     private static async Task<ContractHit?> FindContractAsync(
@@ -280,7 +303,7 @@ public class OrderFulfilmentService(
             SELECT c."ContractId" AS "Value"
             FROM "EsiContracts" c
             JOIN "EsiContractItems" i ON i."ContractId" = c."ContractId"
-            WHERE c."Status" IN ('finished', 'outstanding', 'in_progress')
+            WHERE c."Status" IN ('finished', 'outstanding', 'in_progress', 'rejected')
               AND c."AssigneeId" = {0}
               AND c."DateIssued" > {1}
               AND ({{string.Join(" OR ", tests)}})

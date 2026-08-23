@@ -120,8 +120,27 @@ public class StoreMailService(
     /// <summary>
     /// What an order line's state is, as one string, for comparison against what was last sent.
     /// </summary>
+    /// <summary>
+    /// What an order line's state is, as one string, for comparison against what was last sent.
+    ///
+    /// <para>⚠️ The contract id is part of it. A contract being cut is the most interesting thing
+    /// that happens to an order between ordering and receiving it — "go and accept it" is
+    /// actionable in a way that "still on its way" is not — and without this the row would look
+    /// unchanged and the buyer would never be told.</para>
+    /// </summary>
     private static string StateOf(TrackedOrder o) =>
-        $"{o.Status}|{o.FulfilmentSource}|{o.EstimatedDate}";
+        $"{o.Status}|{o.FulfilmentSource}|{o.EstimatedDate}|{o.LinkedContractId}";
+
+    /// <summary>Still open, with nothing behind it — no stock, no job, no contract.</summary>
+    private static bool Uninformative(TrackedOrder o) =>
+        o.Status == "pending" && o.FulfilmentSource.Length == 0 && o.LinkedContractId is null;
+
+    /// <summary>Whether the last thing the buyer was told named a source or a contract.</summary>
+    private static bool KnewSomething(string notified)
+    {
+        var parts = notified.Split('|');
+        return parts.Length >= 4 && (parts[1].Length > 0 || parts[3].Length > 0);
+    }
 
     /// <summary>
     /// Mails the buyer about lines that have moved since they were last told.
@@ -141,7 +160,19 @@ public class StoreMailService(
             .ToListAsync(ct);
         if (orders.Count == 0) return 0;
 
-        var changed = orders.Where(o => StateOf(o) != o.NotifiedState).ToList();
+        var changed = orders
+            .Where(o => StateOf(o) != o.NotifiedState)
+            // ⚠️ Never mail bad news that is only the ABSENCE of news. An order that had a
+            // source and now has none has not necessarily gone backwards — far more often the
+            // pass that decided it landed while the assets table was mid-refresh and saw an
+            // empty hangar. Telling a buyer their in-stock order is "waiting on materials", and
+            // then telling them it is ready again a minute later, is two mails about nothing.
+            //
+            // The marker is deliberately NOT advanced for these, so the buyer is still owed
+            // whatever the last real change was. If the order genuinely is stuck with nothing
+            // behind it, the next mail they get is the one that says something useful.
+            .Where(o => !(Uninformative(o) && KnewSomething(o.NotifiedState)))
+            .ToList();
         if (changed.Count == 0) return 0;
 
         var names = await TypeNamesAsync(db, changed.Select(o => o.TypeId).Distinct().ToList(), ct);
@@ -670,32 +701,45 @@ public class StoreMailService(
     /// owns which order claims which stock — running the same reasoning here would be a second
     /// opinion, and the two would disagree the moment either changed.</para>
     /// </summary>
-    private static string Expect(TrackedOrder? o) => o?.FulfilmentSource switch
-    {
-        "stock"    => "In stock and reserved for you — it will be contracted shortly.",
-        "contract" => "Already contracted to you.",
-        "job"      => o.EstimatedDate is { Length: > 0 } d
+    private static string Expect(TrackedOrder? o) =>
+        o?.LinkedContractId is not null
+            ? "A contract is already waiting for you to accept."
+            : o?.FulfilmentSource switch
+        {
+            "stock" => "In stock and reserved for you — wait for the contract to be created.",
+            "job"   => o.EstimatedDate is { Length: > 0 } d
                         ? $"Already in build, expected {d}."
                         : "Already in build.",
-        _          => "Out of stock — your reservation is placed, and you will be told the "
-                    + "completion date once the build starts.",
-    };
+            _       => "Out of stock — your reservation is placed, and you will be told the "
+                     + "completion date once the build starts.",
+        };
 
     /// <summary>What one line of an order is doing, in words a buyer can act on.</summary>
     private static string Describe(TrackedOrder o) => o.Status switch
     {
         "completed" => "delivered",
-        "canceled"  => "cancelled",
-        _ => o.EstimatedDate is { Length: > 0 } d
-                ? o.FulfilmentSource switch
-                {
-                    "stock" => "ready now — it will be contracted shortly",
-                    "job"   => $"in production, expected {d}",
-                    _       => $"expected {d}",
-                }
-                : o.FulfilmentSource == "stock"
-                    ? "ready now — it will be contracted shortly"
-                    : "waiting on materials",
+
+        // ⚠️ Says which kind of cancelled. An order withdrawn by the buyer and one ended because
+        // they declined the contract look identical in the row, and only one of them is news.
+        "canceled"  => o.LinkedContractId is not null
+                        ? "the contract was declined, so this order is closed"
+                        : "cancelled",
+
+        // A contract on the table outranks everything else that could be said. It is the only
+        // state where the next move is theirs.
+        _ when o.LinkedContractId is not null
+                    => "contract created — waiting for you to accept it",
+
+        _ => o.FulfilmentSource switch
+        {
+            "stock" => "ready — wait for the contract to be created",
+            "job"   => o.EstimatedDate is { Length: > 0 } d
+                        ? $"in production, expected {d}"
+                        : "in production",
+            _       => o.EstimatedDate is { Length: > 0 } e
+                        ? $"expected {e}"
+                        : "waiting on materials",
+        },
     };
 
     // ── CANCEL ────────────────────────────────────────────────────────────────
