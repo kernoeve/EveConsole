@@ -500,9 +500,36 @@ public class StoresViewModel : ReactiveObject
             SelectedStore = Stores.FirstOrDefault(s => s.Id == store.Id));
     }
 
+    /// <summary>
+    /// Asked before a store is deleted. Set by the view, which owns the dialog.
+    ///
+    /// <para>⚠️ Null means no confirmation, and the delete proceeds. That is deliberate — a view
+    /// model that refused to work without a dialog wired up would be a worse failure than the one
+    /// this guards against — but every view that shows the button should set it.</para>
+    /// </summary>
+    public Func<string, Task<bool>>? ConfirmDelete { get; set; }
+
     private async Task DeleteStoreAsync()
     {
         if (SelectedStore is not StoreRowVm row) return;
+
+        // Naming what survives is half the point. Deleting a shop reads as though it might take
+        // the orders with it, and someone hesitating over that deserves the answer in the prompt
+        // rather than after.
+        if (ConfirmDelete is { } ask)
+        {
+            var mails  = Mails.Count;
+            var people = Senders.Count;
+
+            var confirmed = await ask(
+                $"Delete the store \"{row.Name}\"?\n\n" +
+                $"This removes its settings, its list of {people} allowed sender(s), and " +
+                $"{mails} logged message(s). It cannot be undone.\n\n" +
+                "Orders placed through it are kept — they stay in the Order Tracker and simply " +
+                "stop being answerable by mail.");
+
+            if (!confirmed) return;
+        }
 
         await using var db = await _dbFactory.CreateDbContextAsync();
         await db.StoreSenders.Where(s => s.StoreId == row.Id).ExecuteDeleteAsync();
