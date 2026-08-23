@@ -113,15 +113,21 @@ internal sealed class OutputFormat
     /// no colours, which is every format except EVE mail.</summary>
     private readonly Func<string, string, string>? _color;
 
+    /// <summary>Wraps text at a point size. Null everywhere except EVE mail, for the same reason
+    /// as colour — Slack and Discord have no notion of it in a message.</summary>
+    private readonly Func<int, string, string>? _size;
+
     private OutputFormat(string name, Func<string, string> bold, Func<string, string> underline,
         Func<string, string> finalize, Func<string, List<DisplaySeg>> toDisplay,
         Func<int, string, string>? link = null,
-        Func<string, string, string>? color = null)
+        Func<string, string, string>? color = null,
+        Func<int, string, string>? size = null)
     {
         Name = name; _bold = bold; _underline = underline;
         _finalize = finalize; _toDisplay = toDisplay;
         _link = link ?? ((_, text) => text);
         _color = color;
+        _size  = size;
     }
 
     public string Bold(string s) => _bold(s);
@@ -161,6 +167,16 @@ internal sealed class OutputFormat
     /// <para>EVE's colours are ARGB and the alpha is not optional — <c>#ffRRGGBB</c>. A
     /// six-digit value is read as ARGB with a zero alpha, which is invisible text.</para>
     /// </summary>
+    /// <summary>
+    /// Text at a point size, where the format has sizes.
+    ///
+    /// <para>⚠️ A relative step, not an absolute design. EVE's default mail size follows the
+    /// reader's own client setting, so this only ever nudges one step up from whatever that is —
+    /// pinning body text to a size would override a choice that is theirs to make.</para>
+    /// </summary>
+    public string Size(int points, string text) =>
+        _size is null || points <= 0 ? text : _size(points, text);
+
     public string Color(string? hex, string text)
     {
         if (_color is null || string.IsNullOrWhiteSpace(hex)) return text;
@@ -334,7 +350,8 @@ internal sealed class OutputFormat
         // like in the mail.
         new("EVE Mail",   x => $"<b>{x}</b>",           x => $"<u>{x}</u>",   EveBreaks,   HtmlDisplay,
             (typeId, text) => $"<a href=\"showinfo:{typeId}\">{text}</a>",
-            (argb,   text) => $"<font color=\"#{argb}\">{text}</font>"),
+            (argb,   text) => $"<font color=\"#{argb}\">{text}</font>",
+            (points, text) => $"<font size=\"{points}\">{text}</font>"),
         new("BBCode",     x => $"[b]{x}[/b]",           x => $"[u]{x}[/u]",   Identity,    s => Tokenize(BbLists(s), BbRules, t => BbTag.Replace(t, ""))),
     ];
 

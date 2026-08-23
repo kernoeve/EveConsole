@@ -1133,15 +1133,16 @@ public class StoreMailService(
     private static string Esc(string s) => s.Replace("<", "").Replace(">", "");
 
     /// <summary>
-    /// An indent that survives.
+    /// An indent.
     ///
-    /// <para>⚠️ Real non-breaking-space CHARACTERS, not <c>&amp;nbsp;</c> and not
-    /// <c>&amp;#160;</c>. EVE's mail renderer does not decode entities — it draws them, so both
-    /// spellings appeared verbatim in front of buyers. Ordinary spaces would decode fine but
-    /// collapse, since the body really is HTML. A literal U+00A0 is neither decoded nor
-    /// collapsed.</para>
+    /// <para>⚠️ Literal spaces, and no entities. EVE's mail renderer does not decode
+    /// entities — it draws them — so <c>&amp;nbsp;</c> and <c>&amp;#160;</c> both appeared
+    /// verbatim in front of buyers.</para>
+    ///
+    /// <para>Plain spaces are enough: EVE does NOT collapse whitespace the way a browser
+    /// does, measured by putting indented lines in a posting and reading the result.</para>
     /// </summary>
-    private const string Ind = "   ";
+    private const string Ind = "   ";
 
     private static string Link(PostingItemView item) =>
         $"<a href=\"showinfo:{item.TypeId}\">{Esc(item.NameOverride is { Length: > 0 } n ? n : item.TypeName)}</a>";

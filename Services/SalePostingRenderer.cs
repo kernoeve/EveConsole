@@ -70,6 +70,17 @@ internal sealed record RenderedPost(string Name, string PostType, string Text);
 /// </summary>
 internal static class SalePostingRenderer
 {
+    /// <summary>
+    /// Point size for a section heading.
+    ///
+    /// <para>⚠️ Only the heading is sized, never the body. EVE's default mail size follows the
+    /// reader's own client setting, so sizing the items too would override a choice that belongs
+    /// to them; sizing only the heading nudges it one step above whatever they have chosen and
+    /// keeps the relationship right at any setting. Fourteen against EVE's default of twelve is
+    /// that one step — enough to separate the heading, not enough to shout.</para>
+    /// </summary>
+    private const int HeadingPoints = 14;
+
     /// <summary>Renders one post block, dispatching on its type.</summary>
     public static string Render(PostingView v, OutputFormat fmt, SalePostingPost post) =>
         post.PostType switch
@@ -107,7 +118,10 @@ internal static class SalePostingRenderer
                 line.Append(" - ").Append(SalePostFmt.Isk(prices.Min()))
                     .Append('-').Append(SalePostFmt.Isk(prices.Max()));
 
-            sb.AppendLine(fmt.Bold(line.ToString()));   // section lines bold
+            // Sized like the Detail headings: these ARE the section names, and a summary whose
+            // sections were smaller than the same sections listed below would read as a
+            // different kind of thing rather than the short form of one.
+            sb.AppendLine(fmt.Size(HeadingPoints, fmt.Color(s.HeaderColor, fmt.Bold(line.ToString()))));
         }
         AppendBlock(sb, Lines(post.Footer ?? "", fmt, post.FooterColor));
         return sb.ToString().TrimEnd();
@@ -122,7 +136,8 @@ internal static class SalePostingRenderer
         {
             // Bold and underlined, and no prefix: the prefix is a Summary device (a Slack icon
             // standing in for the section) and repeating it here would print the shortcode twice.
-            sb.AppendLine(fmt.Color(s.HeaderColor, fmt.Bold(fmt.Underline(s.Name))));
+            sb.AppendLine(fmt.Size(HeadingPoints,
+                fmt.Color(s.HeaderColor, fmt.Bold(fmt.Underline(s.Name)))));
             foreach (var it in s.Items) sb.AppendLine(ItemLine(it, v, fmt, s));
         }
         AppendBlock(sb, Lines(post.Footer ?? "", fmt, post.FooterColor));
