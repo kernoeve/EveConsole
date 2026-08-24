@@ -597,6 +597,13 @@ public class WorklistViewModel : ReactiveObject
                 foreach (var r in rows.OrderByDescending(r => r.Shortfall).ThenBy(r => r.StationName))
                     Needs.Add(new StationNeedRowVm(r));
 
+                // ⚠️ Both views, explicitly. A DataGridCollectionView groups what it is holding
+                // when it is asked to, and a view whose grid has never been realised is not asked
+                // — so the Item Needs tab drew a flat list on first open and grouped itself only
+                // after being left and returned to, which is the grid attaching a second time.
+                NeedsView.Refresh();
+                ItemNeedsView.Refresh();
+
                 var stations = rows.Select(r => r.StationId).Distinct().Count();
                 var short_   = rows.Count(r => r.Shortfall > 0);
                 NeedsStatus = rows.Count == 0

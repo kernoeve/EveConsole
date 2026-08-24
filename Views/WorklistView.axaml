@@ -592,13 +592,20 @@
             </Style>
           </DataGrid.Styles>
           <DataGrid.Columns>
-            <DataGridTemplateColumn Header="" Width="22" CanUserSort="False">
+            <!-- ⚠️ A dash rather than an empty cell when nothing itemised the need. Blank reads
+                 as "the feature is broken"; a dash says "asked, and there is nothing to show". -->
+            <DataGridTemplateColumn Header="Why" Width="34" CanUserSort="False">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
-                  <Button Click="OnNeedToggle" Background="Transparent" BorderThickness="0"
-                          Padding="4 0" FontSize="9" Foreground="#7a8896"
-                          IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
-                          ToolTip.Tip="What is asking for this"/>
+                  <Panel>
+                    <Button Click="OnNeedToggle" Background="Transparent" BorderThickness="0"
+                            Padding="4 0" FontSize="9" Foreground="#7a8896"
+                            IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
+                            ToolTip.Tip="What is asking for this"/>
+                    <TextBlock Text="—" FontSize="9" Foreground="#3a3a48" Margin="6 0"
+                               VerticalAlignment="Center" IsVisible="{Binding !HasDrivers}"
+                               ToolTip.Tip="Nothing itemised this need"/>
+                  </Panel>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
@@ -758,13 +765,20 @@
             </Style>
           </DataGrid.Styles>
           <DataGrid.Columns>
-            <DataGridTemplateColumn Header="" Width="22" CanUserSort="False">
+            <!-- ⚠️ A dash rather than an empty cell when nothing itemised the need. Blank reads
+                 as "the feature is broken"; a dash says "asked, and there is nothing to show". -->
+            <DataGridTemplateColumn Header="Why" Width="34" CanUserSort="False">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
-                  <Button Click="OnNeedToggle" Background="Transparent" BorderThickness="0"
-                          Padding="4 0" FontSize="9" Foreground="#7a8896"
-                          IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
-                          ToolTip.Tip="What is asking for this"/>
+                  <Panel>
+                    <Button Click="OnNeedToggle" Background="Transparent" BorderThickness="0"
+                            Padding="4 0" FontSize="9" Foreground="#7a8896"
+                            IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
+                            ToolTip.Tip="What is asking for this"/>
+                    <TextBlock Text="—" FontSize="9" Foreground="#3a3a48" Margin="6 0"
+                               VerticalAlignment="Center" IsVisible="{Binding !HasDrivers}"
+                               ToolTip.Tip="Nothing itemised this need"/>
+                  </Panel>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
