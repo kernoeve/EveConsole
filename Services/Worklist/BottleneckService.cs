@@ -10,9 +10,19 @@ public sealed record SlotRemedy(string Action, int Slots, string Detail)
     /// <summary>Share of current capacity this would add. Set by the caller, which knows it.</summary>
     public double PercentGain { get; init; }
 
+    /// <summary>
+    /// How much of the queued work this would actually start, as a share of the jobs waiting.
+    ///
+    /// <para>The number that decides anything. A remedy worth 20% more capacity sounds
+    /// substantial until it turns out to cover a twentieth of what is waiting.</para>
+    /// </summary>
+    public double PercentOfQueue { get; init; }
+
     public string Gain => Slots <= 0 ? "—"
                         : PercentGain > 0 ? $"+{Slots:N0}  ({PercentGain:N0}%)"
                         : $"+{Slots:N0}";
+
+    public string Covers => Slots <= 0 ? "" : $"starts {Math.Min(100, PercentOfQueue):N0}% of the queue";
 }
 
 /// <summary>
@@ -30,13 +40,26 @@ public sealed record SlotPressure(
     public double Utilised  => Capacity <= 0 ? 0 : 100.0 * InUse / Capacity;
 
     /// <summary>
+    /// Slots it would take to start everything queued behind this pool right now.
+    ///
+    /// <para>One per waiting job. This is the figure the remedies are worth measuring against —
+    /// an account buying 33 slots against a queue of 190 is a different decision from the same
+    /// account against a queue of 4.</para>
+    /// </summary>
+    public int Needed => Waiting;
+
+    /// <summary>
     /// Whether this pool is what is holding work up.
     ///
-    /// <para>⚠️ Full is not the same as short. A pool at 100% with nothing queued behind it is a
-    /// pool being used properly; it only becomes a bottleneck when there is work that would start
-    /// if a slot existed. Reporting every full pool would make the tab noise on a healthy day.</para>
+    /// <para><b>⚠️ Queued work is the test, not a full pool.</b> A hundred slots with ten free and
+    /// two hundred jobs that could start today is a slot bottleneck by any reading that matters —
+    /// requiring zero free slots would have called that pool healthy because ten of its hundred
+    /// happened to be idle at the moment it was measured.</para>
+    ///
+    /// <para>The converse still holds: a pool at 100% with nothing queued behind it is a pool
+    /// being used properly, and reporting it would make this tab noise on a good day.</para>
     /// </summary>
-    public bool IsBottleneck => Waiting > 0 && Free == 0;
+    public bool IsBottleneck => Waiting > 0;
 }
 
 /// <summary>
@@ -116,7 +139,8 @@ public class BottleneckService(
             var waiting = items.Count(i => i.Pool == pool && i.Readiness == WorklistReadiness.Waiting);
             var blocked = items.Count(i => i.Pool == pool && i.Readiness == WorklistReadiness.Blocked);
 
-            double Pct(int slots) => capacity <= 0 ? 0 : 100.0 * slots / capacity;
+            double Pct(int slots)   => capacity <= 0 ? 0 : 100.0 * slots / capacity;
+            double Queue(int slots) => waiting  <= 0 ? 0 : 100.0 * slots / waiting;
 
             var remedies = new List<SlotRemedy>();
 
@@ -137,7 +161,7 @@ public class BottleneckService(
                     ? "Everyone running this pool is already at the skill cap."
                     : $"{trainable.Count} character(s) below the {MaxSlotsPerCharacter}-slot cap: "
                     + Name(trainable.Select(x => (x.c, x.Room))))
-            { PercentGain = Pct(trainSlots) });
+            { PercentGain = Pct(trainSlots), PercentOfQueue = Queue(trainSlots) });
 
             // ── Switch on the ones that are off ──────────────────────────────
             // ⚠️ Quantified, not recommended. These are normally off for a reason the app cannot
@@ -152,7 +176,7 @@ public class BottleneckService(
                     : $"{off.Count} character(s) switched off, holding {offSlots:N0} slot(s) today"
                     + (corps is null ? "" : " — usually off for a reason, so read this as a size, not a plan.")
                     + $" {Name(off.Select(c => (c, c.Capacity.GetValueOrDefault(pool))))}")
-            { PercentGain = Pct(offSlots) });
+            { PercentGain = Pct(offSlots), PercentOfQueue = Queue(offSlots) });
 
             // ── Buy capacity ────────────────────────────────────────────────
             var newSlots = CharactersPerAccount * MaxSlotsPerCharacter;
@@ -162,7 +186,7 @@ public class BottleneckService(
                 $"{CharactersPerAccount} × {MaxSlotsPerCharacter} slots against the {capacity:N0} "
                 + "running now. The training is not instant — this is the ceiling it buys, not "
                 + "what it gives on day one.")
-            { PercentGain = Pct(newSlots) });
+            { PercentGain = Pct(newSlots), PercentOfQueue = Queue(newSlots) });
 
             result.Add(new SlotPressure(pool, capacity, inUse, waiting, blocked, remedies));
         }

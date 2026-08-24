@@ -924,7 +924,7 @@
                                      Foreground="{Binding UtilisedColor}" VerticalAlignment="Center"/>
                         </Grid>
 
-                        <Grid ColumnDefinitions="*,*,*,*,*">
+                        <Grid ColumnDefinitions="*,*,*,*,*,*">
                           <StackPanel Grid.Column="0" Spacing="1">
                             <TextBlock Text="Capacity" FontSize="9" Foreground="#555566"/>
                             <TextBlock Text="{Binding Capacity}" FontSize="12" Foreground="#c8c8d8"/>
@@ -945,17 +945,24 @@
                             <TextBlock Text="Blocked" FontSize="9" Foreground="#555566"/>
                             <TextBlock Text="{Binding Blocked}" FontSize="12" Foreground="#c85a5a"/>
                           </StackPanel>
+                          <StackPanel Grid.Column="5" Spacing="1">
+                            <TextBlock Text="Slots to clear it" FontSize="9" Foreground="#555566"/>
+                            <TextBlock Text="{Binding Needed}" FontSize="12" Foreground="#c8a84b"/>
+                            <!-- kept -->
+                          </StackPanel>
                         </Grid>
 
                         <ItemsControl ItemsSource="{Binding Remedies}">
                           <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="wl:SlotRemedy">
-                              <Grid ColumnDefinitions="330,110,*" Margin="0 2">
+                              <Grid ColumnDefinitions="330,110,150,*" Margin="0 2">
                                 <TextBlock Grid.Column="0" Text="{Binding Action}" FontSize="11"
                                            Foreground="#c8c8d8" TextWrapping="Wrap" Margin="0 0 10 0"/>
                                 <TextBlock Grid.Column="1" Text="{Binding Gain}" FontSize="11"
                                            Foreground="#5599aa" HorizontalAlignment="Left"/>
-                                <TextBlock Grid.Column="2" Text="{Binding Detail}" FontSize="10"
+                                <TextBlock Grid.Column="2" Text="{Binding Covers}" FontSize="10"
+                                           Foreground="#8a8a99" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="3" Text="{Binding Detail}" FontSize="10"
                                            Foreground="#666677" TextWrapping="Wrap"/>
                               </Grid>
                             </DataTemplate>

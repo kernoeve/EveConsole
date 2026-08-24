@@ -379,11 +379,19 @@ public sealed class SlotPressureRowVm(SlotPressure p)
 
     public bool IsBottleneck => p.IsBottleneck;
 
+    /// <summary>
+    /// ⚠️ Says the size of the queue, not that the pool is full. Ten free slots against two
+    /// hundred waiting jobs is a bottleneck, and a headline that led with the ten would read as
+    /// though there were room.
+    /// </summary>
     public string Headline => p.IsBottleneck
-        ? $"Every {p.Pool.ToString().ToLowerInvariant()} slot is busy and {p.Waiting:N0} job(s) are waiting on one."
+        ? $"{p.Waiting:N0} job(s) could start today and cannot — "
+        + $"{p.Needed:N0} more slot(s) would clear the queue, against {p.Capacity:N0} running now."
         : p.Capacity == 0
             ? $"No character is configured to run {p.Pool.ToString().ToLowerInvariant()} jobs."
-            : $"{p.Free:N0} free of {p.Capacity:N0}.";
+            : $"Nothing is queued behind this pool. {p.Free:N0} free of {p.Capacity:N0}.";
+
+    public string Needed => p.Needed > 0 ? p.Needed.ToString("N0") : "";
 
     public IReadOnlyList<SlotRemedy> Remedies => p.Remedies;
 }
