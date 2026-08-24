@@ -360,8 +360,32 @@ public class WorklistRowVm : ReactiveObject
 /// <para>Formatted text alongside the raw value each column sorts on, so the grid orders by
 /// quantity rather than by the digits of a thousands-separated string.</para>
 /// </summary>
-public sealed class StationNeedRowVm(StationNeed n)
+/// <summary>One line of "what is asking for this", under a need.</summary>
+public sealed class NeedDriverRowVm(NeedDriver d)
 {
+    public string Driver => d.Label;
+    public string Kind   => d.Kind;
+    public long   QtyRaw => d.Qty;
+    public string Qty    => d.Qty.ToString("N0");
+
+    public bool HasLink => d.DriverTypeId > 0;
+    public void Open()  { if (d.DriverTypeId > 0) EntityNavigator.Instance.Item(d.DriverTypeId); }
+}
+
+public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject
+{
+    private bool _isExpanded;
+
+    /// <summary>Whether the "asked for by" panel is open. Lives on the item, not the row, so the
+    /// glyph stays right when the grid recycles rows during a scroll.</summary>
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set { this.RaiseAndSetIfChanged(ref _isExpanded, value); this.RaisePropertyChanged(nameof(Glyph)); }
+    }
+
+    public string Glyph => !HasDrivers ? "" : _isExpanded ? "▾" : "▸";
+
     public string Station => n.StationName;
     public string Item    => n.TypeName;
 
@@ -398,6 +422,19 @@ public sealed class StationNeedRowVm(StationNeed n)
     public string ShortValue     => n.Shortfall > 0 ? Isk(n.ShortfallValue) : "";
     public double ShortVolumeRaw => n.ShortfallVolume;
     public string ShortVolume    => n.Shortfall > 0 ? $"{n.ShortfallVolume:N0} m³" : "";
+
+    /// <summary>
+    /// What is asking for this here — the jobs behind the number, largest share first.
+    ///
+    /// <para>Shown as row details rather than a column: it is a list of variable length, and the
+    /// question it answers ("what is this FOR") is one people ask of a single row, not one they
+    /// scan a grid for.</para>
+    /// </summary>
+    public IReadOnlyList<NeedDriverRowVm> Drivers { get; } =
+        n.Why.Select(d => new NeedDriverRowVm(d)).ToList();
+
+    /// <summary>False when nothing itemised this need, so the row shows no expander.</summary>
+    public bool HasDrivers => n.Why.Count > 0;
 
     public long   OrderJobsRaw => n.OrderJobs;
     public long   JobsRaw      => n.Jobs;
@@ -470,6 +507,9 @@ public class WorklistViewModel : ReactiveObject
     /// the task grid needed.</para>
     /// </summary>
     public DataGridCollectionView NeedsView { get; }
+
+    /// <summary>The same needs with the item as the heading and the stations beneath it.</summary>
+    public DataGridCollectionView ItemNeedsView { get; }
 
     private bool _needsLoading;
     public bool NeedsLoading { get => _needsLoading; private set => this.RaiseAndSetIfChanged(ref _needsLoading, value); }
@@ -620,6 +660,15 @@ public class WorklistViewModel : ReactiveObject
         NeedsView.GroupDescriptions.Add(new DataGridPathGroupDescription(nameof(StationNeedRowVm.Station)));
         PinNeedsGroupOrder();
         NeedsView.SortDescriptions.CollectionChanged += (_, _) => PinNeedsGroupOrder();
+
+        // ⚠️ The same rows, grouped the other way round — not a second query. A need belongs to a
+        // station AND to an item; which one is the heading depends on the question being asked
+        // ("what does this station want" against "who wants this item"), and building it twice
+        // would be two answers that could disagree.
+        ItemNeedsView = new DataGridCollectionView(Needs);
+        ItemNeedsView.GroupDescriptions.Add(new DataGridPathGroupDescription(nameof(StationNeedRowVm.Item)));
+        PinItemNeedsGroupOrder();
+        ItemNeedsView.SortDescriptions.CollectionChanged += (_, _) => PinItemNeedsGroupOrder();
 
         MarketAltsVm  = marketAlts;
         RulesVm  = rules;
@@ -898,6 +947,19 @@ public class WorklistViewModel : ReactiveObject
         _pinningNeedsGroupOrder = true;
         try   { sorts.Insert(0, DataGridSortDescription.FromPath(nameof(StationNeedRowVm.Station))); }
         finally { _pinningNeedsGroupOrder = false; }
+    }
+
+    private bool _pinningItemNeedsGroupOrder;
+
+    private void PinItemNeedsGroupOrder()
+    {
+        if (_pinningItemNeedsGroupOrder) return;
+        var sorts = ItemNeedsView.SortDescriptions;
+        if (sorts.Count > 0 && sorts[0].PropertyPath == nameof(StationNeedRowVm.Item)) return;
+
+        _pinningItemNeedsGroupOrder = true;
+        try   { sorts.Insert(0, DataGridSortDescription.FromPath(nameof(StationNeedRowVm.Item))); }
+        finally { _pinningItemNeedsGroupOrder = false; }
     }
 
     private void ApplyFilters()

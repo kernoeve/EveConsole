@@ -97,6 +97,21 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     private void OnOpenNeedItem(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as StationNeedRowVm)?.OpenItem();
 
+    private void OnOpenNeedDriver(object? sender, RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as NeedDriverRowVm)?.Open();
+
+    /// <summary>Opens and closes the "asked for by" panel under a need. Same mechanism as the
+    /// haul manifest above, and for the same reasons — see OnManifestToggle.</summary>
+    private void OnNeedToggle(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control control) return;
+        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
+        if (row.DataContext is not StationNeedRowVm vm || !vm.HasDrivers) return;
+
+        row.AreDetailsVisible = !row.AreDetailsVisible;
+        vm.IsExpanded = row.AreDetailsVisible;
+    }
+
     private void OnManifestToggle(object? sender, RoutedEventArgs e)
     {
         if (sender is not Control control) return;

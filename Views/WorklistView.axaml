@@ -553,6 +553,7 @@
         <DataGrid Grid.Row="2" ItemsSource="{Binding NeedsView}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   CanUserSortColumns="True"
+                  AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <DataGrid.Styles>
             <Style Selector="DataGridCell TextBlock">
@@ -591,6 +592,16 @@
             </Style>
           </DataGrid.Styles>
           <DataGrid.Columns>
+            <DataGridTemplateColumn Header="" Width="22" CanUserSort="False">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StationNeedRowVm">
+                  <Button Click="OnNeedToggle" Background="Transparent" BorderThickness="0"
+                          Padding="4 0" FontSize="9" Foreground="#7a8896"
+                          IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
+                          ToolTip.Tip="What is asking for this"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
             <DataGridTemplateColumn Header="Station" Width="230" SortMemberPath="Station">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
@@ -648,6 +659,208 @@
             <DataGridTextColumn Header="Inventory levels" Binding="{Binding InvLevels}" SortMemberPath="InvLevelsRaw" Width="120"/>
             <DataGridTextColumn Header="Station levels"   Binding="{Binding StnLevels}" SortMemberPath="StnLevelsRaw" Width="*"/>
           </DataGrid.Columns>
+
+          <!-- The third level: what is asking for this item HERE. A need is a number until you
+               know what it is for, and "what is this for" is asked of one row at a time — so it
+               opens under the row rather than taking a column that would be empty on most of
+               them. -->
+          <DataGrid.RowDetailsTemplate>
+            <DataTemplate x:DataType="vm:StationNeedRowVm">
+              <Border Background="#0d0d14" BorderBrush="#1e1e2a" BorderThickness="0 1 0 1"
+                      Padding="24 6 8 8" IsVisible="{Binding HasDrivers}">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="ASKED FOR BY" FontSize="9" FontWeight="SemiBold"
+                             Foreground="#555566" LetterSpacing="1"/>
+                  <ItemsControl ItemsSource="{Binding Drivers}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:NeedDriverRowVm">
+                        <Grid ColumnDefinitions="240,110,*" Margin="0 1">
+                          <Panel Grid.Column="0">
+                            <Button Classes="link" Click="OnOpenNeedDriver" IsVisible="{Binding HasLink}"
+                                    ToolTip.Tip="Open this item">
+                              <TextBlock Text="{Binding Driver}" Classes="linktext" FontSize="10"/>
+                            </Button>
+                            <TextBlock Text="{Binding Driver}" IsVisible="{Binding !HasLink}"
+                                       FontSize="10" Foreground="#8a8a99" VerticalAlignment="Center"/>
+                          </Panel>
+                          <TextBlock Grid.Column="1" Text="{Binding Qty}" FontSize="10"
+                                     Foreground="#c8c8d8" HorizontalAlignment="Right" Margin="0 0 12 0"/>
+                          <TextBlock Grid.Column="2" Text="{Binding Kind}" FontSize="10"
+                                     Foreground="#666677"/>
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </DataGrid.RowDetailsTemplate>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
+    <!-- ════ Item Needs ═════════════════════════════════════════════════════════
+         The same needs read the other way round: each item once, and every station
+         waiting on it beneath. Station Needs answers "what does this place want";
+         this answers "who is waiting on this, and how much do I need in total". -->
+    <TabItem Header="Item Needs">
+      <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
+          <TextBlock Text="Item Needs" FontSize="15" FontWeight="SemiBold"
+                     Foreground="#c8a84b" VerticalAlignment="Center"/>
+          <Button Content="Refresh" Command="{Binding RefreshNeedsCommand}"
+                  IsEnabled="{Binding !NeedsLoading}" FontSize="11" Padding="10 4"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="1" Text="{Binding NeedsStatus}" FontSize="10" Foreground="#7a8896"
+                   TextWrapping="Wrap" Margin="0 0 0 8"/>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding ItemNeedsView}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                  CanUserSortColumns="True"
+                  AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+          <DataGrid.Styles>
+            <Style Selector="DataGridCell TextBlock">
+              <Setter Property="FontSize" Value="10" />
+            </Style>
+
+            <!-- Group header: the station once, with what its rows add up to, rather than the
+                 Station column repeating it on every line. Same retemplate as the task grid above
+                 — see that comment for why the stock template is replaced rather than styled, and
+                 why PART_ExpanderButton must keep its name.
+                 ⚠️ The item name here is deliberately plain. The header is a
+                 DataGridCollectionViewGroup and knows only its key string, not the row behind it,
+                 so it has no id to open; the Item column on each row carries the link. -->
+            <Style Selector="DataGridRowGroupHeader">
+              <Setter Property="Background" Value="#12121a"/>
+              <Setter Property="Foreground" Value="#c8a84b"/>
+              <Setter Property="MinHeight"  Value="28"/>
+              <Setter Property="Template">
+                <ControlTemplate x:DataType="collections:DataGridCollectionViewGroup">
+                  <Border Background="{TemplateBinding Background}"
+                          BorderBrush="#1e1e2a" BorderThickness="0 1 0 1">
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="6 0"
+                                VerticalAlignment="Center">
+                      <ToggleButton Name="PART_ExpanderButton" Width="12" Height="12"
+                                    Theme="{DynamicResource FluentDataGridRowGroupExpanderButtonTheme}"
+                                    Background="Transparent" BorderThickness="0"/>
+                      <TextBlock Text="{Binding Key}" FontSize="13" FontWeight="SemiBold"
+                                 Foreground="#c8a84b" VerticalAlignment="Center"/>
+                      <TextBlock FontSize="11" Foreground="#8a8a99" VerticalAlignment="Center"
+                                 Text="{Binding Items, Converter={x:Static conv:GroupTotalConverter.Instance},
+                                                 ConverterParameter=Count}"/>
+                    </StackPanel>
+                  </Border>
+                </ControlTemplate>
+              </Setter>
+            </Style>
+          </DataGrid.Styles>
+          <DataGrid.Columns>
+            <DataGridTemplateColumn Header="" Width="22" CanUserSort="False">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StationNeedRowVm">
+                  <Button Click="OnNeedToggle" Background="Transparent" BorderThickness="0"
+                          Padding="4 0" FontSize="9" Foreground="#7a8896"
+                          IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
+                          ToolTip.Tip="What is asking for this"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="Station" Width="230" SortMemberPath="Station">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StationNeedRowVm">
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenNeedStation" IsVisible="{Binding HasStationLink}"
+                            ToolTip.Tip="Open this station or structure">
+                      <TextBlock Text="{Binding Station}" Classes="linktext"
+                                 TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding Station}" IsVisible="{Binding !HasStationLink}"
+                               ToolTip.Tip="{Binding Station}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                  </Panel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTemplateColumn Header="Item" Width="230" SortMemberPath="Item">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StationNeedRowVm">
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenNeedItem" IsVisible="{Binding HasItemLink}"
+                            ToolTip.Tip="Open in the Item Browser">
+                      <TextBlock Text="{Binding Item}" Classes="linktext"
+                                 TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding Item}" IsVisible="{Binding !HasItemLink}"
+                               ToolTip.Tip="{Binding Item}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                  </Panel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTextColumn Header="Total"   Binding="{Binding Total}"  SortMemberPath="TotalRaw"  Width="110"/>
+            <DataGridTextColumn Header="On hand" Binding="{Binding OnHand}" SortMemberPath="OnHandRaw" Width="110"/>
+
+            <DataGridTemplateColumn Header="Short" Width="110" SortMemberPath="ShortRaw">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StationNeedRowVm">
+                  <TextBlock Text="{Binding Short}" Foreground="{Binding ShortColor}"
+                             FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTextColumn Header="Short value"  Binding="{Binding ShortValue}"
+                                SortMemberPath="ShortValueRaw"  Width="100"/>
+            <DataGridTextColumn Header="Short volume" Binding="{Binding ShortVolume}"
+                                SortMemberPath="ShortVolumeRaw" Width="110"/>
+
+            <!-- The breakdown. These four always add back to Total. -->
+            <DataGridTextColumn Header="Order jobs"       Binding="{Binding OrderJobs}" SortMemberPath="OrderJobsRaw" Width="110"/>
+            <DataGridTextColumn Header="Jobs"             Binding="{Binding Jobs}"      SortMemberPath="JobsRaw"      Width="110"/>
+            <DataGridTextColumn Header="Inventory levels" Binding="{Binding InvLevels}" SortMemberPath="InvLevelsRaw" Width="120"/>
+            <DataGridTextColumn Header="Station levels"   Binding="{Binding StnLevels}" SortMemberPath="StnLevelsRaw" Width="*"/>
+          </DataGrid.Columns>
+
+          <!-- The third level: what is asking for this item HERE. A need is a number until you
+               know what it is for, and "what is this for" is asked of one row at a time — so it
+               opens under the row rather than taking a column that would be empty on most of
+               them. -->
+          <DataGrid.RowDetailsTemplate>
+            <DataTemplate x:DataType="vm:StationNeedRowVm">
+              <Border Background="#0d0d14" BorderBrush="#1e1e2a" BorderThickness="0 1 0 1"
+                      Padding="24 6 8 8" IsVisible="{Binding HasDrivers}">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="ASKED FOR BY" FontSize="9" FontWeight="SemiBold"
+                             Foreground="#555566" LetterSpacing="1"/>
+                  <ItemsControl ItemsSource="{Binding Drivers}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:NeedDriverRowVm">
+                        <Grid ColumnDefinitions="240,110,*" Margin="0 1">
+                          <Panel Grid.Column="0">
+                            <Button Classes="link" Click="OnOpenNeedDriver" IsVisible="{Binding HasLink}"
+                                    ToolTip.Tip="Open this item">
+                              <TextBlock Text="{Binding Driver}" Classes="linktext" FontSize="10"/>
+                            </Button>
+                            <TextBlock Text="{Binding Driver}" IsVisible="{Binding !HasLink}"
+                                       FontSize="10" Foreground="#8a8a99" VerticalAlignment="Center"/>
+                          </Panel>
+                          <TextBlock Grid.Column="1" Text="{Binding Qty}" FontSize="10"
+                                     Foreground="#c8c8d8" HorizontalAlignment="Right" Margin="0 0 12 0"/>
+                          <TextBlock Grid.Column="2" Text="{Binding Kind}" FontSize="10"
+                                     Foreground="#666677"/>
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </DataGrid.RowDetailsTemplate>
         </DataGrid>
       </Grid>
     </TabItem>
