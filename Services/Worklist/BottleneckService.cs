@@ -106,42 +106,36 @@ public sealed record ItemBandwidth(
     public double CeilingWithOneMore => (Prints + 1) * PerPrintPerDay;
 
     /// <summary>
-    /// How much of the time these prints could have been running, they were.
+    /// The share of each print's time that was spent inside a job.
     ///
-    /// <para><b>⚠️ This is the pressure signal, not the production rate.</b> What was produced can
-    /// never exceed what the prints could produce — history is censored by the very ceiling being
-    /// measured, so "made 0.41/day against a ceiling of 0.14/day" is not a shortage, it is an
-    /// impossibility. Two items with the same ceiling can sit at 0.09/day and 0.001/day, and the
-    /// difference between them is not demand, it is whether the print is ever idle.</para>
-    ///
-    /// <para>⚠️ Can exceed 100% where a print was acquired part-way through the window: the busy
-    /// time is real but was earned by more prints than are owned now, or by copies. Capped, and
-    /// treated as saturated, which is what it means either way.</para>
+    /// <para>⚠️ Kept for context only — it does NOT identify bottlenecks, and ranking on it ranks
+    /// the wrong things. A formula run constantly across eight copies shows high use and has never
+    /// once made anybody wait; see <see cref="ContentionPercent"/>, which is the real signal.</para>
     /// </summary>
     public double UtilPercent => Prints <= 0 || WindowDays <= 0
         ? 0
         : Math.Min(100, 100.0 * BusyDays / (Prints * (double)WindowDays));
 
     /// <summary>
-    /// What a print in constant demand actually reaches, run by a person.
+    /// The share of the window during which EVERY print of this type was occupied at once.
     ///
-    /// <para><b>⚠️ Nobody keeps a print at 100%.</b> A job ends while its owner is asleep, at
-    /// work, or halfway through something else, and the next one starts whenever they next log
-    /// in. A blueprint wanted every hour of every day still measures around this, so treating
-    /// 100% as the mark for "saturated" would say nothing is ever a bottleneck. This is the
-    /// figure that stands in for full.</para>
+    /// <para><b>⚠️ This is what a blueprint bottleneck actually is.</b> Not "used a lot" — having
+    /// to wait for one to free up. The two come apart completely once there is more than one copy:
+    /// Fernite Carbide runs at 33% use across eight formulas and has been all-busy 0% of the time,
+    /// because buying the eighth was what fixed it. Ranking on use would put it near the top of a
+    /// list of things to buy; it is finished business.</para>
+    ///
+    /// <para>It also self-corrects, which no threshold does: every print added drives this down
+    /// directly, so a formula that was a constraint last quarter stops reporting as one without
+    /// anybody retuning anything.</para>
     /// </summary>
-    public const double PracticalCeilingPercent = 60;
+    public double ContentionPercent { get; init; }
 
-    /// <summary>How busy this print is against what a hand-run print can realistically reach.</summary>
-    public double PressurePercent =>
-        Math.Min(100, 100.0 * UtilPercent / PracticalCeilingPercent);
+    /// <summary>Every copy was busy often enough that wanting another would have meant waiting.</summary>
+    public bool IsTight => ContentionPercent >= 15;
 
-    /// <summary>Saturated in practice: little idle left that anyone could actually use.</summary>
-    public bool IsTight => UtilPercent >= PracticalCeilingPercent * 0.75;   // ~45% measured
-
-    /// <summary>Barely used, whatever is being asked of it today.</summary>
-    public bool IsIdle => UtilPercent < PracticalCeilingPercent * 0.4;      // ~24% measured
+    /// <summary>Rarely if ever all occupied — another copy would buy nothing.</summary>
+    public bool IsIdle => ContentionPercent < 5;
 
     /// <summary>
     /// Whether this is a standing shortage or a spike, which is the whole question.
@@ -152,32 +146,52 @@ public sealed record ItemBandwidth(
     /// busy for months AND has work queued now is a standing shortage; one that has sat idle and
     /// suddenly has a queue is a surge, and buying originals for a surge is buying for a week.</para>
     /// </summary>
+    /// <summary>
+    /// Whether this is a standing constraint or a spike.
+    ///
+    /// <para>⚠️ Contention is the OPPORTUNITY to block, not proof of blocking. A titan print
+    /// running one long job reads as all-busy for half the window and nobody was waiting — you
+    /// wanted one titan and you got it. What is queued now is the evidence that somebody was
+    /// actually trying to get through the shut door.</para>
+    /// </summary>
     public string Pattern =>
-        IsTight && WantedNow > 0 ? "Steady"
-      : IsTight                  ? "Was busy"
-      : WantedNow > 0 && IsIdle  ? "Surge"
-      : WantedNow > 0            ? "Building"
-      :                            "Quiet";
+        IsTight && BlockedNow > 0 ? "Blocking"
+      : IsTight && WantedNow > 0  ? "Steady"
+      : IsTight                   ? "Contended"
+      : BlockedNow > 0            ? "Blocked"
+      : WantedNow > 0 && IsIdle   ? "Surge"
+      : WantedNow > 0             ? "Building"
+      :                             "Quiet";
 
     public string Advice => Pattern switch
     {
-        "Steady" =>
-            $"Busy {UtilPercent:N0}% of the last {WindowDays} days and {WantedNow:N0} job(s) want it "
-          + $"now — a standing shortage. A second print takes the ceiling from {CapacityPerDay:N2} "
-          + $"to {CeilingWithOneMore:N2}/day.",
+        "Blocking" =>
+            $"Every copy was busy {ContentionPercent:N0}% of the last {WindowDays} days, and "
+          + $"{BlockedNow:N0} job(s) cannot start right now. Another copy takes the ceiling from "
+          + $"{CapacityPerDay:N2} to {CeilingWithOneMore:N2}/day.",
 
-        "Was busy" =>
-            $"Busy {UtilPercent:N0}% of the last {WindowDays} days but nothing is queued for it "
-          + "today. Worth watching rather than buying for.",
+        "Steady" =>
+            $"Every copy was busy {ContentionPercent:N0}% of the last {WindowDays} days with "
+          + $"{WantedNow:N0} job(s) queued — wanting another means waiting for one to free up. "
+          + $"A further copy takes the ceiling to {CeilingWithOneMore:N2}/day.",
+
+        "Contended" =>
+            $"Every copy was busy {ContentionPercent:N0}% of the last {WindowDays} days, but "
+          + "nothing is queued for it today. Worth watching rather than buying for.",
+
+        "Blocked" =>
+            $"{BlockedNow:N0} job(s) cannot start, though the copies on hand have rarely all been "
+          + $"busy at once ({ContentionPercent:N0}%). Check what is really missing before buying a "
+          + "print — this looks like something other than the blueprint.",
 
         "Surge" =>
-            $"{WantedNow:N0} job(s) want it now, but it has been idle {100 - UtilPercent:N0}% of "
-          + $"the last {WindowDays} days — this looks like a one-off rather than a standing need. "
-          + "A copy or two may serve better than an original.",
+            $"{WantedNow:N0} job(s) want it now, but every copy was free for almost all of the "
+          + $"last {WindowDays} days. A one-off rather than a standing need — a copy may serve "
+          + "better than an original.",
 
         _ =>
-            $"{WantedNow:N0} job(s) queued against {UtilPercent:N0}% use over {WindowDays} days. "
-          + $"A second print would take the ceiling to {CeilingWithOneMore:N2}/day.",
+            $"{WantedNow:N0} job(s) queued; all copies busy {ContentionPercent:N0}% of the window. "
+          + $"Another copy would take the ceiling to {CeilingWithOneMore:N2}/day.",
     };
 
     public void OpenItem() => EntityNavigator.Instance.Item(ProductTypeId);
@@ -372,13 +386,15 @@ public class BottleneckService(
         // What has actually been made, and how long a run of it takes here. Per RUN, so a ten-run
         // job and a one-run job of the same thing agree about the cycle.
         // ⚠️ Same as above: the date test cannot go in the query. Everything else can, so it does.
+        var now = DateTimeOffset.UtcNow;
+
         var runs = (await db.EsiIndustryJobs.AsNoTracking()
                 .Where(j => j.Runs > 0 && j.ProductTypeId != null
                          && (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11))
                 .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value,
-                                   j.Runs, j.Duration, j.StartDate })
+                                   j.Runs, j.Duration, j.StartDate, j.EndDate, j.BlueprintId })
                 .ToListAsync(ct))
-            .Where(j => j.StartDate >= since)
+            .Where(j => j.EndDate > since && j.StartDate < now)
             .ToList();
         if (runs.Count == 0) return [];
 
@@ -389,10 +405,17 @@ public class BottleneckService(
                 g => (ProductTypeId: g.First().ProductTypeId,
                       CycleDays:     g.Average(j => (double)j.Duration / j.Runs) / 86400.0,
                       Runs:          g.Sum(j => (long)j.Runs),
-                      // ⚠️ Time occupied, not jobs counted. This is what makes a saturated print
-                      // distinguishable from an idle one, and the two are indistinguishable by
-                      // production rate alone — both are bounded by the same ceiling.
-                      BusyDays:      g.Sum(j => (double)j.Duration) / 86400.0));
+                      // ⚠️ Clipped to the window at both ends. A job running longer than the
+                      // window used to be counted whole against it, which put one print at 120%
+                      // of a time it could not have spent.
+                      BusyDays:      g.Sum(j => Overlap(j.StartDate, j.EndDate, since, now)),
+                      // The copies actually seen working. Where more were in play then than are
+                      // owned now, this is the honest denominator for what happened.
+                      Seen:          g.Select(j => j.BlueprintId).Distinct().Count(),
+                      Contention:    AllBusyDays(
+                                        g.Select(j => (j.StartDate, j.EndDate)).ToList(),
+                                        g.Select(j => j.BlueprintId).Distinct().Count(),
+                                        since, now)));
 
         var productIds = byBlueprint.Values.Select(v => v.ProductTypeId).Distinct().ToList();
         var bpIds      = byBlueprint.Keys.ToList();
@@ -434,22 +457,77 @@ public class BottleneckService(
                 units,
                 WindowDays,
                 wantedNow.GetValueOrDefault(made.ProductTypeId).All,
-                wantedNow.GetValueOrDefault(made.ProductTypeId).Blocked));
+                wantedNow.GetValueOrDefault(made.ProductTypeId).Blocked)
+            {
+                ContentionPercent = 100.0 * made.Contention / WindowDays,
+            });
         }
 
-        // ⚠️ Busiest first, not "most short". A shortfall cannot be measured from history — what
-        // was produced is capped by the very prints being judged, so demand above the ceiling
-        // leaves no trace. Time spent occupied is the one thing that does distinguish a print
-        // that never stops from one that rarely starts.
-        // Anything saturated, plus anything with work queued against it — a print that has been
-        // idle for months but has a queue today is worth showing precisely so it can be read as
-        // the surge it probably is, rather than quietly acted on as a shortage.
+        // ⚠️ Ranked on contention, never on use. Use ranks a formula somebody already bought eight
+        // copies of above one they own a single copy of, which is precisely backwards: the eight
+        // are the fix, and the one is the problem. Blocked work first among equals, since that is
+        // the difference between a door that was shut and a door somebody was trying to open.
         return result
             .Where(r => r.IsTight || r.WantedNow > 0)
-            .OrderByDescending(r => r.Pattern == "Steady")
-            .ThenByDescending(r => r.UtilPercent)
+            .OrderByDescending(r => r.BlockedNow > 0)
+            .ThenByDescending(r => r.ContentionPercent)
             .ThenByDescending(r => r.WantedNow)
             .ToList();
+    }
+
+    /// <summary>Days of an interval that fall inside the window.</summary>
+    private static double Overlap(DateTimeOffset s, DateTimeOffset e,
+                                  DateTimeOffset from, DateTimeOffset to)
+    {
+        var a = s < from ? from : s;
+        var b = e > to   ? to   : e;
+        return b <= a ? 0 : (b - a).TotalDays;
+    }
+
+    /// <summary>
+    /// Days on which every copy of a blueprint was inside a job at the same time.
+    ///
+    /// <para><b>⚠️ The whole point of the blueprint section.</b> Wanting a job and finding every
+    /// copy busy is what a blueprint bottleneck is; running a lot is not. A sweep over the job
+    /// intervals is the only way to tell them apart — summed durations cannot, because the same
+    /// total spread across eight copies never blocks anybody and concentrated on one blocks
+    /// everybody.</para>
+    ///
+    /// <para>⚠️ Measured against the copies SEEN WORKING in the window rather than the copies
+    /// owned today. A print bought last week would otherwise make the months before it look
+    /// uncontended, which is backwards — those months are exactly when the shortage was real.</para>
+    /// </summary>
+    private static double AllBusyDays(
+        List<(DateTimeOffset Start, DateTimeOffset End)> jobs, int copies,
+        DateTimeOffset from, DateTimeOffset to)
+    {
+        if (copies <= 0 || jobs.Count == 0) return 0;
+
+        var edges = new List<(DateTimeOffset At, int Delta)>(jobs.Count * 2);
+        foreach (var (s, e) in jobs)
+        {
+            var a = s < from ? from : s;
+            var b = e > to   ? to   : e;
+            if (b <= a) continue;
+            edges.Add((a, +1));
+            edges.Add((b, -1));
+        }
+        if (edges.Count == 0) return 0;
+
+        edges.Sort((x, y) => x.At.CompareTo(y.At));
+
+        double all = 0;
+        var  last  = edges[0].At;
+        var  open  = 0;
+
+        foreach (var (at, delta) in edges)
+        {
+            if (open >= copies && at > last) all += (at - last).TotalDays;
+            open += delta;
+            last  = at;
+        }
+
+        return all;
     }
 
     /// <summary>A few names and their numbers, so a total can be checked against something.</summary>

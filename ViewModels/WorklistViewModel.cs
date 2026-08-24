@@ -427,10 +427,15 @@ public sealed class PrintPressureRowVm(ItemBandwidth p)
     public string Demand    => $"{p.MadePerDay:N2}/d";
 
     /// <summary>
-    /// ⚠️ Time occupied, not output achieved. Output is capped by the prints being judged, so it
-    /// cannot tell a saturated print from an idle one — both sit under the same ceiling.
+    /// ⚠️ The share of the window when EVERY copy was busy — the only figure that says whether
+    /// wanting another job meant waiting. Plain utilisation cannot: a formula run flat out across
+    /// eight copies is heavily used and has never blocked anything.
     /// </summary>
-    public string Cover     => $"{p.UtilPercent:N0}%";
+    public string Cover     => $"{p.ContentionPercent:N0}%";
+
+    /// <summary>Kept beside it as context, deliberately not as the ranking.</summary>
+    public string Used      => $"{p.UtilPercent:N0}%";
+    public string Blocked   => p.BlockedNow > 0 ? p.BlockedNow.ToString("N0") : "";
 
     public string WithOneMore => $"{p.CeilingWithOneMore:N2}/d";
     public string Wanted      => p.WantedNow > 0 ? p.WantedNow.ToString("N0") : "";
@@ -446,6 +451,9 @@ public sealed class PrintPressureRowVm(ItemBandwidth p)
     public string CoverColor => p.IsTight ? "#c85a5a"
                              : p.IsIdle   ? "#666677"
                              : "#c8a84b";
+
+    /// <summary>⚠️ Muted always. It is context, and colouring it would invite ranking by it.</summary>
+    public string UsedColor => "#666677";
 
     /// <summary>Steady is the one worth buying for; a surge is a week of work, not a shortage.</summary>
     public string PatternColor => p.Pattern switch

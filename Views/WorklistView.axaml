@@ -981,7 +981,7 @@
               <TextBlock Text="BLUEPRINTS" FontSize="10" FontWeight="SemiBold"
                          Foreground="#555566" LetterSpacing="1"/>
               <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
-                         Text="An original runs one job at a time, so one Thanatos print is one hull a cycle and a second halves the time on any order. Busy % is measured against what a hand-run print actually reaches — a job ends while you are asleep and the next starts when you log in, so a blueprint wanted every hour still lands near 60%. Pattern pairs that history with what is queued today: Steady is a standing shortage worth buying originals for, Surge is a spike that a copy may serve better."/>
+                         Text="A blueprint bottleneck is having to WAIT for a copy to free up — not running one a lot. 'All busy' is the share of the last 90 days when every copy you had was occupied at once, which is the only figure that tells those apart: a formula run flat out across eight copies is heavily used and has never blocked anything, and buying the eighth is what fixed it. 'Used' is shown beside it as context only. Pattern pairs that history with what is queued today, since all-busy is the chance to block and the queue is the evidence somebody was trying to get through."/>
 
               <DataGrid ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11" MaxHeight="320"
@@ -1006,7 +1006,8 @@
                   <DataGridTextColumn Header="Installed" Binding="{Binding Busy}"     Width="75"/>
                   <DataGridTextColumn Header="Ceiling"   Binding="{Binding Capacity}"    Width="85"/>
                   <DataGridTextColumn Header="Made"      Binding="{Binding Demand}"      Width="85"/>
-                  <DataGridTemplateColumn Header="Busy" Width="65">
+                  <DataGridTextColumn Header="Used" Binding="{Binding Used}" Width="60" Foreground="#666677"/>
+                  <DataGridTemplateColumn Header="All busy" Width="75">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
                         <TextBlock Text="{Binding Cover}" Foreground="{Binding CoverColor}"
@@ -1015,7 +1016,8 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <DataGridTextColumn Header="+1 print" Binding="{Binding WithOneMore}" Width="85"/>
-                  <DataGridTextColumn Header="Queued"   Binding="{Binding Wanted}"      Width="65"/>
+                  <DataGridTextColumn Header="Queued"  Binding="{Binding Wanted}"  Width="65"/>
+                  <DataGridTextColumn Header="Stuck"   Binding="{Binding Blocked}" Width="60"/>
                   <DataGridTemplateColumn Header="Pattern" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
