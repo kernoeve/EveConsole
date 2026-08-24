@@ -341,7 +341,7 @@ public class StoresViewModel : ReactiveObject
     {
         if (SelectedStore is not StoreRowVm row) return "";
 
-        return StoreMailService.DefaultUsage(new Store
+        return StoreMailService.DefaultUsageForEditing(new Store
         {
             Id            = row.Id,
             Name          = StoreName,
@@ -645,7 +645,7 @@ public class StoresViewModel : ReactiveObject
                     // merely selecting a store does not write anything back.
                     CustomUsage        = store.CustomUsage.Length > 0
                                        ? store.CustomUsage
-                                       : StoreMailService.DefaultUsage(store);
+                                       : StoreMailService.DefaultUsageForEditing(store);
                     MessageHeader      = store.MessageHeader;
                     MessageHeaderColor = store.MessageHeaderColor;
                     MessageFooter      = store.MessageFooter;

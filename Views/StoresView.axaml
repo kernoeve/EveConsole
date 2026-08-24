@@ -61,8 +61,10 @@
       <TabControl Grid.Column="1" IsVisible="{Binding HasSelection}" Padding="0">
 
         <TabItem Header="Overview" FontSize="12">
-          <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="14" Spacing="14">
+          <!-- A grid, not a stack in a scroller: the counts are four lines and fixed, and
+               everything left over belongs to the message log. A log sized to a guess wastes
+               half the window on a tall screen and shows six rows on a short one. -->
+          <Grid Margin="14" RowDefinitions="Auto,14,*">
           <!-- Stats -->
           <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
@@ -86,12 +88,12 @@
             </Grid>
           </Border>
           <!-- Messages -->
-          <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <Border Grid.Row="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
-            <StackPanel Spacing="8">
-              <TextBlock Text="Messages" FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
+            <DockPanel LastChildFill="True">
+              <TextBlock DockPanel.Dock="Top" Text="Messages" FontSize="13" FontWeight="SemiBold"
+                         Foreground="#c8a84b" Margin="0 0 0 8" />
               <DataGrid ItemsSource="{Binding Mails}" AutoGenerateColumns="False" IsReadOnly="True"
-                        MinHeight="240" MaxHeight="460"
                         Background="Transparent" HeadersVisibility="Column" FontSize="11">
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="When"      Binding="{Binding When}"      Width="130" />
@@ -113,10 +115,9 @@
                   </DataGridTemplateColumn>
                 </DataGrid.Columns>
               </DataGrid>
-            </StackPanel>
+            </DockPanel>
           </Border>
-            </StackPanel>
-          </ScrollViewer>
+          </Grid>
         </TabItem>
 
         <TabItem Header="Config" FontSize="12">
@@ -322,7 +323,7 @@
                            VerticalContentAlignment="Top" />
 
                   <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
-                             Text="EVE mail markup: &lt;b&gt; &lt;i&gt; &lt;u&gt; &lt;br&gt;, &lt;font size=&quot;12&quot;&gt; and &lt;font color=&quot;#ffc8a84b&quot;&gt; — colours are ARGB, so the alpha pair is not optional. Item and character links are &lt;a href=&quot;showinfo:TYPEID&quot;&gt; and &lt;a href=&quot;showinfo:1373//CHARACTERID&quot;&gt;. Spaces are kept as written; HTML entities are not decoded and will be drawn as typed." />
+                             Text="Write it as text — newlines become line breaks when it is sent. EVE mail markup: &lt;b&gt; &lt;i&gt; &lt;u&gt;, &lt;font size=&quot;12&quot;&gt; and &lt;font color=&quot;#ffc8a84b&quot;&gt; — colours are ARGB, so the alpha pair is not optional. Item and character links are &lt;a href=&quot;showinfo:TYPEID&quot;&gt; and &lt;a href=&quot;showinfo:1373//CHARACTERID&quot;&gt;. Spaces are kept as written; HTML entities are not decoded and will be drawn as typed." />
 
                   <Button Content="Reset to the default message" Click="OnResetUsage"
                           IsEnabled="{Binding UseCustomUsage}" FontSize="11" Padding="12 4"
