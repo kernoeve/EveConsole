@@ -388,6 +388,11 @@ public class OrderTrackerViewModel : ReactiveObject
                     contractLabel: label,
                     buildAsOf:     settled is not null ? o.CompletedOn ?? "" : ""));
             }
+            // ⚠️ A contract linked since the last look is an order and a sale that have only just
+            // become the same thing; this is where they find out about each other's labels. Same
+            // call the Sales Tracker makes, and idempotent, so whichever is opened first does it.
+            await _labels.SyncByContractAsync();
+
             // One query for every row's labels rather than one per row.
             var labels = await _labels.ForOrdersAsync(_all.Select(r => r.Id).ToList());
             foreach (var row in _all)
@@ -489,9 +494,10 @@ public class OrderTrackerViewModel : ReactiveObject
 
         try
         {
-            foreach (var row in rows)
-                await _labels.SetAsync(row.Id, row.LabelList.Where(
-                    l => !string.Equals(l, clean, StringComparison.OrdinalIgnoreCase)));
+            // ⚠️ A removal, not a replace of what is left. Only a removal can be carried across
+            // to the sale sharing this order's contract — "here is the new set" cannot, because
+            // this box never showed what the sale carried.
+            await _labels.RemoveAsync(rows.Select(r => r.Id).ToList(), clean);
 
             await LoadAsync();
             StatusText = $"Removed \"{clean}\" from {rows.Count:N0} order(s).";

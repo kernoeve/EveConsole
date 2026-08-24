@@ -11,6 +11,11 @@ public partial class SalesTrackerView : ReactiveUserControl<SalesTrackerViewMode
     public SalesTrackerView()
     {
         InitializeComponent();
+
+        // Built when the menu opens, not once at startup: the label list changes as things are
+        // tagged, and a menu populated at construction would offer yesterday's labels.
+        if (SalesGrid.ContextMenu is { } menu)
+            menu.Opening += async (_, _) => await BuildLabelMenusAsync();
     }
 
     // Click rather than Command. A sale row is a plain object built inside SalesQuery, not a
@@ -34,6 +39,62 @@ public partial class SalesTrackerView : ReactiveUserControl<SalesTrackerViewMode
     }
 
     private void OnOpenContract(object? sender, RoutedEventArgs e) => Row(sender)?.OpenContract();
+
+    /// <summary>The rows a right-click should act on — the whole selection.</summary>
+    private List<SaleRowVm> SelectedRows() => SalesGrid.SelectedItems.OfType<SaleRowVm>().ToList();
+
+    private async Task BuildLabelMenusAsync()
+    {
+        if (DataContext is not SalesTrackerViewModel vm) return;
+
+        var rows = SelectedRows();
+        AddLabelMenu.Items.Clear();
+        RemoveLabelMenu.Items.Clear();
+
+        AddLabelMenu.IsEnabled    = rows.Count > 0;
+        RemoveLabelMenu.IsEnabled = rows.Count > 0;
+        if (rows.Count == 0) return;
+
+        AddLabelMenu.Header    = rows.Count > 1 ? $"Add label to {rows.Count} sales" : "Add label";
+        RemoveLabelMenu.Header = rows.Count > 1 ? $"Remove label from {rows.Count} sales" : "Remove label";
+
+        foreach (var label in await vm.KnownLabelsAsync())
+        {
+            var item = new MenuItem { Header = label };
+            item.Click += async (_, _) => await vm.AddLabelToAsync(SelectedRows(), label);
+            AddLabelMenu.Items.Add(item);
+        }
+
+        // Typing a new one is how labels are created — the same list the Order Tracker offers,
+        // so a tag made here is a tag orders can use and the other way round.
+        if (AddLabelMenu.Items.Count > 0) AddLabelMenu.Items.Add(new Separator());
+        var newItem = new MenuItem { Header = "New label…" };
+        newItem.Click += async (_, _) => await PromptForLabelAsync(vm);
+        AddLabelMenu.Items.Add(newItem);
+
+        // Only what the selection actually carries.
+        foreach (var label in rows.SelectMany(r => r.LabelList)
+                                  .Distinct(StringComparer.OrdinalIgnoreCase)
+                                  .OrderBy(l => l, StringComparer.OrdinalIgnoreCase))
+        {
+            var item = new MenuItem { Header = label };
+            item.Click += async (_, _) => await vm.RemoveLabelFromAsync(SelectedRows(), label);
+            RemoveLabelMenu.Items.Add(item);
+        }
+
+        RemoveLabelMenu.IsEnabled = RemoveLabelMenu.Items.Count > 0;
+    }
+
+    private async Task PromptForLabelAsync(SalesTrackerViewModel vm)
+    {
+        if (TopLevel.GetTopLevel(this) is not Window owner) return;
+
+        var rows  = SelectedRows();
+        var typed = await new TextPromptDialog(
+            "New label", "Label", "e.g. BNI First Capital Program").ShowDialog<string?>(owner);
+
+        if (!string.IsNullOrWhiteSpace(typed)) await vm.AddLabelToAsync(rows, typed);
+    }
 
     private static SaleRowVm? Row(object? sender) => (sender as Control)?.DataContext as SaleRowVm;
 

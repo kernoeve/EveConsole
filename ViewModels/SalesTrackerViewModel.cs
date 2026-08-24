@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive.Linq;
 using Avalonia.Media;
+using EveConsole.Controls;
 using EveConsole.Data;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
@@ -49,6 +50,21 @@ public class SaleRowVm : ReactiveObject
 
     /// <summary>Whether <see cref="Contract"/> is something the Contracts tool can open.</summary>
     public bool HasContractLink => Kind == "Contract" && SaleId is > 0 and <= int.MaxValue;
+
+    /// <summary>
+    /// Tags on this sale — the same list orders use, and the same tags where the two share a
+    /// contract. See OrderLabelService.
+    /// </summary>
+    public IReadOnlyList<string> LabelList { get; private set; } = [];
+
+    /// <summary>The same labels as coloured chips, drawn exactly as the Order Tracker draws them.</summary>
+    public List<LabelChip> LabelChips { get; private set; } = [];
+
+    public void SetLabels(IReadOnlyList<string> labels)
+    {
+        LabelList  = labels;
+        LabelChips = LabelPalette.Chips(labels);
+    }
 
     /// <summary>Wallet transaction id for a market sale, contract id for a contract sale.
     /// Unique only together with <see cref="Kind"/>.</summary>
@@ -341,12 +357,15 @@ public class SalesTrackerViewModel : ReactiveObject
     private string _statusText = "";
     public string StatusText { get => _statusText; private set => this.RaiseAndSetIfChanged(ref _statusText, value); }
 
+    private readonly OrderLabelService _labels;
+
     public SalesTrackerViewModel(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger,
-        CorpActivityService names)
+        CorpActivityService names, OrderLabelService labels)
     {
         _dbFactory   = dbFactory;
         _errorLogger = errorLogger;
         _names       = names;
+        _labels      = labels;
         _selectedOwner = OwnerOptions[1];                                  // All Characters and Personal Corps
         _selectedType  = SaleTypeOptions[0];                               // All types
         _dateFrom      = DateTime.UtcNow.AddDays(-90).ToString("yyyy-MM-dd"); // last 90 days
@@ -500,6 +519,53 @@ public class SalesTrackerViewModel : ReactiveObject
         date = default; return false;
     }
 
+    /// <summary>The labels a picker should offer — the same list orders draw from.</summary>
+    public Task<List<string>> KnownLabelsAsync() => _labels.AllAsync();
+
+    /// <summary>
+    /// Puts one label on several sales.
+    ///
+    /// <para>⚠️ It reaches the orders behind them too, wherever a sale and an order are the same
+    /// contract. Labelling a sale and finding the order it fulfils untagged would make the pair
+    /// disagree about the one thing they are meant to share.</para>
+    /// </summary>
+    public async Task AddLabelToAsync(IReadOnlyList<SaleRowVm> rows, string label)
+    {
+        var clean = OrderLabelService.Clean(label);
+        if (clean.Length == 0 || rows.Count == 0) return;
+
+        try
+        {
+            await _labels.AddToSalesAsync(rows.Select(r => (r.Kind, r.SaleId)).ToList(), clean);
+            await LoadAsync();
+            StatusText = $"Labelled {rows.Count:N0} sale(s) \"{clean}\".";
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(SalesTrackerViewModel), nameof(AddLabelToAsync), ex);
+            StatusText = $"Could not label: {ex.Message}";
+        }
+    }
+
+    /// <summary>Takes one label off several sales, and off the orders sharing their contract.</summary>
+    public async Task RemoveLabelFromAsync(IReadOnlyList<SaleRowVm> rows, string label)
+    {
+        var clean = OrderLabelService.Clean(label);
+        if (clean.Length == 0 || rows.Count == 0) return;
+
+        try
+        {
+            await _labels.RemoveFromSalesAsync(rows.Select(r => (r.Kind, r.SaleId)).ToList(), clean);
+            await LoadAsync();
+            StatusText = $"Removed \"{clean}\" from {rows.Count:N0} sale(s).";
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(SalesTrackerViewModel), nameof(RemoveLabelFromAsync), ex);
+            StatusText = $"Could not remove label: {ex.Message}";
+        }
+    }
+
     private async Task LoadAsync()
     {
         if (IsLoading) return;
@@ -507,10 +573,22 @@ public class SalesTrackerViewModel : ReactiveObject
         StatusText = "Loading…";
         try
         {
+            // ⚠️ Before the labels are read, not after. A contract linked since the last look is
+            // an order and a sale that have only just become the same thing, and this is where
+            // they find out. Idempotent, so running it every load costs nothing when nothing
+            // changed. See OrderLabelService.SyncByContractAsync.
+            await _labels.SyncByContractAsync();
+
             var result = await SalesQuery.LoadAsync(_dbFactory, _names, _errorLogger);
             BuildOwnerOptions(result.Chars, result.Corps);
             _all.Clear();
             _all.AddRange(result.Rows);
+
+            var labels = await _labels.ForSalesAsync(
+                _all.Select(r => (r.Kind, r.SaleId)).Distinct().ToList());
+            foreach (var r in _all)
+                r.SetLabels(labels.GetValueOrDefault((r.Kind, r.SaleId), []));
+
             foreach (var r in _all) r.ApplyBasis(CurrentBasis);
             ApplyFilters();
         }

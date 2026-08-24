@@ -218,6 +218,7 @@ public class AppDbContext : DbContext
     public DbSet<StoreSender> StoreSenders => Set<StoreSender>();
     public DbSet<StoreMail>   StoreMails   => Set<StoreMail>();
     public DbSet<OrderLabel>  OrderLabels  => Set<OrderLabel>();
+    public DbSet<SaleLabel>   SaleLabels   => Set<SaleLabel>();
 
     // ── Indy Parks ──────────────────────────────────────────────────────────
     public DbSet<IndyPark>               IndyParks               => Set<IndyPark>();
@@ -1017,6 +1018,10 @@ public class AppDbContext : DbContext
         mb.Entity<OrderLabel>(e => {
             e.HasKey(x => new { x.OrderId, x.Label });
             e.ToTable("OrderLabels"); });
+
+        mb.Entity<SaleLabel>(e => {
+            e.HasKey(x => new { x.Kind, x.SaleId, x.Label });
+            e.ToTable("SaleLabels"); });
 
         mb.Entity<AppErrorEntry>(e => {
             e.HasKey(x => x.Id);

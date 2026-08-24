@@ -384,6 +384,19 @@ public class App : Application
             db.Database.ExecuteSqlRaw("""
                 CREATE INDEX IF NOT EXISTS "IX_OrderLabels_Label" ON "OrderLabels" ("Label")
                 """);
+            // The same labels, on the sales side. Keyed like SaleExclusions because a sale has no
+            // row of its own — it is a wallet transaction or a contract, identified by both.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "SaleLabels" (
+                    "Kind"   TEXT    NOT NULL,
+                    "SaleId" INTEGER NOT NULL,
+                    "Label"  TEXT    NOT NULL,
+                    PRIMARY KEY ("Kind", "SaleId", "Label")
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_SaleLabels_Label" ON "SaleLabels" ("Label")
+                """);
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "Stores" (
                     "Id"            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

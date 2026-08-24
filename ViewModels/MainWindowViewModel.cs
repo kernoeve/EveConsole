@@ -606,7 +606,7 @@ public class MainWindowViewModel : ReactiveObject
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
         MarketViewerVm         = new MarketViewerViewModel(dbFactory, errorLogger);
-        SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService);
+        SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService, orderLabels);
         SaleListingBuildVm     = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.BuildCost);
         SaleListingMarketVm    = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.MarketValue);
         OverviewVm.SaleListingBuild  = SaleListingBuildVm;   // let the Overview embed them as sections
