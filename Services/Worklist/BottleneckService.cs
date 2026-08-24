@@ -242,10 +242,14 @@ public class BottleneckService(
 
         // What each pool has actually been getting through. Durations included, because a pool
         // running long jobs and one running short jobs are not comparable by job count.
+        // ⚠️ The window is applied in memory. StartDate is a DateTimeOffset over a TEXT column,
+        // and EF cannot translate a comparison on one — it throws at runtime rather than failing
+        // to compile, so the tab reported a LINQ error where it should have shown numbers. The
+        // table is small enough that reading it and filtering here costs nothing worth saving.
         var history = (await db.EsiIndustryJobs.AsNoTracking()
-                .Where(j => j.StartDate >= since)
-                .Select(j => new { j.ActivityId, j.Duration })
+                .Select(j => new { j.ActivityId, j.Duration, j.StartDate })
                 .ToListAsync(ct))
+            .Where(j => j.StartDate >= since)
             .GroupBy(j => IndustryAssignmentService.PoolOf(j.ActivityId))
             .ToDictionary(g => g.Key, g => (Jobs: g.Count(), Days: g.Sum(j => (double)j.Duration) / 86400.0));
 
@@ -367,11 +371,15 @@ public class BottleneckService(
 
         // What has actually been made, and how long a run of it takes here. Per RUN, so a ten-run
         // job and a one-run job of the same thing agree about the cycle.
-        var runs = await db.EsiIndustryJobs.AsNoTracking()
-            .Where(j => j.StartDate >= since && j.Runs > 0 && j.ProductTypeId != null
-                     && (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11))
-            .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value, j.Runs, j.Duration })
-            .ToListAsync(ct);
+        // ⚠️ Same as above: the date test cannot go in the query. Everything else can, so it does.
+        var runs = (await db.EsiIndustryJobs.AsNoTracking()
+                .Where(j => j.Runs > 0 && j.ProductTypeId != null
+                         && (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11))
+                .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value,
+                                   j.Runs, j.Duration, j.StartDate })
+                .ToListAsync(ct))
+            .Where(j => j.StartDate >= since)
+            .ToList();
         if (runs.Count == 0) return [];
 
         var byBlueprint = runs
