@@ -33,6 +33,8 @@ public partial class SalesTrackerView : ReactiveUserControl<SalesTrackerViewMode
         if (SalesGrid.SelectedItem is SaleRowVm row) row.OpenContract();
     }
 
+    private void OnOpenContract(object? sender, RoutedEventArgs e) => Row(sender)?.OpenContract();
+
     private static SaleRowVm? Row(object? sender) => (sender as Control)?.DataContext as SaleRowVm;
 
     // The rollups up top carry their destination as an Action rather than ids, because a group

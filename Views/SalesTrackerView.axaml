@@ -254,15 +254,20 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <!-- The description typed on the contract. Blank on market rows, which have nowhere to
-             carry one. Trimmed with the whole note on hover, since these run long and the point
-             is to recognise a sale, not to read the note in the grid. -->
-        <DataGridTemplateColumn Header="Note" SortMemberPath="Note" Width="200">
+        <!-- The contract behind the sale, carrying its description where it has one. Blank on
+             market rows. Opens in the Contracts tool, the same jump the Order Tracker offers. -->
+        <DataGridTemplateColumn Header="Contract" SortMemberPath="Contract" Width="220">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
-              <TextBlock Text="{Binding Note}" FontSize="11" VerticalAlignment="Center"
-                         Margin="0 0 8 0" TextTrimming="CharacterEllipsis"
-                         ToolTip.Tip="{Binding Note}" />
+              <Panel>
+                <Button Classes="link" Click="OnOpenContract" IsVisible="{Binding HasContractLink}"
+                        ToolTip.Tip="{Binding Contract}">
+                  <TextBlock Text="{Binding Contract}" Classes="linktext"
+                             TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding Contract}" IsVisible="{Binding !HasContractLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

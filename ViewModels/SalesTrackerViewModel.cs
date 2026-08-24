@@ -39,12 +39,16 @@ public class SaleRowVm : ReactiveObject
     }
 
     /// <summary>
-    /// The description typed on the contract this sale came from.
+    /// The contract behind this sale, named the way the Order Tracker names it: the description
+    /// typed on it and its id, or just the id when it carries no description.
     ///
-    /// <para>Empty for a market sale, which has nowhere to put one — an order fills against
-    /// whoever is buying and carries no message from either side.</para>
+    /// <para>Empty for a market sale. An order filling against whoever is buying has no contract
+    /// and no message from either side.</para>
     /// </summary>
-    public string Note { get; } = "";
+    public string Contract { get; } = "";
+
+    /// <summary>Whether <see cref="Contract"/> is something the Contracts tool can open.</summary>
+    public bool HasContractLink => Kind == "Contract" && SaleId is > 0 and <= int.MaxValue;
 
     /// <summary>Wallet transaction id for a market sale, contract id for a contract sale.
     /// Unique only together with <see cref="Kind"/>.</summary>
@@ -135,10 +139,15 @@ public class SaleRowVm : ReactiveObject
         string items, string units, double total, double? build, double? market,
         int typeId = 0, string marketGroup = "—", long saleId = 0,
         long locationId = 0, bool locationIsStation = false, long buyerId = 0,
-        EntityKind buyerKind = EntityKind.Pilot, string note = "")
+        EntityKind buyerKind = EntityKind.Pilot, string contractTitle = "")
     {
-        Note        = note;
         SaleId      = saleId;
+
+        // Same shape as the Order Tracker's contract cell, so one contract reads the same
+        // wherever it appears: its own description when it has one, its id when it does not.
+        Contract = kind == "Contract" && saleId > 0
+            ? (contractTitle.Length > 0 ? $"{contractTitle} ({saleId})" : $"Contract {saleId}")
+            : "";
         TypeId      = typeId;
         MarketGroup = marketGroup;
         LocationId        = locationId;
@@ -272,7 +281,17 @@ public class SalesTrackerViewModel : ReactiveObject
     public SalesOwnerOption SelectedOwner
     {
         get => _selectedOwner;
-        set { this.RaiseAndSetIfChanged(ref _selectedOwner, value ?? OwnerOptions[1]); ApplyFilters(); }
+        set
+        {
+            // ⚠️ A null from the control is refused, not defaulted. This view is built from a
+            // DataTemplate in the tab host, so switching tabs detaches the ComboBox and it pushes
+            // SelectedItem=null on the way out. Substituting the default here made that a
+            // one-way door: come back to the tab and the filter had quietly reset to everything.
+            // Re-raising instead tells the rebuilt control what the selection actually is.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _selectedOwner, value);
+            ApplyFilters();
+        }
     }
 
     public IReadOnlyList<SalesTypeOption> SaleTypeOptions { get; } =
@@ -285,7 +304,13 @@ public class SalesTrackerViewModel : ReactiveObject
     public SalesTypeOption SelectedType
     {
         get => _selectedType;
-        set { this.RaiseAndSetIfChanged(ref _selectedType, value ?? SaleTypeOptions[0]); ApplyFilters(); }
+        set
+        {
+            // Same reason as SelectedOwner: a detaching ComboBox must not be able to clear it.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _selectedType, value);
+            ApplyFilters();
+        }
     }
 
     // Cost basis the profit columns / rollups are measured against.

@@ -42,7 +42,7 @@ internal static class SalesQuery
         """
         SELECT c."ContractId" AS SaleId, c."OwnerId" AS OwnerId, c."OwnerType" AS OwnerType,
                c."DateCompleted" AS DateStr, CAST(c."Price" AS REAL) AS Price, COALESCE(c."AcceptorId", 0) AS BuyerId,
-               c."StartLocationId" AS LocationId, COALESCE(c."Title", '') AS Note,
+               c."StartLocationId" AS LocationId, COALESCE(c."Title", '') AS Title,
                (SELECT COUNT(*) FROM "SdeStations" WHERE "StationId" = c."StartLocationId") AS IsStation,
                COALESCE((SELECT "Name" FROM "SdeStations"       WHERE "StationId"   = c."StartLocationId"),
                         (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = c."StartLocationId")) AS Location
@@ -190,7 +190,7 @@ internal static class SalesQuery
                 OwnerName(c.OwnerId, c.OwnerType), c.Location ?? "", BuyerName(c.BuyerId),
                 namesText, units, c.Price, build, mkt,
                 firstType, firstType > 0 ? GroupTwoUp(firstType) : "—", c.SaleId,
-                c.LocationId, c.IsStation > 0, c.BuyerId, BuyerKind(c.BuyerId), c.Note ?? ""));
+                c.LocationId, c.IsStation > 0, c.BuyerId, BuyerKind(c.BuyerId), c.Title ?? ""));
         }
 
         // Rows the user has marked as not for profit. Loaded as a flag rather than filtered out
@@ -275,7 +275,7 @@ internal static class SalesQuery
         public string DateStr { get; set; } = ""; public double Price { get; set; }
         public long BuyerId { get; set; } public string? Location { get; set; }
         public long LocationId { get; set; } public int IsStation { get; set; }
-        public string? Note { get; set; }
+        public string? Title { get; set; }
     }
     private sealed class ContractItemDto
     {
