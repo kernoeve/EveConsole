@@ -612,26 +612,21 @@ public class StoresViewModel : ReactiveObject
             // the order says what became of it, and an order cancelled in the Order Tracker by
             // hand never produced a mail at all.
             var orders = await db.TrackedOrders.AsNoTracking()
-                .Where(o => o.StoreId == row.Id && o.OrderRef != "")
-                .Select(o => new { o.OrderRef, o.Status })
+                .Where(o => o.StoreId == row.Id)
+                .Select(o => new { o.Status })
                 .ToListAsync();
 
-            // By order, not by line: six items on one order is one order.
+            // ⚠️ By item, not by order reference. A reference is how the mail tool addresses a
+            // conversation — a buyer who asked for three things in one message gets one — and it
+            // is not a unit of anything worth counting. Everything else that summarises this
+            // data, the Order Tracker and the Sales Tracker both, counts items.
             //
-            // ⚠️ A priority chain, not three independent tests. The tests used to be "all lines
-            // completed" and "all lines cancelled", which sound exhaustive and are not: an order
-            // with one line delivered and another cancelled — an ordinary outcome — satisfied
-            // neither and was counted nowhere. A store with exactly one such order showed zeroes
-            // across the board while the Order Tracker, which counts lines, showed both.
-            //
-            // Still open wins, because it is the one that needs doing. After that, anything
-            // delivered makes it a sale; only an order where nothing was delivered is cancelled.
-            // Every order now lands in exactly one bucket and the three sum to the total.
-            var byRef = orders.GroupBy(o => o.OrderRef).ToList();
-            var active    = byRef.Count(g => g.Any(o => o.Status == "pending"));
-            var completed = byRef.Count(g => g.All(o => o.Status != "pending")
-                                          && g.Any(o => o.Status == "completed"));
-            var cancelled = byRef.Count(g => g.All(o => o.Status == "canceled"));
+            // Grouping by it also gave an order with one item delivered and another cancelled
+            // nowhere to go: "all completed" and "all cancelled" were both false, so it fell out
+            // of the counts entirely and a store whose only order was that showed zeroes.
+            var active    = orders.Count(o => o.Status == "pending");
+            var completed = orders.Count(o => o.Status == "completed");
+            var cancelled = orders.Count(o => o.Status == "canceled");
 
             var inquiries = mails.Count(m => m.Direction == "in");
 

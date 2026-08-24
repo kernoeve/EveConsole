@@ -74,7 +74,7 @@
                 <TextBlock Text="{Binding StatInquiries}" FontSize="18" Foreground="#c8a84b" />
               </StackPanel>
               <StackPanel Grid.Column="1" Spacing="2">
-                <TextBlock Text="Active orders" FontSize="10" Foreground="#666677" />
+                <TextBlock Text="Active items" FontSize="10" Foreground="#666677" />
                 <TextBlock Text="{Binding StatActive}" FontSize="18" Foreground="#5599aa" />
               </StackPanel>
               <StackPanel Grid.Column="2" Spacing="2">
