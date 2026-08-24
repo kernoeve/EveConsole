@@ -981,7 +981,7 @@
               <TextBlock Text="BLUEPRINTS" FontSize="10" FontWeight="SemiBold"
                          Foreground="#555566" LetterSpacing="1"/>
               <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
-                         Text="An original runs one job at a time, so one Thanatos print is one hull a cycle and a second halves the time on any order. Ranked by how much of the last 90 days each print spent inside a job — not by output, which cannot exceed the ceiling being measured and so reads the same whether demand was double the capacity or a fraction of it."/>
+                         Text="An original runs one job at a time, so one Thanatos print is one hull a cycle and a second halves the time on any order. Busy % is measured against what a hand-run print actually reaches — a job ends while you are asleep and the next starts when you log in, so a blueprint wanted every hour still lands near 60%. Pattern pairs that history with what is queued today: Steady is a standing shortage worth buying originals for, Surge is a spike that a copy may serve better."/>
 
               <DataGrid ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11" MaxHeight="320"
@@ -1015,6 +1015,15 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <DataGridTextColumn Header="+1 print" Binding="{Binding WithOneMore}" Width="85"/>
+                  <DataGridTextColumn Header="Queued"   Binding="{Binding Wanted}"      Width="65"/>
+                  <DataGridTemplateColumn Header="Pattern" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:PrintPressureRowVm">
+                        <TextBlock Text="{Binding Pattern}" Foreground="{Binding PatternColor}"
+                                   VerticalAlignment="Center"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Suggestion" Binding="{Binding Advice}" Width="*"/>
                 </DataGrid.Columns>
               </DataGrid>

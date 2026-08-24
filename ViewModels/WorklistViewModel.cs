@@ -433,12 +433,28 @@ public sealed class PrintPressureRowVm(ItemBandwidth p)
     public string Cover     => $"{p.UtilPercent:N0}%";
 
     public string WithOneMore => $"{p.CeilingWithOneMore:N2}/d";
+    public string Wanted      => p.WantedNow > 0 ? p.WantedNow.ToString("N0") : "";
+    public string Pattern     => p.Pattern;
     public string Advice      => p.Advice;
 
-    /// <summary>Red where the print is running almost without a gap: nothing left to absorb more.</summary>
-    public string CoverColor => p.UtilPercent >= 90 ? "#c85a5a"
-                             : p.UtilPercent >= 60 ? "#c8a84b"
-                             : "#666677";
+    /// <summary>
+    /// ⚠️ Judged against what a hand-run print reaches, not against 100%. A job ends while its
+    /// owner is asleep and the next starts when they log in, so a blueprint wanted every hour of
+    /// every day still measures around 60% — and a scale that called that "idle" would report
+    /// that nothing is ever a bottleneck.
+    /// </summary>
+    public string CoverColor => p.IsTight ? "#c85a5a"
+                             : p.IsIdle   ? "#666677"
+                             : "#c8a84b";
+
+    /// <summary>Steady is the one worth buying for; a surge is a week of work, not a shortage.</summary>
+    public string PatternColor => p.Pattern switch
+    {
+        "Steady" => "#c85a5a",
+        "Surge"  => "#5599aa",
+        "Quiet"  => "#555566",
+        _        => "#8a8a99",
+    };
 
     public bool HasLink => p.ProductTypeId > 0;
     public void Open()  => p.OpenItem();
@@ -633,7 +649,7 @@ public class WorklistViewModel : ReactiveObject
             var items = Rows.Select(r => r.Item).ToList();
 
             var slots  = await _bottlenecks.SlotPressureAsync(items);
-            var prints = await _bottlenecks.BlueprintBandwidthAsync();
+            var prints = await _bottlenecks.BlueprintBandwidthAsync(items);
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {

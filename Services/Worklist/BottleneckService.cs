@@ -92,7 +92,9 @@ public sealed record ItemBandwidth(
     double MadePerDay,
     double BusyDays,
     int    UnitsPerRun,
-    int    WindowDays)
+    int    WindowDays,
+    int    WantedNow,
+    int    BlockedNow)
 {
     /// <summary>Units a day one print can turn out, running without a pause.</summary>
     public double PerPrintPerDay => CycleDays <= 0 ? 0 : UnitsPerRun / CycleDays;
@@ -121,18 +123,62 @@ public sealed record ItemBandwidth(
         : Math.Min(100, 100.0 * BusyDays / (Prints * (double)WindowDays));
 
     /// <summary>
-    /// Saturated enough that the print, rather than anything else, is setting the pace.
+    /// What a print in constant demand actually reaches, run by a person.
     ///
-    /// <para>A print running two thirds of the time has little idle left to absorb more work; one
-    /// running a twentieth of the time is not what is holding anything up, whatever else is.</para>
+    /// <para><b>⚠️ Nobody keeps a print at 100%.</b> A job ends while its owner is asleep, at
+    /// work, or halfway through something else, and the next one starts whenever they next log
+    /// in. A blueprint wanted every hour of every day still measures around this, so treating
+    /// 100% as the mark for "saturated" would say nothing is ever a bottleneck. This is the
+    /// figure that stands in for full.</para>
     /// </summary>
-    public bool IsTight => UtilPercent >= 60;
+    public const double PracticalCeilingPercent = 60;
 
-    public string Advice => !IsTight
-        ? $"Idle {100 - UtilPercent:N0}% of the time — this print is not the limit."
-        : $"Running {UtilPercent:N0}% of the time. A second print raises the ceiling from "
-        + $"{CapacityPerDay:N2}/day to {CeilingWithOneMore:N2}/day, and halves the time on any "
-        + "order of them.";
+    /// <summary>How busy this print is against what a hand-run print can realistically reach.</summary>
+    public double PressurePercent =>
+        Math.Min(100, 100.0 * UtilPercent / PracticalCeilingPercent);
+
+    /// <summary>Saturated in practice: little idle left that anyone could actually use.</summary>
+    public bool IsTight => UtilPercent >= PracticalCeilingPercent * 0.75;   // ~45% measured
+
+    /// <summary>Barely used, whatever is being asked of it today.</summary>
+    public bool IsIdle => UtilPercent < PracticalCeilingPercent * 0.4;      // ~24% measured
+
+    /// <summary>
+    /// Whether this is a standing shortage or a spike, which is the whole question.
+    ///
+    /// <para>Current demand alone cannot tell them apart — a queue full of one item looks the
+    /// same whether it is the third week running or the first time all year. History alone cannot
+    /// either, since a print bought last week has none. Together they can: a print that has been
+    /// busy for months AND has work queued now is a standing shortage; one that has sat idle and
+    /// suddenly has a queue is a surge, and buying originals for a surge is buying for a week.</para>
+    /// </summary>
+    public string Pattern =>
+        IsTight && WantedNow > 0 ? "Steady"
+      : IsTight                  ? "Was busy"
+      : WantedNow > 0 && IsIdle  ? "Surge"
+      : WantedNow > 0            ? "Building"
+      :                            "Quiet";
+
+    public string Advice => Pattern switch
+    {
+        "Steady" =>
+            $"Busy {UtilPercent:N0}% of the last {WindowDays} days and {WantedNow:N0} job(s) want it "
+          + $"now — a standing shortage. A second print takes the ceiling from {CapacityPerDay:N2} "
+          + $"to {CeilingWithOneMore:N2}/day.",
+
+        "Was busy" =>
+            $"Busy {UtilPercent:N0}% of the last {WindowDays} days but nothing is queued for it "
+          + "today. Worth watching rather than buying for.",
+
+        "Surge" =>
+            $"{WantedNow:N0} job(s) want it now, but it has been idle {100 - UtilPercent:N0}% of "
+          + $"the last {WindowDays} days — this looks like a one-off rather than a standing need. "
+          + "A copy or two may serve better than an original.",
+
+        _ =>
+            $"{WantedNow:N0} job(s) queued against {UtilPercent:N0}% use over {WindowDays} days. "
+          + $"A second print would take the ceiling to {CeilingWithOneMore:N2}/day.",
+    };
 
     public void OpenItem() => EntityNavigator.Instance.Item(ProductTypeId);
 }
@@ -219,6 +265,11 @@ public class BottleneckService(
 
             var seen = history.GetValueOrDefault(pool);
 
+            // ⚠️ Slot use is judged the same way blueprint use is: nobody keeps every slot full.
+            // A job ends while its owner is asleep and the next starts when they next log in, so
+            // a pool in constant demand still measures well under 100% — and the figure here is
+            // an instantaneous count of what is installed, which is even more forgiving.
+
             // ⚠️ The queue is priced in job-days, not in jobs. A waiting job holds a slot for as
             // long as it runs, so a pool whose jobs take a fortnight is far further behind on the
             // same queue length than one whose jobs take an hour. Sized from what this pool's
@@ -291,8 +342,20 @@ public class BottleneckService(
     /// throughput. One Thanatos original is one hull a cycle however many slots are free; a
     /// second doubles it, and halves the time on any order of ten.</para>
     /// </summary>
-    public async Task<List<ItemBandwidth>> BlueprintBandwidthAsync(CancellationToken ct = default)
+    public async Task<List<ItemBandwidth>> BlueprintBandwidthAsync(
+        IReadOnlyList<WorklistItem> items, CancellationToken ct = default)
     {
+        // ⚠️ Current demand, which history cannot supply. What was produced is capped by the
+        // prints; what is QUEUED is not capped by anything, so it is the only uncensored reading
+        // of how much is wanted. Paired with utilisation it separates a standing shortage from a
+        // spike — see ItemBandwidth.Pattern.
+        var wantedNow = items
+            .Where(i => i.Kind == WorklistKind.Job && i.TypeId > 0)
+            .GroupBy(i => i.TypeId)
+            .ToDictionary(g => g.Key,
+                          g => (All: g.Count(),
+                                Blocked: g.Count(i => i.Readiness == WorklistReadiness.Blocked)));
+
         var owned  = await assignment.PrintOwnershipAsync(settings.IncludeNonPersonalCorps, ct);
         var prints = (await blueprints.LoadAllAsync(ct))
             .Where(owned.Owns).Where(p => p.IsOriginal).ToList();
@@ -352,17 +415,23 @@ public class BottleneckService(
                 made.Runs * units / (double)WindowDays,
                 made.BusyDays,
                 units,
-                WindowDays));
+                WindowDays,
+                wantedNow.GetValueOrDefault(made.ProductTypeId).All,
+                wantedNow.GetValueOrDefault(made.ProductTypeId).Blocked));
         }
 
         // ⚠️ Busiest first, not "most short". A shortfall cannot be measured from history — what
         // was produced is capped by the very prints being judged, so demand above the ceiling
         // leaves no trace. Time spent occupied is the one thing that does distinguish a print
         // that never stops from one that rarely starts.
+        // Anything saturated, plus anything with work queued against it — a print that has been
+        // idle for months but has a queue today is worth showing precisely so it can be read as
+        // the surge it probably is, rather than quietly acted on as a shortage.
         return result
-            .Where(r => r.IsTight)
-            .OrderByDescending(r => r.UtilPercent)
-            .ThenByDescending(r => r.MadePerDay)
+            .Where(r => r.IsTight || r.WantedNow > 0)
+            .OrderByDescending(r => r.Pattern == "Steady")
+            .ThenByDescending(r => r.UtilPercent)
+            .ThenByDescending(r => r.WantedNow)
             .ToList();
     }
 
