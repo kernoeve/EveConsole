@@ -800,6 +800,16 @@ public class StoreMailService(
                          + Esc(string.Join(", ", parsed.Unknown))))
               .Append(Gap);
 
+        // ⚠️ Said out loud. The order was reduced to fit what one mail may ask for, and a
+        // quantity quietly changed between what somebody wrote and what they are charged for is
+        // the sort of thing that is only ever discovered in an argument.
+        if (parsed.Trimmed)
+            sb.Append(Warn($"This order was larger than one mail may place — at most "
+                         + $"{MaxLinesPerOrder} items, {MaxUnitsPerLine:N0} of each — and has been "
+                         + "reduced to fit. Check the lines above, and mail us directly for "
+                         + "anything bigger."))
+              .Append(Gap);
+
         sb.Append(Dim("Reply with STATUS for progress, or CANCEL and this reference to withdraw it."));
 
         await ReplyAsync(store, log, $"{store.Name} — order {reference}", sb.ToString(), ct);
@@ -1444,7 +1454,41 @@ public class StoreMailService(
     internal sealed record ParsedOrder(
         List<(PostingItemView Item, long Units)> Lines,
         List<string> Unknown,
-        Dragged? ContractTo);
+        Dragged? ContractTo,
+        /// <summary>A quantity was reduced or a line dropped to keep the order within bounds.</summary>
+        bool Trimmed = false);
+
+    /// <summary>
+    /// The most of one item a mailed order may ask for.
+    ///
+    /// <para><b>⚠️ This is a bound on untrusted input, not a business rule.</b> The quantity comes
+    /// out of a mail anyone can send, and <c>TrackedOrder.Units</c> is an <c>int</c>: without a
+    /// ceiling, "Archon x2147483648" cast to a NEGATIVE unit count — silently, because C# casts
+    /// are unchecked — and that number then flowed into the order, the profit sums and the
+    /// worklist's demand. Nothing about the mail looked wrong afterwards.</para>
+    ///
+    /// <para>Generous on purpose: it exists to keep arithmetic honest, not to tell a buyer what
+    /// they may order. Anything above it is a typo or an attack, and either way is worth a person
+    /// reading the mail.</para>
+    /// </summary>
+    private const int MaxUnitsPerLine = 10_000;
+
+    /// <summary>
+    /// The most lines one mailed order may create.
+    ///
+    /// <para>⚠️ One mail is one order, and every line is a row. Without this, a body full of item
+    /// links is a few hundred rows in the Order Tracker from a single message.</para>
+    /// </summary>
+    private const int MaxLinesPerOrder = 40;
+
+    /// <summary>
+    /// The most of a body this will read.
+    ///
+    /// <para>⚠️ The regexes here run over whatever arrives. EVE caps a body at 8,000, but that is
+    /// EVE's rule and not ours to rely on — this is the one place in the app where a stranger
+    /// chooses the input, so the input gets a length of our own choosing.</para>
+    /// </summary>
+    private const int MaxParseChars = 20_000;
 
     /// <summary>
     /// Reads the body into order lines.
@@ -1476,6 +1520,7 @@ public class StoreMailService(
         Dragged? contractTo = null;
 
         if (string.IsNullOrWhiteSpace(body)) return new ParsedOrder(lines, unknown, null);
+        if (body.Length > MaxParseChars) body = body[..MaxParseChars];
 
         foreach (var raw in Lines(body))
         {
@@ -1530,12 +1575,22 @@ public class StoreMailService(
         }
 
         // The same item twice on one order is one line for that many.
+        var merged = lines.GroupBy(l => l.Item1.TypeId)
+                          .Select(g => (g.First().Item1, Units: g.Sum(x => x.Item2)))
+                          .ToList();
+
+        // ⚠️ Bounded AFTER merging, because the merge is where the number gets big: five lines of
+        // a billion each pass any per-line check and sum to five billion.
+        var trimmed = merged.Count > MaxLinesPerOrder
+                   || merged.Any(l => l.Units > MaxUnitsPerLine);
+
         return new ParsedOrder(
-            lines.GroupBy(l => l.Item1.TypeId)
-                 .Select(g => (g.First().Item1, g.Sum(x => x.Item2)))
-                 .ToList(),
+            merged.Take(MaxLinesPerOrder)
+                  .Select(l => (l.Item1, Math.Clamp(l.Units, 1, MaxUnitsPerLine)))
+                  .ToList(),
             unknown.Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
-            contractTo);
+            contractTo,
+            trimmed);
     }
 
     /// <summary>
