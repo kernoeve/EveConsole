@@ -479,6 +479,7 @@ public class MainWindowViewModel : ReactiveObject
         EveConsole.Services.Worklist.WorklistMarketAltService worklistMarketAltService,
         EveConsole.Services.Worklist.WorklistCorpAltService worklistCorpAltService,
         EveConsole.Services.Worklist.IndustryAssignmentService industryAssignmentService,
+        EveConsole.Services.Worklist.IndustryBlueprintService  industryBlueprintService,
         EveConsole.Services.Worklist.WorklistSettings worklistSettings,
         IndyFacilityCheckService        indyFacilityCheck,
         IndyStructureLinkService        indyStructureLink,
@@ -621,7 +622,9 @@ public class MainWindowViewModel : ReactiveObject
                                      new WorklistInvRulesViewModel(dbFactory, corpActivityService, worklistMarketAltService),
                                      new WorklistCorpAltsViewModel(dbFactory, worklistCorpAltService),
                                      new WorklistIndustryViewModel(dbFactory, industryAssignmentService, worklistSettings, errorLogger, corpActivityService, worklistMarketAltService),
-                                     new WorklistStationLevelsViewModel(dbFactory, corpActivityService, worklistSettings));
+                                     new WorklistStationLevelsViewModel(dbFactory, corpActivityService, worklistSettings),
+                                     new EveConsole.Services.Worklist.BottleneckService(dbFactory, industryAssignmentService,
+                                                           industryBlueprintService, worklistSettings));
 
         // ⚠️ After construction, not with the other Overview wiring above — WorklistVm does not
         // exist until this line, so assigning it earlier set null and left every worklist section

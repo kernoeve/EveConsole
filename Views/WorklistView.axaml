@@ -879,6 +879,134 @@
       </Grid>
     </TabItem>
 
+
+    <!-- ════ Bottlenecks ═════════════════════════════════════════════════════════
+         What is stopping the list from moving, and what each remedy would actually
+         buy. Three different ceilings, reported apart because they are not
+         interchangeable: an account does nothing for a shortage of originals, and
+         neither helps if the material never arrived. -->
+    <TabItem Header="Bottlenecks">
+      <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
+          <TextBlock Text="Bottlenecks" FontSize="15" FontWeight="SemiBold"
+                     Foreground="#c8a84b" VerticalAlignment="Center"/>
+          <Button Content="Refresh" Command="{Binding RefreshBottlenecksCommand}"
+                  IsEnabled="{Binding !BottlenecksLoading}" FontSize="11" Padding="10 4"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="1" Text="{Binding BottleneckStatus}" FontSize="10" Foreground="#7a8896"
+                   TextWrapping="Wrap" Margin="0 0 0 8"/>
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+          <StackPanel Spacing="16">
+
+            <!-- ── Slots ──────────────────────────────────────────────────── -->
+            <StackPanel Spacing="6">
+              <TextBlock Text="SLOTS" FontSize="10" FontWeight="SemiBold"
+                         Foreground="#555566" LetterSpacing="1"/>
+              <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                         Text="A pool at 100% is only a bottleneck when something is queued behind it. Each remedy is quantified against what is running now, so buying capacity can be weighed against training it."/>
+
+              <ItemsControl ItemsSource="{Binding SlotPressure}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:SlotPressureRowVm">
+                    <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                            CornerRadius="4" Padding="12 10" Margin="0 0 0 8">
+                      <StackPanel Spacing="8">
+
+                        <Grid ColumnDefinitions="170,*,Auto">
+                          <TextBlock Grid.Column="0" Text="{Binding Pool}" FontSize="13"
+                                     FontWeight="SemiBold" Foreground="#c8a84b"/>
+                          <TextBlock Grid.Column="1" Text="{Binding Headline}" FontSize="11"
+                                     Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                          <TextBlock Grid.Column="2" Text="{Binding Utilised}" FontSize="16"
+                                     Foreground="{Binding UtilisedColor}" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*,*,*,*">
+                          <StackPanel Grid.Column="0" Spacing="1">
+                            <TextBlock Text="Capacity" FontSize="9" Foreground="#555566"/>
+                            <TextBlock Text="{Binding Capacity}" FontSize="12" Foreground="#c8c8d8"/>
+                          </StackPanel>
+                          <StackPanel Grid.Column="1" Spacing="1">
+                            <TextBlock Text="In use" FontSize="9" Foreground="#555566"/>
+                            <TextBlock Text="{Binding InUse}" FontSize="12" Foreground="#c8c8d8"/>
+                          </StackPanel>
+                          <StackPanel Grid.Column="2" Spacing="1">
+                            <TextBlock Text="Free" FontSize="9" Foreground="#555566"/>
+                            <TextBlock Text="{Binding Free}" FontSize="12" Foreground="#c8c8d8"/>
+                          </StackPanel>
+                          <StackPanel Grid.Column="3" Spacing="1">
+                            <TextBlock Text="Waiting on a slot" FontSize="9" Foreground="#555566"/>
+                            <TextBlock Text="{Binding Waiting}" FontSize="12" Foreground="#c8a84b"/>
+                          </StackPanel>
+                          <StackPanel Grid.Column="4" Spacing="1">
+                            <TextBlock Text="Blocked" FontSize="9" Foreground="#555566"/>
+                            <TextBlock Text="{Binding Blocked}" FontSize="12" Foreground="#c85a5a"/>
+                          </StackPanel>
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Remedies}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="wl:SlotRemedy">
+                              <Grid ColumnDefinitions="330,110,*" Margin="0 2">
+                                <TextBlock Grid.Column="0" Text="{Binding Action}" FontSize="11"
+                                           Foreground="#c8c8d8" TextWrapping="Wrap" Margin="0 0 10 0"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Gain}" FontSize="11"
+                                           Foreground="#5599aa" HorizontalAlignment="Left"/>
+                                <TextBlock Grid.Column="2" Text="{Binding Detail}" FontSize="10"
+                                           Foreground="#666677" TextWrapping="Wrap"/>
+                              </Grid>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <!-- ── Blueprints ─────────────────────────────────────────────── -->
+            <StackPanel Spacing="6">
+              <TextBlock Text="BLUEPRINTS" FontSize="10" FontWeight="SemiBold"
+                         Foreground="#555566" LetterSpacing="1"/>
+              <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                         Text="An original runs one job at a time. Two fuel block BPOs is two concurrent jobs however many slots are free and however much material is standing by — and no amount of either fixes it."/>
+
+              <DataGrid ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
+                        AutoGenerateColumns="False" FontSize="11" MaxHeight="320"
+                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="Product" Width="220">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:PrintPressureRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenPrintProduct" IsVisible="{Binding HasLink}"
+                                  ToolTip.Tip="Open this item">
+                            <TextBlock Text="{Binding Product}" Classes="linktext"/>
+                          </Button>
+                          <TextBlock Text="{Binding Product}" IsVisible="{Binding !HasLink}"
+                                     VerticalAlignment="Center"/>
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Jobs wanted" Binding="{Binding JobsWanted}" Width="100"/>
+                  <DataGridTextColumn Header="Originals"   Binding="{Binding Originals}"  Width="90"/>
+                  <DataGridTextColumn Header="Installed"   Binding="{Binding Busy}"       Width="90"/>
+                  <DataGridTextColumn Header="Short"       Binding="{Binding Short}"      Width="70"/>
+                  <DataGridTextColumn Header="Suggestion"  Binding="{Binding Advice}"     Width="*"/>
+                </DataGrid.Columns>
+              </DataGrid>
+            </StackPanel>
+
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+    </TabItem>
     <!-- ════ Config ═════════════════════════════════════════════════════════════
          Everything that sets the tool up, behind one tab so the two tabs that are
          read every session are not buried among seven that are set once. -->

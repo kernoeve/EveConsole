@@ -16,6 +16,9 @@ public class WorklistRowVm : ReactiveObject
 {
     private readonly WorklistItem _item;
 
+    /// <summary>The item behind the row, for analysis that reads the list rather than the grid.</summary>
+    public WorklistItem Item => _item;
+
     public WorklistRowVm(WorklistItem item, int sequence)
     {
         _item    = item;
@@ -360,6 +363,45 @@ public class WorklistRowVm : ReactiveObject
 /// <para>Formatted text alongside the raw value each column sorts on, so the grid orders by
 /// quantity rather than by the digits of a thousands-separated string.</para>
 /// </summary>
+/// <summary>A slot pool, how hard it is being pushed, and what would buy more of it.</summary>
+public sealed class SlotPressureRowVm(SlotPressure p)
+{
+    public string Pool     => p.Pool.ToString();
+    public string Capacity => p.Capacity.ToString("N0");
+    public string InUse    => p.InUse.ToString("N0");
+    public string Free     => p.Free.ToString("N0");
+    public string Waiting  => p.Waiting > 0 ? p.Waiting.ToString("N0") : "";
+    public string Blocked  => p.Blocked > 0 ? p.Blocked.ToString("N0") : "";
+    public string Utilised => $"{p.Utilised:N0}%";
+
+    /// <summary>Amber only where work is actually queued behind a full pool.</summary>
+    public string UtilisedColor => p.IsBottleneck ? "#c8a84b" : p.Utilised >= 90 ? "#8a8a99" : "#666677";
+
+    public bool IsBottleneck => p.IsBottleneck;
+
+    public string Headline => p.IsBottleneck
+        ? $"Every {p.Pool.ToString().ToLowerInvariant()} slot is busy and {p.Waiting:N0} job(s) are waiting on one."
+        : p.Capacity == 0
+            ? $"No character is configured to run {p.Pool.ToString().ToLowerInvariant()} jobs."
+            : $"{p.Free:N0} free of {p.Capacity:N0}.";
+
+    public IReadOnlyList<SlotRemedy> Remedies => p.Remedies;
+}
+
+/// <summary>A product whose blueprint count is the ceiling.</summary>
+public sealed class PrintPressureRowVm(PrintPressure p)
+{
+    public string Product    => p.ProductName;
+    public string JobsWanted => p.JobsWanted.ToString("N0");
+    public string Originals  => p.Originals.ToString("N0");
+    public string Busy       => p.Busy > 0 ? p.Busy.ToString("N0") : "";
+    public string Short      => p.Short.ToString("N0");
+    public string Advice     => p.Advice;
+
+    public bool HasLink => p.ProductTypeId > 0;
+    public void Open()  => p.OpenItem();
+}
+
 /// <summary>One line of "what is asking for this", under a need.</summary>
 public sealed class NeedDriverRowVm(NeedDriver d)
 {
@@ -469,7 +511,8 @@ public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject
 /// </summary>
 public class WorklistViewModel : ReactiveObject
 {
-    private readonly WorklistService _service;
+    private readonly WorklistService   _service;
+    private readonly BottleneckService _bottlenecks;
 
     public BulkObservableCollection<WorklistRowVm> Rows { get; } = [];
 
@@ -510,6 +553,66 @@ public class WorklistViewModel : ReactiveObject
 
     /// <summary>The same needs with the item as the heading and the stations beneath it.</summary>
     public DataGridCollectionView ItemNeedsView { get; }
+
+    // ── Bottlenecks ───────────────────────────────────────────────────────────
+
+    public ObservableCollection<SlotPressureRowVm>  SlotPressure  { get; } = [];
+    public ObservableCollection<PrintPressureRowVm> PrintPressure { get; } = [];
+
+    private string _bottleneckStatus = "Not loaded yet.";
+    public string BottleneckStatus
+    {
+        get => _bottleneckStatus;
+        private set => this.RaiseAndSetIfChanged(ref _bottleneckStatus, value);
+    }
+
+    private bool _bottlenecksLoading;
+    public bool BottlenecksLoading
+    {
+        get => _bottlenecksLoading;
+        private set => this.RaiseAndSetIfChanged(ref _bottlenecksLoading, value);
+    }
+
+    public ReactiveCommand<Unit, Unit>? RefreshBottlenecksCommand { get; private set; }
+
+    /// <summary>
+    /// Reads the current worklist for what is holding it up.
+    ///
+    /// <para>⚠️ Against the rows already on screen, not a fresh generation. The question is "why
+    /// is THIS list stuck", and regenerating first would answer it about a different list.</para>
+    /// </summary>
+    private async Task RefreshBottlenecksAsync()
+    {
+        BottlenecksLoading = true;
+        try
+        {
+            // The rows already on screen, not a fresh generation: the question is why THIS
+            // list is stuck, and regenerating first would answer it about a different one.
+            var items = Rows.Select(r => r.Item).ToList();
+
+            var slots  = await _bottlenecks.SlotPressureAsync(items);
+            var prints = await _bottlenecks.PrintPressureAsync(items);
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                SlotPressure.Clear();
+                foreach (var s in slots) SlotPressure.Add(new SlotPressureRowVm(s));
+
+                PrintPressure.Clear();
+                foreach (var p in prints) PrintPressure.Add(new PrintPressureRowVm(p));
+
+                var tight = slots.Count(s => s.IsBottleneck);
+                BottleneckStatus = items.Count == 0
+                    ? "The worklist is empty — generate it first and this will have something to read."
+                    : tight == 0 && prints.Count == 0
+                        ? "Nothing is bottlenecked: every pool has a free slot, and no product wants "
+                        + "more blueprints than it owns."
+                        : $"{tight} pool(s) full with work waiting; "
+                        + $"{prints.Count} product(s) limited by blueprint count.";
+            });
+        }
+        finally { BottlenecksLoading = false; }
+    }
 
     private bool _needsLoading;
     public bool NeedsLoading { get => _needsLoading; private set => this.RaiseAndSetIfChanged(ref _needsLoading, value); }
@@ -646,9 +749,11 @@ public class WorklistViewModel : ReactiveObject
                              WorklistInvRulesViewModel rules,
                              WorklistCorpAltsViewModel corpAlts,
                              WorklistIndustryViewModel industry,
-                             WorklistStationLevelsViewModel stationLevels)
+                             WorklistStationLevelsViewModel stationLevels,
+                             BottleneckService bottlenecks)
     {
-        _service = service;
+        _service     = service;
+        _bottlenecks = bottlenecks;
 
         RowsView = new DataGridCollectionView(Rows);
         RowsView.GroupDescriptions.Add(new DataGridPathGroupDescription(nameof(WorklistRowVm.KindText)));
@@ -676,6 +781,10 @@ public class WorklistViewModel : ReactiveObject
         ItemNeedsView.GroupDescriptions.Add(new DataGridPathGroupDescription(nameof(StationNeedRowVm.Item)));
         PinItemNeedsGroupOrder();
         ItemNeedsView.SortDescriptions.CollectionChanged += (_, _) => PinItemNeedsGroupOrder();
+
+        RefreshBottlenecksCommand = ReactiveCommand.CreateFromTask(RefreshBottlenecksAsync);
+        RefreshBottlenecksCommand.ThrownExceptions.Subscribe(
+            ex => BottleneckStatus = $"Could not read the bottlenecks: {ex.Message}");
 
         MarketAltsVm  = marketAlts;
         RulesVm  = rules;
