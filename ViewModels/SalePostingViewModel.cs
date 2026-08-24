@@ -18,7 +18,12 @@ using ReactiveUI;
 namespace EveConsole.ViewModels;
 
 // Result of the Add/Edit Posting dialog.
-public record PostBlockDraft(string PostType, string Name, string? StaticContent, string Header, string Footer);
+/// <param name="HeaderColor">Colour for the header text — or for a Static block's whole content,
+/// which has no header of its own.</param>
+/// <param name="FooterColor">Colour for the footer text. Unused by a Static block.</param>
+public record PostBlockDraft(
+    string PostType, string Name, string? StaticContent, string Header, string Footer,
+    string HeaderColor = "", string FooterColor = "");
 
 // Inline styles a preview run can carry (combinable). Emoji render as a placeholder glyph.
 [Flags]
@@ -39,7 +44,7 @@ public class RenderedBlock
 }
 
 public record SectionDialogResult(
-    string Name, string Prefix,
+    string Name, string Prefix, string HeaderColor, string RowColor,
     bool OverrideScope, string Scope, long? LocationId, string LocationName,
     bool OverridePricing, string PricingBasis, double PricePercent,
     long? MarketStationId, string MarketStationName, string MarketPriceType,
@@ -50,7 +55,9 @@ public record PostingDialogResult(
     string PricingBasis, double PricePercent,
     long? MarketStationId, string MarketStationName, string MarketPriceType,
     bool ShowInStock, bool ShowInBuild, bool ShowReserved, bool IncludeCompletionDate,
-    bool OnlyPackaged, IReadOnlyList<PostBlockDraft> Posts);
+    bool OnlyPackaged,
+    bool ColorByState, string ColorInStock, string ColorInBuild, string ColorNone,
+    IReadOnlyList<PostBlockDraft> Posts);
 
 // ── Shared display helpers ──────────────────────────────────────────────────────
 internal static class SalePostFmt
@@ -91,18 +98,106 @@ internal sealed class OutputFormat
     private readonly Func<string, string> _finalize;             // whole block -> clipboard text
     private readonly Func<string, List<DisplaySeg>> _toDisplay;  // clipboard text -> preview segments
 
+    /// <summary>
+    /// Turn an item name into a link to that type, where the target has such a thing.
+    ///
+    /// <para>Defaults to plain text, and that is the right default for nearly everywhere: Slack
+    /// and Discord have no way to open an EVE type, and emitting an anchor into them would print
+    /// raw markup at the reader. EVE mail is the exception — the client resolves
+    /// <c>showinfo:</c> links, so a hull name becomes something the buyer can click to open the
+    /// item, which is most of the value of answering in-game rather than in chat.</para>
+    /// </summary>
+    private readonly Func<int, string, string> _link;
+
+    /// <summary>Wraps text in a colour, given an eight-digit ARGB hex. Null where the format has
+    /// no colours, which is every format except EVE mail.</summary>
+    private readonly Func<string, string, string>? _color;
+
+    /// <summary>Wraps text at a point size. Null everywhere except EVE mail, for the same reason
+    /// as colour — Slack and Discord have no notion of it in a message.</summary>
+    private readonly Func<int, string, string>? _size;
+
     private OutputFormat(string name, Func<string, string> bold, Func<string, string> underline,
-        Func<string, string> finalize, Func<string, List<DisplaySeg>> toDisplay)
-    { Name = name; _bold = bold; _underline = underline; _finalize = finalize; _toDisplay = toDisplay; }
+        Func<string, string> finalize, Func<string, List<DisplaySeg>> toDisplay,
+        Func<int, string, string>? link = null,
+        Func<string, string, string>? color = null,
+        Func<int, string, string>? size = null)
+    {
+        Name = name; _bold = bold; _underline = underline;
+        _finalize = finalize; _toDisplay = toDisplay;
+        _link = link ?? ((_, text) => text);
+        _color = color;
+        _size  = size;
+    }
 
     public string Bold(string s) => _bold(s);
     public string Underline(string s) => _underline(s);
-    public string Finalize(string s) => _finalize(s);
+    /// <summary>
+    /// ⚠️ Colour markup is resolved here, for every format, before its own finalizer runs.
+    ///
+    /// <para>Header, footer and Static blocks are free text the user writes, so colour in them
+    /// cannot be a render-time capability the way a section's or an item's is — there is nothing
+    /// to call it on. It has to be a marker in the text: <c>[color=#ff9900]…[/color]</c>.</para>
+    ///
+    /// <para>Doing it in Finalize rather than at the call sites is what makes it safe. The
+    /// &lt;u&gt; marker took the other route and has to be stripped explicitly where Slack is
+    /// copied; anything that forgets prints raw tags at the reader. Here a format without colour
+    /// returns the inner text, so the markup disappears whether anyone remembered it or not.</para>
+    /// </summary>
+    private static readonly Regex ColorTag = new(
+        @"\[color=(#?[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?)\](.*?)\[/color\]",
+        RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+
+    public string Finalize(string s) => _finalize(ColorTag.Replace(s, m => Color(m.Groups[1].Value, m.Groups[2].Value)));
     public List<DisplaySeg> ToDisplay(string s) => _toDisplay(s);
+
+    /// <summary>The name, linked to its type where the format supports it.</summary>
+    public string ItemLink(int typeId, string text) => typeId > 0 ? _link(typeId, text) : text;
+
+    /// <summary>
+    /// Text in a colour, where the target has colours.
+    ///
+    /// <para><b>⚠️ Applied at render time, not carried as markup.</b> Colour could have been a
+    /// tag in the text that each format strips on the way out, the way <c>&lt;u&gt;</c> is — and
+    /// that is exactly why it is not. That marker has to be stripped explicitly at the Slack copy
+    /// site, and anything that forgets prints raw tags at the reader. A capability cannot be
+    /// forgotten: every format that has no colours returns the text untouched, so there is
+    /// nothing to strip anywhere.</para>
+    ///
+    /// <para>EVE's colours are ARGB and the alpha is not optional — <c>#ffRRGGBB</c>. A
+    /// six-digit value is read as ARGB with a zero alpha, which is invisible text.</para>
+    /// </summary>
+    /// <summary>
+    /// Text at a point size, where the format has sizes.
+    ///
+    /// <para>⚠️ A relative step, not an absolute design. EVE's default mail size follows the
+    /// reader's own client setting, so this only ever nudges one step up from whatever that is —
+    /// pinning body text to a size would override a choice that is theirs to make.</para>
+    /// </summary>
+    public string Size(int points, string text) =>
+        _size is null || points <= 0 ? text : _size(points, text);
+
+    public string Color(string? hex, string text)
+    {
+        if (_color is null || string.IsNullOrWhiteSpace(hex)) return text;
+        var rgb = hex.TrimStart('#');
+        return rgb.Length is 6 or 8 ? _color(rgb.Length == 6 ? "ff" + rgb : rgb, text) : text;
+    }
 
     // ── clipboard-side transforms ──
     private static string Identity(string s) => s;
     private static string HtmlBreaks(string s) => s.Replace("\n", "<br>\n");
+
+    /// <summary>
+    /// Line breaks for EVE mail, and nothing else on the line.
+    ///
+    /// <para>⚠️ No literal newline after the tag, unlike <see cref="HtmlBreaks"/>. A browser
+    /// ignores whitespace in the source, so keeping the newline there makes the HTML readable at
+    /// no cost — but EVE's mail renderer draws it, and every line in the first price list sent
+    /// ended in a stray box glyph.</para>
+    /// </summary>
+    private static string EveBreaks(string s) =>
+        s.Replace("\r\n", "\n").Replace("\n", "<br>");
     private static string StripMarkup(string s)   // best-effort for Plain (unknown source format)
     {
         s = Regex.Replace(s, @"<a\b[^>]*>(.*?)</a>", "$1", RegexOptions.IgnoreCase | RegexOptions.Singleline);
@@ -244,6 +339,19 @@ internal sealed class OutputFormat
         new("Discord",    x => $"**{x}**",              x => $"__{x}__",      Identity,    s => Tokenize(EmojiPh(s), DiscordRules, Identity)),
         new("Markdown",   x => $"**{x}**",              Identity,             Identity,    s => Tokenize(MdLists(s), MdRules, Identity)),
         new("HTML",       x => $"<strong>{x}</strong>", x => $"<u>{x}</u>",   HtmlBreaks,  HtmlDisplay),
+        // ⚠️ EVE mail is HTML, but only a little of it. The client renders <b>, <i>, <u>, <br>,
+        // <font> and showinfo links, and ignores or mangles the rest — <strong> among them, which
+        // is why this cannot just reuse the HTML row above. Line breaks must be <br>: a raw
+        // newline in a mail body collapses to a space.
+        //
+        // The link is the reason to answer in-game at all: showinfo:<typeId> opens the item in
+        // the client, so the buyer reads a list they can click rather than one they have to
+        // search for. The preview strips the anchor and shows the name, which is what it looks
+        // like in the mail.
+        new("EVE Mail",   x => $"<b>{x}</b>",           x => $"<u>{x}</u>",   EveBreaks,   HtmlDisplay,
+            (typeId, text) => $"<a href=\"showinfo:{typeId}\">{text}</a>",
+            (argb,   text) => $"<font color=\"#{argb}\">{text}</font>",
+            (points, text) => $"<font size=\"{points}\">{text}</font>"),
         new("BBCode",     x => $"[b]{x}[/b]",           x => $"[u]{x}[/u]",   Identity,    s => Tokenize(BbLists(s), BbRules, t => BbTag.Replace(t, ""))),
     ];
 
@@ -587,6 +695,7 @@ public class SalePostingItemRow : ReactiveObject
         TypeName        = typeName;
         _nameOverride   = model.NameOverride;
         _namePrefix     = model.NamePrefix;
+        _color          = string.IsNullOrWhiteSpace(model.Color) ? null : model.Color;
         _inStockOverride  = model.InStockOverride;
         _inBuildOverride  = model.InBuildOverride;
         _reservedOverride = model.ReservedOverride;
@@ -603,6 +712,23 @@ public class SalePostingItemRow : ReactiveObject
             if (v == _nameOverride) return;
             this.RaiseAndSetIfChanged(ref _nameOverride, v);
             _ = _svc.UpdateItemNameOverrideAsync(ItemId, v);
+        }
+    }
+
+    /// <summary>
+    /// Colour for this line, as a six-digit hex. Empty means the section's colour, or whatever
+    /// the by-state rule says.
+    /// </summary>
+    private string? _color;
+    public string? ColorHex
+    {
+        get => _color;
+        set
+        {
+            var v = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            if (v == _color) return;
+            this.RaiseAndSetIfChanged(ref _color, v);
+            _ = _svc.UpdateItemColorAsync(ItemId, v);
         }
     }
 
@@ -681,10 +807,16 @@ public class SalePostingItemRow : ReactiveObject
     // ── Earliest job completion (shown only when out of stock but building, and the posting opts in) ──
     private DateTimeOffset? _earliestJobEnd;
     private bool _showCompletion;
-    public string CompletionDateText =>
-        _showCompletion && _inStock == 0 && _inBuild >= 1 && _earliestJobEnd is DateTimeOffset d
-            ? d.ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)
-            : "";
+    // Through the renderer, so the grid column and the posting text cannot disagree about when
+    // a date is worth showing — the rule has three parts and two copies of it would drift.
+    public string CompletionDateText => SalePostingRenderer.CompletionText(ToView(), _showCompletion);
+
+    /// <summary>This row as plain data for <see cref="SalePostingRenderer"/>.</summary>
+    internal PostingItemView ToView() => new(
+        TypeId, TypeName, _nameOverride, _namePrefix, _color,
+        _inStock, _inBuild, _reserved,
+        _inStockOverride, _inBuildOverride, _reservedOverride,
+        _salePrice, _earliestJobEnd);
 
     public void ApplyCalc(SalePostingCalc c, string basis, bool showCompletion)
     {
@@ -852,7 +984,40 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
 
     public async Task<List<PostBlockDraft>> GetPostsAsync(int postingId)
         => (await _svc.LoadPostsAsync(postingId))
-            .Select(p => new PostBlockDraft(p.PostType, p.Name, p.StaticContent, p.Header, p.Footer)).ToList();
+            .Select(p => new PostBlockDraft(p.PostType, p.Name, p.StaticContent, p.Header, p.Footer,
+                                            p.HeaderColor, p.FooterColor)).ToList();
+
+    // ── Export / import ───────────────────────────────────────────────────────
+    //
+    // Thin: the service owns the file format, because it owns every other way a posting is
+    // written. These exist so the view can hand over a stream from the file picker and get a
+    // status line back.
+
+    public async Task ExportPostingAsync(int postingId, Stream stream)
+    {
+        try
+        {
+            await _svc.ExportPostingAsync(postingId, stream);
+            StatusText = "Posting exported.";
+        }
+        catch (Exception ex) { StatusText = $"Export failed: {ex.Message}"; }
+    }
+
+    public async Task ImportPostingAsync(Stream stream)
+    {
+        try
+        {
+            var posting = await _svc.ImportPostingAsync(stream);
+            if (posting is null) { StatusText = "That file is not a sale posting."; return; }
+
+            // Reloaded rather than appended: the import wrote sections, items and post blocks,
+            // and the grid is built from all of them. Rebuilding the one posting by hand here
+            // would be a second implementation of what InitAsync already does correctly.
+            await InitAsync();
+            StatusText = $"Imported \"{posting.Name}\".";
+        }
+        catch (Exception ex) { StatusText = $"Import failed: {ex.Message}"; }
+    }
 
     // ── Load ──────────────────────────────────────────────────────────────────
     private async Task InitAsync()
@@ -912,20 +1077,10 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         pr.RecomputeTotals();
     }
 
-    // Resolve a section's effective posting settings — its overrides where set, else the posting's.
-    private static SalePosting BuildEffectivePosting(SalePosting p, SalePostingSection s) => new()
-    {
-        Scope                 = s.OverrideScope   ? s.Scope             : p.Scope,
-        LocationId            = s.OverrideScope   ? s.LocationId        : p.LocationId,
-        LocationName          = s.OverrideScope   ? s.LocationName      : p.LocationName,
-        PricingBasis          = s.OverridePricing ? s.PricingBasis      : p.PricingBasis,
-        PricePercent          = s.OverridePricing ? s.PricePercent      : p.PricePercent,
-        MarketStationId       = s.OverridePricing ? s.MarketStationId   : p.MarketStationId,
-        MarketStationName     = s.OverridePricing ? s.MarketStationName : p.MarketStationName,
-        MarketPriceType       = s.OverridePricing ? s.MarketPriceType   : p.MarketPriceType,
-        OnlyPackaged          = s.OverrideOnlyPackaged ? s.OnlyPackaged  : p.OnlyPackaged,
-        IncludeCompletionDate = p.IncludeCompletionDate,
-    };
+    // Moved to the service: the headless render resolves overrides the same way, and two copies
+    // of this would let a mailed listing price a section differently from the one on screen.
+    private static SalePosting BuildEffectivePosting(SalePosting p, SalePostingSection s)
+        => SalePostingService.EffectiveFor(p, s);
 
     private void ApplyProfitBasis()
     {
@@ -978,12 +1133,10 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         var posts = await _svc.LoadPostsAsync(pr.PostingId);
         foreach (var post in posts.OrderBy(p => p.Ordinal))
         {
-            string body = post.PostType switch
-            {
-                "Summary" => RenderSummary(pr, fmt, post),
-                "Detail"  => RenderDetail(pr, fmt, post),
-                _         => post.StaticContent ?? "",   // Static
-            };
+            // Rendered through the shared renderer, off a snapshot of the rows. The tool and the
+            // mail responder must produce the same listing from the same posting, and the surest
+            // way to guarantee that is for there to be one implementation.
+            var body = SalePostingRenderer.Render(Snapshot(pr), fmt, post);
             var clip = fmt.Finalize(body);        // clipboard: raw markup + literal :emoji:
             var segs = fmt.ToDisplay(clip);       // preview: real bold + emoji placeholder
 
@@ -1065,13 +1218,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             int posted = 0;
             foreach (var post in posts)
             {
-                string body = post.PostType switch
-                {
-                    "Summary" => RenderSummary(pr, fmt, post),
-                    "Detail"  => RenderDetail(pr, fmt, post),
-                    _         => post.StaticContent ?? "",
-                };
-                var markup = fmt.Finalize(body);
+                var markup = fmt.Finalize(SalePostingRenderer.Render(Snapshot(pr), fmt, post));
                 if (string.IsNullOrWhiteSpace(markup)) continue;
 
                 // Slack's legacy mrkdwn `text` field can't underline, so the real message is a
@@ -1092,61 +1239,24 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         finally { IsPostingToSlack = false; }
     }
 
-    private static string RenderSummary(SalePostingRow pr, OutputFormat fmt, SalePostingPost post)
-    {
-        var sb = new StringBuilder();
-        AppendBlock(sb, post.Header);
-        foreach (var s in pr.Sections)
-        {
-            var line = new StringBuilder();
-            line.Append(Pfx(s.Model.Prefix)).Append(s.SectionName);
-            var prices = s.AllItems.Select(i => i.SalePriceValue).Where(p => p.HasValue).Select(p => p!.Value).ToList();
-            if (prices.Count > 0)
-                line.Append(" - ").Append(SalePostFmt.Isk(prices.Min())).Append('-').Append(SalePostFmt.Isk(prices.Max()));
-            sb.AppendLine(fmt.Bold(line.ToString()));   // section lines bold
-        }
-        AppendBlock(sb, post.Footer);
-        return sb.ToString().TrimEnd();
-    }
-
-    private static string RenderDetail(SalePostingRow pr, OutputFormat fmt, SalePostingPost post)
+    /// <summary>
+    /// The grid's rows as plain data, for <see cref="SalePostingRenderer"/>.
+    ///
+    /// <para>Taken from the rows rather than re-read from the database on purpose: the tool
+    /// renders what is on screen, including edits typed a moment ago that have been persisted
+    /// but not reloaded. A re-read would show the posting as it was, which is not what the person
+    /// looking at it is about to copy.</para>
+    /// </summary>
+    private static PostingView Snapshot(SalePostingRow pr)
     {
         var m = pr.Model;
-        var sb = new StringBuilder();
-        AppendBlock(sb, post.Header);
-        foreach (var s in pr.Sections)
-        {
-            sb.AppendLine(fmt.Bold(fmt.Underline(s.SectionName)));   // bold + underlined, no prefix in Detail
-            foreach (var it in s.AllItems)
-                sb.AppendLine(RenderItemLine(it, m));
-        }
-        AppendBlock(sb, post.Footer);
-        return sb.ToString().TrimEnd();
+        return new PostingView(
+            m.ShowInStock, m.ShowInBuild, m.ShowReserved, m.IncludeCompletionDate,
+            m.ColorByState, m.ColorInStock, m.ColorInBuild, m.ColorNone,
+            pr.Sections.Select(s => new PostingSectionView(
+                s.SectionName, s.Model.Prefix, s.Model.HeaderColor, s.Model.RowColor,
+                s.AllItems.Select(i => i.ToView()).ToList())).ToList());
     }
-
-    private static string RenderItemLine(SalePostingItemRow it, SalePosting m)
-    {
-        var name = Pfx(it.NamePrefix) + (string.IsNullOrWhiteSpace(it.NameOverride) ? it.TypeName : it.NameOverride);
-
-        // Counts: just the numbers for the enabled columns, e.g. (9,2,0).
-        var counts = new List<string>();
-        if (m.ShowInStock)  counts.Add(it.EffectiveInStock.ToString(CultureInfo.InvariantCulture));
-        if (m.ShowInBuild)  counts.Add(it.EffectiveInBuild.ToString(CultureInfo.InvariantCulture));
-        if (m.ShowReserved) counts.Add(it.EffectiveReserved.ToString(CultureInfo.InvariantCulture));
-
-        var sb = new StringBuilder(name);
-        if (counts.Count > 0) sb.Append(" (").Append(string.Join(",", counts)).Append(')');
-        sb.Append(" - ").Append(it.SalePriceText);
-        if (!string.IsNullOrEmpty(it.CompletionDateText)) sb.Append(" - ").Append(it.CompletionDateText);
-        return sb.ToString();
-    }
-
-    private static void AppendBlock(StringBuilder sb, string? text)
-    {
-        if (!string.IsNullOrWhiteSpace(text)) sb.AppendLine(text.TrimEnd());
-    }
-
-    private static string Pfx(string? p) => string.IsNullOrWhiteSpace(p) ? "" : p.Trim() + " ";
 
     // ── Posting factory + CRUD ──────────────────────────────────────────────────
     private SalePostingRow MakePostingRow(SalePosting p)
@@ -1189,6 +1299,10 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         m.MarketStationId = r.MarketStationId; m.MarketStationName = r.MarketStationName; m.MarketPriceType = r.MarketPriceType;
         m.ShowInStock = r.ShowInStock; m.ShowInBuild = r.ShowInBuild; m.ShowReserved = r.ShowReserved;
         m.IncludeCompletionDate = r.IncludeCompletionDate; m.OnlyPackaged = r.OnlyPackaged;
+        // ⚠️ Same trap as the section edit below: a field added to PostingDialogResult and not
+        // copied here saves correctly and then appears not to have.
+        m.ColorByState = r.ColorByState; m.ColorInStock = r.ColorInStock;
+        m.ColorInBuild = r.ColorInBuild; m.ColorNone     = r.ColorNone;
         row.ApplyData(m);
 
         await ComputePostingAsync(row);
@@ -1236,8 +1350,14 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         await _svc.UpdateSectionAsync(row.SectionId, r);
 
         // Apply to the in-memory model so display + compute reflect the edit.
+        //
+        // ⚠️ Every field of SectionDialogResult has to be copied here, and nothing checks that.
+        // Colour was saved to the database and left out of this list: the row kept the old value,
+        // so reopening the dialog showed the colour blank and the preview rendered without it —
+        // indistinguishable from the save having failed, which is exactly how it was reported.
         var m = row.Model;
         m.Name = r.Name; m.Prefix = r.Prefix;
+        m.HeaderColor = r.HeaderColor; m.RowColor = r.RowColor;
         m.OverrideScope = r.OverrideScope; m.Scope = r.Scope; m.LocationId = r.LocationId; m.LocationName = r.LocationName;
         m.OverridePricing = r.OverridePricing; m.PricingBasis = r.PricingBasis; m.PricePercent = r.PricePercent;
         m.MarketStationId = r.MarketStationId; m.MarketStationName = r.MarketStationName; m.MarketPriceType = r.MarketPriceType;

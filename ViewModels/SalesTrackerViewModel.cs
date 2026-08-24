@@ -26,6 +26,26 @@ public class SaleRowVm : ReactiveObject
     public string WhenText { get; }
     public string Kind      { get; }   // "Market" or "Contract"
 
+    /// <summary>
+    /// Opens the contract this sale came from, in the Contracts tool.
+    ///
+    /// <para>Does nothing for a market sale: <see cref="SaleId"/> is a wallet transaction id
+    /// there, and passing one to the contract lookup would open somebody else's contract.</para>
+    /// </summary>
+    public void OpenContract()
+    {
+        if (Kind == "Contract" && SaleId is > 0 and <= int.MaxValue)
+            EntityNavigator.Instance.Contract((int)SaleId);
+    }
+
+    /// <summary>
+    /// The description typed on the contract this sale came from.
+    ///
+    /// <para>Empty for a market sale, which has nowhere to put one — an order fills against
+    /// whoever is buying and carries no message from either side.</para>
+    /// </summary>
+    public string Note { get; } = "";
+
     /// <summary>Wallet transaction id for a market sale, contract id for a contract sale.
     /// Unique only together with <see cref="Kind"/>.</summary>
     public long SaleId { get; }
@@ -115,8 +135,9 @@ public class SaleRowVm : ReactiveObject
         string items, string units, double total, double? build, double? market,
         int typeId = 0, string marketGroup = "—", long saleId = 0,
         long locationId = 0, bool locationIsStation = false, long buyerId = 0,
-        EntityKind buyerKind = EntityKind.Pilot)
+        EntityKind buyerKind = EntityKind.Pilot, string note = "")
     {
+        Note        = note;
         SaleId      = saleId;
         TypeId      = typeId;
         MarketGroup = marketGroup;

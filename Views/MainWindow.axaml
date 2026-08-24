@@ -371,6 +371,9 @@
               <DataTemplate DataType="vm:SalePostingViewModel">
                 <views:SalePostingView />
               </DataTemplate>
+              <DataTemplate DataType="vm:StoresViewModel">
+                <views:StoresView />
+              </DataTemplate>
               <DataTemplate DataType="vm:TradeOpportunitiesViewModel">
                 <views:TradeOpportunitiesView />
               </DataTemplate>

@@ -17,6 +17,27 @@ namespace EveConsole.ViewModels;
 internal static class MarketFmt
 {
     public static string Isk(double v) => Num(v);
+
+    /// <summary>
+    /// A value rounded to the precision <see cref="Num"/> would print it at.
+    ///
+    /// <para>⚠️ For prices that are STORED, not just shown. A quote of "3.71B" against a record
+    /// of 3,705,101,922.94 is two different numbers for one agreement, and the buyer only ever
+    /// saw the first. Rounding the value itself means the record says what was quoted.</para>
+    ///
+    /// <para>To nearest, not up: this is a price somebody pays, and always rounding it in the
+    /// seller's favour is a thumb on the scale.</para>
+    /// </summary>
+    public static double RoundToDisplay(double v)
+    {
+        var a = Math.Abs(v);
+        var step = a >= 1e12 ? 1e10    // 2dp of trillions
+                 : a >= 1e9  ? 1e7     // 2dp of billions
+                 : a >= 1e6  ? 1e4     // 2dp of millions
+                 : a >= 1e3  ? 1e2     // 1dp of thousands
+                 :             1;      // whole ISK
+        return Math.Round(v / step, MidpointRounding.AwayFromZero) * step;
+    }
     public static string Num(double v)
     {
         var a = Math.Abs(v);

@@ -61,6 +61,7 @@ public class MainWindowViewModel : ReactiveObject
     public MarketLevelViewModel           MarketLevelVm          { get; }
     public InvLevelViewModel              InvLevelVm             { get; }
     public SalePostingViewModel           SalePostingVm          { get; }
+    public StoresViewModel                StoresVm               { get; }
     public CorpActivityViewModel          CorpActivityVm         { get; }
     public KillmailBrowserViewModel       KillmailBrowserVm      { get; }
     public EveMailViewModel               EveMailVm              { get; }
@@ -376,6 +377,7 @@ public class MainWindowViewModel : ReactiveObject
             "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
             "inv_levels"      => ("Inv. Levels",     InvLevelVm,               true),
             "sale_posting"    => ("Sale Posting",    SalePostingVm,            true),
+            "stores"          => ("Stores",          StoresVm,                 true),
             "net_worth"  => ("Net Worth",       NetWorthVm,               true),
             "income_expense" => ("Income & Expense", IncomeExpenseVm,     true),
             "wallet"         => ("Wallet",          WalletVm,          true),
@@ -467,6 +469,8 @@ public class MainWindowViewModel : ReactiveObject
         MarketLevelService              marketLevelService,
         InvLevelService                 invLevelService,
         SalePostingService              salePostingService,
+        StoreMailService                storeMailService,
+        OrderLabelService               orderLabels,
         BatchAddService                 batchAddService,
         CorpActivityService             corpActivityService,
         CharacterSummaryService         characterSummaryService,
@@ -559,6 +563,7 @@ public class MainWindowViewModel : ReactiveObject
             batchAddService, prodCalcService, fittingsService,
             CharacterVm.Characters, CharacterVm.Corporations);
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
+        StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger);
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, slackService, exportFormat);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
         MailSvc           = eveMailService;
@@ -609,7 +614,7 @@ public class MainWindowViewModel : ReactiveObject
         OverviewVm.IncomeExpense     = IncomeExpenseVm;
         SaleListingBuildVm.OpenSalesTracker  = () => OpenTool("sales_tracker");
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
-        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
+        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
         WorklistVm             = new WorklistViewModel(worklistService,
                                      new WorklistMarketAltsViewModel(worklistMarketAltService, corpActivityService, dbFactory),
@@ -826,6 +831,7 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("order_tracker", "Order Tracker"),
                 new NavItem("sales_tracker", "Sales Tracker"),
                 new NavItem("sale_posting",  "Sale Posting"),
+                new NavItem("stores",        "Stores"),
             ]),
             new("Finance",
             [

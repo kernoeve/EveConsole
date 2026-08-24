@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctl="clr-namespace:EveConsole.Controls"
         x:Class="EveConsole.Views.OrderEditDialog"
         Title="Add Order"
         Width="420" Height="680"
@@ -113,6 +114,13 @@
         <TextBox x:Name="ContractBox" Watermark="contract id, if the match missed it" Padding="8 5" />
         <TextBlock FontSize="10" Foreground="#666" TextWrapping="Wrap"
                    Text="Normally filled in automatically. Type an id here when the contract cannot be matched — usually because its item list differs from the order. Clearing it removes the link." />
+      </StackPanel>
+
+      <StackPanel Spacing="5">
+        <TextBlock Classes="lbl" Text="LABELS" />
+        <ctl:LabelsBox x:Name="LabelsField" />
+        <TextBlock FontSize="10" Foreground="#666" TextWrapping="Wrap"
+                   Text="Free tags for grouping orders — a corp programme, a customer, a shipment. Type anything; if it does not exist yet, pressing Enter creates it. The Order Tracker can filter on them." />
       </StackPanel>
 
       <StackPanel Spacing="5">

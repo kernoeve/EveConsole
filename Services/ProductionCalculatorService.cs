@@ -102,7 +102,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         var t2TypeIds = (await db.SdeTypes.AsNoTracking()
             .Where(t => t.MetaGroupId == 2).Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
         var titanKeepstarIds = (await db.SdeTypes.AsNoTracking()
-            .Where(t => t.GroupId == IndustryMe.TitanGroupId || t.TypeId == IndustryMe.KeepstarTypeId)
+            .Where(t => t.GroupId == IndustryMe.TitanGroupId
+                     || t.GroupId == IndustryMe.SuperGroupId
+                     || t.TypeId  == IndustryMe.KeepstarTypeId
+                     || t.TypeId  == IndustryMe.FortizarTypeId)
             .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
 
         // ── Park / structure data ──────────────────────────────────────────
@@ -621,7 +624,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
             // Final products use the user-chosen ME (defaulted per the same rule when added to the
             // queue). Sub-components follow the shared default-ME rule (ME10 / T2 ME3 / BPC-only ME0 /
-            // titan & Keepstar ME9 / reactions ME0) so this matches the stored build cost.
+            // titan, Keepstar & Fortizar ME9 / reactions ME0) so this matches the stored build cost.
             // An override wins at any depth — it is a statement about a print actually on hand.
             // Reactions are excluded because a formula cannot be researched, so any ME on one is
             // noise rather than a bonus.
@@ -730,7 +733,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 // item's ME. It's a priced job material (not expanded into the raw pool) so its cost
                 // is counted once and matches the build-cost calc.
                 bool bpcOnly = !isReaction && !BlueprintIsBpoSourced(bpProd.TypeId);
-                if (bpcOnly || (!isReaction && isFinal && includeBpcCost))
+
+                // ⚠️ AlwaysBpcTypes is a caller's instruction, not a property of the blueprint:
+                // a BPO exists, but the caller knows nobody uses it. Only the background
+                // build-cost pass sets it; on this screen the checkbox is the user's to tick.
+                bool alwaysBpc = !isReaction && ctx.AlwaysBpcTypes.Contains(typeId);
+
+                if (bpcOnly || alwaysBpc || (!isReaction && isFinal && includeBpcCost))
                 {
                     // Overlay the BPC's PER-RUN price (at this item's ME) into the price table so both
                     // the raw-material total and the job-material line value it identically.
@@ -945,7 +954,8 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     }
 
     // Default ME to pre-select when an item is added to the production queue, per the shared rule
-    // (ME10 / T2 ME3 / BPC-only ME0 / titan & Keepstar ME9 / reactions ME0). Users can override it.
+    // (ME10 / T2 ME3 / BPC-only ME0 / titan, Keepstar & Fortizar ME9 / reactions ME0). Users can
+    // override it.
     public async Task<int> GetDefaultMeAsync(int productTypeId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
@@ -973,7 +983,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         bool bpcOnly  = !isReaction && (lootTier || !(bpHasMarket || inventedFromMarket));
 
         bool isT2 = meta == 2;
-        bool isTitanKeepstar = group == IndustryMe.TitanGroupId || productTypeId == IndustryMe.KeepstarTypeId;
+        bool isTitanKeepstar = group == IndustryMe.TitanGroupId
+                            || group == IndustryMe.SuperGroupId
+                            || productTypeId == IndustryMe.KeepstarTypeId
+                            || productTypeId == IndustryMe.FortizarTypeId;
         return IndustryMe.DefaultMe(isReaction, bpcOnly, isT2, isTitanKeepstar);
     }
 

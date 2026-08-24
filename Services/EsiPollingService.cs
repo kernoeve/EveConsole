@@ -1058,6 +1058,17 @@ public class EsiPollingService : ReactiveObject
         if (!r.IsSuccess) return FromResult(r);
 
         var roots = ComputeRootLocations(r.Data!);
+
+        // ⚠️ Delete and replace in ONE transaction. ExecuteDeleteAsync commits on its own, so
+        // without this the character's assets are simply absent from the database between the
+        // two statements — and anything reading in that window sees a hangar with nothing in it.
+        // Measured: an order filled from stock was downgraded to "waiting on materials" by a
+        // fulfilment pass that landed in the gap, and the store mailed the buyer about it.
+        //
+        // No extra lock time worth speaking of: the delete and the insert already ran back to
+        // back, each taking the write lock in turn. This merges them rather than adding anything.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
         await db.EsiAssets
             .Where(a => a.OwnerId == charId && a.OwnerType == "character")
             .ExecuteDeleteAsync(ct);
@@ -1077,6 +1088,7 @@ public class EsiPollingService : ReactiveObject
             RootLocationType = roots[a.ItemId].RootType,
         }));
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
 
         // ESI's assets endpoint omits the character's ACTIVE ship (the one they are currently
         // in — e.g. a titan a character is logged off in). Pull it via the ship + location
@@ -1894,7 +1906,12 @@ public class EsiPollingService : ReactiveObject
         new("char.titles",          3600,  7200, FetchTitlesAsync),
         new("char.roles",           3600,  7200, FetchRolesAsync),
         new("char.fittings",        300,   1800, FetchFittingsAsync),
-        new("char.mail",            300,    600, FetchMailAsync),
+        // ⚠️ 30s, which is what ESI actually caches this at (x-server-cache-ttl on
+        // /characters/{id}/mail). It was 300 — an order of magnitude over-conservative, and it
+        // put a five-minute floor under how fast a store could answer a buyer for no reason at
+        // all. The rate limit is the real constraint: 600 calls per 15 minutes on the
+        // char-social group, which a minute's cadence per character sits comfortably inside.
+        new("char.mail",             30,    600, FetchMailAsync),
         // Live session state. Much faster cadence than everything else here — these
         // endpoints cache for 5s (location, ship) and 60s (online) rather than minutes.
         new("char.online",          60,      60, FetchOnlineAsync),

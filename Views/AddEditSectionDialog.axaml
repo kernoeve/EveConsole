@@ -1,16 +1,19 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:EveConsole.Controls"
         x:Class="EveConsole.Views.AddEditSectionDialog"
         Title="Section"
-        Width="470" Height="660"
+        Width="540" Height="660"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
         Background="#0d0d12">
 
   <Grid RowDefinitions="*,Auto" Margin="20">
 
+    <!-- Right margin is the scrollbar's lane: it is an overlay, not a column beside the
+         content, so anything flush right ends up underneath it. -->
     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
-      <StackPanel Spacing="16">
+      <StackPanel Spacing="16" Margin="0 0 14 0">
 
         <!-- Section name -->
         <StackPanel Spacing="5">
@@ -29,6 +32,19 @@
           <TextBox x:Name="PrefixBox" Watermark="e.g. :ships:"
                    Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
                    CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b" FontSize="12" Padding="8 5" />
+        </StackPanel>
+
+        <!-- Colour (EVE mail only) -->
+        <StackPanel Spacing="5">
+          <TextBlock Text="SECTION HEADER COLOUR  (EVE mail only)" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" />
+          <controls:ColorField x:Name="HeaderColorField" />
+
+          <TextBlock Text="SECTION ROW COLOUR" FontSize="10" FontWeight="SemiBold"
+                     Foreground="#555566" LetterSpacing="1" Margin="0 6 0 0" />
+          <controls:ColorField x:Name="RowColorField" />
+          <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="#8a7a4a"
+                     Text="⚠ Only used when the posting is NOT colouring by state. That setting is per line and takes precedence, so with it on this has no effect. An item's own colour beats both." />
         </StackPanel>
 
         <Rectangle Height="1" Fill="#1e1e2a" />

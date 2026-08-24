@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive;
+using System.Reactive.Linq;
+using EveConsole.Controls;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
@@ -19,7 +21,9 @@ public record OrderDialogResult(int TypeId, string TypeName, int Units, string B
     /// because its item list differs from the order. Null clears the link.</summary>
     int? LinkedContractId = null,
     /// <summary>Overrides the automatic settled date when the real one differs.</summary>
-    string? CompletedOn = null);
+    string? CompletedOn = null,
+    /// <summary>Free tags on the order. Null means "not edited here" and leaves them alone.</summary>
+    IReadOnlyList<string>? Labels = null);
 
 /// <summary>One candidate in the buyer picker. Subtitle disambiguates two similar names the way
 /// the entity browser's own dropdown does.</summary>
@@ -42,6 +46,21 @@ public class TrackedOrderRowVm
     /// made before the field became a picker — those show the name without a link.</summary>
     public long   BuyerId   { get; }
     public string BuyerType { get; }
+
+    /// <summary>
+    /// Who the contract is made out to, when that is not the buyer.
+    ///
+    /// <para>Blank on most orders, and blank means "the buyer" rather than "unknown" — a contract
+    /// with nobody named goes to whoever ordered.</para>
+    /// </summary>
+    public long   ContractToId   { get; }
+    public string ContractTo     { get; }
+    public string ContractToType { get; }
+
+    public bool HasContractToLink => ContractToId > 0 && ContractTo.Length > 0;
+
+    public void OpenContractTo() => EntityNavigator.Instance.Entity(
+        ContractToType == "corporation" ? EntityKind.PlayerCorp : EntityKind.Pilot, ContractToId);
 
     public bool HasTypeLink  => TypeId  > 0 && Type.Length  > 0;
     public bool HasBuyerLink => BuyerId > 0 && Buyer.Length > 0;
@@ -87,10 +106,47 @@ public class TrackedOrderRowVm
         if (LinkedContractId is > 0 and { } id) EntityNavigator.Instance.Contract(id);
     }
 
+    /// <summary>
+    /// Which store took this order, or "" for one entered by hand.
+    ///
+    /// <para>⚠️ Empty on an order whose store was deleted BEFORE stores were soft-deleted — that
+    /// row is genuinely gone and its name is unrecoverable. Everything since keeps its name.</para>
+    /// </summary>
+    public string Store { get; private set; } = "";
+
+    /// <summary>
+    /// The order's code — what a buyer quotes to ask about it or cancel it.
+    ///
+    /// <para>⚠️ Shared by every row of one order: three items ordered together are three rows
+    /// under one code. Blank only on orders that predate codes being issued.</para>
+    /// </summary>
+    public string OrderRef { get; private set; } = "";
+
+    /// <summary>Tags on this order, for display and for filtering.</summary>
+    public IReadOnlyList<string> LabelList { get; private set; } = [];
+
+    /// <summary>The same labels as coloured chips, so the grid draws them like the editor does.</summary>
+    public List<LabelChip> LabelChips { get; private set; } = [];
+
+    /// <summary>The column's text — the tags, comma-separated.</summary>
+    public string Labels => string.Join(", ", LabelList);
+
+    public void SetLabels(IReadOnlyList<string> labels)
+    {
+        LabelList  = labels;
+        LabelChips = LabelPalette.Chips(labels);
+    }
+
     public TrackedOrderRowVm(TrackedOrder o, string typeName, double? buildCost,
+                             string storeName = "",
                              string contractLabel = "", string buildAsOf = "")
     {
-        Id          = o.Id;
+        Store    = storeName;
+        OrderRef = o.OrderRef;
+        Id             = o.Id;
+        ContractToId   = o.ContractToId;
+        ContractTo     = o.ContractToName;
+        ContractToType = o.ContractToType;
         Created     = o.CreatedAt;
         CreatedSort = o.CreatedAt.UtcTicks;
         CreatedText = o.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd");
@@ -131,7 +187,8 @@ public class TrackedOrderRowVm
     public OrderDialogResult ToDialog() =>
         new(TypeId, Type, Units, Buyer, string.IsNullOrEmpty(EstDate) ? null : EstDate,
             PurchaseRaw, StatusRaw, IsPriority, BuyerId, BuyerType, LinkedContractId,
-            string.IsNullOrEmpty(CompletedOn) ? null : CompletedOn);
+            string.IsNullOrEmpty(CompletedOn) ? null : CompletedOn,
+            LabelList.ToList());
 }
 
 public record OrderStatusFilter(string Label, string? Value) { public override string ToString() => Label; }
@@ -145,7 +202,7 @@ public class OrderTrackerViewModel : ReactiveObject
 
     private readonly List<TrackedOrderRowVm> _all = new();
 
-    public ObservableCollection<TrackedOrderRowVm> Rows { get; } = new();
+    public BulkObservableCollection<TrackedOrderRowVm> Rows { get; } = [];
 
     // Set by the view — shows the add/edit dialog (null initial = add) and returns the result.
     public Func<OrderDialogResult?, Task<OrderDialogResult?>>? ShowOrderDialog { get; set; }
@@ -185,9 +242,27 @@ public class OrderTrackerViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
 
-    public OrderTrackerViewModel(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
+    /// <summary>Shown in the filter for "do not filter" and "anything tagged at all".</summary>
+    public const string AnyLabel    = "(any)";
+    public const string HasAnyLabel = "(labelled)";
+
+    public BulkObservableCollection<string> LabelOptions { get; } = [];
+
+    private string _labelFilter = AnyLabel;
+    public string LabelFilter
+    {
+        get => _labelFilter;
+        set { this.RaiseAndSetIfChanged(ref _labelFilter, value ?? AnyLabel); ApplyFilters(); }
+    }
+
+    private readonly OrderLabelService _labels;
+
+    public OrderTrackerViewModel(IDbContextFactory<AppDbContext> dbFactory,
+                                 OrderLabelService labels,
+                                 AppErrorLogger errorLogger)
     {
         _dbFactory     = dbFactory;
+        _labels        = labels;
         _errorLogger   = errorLogger;
         _statusFilter  = StatusFilters[0];   // Active (pending)
 
@@ -198,17 +273,44 @@ public class OrderTrackerViewModel : ReactiveObject
         // written straight to the database, so this is how they reach the grid without a restart.
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadAsync);
 
+        foreach (var c in new[] { AddCommand, EditCommand, DeleteCommand, RefreshCommand })
+            c.ThrownExceptions.Subscribe(ex => errorLogger.Log(nameof(OrderTrackerViewModel), "command", ex));
+
+        // ⚠️ There was no automatic refresh at all. Everything that moves an order moves it in
+        // the database — the fulfilment poll linking a contract, a store taking an order by mail
+        // — and none of it went through this view model, so the grid was only ever as current as
+        // the last time somebody pressed Refresh or reopened the tab.
+        //
+        // A minute matches the two things that feed it: the store checks its mail every minute,
+        // and the fulfilment pass runs every five.
+        Observable.Interval(TimeSpan.FromSeconds(60))
+            .ObserveOnUi("OrderTracker.AutoRefresh")
+            .SubscribeAsyncSafe(_ => LoadAsync(), errorLogger, "OrderTracker.AutoRefresh");
+
         _ = LoadAsync();
     }
 
+    /// <summary>⚠️ Guards against a slow load overlapping the next tick. Two passes filling the
+    /// same collection would fight over it, and the second would finish with rows the first was
+    /// still building.</summary>
+    private bool _loading;
+
     private async Task LoadAsync()
     {
+        if (_loading) return;
+        _loading = true;
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
             var orders = await db.TrackedOrders.AsNoTracking().ToListAsync();
 
             var typeIds = orders.Select(o => o.TypeId).Distinct().ToList();
+            // ⚠️ Includes deleted stores. A soft-deleted shop keeps its row precisely so its
+            // orders can still name it; filtering them out here would undo that.
+            var storeNames = await db.Stores.AsNoTracking()
+                .Select(s => new { s.Id, s.Name })
+                .ToDictionaryAsync(s => s.Id, s => s.Name);
+
             var typeNames = await db.SdeTypes.AsNoTracking().Where(t => typeIds.Contains(t.TypeId))
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name);
             var buildCosts = await db.BuildCosts.AsNoTracking().Where(b => typeIds.Contains(b.TypeId))
@@ -276,10 +378,32 @@ public class OrderTrackerViewModel : ReactiveObject
                         : $"Contract {cid}")
                     : "";
 
+                // ⚠️ Named, not positional. storeName, contractLabel and buildAsOf are three
+                // optional strings in a row: passing them in the wrong order compiles perfectly
+                // and puts the store's name in the Contract column, which is exactly what
+                // happened when the Store column was added.
                 _all.Add(new TrackedOrderRowVm(
-                    o, typeNames.TryGetValue(o.TypeId, out var n) ? n : $"Type {o.TypeId}", build, label,
-                    settled is not null ? o.CompletedOn ?? "" : ""));
+                    o, typeNames.TryGetValue(o.TypeId, out var n) ? n : $"Type {o.TypeId}", build,
+                    storeName:     storeNames.GetValueOrDefault(o.StoreId, ""),
+                    contractLabel: label,
+                    buildAsOf:     settled is not null ? o.CompletedOn ?? "" : ""));
             }
+            // One query for every row's labels rather than one per row.
+            var labels = await _labels.ForOrdersAsync(_all.Select(r => r.Id).ToList());
+            foreach (var row in _all)
+                row.SetLabels(labels.GetValueOrDefault(row.Id, []));
+
+            var known = await _labels.AllAsync();
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var keep = LabelFilter;
+                LabelOptions.ResetTo([AnyLabel, HasAnyLabel, .. known]);
+                // Held even when the label has just stopped existing, so a filter does not
+                // silently widen to everything the moment its last order is untagged.
+                _labelFilter = LabelOptions.Contains(keep) ? keep : AnyLabel;
+                this.RaisePropertyChanged(nameof(LabelFilter));
+            });
+
             _all.Sort((a, b) => b.CreatedSort.CompareTo(a.CreatedSort));
             ApplyFilters();
         }
@@ -288,6 +412,7 @@ public class OrderTrackerViewModel : ReactiveObject
             _errorLogger.Log("OrderTrackerViewModel", "Load", ex);
             StatusText = "Error loading orders.";
         }
+        finally { _loading = false; }
     }
 
     private void ApplyFilters()
@@ -302,13 +427,23 @@ public class OrderTrackerViewModel : ReactiveObject
         if (!string.IsNullOrWhiteSpace(_buyerFilter))
             q = q.Where(r => r.Buyer.Contains(_buyerFilter, StringComparison.OrdinalIgnoreCase));
 
+        // Filtered off the rows' own labels rather than by querying again: they were loaded with
+        // the rows, and a filter that went back to the database on every keystroke elsewhere in
+        // this bar would be the slow part of a fast panel.
+        if (_labelFilter == HasAnyLabel)
+            q = q.Where(r => r.LabelList.Count > 0);
+        else if (_labelFilter != AnyLabel && !string.IsNullOrWhiteSpace(_labelFilter))
+            q = q.Where(r => r.LabelList.Any(
+                    l => string.Equals(l, _labelFilter, StringComparison.OrdinalIgnoreCase)));
+
         // Rebuilding the rows drops the DataGrid's selection, which greys out Edit and Delete. A
         // reload replaces every row object, so the order has to be found again by id.
         var keepId = Selected?.Id;
 
         var list = q.ToList();
-        Rows.Clear();
-        foreach (var r in list) Rows.Add(r);
+        // One notification rather than one per row: this now runs on a timer, and a grid that
+        // relaid itself once per order every minute would be felt on a long list.
+        Rows.ResetTo(list);
 
         if (keepId is { } id) Selected = Rows.FirstOrDefault(r => r.Id == id);
         StatusText = $"{list.Count:N0} order(s)";
@@ -321,6 +456,55 @@ public class OrderTrackerViewModel : ReactiveObject
     }
 
     // ── CRUD ──────────────────────────────────────────────────────────────────
+    /// <summary>
+    /// Puts one label on several orders at once — the grid's right-click.
+    ///
+    /// <para>Takes the rows given rather than the single Selected row, because tagging a
+    /// selection is the whole point: labelling twenty orders one at a time is not a feature
+    /// anybody would use.</para>
+    /// </summary>
+    public async Task AddLabelToAsync(IReadOnlyList<TrackedOrderRowVm> rows, string label)
+    {
+        var clean = OrderLabelService.Clean(label);
+        if (clean.Length == 0 || rows.Count == 0) return;
+
+        try
+        {
+            await _labels.AddAsync(rows.Select(r => r.Id).ToList(), clean);
+            await LoadAsync();
+            StatusText = $"Labelled {rows.Count:N0} order(s) \"{clean}\".";
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(OrderTrackerViewModel), nameof(AddLabelToAsync), ex);
+            StatusText = $"Could not label: {ex.Message}";
+        }
+    }
+
+    /// <summary>Takes one label off several orders — the other half of the right-click.</summary>
+    public async Task RemoveLabelFromAsync(IReadOnlyList<TrackedOrderRowVm> rows, string label)
+    {
+        var clean = OrderLabelService.Clean(label);
+        if (clean.Length == 0 || rows.Count == 0) return;
+
+        try
+        {
+            foreach (var row in rows)
+                await _labels.SetAsync(row.Id, row.LabelList.Where(
+                    l => !string.Equals(l, clean, StringComparison.OrdinalIgnoreCase)));
+
+            await LoadAsync();
+            StatusText = $"Removed \"{clean}\" from {rows.Count:N0} order(s).";
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(OrderTrackerViewModel), nameof(RemoveLabelFromAsync), ex);
+        }
+    }
+
+    /// <summary>The labels a picker should offer.</summary>
+    public Task<List<string>> KnownLabelsAsync() => _labels.AllAsync();
+
     private async Task AddAsync()
     {
         if (ShowOrderDialog is null) return;
@@ -341,9 +525,22 @@ public class OrderTrackerViewModel : ReactiveObject
                 Status        = r.Status,
                 IsPriority    = r.IsPriority,
                 CompletedOn   = r.CompletedOn ?? SettledOn(r.Status, null),
+                // ⚠️ From the same pool as the store's, so a code identifies one order whichever
+                // way it arrived. An order typed in after a conversation is still an order
+                // somebody may ask about by number.
+                OrderRef      = await OrderReference.NewAsync(db),
                 CreatedAt     = DateTimeOffset.UtcNow,
             });
             await db.SaveChangesAsync();
+
+            // ⚠️ After the save, because the labels key off the id the insert just assigned.
+            if (r.Labels is { Count: > 0 })
+            {
+                var added = await db.TrackedOrders.OrderByDescending(o => o.Id)
+                    .Select(o => o.Id).FirstAsync();
+                await _labels.SetAsync(added, r.Labels);
+            }
+
             await LoadAsync();
         }
         catch (Exception ex) { _errorLogger.Log("OrderTrackerViewModel", "Add", ex); StatusText = "Error adding order."; }
@@ -383,6 +580,11 @@ public class OrderTrackerViewModel : ReactiveObject
                 if (r.LinkedContractId is null && r.CompletedOn is null) o.CompletedOn = null;
             }
             await db.SaveChangesAsync();
+
+            // Null means the dialog did not touch them; a list — empty included — is what the
+            // box was left holding, so clearing every chip really does clear the labels.
+            if (r.Labels is not null) await _labels.SetAsync(o.Id, r.Labels);
+
             await LoadAsync();
         }
         catch (Exception ex) { _errorLogger.Log("OrderTrackerViewModel", "Edit", ex); StatusText = "Error saving order."; }

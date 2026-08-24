@@ -993,7 +993,78 @@ public class TrackedOrder
 
     /// <summary>Hand-marked to jump the queue, ahead of every order ranked by date.</summary>
     public bool   IsPriority    { get; set; }
+
+    /// <summary>
+    /// The store this order came from, or zero for one entered by hand.
+    ///
+    /// <para>Also what marks an order as having arrived by mail, which decides whether the buyer
+    /// is told about changes to it. An order typed in after a conversation in chat has no thread
+    /// to reply to, and mailing its owner out of the blue about a date they already know would be
+    /// noise.</para>
+    /// </summary>
+    public int    StoreId       { get; set; }
+
+    /// <summary>
+    /// What ties the rows of one order together, and what the buyer quotes back.
+    ///
+    /// <para>⚠️ An order is one row per item type, but a buyer orders several things at once and
+    /// then asks about "my order" as one thing. This is that thing. Empty on orders entered by
+    /// hand, which are already single items in practice.</para>
+    ///
+    /// <para>Held on the rows rather than in a header table so the Order Tracker keeps working
+    /// exactly as it does — every row is still an order of one item, with its own status and its
+    /// own fulfilment. Cancelling "the order" cancels its rows; a partly-delivered order is
+    /// simply rows in different states, which is the truth of it.</para>
+    /// </summary>
+    public string OrderRef      { get; set; } = "";
+
+    /// <summary>
+    /// What the buyer was last told about this line: its status and estimated date, joined.
+    ///
+    /// <para>⚠️ How a mailed order knows it owes an update, without the fulfilment pass having to
+    /// know anything about mail. OrderFulfilmentService writes the estimate; the store's own pass
+    /// notices that what is on the row differs from what was sent and sends the difference. No
+    /// call between them, and it survives a restart mid-change — the comparison is against
+    /// persisted state, not an event nobody caught.</para>
+    ///
+    /// <para>Set when the order is created, so the confirmation mail counts as having told them.</para>
+    /// </summary>
+    public string NotifiedState  { get; set; } = "";
+
+    /// <summary>
+    /// Who the contract should be made out to, when that is not the buyer.
+    ///
+    /// <para>Optional, and empty on most orders — a contract goes to whoever ordered unless told
+    /// otherwise. A buyer ordering on behalf of their corporation, or for an alt that will
+    /// actually fly the thing, needs somewhere to say so, and saying it in the order is better
+    /// than saying it in a separate conversation nobody can find later.</para>
+    ///
+    /// <para>⚠️ Set from a dragged link rather than typed text. A character and a corporation can
+    /// share a name, and "make the contract out to Kerno" is not something to guess at.</para>
+    /// </summary>
+    public long   ContractToId   { get; set; }
+    public string ContractToName { get; set; } = "";
+    public string ContractToType { get; set; } = "";   // "character" | "corporation" | ""
+
     public DateTimeOffset CreatedAt { get; set; }
+}
+
+/// <summary>
+/// One tag on one order.
+///
+/// <para><b>Free text, and no table of its own.</b> A label is whatever somebody typed — "BNI
+/// First Capital Program" — and the list offered in the pickers is simply the distinct values in
+/// use. That means a label nothing carries any more stops being offered, which is the right
+/// behaviour: a list of tags nobody uses is a list nobody reads.</para>
+///
+/// <para>⚠️ A row per label rather than a delimited string on the order. Orders are filtered and
+/// counted by label, and a LIKE against a comma-separated column matches "Capital" inside
+/// "First Capital Program" — which is the kind of wrong answer nobody checks.</para>
+/// </summary>
+public class OrderLabel
+{
+    public int    OrderId { get; set; }
+    public string Label   { get; set; } = "";
 }
 
 // ── Error logging ─────────────────────────────────────────────────────────────

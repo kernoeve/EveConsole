@@ -32,6 +32,11 @@
   <Application.Styles>
     <FluentTheme />
     <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+    <!-- ⚠️ Without this the ColorView renders as an empty rectangle. Like DataGrid, the colour
+         picker ships its control themes in its own assembly rather than in Fluent, so the
+         control resolves, lays out, and draws nothing at all — which looks like a broken
+         control rather than a missing style. -->
+    <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
 
     <Styles>
 
