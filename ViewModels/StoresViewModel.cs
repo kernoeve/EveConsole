@@ -617,9 +617,20 @@ public class StoresViewModel : ReactiveObject
                 .ToListAsync();
 
             // By order, not by line: six items on one order is one order.
+            //
+            // ⚠️ A priority chain, not three independent tests. The tests used to be "all lines
+            // completed" and "all lines cancelled", which sound exhaustive and are not: an order
+            // with one line delivered and another cancelled — an ordinary outcome — satisfied
+            // neither and was counted nowhere. A store with exactly one such order showed zeroes
+            // across the board while the Order Tracker, which counts lines, showed both.
+            //
+            // Still open wins, because it is the one that needs doing. After that, anything
+            // delivered makes it a sale; only an order where nothing was delivered is cancelled.
+            // Every order now lands in exactly one bucket and the three sum to the total.
             var byRef = orders.GroupBy(o => o.OrderRef).ToList();
             var active    = byRef.Count(g => g.Any(o => o.Status == "pending"));
-            var completed = byRef.Count(g => g.All(o => o.Status == "completed"));
+            var completed = byRef.Count(g => g.All(o => o.Status != "pending")
+                                          && g.Any(o => o.Status == "completed"));
             var cancelled = byRef.Count(g => g.All(o => o.Status == "canceled"));
 
             var inquiries = mails.Count(m => m.Direction == "in");
