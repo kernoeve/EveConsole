@@ -79,7 +79,10 @@ public sealed record SlotPressure(
 /// doing rather than from the SDE — the structure, rigs and skills in play are already in it.</param>
 /// <param name="Prints">Originals owned. Copies are excluded: a copy is throughput already bought
 /// and consumed, an original is a standing limit.</param>
-/// <param name="MadePerDay">Units a day actually produced over the measured window.</param>
+/// <param name="MadePerDay">Units a day actually produced. ⚠️ Bounded above by the ceiling these
+/// same prints impose, so it measures what was achieved and never what was wanted.</param>
+/// <param name="BusyDays">Days these prints spent inside a job during the window. Against the
+/// days they were available, this is the only honest read on whether they are the limit.</param>
 public sealed record ItemBandwidth(
     int    ProductTypeId,
     string ProductName,
@@ -87,31 +90,49 @@ public sealed record ItemBandwidth(
     int    Prints,
     int    Busy,
     double MadePerDay,
+    double BusyDays,
     int    UnitsPerRun,
     int    WindowDays)
 {
     /// <summary>Units a day one print can turn out, running without a pause.</summary>
     public double PerPrintPerDay => CycleDays <= 0 ? 0 : UnitsPerRun / CycleDays;
 
-    /// <summary>Units a day the prints on hand can turn out between them.</summary>
+    /// <summary>Units a day the prints on hand can turn out between them — the ceiling.</summary>
     public double CapacityPerDay => Prints * PerPrintPerDay;
 
-    /// <summary>Prints it would take to make this at the rate it has been consumed at.</summary>
-    public int PrintsForDemand => PerPrintPerDay <= 0
-        ? Prints
-        : (int)Math.Ceiling(MadePerDay / PerPrintPerDay);
+    /// <summary>What the ceiling becomes with one more original.</summary>
+    public double CeilingWithOneMore => (Prints + 1) * PerPrintPerDay;
 
-    public int Short => Math.Max(0, PrintsForDemand - Prints);
+    /// <summary>
+    /// How much of the time these prints could have been running, they were.
+    ///
+    /// <para><b>⚠️ This is the pressure signal, not the production rate.</b> What was produced can
+    /// never exceed what the prints could produce — history is censored by the very ceiling being
+    /// measured, so "made 0.41/day against a ceiling of 0.14/day" is not a shortage, it is an
+    /// impossibility. Two items with the same ceiling can sit at 0.09/day and 0.001/day, and the
+    /// difference between them is not demand, it is whether the print is ever idle.</para>
+    ///
+    /// <para>⚠️ Can exceed 100% where a print was acquired part-way through the window: the busy
+    /// time is real but was earned by more prints than are owned now, or by copies. Capped, and
+    /// treated as saturated, which is what it means either way.</para>
+    /// </summary>
+    public double UtilPercent => Prints <= 0 || WindowDays <= 0
+        ? 0
+        : Math.Min(100, 100.0 * BusyDays / (Prints * (double)WindowDays));
 
-    /// <summary>How much of the demand rate the prints on hand can meet.</summary>
-    public double CoverPercent => MadePerDay <= 0
-        ? 100
-        : Math.Min(999, 100.0 * CapacityPerDay / MadePerDay);
+    /// <summary>
+    /// Saturated enough that the print, rather than anything else, is setting the pace.
+    ///
+    /// <para>A print running two thirds of the time has little idle left to absorb more work; one
+    /// running a twentieth of the time is not what is holding anything up, whatever else is.</para>
+    /// </summary>
+    public bool IsTight => UtilPercent >= 60;
 
-    public string Advice => Short <= 0
-        ? "Keeping up."
-        : $"{Short:N0} more print(s) would match the rate this has been used at — "
-        + $"each one turns out {PerPrintPerDay:N2}/day against {MadePerDay:N2}/day consumed.";
+    public string Advice => !IsTight
+        ? $"Idle {100 - UtilPercent:N0}% of the time — this print is not the limit."
+        : $"Running {UtilPercent:N0}% of the time. A second print raises the ceiling from "
+        + $"{CapacityPerDay:N2}/day to {CeilingWithOneMore:N2}/day, and halves the time on any "
+        + "order of them.";
 
     public void OpenItem() => EntityNavigator.Instance.Item(ProductTypeId);
 }
@@ -296,7 +317,11 @@ public class BottleneckService(
                 g => g.Key,
                 g => (ProductTypeId: g.First().ProductTypeId,
                       CycleDays:     g.Average(j => (double)j.Duration / j.Runs) / 86400.0,
-                      Runs:          g.Sum(j => (long)j.Runs)));
+                      Runs:          g.Sum(j => (long)j.Runs),
+                      // ⚠️ Time occupied, not jobs counted. This is what makes a saturated print
+                      // distinguishable from an idle one, and the two are indistinguishable by
+                      // production rate alone — both are bounded by the same ceiling.
+                      BusyDays:      g.Sum(j => (double)j.Duration) / 86400.0));
 
         var productIds = byBlueprint.Values.Select(v => v.ProductTypeId).Distinct().ToList();
 
@@ -325,15 +350,18 @@ public class BottleneckService(
                 mine.Count,
                 mine.Count(p => p.LockedInJob),
                 made.Runs * units / (double)WindowDays,
+                made.BusyDays,
                 units,
                 WindowDays));
         }
 
-        // Worst cover first: the item whose prints meet the least of its own demand rate is where
-        // another original buys the most.
+        // ⚠️ Busiest first, not "most short". A shortfall cannot be measured from history — what
+        // was produced is capped by the very prints being judged, so demand above the ceiling
+        // leaves no trace. Time spent occupied is the one thing that does distinguish a print
+        // that never stops from one that rarely starts.
         return result
-            .Where(r => r.Short > 0)
-            .OrderBy(r => r.CoverPercent)
+            .Where(r => r.IsTight)
+            .OrderByDescending(r => r.UtilPercent)
             .ThenByDescending(r => r.MadePerDay)
             .ToList();
     }

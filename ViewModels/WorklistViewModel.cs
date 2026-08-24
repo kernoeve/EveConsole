@@ -425,13 +425,19 @@ public sealed class PrintPressureRowVm(ItemBandwidth p)
     public string Busy      => p.Busy > 0 ? p.Busy.ToString("N0") : "";
     public string Capacity  => $"{p.CapacityPerDay:N2}/d";
     public string Demand    => $"{p.MadePerDay:N2}/d";
-    public string Cover     => $"{p.CoverPercent:N0}%";
-    public string Short     => p.Short.ToString("N0");
-    public string Advice    => p.Advice;
 
-    /// <summary>Red where the prints cannot meet half the rate the item is consumed at.</summary>
-    public string CoverColor => p.CoverPercent < 50 ? "#c85a5a"
-                             : p.CoverPercent < 100 ? "#c8a84b"
+    /// <summary>
+    /// ⚠️ Time occupied, not output achieved. Output is capped by the prints being judged, so it
+    /// cannot tell a saturated print from an idle one — both sit under the same ceiling.
+    /// </summary>
+    public string Cover     => $"{p.UtilPercent:N0}%";
+
+    public string WithOneMore => $"{p.CeilingWithOneMore:N2}/d";
+    public string Advice      => p.Advice;
+
+    /// <summary>Red where the print is running almost without a gap: nothing left to absorb more.</summary>
+    public string CoverColor => p.UtilPercent >= 90 ? "#c85a5a"
+                             : p.UtilPercent >= 60 ? "#c8a84b"
                              : "#666677";
 
     public bool HasLink => p.ProductTypeId > 0;

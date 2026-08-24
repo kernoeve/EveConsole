@@ -981,7 +981,7 @@
               <TextBlock Text="BLUEPRINTS" FontSize="10" FontWeight="SemiBold"
                          Foreground="#555566" LetterSpacing="1"/>
               <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
-                         Text="An original runs one job at a time, so one Thanatos print is one hull a cycle and a second halves the time on any order. Rated against what each item has actually been consumed at over 90 days, not against this morning's queue — a part used three times as often as its neighbours needs three times the prints, and no snapshot will say so."/>
+                         Text="An original runs one job at a time, so one Thanatos print is one hull a cycle and a second halves the time on any order. Ranked by how much of the last 90 days each print spent inside a job — not by output, which cannot exceed the ceiling being measured and so reads the same whether demand was double the capacity or a fraction of it."/>
 
               <DataGrid ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11" MaxHeight="320"
@@ -1004,9 +1004,9 @@
                   <DataGridTextColumn Header="Cycle"     Binding="{Binding Cycle}"    Width="70"/>
                   <DataGridTextColumn Header="Prints"    Binding="{Binding Prints}"   Width="60"/>
                   <DataGridTextColumn Header="Installed" Binding="{Binding Busy}"     Width="75"/>
-                  <DataGridTextColumn Header="Can make"  Binding="{Binding Capacity}" Width="85"/>
-                  <DataGridTextColumn Header="Used"      Binding="{Binding Demand}"   Width="85"/>
-                  <DataGridTemplateColumn Header="Cover" Width="65">
+                  <DataGridTextColumn Header="Ceiling"   Binding="{Binding Capacity}"    Width="85"/>
+                  <DataGridTextColumn Header="Made"      Binding="{Binding Demand}"      Width="85"/>
+                  <DataGridTemplateColumn Header="Busy" Width="65">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
                         <TextBlock Text="{Binding Cover}" Foreground="{Binding CoverColor}"
@@ -1014,7 +1014,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Short"      Binding="{Binding Short}"  Width="60"/>
+                  <DataGridTextColumn Header="+1 print" Binding="{Binding WithOneMore}" Width="85"/>
                   <DataGridTextColumn Header="Suggestion" Binding="{Binding Advice}" Width="*"/>
                 </DataGrid.Columns>
               </DataGrid>
