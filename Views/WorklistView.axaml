@@ -599,10 +599,10 @@
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
                     <Button Click="OnNeedToggle" Background="Transparent" BorderThickness="0"
-                            Padding="4 0" FontSize="9" Foreground="#7a8896"
+                            Padding="2 0" FontSize="14" Foreground="#8a99a8"
                             IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
                             ToolTip.Tip="What is asking for this"/>
-                    <TextBlock Text="—" FontSize="9" Foreground="#3a3a48" Margin="6 0"
+                    <TextBlock Text="—" FontSize="12" Foreground="#3f3f4d" Margin="6 0"
                                VerticalAlignment="Center" IsVisible="{Binding !HasDrivers}"
                                ToolTip.Tip="Nothing itemised this need"/>
                   </Panel>
@@ -772,10 +772,10 @@
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
                     <Button Click="OnNeedToggle" Background="Transparent" BorderThickness="0"
-                            Padding="4 0" FontSize="9" Foreground="#7a8896"
+                            Padding="2 0" FontSize="14" Foreground="#8a99a8"
                             IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
                             ToolTip.Tip="What is asking for this"/>
-                    <TextBlock Text="—" FontSize="9" Foreground="#3a3a48" Margin="6 0"
+                    <TextBlock Text="—" FontSize="12" Foreground="#3f3f4d" Margin="6 0"
                                VerticalAlignment="Center" IsVisible="{Binding !HasDrivers}"
                                ToolTip.Tip="Nothing itemised this need"/>
                   </Panel>
