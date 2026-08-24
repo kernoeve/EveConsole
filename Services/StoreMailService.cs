@@ -332,6 +332,23 @@ public class StoreMailService(
                 At        = header.Timestamp,
             };
 
+            // ⚠️ Every answer this service gives is scoped to the sender — whose orders to list,
+            // whose order may be cancelled — and the sender is header.FromId. A mail arriving
+            // without one would make every such mail the SAME party, so one unidentified sender
+            // could read and cancel what another had ordered. ESI marks from_id required and
+            // this should never fire; it is here because the check is one line and the thing it
+            // guards is the whole authorisation model.
+            if (log.PartyId <= 0)
+            {
+                log.Outcome = "rejected";
+                log.Detail  = "No sender on the mail — nothing can be answered safely.";
+                db.StoreMails.Add(log);
+                await db.SaveChangesAsync(ct);
+                db.ChangeTracker.Clear();
+                handled++;
+                continue;
+            }
+
             try
             {
                 await HandleAsync(db, store, log, ct);
