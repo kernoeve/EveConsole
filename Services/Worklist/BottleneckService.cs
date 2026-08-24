@@ -3,50 +3,63 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services.Worklist;
 
-/// <summary>One way of getting more slots, with what it would actually buy.</summary>
+/// <summary>One way of getting more bandwidth, and what it would do to the backlog.</summary>
 /// <param name="Detail">Who or what it applies to, named so the figure can be checked.</param>
 public sealed record SlotRemedy(string Action, int Slots, string Detail)
 {
     /// <summary>Share of current capacity this would add. Set by the caller, which knows it.</summary>
     public double PercentGain { get; init; }
 
-    /// <summary>
-    /// How much of the queued work this would actually start, as a share of the jobs waiting.
-    ///
-    /// <para>The number that decides anything. A remedy worth 20% more capacity sounds
-    /// substantial until it turns out to cover a twentieth of what is waiting.</para>
-    /// </summary>
-    public double PercentOfQueue { get; init; }
+    /// <summary>Days to work through the backlog once this is in place.</summary>
+    public double ClearDaysAfter { get; init; }
+
+    /// <summary>Days to work through it as things stand, for the comparison.</summary>
+    public double ClearDaysNow { get; init; }
 
     public string Gain => Slots <= 0 ? "—"
                         : PercentGain > 0 ? $"+{Slots:N0}  ({PercentGain:N0}%)"
                         : $"+{Slots:N0}";
 
-    public string Covers => Slots <= 0 ? "" : $"starts {Math.Min(100, PercentOfQueue):N0}% of the queue";
+    /// <summary>
+    /// What it buys in time, which is the only unit that answers the question.
+    ///
+    /// <para>⚠️ Not "starts N% of the queue". A queue is not a shopping list of slots — it is work
+    /// that piled up because throughput sat below demand, and the fix is a rate, not one slot per
+    /// waiting job. Time to clear is what changes when the rate changes.</para>
+    /// </summary>
+    public string Effect =>
+        Slots <= 0 || double.IsInfinity(ClearDaysNow) || ClearDaysNow <= 0 ? ""
+        : double.IsInfinity(ClearDaysAfter)                                ? ""
+        : $"backlog clears in {ClearDaysAfter:N0}d instead of {ClearDaysNow:N0}d";
 }
 
 /// <summary>
-/// How hard one slot pool is being pushed, and what could be done about it.
+/// How much work one slot pool can get through, against how much is waiting for it.
 /// </summary>
+/// <param name="BacklogJobDays">Work queued, in job-days: how long it would take one slot on its
+/// own. Divided by the slots actually running, this is the time to catch up.</param>
+/// <param name="JobsDone">Jobs started in the measured window — what the pool has really been
+/// managing, as opposed to what its slot count says it could.</param>
 public sealed record SlotPressure(
     IndustryPool     Pool,
     int              Capacity,
     int              InUse,
     int              Waiting,
     int              Blocked,
+    double           BacklogJobDays,
+    double           AvgJobDays,
+    int              JobsDone,
+    int              WindowDays,
     IReadOnlyList<SlotRemedy> Remedies)
 {
-    public int    Free      => Math.Max(0, Capacity - InUse);
-    public double Utilised  => Capacity <= 0 ? 0 : 100.0 * InUse / Capacity;
+    public int    Free     => Math.Max(0, Capacity - InUse);
+    public double Utilised => Capacity <= 0 ? 0 : 100.0 * InUse / Capacity;
 
-    /// <summary>
-    /// Slots it would take to start everything queued behind this pool right now.
-    ///
-    /// <para>One per waiting job. This is the figure the remedies are worth measuring against —
-    /// an account buying 33 slots against a queue of 190 is a different decision from the same
-    /// account against a queue of 4.</para>
-    /// </summary>
-    public int Needed => Waiting;
+    /// <summary>Days to work through what is queued, at the bandwidth on hand.</summary>
+    public double ClearDays => Capacity <= 0 ? double.PositiveInfinity : BacklogJobDays / Capacity;
+
+    /// <summary>Jobs a day this pool has actually been starting.</summary>
+    public double ThroughputPerDay => WindowDays <= 0 ? 0 : (double)JobsDone / WindowDays;
 
     /// <summary>
     /// Whether this pool is what is holding work up.
@@ -55,30 +68,50 @@ public sealed record SlotPressure(
     /// two hundred jobs that could start today is a slot bottleneck by any reading that matters —
     /// requiring zero free slots would have called that pool healthy because ten of its hundred
     /// happened to be idle at the moment it was measured.</para>
-    ///
-    /// <para>The converse still holds: a pool at 100% with nothing queued behind it is a pool
-    /// being used properly, and reporting it would make this tab noise on a good day.</para>
     /// </summary>
     public bool IsBottleneck => Waiting > 0;
 }
 
 /// <summary>
-/// A product whose blueprint count, not its slots or its material, is the limit.
+/// A product whose blueprints, not its slots, set how fast it can be made.
 /// </summary>
-public sealed record PrintPressure(
+/// <param name="CycleDays">How long one run takes, from what this blueprint has actually been
+/// doing rather than from the SDE — the structure, rigs and skills in play are already in it.</param>
+/// <param name="Prints">Originals owned. Copies are excluded: a copy is throughput already bought
+/// and consumed, an original is a standing limit.</param>
+/// <param name="MadePerDay">Units a day actually produced over the measured window.</param>
+public sealed record ItemBandwidth(
     int    ProductTypeId,
     string ProductName,
-    int    JobsWanted,
-    int    Originals,
+    double CycleDays,
+    int    Prints,
     int    Busy,
-    int    Idle)
+    double MadePerDay,
+    int    UnitsPerRun,
+    int    WindowDays)
 {
-    /// <summary>How many more originals it would take to run the wanted work in parallel.</summary>
-    public int Short => Math.Max(0, JobsWanted - Originals);
+    /// <summary>Units a day one print can turn out, running without a pause.</summary>
+    public double PerPrintPerDay => CycleDays <= 0 ? 0 : UnitsPerRun / CycleDays;
 
-    public string Advice => $"Buy {Short:N0} more original(s) — {JobsWanted:N0} job(s) want this "
-                          + $"and {Originals:N0} print(s) can run at once"
-                          + (Busy > 0 ? $", {Busy:N0} of them already installed." : ".");
+    /// <summary>Units a day the prints on hand can turn out between them.</summary>
+    public double CapacityPerDay => Prints * PerPrintPerDay;
+
+    /// <summary>Prints it would take to make this at the rate it has been consumed at.</summary>
+    public int PrintsForDemand => PerPrintPerDay <= 0
+        ? Prints
+        : (int)Math.Ceiling(MadePerDay / PerPrintPerDay);
+
+    public int Short => Math.Max(0, PrintsForDemand - Prints);
+
+    /// <summary>How much of the demand rate the prints on hand can meet.</summary>
+    public double CoverPercent => MadePerDay <= 0
+        ? 100
+        : Math.Min(999, 100.0 * CapacityPerDay / MadePerDay);
+
+    public string Advice => Short <= 0
+        ? "Keeping up."
+        : $"{Short:N0} more print(s) would match the rate this has been used at — "
+        + $"each one turns out {PerPrintPerDay:N2}/day against {MadePerDay:N2}/day consumed.";
 
     public void OpenItem() => EntityNavigator.Instance.Item(ProductTypeId);
 }
@@ -86,14 +119,22 @@ public sealed record PrintPressure(
 /// <summary>
 /// What is holding the pipeline up.
 ///
-/// <para>Built from the worklist's own conclusions rather than from a second reading of the same
-/// data. The worklist has already decided which jobs cannot start and why; working that out again
-/// here would produce a second opinion, and two answers to "why is this stuck" is worse than
-/// none.</para>
+/// <para><b>Bandwidth, not queue length.</b> Slots and blueprints are both throughput: twenty
+/// slots get through twice the work of ten, and two Thanatos originals turn out two a cycle where
+/// one turns out one. So five hundred jobs waiting does not mean five hundred slots are needed —
+/// that queue is what accumulated while throughput sat under demand, and more bandwidth eats into
+/// it over time rather than clearing it at a stroke. Everything here is a rate, or the days a
+/// rate implies.</para>
 ///
-/// <para>Three different ceilings, which is why they are reported separately: slots, blueprints,
-/// and material. They are not interchangeable — buying an account does nothing for a shortage of
-/// fuel block originals, and neither one helps if the gas never arrived.</para>
+/// <para><b>Measured, not assumed.</b> Cycle times and demand rates come from the job history, so
+/// they already carry the structures, rigs and skills actually in use. What the tool is planning
+/// today says what is wanted now; what has been run for months says what is wanted repeatedly,
+/// and the gap between those two is where a standing shortage of bandwidth hides — a part
+/// consumed three times as often as its neighbours needs three times the prints, and no snapshot
+/// of this morning's queue will ever say so.</para>
+///
+/// <para>Built on the worklist's own conclusions about what cannot start, so the two can never
+/// give different answers to "why is this stuck".</para>
 /// </summary>
 public class BottleneckService(
     IDbContextFactory<AppDbContext> dbFactory,
@@ -111,19 +152,35 @@ public class BottleneckService(
     private const int CharactersPerAccount = 3;
 
     /// <summary>
-    /// Slot pressure for each pool, with the remedies quantified.
+    /// How far back the rates are measured.
     ///
-    /// <para>Every remedy is a number rather than a suggestion. "Train more" is advice anyone
-    /// could give; "+7 slots across four characters, a 21% increase" is a decision someone can
-    /// weigh against buying an account.</para>
+    /// <para>⚠️ Long enough that a quiet fortnight does not read as a collapse in demand, short
+    /// enough that what the pipeline was doing six months ago does not outvote what it is doing
+    /// now. Counted by when a job STARTED, so a long build still in flight counts toward the
+    /// period it was committed in.</para>
     /// </summary>
+    private const int WindowDays = 90;
+
+    // ── Slots ─────────────────────────────────────────────────────────────────
+
     public async Task<List<SlotPressure>> SlotPressureAsync(
         IReadOnlyList<WorklistItem> items, CancellationToken ct = default)
     {
         var candidates = await assignment.LoadCandidatesAsync(ct);
         if (candidates.Count == 0) return [];
 
-        var corps = await assignment.UsableCorporationsAsync(settings.IncludeNonPersonalCorps, ct);
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        var since = DateTimeOffset.UtcNow.AddDays(-WindowDays);
+
+        // What each pool has actually been getting through. Durations included, because a pool
+        // running long jobs and one running short jobs are not comparable by job count.
+        var history = (await db.EsiIndustryJobs.AsNoTracking()
+                .Where(j => j.StartDate >= since)
+                .Select(j => new { j.ActivityId, j.Duration })
+                .ToListAsync(ct))
+            .GroupBy(j => IndustryAssignmentService.PoolOf(j.ActivityId))
+            .ToDictionary(g => g.Key, g => (Jobs: g.Count(), Days: g.Sum(j => (double)j.Duration) / 86400.0));
 
         var result = new List<SlotPressure>();
 
@@ -139,128 +196,146 @@ public class BottleneckService(
             var waiting = items.Count(i => i.Pool == pool && i.Readiness == WorklistReadiness.Waiting);
             var blocked = items.Count(i => i.Pool == pool && i.Readiness == WorklistReadiness.Blocked);
 
+            var seen = history.GetValueOrDefault(pool);
+
+            // ⚠️ The queue is priced in job-days, not in jobs. A waiting job holds a slot for as
+            // long as it runs, so a pool whose jobs take a fortnight is far further behind on the
+            // same queue length than one whose jobs take an hour. Sized from what this pool's
+            // jobs have actually taken, because nothing knows the duration of a job never started.
+            var avgJobDays = seen.Jobs > 0 ? seen.Days / seen.Jobs : 0;
+            var backlog    = waiting * avgJobDays;
+
             double Pct(int slots)   => capacity <= 0 ? 0 : 100.0 * slots / capacity;
-            double Queue(int slots) => waiting  <= 0 ? 0 : 100.0 * slots / waiting;
+            double Clear(int extra) => capacity + extra <= 0
+                                     ? double.PositiveInfinity
+                                     : backlog / (capacity + extra);
+
+            SlotRemedy Remedy(string action, int slots, string detail) =>
+                new(action, slots, detail)
+                {
+                    PercentGain    = Pct(slots),
+                    ClearDaysNow   = Clear(0),
+                    ClearDaysAfter = Clear(slots),
+                };
 
             var remedies = new List<SlotRemedy>();
 
-            // ── Train what is already switched on ────────────────────────────
-            // The cheapest capacity there is: no new account, no new character, and the slots
-            // arrive on people already trusted with the work.
+            // Train what is already switched on — the cheapest bandwidth there is.
             var trainable = on
                 .Select(c => (c, Room: MaxSlotsPerCharacter - c.Capacity.GetValueOrDefault(pool)))
                 .Where(x => x.Room > 0)
                 .OrderByDescending(x => x.Room)
                 .ToList();
 
-            var trainSlots = trainable.Sum(x => x.Room);
-            remedies.Add(new SlotRemedy(
+            remedies.Add(Remedy(
                 "Train the characters already running this",
-                trainSlots,
+                trainable.Sum(x => x.Room),
                 trainable.Count == 0
                     ? "Everyone running this pool is already at the skill cap."
                     : $"{trainable.Count} character(s) below the {MaxSlotsPerCharacter}-slot cap: "
-                    + Name(trainable.Select(x => (x.c, x.Room))))
-            { PercentGain = Pct(trainSlots), PercentOfQueue = Queue(trainSlots) });
+                    + Name(trainable.Select(x => (x.c, x.Room)))));
 
-            // ── Switch on the ones that are off ──────────────────────────────
-            // ⚠️ Quantified, not recommended. These are normally off for a reason the app cannot
-            // see — a trading alt in another corp, a character whose assets are not the player's
-            // to spend — so the number is here to be weighed, not acted on.
+            // ⚠️ Quantified, not recommended. These are off for reasons the app cannot see — a
+            // trading alt, a character in someone else's corp — so this is a size, not a plan.
             var offSlots = off.Sum(c => c.Capacity.GetValueOrDefault(pool));
-            remedies.Add(new SlotRemedy(
+            remedies.Add(Remedy(
                 "Enable characters currently switched off for this pool",
                 offSlots,
                 off.Count == 0
                     ? "Every configured character already runs this pool."
-                    : $"{off.Count} character(s) switched off, holding {offSlots:N0} slot(s) today"
-                    + (corps is null ? "" : " — usually off for a reason, so read this as a size, not a plan.")
-                    + $" {Name(off.Select(c => (c, c.Capacity.GetValueOrDefault(pool))))}")
-            { PercentGain = Pct(offSlots), PercentOfQueue = Queue(offSlots) });
+                    : $"{off.Count} character(s) switched off, holding {offSlots:N0} slot(s) today "
+                    + "— usually off for a reason, so read this as a size rather than a plan. "
+                    + Name(off.Select(c => (c, c.Capacity.GetValueOrDefault(pool))))));
 
-            // ── Buy capacity ────────────────────────────────────────────────
-            var newSlots = CharactersPerAccount * MaxSlotsPerCharacter;
-            remedies.Add(new SlotRemedy(
+            remedies.Add(Remedy(
                 $"Add {CharactersPerAccount} characters (one account), trained to the cap",
-                newSlots,
+                CharactersPerAccount * MaxSlotsPerCharacter,
                 $"{CharactersPerAccount} × {MaxSlotsPerCharacter} slots against the {capacity:N0} "
-                + "running now. The training is not instant — this is the ceiling it buys, not "
-                + "what it gives on day one.")
-            { PercentGain = Pct(newSlots), PercentOfQueue = Queue(newSlots) });
+                + "running now. Training is not instant — this is the ceiling it buys."));
 
-            result.Add(new SlotPressure(pool, capacity, inUse, waiting, blocked, remedies));
+            result.Add(new SlotPressure(pool, capacity, inUse, waiting, blocked,
+                                        backlog, avgJobDays, seen.Jobs, WindowDays, remedies));
         }
 
         return result;
     }
 
+    // ── Blueprints ────────────────────────────────────────────────────────────
+
     /// <summary>
-    /// Products where the number of blueprints, not the number of slots, is the ceiling.
+    /// Products whose blueprint count is the ceiling on how fast they can be made.
     ///
     /// <para><b>⚠️ An original runs one job at a time.</b> Everything else in the tool treats
-    /// owning a BPO as owning the ability to build the thing — which is true of the recipe and
-    /// false of the throughput. Two fuel block originals is two concurrent jobs however many
-    /// slots and however much material are standing by, and no amount of either fixes it.</para>
-    ///
-    /// <para>Counted against what the worklist wants to run right now, plus what is already
-    /// installed: a print locked in a live job is owned but not available, and the gap between
-    /// those two is exactly the thing to buy.</para>
+    /// owning a BPO as owning the ability to build the thing — true of the recipe, false of the
+    /// throughput. One Thanatos original is one hull a cycle however many slots are free; a
+    /// second doubles it, and halves the time on any order of ten.</para>
     /// </summary>
-    public async Task<List<PrintPressure>> PrintPressureAsync(
-        IReadOnlyList<WorklistItem> items, CancellationToken ct = default)
+    public async Task<List<ItemBandwidth>> BlueprintBandwidthAsync(CancellationToken ct = default)
     {
         var owned  = await assignment.PrintOwnershipAsync(settings.IncludeNonPersonalCorps, ct);
-        var prints = (await blueprints.LoadAllAsync(ct)).Where(owned.Owns).ToList();
+        var prints = (await blueprints.LoadAllAsync(ct))
+            .Where(owned.Owns).Where(p => p.IsOriginal).ToList();
         if (prints.Count == 0) return [];
-
-        // Jobs the worklist is asking for, by product. A blocked one counts: it is work that
-        // wants a print as much as a startable one does, and often it is blocked FOR the print.
-        var wanted = items
-            .Where(i => i.Kind == WorklistKind.Job && i.TypeId > 0)
-            .GroupBy(i => i.TypeId)
-            .ToDictionary(g => g.Key, g => g.Count());
-        if (wanted.Count == 0) return [];
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        var ids = wanted.Keys.ToList();
-        var byProduct = await db.SdeBlueprintProducts.AsNoTracking()
+        var since = DateTimeOffset.UtcNow.AddDays(-WindowDays);
+
+        // What has actually been made, and how long a run of it takes here. Per RUN, so a ten-run
+        // job and a one-run job of the same thing agree about the cycle.
+        var runs = await db.EsiIndustryJobs.AsNoTracking()
+            .Where(j => j.StartDate >= since && j.Runs > 0 && j.ProductTypeId != null
+                     && (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11))
+            .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value, j.Runs, j.Duration })
+            .ToListAsync(ct);
+        if (runs.Count == 0) return [];
+
+        var byBlueprint = runs
+            .GroupBy(j => j.BlueprintTypeId)
+            .ToDictionary(
+                g => g.Key,
+                g => (ProductTypeId: g.First().ProductTypeId,
+                      CycleDays:     g.Average(j => (double)j.Duration / j.Runs) / 86400.0,
+                      Runs:          g.Sum(j => (long)j.Runs)));
+
+        var productIds = byBlueprint.Values.Select(v => v.ProductTypeId).Distinct().ToList();
+
+        var perRun = await db.SdeBlueprintProducts.AsNoTracking()
             .Where(p => (p.Activity == "manufacturing" || p.Activity == "reaction")
-                     && ids.Contains(p.ProductTypeId))
-            .ToDictionaryAsync(p => p.ProductTypeId, p => p.TypeId, ct);
+                     && productIds.Contains(p.ProductTypeId))
+            .ToDictionaryAsync(p => p.ProductTypeId, p => Math.Max(1, p.Quantity), ct);
 
-        var result = new List<PrintPressure>();
+        var names = await db.SdeTypes.AsNoTracking()
+            .Where(t => productIds.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
-        foreach (var (typeId, jobs) in wanted)
+        var result = new List<ItemBandwidth>();
+
+        foreach (var (bpTypeId, made) in byBlueprint)
         {
-            if (!byProduct.TryGetValue(typeId, out var bpTypeId)) continue;
-
             var mine = prints.Where(p => p.TypeId == bpTypeId).ToList();
-            if (mine.Count == 0) continue;                       // nothing owned is a different problem
+            if (mine.Count == 0 || made.CycleDays <= 0) continue;   // built from copies, or unmeasurable
 
-            // ⚠️ Originals only. A copy is consumed by the job it runs, so a stack of copies is
-            // throughput a purchase already paid for; an original is the reusable thing whose
-            // count is a standing limit.
-            var originals = mine.Where(p => p.IsOriginal).ToList();
-            if (originals.Count == 0) continue;
+            var units = perRun.GetValueOrDefault(made.ProductTypeId, 1);
 
-            var busy  = originals.Count(p => p.LockedInJob);
-            var idle  = originals.Count - busy;
-
-            // Not short unless the work outruns the prints. A single original covering a single
-            // job is a pipeline working exactly as intended.
-            if (jobs <= originals.Count) continue;
-
-            result.Add(new PrintPressure(
-                typeId,
-                items.First(i => i.TypeId == typeId).TypeName,
-                jobs,
-                originals.Count,
-                busy,
-                idle));
+            result.Add(new ItemBandwidth(
+                made.ProductTypeId,
+                names.GetValueOrDefault(made.ProductTypeId, $"Type {made.ProductTypeId}"),
+                made.CycleDays,
+                mine.Count,
+                mine.Count(p => p.LockedInJob),
+                made.Runs * units / (double)WindowDays,
+                units,
+                WindowDays));
         }
 
-        return result.OrderByDescending(p => p.Short).ThenBy(p => p.ProductName).ToList();
+        // Worst cover first: the item whose prints meet the least of its own demand rate is where
+        // another original buys the most.
+        return result
+            .Where(r => r.Short > 0)
+            .OrderBy(r => r.CoverPercent)
+            .ThenByDescending(r => r.MadePerDay)
+            .ToList();
     }
 
     /// <summary>A few names and their numbers, so a total can be checked against something.</summary>

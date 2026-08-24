@@ -906,7 +906,7 @@
               <TextBlock Text="SLOTS" FontSize="10" FontWeight="SemiBold"
                          Foreground="#555566" LetterSpacing="1"/>
               <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
-                         Text="A pool at 100% is only a bottleneck when something is queued behind it. Each remedy is quantified against what is running now, so buying capacity can be weighed against training it."/>
+                         Text="Slots are bandwidth, not a shopping list. A queue is work that piled up while throughput sat under demand, so each remedy is measured by what it does to the time needed to catch up. Rates come from the last 90 days of job history, so they already carry the structures and skills in use."/>
 
               <ItemsControl ItemsSource="{Binding SlotPressure}">
                 <ItemsControl.ItemTemplate>
@@ -946,8 +946,8 @@
                             <TextBlock Text="{Binding Blocked}" FontSize="12" Foreground="#c85a5a"/>
                           </StackPanel>
                           <StackPanel Grid.Column="5" Spacing="1">
-                            <TextBlock Text="Slots to clear it" FontSize="9" Foreground="#555566"/>
-                            <TextBlock Text="{Binding Needed}" FontSize="12" Foreground="#c8a84b"/>
+                            <TextBlock Text="Days to catch up" FontSize="9" Foreground="#555566"/>
+                            <TextBlock Text="{Binding ClearDays}" FontSize="12" Foreground="#c8a84b"/>
                             <!-- kept -->
                           </StackPanel>
                         </Grid>
@@ -955,12 +955,12 @@
                         <ItemsControl ItemsSource="{Binding Remedies}">
                           <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="wl:SlotRemedy">
-                              <Grid ColumnDefinitions="330,110,150,*" Margin="0 2">
+                              <Grid ColumnDefinitions="320,110,230,*" Margin="0 2">
                                 <TextBlock Grid.Column="0" Text="{Binding Action}" FontSize="11"
                                            Foreground="#c8c8d8" TextWrapping="Wrap" Margin="0 0 10 0"/>
                                 <TextBlock Grid.Column="1" Text="{Binding Gain}" FontSize="11"
                                            Foreground="#5599aa" HorizontalAlignment="Left"/>
-                                <TextBlock Grid.Column="2" Text="{Binding Covers}" FontSize="10"
+                                <TextBlock Grid.Column="2" Text="{Binding Effect}" FontSize="10"
                                            Foreground="#8a8a99" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Column="3" Text="{Binding Detail}" FontSize="10"
                                            Foreground="#666677" TextWrapping="Wrap"/>
@@ -981,7 +981,7 @@
               <TextBlock Text="BLUEPRINTS" FontSize="10" FontWeight="SemiBold"
                          Foreground="#555566" LetterSpacing="1"/>
               <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
-                         Text="An original runs one job at a time. Two fuel block BPOs is two concurrent jobs however many slots are free and however much material is standing by — and no amount of either fixes it."/>
+                         Text="An original runs one job at a time, so one Thanatos print is one hull a cycle and a second halves the time on any order. Rated against what each item has actually been consumed at over 90 days, not against this morning's queue — a part used three times as often as its neighbours needs three times the prints, and no snapshot will say so."/>
 
               <DataGrid ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11" MaxHeight="320"
@@ -1001,11 +1001,21 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Jobs wanted" Binding="{Binding JobsWanted}" Width="100"/>
-                  <DataGridTextColumn Header="Originals"   Binding="{Binding Originals}"  Width="90"/>
-                  <DataGridTextColumn Header="Installed"   Binding="{Binding Busy}"       Width="90"/>
-                  <DataGridTextColumn Header="Short"       Binding="{Binding Short}"      Width="70"/>
-                  <DataGridTextColumn Header="Suggestion"  Binding="{Binding Advice}"     Width="*"/>
+                  <DataGridTextColumn Header="Cycle"     Binding="{Binding Cycle}"    Width="70"/>
+                  <DataGridTextColumn Header="Prints"    Binding="{Binding Prints}"   Width="60"/>
+                  <DataGridTextColumn Header="Installed" Binding="{Binding Busy}"     Width="75"/>
+                  <DataGridTextColumn Header="Can make"  Binding="{Binding Capacity}" Width="85"/>
+                  <DataGridTextColumn Header="Used"      Binding="{Binding Demand}"   Width="85"/>
+                  <DataGridTemplateColumn Header="Cover" Width="65">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:PrintPressureRowVm">
+                        <TextBlock Text="{Binding Cover}" Foreground="{Binding CoverColor}"
+                                   VerticalAlignment="Center"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Short"      Binding="{Binding Short}"  Width="60"/>
+                  <DataGridTextColumn Header="Suggestion" Binding="{Binding Advice}" Width="*"/>
                 </DataGrid.Columns>
               </DataGrid>
             </StackPanel>

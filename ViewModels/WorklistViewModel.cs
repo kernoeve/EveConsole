@@ -380,31 +380,59 @@ public sealed class SlotPressureRowVm(SlotPressure p)
     public bool IsBottleneck => p.IsBottleneck;
 
     /// <summary>
-    /// ⚠️ Says the size of the queue, not that the pool is full. Ten free slots against two
-    /// hundred waiting jobs is a bottleneck, and a headline that led with the ten would read as
-    /// though there were room.
+    /// ⚠️ Leads with time, not with free slots. Ten idle slots against two hundred waiting jobs
+    /// is a bottleneck, and a headline that opened with the ten would read as though there were
+    /// room — while "eleven weeks to catch up" is the fact somebody can act on.
     /// </summary>
     public string Headline => p.IsBottleneck
-        ? $"{p.Waiting:N0} job(s) could start today and cannot — "
-        + $"{p.Needed:N0} more slot(s) would clear the queue, against {p.Capacity:N0} running now."
+        ? $"{p.Waiting:N0} job(s) queued — {p.ClearDays:N0} day(s) to work through at "
+        + $"{p.Capacity:N0} slot(s), which have been turning out {p.ThroughputPerDay:N1} job(s) a day."
         : p.Capacity == 0
             ? $"No character is configured to run {p.Pool.ToString().ToLowerInvariant()} jobs."
             : $"Nothing is queued behind this pool. {p.Free:N0} free of {p.Capacity:N0}.";
 
-    public string Needed => p.Needed > 0 ? p.Needed.ToString("N0") : "";
+    /// <summary>
+    /// How long the queue takes to work off at the bandwidth on hand.
+    ///
+    /// <para>⚠️ Days, not slots. A backlog is not a shopping list — five hundred waiting jobs
+    /// accumulated while throughput sat under demand, and the question is how long catching up
+    /// takes, not how many slots would start everything at once.</para>
+    /// </summary>
+    public string ClearDays => !p.IsBottleneck ? ""
+                             : double.IsInfinity(p.ClearDays) ? "—"
+                             : $"{p.ClearDays:N0}d";
+
+    public string Throughput => p.JobsDone == 0 ? ""
+                              : $"{p.ThroughputPerDay:N1}/d";
+
+    public string AvgJob => p.AvgJobDays <= 0 ? ""
+                          : p.AvgJobDays >= 1 ? $"{p.AvgJobDays:N1}d" : $"{p.AvgJobDays * 24:N1}h";
 
     public IReadOnlyList<SlotRemedy> Remedies => p.Remedies;
 }
 
-/// <summary>A product whose blueprint count is the ceiling.</summary>
-public sealed class PrintPressureRowVm(PrintPressure p)
+/// <summary>
+/// A product whose blueprint count is the ceiling on how fast it can be made.
+///
+/// <para>Everything here is a rate. "Two prints" says nothing on its own; "two prints turning out
+/// 0.28 a day against 0.81 a day consumed" says what to buy.</para>
+/// </summary>
+public sealed class PrintPressureRowVm(ItemBandwidth p)
 {
-    public string Product    => p.ProductName;
-    public string JobsWanted => p.JobsWanted.ToString("N0");
-    public string Originals  => p.Originals.ToString("N0");
-    public string Busy       => p.Busy > 0 ? p.Busy.ToString("N0") : "";
-    public string Short      => p.Short.ToString("N0");
-    public string Advice     => p.Advice;
+    public string Product   => p.ProductName;
+    public string Cycle     => p.CycleDays >= 1 ? $"{p.CycleDays:N1}d" : $"{p.CycleDays * 24:N1}h";
+    public string Prints    => p.Prints.ToString("N0");
+    public string Busy      => p.Busy > 0 ? p.Busy.ToString("N0") : "";
+    public string Capacity  => $"{p.CapacityPerDay:N2}/d";
+    public string Demand    => $"{p.MadePerDay:N2}/d";
+    public string Cover     => $"{p.CoverPercent:N0}%";
+    public string Short     => p.Short.ToString("N0");
+    public string Advice    => p.Advice;
+
+    /// <summary>Red where the prints cannot meet half the rate the item is consumed at.</summary>
+    public string CoverColor => p.CoverPercent < 50 ? "#c85a5a"
+                             : p.CoverPercent < 100 ? "#c8a84b"
+                             : "#666677";
 
     public bool HasLink => p.ProductTypeId > 0;
     public void Open()  => p.OpenItem();
@@ -599,7 +627,7 @@ public class WorklistViewModel : ReactiveObject
             var items = Rows.Select(r => r.Item).ToList();
 
             var slots  = await _bottlenecks.SlotPressureAsync(items);
-            var prints = await _bottlenecks.PrintPressureAsync(items);
+            var prints = await _bottlenecks.BlueprintBandwidthAsync();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
