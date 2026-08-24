@@ -301,6 +301,55 @@ public class StoresViewModel : ReactiveObject
     /// other stores are set to apply.</summary>
     public ObservableCollection<string> KnownLabels => _knownLabels;
 
+    private bool _useCustomUsage;
+    public bool UseCustomUsage
+    {
+        get => _useCustomUsage;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _useCustomUsage, value);
+            _ = SaveAsync(s => s.UseCustomUsage = value);
+
+            // Turning it on with nothing written puts the stock message in the box. Starting from
+            // an empty field means rebuilding the markup, the links and the command list from
+            // nothing, when the point is usually to change two paragraphs of it.
+            if (value && CustomUsage.Trim().Length == 0) CustomUsage = DefaultUsageText();
+        }
+    }
+
+    private string _customUsage = "";
+    public string CustomUsage
+    {
+        get => _customUsage;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _customUsage, value);
+            _ = SaveAsync(s => s.CustomUsage = value ?? "");
+        }
+    }
+
+    /// <summary>Puts the stock message back in the box, discarding what was written.</summary>
+    public void ResetUsage() => CustomUsage = DefaultUsageText();
+
+    /// <summary>
+    /// The stock usage message for the selected store, exactly as a buyer would receive it.
+    ///
+    /// <para>⚠️ Built from the real generator rather than a copy kept here. Two versions of the
+    /// same message drift, and the one in the box would quietly become the one nobody sends.</para>
+    /// </summary>
+    private string DefaultUsageText()
+    {
+        if (SelectedStore is not StoreRowVm row) return "";
+
+        return StoreMailService.DefaultUsage(new Store
+        {
+            Id            = row.Id,
+            Name          = StoreName,
+            MessageHeader = MessageHeader,
+            MessageFooter = MessageFooter,
+        });
+    }
+
     private string _storeOrderLabels = "";
     public string StoreOrderLabels
     {
@@ -588,6 +637,15 @@ public class StoresViewModel : ReactiveObject
                     AutoEstimate     = store.AutoEstimateInStock;
                     AutoEstimateDays = store.AutoEstimateDays;
                     StoreOrderLabels   = store.OrderLabels;
+                    UseCustomUsage     = store.UseCustomUsage;
+
+                    // ⚠️ The stock text when nothing is saved, so the box always shows what this
+                    // store actually sends. Assigned after the flag, since setting the flag is
+                    // what would otherwise fill it — and inside the save-suppressed block, so
+                    // merely selecting a store does not write anything back.
+                    CustomUsage        = store.CustomUsage.Length > 0
+                                       ? store.CustomUsage
+                                       : StoreMailService.DefaultUsage(store);
                     MessageHeader      = store.MessageHeader;
                     MessageHeaderColor = store.MessageHeaderColor;
                     MessageFooter      = store.MessageFooter;

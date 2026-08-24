@@ -439,6 +439,18 @@ public class StoreMailService(
     /// a reason to doubt both.</para>
     /// </summary>
     private static string Usage(Store store) =>
+        store.UseCustomUsage && store.CustomUsage.Trim().Length > 0
+            ? store.CustomUsage
+            : DefaultUsage(store);
+
+    /// <summary>
+    /// The stock explanation, and the starting point for a store that wants its own.
+    ///
+    /// <para>⚠️ Public so the Stores screen can put it in the box before anyone edits it. Writing
+    /// a usage message from an empty field means rebuilding the markup, the links and the command
+    /// list from nothing; starting from this means changing the parts that do not apply.</para>
+    /// </summary>
+    public static string DefaultUsage(Store store) =>
         Head($"{store.Name} — how to order") +
 
         "Put one of these words in the mail <b>subject</b>." + Gap +
