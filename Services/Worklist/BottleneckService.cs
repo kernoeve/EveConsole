@@ -395,11 +395,20 @@ public class BottleneckService(
                       BusyDays:      g.Sum(j => (double)j.Duration) / 86400.0));
 
         var productIds = byBlueprint.Values.Select(v => v.ProductTypeId).Distinct().ToList();
+        var bpIds      = byBlueprint.Keys.ToList();
 
-        var perRun = await db.SdeBlueprintProducts.AsNoTracking()
-            .Where(p => (p.Activity == "manufacturing" || p.Activity == "reaction")
-                     && productIds.Contains(p.ProductTypeId))
-            .ToDictionaryAsync(p => p.ProductTypeId, p => Math.Max(1, p.Quantity), ct);
+        // ⚠️ Keyed by BLUEPRINT, not by product. A handful of items have more than one recipe —
+        // Tungsten Carbide is made by its own formula at 10,000 a run and by a leftover "Test
+        // Reaction Blueprint" at 20 — so keying on the product both threw on the duplicate and,
+        // had it not, would have priced a run at a five-hundredth of its real output. The output
+        // quantity belongs to the blueprint that produces it and to nothing else.
+        var perRun = (await db.SdeBlueprintProducts.AsNoTracking()
+                .Where(p => (p.Activity == "manufacturing" || p.Activity == "reaction")
+                         && bpIds.Contains(p.TypeId))
+                .Select(p => new { p.TypeId, p.Quantity })
+                .ToListAsync(ct))
+            .GroupBy(p => p.TypeId)
+            .ToDictionary(g => g.Key, g => Math.Max(1, g.Max(p => p.Quantity)));
 
         var names = await db.SdeTypes.AsNoTracking()
             .Where(t => productIds.Contains(t.TypeId))
@@ -412,7 +421,7 @@ public class BottleneckService(
             var mine = prints.Where(p => p.TypeId == bpTypeId).ToList();
             if (mine.Count == 0 || made.CycleDays <= 0) continue;   // built from copies, or unmeasurable
 
-            var units = perRun.GetValueOrDefault(made.ProductTypeId, 1);
+            var units = perRun.GetValueOrDefault(bpTypeId, 1);
 
             result.Add(new ItemBandwidth(
                 made.ProductTypeId,
