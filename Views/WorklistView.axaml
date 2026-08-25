@@ -594,13 +594,21 @@
           <DataGrid.Columns>
             <!-- ⚠️ A dash rather than an empty cell when nothing itemised the need. Blank reads
                  as "the feature is broken"; a dash says "asked, and there is nothing to show". -->
-            <DataGridTemplateColumn Header="Why" Width="34" CanUserSort="False">
+            <DataGridTemplateColumn Header="Why" Width="34" MinWidth="34" CanUserSort="False">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
-                    <Button Click="OnNeedToggle" Background="Transparent" BorderThickness="0"
-                            Padding="2 0" FontSize="28" Height="20" MinHeight="0"
-                            VerticalContentAlignment="Center" Foreground="#8a99a8"
+                    <!-- ⚠️ Sized like the Item Contention expander, box and all. Capping the
+                         height at 20 to stop the bigger glyph dragging every row taller cropped
+                         the glyph instead: the line box the character is drawn in is taller than
+                         its ink, so clipping the box clips the triangle. A square button with no
+                         padding holds it whole. -->
+                    <Button Classes="expander" Click="OnNeedToggle"
+                            Background="Transparent" BorderThickness="0" Cursor="Hand"
+                            Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
+                            FontSize="20" Foreground="#8a99a8"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
                             ToolTip.Tip="What is asking for this"/>
                     <TextBlock Text="—" FontSize="12" Foreground="#3f3f4d" Margin="6 0"
@@ -768,13 +776,21 @@
           <DataGrid.Columns>
             <!-- ⚠️ A dash rather than an empty cell when nothing itemised the need. Blank reads
                  as "the feature is broken"; a dash says "asked, and there is nothing to show". -->
-            <DataGridTemplateColumn Header="Why" Width="34" CanUserSort="False">
+            <DataGridTemplateColumn Header="Why" Width="34" MinWidth="34" CanUserSort="False">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
-                    <Button Click="OnNeedToggle" Background="Transparent" BorderThickness="0"
-                            Padding="2 0" FontSize="28" Height="20" MinHeight="0"
-                            VerticalContentAlignment="Center" Foreground="#8a99a8"
+                    <!-- ⚠️ Sized like the Item Contention expander, box and all. Capping the
+                         height at 20 to stop the bigger glyph dragging every row taller cropped
+                         the glyph instead: the line box the character is drawn in is taller than
+                         its ink, so clipping the box clips the triangle. A square button with no
+                         padding holds it whole. -->
+                    <Button Classes="expander" Click="OnNeedToggle"
+                            Background="Transparent" BorderThickness="0" Cursor="Hand"
+                            Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
+                            FontSize="20" Foreground="#8a99a8"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
                             ToolTip.Tip="What is asking for this"/>
                     <TextBlock Text="—" FontSize="12" Foreground="#3f3f4d" Margin="6 0"
