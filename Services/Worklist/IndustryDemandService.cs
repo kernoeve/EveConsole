@@ -33,7 +33,24 @@ public sealed record BuildDemand(int TypeId, long Units, int Priority, List<stri
     public double CoverageWith(long planned) =>
         ShelfLevel <= 0 ? 100 : 100.0 * (ShelfHave + planned) / ShelfLevel;
 
-    public string Head => string.Join(" + ", Reasons);
+    /// <summary>
+    /// How many other items downstream are waiting on this one.
+    ///
+    /// <para>⚠️ Separates jobs that inherited the same priority. An isotropic feeding one blocked
+    /// cell and an isotropic feeding the whole capital line inherit the same urgency from the
+    /// order at the top, and when a reaction slot frees up the tie used to break on coverage or
+    /// on type id. This is what should decide it: how much stops moving if this does not run.</para>
+    /// </summary>
+    public int Blocks { get; init; }
+
+    /// <summary>
+    /// Why this is wanted — and, where it matters, how much waits behind it.
+    ///
+    /// <para>The blocking count is on the row rather than only in the sort, because a job that
+    /// jumps the queue without saying why reads as the list being arbitrary.</para>
+    /// </summary>
+    public string Head => string.Join(" + ", Reasons)
+                        + (Blocks > 1 ? $" [{Blocks:N0} item(s) downstream wait on this]" : "");
 
     /// <summary>
     /// The gross the three parts add up to, which is not <see cref="Units"/> — that is the net
@@ -132,6 +149,21 @@ public class IndustryDemandService(
 
         /// <summary>Stock and in-flight production, counted once however many demands there are.</summary>
         public long Have;
+
+        /// <summary>
+        /// Every item downstream that waits on this one, transitively.
+        ///
+        /// <para><b>⚠️ Priority is inherited but never accumulated, which is what this fixes.</b> A
+        /// child takes the highest priority among its parents, so an isotropic feeding one blocked
+        /// cell and an isotropic feeding the whole capital line score identically — and when a
+        /// reaction slot opens, the tie breaks on coverage or on type id, which is to say on
+        /// nothing. How much stops moving if this does not get made is the thing that should
+        /// separate them.</para>
+        ///
+        /// <para>A set rather than a count because the graph has diamonds: two parents can both
+        /// reach the same grandchild, and adding twice would say the chain is wider than it is.</para>
+        /// </summary>
+        public readonly HashSet<int> Dependents = [];
 
         /// <summary>True when a rule's threshold has tripped, or something is waiting on it. A
         /// level sitting comfortably full raises nothing; a level about to be eaten does.</summary>
@@ -305,6 +337,13 @@ public class IndustryDemandService(
                 child.Priority  = Math.Max(child.Priority, g.Priority);
                 child.Reasons.Add($"{qty:N0} for {name}.");
 
+                // What waits on this: the parent, and everything already waiting on the parent.
+                // The queue reaches parents before children, so by the time a child is written the
+                // parent's own set is complete — except across a cycle, where it is whatever was
+                // known at the time. Under-counting a cycle is the right way to be wrong here.
+                child.Dependents.Add(typeId);
+                child.Dependents.UnionWith(g.Dependents);
+
                 pending.Enqueue(m.MaterialTypeId);
             }
         }
@@ -328,7 +367,10 @@ public class IndustryDemandService(
                 typeId, units, g.Priority,
                 [.. Summarise(g, have)],
                 g.OrderUnits, g.Level, g.ParentUnits,
-                ShelfLevel: g.Level, ShelfHave: have);
+                ShelfLevel: g.Level, ShelfHave: have)
+            {
+                Blocks = g.Dependents.Count,
+            };
         }
 
         return result;

@@ -252,6 +252,13 @@ public class IndustryJobGenerator(
             var state = queue
                 .Where(s => !s.Done)
                 .OrderByDescending(s => s.Demand.Priority)
+                // ⚠️ Before coverage. Priority is inherited from whatever is waiting at the top of
+                // the chain, so everything feeding one urgent order arrives here tied — and the
+                // isotropic that unblocks the whole capital line scored the same as one feeding a
+                // single item. How much stops moving without this is the better question than how
+                // empty its own shelf happens to be, and it is the one a freed reaction slot is
+                // really asking.
+                .ThenByDescending(s => s.Demand.Blocks)
                 .ThenBy(s => s.Demand.CoverageWith(s.Planned))
                 .ThenBy(s => s.Demand.TypeId)
                 .FirstOrDefault();
