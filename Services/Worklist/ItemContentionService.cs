@@ -339,10 +339,8 @@ public class ItemContentionService(
         //
         // Kept as the tasks themselves rather than counted here: the walk has to follow what
         // each stopped task would have produced, so it needs the rows, not a number.
-        var stoppedBy = items
-            .SelectMany(i => i.Shortages.Select(sh => (Item: i, Short: sh)))
-            .GroupBy(x => x.Short.TypeId)
-            .ToDictionary(g => g.Key, g => g.Select(x => (x.Item, x.Short)).ToList());
+        var stoppedBy = TaskChain.Index(items);
+
 
         var blockedBy = short_
             .GroupBy(x => x.Short.TypeId)
@@ -395,42 +393,6 @@ public class ItemContentionService(
                 .ToListAsync(ct))
             .ToHashSet();
 
-        // Everything one shortage holds up.
-        //
-        // ⚠️ Over blocked TASKS, not over the recipe tree. Counting the types that could consume
-        // this reported a Leviathan as downstream of it whether or not anyone was building one —
-        // true about EVE, useless about the queue. A task stopped for want of this cannot produce
-        // its own output, so whatever is stopped for want of THAT is stopped by this too, and the
-        // walk carries on until nothing new is reached.
-        List<ShortageTask> Stalled(int typeId)
-        {
-            var found = new List<ShortageTask>();
-            var tasks = new HashSet<string>();
-            var types = new HashSet<int> { typeId };
-            var queue = new Queue<(int Type, int Hop)>();
-            queue.Enqueue((typeId, 0));
-
-            while (queue.Count > 0)
-            {
-                var (type, hop) = queue.Dequeue();
-                if (!stoppedBy.TryGetValue(type, out var stopped)) continue;
-
-                foreach (var (task, sh) in stopped)
-                {
-                    if (!tasks.Add(task.Key)) continue;
-
-                    found.Add(new ShortageTask(
-                        "Stopped", hop, task.TypeName, task.Title,
-                        task.Readiness.ToString(),
-                        $"short {sh.Short:N0} of {sh.Wanted:N0} {sh.TypeName}"
-                      + (sh.MustBuy ? "" : " (owned, but not where the job is)")));
-
-                    // What this task would have made is now short for whatever eats it.
-                    if (task.TypeId > 0 && types.Add(task.TypeId)) queue.Enqueue((task.TypeId, hop + 1));
-                }
-            }
-            return found;
-        }
 
         // Tasks to make the item itself, by whether the player can act on them.
         var makeTasks = items
@@ -466,7 +428,12 @@ public class ItemContentionService(
         var running = runningJobs.ToDictionary(kv => kv.Key, kv => kv.Value.Count);
 
         return blockedBy
-            .Select(kv => new ItemShortage(
+            .Select(kv =>
+            {
+                // Walked once per row: the count and the list are the same walk.
+                var chain = TaskChain.Stalled(stoppedBy, kv.Key);
+
+                return new ItemShortage(
                 kv.Key,
                 kv.Value.Name,
                 used.GetValueOrDefault(kv.Key) / WindowDays,
@@ -474,7 +441,7 @@ public class ItemContentionService(
                 level.GetValueOrDefault(kv.Key),
                 onHand.GetValueOrDefault(kv.Key),
                 kv.Value.Jobs,
-                Stalled(kv.Key).Count,
+                chain.Count,
                 MustBuy: true,
                 Buildable: buildable.Contains(kv.Key),
                 WindowDays,
@@ -487,9 +454,10 @@ public class ItemContentionService(
                 makes.GetValueOrDefault(kv.Key).Blocked,
                 // Stopped work first and nearest first, then whatever is refilling it: the row
                 // reads top to bottom as the question does.
-                [.. Stalled(kv.Key).OrderBy(t => t.Hop),
+                [.. chain,
                     .. runningJobs.GetValueOrDefault(kv.Key) ?? [],
-                    .. makeTasks.GetValueOrDefault(kv.Key) ?? []]))
+                    .. makeTasks.GetValueOrDefault(kv.Key) ?? []]);
+            })
             // ⚠️ Stopped work first, then how much waits behind it. The harm is idle slots and
             // stalled jobs, not a ratio — a deficit with stock still on the shelf costs nothing
             // yet, and an empty shelf with forty jobs behind it is costing everything. Sorting on

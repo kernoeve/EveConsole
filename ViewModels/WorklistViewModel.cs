@@ -443,7 +443,8 @@ public sealed class ShortageTaskRowVm(ShortageTask t)
 
     /// <summary>Where it sits: directly short of the material, behind something that is, or
     /// making the material itself.</summary>
-    public string Role => t.Role == "Making" ? "makes it"
+    public string Role => t.Role == "Using"  ? "uses it"
+                        : t.Role == "Making" ? "makes it"
                         : t.Hop == 0         ? "needs it"
                         :                      $"behind ({t.Hop})";
 
@@ -562,8 +563,34 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
 /// <para>Everything here is a rate. "Two prints" says nothing on its own; "two prints turning out
 /// 0.28 a day against 0.81 a day consumed" says what to buy.</para>
 /// </summary>
-public sealed class PrintPressureRowVm(ItemBandwidth p)
+public sealed class PrintPressureRowVm(ItemBandwidth p) : ReactiveObject
 {
+    private bool _isExpanded;
+
+    /// <summary>Whether the task list is open. On the item, not the row, so the glyph
+    /// survives the grid recycling rows during a scroll.</summary>
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set { this.RaiseAndSetIfChanged(ref _isExpanded, value); this.RaisePropertyChanged(nameof(Glyph)); }
+    }
+
+    public string Glyph => !HasTasks ? "" : _isExpanded ? "▾" : "▸";
+
+    /// <summary>
+    /// Work waiting on what this blueprint makes — the same walk Item Contention uses,
+    /// seeded from the output rather than from a missing material.
+    ///
+    /// <para>Distinct from Blocked beside it, which counts only jobs held up by the print
+    /// itself. A blueprint can be uncontended and still have a queue behind its output.</para>
+    /// </summary>
+    public string Blocking => p.StalledTasks > 0 ? p.StalledTasks.ToString("N0") : "";
+
+    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
+        p.Tasks.Select(t => new ShortageTaskRowVm(t)).ToList();
+
+    public bool HasTasks => p.Tasks.Count > 0;
+
     public string Product   => p.ProductName;
     public string Cycle     => p.CycleDays >= 1 ? $"{p.CycleDays:N1}d" : $"{p.CycleDays * 24:N1}h";
     public string Prints    => p.Prints.ToString("N0");

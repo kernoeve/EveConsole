@@ -1157,10 +1157,58 @@
                          Text="A blueprint bottleneck is having to WAIT for a copy to free up — not running one a lot. 'All busy' is the share of the last 90 days when every BPO you own was occupied at once, counting research and copying as well as building, since a print locked in a copy job is just as unavailable. That is the only figure that separates a real constraint from heavy use: a formula run flat out across eight formulas has never blocked anything, and buying the eighth is what fixed it. Listed from 5% up, or 15% for single-BPO items — with one print 'every copy busy' just means 'the print was busy', so low figures there are light use rather than contention. 'Used' is context only. 'Blocked now' counts jobs held up by the blueprint ALONE — if a product is also short of material, more prints would change nothing and it counts zero."/>
             </StackPanel>
 
-              <DataGrid Grid.Row="1" ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
+              <DataGrid Grid.Row="1" ItemsSource="{Binding PrintPressures}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                <DataGrid.Resources>
+                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
+                </DataGrid.Resources>
+
+                <!-- The tasks the counts are made of, same shape as Item Contention. -->
+                <DataGrid.RowDetailsTemplate>
+                  <DataTemplate x:DataType="vm:PrintPressureRowVm">
+                    <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
+                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="560">
+                      <ItemsControl ItemsSource="{Binding Tasks}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ShortageTaskRowVm">
+                            <Grid ColumnDefinitions="90,70,230,*" Margin="0 1">
+                              <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
+                                         Foreground="#6e6e80" VerticalAlignment="Top" Margin="0 3 0 0"/>
+                              <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
+                                         Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
+                              <TextBlock Grid.Column="2" Text="{Binding Title}" FontSize="10"
+                                         Margin="{Binding Indent}" Foreground="#c8c8d8"
+                                         TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                              <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10"
+                                         Foreground="#8a8a99" VerticalAlignment="Center"/>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Border>
+                  </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+
                 <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="" Width="24" MinWidth="24"
+                                          CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:PrintPressureRowVm">
+                        <Button Classes="expander" Click="OnPrintToggle"
+                                IsVisible="{Binding HasTasks}"
+                                Content="{Binding Glyph}" FontSize="20"
+                                Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
+                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Cursor="Hand"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                ToolTip.Tip="Show the tasks behind these counts"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTemplateColumn Header="Product" Width="220">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
@@ -1170,7 +1218,7 @@
                             <TextBlock Text="{Binding Product}" Classes="linktext"/>
                           </Button>
                           <TextBlock Text="{Binding Product}" IsVisible="{Binding !HasLink}"
-                                     VerticalAlignment="Center"/>
+                                     VerticalAlignment="Top" Margin="0 3 0 0"/>
                         </Panel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -1185,7 +1233,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
                         <TextBlock Text="{Binding Cover}" Foreground="{Binding CoverColor}"
-                                   VerticalAlignment="Center"/>
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -1195,18 +1243,19 @@
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
                         <TextBlock Text="{Binding Trend}" Foreground="{Binding TrendColor}"
-                                   VerticalAlignment="Center"/>
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <DataGridTextColumn Header="+1 print" Binding="{Binding WithOneMore}" Width="85"/>
                   <DataGridTextColumn Header="Queued"  Binding="{Binding Wanted}"  Width="65"/>
                   <DataGridTextColumn Header="Blocked now" Binding="{Binding Blocked}" Width="95"/>
+                  <DataGridTextColumn Header="Blocking" Binding="{Binding Blocking}" Width="75"/>
                   <DataGridTemplateColumn Header="Pattern" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
                         <TextBlock Text="{Binding Pattern}" Foreground="{Binding PatternColor}"
-                                   VerticalAlignment="Center"/>
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>

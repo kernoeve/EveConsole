@@ -130,7 +130,19 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         vm.IsExpanded = row.AreDetailsVisible;
     }
 
+    /// <summary>Opens the tasks behind a BPO / Formula row's counts.</summary>
+    private void OnPrintToggle(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control control) return;
+        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
+        if (row.DataContext is not PrintPressureRowVm vm || !vm.HasTasks) return;
+
+        row.AreDetailsVisible = !row.AreDetailsVisible;
+        vm.IsExpanded = row.AreDetailsVisible;
+    }
+
     private void OnManifestToggle(object? sender, RoutedEventArgs e)
+
 
     {
         if (sender is not Control control) return;

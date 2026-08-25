@@ -104,7 +104,19 @@ public sealed record ItemBandwidth(
     /// ORIGINALS — so "every copy was busy" read as a statement about blueprint copies to
     /// anyone who plays the game, which is the opposite of what it measures.</para>
     /// </summary>
+    /// <summary>
+    /// Tasks held up by this blueprint's output, directly or behind something that is.
+    ///
+    /// <para>The same walk Item Contention uses, seeded from what this makes rather than from a
+    /// missing material — so the two tabs cannot disagree about how far a shortage reaches.</para>
+    /// </summary>
+    public IReadOnlyList<ShortageTask> Tasks { get; init; } = [];
+
+    /// <summary>How many of those there are, which is what the Blocking column shows.</summary>
+    public int StalledTasks { get; init; }
+
     public string Noun  => IsReaction ? "formula"  : "BPO";
+
     public string Nouns => IsReaction ? "formulas" : "BPOs";
 
     /// <summary>Units a day one print can turn out, running without a pause.</summary>
@@ -463,6 +475,17 @@ public class BottleneckService(
         // ⚠️ Blocked means blocked ON A BLUEPRINT, not blocked for any reason. A job held
         // up for want of minerals is no evidence that a print is short, and counting it as
         // such put a blueprint on this list whose two copies were both sitting free.
+        // The chain, indexed once for the whole pass.
+        var stoppedBy = TaskChain.Index(items);
+
+        // Tasks that would install this blueprint, by whether the player can act on them.
+        var usingIt = items
+            .Where(i => i.Kind == WorklistKind.Job && i.TypeId > 0)
+            .GroupBy(i => i.TypeId)
+            .ToDictionary(g => g.Key, g => g.Select(i => new ShortageTask(
+                "Using", -1, i.TypeName, i.Title, i.Readiness.ToString(),
+                i.BlockedBy.Length > 0 ? i.BlockedBy : "ready to install")).ToList());
+
         var wantedNow = items
             .Where(i => i.Kind == WorklistKind.Job && i.TypeId > 0)
             .GroupBy(i => i.TypeId)
@@ -566,6 +589,7 @@ public class BottleneckService(
             if (mine.Count == 0 || made.CycleDays <= 0) continue;   // built from copies, or unmeasurable
 
             var units = perRun.GetValueOrDefault(bpTypeId, 1);
+            var chain = TaskChain.Stalled(stoppedBy, made.ProductTypeId);
 
             result.Add(new ItemBandwidth(
                 made.ProductTypeId,
@@ -598,6 +622,13 @@ public class BottleneckService(
                                         occupied.GetValueOrDefault(bpTypeId, made.Jobs),
                                         mine.Count, recentSince, now) / RecentWindowDays,
                 RecentDays = RecentWindowDays,
+
+                // Everything waiting on what this blueprint makes, and the tasks that
+                // would install it. Both, because a print worth buying is one where the
+                // work is queued behind it AND there is something to install.
+                StalledTasks = chain.Count,
+                Tasks        = [.. chain,
+                                .. usingIt.GetValueOrDefault(made.ProductTypeId) ?? []],
             });
         }
 
@@ -621,6 +652,7 @@ public class BottleneckService(
                                                               : ListFloorPercent)
                      || r.BlockedNow > 0)
             .OrderByDescending(r => r.BlockedNow > 0)
+            .ThenByDescending(r => r.StalledTasks)
             .ThenByDescending(r => r.ContentionPercent)
             .ThenByDescending(r => r.WantedNow)
             .ToList();
