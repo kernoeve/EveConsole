@@ -94,8 +94,19 @@ public sealed record ItemBandwidth(
     int    UnitsPerRun,
     int    WindowDays,
     int    WantedNow,
-    int    BlockedNow)
+    int    BlockedNow,
+    bool   IsReaction = false)
 {
+    /// <summary>
+    /// What one of these is called.
+    ///
+    /// <para>⚠️ Never "copy". In EVE a copy is a BPC, and every figure here counts
+    /// ORIGINALS — so "every copy was busy" read as a statement about blueprint copies to
+    /// anyone who plays the game, which is the opposite of what it measures.</para>
+    /// </summary>
+    public string Noun  => IsReaction ? "formula"  : "BPO";
+    public string Nouns => IsReaction ? "formulas" : "BPOs";
+
     /// <summary>Units a day one print can turn out, running without a pause.</summary>
     public double PerPrintPerDay => CycleDays <= 0 ? 0 : UnitsPerRun / CycleDays;
 
@@ -214,37 +225,37 @@ public sealed record ItemBandwidth(
     public string Advice => Pattern switch
     {
         "Blocking" =>
-            $"Every copy was busy {ContentionPercent:N0}% of the last {WindowDays} days, and "
-          + $"{BlockedNow:N0} job(s) cannot start right now. Another copy takes the ceiling from "
+            $"Every {Noun} was busy {ContentionPercent:N0}% of the last {WindowDays} days, and "
+          + $"{BlockedNow:N0} job(s) cannot start right now. Another {Noun} takes the ceiling from "
           + $"{CapacityPerDay:N2} to {CeilingWithOneMore:N2}/day.",
 
         "Steady" =>
-            $"Every copy was busy {ContentionPercent:N0}% of the last {WindowDays} days with "
+            $"Every {Noun} was busy {ContentionPercent:N0}% of the last {WindowDays} days with "
           + $"{WantedNow:N0} job(s) queued — wanting another means waiting for one to free up. "
-          + $"A further copy takes the ceiling to {CeilingWithOneMore:N2}/day.",
+          + $"A further {Noun} takes the ceiling to {CeilingWithOneMore:N2}/day.",
 
         "Contended" =>
-            $"Every copy was busy {ContentionPercent:N0}% of the last {WindowDays} days, but "
+            $"Every {Noun} was busy {ContentionPercent:N0}% of the last {WindowDays} days, but "
           + "nothing is queued for it today. Worth watching rather than buying for.",
 
         "Blocked" =>
-            $"{BlockedNow:N0} job(s) cannot start, though the copies on hand have rarely all been "
-          + $"busy at once ({ContentionPercent:N0}%). Check what is really missing before buying a "
-          + "print — this looks like something other than the blueprint.",
+            $"{BlockedNow:N0} job(s) cannot start, though the {Nouns} on hand have rarely all been "
+          + $"busy at once ({ContentionPercent:N0}%). Check what is really missing before buying "
+          + $"another {Noun} — this looks like something other than the blueprint.",
 
         "Surge" =>
-            $"{WantedNow:N0} job(s) want it now, but every copy was free for almost all of the "
-          + $"last {WindowDays} days. A one-off rather than a standing need — a copy may serve "
+            $"{WantedNow:N0} job(s) want it now, but every {Noun} was free for almost all of the "
+          + $"last {WindowDays} days. A one-off rather than a standing need — a BPC may serve "
           + "better than an original.",
 
         "Minor" =>
-            $"Every copy was busy {ContentionPercent:N0}% of the last {WindowDays} days — real, "
-          + "but outside the busiest tenth here, and nothing is queued for it. Another copy "
+            $"Every {Noun} was busy {ContentionPercent:N0}% of the last {WindowDays} days — real, "
+          + $"but outside the busiest tenth here, and nothing is queued for it. Another {Noun} "
           + $"would take the ceiling to {CeilingWithOneMore:N2}/day.",
 
         _ =>
-            $"{WantedNow:N0} job(s) queued; every copy busy {ContentionPercent:N0}% of the window. "
-          + $"Another copy would take the ceiling to {CeilingWithOneMore:N2}/day.",
+            $"{WantedNow:N0} job(s) queued; every {Noun} busy {ContentionPercent:N0}% of the window. "
+          + $"Another {Noun} would take the ceiling to {CeilingWithOneMore:N2}/day.",
     };
 
     public void OpenItem() => EntityNavigator.Instance.Item(ProductTypeId);
@@ -502,7 +513,7 @@ public class BottleneckService(
                 .Where(j => j.Runs > 0 && j.ProductTypeId != null
                          && (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11))
                 .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value,
-                                   j.Runs, j.Duration, j.StartDate, j.EndDate, j.BlueprintId })
+                                   j.Runs, j.Duration, j.StartDate, j.EndDate, j.BlueprintId, j.ActivityId })
                 .ToListAsync(ct))
             .Where(j => j.EndDate > since && j.StartDate < now)
             .ToList();
@@ -522,7 +533,10 @@ public class BottleneckService(
                       // ⚠️ The intervals are kept, not reduced to a number here. Contention can
                       // only be worked out once the copies OWNED are known, and that lives with
                       // the blueprint stock rather than with the job history.
-                      Jobs:          g.Select(j => (j.StartDate, j.EndDate)).ToList()));
+                      Jobs:          g.Select(j => (j.StartDate, j.EndDate)).ToList(),
+                      // Reactions are run from a formula, not a blueprint, and the wording
+                      // follows the thing the reader is holding.
+                      IsReaction:    g.Any(j => j.ActivityId == 9 || j.ActivityId == 11)));
 
         var productIds = byBlueprint.Values.Select(v => v.ProductTypeId).Distinct().ToList();
         var bpIds      = byBlueprint.Keys.ToList();
@@ -564,7 +578,8 @@ public class BottleneckService(
                 units,
                 WindowDays,
                 wantedNow.GetValueOrDefault(made.ProductTypeId).All,
-                wantedNow.GetValueOrDefault(made.ProductTypeId).Blocked)
+                wantedNow.GetValueOrDefault(made.ProductTypeId).Blocked,
+                made.IsReaction)
             {
                 // ⚠️ Against the copies OWNED, not the copies seen working. Counting the ones
                 // seen made "all busy" mean "the one I happened to use was busy": five formulas
@@ -630,7 +645,7 @@ public class BottleneckService(
 
         var never = sorted.Count(v => v <= 0);
         return $"Measured across {sorted.Count:N0} blueprint(s) over {WindowDays} days: "
-             + $"{never:N0} never had every copy busy at once, the middle sits at {At(.5):N0}%, "
+             + $"{never:N0} never had every original busy at once, the middle sits at {At(.5):N0}%, "
              + $"and the busiest tenth start at {At(.9):N0}% — which is the line the flags use.";
     }
 
