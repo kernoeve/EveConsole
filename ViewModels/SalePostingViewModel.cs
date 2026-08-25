@@ -1193,7 +1193,8 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         if (_slack is null) return;
         if (_selectedPostingForTab is not SalePostingRow pr) { SlackStatus = "Select a posting first."; return; }
         var channel = _slack.ChannelId(SlackService.AreaSalePosting);
-        if (string.IsNullOrEmpty(channel)) { SlackStatus = "No Slack channel configured."; return; }
+        var viaHook = _slack.UsesWebhook(SlackService.AreaSalePosting);
+        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = "No Slack channel or webhook configured."; return; }
 
         var guardKey = $"{SlackService.AreaSalePosting}.{pr.PostingId}";
         if (_slack.LastPostAt(guardKey) is { } last
@@ -1226,7 +1227,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
                 // `text` is still sent as the notification/accessibility fallback Slack expects.
                 var fallbackText = OutputFormat.ByName("Plain Text").Finalize(markup);
                 var block        = OutputFormat.BuildSlackRichTextBlock(markup);
-                var res = await _slack.PostMessageAsync(channel, fallbackText, threadTs, blocks: new[] { block });
+                var res = await _slack.PostAreaAsync(SlackService.AreaSalePosting, fallbackText, threadTs, blocks: new[] { block });
                 if (!res.Ok) { SlackStatus = $"Slack post failed on \"{post.Name}\": {res.Error}"; return; }
                 threadTs ??= res.Ts;
                 posted++;

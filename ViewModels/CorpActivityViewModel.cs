@@ -1560,7 +1560,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     {
         if (_slack is null) return;
         var channel = _slack.ChannelId(SlackService.AreaCorpTop10);
-        if (string.IsNullOrEmpty(channel)) { SlackStatus = "No Slack channel configured."; return; }
+        var viaHook = _slack.UsesWebhook(SlackService.AreaCorpTop10);
+        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = "No Slack channel or webhook configured."; return; }
 
         // Guard against accidental double-posting.
         if (_slack.LastPostAt(SlackService.AreaCorpTop10) is { } last
@@ -1579,7 +1580,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         // its bold markers literally instead of rendering them.
         var plain = SelectedExportFormat == "Plain Text";
         var body  = BuildTop10Export(includeIsk);
-        var res   = await _slack.PostMessageAsync(channel, plain ? $"```\n{body}\n```" : body);
+        var res   = await _slack.PostAreaAsync(SlackService.AreaCorpTop10, plain ? $"```\n{body}\n```" : body);
         if (res.Ok) await _slack.SetLastPostAsync(SlackService.AreaCorpTop10, DateTimeOffset.UtcNow);
         SlackStatus = res.Ok
             ? $"Posted to {SlackTop10ChannelText} — {DateTimeOffset.Now:t}"
@@ -1597,7 +1598,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     {
         if (_slack is null) return;
         var channel = _slack.ChannelId(SlackService.AreaCorpMonthly);
-        if (string.IsNullOrEmpty(channel)) { SlackStatus = "No Slack channel configured."; return; }
+        var viaHook = _slack.UsesWebhook(SlackService.AreaCorpMonthly);
+        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = "No Slack channel or webhook configured."; return; }
 
         if (_slack.LastPostAt(SlackService.AreaCorpMonthly) is { } last
             && DateTimeOffset.UtcNow - last < SlackRepostWindow
@@ -1612,7 +1614,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         SlackStatus = "Posting to Slack…";
         var plain = SelectedExportFormat == "Plain Text";
         var body  = BuildMonthlySummaryExport();
-        var res   = await _slack.PostMessageAsync(channel, plain ? $"```\n{body}\n```" : body);
+        var res   = await _slack.PostAreaAsync(SlackService.AreaCorpMonthly, plain ? $"```\n{body}\n```" : body);
         if (res.Ok) await _slack.SetLastPostAsync(SlackService.AreaCorpMonthly, DateTimeOffset.UtcNow);
         SlackStatus = res.Ok
             ? $"Posted to {SlackMonthlyChannelText} — {DateTimeOffset.Now:t}"
