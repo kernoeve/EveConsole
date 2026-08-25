@@ -146,6 +146,27 @@ public sealed record ItemBandwidth(
     /// </summary>
     public double ContentionRank { get; init; }
 
+    /// <summary>The same measure over the recent slice, for comparison with the whole window.</summary>
+    public double RecentContentionPercent { get; init; }
+
+    /// <summary>Days in that recent slice.</summary>
+    public int RecentDays { get; init; }
+
+    /// <summary>
+    /// Whether the squeeze is getting worse, which a quarter-long average cannot say.
+    ///
+    /// <para><b>⚠️ A ninety-day figure hides a busy month inside a quiet quarter.</b> Prints that
+    /// were comfortable through slow weeks become the weak point the moment component work picks
+    /// up, and averaging the two together reports something in between that was never true of
+    /// either. This compares the recent slice against the whole window, so a shortage that only
+    /// bites when busy says so while it is biting.</para>
+    /// </summary>
+    public string Trend =>
+        RecentDays <= 0 || RecentContentionPercent <= 0 && ContentionPercent <= 0 ? ""
+      : RecentContentionPercent >= ContentionPercent * 1.4 + 3 ? "Rising"
+      : RecentContentionPercent <= ContentionPercent * 0.6     ? "Easing"
+      :                                                          "Steady";
+
     /// <summary>
     /// Every copy was busy often enough, and often enough compared to everything else here, that
     /// wanting another would have meant waiting.
@@ -284,6 +305,15 @@ public class BottleneckService(
     /// used. Two copies busy together is evidence; one copy busy is a job.</para>
     /// </summary>
     private const double SinglePrintFloorPercent = 15;
+
+    /// <summary>
+    /// The recent slice compared against the whole window.
+    ///
+    /// <para>⚠️ Short enough to show a busy month on its own, long enough that a single big job
+    /// does not define it. What it exists to catch: prints that carry slow weeks comfortably and
+    /// become the constraint the moment work picks up.</para>
+    /// </summary>
+    private const int RecentWindowDays = 30;
 
     // ── Slots ─────────────────────────────────────────────────────────────────
 
@@ -424,7 +454,8 @@ public class BottleneckService(
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        var since = DateTimeOffset.UtcNow.AddDays(-WindowDays);
+        var since       = DateTimeOffset.UtcNow.AddDays(-WindowDays);
+        var recentSince = DateTimeOffset.UtcNow.AddDays(-RecentWindowDays);
 
         // What has actually been made, and how long a run of it takes here. Per RUN, so a ten-run
         // job and a one-run job of the same thing agree about the cycle.
@@ -525,6 +556,11 @@ public class BottleneckService(
                 ContentionPercent = 100.0 * AllBusyDays(
                                         occupied.GetValueOrDefault(bpTypeId, made.Jobs),
                                         mine.Count, since, now) / WindowDays,
+
+                RecentContentionPercent = 100.0 * AllBusyDays(
+                                        occupied.GetValueOrDefault(bpTypeId, made.Jobs),
+                                        mine.Count, recentSince, now) / RecentWindowDays,
+                RecentDays = RecentWindowDays,
             });
         }
 

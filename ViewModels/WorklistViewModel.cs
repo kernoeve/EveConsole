@@ -443,6 +443,17 @@ public sealed class PrintPressureRowVm(ItemBandwidth p)
     public string WithOneMore => $"{p.CeilingWithOneMore:N2}/d";
     public string Wanted      => p.WantedNow > 0 ? p.WantedNow.ToString("N0") : "";
     public string Pattern     => p.Pattern;
+
+    /// <summary>Recent squeeze against the whole window — a quarter-long average hides a busy month.</summary>
+    public string Trend       => p.Trend;
+    public string Recent      => p.RecentContentionPercent <= 0 ? "" : $"{p.RecentContentionPercent:N0}%";
+
+    public string TrendColor => p.Trend switch
+    {
+        "Rising" => "#c85a5a",
+        "Easing" => "#4a8a5a",
+        _        => "#666677",
+    };
     public string Advice      => p.Advice;
 
     /// <summary>
@@ -650,6 +661,26 @@ public class WorklistViewModel : ReactiveObject
     /// <para>⚠️ Against the rows already on screen, not a fresh generation. The question is "why
     /// is THIS list stuck", and regenerating first would answer it about a different list.</para>
     /// </summary>
+    /// <summary>
+    /// Names the case where the two panels disagree about where the constraint is.
+    ///
+    /// <para>⚠️ Free slots and contended prints at the same time is the easiest bottleneck to
+    /// misread, because the slot panel looks healthy and nothing appears to be queued — jobs that
+    /// cannot be created for want of a blueprint never reach a queue to be counted in. Idle slots
+    /// are then evidence of the constraint rather than the absence of one, and saying so is the
+    /// difference between buying an account and buying a print.</para>
+    /// </summary>
+    private static string Crossed(
+        IReadOnlyList<SlotPressure> slots, IReadOnlyList<ItemBandwidth> prints)
+    {
+        var free    = slots.Sum(s => s.Free);
+        var pinched = prints.Count(p => p.IsTight);
+        if (free <= 0 || pinched == 0) return "";
+
+        return $"⚠ {free:N0} slot(s) sitting free while {pinched} blueprint(s) have every copy "
+             + "busy — the constraint here is prints, not slots. ";
+    }
+
     private async Task RefreshBottlenecksAsync()
     {
         BottlenecksLoading = true;
@@ -683,7 +714,8 @@ public class WorklistViewModel : ReactiveObject
                         + "blueprint has had every copy busy often enough to make anything wait. "
                         + scale
                         : $"{tight} pool(s) with work waiting on a slot; "
-                        + $"{prints.Count} blueprint(s) worth a look. " + scale;
+                        + $"{prints.Count} blueprint(s) worth a look. "
+                        + Crossed(slots, prints) + scale;
             });
         }
         finally { BottlenecksLoading = false; }

@@ -1016,6 +1016,15 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Rank" Binding="{Binding Rank}" Width="70" Foreground="#666677"/>
+                  <DataGridTextColumn Header="30d" Binding="{Binding Recent}" Width="55" Foreground="#666677"/>
+                  <DataGridTemplateColumn Header="Trend" Width="70">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:PrintPressureRowVm">
+                        <TextBlock Text="{Binding Trend}" Foreground="{Binding TrendColor}"
+                                   VerticalAlignment="Center"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="+1 print" Binding="{Binding WithOneMore}" Width="85"/>
                   <DataGridTextColumn Header="Queued"  Binding="{Binding Wanted}"  Width="65"/>
                   <DataGridTextColumn Header="Blocked now" Binding="{Binding Blocked}" Width="95"/>
