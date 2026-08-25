@@ -1402,7 +1402,7 @@
                 <TextBlock Text="TRIPS" FontSize="10" FontWeight="SemiBold"
                            Foreground="#555566" LetterSpacing="1"/>
                 <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
-                           Text="Work stopped for want of material that is already owned and sitting somewhere else — the other half of Item Contention, where the fix is a trip rather than a purchase. One row per destination, because the thing you do about it is one errand: five jobs at one station short of four different things is a single trip, not five findings. Hover a column heading for what it means."/>
+                           Text="Jobs stopped for want of material that is already owned and sitting somewhere else — the other half of Item Contention, where the fix is a trip rather than a purchase. Every row is a job that could run the moment its material arrives. Hover a column heading for what it means."/>
               </StackPanel>
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding HaulPressures}" IsReadOnly="True"
@@ -1457,10 +1457,29 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
 
-                  <DataGridTemplateColumn Width="260">
+                  <DataGridTemplateColumn Width="250">
                     <DataGridTemplateColumn.Header>
-                      <TextBlock Text="Destination" Background="Transparent"
-                                 ToolTip.Tip="Where the jobs would run, and so where the material has to arrive. One row per destination, because a trip is defined by where it ends."/>
+                      <TextBlock Text="Job" Background="Transparent"
+                                 ToolTip.Tip="The stopped job. It is short of nothing but material already owned, so it runs as soon as that material reaches it."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:HaulPressureRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenHaulItem" IsVisible="{Binding HasItemLink}"
+                                  ToolTip.Tip="Open what this job makes">
+                            <TextBlock Text="{Binding Task}" Classes="linktext"/>
+                          </Button>
+                          <TextBlock Text="{Binding Task}" IsVisible="{Binding !HasItemLink}"
+                                     VerticalAlignment="Center"/>
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+
+                  <DataGridTemplateColumn Width="230">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Waiting at" Background="Transparent"
+                                 ToolTip.Tip="Where the job would run, and so where the material has to arrive."/>
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:HaulPressureRowVm">
@@ -1476,45 +1495,38 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
 
-                  <DataGridTextColumn Binding="{Binding Blocked}" Width="75">
-                    <DataGridTextColumn.Header>
-                      <TextBlock Text="Blocked" Background="Transparent"
-                                 ToolTip.Tip="Tasks at this destination stopped for want of material that is owned but held elsewhere. Not tasks short of something nobody owns — those are on Item Contention."/>
-                    </DataGridTextColumn.Header>
-                  </DataGridTextColumn>
-
                   <DataGridTextColumn Binding="{Binding Blocking}" Width="80">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="Blocking" Background="Transparent"
-                                 ToolTip.Tip="Everything the trip is holding up: the tasks above, plus the tasks stopped for want of what those would have made, and so on up the chain."/>
+                                 ToolTip.Tip="Jobs stopped behind this one: those short of what it would have made, and those behind them up the chain. What starts moving again once this job can run."/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
 
                   <DataGridTextColumn Binding="{Binding Items}" Width="65">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="Items" Background="Transparent"
-                                 ToolTip.Tip="Distinct item types being waited on at this destination."/>
+                                 ToolTip.Tip="Distinct item types this job is waiting on."/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
 
                   <DataGridTextColumn Binding="{Binding Volume}" Width="90">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="Volume" Background="Transparent"
-                                 ToolTip.Tip="Cubic metres of the shortfall, so the trip can be sized before it is planned. Summed across the tasks that fell short, so two jobs wanting the same units count both."/>
+                                 ToolTip.Tip="Cubic metres this job is short of, so the trip can be sized before it is planned."/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
 
                   <DataGridTextColumn Binding="{Binding Sources}" Width="80">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="Sources" Background="Transparent"
-                                 ToolTip.Tip="Distinct places the material sits, not counting the destination. More than one means more than one pickup before the work can start."/>
+                                 ToolTip.Tip="Distinct places the material sits, not counting where the job runs. More than one means more than one pickup before it can start."/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
 
                   <DataGridTextColumn Binding="{Binding Hauls}" Width="70">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="Hauls" Background="Transparent"
-                                 ToolTip.Tip="Hauls already on the worklist bringing any of these items here. Blank is the finding: the material exists, the work is stopped, and nothing is moving it."/>
+                                 ToolTip.Tip="Hauls already on the worklist bringing any of this job's missing material to it. Blank is the finding: the material exists, the job is stopped, and nothing is moving it."/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
 

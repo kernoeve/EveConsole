@@ -444,6 +444,7 @@ public sealed class ShortageTaskRowVm(ShortageTask t)
     /// <summary>Where it sits: directly short of the material, behind something that is, or
     /// making the material itself.</summary>
     public string Role => t.Role == "Hauling" ? "the trip"
+                        : t.Role == "Needs"   ? "needs"
                         : t.Role == "Using"  ? "uses it"
                         : t.Role == "Making" ? "makes it"
                         : t.Hop == 0         ? "needs it"
@@ -564,8 +565,8 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
 /// <para>Everything here is a rate. "Two prints" says nothing on its own; "two prints turning out
 /// 0.28 a day against 0.81 a day consumed" says what to buy.</para>
 /// </summary>
-/// <summary>One destination on the Hauling tab: the trip, not the item.</summary>
-public sealed class HaulPressureRowVm(HaulPressure h) : ReactiveObject
+/// <summary>One stopped job on the Hauling tab.</summary>
+public sealed class HaulPressureRowVm(HaulBlock h) : ReactiveObject
 {
     private bool _isExpanded;
 
@@ -577,8 +578,8 @@ public sealed class HaulPressureRowVm(HaulPressure h) : ReactiveObject
 
     public string Glyph => !HasTasks ? "" : _isExpanded ? "▾" : "▸";
 
+    public string Task     => h.Title;
     public string Station  => h.StationName.Length > 0 ? h.StationName : $"Location {h.StationId}";
-    public string Blocked  => h.BlockedTasks > 0 ? h.BlockedTasks.ToString("N0") : "";
     public string Blocking => h.StalledTasks > 0 ? h.StalledTasks.ToString("N0") : "";
     public string Hauls    => h.HaulTasks > 0 ? h.HaulTasks.ToString("N0") : "";
     public string Items    => h.ItemTypes.ToString("N0");
@@ -596,8 +597,7 @@ public sealed class HaulPressureRowVm(HaulPressure h) : ReactiveObject
     {
         "Nothing moving" => "#c85a5a",
         "Several trips"  => "#c8a84b",
-        "Haul raised"    => "#4a8a5a",
-        _                => "#666677",
+        _                => "#4a8a5a",
     };
 
     public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
@@ -605,9 +605,13 @@ public sealed class HaulPressureRowVm(HaulPressure h) : ReactiveObject
 
     public bool HasTasks => h.Tasks.Count > 0;
 
+    public bool HasItemLink    => h.TypeId > 0;
     public bool HasStationLink => h.StationId > 0;
-    /// <summary>⚠️ Station versus structure by int range, as Station Needs does it: an id
-    /// above int range cannot be an NPC station, and the row carries no discriminator.</summary>
+
+    public void OpenItem() => EntityNavigator.Instance.Item(h.TypeId);
+
+    /// <summary>⚠️ Station versus structure by int range, as Station Needs does it: an id above
+    /// int range cannot be an NPC station, and the row carries no discriminator.</summary>
     public void OpenStation()
     {
         if (h.StationId <= 0) return;

@@ -152,6 +152,11 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         vm.IsExpanded = row.AreDetailsVisible;
     }
 
+    private void OnOpenHaulItem(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: HaulPressureRowVm vm }) vm.OpenItem();
+    }
+
     private void OnOpenHaulStation(object? sender, RoutedEventArgs e)
     {
         if (sender is Control { DataContext: HaulPressureRowVm vm }) vm.OpenStation();
