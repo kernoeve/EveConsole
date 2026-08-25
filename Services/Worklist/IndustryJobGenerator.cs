@@ -638,8 +638,9 @@ public class IndustryJobGenerator(
                                               ? $" Covers every remaining run; more than one job can "
                                               + "hold, so it will take several once a print is free."
                                               : ""),
-                            Readiness     = WorklistReadiness.Blocked,
-                            BlockedBy     = printWhy,
+                            Readiness      = WorklistReadiness.Blocked,
+                            BlockedBy      = printWhy,
+                            BlockedByPrint = true,
                             LocationId    = siteId.Value,
                             LocationName  = siteName,
                             TypeId        = d.TypeId,

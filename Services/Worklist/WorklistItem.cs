@@ -105,6 +105,17 @@ public sealed record WorklistItem
     /// <summary>What is in the way. Only meaningful when not <see cref="WorklistReadiness.Ready"/>.</summary>
     public string BlockedBy { get; init; } = "";
 
+    /// <summary>
+    /// Blocked specifically because no blueprint is free — not for want of material, a character,
+    /// or anything else.
+    ///
+    /// <para>⚠️ A flag rather than a reading of <see cref="BlockedBy"/>. That text is written for
+    /// a person and gets reworded; anything counting print shortages by matching words in it would
+    /// go quietly wrong the first time one of them changed, and a bottleneck report that silently
+    /// counts nothing is worse than one that is absent.</para>
+    /// </summary>
+    public bool BlockedByPrint { get; init; }
+
     // Who and where. Both may be unset when a generator cannot route the item — an unrouted
     // item is still worth showing, with the gap made obvious rather than hidden.
     public long   CharacterId   { get; init; }

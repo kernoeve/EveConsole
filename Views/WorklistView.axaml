@@ -898,9 +898,20 @@
         <TextBlock Grid.Row="1" Text="{Binding BottleneckStatus}" FontSize="10" Foreground="#7a8896"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-          <StackPanel Spacing="16">
 
+        <!-- Three questions, three tabs. Slots and blueprints are different ceilings with
+             different remedies, and reading them as one list invited exactly the mistake the
+             Summary will exist to prevent: buying capacity for a shortage of prints. -->
+        <TabControl Grid.Row="2" Padding="0">
+
+          <TabItem Header="Summary" FontSize="12">
+            <TextBlock Margin="14" FontSize="11" Foreground="#555566" TextWrapping="Wrap"
+                       Text="Nothing here yet — this will pull the slot and blueprint findings into one reading of where the pipeline is actually constrained." />
+          </TabItem>
+
+          <TabItem Header="Slots" FontSize="12">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+              <StackPanel Spacing="16" Margin="0 8 0 0">
             <!-- ── Slots ──────────────────────────────────────────────────── -->
             <StackPanel Spacing="6">
               <TextBlock Text="SLOTS" FontSize="10" FontWeight="SemiBold"
@@ -975,7 +986,13 @@
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
             </StackPanel>
+              </StackPanel>
+            </ScrollViewer>
+          </TabItem>
 
+          <TabItem Header="BPO / Formula" FontSize="12">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+              <StackPanel Spacing="16" Margin="0 8 0 0">
             <!-- ── Blueprints ─────────────────────────────────────────────── -->
             <StackPanel Spacing="6">
               <TextBlock Text="BLUEPRINTS" FontSize="10" FontWeight="SemiBold"
@@ -1040,9 +1057,11 @@
                 </DataGrid.Columns>
               </DataGrid>
             </StackPanel>
+              </StackPanel>
+            </ScrollViewer>
+          </TabItem>
 
-          </StackPanel>
-        </ScrollViewer>
+        </TabControl>
       </Grid>
     </TabItem>
     <!-- ════ Config ═════════════════════════════════════════════════════════════

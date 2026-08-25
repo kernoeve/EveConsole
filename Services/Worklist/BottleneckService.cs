@@ -440,12 +440,15 @@ public class BottleneckService(
         // prints; what is QUEUED is not capped by anything, so it is the only uncensored reading
         // of how much is wanted. Paired with utilisation it separates a standing shortage from a
         // spike — see ItemBandwidth.Pattern.
+        // ⚠️ Blocked means blocked ON A BLUEPRINT, not blocked for any reason. A job held
+        // up for want of minerals is no evidence that a print is short, and counting it as
+        // such put a blueprint on this list whose two copies were both sitting free.
         var wantedNow = items
             .Where(i => i.Kind == WorklistKind.Job && i.TypeId > 0)
             .GroupBy(i => i.TypeId)
             .ToDictionary(g => g.Key,
                           g => (All: g.Count(),
-                                Blocked: g.Count(i => i.Readiness == WorklistReadiness.Blocked)));
+                                Blocked: g.Count(i => i.BlockedByPrint)));
 
         var owned  = await assignment.PrintOwnershipAsync(settings.IncludeNonPersonalCorps, ct);
         var prints = (await blueprints.LoadAllAsync(ct))
@@ -582,7 +585,7 @@ public class BottleneckService(
         return result
             .Where(r => r.ContentionPercent >= (r.Prints <= 1 ? SinglePrintFloorPercent
                                                               : ListFloorPercent)
-                     || r.WantedNow > 0 || r.BlockedNow > 0)
+                     || r.BlockedNow > 0)
             .OrderByDescending(r => r.BlockedNow > 0)
             .ThenByDescending(r => r.ContentionPercent)
             .ThenByDescending(r => r.WantedNow)
