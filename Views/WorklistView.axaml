@@ -981,7 +981,7 @@
               <TextBlock Text="BLUEPRINTS" FontSize="10" FontWeight="SemiBold"
                          Foreground="#555566" LetterSpacing="1"/>
               <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
-                         Text="A blueprint bottleneck is having to WAIT for a copy to free up — not running one a lot. 'All busy' is the share of the last 90 days when every copy you had was occupied at once, which is the only figure that tells those apart: a formula run flat out across eight copies is heavily used and has never blocked anything, and buying the eighth is what fixed it. Nothing here uses a fixed cut-off — a blueprint is flagged when it sits in the busiest tenth of YOUR OWN prints, since the same percentage means a crisis in one operation and a Tuesday in another. 'Used' is context only. Pattern pairs that history with what is queued today, since all-busy is the chance to block and the queue is the evidence somebody was trying to get through."/>
+                         Text="A blueprint bottleneck is having to WAIT for a copy to free up — not running one a lot. 'All busy' is the share of the last 90 days when every BPO you own was occupied at once, counting research and copying as well as building, since a print locked in a copy job is just as unavailable. That is the only figure that separates a real constraint from heavy use: a formula run flat out across eight copies has never blocked anything, and buying the eighth is what fixed it. Listed from 5% up, or 15% for single-BPO items — with one print 'every copy busy' just means 'the print was busy', so low figures there are light use rather than contention. 'Used' is context only."/>
 
               <DataGrid ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11" MaxHeight="320"
@@ -1002,7 +1002,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Cycle"     Binding="{Binding Cycle}"    Width="70"/>
-                  <DataGridTextColumn Header="Prints"    Binding="{Binding Prints}"   Width="60"/>
+                  <DataGridTextColumn Header="BPO"       Binding="{Binding Prints}"  Width="55"/>
                   <DataGridTextColumn Header="Installed" Binding="{Binding Busy}"     Width="75"/>
                   <DataGridTextColumn Header="Ceiling"   Binding="{Binding Capacity}"    Width="85"/>
                   <DataGridTextColumn Header="Made"      Binding="{Binding Demand}"      Width="85"/>
@@ -1018,7 +1018,7 @@
                   <DataGridTextColumn Header="Rank" Binding="{Binding Rank}" Width="70" Foreground="#666677"/>
                   <DataGridTextColumn Header="+1 print" Binding="{Binding WithOneMore}" Width="85"/>
                   <DataGridTextColumn Header="Queued"  Binding="{Binding Wanted}"  Width="65"/>
-                  <DataGridTextColumn Header="Stuck"   Binding="{Binding Blocked}" Width="60"/>
+                  <DataGridTextColumn Header="Blocked now" Binding="{Binding Blocked}" Width="95"/>
                   <DataGridTemplateColumn Header="Pattern" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">

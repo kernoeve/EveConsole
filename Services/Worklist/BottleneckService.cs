@@ -265,6 +265,26 @@ public class BottleneckService(
     /// </summary>
     private const int WindowDays = 90;
 
+    /// <summary>
+    /// How little contention still earns a row on the list.
+    ///
+    /// <para>⚠️ A floor on what is worth READING, not a definition of a bottleneck — the flags and
+    /// colours still come from where a blueprint sits in this operation's own spread. Showing only
+    /// the flagged tenth hid the row below it, and a list you cannot see just past the cut is a
+    /// list you cannot sanity-check.</para>
+    /// </summary>
+    private const double ListFloorPercent = 5;
+
+    /// <summary>
+    /// The floor for a blueprint with a single original.
+    ///
+    /// <para><b>⚠️ Higher on purpose, because the measure degenerates at one copy.</b> With one
+    /// print, "every copy busy" and "the print was busy" are the same statement — so a single BPO
+    /// used 6% of the quarter reports 6% contention and is not contended at all, it is barely
+    /// used. Two copies busy together is evidence; one copy busy is a job.</para>
+    /// </summary>
+    private const double SinglePrintFloorPercent = 15;
+
     // ── Slots ─────────────────────────────────────────────────────────────────
 
     public async Task<List<SlotPressure>> SlotPressureAsync(
@@ -411,6 +431,20 @@ public class BottleneckService(
         // ⚠️ Same as above: the date test cannot go in the query. Everything else can, so it does.
         var now = DateTimeOffset.UtcNow;
 
+        // ⚠️ EVERY activity, not just the ones that make something. A blueprint in a copy job or
+        // an ME research job cannot be used to manufacture — it is occupied exactly as if it were
+        // building. Counting only manufacturing and reaction reported the Thanatos prints as
+        // uncontended at 0% while both spent 40% of the quarter locked in copying and invention,
+        // and dropped the row from the list altogether.
+        var occupied = (await db.EsiIndustryJobs.AsNoTracking()
+                .Where(j => j.BlueprintId != 0)
+                .Select(j => new { j.BlueprintTypeId, j.StartDate, j.EndDate })
+                .ToListAsync(ct))
+            .Where(j => j.EndDate > since && j.StartDate < now)
+            .GroupBy(j => j.BlueprintTypeId)
+            .ToDictionary(g => g.Key, g => g.Select(j => (j.StartDate, j.EndDate)).ToList());
+
+        // Production only, for the rates: a copy job says nothing about how fast a hull is built.
         var runs = (await db.EsiIndustryJobs.AsNoTracking()
                 .Where(j => j.Runs > 0 && j.ProductTypeId != null
                          && (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11))
@@ -485,7 +519,12 @@ public class BottleneckService(
                 // contention while the other four sat idle — alongside a 6% utilisation figure
                 // that could not be true at the same time. Owned is also the number a buying
                 // decision turns on: how often would today's copies have left me waiting.
-                ContentionPercent = 100.0 * AllBusyDays(made.Jobs, mine.Count, since, now) / WindowDays,
+                // ⚠️ From the occupancy set, which counts research and copying too. Contention is
+                // about the print being unavailable, and a print locked in a copy job is exactly
+                // as unavailable as one locked in a build.
+                ContentionPercent = 100.0 * AllBusyDays(
+                                        occupied.GetValueOrDefault(bpTypeId, made.Jobs),
+                                        mine.Count, since, now) / WindowDays,
             });
         }
 
@@ -505,7 +544,9 @@ public class BottleneckService(
         // are the fix, and the one is the problem. Blocked work first among equals, since that is
         // the difference between a door that was shut and a door somebody was trying to open.
         return result
-            .Where(r => r.IsTight || r.WantedNow > 0)
+            .Where(r => r.ContentionPercent >= (r.Prints <= 1 ? SinglePrintFloorPercent
+                                                              : ListFloorPercent)
+                     || r.WantedNow > 0 || r.BlockedNow > 0)
             .OrderByDescending(r => r.BlockedNow > 0)
             .ThenByDescending(r => r.ContentionPercent)
             .ThenByDescending(r => r.WantedNow)
