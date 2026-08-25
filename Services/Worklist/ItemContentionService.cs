@@ -109,7 +109,6 @@ public sealed record ItemShortage(
     /// figure derived from it under-states, and a buffer sized on it is sized for the constrained
     /// world rather than the one worth having.</para>
     /// </summary>
-    public bool RateSuppressed => BlockedTasks > 0;
 
     /// <summary>
     /// What is actually wrong here.
@@ -171,11 +170,17 @@ public sealed record ItemShortage(
       : DaysOfCover < 7                     ? "Buffer thin"
       :                                       "Holding";
 
-    /// <summary>What the shortage holds up beyond the tasks that consume it directly.</summary>
-    private string StalledNote =>
+    /// <summary>
+    /// How much work the shortage is holding up, in the figure the Blocking column shows.
+    ///
+    /// <para>⚠️ The suggestion opened on the tasks that consume the material directly while
+    /// the column beside it counted the whole chain, so the two disagreed on the same row —
+    /// and the smaller number was the one written into the sentence a reader acts on.</para>
+    /// </summary>
+    private string StoppedText =>
         StalledTasks > BlockedTasks
-            ? $" A further {StalledTasks - BlockedTasks:N0} task(s) are stopped behind those."
-            : "";
+            ? $"{StalledTasks:N0} task(s) stopped, {BlockedTasks:N0} of them directly short of it"
+            : $"{StoppedText}";
 
     /// <summary>
     /// Whether anything is actually refilling it, said rather than left to be looked up.
@@ -195,12 +200,12 @@ public sealed record ItemShortage(
             : " Nothing on the list is making it at all.";
 
     public string Advice =>
-        BlockedTasks > 0 ? AdviceCore + StalledNote + MakingNote : AdviceCore;
+        BlockedTasks > 0 ? AdviceCore + MakingNote : AdviceCore;
 
     private string AdviceCore => Verdict switch
     {
         "Buy now" =>
-            $"{BlockedTasks:N0} task(s) stopped, none owned, and nothing here makes it. "
+            $"{StoppedText}, none owned, and nothing here makes it. "
           + $"Drawn on at {UsedPerDay:N1}/day"
           + (Level > 0 ? $" against a level of {Level:N0}." : " with no level set to hold any.")
           + " Buying is the only thing that starts them.",
@@ -209,7 +214,7 @@ public sealed record ItemShortage(
         // advice for the wrong problem: production has not changed, demand has, and absorbing
         // exactly this is what a buffer is FOR.
         "Buffer spent" =>
-            $"{BlockedTasks:N0} task(s) stopped with {OnHand:N0} left. Demand is running "
+            $"{StoppedText} with {OnHand:N0} left. Demand is running "
           + $"{Surge:N1}× its {WindowDays}-day average and the level of "
           + $"{Level:N0} covered {DaysOfCover:N0} day(s) of ordinary draw but not this. "
           + "A larger level absorbs the next wave; if waves like this are routine, the durable "
@@ -219,7 +224,7 @@ public sealed record ItemShortage(
         // ⚠️ The level is met and the work still wants more than is here. Nothing has failed —
         // the level was sized for ordinary draw, and the demand on the list is not that.
         "Level too low" =>
-            $"{BlockedTasks:N0} task(s) stopped. The work on the list needs {Need:N0} and "
+            $"{StoppedText}. The work on the list needs {Need:N0} and "
           + $"{OnHand:N0} are on hand — the level of {Level:N0} is met, so this is not a buffer "
           + $"that ran out but one sized for {DaysOfCover:N0} day(s) of ordinary draw when the "
           + $"work in front of it wants {TotalShort:N0} more than exists"
@@ -228,7 +233,7 @@ public sealed record ItemShortage(
 
         // ⚠️ No level at all. Not a small buffer — none, so there is nothing to absorb anything.
         "No buffer" =>
-            $"{BlockedTasks:N0} task(s) stopped and nothing sets a level for this at all, though it "
+            $"{StoppedText} and nothing sets a level for this at all, though it "
           + $"is drawn on at {UsedPerDay:N1}/day. There is no cushion by construction: every "
           + $"unit has to be made or bought exactly when it is wanted. Short {TotalShort:N0} "
           + $"against what the list needs.{NothingMadeNote}",
@@ -236,12 +241,12 @@ public sealed record ItemShortage(
         // Everything the list wants is here, and the jobs still cannot start. Whatever stopped
         // them is not this material.
         "Not the shelf" =>
-            $"{BlockedTasks:N0} task(s) stopped, but {OnHand:N0} are on hand and the work needs "
+            $"{StoppedText}, but {OnHand:N0} are on hand and the work needs "
           + $"{Need:N0} — this material is not what stopped them. Something else on those jobs is "
           + "short, or they are waiting on a slot, a blueprint, or stock sitting at another station.",
 
         "Blocked" =>
-            $"{BlockedTasks:N0} task(s) stopped with {OnHand:N0} left against a level of {Level:N0} "
+            $"{StoppedText} with {OnHand:N0} left against a level of {Level:N0} "
           + $"— about {DaysOfCover:N0} day(s) of cover at {UsedPerDay:N1}/day, and it ran out. "
           + "Either the level is too low for how fast this moves, or it is not being refilled in "
           + "time." + NothingMadeNote,

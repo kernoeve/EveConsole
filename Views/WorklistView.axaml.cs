@@ -118,7 +118,20 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         vm.IsExpanded = row.AreDetailsVisible;
     }
 
+    /// <summary>Opens the tasks behind a contention row's counts. Same shape as the two toggles
+    /// above it — the glyph lives on the item so it survives row recycling.</summary>
+    private void OnShortageToggle(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control control) return;
+        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
+        if (row.DataContext is not ItemShortageRowVm vm || !vm.HasTasks) return;
+
+        row.AreDetailsVisible = !row.AreDetailsVisible;
+        vm.IsExpanded = row.AreDetailsVisible;
+    }
+
     private void OnManifestToggle(object? sender, RoutedEventArgs e)
+
     {
         if (sender is not Control control) return;
         if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;

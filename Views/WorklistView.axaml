@@ -1003,7 +1003,7 @@
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding ItemShortages}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
-                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="VisibleWhenSelected"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
                 <!-- ⚠️ A resource, not a style. The details presenter reads this brush straight
                      from the stock template, so a style selector on it never wins and the row
@@ -1012,7 +1012,7 @@
                   <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
                 </DataGrid.Resources>
 
-                <!-- Select a row to see the tasks its counts are made of. -->
+                <!-- The tasks the counts are made of, shown while the row's own glyph is open. -->
                 <DataGrid.RowDetailsTemplate>
                   <DataTemplate x:DataType="vm:ItemShortageRowVm">
                     <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
@@ -1039,6 +1039,23 @@
                   </DataTemplate>
                 </DataGrid.RowDetailsTemplate>
                 <DataGrid.Columns>
+                  <!-- Expander. Only drawn where there are tasks to show, so an empty cell reads
+                       as "nothing to open" rather than as a control that does nothing. -->
+                  <DataGridTemplateColumn Header="" Width="24" CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:ItemShortageRowVm">
+                        <Button Classes="expander" Click="OnShortageToggle"
+                                IsVisible="{Binding HasTasks}"
+                                Content="{Binding Glyph}" FontSize="10"
+                                Padding="0" Width="16" Height="16" MinWidth="0" MinHeight="0"
+                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Cursor="Hand"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                ToolTip.Tip="Show the tasks behind these counts"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTemplateColumn Header="Material" Width="230">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
@@ -1087,8 +1104,6 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Rate"     Binding="{Binding Suppressed}" Width="55"
-                                      Foreground="#c8a84b"/>
                   <DataGridTemplateColumn Header="Verdict" Width="110">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">

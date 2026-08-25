@@ -457,8 +457,20 @@ public sealed class ShortageTaskRowVm(ShortageTask t)
     };
 }
 
-public sealed class ItemShortageRowVm(ItemShortage s)
+public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
 {
+    private bool _isExpanded;
+
+    /// <summary>Whether the task list is open. Lives on the item, not the row, so the
+    /// glyph stays right when the grid recycles rows during a scroll.</summary>
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set { this.RaiseAndSetIfChanged(ref _isExpanded, value); this.RaisePropertyChanged(nameof(Glyph)); }
+    }
+
+    public string Glyph => !HasTasks ? "" : _isExpanded ? "▾" : "▸";
+
     public string Item      => s.Name;
     public string Used      => $"{s.UsedPerDay:N1}/d";
     public string Made      => s.Buildable ? $"{s.MadePerDay:N1}/d" : "—";
@@ -496,7 +508,7 @@ public sealed class ItemShortageRowVm(ItemShortage s)
     /// <para>A count nobody can take apart is a count nobody can act on: "Blocking 4" becomes
     /// useful at the moment it can be read as four named tasks.</para>
     /// </summary>
-    public IReadOnlyList<ShortageTaskRowVm> Tasks =>
+    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
         (s.Tasks ?? []).Select(t => new ShortageTaskRowVm(t)).ToList();
 
     public bool HasTasks => s.Tasks is { Count: > 0 };
@@ -539,7 +551,6 @@ public sealed class ItemShortageRowVm(ItemShortage s)
     };
 
     /// <summary>⚠️ Marks a rate that is itself throttled by the shortage being measured.</summary>
-    public string Suppressed => s.RateSuppressed ? "floor" : "";
 
     public bool HasLink => s.TypeId > 0;
     public void Open()  => s.OpenItem();
