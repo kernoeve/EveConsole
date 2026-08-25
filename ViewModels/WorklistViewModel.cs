@@ -35,7 +35,18 @@ public class WorklistRowVm : ReactiveObject
     public int Sequence { get; }
 
     public string Key           => _item.Key;
-    public string Title         => _item.Title;
+    /// <summary>
+    /// The task in a few words — and for a haul, how big it is.
+    ///
+    /// <para>⚠️ Composed here rather than in the generator, which cannot know: volume is priced
+    /// from the SDE after the sections are built, so at the moment a haul row is created its own
+    /// size is not yet a number. The Volume column carries it too; this puts it where the count
+    /// is, because "twelve items" and "how many trips is that" are one question when the answer
+    /// decides which ship to undock.</para>
+    /// </summary>
+    public string Title => _item.Kind == WorklistKind.Haul && _item.Volume > 0
+        ? $"{_item.Title} · {VolumeText}"
+        : _item.Title;
     public string Detail        => _item.Detail;
     public string SourceName    => _item.Source;
     public string CharacterName => _item.CharacterName.Length > 0 ? _item.CharacterName : "—";
