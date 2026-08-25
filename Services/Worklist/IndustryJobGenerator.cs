@@ -243,6 +243,10 @@ public class IndustryJobGenerator(
             .Select(x => new PlanState(x))
             .ToList();
 
+        // Prints already planned against in this pass. See where it is applied for why the real
+        // LockedInJob flag is not enough on its own.
+        var printsCommitted = new HashSet<long>();
+
         while (true)
         {
             var state = queue
@@ -314,10 +318,35 @@ public class IndustryJobGenerator(
                     .Select(c => WorklistIndyCharReach.Of(c, corps))
                     .ToList();
 
-                var prints = IndustryBlueprintService.UsableAt(
+                var runsNeeded = IndustryJobSplit.RunsFor(d.Units, Math.Max(1, product.Quantity));
+
+                // ⚠️ Minus the prints this pass has already committed. UsableAt filters on
+                // LockedInJob, which is what EVE says right now — it knows nothing about a job
+                // this run has just planned. That was harmless while an item was visited once and
+                // the split handed each print one job; with the item revisited between jobs the
+                // same free BPO was offered again, and a second Chimera was recommended against
+                // the one original that exists.
+                var usable = IndustryBlueprintService.UsableAt(
                     printsByType.GetValueOrDefault(product.TypeId, []), siteId.Value, reaches);
 
-                var runsNeeded = IndustryJobSplit.RunsFor(d.Units, Math.Max(1, product.Quantity));
+                var prints = usable.Where(p => !printsCommitted.Contains(p.ItemId)).ToList();
+
+                // ⚠️ A print free in EVE but already spoken for by a job further up this same list
+                // is a different answer from no print at all, and saying "none at this station"
+                // would be a lie the user can see through — they are looking at the job holding it.
+                if (prints.Count == 0 && usable.Count > 0)
+                {
+                    items.Add(Unstartable(d.TypeId, name, priority, pool, d.Units,
+                        $"{head} Build {d.Units:N0} ({runsNeeded:N0} run(s)) at {siteName}.",
+                        usable.Count == 1
+                            ? "The only usable blueprint is already committed to a job above — "
+                            + "another would have to be acquired to run these in parallel"
+                            : $"All {usable.Count:N0} usable blueprints are committed to jobs "
+                            + "above — another would have to be acquired to run these in parallel",
+                        siteId.Value, siteName));
+                    continue;
+                }
+
 
                 if (prints.Count == 0)
                 {
@@ -358,6 +387,11 @@ public class IndustryJobGenerator(
                 for (var i = 0; i < split.Jobs.Count && i < 1; i++)
                 {
                     var job = split.Jobs[i];
+
+                    // ⚠️ Spoken for, whatever becomes of the row below. One print runs one job at
+                    // a time, so once this pass has planned against it — startable, waiting on a
+                    // slot, or blocked for material — it is not available to plan against twice.
+                    printsCommitted.Add(job.Print.ItemId);
 
                     // Whoever can reach this print, can run this activity, and has a slot free.
                     // Reach is checked per print because a copy in a personal hangar is usable
