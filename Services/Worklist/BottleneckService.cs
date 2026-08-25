@@ -432,13 +432,10 @@ public class BottleneckService(
                       // window used to be counted whole against it, which put one print at 120%
                       // of a time it could not have spent.
                       BusyDays:      g.Sum(j => Overlap(j.StartDate, j.EndDate, since, now)),
-                      // The copies actually seen working. Where more were in play then than are
-                      // owned now, this is the honest denominator for what happened.
-                      Seen:          g.Select(j => j.BlueprintId).Distinct().Count(),
-                      Contention:    AllBusyDays(
-                                        g.Select(j => (j.StartDate, j.EndDate)).ToList(),
-                                        g.Select(j => j.BlueprintId).Distinct().Count(),
-                                        since, now)));
+                      // ⚠️ The intervals are kept, not reduced to a number here. Contention can
+                      // only be worked out once the copies OWNED are known, and that lives with
+                      // the blueprint stock rather than with the job history.
+                      Jobs:          g.Select(j => (j.StartDate, j.EndDate)).ToList()));
 
         var productIds = byBlueprint.Values.Select(v => v.ProductTypeId).Distinct().ToList();
         var bpIds      = byBlueprint.Keys.ToList();
@@ -482,7 +479,13 @@ public class BottleneckService(
                 wantedNow.GetValueOrDefault(made.ProductTypeId).All,
                 wantedNow.GetValueOrDefault(made.ProductTypeId).Blocked)
             {
-                ContentionPercent = 100.0 * made.Contention / WindowDays,
+                // ⚠️ Against the copies OWNED, not the copies seen working. Counting the ones
+                // seen made "all busy" mean "the one I happened to use was busy": five formulas
+                // owned, jobs only ever run on one, and a print busy 31% of the time reported 31%
+                // contention while the other four sat idle — alongside a 6% utilisation figure
+                // that could not be true at the same time. Owned is also the number a buying
+                // decision turns on: how often would today's copies have left me waiting.
+                ContentionPercent = 100.0 * AllBusyDays(made.Jobs, mine.Count, since, now) / WindowDays,
             });
         }
 
@@ -565,9 +568,16 @@ public class BottleneckService(
     /// total spread across eight copies never blocks anybody and concentrated on one blocks
     /// everybody.</para>
     ///
-    /// <para>⚠️ Measured against the copies SEEN WORKING in the window rather than the copies
-    /// owned today. A print bought last week would otherwise make the months before it look
-    /// uncontended, which is backwards — those months are exactly when the shortage was real.</para>
+    /// <para>⚠️ Measured against the copies OWNED, never the copies seen working. Those are not
+    /// the same number and the difference is not small: own five formulas, run jobs on one, and
+    /// counting what was seen makes "every copy busy" mean "that one copy was busy" — which
+    /// reported 31% contention beside a 6% utilisation figure that could not be true at the same
+    /// time. Owned is also the number a buying decision turns on: how often would the copies I
+    /// have now have left me waiting.</para>
+    ///
+    /// <para>⚠️ A print bought part-way through the window therefore makes the months before it
+    /// look less contended than they were. That is the right way round for the question being
+    /// asked — what is worth buying NOW — and the wrong way round for a history lesson.</para>
     /// </summary>
     private static double AllBusyDays(
         List<(DateTimeOffset Start, DateTimeOffset End)> jobs, int copies,
