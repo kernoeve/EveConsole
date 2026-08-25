@@ -699,9 +699,15 @@ public class WorklistViewModel : ReactiveObject
         BottlenecksLoading = true;
         try
         {
-            // The rows already on screen, not a fresh generation: the question is why THIS
+            // ⚠️ The whole run, not the rows on screen. Where the pipeline is constrained does
+            // not depend on which tasks somebody happens to be looking at, but this read the
+            // filtered grid — so hiding blocked work made the blueprints holding it up report no
+            // blocked jobs, and the whole page changed meaning with a filter that has nothing to
+            // do with it. The summary strip already counts off the run for the same reason.
+            //
+            // Still the current run rather than a fresh generation: the question is why THIS
             // list is stuck, and regenerating first would answer it about a different one.
-            var items = Rows.Select(r => r.Item).ToList();
+            var items = _pool.Select(r => r.Item).ToList();
 
             var slots  = await _bottlenecks.SlotPressureAsync(items);
             var prints = await _bottlenecks.BlueprintBandwidthAsync(items);
