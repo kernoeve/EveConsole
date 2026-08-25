@@ -111,12 +111,22 @@ public sealed record ItemShortage(
     /// <summary>What the work on the list actually needs: what is here, plus what it fell short by.</summary>
     public long Need => OnHand + TotalShort;
 
+    /// <summary>
+    /// Why the shelf drained, appended where it applies.
+    ///
+    /// <para>⚠️ This was a verdict of its own, "Never made", and the verdict was a false
+    /// statement: nothing was made in the WINDOW, which is not the same as never. It is evidence
+    /// about why a level emptied, not a claim about the item, so it reads as a clause on whatever
+    /// verdict actually applies.</para>
+    /// </summary>
+    private string NothingMadeNote =>
+        MadePerDay <= 0 && UsedPerDay > 0
+            ? $" Not one has been made in the last {WindowDays} days, which is what drained it."
+            : "";
+
     public string Verdict =>
         BlockedJobs <= 0                        ? NotBlockedVerdict
       : !Buildable                              ? "Buy now"
-      // ⚠️ Consumed steadily and never once made in the window. Not the same as making too few,
-      // and a different fix: nothing is refilling this at all, so no level would have held.
-      : MadePerDay <= 0 && UsedPerDay > 0       ? "Never made"
       // ⚠️ No level at all is its own finding, and it used to fall through to "not the shelf" —
       // because an empty-buffer test cannot be true when there is no buffer to be empty. An item
       // in constant demand that nothing sets aside has no cushion by construction.
@@ -149,15 +159,11 @@ public sealed record ItemShortage(
         // exactly this is what a buffer is FOR.
         "Buffer spent" =>
             $"{BlockedJobs:N0} job(s) stopped with {OnHand:N0} left. Demand is running "
-          + $"{Surge:N1}× its {WindowDays}-day average — a build wave — and the level of "
+          + $"{Surge:N1}× its {WindowDays}-day average and the level of "
           + $"{Level:N0} covered {DaysOfCover:N0} day(s) of ordinary draw but not this. "
           + "A larger level absorbs the next wave; if waves like this are routine, the durable "
-          + "fix is making more of it, since no level survives a rate it cannot refill at.",
-
-        "Never made" =>
-            $"{BlockedJobs:N0} job(s) stopped. Drawn on at {UsedPerDay:N1}/day and not one has "
-          + $"been made in {WindowDays} days, though something here can make it. Nothing is "
-          + "refilling this at all, so no level would have held.",
+          + "fix is making more of it, since no level survives a rate it cannot refill at."
+          + NothingMadeNote,
 
         // ⚠️ The level is met and the work still wants more than is here. Nothing has failed —
         // the level was sized for ordinary draw, and the demand on the list is not that.
@@ -167,14 +173,14 @@ public sealed record ItemShortage(
           + $"that ran out but one sized for {DaysOfCover:N0} day(s) of ordinary draw when the "
           + $"work in front of it wants {TotalShort:N0} more than exists"
           + (IsWave ? $", with demand running {Surge:N1}× its {WindowDays}-day average." : ".")
-          + " Raising the level, or making more, is what closes that gap.",
+          + $" Raising the level, or making more, is what closes that gap.{NothingMadeNote}",
 
         // ⚠️ No level at all. Not a small buffer — none, so there is nothing to absorb anything.
         "No buffer" =>
             $"{BlockedJobs:N0} job(s) stopped and nothing sets a level for this at all, though it "
           + $"is drawn on at {UsedPerDay:N1}/day. There is no cushion by construction: every "
           + $"unit has to be made or bought exactly when it is wanted. Short {TotalShort:N0} "
-          + "against what the list needs.",
+          + $"against what the list needs.{NothingMadeNote}",
 
         // Everything the list wants is here, and the jobs still cannot start. Whatever stopped
         // them is not this material.
@@ -187,7 +193,7 @@ public sealed record ItemShortage(
             $"{BlockedJobs:N0} job(s) stopped with {OnHand:N0} left against a level of {Level:N0} "
           + $"— about {DaysOfCover:N0} day(s) of cover at {UsedPerDay:N1}/day, and it ran out. "
           + "Either the level is too low for how fast this moves, or it is not being refilled in "
-          + "time.",
+          + "time." + NothingMadeNote,
 
         "Buy" =>
             $"None owned and nothing here makes it, drawn on at {UsedPerDay:N1}/day. Nothing is "
@@ -195,8 +201,7 @@ public sealed record ItemShortage(
 
         // Only reached when the deficit holds across both windows — not a spike.
         "Making too few" =>
-            $"Consumed {UsedPerDay:N1}/day against {MadePerDay:N1}/day made, and demand is flat "
-          + $"— this is not a build wave. "
+            $"Consumed {UsedPerDay:N1}/day against {MadePerDay:N1}/day made, and demand is flat. "
           + (double.IsInfinity(DaysToEmpty) ? "" : $"Empty in about {DaysToEmpty:N0} day(s) at this rate. ")
           + "More production, not a larger buffer.",
 

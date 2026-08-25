@@ -469,7 +469,6 @@ public sealed class ItemShortageRowVm(ItemShortage s)
     {
         "Buy now"        => "#c85a5a",
         "Buffer spent"   => "#c85a5a",
-        "Never made"     => "#c85a5a",
         "Blocked"        => "#c85a5a",
         "Level too low"  => "#c85a5a",
         "No buffer"      => "#c85a5a",
