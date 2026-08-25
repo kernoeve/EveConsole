@@ -180,7 +180,7 @@ public sealed record ItemShortage(
     private string StoppedText =>
         StalledTasks > BlockedTasks
             ? $"{StalledTasks:N0} task(s) stopped, {BlockedTasks:N0} of them directly short of it"
-            : $"{StoppedText}";
+            : $"{BlockedTasks:N0} task(s) stopped";
 
     /// <summary>
     /// Whether anything is actually refilling it, said rather than left to be looked up.
