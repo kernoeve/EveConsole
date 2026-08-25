@@ -707,7 +707,7 @@ public class WorklistViewModel : ReactiveObject
             //
             // Still the current run rather than a fresh generation: the question is why THIS
             // list is stuck, and regenerating first would answer it about a different one.
-            var items = _pool.Select(r => r.Item).ToList();
+            var items = _runItems;
 
             var slots  = await _bottlenecks.SlotPressureAsync(items);
             var prints = await _bottlenecks.BlueprintBandwidthAsync(items);
@@ -1043,6 +1043,16 @@ public class WorklistViewModel : ReactiveObject
     public const string AnyValue = "(any)";
 
     private List<WorklistRowVm> _pool = [];
+
+    /// <summary>
+    /// Every item the last run produced, before any of the view's filters.
+    ///
+    /// <para>⚠️ Not <see cref="_pool"/>, which looks unfiltered and is not: it has already had the
+    /// show-snoozed and show-not-ready toggles applied. Reading it for the Bottlenecks tab meant
+    /// that hiding blocked work hid the very rows the tab exists to count, so the page reported
+    /// nothing blocked whenever the grid was set to show only what is ready.</para>
+    /// </summary>
+    private List<WorklistItem> _runItems = [];
 
     /// <summary>
     /// Every row this run produced, before the column filters — what the Overview's worklist
@@ -1399,7 +1409,8 @@ public class WorklistViewModel : ReactiveObject
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                _pool = pool;
+                _pool     = pool;
+                _runItems = run.AllItems.ToList();
 
                 // The Overview sections bind here rather than to Rows: they have no filter row of
                 // their own, and inheriting whatever the tool happened to be filtered to would make

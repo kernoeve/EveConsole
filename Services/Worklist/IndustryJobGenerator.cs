@@ -343,7 +343,7 @@ public class IndustryJobGenerator(
                             + "another would have to be acquired to run these in parallel"
                             : $"All {usable.Count:N0} usable blueprints are committed to jobs "
                             + "above — another would have to be acquired to run these in parallel",
-                        siteId.Value, siteName));
+                        siteId.Value, siteName, onPrint: true));
                     continue;
                 }
 
@@ -368,7 +368,7 @@ public class IndustryJobGenerator(
                             // every character, so "none owned" means none at all rather than
                             // none within the material scope.
                             : "No BPO or BPC owned on any character — one has to be acquired",
-                        siteId.Value, siteName));
+                        siteId.Value, siteName, onPrint: true));
                     continue;
                 }
 
@@ -781,11 +781,18 @@ public class IndustryJobGenerator(
     /// these rows used to sit with a blank value and volume column while every startable job
     /// beside them had both. What is blocked is worth knowing the size of — that is most of why
     /// it is worth unblocking.</param>
+    /// <param name="onPrint">⚠️ True where the blueprint is what is missing. Not inferable from
+    /// the wording: the reason is prose written for a person, and the Bottlenecks tab counts
+    /// print shortages off this flag. Left false and a genuine print block is invisible there —
+    /// which is how "every copy is installed, so nothing can start" came to report nothing
+    /// blocked by a print at all.</param>
     private WorklistItem Unstartable(
         int typeId, string name, int priority, IndustryPool pool, long units,
-        string detail, string blockedBy, long locationId = 0, string locationName = "") =>
+        string detail, string blockedBy, long locationId = 0, string locationName = "",
+        bool onPrint = false) =>
         new()
         {
+            BlockedByPrint = onPrint,
             Key          = $"industry_job:{typeId}:0",
             Source       = Id,
             Kind         = WorklistKind.Job,
