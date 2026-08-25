@@ -44,6 +44,15 @@ public enum WorklistKind { Buy, Haul, Refine, Decompress, Job, CorpProject, Asse
 /// own totals come from — a generator that priced its own lines would be a second opinion about
 /// the same numbers, and the manifest's figures have to add up to the row's.</para>
 /// </summary>
+/// <summary>
+/// One material a job could not get enough of.
+/// </summary>
+/// <param name="MustBuy">⚠️ The whole distinction this tab turns on. True means none is owned
+/// anywhere — a purchase or a build. False means it exists and is somewhere else, which is a
+/// hauling problem wearing a shortage's clothes, and treating the two alike would send somebody
+/// shopping for material already sitting in their own hangar.</param>
+public sealed record WorklistShortage(int TypeId, string TypeName, bool MustBuy);
+
 public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
 {
     public double Volume { get; init; }
@@ -115,6 +124,19 @@ public sealed record WorklistItem
     /// counts nothing is worse than one that is absent.</para>
     /// </summary>
     public bool BlockedByPrint { get; init; }
+
+    /// <summary>
+    /// What this job is short of, itemised.
+    ///
+    /// <para>⚠️ Structured rather than read back out of <see cref="BlockedBy"/>. The generator
+    /// already knows exactly which materials fell short and whether each is owned elsewhere or not
+    /// owned at all — it then flattens all of it into a sentence, and everything downstream that
+    /// wanted the detail had to parse prose or go without.</para>
+    /// </summary>
+    public IReadOnlyList<WorklistShortage> Shortages { get; init; } = [];
+
+    /// <summary>How many items downstream wait on this one — see BuildDemand.Blocks.</summary>
+    public int Blocks { get; init; }
 
     // Who and where. Both may be unset when a generator cannot route the item — an unrouted
     // item is still worth showing, with the gap made obvious rather than hidden.

@@ -506,12 +506,18 @@ public class IndustryJobGenerator(
                         // drop a snooze the moment materials ran short.
                         Emit(restRuns, WorklistReadiness.Blocked, why,
                              runnable > 0 ? ":short" : "",
-                             runnable > 0 ? " The rest of this job, waiting on materials." : "");
+                             runnable > 0 ? " The rest of this job, waiting on materials." : "",
+                             // ⚠️ The same list the sentence above was built from, kept whole.
+                             // What is short and whether it is owned at all is the input to every
+                             // material bottleneck question, and it was being thrown away here.
+                             short_.Select(m => new WorklistShortage(m.TypeId, m.Name, m.MustBuy))
+                                   .ToList());
                     }
 
                     // Builds one row for part or all of this planned job.
                     void Emit(int runs, WorklistReadiness readiness, string blockedBy,
-                              string keySuffix, string extraDetail)
+                              string keySuffix, string extraDetail,
+                              IReadOnlyList<WorklistShortage>? shortages = null)
                     {
                         var produced = runs * perRun;
 
@@ -569,6 +575,7 @@ public class IndustryJobGenerator(
                                           + $"{job.Print.Describe()} at {siteName}.{durText}{capText}{extraDetail}{leftover}",
                             Readiness     = readiness,
                             BlockedBy     = blockedBy,
+                            Shortages     = shortages ?? [],
                             // ⚠️ Only a job that can start names a character. An owner is still picked
                             // above — material reach is per character, so the check needs one — but
                             // reporting it on a job that cannot run reads as an instruction, and the
@@ -583,6 +590,7 @@ public class IndustryJobGenerator(
                             TypeId        = d.TypeId,
                             TypeName      = name,
                             Priority      = priority,
+                            Blocks        = d.Blocks,
                         });
 
                         // ⚠️ Progress recorded here, at the one place a job is actually planned,
@@ -745,6 +753,7 @@ public class IndustryJobGenerator(
                             TypeId        = d.TypeId,
                             TypeName      = name,
                             Priority      = priority,
+                            Blocks        = d.Blocks,
                         });
 
                         left -= runs;

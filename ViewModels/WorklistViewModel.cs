@@ -421,6 +421,51 @@ public sealed class SlotPressureRowVm(SlotPressure p)
 
     public IReadOnlyList<SlotRemedy> Remedies => p.Remedies;
 }
+/// <summary>
+/// A material the pipeline keeps running out of.
+///
+/// <para>Every figure is a rate or the days a rate implies: a stock number on its own cannot say
+/// whether a buffer is the right size.</para>
+/// </summary>
+public sealed class ItemShortageRowVm(ItemShortage s)
+{
+    public string Item      => s.Name;
+    public string Used      => $"{s.UsedPerDay:N1}/d";
+    public string Made      => s.Buildable ? $"{s.MadePerDay:N1}/d" : "—";
+    public string Level     => s.Level > 0 ? s.Level.ToString("N0") : "";
+    public string OnHand    => s.OnHand.ToString("N0");
+    public string Blocked   => s.BlockedJobs > 0 ? s.BlockedJobs.ToString("N0") : "";
+    public string Downstream=> s.Blocks > 0 ? s.Blocks.ToString("N0") : "";
+    public string Verdict   => s.Verdict;
+    public string Advice    => s.Advice;
+
+    /// <summary>Days the level covers at the current draw. The number a buffer is judged on.</summary>
+    public string Cover => s.Level <= 0 ? "—"
+                         : double.IsInfinity(s.DaysOfCover) ? "—"
+                         : $"{s.DaysOfCover:N0}d";
+
+    /// <summary>Made per unit consumed. Under 1.0 and the shelf drains however full it looks.</summary>
+    public string Balance => !s.Buildable ? "—" : $"{s.Balance:N2}×";
+
+    public string BalanceColor => !s.Buildable  ? "#666677"
+                                : s.IsDraining  ? "#c85a5a"
+                                : "#4a8a5a";
+
+    public string VerdictColor => s.Verdict switch
+    {
+        "Making too few" => "#c85a5a",
+        "Buy"            => "#5599aa",
+        "Buffer thin"    => "#c8a84b",
+        "No level set"   => "#c8a84b",
+        _                => "#666677",
+    };
+
+    /// <summary>⚠️ Marks a rate that is itself throttled by the shortage being measured.</summary>
+    public string Suppressed => s.RateSuppressed ? "floor" : "";
+
+    public bool HasLink => s.TypeId > 0;
+    public void Open()  => s.OpenItem();
+}
 
 /// <summary>
 /// A product whose blueprint count is the ceiling on how fast it can be made.
@@ -605,7 +650,8 @@ public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject
 public class WorklistViewModel : ReactiveObject
 {
     private readonly WorklistService   _service;
-    private readonly BottleneckService _bottlenecks;
+    private readonly BottleneckService     _bottlenecks;
+    private readonly ItemContentionService _itemContention;
 
     public BulkObservableCollection<WorklistRowVm> Rows { get; } = [];
 
@@ -651,6 +697,7 @@ public class WorklistViewModel : ReactiveObject
 
     public ObservableCollection<SlotPressureRowVm>  SlotPressure  { get; } = [];
     public ObservableCollection<PrintPressureRowVm> PrintPressure { get; } = [];
+    public ObservableCollection<ItemShortageRowVm>  ItemShortages { get; } = [];
 
     private string _bottleneckStatus = "Not loaded yet.";
     public string BottleneckStatus
@@ -711,6 +758,7 @@ public class WorklistViewModel : ReactiveObject
 
             var slots  = await _bottlenecks.SlotPressureAsync(items);
             var prints = await _bottlenecks.BlueprintBandwidthAsync(items);
+            var shorts = await _itemContention.ShortagesAsync(items);
             var scale  = await _bottlenecks.ContentionScaleAsync();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
@@ -720,6 +768,9 @@ public class WorklistViewModel : ReactiveObject
 
                 PrintPressure.Clear();
                 foreach (var p in prints) PrintPressure.Add(new PrintPressureRowVm(p));
+
+                ItemShortages.Clear();
+                foreach (var s in shorts) ItemShortages.Add(new ItemShortageRowVm(s));
 
                 var tight = slots.Count(s => s.IsBottleneck);
 
@@ -733,7 +784,9 @@ public class WorklistViewModel : ReactiveObject
                         + "blueprint has had every copy busy often enough to make anything wait. "
                         + scale
                         : $"{tight} pool(s) with work waiting on a slot; "
-                        + $"{prints.Count} blueprint(s) worth a look. "
+                        + $"{prints.Count} blueprint(s) worth a look; "
+                        + $"{shorts.Count(s => s.IsDraining)} material(s) being used faster than "
+                        + "they are made. "
                         + Crossed(slots, prints) + scale;
             });
         }
@@ -876,10 +929,12 @@ public class WorklistViewModel : ReactiveObject
                              WorklistCorpAltsViewModel corpAlts,
                              WorklistIndustryViewModel industry,
                              WorklistStationLevelsViewModel stationLevels,
-                             BottleneckService bottlenecks)
+                             BottleneckService bottlenecks,
+                             ItemContentionService itemContention)
     {
-        _service     = service;
-        _bottlenecks = bottlenecks;
+        _service        = service;
+        _bottlenecks    = bottlenecks;
+        _itemContention = itemContention;
 
         RowsView = new DataGridCollectionView(Rows);
         RowsView.GroupDescriptions.Add(new DataGridPathGroupDescription(nameof(WorklistRowVm.KindText)));
