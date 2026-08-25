@@ -223,10 +223,46 @@ public class IndustryJobGenerator(
 
         var printsByType = await blueprints.LoadAsync(bpIds, ct);
 
-        // Most urgent first, then by type id, so the greedy slot and material allocation below
-        // walks demand identically on every run and therefore assigns identically — and the work
-        // someone is waiting on claims a slot before routine stock-keeping does.
-        foreach (var d in demand.Values.OrderByDescending(x => x.Priority).ThenBy(x => x.TypeId))
+        // ── Who gets the next job ─────────────────────────────────────────────
+        //
+        // ⚠️ Re-picked after EVERY job, not sorted once. Sorting once and satisfying each item in
+        // full let whichever shelf happened to be emptiest claim a whole scarce component run:
+        // six Neurolink cells all went to Phoenix Navy Issues while a Standard Phoenix, a
+        // Thanatos and a Moros Navy sat blocked. By the second job the Navy Issue was no longer
+        // the emptiest shelf, and nothing was looking.
+        //
+        // ⚠️ One JOB at a time, not one run. A job is the unit of work — a capital component job
+        // may carry a hundred and forty runs, and splitting it to balance shelves to the unit
+        // would trade a real efficiency for a tidier number. Plan a whole job, then look again.
+        //
+        // Orders always outrank shelf-keeping, and priority orders outrank other orders: that is
+        // what Priority already encodes, so it stays the first comparison. Coverage only decides
+        // between things of equal standing — which in practice is the stock-keeping tier, where
+        // the question "who is emptiest" is the whole point.
+        var queue = demand.Values
+            .Select(x => new PlanState(x))
+            .ToList();
+
+        while (true)
+        {
+            var state = queue
+                .Where(s => !s.Done)
+                .OrderByDescending(s => s.Demand.Priority)
+                .ThenBy(s => s.Demand.CoverageWith(s.Planned))
+                .ThenBy(s => s.Demand.TypeId)
+                .FirstOrDefault();
+
+            if (state is null) break;
+
+            // ⚠️ Finished unless this visit makes progress. The body below leaves by a dozen
+            // routes — no print, no site, nothing affordable — and any one of them returning to
+            // the picker with the item still outstanding would choose it again forever. Opting IN
+            // to another visit is the only version of this that cannot spin.
+            state.Done = true;
+
+            // The body sees a demand for what is still outstanding, so a second visit plans the
+            // rest rather than the whole thing again.
+            var d = state.Demand with { Units = state.Remaining };
         {
                 var product = ctx.BlueprintByProduct.GetValueOrDefault(d.TypeId);
                 if (product is null) continue;   // nothing makes it — a Buy rule's job, not this
@@ -315,7 +351,11 @@ public class IndustryJobGenerator(
                     settings.MaxJobDaysFor(pool),
                     prints);
 
-                for (var i = 0; i < split.Jobs.Count; i++)
+                // ⚠️ One job, then back to the picker. The split still plans the whole remaining
+                // shortfall — that is what sizes this job and what the "of N" wording counts —
+                // but only the first is taken, because by the time it is installed this item may
+                // no longer be the emptiest shelf in the yard.
+                for (var i = 0; i < split.Jobs.Count && i < 1; i++)
                 {
                     var job = split.Jobs[i];
 
@@ -503,6 +543,24 @@ public class IndustryJobGenerator(
                             TypeName      = name,
                             Priority      = priority,
                         });
+
+                        // ⚠️ Progress recorded here, at the one place a job is actually planned,
+                        // and only for work that will actually happen. The shelf is that much
+                        // fuller, which is what sends the next job somewhere else — and asking
+                        // for another visit only when something was planned is what stops the
+                        // picker returning to the same item forever.
+                        //
+                        // ⚠️ Blocked runs excluded. A row saying "these 40 runs have no material"
+                        // fills no shelf and consumes nothing; counting it as progress would
+                        // credit an item for work nobody can do, and send the next real job to
+                        // whoever looks emptiest AFTER that fiction.
+                        if (readiness != WorklistReadiness.Blocked)
+                        {
+                            var madeUnits = (long)runs * Math.Max(1, product.Quantity);
+                            state.Planned   += madeUnits;
+                            state.Remaining -= madeUnits;
+                            if (state.Remaining > 0) state.Done = false;
+                        }
                     }
 
                     // Materials for a given run count on this print, cached across the search.
@@ -652,11 +710,34 @@ public class IndustryJobGenerator(
                     }
                 }
         }
+        }
 
         return items;
     }
 
 
+
+    /// <summary>
+    /// One item's progress through the planner: what is left to plan, and what has been.
+    ///
+    /// <para>Exists because demand is no longer walked once in a fixed order. Each visit plans a
+    /// single job and hands the floor back, so an item has to remember where it got to — and the
+    /// picker has to know how full its shelf is NOW rather than how full it was before anything
+    /// was allocated.</para>
+    /// </summary>
+    private sealed class PlanState(BuildDemand demand)
+    {
+        public BuildDemand Demand { get; } = demand;
+
+        /// <summary>Units still to plan. Starts at the whole shortfall.</summary>
+        public long Remaining { get; set; } = demand.Units;
+
+        /// <summary>Units planned so far, which is what raises this item's coverage.</summary>
+        public long Planned { get; set; }
+
+        /// <summary>No further visit is useful — finished, or unable to go further.</summary>
+        public bool Done { get; set; }
+    }
 
     /// <summary>A shortfall that cannot become a job at all, reported once with the reason.</summary>
     /// <param name="pool">Carried so a blocked job still counts under its own slot type in the

@@ -11,9 +11,28 @@ namespace EveConsole.Services.Worklist;
 /// <param name="OrderUnits">Of the gross demand, what customer orders asked for.</param>
 /// <param name="RuleUnits">Of the gross demand, what inventory levels want on the shelf.</param>
 /// <param name="ParentUnits">Of the gross demand, what parent builds will eat.</param>
+/// <param name="ShelfLevel">What the inventory levels want on the shelf, for measuring coverage
+/// against as jobs are planned. Zero where nothing sets a level for this item.</param>
+/// <param name="ShelfHave">What is on that shelf now — assets and running jobs.</param>
 public sealed record BuildDemand(int TypeId, long Units, int Priority, List<string> Reasons,
-                                 long OrderUnits = 0, long RuleUnits = 0, long ParentUnits = 0)
+                                 long OrderUnits = 0, long RuleUnits = 0, long ParentUnits = 0,
+                                 long ShelfLevel = 0, long ShelfHave = 0)
 {
+    /// <summary>
+    /// How full the shelf would be with <paramref name="planned"/> more units on it, as a
+    /// percentage of what the level asks for.
+    ///
+    /// <para>⚠️ Takes the planned figure because the generator asks this repeatedly, between
+    /// jobs. A coverage worked out once at the start is the reason six hulls' worth of a scarce
+    /// component all went to whichever item happened to be emptiest before any of it was
+    /// allocated — by the second job it was no longer the emptiest, and nothing noticed.</para>
+    ///
+    /// <para>Items with no shelf level return 100: they are not competing for shelf space, so
+    /// they never win a comparison that is about how empty a shelf is.</para>
+    /// </summary>
+    public double CoverageWith(long planned) =>
+        ShelfLevel <= 0 ? 100 : 100.0 * (ShelfHave + planned) / ShelfLevel;
+
     public string Head => string.Join(" + ", Reasons);
 
     /// <summary>
@@ -308,7 +327,8 @@ public class IndustryDemandService(
             result[typeId] = new BuildDemand(
                 typeId, units, g.Priority,
                 [.. Summarise(g, have)],
-                g.OrderUnits, g.Level, g.ParentUnits);
+                g.OrderUnits, g.Level, g.ParentUnits,
+                ShelfLevel: g.Level, ShelfHave: have);
         }
 
         return result;
