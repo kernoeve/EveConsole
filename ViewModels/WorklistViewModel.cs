@@ -483,10 +483,12 @@ public sealed class PrintPressureRowVm(ItemBandwidth p)
     /// <summary>Steady is the one worth buying for; a surge is a week of work, not a shortage.</summary>
     public string PatternColor => p.Pattern switch
     {
-        "Steady" => "#c85a5a",
-        "Surge"  => "#5599aa",
-        "Quiet"  => "#555566",
-        _        => "#8a8a99",
+        "Blocking" => "#c85a5a",
+        "Steady"   => "#c85a5a",
+        "Blocked"  => "#c8a84b",
+        "Surge"    => "#5599aa",
+        "Minor"    => "#666677",
+        _          => "#8a8a99",
     };
 
     public bool HasLink => p.ProductTypeId > 0;

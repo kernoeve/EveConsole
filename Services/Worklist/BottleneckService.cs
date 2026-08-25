@@ -205,7 +205,11 @@ public sealed record ItemBandwidth(
       : BlockedNow > 0            ? "Blocked"
       : WantedNow > 0 && IsIdle   ? "Surge"
       : WantedNow > 0             ? "Building"
-      :                             "Quiet";
+      // ⚠️ Not "Quiet". Everything on this list cleared the contention floor to get here, so
+      // a print busy nine percent of the quarter across four copies is not quiet — it simply
+      // is not in the busiest tenth of this operation. Naming it Quiet told the reader to
+      // ignore a row the list had just decided was worth showing them.
+      :                             "Minor";
 
     public string Advice => Pattern switch
     {
@@ -233,8 +237,13 @@ public sealed record ItemBandwidth(
           + $"last {WindowDays} days. A one-off rather than a standing need — a copy may serve "
           + "better than an original.",
 
+        "Minor" =>
+            $"Every copy was busy {ContentionPercent:N0}% of the last {WindowDays} days — real, "
+          + "but outside the busiest tenth here, and nothing is queued for it. Another copy "
+          + $"would take the ceiling to {CeilingWithOneMore:N2}/day.",
+
         _ =>
-            $"{WantedNow:N0} job(s) queued; all copies busy {ContentionPercent:N0}% of the window. "
+            $"{WantedNow:N0} job(s) queued; every copy busy {ContentionPercent:N0}% of the window. "
           + $"Another copy would take the ceiling to {CeilingWithOneMore:N2}/day.",
     };
 
