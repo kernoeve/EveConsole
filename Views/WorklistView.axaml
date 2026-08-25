@@ -1016,7 +1016,7 @@
                 <TextBlock Text="MATERIALS" FontSize="10" FontWeight="SemiBold"
                            Foreground="#555566" LetterSpacing="1"/>
                 <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
-                           Text="Materials the pipeline runs out of — the ones nothing owns, not the ones sitting at the wrong station, which is a hauling problem and belongs elsewhere. Ranked by stopped work: the harm is idle slots and stalled jobs, not a ratio. 'Blocking' counts TASKS the shortage is holding up: the ones directly short of it, plus the ones stopped for want of what those would have made, and so on up the chain. The four columns after it are the tasks making this item — Running is installed in game, Ready can be started now, Waiting only needs a free slot, Stuck is blocked in its own right. Stuck with nothing running or ready is the shape that does not resolve on its own. 'Cover' is the level measured in days at the current draw — a buffer is a length of time, not a quantity. 'Balance' is made per unit consumed and 'Surge' is how much harder than usual it is being drawn on right now: a deficit during a build wave is what a buffer exists to absorb, and only a deficit that holds when demand is flat means production is undersized. ⚠ Every rate is a floor — nothing consumed what could not be made, so an item that has been blocking work was used at the rate the blockage allowed rather than the rate that was wanted."/>
+                           Text="Materials the pipeline runs out of — the ones nothing owns, not the ones sitting at the wrong station, which is a hauling problem and belongs elsewhere. Ranked by the work each one is holding up. Hover a column heading for what it means. ⚠ Every rate here is a floor: nothing consumed what could not be made, so an item that has been blocking work was used at the rate the blockage allowed rather than the rate that was wanted."/>
               </StackPanel>
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding ItemShortages}" IsReadOnly="True"
@@ -1074,7 +1074,10 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Material" Width="230">
+                  <DataGridTemplateColumn Width="230">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Material" Background="Transparent" ToolTip.Tip="The item that ran short. Click it to open the Item Browser."/>
+                    </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
                         <Panel>
@@ -1088,9 +1091,20 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Used"     Binding="{Binding Used}"    Width="75"/>
-                  <DataGridTextColumn Header="Made"     Binding="{Binding Made}"    Width="75"/>
-                  <DataGridTemplateColumn Header="Balance" Width="75">
+                  <DataGridTextColumn     Binding="{Binding Used}"    Width="75">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Used" Background="Transparent" ToolTip.Tip="Consumed per day over the last 90 days, summed across every blueprint that eats it. An item drawn on by four parents is short four times over."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn     Binding="{Binding Made}"    Width="75">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Made" Background="Transparent" ToolTip.Tip="Produced per day over the same window. A dash means nothing here makes it at all, so the only way to refill it is to buy it."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTemplateColumn Width="75">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Balance" Background="Transparent" ToolTip.Tip="Made per unit consumed. Under 1.00 the shelf is draining however full it looks, and no size of buffer survives that. Amber rather than red during a demand spike, since absorbing exactly that is what a buffer is for."/>
+                    </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
                         <TextBlock Text="{Binding Balance}" Foreground="{Binding BalanceColor}"
@@ -1098,9 +1112,20 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Level"    Binding="{Binding Level}"   Width="70"/>
-                  <DataGridTextColumn Header="On hand"  Binding="{Binding OnHand}"  Width="80"/>
-                  <DataGridTemplateColumn Header="Need" Width="80">
+                  <DataGridTextColumn    Binding="{Binding Level}"   Width="70">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Level" Background="Transparent" ToolTip.Tip="What the inventory levels ask to keep on the shelf. Blank means no level is set for this at all, which is a finding in its own right."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn  Binding="{Binding OnHand}"  Width="80">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="On hand" Background="Transparent" ToolTip.Tip="Units the industry scope can actually reach. Stock outside the scope is not counted, because the plan cannot spend it."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTemplateColumn Width="80">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Need" Background="Transparent" ToolTip.Tip="What the work on the list wants: what is here plus what it fell short by. Red once that exceeds what exists, which can happen with the level fully met."/>
+                    </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
                         <TextBlock Text="{Binding Need}" Foreground="{Binding NeedColor}"
@@ -1108,13 +1133,40 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Cover"    Binding="{Binding Cover}"   Width="65"/>
-                  <DataGridTextColumn Header="Surge"    Binding="{Binding Surge}"   Width="60"/>
-                  <DataGridTextColumn Header="Blocking" Binding="{Binding Blocking}" Width="75"/>
-                  <DataGridTextColumn Header="Running"  Binding="{Binding MakeRunning}" Width="70"/>
-                  <DataGridTextColumn Header="Ready"    Binding="{Binding MakeReady}"   Width="60"/>
-                  <DataGridTextColumn Header="Waiting"  Binding="{Binding MakeWaiting}" Width="70"/>
-                  <DataGridTemplateColumn Header="Stuck" Width="60">
+                  <DataGridTextColumn    Binding="{Binding Cover}"   Width="65">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Cover" Background="Transparent" ToolTip.Tip="The level measured in days at the current draw. A buffer is a length of time, not a quantity: 200 of something eaten twice a day is 100 days, and 200 of something eaten 200 times a day is one."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn    Binding="{Binding Surge}"   Width="60">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Surge" Background="Transparent" ToolTip.Tip="How much harder this is being drawn on now than across the whole window. Blank under 1.2x. This is what separates a build wave from a standing shortage."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn Binding="{Binding Blocking}" Width="75">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Blocking" Background="Transparent" ToolTip.Tip="Tasks this shortage is holding up: the ones directly short of it, plus the ones stopped for want of what those would have made, and so on up the chain. Tasks, not item types."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn  Binding="{Binding MakeRunning}" Width="70">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Running" Background="Transparent" ToolTip.Tip="Jobs making this item that are installed and running in game right now. Not a task, so nothing on the list asks for it."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn    Binding="{Binding MakeReady}"   Width="60">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Ready" Background="Transparent" ToolTip.Tip="Tasks to make this item that could be started today."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn  Binding="{Binding MakeWaiting}" Width="70">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Waiting" Background="Transparent" ToolTip.Tip="Tasks to make this item held up only by a busy slot."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTemplateColumn Width="60">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Stuck" Background="Transparent" ToolTip.Tip="Tasks to make this item that are blocked in their own right. Red when nothing is running or ready either, which is the shape that does not resolve on its own."/>
+                    </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
                         <TextBlock Text="{Binding MakeBlocked}" Foreground="{Binding MakeBlockedColor}"
@@ -1122,7 +1174,10 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Verdict" Width="110">
+                  <DataGridTemplateColumn Width="110">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Verdict" Background="Transparent" ToolTip.Tip="What the row amounts to, in a couple of words."/>
+                    </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
                         <TextBlock Text="{Binding Verdict}" Foreground="{Binding VerdictColor}"
@@ -1133,8 +1188,11 @@
                   <!-- Wraps, and the row grows to fit. A DataGridTextColumn cannot wrap at all, so the whole
                        sentence sat on one clipped line and the half worth reading - what to do
                        about the shortage - was the half off the right edge. -->
-                  <DataGridTemplateColumn Header="Suggestion" Width="*" MinWidth="260"
+                  <DataGridTemplateColumn Width="*" MinWidth="260"
                                           CanUserSort="False">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Suggestion" Background="Transparent" ToolTip.Tip="What is happening and what would change it, using the figures on this row rather than telling you where to look."/>
+                    </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
                         <TextBlock Text="{Binding Advice}" TextWrapping="Wrap"
@@ -1154,7 +1212,7 @@
               <TextBlock Text="BLUEPRINTS" FontSize="10" FontWeight="SemiBold"
                          Foreground="#555566" LetterSpacing="1"/>
               <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
-                         Text="A blueprint bottleneck is having to WAIT for a copy to free up — not running one a lot. 'All busy' is the share of the last 90 days when every BPO you own was occupied at once, counting research and copying as well as building, since a print locked in a copy job is just as unavailable. That is the only figure that separates a real constraint from heavy use: a formula run flat out across eight formulas has never blocked anything, and buying the eighth is what fixed it. Listed from 5% up, or 15% for single-BPO items — with one print 'every copy busy' just means 'the print was busy', so low figures there are light use rather than contention. 'Used' is context only. 'Blocked now' counts jobs held up by the blueprint ALONE — if a product is also short of material, more prints would change nothing and it counts zero."/>
+                         Text="A blueprint bottleneck is having to WAIT for an original to free up — not running one a lot. Ranking on use ranks the fix above the problem: a formula run flat out across eight originals has never blocked anything, and buying the eighth is what settled it. Listed from 5% all-busy up, or 15% for single-BPO items, where the measure degenerates into plain use. Hover a column heading for what it means."/>
             </StackPanel>
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
@@ -1209,7 +1267,10 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Product" Width="220">
+                  <DataGridTemplateColumn Width="220">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Product" Background="Transparent" ToolTip.Tip="What this blueprint or formula makes. Click it to open the Item Browser."/>
+                    </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
                         <Panel>
@@ -1223,13 +1284,40 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Cycle"     Binding="{Binding Cycle}"    Width="70"/>
-                  <DataGridTextColumn Header="BPO"       Binding="{Binding Prints}"  Width="55"/>
-                  <DataGridTextColumn Header="Installed" Binding="{Binding Busy}"     Width="75"/>
-                  <DataGridTextColumn Header="Ceiling"   Binding="{Binding Capacity}"    Width="85"/>
-                  <DataGridTextColumn Header="Made"      Binding="{Binding Demand}"      Width="85"/>
-                  <DataGridTextColumn Header="Used" Binding="{Binding Used}" Width="60" Foreground="#666677"/>
-                  <DataGridTemplateColumn Header="All busy" Width="75">
+                  <DataGridTextColumn     Binding="{Binding Cycle}"    Width="70">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Cycle" Background="Transparent" ToolTip.Tip="How long one run takes, averaged over the jobs actually run rather than from the blueprint."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn       Binding="{Binding Prints}"  Width="55">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="BPO" Background="Transparent" ToolTip.Tip="Originals OWNED. Copies are deliberately not counted: contention is about whether one of yours was free."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn Binding="{Binding Busy}"     Width="75">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Installed" Background="Transparent" ToolTip.Tip="How many of those originals are sitting inside a job at this moment."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn   Binding="{Binding Capacity}"    Width="85">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Ceiling" Background="Transparent" ToolTip.Tip="Units a day the originals on hand could turn out between them, running without a pause."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn      Binding="{Binding Demand}"      Width="85">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Made" Background="Transparent" ToolTip.Tip="Units a day actually produced over the last 90 days. It can never exceed the ceiling, which is why it cannot be used to measure demand."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn Binding="{Binding Used}" Width="60" Foreground="#666677">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Used" Background="Transparent" ToolTip.Tip="Share of each original's time spent inside a job. Context only: it does not identify bottlenecks, and ranking on it ranks heavy use above real constraints."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTemplateColumn Width="75">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="All busy" Background="Transparent" ToolTip.Tip="Share of the last 90 days when EVERY original was occupied at once, counting research and copying as well as building. This is the figure that says whether wanting another job meant waiting."/>
+                    </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
                         <TextBlock Text="{Binding Cover}" Foreground="{Binding CoverColor}"
@@ -1237,9 +1325,20 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Rank" Binding="{Binding Rank}" Width="70" Foreground="#666677"/>
-                  <DataGridTextColumn Header="30d" Binding="{Binding Recent}" Width="55" Foreground="#666677"/>
-                  <DataGridTemplateColumn Header="Trend" Width="70">
+                  <DataGridTextColumn Binding="{Binding Rank}" Width="70" Foreground="#666677">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Rank" Background="Transparent" ToolTip.Tip="Where this sits among all your own blueprints. Nothing here uses a fixed cut-off, so the flag is drawn against your own spread."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn Binding="{Binding Recent}" Width="55" Foreground="#666677">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="30d" Background="Transparent" ToolTip.Tip="The same all-busy figure over the last 30 days, so a busy month is not hidden inside a quiet quarter."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTemplateColumn Width="70">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Trend" Background="Transparent" ToolTip.Tip="Whether the recent squeeze is rising, easing or steady against the full window."/>
+                    </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
                         <TextBlock Text="{Binding Trend}" Foreground="{Binding TrendColor}"
@@ -1247,11 +1346,30 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="+1 print" Binding="{Binding WithOneMore}" Width="85"/>
-                  <DataGridTextColumn Header="Queued"  Binding="{Binding Wanted}"  Width="65"/>
-                  <DataGridTextColumn Header="Blocked now" Binding="{Binding Blocked}" Width="95"/>
-                  <DataGridTextColumn Header="Blocking" Binding="{Binding Blocking}" Width="75"/>
-                  <DataGridTemplateColumn Header="Pattern" Width="80">
+                  <DataGridTextColumn Binding="{Binding WithOneMore}" Width="85">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="+1 print" Background="Transparent" ToolTip.Tip="What the ceiling becomes with one more original. The answer to whether buying one is worth it."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn  Binding="{Binding Wanted}"  Width="65">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Queued" Background="Transparent" ToolTip.Tip="Jobs for this product on the worklist right now. Current demand, which history cannot supply."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn Binding="{Binding Blocked}" Width="95">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Blocked now" Background="Transparent" ToolTip.Tip="Jobs held up by the blueprint ALONE. If the product is also short of material, more prints would change nothing, so this counts zero."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn Binding="{Binding Blocking}" Width="75">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Blocking" Background="Transparent" ToolTip.Tip="Tasks waiting on what this makes: directly, and behind those up the chain. A blueprint can be entirely uncontended and still have a queue piled up behind its output."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTemplateColumn Width="80">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Pattern" Background="Transparent" ToolTip.Tip="What the shape of the figures amounts to, in a word."/>
+                    </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
                         <TextBlock Text="{Binding Pattern}" Foreground="{Binding PatternColor}"
@@ -1260,8 +1378,11 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <!-- Wraps, and the row grows to fit; see the Item Contention grid. -->
-                  <DataGridTemplateColumn Header="Suggestion" Width="*" MinWidth="260"
+                  <DataGridTemplateColumn Width="*" MinWidth="260"
                                           CanUserSort="False">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Suggestion" Background="Transparent" ToolTip.Tip="What is happening and what would change it."/>
+                    </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
                         <TextBlock Text="{Binding Advice}" TextWrapping="Wrap"
