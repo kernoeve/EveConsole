@@ -131,11 +131,34 @@ public sealed record ItemBandwidth(
     /// </summary>
     public double ContentionPercent { get; init; }
 
-    /// <summary>Every copy was busy often enough that wanting another would have meant waiting.</summary>
-    public bool IsTight => ContentionPercent >= 15;
+    /// <summary>
+    /// Where this sits in the operation's own spread of contention, 0–100.
+    ///
+    /// <para><b>⚠️ Relative, because an absolute cut cannot survive a different operation.</b>
+    /// Fifteen percent contention is severe for somebody whose prints sit near zero and unremarkable
+    /// for somebody running everything hot — the same number describes a crisis and a Tuesday. What
+    /// travels between operations is the shape: the busiest tenth of YOUR prints are the ones worth
+    /// looking at, whatever figure that tenth happens to start at.</para>
+    ///
+    /// <para>It also moves as the operation does. Buy copies until nothing is contended and the
+    /// whole distribution collapses toward zero, where the floor below takes over and the list
+    /// empties — which is the correct answer, not a threshold that needs revisiting.</para>
+    /// </summary>
+    public double ContentionRank { get; init; }
 
-    /// <summary>Rarely if ever all occupied — another copy would buy nothing.</summary>
-    public bool IsIdle => ContentionPercent < 5;
+    /// <summary>
+    /// Every copy was busy often enough, and often enough compared to everything else here, that
+    /// wanting another would have meant waiting.
+    ///
+    /// <para>⚠️ The zero test is a fact rather than a threshold: a blueprint whose copies were
+    /// never all busy at once has demonstrably never made anybody wait, however it ranks against
+    /// its neighbours. Without it, an operation with no contention anywhere would still report its
+    /// top tenth as bottlenecks — ranking something is not the same as it being a problem.</para>
+    /// </summary>
+    public bool IsTight => ContentionPercent > 0 && ContentionRank >= 90;
+
+    /// <summary>Never all occupied, or unremarkable against the rest — another copy buys nothing.</summary>
+    public bool IsIdle => ContentionPercent <= 0 || ContentionRank < 50;
 
     /// <summary>
     /// Whether this is a standing shortage or a spike, which is the whole question.
@@ -463,6 +486,17 @@ public class BottleneckService(
             });
         }
 
+        // ⚠️ Ranked against every blueprint measured, before anything is filtered out. Rank it
+        // after filtering and the scale is drawn from the survivors — which is the list deciding
+        // its own cut-off from the rows it already chose, and would call the least bad of a
+        // healthy set a bottleneck.
+        var spread = result.Select(r => r.ContentionPercent).OrderBy(v => v).ToList();
+        result = result
+            .Select(r => r with { ContentionRank = Percentile(spread, r.ContentionPercent) })
+            .ToList();
+
+        _lastScale = Describe(spread);
+
         // ⚠️ Ranked on contention, never on use. Use ranks a formula somebody already bought eight
         // copies of above one they own a single copy of, which is precisely backwards: the eight
         // are the fix, and the one is the problem. Blocked work first among equals, since that is
@@ -473,6 +507,44 @@ public class BottleneckService(
             .ThenByDescending(r => r.ContentionPercent)
             .ThenByDescending(r => r.WantedNow)
             .ToList();
+    }
+
+    private string _lastScale = "";
+
+    /// <summary>
+    /// The spread the last run's flags were drawn against, in words.
+    ///
+    /// <para>⚠️ Worth showing because nothing here uses a fixed cut-off. A reader told that a
+    /// blueprint is in the top tenth is owed the scale that tenth begins at, or the flag is an
+    /// assertion with no visible basis.</para>
+    /// </summary>
+    public Task<string> ContentionScaleAsync() => Task.FromResult(_lastScale);
+
+    private static string Describe(List<double> sorted)
+    {
+        if (sorted.Count < 4) return "";
+
+        double At(double p) => sorted[(int)(p * (sorted.Count - 1))];
+
+        var never = sorted.Count(v => v <= 0);
+        return $"Measured across {sorted.Count:N0} blueprint(s) over {WindowDays} days: "
+             + $"{never:N0} never had every copy busy at once, the middle sits at {At(.5):N0}%, "
+             + $"and the busiest tenth start at {At(.9):N0}% — which is the line the flags use.";
+    }
+
+    /// <summary>
+    /// Where a value sits in a sorted spread, 0–100.
+    ///
+    /// <para>⚠️ Counts values strictly BELOW, so the lowest value scores 0 rather than sharing a
+    /// rank with everything equal to it. In a long tail of zeroes — which is most of any real
+    /// blueprint collection — averaging ties would hand every untouched print the same middling
+    /// rank as its neighbours and drag the whole scale sideways.</para>
+    /// </summary>
+    private static double Percentile(List<double> sorted, double value)
+    {
+        if (sorted.Count <= 1) return 0;
+        var below = sorted.Count(v => v < value);
+        return 100.0 * below / (sorted.Count - 1);
     }
 
     /// <summary>Days of an interval that fall inside the window.</summary>

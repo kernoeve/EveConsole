@@ -433,6 +433,9 @@ public sealed class PrintPressureRowVm(ItemBandwidth p)
     /// </summary>
     public string Cover     => $"{p.ContentionPercent:N0}%";
 
+    /// <summary>Where it sits among this operation's own prints, which is what decides the flag.</summary>
+    public string Rank      => p.ContentionPercent <= 0 ? "" : $"top {Math.Max(1, 100 - p.ContentionRank):N0}%";
+
     /// <summary>Kept beside it as context, deliberately not as the ranking.</summary>
     public string Used      => $"{p.UtilPercent:N0}%";
     public string Blocked   => p.BlockedNow > 0 ? p.BlockedNow.ToString("N0") : "";
@@ -658,6 +661,7 @@ public class WorklistViewModel : ReactiveObject
 
             var slots  = await _bottlenecks.SlotPressureAsync(items);
             var prints = await _bottlenecks.BlueprintBandwidthAsync(items);
+            var scale  = await _bottlenecks.ContentionScaleAsync();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -668,13 +672,18 @@ public class WorklistViewModel : ReactiveObject
                 foreach (var p in prints) PrintPressure.Add(new PrintPressureRowVm(p));
 
                 var tight = slots.Count(s => s.IsBottleneck);
+
+                // ⚠️ The calibration is stated, not hidden. Nothing here uses a fixed cut-off any
+                // more, so the reader is owed the scale the flags were drawn against — otherwise
+                // "top 10%" is a number with no visible basis.
                 BottleneckStatus = items.Count == 0
                     ? "The worklist is empty — generate it first and this will have something to read."
                     : tight == 0 && prints.Count == 0
-                        ? "Nothing is bottlenecked: every pool has a free slot, and no product wants "
-                        + "more blueprints than it owns."
-                        : $"{tight} pool(s) full with work waiting; "
-                        + $"{prints.Count} product(s) limited by blueprint count.";
+                        ? "Nothing is bottlenecked: no pool has work waiting on a slot, and no "
+                        + "blueprint has had every copy busy often enough to make anything wait. "
+                        + scale
+                        : $"{tight} pool(s) with work waiting on a slot; "
+                        + $"{prints.Count} blueprint(s) worth a look. " + scale;
             });
         }
         finally { BottlenecksLoading = false; }
