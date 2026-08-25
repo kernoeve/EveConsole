@@ -599,7 +599,8 @@
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
                     <Button Click="OnNeedToggle" Background="Transparent" BorderThickness="0"
-                            Padding="2 0" FontSize="14" Foreground="#8a99a8"
+                            Padding="2 0" FontSize="28" Height="20" MinHeight="0"
+                            VerticalContentAlignment="Center" Foreground="#8a99a8"
                             IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
                             ToolTip.Tip="What is asking for this"/>
                     <TextBlock Text="—" FontSize="12" Foreground="#3f3f4d" Margin="6 0"
@@ -772,7 +773,8 @@
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
                     <Button Click="OnNeedToggle" Background="Transparent" BorderThickness="0"
-                            Padding="2 0" FontSize="14" Foreground="#8a99a8"
+                            Padding="2 0" FontSize="28" Height="20" MinHeight="0"
+                            VerticalContentAlignment="Center" Foreground="#8a99a8"
                             IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
                             ToolTip.Tip="What is asking for this"/>
                     <TextBlock Text="—" FontSize="12" Foreground="#3f3f4d" Margin="6 0"
@@ -1023,7 +1025,7 @@
                           <DataTemplate x:DataType="vm:ShortageTaskRowVm">
                             <Grid ColumnDefinitions="90,70,230,*" Margin="0 1">
                               <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
-                                         Foreground="#6e6e80" VerticalAlignment="Center"/>
+                                         Foreground="#6e6e80" VerticalAlignment="Top" Margin="0 3 0 0"/>
                               <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
                                          Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
                               <TextBlock Grid.Column="2" Text="{Binding Title}" FontSize="10"
@@ -1046,11 +1048,11 @@
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
                         <Button Classes="expander" Click="OnShortageToggle"
                                 IsVisible="{Binding HasTasks}"
-                                Content="{Binding Glyph}" FontSize="10"
-                                Padding="0" Width="16" Height="16" MinWidth="0" MinHeight="0"
+                                Content="{Binding Glyph}" FontSize="20"
+                                Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
                                 Background="Transparent" BorderThickness="0" Foreground="#7a8896"
                                 Cursor="Hand"
-                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0 3 0 0"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 ToolTip.Tip="Show the tasks behind these counts"/>
                       </DataTemplate>
@@ -1065,7 +1067,7 @@
                             <TextBlock Text="{Binding Item}" Classes="linktext"/>
                           </Button>
                           <TextBlock Text="{Binding Item}" IsVisible="{Binding !HasLink}"
-                                     VerticalAlignment="Center"/>
+                                     VerticalAlignment="Top" Margin="0 3 0 0"/>
                         </Panel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -1076,7 +1078,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
                         <TextBlock Text="{Binding Balance}" Foreground="{Binding BalanceColor}"
-                                   VerticalAlignment="Center"/>
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -1086,7 +1088,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
                         <TextBlock Text="{Binding Need}" Foreground="{Binding NeedColor}"
-                                   VerticalAlignment="Center"/>
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -1100,7 +1102,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
                         <TextBlock Text="{Binding MakeBlocked}" Foreground="{Binding MakeBlockedColor}"
-                                   VerticalAlignment="Center"/>
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -1108,11 +1110,22 @@
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
                         <TextBlock Text="{Binding Verdict}" Foreground="{Binding VerdictColor}"
-                                   VerticalAlignment="Center"/>
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Suggestion" Binding="{Binding Advice}" Width="*"/>
+                  <!-- Wraps, and the row grows to fit. A DataGridTextColumn cannot wrap at all, so the whole
+                       sentence sat on one clipped line and the half worth reading - what to do
+                       about the shortage - was the half off the right edge. -->
+                  <DataGridTemplateColumn Header="Suggestion" Width="*" MinWidth="260"
+                                          CanUserSort="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:ItemShortageRowVm">
+                        <TextBlock Text="{Binding Advice}" TextWrapping="Wrap"
+                                   VerticalAlignment="Top" Margin="0 3 4 3"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -1181,7 +1194,16 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Suggestion" Binding="{Binding Advice}" Width="*"/>
+                  <!-- Wraps, and the row grows to fit; see the Item Contention grid. -->
+                  <DataGridTemplateColumn Header="Suggestion" Width="*" MinWidth="260"
+                                          CanUserSort="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:PrintPressureRowVm">
+                        <TextBlock Text="{Binding Advice}" TextWrapping="Wrap"
+                                   VerticalAlignment="Top" Margin="0 3 4 3"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
