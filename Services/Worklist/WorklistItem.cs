@@ -51,7 +51,11 @@ public enum WorklistKind { Buy, Haul, Refine, Decompress, Job, CorpProject, Asse
 /// anywhere — a purchase or a build. False means it exists and is somewhere else, which is a
 /// hauling problem wearing a shortage's clothes, and treating the two alike would send somebody
 /// shopping for material already sitting in their own hangar.</param>
-public sealed record WorklistShortage(int TypeId, string TypeName, bool MustBuy);
+/// <param name="Short">How many more this job needed than it could get.</param>
+/// <param name="Wanted">How many the job needed in total, which is what makes a shortfall
+/// legible: three short of four is a different situation from three short of thirty thousand.</param>
+public sealed record WorklistShortage(
+    int TypeId, string TypeName, long Short, long Wanted, bool MustBuy);
 
 public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
 {

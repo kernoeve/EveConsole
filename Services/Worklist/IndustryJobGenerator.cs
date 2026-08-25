@@ -510,7 +510,8 @@ public class IndustryJobGenerator(
                              // ⚠️ The same list the sentence above was built from, kept whole.
                              // What is short and whether it is owned at all is the input to every
                              // material bottleneck question, and it was being thrown away here.
-                             short_.Select(m => new WorklistShortage(m.TypeId, m.Name, m.MustBuy))
+                             short_.Select(m => new WorklistShortage(
+                                        m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy))
                                    .ToList());
                     }
 
@@ -898,6 +899,11 @@ public class IndustryJobGenerator(
             missing.Add(new MissingMaterial(
                 ctx.TypeNames.GetValueOrDefault(typeId, $"Type {typeId}"),
                 typeId,
+                // ⚠️ How much short, not merely that it is. Without the amount, "blocked on this"
+                // reads the same whether the job wanted two more than it had or ten thousand more
+                // than exists — and those call for entirely different answers.
+                Short: Math.Max(0, wanted - here),
+                Wanted: wanted,
                 // Owned in scope but not here is a hauling problem. Not owned in scope at all is
                 // a buying one, and only the second should raise a purchase.
                 MustBuy: inScope.Reachable(typeId, who) < wanted));
@@ -906,7 +912,8 @@ public class IndustryJobGenerator(
         return missing;
     }
 
-    private sealed record MissingMaterial(string Name, int TypeId, bool MustBuy);
+    private sealed record MissingMaterial(
+        string Name, int TypeId, long Short, long Wanted, bool MustBuy);
 
 
     /// <summary>Names for a message, capped so a job short of thirty things stays readable.</summary>

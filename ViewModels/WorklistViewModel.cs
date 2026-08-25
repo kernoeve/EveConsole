@@ -434,6 +434,14 @@ public sealed class ItemShortageRowVm(ItemShortage s)
     public string Made      => s.Buildable ? $"{s.MadePerDay:N1}/d" : "—";
     public string Level     => s.Level > 0 ? s.Level.ToString("N0") : "";
     public string OnHand    => s.OnHand.ToString("N0");
+
+    /// <summary>What the work on the list actually wants — on hand plus what it fell short by.</summary>
+    public string Need      => s.Need > s.OnHand ? s.Need.ToString("N0") : "";
+
+    /// <summary>⚠️ Red once the work needs more than exists: a level being met is beside the
+    /// point when the demand in front of it is larger than the level.</summary>
+    public string NeedColor => s.Need > s.OnHand ? "#c85a5a" : "#666677";
+
     public string Blocked   => s.BlockedJobs > 0 ? s.BlockedJobs.ToString("N0") : "";
     public string Downstream=> s.Blocks > 0 ? s.Blocks.ToString("N0") : "";
     public string Verdict   => s.Verdict;
@@ -463,6 +471,8 @@ public sealed class ItemShortageRowVm(ItemShortage s)
         "Buffer spent"   => "#c85a5a",
         "Never made"     => "#c85a5a",
         "Blocked"        => "#c85a5a",
+        "Level too low"  => "#c85a5a",
+        "No buffer"      => "#c85a5a",
         "Not the shelf"  => "#8a8a99",
         "Making too few" => "#c8a84b",
         "Buy"            => "#5599aa",

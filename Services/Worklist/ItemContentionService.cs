@@ -27,7 +27,8 @@ public sealed record ItemShortage(
     bool   Buildable,
     int    WindowDays,
     double RecentUsedPerDay = 0,
-    int    RecentDays = 30)
+    int    RecentDays = 30,
+    long   TotalShort = 0)
 {
     /// <summary>
     /// How much harder this is being drawn on now than across the whole window.
@@ -107,16 +108,28 @@ public sealed record ItemShortage(
     /// </summary>
     public bool BufferEmpty => Level > 0 && OnHand < Level * 0.2;
 
+    /// <summary>What the work on the list actually needs: what is here, plus what it fell short by.</summary>
+    public long Need => OnHand + TotalShort;
+
     public string Verdict =>
-        BlockedJobs > 0 && !Buildable          ? "Buy now"
-      : BlockedJobs > 0 && IsWave && BufferEmpty ? "Buffer spent"
-      : BlockedJobs > 0 && !BufferEmpty       ? "Not the shelf"
-      // ⚠️ Consumed steadily and never once made in the whole window. Different from making too
-      // few, and a different fix: nothing is producing this at all, so no buffer and no extra
-      // capacity helps until something starts.
-      : BlockedJobs > 0 && Buildable && MadePerDay <= 0 && UsedPerDay > 0 ? "Never made"
-      : BlockedJobs > 0                       ? "Blocked"
-      : !Buildable && MustBuy               ? "Buy"
+        BlockedJobs <= 0                        ? NotBlockedVerdict
+      : !Buildable                              ? "Buy now"
+      // ⚠️ Consumed steadily and never once made in the window. Not the same as making too few,
+      // and a different fix: nothing is refilling this at all, so no level would have held.
+      : MadePerDay <= 0 && UsedPerDay > 0       ? "Never made"
+      // ⚠️ No level at all is its own finding, and it used to fall through to "not the shelf" —
+      // because an empty-buffer test cannot be true when there is no buffer to be empty. An item
+      // in constant demand that nothing sets aside has no cushion by construction.
+      : Level <= 0                              ? "No buffer"
+      : BufferEmpty && IsWave                   ? "Buffer spent"
+      : BufferEmpty                             ? "Blocked"
+      // The shelf met its level and the work still wants more than is here: the level is sized
+      // for ordinary draw and this is not that.
+      : Need > OnHand                           ? "Level too low"
+      :                                           "Not the shelf";
+
+    private string NotBlockedVerdict =>
+        !Buildable && MustBuy               ? "Buy"
       : IsDraining && !IsWave               ? "Making too few"
       : IsDraining                          ? "Wave"
       : Level <= 0                          ? "No level set"
@@ -146,14 +159,29 @@ public sealed record ItemShortage(
           + $"been made in {WindowDays} days, though something here can make it. Nothing is "
           + "refilling this at all, so no level would have held.",
 
-        // ⚠️ Work stopped while the shelf is still healthy is not a stock problem at all. The
-        // material is here in quantity, so what stopped those jobs is somewhere else — a slot, a
-        // print, or stock the industry scope cannot reach — and recommending a bigger level would
-        // be answering a question nobody asked.
+        // ⚠️ The level is met and the work still wants more than is here. Nothing has failed —
+        // the level was sized for ordinary draw, and the demand on the list is not that.
+        "Level too low" =>
+            $"{BlockedJobs:N0} job(s) stopped. The work on the list needs {Need:N0} and "
+          + $"{OnHand:N0} are on hand — the level of {Level:N0} is met, so this is not a buffer "
+          + $"that ran out but one sized for {DaysOfCover:N0} day(s) of ordinary draw when the "
+          + $"work in front of it wants {TotalShort:N0} more than exists"
+          + (IsWave ? $", with demand running {Surge:N1}× its {WindowDays}-day average." : ".")
+          + " Raising the level, or making more, is what closes that gap.",
+
+        // ⚠️ No level at all. Not a small buffer — none, so there is nothing to absorb anything.
+        "No buffer" =>
+            $"{BlockedJobs:N0} job(s) stopped and nothing sets a level for this at all, though it "
+          + $"is drawn on at {UsedPerDay:N1}/day. There is no cushion by construction: every "
+          + $"unit has to be made or bought exactly when it is wanted. Short {TotalShort:N0} "
+          + "against what the list needs.",
+
+        // Everything the list wants is here, and the jobs still cannot start. Whatever stopped
+        // them is not this material.
         "Not the shelf" =>
-            $"{BlockedJobs:N0} job(s) stopped, but {OnHand:N0} are on hand against a level of "
-          + $"{Level:N0} — the shelf is not what stopped them. Look at slots, blueprints, or "
-          + "whether this stock sits where the jobs are.",
+            $"{BlockedJobs:N0} job(s) stopped, but {OnHand:N0} are on hand and the work needs "
+          + $"{Need:N0} — this material is not what stopped them. Something else on those jobs is "
+          + "short, or they are waiting on a slot, a blueprint, or stock sitting at another station.",
 
         "Blocked" =>
             $"{BlockedJobs:N0} job(s) stopped with {OnHand:N0} left against a level of {Level:N0} "
@@ -243,7 +271,13 @@ public class ItemContentionService(
 
         var blockedBy = short_
             .GroupBy(x => x.Short.TypeId)
-            .ToDictionary(g => g.Key, g => (Name: g.First().Short.TypeName, Jobs: g.Count()));
+            .ToDictionary(g => g.Key, g => (
+                Name:  g.First().Short.TypeName,
+                Jobs:  g.Count(),
+                // ⚠️ Summed across the jobs that fell short. What the work in front of this
+                // material wants beyond what it can get — the number that says whether a level
+                // is merely met or actually sufficient.
+                Short: g.Sum(x => x.Short.Short)));
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
@@ -306,7 +340,8 @@ public class ItemContentionService(
                 Buildable: buildable.Contains(kv.Key),
                 WindowDays,
                 recent.GetValueOrDefault(kv.Key) / RecentDays,
-                RecentDays))
+                RecentDays,
+                kv.Value.Short))
             // ⚠️ Stopped work first, then how much waits behind it. The harm is idle slots and
             // stalled jobs, not a ratio — a deficit with stock still on the shelf costs nothing
             // yet, and an empty shelf with forty jobs behind it is costing everything. Sorting on

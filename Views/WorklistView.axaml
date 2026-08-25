@@ -1031,6 +1031,14 @@
                   </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Level"    Binding="{Binding Level}"   Width="70"/>
                   <DataGridTextColumn Header="On hand"  Binding="{Binding OnHand}"  Width="80"/>
+                  <DataGridTemplateColumn Header="Need" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:ItemShortageRowVm">
+                        <TextBlock Text="{Binding Need}" Foreground="{Binding NeedColor}"
+                                   VerticalAlignment="Center"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Cover"    Binding="{Binding Cover}"   Width="65"/>
                   <DataGridTextColumn Header="Surge"    Binding="{Binding Surge}"   Width="60"/>
                   <DataGridTextColumn Header="Blocked"  Binding="{Binding Blocked}" Width="70"/>
