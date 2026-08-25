@@ -38,30 +38,12 @@ public class BuildCostService
     private const double MfgSkillFactor    = 0.68; // Industry V (0.80) × Advanced Industry V (0.85)
     private const double RxnSkillFactor    = 0.85; // reactions: Advanced Industry V only; no TE research
 
-    private static string RigCategoryFromName(string n)
-    {
-        if (n.Contains("Advanced Small Ship"))     return "adv_small_ships";
-        if (n.Contains("Basic Small Ship"))        return "small_ships";
-        if (n.Contains("Advanced Medium Ship"))    return "adv_medium_ships";
-        if (n.Contains("Basic Medium Ship"))       return "medium_ships";
-        if (n.Contains("Advanced Large Ship"))     return "adv_large_ships";
-        if (n.Contains("Basic Large Ship"))        return "large_ships";
-        if (n.Contains("Capital Ship"))            return "capital_ships";
-        if (n.Contains("Drone and Fighter"))       return "drones_fighters";
-        if (n.Contains("Equipment"))               return "modules_equipment";
-        if (n.Contains("Ammunition"))              return "ammo_charges";
-        if (n.Contains("Basic Capital Component")) return "capital_components";
-        if (n.Contains("Advanced Component"))      return "adv_components";
-        if (n.Contains("Structure"))               return "structure_ammo";
-        // Tatara L-Set: one generic rig applies to ALL reaction types — use wildcard key.
-        // Athanor M-Set: separate rigs per reaction subcategory — use specific keys.
-        if (n.Contains("L-Set Reactor"))           return "biochemical_reactions";  // wildcard
-        if (n.Contains("Biochemical Reactor"))     return "react_bio_gas";
-        if (n.Contains("Composite Reactor"))       return "react_composite";
-        if (n.Contains("Hybrid Reactor"))          return "react_composite";
-        if (n.Contains("Reactor"))                 return "biochemical_reactions";  // fallback wildcard
-        return "";
-    }
+    /// <summary>
+    /// ⚠️ One copy, in IndyRigMatching. This was a third private transcription of the same
+    /// rules, and the three had already drifted: the XL rigs were missing from every one of
+    /// them, so a Sotiyo costed a titan with no rig bonus at all.
+    /// </summary>
+    private static string RigCategoryFromName(string n) => IndyRigMatching.RigCategoryFromName(n);
 
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IHttpClientFactory   _httpFactory;
@@ -303,7 +285,8 @@ public class BuildCostService
                 {
                     if (r.StructureId != s.Id || r.RigTypeId == 0) return false;
                     var rigCat = rigCategoryKeys.GetValueOrDefault(r.RigTypeId, "");
-                    return rigCat == itemCategoryKey || (isReactionCat && rigCat == "biochemical_reactions");
+                    _ = isReactionCat;
+                    return IndyRigMatching.RigApplies(rigCat, itemCategoryKey);
                 })
                 .Sum(r => bonusAttr.TryGetValue(r.RigTypeId, out var b) ? b * SecMult(s, r.RigTypeId) : 0.0);
         }
