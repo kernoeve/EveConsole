@@ -221,7 +221,8 @@ public sealed record ItemBandwidth(
     /// wanted one titan and you got it. What is queued now is the evidence that somebody was
     /// actually trying to get through the shut door.</para>
     /// </summary>
-    public string Pattern =>
+    /// <summary>What the row amounts to, in a word. Called Verdict on every tab that has one.</summary>
+    public string Verdict =>
         IsTight && BlockedNow > 0 ? "Blocking"
       : IsTight && WantedNow > 0  ? "Steady"
       : IsTight                   ? "Contended"
@@ -234,7 +235,7 @@ public sealed record ItemBandwidth(
       // ignore a row the list had just decided was worth showing them.
       :                             "Minor";
 
-    public string Advice => Pattern switch
+    public string Advice => Verdict switch
     {
         "Blocking" =>
             $"Every {Noun} was busy {ContentionPercent:N0}% of the last {WindowDays} days, and "
@@ -471,7 +472,7 @@ public class BottleneckService(
         // ⚠️ Current demand, which history cannot supply. What was produced is capped by the
         // prints; what is QUEUED is not capped by anything, so it is the only uncensored reading
         // of how much is wanted. Paired with utilisation it separates a standing shortage from a
-        // spike — see ItemBandwidth.Pattern.
+        // spike — see ItemBandwidth.Verdict.
         // ⚠️ Blocked means blocked ON A BLUEPRINT, not blocked for any reason. A job held
         // up for want of minerals is no evidence that a print is short, and counting it as
         // such put a blueprint on this list whose two copies were both sitting free.

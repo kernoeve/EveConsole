@@ -443,7 +443,8 @@ public sealed class ShortageTaskRowVm(ShortageTask t)
 
     /// <summary>Where it sits: directly short of the material, behind something that is, or
     /// making the material itself.</summary>
-    public string Role => t.Role == "Using"  ? "uses it"
+    public string Role => t.Role == "Hauling" ? "the trip"
+                        : t.Role == "Using"  ? "uses it"
                         : t.Role == "Making" ? "makes it"
                         : t.Hop == 0         ? "needs it"
                         :                      $"behind ({t.Hop})";
@@ -563,7 +564,62 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
 /// <para>Everything here is a rate. "Two prints" says nothing on its own; "two prints turning out
 /// 0.28 a day against 0.81 a day consumed" says what to buy.</para>
 /// </summary>
+/// <summary>One destination on the Hauling tab: the trip, not the item.</summary>
+public sealed class HaulPressureRowVm(HaulPressure h) : ReactiveObject
+{
+    private bool _isExpanded;
+
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set { this.RaiseAndSetIfChanged(ref _isExpanded, value); this.RaisePropertyChanged(nameof(Glyph)); }
+    }
+
+    public string Glyph => !HasTasks ? "" : _isExpanded ? "▾" : "▸";
+
+    public string Station  => h.StationName.Length > 0 ? h.StationName : $"Location {h.StationId}";
+    public string Blocked  => h.BlockedTasks > 0 ? h.BlockedTasks.ToString("N0") : "";
+    public string Blocking => h.StalledTasks > 0 ? h.StalledTasks.ToString("N0") : "";
+    public string Hauls    => h.HaulTasks > 0 ? h.HaulTasks.ToString("N0") : "";
+    public string Items    => h.ItemTypes.ToString("N0");
+    public string Sources  => h.Sources > 0 ? h.Sources.ToString("N0") : "";
+    public string Verdict  => h.Verdict;
+    public string Advice   => h.Advice;
+
+    /// <summary>Sized the way a hauler thinks about it, not to the nearest cubic metre.</summary>
+    public string Volume => h.Volume >= 1_000_000 ? $"{h.Volume / 1_000_000:N1}M m3"
+                          : h.Volume >= 1_000     ? $"{h.Volume / 1_000:N0}k m3"
+                          :                         $"{h.Volume:N0} m3";
+
+    /// <summary>Red where nothing is moving: the material exists and no trip has been raised.</summary>
+    public string VerdictColor => h.Verdict switch
+    {
+        "Nothing moving" => "#c85a5a",
+        "Several trips"  => "#c8a84b",
+        "Haul raised"    => "#4a8a5a",
+        _                => "#666677",
+    };
+
+    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
+        h.Tasks.Select(t => new ShortageTaskRowVm(t)).ToList();
+
+    public bool HasTasks => h.Tasks.Count > 0;
+
+    public bool HasStationLink => h.StationId > 0;
+    /// <summary>⚠️ Station versus structure by int range, as Station Needs does it: an id
+    /// above int range cannot be an NPC station, and the row carries no discriminator.</summary>
+    public void OpenStation()
+    {
+        if (h.StationId <= 0) return;
+        if (h.StationId <= int.MaxValue)
+            EntityNavigator.Instance.Entity(EntityKind.Station, h.StationId);
+        else
+            EntityNavigator.Instance.Structure(h.StationId);
+    }
+}
+
 public sealed class PrintPressureRowVm(ItemBandwidth p) : ReactiveObject
+
 {
     private bool _isExpanded;
 
@@ -614,7 +670,9 @@ public sealed class PrintPressureRowVm(ItemBandwidth p) : ReactiveObject
 
     public string WithOneMore => $"{p.CeilingWithOneMore:N2}/d";
     public string Wanted      => p.WantedNow > 0 ? p.WantedNow.ToString("N0") : "";
-    public string Pattern     => p.Pattern;
+    /// <summary>Named Verdict like the other two tabs: three columns doing the same job
+    /// under three names made them read as three different kinds of thing.</summary>
+    public string Verdict      => p.Verdict;
 
     /// <summary>Recent squeeze against the whole window — a quarter-long average hides a busy month.</summary>
     public string Trend       => p.Trend;
@@ -642,7 +700,7 @@ public sealed class PrintPressureRowVm(ItemBandwidth p) : ReactiveObject
     public string UsedColor => "#666677";
 
     /// <summary>Steady is the one worth buying for; a surge is a week of work, not a shortage.</summary>
-    public string PatternColor => p.Pattern switch
+    public string VerdictColor => p.Verdict switch
     {
         "Blocking" => "#c85a5a",
         "Steady"   => "#c85a5a",
@@ -768,6 +826,7 @@ public class WorklistViewModel : ReactiveObject
     private readonly WorklistService   _service;
     private readonly BottleneckService     _bottlenecks;
     private readonly ItemContentionService _itemContention;
+    private readonly HaulPressureService   _haulPressure;
 
     public BulkObservableCollection<WorklistRowVm> Rows { get; } = [];
 
@@ -814,6 +873,7 @@ public class WorklistViewModel : ReactiveObject
     public ObservableCollection<SlotPressureRowVm>  SlotPressure  { get; } = [];
     public ObservableCollection<PrintPressureRowVm> PrintPressure { get; } = [];
     public ObservableCollection<ItemShortageRowVm>  ItemShortages { get; } = [];
+    public ObservableCollection<HaulPressureRowVm>  HaulPressures { get; } = [];
 
     private string _bottleneckStatus = "Not loaded yet.";
     public string BottleneckStatus
@@ -875,6 +935,7 @@ public class WorklistViewModel : ReactiveObject
             var slots  = await _bottlenecks.SlotPressureAsync(items);
             var prints = await _bottlenecks.BlueprintBandwidthAsync(items);
             var shorts = await _itemContention.ShortagesAsync(items);
+            var hauls  = await _haulPressure.PressuresAsync(items);
             var scale  = await _bottlenecks.ContentionScaleAsync();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
@@ -887,6 +948,9 @@ public class WorklistViewModel : ReactiveObject
 
                 ItemShortages.Clear();
                 foreach (var s in shorts) ItemShortages.Add(new ItemShortageRowVm(s));
+
+                HaulPressures.Clear();
+                foreach (var h in hauls) HaulPressures.Add(new HaulPressureRowVm(h));
 
                 var tight = slots.Count(s => s.IsBottleneck);
 
@@ -1046,11 +1110,13 @@ public class WorklistViewModel : ReactiveObject
                              WorklistIndustryViewModel industry,
                              WorklistStationLevelsViewModel stationLevels,
                              BottleneckService bottlenecks,
-                             ItemContentionService itemContention)
+                             ItemContentionService itemContention,
+                             HaulPressureService   haulPressure)
     {
         _service        = service;
         _bottlenecks    = bottlenecks;
         _itemContention = itemContention;
+        _haulPressure   = haulPressure;
 
         RowsView = new DataGridCollectionView(Rows);
         RowsView.GroupDescriptions.Add(new DataGridPathGroupDescription(nameof(WorklistRowVm.KindText)));
