@@ -442,8 +442,24 @@ public sealed class ItemShortageRowVm(ItemShortage s)
     /// point when the demand in front of it is larger than the level.</summary>
     public string NeedColor => s.Need > s.OnHand ? "#c85a5a" : "#666677";
 
-    public string Blocked   => s.BlockedJobs > 0 ? s.BlockedJobs.ToString("N0") : "";
-    public string Downstream=> s.Blocks > 0 ? s.Blocks.ToString("N0") : "";
+    /// <summary>
+    /// Tasks this shortage is holding up, its own consumers and everything stopped behind them.
+    ///
+    /// <para>Two columns until it was clear neither was worth reading alone. One counted tasks
+    /// directly short of it, the other counted TYPES that could consume it anywhere in the recipe
+    /// tree — which said a Leviathan waits on this whether or not anyone is building one.</para>
+    /// </summary>
+    public string Blocking => s.StalledTasks > 0 ? s.StalledTasks.ToString("N0") : "";
+
+    // What is refilling it. Zeros are left blank: a column of noughts reads as data.
+    public string MakeRunning => s.MakingRunning > 0 ? s.MakingRunning.ToString("N0") : "";
+    public string MakeReady   => s.MakingReady   > 0 ? s.MakingReady  .ToString("N0") : "";
+    public string MakeWaiting => s.MakingWaiting > 0 ? s.MakingWaiting.ToString("N0") : "";
+    public string MakeBlocked => s.MakingBlocked > 0 ? s.MakingBlocked.ToString("N0") : "";
+
+    /// <summary>Red where the thing that is short has nothing arriving to refill it.</summary>
+    public string MakeBlockedColor =>
+        s.MakingBlocked > 0 && s.MakingRunning == 0 && s.MakingReady == 0 ? "#c85a5a" : "#666677";
     public string Verdict   => s.Verdict;
     public string Advice    => s.Advice;
 

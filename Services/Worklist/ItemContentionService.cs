@@ -21,14 +21,18 @@ public sealed record ItemShortage(
     double MadePerDay,
     long   Level,
     long   OnHand,
-    int    BlockedJobs,
-    int    Blocks,
+    int    BlockedTasks,
+    int    StalledTasks,
     bool   MustBuy,
     bool   Buildable,
     int    WindowDays,
     double RecentUsedPerDay = 0,
     int    RecentDays = 30,
-    long   TotalShort = 0)
+    long   TotalShort = 0,
+    int    MakingRunning = 0,
+    int    MakingReady = 0,
+    int    MakingWaiting = 0,
+    int    MakingBlocked = 0)
 {
     /// <summary>
     /// How much harder this is being drawn on now than across the whole window.
@@ -84,7 +88,7 @@ public sealed record ItemShortage(
     /// figure derived from it under-states, and a buffer sized on it is sized for the constrained
     /// world rather than the one worth having.</para>
     /// </summary>
-    public bool RateSuppressed => BlockedJobs > 0;
+    public bool RateSuppressed => BlockedTasks > 0;
 
     /// <summary>
     /// What is actually wrong here.
@@ -125,7 +129,7 @@ public sealed record ItemShortage(
             : "";
 
     public string Verdict =>
-        BlockedJobs <= 0                        ? NotBlockedVerdict
+        BlockedTasks <= 0                        ? NotBlockedVerdict
       : !Buildable                              ? "Buy now"
       // ⚠️ No level at all is its own finding, and it used to fall through to "not the shelf" —
       // because an empty-buffer test cannot be true when there is no buffer to be empty. An item
@@ -146,10 +150,36 @@ public sealed record ItemShortage(
       : DaysOfCover < 7                     ? "Buffer thin"
       :                                       "Holding";
 
-    public string Advice => Verdict switch
+    /// <summary>What the shortage holds up beyond the tasks that consume it directly.</summary>
+    private string StalledNote =>
+        StalledTasks > BlockedTasks
+            ? $" A further {StalledTasks - BlockedTasks:N0} task(s) are stopped behind those."
+            : "";
+
+    /// <summary>
+    /// Whether anything is actually refilling it, said rather than left to be looked up.
+    ///
+    /// <para>⚠️ Advice that ends "check whether it is being made" is advice to go and do the
+    /// lookup this row already did. The counts are on the row; the sentence should use them.</para>
+    /// </summary>
+    private string MakingNote =>
+        MakingRunning > 0
+            ? $" {MakingRunning:N0} job(s) making it are running now."
+      : MakingReady > 0
+            ? $" {MakingReady:N0} task(s) to make it are ready to start — starting them is the fix."
+      : MakingWaiting > 0
+            ? $" {MakingWaiting:N0} task(s) to make it are waiting on a free slot."
+      : MakingBlocked > 0
+            ? $" Nothing is refilling it: all {MakingBlocked:N0} task(s) to make it are blocked too."
+            : " Nothing on the list is making it at all.";
+
+    public string Advice =>
+        BlockedTasks > 0 ? AdviceCore + StalledNote + MakingNote : AdviceCore;
+
+    private string AdviceCore => Verdict switch
     {
         "Buy now" =>
-            $"{BlockedJobs:N0} job(s) stopped, none owned, and nothing here makes it. "
+            $"{BlockedTasks:N0} task(s) stopped, none owned, and nothing here makes it. "
           + $"Drawn on at {UsedPerDay:N1}/day"
           + (Level > 0 ? $" against a level of {Level:N0}." : " with no level set to hold any.")
           + " Buying is the only thing that starts them.",
@@ -158,8 +188,8 @@ public sealed record ItemShortage(
         // advice for the wrong problem: production has not changed, demand has, and absorbing
         // exactly this is what a buffer is FOR.
         "Buffer spent" =>
-            $"{BlockedJobs:N0} job(s) stopped with {OnHand:N0} left. Demand is running "
-          + $"{Surge:N1}× its {WindowDays}-day average and the level of "
+            $"{BlockedTasks:N0} task(s) stopped with {OnHand:N0} left. Demand is running "
+          + $"{Surge:N1}Ã its {WindowDays}-day average and the level of "
           + $"{Level:N0} covered {DaysOfCover:N0} day(s) of ordinary draw but not this. "
           + "A larger level absorbs the next wave; if waves like this are routine, the durable "
           + "fix is making more of it, since no level survives a rate it cannot refill at."
@@ -168,16 +198,16 @@ public sealed record ItemShortage(
         // ⚠️ The level is met and the work still wants more than is here. Nothing has failed —
         // the level was sized for ordinary draw, and the demand on the list is not that.
         "Level too low" =>
-            $"{BlockedJobs:N0} job(s) stopped. The work on the list needs {Need:N0} and "
+            $"{BlockedTasks:N0} task(s) stopped. The work on the list needs {Need:N0} and "
           + $"{OnHand:N0} are on hand — the level of {Level:N0} is met, so this is not a buffer "
           + $"that ran out but one sized for {DaysOfCover:N0} day(s) of ordinary draw when the "
           + $"work in front of it wants {TotalShort:N0} more than exists"
-          + (IsWave ? $", with demand running {Surge:N1}× its {WindowDays}-day average." : ".")
+          + (IsWave ? $", with demand running {Surge:N1}Ã its {WindowDays}-day average." : ".")
           + $" Raising the level, or making more, is what closes that gap.{NothingMadeNote}",
 
         // ⚠️ No level at all. Not a small buffer — none, so there is nothing to absorb anything.
         "No buffer" =>
-            $"{BlockedJobs:N0} job(s) stopped and nothing sets a level for this at all, though it "
+            $"{BlockedTasks:N0} task(s) stopped and nothing sets a level for this at all, though it "
           + $"is drawn on at {UsedPerDay:N1}/day. There is no cushion by construction: every "
           + $"unit has to be made or bought exactly when it is wanted. Short {TotalShort:N0} "
           + $"against what the list needs.{NothingMadeNote}",
@@ -185,12 +215,12 @@ public sealed record ItemShortage(
         // Everything the list wants is here, and the jobs still cannot start. Whatever stopped
         // them is not this material.
         "Not the shelf" =>
-            $"{BlockedJobs:N0} job(s) stopped, but {OnHand:N0} are on hand and the work needs "
+            $"{BlockedTasks:N0} task(s) stopped, but {OnHand:N0} are on hand and the work needs "
           + $"{Need:N0} — this material is not what stopped them. Something else on those jobs is "
           + "short, or they are waiting on a slot, a blueprint, or stock sitting at another station.",
 
         "Blocked" =>
-            $"{BlockedJobs:N0} job(s) stopped with {OnHand:N0} left against a level of {Level:N0} "
+            $"{BlockedTasks:N0} task(s) stopped with {OnHand:N0} left against a level of {Level:N0} "
           + $"— about {DaysOfCover:N0} day(s) of cover at {UsedPerDay:N1}/day, and it ran out. "
           + "Either the level is too low for how fast this moves, or it is not being refilled in "
           + "time." + NothingMadeNote,
@@ -206,7 +236,7 @@ public sealed record ItemShortage(
           + "More production, not a larger buffer.",
 
         "Wave" =>
-            $"Being drawn on {Surge:N1}× harder than usual — a build wave passing through. "
+            $"Being drawn on {Surge:N1}Ã harder than usual — a build wave passing through. "
           + $"{OnHand:N0} left, roughly {DaysToEmpty:N0} day(s) at the current draw. Nothing is "
           + "stopped yet; worth watching rather than acting on.",
 
@@ -274,6 +304,12 @@ public class ItemContentionService(
             .ToList();
         if (short_.Count == 0) return [];
 
+        // Kept as the tasks themselves rather than counted here: the walk below has to follow
+        // what each stopped task would have produced, so it needs the rows, not a number.
+        var stoppedBy = short_
+            .GroupBy(x => x.Short.TypeId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Item).ToList());
+
         var blockedBy = short_
             .GroupBy(x => x.Short.TypeId)
             .ToDictionary(g => g.Key, g => (
@@ -325,11 +361,51 @@ public class ItemContentionService(
                 .ToListAsync(ct))
             .ToHashSet();
 
-        // How much waits on it, carried from the demand walk rather than counted again here.
-        var blocksOf = items
-            .Where(i => i.TypeId > 0)
+        // Everything one shortage holds up.
+        //
+        // ⚠️ Over blocked TASKS, not over the recipe tree. Counting the types that could consume
+        // this reported a Leviathan as downstream of it whether or not anyone was building one —
+        // true about EVE, useless about the queue. A task stopped for want of this cannot produce
+        // its own output, so whatever is stopped for want of THAT is stopped by this too, and the
+        // walk carries on until nothing new is reached.
+        int Stalled(int typeId)
+        {
+            var tasks = new HashSet<string>();
+            var types = new HashSet<int> { typeId };
+            var queue = new Queue<int>([typeId]);
+
+            while (queue.Count > 0)
+            {
+                if (!stoppedBy.TryGetValue(queue.Dequeue(), out var stopped)) continue;
+
+                foreach (var task in stopped)
+                {
+                    if (!tasks.Add(task.Key)) continue;
+                    // What this task would have made is now short for whatever eats it.
+                    if (task.TypeId > 0 && types.Add(task.TypeId)) queue.Enqueue(task.TypeId);
+                }
+            }
+            return tasks.Count;
+        }
+
+        // Tasks to make the item itself, by whether the player can act on them.
+        var makes = items
+            .Where(i => i.TypeId > 0 && i.Kind == WorklistKind.Job)
             .GroupBy(i => i.TypeId)
-            .ToDictionary(g => g.Key, g => g.Max(i => i.Blocks));
+            .ToDictionary(g => g.Key, g => (
+                Ready:   g.Count(i => i.Readiness == WorklistReadiness.Ready),
+                Waiting: g.Count(i => i.Readiness == WorklistReadiness.Waiting),
+                Blocked: g.Count(i => i.Readiness == WorklistReadiness.Blocked)));
+
+        // Already installed and turning. Not a task — nothing on the list asks for it, and a shelf
+        // with four jobs about to land on it is in a different position from one with none.
+        var running = (await db.EsiIndustryJobs.AsNoTracking()
+                .Where(j => j.Status == "active" && j.ProductTypeId != null
+                         && ids.Contains(j.ProductTypeId.Value))
+                .Select(j => j.ProductTypeId!.Value)
+                .ToListAsync(ct))
+            .GroupBy(x => x)
+            .ToDictionary(g => g.Key, g => g.Count());
 
         return blockedBy
             .Select(kv => new ItemShortage(
@@ -340,21 +416,25 @@ public class ItemContentionService(
                 level.GetValueOrDefault(kv.Key),
                 onHand.GetValueOrDefault(kv.Key),
                 kv.Value.Jobs,
-                blocksOf.GetValueOrDefault(kv.Key),
+                Stalled(kv.Key),
                 MustBuy: true,
                 Buildable: buildable.Contains(kv.Key),
                 WindowDays,
                 recent.GetValueOrDefault(kv.Key) / RecentDays,
                 RecentDays,
-                kv.Value.Short))
+                kv.Value.Short,
+                running.GetValueOrDefault(kv.Key),
+                makes.GetValueOrDefault(kv.Key).Ready,
+                makes.GetValueOrDefault(kv.Key).Waiting,
+                makes.GetValueOrDefault(kv.Key).Blocked))
             // ⚠️ Stopped work first, then how much waits behind it. The harm is idle slots and
             // stalled jobs, not a ratio — a deficit with stock still on the shelf costs nothing
             // yet, and an empty shelf with forty jobs behind it is costing everything. Sorting on
             // the balance put the whole "consuming faster than making" block at the top whatever
             // its consequences, and left genuinely stopped work underneath it.
-            .OrderByDescending(s => s.BlockedJobs > 0)
-            .ThenByDescending(s => s.Blocks)
-            .ThenByDescending(s => s.BlockedJobs)
+            .OrderByDescending(s => s.BlockedTasks > 0)
+            .ThenByDescending(s => s.StalledTasks)
+            .ThenByDescending(s => s.BlockedTasks)
             .ThenByDescending(s => s.IsDraining && !s.IsWave)
             .ThenBy(s => s.DaysToEmpty)
             .ToList();
