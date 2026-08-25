@@ -84,8 +84,17 @@ public class SlackService
     public string? ChannelName(string area) => _prefs.Get(ChanNameKey(area));
 
     /// <summary>True when both a token and a channel for this area are set.</summary>
+    /// <summary>
+    /// Whether this area can post at all — as the connected user, or through a webhook.
+    ///
+    /// <para>⚠️ Either route counts. This gates the Post buttons, and while it asked only about a
+    /// token a webhook-only setup could be configured, tested successfully, and still have no
+    /// button to press — the one workspace a webhook exists to reach was the one the app would
+    /// not offer to post to.</para>
+    /// </summary>
     public bool IsConfigured(string area)
-        => HasToken && !string.IsNullOrWhiteSpace(ChannelId(area));
+        => UsesWebhook(area)
+        || (HasToken && !string.IsNullOrWhiteSpace(ChannelId(area)));
 
     public Task SetTokenAsync(string? token)
         => _prefs.SetAsync(TokenKey, string.IsNullOrWhiteSpace(token) ? null : token.Trim());

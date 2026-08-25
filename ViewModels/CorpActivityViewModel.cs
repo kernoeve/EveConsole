@@ -1529,8 +1529,12 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
     public bool IsSlackTop10Configured => _slack?.IsConfigured(SlackService.AreaCorpTop10) == true;
 
+    /// <summary>Where a post would land, for the button's tooltip. A webhook carries its own
+    /// destination and exposes no channel name, so it says so rather than showing nothing.</summary>
     public string SlackTop10ChannelText =>
-        _slack?.ChannelName(SlackService.AreaCorpTop10) is { Length: > 0 } n ? $"#{n}" : "";
+        _slack?.UsesWebhook(SlackService.AreaCorpTop10) == true
+            ? "via webhook"
+            : _slack?.ChannelName(SlackService.AreaCorpTop10) is { Length: > 0 } n ? $"#{n}" : "";
 
     private string _slackStatus = "";
     public string SlackStatus { get => _slackStatus; private set => this.RaiseAndSetIfChanged(ref _slackStatus, value); }
@@ -1538,7 +1542,9 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public bool IsSlackMonthlyConfigured => _slack?.IsConfigured(SlackService.AreaCorpMonthly) == true;
 
     public string SlackMonthlyChannelText =>
-        _slack?.ChannelName(SlackService.AreaCorpMonthly) is { Length: > 0 } n ? $"#{n}" : "";
+        _slack?.UsesWebhook(SlackService.AreaCorpMonthly) == true
+            ? "via webhook"
+            : _slack?.ChannelName(SlackService.AreaCorpMonthly) is { Length: > 0 } m ? $"#{m}" : "";
 
     public void RefreshSlackState()
     {
