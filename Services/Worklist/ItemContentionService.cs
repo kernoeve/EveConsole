@@ -325,9 +325,17 @@ public class ItemContentionService(
             .ToList();
         if (short_.Count == 0) return [];
 
-        // Kept as the tasks themselves rather than counted here: the walk below has to follow
-        // what each stopped task would have produced, so it needs the rows, not a number.
-        var stoppedBy = short_
+        // ⚠️ EVERY shortage, not just the ones worth their own row.
+        //
+        // A task stopped because the material is at another station is still stopped, and what
+        // it would have made is still missing from whatever was waiting on it. Walking only the
+        // purchases cut the chain at the first haulable link and dropped everything above it —
+        // which is how a shortage that stops a dozen hulls reported four.
+        //
+        // Kept as the tasks themselves rather than counted here: the walk has to follow what
+        // each stopped task would have produced, so it needs the rows, not a number.
+        var stoppedBy = items
+            .SelectMany(i => i.Shortages.Select(sh => (Item: i, Short: sh)))
             .GroupBy(x => x.Short.TypeId)
             .ToDictionary(g => g.Key, g => g.Select(x => (x.Item, x.Short)).ToList());
 
@@ -409,7 +417,8 @@ public class ItemContentionService(
                     found.Add(new ShortageTask(
                         "Stopped", hop, task.TypeName, task.Title,
                         task.Readiness.ToString(),
-                        $"short {sh.Short:N0} of {sh.Wanted:N0} {sh.TypeName}"));
+                        $"short {sh.Short:N0} of {sh.Wanted:N0} {sh.TypeName}"
+                      + (sh.MustBuy ? "" : " (owned, but not where the job is)")));
 
                     // What this task would have made is now short for whatever eats it.
                     if (task.TypeId > 0 && types.Add(task.TypeId)) queue.Enqueue((task.TypeId, hop + 1));

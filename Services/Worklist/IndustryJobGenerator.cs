@@ -890,6 +890,17 @@ public class IndustryJobGenerator(
 
         var missing = new List<MissingMaterial>();
 
+        // ⚠️ What earlier jobs in this pass already claimed, scope-wide.
+        //
+        // The site figure netted this off and the scope figure did not, so a material with a
+        // small pool spread over many one-unit jobs could never read as a purchase: every hull
+        // wants one Neurolink Protection Cell, three exist, and each job in turn compared its
+        // one against the same untouched three and was told to go and haul it. The tenth job
+        // was as haulable as the first. Nothing owns what has already been promised away.
+        var spoken = new Dictionary<int, long>();
+        foreach (var ((_, t), q) in committed)
+            spoken[t] = spoken.GetValueOrDefault(t) + q;
+
         foreach (var (typeId, wanted) in needed.OrderBy(n => n.Key))
         {
             var here = stock.Reachable(siteId, typeId, who)
@@ -906,7 +917,8 @@ public class IndustryJobGenerator(
                 Wanted: wanted,
                 // Owned in scope but not here is a hauling problem. Not owned in scope at all is
                 // a buying one, and only the second should raise a purchase.
-                MustBuy: inScope.Reachable(typeId, who) < wanted));
+                MustBuy: inScope.Reachable(typeId, who)
+                       - spoken.GetValueOrDefault(typeId) < wanted));
         }
 
         return missing;
