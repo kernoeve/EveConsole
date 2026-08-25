@@ -98,10 +98,24 @@ public sealed record ItemShortage(
     /// deficit usually means is that a large order is passing through. Only one that holds across
     /// both windows says production is genuinely undersized.</para>
     /// </summary>
+    /// <summary>
+    /// Whether the shelf is actually empty, rather than merely being drawn on.
+    ///
+    /// <para>⚠️ "Buffer spent" has to mean the buffer was spent. It was reported off the surge
+    /// alone, so an item sitting at 3,096 against a level of 3,000 — a full shelf — was told its
+    /// buffer had run out and that it needed a bigger one.</para>
+    /// </summary>
+    public bool BufferEmpty => Level > 0 && OnHand < Level * 0.2;
+
     public string Verdict =>
-        BlockedJobs > 0 && !Buildable       ? "Buy now"
-      : BlockedJobs > 0 && IsWave           ? "Buffer spent"
-      : BlockedJobs > 0                     ? "Blocked"
+        BlockedJobs > 0 && !Buildable          ? "Buy now"
+      : BlockedJobs > 0 && IsWave && BufferEmpty ? "Buffer spent"
+      : BlockedJobs > 0 && !BufferEmpty       ? "Not the shelf"
+      // ⚠️ Consumed steadily and never once made in the whole window. Different from making too
+      // few, and a different fix: nothing is producing this at all, so no buffer and no extra
+      // capacity helps until something starts.
+      : BlockedJobs > 0 && Buildable && MadePerDay <= 0 && UsedPerDay > 0 ? "Never made"
+      : BlockedJobs > 0                       ? "Blocked"
       : !Buildable && MustBuy               ? "Buy"
       : IsDraining && !IsWave               ? "Making too few"
       : IsDraining                          ? "Wave"
@@ -124,7 +138,22 @@ public sealed record ItemShortage(
             $"{BlockedJobs:N0} job(s) stopped with {OnHand:N0} left. Demand is running "
           + $"{Surge:N1}× its {WindowDays}-day average — a build wave — and the level of "
           + $"{Level:N0} covered {DaysOfCover:N0} day(s) of ordinary draw but not this. "
-          + "A larger buffer is what absorbs the next one.",
+          + "A larger level absorbs the next wave; if waves like this are routine, the durable "
+          + "fix is making more of it, since no level survives a rate it cannot refill at.",
+
+        "Never made" =>
+            $"{BlockedJobs:N0} job(s) stopped. Drawn on at {UsedPerDay:N1}/day and not one has "
+          + $"been made in {WindowDays} days, though something here can make it. Nothing is "
+          + "refilling this at all, so no level would have held.",
+
+        // ⚠️ Work stopped while the shelf is still healthy is not a stock problem at all. The
+        // material is here in quantity, so what stopped those jobs is somewhere else — a slot, a
+        // print, or stock the industry scope cannot reach — and recommending a bigger level would
+        // be answering a question nobody asked.
+        "Not the shelf" =>
+            $"{BlockedJobs:N0} job(s) stopped, but {OnHand:N0} are on hand against a level of "
+          + $"{Level:N0} — the shelf is not what stopped them. Look at slots, blueprints, or "
+          + "whether this stock sits where the jobs are.",
 
         "Blocked" =>
             $"{BlockedJobs:N0} job(s) stopped with {OnHand:N0} left against a level of {Level:N0} "
@@ -183,7 +212,9 @@ public sealed record ItemShortage(
 /// the rate that was wanted. Fix the constraint and the number rises — which means a buffer sized
 /// on today's figure is sized for today's constrained pipeline.</para>
 /// </summary>
-public class ItemContentionService(IDbContextFactory<AppDbContext> dbFactory)
+public class ItemContentionService(
+    IDbContextFactory<AppDbContext> dbFactory,
+    WorklistSettings                settings)
 {
     /// <summary>How far back rates are measured. Matches the Bottlenecks tab's other windows.</summary>
     private const int WindowDays = 90;
@@ -228,10 +259,21 @@ public class ItemContentionService(IDbContextFactory<AppDbContext> dbFactory)
             .GroupBy(x => x.TypeId)
             .ToDictionary(g => g.Key, g => (long)g.Max(x => x.Target));
 
+        // ⚠️ Scoped exactly as the generator scopes it. Counting every asset row anywhere made a
+        // buffer look full while the industry scope could not reach a unit of it — three thousand
+        // Sense-Heuristic Enhancers on hand, a level of three thousand, and jobs stopped for want
+        // of them. Stock the plan cannot spend is not stock as far as the plan is concerned.
+        var scope = await InvLevelService.ResolveScopeFilterAsync(
+            db, settings.IndustryScope, settings.IndustryScopeId, ct);
+        if (scope is not null)
+            scope.UnionWith(await db.WorklistIndyScopeStations.AsNoTracking()
+                .Select(s => s.LocationId).ToListAsync(ct));
+
         var onHand = (await db.EsiAssets.AsNoTracking()
                 .Where(a => ids.Contains(a.TypeId))
-                .Select(a => new { a.TypeId, a.Quantity })
+                .Select(a => new { a.TypeId, a.Quantity, a.RootLocationId })
                 .ToListAsync(ct))
+            .Where(a => scope is null || scope.Contains(a.RootLocationId))
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 

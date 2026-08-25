@@ -625,7 +625,7 @@ public class MainWindowViewModel : ReactiveObject
                                      new WorklistStationLevelsViewModel(dbFactory, corpActivityService, worklistSettings),
                                      new EveConsole.Services.Worklist.BottleneckService(dbFactory, industryAssignmentService,
                                                            industryBlueprintService, worklistSettings),
-                                     new EveConsole.Services.Worklist.ItemContentionService(dbFactory));
+                                     new EveConsole.Services.Worklist.ItemContentionService(dbFactory, worklistSettings));
 
         // ⚠️ After construction, not with the other Overview wiring above — WorklistVm does not
         // exist until this line, so assigning it earlier set null and left every worklist section
