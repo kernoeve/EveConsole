@@ -457,7 +457,17 @@ public class BottleneckService(
             .GroupBy(i => i.TypeId)
             .ToDictionary(g => g.Key,
                           g => (All: g.Count(),
-                                Blocked: g.Count(i => i.BlockedByPrint)));
+                                // ⚠️ Only where the print is the ONLY thing missing. The
+                                // print-blocked rows are runs no free blueprint could carry, and
+                                // those runs were never material-checked — so a Thanatos short of
+                                // Neurolinks and short of a third BPO reported as print-blocked,
+                                // and the page recommended buying a print that would change
+                                // nothing. If anything about this product is held up for another
+                                // reason, more prints are not the answer and the count is zero.
+                                Blocked: g.Any(i => i.Readiness == WorklistReadiness.Blocked
+                                                 && !i.BlockedByPrint)
+                                         ? 0
+                                         : g.Count(i => i.BlockedByPrint)));
 
         var owned  = await assignment.PrintOwnershipAsync(settings.IncludeNonPersonalCorps, ct);
         var prints = (await blueprints.LoadAllAsync(ct))
