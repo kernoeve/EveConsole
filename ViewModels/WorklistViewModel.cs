@@ -427,6 +427,36 @@ public sealed class SlotPressureRowVm(SlotPressure p)
 /// <para>Every figure is a rate or the days a rate implies: a stock number on its own cannot say
 /// whether a buffer is the right size.</para>
 /// </summary>
+/// <summary>One line of the expanded contention row.</summary>
+public sealed class ShortageTaskRowVm(ShortageTask t)
+{
+    public string Title => t.Title;
+    public string Why   => t.Why;
+    public string State => t.State;
+
+    /// <summary>What this task makes. Blank on an installed job, whose title says it already.</summary>
+    public string Item => t.TypeName;
+
+    /// <summary>Indented by how far down the chain it sits, so the hops read as a shape rather
+    /// than as a column of numbers.</summary>
+    public Avalonia.Thickness Indent => new(t.Hop > 0 ? t.Hop * 14 : 0, 0, 0, 0);
+
+    /// <summary>Where it sits: directly short of the material, behind something that is, or
+    /// making the material itself.</summary>
+    public string Role => t.Role == "Making" ? "makes it"
+                        : t.Hop == 0         ? "needs it"
+                        :                      $"behind ({t.Hop})";
+
+    public string StateColor => t.State switch
+    {
+        "Blocked" => "#c85a5a",
+        "Waiting" => "#c8a84b",
+        "Running" => "#4a8a5a",
+        "Ready"   => "#4a8a5a",
+        _         => "#8a8a99",
+    };
+}
+
 public sealed class ItemShortageRowVm(ItemShortage s)
 {
     public string Item      => s.Name;
@@ -460,6 +490,17 @@ public sealed class ItemShortageRowVm(ItemShortage s)
     /// <summary>Red where the thing that is short has nothing arriving to refill it.</summary>
     public string MakeBlockedColor =>
         s.MakingBlocked > 0 && s.MakingRunning == 0 && s.MakingReady == 0 ? "#c85a5a" : "#666677";
+    /// <summary>
+    /// The tasks behind the counts, shown by expanding the row.
+    ///
+    /// <para>A count nobody can take apart is a count nobody can act on: "Blocking 4" becomes
+    /// useful at the moment it can be read as four named tasks.</para>
+    /// </summary>
+    public IReadOnlyList<ShortageTaskRowVm> Tasks =>
+        (s.Tasks ?? []).Select(t => new ShortageTaskRowVm(t)).ToList();
+
+    public bool HasTasks => s.Tasks is { Count: > 0 };
+
     public string Verdict   => s.Verdict;
     public string Advice    => s.Advice;
 

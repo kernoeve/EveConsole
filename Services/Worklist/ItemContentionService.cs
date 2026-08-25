@@ -14,6 +14,26 @@ namespace EveConsole.Services.Worklist;
 /// which is itself worth reporting: an item nothing asks to stock cannot absorb anything.</param>
 /// <param name="Blocks">Items downstream waiting on this one, transitively — how much stops
 /// moving while it is short.</param>
+/// <summary>
+/// One task behind a number on the contention row, so the count can be audited rather than
+/// believed.
+///
+/// <para>A figure nobody can take apart is a figure nobody can trust: "Blocking 4" is only
+/// useful once it can be read as four named tasks.</para>
+/// </summary>
+/// <param name="Role">Stopped by the shortage, or making the item.</param>
+/// <param name="Hop">0 for a task directly short of it, 1 for a task stopped behind one of
+/// those, and so on. -1 for the tasks that make it, which are not on the chain.</param>
+/// <param name="Why">Why this task is on the list — the shortfall that stopped it, or what
+/// is in the way of making it.</param>
+public sealed record ShortageTask(
+    string Role,
+    int    Hop,
+    string TypeName,
+    string Title,
+    string State,
+    string Why);
+
 public sealed record ItemShortage(
     int    TypeId,
     string Name,
@@ -32,7 +52,8 @@ public sealed record ItemShortage(
     int    MakingRunning = 0,
     int    MakingReady = 0,
     int    MakingWaiting = 0,
-    int    MakingBlocked = 0)
+    int    MakingBlocked = 0,
+    IReadOnlyList<ShortageTask>? Tasks = null)
 {
     /// <summary>
     /// How much harder this is being drawn on now than across the whole window.
@@ -189,7 +210,7 @@ public sealed record ItemShortage(
         // exactly this is what a buffer is FOR.
         "Buffer spent" =>
             $"{BlockedTasks:N0} task(s) stopped with {OnHand:N0} left. Demand is running "
-          + $"{Surge:N1}Ã its {WindowDays}-day average and the level of "
+          + $"{Surge:N1}× its {WindowDays}-day average and the level of "
           + $"{Level:N0} covered {DaysOfCover:N0} day(s) of ordinary draw but not this. "
           + "A larger level absorbs the next wave; if waves like this are routine, the durable "
           + "fix is making more of it, since no level survives a rate it cannot refill at."
@@ -202,7 +223,7 @@ public sealed record ItemShortage(
           + $"{OnHand:N0} are on hand — the level of {Level:N0} is met, so this is not a buffer "
           + $"that ran out but one sized for {DaysOfCover:N0} day(s) of ordinary draw when the "
           + $"work in front of it wants {TotalShort:N0} more than exists"
-          + (IsWave ? $", with demand running {Surge:N1}Ã its {WindowDays}-day average." : ".")
+          + (IsWave ? $", with demand running {Surge:N1}× its {WindowDays}-day average." : ".")
           + $" Raising the level, or making more, is what closes that gap.{NothingMadeNote}",
 
         // ⚠️ No level at all. Not a small buffer — none, so there is nothing to absorb anything.
@@ -236,7 +257,7 @@ public sealed record ItemShortage(
           + "More production, not a larger buffer.",
 
         "Wave" =>
-            $"Being drawn on {Surge:N1}Ã harder than usual — a build wave passing through. "
+            $"Being drawn on {Surge:N1}× harder than usual — a build wave passing through. "
           + $"{OnHand:N0} left, roughly {DaysToEmpty:N0} day(s) at the current draw. Nothing is "
           + "stopped yet; worth watching rather than acting on.",
 
@@ -308,7 +329,7 @@ public class ItemContentionService(
         // what each stopped task would have produced, so it needs the rows, not a number.
         var stoppedBy = short_
             .GroupBy(x => x.Short.TypeId)
-            .ToDictionary(g => g.Key, g => g.Select(x => x.Item).ToList());
+            .ToDictionary(g => g.Key, g => g.Select(x => (x.Item, x.Short)).ToList());
 
         var blockedBy = short_
             .GroupBy(x => x.Short.TypeId)
@@ -368,27 +389,43 @@ public class ItemContentionService(
         // true about EVE, useless about the queue. A task stopped for want of this cannot produce
         // its own output, so whatever is stopped for want of THAT is stopped by this too, and the
         // walk carries on until nothing new is reached.
-        int Stalled(int typeId)
+        List<ShortageTask> Stalled(int typeId)
         {
+            var found = new List<ShortageTask>();
             var tasks = new HashSet<string>();
             var types = new HashSet<int> { typeId };
-            var queue = new Queue<int>([typeId]);
+            var queue = new Queue<(int Type, int Hop)>();
+            queue.Enqueue((typeId, 0));
 
             while (queue.Count > 0)
             {
-                if (!stoppedBy.TryGetValue(queue.Dequeue(), out var stopped)) continue;
+                var (type, hop) = queue.Dequeue();
+                if (!stoppedBy.TryGetValue(type, out var stopped)) continue;
 
-                foreach (var task in stopped)
+                foreach (var (task, sh) in stopped)
                 {
                     if (!tasks.Add(task.Key)) continue;
+
+                    found.Add(new ShortageTask(
+                        "Stopped", hop, task.TypeName, task.Title,
+                        task.Readiness.ToString(),
+                        $"short {sh.Short:N0} of {sh.Wanted:N0} {sh.TypeName}"));
+
                     // What this task would have made is now short for whatever eats it.
-                    if (task.TypeId > 0 && types.Add(task.TypeId)) queue.Enqueue(task.TypeId);
+                    if (task.TypeId > 0 && types.Add(task.TypeId)) queue.Enqueue((task.TypeId, hop + 1));
                 }
             }
-            return tasks.Count;
+            return found;
         }
 
         // Tasks to make the item itself, by whether the player can act on them.
+        var makeTasks = items
+            .Where(i => i.TypeId > 0 && i.Kind == WorklistKind.Job)
+            .GroupBy(i => i.TypeId)
+            .ToDictionary(g => g.Key, g => g.Select(i => new ShortageTask(
+                "Making", -1, i.TypeName, i.Title, i.Readiness.ToString(),
+                i.BlockedBy.Length > 0 ? i.BlockedBy : "ready to install")).ToList());
+
         var makes = items
             .Where(i => i.TypeId > 0 && i.Kind == WorklistKind.Job)
             .GroupBy(i => i.TypeId)
@@ -399,13 +436,20 @@ public class ItemContentionService(
 
         // Already installed and turning. Not a task — nothing on the list asks for it, and a shelf
         // with four jobs about to land on it is in a different position from one with none.
-        var running = (await db.EsiIndustryJobs.AsNoTracking()
+        var runningJobs = (await db.EsiIndustryJobs.AsNoTracking()
                 .Where(j => j.Status == "active" && j.ProductTypeId != null
                          && ids.Contains(j.ProductTypeId.Value))
-                .Select(j => j.ProductTypeId!.Value)
+                .Select(j => new { Type = j.ProductTypeId!.Value, j.Runs, j.EndDate })
                 .ToListAsync(ct))
-            .GroupBy(x => x)
-            .ToDictionary(g => g.Key, g => g.Count());
+            .GroupBy(j => j.Type)
+            .ToDictionary(g => g.Key, g => g
+                .OrderBy(j => j.EndDate)
+                .Select(j => new ShortageTask(
+                    "Making", -1, "", $"{j.Runs:N0} run(s) installed",
+                    "Running", $"lands {j.EndDate.LocalDateTime:d MMM HH:mm}"))
+                .ToList());
+
+        var running = runningJobs.ToDictionary(kv => kv.Key, kv => kv.Value.Count);
 
         return blockedBy
             .Select(kv => new ItemShortage(
@@ -416,7 +460,7 @@ public class ItemContentionService(
                 level.GetValueOrDefault(kv.Key),
                 onHand.GetValueOrDefault(kv.Key),
                 kv.Value.Jobs,
-                Stalled(kv.Key),
+                Stalled(kv.Key).Count,
                 MustBuy: true,
                 Buildable: buildable.Contains(kv.Key),
                 WindowDays,
@@ -426,7 +470,12 @@ public class ItemContentionService(
                 running.GetValueOrDefault(kv.Key),
                 makes.GetValueOrDefault(kv.Key).Ready,
                 makes.GetValueOrDefault(kv.Key).Waiting,
-                makes.GetValueOrDefault(kv.Key).Blocked))
+                makes.GetValueOrDefault(kv.Key).Blocked,
+                // Stopped work first and nearest first, then whatever is refilling it: the row
+                // reads top to bottom as the question does.
+                [.. Stalled(kv.Key).OrderBy(t => t.Hop),
+                    .. runningJobs.GetValueOrDefault(kv.Key) ?? [],
+                    .. makeTasks.GetValueOrDefault(kv.Key) ?? []]))
             // ⚠️ Stopped work first, then how much waits behind it. The harm is idle slots and
             // stalled jobs, not a ratio — a deficit with stock still on the shelf costs nothing
             // yet, and an empty shelf with forty jobs behind it is costing everything. Sorting on

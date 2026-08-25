@@ -1003,7 +1003,41 @@
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding ItemShortages}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="VisibleWhenSelected"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                <!-- ⚠️ A resource, not a style. The details presenter reads this brush straight
+                     from the stock template, so a style selector on it never wins and the row
+                     paints a grey that reads as a selection highlight. -->
+                <DataGrid.Resources>
+                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
+                </DataGrid.Resources>
+
+                <!-- Select a row to see the tasks its counts are made of. -->
+                <DataGrid.RowDetailsTemplate>
+                  <DataTemplate x:DataType="vm:ItemShortageRowVm">
+                    <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
+                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="560">
+                      <ItemsControl ItemsSource="{Binding Tasks}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ShortageTaskRowVm">
+                            <Grid ColumnDefinitions="90,70,230,*" Margin="0 1">
+                              <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
+                                         Foreground="#6e6e80" VerticalAlignment="Center"/>
+                              <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
+                                         Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
+                              <TextBlock Grid.Column="2" Text="{Binding Title}" FontSize="10"
+                                         Margin="{Binding Indent}" Foreground="#c8c8d8"
+                                         TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                              <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10"
+                                         Foreground="#8a8a99" VerticalAlignment="Center"/>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Border>
+                  </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
                 <DataGrid.Columns>
                   <DataGridTemplateColumn Header="Material" Width="230">
                     <DataGridTemplateColumn.CellTemplate>
