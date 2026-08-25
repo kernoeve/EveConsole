@@ -447,16 +447,26 @@ public sealed class ItemShortageRowVm(ItemShortage s)
     /// <summary>Made per unit consumed. Under 1.0 and the shelf drains however full it looks.</summary>
     public string Balance => !s.Buildable ? "—" : $"{s.Balance:N2}×";
 
-    public string BalanceColor => !s.Buildable  ? "#666677"
-                                : s.IsDraining  ? "#c85a5a"
+    /// <summary>⚠️ Amber, not red, during a wave — a deficit while a big order passes
+    /// through is expected, and absorbing it is what the buffer is for.</summary>
+    public string BalanceColor => !s.Buildable             ? "#666677"
+                                : s.IsDraining && s.IsWave ? "#c8a84b"
+                                : s.IsDraining             ? "#c85a5a"
                                 : "#4a8a5a";
+
+    /// <summary>How much harder than usual this is being drawn on right now.</summary>
+    public string Surge => s.Surge >= 1.2 ? $"{s.Surge:N1}×" : "";
 
     public string VerdictColor => s.Verdict switch
     {
-        "Making too few" => "#c85a5a",
+        "Buy now"        => "#c85a5a",
+        "Buffer spent"   => "#c85a5a",
+        "Blocked"        => "#c85a5a",
+        "Making too few" => "#c8a84b",
         "Buy"            => "#5599aa",
         "Buffer thin"    => "#c8a84b",
         "No level set"   => "#c8a84b",
+        "Wave"           => "#8a8a99",
         _                => "#666677",
     };
 

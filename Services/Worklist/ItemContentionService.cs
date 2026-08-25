@@ -25,8 +25,23 @@ public sealed record ItemShortage(
     int    Blocks,
     bool   MustBuy,
     bool   Buildable,
-    int    WindowDays)
+    int    WindowDays,
+    double RecentUsedPerDay = 0,
+    int    RecentDays = 30)
 {
+    /// <summary>
+    /// How much harder this is being drawn on now than across the whole window.
+    ///
+    /// <para>⚠️ What separates a wave from a trend. Two titans and four supers put a quarter's
+    /// demand through in a fortnight, and during it every input reads as under-produced — which
+    /// says nothing about whether the pipeline is sized right, only that a big order is passing
+    /// through it.</para>
+    /// </summary>
+    public double Surge => UsedPerDay <= 0 ? 1 : RecentUsedPerDay / UsedPerDay;
+
+    /// <summary>Demand is spiking rather than sitting where it usually does.</summary>
+    public bool IsWave => Surge >= 1.5;
+
     /// <summary>
     /// Days the shelf would last at the rate it is being drawn down.
     ///
@@ -38,11 +53,12 @@ public sealed record ItemShortage(
     public double DaysOfCover => UsedPerDay <= 0 ? double.PositiveInfinity : Level / UsedPerDay;
 
     /// <summary>
-    /// Made per unit consumed. Below one and the shelf is draining however full it looks.
+    /// Made per unit consumed. Below one the shelf is being drawn down.
     ///
-    /// <para><b>⚠️ This is the ranking, not the stock level.</b> A full buffer running at a
-    /// sustained deficit is a worse problem than an empty one in equilibrium: no size of buffer
-    /// survives being drawn down faster than it refills, and enlarging it only moves the date.</para>
+    /// <para>⚠️ Supporting detail, NOT the ranking. A deficit is usually a build wave passing
+    /// through rather than a verdict on the pipeline — sustained over-consumption cannot happen,
+    /// because it empties the buffer and then the work stops. Absorbing exactly that is what the
+    /// buffer is for, and what ranks here is whether it ran out.</para>
     /// </summary>
     public double Balance => UsedPerDay <= 0 ? 1 : MadePerDay / UsedPerDay;
 
@@ -69,36 +85,79 @@ public sealed record ItemShortage(
     /// </summary>
     public bool RateSuppressed => BlockedJobs > 0;
 
+    /// <summary>
+    /// What is actually wrong here.
+    ///
+    /// <para><b>⚠️ Blocked work comes first, always.</b> The harm is not a ratio — it is that the
+    /// buffer ran out, jobs stopped, and slots are sitting idle. A deficit with stock still on the
+    /// shelf is a number; a deficit with an empty shelf and work stalled behind it is the thing
+    /// this tab exists to find.</para>
+    ///
+    /// <para>⚠️ And a deficit during a build wave is not a verdict on the pipeline. Sustained
+    /// over-consumption is self-limiting — it empties the buffer and the work stops — so what a
+    /// deficit usually means is that a large order is passing through. Only one that holds across
+    /// both windows says production is genuinely undersized.</para>
+    /// </summary>
     public string Verdict =>
-        !Buildable && MustBuy ? "Buy"
-      : IsDraining            ? "Making too few"
-      : Level <= 0            ? "No level set"
-      : DaysOfCover < 7       ? "Buffer thin"
-      :                         "Holding";
+        BlockedJobs > 0 && !Buildable       ? "Buy now"
+      : BlockedJobs > 0 && IsWave           ? "Buffer spent"
+      : BlockedJobs > 0                     ? "Blocked"
+      : !Buildable && MustBuy               ? "Buy"
+      : IsDraining && !IsWave               ? "Making too few"
+      : IsDraining                          ? "Wave"
+      : Level <= 0                          ? "No level set"
+      : DaysOfCover < 7                     ? "Buffer thin"
+      :                                       "Holding";
 
     public string Advice => Verdict switch
     {
-        "Buy" =>
-            $"None owned, and nothing here makes it — {BlockedJobs:N0} job(s) are waiting on a "
-          + "purchase.",
+        "Buy now" =>
+            $"{BlockedJobs:N0} job(s) stopped, none owned, and nothing here makes it. "
+          + $"Drawn on at {UsedPerDay:N1}/day"
+          + (Level > 0 ? $" against a level of {Level:N0}." : " with no level set to hold any.")
+          + " Buying is the only thing that starts them.",
 
+        // ⚠️ The buffer did its job and was not big enough. Saying "make more" here would be
+        // advice for the wrong problem: production has not changed, demand has, and absorbing
+        // exactly this is what a buffer is FOR.
+        "Buffer spent" =>
+            $"{BlockedJobs:N0} job(s) stopped with {OnHand:N0} left. Demand is running "
+          + $"{Surge:N1}× its {WindowDays}-day average — a build wave — and the level of "
+          + $"{Level:N0} covered {DaysOfCover:N0} day(s) of ordinary draw but not this. "
+          + "A larger buffer is what absorbs the next one.",
+
+        "Blocked" =>
+            $"{BlockedJobs:N0} job(s) stopped with {OnHand:N0} left against a level of {Level:N0} "
+          + $"— about {DaysOfCover:N0} day(s) of cover at {UsedPerDay:N1}/day, and it ran out. "
+          + "Either the level is too low for how fast this moves, or it is not being refilled in "
+          + "time.",
+
+        "Buy" =>
+            $"None owned and nothing here makes it, drawn on at {UsedPerDay:N1}/day. Nothing is "
+          + "stopped yet.",
+
+        // Only reached when the deficit holds across both windows — not a spike.
         "Making too few" =>
-            $"Consumed {UsedPerDay:N1}/day and produced {MadePerDay:N1}/day — "
-          + $"{(UsedPerDay <= 0 ? 0 : UsedPerDay / Math.Max(MadePerDay, 0.0001)):N1}× faster than "
-          + "it is replaced, so the shelf drains whatever it is set to. "
-          + (double.IsInfinity(DaysToEmpty) ? "" : $"Empty in about {DaysToEmpty:N0} day(s). ")
-          + "Making more is the fix; a bigger buffer only moves the date.",
+            $"Consumed {UsedPerDay:N1}/day against {MadePerDay:N1}/day made, and demand is flat "
+          + $"— this is not a build wave. "
+          + (double.IsInfinity(DaysToEmpty) ? "" : $"Empty in about {DaysToEmpty:N0} day(s) at this rate. ")
+          + "More production, not a larger buffer.",
+
+        "Wave" =>
+            $"Being drawn on {Surge:N1}× harder than usual — a build wave passing through. "
+          + $"{OnHand:N0} left, roughly {DaysToEmpty:N0} day(s) at the current draw. Nothing is "
+          + "stopped yet; worth watching rather than acting on.",
 
         "No level set" =>
             $"Consumed {UsedPerDay:N1}/day with nothing asking to keep any on the shelf, so there "
-          + "is no cushion to absorb a run of demand.",
+          + "is no cushion at all when demand rises.",
 
         "Buffer thin" =>
-            $"The level of {Level:N0} is {DaysOfCover:N1} day(s) at {UsedPerDay:N1}/day. Anything "
-          + "that takes longer than that to replace will block before it arrives.",
+            $"The level of {Level:N0} is {DaysOfCover:N0} day(s) at {UsedPerDay:N1}/day. Anything "
+          + "taking longer than that to replace will block before it arrives.",
 
         _ =>
-            $"{DaysOfCover:N1} day(s) of cover at {UsedPerDay:N1}/day, replaced at "
+            $"{DaysOfCover:N0} day(s) of cover at {UsedPerDay:N1}/day, replaced at "
           + $"{MadePerDay:N1}/day.",
     };
 
@@ -129,6 +188,17 @@ public class ItemContentionService(IDbContextFactory<AppDbContext> dbFactory)
     /// <summary>How far back rates are measured. Matches the Bottlenecks tab's other windows.</summary>
     private const int WindowDays = 90;
 
+    /// <summary>
+    /// The recent slice, compared against the whole window to tell a wave from a trend.
+    ///
+    /// <para>⚠️ Sustained over-consumption cannot happen: it drains the buffer, and then the
+    /// consumption stops because the work stops. So a deficit measured today is usually a build
+    /// wave passing through — two titans and four supers dumping a quarter's demand into a
+    /// fortnight — and reading it as "we permanently under-produce this" prescribes the wrong
+    /// cure. Only a deficit that holds across BOTH windows is structural.</para>
+    /// </summary>
+    private const int RecentDays = 30;
+
     public async Task<List<ItemShortage>> ShortagesAsync(
         IReadOnlyList<WorklistItem> items, CancellationToken ct = default)
     {
@@ -146,7 +216,8 @@ public class ItemContentionService(IDbContextFactory<AppDbContext> dbFactory)
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        var (used, made) = await RatesAsync(db, ct);
+        var (used, made)  = await RatesAsync(db, WindowDays, ct);
+        var (recent, _)   = await RatesAsync(db, RecentDays, ct);
         var ids          = blockedBy.Keys.ToList();
 
         var level = (await db.InvLevelItems.AsNoTracking()
@@ -191,12 +262,19 @@ public class ItemContentionService(IDbContextFactory<AppDbContext> dbFactory)
                 blocksOf.GetValueOrDefault(kv.Key),
                 MustBuy: true,
                 Buildable: buildable.Contains(kv.Key),
-                WindowDays))
-            // Draining first, then by how much waits on it. A shelf being drawn down faster than
-            // it refills is the problem that gets worse on its own; everything else is holding.
-            .OrderByDescending(s => s.IsDraining)
+                WindowDays,
+                recent.GetValueOrDefault(kv.Key) / RecentDays,
+                RecentDays))
+            // ⚠️ Stopped work first, then how much waits behind it. The harm is idle slots and
+            // stalled jobs, not a ratio — a deficit with stock still on the shelf costs nothing
+            // yet, and an empty shelf with forty jobs behind it is costing everything. Sorting on
+            // the balance put the whole "consuming faster than making" block at the top whatever
+            // its consequences, and left genuinely stopped work underneath it.
+            .OrderByDescending(s => s.BlockedJobs > 0)
             .ThenByDescending(s => s.Blocks)
             .ThenByDescending(s => s.BlockedJobs)
+            .ThenByDescending(s => s.IsDraining && !s.IsWave)
+            .ThenBy(s => s.DaysToEmpty)
             .ToList();
     }
 
@@ -212,9 +290,9 @@ public class ItemContentionService(IDbContextFactory<AppDbContext> dbFactory)
     /// holds days or weeks.</para>
     /// </summary>
     private static async Task<(Dictionary<int, double> Used, Dictionary<int, double> Made)>
-        RatesAsync(AppDbContext db, CancellationToken ct)
+        RatesAsync(AppDbContext db, int days, CancellationToken ct)
     {
-        var since = DateTimeOffset.UtcNow.AddDays(-WindowDays);
+        var since = DateTimeOffset.UtcNow.AddDays(-days);
 
         // ⚠️ The window is applied in memory: StartDate is a DateTimeOffset over a TEXT column and
         // EF cannot translate a comparison on one against SQLite.

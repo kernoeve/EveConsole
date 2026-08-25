@@ -998,7 +998,7 @@
                 <TextBlock Text="MATERIALS" FontSize="10" FontWeight="SemiBold"
                            Foreground="#555566" LetterSpacing="1"/>
                 <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
-                           Text="Materials the pipeline runs out of — the ones nothing owns, not the ones sitting at the wrong station, which is a hauling problem and belongs elsewhere. A buffer is a length of time, not a quantity: 200 of something eaten twice a day is 100 days of cushion, and 200 of something eaten 200 times a day is one day. 'Cover' is the level measured in days at the current draw. 'Balance' is made per unit consumed — under 1.00 the shelf is draining however full it looks, and no size of buffer survives that, since enlarging it only moves the date. ⚠ Every rate here is a floor: nothing consumed what could not be made, so an item that has been blocking work was used at the rate the blockage allowed rather than the rate that was wanted."/>
+                           Text="Materials the pipeline runs out of — the ones nothing owns, not the ones sitting at the wrong station, which is a hauling problem and belongs elsewhere. Ranked by stopped work: the harm is idle slots and stalled jobs, not a ratio. 'Cover' is the level measured in days at the current draw — a buffer is a length of time, not a quantity. 'Balance' is made per unit consumed and 'Surge' is how much harder than usual it is being drawn on right now: a deficit during a build wave is what a buffer exists to absorb, and only a deficit that holds when demand is flat means production is undersized. ⚠ Every rate is a floor — nothing consumed what could not be made, so an item that has been blocking work was used at the rate the blockage allowed rather than the rate that was wanted."/>
               </StackPanel>
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding ItemShortages}" IsReadOnly="True"
@@ -1032,6 +1032,7 @@
                   <DataGridTextColumn Header="Level"    Binding="{Binding Level}"   Width="70"/>
                   <DataGridTextColumn Header="On hand"  Binding="{Binding OnHand}"  Width="80"/>
                   <DataGridTextColumn Header="Cover"    Binding="{Binding Cover}"   Width="65"/>
+                  <DataGridTextColumn Header="Surge"    Binding="{Binding Surge}"   Width="60"/>
                   <DataGridTextColumn Header="Blocked"  Binding="{Binding Blocked}" Width="70"/>
                   <DataGridTextColumn Header="Waiting"  Binding="{Binding Downstream}" Width="70"/>
                   <DataGridTextColumn Header="Rate"     Binding="{Binding Suppressed}" Width="55"
