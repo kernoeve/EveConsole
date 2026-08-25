@@ -52,7 +52,6 @@ public class SlackSettingsViewModel : ReactiveObject
         _monthlyWebhook     = slack.WebhookUrl(SlackService.AreaCorpMonthly);
         _salePostingWebhook = slack.WebhookUrl(SlackService.AreaSalePosting);
 
-        TestWebhooksCommand  = ReactiveCommand.CreateFromTask(TestWebhooksAsync);
         SaveAndTestCommand   = ReactiveCommand.CreateFromTask(SaveAndTestAsync);
         LoadChannelsCommand  = ReactiveCommand.CreateFromTask(LoadChannelsAsync);
         OpenSlackAppsCommand = ReactiveCommand.Create(() => OpenUrl(AppsUrl));
@@ -71,7 +70,6 @@ public class SlackSettingsViewModel : ReactiveObject
     /// <summary>Manual token entry is the fallback when no Client ID is compiled in.</summary>
     public bool ShowManualToken => !SlackAuthService.IsAvailable;
 
-    public ReactiveCommand<Unit, Unit> TestWebhooksCommand  { get; }
     public ReactiveCommand<Unit, Unit> ConnectCommand       { get; }
     public ReactiveCommand<Unit, Unit> DisconnectCommand    { get; }
     public ReactiveCommand<Unit, Unit> CancelConnectCommand { get; }
@@ -254,30 +252,6 @@ public class SlackSettingsViewModel : ReactiveObject
         get => _salePostingWebhook;
         set { this.RaiseAndSetIfChanged(ref _salePostingWebhook, value);
               _ = _slack.SetWebhookUrlAsync(SlackService.AreaSalePosting, value); }
-    }
-
-    /// <summary>Sends a line to each configured webhook, so a bad URL is found here and not in
-    /// the middle of posting a price list.</summary>
-    private async Task TestWebhooksAsync()
-    {
-        var any = false;
-        foreach (var (area, url, label) in new[]
-                 {
-                     (SlackService.AreaCorpTop10,   Top10Webhook,       "Top 10"),
-                     (SlackService.AreaCorpMonthly, MonthlyWebhook,     "Monthly summary"),
-                     (SlackService.AreaSalePosting, SalePostingWebhook, "Sale posting"),
-                 })
-        {
-            if (string.IsNullOrWhiteSpace(url)) continue;
-            any = true;
-
-            var res = await _slack.PostWebhookAsync(
-                url.Trim(), $"EVE Console webhook test — {label}.");
-
-            if (!res.Ok) { Status = $"{label} webhook failed: {res.Error}"; return; }
-        }
-
-        Status = any ? "Webhook test posted." : "No webhook URLs to test.";
     }
 
     private async Task LoadChannelsAsync()

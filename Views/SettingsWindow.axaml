@@ -2201,10 +2201,6 @@
                      Watermark="https://hooks.slack.com/services/…" FontSize="12"
                      Background="#131320" Foreground="#ccccdd" BorderBrush="#2a2a3a" />
           </Grid>
-
-          <Button Content="Send a test to each webhook" Command="{Binding SlackVm.TestWebhooksCommand}"
-                  HorizontalAlignment="Left" FontSize="12" Padding="12 5"
-                  Background="#1a1a28" Foreground="#c8a84b" BorderBrush="#3a3020" />
         </StackPanel>
 
       </StackPanel>
