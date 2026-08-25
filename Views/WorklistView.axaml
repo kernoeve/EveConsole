@@ -991,17 +991,18 @@
           </TabItem>
 
           <TabItem Header="BPO / Formula" FontSize="12">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-              <StackPanel Spacing="16" Margin="0 8 0 0">
-            <!-- ── Blueprints ─────────────────────────────────────────────── -->
-            <StackPanel Spacing="6">
+            <!-- A grid, not a stack in a scroller: the notes above it are three fixed lines and
+                 everything left over belongs to the list. -->
+            <Grid RowDefinitions="Auto,*" Margin="0 8 0 0">
+            <StackPanel Grid.Row="0" Spacing="6">
               <TextBlock Text="BLUEPRINTS" FontSize="10" FontWeight="SemiBold"
                          Foreground="#555566" LetterSpacing="1"/>
               <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
                          Text="A blueprint bottleneck is having to WAIT for a copy to free up — not running one a lot. 'All busy' is the share of the last 90 days when every BPO you own was occupied at once, counting research and copying as well as building, since a print locked in a copy job is just as unavailable. That is the only figure that separates a real constraint from heavy use: a formula run flat out across eight copies has never blocked anything, and buying the eighth is what fixed it. Listed from 5% up, or 15% for single-BPO items — with one print 'every copy busy' just means 'the print was busy', so low figures there are light use rather than contention. 'Used' is context only."/>
+            </StackPanel>
 
               <DataGrid ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
-                        AutoGenerateColumns="False" FontSize="11" MaxHeight="320"
+                        AutoGenerateColumns="False" FontSize="11"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
                 <DataGrid.Columns>
                   <DataGridTemplateColumn Header="Product" Width="220">
@@ -1056,9 +1057,7 @@
                   <DataGridTextColumn Header="Suggestion" Binding="{Binding Advice}" Width="*"/>
                 </DataGrid.Columns>
               </DataGrid>
-            </StackPanel>
-              </StackPanel>
-            </ScrollViewer>
+            </Grid>
           </TabItem>
 
         </TabControl>

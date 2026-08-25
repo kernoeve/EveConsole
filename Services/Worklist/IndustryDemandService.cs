@@ -353,8 +353,15 @@ public class IndustryDemandService(
         // The Customer orders switch on the Sources tab is what says orders should be planned.
         if (!enabled) return [];
 
+        // ⚠️ An order with a contract already made out is not work any more. The goods left the
+        // hangar to get into it, so they are in no asset row and no job — and the netting below
+        // sees only assets and jobs. Counting such an order as demand asks for a second hull to
+        // replace one already sitting in a contract with the buyer's name on it.
+        //
+        // Still "pending" as an order, correctly: it is not settled until the contract is taken.
+        // Pending is about the customer; this is about the shelf.
         var orders = await db.TrackedOrders.AsNoTracking()
-            .Where(o => o.Status == "pending").ToListAsync(ct);
+            .Where(o => o.Status == "pending" && o.LinkedContractId == null).ToListAsync(ct);
         if (orders.Count == 0) return [];
 
         // Each order's place in the queue, so the work it drives can be ranked against the work
