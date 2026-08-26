@@ -266,13 +266,21 @@ public class IndustryJobGenerator(
         //
         // The +1 keeps items with nothing blocked in the ordering, ranked among themselves by
         // how empty they are, rather than collapsing them all to zero.
+        //
+        // ⚠️ Divided by the jobs ALREADY given to this item, which is the part coverage cannot
+        // do. Coverage is measured in units and the decision is measured in slots: an item at 1%
+        // of its level whose jobs each add 5% remains the emptiest thing on the list for twenty
+        // passes and takes twenty slots before anything else gets one. Dividing makes the second
+        // job for an item worth half the first, the third a third, so the queue spreads across
+        // the shortages instead of resolving them one at a time — and an item still wins
+        // repeatedly when it is far enough ahead to deserve it.
         static double PlanValue(PlanState s)
         {
             var deficit = Math.Clamp(1.0 - s.Demand.CoverageWith(s.Planned) / 100.0, 0.0, 1.0);
             var weight  = BlockedBand(s.Demand.Blocks)
                         + BlockedBand(s.Demand.BlocksFinal) * 2;
 
-            return (weight + 1) * deficit;
+            return (weight + 1) * deficit / (1 + s.JobsPlanned);
         }
 
         // Prints already planned against in this pass. See where it is applied for why the real
@@ -641,8 +649,9 @@ public class IndustryJobGenerator(
                         if (readiness != WorklistReadiness.Blocked)
                         {
                             var madeUnits = (long)runs * Math.Max(1, product.Quantity);
-                            state.Planned   += madeUnits;
-                            state.Remaining -= madeUnits;
+                            state.Planned     += madeUnits;
+                            state.Remaining   -= madeUnits;
+                            state.JobsPlanned += 1;
                             if (state.Remaining > 0) state.Done = false;
                         }
                     }
@@ -820,6 +829,17 @@ public class IndustryJobGenerator(
 
         /// <summary>Units planned so far, which is what raises this item's coverage.</summary>
         public long Planned { get; set; }
+
+        /// <summary>
+        /// How many jobs this item has already been given in this pass.
+        ///
+        /// <para>⚠️ Coverage alone does not spread the slots. An item at 1% of its level whose
+        /// jobs each add 5% stays the emptiest thing on the list for twenty consecutive passes,
+        /// and takes twenty slots before anything else gets one — which is exactly the "queue
+        /// everything for one item, then start the next" the reader objected to. Units are the
+        /// wrong meter for a decision measured in slots.</para>
+        /// </summary>
+        public int JobsPlanned { get; set; }
 
         /// <summary>No further visit is useful — finished, or unable to go further.</summary>
         public bool Done { get; set; }
