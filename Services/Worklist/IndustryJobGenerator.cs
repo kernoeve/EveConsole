@@ -243,54 +243,67 @@ public class IndustryJobGenerator(
             .Select(x => new PlanState(x))
             .ToList();
 
-        // How much work is waiting on an item, in doubling bands: 0 alone, then 1-2, 3-6, 7-14,
-        // 15-30 and so on. Doubling because the difference between nine dependents and eleven is
-        // noise, and the difference between two and twenty is not.
-        static int BlockedBand(int blocks) =>
-            blocks <= 0 ? 0 : (int)Math.Log2(blocks) + 1;
+        // Every item by type, so a candidate can ask how its dependents are doing right now.
+        var byType = queue.ToDictionary(s => s.Demand.TypeId);
 
-        // What planning this next is worth, as one number.
+        // Of what the queued work actually eats from this item, how much cannot be met.
         //
-        // ⚠️ THE LEVEL IS NOT THE NEED, and measuring against the level is what made one item
-        // take twenty consecutive slots.
+        // ⚠️ Against the NEED, never the shelf level. Pressurized Oxidizers holds 8 against a
+        // level of 950,000, so a level-deficit stays near 1.0 for nineteen jobs and out-ranks
+        // everything for all of them, long after the work in front of it has been fed — the rest
+        // of that level is shelf, and refilling a shelf stops nobody. Reinforced Carbon Fiber is
+        // the same error from the other end: 55% of its level, 795,615 units on hand, nothing
+        // stopped for want of it.
         //
-        // Pressurized Oxidizers holds 8 against a LEVEL of 950,000, so a deficit measured
-        // against the level stays near 1.0 for nineteen jobs — each one moves it about five per
-        // cent — and it out-ranks everything for all nineteen. Meanwhile the work in front of it
-        // may want only a fraction of that level: the rest is shelf, and refilling a shelf is
-        // not what stops a job. Reinforced Carbon Fiber shows the same error from the other side,
-        // sitting at 55% of its level with 795,615 units on hand — nothing is stopped for want
-        // of it, and there is most of a million units for the queue to work through.
-        //
-        // So the measure is STARVATION: of what the queued work actually wants from this item,
-        // how much cannot be met. Zero when there is enough on hand to feed the work, whatever
-        // the shelf says. That is the difference between "everything above this is dead" and
-        // "this is below its stocking target".
-        //
-        // Two regimes, and the starving one always wins — not by ordering the keys, but because
-        // its score starts at 1 and a shelf top-up's cannot reach it. Among the starving,
-        // blocked work and starvation multiply, and every job planned feeds the need, which
-        // lowers starvation, which lets a peer take over. Among the rest, the emptiest shelf
-        // goes first.
-        //
-        // ⚠️ The weight counts BLOCKED WORK, never units. Units are not comparable between
-        // items: one Neurolink Protection Cell stops more than fifty thousand oxidizers do.
-        static double PlanValue(PlanState s)
+        // ⚠️ ShelfHave already includes the output of jobs already running in game, so work in
+        // flight counts as arriving rather than as still missing.
+        static double Starving(PlanState s)
         {
             var wanted = s.Demand.OrderUnits + s.Demand.ParentUnits;
-            var have   = s.Demand.ShelfHave + s.Planned;
+            if (wanted <= 0) return 0;
 
-            var starving = wanted <= 0
-                ? 0.0
-                : Math.Clamp(1.0 - (double)have / wanted, 0.0, 1.0);
+            var have = s.Demand.ShelfHave + s.Planned;
+            return Math.Clamp(1.0 - (double)have / wanted, 0.0, 1.0);
+        }
 
-            if (starving <= 0)
-                return Math.Clamp(1.0 - s.Demand.CoverageWith(s.Planned) / 100.0, 0.0, 1.0);
+        // How many jobs are stopped for want of this item, AS THINGS STAND THIS PASS.
+        //
+        // ⚠️ Recomputed, not read off the demand record. Each job planned feeds the need, and
+        // once enough is planned to cover it nothing is waiting on this item any more — so its
+        // claim on the next slot has to fall to zero even though its shelf is still far from
+        // full. A fixed count is what let one item take twenty consecutive slots.
+        int BlockedNow(PlanState s)
+        {
+            if (Starving(s) <= 0) return 0;
 
-            var weight = BlockedBand(s.Demand.Blocks)
-                       + BlockedBand(s.Demand.BlocksFinal) * 2;
+            var n = 0;
+            foreach (var t in s.Demand.Dependents)
+                if (byType.TryGetValue(t, out var dep) && dep.Remaining > 0) n++;
+            return n;
+        }
 
-            return 1.0 + (weight + 1) * starving;
+        // The same count, restricted to what the operation sells or flies.
+        int BlockedFinalNow(PlanState s)
+        {
+            if (Starving(s) <= 0) return 0;
+
+            var n = 0;
+            foreach (var t in s.Demand.Dependents)
+                if (byType.TryGetValue(t, out var dep) && dep.Remaining > 0 && dep.Demand.IsFinal)
+                    n++;
+            return n;
+        }
+
+        // How full this item is against everything asked of it — the work AND the shelf.
+        //
+        // ⚠️ A share, never a unit count. Units are not comparable between items: fifty thousand
+        // oxidizers and one Neurolink Protection Cell are not two numbers to sort.
+        static double Coverage(PlanState s)
+        {
+            var total = s.Demand.ShelfLevel + s.Demand.OrderUnits + s.Demand.ParentUnits;
+            if (total <= 0) return 1.0;
+
+            return (double)(s.Demand.ShelfHave + s.Planned) / total;
         }
 
         // Prints already planned against in this pass. See where it is applied for why the real
@@ -306,10 +319,14 @@ public class IndustryJobGenerator(
             var state = queue
                 .Where(s => !s.Done)
                 .OrderByDescending(s => s.Demand.Priority)
-                // One blended score: what is waiting on it, scaled by how far short it still is.
-                // See PlanValue — every strictly-ordered version of this queued one item to
-                // exhaustion before starting the next.
-                .ThenByDescending(PlanValue)
+                // ⚠️ Blocked work FIRST, and recomputed every pass. Blending it with coverage
+                // was an attempt to make one ordering do two jobs, and it let a well-stocked
+                // item outrank a starving one because its dependent count was larger. What
+                // stops a pipeline is work that cannot run; how empty a shelf is only decides
+                // the order among items that are equally in the way.
+                .ThenByDescending(BlockedFinalNow)
+                .ThenByDescending(BlockedNow)
+                .ThenBy(Coverage)
                 .ThenBy(s => s.Demand.TypeId)
                 .FirstOrDefault();
 

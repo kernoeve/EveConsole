@@ -58,6 +58,23 @@ public sealed record BuildDemand(int TypeId, long Units, int Priority, List<stri
     public int BlocksFinal { get; init; }
 
     /// <summary>
+    /// Which items are waiting on this one, not merely how many.
+    ///
+    /// <para>⚠️ The count has to be RECOMPUTED as jobs are planned, and a number cannot be.
+    /// Planning 50,000 oxidizers feeds the Core Temperature Regulator job that was waiting on
+    /// them; that job is no longer blocked by oxidizers, so the oxidizers' claim on the next
+    /// slot is smaller than it was. With a fixed count the leader keeps its score forever and
+    /// takes every slot until its demand runs out, which is the one behaviour this ordering
+    /// exists to prevent. The set is what makes the recount possible.</para>
+    /// </summary>
+    public IReadOnlyCollection<int> Dependents { get; init; } = [];
+
+    /// <summary>This item is something the operation sells or flies. Hand-set on the
+    /// inventory rule; see WorklistInvRule.IsFinalProduct.</summary>
+    public bool IsFinal { get; init; }
+
+
+    /// <summary>
     /// Why this is wanted — and, where it matters, how much waits behind it.
     ///
     /// <para>The blocking count is on the row rather than only in the sort, because a job that
@@ -409,6 +426,8 @@ public class IndustryDemandService(
                 Blocks      = gross[typeId].Dependents.Count(result.ContainsKey),
                 BlocksFinal = gross[typeId].Dependents
                                   .Count(x => result.ContainsKey(x) && gross[x].IsFinal),
+                Dependents  = [.. gross[typeId].Dependents.Where(result.ContainsKey)],
+                IsFinal     = gross[typeId].IsFinal,
             };
 
         return result;
