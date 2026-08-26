@@ -254,6 +254,20 @@ public sealed class StandingProjectRowVm
     public long   DbId              { get; }
     public string TypeDisplay       { get; }
     public string DescriptionText   { get; }
+
+    /// <summary>
+    /// The whole row in one line, for the Overview panel.
+    ///
+    /// <para>⚠️ Panel only. The Corp Activity grid has Type, Description and Location as
+    /// their own sortable columns and must keep them; the panel shows one column and was
+    /// built when every project was a delivery, so it printed a bare item name and left the
+    /// reader unable to tell a delivery from a destroy-NPC row.</para>
+    ///
+    /// <para>The shape follows the type, because the types are identified by different
+    /// things: a delivery is an item and where it goes, and a destroy-NPC project is just a
+    /// place.</para>
+    /// </summary>
+    public string SummaryText { get; }
     public string LocationText      { get; }
     public string ProjectStatusText { get; }
     public string ProjectStatusColor { get; }
@@ -302,6 +316,14 @@ public sealed class StandingProjectRowVm
         TypeDisplay     = row.TypeDisplay;
         DescriptionText = row.TargetDisplay;
         LocationText    = row.DestDisplay;
+
+        SummaryText = row.TypeDisplay + ": " + (row.ItemTypeId is > 0
+            ? row.TargetDisplay + (row.DestDisplay.Length > 0
+                ? " → " + row.DestDisplay
+                : "")
+            // A destroy-NPC row names the qualifying system in DestDisplay when an ADM rule
+            // selected it, and in TargetDisplay when the definition named it outright.
+            : row.DestDisplay.Length > 0 ? row.DestDisplay : row.TargetDisplay);
         LocationId      = row.StationId ?? 0;
         LocationIsNpc   = row.StationIsNpc;
 
