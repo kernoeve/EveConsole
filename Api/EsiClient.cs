@@ -281,40 +281,77 @@ public class EsiClient
     // Sovereignty endpoints (no auth)
     // -----------------------------------------------------------------------
 
-    /// <summary>The last compatibility date at which the sovereignty endpoints exist.</summary>
-    public const string SovCompatibilityDate = "2026-05-01";
-
-    public async Task<List<EsiSovStructure>?> GetSovStructuresAsync(CancellationToken ct = default)
+    public async Task<List<EsiSovSystem>?> GetSovSystemsAsync(CancellationToken ct = default)
     {
-        // ⚠️ This call carries its OWN compatibility date, and must keep doing so.
+        // ⚠️ An ABSOLUTE url, because this endpoint is not under /latest/.
         //
-        // CCP retired /sovereignty/structures/ and /sovereignty/map/ somewhere between
-        // compatibility dates 2026-05-01 and 2026-07-01. The client-wide pin is 2026-08-01, so
-        // this endpoint answers 404 there and 200 at any date up to 2026-05-01 — verified
-        // against the live API at both. Nothing about the app changed; the API moved underneath
-        // a header written to stop exactly that kind of surprise, and did it by removing a route
-        // rather than by reshaping a payload.
+        // CCP retired /sovereignty/map and /sovereignty/structures at compatibility date
+        // 2026-05-19 and replaced both with /sovereignty/systems, per ESI's own changelog:
+        // "Rework of Sovereignty systems. This unifies /sovereignty/map and
+        // /sovereignty/structures." The replacement lives at the ROOT — /latest/ is the legacy
+        // prefix and answers 404 for it — so BaseAddress cannot reach it and the url is given
+        // in full. Verified against the live API: 200 with 1.2MB at the client-wide pin.
         //
-        // Raising this date requires finding where ADM lives afterwards, not just bumping it.
-        using var request = new HttpRequestMessage(HttpMethod.Get, "sovereignty/structures/");
-        request.Headers.Remove("X-Compatibility-Date");
-        request.Headers.Add("X-Compatibility-Date", SovCompatibilityDate);
-
         // ⚠️ No catch. The caller records the reason and puts it on screen: this failing
-        // silently for weeks is how a removed endpoint came to look like a misconfigured scope.
+        // silently is how a removed endpoint came to look like a misconfigured scope for weeks.
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get, "https://esi.evetech.net/sovereignty/systems");
+
         var response = await _http.SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<List<EsiSovStructure>>(JsonOptions, ct);
+
+        var payload = await response.Content.ReadFromJsonAsync<EsiSovSystems>(JsonOptions, ct);
+        return payload?.SolarSystems ?? [];
     }
 
-    public sealed class EsiSovStructure
+    /// <summary>
+    /// Sovereignty by system, from the endpoint that replaced /sovereignty/structures.
+    ///
+    /// <para>The ADM is <c>claim.alliance.development.activity_defense_multiplier</c>. Every
+    /// layer is optional: an unclaimed system carries <c>claim.unclaimed</c>, and an NPC-held
+    /// one carries <c>claim.faction</c> with no development block at all.</para>
+    /// </summary>
+    public sealed class EsiSovSystems
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("solar_systems")]
+        public List<EsiSovSystem> SolarSystems { get; set; } = [];
+    }
+
+    public sealed class EsiSovSystem
     {
         [System.Text.Json.Serialization.JsonPropertyName("solar_system_id")]
-        public int     SolarSystemId                 { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("structure_type_id")]
-        public int     StructureTypeId               { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("vulnerability_occupancy_level")]
-        public double? VulnerabilityOccupancyLevel   { get; set; }
+        public int          SolarSystemId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("claim")]
+        public EsiSovClaim? Claim         { get; set; }
+
+        /// <summary>The ADM, or null where the system has no alliance development.</summary>
+        public double? Adm => Claim?.Alliance?.Development?.ActivityDefenseMultiplier;
+    }
+
+    public sealed class EsiSovClaim
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("alliance")]
+        public EsiSovAlliance? Alliance { get; set; }
+    }
+
+    public sealed class EsiSovAlliance
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("alliance_id")]
+        public long                 AllianceId  { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("development")]
+        public EsiSovDevelopment?   Development { get; set; }
+    }
+
+    public sealed class EsiSovDevelopment
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("activity_defense_multiplier")]
+        public double? ActivityDefenseMultiplier { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("military_level")]
+        public int?    MilitaryLevel             { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("industrial_level")]
+        public int?    IndustrialLevel           { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("strategic_level")]
+        public int?    StrategicLevel            { get; set; }
     }
 
     /// <summary>

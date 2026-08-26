@@ -2248,11 +2248,12 @@ public class CorpActivityService
             return _sovAdmCache;
         try
         {
-            var structures = await _esi.GetSovStructuresAsync(ct) ?? [];
-            var dict = structures
-                .Where(s => s.VulnerabilityOccupancyLevel.HasValue)
-                .GroupBy(s => s.SolarSystemId)
-                .ToDictionary(g => g.Key, g => g.Max(s => s.VulnerabilityOccupancyLevel!.Value));
+            // One entry per system now, rather than one per structure, so nothing has to be
+            // reduced across several rows for the same system.
+            var systems = await _esi.GetSovSystemsAsync(ct) ?? [];
+            var dict = systems
+                .Where(s => s.Adm.HasValue)
+                .ToDictionary(s => s.SolarSystemId, s => s.Adm!.Value);
 
             // An empty map is a failure, not an answer: every sovereign system in the game
             // carries an occupancy level, so nothing is the one result this cannot mean.
