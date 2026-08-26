@@ -303,6 +303,25 @@ public class IndustryJobGenerator(
             return (int)Math.Ceiling(n * starving);
         }
 
+        // What this item is worth to the most urgent thing STILL waiting on it.
+        //
+        // ⚠️ Re-evaluated every pass, like coverage and the blocked counts. Priority is stamped
+        // once during the demand walk and inherited down the whole tree, so without this an item
+        // keeps an order's urgency after that order's chain has been planned out — and holds the
+        // top of the list on the strength of work that is no longer outstanding. Falling back to
+        // what the item's own demand justifies is what lets the urgency expire.
+        int LivePriority(PlanState s)
+        {
+            var best = s.Demand.OwnPriority;
+
+            foreach (var t in s.Demand.Dependents)
+                if (byType.TryGetValue(t, out var dep) && dep.Remaining > 0 &&
+                    dep.Demand.Priority > best)
+                    best = dep.Demand.Priority;
+
+            return best;
+        }
+
         // How full this item is against everything asked of it — the work AND the shelf.
         //
         // ⚠️ A share, never a unit count. Units are not comparable between items: fifty thousand
@@ -327,23 +346,15 @@ public class IndustryJobGenerator(
         {
             var state = queue
                 .Where(s => !s.Done)
-                // ⚠️ Blocked work outranks WHOSE order the item descends from, and that is the
-                // change that finally moved this list.
-                //
-                // Priority is inherited down the whole tree under an order, so Pressurized
-                // Oxidizers, Reinforced Carbon Fiber and Thermosetting Polymer all carried 220
-                // from one pending Simurgh while the isotropics and the neurolinks sat at 80 —
-                // the stock band — because the walk netted out at an intermediate that was
-                // already on the shelf and never descended to them. Sorting on priority first
-                // put fifty jobs for three well-stocked reactions ahead of every starving item
-                // in the list, and no amount of tuning below it could be seen.
-                //
-                // An order is not waiting on an item that is not short. Priority answers WHOSE
-                // work this is and belongs among items that are equally in the way; whether work
-                // can proceed at all comes first.
-                .OrderByDescending(BlockedFinalNow)
+                // ⚠️ Priority first, and every key below it re-evaluated on every pass. An
+                // order outranks work nobody is waiting for, and that is deliberate; what is not
+                // deliberate is an item keeping an order's urgency after the order is settled.
+                // All four keys move as jobs are planned — see LivePriority, BlockedNow and
+                // Coverage. A key that is stamped once and never revisited hands the top of the
+                // list to whichever item won the first pass.
+                .OrderByDescending(LivePriority)
+                .ThenByDescending(BlockedFinalNow)
                 .ThenByDescending(BlockedNow)
-                .ThenByDescending(s => s.Demand.Priority)
                 .ThenBy(Coverage)
                 .ThenBy(s => s.Demand.TypeId)
                 .FirstOrDefault();
@@ -359,6 +370,7 @@ public class IndustryJobGenerator(
 
             // TEMPORARY: captured before this pass changes anything, so a row shows the
             // numbers that actually chose it.
+            var dbgPrio  = LivePriority(state);
             var dbgFinal = BlockedFinalNow(state);
             var dbgBlock = BlockedNow(state);
             var dbgCover = Coverage(state);
@@ -685,6 +697,7 @@ public class IndustryJobGenerator(
                             Priority      = priority,
                             Blocks        = d.Blocks,
                             PlanSequence  = seq,
+                            SortPriority     = dbgPrio,
                             SortBlockedFinal = dbgFinal,
                             SortBlocked      = dbgBlock,
                             SortCoverage     = dbgCover,
@@ -852,6 +865,7 @@ public class IndustryJobGenerator(
                             Priority      = priority,
                             Blocks        = d.Blocks,
                             PlanSequence  = seq,
+                            SortPriority     = dbgPrio,
                             SortBlockedFinal = dbgFinal,
                             SortBlocked      = dbgBlock,
                             SortCoverage     = dbgCover,

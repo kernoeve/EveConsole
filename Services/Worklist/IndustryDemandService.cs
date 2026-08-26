@@ -73,6 +73,16 @@ public sealed record BuildDemand(int TypeId, long Units, int Priority, List<stri
     /// inventory rule; see WorklistInvRule.IsFinalProduct.</summary>
     public bool IsFinal { get; init; }
 
+    /// <summary>
+    /// What this item's own demand justifies, before inheritance.
+    ///
+    /// <para>⚠️ Inherited priority is only true while something upstream still needs this.
+    /// It is stamped once during the demand walk and never revisited, so an item keeps an
+    /// order's urgency long after the order has been planned out. The picker falls back to
+    /// this when no live dependent carries anything higher.</para>
+    /// </summary>
+    public int OwnPriority { get; init; }
+
 
     /// <summary>
     /// Why this is wanted — and, where it matters, how much waits behind it.
@@ -204,6 +214,10 @@ public class IndustryDemandService(
         public bool Fires;
 
         public int          Priority = WorklistPriority.Housekeeping;
+
+        /// <summary>What this item's OWN demand justifies, before anything is inherited
+        /// from above. The floor an item falls back to once nothing upstream still needs it.</summary>
+        public int          OwnPriority = WorklistPriority.Housekeeping;
         public List<string> Reasons  = [];
     }
 
@@ -279,7 +293,8 @@ public class IndustryDemandService(
                 if (need is null) continue;   // comfortably full: contributes its level, asks for nothing
 
                 g.Fires    = true;
-                g.Priority = Math.Max(g.Priority, WorklistPriority.ForStock(need.Percent));
+                g.Priority    = Math.Max(g.Priority, WorklistPriority.ForStock(need.Percent));
+                g.OwnPriority = Math.Max(g.OwnPriority, WorklistPriority.ForStock(need.Percent));
                 g.Reasons.Add($"{group.Name} · {need.StockText}.{need.FillText(rule)}");
                 topLevel.Add((gi.TypeId, need.Shortfall));
             }
@@ -292,15 +307,25 @@ public class IndustryDemandService(
         {
             if (!ctx.BlueprintByProduct.ContainsKey(typeId)) continue;
 
+            // ⚠️ OUTSTANDING, not ordered. An order already covered by stock or by a job
+            // already running needs nothing built, and until now it still stamped the order
+            // band on the item and added its units to demand — only the queue entry was gated.
+            // One Simurgh, in build and linked to its job, therefore put priority 220 on itself;
+            // a stock rule then carried that 220 down its entire tree, and fifty jobs for three
+            // well-stocked reactions sat above every starving item in the list. Priority has to
+            // stop when the thing that justified it is settled.
+            if (outstanding <= 0) continue;
+
             var g = At(typeId);
-            g.Consumed  += units;
-            g.OrderUnits += units;
-            g.Fires     = true;
+            g.Consumed   += outstanding;
+            g.OrderUnits += outstanding;
+            g.Fires       = true;
             // Ranked rather than flat, so the order due first outranks the one due next month.
             // Children inherit this below, so the whole tree under an urgent order stays urgent.
-            g.Priority  = Math.Max(g.Priority, WorklistPriority.ForOrder(rank));
+            g.Priority    = Math.Max(g.Priority, WorklistPriority.ForOrder(rank));
+            g.OwnPriority = Math.Max(g.OwnPriority, WorklistPriority.ForOrder(rank));
             g.Reasons.Add($"{count} pending order(s) for {units:N0}.");
-            if (outstanding > 0) topLevel.Add((typeId, outstanding));
+            topLevel.Add((typeId, outstanding));
         }
 
         // ── What those builds will consume ────────────────────────────────────
@@ -428,6 +453,7 @@ public class IndustryDemandService(
                                   .Count(x => result.ContainsKey(x) && gross[x].IsFinal),
                 Dependents  = [.. gross[typeId].Dependents.Where(result.ContainsKey)],
                 IsFinal     = gross[typeId].IsFinal,
+                OwnPriority = gross[typeId].OwnPriority,
             };
 
         return result;

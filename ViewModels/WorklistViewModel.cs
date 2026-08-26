@@ -82,7 +82,7 @@ public class WorklistRowVm : ReactiveObject
     public int    Priority      => _item.Priority;
 
     // TEMPORARY diagnostics: the keys the planner sorted on, in the order it used them.
-    public string DbgPriority => _item.Priority.ToString("N0");
+    public string DbgPriority => _item.PlanSequence == 0 ? _item.Priority.ToString("N0") : _item.SortPriority.ToString("N0");
     public string DbgFinal    => _item.PlanSequence == 0 ? "" : _item.SortBlockedFinal.ToString("N0");
     public string DbgBlocked  => _item.PlanSequence == 0 ? "" : _item.SortBlocked.ToString("N0");
     public string DbgCoverage => _item.PlanSequence == 0 ? "" : $"{_item.SortCoverage * 100:N1}%";

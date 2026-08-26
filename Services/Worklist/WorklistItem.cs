@@ -164,6 +164,7 @@ public sealed record WorklistItem
 
     /// <summary>TEMPORARY — the sort keys the planner used, so the order can be audited on
     /// screen instead of reasoned about. Remove with the diagnostic columns.</summary>
+    public int    SortPriority     { get; init; }
     public int    SortBlockedFinal { get; init; }
     public int    SortBlocked      { get; init; }
     public double SortCoverage     { get; init; }
