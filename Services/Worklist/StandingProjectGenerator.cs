@@ -52,8 +52,8 @@ public class StandingProjectGenerator(
 
             foreach (var r in rows)
             {
-                var (verb, detail) = Diagnose(r);
-                if (verb is null) continue;
+                var (title, detail) = Describe(r);
+                if (title is null) continue;
 
                 items.Add(new WorklistItem
                 {
@@ -62,7 +62,7 @@ public class StandingProjectGenerator(
                     Key           = $"standing_project:{r.DbId}",
                     Source        = Id,
                     Kind          = WorklistKind.CorpProject,
-                    Title         = $"{verb} — {r.TypeDisplay}",
+                    Title         = title,
                     Detail        = $"{corpName} · {detail}",
                     Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
                     BlockedBy     = blocked ? "No character assigned to this corporation" : "",
@@ -79,22 +79,47 @@ public class StandingProjectGenerator(
     }
 
     /// <summary>
-    /// What is wrong with one standing definition. Null verb when it is running as intended.
+    /// What one standing definition is asking for. Null title when it is running as intended.
     ///
-    /// "no_systems" is kept distinct from "not_active" rather than collapsed into one "missing":
-    /// the first cannot be fixed by creating a project, because the scope currently resolves to
-    /// nowhere, and telling someone to create a project they cannot create wastes the trip.
+    /// <para>⚠️ The title names the project, not the act. Every row here is a project that does
+    /// not exist, so "Create" was on all of them and distinguished nothing — it cost the width
+    /// of a word on every line and left the actual project type, item and place to the detail.
+    /// The one row that is NOT a create still says so, because the answer there is different:
+    /// the scope resolves to nowhere, and no amount of creating fixes that.</para>
+    ///
+    /// <para>What follows the type varies by type, because the two kinds are identified by
+    /// different things. A delivery is an item and a place to put it. A destroy-NPC project is
+    /// a place and the scope that picked it — a system named directly, or one of many systems
+    /// an ADM rule resolved to, which is worth saying because the second kind reappears as the
+    /// ADM moves.</para>
     /// </summary>
-    private static (string? Verb, string Detail) Diagnose(StandingProjectGridRow r) => r.MatchStatus switch
+    private static (string? Title, string Detail) Describe(StandingProjectGridRow r)
     {
-        "not_active" => ("Create",
-                         $"No active project matches this definition. Target {r.TargetDisplay}"
-                         + (r.DestDisplay.Length > 0 ? $" to {r.DestDisplay}" : "") + "."),
+        var deliver = r.TypeDisplay == "Deliver Item";
 
-        "no_systems" => ("Check scope",
-                         $"Scope resolves to no systems, so nothing can be created for it. "
-                         + $"Target {r.TargetDisplay}."),
+        // ADM-scoped rows carry the qualifying system in DestDisplay and the rule in
+        // TargetDisplay; a directly named system carries it in TargetDisplay with no dest.
+        var place = r.DestDisplay.Length > 0 ? r.DestDisplay : r.TargetDisplay;
 
-        _            => (null, ""),
-    };
+        return r.MatchStatus switch
+        {
+            "not_active" when deliver => (
+                $"{r.TypeDisplay} — {r.TargetDisplay} to "
+              + (r.DestDisplay.Length > 0 ? r.DestDisplay : "any corp office"),
+                "No active project matches this definition."),
+
+            "not_active" => (
+                $"{r.TypeDisplay} — {place} (system)",
+                "No active project matches this definition."
+              + (r.DestDisplay.Length > 0 ? $" Scope: {r.TargetDisplay}." : "")),
+
+            // ⚠️ Not a create. The scope currently resolves to no systems, so there is nothing to
+            // create a project against, and saying "create" would send somebody to try.
+            "no_systems" => (
+                $"Check scope — {r.TypeDisplay}: {r.TargetDisplay}",
+                "Scope resolves to no systems, so nothing can be created for it."),
+
+            _ => (null, ""),
+        };
+    }
 }
