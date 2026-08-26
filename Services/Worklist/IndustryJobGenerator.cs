@@ -246,8 +246,13 @@ public class IndustryJobGenerator(
         // Quarters of the level, with everything at or above it in one band at the top. Coarse
         // on purpose: 0.1% and 2% of a level are the same emergency, and splitting them would
         // hand the ordering back to a rounding difference instead of to what is held up.
-        static int CoverageBand(double coverage) =>
-            double.IsNaN(coverage) ? 0 : Math.Clamp((int)(coverage * 4), 0, 4);
+        //
+        // ⚠️ CoverageWith returns a PERCENTAGE, not a fraction. Multiplying it by four banded
+        // quarters of one percent instead of quarters of the level, so everything above 1% of
+        // its level — a nearly empty shelf and a full one alike — landed in the same band and
+        // the sort fell straight through to the tiebreak it was meant to precede.
+        static int CoverageBand(double coveragePercent) =>
+            double.IsNaN(coveragePercent) ? 0 : Math.Clamp((int)(coveragePercent / 25.0), 0, 4);
 
         // Prints already planned against in this pass. See where it is applied for why the real
         // LockedInJob flag is not enough on its own.
