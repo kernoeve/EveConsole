@@ -83,6 +83,17 @@ public sealed record BuildDemand(int TypeId, long Units, int Priority, List<stri
     /// </summary>
     public int OwnPriority { get; init; }
 
+    /// <summary>
+    /// Units wanted because a customer order wants them, directly or up the chain.
+    ///
+    /// <para>⚠️ The denominator for deciding how long an order's urgency lasts. Measuring
+    /// against everything wanted keeps order priority on shelf-filling: 50 Ravens and 50
+    /// Apocalypses need 42,305 Pressurized Oxidizers and one job makes 50,000, but the
+    /// Core Temperature Regulators the inventory levels also want push the total past
+    /// 800,000 — so seventeen jobs stayed at order priority when one was owed it.</para>
+    /// </summary>
+    public long OrderDriven { get; init; }
+
 
     /// <summary>
     /// Why this is wanted — and, where it matters, how much waits behind it.
@@ -174,6 +185,16 @@ public class IndustryDemandService(
     {
         /// <summary>What the inventory rules say should be sitting on the shelf.</summary>
         public long Level;
+
+        /// <summary>
+        /// Of everything wanted, how much exists because a customer ORDER wants it —
+        /// directly, or through the chain of builds above.
+        ///
+        /// <para>⚠️ Kept apart from the rest because priority hangs on it. An item's
+        /// demand is a mixture, and knowing that 42,305 of 800,000 oxidizers are for the
+        /// Ravens is the difference between one job at order priority and seventeen.</para>
+        /// </summary>
+        public long OrderDriven;
 
         /// <summary>Units customers have ordered, and units parent builds will eat.</summary>
         public long Consumed;
@@ -318,7 +339,8 @@ public class IndustryDemandService(
 
             var g = At(typeId);
             g.Consumed   += outstanding;
-            g.OrderUnits += outstanding;
+            g.OrderUnits  += outstanding;
+            g.OrderDriven += outstanding;
             g.Fires       = true;
             // Ranked rather than flat, so the order due first outranks the one due next month.
             // Children inherit this below, so the whole tree under an urgent order stays urgent.
@@ -405,6 +427,18 @@ public class IndustryDemandService(
                 // The queue reaches parents before children, so by the time a child is written the
                 // parent's own set is complete — except across a cycle, where it is whatever was
                 // known at the time. Under-counting a cycle is the right way to be wrong here.
+                // ⚠️ The ORDER-DRIVEN share travels down with the units. A parent being built
+                // half for an order and half for its shelf passes half its child's requirement
+                // down as order-driven, so an item deep in the tree knows how much of it a
+                // customer is actually waiting for rather than inheriting the whole figure.
+                if (g.OrderDriven > 0)
+                {
+                    var parentTotal = g.Level + g.Consumed;
+                    if (parentTotal > 0)
+                        child.OrderDriven += (long)Math.Ceiling(
+                            qty * Math.Min(1.0, (double)g.OrderDriven / parentTotal));
+                }
+
                 child.Dependents.Add(typeId);
                 child.Dependents.UnionWith(g.Dependents);
 
@@ -454,6 +488,7 @@ public class IndustryDemandService(
                 Dependents  = [.. gross[typeId].Dependents.Where(result.ContainsKey)],
                 IsFinal     = gross[typeId].IsFinal,
                 OwnPriority = gross[typeId].OwnPriority,
+                OrderDriven = gross[typeId].OrderDriven,
             };
 
         return result;

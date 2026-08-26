@@ -1690,7 +1690,13 @@ public class WorklistViewModel : ReactiveObject
                     // Blocked last: the list is read top-down looking for something to do, and an
                     // item that cannot be actioned does not belong at the top of that read.
                     .OrderBy(i => i.Readiness == WorklistReadiness.Blocked ? 1 : 0)
-                    .ThenByDescending(i => i.Priority)
+                    // ⚠️ The LIVE priority for anything the planner ranked, not the stamped
+                    // one. Priority is inherited during the demand walk and expires as the
+                    // work that justified it is planned, so the stamped figure and the figure
+                    // the planner actually sorted on are different numbers — and sorting on
+                    // the stamped one produced a list running 50, then 30, then 216, then 80
+                    // while claiming to be in priority order.
+                    .ThenByDescending(i => i.PlanSequence == 0 ? i.Priority : i.SortPriority)
                     // ⚠️ Plan order, before anything alphabetical. Everything the industry
                     // planner raises inherits one priority from the order at the top of its
                     // chain, so priority separates none of it and the sort used to fall through

@@ -321,7 +321,11 @@ public class IndustryJobGenerator(
             // Inherited urgency lasts exactly as long as the order-driven portion is short. Once
             // enough is on hand or planned to feed the work above, what remains is a stocking
             // job and falls back to what the item's own demand justifies.
-            if (Starving(s) <= 0) return s.Demand.OwnPriority;
+            // Against the ORDER-DRIVEN units only. What the shelf also wants is a stocking job
+            // and has never been what the order was waiting for.
+            var forOrders = s.Demand.OrderDriven;
+            if (forOrders <= 0 || s.Demand.ShelfHave + s.Planned >= forOrders)
+                return s.Demand.OwnPriority;
 
             var best = s.Demand.OwnPriority;
 
