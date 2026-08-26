@@ -53,6 +53,7 @@ public sealed record ItemShortage(
     int    MakingReady = 0,
     int    MakingWaiting = 0,
     int    MakingBlocked = 0,
+    long   OnOrder = 0,
     IReadOnlyList<ShortageTask>? Tasks = null)
 {
     /// <summary>
@@ -132,6 +133,20 @@ public sealed record ItemShortage(
     /// </summary>
     public bool BufferEmpty => Level > 0 && OnHand < Level * 0.2;
 
+    /// <summary>
+    /// Units already bid for on the market and not yet delivered.
+    ///
+    /// <para>⚠️ A shortage with an order standing against it is in hand; the same shortage
+    /// with nothing bid is work nobody has started. Telling the reader to buy something they
+    /// already have 915 units on order for wastes the trip and, worse, teaches them to
+    /// distrust the verdict — the worklist correctly raises no buy task for it, so the two
+    /// screens appeared to contradict each other.</para>
+    /// </summary>
+    public long OnOrder { get; init; } = OnOrder;
+
+    /// <summary>Whether what is bid for covers what the work fell short by.</summary>
+    public bool Ordered => OnOrder > 0 && OnOrder >= TotalShort;
+
     /// <summary>What the work on the list actually needs: what is here, plus what it fell short by.</summary>
     public long Need => OnHand + TotalShort;
 
@@ -150,6 +165,8 @@ public sealed record ItemShortage(
 
     public string Verdict =>
         BlockedTasks <= 0                        ? NotBlockedVerdict
+      // Bought and already bid for: in hand, however short the shelf still looks.
+      : !Buildable && Ordered                   ? "On order"
       : !Buildable                              ? "Buy now"
       // ⚠️ No level at all is its own finding, and it used to fall through to "not the shelf" —
       // because an empty-buffer test cannot be true when there is no buffer to be empty. An item
@@ -204,8 +221,17 @@ public sealed record ItemShortage(
 
     private string AdviceCore => Verdict switch
     {
+        "On order" =>
+            $"{StoppedText}, and nothing here makes it — but {OnOrder:N0} unit(s) are already "
+          + $"bid for on the market against a shortfall of {TotalShort:N0}. Nothing further to "
+          + "raise; the jobs start when the buy order fills.",
+
         "Buy now" =>
-            $"{StoppedText}, none owned, and nothing here makes it. "
+            $"{StoppedText}, and nothing here makes it. "
+          + (OnOrder > 0
+              ? $"{OnOrder:N0} unit(s) are on order against a shortfall of {TotalShort:N0}, so "
+              + "the bid needs raising rather than placing. "
+              : "")
           + $"Drawn on at {UsedPerDay:N1}/day"
           + (Level > 0 ? $" against a level of {Level:N0}." : " with no level set to hold any.")
           + " Buying is the only thing that starts them.",
@@ -384,6 +410,21 @@ public class ItemContentionService(
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
+        // ⚠️ Our OWN buy orders, not the market's. EsiMarketOrders holds the orders our
+        // characters and corporations have placed; IsBuyOrder separates a bid from a sale,
+        // and a sell order for the same type says nothing about supply arriving.
+        //
+        // Not filtered by location: a bid anywhere brings the material eventually, and
+        // where it lands is the hauling question rather than this one.
+        var onOrder = (await db.EsiMarketOrders.AsNoTracking()
+                .Where(o => o.IsBuyOrder && o.VolumeRemain > 0 && ids.Contains(o.TypeId))
+                .Select(o => new { o.OrderId, o.TypeId, o.VolumeRemain })
+                .ToListAsync(ct))
+            // Orders are polled per owner, so one order can arrive several times.
+            .DistinctBy(o => o.OrderId)
+            .GroupBy(o => o.TypeId)
+            .ToDictionary(g => g.Key, g => g.Sum(o => (long)o.VolumeRemain));
+
         // Whether anything here makes it at all: a buy problem and a build problem read the same
         // on the row that reports them, and the answers are nothing alike.
         var buildable = (await db.SdeBlueprintProducts.AsNoTracking()
@@ -452,6 +493,7 @@ public class ItemContentionService(
                 makes.GetValueOrDefault(kv.Key).Ready,
                 makes.GetValueOrDefault(kv.Key).Waiting,
                 makes.GetValueOrDefault(kv.Key).Blocked,
+                onOrder.GetValueOrDefault(kv.Key),
                 // Stopped work first and nearest first, then whatever is refilling it: the row
                 // reads top to bottom as the question does.
                 [.. chain,

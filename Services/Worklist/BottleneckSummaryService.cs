@@ -298,8 +298,8 @@ public class BottleneckSummaryService
             DistinctStopped(missing.Select(s => s.Tasks ?? [])),
             $"{missing.Count:N0} bought item(s) are stopping work with nothing on order",
             $"{missing.Sum(s => s.BlockedTasks):N0} job(s) are short of these. Nothing here makes "
-          + "them, so a purchase is the only thing that starts those jobs, and no buy task has "
-          + $"been raised for any of them. They are holding up "
+          + "them, so a purchase is the only thing that starts those jobs — and there is neither a "
+          + $"buy task nor a standing market bid for any of them. They are holding up "
           + $"{missing.Sum(s => s.StalledTasks):N0} task(s) in all."
           + (missing.Count > MaxNamed ? $" The worst {MaxNamed} are below." : ""),
             [.. missing.Take(MaxNamed).Select(s =>

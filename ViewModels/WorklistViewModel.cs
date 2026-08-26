@@ -547,6 +547,7 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
     public string VerdictColor => s.Verdict switch
     {
         "Buy now"        => "#c85a5a",
+        "On order"       => "#4a8a5a",
         "Buffer spent"   => "#c85a5a",
         "Blocked"        => "#c85a5a",
         "Level too low"  => "#c85a5a",
