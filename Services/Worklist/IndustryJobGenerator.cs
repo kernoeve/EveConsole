@@ -244,16 +244,36 @@ public class IndustryJobGenerator(
             .ToList();
 
         // How much work is waiting on an item, in doubling bands: 0 alone, then 1-2, 3-6, 7-14,
-        // 15-30 and so on.
-        //
-        // ⚠️ Banded so that near-equals TIE and coverage rotates between them. A raw count
-        // never changes as jobs are planned, so the single highest-scoring item would win every
-        // pass in a row and take thirty slots to fill one shelf while everything else waited.
-        // Items close enough that the difference is noise — nine dependents against eleven —
-        // belong in one band, and which of them runs next is then decided by which is emptier
-        // right now, which DOES move with every job planned.
+        // 15-30 and so on. Doubling because the difference between nine dependents and eleven is
+        // noise, and the difference between two and twenty is not.
         static int BlockedBand(int blocks) =>
             blocks <= 0 ? 0 : (int)Math.Log2(blocks) + 1;
+
+        // What planning this next is worth, as one number.
+        //
+        // ⚠️ BLENDED, not lexicographic, and that is the whole point. Every ordering that put
+        // one signal strictly ahead of another produced the same failure in a different place:
+        // whatever led ran to exhaustion before anything else got a slot. Coverage first queued
+        // twenty jobs for the emptiest shelf; blocked-work bands first queued every job for the
+        // widest-reaching item, because a band does not move as jobs are planned either.
+        //
+        // Multiplying by the DEFICIT is what makes the queue rotate. Each job planned raises
+        // coverage, which shrinks the deficit, which lowers the score — so an item with more
+        // work behind it has to get proportionally fuller before it yields, and then a peer
+        // takes over rather than waiting for the leader to finish. An item at or above its level
+        // scores zero however much hangs off it, which is right: nothing is waiting on a shelf
+        // that is already full.
+        //
+        // The +1 keeps items with nothing blocked in the ordering, ranked among themselves by
+        // how empty they are, rather than collapsing them all to zero.
+        static double PlanValue(PlanState s)
+        {
+            var deficit = Math.Clamp(1.0 - s.Demand.CoverageWith(s.Planned) / 100.0, 0.0, 1.0);
+            var weight  = BlockedBand(s.Demand.Blocks)
+                        + BlockedBand(s.Demand.BlocksFinal) * 2;
+
+            return (weight + 1) * deficit;
+        }
 
         // Prints already planned against in this pass. See where it is applied for why the real
         // LockedInJob flag is not enough on its own.
@@ -268,31 +288,10 @@ public class IndustryJobGenerator(
             var state = queue
                 .Where(s => !s.Done)
                 .OrderByDescending(s => s.Demand.Priority)
-                // ⚠️ What is waiting on it FIRST, how empty it is second. In that order, and
-                // for a reason that took three attempts to get right.
-                //
-                // Coverage first ranks by how far a shelf is from its level, which values
-                // refilling a buffer the same as unblocking work. Those are not the same thing:
-                // an item nothing is waiting on is worth topping up whenever there is a spare
-                // slot, and an item every capital hull is stopped on is worth a slot now. The
-                // shelf figure cannot tell them apart, because a shelf being empty says nothing
-                // about whether anyone is queued behind it.
-                //
-                // Blocks first, RAW, was the first attempt and was worse: a material sits below
-                // everything it feeds, so depth alone won, and a base reaction at 94% of its
-                // level beat an isotropic at 1 unit of 2,200.
-                //
-                // Banding is what makes both work. Items whose blocked counts differ by noise
-                // share a band, and coverage then decides between them — and coverage moves with
-                // every job planned, so the slots spread across several shortages instead of
-                // thirty consecutive jobs for whichever item scored highest once.
-                // ⚠️ Work that unblocks something the operation SELLS, before work that unblocks
-                // another buffer. Both are blocked work and only one has a customer waiting:
-                // eleven blocked tasks that are ten component shelves topping themselves up is
-                // not the same finding as eleven blocked capital hulls.
-                .ThenByDescending(s => BlockedBand(s.Demand.BlocksFinal))
-                .ThenByDescending(s => BlockedBand(s.Demand.Blocks))
-                .ThenBy(s => s.Demand.CoverageWith(s.Planned))
+                // One blended score: what is waiting on it, scaled by how far short it still is.
+                // See PlanValue — every strictly-ordered version of this queued one item to
+                // exhaustion before starting the next.
+                .ThenByDescending(PlanValue)
                 .ThenBy(s => s.Demand.TypeId)
                 .FirstOrDefault();
 
