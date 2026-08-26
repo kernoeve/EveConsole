@@ -243,6 +243,12 @@ public class IndustryJobGenerator(
             .Select(x => new PlanState(x))
             .ToList();
 
+        // Quarters of the level, with everything at or above it in one band at the top. Coarse
+        // on purpose: 0.1% and 2% of a level are the same emergency, and splitting them would
+        // hand the ordering back to a rounding difference instead of to what is held up.
+        static int CoverageBand(double coverage) =>
+            double.IsNaN(coverage) ? 0 : Math.Clamp((int)(coverage * 4), 0, 4);
+
         // Prints already planned against in this pass. See where it is applied for why the real
         // LockedInJob flag is not enough on its own.
         var printsCommitted = new HashSet<long>();
@@ -252,12 +258,22 @@ public class IndustryJobGenerator(
             var state = queue
                 .Where(s => !s.Done)
                 .OrderByDescending(s => s.Demand.Priority)
-                // ⚠️ Before coverage. Priority is inherited from whatever is waiting at the top of
-                // the chain, so everything feeding one urgent order arrives here tied — and the
-                // isotropic that unblocks the whole capital line scored the same as one feeding a
-                // single item. How much stops moving without this is the better question than how
-                // empty its own shelf happens to be, and it is the one a freed reaction slot is
-                // really asking.
+                // ⚠️ How empty the shelf is, BANDED, before how much hangs off it.
+                //
+                // Blocks alone put a base reaction at the front of every queue, and it does so
+                // structurally rather than by merit: a material sits below everything it feeds,
+                // so the deeper it is the more dependents it has. Sulfuric Acid and Carbon
+                // Polymers feed the whole tree and therefore beat everything, while sitting at
+                // 55% and 94% of their levels — and the Isotropic Neofullerene at 1 unit of
+                // 2,200, which is what the genetics and the Neurolink cells above them are
+                // actually stopped on, lost every tie. Dozens of well-stocked base reactions
+                // were proposed ahead of the two jobs that would have unblocked ten tasks.
+                //
+                // Banded rather than raw so both signals still count: everything under a quarter
+                // of its level is considered together and ranked by what it holds up, which is
+                // the original intent — the isotropic that unblocks a capital line beating the
+                // one feeding a single item — without letting a nearly full shelf win on depth.
+                .ThenBy(s => CoverageBand(s.Demand.CoverageWith(s.Planned)))
                 .ThenByDescending(s => s.Demand.Blocks)
                 .ThenBy(s => s.Demand.CoverageWith(s.Planned))
                 .ThenBy(s => s.Demand.TypeId)
