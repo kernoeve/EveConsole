@@ -923,8 +923,52 @@
         <TabControl Grid.Row="2" Padding="0">
 
           <TabItem Header="Summary" FontSize="12">
-            <TextBlock Margin="14" FontSize="11" Foreground="#555566" TextWrapping="Wrap"
-                       Text="Nothing here yet — this will pull the slot and blueprint findings into one reading of where the pipeline is actually constrained." />
+            <!-- ⚠️ Not a grid. Everything here is already available as figures on the other four
+                 tabs; what is missing is the sentence that says which of them matters, and a
+                 table would hand the reader the same sorting problem in a fifth place. -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+              <StackPanel Margin="0 10 14 14" Spacing="14" MaxWidth="1100" HorizontalAlignment="Left">
+
+                <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                           Text="What the other four tabs add up to, ranked by how much work each finding is holding up rather than by which tab it came from. The pipeline has one binding constraint at a time — the rest is worth knowing, not worth doing first."/>
+
+                <ItemsControl ItemsSource="{Binding Observations}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ObservationVm">
+                      <Border BorderBrush="{Binding RuleColor}" BorderThickness="2 0 0 0"
+                              Padding="12 2 0 0" Margin="0 0 0 16">
+                        <StackPanel Spacing="6">
+                          <TextBlock Text="{Binding Marker}" FontSize="9" FontWeight="SemiBold"
+                                     Foreground="{Binding MarkerColor}" LetterSpacing="1"/>
+                          <TextBlock Text="{Binding Headline}" FontSize="14" FontWeight="SemiBold"
+                                     Foreground="#c8c8d8" TextWrapping="Wrap"/>
+                          <TextBlock Text="{Binding Body}" FontSize="11" Foreground="#8a8a99"
+                                     TextWrapping="Wrap" LineHeight="17"/>
+
+                          <ItemsControl ItemsSource="{Binding Points}" IsVisible="{Binding HasPoints}"
+                                        Margin="0 4 0 0">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="x:String">
+                                <Grid ColumnDefinitions="14,*" Margin="0 0 0 4">
+                                  <TextBlock Grid.Column="0" Text="·" FontSize="11"
+                                             Foreground="#555566" VerticalAlignment="Top"/>
+                                  <TextBlock Grid.Column="1" Text="{Binding}" FontSize="10"
+                                             Foreground="#6e6e80" TextWrapping="Wrap" LineHeight="15"/>
+                                </Grid>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                        </StackPanel>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock FontSize="11" Foreground="#555566" TextWrapping="Wrap"
+                           IsVisible="{Binding !Observations.Count}"
+                           Text="Nothing is holding the pipeline up: no pool has a queue worth the name, no blueprint has work waiting on it, nothing is short of material, and nothing is waiting on a delivery."/>
+              </StackPanel>
+            </ScrollViewer>
           </TabItem>
 
           <TabItem Header="Slots" FontSize="12">

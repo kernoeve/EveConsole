@@ -565,7 +565,32 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
 /// <para>Everything here is a rate. "Two prints" says nothing on its own; "two prints turning out
 /// 0.28 a day against 0.81 a day consumed" says what to buy.</para>
 /// </summary>
+/// <summary>One finding on the Summary tab. Prose, so there is almost nothing to format.</summary>
+public sealed class ObservationVm(Observation o)
+{
+    public string Headline => o.Headline;
+    public string Body     => o.Body;
+    public IReadOnlyList<string> Points => o.Points;
+
+    public bool HasPoints => o.Points.Count > 0;
+
+    /// <summary>The one finding to act on is marked, not merely first: a list read top-down
+    /// reads as four jobs to do rather than one lever and three things to know about.</summary>
+    public string Marker      => o.IsPrimary ? "START HERE" : Kind;
+    public string MarkerColor => o.IsPrimary ? "#c8a84b" : "#555566";
+    public string RuleColor   => o.IsPrimary ? "#c8a84b" : "#22222e";
+
+    private string Kind => o.Kind switch
+    {
+        "slots"     => "SLOTS",
+        "prints"    => "BLUEPRINTS",
+        "materials" => "MATERIALS",
+        _           => "HAULING",
+    };
+}
+
 /// <summary>One stopped job on the Hauling tab.</summary>
+
 public sealed class HaulPressureRowVm(HaulBlock h) : ReactiveObject
 {
     private bool _isExpanded;
@@ -831,6 +856,7 @@ public class WorklistViewModel : ReactiveObject
     private readonly BottleneckService     _bottlenecks;
     private readonly ItemContentionService _itemContention;
     private readonly HaulPressureService   _haulPressure;
+    private readonly BottleneckSummaryService _summary = new();
 
     public BulkObservableCollection<WorklistRowVm> Rows { get; } = [];
 
@@ -878,6 +904,7 @@ public class WorklistViewModel : ReactiveObject
     public ObservableCollection<PrintPressureRowVm> PrintPressure { get; } = [];
     public ObservableCollection<ItemShortageRowVm>  ItemShortages { get; } = [];
     public ObservableCollection<HaulPressureRowVm>  HaulPressures { get; } = [];
+    public ObservableCollection<ObservationVm>      Observations  { get; } = [];
 
     private string _bottleneckStatus = "Not loaded yet.";
     public string BottleneckStatus
@@ -955,6 +982,10 @@ public class WorklistViewModel : ReactiveObject
 
                 HaulPressures.Clear();
                 foreach (var h in hauls) HaulPressures.Add(new HaulPressureRowVm(h));
+
+                Observations.Clear();
+                foreach (var o in _summary.Summarise(items, slots, prints, shorts, hauls))
+                    Observations.Add(new ObservationVm(o));
 
                 var tight = slots.Count(s => s.IsBottleneck);
 
