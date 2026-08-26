@@ -97,9 +97,13 @@ public class StandingProjectGenerator(
     {
         var deliver = r.TypeDisplay == "Deliver Item";
 
-        // ADM-scoped rows carry the qualifying system in DestDisplay and the rule in
-        // TargetDisplay; a directly named system carries it in TargetDisplay with no dest.
-        var place = r.DestDisplay.Length > 0 ? r.DestDisplay : r.TargetDisplay;
+        // ⚠️ Two scopes reach here as different shapes, and the difference matters to the reader.
+        // A definition naming one system carries it in TargetDisplay with no dest. An ADM rule
+        // carries the RULE in TargetDisplay and one row per qualifying system in DestDisplay —
+        // so a system can appear because somebody chose it, or because its ADM dropped under a
+        // threshold, and only the second kind goes away again when the ADM recovers.
+        var byRule = r.DestDisplay.Length > 0;
+        var place  = byRule ? r.DestDisplay : r.TargetDisplay;
 
         return r.MatchStatus switch
         {
@@ -109,9 +113,13 @@ public class StandingProjectGenerator(
                 "No active project matches this definition."),
 
             "not_active" => (
-                $"{r.TypeDisplay} — {place} (system)",
+                $"{r.TypeDisplay} — {place}"
+              + (byRule ? $" — {r.TargetDisplay}" : ""),
                 "No active project matches this definition."
-              + (r.DestDisplay.Length > 0 ? $" Scope: {r.TargetDisplay}." : "")),
+              + (byRule
+                  ? " This system qualifies under an ADM rule, so it drops off the list on its "
+                  + "own once the ADM recovers."
+                  : " This system is named by the definition itself.")),
 
             // ⚠️ Not a create. The scope currently resolves to no systems, so there is nothing to
             // create a project against, and saying "create" would send somebody to try.
