@@ -251,36 +251,46 @@ public class IndustryJobGenerator(
 
         // What planning this next is worth, as one number.
         //
-        // ⚠️ BLENDED, not lexicographic, and that is the whole point. Every ordering that put
-        // one signal strictly ahead of another produced the same failure in a different place:
-        // whatever led ran to exhaustion before anything else got a slot. Coverage first queued
-        // twenty jobs for the emptiest shelf; blocked-work bands first queued every job for the
-        // widest-reaching item, because a band does not move as jobs are planned either.
+        // ⚠️ THE LEVEL IS NOT THE NEED, and measuring against the level is what made one item
+        // take twenty consecutive slots.
         //
-        // Multiplying by the DEFICIT is what makes the queue rotate. Each job planned raises
-        // coverage, which shrinks the deficit, which lowers the score — so an item with more
-        // work behind it has to get proportionally fuller before it yields, and then a peer
-        // takes over rather than waiting for the leader to finish. An item at or above its level
-        // scores zero however much hangs off it, which is right: nothing is waiting on a shelf
-        // that is already full.
+        // Pressurized Oxidizers holds 8 against a LEVEL of 950,000, so a deficit measured
+        // against the level stays near 1.0 for nineteen jobs — each one moves it about five per
+        // cent — and it out-ranks everything for all nineteen. Meanwhile the work in front of it
+        // may want only a fraction of that level: the rest is shelf, and refilling a shelf is
+        // not what stops a job. Reinforced Carbon Fiber shows the same error from the other side,
+        // sitting at 55% of its level with 795,615 units on hand — nothing is stopped for want
+        // of it, and there is most of a million units for the queue to work through.
         //
-        // The +1 keeps items with nothing blocked in the ordering, ranked among themselves by
-        // how empty they are, rather than collapsing them all to zero.
+        // So the measure is STARVATION: of what the queued work actually wants from this item,
+        // how much cannot be met. Zero when there is enough on hand to feed the work, whatever
+        // the shelf says. That is the difference between "everything above this is dead" and
+        // "this is below its stocking target".
         //
-        // ⚠️ Divided by the jobs ALREADY given to this item, which is the part coverage cannot
-        // do. Coverage is measured in units and the decision is measured in slots: an item at 1%
-        // of its level whose jobs each add 5% remains the emptiest thing on the list for twenty
-        // passes and takes twenty slots before anything else gets one. Dividing makes the second
-        // job for an item worth half the first, the third a third, so the queue spreads across
-        // the shortages instead of resolving them one at a time — and an item still wins
-        // repeatedly when it is far enough ahead to deserve it.
+        // Two regimes, and the starving one always wins — not by ordering the keys, but because
+        // its score starts at 1 and a shelf top-up's cannot reach it. Among the starving,
+        // blocked work and starvation multiply, and every job planned feeds the need, which
+        // lowers starvation, which lets a peer take over. Among the rest, the emptiest shelf
+        // goes first.
+        //
+        // ⚠️ The weight counts BLOCKED WORK, never units. Units are not comparable between
+        // items: one Neurolink Protection Cell stops more than fifty thousand oxidizers do.
         static double PlanValue(PlanState s)
         {
-            var deficit = Math.Clamp(1.0 - s.Demand.CoverageWith(s.Planned) / 100.0, 0.0, 1.0);
-            var weight  = BlockedBand(s.Demand.Blocks)
-                        + BlockedBand(s.Demand.BlocksFinal) * 2;
+            var wanted = s.Demand.OrderUnits + s.Demand.ParentUnits;
+            var have   = s.Demand.ShelfHave + s.Planned;
 
-            return (weight + 1) * deficit / (1 + s.JobsPlanned);
+            var starving = wanted <= 0
+                ? 0.0
+                : Math.Clamp(1.0 - (double)have / wanted, 0.0, 1.0);
+
+            if (starving <= 0)
+                return Math.Clamp(1.0 - s.Demand.CoverageWith(s.Planned) / 100.0, 0.0, 1.0);
+
+            var weight = BlockedBand(s.Demand.Blocks)
+                       + BlockedBand(s.Demand.BlocksFinal) * 2;
+
+            return 1.0 + (weight + 1) * starving;
         }
 
         // Prints already planned against in this pass. See where it is applied for why the real
@@ -651,7 +661,6 @@ public class IndustryJobGenerator(
                             var madeUnits = (long)runs * Math.Max(1, product.Quantity);
                             state.Planned     += madeUnits;
                             state.Remaining   -= madeUnits;
-                            state.JobsPlanned += 1;
                             if (state.Remaining > 0) state.Done = false;
                         }
                     }
@@ -829,17 +838,6 @@ public class IndustryJobGenerator(
 
         /// <summary>Units planned so far, which is what raises this item's coverage.</summary>
         public long Planned { get; set; }
-
-        /// <summary>
-        /// How many jobs this item has already been given in this pass.
-        ///
-        /// <para>⚠️ Coverage alone does not spread the slots. An item at 1% of its level whose
-        /// jobs each add 5% stays the emptiest thing on the list for twenty consecutive passes,
-        /// and takes twenty slots before anything else gets one — which is exactly the "queue
-        /// everything for one item, then start the next" the reader objected to. Units are the
-        /// wrong meter for a decision measured in slots.</para>
-        /// </summary>
-        public int JobsPlanned { get; set; }
 
         /// <summary>No further visit is useful — finished, or unable to go further.</summary>
         public bool Done { get; set; }
