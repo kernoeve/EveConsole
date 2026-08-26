@@ -578,14 +578,27 @@ public class IndustryJobGenerator(
                         var readiness = busy ? WorklistReadiness.Waiting : WorklistReadiness.Ready;
                         var blockedBy = busy ? "Every character who can run this has all slots busy" : "";
 
-                        if (!busy)
-                        {
-                            // Only a job that can actually start consumes a slot and its materials.
-                            slotsLeft[owner.Config.CharacterId][pool] -= 1;
-                            foreach (var (typeId, qty) in mats)
-                                committed[(siteId.Value, typeId)] =
-                                    committed.GetValueOrDefault((siteId.Value, typeId)) + qty;
-                        }
+                        // A slot is only taken by a job that can actually start.
+                        if (!busy) slotsLeft[owner.Config.CharacterId][pool] -= 1;
+
+                        // ⚠️ Materials are reserved by ANY job that is planned, including one
+                        // waiting on a slot. They are two different resources and only the slot
+                        // is free again next pass: a waiting job still eats its materials the
+                        // moment it starts, so leaving them unreserved lets the next pass see
+                        // the same stock and plan the same units over again.
+                        //
+                        // That is why the same thirteen runs appeared four times. The reactor
+                        // holds 2,563,078 Tritanium against 10,000 a run and every reaction slot
+                        // is full, so every job after the first was slot-blocked, reserved
+                        // nothing, and the pass after it measured against untouched stock and
+                        // cut an identical job. The shelf was credited each time — coverage rose
+                        // — while the material it would consume was promised away repeatedly.
+                        //
+                        // What the reader should see instead is one waiting job for what the
+                        // material covers, and the rest reported as blocked for want of it.
+                        foreach (var (typeId, qty) in mats)
+                            committed[(siteId.Value, typeId)] =
+                                committed.GetValueOrDefault((siteId.Value, typeId)) + qty;
 
                         Emit(runnable, readiness, blockedBy, "",
                              runnable < job.Runs
