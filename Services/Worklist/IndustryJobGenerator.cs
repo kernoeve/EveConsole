@@ -243,16 +243,17 @@ public class IndustryJobGenerator(
             .Select(x => new PlanState(x))
             .ToList();
 
-        // Quarters of the level, with everything at or above it in one band at the top. Coarse
-        // on purpose: 0.1% and 2% of a level are the same emergency, and splitting them would
-        // hand the ordering back to a rounding difference instead of to what is held up.
+        // How much work is waiting on an item, in doubling bands: 0 alone, then 1-2, 3-6, 7-14,
+        // 15-30 and so on.
         //
-        // ⚠️ CoverageWith returns a PERCENTAGE, not a fraction. Multiplying it by four banded
-        // quarters of one percent instead of quarters of the level, so everything above 1% of
-        // its level — a nearly empty shelf and a full one alike — landed in the same band and
-        // the sort fell straight through to the tiebreak it was meant to precede.
-        static int CoverageBand(double coveragePercent) =>
-            double.IsNaN(coveragePercent) ? 0 : Math.Clamp((int)(coveragePercent / 25.0), 0, 4);
+        // ⚠️ Banded so that near-equals TIE and coverage rotates between them. A raw count
+        // never changes as jobs are planned, so the single highest-scoring item would win every
+        // pass in a row and take thirty slots to fill one shelf while everything else waited.
+        // Items close enough that the difference is noise — nine dependents against eleven —
+        // belong in one band, and which of them runs next is then decided by which is emptier
+        // right now, which DOES move with every job planned.
+        static int BlockedBand(int blocks) =>
+            blocks <= 0 ? 0 : (int)Math.Log2(blocks) + 1;
 
         // Prints already planned against in this pass. See where it is applied for why the real
         // LockedInJob flag is not enough on its own.
@@ -263,23 +264,25 @@ public class IndustryJobGenerator(
             var state = queue
                 .Where(s => !s.Done)
                 .OrderByDescending(s => s.Demand.Priority)
-                // ⚠️ How empty the shelf is, BANDED, before how much hangs off it.
+                // ⚠️ What is waiting on it FIRST, how empty it is second. In that order, and
+                // for a reason that took three attempts to get right.
                 //
-                // Blocks alone put a base reaction at the front of every queue, and it does so
-                // structurally rather than by merit: a material sits below everything it feeds,
-                // so the deeper it is the more dependents it has. Sulfuric Acid and Carbon
-                // Polymers feed the whole tree and therefore beat everything, while sitting at
-                // 55% and 94% of their levels — and the Isotropic Neofullerene at 1 unit of
-                // 2,200, which is what the genetics and the Neurolink cells above them are
-                // actually stopped on, lost every tie. Dozens of well-stocked base reactions
-                // were proposed ahead of the two jobs that would have unblocked ten tasks.
+                // Coverage first ranks by how far a shelf is from its level, which values
+                // refilling a buffer the same as unblocking work. Those are not the same thing:
+                // an item nothing is waiting on is worth topping up whenever there is a spare
+                // slot, and an item every capital hull is stopped on is worth a slot now. The
+                // shelf figure cannot tell them apart, because a shelf being empty says nothing
+                // about whether anyone is queued behind it.
                 //
-                // Banded rather than raw so both signals still count: everything under a quarter
-                // of its level is considered together and ranked by what it holds up, which is
-                // the original intent — the isotropic that unblocks a capital line beating the
-                // one feeding a single item — without letting a nearly full shelf win on depth.
-                .ThenBy(s => CoverageBand(s.Demand.CoverageWith(s.Planned)))
-                .ThenByDescending(s => s.Demand.Blocks)
+                // Blocks first, RAW, was the first attempt and was worse: a material sits below
+                // everything it feeds, so depth alone won, and a base reaction at 94% of its
+                // level beat an isotropic at 1 unit of 2,200.
+                //
+                // Banding is what makes both work. Items whose blocked counts differ by noise
+                // share a band, and coverage then decides between them — and coverage moves with
+                // every job planned, so the slots spread across several shortages instead of
+                // thirty consecutive jobs for whichever item scored highest once.
+                .ThenByDescending(s => BlockedBand(s.Demand.Blocks))
                 .ThenBy(s => s.Demand.CoverageWith(s.Planned))
                 .ThenBy(s => s.Demand.TypeId)
                 .FirstOrDefault();
