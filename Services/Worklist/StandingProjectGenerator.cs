@@ -121,11 +121,23 @@ public class StandingProjectGenerator(
                   + "own once the ADM recovers."
                   : " This system is named by the definition itself.")),
 
-            // ⚠️ Not a create. The scope currently resolves to no systems, so there is nothing to
-            // create a project against, and saying "create" would send somebody to try.
+            // ⚠️ Not a create. There is nothing to create a project against, and saying "create"
+            // would send somebody to try. Three separate reasons reach here and they want three
+            // different answers — one is a fault, one is a misconfiguration, one is good news.
+            "no_adm" => (
+                $"Check ADM data — {r.TypeDisplay}: {r.TargetDisplay}",
+                "Sovereignty data could not be read, so no system can be measured against the "
+              + "threshold. This is a fetch that failed, not a scope that is empty."),
+
             "no_systems" => (
                 $"Check scope — {r.TypeDisplay}: {r.TargetDisplay}",
-                "Scope resolves to no systems, so nothing can be created for it."),
+                "The scope expands to no systems at all, so nothing can be created for it."),
+
+            "all_healthy" => (
+                $"{r.TypeDisplay} — nothing to raise in {r.TargetDisplay}",
+                "Every system in scope is at or above the threshold, so the rule selects nothing "
+              + "today. It reappears on its own if an ADM falls."),
+
 
             _ => (null, ""),
         };

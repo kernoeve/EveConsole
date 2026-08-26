@@ -2249,12 +2249,33 @@ public class CorpActivityService
                 .Where(s => s.VulnerabilityOccupancyLevel.HasValue)
                 .GroupBy(s => s.SolarSystemId)
                 .ToDictionary(g => g.Key, g => g.Max(s => s.VulnerabilityOccupancyLevel!.Value));
+
+            // An empty map is a failure, not an answer: every sovereign system in the game
+            // carries an occupancy level, so nothing is the one result this cannot mean.
+            SovAdmUnavailable = dict.Count == 0;
+            if (SovAdmUnavailable) return _sovAdmCache ?? [];
+
             _sovAdmCache     = dict;
             _sovAdmCacheTime = DateTimeOffset.UtcNow;
             return dict;
         }
-        catch { return _sovAdmCache ?? []; }
+        catch
+        {
+            SovAdmUnavailable = _sovAdmCache is null;
+            return _sovAdmCache ?? [];
+        }
     }
+
+    /// <summary>
+    /// Whether the last ADM read actually returned anything.
+    ///
+    /// <para>⚠️ Without this, a failed read is indistinguishable from a healthy region. The
+    /// fetch swallows its exception and hands back an empty map, every system then fails the
+    /// ADM comparison, and the grid reports "scope resolves to no systems" — a sentence about
+    /// the user's configuration, for a fault in a web request. The two need different answers,
+    /// so the state has to survive the call.</para>
+    /// </summary>
+    public bool SovAdmUnavailable { get; private set; }
 
     // ── Standing project grid row builder ─────────────────────────────────────
 
@@ -2282,6 +2303,7 @@ public class CorpActivityService
 
         bool needsAdm = standing.Any(p => p.ProjectType == "destroy_npc" &&
                                           p.ScopeType is "region_adm" or "constellation_adm");
+        if (needsAdm) SovAdmUnavailable = false;
         var adm = needsAdm ? await GetSovAdmLevelsAsync(ct) : [];
 
         var rows = new List<StandingProjectGridRow>();
@@ -2380,7 +2402,13 @@ public class CorpActivityService
                                 TargetDisplay       : scopeLabel,
                                 DestDisplay         : "",
                                 ExpandedSystemId    : null,
-                                MatchStatus         : "no_systems",
+                                // ⚠️ Three ways to reach zero systems, and they are not the same
+                                // finding: the ADM read failed, the region expanded to nothing,
+                                // or every system in it is healthy. Only the middle one is about
+                                // the scope, and all three used to say it was.
+                                MatchStatus         : SovAdmUnavailable ? "no_adm"
+                                                    : systems.Count == 0 ? "no_systems"
+                                                    : "all_healthy",
                                 MatchedName         : "",
                                 RemainingText       : "",
                                 RemainingPayoutText : "",
