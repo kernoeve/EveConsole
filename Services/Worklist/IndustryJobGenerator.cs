@@ -312,6 +312,17 @@ public class IndustryJobGenerator(
         // what the item's own demand justifies is what lets the urgency expire.
         int LivePriority(PlanState s)
         {
+            // ⚠️ An item's demand is a MIXTURE and its priority is one number, which is the
+            // whole fault. Reinforced Carbon Fiber holds 795,615 units: the Ravens and
+            // Apocalypses waiting on it are already fed, and every further unit is shelf — its
+            // level asks for 1,450,000. Both halves shared the 220 the orders conferred, so
+            // twenty jobs of pure shelf-filling sat at order priority ahead of everything else.
+            //
+            // Inherited urgency lasts exactly as long as the order-driven portion is short. Once
+            // enough is on hand or planned to feed the work above, what remains is a stocking
+            // job and falls back to what the item's own demand justifies.
+            if (Starving(s) <= 0) return s.Demand.OwnPriority;
+
             var best = s.Demand.OwnPriority;
 
             foreach (var t in s.Demand.Dependents)
