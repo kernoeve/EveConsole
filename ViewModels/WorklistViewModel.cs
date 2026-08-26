@@ -585,6 +585,9 @@ public sealed class ObservationVm(Observation o)
         "slots"     => "SLOTS",
         "prints"    => "BLUEPRINTS",
         "materials" => "MATERIALS",
+        "formulas"  => "FORMULAS",
+        "buying"    => "BUYING",
+        "levels"    => "BUFFERS",
         _           => "HAULING",
     };
 }
@@ -906,6 +909,17 @@ public class WorklistViewModel : ReactiveObject
     public ObservableCollection<HaulPressureRowVm>  HaulPressures { get; } = [];
     public ObservableCollection<ObservationVm>      Observations  { get; } = [];
 
+    /// <summary>Deliveries that would restart several jobs at once. Above the grid rather
+    /// than in it: one row per stopped job cannot say that four of them are one trip.</summary>
+    public ObservableCollection<string>             SharedTrips   { get; } = [];
+
+    private bool _hasSharedTrips;
+    public bool HasSharedTrips
+    {
+        get => _hasSharedTrips;
+        private set => this.RaiseAndSetIfChanged(ref _hasSharedTrips, value);
+    }
+
     private string _bottleneckStatus = "Not loaded yet.";
     public string BottleneckStatus
     {
@@ -982,6 +996,10 @@ public class WorklistViewModel : ReactiveObject
 
                 HaulPressures.Clear();
                 foreach (var h in hauls) HaulPressures.Add(new HaulPressureRowVm(h));
+
+                SharedTrips.Clear();
+                foreach (var t in SharedHauls.Find(hauls).Take(6)) SharedTrips.Add(t.Line);
+                HasSharedTrips = SharedTrips.Count > 0;
 
                 Observations.Clear();
                 foreach (var o in _summary.Summarise(items, slots, prints, shorts, hauls))

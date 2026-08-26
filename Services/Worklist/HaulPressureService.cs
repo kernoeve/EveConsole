@@ -26,6 +26,10 @@ namespace EveConsole.Services.Worklist;
 /// <param name="Sources">Stops a hauler would have to make to cover what is short, largest
 /// source first. Not the number of places holding the item: Tritanium sits in thirteen
 /// hangars and one of them covers the job.</param>
+/// <summary>One thing a stopped job is waiting for, kept structured so deliveries that
+/// serve several jobs can be found across rows.</summary>
+public sealed record HaulWant(int TypeId, string TypeName, long Units, double Volume);
+
 public sealed record HaulBlock(
     string TaskKey,
     string Title,
@@ -37,7 +41,8 @@ public sealed record HaulBlock(
     double Volume,
     int    Sources,
     int    HaulTasks,
-    IReadOnlyList<ShortageTask> Tasks)
+    IReadOnlyList<ShortageTask> Tasks,
+    IReadOnlyList<HaulWant> Wants)
 {
     /// <summary>
     /// What the row amounts to.
@@ -221,7 +226,10 @@ public class HaulPressureService(
                 short_.Sum(s => s.Short * volumes.GetValueOrDefault(s.TypeId)),
                 stops.Count,
                 moving.Count,
-                detail));
+                detail,
+                [.. short_.Select(sh => new HaulWant(
+                    sh.TypeId, sh.TypeName, sh.Short,
+                    sh.Short * volumes.GetValueOrDefault(sh.TypeId)))]));
         }
 
         // What is holding up the most work first, then the trips nobody has raised: a job with a

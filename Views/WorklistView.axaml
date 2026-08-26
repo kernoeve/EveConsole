@@ -1447,6 +1447,26 @@
                            Foreground="#555566" LetterSpacing="1"/>
                 <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
                            Text="Jobs stopped for want of material that is already owned and sitting somewhere else — the other half of Item Contention, where the fix is a trip rather than a purchase. Every row is a job that could run the moment its material arrives. Hover a column heading for what it means."/>
+
+                <!-- ⚠️ Above the grid, not in it. One row per stopped job is right for "what is
+                     stuck" and cannot say "these four are one errand" — the same trip appears
+                     four times with nothing marking them as the same delivery. -->
+                <Border IsVisible="{Binding HasSharedTrips}" Margin="0 4 0 0" Padding="10 7"
+                        Background="#0f0f16" BorderBrush="#2c2c3a" BorderThickness="1"
+                        CornerRadius="3" HorizontalAlignment="Left">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="ONE TRIP, SEVERAL JOBS" FontSize="9" FontWeight="SemiBold"
+                               Foreground="#c8a84b" LetterSpacing="1"/>
+                    <ItemsControl ItemsSource="{Binding SharedTrips}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                          <TextBlock Text="{Binding}" FontSize="10" Foreground="#8a8a99"
+                                     TextWrapping="Wrap" Margin="0 1"/>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
               </StackPanel>
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding HaulPressures}" IsReadOnly="True"
