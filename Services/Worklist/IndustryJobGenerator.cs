@@ -274,24 +274,33 @@ public class IndustryJobGenerator(
         // full. A fixed count is what let one item take twenty consecutive slots.
         int BlockedNow(PlanState s)
         {
-            if (Starving(s) <= 0) return 0;
+            var starving = Starving(s);
+            if (starving <= 0) return 0;
 
             var n = 0;
             foreach (var t in s.Demand.Dependents)
                 if (byType.TryGetValue(t, out var dep) && dep.Remaining > 0) n++;
-            return n;
+
+            // ⚠️ Scaled by how much of the need is still unmet, so the count falls with EVERY
+            // job rather than in one step at the end. Twenty-three dependents share one shortfall:
+            // planning a quarter of it feeds roughly a quarter of them, and the item's claim on
+            // the next slot should shrink accordingly. Counting them all until the last unit is
+            // planned, then dropping to nothing, is what let one item hold the top of the list
+            // for seven consecutive passes with an unchanging 23 beside it.
+            return (int)Math.Ceiling(n * starving);
         }
 
         // The same count, restricted to what the operation sells or flies.
         int BlockedFinalNow(PlanState s)
         {
-            if (Starving(s) <= 0) return 0;
+            var starving = Starving(s);
+            if (starving <= 0) return 0;
 
             var n = 0;
             foreach (var t in s.Demand.Dependents)
                 if (byType.TryGetValue(t, out var dep) && dep.Remaining > 0 && dep.Demand.IsFinal)
                     n++;
-            return n;
+            return (int)Math.Ceiling(n * starving);
         }
 
         // How full this item is against everything asked of it — the work AND the shelf.
@@ -318,14 +327,23 @@ public class IndustryJobGenerator(
         {
             var state = queue
                 .Where(s => !s.Done)
-                .OrderByDescending(s => s.Demand.Priority)
-                // ⚠️ Blocked work FIRST, and recomputed every pass. Blending it with coverage
-                // was an attempt to make one ordering do two jobs, and it let a well-stocked
-                // item outrank a starving one because its dependent count was larger. What
-                // stops a pipeline is work that cannot run; how empty a shelf is only decides
-                // the order among items that are equally in the way.
-                .ThenByDescending(BlockedFinalNow)
+                // ⚠️ Blocked work outranks WHOSE order the item descends from, and that is the
+                // change that finally moved this list.
+                //
+                // Priority is inherited down the whole tree under an order, so Pressurized
+                // Oxidizers, Reinforced Carbon Fiber and Thermosetting Polymer all carried 220
+                // from one pending Simurgh while the isotropics and the neurolinks sat at 80 —
+                // the stock band — because the walk netted out at an intermediate that was
+                // already on the shelf and never descended to them. Sorting on priority first
+                // put fifty jobs for three well-stocked reactions ahead of every starving item
+                // in the list, and no amount of tuning below it could be seen.
+                //
+                // An order is not waiting on an item that is not short. Priority answers WHOSE
+                // work this is and belongs among items that are equally in the way; whether work
+                // can proceed at all comes first.
+                .OrderByDescending(BlockedFinalNow)
                 .ThenByDescending(BlockedNow)
+                .ThenByDescending(s => s.Demand.Priority)
                 .ThenBy(Coverage)
                 .ThenBy(s => s.Demand.TypeId)
                 .FirstOrDefault();
