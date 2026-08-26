@@ -98,7 +98,11 @@ public sealed record StandingProjectGridRow(
     /// <summary>NPC station rather than player structure — the two have different browsers.
     /// Resolved against SdeStations rather than guessed from the id, since the ranges are not a
     /// reliable tell.</summary>
-    bool   StationIsNpc = false);
+    bool   StationIsNpc = false,
+    /// <summary>Why a status is what it is, where the status alone is not enough to act on.
+    /// Carries the fetch error behind "no_adm", so a broken call names itself instead of
+    /// presenting as an empty scope.</summary>
+    string StatusNote = "");
 
 // â”€â”€ Service â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -2253,15 +2257,20 @@ public class CorpActivityService
             // An empty map is a failure, not an answer: every sovereign system in the game
             // carries an occupancy level, so nothing is the one result this cannot mean.
             SovAdmUnavailable = dict.Count == 0;
-            if (SovAdmUnavailable) return _sovAdmCache ?? [];
+            if (SovAdmUnavailable)
+            {
+                SovAdmError = "the sovereignty endpoint returned no occupancy levels";
+                return _sovAdmCache ?? [];
+            }
 
             _sovAdmCache     = dict;
             _sovAdmCacheTime = DateTimeOffset.UtcNow;
             return dict;
         }
-        catch
+        catch (Exception ex)
         {
             SovAdmUnavailable = _sovAdmCache is null;
+            SovAdmError       = ex.Message;
             return _sovAdmCache ?? [];
         }
     }
@@ -2276,6 +2285,9 @@ public class CorpActivityService
     /// so the state has to survive the call.</para>
     /// </summary>
     public bool SovAdmUnavailable { get; private set; }
+
+    /// <summary>Why, when it is unavailable. Empty when the read simply returned nothing.</summary>
+    public string SovAdmError { get; private set; } = "";
 
     // ── Standing project grid row builder ─────────────────────────────────────
 
@@ -2303,7 +2315,7 @@ public class CorpActivityService
 
         bool needsAdm = standing.Any(p => p.ProjectType == "destroy_npc" &&
                                           p.ScopeType is "region_adm" or "constellation_adm");
-        if (needsAdm) SovAdmUnavailable = false;
+        if (needsAdm) { SovAdmUnavailable = false; SovAdmError = ""; }
         var adm = needsAdm ? await GetSovAdmLevelsAsync(ct) : [];
 
         var rows = new List<StandingProjectGridRow>();
@@ -2409,6 +2421,7 @@ public class CorpActivityService
                                 MatchStatus         : SovAdmUnavailable ? "no_adm"
                                                     : systems.Count == 0 ? "no_systems"
                                                     : "all_healthy",
+                                StatusNote          : SovAdmUnavailable ? SovAdmError : "",
                                 MatchedName         : "",
                                 RemainingText       : "",
                                 RemainingPayoutText : "",

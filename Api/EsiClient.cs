@@ -281,10 +281,30 @@ public class EsiClient
     // Sovereignty endpoints (no auth)
     // -----------------------------------------------------------------------
 
+    /// <summary>The last compatibility date at which the sovereignty endpoints exist.</summary>
+    public const string SovCompatibilityDate = "2026-05-01";
+
     public async Task<List<EsiSovStructure>?> GetSovStructuresAsync(CancellationToken ct = default)
     {
-        try { return await GetAsync<List<EsiSovStructure>>("sovereignty/structures/", ct); }
-        catch { return null; }
+        // ⚠️ This call carries its OWN compatibility date, and must keep doing so.
+        //
+        // CCP retired /sovereignty/structures/ and /sovereignty/map/ somewhere between
+        // compatibility dates 2026-05-01 and 2026-07-01. The client-wide pin is 2026-08-01, so
+        // this endpoint answers 404 there and 200 at any date up to 2026-05-01 — verified
+        // against the live API at both. Nothing about the app changed; the API moved underneath
+        // a header written to stop exactly that kind of surprise, and did it by removing a route
+        // rather than by reshaping a payload.
+        //
+        // Raising this date requires finding where ADM lives afterwards, not just bumping it.
+        using var request = new HttpRequestMessage(HttpMethod.Get, "sovereignty/structures/");
+        request.Headers.Remove("X-Compatibility-Date");
+        request.Headers.Add("X-Compatibility-Date", SovCompatibilityDate);
+
+        // ⚠️ No catch. The caller records the reason and puts it on screen: this failing
+        // silently for weeks is how a removed endpoint came to look like a misconfigured scope.
+        var response = await _http.SendAsync(request, ct);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<List<EsiSovStructure>>(JsonOptions, ct);
     }
 
     public sealed class EsiSovStructure

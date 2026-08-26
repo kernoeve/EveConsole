@@ -325,7 +325,9 @@ public sealed class StandingProjectRowVm
             "matched"     => row.MatchedName,
             "all_healthy" => "no systems below the minimum ADM",
             "no_systems"  => "scope expands to no systems",
-            "no_adm"      => "sovereignty data unavailable",
+            "no_adm"      => row.StatusNote.Length > 0
+                                 ? $"sovereignty data unavailable — {row.StatusNote}"
+                                 : "sovereignty data unavailable",
             _             => "project not active",
         };
         ProjectStatusColor = IsLowRemaining ? "#e0902e" : statusColor;
