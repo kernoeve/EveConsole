@@ -496,18 +496,21 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <!-- TEMPORARY — the planner's sort keys, in the order it applies them. Here to explain
-             an ordering nobody could audit from the outside; remove once it is settled. -->
+        <!-- The planner's sort keys, in the order it applies them. Hidden rather than removed:
+             they explain an ordering that cannot be audited from the outside, and the next
+             question about why one job outranks another is answered by switching them back on.
+             ⚠️ SortPriority is NOT debug-only — the row order itself sorts on it, since the
+             stamped priority and the one the planner used are different numbers. -->
         <DataGridTextColumn Binding="{Binding DbgPriority}" FontSize="11" Width="55"
-                            CellStyleClasses="num" Header="prio"/>
+                            CellStyleClasses="num" Header="prio" IsVisible="False"/>
         <DataGridTextColumn Binding="{Binding DbgFinal}" FontSize="11" Width="50"
-                            CellStyleClasses="num" Header="fin"/>
+                            CellStyleClasses="num" Header="fin" IsVisible="False"/>
         <DataGridTextColumn Binding="{Binding DbgBlocked}" FontSize="11" Width="55"
-                            CellStyleClasses="num" Header="blkd"/>
+                            CellStyleClasses="num" Header="blkd" IsVisible="False"/>
         <DataGridTextColumn Binding="{Binding DbgCoverage}" FontSize="11" Width="65"
-                            CellStyleClasses="num" Header="cover"/>
+                            CellStyleClasses="num" Header="cover" IsVisible="False"/>
         <DataGridTextColumn Binding="{Binding DbgSeq}" FontSize="11" Width="50"
-                            CellStyleClasses="num" Header="seq"/>
+                            CellStyleClasses="num" Header="seq" IsVisible="False"/>
 
         <!-- Value and Volume: the two figures worth comparing across every kind, and the pair a
              hauler and a buyer each reach for. Blank rather than zero when unpriced — a science
