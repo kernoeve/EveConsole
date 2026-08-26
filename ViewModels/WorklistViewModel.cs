@@ -596,7 +596,7 @@ public sealed class HaulPressureRowVm(HaulBlock h) : ReactiveObject
     public string VerdictColor => h.Verdict switch
     {
         "Nothing moving" => "#c85a5a",
-        "Several trips"  => "#c8a84b",
+        "Several stops"  => "#c8a84b",
         _                => "#4a8a5a",
     };
 

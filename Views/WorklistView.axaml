@@ -1417,11 +1417,11 @@
                   <DataTemplate x:DataType="vm:HaulPressureRowVm">
                     <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
                             Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
-                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="560">
+                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="900">
                       <ItemsControl ItemsSource="{Binding Tasks}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:ShortageTaskRowVm">
-                            <Grid ColumnDefinitions="90,70,230,*" Margin="0 1">
+                            <Grid ColumnDefinitions="70,70,240,*" Margin="0 1">
                               <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
                                          Foreground="#6e6e80" VerticalAlignment="Center"/>
                               <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
@@ -1429,7 +1429,7 @@
                               <TextBlock Grid.Column="2" Text="{Binding Title}" FontSize="10"
                                          Margin="{Binding Indent}" Foreground="#c8c8d8"
                                          TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                              <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10"
+                              <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10" TextWrapping="Wrap"
                                          Foreground="#8a8a99" VerticalAlignment="Center"/>
                             </Grid>
                           </DataTemplate>
@@ -1518,8 +1518,8 @@
 
                   <DataGridTextColumn Binding="{Binding Sources}" Width="80">
                     <DataGridTextColumn.Header>
-                      <TextBlock Text="Sources" Background="Transparent"
-                                 ToolTip.Tip="Distinct places the material sits, not counting where the job runs. More than one means more than one pickup before it can start."/>
+                      <TextBlock Text="Stops" Background="Transparent"
+                                 ToolTip.Tip="Stops a hauler would have to make to cover what is short, largest source first. NOT the number of hangars holding the item: Tritanium sits in thirteen of them and one covers the job."/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
 

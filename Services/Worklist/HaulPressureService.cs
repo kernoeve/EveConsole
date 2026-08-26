@@ -23,7 +23,9 @@ namespace EveConsole.Services.Worklist;
 /// moving it.</param>
 /// <param name="ItemTypes">Distinct items this job is waiting on.</param>
 /// <param name="Volume">Cubic metres of what this job is short of.</param>
-/// <param name="Sources">Distinct places that material sits, excluding where the job runs.</param>
+/// <param name="Sources">Stops a hauler would have to make to cover what is short, largest
+/// source first. Not the number of places holding the item: Tritanium sits in thirteen
+/// hangars and one of them covers the job.</param>
 public sealed record HaulBlock(
     string TaskKey,
     string Title,
@@ -46,25 +48,31 @@ public sealed record HaulBlock(
     /// </summary>
     public string Verdict =>
         HaulTasks <= 0 ? "Nothing moving"
-      : Sources    > 1 ? "Several trips"
+      : Sources    > 1 ? "Several stops"
       :                  "Haul raised";
 
     public string Advice => Verdict switch
     {
         "Nothing moving" =>
-            $"Stopped for want of {ItemTypes:N0} item(s) already owned, sitting at {Sources:N0} "
-          + $"other place(s) — {Volume:N0} m3 to move. No haul on the list brings any of it here, "
-          + $"so nothing about this changes on its own.{Behind}",
+            $"Stopped for want of {ItemTypes:N0} item(s) already owned. {Volume:N0} m3 to move, "
+          + $"{Stops}. No haul on the list brings any of it here, so nothing about this changes "
+          + $"on its own.{Behind}",
 
-        "Several trips" =>
-            $"Stopped for want of {ItemTypes:N0} item(s) held at {Sources:N0} different places, "
-          + $"{Volume:N0} m3 in all, with {HaulTasks:N0} haul(s) already raised. More than one "
-          + $"pickup, so it stays stopped until the last of them lands.{Behind}",
+        "Several stops" =>
+            $"Stopped for want of {ItemTypes:N0} item(s), {Volume:N0} m3 in all, {Stops}, with "
+          + $"{HaulTasks:N0} haul(s) already raised. More than one pickup, so it stays stopped "
+          + $"until the last of them lands.{Behind}",
 
         _ =>
             $"Stopped, and {HaulTasks:N0} haul(s) are already raised to bring the {Volume:N0} m3 "
           + $"here. Nothing to decide — it starts when the material arrives.{Behind}",
     };
+
+    /// <summary>How many places have to be visited to cover it.</summary>
+    private string Stops =>
+        Sources <= 0 ? "none of it reachable in scope"
+      : Sources == 1 ? "all of it from one place"
+      :                $"from {Sources:N0} places";
 
     /// <summary>What waiting costs beyond this job. Silent where nothing waits on it.</summary>
     private string Behind =>
@@ -103,13 +111,46 @@ public class HaulPressureService(
         var scope = await InvLevelService.ResolveScopeFilterAsync(
             db, settings.IndustryScope, settings.IndustryScopeId, ct);
 
+        // ⚠️ Quantities, not just a set of locations. Counting the places that hold a type at
+        // all answered a question nobody asked: Tritanium is in thirteen hangars, and "13 other
+        // place(s)" beside a job read as thirteen pickups when one of them covers the shortfall
+        // outright. What a trip costs is the number of stops needed to COVER what is short.
         var held = (await db.EsiAssets.AsNoTracking()
                 .Where(a => ids.Contains(a.TypeId) && a.Quantity > 0)
-                .Select(a => new { a.TypeId, a.RootLocationId })
+                .Select(a => new { a.TypeId, a.RootLocationId, a.Quantity })
                 .ToListAsync(ct))
             .Where(a => scope is null || scope.Contains(a.RootLocationId))
             .GroupBy(a => a.TypeId)
-            .ToDictionary(g => g.Key, g => g.Select(a => a.RootLocationId).ToHashSet());
+            .ToDictionary(
+                g => g.Key,
+                g => g.GroupBy(a => a.RootLocationId)
+                      .Select(x => (Loc: x.Key, Qty: x.Sum(a => (long)a.Quantity)))
+                      .OrderByDescending(x => x.Qty)
+                      .ToList());
+
+        // Somewhere to send the reader. A bare id is not a place.
+        var places = (await db.SdeStations.AsNoTracking()
+                .Select(x => new { Id = (long)x.StationId, x.Name }).ToListAsync(ct))
+            .ToDictionary(x => x.Id, x => x.Name);
+        foreach (var x in await db.EsiStructureNames.AsNoTracking()
+                     .Where(x => x.Name != "")
+                     .Select(x => new { x.StructureId, x.Name }).ToListAsync(ct))
+            places[x.StructureId] = x.Name;
+
+        // Largest first until the shortfall is covered: the stops a hauler would actually make.
+        List<long> Pickups(int typeId, long shortBy, long here)
+        {
+            var stops = new List<long>();
+            var left  = shortBy;
+            foreach (var (loc, qty) in held.GetValueOrDefault(typeId, []))
+            {
+                if (left <= 0) break;
+                if (loc == here) continue;
+                stops.Add(loc);
+                left -= qty;
+            }
+            return stops;
+        }
 
         // Hauls already raised, by where they are going and what they carry.
         var hauls = items
@@ -118,6 +159,7 @@ public class HaulPressureService(
                 i.DestinationId,
                 i.Title,
                 i.Readiness,
+                From: i.LocationName,
                 Types: i.Lines.Count > 0
                     ? i.Lines.Select(l => l.TypeId).ToHashSet()
                     : new HashSet<int> { i.TypeId }))
@@ -134,11 +176,11 @@ public class HaulPressureService(
             // from the OUTPUT, so the job itself is not counted among the things it blocks.
             var chain = item.TypeId > 0 ? TaskChain.Stalled(index, item.TypeId) : [];
 
-            var sources = types
-                .SelectMany(t => held.GetValueOrDefault(t, []))
-                .Where(l => l != here)
+            // The union across items: one trip, however many things it collects.
+            var stops = short_
+                .SelectMany(sh => Pickups(sh.TypeId, sh.Short, here))
                 .Distinct()
-                .Count();
+                .ToList();
 
             var moving = hauls
                 .Where(h => h.DestinationId == here && h.Types.Overlaps(types))
@@ -147,14 +189,24 @@ public class HaulPressureService(
             // The row opens on what it is short of, then what is moving, then what waits on it.
             var detail = new List<ShortageTask>();
 
-            detail.AddRange(short_.Select(s => new ShortageTask(
-                "Needs", 0, s.TypeName, s.TypeName,
-                $"{held.GetValueOrDefault(s.TypeId, []).Count(l => l != here):N0} other place(s)",
-                $"short {s.Short:N0} of {s.Wanted:N0}, "
-              + $"{s.Short * volumes.GetValueOrDefault(s.TypeId):N0} m3 to move")));
+            detail.AddRange(short_.Select(sh =>
+            {
+                var from = Pickups(sh.TypeId, sh.Short, here);
+                var name = from.Count > 0
+                    ? places.GetValueOrDefault(from[0], $"Location {from[0]}")
+                    : "nowhere in scope";
+
+                return new ShortageTask(
+                    "Needs", 0, sh.TypeName, sh.TypeName,
+                    from.Count == 1 ? "1 stop" : $"{from.Count:N0} stops",
+                    $"short {sh.Short:N0} of {sh.Wanted:N0}, "
+                  + $"{sh.Short * volumes.GetValueOrDefault(sh.TypeId):N0} m3 — from {name}"
+                  + (from.Count > 1 ? $" and {from.Count - 1:N0} more" : ""));
+            }));
 
             detail.AddRange(moving.Select(h => new ShortageTask(
-                "Hauling", -1, "", h.Title, h.Readiness.ToString(), "already on the list")));
+                "Hauling", -1, "", h.Title, h.Readiness.ToString(),
+                h.From.Length > 0 ? $"already on the list, from {h.From}" : "already on the list")));
 
             detail.AddRange(chain.Select(t => t with { Hop = t.Hop + 1 }));
 
@@ -167,7 +219,7 @@ public class HaulPressureService(
                 chain.Count,
                 types.Count,
                 short_.Sum(s => s.Short * volumes.GetValueOrDefault(s.TypeId)),
-                sources,
+                stops.Count,
                 moving.Count,
                 detail));
         }
