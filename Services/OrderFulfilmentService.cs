@@ -123,6 +123,10 @@ public class OrderFulfilmentService(
             .ToListAsync(ct);
         var claimed = claimedContracts.ToHashSet();
 
+        // Jobs that have NOT delivered yet, so a contracted order can tell an in-flight job
+        // (which cannot be its supply) from a finished one (which may well have been).
+        var openJobIds = openJobs.Select(j => j.JobId).ToHashSet();
+
         var claimedJobs = new HashSet<int>();
         var changed = false;
 
@@ -171,8 +175,32 @@ public class OrderFulfilmentService(
                     continue;
                 }
 
-                // Not accepted yet, so the order is still pending and still wants a supply —
-                // fall through to stock and jobs below.
+                // ⚠️ Offered and not yet taken, and that is as far as this order goes.
+                //
+                // It used to fall through to stock and jobs, on the reasoning that a pending
+                // order still wants a supply. It does not: the goods are already in the
+                // contract with the buyer's name on them. Falling through claimed the soonest
+                // job producing the type and pinned it to this order — a job that cannot be for
+                // it, since what the order needed is sitting in the contract — and took that job
+                // away from the order that was actually waiting on it.
+                //
+                // ⚠️ An incomplete job attached to a contracted order is cleared for the same
+                // reason. A COMPLETE one is left alone: it may well be where the contracted
+                // goods came from, and erasing that would lose the only record of how the order
+                // was filled.
+                if (order.LinkedJobId is int linked && openJobIds.Contains(linked))
+                {
+                    order.FulfilmentSource = SourceContract;
+                    order.LinkedJobId      = null;
+                    changed = true;
+                }
+                else if (order.FulfilmentSource != SourceContract && order.LinkedJobId is null)
+                {
+                    order.FulfilmentSource = SourceContract;
+                    changed = true;
+                }
+
+                continue;
             }
 
             // ── On the shelf? ──────────────────────────────────────────────────
