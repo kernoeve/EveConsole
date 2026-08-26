@@ -592,7 +592,6 @@ public sealed class ObservationVm(Observation o)
     {
         "slots"     => "SLOTS",
         "prints"    => "BLUEPRINTS",
-        "materials" => "MATERIALS",
         "formulas"  => "FORMULAS",
         "buying"    => "BUYING",
         "levels"    => "BUFFERS",

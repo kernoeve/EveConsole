@@ -946,7 +946,7 @@
               <StackPanel Margin="0 10 14 14" Spacing="14" MaxWidth="1100" HorizontalAlignment="Left">
 
                 <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
-                           Text="What the other four tabs add up to, ranked by how much work each finding is holding up rather than by which tab it came from. The pipeline has one binding constraint at a time — the rest is worth knowing, not worth doing first."/>
+                           Text="What to do, in the order worth doing it. Ranked by how much work each one is holding up, across every tab. The supporting figures are on the tabs themselves."/>
 
                 <ItemsControl ItemsSource="{Binding Observations}">
                   <ItemsControl.ItemTemplate>
