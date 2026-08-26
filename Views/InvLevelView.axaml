@@ -286,6 +286,22 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
+        <!-- FINAL — what the operation actually sells or flies, as opposed to an input held
+             so the next thing can be built. Hand-set: nothing in the blueprint tree can tell
+             them apart, and the answer differs by operation. -->
+        <DataGridTemplateColumn Header="FINAL" Width="60" MinWidth="60" Tag="IsFinalProduct"
+                                IsReadOnly="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <CheckBox x:CompileBindings="False"
+                        IsVisible="{Binding IsItem}"
+                        IsChecked="{Binding IsFinalProduct}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        ToolTip.Tip="Sold or flown, not an input. Work that unblocks a final product outranks work that only refills a buffer."/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
         <!-- TGT TOTAL (target × multiplier) -->
         <DataGridTemplateColumn Header="TGT TOTAL" Width="95" MinWidth="95" Tag="TargetTotal" IsReadOnly="True">
           <DataGridTemplateColumn.CellTemplate>

@@ -44,6 +44,20 @@ public sealed record BuildDemand(int TypeId, long Units, int Priority, List<stri
     public int Blocks { get; init; }
 
     /// <summary>
+    /// How many of those dependents are things the operation actually sells or flies.
+    ///
+    /// <para>⚠️ A count of blocked work cannot tell a customer from a cupboard.
+    /// Nanotransistors blocks eleven, and ten of them are component buffers refilling
+    /// themselves — real work, whose only customer is the shelf it came from. An isotropic
+    /// blocking a Neurolink cell blocks every standard capital hull. Both score eleven, and
+    /// only one of them is worth a slot today.</para>
+    ///
+    /// <para>Which items are final is hand-set on the inventory rule, because nothing in the
+    /// blueprint tree can tell: hulls for one operation, rigs or modules for another.</para>
+    /// </summary>
+    public int BlocksFinal { get; init; }
+
+    /// <summary>
     /// Why this is wanted — and, where it matters, how much waits behind it.
     ///
     /// <para>The blocking count is on the row rather than only in the sort, because a job that
@@ -165,6 +179,9 @@ public class IndustryDemandService(
         /// </summary>
         public readonly HashSet<int> Dependents = [];
 
+        /// <summary>Hand-marked as sold or flown rather than held as an input.</summary>
+        public bool IsFinal;
+
         /// <summary>True when a rule's threshold has tripped, or something is waiting on it. A
         /// level sitting comfortably full raises nothing; a level about to be eaten does.</summary>
         public bool Fires;
@@ -223,6 +240,8 @@ public class IndustryDemandService(
             foreach (var gi in groupItems.OrderBy(i => i.TypeId))
             {
                 if (!ctx.BlueprintByProduct.ContainsKey(gi.TypeId)) continue;  // bought, not built
+
+                if (gi.IsFinalProduct) At(gi.TypeId).IsFinal = true;
 
                 avail.TryGetValue(gi.TypeId, out var av);
                 var have   = (av?.Assets ?? 0) + (av?.IndustryJobs ?? 0);
@@ -384,7 +403,9 @@ public class IndustryDemandService(
         foreach (var typeId in result.Keys.ToList())
             result[typeId] = result[typeId] with
             {
-                Blocks = gross[typeId].Dependents.Count(result.ContainsKey),
+                Blocks      = gross[typeId].Dependents.Count(result.ContainsKey),
+                BlocksFinal = gross[typeId].Dependents
+                                  .Count(x => result.ContainsKey(x) && gross[x].IsFinal),
             };
 
         return result;

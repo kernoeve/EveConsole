@@ -282,6 +282,11 @@ public class IndustryJobGenerator(
                 // share a band, and coverage then decides between them — and coverage moves with
                 // every job planned, so the slots spread across several shortages instead of
                 // thirty consecutive jobs for whichever item scored highest once.
+                // ⚠️ Work that unblocks something the operation SELLS, before work that unblocks
+                // another buffer. Both are blocked work and only one has a customer waiting:
+                // eleven blocked tasks that are ten component shelves topping themselves up is
+                // not the same finding as eleven blocked capital hulls.
+                .ThenByDescending(s => BlockedBand(s.Demand.BlocksFinal))
                 .ThenByDescending(s => BlockedBand(s.Demand.Blocks))
                 .ThenBy(s => s.Demand.CoverageWith(s.Planned))
                 .ThenBy(s => s.Demand.TypeId)

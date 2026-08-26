@@ -685,9 +685,14 @@ public class App : Application
                     "Id"             INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     "GroupId"        INTEGER NOT NULL DEFAULT 0,
                     "TypeId"         INTEGER NOT NULL DEFAULT 0,
-                    "TargetQuantity" INTEGER NOT NULL DEFAULT 1
+                    "TargetQuantity" INTEGER NOT NULL DEFAULT 1,
+                    "IsFinalProduct" INTEGER NOT NULL DEFAULT 0
                 )
                 """);
+
+            // Something sold or flown rather than an input held for the next build. Ranks the
+            // work that unblocks it above work that only refills a buffer — see InvLevelItem.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "InvLevelItems" ADD COLUMN "IsFinalProduct" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
             // ── Collections (new tables + alter existing tables) ─────────────
             db.Database.ExecuteSqlRaw("""
