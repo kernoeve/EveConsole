@@ -149,15 +149,6 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             .ExecuteUpdateAsync(s => s.SetProperty(i => i.TargetQuantity, targetQty), ct);
     }
 
-    /// <summary>Marks an item as something sold or flown rather than an input. See
-    /// <see cref="InvLevelItem.IsFinalProduct"/>.</summary>
-    public async Task UpdateItemFinalAsync(int itemId, bool isFinal, CancellationToken ct = default)
-    {
-        await using var db = dbFactory.CreateDbContext();
-        await db.InvLevelItems.Where(i => i.Id == itemId)
-            .ExecuteUpdateAsync(x => x.SetProperty(i => i.IsFinalProduct, isFinal), ct);
-    }
-
     public async Task DeleteItemAsync(int itemId, CancellationToken ct = default)
     {
         await using var db = dbFactory.CreateDbContext();

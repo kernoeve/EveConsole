@@ -685,14 +685,9 @@ public class App : Application
                     "Id"             INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     "GroupId"        INTEGER NOT NULL DEFAULT 0,
                     "TypeId"         INTEGER NOT NULL DEFAULT 0,
-                    "TargetQuantity" INTEGER NOT NULL DEFAULT 1,
-                    "IsFinalProduct" INTEGER NOT NULL DEFAULT 0
+                    "TargetQuantity" INTEGER NOT NULL DEFAULT 1
                 )
                 """);
-
-            // Something sold or flown rather than an input held for the next build. Ranks the
-            // work that unblocks it above work that only refills a buffer — see InvLevelItem.
-            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "InvLevelItems" ADD COLUMN "IsFinalProduct" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
             // ── Collections (new tables + alter existing tables) ─────────────
             db.Database.ExecuteSqlRaw("""
@@ -1881,7 +1876,8 @@ public class App : Application
                     "FillTargetPercent" REAL    NOT NULL DEFAULT 100,
                     "LocationId"        INTEGER NOT NULL DEFAULT 0,
                     "LocationName"      TEXT    NOT NULL DEFAULT '',
-                    "Enabled"           INTEGER NOT NULL DEFAULT 1
+                    "Enabled"           INTEGER NOT NULL DEFAULT 1,
+                    "IsFinalProduct"    INTEGER NOT NULL DEFAULT 0
                 )
                 """);
 
@@ -1906,6 +1902,10 @@ public class App : Application
             // Added after the rules table shipped on this branch, so it needs its own ALTER —
             // CREATE TABLE IF NOT EXISTS will not add a column to a table that already exists.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistInvRules" ADD COLUMN "Action" TEXT NOT NULL DEFAULT 'Buy' """); } catch { }
+
+            // Whether the group is something the operation sells or flies. Ranks work that
+            // unblocks it above work that only refills a buffer — see WorklistInvRule.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistInvRules" ADD COLUMN "IsFinalProduct" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "WorklistCorpAlts" (

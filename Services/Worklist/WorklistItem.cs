@@ -149,6 +149,19 @@ public sealed record WorklistItem
     /// </summary>
     public int Unblocks { get; init; }
 
+    /// <summary>
+    /// Where the planner reached this, counting from one.
+    ///
+    /// <para>⚠️ The whole point of ranking work by what it unblocks was invisible without
+    /// this. The picker walks items in value order, but nothing it decided reached the row:
+    /// the list sorted on priority and then, with every blocked reaction tied on priority,
+    /// fell through to the TITLE. So the reader saw the plan in alphabetical order, and the
+    /// job the planner actually chose sat forty rows below one it had ranked last.</para>
+    ///
+    /// <para>Zero on everything not planned in an ordered pass, which sorts last.</para>
+    /// </summary>
+    public int PlanSequence { get; init; }
+
     /// <summary>How many items downstream wait on this one — see BuildDemand.Blocks.</summary>
     public int Blocks { get; init; }
 

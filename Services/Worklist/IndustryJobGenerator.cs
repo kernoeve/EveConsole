@@ -259,6 +259,10 @@ public class IndustryJobGenerator(
         // LockedInJob flag is not enough on its own.
         var printsCommitted = new HashSet<long>();
 
+        // Counts the passes, so a row can say where the plan reached it. See
+        // WorklistItem.PlanSequence for why the value has to travel with the item.
+        var planSeq = 0;
+
         while (true)
         {
             var state = queue
@@ -299,6 +303,7 @@ public class IndustryJobGenerator(
             // the picker with the item still outstanding would choose it again forever. Opting IN
             // to another visit is the only version of this that cannot spin.
             state.Done = true;
+            var seq = ++planSeq;
 
             // The body sees a demand for what is still outstanding, so a second visit plans the
             // rest rather than the whole thing again.
@@ -621,6 +626,7 @@ public class IndustryJobGenerator(
                             TypeName      = name,
                             Priority      = priority,
                             Blocks        = d.Blocks,
+                            PlanSequence  = seq,
                         });
 
                         // ⚠️ Progress recorded here, at the one place a job is actually planned,
@@ -784,6 +790,7 @@ public class IndustryJobGenerator(
                             TypeName      = name,
                             Priority      = priority,
                             Blocks        = d.Blocks,
+                            PlanSequence  = seq,
                         });
 
                         left -= runs;

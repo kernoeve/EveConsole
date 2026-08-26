@@ -1684,6 +1684,11 @@ public class WorklistViewModel : ReactiveObject
                     // item that cannot be actioned does not belong at the top of that read.
                     .OrderBy(i => i.Readiness == WorklistReadiness.Blocked ? 1 : 0)
                     .ThenByDescending(i => i.Priority)
+                    // ⚠️ Plan order, before anything alphabetical. Everything the industry
+                    // planner raises inherits one priority from the order at the top of its
+                    // chain, so priority separates none of it and the sort used to fall through
+                    // to the title — presenting a ranked plan as an alphabetical list.
+                    .ThenBy(i => i.PlanSequence == 0 ? int.MaxValue : i.PlanSequence)
                     // ⚠️ Below priority, never folded into it. A haul that restarts four
                     // jobs beats one that restarts one, but neither may jump the order band,
                     // where a single step means a whole customer order.

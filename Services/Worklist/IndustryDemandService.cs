@@ -241,7 +241,10 @@ public class IndustryDemandService(
             {
                 if (!ctx.BlueprintByProduct.ContainsKey(gi.TypeId)) continue;  // bought, not built
 
-                if (gi.IsFinalProduct) At(gi.TypeId).IsFinal = true;
+                // ⚠️ The flag is on the RULE, so it covers the whole group. That is the grain
+                // people set it at — "Titans" is final and "Capital Parts" is not — and it means
+                // an item reachable through two rules is final if EITHER says so.
+                if (rule.IsFinalProduct) At(gi.TypeId).IsFinal = true;
 
                 avail.TryGetValue(gi.TypeId, out var av);
                 var have   = (av?.Assets ?? 0) + (av?.IndustryJobs ?? 0);

@@ -33,18 +33,4 @@ public class InvLevelItem
     public int GroupId        { get; set; }
     public int TypeId         { get; set; }
     public int TargetQuantity { get; set; } = 1;
-
-    /// <summary>
-    /// Something sold or flown, rather than an input held so the next thing can be built.
-    ///
-    /// <para>⚠️ A count of blocked work cannot tell the two apart, and the difference is the
-    /// whole value of the job. Nanotransistors blocks eleven tasks and ten of them are component
-    /// buffers refilling themselves — real work, but work whose only customer is the shelf it
-    /// came from. The isotropic blocking a Neurolink cell blocks every standard capital hull.
-    /// Both count as "blocking eleven".</para>
-    ///
-    /// <para>Off by default and set by hand: what counts as final is a business decision, not a
-    /// property of the item. For one operation it is hulls, for another it is rigs or modules.</para>
-    /// </summary>
-    public bool IsFinalProduct { get; set; }
 }

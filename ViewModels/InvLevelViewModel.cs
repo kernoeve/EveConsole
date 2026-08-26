@@ -320,27 +320,6 @@ public class InvItemRow : ReactiveObject
         }
     }
 
-    private bool _isFinalProduct;
-
-    /// <summary>
-    /// Sold or flown, rather than held so the next thing can be built.
-    ///
-    /// <para>⚠️ Set by hand because it cannot be derived. What counts as final is a business
-    /// decision — hulls for one operation, rigs or modules for another — and the shape of the
-    /// blueprint tree says nothing about it. It changes what the worklist runs first: work that
-    /// unblocks something you sell outranks work that only refills a buffer for whenever the
-    /// next order arrives.</para>
-    /// </summary>
-    public bool IsFinalProduct
-    {
-        get => _isFinalProduct;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _isFinalProduct, value);
-            _ = _svc.UpdateItemFinalAsync(ItemId, value);
-        }
-    }
-
     public long Available => _availAssets + _availIJ + _availOrders;
 
     // Derived
@@ -398,7 +377,6 @@ public class InvItemRow : ReactiveObject
         _marketPrice     = meta.MarketPrice;
         _buildPrice      = meta.BuildPrice;
         _targetQty       = item.TargetQuantity;
-        _isFinalProduct  = item.IsFinalProduct;
         _groupMultiplier = Math.Max(1, groupMultiplier);
         _svc             = svc;
         DeleteCommand    = ReactiveCommand.CreateFromTask(delete);

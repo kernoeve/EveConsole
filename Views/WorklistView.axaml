@@ -1889,6 +1889,21 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
+            <!-- FINAL — what the operation sells or flies, as opposed to a group held so the
+                 next thing can be built. Work that unblocks a final product outranks work that
+                 only refills a buffer, and nothing in the data can tell them apart: the answer
+                 is per operation, hulls here and rigs or modules elsewhere. -->
+            <DataGridTemplateColumn Header="Final" Width="60" SortMemberPath="IsFinal"
+                                    IsReadOnly="False">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:InvRuleRow">
+                  <CheckBox IsChecked="{Binding IsFinal, Mode=TwoWay}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            ToolTip.Tip="This group is sold or flown, not an input. Work that unblocks it is ranked above work that only refills a buffer."/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
             <!-- The station is picked, never typed: the id is what the tool matches on, so a
                  free-typed name would leave the rule pointing at the station it used to mean.
                  Unlike the other cells this one is click-to-edit rather than a live control.
