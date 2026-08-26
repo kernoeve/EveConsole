@@ -961,9 +961,17 @@
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:ObservationVm">
-                      <Border BorderBrush="{Binding RuleColor}" BorderThickness="2 0 0 0"
-                              Padding="12 2 0 0" Margin="0 0 24 18">
-                        <StackPanel Spacing="6">
+                      <!-- ⚠️ A card, with the accent as a filled bar rather than a border side.
+                           A Border carries one brush for all four sides, so an accent rule and a
+                           card outline cannot be the same element — nesting a filled column
+                           inside the card is what lets the primary finding be marked without
+                           tinting its whole outline. -->
+                      <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                              CornerRadius="4" Margin="0 0 24 18">
+                        <Grid ColumnDefinitions="3,*">
+                          <Border Grid.Column="0" Background="{Binding RuleColor}"
+                                  CornerRadius="3 0 0 3"/>
+                          <StackPanel Grid.Column="1" Margin="14 12 14 12" Spacing="6">
                           <TextBlock Text="{Binding Marker}" FontSize="10" FontWeight="SemiBold"
                                      Foreground="{Binding MarkerColor}" LetterSpacing="1"/>
                           <TextBlock Text="{Binding Headline}" FontSize="15" FontWeight="SemiBold"
@@ -984,7 +992,8 @@
                               </DataTemplate>
                             </ItemsControl.ItemTemplate>
                           </ItemsControl>
-                        </StackPanel>
+                          </StackPanel>
+                        </Grid>
                       </Border>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>

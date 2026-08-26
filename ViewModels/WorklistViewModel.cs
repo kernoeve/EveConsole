@@ -586,7 +586,7 @@ public sealed class ObservationVm(Observation o)
     /// reads as four jobs to do rather than one lever and three things to know about.</summary>
     public string Marker      => o.IsPrimary ? "START HERE" : Kind;
     public string MarkerColor => o.IsPrimary ? "#c8a84b" : "#555566";
-    public string RuleColor   => o.IsPrimary ? "#c8a84b" : "#22222e";
+    public string RuleColor   => o.IsPrimary ? "#c8a84b" : "#2c2c3a";
 
     private string Kind => o.Kind switch
     {
