@@ -162,6 +162,12 @@ public sealed record WorklistItem
     /// </summary>
     public int PlanSequence { get; init; }
 
+    /// <summary>TEMPORARY — the sort keys the planner used, so the order can be audited on
+    /// screen instead of reasoned about. Remove with the diagnostic columns.</summary>
+    public int    SortBlockedFinal { get; init; }
+    public int    SortBlocked      { get; init; }
+    public double SortCoverage     { get; init; }
+
     /// <summary>How many items downstream wait on this one — see BuildDemand.Blocks.</summary>
     public int Blocks { get; init; }
 

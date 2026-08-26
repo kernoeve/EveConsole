@@ -496,6 +496,19 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
+        <!-- TEMPORARY — the planner's sort keys, in the order it applies them. Here to explain
+             an ordering nobody could audit from the outside; remove once it is settled. -->
+        <DataGridTextColumn Binding="{Binding DbgPriority}" FontSize="11" Width="55"
+                            CellStyleClasses="num" Header="prio"/>
+        <DataGridTextColumn Binding="{Binding DbgFinal}" FontSize="11" Width="50"
+                            CellStyleClasses="num" Header="fin"/>
+        <DataGridTextColumn Binding="{Binding DbgBlocked}" FontSize="11" Width="55"
+                            CellStyleClasses="num" Header="blkd"/>
+        <DataGridTextColumn Binding="{Binding DbgCoverage}" FontSize="11" Width="65"
+                            CellStyleClasses="num" Header="cover"/>
+        <DataGridTextColumn Binding="{Binding DbgSeq}" FontSize="11" Width="50"
+                            CellStyleClasses="num" Header="seq"/>
+
         <!-- Value and Volume: the two figures worth comparing across every kind, and the pair a
              hauler and a buyer each reach for. Blank rather than zero when unpriced — a science
              job has no stored blueprint value per ME level. -->

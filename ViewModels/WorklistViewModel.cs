@@ -80,6 +80,13 @@ public class WorklistRowVm : ReactiveObject
     public void OpenItem() => EntityNavigator.Instance.Item(_item.TypeId);
     public int    TypeId        => _item.TypeId;
     public int    Priority      => _item.Priority;
+
+    // TEMPORARY diagnostics: the keys the planner sorted on, in the order it used them.
+    public string DbgPriority => _item.Priority.ToString("N0");
+    public string DbgFinal    => _item.PlanSequence == 0 ? "" : _item.SortBlockedFinal.ToString("N0");
+    public string DbgBlocked  => _item.PlanSequence == 0 ? "" : _item.SortBlocked.ToString("N0");
+    public string DbgCoverage => _item.PlanSequence == 0 ? "" : $"{_item.SortCoverage * 100:N1}%";
+    public string DbgSeq      => _item.PlanSequence == 0 ? "" : _item.PlanSequence.ToString("N0");
     public bool   IsSnoozed     => _item.IsSnoozed;
     public double Value         => _item.Value;
     public double VolumeRaw     => _item.Volume;

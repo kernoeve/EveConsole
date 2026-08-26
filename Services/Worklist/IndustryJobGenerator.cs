@@ -339,6 +339,12 @@ public class IndustryJobGenerator(
             state.Done = true;
             var seq = ++planSeq;
 
+            // TEMPORARY: captured before this pass changes anything, so a row shows the
+            // numbers that actually chose it.
+            var dbgFinal = BlockedFinalNow(state);
+            var dbgBlock = BlockedNow(state);
+            var dbgCover = Coverage(state);
+
             // The body sees a demand for what is still outstanding, so a second visit plans the
             // rest rather than the whole thing again.
             var d = state.Demand with { Units = state.Remaining };
@@ -661,6 +667,9 @@ public class IndustryJobGenerator(
                             Priority      = priority,
                             Blocks        = d.Blocks,
                             PlanSequence  = seq,
+                            SortBlockedFinal = dbgFinal,
+                            SortBlocked      = dbgBlock,
+                            SortCoverage     = dbgCover,
                         });
 
                         // ⚠️ Progress recorded here, at the one place a job is actually planned,
@@ -825,6 +834,9 @@ public class IndustryJobGenerator(
                             Priority      = priority,
                             Blocks        = d.Blocks,
                             PlanSequence  = seq,
+                            SortBlockedFinal = dbgFinal,
+                            SortBlocked      = dbgBlock,
+                            SortCoverage     = dbgCover,
                         });
 
                         left -= runs;
