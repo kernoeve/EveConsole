@@ -139,6 +139,16 @@ public sealed record WorklistItem
     /// </summary>
     public IReadOnlyList<WorklistShortage> Shortages { get; init; } = [];
 
+    /// <summary>
+    /// Stopped jobs this task would restart, where the task is not itself a job.
+    ///
+    /// <para>⚠️ A haul is worth what it unblocks, and nothing in a haul knows that: the
+    /// logistics generator sees a shortfall at a station, not the four jobs standing idle
+    /// for want of the same crate. Filled in after every generator has run, by the one place
+    /// that can see both halves.</para>
+    /// </summary>
+    public int Unblocks { get; init; }
+
     /// <summary>How many items downstream wait on this one — see BuildDemand.Blocks.</summary>
     public int Blocks { get; init; }
 

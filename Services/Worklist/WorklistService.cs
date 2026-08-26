@@ -71,10 +71,74 @@ public class WorklistService(
         // not as whichever fragment happened to be written first.
         MergeDuplicatePurchases(sections);
 
+        // After the merge, so a haul that was two rows is promoted once, as the trip it is.
+        PromoteUnblockingHauls(sections);
+
         await ApplyVolumeAsync(sections, ct);
         await ApplyStateAsync(sections, ct);
 
         return new WorklistRun(sections, DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>
+    /// Ranks each haul by the work it would restart.
+    ///
+    /// <para>A delivery is worth what it unblocks, and no generator can see that on its own:
+    /// the logistics generator knows a station is short of something, and the industry
+    /// generator knows which jobs stopped because of it, and neither knows the other. One
+    /// crate of Self-Harmonizing Power Cores restarting four jobs at one station outranks a
+    /// trip that restarts one, and until now they sorted identically.</para>
+    ///
+    /// <para>⚠️ The haul inherits the priority of the most urgent job it frees, never more.
+    /// Adding a bonus per job unblocked would push a haul through the order band, where one
+    /// step means one customer order — so the count breaks ties instead, below priority.</para>
+    /// </summary>
+    private static void PromoteUnblockingHauls(List<WorklistSection> sections)
+    {
+        var all = sections.SelectMany(s => s.Items).ToList();
+
+        // Jobs stopped for want of material that exists somewhere else, by where they run.
+        // MustBuy shortfalls are excluded: no haul fixes something nobody owns.
+        var stopped = all
+            .Where(x => x.LocationId > 0)
+            .SelectMany(x => x.Shortages.Where(h => !h.MustBuy)
+                              .Select(h => (Job: x, Key: (x.LocationId, h.TypeId))))
+            .GroupBy(x => x.Key)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Job).ToList());
+
+        if (stopped.Count == 0) return;
+
+        for (var si = 0; si < sections.Count; si++)
+        {
+            var section = sections[si];
+
+            for (var n = 0; n < section.Items.Count; n++)
+            {
+                var haul = section.Items[n];
+                if (haul.Kind != WorklistKind.Haul || haul.DestinationId <= 0) continue;
+
+                var carried = haul.Lines.Count > 0
+                    ? haul.Lines.Select(l => l.TypeId)
+                    : [haul.TypeId];
+
+                var freed = carried
+                    .SelectMany(t => stopped.GetValueOrDefault((haul.DestinationId, t), []))
+                    .DistinctBy(j => j.Key)
+                    .ToList();
+
+                if (freed.Count == 0) continue;
+
+                section.Items[n] = haul with
+                {
+                    Unblocks = freed.Count,
+                    Priority = Math.Max(haul.Priority, freed.Max(j => j.Priority)),
+                    Detail   = haul.Detail
+                             + $" Restarts {freed.Count:N0} stopped job(s) on arrival: "
+                             + string.Join(", ", freed.Take(3).Select(j => j.TypeName))
+                             + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : "."),
+                };
+            }
+        }
     }
 
     /// <summary>

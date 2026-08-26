@@ -1684,6 +1684,10 @@ public class WorklistViewModel : ReactiveObject
                     // item that cannot be actioned does not belong at the top of that read.
                     .OrderBy(i => i.Readiness == WorklistReadiness.Blocked ? 1 : 0)
                     .ThenByDescending(i => i.Priority)
+                    // ⚠️ Below priority, never folded into it. A haul that restarts four
+                    // jobs beats one that restarts one, but neither may jump the order band,
+                    // where a single step means a whole customer order.
+                    .ThenByDescending(i => i.Unblocks)
                     .ThenBy(i => i.CharacterName)
                     .ThenBy(i => i.Title)
                     .ToList();
