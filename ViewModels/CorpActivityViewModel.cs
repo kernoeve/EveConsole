@@ -308,17 +308,25 @@ public sealed class StandingProjectRowVm
         // Less than 10% of the target left — flag the near-complete (often stuck) projects in orange.
         IsLowRemaining = row.RemainingPercentValue >= 0 && row.RemainingPercentValue < 10.0;
 
+        // ⚠️ Every status this can be given, or the default swallows it. The zero-systems case
+        // was split into three — the ADM read failed, the scope expands to nothing, or every
+        // system is healthy — and the two new ones fell through to "project not active" here,
+        // in red, which is the one thing none of them means.
         string statusColor = row.MatchStatus switch
         {
-            "matched"    => "#6aaa88",
-            "no_systems" => "#888899",
-            _            => "#cc4444",
+            "matched"     => "#6aaa88",
+            "all_healthy" => "#888899",
+            "no_systems"  => "#888899",
+            "no_adm"      => "#e0902e",
+            _             => "#cc4444",
         };
         ProjectStatusText = row.MatchStatus switch
         {
-            "matched"    => row.MatchedName,
-            "no_systems" => "no systems below the minimum ADM",
-            _            => "project not active",
+            "matched"     => row.MatchedName,
+            "all_healthy" => "no systems below the minimum ADM",
+            "no_systems"  => "scope expands to no systems",
+            "no_adm"      => "sovereignty data unavailable",
+            _             => "project not active",
         };
         ProjectStatusColor = IsLowRemaining ? "#e0902e" : statusColor;
 
@@ -329,9 +337,11 @@ public sealed class StandingProjectRowVm
             ? 1
             : row.MatchStatus switch
             {
-                "matched"    => 3,   // green
-                "no_systems" => 2,   // grey
-                _            => 0,   // red — project not active
+                "matched"     => 3,   // green
+                "all_healthy" => 2,   // grey — the rule selects nothing today, and should not
+                "no_systems"  => 2,   // grey
+                "no_adm"      => 1,   // orange — a fault, above healthy but below a real gap
+                _             => 0,   // red — project not active
             };
 
         RemainingText        = row.RemainingText;
