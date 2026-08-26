@@ -373,6 +373,20 @@ public class IndustryDemandService(
             };
         }
 
+        // ⚠️ Counted again against what actually still needs building.
+        //
+        // Dependents are gathered during the walk, before anything is netted against stock, so
+        // the raw count includes types that turned out to be fully covered and will raise no job
+        // at all. That is the difference between "how many things use this" and "how much work
+        // is waiting on it", and the picker sorts on it: a base reaction feeding a long covered
+        // chain outranked the component four stopped hulls were waiting for, and took the one
+        // free reaction slot with it.
+        foreach (var typeId in result.Keys.ToList())
+            result[typeId] = result[typeId] with
+            {
+                Blocks = gross[typeId].Dependents.Count(result.ContainsKey),
+            };
+
         return result;
     }
 
