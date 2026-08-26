@@ -43,6 +43,24 @@ public class BottleneckSummaryService
     /// </summary>
     private const int MaxNamed = 6;
 
+    /// <summary>
+    /// How many DISTINCT tasks a set of findings holds up.
+    ///
+    /// <para>⚠️ Summing each finding's own count double-counts, and the findings are ranked
+    /// against each other on exactly this number. A job short of three materials is stopped
+    /// once, not three times — forty-three materials summed to 316 stopped tasks out of a
+    /// list of 338, and beat a slot pool holding up more work than any of them, because the
+    /// slot figure counts distinct jobs and the material figure counted overlaps.</para>
+    /// </summary>
+    private static int DistinctStopped(IEnumerable<IEnumerable<ShortageTask>> sets)
+    {
+        var seen = new HashSet<string>();
+        foreach (var set in sets)
+            foreach (var t in set)
+                if (t.Role == "Stopped") seen.Add(t.Title + "|" + t.TypeName);
+        return seen.Count;
+    }
+
     /// <summary>Days of cover a suggested level is sized for.</summary>
     private const int TargetCoverDays = 30;
 
@@ -183,7 +201,7 @@ public class BottleneckSummaryService
 
         yield return new Observation(
             reactions ? "formulas" : "prints",
-            blocking.Sum(p => p.StalledTasks) + held,
+            DistinctStopped(blocking.Select(p => p.Tasks)) + held,
             $"{blocking.Count:N0} {thing} cap their own output",
             // ⚠️ No claim about slots. Saying "the ceiling, not the slots" is false where every
             // slot is full as well: buying the copy would not start the job either.
@@ -215,12 +233,19 @@ public class BottleneckSummaryService
         var noLevel = real.Count(s => s.Level <= 0);
         var noMaker = real.Count(s => !s.Buildable);
 
+        var stopped = DistinctStopped(real.Select(s => s.Tasks ?? []));
+
         yield return new Observation(
             "materials",
-            real.Sum(s => s.StalledTasks),
+            stopped,
             $"{real.Count:N0} item(s) are stopping work outright",
-            $"{real.Sum(s => s.BlockedTasks):N0} job(s) are short of something nobody owns enough "
-          + $"of, holding up {real.Sum(s => s.StalledTasks):N0} task(s) in all. "
+            // ⚠️ Not "nobody owns any". The test is whether the industry scope can cover what a
+            // job asks for, AFTER the material earlier jobs already claimed — so an item can be
+            // owned in quantity and still fail it. Saying nobody owns enough sent the reader
+            // looking for an empty hangar when 65,696 Prometium were sitting in one.
+            $"{real.Sum(s => s.BlockedTasks):N0} job(s) are short of something the industry scope "
+          + $"cannot cover once earlier jobs have taken their share, holding up {stopped:N0} "
+          + "task(s) between them. "
           + (noLevel > 0
               ? $"{noLevel:N0} of these have no inventory level set at all, so there is no cushion "
               + "by construction. "
@@ -270,7 +295,7 @@ public class BottleneckSummaryService
 
         yield return new Observation(
             "buying",
-            missing.Sum(s => s.StalledTasks),
+            DistinctStopped(missing.Select(s => s.Tasks ?? [])),
             $"{missing.Count:N0} bought item(s) are stopping work with nothing on order",
             $"{missing.Sum(s => s.BlockedTasks):N0} job(s) are short of these. Nothing here makes "
           + "them, so a purchase is the only thing that starts those jobs, and no buy task has "
@@ -331,7 +356,7 @@ public class BottleneckSummaryService
 
         yield return new Observation(
             "levels",
-            unset.Sum(s => s.StalledTasks) + thin.Sum(s => s.StalledTasks),
+            DistinctStopped(unset.Concat(thin).Select(s => s.Tasks ?? [])),
             $"{unset.Count + thin.Count:N0} inventory level(s) are worth setting or raising",
             (unset.Count > 0
                 ? $"{unset.Count:N0} material(s) that stopped work have no level set at all, so "
@@ -363,7 +388,7 @@ public class BottleneckSummaryService
 
         yield return new Observation(
             "hauling",
-            hauls.Count + behind,
+            hauls.Count + DistinctStopped(hauls.Select(h => h.Tasks)),
             $"{hauls.Count:N0} job(s) are waiting on material you already own",
             $"{hauls.Count:N0} job(s) are stopped for want of nothing but a delivery — "
           + $"{hauls.Sum(h => h.Volume) / 1000:N0}k m3 in all, holding up {behind:N0} task(s) "
