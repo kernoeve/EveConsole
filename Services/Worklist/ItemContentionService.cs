@@ -411,15 +411,18 @@ public class ItemContentionService(
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
         // ⚠️ Our OWN buy orders, not the market's. EsiMarketOrders holds the orders our
-        // characters and corporations have placed; IsBuyOrder separates a bid from a sale,
-        // and a sell order for the same type says nothing about supply arriving.
+        // characters and corporations have placed; IsBuyOrder separates a bid from a sale, and a
+        // sell order for the same type says nothing about supply arriving.
         //
-        // Not filtered by location: a bid anywhere brings the material eventually, and
-        // where it lands is the hauling question rather than this one.
+        // ⚠️ Scoped exactly as the stock above it is. A bid outside the scope buys material the
+        // plan cannot spend, so counting it would silence a real shortage — the same reasoning
+        // that keeps out-of-scope assets from filling a shelf. The scope here is the region plus
+        // the hub stations, so a Jita or Amarr bid does count, which is the common case.
         var onOrder = (await db.EsiMarketOrders.AsNoTracking()
                 .Where(o => o.IsBuyOrder && o.VolumeRemain > 0 && ids.Contains(o.TypeId))
-                .Select(o => new { o.OrderId, o.TypeId, o.VolumeRemain })
+                .Select(o => new { o.OrderId, o.TypeId, o.VolumeRemain, o.LocationId })
                 .ToListAsync(ct))
+            .Where(o => scope is null || scope.Contains(o.LocationId))
             // Orders are polled per owner, so one order can arrive several times.
             .DistinctBy(o => o.OrderId)
             .GroupBy(o => o.TypeId)
