@@ -41,7 +41,7 @@ public class BottleneckSummaryService
     /// shape and short enough to read; anything past it belongs on the tab it came from, which
     /// is why each finding says how many it left out.</para>
     /// </summary>
-    private const int MaxNamed = 10;
+    private const int MaxNamed = 6;
 
     /// <summary>Days of cover a suggested level is sized for.</summary>
     private const int TargetCoverDays = 30;
@@ -163,10 +163,16 @@ public class BottleneckSummaryService
     private static IEnumerable<Observation> PrintObservations(
         IReadOnlyList<ItemBandwidth> prints, bool reactions)
     {
+        // ⚠️ Contention above zero is the entry test, not queued work. A print that has never
+        // once had every copy busy is not what is holding its product up — the queue behind it
+        // is inherited from further up the chain, and buying another copy of something that has
+        // sat idle for ninety days changes nothing at all.
         var blocking = prints
-            .Where(p => p.IsReaction == reactions && (p.BlockedNow > 0 || p.StalledTasks > 0))
-            .OrderByDescending(p => p.StalledTasks)
-            .ThenByDescending(p => p.ContentionPercent)
+            .Where(p => p.IsReaction == reactions
+                     && p.ContentionPercent > 0
+                     && (p.BlockedNow > 0 || p.StalledTasks > 0))
+            .OrderByDescending(p => p.ContentionPercent)
+            .ThenByDescending(p => p.StalledTasks)
             .ToList();
         if (blocking.Count == 0) yield break;
 
@@ -178,10 +184,12 @@ public class BottleneckSummaryService
         yield return new Observation(
             reactions ? "formulas" : "prints",
             blocking.Sum(p => p.StalledTasks) + held,
-            $"{blocking.Count:N0} {thing} are the ceiling, not the slots",
-            $"{blocking.Count:N0} {thing} have work queued behind what they make"
+            $"{blocking.Count:N0} {thing} cap their own output",
+            // ⚠️ No claim about slots. Saying "the ceiling, not the slots" is false where every
+            // slot is full as well: buying the copy would not start the job either.
+            $"{blocking.Count:N0} {thing} have spent real time with every copy busy at once"
           + (held > 0 ? $", and {held:N0} job(s) cannot start for want of a free one" : "")
-          + ". A second copy doubles that product's rate outright, which no amount of slots does."
+          + ". A second copy doubles that product's rate outright."
           + (blocking.Count > MaxNamed
               ? $" The worst {MaxNamed} are below; the rest are on the BPO / Formula tab."
               : ""),
@@ -210,7 +218,7 @@ public class BottleneckSummaryService
         yield return new Observation(
             "materials",
             real.Sum(s => s.StalledTasks),
-            $"{real.Count:N0} material(s) are stopping work outright",
+            $"{real.Count:N0} item(s) are stopping work outright",
             $"{real.Sum(s => s.BlockedTasks):N0} job(s) are short of something nobody owns enough "
           + $"of, holding up {real.Sum(s => s.StalledTasks):N0} task(s) in all. "
           + (noLevel > 0
@@ -249,8 +257,12 @@ public class BottleneckSummaryService
             .Where(t => t > 0)
             .ToHashSet();
 
+        // ⚠️ Only what is actually bought. Anything the pipeline can make raises a JOB when it
+        // runs short, not a purchase, so listing buildables here told the reader to go shopping
+        // for something the plan already intends to build. Item Contention draws the same line
+        // when it says "Buy now" only where nothing here makes it.
         var missing = shortages
-            .Where(s => s.BlockedTasks > 0 && !onOrder.Contains(s.TypeId))
+            .Where(s => s.BlockedTasks > 0 && !s.Buildable && !onOrder.Contains(s.TypeId))
             .OrderByDescending(s => s.StalledTasks)
             .ThenByDescending(s => s.BlockedTasks)
             .ToList();
@@ -259,17 +271,14 @@ public class BottleneckSummaryService
         yield return new Observation(
             "buying",
             missing.Sum(s => s.StalledTasks),
-            $"{missing.Count:N0} material(s) are stopping work with nothing on order",
-            $"{missing.Sum(s => s.BlockedTasks):N0} job(s) are short of these and no buy task has "
-          + "been raised for any of them, so nothing is on its way. They are holding up "
+            $"{missing.Count:N0} bought item(s) are stopping work with nothing on order",
+            $"{missing.Sum(s => s.BlockedTasks):N0} job(s) are short of these. Nothing here makes "
+          + "them, so a purchase is the only thing that starts those jobs, and no buy task has "
+          + $"been raised for any of them. They are holding up "
           + $"{missing.Sum(s => s.StalledTasks):N0} task(s) in all."
           + (missing.Count > MaxNamed ? $" The worst {MaxNamed} are below." : ""),
             [.. missing.Take(MaxNamed).Select(s =>
-                $"{s.Name}: {s.BlockedTasks:N0} job(s) short"
-              + (s.Buildable
-                  ? ", buildable here as well as buyable"
-                  : ", buy only — nothing here makes it")
-              + $". Drawn on {s.UsedPerDay:N1}/day"
+                $"{s.Name}: {s.BlockedTasks:N0} job(s) short, drawn on {s.UsedPerDay:N1}/day"
               + (s.Level > 0 ? $" against a level of {s.Level:N0}." : " with no level set."))]);
     }
 
@@ -290,26 +299,35 @@ public class BottleneckSummaryService
             .OrderByDescending(s => s.UsedPerDay)
             .ToList();
 
+        // ⚠️ The test is whether the LEVEL is too small, not whether today is short. Titanium
+        // Carbide at 20,000,000 already carries 35 days and was short by a tenth of its level
+        // during a wave — a buffer doing its job, and it headed the list because the shortfall
+        // was large in absolute units. Ranked by how far short the level is of the draw it has
+        // to cover, so a level under half of what it needs beats one that is a tenth light.
         var thin = shortages
-            .Where(s => s.BlockedTasks > 0 && s.Level > 0 && s.Need > s.OnHand)
-            .OrderByDescending(s => s.Need - s.OnHand)
+            .Where(s => s.BlockedTasks > 0
+                     && s.Level > 0
+                     && s.UsedPerDay > 0
+                     && s.UsedPerDay * TargetCoverDays > s.Level)
+            .OrderByDescending(s => s.UsedPerDay * TargetCoverDays / s.Level)
             .ToList();
 
         if (unset.Count == 0 && thin.Count == 0) yield break;
 
         var points = new List<string>();
 
-        foreach (var s in unset.Take(MaxNamed / 2))
+        foreach (var s in unset.Take(MaxNamed))
             points.Add(
                 $"SET a level for {s.Name}: drawn on {s.UsedPerDay:N1}/day with nothing set "
               + $"aside, {s.BlockedTasks:N0} job(s) stopped. "
               + $"{Suggest(s)} would carry {TargetCoverDays} days at the current rate.");
 
-        foreach (var s in thin.Take(MaxNamed / 2))
+        foreach (var s in thin.Take(MaxNamed))
             points.Add(
-                $"RAISE the level on {s.Name}: {s.Level:N0} covers {s.DaysOfCover:N0} day(s) of "
-              + $"ordinary draw, and the work in front of it wants {s.Need - s.OnHand:N0} more "
-              + $"than exists. {Suggest(s)} would carry {TargetCoverDays} days.");
+                $"RAISE the level on {s.Name}: {s.Level:N0} carries only {s.DaysOfCover:N0} day(s) "
+              + $"at {s.UsedPerDay:N1}/day, and {s.BlockedTasks:N0} job(s) are stopped on it. "
+              + $"{Suggest(s)} would carry {TargetCoverDays} days — "
+              + $"{s.UsedPerDay * TargetCoverDays / s.Level:N1}x the level set now.");
 
         yield return new Observation(
             "levels",
@@ -320,8 +338,8 @@ public class BottleneckSummaryService
                 + "there is no cushion by construction. "
                 : "")
           + (thin.Count > 0
-                ? $"{thin.Count:N0} have a level that is met and still not enough for the work in "
-                + "front of it. "
+                ? $"{thin.Count:N0} have a level smaller than the draw it has to cover, so it "
+                + "empties faster than it can be refilled. "
                 : "")
           + "A buffer is a length of time, not a quantity, so the figures below are what "
           + $"{TargetCoverDays} days of the current draw would take.",
@@ -357,16 +375,10 @@ public class BottleneckSummaryService
           + (shared.Count > 0
               ? $"{shared.Count:N0} single deliveries would each restart more than one job."
               : ""),
-            // The shared trips first: one of these is worth more than the worst single job.
-            [.. shared.Take(MaxNamed / 2).Select(h => h.Line),
-             .. hauls.Where(h => h.StalledTasks > 0)
-                     .OrderByDescending(h => h.StalledTasks)
-                     .ThenByDescending(h => h.Volume)
-                     .Take(MaxNamed / 2)
-                     .Select(h =>
-                $"{h.Title} at {h.StationName}: {h.Volume:N0} m3 from "
-              + (h.Sources == 1 ? "one place" : $"{h.Sources:N0} places")
-              + (h.HaulTasks > 0 ? $", {h.HaulTasks:N0} haul(s) raised." : ", nothing moving."))]);
+            // ⚠️ Trips only. The single stopped jobs were listed underneath and read as more
+            // hauls, when they are the Hauling grid restated — this finding exists to say which
+            // ONE delivery is worth making, and a list of jobs is not that.
+            [.. shared.Take(MaxNamed).Select(h => h.Line)]);
     }
 
     private static string Pool(IndustryPool p) => p switch

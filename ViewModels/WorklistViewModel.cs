@@ -1743,6 +1743,11 @@ public class WorklistViewModel : ReactiveObject
                     : string.Join("  ·  ", failed.Select(f => $"{f.DisplayName}: {f.Error}"));
                 this.RaisePropertyChanged(nameof(HasErrors));
             });
+
+            // ⚠️ Built with the run, not on a button. Everything it reads is already in memory
+            // and the whole pass costs no measurable time, so making the reader press Refresh to
+            // see an empty tab fill in was a step that existed only because nothing called it.
+            await RefreshBottlenecksAsync();
         }
         catch (Exception ex)
         {
