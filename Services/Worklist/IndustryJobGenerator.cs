@@ -798,15 +798,28 @@ public class IndustryJobGenerator(
                         // for another visit only when something was planned is what stops the
                         // picker returning to the same item forever.
                         //
-                        // ⚠️ Blocked runs excluded. A row saying "these 40 runs have no material"
-                        // fills no shelf and consumes nothing; counting it as progress would
-                        // credit an item for work nobody can do, and send the next real job to
-                        // whoever looks emptiest AFTER that fiction.
+                        // ⚠️ Accounted for either way, credited only if it will happen. These are
+                        // two different questions and they were answered by one branch.
+                        //
+                        // Planned is what raises coverage, so a row saying "these 40 runs have no
+                        // material" must not move it: crediting work nobody can do sends the next
+                        // real job to whoever looks emptiest AFTER that fiction.
+                        //
+                        // ⚠️ Remaining is not that. It is what is still UNREPORTED, and a blocked
+                        // row has reported its units — they are on the list, with a reason. Leaving
+                        // them in brought the picker back to the same item to describe the identical
+                        // remainder again: one Capital Clone Vat Bay shortfall put "12 run(s)" and
+                        // "140 run(s)" under sequence 240 and the very same pair under 250. The
+                        // jobs in this list have to add up to what is being asked for.
+                        var accounted = (long)runs * Math.Max(1, product.Quantity);
+                        state.Remaining -= accounted;
+
                         if (readiness != WorklistReadiness.Blocked)
                         {
-                            var madeUnits = (long)runs * Math.Max(1, product.Quantity);
-                            state.Planned     += madeUnits;
-                            state.Remaining   -= madeUnits;
+                            state.Planned += accounted;
+
+                            // Another visit only where something real happened. An item whose
+                            // whole remainder came back blocked has had its say.
                             if (state.Remaining > 0) state.Done = false;
                         }
                     }
@@ -925,6 +938,13 @@ public class IndustryJobGenerator(
                         var last = piece >= MaxUnprintedRows;
                         var runs = last ? left : Math.Min(left, refCap);
                         var over = last && runs > refCap;
+
+                        // ⚠️ Reported, therefore accounted for. This block touched nothing on the
+                        // plan state at all, so its runs stayed outstanding and every later visit
+                        // emitted them again — the same "12 run(s)" and "140 run(s)" once per pass,
+                        // and then a third time as a bare "152 needed" once every print was
+                        // committed. Not credited to Planned: no print means no shelf.
+                        state.Remaining -= runs * (long)Math.Max(1, product.Quantity);
 
                         items.Add(new WorklistItem
                         {
