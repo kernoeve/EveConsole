@@ -794,7 +794,8 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Created on" Binding="{Binding Created}" Width="90" />
+                  <DataGridTextColumn Header="Created on" Binding="{Binding Created}"
+                                      SortMemberPath="CreatedSort" Width="90" />
                   <DataGridTextColumn Header="Item"       Binding="{Binding Item}"    Width="*" />
                   <!-- Sorted on the number, shown with separators: 9 sorts below 50, which it
                        would not if the column sorted the text it displays. -->

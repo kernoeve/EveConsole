@@ -1249,13 +1249,12 @@ public class OverviewViewModel : ReactiveObject
                     .Where(t => typeIds.Contains(t.TypeId))
                     .ToDictionaryAsync(t => t.TypeId, t => t.Name);
 
-                // Soonest promised first: this is a list of what is still owed. Undated orders
-                // sort last rather than as blank-is-earliest, which grouped the ones nobody had
-                // answered at the top pretending to be the most urgent.
+                // Newest first. Ordered on the tick count rather than the displayed date, which
+                // is day-resolution only and would leave same-day orders in whatever sequence
+                // the query happened to return them.
                 return open
                     .Select(o => new OrderSummaryRowVm(o, names.GetValueOrDefault(o.TypeId, "")))
-                    .OrderBy(v => v.EstSortKey, StringComparer.Ordinal)
-                    .ThenBy(v => v.Created,     StringComparer.Ordinal)
+                    .OrderByDescending(v => v.CreatedSort)
                     .ToList();
             });
 

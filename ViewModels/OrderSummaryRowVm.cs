@@ -17,6 +17,12 @@ public class OrderSummaryRowVm(TrackedOrder o, string itemName)
     /// tracker is the one people check against.</summary>
     public string Created  => o.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd");
 
+    /// <summary>⚠️ Sorting key for Created, because the column only shows the DATE. Several
+    /// orders placed on the same day are indistinguishable to the displayed text, so ordering
+    /// on it shuffles them arbitrarily; this keeps the real sequence. The Order Tracker keys
+    /// its own created column the same way.</summary>
+    public long CreatedSort => o.CreatedAt.UtcTicks;
+
     /// <summary>What the buyer quotes back. Empty on an order entered by hand.</summary>
     public string Ref      => o.OrderRef;
 
