@@ -335,18 +335,31 @@ public class IndustryJobGenerator(
         int OwnLive(PlanState s)
         {
             var own = s.Demand.OwnPriority;
-            if (own >= WorklistPriority.OrderDriven) return own;
-            if (own <= WorklistPriority.Housekeeping) return own;
 
-            // ⚠️ Against everything asked of the item, which is what Coverage already measures —
-            // not against the shelf level alone. Most of what an item like Pressurized Oxidizers
-            // owes is parent-driven, so its accounted units pass the shelf level long before the
-            // rows run out: the percentage pinned at 100 and every remaining row came out at
-            // ForStock(100), the floor. It moved from 71 to 40 and then sat there.
+            // An order's band is not a shelf measurement and does not decay with stock; it
+            // expires through orderStillShort instead.
+            if (own >= WorklistPriority.OrderDriven) return own;
+
+            // No shelf rule covers this item, so there is no band for it to sit in.
+            var level = s.Demand.ShelfLevel;
+            if (level <= 0) return own;
+
+            // ⚠️ THE SHELF IS FILLED LAST. Stock on hand and in build is allocated to the orders
+            // and jobs that consume this item first; only what survives that is on the shelf.
             //
-            // Sharing Coverage's measure also means the number in the prio column tracks the one
-            // in the cover column beside it, which is what makes the ordering legible.
-            var pct = Math.Clamp(Coverage(s) * 100.0, 0.0, 100.0);
+            // 561 Capital Ship Maintenance Bays against a level of 500 reads as full until you
+            // notice the capitals above want far more than 561 of them. Every one is spoken for,
+            // the shelf holds none — and because the rule was evaluated on the raw figure it
+            // declined to fire, so the item never received a band at all and fell to
+            // Housekeeping with all of that work still in front of it.
+            //
+            // Measured here rather than at the rule, because what the jobs above consume is only
+            // known once the tree has been walked, and by then the rule has already been asked.
+            var accounted = s.Demand.Units - s.Remaining;
+            var consuming = s.Demand.OrderUnits + s.Demand.ParentUnits;
+            var onShelf   = Math.Max(0, s.Demand.ShelfHave + accounted - consuming);
+
+            var pct = Math.Clamp(100.0 * onShelf / level, 0.0, 100.0);
 
             return s.Demand.IsFinal
                 ? WorklistPriority.ForFinalStock(pct)
