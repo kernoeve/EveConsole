@@ -55,7 +55,7 @@ public class BottleneckSummaryService
         found.AddRange(SlotObservations(items, slots, index));
         found.AddRange(PrintObservations(prints, reactions: false));
         found.AddRange(PrintObservations(prints, reactions: true));
-        found.AddRange(BuyObservations(items, shortages));
+        found.AddRange(BuyObservations(items, index));
         found.AddRange(LevelObservations(shortages));
         found.AddRange(HaulObservations(hauls));
 
@@ -170,31 +170,41 @@ public class BottleneckSummaryService
 
     // ── Buying ────────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// What to buy, taken from the worklist's own purchase tasks.
+    ///
+    /// <para>⚠️ Derived from the Buy tasks rather than from Item Contention's shortages, because
+    /// the two answer different questions and the summary must not contradict the list it
+    /// summarises. Contention's MustBuy is a per-job, sequential test — each planned job reserves
+    /// its materials and a later one that cannot get its share is marked short — so it fires
+    /// when the plan's cumulative appetite exceeds stock, not when a shelf is empty. It told the
+    /// reader to buy 40,698 Tungsten while 226,037 sat on hand against a level of 200,100, and
+    /// the worklist raised no task for it, correctly.</para>
+    ///
+    /// <para>MaterialPurchaseGenerator is the component that decides purchases: one pooled plan,
+    /// netted against all supply, with orders already placed and material in production taken
+    /// off. Anything it did not raise is not a purchase.</para>
+    /// </summary>
     private static IEnumerable<Observation> BuyObservations(
-        IReadOnlyList<WorklistItem> items, IReadOnlyList<ItemShortage> shortages)
+        IReadOnlyList<WorklistItem> items,
+        Dictionary<int, List<(WorklistItem Item, WorklistShortage Short)>> index)
     {
-        var onOrder = items
-            .Where(i => i.Kind == WorklistKind.Buy)
-            .SelectMany(i => i.Lines.Count > 0 ? i.Lines.Select(l => l.TypeId) : new[] { i.TypeId })
-            .Where(t => t > 0)
-            .ToHashSet();
-
-        // Buy-only, stopping work, and nothing on its way — neither a task nor a standing bid.
-        var missing = shortages
-            .Where(s => s.BlockedTasks > 0 && !s.Buildable
-                     && !s.Ordered && !onOrder.Contains(s.TypeId))
-            .OrderByDescending(s => s.StalledTasks)
+        var buys = items
+            .Where(i => i.Kind == WorklistKind.Buy && i.Title.Length > 0)
+            .Select(i => (Item: i, Stalled: i.TypeId > 0 ? TaskChain.Stalled(index, i.TypeId) : []))
+            .OrderByDescending(x => x.Stalled.Count)
+            .ThenByDescending(x => x.Item.Priority)
             .ToList();
-        if (missing.Count == 0) yield break;
+        if (buys.Count == 0) yield break;
 
         yield return new Observation(
             "buying",
-            DistinctStopped(missing.Select(s => s.Tasks ?? [])),
-            $"Place {missing.Count:N0} buy order(s)",
-            More(missing.Count),
-            [.. missing.Take(MaxNamed).Select(s =>
-                $"{s.Name} — buy {s.TotalShort:N0}"
-              + (s.OnOrder > 0 ? $" (raise the bid; {s.OnOrder:N0} already on order)" : ""))]);
+            DistinctStopped(buys.Select(x => (IEnumerable<ShortageTask>)x.Stalled)),
+            $"Place {buys.Count:N0} buy order(s)",
+            More(buys.Count),
+            [.. buys.Take(MaxNamed).Select(x =>
+                x.Item.Title
+              + (x.Stalled.Count > 0 ? $" — unblocks {x.Stalled.Count:N0} task(s)" : ""))]);
     }
 
     // ── Buffers ───────────────────────────────────────────────────────────────
