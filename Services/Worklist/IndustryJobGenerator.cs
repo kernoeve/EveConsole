@@ -318,6 +318,37 @@ public class IndustryJobGenerator(
             return (int)Math.Ceiling(n * starving);
         }
 
+        // What the item's OWN shelf justifies, measured where that shelf stands NOW.
+        //
+        // ⚠️ OwnPriority is stamped once, during the demand walk, from the coverage the item had
+        // before anything was planned. It was the last key here still frozen: an item that fell
+        // out of the serving band settled on whatever number its coverage bought at that moment
+        // and held it for every remaining row, so its jobs arrived as a block at 78, or at 71,
+        // instead of sliding down the band as the shelf filled and letting other items in
+        // between. Recomputing it is what lets several items rise together rather than one
+        // running to completion first.
+        //
+        // Two bands are deliberately left alone. An order's is not a shelf measurement and does
+        // not decay with stock — it expires through orderStillShort instead. Housekeeping means
+        // the rule declined to fire at all, and an item whose shelf is comfortably full has no
+        // claim to the bottom of the stock band either.
+        int OwnLive(PlanState s)
+        {
+            var own = s.Demand.OwnPriority;
+            if (own >= WorklistPriority.OrderDriven) return own;
+            if (own <= WorklistPriority.Housekeeping) return own;
+
+            var level = s.Demand.ShelfLevel;
+            if (level <= 0) return own;
+
+            var accounted = s.Demand.Units - s.Remaining;
+            var pct = Math.Clamp(100.0 * (s.Demand.ShelfHave + accounted) / level, 0.0, 100.0);
+
+            return s.Demand.IsFinal
+                ? WorklistPriority.ForFinalStock(pct)
+                : WorklistPriority.ForStock(pct);
+        }
+
         // What this item is worth to the most urgent thing STILL waiting on it.
         //
         // ⚠️ Re-evaluated every pass, like coverage and the blocked counts. Priority is stamped
@@ -367,7 +398,7 @@ public class IndustryJobGenerator(
             // on it and nineteen tasks stopped behind it. The neurolink chain feeds every
             // capital hull we build; it is the biggest bottleneck on the board and it was at the
             // floor, beneath work blocking nothing, because no customer had ordered it by name.
-            var best = s.Demand.OwnPriority;
+            var best = OwnLive(s);
 
             foreach (var t in s.Demand.Dependents)
             {
@@ -378,7 +409,7 @@ public class IndustryJobGenerator(
                 // still asking for something IS the inherited value — computed here, every pass,
                 // rather than read from a number stamped in whatever order the walk happened to
                 // visit things. That stamp is why priority stopped partway down a deep tree.
-                var candidate = dep.Demand.OwnPriority;
+                var candidate = OwnLive(dep);
 
                 if (candidate >= WorklistPriority.OrderDriven)
                 {
