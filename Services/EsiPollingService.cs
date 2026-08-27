@@ -2376,6 +2376,19 @@ public class EsiPollingService : ReactiveObject
         if (!r.IsSuccess) return FromResult(r);
 
         var roots = ComputeRootLocations(r.Data!);
+
+        // ⚠️ Delete and replace in ONE transaction, exactly as FetchAssetsAsync does for a
+        // character — and for the same reason, which this side went without until it bit.
+        // ExecuteDeleteAsync commits on its own, so between the two statements the corp owns
+        // nothing at all as far as the database is concerned.
+        //
+        // Measured: every standing delivery project reported "project not active" at once.
+        // A delivery project names an office_id, and the lookup from office to station is
+        // built from these very rows (TypeId 27); a read landing in the gap found no offices,
+        // so no delivery config resolved to a station and none of them matched. Nothing was
+        // wrong with the projects — the app had briefly lost the ability to recognise them.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
         await db.EsiAssets
             .Where(a => a.OwnerId == corpId && a.OwnerType == "corporation")
             .ExecuteDeleteAsync(ct);
@@ -2396,6 +2409,7 @@ public class EsiPollingService : ReactiveObject
             RootLocationType = roots[a.ItemId].RootType,
         }));
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
 
         // Corp offices (OfficeFolder, TypeId=27) and SAG divisions appear as items in the
         // asset list with their own ItemId > 1T. A LocationId > 1T is the actual structure
@@ -2426,6 +2440,12 @@ public class EsiPollingService : ReactiveObject
             corpId, $"corporations/{corpId}/blueprints/", ct);
         if (!r.IsSuccess) return FromResult(r);
 
+        // ⚠️ The same delete-then-insert window as the assets above. Blueprint supply nets job
+        // and shelf demand against what is owned by reading EsiBlueprints and EsiAssets
+        // together, so an empty moment here reads as "we own none of it" and would raise a
+        // purchase for prints already sitting in the hangar.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
         await db.EsiBlueprints
             .Where(b => b.OwnerId == corpId && b.OwnerType == "corporation")
             .ExecuteDeleteAsync(ct);
@@ -2444,6 +2464,7 @@ public class EsiPollingService : ReactiveObject
             Runs               = b.Runs,
         }));
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return FromResult(r);
     }
 
