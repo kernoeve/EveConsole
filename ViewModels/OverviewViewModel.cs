@@ -338,6 +338,12 @@ public class OverviewViewModel : ReactiveObject
     public bool HasStandingBuyOrders { get => _hasStandingBuyOrders; private set => this.RaiseAndSetIfChanged(ref _hasStandingBuyOrders, value); }
     public bool NoStandingBuyOrders  => !HasStandingBuyOrders;
 
+    // Orders — every outstanding order, across all stores and the hand-entered ones.
+    public ObservableCollection<OrderSummaryRowVm> Orders { get; } = [];
+    private bool _hasOrders;
+    public bool HasOrders { get => _hasOrders; private set => this.RaiseAndSetIfChanged(ref _hasOrders, value); }
+    public bool NoOrders  => !HasOrders;
+
     // ── Loading state ─────────────────────────────────────────────────────────
     private bool _isLoading;
     public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
@@ -354,6 +360,7 @@ public class OverviewViewModel : ReactiveObject
     public Action?          NavigateToStandingProjects              { get; set; }
     public Action?          NavigateToStandingBuyOrders             { get; set; }
     public Action?          NavigateToIndustryJobs                  { get; set; }
+    public Action?          NavigateToOrderTracker                  { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
     public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
     public Action?          OpenAlertSettingsRequested              { get; set; }  // Settings ▸ Alerts
@@ -879,6 +886,9 @@ public class OverviewViewModel : ReactiveObject
             Step("Standing buy orders");
             await LoadStandingBuyOrdersAsync();
 
+            Step("Orders");
+            await LoadOrdersAsync();
+
             // ── Wallet journal — pie chart categorisation ──────────────────────
             Step("Loading journal data");
             // Group by RefType in SQL with date filter — avoids loading all rows.
@@ -1200,6 +1210,63 @@ public class OverviewViewModel : ReactiveObject
     }
 
     // ── Standing buy orders ───────────────────────────────────────────────────
+    /// <summary>
+    /// Outstanding orders, across every store and the ones entered by hand.
+    ///
+    /// <para>Active only, meaning Status "pending" — the same definition the Order Tracker's
+    /// default filter and the Stores tab both use, so the three cannot disagree about what is
+    /// still open.</para>
+    /// </summary>
+    private async Task LoadOrdersAsync()
+    {
+        bool enabled = _dbFactory is not null
+                    && _layout.Sections.Any(s => s.Key == "Orders" && s.Enabled);
+        if (!enabled)
+        {
+            Orders.Clear();
+            HasOrders = false;
+            this.RaisePropertyChanged(nameof(NoOrders));
+            return;
+        }
+
+        try
+        {
+            // ⚠️ Off() like every other section. This is two queries against a table that grows
+            // with every order ever placed; run inline they land on the UI thread and show up as
+            // a hitch on every overview refresh.
+            var rows = await Off(async () =>
+            {
+                await using var db = await _dbFactory!.CreateDbContextAsync();
+
+                // ⚠️ Only Status is pushed into SQL. CreatedAt is a DateTimeOffset, which EF
+                // cannot translate against SQLite, so the ordering below happens in memory.
+                var open = await db.TrackedOrders.AsNoTracking()
+                    .Where(o => o.Status == "pending")
+                    .ToListAsync();
+
+                var typeIds = open.Select(o => o.TypeId).Distinct().ToList();
+                var names = await db.SdeTypes.AsNoTracking()
+                    .Where(t => typeIds.Contains(t.TypeId))
+                    .ToDictionaryAsync(t => t.TypeId, t => t.Name);
+
+                // Soonest promised first: this is a list of what is still owed. Undated orders
+                // sort last rather than as blank-is-earliest, which grouped the ones nobody had
+                // answered at the top pretending to be the most urgent.
+                return open
+                    .Select(o => new OrderSummaryRowVm(o, names.GetValueOrDefault(o.TypeId, "")))
+                    .OrderBy(v => v.EstSortKey, StringComparer.Ordinal)
+                    .ThenBy(v => v.Created,     StringComparer.Ordinal)
+                    .ToList();
+            });
+
+            Orders.Clear();
+            foreach (var vm in rows) Orders.Add(vm);
+            HasOrders = Orders.Count > 0;
+            this.RaisePropertyChanged(nameof(NoOrders));
+        }
+        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadOrders", ex); }
+    }
+
     private async Task LoadStandingBuyOrdersAsync()
     {
         bool enabled = _standingBuyOrders is not null

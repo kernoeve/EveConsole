@@ -587,6 +587,7 @@ public class MainWindowViewModel : ReactiveObject
         };
         OverviewVm.NavigateToStandingBuyOrders = () => OpenTool("standing_buy_orders");
         OverviewVm.NavigateToIndustryJobs      = () => OpenTool("industry");
+        OverviewVm.NavigateToOrderTracker      = () => OpenTool("order_tracker");
         OverviewVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");

@@ -66,51 +66,6 @@ public class StoreMailRowVm(StoreMail m)
     public bool IsProblem => m.Outcome is "rejected" or "error" or "failed";
 }
 
-/// <summary>
-/// One order this store is still working on.
-///
-/// <para>Read-only, like everything else on this screen. An order is edited in the Order Tracker
-/// and nowhere else; this is the same rows seen from the shop's end, so a store can be looked at
-/// without having to filter the tracker down to it first.</para>
-/// </summary>
-public class StoreOrderRowVm(TrackedOrder o, string itemName)
-{
-    /// <summary>⚠️ The Order Tracker's format, off the same field, deliberately. Two screens
-    /// showing the same order under different dates is a bug report waiting to happen, and the
-    /// tracker is the one people check against.</summary>
-    public string Created  => o.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd");
-
-    /// <summary>What the buyer quotes back, and what ties this row to the Messages log below
-    /// it. Empty on an order entered by hand.</summary>
-    public string Ref      => o.OrderRef;
-
-    public string Item     => itemName.Length > 0 ? itemName : $"Type {o.TypeId}";
-    public int    Units    => o.Units;
-    public string UnitsText => o.Units.ToString("N0");
-    public string Buyer    => o.Buyer.Length > 0 ? o.Buyer : "";
-
-    /// <summary>Blank when nobody has estimated one yet — which is itself worth seeing, since an
-    /// order with no date is one the buyer has been told nothing about.</summary>
-    public string EstDate  => o.EstimatedDate is { Length: > 0 } d ? d : "";
-
-    public string Status   => o.Status.Length > 0
-                            ? char.ToUpper(o.Status[0]) + o.Status[1..]
-                            : o.Status;
-
-    /// <summary>Where the units are expected to come from. The column that actually moves while
-    /// an order is open — Status reads "Pending" on every row here by definition.</summary>
-    public string Source   => o.FulfilmentSource switch
-    {
-        OrderFulfilmentService.SourceStock    => "Stock",
-        OrderFulfilmentService.SourceJob      => "In production",
-        OrderFulfilmentService.SourceContract => "Contracted",
-        _                                     => "Unsourced",
-    };
-
-    /// <summary>An open order with nothing behind it and no date promised: the row to look at.</summary>
-    public bool IsUnsourced => o.FulfilmentSource.Length == 0;
-}
-
 /// <summary>One allow-list entry.</summary>
 public class StoreSenderRowVm(StoreSender s)
 {
@@ -141,7 +96,7 @@ public class StoresViewModel : ReactiveObject
 
     public ObservableCollection<StoreRowVm>       Stores  { get; } = [];
     public ObservableCollection<StoreMailRowVm>   Mails   { get; } = [];
-    public ObservableCollection<StoreOrderRowVm>  Orders  { get; } = [];
+    public ObservableCollection<OrderSummaryRowVm> Orders { get; } = [];
     public ObservableCollection<StoreSenderRowVm> Senders { get; } = [];
 
     /// <summary>Characters we hold a token for — the only ones that can be a shop's address.</summary>
@@ -694,7 +649,7 @@ public class StoresViewModel : ReactiveObject
                 .OrderBy(o => o.EstimatedDate is { Length: > 0 } ? 0 : 1)
                 .ThenBy(o => o.EstimatedDate, StringComparer.Ordinal)
                 .ThenBy(o => o.CreatedAt)
-                .Select(o => new StoreOrderRowVm(
+                .Select(o => new OrderSummaryRowVm(
                     o, orderTypeNames.GetValueOrDefault(o.TypeId, "")))
                 .ToList();
 
