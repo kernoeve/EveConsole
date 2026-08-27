@@ -25,9 +25,12 @@ namespace EveConsole.Services.Worklist;
 /// from a rule flagged final. A whole band above every other kind of stock-keeping, and below
 /// everything operational, so a hull is never queued behind a routine top-up but never ahead of
 /// an order either.</item>
-/// <item><b>Stock-keeping (40–80)</b> — scaled by how empty the shelf is, so a group at 25% of
-/// target outranks one at 75%. Capped below the fixed bands: keeping a stockpile full matters,
-/// but not more than an order someone is waiting for.</item>
+/// <item><b>Serving a final product (80)</b> — a component something sellable is waiting on.
+/// The ONLY way a non-final item reaches this: it is earned from above, never from an empty
+/// shelf of its own.</item>
+/// <item><b>Stock-keeping (40–79)</b> — scaled by how empty the shelf is, so a group at 25% of
+/// target outranks one at 75%. Strictly below the band above, because backfilling a shelf is
+/// not making something we sell however empty the shelf has got.</item>
 /// <item><b>Housekeeping (30)</b> — real but not urgent, such as an order nearing expiry.</item>
 /// </list>
 /// </summary>
@@ -102,7 +105,12 @@ public static class WorklistPriority
     public const int HaulSurplus = 25;
 
     private const int StockFloor = 40;
-    private const int StockRange = 40;   // so a full shelf scores 40 and an empty one 80
+
+    /// ⚠️ 39, not 40, so an empty shelf tops out at 79 and can never reach ServesOther. An
+    /// item is worth 80 because something sellable waits on it, and five structure parts
+    /// nobody has asked for used to score exactly the same as a component gating a titan.
+    /// Backfilling the shelf is what belongs at the end of the list.
+    private const int StockRange = 39;   // a full shelf scores 40 and an empty one 79
 
     /// <summary>
     /// The most an item can score for serving something else, as opposed to being wanted in its
@@ -114,12 +122,17 @@ public static class WorklistPriority
     /// chains feed every capital built here, that put eight hundred rows on one value and sorted
     /// final products beneath their own parts.</para>
     ///
-    /// <para>A hull is therefore always above everything that feeds it, and the chain still
-    /// clears every ordinary top-up that is not completely empty. Ordering WITHIN the chain is
-    /// what the blocked counts and coverage are for; priority was never going to separate eight
-    /// hundred components from each other.</para>
+    /// <para>A hull is therefore always above everything that feeds it, and the chain clears
+    /// every top-up, since stock-keeping now stops at 79. Ordering WITHIN the chain is what the
+    /// blocked counts and coverage are for; priority was never going to separate eight hundred
+    /// components from each other.</para>
+    ///
+    /// <para>⚠️ Earned from above only. A final product scores 81–84 and is capped to this on
+    /// the way down, so 80 means "something sellable is waiting on me". An ancestor that is
+    /// itself only filling a shelf scores 79 or less and passes down less than that — which is
+    /// what keeps backfill out of this band without needing a rule of its own.</para>
     /// </summary>
-    public const int ServesOther = StockFloor + StockRange;   // 80
+    public const int ServesOther = 80;
 
     // Final products sit in their own band directly above stock-keeping. Narrow on purpose:
     // every one of them has to outrank every ordinary top-up, and none of them may reach
