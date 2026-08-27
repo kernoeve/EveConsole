@@ -353,7 +353,15 @@ public class IndustryJobGenerator(
             // work does not get to keep the priority the chain conferred, or twenty reaction
             // jobs rebuilding a stockpile sit level with the parts a titan is waiting for.
             var forParents = s.Demand.ParentUnits;
-            var chainStillShort = forParents > 0 && s.Demand.ShelfHave + s.Planned < forParents;
+            // ⚠️ Against ACCOUNTED units, like Coverage — not Planned. This decides an ORDERING
+            // question, and a blocked row has said its part for the chain as much as a startable
+            // one has. Measured on Planned it could never expire on an item whose rows are
+            // blocked, because Planned is exactly what a blocked row does not move: Pressurized
+            // Oxidizers held 80 for its entire run of jobs, and the shelf-refilling tail that
+            // ought to have dropped into the stock band never did.
+            var accountedForChain = s.Demand.Units - s.Remaining;
+            var chainStillShort =
+                forParents > 0 && s.Demand.ShelfHave + accountedForChain < forParents;
 
             // ⚠️ ONLY order urgency expires. Returning OwnPriority outright for anything not
             // order-driven threw away every other kind of inherited priority with it, and an
