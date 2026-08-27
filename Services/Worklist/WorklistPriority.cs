@@ -104,6 +104,23 @@ public static class WorklistPriority
     private const int StockFloor = 40;
     private const int StockRange = 40;   // so a full shelf scores 40 and an empty one 80
 
+    /// <summary>
+    /// The most an item can score for serving something else, as opposed to being wanted in its
+    /// own right.
+    ///
+    /// <para>⚠️ Inherited priority is capped here, one below the final-product band. A component
+    /// that took its parent's own number landed level with the hull it feeds — and above a
+    /// different hull whose shelf happened to be fuller. Since the neurolink and capital-part
+    /// chains feed every capital built here, that put eight hundred rows on one value and sorted
+    /// final products beneath their own parts.</para>
+    ///
+    /// <para>A hull is therefore always above everything that feeds it, and the chain still
+    /// clears every ordinary top-up that is not completely empty. Ordering WITHIN the chain is
+    /// what the blocked counts and coverage are for; priority was never going to separate eight
+    /// hundred components from each other.</para>
+    /// </summary>
+    public const int ServesOther = StockFloor + StockRange;   // 80
+
     // Final products sit in their own band directly above stock-keeping. Narrow on purpose:
     // every one of them has to outrank every ordinary top-up, and none of them may reach
     // StandingProject (85) or anything above it.

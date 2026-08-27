@@ -356,12 +356,22 @@ public class IndustryJobGenerator(
                 // visit things. That stamp is why priority stopped partway down a deep tree.
                 var candidate = dep.Demand.OwnPriority;
 
-                // Order urgency, and only order urgency, lapses once the order-driven portion of
-                // THIS item is fed. Reinforced Carbon Fiber holds 795,615 units: the Ravens and
-                // Apocalypses are satisfied and every further unit is shelf, so it must stop
-                // borrowing their 220. A final product's band is not urgency of that kind and
-                // does not lapse — the hull still wants building.
-                if (candidate >= WorklistPriority.OrderDriven && !orderStillShort) continue;
+                if (candidate >= WorklistPriority.OrderDriven)
+                {
+                    // Order urgency, and only order urgency, lapses once the order-driven portion
+                    // of THIS item is fed. Reinforced Carbon Fiber holds 795,615 units: the Ravens
+                    // and Apocalypses are satisfied and every further unit is shelf, so it must
+                    // stop borrowing their 220. An order carries its whole tree at its own number,
+                    // uncapped, because the whole tree is genuinely that urgent.
+                    if (!orderStillShort) continue;
+                }
+                else
+                {
+                    // ⚠️ Everything else is capped at ServesOther. Serving a hull is worth less
+                    // than being the hull, or the parts sort above the ship and the emptiest hull
+                    // on the board drags every shared component up to its own number.
+                    candidate = Math.Min(candidate, WorklistPriority.ServesOther);
+                }
 
                 if (candidate > best) best = candidate;
             }
