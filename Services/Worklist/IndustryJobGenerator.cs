@@ -338,11 +338,15 @@ public class IndustryJobGenerator(
             if (own >= WorklistPriority.OrderDriven) return own;
             if (own <= WorklistPriority.Housekeeping) return own;
 
-            var level = s.Demand.ShelfLevel;
-            if (level <= 0) return own;
-
-            var accounted = s.Demand.Units - s.Remaining;
-            var pct = Math.Clamp(100.0 * (s.Demand.ShelfHave + accounted) / level, 0.0, 100.0);
+            // ⚠️ Against everything asked of the item, which is what Coverage already measures —
+            // not against the shelf level alone. Most of what an item like Pressurized Oxidizers
+            // owes is parent-driven, so its accounted units pass the shelf level long before the
+            // rows run out: the percentage pinned at 100 and every remaining row came out at
+            // ForStock(100), the floor. It moved from 71 to 40 and then sat there.
+            //
+            // Sharing Coverage's measure also means the number in the prio column tracks the one
+            // in the cover column beside it, which is what makes the ordering legible.
+            var pct = Math.Clamp(Coverage(s) * 100.0, 0.0, 100.0);
 
             return s.Demand.IsFinal
                 ? WorklistPriority.ForFinalStock(pct)
