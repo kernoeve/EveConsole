@@ -518,46 +518,18 @@ public class IndustryJobGenerator(
 
                 var prints = usable.Where(p => !printsCommitted.Contains(p.ItemId)).ToList();
 
-                // ⚠️ A print free in EVE but already spoken for by a job further up this same list
-                // is a different answer from no print at all, and saying "none at this station"
-                // would be a lie the user can see through — they are looking at the job holding it.
-                if (prints.Count == 0 && usable.Count > 0)
-                {
-                    items.Add(Unstartable(d.TypeId, name, priority, pool, d.Units,
-                        $"{head} Build {d.Units:N0} ({runsNeeded:N0} run(s)) at {siteName}.",
-                        usable.Count == 1
-                            ? "The only usable blueprint is already committed to a job above — "
-                            + "another would have to be acquired to run these in parallel"
-                            : $"All {usable.Count:N0} usable blueprints are committed to jobs "
-                            + "above — another would have to be acquired to run these in parallel",
-                        siteId.Value, siteName, onPrint: true));
-                    continue;
-                }
-
-
-                if (prints.Count == 0)
-                {
-                    // Owning one somewhere and owning none at all are different problems. The
-                    // first is a move; the second is a purchase, and saying "buy" when the print
-                    // is one structure away would be the more expensive mistake of the two.
-                    // Acquiring the print is Material Purchases' business — it is one purchase
-                    // however many rules and orders are waiting on it. This row only reports why
-                    // the job cannot run.
-                    var allPrints = printsByType.GetValueOrDefault(product.TypeId, []);
-                    var owned     = IndustryBlueprintService.OwnedAnywhere(allPrints, printOwner);
-
-                    items.Add(Unstartable(d.TypeId, name, priority, pool, d.Units,
-                        $"{head} Build {d.Units:N0} ({runsNeeded:N0} run(s)) at {siteName}.",
-                        owned
-                            ? $"No blueprint at {siteName} — one is owned but elsewhere, held by "
-                              + "another character, or locked in a running job"
-                            // No scope in this wording any more: ownership is now checked across
-                            // every character, so "none owned" means none at all rather than
-                            // none within the material scope.
-                            : "No BPO or BPC owned on any character — one has to be acquired",
-                        siteId.Value, siteName, onPrint: true));
-                    continue;
-                }
+                // ⚠️ Having no usable print is NOT a reason to stop planning. Both of these cases
+                // used to bail out here with a single "N needed" row: no runs, no ME, no sequence,
+                // no sort keys. The work never became jobs at all — Capital Doomsday Weapon Mount
+                // sat as "857 needed" while Capital Clone Vat Bay beside it was properly broken
+                // into runs, purely because one had a free print and the other did not.
+                //
+                // A blueprint is just another thing a job waits on. The split below plans the
+                // whole shortfall against whatever prints exist; with none, every run comes back
+                // unassigned, and the block that handles unassigned runs sizes them against the
+                // print that WOULD be used — the best owned, or the default research level for one
+                // that would be bought — and emits real job rows carrying the reason. That path
+                // already distinguishes "busy in a job", "none free here" and "none owned".
 
                 var split = IndustryJobSplit.Plan(
                     runsNeeded,
@@ -894,6 +866,12 @@ public class IndustryJobGenerator(
                     // has is better than no row at all, and the row says the assumption out loud.
                     var refTe = reference?.Te ?? FullyResearchedTe;
 
+                    // ⚠️ The same default the planner itself uses, not a literal 10. It carries the
+                    // exceptions — titans, supercarriers and Keepstars are ME9, because that is
+                    // where their research stops — so a row for a print nobody owns quotes the
+                    // efficiency the job would really run at.
+                    var refMe = reference?.Me ?? await production.GetDefaultMeAsync(d.TypeId, ct);
+
                     var refSecs = IndustryTimeService.PerRunSeconds(
                         timeCtx, product.TypeId, isReaction, refTe, structure, catKey,
                         eligible[0].Skills);
@@ -950,7 +928,7 @@ public class IndustryJobGenerator(
                         {
                             Key           = $"industry_job:{d.TypeId}:np{piece}",
                             Pool          = pool,
-                            BlueprintMe   = reference?.Me,
+                            BlueprintMe   = refMe,
                             BlueprintTe   = reference?.Te,
                             Source        = Id,
                             Kind          = WorklistKind.Job,
