@@ -862,7 +862,21 @@ public class IndustryJobGenerator(
                 // Blocked, obviously: there is no free blueprint. But blocked and absent are very
                 // different things — the first is work waiting on one purchase or one job
                 // finishing, and the second is invisible.
-                if (split.RunsUnassigned > 0)
+                // ⚠️ Only when this visit planned nothing else. The printed loop above and this
+                // block both ran on every pass, so one visit produced two rows carrying one
+                // sequence and one coverage figure — and because both are capped by the same
+                // job-length arithmetic they came out the same size, reading as a duplicate:
+                // "Genetic Mutation Inhibitor — 1,498 run(s)" twice at sequence 35, identical
+                // down to the volume. Reactions never showed it because a reaction with no free
+                // formula has no printed job to pair with.
+                //
+                // The rest is not lost by waiting: it stays in Remaining, and the visit asks for
+                // another turn. One job, then back to the picker — the same rule as everywhere
+                // else here.
+                if (split.RunsUnassigned > 0 && split.Jobs.Count > 0)
+                    state.Done = false;
+
+                if (split.RunsUnassigned > 0 && split.Jobs.Count == 0)
                 {
                     // The print these runs would use if one were free: the best owned, wherever it
                     // is and whatever it is doing. Its real ME and TE, rather than an assumption —
