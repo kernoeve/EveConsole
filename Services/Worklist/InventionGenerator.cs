@@ -348,7 +348,8 @@ public class InventionGenerator(
                 Detail    = $"{head} {plan.Chance:P1} a run → {plan.SuccessesNeeded:N0} BPC(s) "
                           + $"of {plan.RunsPerBpc} run(s).",
                 Readiness = WorklistReadiness.Blocked,
-                BlockedBy = $"No {recipe.SourceBlueprintName} copy at {lab.Name} to invent from",
+                BlockedBy      = $"No {recipe.SourceBlueprintName} copy at {lab.Name} to invent from",
+                BlockedByPrint = true,
                 LocationId   = lab.Site,
                 LocationName = lab.Name,
                 TypeId    = recipe.ProductTypeId,
@@ -400,8 +401,9 @@ public class InventionGenerator(
                 Detail    = $"{head} Invention needs {plan.CopyRunsNeeded:N0} copy run(s) and "
                           + $"{ownedCopyRuns:N0} are owned.",
                 Readiness = WorklistReadiness.Blocked,
-                BlockedBy = "No BPO owned on any character — one has to be acquired, "
-                          + "or the copies bought outright",
+                BlockedBy      = "No BPO owned on any character — one has to be acquired, "
+                               + "or the copies bought outright",
+                BlockedByPrint = true,
                 TypeId    = recipe.SourceBlueprintTypeId,
                 TypeName  = recipe.SourceBlueprintName,
                 Priority  = priority,

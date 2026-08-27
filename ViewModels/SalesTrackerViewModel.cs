@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive.Linq;
 using Avalonia.Media;
+using EveConsole.Controls;
 using EveConsole.Data;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
@@ -39,12 +40,31 @@ public class SaleRowVm : ReactiveObject
     }
 
     /// <summary>
-    /// The description typed on the contract this sale came from.
+    /// The contract behind this sale, named the way the Order Tracker names it: the description
+    /// typed on it and its id, or just the id when it carries no description.
     ///
-    /// <para>Empty for a market sale, which has nowhere to put one — an order fills against
-    /// whoever is buying and carries no message from either side.</para>
+    /// <para>Empty for a market sale. An order filling against whoever is buying has no contract
+    /// and no message from either side.</para>
     /// </summary>
-    public string Note { get; } = "";
+    public string Contract { get; } = "";
+
+    /// <summary>Whether <see cref="Contract"/> is something the Contracts tool can open.</summary>
+    public bool HasContractLink => Kind == "Contract" && SaleId is > 0 and <= int.MaxValue;
+
+    /// <summary>
+    /// Tags on this sale — the same list orders use, and the same tags where the two share a
+    /// contract. See OrderLabelService.
+    /// </summary>
+    public IReadOnlyList<string> LabelList { get; private set; } = [];
+
+    /// <summary>The same labels as coloured chips, drawn exactly as the Order Tracker draws them.</summary>
+    public List<LabelChip> LabelChips { get; private set; } = [];
+
+    public void SetLabels(IReadOnlyList<string> labels)
+    {
+        LabelList  = labels;
+        LabelChips = LabelPalette.Chips(labels);
+    }
 
     /// <summary>Wallet transaction id for a market sale, contract id for a contract sale.
     /// Unique only together with <see cref="Kind"/>.</summary>
@@ -135,10 +155,15 @@ public class SaleRowVm : ReactiveObject
         string items, string units, double total, double? build, double? market,
         int typeId = 0, string marketGroup = "—", long saleId = 0,
         long locationId = 0, bool locationIsStation = false, long buyerId = 0,
-        EntityKind buyerKind = EntityKind.Pilot, string note = "")
+        EntityKind buyerKind = EntityKind.Pilot, string contractTitle = "")
     {
-        Note        = note;
         SaleId      = saleId;
+
+        // Same shape as the Order Tracker's contract cell, so one contract reads the same
+        // wherever it appears: its own description when it has one, its id when it does not.
+        Contract = kind == "Contract" && saleId > 0
+            ? (contractTitle.Length > 0 ? $"{contractTitle} ({saleId})" : $"Contract {saleId}")
+            : "";
         TypeId      = typeId;
         MarketGroup = marketGroup;
         LocationId        = locationId;
@@ -272,7 +297,17 @@ public class SalesTrackerViewModel : ReactiveObject
     public SalesOwnerOption SelectedOwner
     {
         get => _selectedOwner;
-        set { this.RaiseAndSetIfChanged(ref _selectedOwner, value ?? OwnerOptions[1]); ApplyFilters(); }
+        set
+        {
+            // ⚠️ A null from the control is refused, not defaulted. This view is built from a
+            // DataTemplate in the tab host, so switching tabs detaches the ComboBox and it pushes
+            // SelectedItem=null on the way out. Substituting the default here made that a
+            // one-way door: come back to the tab and the filter had quietly reset to everything.
+            // Re-raising instead tells the rebuilt control what the selection actually is.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _selectedOwner, value);
+            ApplyFilters();
+        }
     }
 
     public IReadOnlyList<SalesTypeOption> SaleTypeOptions { get; } =
@@ -285,7 +320,13 @@ public class SalesTrackerViewModel : ReactiveObject
     public SalesTypeOption SelectedType
     {
         get => _selectedType;
-        set { this.RaiseAndSetIfChanged(ref _selectedType, value ?? SaleTypeOptions[0]); ApplyFilters(); }
+        set
+        {
+            // Same reason as SelectedOwner: a detaching ComboBox must not be able to clear it.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _selectedType, value);
+            ApplyFilters();
+        }
     }
 
     // Cost basis the profit columns / rollups are measured against.
@@ -316,12 +357,15 @@ public class SalesTrackerViewModel : ReactiveObject
     private string _statusText = "";
     public string StatusText { get => _statusText; private set => this.RaiseAndSetIfChanged(ref _statusText, value); }
 
+    private readonly OrderLabelService _labels;
+
     public SalesTrackerViewModel(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger,
-        CorpActivityService names)
+        CorpActivityService names, OrderLabelService labels)
     {
         _dbFactory   = dbFactory;
         _errorLogger = errorLogger;
         _names       = names;
+        _labels      = labels;
         _selectedOwner = OwnerOptions[1];                                  // All Characters and Personal Corps
         _selectedType  = SaleTypeOptions[0];                               // All types
         _dateFrom      = DateTime.UtcNow.AddDays(-90).ToString("yyyy-MM-dd"); // last 90 days
@@ -475,6 +519,53 @@ public class SalesTrackerViewModel : ReactiveObject
         date = default; return false;
     }
 
+    /// <summary>The labels a picker should offer — the same list orders draw from.</summary>
+    public Task<List<string>> KnownLabelsAsync() => _labels.AllAsync();
+
+    /// <summary>
+    /// Puts one label on several sales.
+    ///
+    /// <para>⚠️ It reaches the orders behind them too, wherever a sale and an order are the same
+    /// contract. Labelling a sale and finding the order it fulfils untagged would make the pair
+    /// disagree about the one thing they are meant to share.</para>
+    /// </summary>
+    public async Task AddLabelToAsync(IReadOnlyList<SaleRowVm> rows, string label)
+    {
+        var clean = OrderLabelService.Clean(label);
+        if (clean.Length == 0 || rows.Count == 0) return;
+
+        try
+        {
+            await _labels.AddToSalesAsync(rows.Select(r => (r.Kind, r.SaleId)).ToList(), clean);
+            await LoadAsync();
+            StatusText = $"Labelled {rows.Count:N0} sale(s) \"{clean}\".";
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(SalesTrackerViewModel), nameof(AddLabelToAsync), ex);
+            StatusText = $"Could not label: {ex.Message}";
+        }
+    }
+
+    /// <summary>Takes one label off several sales, and off the orders sharing their contract.</summary>
+    public async Task RemoveLabelFromAsync(IReadOnlyList<SaleRowVm> rows, string label)
+    {
+        var clean = OrderLabelService.Clean(label);
+        if (clean.Length == 0 || rows.Count == 0) return;
+
+        try
+        {
+            await _labels.RemoveFromSalesAsync(rows.Select(r => (r.Kind, r.SaleId)).ToList(), clean);
+            await LoadAsync();
+            StatusText = $"Removed \"{clean}\" from {rows.Count:N0} sale(s).";
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(SalesTrackerViewModel), nameof(RemoveLabelFromAsync), ex);
+            StatusText = $"Could not remove label: {ex.Message}";
+        }
+    }
+
     private async Task LoadAsync()
     {
         if (IsLoading) return;
@@ -482,10 +573,22 @@ public class SalesTrackerViewModel : ReactiveObject
         StatusText = "Loading…";
         try
         {
+            // ⚠️ Before the labels are read, not after. A contract linked since the last look is
+            // an order and a sale that have only just become the same thing, and this is where
+            // they find out. Idempotent, so running it every load costs nothing when nothing
+            // changed. See OrderLabelService.SyncByContractAsync.
+            await _labels.SyncByContractAsync();
+
             var result = await SalesQuery.LoadAsync(_dbFactory, _names, _errorLogger);
             BuildOwnerOptions(result.Chars, result.Corps);
             _all.Clear();
             _all.AddRange(result.Rows);
+
+            var labels = await _labels.ForSalesAsync(
+                _all.Select(r => (r.Kind, r.SaleId)).Distinct().ToList());
+            foreach (var r in _all)
+                r.SetLabels(labels.GetValueOrDefault((r.Kind, r.SaleId), []));
+
             foreach (var r in _all) r.ApplyBasis(CurrentBasis);
             ApplyFilters();
         }

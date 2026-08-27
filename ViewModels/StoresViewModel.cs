@@ -301,6 +301,55 @@ public class StoresViewModel : ReactiveObject
     /// other stores are set to apply.</summary>
     public ObservableCollection<string> KnownLabels => _knownLabels;
 
+    private bool _useCustomUsage;
+    public bool UseCustomUsage
+    {
+        get => _useCustomUsage;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _useCustomUsage, value);
+            _ = SaveAsync(s => s.UseCustomUsage = value);
+
+            // Turning it on with nothing written puts the stock message in the box. Starting from
+            // an empty field means rebuilding the markup, the links and the command list from
+            // nothing, when the point is usually to change two paragraphs of it.
+            if (value && CustomUsage.Trim().Length == 0) CustomUsage = DefaultUsageText();
+        }
+    }
+
+    private string _customUsage = "";
+    public string CustomUsage
+    {
+        get => _customUsage;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _customUsage, value);
+            _ = SaveAsync(s => s.CustomUsage = value ?? "");
+        }
+    }
+
+    /// <summary>Puts the stock message back in the box, discarding what was written.</summary>
+    public void ResetUsage() => CustomUsage = DefaultUsageText();
+
+    /// <summary>
+    /// The stock usage message for the selected store, exactly as a buyer would receive it.
+    ///
+    /// <para>⚠️ Built from the real generator rather than a copy kept here. Two versions of the
+    /// same message drift, and the one in the box would quietly become the one nobody sends.</para>
+    /// </summary>
+    private string DefaultUsageText()
+    {
+        if (SelectedStore is not StoreRowVm row) return "";
+
+        return StoreMailService.DefaultUsageForEditing(new Store
+        {
+            Id            = row.Id,
+            Name          = StoreName,
+            MessageHeader = MessageHeader,
+            MessageFooter = MessageFooter,
+        });
+    }
+
     private string _storeOrderLabels = "";
     public string StoreOrderLabels
     {
@@ -563,15 +612,21 @@ public class StoresViewModel : ReactiveObject
             // the order says what became of it, and an order cancelled in the Order Tracker by
             // hand never produced a mail at all.
             var orders = await db.TrackedOrders.AsNoTracking()
-                .Where(o => o.StoreId == row.Id && o.OrderRef != "")
-                .Select(o => new { o.OrderRef, o.Status })
+                .Where(o => o.StoreId == row.Id)
+                .Select(o => new { o.Status })
                 .ToListAsync();
 
-            // By order, not by line: six items on one order is one order.
-            var byRef = orders.GroupBy(o => o.OrderRef).ToList();
-            var active    = byRef.Count(g => g.Any(o => o.Status == "pending"));
-            var completed = byRef.Count(g => g.All(o => o.Status == "completed"));
-            var cancelled = byRef.Count(g => g.All(o => o.Status == "canceled"));
+            // ⚠️ By item, not by order reference. A reference is how the mail tool addresses a
+            // conversation — a buyer who asked for three things in one message gets one — and it
+            // is not a unit of anything worth counting. Everything else that summarises this
+            // data, the Order Tracker and the Sales Tracker both, counts items.
+            //
+            // Grouping by it also gave an order with one item delivered and another cancelled
+            // nowhere to go: "all completed" and "all cancelled" were both false, so it fell out
+            // of the counts entirely and a store whose only order was that showed zeroes.
+            var active    = orders.Count(o => o.Status == "pending");
+            var completed = orders.Count(o => o.Status == "completed");
+            var cancelled = orders.Count(o => o.Status == "canceled");
 
             var inquiries = mails.Count(m => m.Direction == "in");
 
@@ -588,6 +643,15 @@ public class StoresViewModel : ReactiveObject
                     AutoEstimate     = store.AutoEstimateInStock;
                     AutoEstimateDays = store.AutoEstimateDays;
                     StoreOrderLabels   = store.OrderLabels;
+                    UseCustomUsage     = store.UseCustomUsage;
+
+                    // ⚠️ The stock text when nothing is saved, so the box always shows what this
+                    // store actually sends. Assigned after the flag, since setting the flag is
+                    // what would otherwise fill it — and inside the save-suppressed block, so
+                    // merely selecting a store does not write anything back.
+                    CustomUsage        = store.CustomUsage.Length > 0
+                                       ? store.CustomUsage
+                                       : StoreMailService.DefaultUsageForEditing(store);
                     MessageHeader      = store.MessageHeader;
                     MessageHeaderColor = store.MessageHeaderColor;
                     MessageFooter      = store.MessageFooter;

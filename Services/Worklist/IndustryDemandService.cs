@@ -11,10 +11,98 @@ namespace EveConsole.Services.Worklist;
 /// <param name="OrderUnits">Of the gross demand, what customer orders asked for.</param>
 /// <param name="RuleUnits">Of the gross demand, what inventory levels want on the shelf.</param>
 /// <param name="ParentUnits">Of the gross demand, what parent builds will eat.</param>
+/// <param name="ShelfLevel">What the inventory levels want on the shelf, for measuring coverage
+/// against as jobs are planned. Zero where nothing sets a level for this item.</param>
+/// <param name="ShelfHave">What is on that shelf now — assets and running jobs.</param>
 public sealed record BuildDemand(int TypeId, long Units, int Priority, List<string> Reasons,
-                                 long OrderUnits = 0, long RuleUnits = 0, long ParentUnits = 0)
+                                 long OrderUnits = 0, long RuleUnits = 0, long ParentUnits = 0,
+                                 long ShelfLevel = 0, long ShelfHave = 0)
 {
-    public string Head => string.Join(" + ", Reasons);
+    /// <summary>
+    /// How full the shelf would be with <paramref name="planned"/> more units on it, as a
+    /// percentage of what the level asks for.
+    ///
+    /// <para>⚠️ Takes the planned figure because the generator asks this repeatedly, between
+    /// jobs. A coverage worked out once at the start is the reason six hulls' worth of a scarce
+    /// component all went to whichever item happened to be emptiest before any of it was
+    /// allocated — by the second job it was no longer the emptiest, and nothing noticed.</para>
+    ///
+    /// <para>Items with no shelf level return 100: they are not competing for shelf space, so
+    /// they never win a comparison that is about how empty a shelf is.</para>
+    /// </summary>
+    public double CoverageWith(long planned) =>
+        ShelfLevel <= 0 ? 100 : 100.0 * (ShelfHave + planned) / ShelfLevel;
+
+    /// <summary>
+    /// How many other items downstream are waiting on this one.
+    ///
+    /// <para>⚠️ Separates jobs that inherited the same priority. An isotropic feeding one blocked
+    /// cell and an isotropic feeding the whole capital line inherit the same urgency from the
+    /// order at the top, and when a reaction slot frees up the tie used to break on coverage or
+    /// on type id. This is what should decide it: how much stops moving if this does not run.</para>
+    /// </summary>
+    public int Blocks { get; init; }
+
+    /// <summary>
+    /// How many of those dependents are things the operation actually sells or flies.
+    ///
+    /// <para>⚠️ A count of blocked work cannot tell a customer from a cupboard.
+    /// Nanotransistors blocks eleven, and ten of them are component buffers refilling
+    /// themselves — real work, whose only customer is the shelf it came from. An isotropic
+    /// blocking a Neurolink cell blocks every standard capital hull. Both score eleven, and
+    /// only one of them is worth a slot today.</para>
+    ///
+    /// <para>Which items are final is hand-set on the inventory rule, because nothing in the
+    /// blueprint tree can tell: hulls for one operation, rigs or modules for another.</para>
+    /// </summary>
+    public int BlocksFinal { get; init; }
+
+    /// <summary>
+    /// Which items are waiting on this one, not merely how many.
+    ///
+    /// <para>⚠️ The count has to be RECOMPUTED as jobs are planned, and a number cannot be.
+    /// Planning 50,000 oxidizers feeds the Core Temperature Regulator job that was waiting on
+    /// them; that job is no longer blocked by oxidizers, so the oxidizers' claim on the next
+    /// slot is smaller than it was. With a fixed count the leader keeps its score forever and
+    /// takes every slot until its demand runs out, which is the one behaviour this ordering
+    /// exists to prevent. The set is what makes the recount possible.</para>
+    /// </summary>
+    public IReadOnlyCollection<int> Dependents { get; init; } = [];
+
+    /// <summary>This item is something the operation sells or flies. Hand-set on the
+    /// inventory rule; see WorklistInvRule.IsFinalProduct.</summary>
+    public bool IsFinal { get; init; }
+
+    /// <summary>
+    /// What this item's own demand justifies, before inheritance.
+    ///
+    /// <para>⚠️ Inherited priority is only true while something upstream still needs this.
+    /// It is stamped once during the demand walk and never revisited, so an item keeps an
+    /// order's urgency long after the order has been planned out. The picker falls back to
+    /// this when no live dependent carries anything higher.</para>
+    /// </summary>
+    public int OwnPriority { get; init; }
+
+    /// <summary>
+    /// Units wanted because a customer order wants them, directly or up the chain.
+    ///
+    /// <para>⚠️ The denominator for deciding how long an order's urgency lasts. Measuring
+    /// against everything wanted keeps order priority on shelf-filling: 50 Ravens and 50
+    /// Apocalypses need 42,305 Pressurized Oxidizers and one job makes 50,000, but the
+    /// Core Temperature Regulators the inventory levels also want push the total past
+    /// 800,000 — so seventeen jobs stayed at order priority when one was owed it.</para>
+    /// </summary>
+    public long OrderDriven { get; init; }
+
+
+    /// <summary>
+    /// Why this is wanted — and, where it matters, how much waits behind it.
+    ///
+    /// <para>The blocking count is on the row rather than only in the sort, because a job that
+    /// jumps the queue without saying why reads as the list being arbitrary.</para>
+    /// </summary>
+    public string Head => string.Join(" + ", Reasons)
+                        + (Blocks > 1 ? $" [{Blocks:N0} item(s) downstream wait on this]" : "");
 
     /// <summary>
     /// The gross the three parts add up to, which is not <see cref="Units"/> — that is the net
@@ -98,6 +186,16 @@ public class IndustryDemandService(
         /// <summary>What the inventory rules say should be sitting on the shelf.</summary>
         public long Level;
 
+        /// <summary>
+        /// Of everything wanted, how much exists because a customer ORDER wants it —
+        /// directly, or through the chain of builds above.
+        ///
+        /// <para>⚠️ Kept apart from the rest because priority hangs on it. An item's
+        /// demand is a mixture, and knowing that 42,305 of 800,000 oxidizers are for the
+        /// Ravens is the difference between one job at order priority and seventeen.</para>
+        /// </summary>
+        public long OrderDriven;
+
         /// <summary>Units customers have ordered, and units parent builds will eat.</summary>
         public long Consumed;
 
@@ -114,11 +212,33 @@ public class IndustryDemandService(
         /// <summary>Stock and in-flight production, counted once however many demands there are.</summary>
         public long Have;
 
+        /// <summary>
+        /// Every item downstream that waits on this one, transitively.
+        ///
+        /// <para><b>⚠️ Priority is inherited but never accumulated, which is what this fixes.</b> A
+        /// child takes the highest priority among its parents, so an isotropic feeding one blocked
+        /// cell and an isotropic feeding the whole capital line score identically — and when a
+        /// reaction slot opens, the tie breaks on coverage or on type id, which is to say on
+        /// nothing. How much stops moving if this does not get made is the thing that should
+        /// separate them.</para>
+        ///
+        /// <para>A set rather than a count because the graph has diamonds: two parents can both
+        /// reach the same grandchild, and adding twice would say the chain is wider than it is.</para>
+        /// </summary>
+        public readonly HashSet<int> Dependents = [];
+
+        /// <summary>Hand-marked as sold or flown rather than held as an input.</summary>
+        public bool IsFinal;
+
         /// <summary>True when a rule's threshold has tripped, or something is waiting on it. A
         /// level sitting comfortably full raises nothing; a level about to be eaten does.</summary>
         public bool Fires;
 
         public int          Priority = WorklistPriority.Housekeeping;
+
+        /// <summary>What this item's OWN demand justifies, before anything is inherited
+        /// from above. The floor an item falls back to once nothing upstream still needs it.</summary>
+        public int          OwnPriority = WorklistPriority.Housekeeping;
         public List<string> Reasons  = [];
     }
 
@@ -173,6 +293,11 @@ public class IndustryDemandService(
             {
                 if (!ctx.BlueprintByProduct.ContainsKey(gi.TypeId)) continue;  // bought, not built
 
+                // ⚠️ The flag is on the RULE, so it covers the whole group. That is the grain
+                // people set it at — "Titans" is final and "Capital Parts" is not — and it means
+                // an item reachable through two rules is final if EITHER says so.
+                if (rule.IsFinalProduct) At(gi.TypeId).IsFinal = true;
+
                 avail.TryGetValue(gi.TypeId, out var av);
                 var have   = (av?.Assets ?? 0) + (av?.IndustryJobs ?? 0);
                 var target = (long)gi.TargetQuantity * Math.Max(1, group.Multiplier);
@@ -189,7 +314,8 @@ public class IndustryDemandService(
                 if (need is null) continue;   // comfortably full: contributes its level, asks for nothing
 
                 g.Fires    = true;
-                g.Priority = Math.Max(g.Priority, WorklistPriority.ForStock(need.Percent));
+                g.Priority    = Math.Max(g.Priority, WorklistPriority.ForStock(need.Percent));
+                g.OwnPriority = Math.Max(g.OwnPriority, WorklistPriority.ForStock(need.Percent));
                 g.Reasons.Add($"{group.Name} · {need.StockText}.{need.FillText(rule)}");
                 topLevel.Add((gi.TypeId, need.Shortfall));
             }
@@ -202,15 +328,26 @@ public class IndustryDemandService(
         {
             if (!ctx.BlueprintByProduct.ContainsKey(typeId)) continue;
 
+            // ⚠️ OUTSTANDING, not ordered. An order already covered by stock or by a job
+            // already running needs nothing built, and until now it still stamped the order
+            // band on the item and added its units to demand — only the queue entry was gated.
+            // One Simurgh, in build and linked to its job, therefore put priority 220 on itself;
+            // a stock rule then carried that 220 down its entire tree, and fifty jobs for three
+            // well-stocked reactions sat above every starving item in the list. Priority has to
+            // stop when the thing that justified it is settled.
+            if (outstanding <= 0) continue;
+
             var g = At(typeId);
-            g.Consumed  += units;
-            g.OrderUnits += units;
-            g.Fires     = true;
+            g.Consumed   += outstanding;
+            g.OrderUnits  += outstanding;
+            g.OrderDriven += outstanding;
+            g.Fires       = true;
             // Ranked rather than flat, so the order due first outranks the one due next month.
             // Children inherit this below, so the whole tree under an urgent order stays urgent.
-            g.Priority  = Math.Max(g.Priority, WorklistPriority.ForOrder(rank));
+            g.Priority    = Math.Max(g.Priority, WorklistPriority.ForOrder(rank));
+            g.OwnPriority = Math.Max(g.OwnPriority, WorklistPriority.ForOrder(rank));
             g.Reasons.Add($"{count} pending order(s) for {units:N0}.");
-            if (outstanding > 0) topLevel.Add((typeId, outstanding));
+            topLevel.Add((typeId, outstanding));
         }
 
         // ── What those builds will consume ────────────────────────────────────
@@ -286,6 +423,25 @@ public class IndustryDemandService(
                 child.Priority  = Math.Max(child.Priority, g.Priority);
                 child.Reasons.Add($"{qty:N0} for {name}.");
 
+                // What waits on this: the parent, and everything already waiting on the parent.
+                // The queue reaches parents before children, so by the time a child is written the
+                // parent's own set is complete — except across a cycle, where it is whatever was
+                // known at the time. Under-counting a cycle is the right way to be wrong here.
+                // ⚠️ The ORDER-DRIVEN share travels down with the units. A parent being built
+                // half for an order and half for its shelf passes half its child's requirement
+                // down as order-driven, so an item deep in the tree knows how much of it a
+                // customer is actually waiting for rather than inheriting the whole figure.
+                if (g.OrderDriven > 0)
+                {
+                    var parentTotal = g.Level + g.Consumed;
+                    if (parentTotal > 0)
+                        child.OrderDriven += (long)Math.Ceiling(
+                            qty * Math.Min(1.0, (double)g.OrderDriven / parentTotal));
+                }
+
+                child.Dependents.Add(typeId);
+                child.Dependents.UnionWith(g.Dependents);
+
                 pending.Enqueue(m.MaterialTypeId);
             }
         }
@@ -308,8 +464,32 @@ public class IndustryDemandService(
             result[typeId] = new BuildDemand(
                 typeId, units, g.Priority,
                 [.. Summarise(g, have)],
-                g.OrderUnits, g.Level, g.ParentUnits);
+                g.OrderUnits, g.Level, g.ParentUnits,
+                ShelfLevel: g.Level, ShelfHave: have)
+            {
+                Blocks = g.Dependents.Count,
+            };
         }
+
+        // ⚠️ Counted again against what actually still needs building.
+        //
+        // Dependents are gathered during the walk, before anything is netted against stock, so
+        // the raw count includes types that turned out to be fully covered and will raise no job
+        // at all. That is the difference between "how many things use this" and "how much work
+        // is waiting on it", and the picker sorts on it: a base reaction feeding a long covered
+        // chain outranked the component four stopped hulls were waiting for, and took the one
+        // free reaction slot with it.
+        foreach (var typeId in result.Keys.ToList())
+            result[typeId] = result[typeId] with
+            {
+                Blocks      = gross[typeId].Dependents.Count(result.ContainsKey),
+                BlocksFinal = gross[typeId].Dependents
+                                  .Count(x => result.ContainsKey(x) && gross[x].IsFinal),
+                Dependents  = [.. gross[typeId].Dependents.Where(result.ContainsKey)],
+                IsFinal     = gross[typeId].IsFinal,
+                OwnPriority = gross[typeId].OwnPriority,
+                OrderDriven = gross[typeId].OrderDriven,
+            };
 
         return result;
     }
@@ -353,8 +533,15 @@ public class IndustryDemandService(
         // The Customer orders switch on the Sources tab is what says orders should be planned.
         if (!enabled) return [];
 
+        // ⚠️ An order with a contract already made out is not work any more. The goods left the
+        // hangar to get into it, so they are in no asset row and no job — and the netting below
+        // sees only assets and jobs. Counting such an order as demand asks for a second hull to
+        // replace one already sitting in a contract with the buyer's name on it.
+        //
+        // Still "pending" as an order, correctly: it is not settled until the contract is taken.
+        // Pending is about the customer; this is about the shelf.
         var orders = await db.TrackedOrders.AsNoTracking()
-            .Where(o => o.Status == "pending").ToListAsync(ct);
+            .Where(o => o.Status == "pending" && o.LinkedContractId == null).ToListAsync(ct);
         if (orders.Count == 0) return [];
 
         // Each order's place in the queue, so the work it drives can be ranked against the work

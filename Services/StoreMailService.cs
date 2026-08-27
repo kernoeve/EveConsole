@@ -439,6 +439,42 @@ public class StoreMailService(
     /// a reason to doubt both.</para>
     /// </summary>
     private static string Usage(Store store) =>
+        store.UseCustomUsage && store.CustomUsage.Trim().Length > 0
+            ? AsBreaks(store.CustomUsage)
+            : DefaultUsage(store);
+
+    /// <summary>
+    /// Turns the newlines somebody typed into the breaks EVE draws.
+    ///
+    /// <para>⚠️ EVE's renderer does not draw a newline as a line break — it draws nothing, and
+    /// the lines run together. Every other free-text field in this app converts on the way out
+    /// for the same reason; this one does it so the message can be WRITTEN as text rather than
+    /// as a wall of tags.</para>
+    ///
+    /// <para>An existing <c>&lt;br&gt;</c> is left alone, so a message pasted from somewhere that
+    /// already carries them is not doubled.</para>
+    /// </summary>
+    private static string AsBreaks(string s) =>
+        s.Replace("\r\n", "\n").Replace("\n", Br);
+
+    /// <summary>
+    /// The stock message as something to edit: the same words with the breaks turned back into
+    /// real newlines.
+    ///
+    /// <para>⚠️ For the Stores screen only. A usage message is prose, and prose in a text box
+    /// with <c>&lt;br&gt;</c> at the end of every line is prose nobody will edit twice.</para>
+    /// </summary>
+    public static string DefaultUsageForEditing(Store store) =>
+        Breaks.Replace(DefaultUsage(store), "\n");
+
+    /// <summary>
+    /// The stock explanation, and the starting point for a store that wants its own.
+    ///
+    /// <para>⚠️ Public so the Stores screen can put it in the box before anyone edits it. Writing
+    /// a usage message from an empty field means rebuilding the markup, the links and the command
+    /// list from nothing; starting from this means changing the parts that do not apply.</para>
+    /// </summary>
+    public static string DefaultUsage(Store store) =>
         Head($"{store.Name} — how to order") +
 
         "Put one of these words in the mail <b>subject</b>." + Gap +

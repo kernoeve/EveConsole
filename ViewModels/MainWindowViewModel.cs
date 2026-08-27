@@ -479,6 +479,7 @@ public class MainWindowViewModel : ReactiveObject
         EveConsole.Services.Worklist.WorklistMarketAltService worklistMarketAltService,
         EveConsole.Services.Worklist.WorklistCorpAltService worklistCorpAltService,
         EveConsole.Services.Worklist.IndustryAssignmentService industryAssignmentService,
+        EveConsole.Services.Worklist.IndustryBlueprintService  industryBlueprintService,
         EveConsole.Services.Worklist.WorklistSettings worklistSettings,
         IndyFacilityCheckService        indyFacilityCheck,
         IndyStructureLinkService        indyStructureLink,
@@ -606,7 +607,7 @@ public class MainWindowViewModel : ReactiveObject
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
         MarketViewerVm         = new MarketViewerViewModel(dbFactory, errorLogger);
-        SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService);
+        SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService, orderLabels);
         SaleListingBuildVm     = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.BuildCost);
         SaleListingMarketVm    = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.MarketValue);
         OverviewVm.SaleListingBuild  = SaleListingBuildVm;   // let the Overview embed them as sections
@@ -621,7 +622,11 @@ public class MainWindowViewModel : ReactiveObject
                                      new WorklistInvRulesViewModel(dbFactory, corpActivityService, worklistMarketAltService),
                                      new WorklistCorpAltsViewModel(dbFactory, worklistCorpAltService),
                                      new WorklistIndustryViewModel(dbFactory, industryAssignmentService, worklistSettings, errorLogger, corpActivityService, worklistMarketAltService),
-                                     new WorklistStationLevelsViewModel(dbFactory, corpActivityService, worklistSettings));
+                                     new WorklistStationLevelsViewModel(dbFactory, corpActivityService, worklistSettings),
+                                     new EveConsole.Services.Worklist.BottleneckService(dbFactory, industryAssignmentService,
+                                                           industryBlueprintService, worklistSettings),
+                                     new EveConsole.Services.Worklist.ItemContentionService(dbFactory, worklistSettings),
+                                     new EveConsole.Services.Worklist.HaulPressureService(dbFactory, worklistSettings));
 
         // ⚠️ After construction, not with the other Overview wiring above — WorklistVm does not
         // exist until this line, so assigning it earlier set null and left every worklist section

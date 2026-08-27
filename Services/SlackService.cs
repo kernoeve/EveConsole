@@ -45,6 +45,22 @@ public class SlackService
     private static string ChanIdKey(string area)   => $"slack.channel.{area}.id";
     private static string ChanNameKey(string area) => $"slack.channel.{area}.name";
     private static string LastPostKey(string area) => $"slack.lastpost.{area}";
+    private static string WebhookKey(string area)  => $"slack.webhook.{area}";
+
+    /// <summary>
+    /// The incoming-webhook URL for an area, or empty when this area posts as the user.
+    ///
+    /// <para>⚠️ A webhook is bound to ONE channel by whoever created it — the URL carries the
+    /// destination, so nothing here chooses where it lands. That is the point of it: an alliance
+    /// workspace will hand out a webhook where it would never hand out a user token.</para>
+    /// </summary>
+    public string WebhookUrl(string area) => (_prefs.Get(WebhookKey(area)) ?? "").Trim();
+
+    public Task SetWebhookUrlAsync(string area, string? url) =>
+        _prefs.SetAsync(WebhookKey(area), (url ?? "").Trim());
+
+    /// <summary>Whether this area posts through a webhook rather than as the connected user.</summary>
+    public bool UsesWebhook(string area) => WebhookUrl(area).Length > 0;
 
     private readonly IHttpClientFactory     _httpFactory;
     private readonly AppPreferencesService  _prefs;
@@ -68,8 +84,17 @@ public class SlackService
     public string? ChannelName(string area) => _prefs.Get(ChanNameKey(area));
 
     /// <summary>True when both a token and a channel for this area are set.</summary>
+    /// <summary>
+    /// Whether this area can post at all — as the connected user, or through a webhook.
+    ///
+    /// <para>⚠️ Either route counts. This gates the Post buttons, and while it asked only about a
+    /// token a webhook-only setup could be configured, tested successfully, and still have no
+    /// button to press — the one workspace a webhook exists to reach was the one the app would
+    /// not offer to post to.</para>
+    /// </summary>
     public bool IsConfigured(string area)
-        => HasToken && !string.IsNullOrWhiteSpace(ChannelId(area));
+        => UsesWebhook(area)
+        || (HasToken && !string.IsNullOrWhiteSpace(ChannelId(area)));
 
     public Task SetTokenAsync(string? token)
         => _prefs.SetAsync(TokenKey, string.IsNullOrWhiteSpace(token) ? null : token.Trim());
@@ -260,6 +285,69 @@ public class SlackService
         catch (Exception ex)
         {
             _errors.Log("SlackService", $"chat.postMessage channel={channelId}", ex);
+            return new SlackPostResult(false, null, null, ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Posts whatever this area is configured for: a webhook when one is set, otherwise the
+    /// connected user's token.
+    ///
+    /// <para>⚠️ The two are not equivalent, and the difference is threading. A webhook returns no
+    /// message id, so nothing posted through one can be replied to — a sale posting that would
+    /// have put its detail in a thread posts it as a second message instead. Everything else is
+    /// the same, including block formatting.</para>
+    /// </summary>
+    public async Task<SlackPostResult> PostAreaAsync(
+        string area, string text, string? threadTs = null, bool broadcast = false,
+        object? blocks = null, CancellationToken ct = default)
+    {
+        var hook = WebhookUrl(area);
+        if (hook.Length == 0)
+            return await PostMessageAsync(ChannelId(area) ?? "", text, threadTs, broadcast, blocks, ct);
+
+        // ⚠️ threadTs is dropped rather than sent. A webhook has never returned an id for anything,
+        // so any value reaching here came from a different post — threading onto it would attach
+        // this message under an unrelated parent.
+        return await PostWebhookAsync(hook, text, blocks, ct);
+    }
+
+    /// <summary>
+    /// Posts to an incoming webhook.
+    ///
+    /// <para>⚠️ No bearer token, and no JSON envelope to check: a webhook answers with the literal
+    /// body "ok" and an HTTP status, not with Slack's usual <c>{"ok":true}</c>. Parsing the reply
+    /// as JSON throws on success.</para>
+    /// </summary>
+    public async Task<SlackPostResult> PostWebhookAsync(
+        string url, string text, object? blocks = null, CancellationToken ct = default)
+    {
+        try
+        {
+            var payload = new Dictionary<string, object?> { ["text"] = text };
+            if (blocks is not null) payload["blocks"] = blocks;
+
+            // ⚠️ A bare client, not Client(): a webhook URL is its own credential and carries the
+            // whole destination. Sending an Authorization header alongside it is at best noise and
+            // at worst a token posted to a workspace that is not the token's own.
+            using var client  = _httpFactory.CreateClient();
+            using var content = new StringContent(
+                JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+            using var res  = await client.PostAsync(url, content, ct);
+            var       body = (await res.Content.ReadAsStringAsync(ct)).Trim();
+
+            if (res.IsSuccessStatusCode && body.Equals("ok", StringComparison.OrdinalIgnoreCase))
+                return new SlackPostResult(true, null, null, null);
+
+            // Webhook errors are plain words — invalid_payload, channel_not_found, no_service.
+            var err = body.Length > 0 ? body : $"HTTP {(int)res.StatusCode}";
+            _errors.Log("SlackService", "incoming webhook", err);
+            return new SlackPostResult(false, null, null, err);
+        }
+        catch (Exception ex)
+        {
+            _errors.Log("SlackService", "incoming webhook", ex);
             return new SlackPostResult(false, null, null, ex.Message);
         }
     }

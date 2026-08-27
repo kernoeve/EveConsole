@@ -1502,9 +1502,10 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <!-- The description is the item on a delivery project, so it is what opens the
-                       Item Browser. Projects that name no item stay plain text. -->
-                  <DataGridTemplateColumn Header="Description" SortMemberPath="DescriptionText" Width="*">
+                  <!-- One line for the whole project, since the panel has one column: the type,
+                       then whatever identifies that type. Still opens the Item Browser where the
+                       project names an item; the rest stay plain text. -->
+                  <DataGridTemplateColumn Header="Project" SortMemberPath="SummaryText" Width="*">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingProjectRowVm">
                         <Panel>
@@ -1512,10 +1513,10 @@
                                   Background="Transparent" BorderThickness="0" Padding="6 0"
                                   Cursor="Hand" HorizontalAlignment="Left" VerticalAlignment="Center"
                                   ToolTip.Tip="Open in the Item Browser">
-                            <TextBlock Text="{Binding DescriptionText}" FontSize="11"
+                            <TextBlock Text="{Binding SummaryText}" FontSize="11"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
-                          <TextBlock Text="{Binding DescriptionText}" IsVisible="{Binding !HasItemLink}"
+                          <TextBlock Text="{Binding SummaryText}" IsVisible="{Binding !HasItemLink}"
                                      FontSize="11" VerticalAlignment="Center" Padding="6 0"
                                      TextTrimming="CharacterEllipsis" />
                         </Panel>

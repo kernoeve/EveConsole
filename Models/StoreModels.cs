@@ -94,6 +94,18 @@ public class Store
     /// </summary>
     public string OrderLabels        { get; set; } = "";
 
+    /// <summary>
+    /// Send this store's own usage message instead of the stock one.
+    ///
+    /// <para>For a shop whose rules are not the general ones — a first-capital programme where a
+    /// buyer may take one hull and quantities are beside the point — the stock explanation is
+    /// instructions that do not apply, which is worse than no instructions at all.</para>
+    /// </summary>
+    public bool UseCustomUsage { get; set; }
+
+    /// <summary>The custom usage message, EVE mail markup and all. Ignored while the flag is off.</summary>
+    public string CustomUsage { get; set; } = "";
+
     public string MessageHeader      { get; set; } = "";
     public string MessageHeaderColor { get; set; } = "";
     public string MessageFooter      { get; set; } = "";

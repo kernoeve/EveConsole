@@ -60,6 +60,7 @@ public sealed class InvRuleRow : ReactiveObject
         _threshold    = rule.ThresholdPercent;
         _fill         = rule.FillTargetPercent;
         _locationName = rule.LocationName;
+        _isFinal      = rule.IsFinalProduct;
 
         _loaded = true;
     }
@@ -107,6 +108,27 @@ public sealed class InvRuleRow : ReactiveObject
     {
         get => _fill;
         set { this.RaiseAndSetIfChanged(ref _fill, value); Persist(); }
+    }
+
+    private bool _isFinal;
+
+    /// <summary>
+    /// This group is something the operation sells or flies, not an input.
+    ///
+    /// <para>⚠️ Hand-set, because nothing can derive it. A blocked-work count cannot tell a
+    /// customer from a cupboard: eleven tasks stopped on Nanotransistors are ten component
+    /// shelves refilling themselves, and eleven stopped on a Neurolink cell are eleven capital
+    /// hulls. Marking the groups you actually sell is what lets the worklist tell them apart.</para>
+    /// </summary>
+    public bool IsFinal
+    {
+        get => _isFinal;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isFinal, value);
+            Rule.IsFinalProduct = value;
+            Persist();
+        }
     }
 
     private string _locationName;
@@ -379,7 +401,8 @@ public class WorklistInvRulesViewModel : ReactiveObject
                     .SetProperty(x => x.ThresholdPercent,  row.Rule.ThresholdPercent)
                     .SetProperty(x => x.FillTargetPercent, row.Rule.FillTargetPercent)
                     .SetProperty(x => x.LocationId,        row.Rule.LocationId)
-                    .SetProperty(x => x.LocationName,      row.Rule.LocationName));
+                    .SetProperty(x => x.LocationName,      row.Rule.LocationName)
+                    .SetProperty(x => x.IsFinalProduct,    row.Rule.IsFinalProduct));
 
             Status = "Saved.";
             if (RulesChanged is not null) await RulesChanged();

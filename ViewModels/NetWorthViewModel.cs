@@ -211,9 +211,12 @@ public class NetWorthViewModel : ReactiveObject
 
     // ── Data loading ──────────────────────────────────────────────────────────
 
+    /// <param name="Owners">How many owner rows the day is built from. Carried so a day still
+    /// being written can be told from a day that is genuinely smaller.</param>
     private record DayRow(
         string Date, double Assets, double Industry, double Wallet,
-        double SellOrders, double BuyEscrow, double Collateral, double Contracts, double Total);
+        double SellOrders, double BuyEscrow, double Collateral, double Contracts, double Total,
+        int Owners = 1);
 
     private async Task LoadDataAsync()
     {
@@ -285,12 +288,33 @@ public class NetWorthViewModel : ReactiveObject
                 reader.GetDouble(5),
                 reader.GetDouble(6),
                 reader.GetDouble(7),
-                reader.GetDouble(8)));
+                reader.GetDouble(8),
+                reader.FieldCount > 9 ? reader.GetInt32(9) : 1));
         }
-        return rows;
+
+        return DropPartialDay(rows);
     }
 
-    // ── Chart building ────────────────────────────────────────────────────────
+    /// <summary>
+    /// Drops the newest day while it is still being written.
+    ///
+    /// <para>⚠️ A day's snapshot is not one write. NetWorthService recalculates one owner
+    /// at a time as each owner's poll finishes, so at the midnight flip the current date
+    /// exists with some owners in it and not others — and the chart plotted that as a real
+    /// point. Reading at 00:05, with two of twenty-five owners written, showed net worth
+    /// down 20%; by 00:07 it was whole again and the drop had never happened.</para>
+    ///
+    /// <para>Recognised by owner count rather than by clock: comparing against the previous
+    /// day needs no assumption about how long the write takes or when it starts, and a day
+    /// that is genuinely smaller — an owner removed — settles on the next day's read rather
+    /// than being hidden forever.</para>
+    /// </summary>
+    private static List<DayRow> DropPartialDay(List<DayRow> rows) =>
+        rows.Count >= 2 && rows[^1].Owners < rows[^2].Owners
+            ? rows[..^1]
+            : rows;
+
+    // ── Chart building ────────────────────────────────────────────────────
 
     private void ApplyAxisOptions()
     {
@@ -404,7 +428,8 @@ public class NetWorthViewModel : ReactiveObject
                ROUND(SUM(n."BuyOrderEscrow"),      2),
                ROUND(SUM(n."ContractCollateral"),  2),
                ROUND(SUM(n."ContractValue"),        2),
-               ROUND(SUM(n."Total"),               2)
+               ROUND(SUM(n."Total"),               2),
+               COUNT(*)
         FROM "NetWorthSnapshots" n
         WHERE n."Date" >= @fromDate AND n."Date" <= @toDate
           AND NOT (

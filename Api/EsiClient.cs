@@ -281,20 +281,77 @@ public class EsiClient
     // Sovereignty endpoints (no auth)
     // -----------------------------------------------------------------------
 
-    public async Task<List<EsiSovStructure>?> GetSovStructuresAsync(CancellationToken ct = default)
+    public async Task<List<EsiSovSystem>?> GetSovSystemsAsync(CancellationToken ct = default)
     {
-        try { return await GetAsync<List<EsiSovStructure>>("sovereignty/structures/", ct); }
-        catch { return null; }
+        // ⚠️ An ABSOLUTE url, because this endpoint is not under /latest/.
+        //
+        // CCP retired /sovereignty/map and /sovereignty/structures at compatibility date
+        // 2026-05-19 and replaced both with /sovereignty/systems, per ESI's own changelog:
+        // "Rework of Sovereignty systems. This unifies /sovereignty/map and
+        // /sovereignty/structures." The replacement lives at the ROOT — /latest/ is the legacy
+        // prefix and answers 404 for it — so BaseAddress cannot reach it and the url is given
+        // in full. Verified against the live API: 200 with 1.2MB at the client-wide pin.
+        //
+        // ⚠️ No catch. The caller records the reason and puts it on screen: this failing
+        // silently is how a removed endpoint came to look like a misconfigured scope for weeks.
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get, "https://esi.evetech.net/sovereignty/systems");
+
+        var response = await _http.SendAsync(request, ct);
+        response.EnsureSuccessStatusCode();
+
+        var payload = await response.Content.ReadFromJsonAsync<EsiSovSystems>(JsonOptions, ct);
+        return payload?.SolarSystems ?? [];
     }
 
-    public sealed class EsiSovStructure
+    /// <summary>
+    /// Sovereignty by system, from the endpoint that replaced /sovereignty/structures.
+    ///
+    /// <para>The ADM is <c>claim.alliance.development.activity_defense_multiplier</c>. Every
+    /// layer is optional: an unclaimed system carries <c>claim.unclaimed</c>, and an NPC-held
+    /// one carries <c>claim.faction</c> with no development block at all.</para>
+    /// </summary>
+    public sealed class EsiSovSystems
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("solar_systems")]
+        public List<EsiSovSystem> SolarSystems { get; set; } = [];
+    }
+
+    public sealed class EsiSovSystem
     {
         [System.Text.Json.Serialization.JsonPropertyName("solar_system_id")]
-        public int     SolarSystemId                 { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("structure_type_id")]
-        public int     StructureTypeId               { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("vulnerability_occupancy_level")]
-        public double? VulnerabilityOccupancyLevel   { get; set; }
+        public int          SolarSystemId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("claim")]
+        public EsiSovClaim? Claim         { get; set; }
+
+        /// <summary>The ADM, or null where the system has no alliance development.</summary>
+        public double? Adm => Claim?.Alliance?.Development?.ActivityDefenseMultiplier;
+    }
+
+    public sealed class EsiSovClaim
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("alliance")]
+        public EsiSovAlliance? Alliance { get; set; }
+    }
+
+    public sealed class EsiSovAlliance
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("alliance_id")]
+        public long                 AllianceId  { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("development")]
+        public EsiSovDevelopment?   Development { get; set; }
+    }
+
+    public sealed class EsiSovDevelopment
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("activity_defense_multiplier")]
+        public double? ActivityDefenseMultiplier { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("military_level")]
+        public int?    MilitaryLevel             { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("industrial_level")]
+        public int?    IndustrialLevel           { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("strategic_level")]
+        public int?    StrategicLevel            { get; set; }
     }
 
     /// <summary>

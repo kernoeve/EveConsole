@@ -26,4 +26,9 @@ public partial class StoresView : UserControl
         if (DataContext is not StoresViewModel vm) return;
         await vm.RemoveSenderAsync(row);
     }
+
+    private void OnResetUsage(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is StoresViewModel vm) vm.ResetUsage();
+    }
 }

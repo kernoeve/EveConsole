@@ -1067,6 +1067,25 @@ public class OrderLabel
     public string Label   { get; set; } = "";
 }
 
+/// <summary>
+/// The same labels, on a sale.
+///
+/// <para>Keyed like <c>SaleExclusions</c>: a sale has no row of its own to hang an id on — it is
+/// a wallet transaction or a contract, and only the pair identifies it.</para>
+///
+/// <para>⚠️ Kept in step with <see cref="OrderLabel"/> wherever an order and a sale are the same
+/// contract. Two tables rather than one because the two sides exist independently and either can
+/// be labelled first — an order is tagged the day it is placed, and the contract that fulfils it
+/// may not exist for a week. See OrderLabelService.</para>
+/// </summary>
+public class SaleLabel
+{
+    /// <summary>"Market" or "Contract" — matches SaleRowVm.Kind.</summary>
+    public string Kind   { get; set; } = "";
+    public long   SaleId { get; set; }
+    public string Label  { get; set; } = "";
+}
+
 // ── Error logging ─────────────────────────────────────────────────────────────
 
 public class AppErrorEntry

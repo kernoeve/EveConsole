@@ -54,9 +54,75 @@
         </ListBox>
       </Border>
 
-      <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="14" Spacing="14" IsVisible="{Binding HasSelection}">
+      <!-- Three tabs rather than one long scroll: what a store IS gets configured once and then
+           left alone, while how it is DOING is looked at repeatedly. Putting the numbers and the
+           message log behind the same scrollbar as the settings meant scrolling past the setup
+           every time to see whether anyone had written in. -->
+      <TabControl Grid.Column="1" IsVisible="{Binding HasSelection}" Padding="0">
 
+        <TabItem Header="Overview" FontSize="12">
+          <!-- A grid, not a stack in a scroller: the counts are four lines and fixed, and
+               everything left over belongs to the message log. A log sized to a guess wastes
+               half the window on a tall screen and shows six rows on a short one. -->
+          <Grid Margin="14" RowDefinitions="Auto,14,*">
+          <!-- Stats -->
+          <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="14 12">
+            <Grid ColumnDefinitions="*,*,*,*">
+              <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock Text="Inquiries" FontSize="10" Foreground="#666677" />
+                <TextBlock Text="{Binding StatInquiries}" FontSize="18" Foreground="#c8a84b" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Spacing="2">
+                <TextBlock Text="Active items" FontSize="10" Foreground="#666677" />
+                <TextBlock Text="{Binding StatActive}" FontSize="18" Foreground="#5599aa" />
+              </StackPanel>
+              <StackPanel Grid.Column="2" Spacing="2">
+                <TextBlock Text="Completed" FontSize="10" Foreground="#666677" />
+                <TextBlock Text="{Binding StatCompleted}" FontSize="18" Foreground="#4a8a5a" />
+              </StackPanel>
+              <StackPanel Grid.Column="3" Spacing="2">
+                <TextBlock Text="Cancelled" FontSize="10" Foreground="#666677" />
+                <TextBlock Text="{Binding StatCancelled}" FontSize="18" Foreground="#aa4444" />
+              </StackPanel>
+            </Grid>
+          </Border>
+          <!-- Messages -->
+          <Border Grid.Row="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="14 12">
+            <DockPanel LastChildFill="True">
+              <TextBlock DockPanel.Dock="Top" Text="Messages" FontSize="13" FontWeight="SemiBold"
+                         Foreground="#c8a84b" Margin="0 0 0 8" />
+              <DataGrid ItemsSource="{Binding Mails}" AutoGenerateColumns="False" IsReadOnly="True"
+                        Background="Transparent" HeadersVisibility="Column" FontSize="11">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="When"      Binding="{Binding When}"      Width="130" />
+                  <DataGridTextColumn Header="Direction" Binding="{Binding Direction}" Width="80" />
+                  <DataGridTextColumn Header="Who"       Binding="{Binding Party}"     Width="150" />
+                  <DataGridTextColumn Header="Command"   Binding="{Binding Command}"   Width="80" />
+                  <DataGridTextColumn Header="Subject"   Binding="{Binding Subject}"   Width="*" />
+                  <DataGridTextColumn Header="Order"     Binding="{Binding OrderRef}"  Width="80" />
+                  <DataGridTextColumn Header="Outcome"   Binding="{Binding Outcome}"   Width="80" />
+                  <!-- Wrapped, not truncated: the note is where a rejection explains itself, and
+                       an ellipsis in the one column that says why is the column doing nothing. -->
+                  <DataGridTemplateColumn Header="Note" Width="320">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StoreMailRowVm">
+                        <TextBlock Text="{Binding Detail}" TextWrapping="Wrap"
+                                   FontSize="11" Margin="4 2" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </DockPanel>
+          </Border>
+          </Grid>
+        </TabItem>
+
+        <TabItem Header="Config" FontSize="12">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="14" Spacing="14">
           <!-- Settings -->
           <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
@@ -176,30 +242,6 @@
               </Grid>
             </StackPanel>
           </Border>
-
-          <!-- Stats -->
-          <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
-                  CornerRadius="4" Padding="14 12">
-            <Grid ColumnDefinitions="*,*,*,*">
-              <StackPanel Grid.Column="0" Spacing="2">
-                <TextBlock Text="Inquiries" FontSize="10" Foreground="#666677" />
-                <TextBlock Text="{Binding StatInquiries}" FontSize="18" Foreground="#c8a84b" />
-              </StackPanel>
-              <StackPanel Grid.Column="1" Spacing="2">
-                <TextBlock Text="Active orders" FontSize="10" Foreground="#666677" />
-                <TextBlock Text="{Binding StatActive}" FontSize="18" Foreground="#5599aa" />
-              </StackPanel>
-              <StackPanel Grid.Column="2" Spacing="2">
-                <TextBlock Text="Completed" FontSize="10" Foreground="#666677" />
-                <TextBlock Text="{Binding StatCompleted}" FontSize="18" Foreground="#4a8a5a" />
-              </StackPanel>
-              <StackPanel Grid.Column="3" Spacing="2">
-                <TextBlock Text="Cancelled" FontSize="10" Foreground="#666677" />
-                <TextBlock Text="{Binding StatCancelled}" FontSize="18" Foreground="#aa4444" />
-              </StackPanel>
-            </Grid>
-          </Border>
-
           <!-- Allow list -->
           <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
@@ -250,40 +292,51 @@
               </DataGrid>
             </StackPanel>
           </Border>
-
-          <!-- Messages -->
-          <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
-                  CornerRadius="4" Padding="14 12">
-            <StackPanel Spacing="8">
-              <TextBlock Text="Messages" FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
-              <DataGrid ItemsSource="{Binding Mails}" AutoGenerateColumns="False" IsReadOnly="True"
-                        MinHeight="240" MaxHeight="460"
-                        Background="Transparent" HeadersVisibility="Column" FontSize="11">
-                <DataGrid.Columns>
-                  <DataGridTextColumn Header="When"      Binding="{Binding When}"      Width="130" />
-                  <DataGridTextColumn Header="Direction" Binding="{Binding Direction}" Width="80" />
-                  <DataGridTextColumn Header="Who"       Binding="{Binding Party}"     Width="150" />
-                  <DataGridTextColumn Header="Command"   Binding="{Binding Command}"   Width="80" />
-                  <DataGridTextColumn Header="Subject"   Binding="{Binding Subject}"   Width="*" />
-                  <DataGridTextColumn Header="Order"     Binding="{Binding OrderRef}"  Width="80" />
-                  <DataGridTextColumn Header="Outcome"   Binding="{Binding Outcome}"   Width="80" />
-                  <!-- Wrapped, not truncated: the note is where a rejection explains itself, and
-                       an ellipsis in the one column that says why is the column doing nothing. -->
-                  <DataGridTemplateColumn Header="Note" Width="320">
-                    <DataGridTemplateColumn.CellTemplate>
-                      <DataTemplate x:DataType="vm:StoreMailRowVm">
-                        <TextBlock Text="{Binding Detail}" TextWrapping="Wrap"
-                                   FontSize="11" Margin="4 2" />
-                      </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                  </DataGridTemplateColumn>
-                </DataGrid.Columns>
-              </DataGrid>
             </StackPanel>
-          </Border>
+          </ScrollViewer>
+        </TabItem>
 
-        </StackPanel>
-      </ScrollViewer>
+        <TabItem Header="Usage" FontSize="12">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="14" Spacing="14">
+
+              <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                      CornerRadius="4" Padding="14 12">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Usage message" FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
+                  <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                             Text="What HELP sends, and what goes back with anything this store could not understand. The default explains ordering in general; a store with its own rules — one hull per buyer, a fixed price, a programme with conditions — is better off saying so in its own words than sending instructions that do not apply." />
+
+                  <CheckBox IsChecked="{Binding UseCustomUsage}" FontSize="11"
+                            Content="Use a custom usage message for this store" />
+
+                  <!-- Pre-filled with the default, markup and all, so writing one starts from
+                       something that already works rather than an empty box. -->
+                  <TextBlock Text="MESSAGE" FontSize="10" FontWeight="SemiBold"
+                             Foreground="#555566" LetterSpacing="1" Margin="0 4 0 0" />
+                  <TextBox Text="{Binding CustomUsage, UpdateSourceTrigger=LostFocus}"
+                           IsEnabled="{Binding UseCustomUsage}"
+                           AcceptsReturn="True" TextWrapping="Wrap"
+                           MinHeight="320" MaxHeight="560" FontSize="11"
+                           FontFamily="Consolas,Menlo,monospace"
+                           Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a"
+                           VerticalContentAlignment="Top" />
+
+                  <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                             Text="Write it as text — newlines become line breaks when it is sent. EVE mail markup: &lt;b&gt; &lt;i&gt; &lt;u&gt;, &lt;font size=&quot;12&quot;&gt; and &lt;font color=&quot;#ffc8a84b&quot;&gt; — colours are ARGB, so the alpha pair is not optional. Item and character links are &lt;a href=&quot;showinfo:TYPEID&quot;&gt; and &lt;a href=&quot;showinfo:1373//CHARACTERID&quot;&gt;. Spaces are kept as written; HTML entities are not decoded and will be drawn as typed." />
+
+                  <Button Content="Reset to the default message" Click="OnResetUsage"
+                          IsEnabled="{Binding UseCustomUsage}" FontSize="11" Padding="12 4"
+                          HorizontalAlignment="Left"
+                          Background="#1a1a28" Foreground="#888899" BorderBrush="#2a2a3a" />
+                </StackPanel>
+              </Border>
+
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+      </TabControl>
     </Grid>
   </Grid>
 </UserControl>

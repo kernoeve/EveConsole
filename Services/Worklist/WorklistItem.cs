@@ -44,6 +44,19 @@ public enum WorklistKind { Buy, Haul, Refine, Decompress, Job, CorpProject, Asse
 /// own totals come from — a generator that priced its own lines would be a second opinion about
 /// the same numbers, and the manifest's figures have to add up to the row's.</para>
 /// </summary>
+/// <summary>
+/// One material a job could not get enough of.
+/// </summary>
+/// <param name="MustBuy">⚠️ The whole distinction this tab turns on. True means none is owned
+/// anywhere — a purchase or a build. False means it exists and is somewhere else, which is a
+/// hauling problem wearing a shortage's clothes, and treating the two alike would send somebody
+/// shopping for material already sitting in their own hangar.</param>
+/// <param name="Short">How many more this job needed than it could get.</param>
+/// <param name="Wanted">How many the job needed in total, which is what makes a shortfall
+/// legible: three short of four is a different situation from three short of thirty thousand.</param>
+public sealed record WorklistShortage(
+    int TypeId, string TypeName, long Short, long Wanted, bool MustBuy);
+
 public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
 {
     public double Volume { get; init; }
@@ -104,6 +117,60 @@ public sealed record WorklistItem
 
     /// <summary>What is in the way. Only meaningful when not <see cref="WorklistReadiness.Ready"/>.</summary>
     public string BlockedBy { get; init; } = "";
+
+    /// <summary>
+    /// Blocked specifically because no blueprint is free — not for want of material, a character,
+    /// or anything else.
+    ///
+    /// <para>⚠️ A flag rather than a reading of <see cref="BlockedBy"/>. That text is written for
+    /// a person and gets reworded; anything counting print shortages by matching words in it would
+    /// go quietly wrong the first time one of them changed, and a bottleneck report that silently
+    /// counts nothing is worse than one that is absent.</para>
+    /// </summary>
+    public bool BlockedByPrint { get; init; }
+
+    /// <summary>
+    /// What this job is short of, itemised.
+    ///
+    /// <para>⚠️ Structured rather than read back out of <see cref="BlockedBy"/>. The generator
+    /// already knows exactly which materials fell short and whether each is owned elsewhere or not
+    /// owned at all — it then flattens all of it into a sentence, and everything downstream that
+    /// wanted the detail had to parse prose or go without.</para>
+    /// </summary>
+    public IReadOnlyList<WorklistShortage> Shortages { get; init; } = [];
+
+    /// <summary>
+    /// Stopped jobs this task would restart, where the task is not itself a job.
+    ///
+    /// <para>⚠️ A haul is worth what it unblocks, and nothing in a haul knows that: the
+    /// logistics generator sees a shortfall at a station, not the four jobs standing idle
+    /// for want of the same crate. Filled in after every generator has run, by the one place
+    /// that can see both halves.</para>
+    /// </summary>
+    public int Unblocks { get; init; }
+
+    /// <summary>
+    /// Where the planner reached this, counting from one.
+    ///
+    /// <para>⚠️ The whole point of ranking work by what it unblocks was invisible without
+    /// this. The picker walks items in value order, but nothing it decided reached the row:
+    /// the list sorted on priority and then, with every blocked reaction tied on priority,
+    /// fell through to the TITLE. So the reader saw the plan in alphabetical order, and the
+    /// job the planner actually chose sat forty rows below one it had ranked last.</para>
+    ///
+    /// <para>Zero on everything not planned in an ordered pass, which sorts last.</para>
+    /// </summary>
+    public int PlanSequence { get; init; }
+
+    /// <summary>TEMPORARY — the sort keys the planner used, so the order can be audited on
+    /// screen instead of reasoned about. Remove with the diagnostic columns.</summary>
+    public int    SortPriority     { get; init; }
+    public int    SortBlockedFinal { get; init; }
+    public int    SortBlocked      { get; init; }
+    public double SortCoverage     { get; init; }
+
+    /// <summary>How many items downstream wait on this one — see BuildDemand.Blocks.</summary>
+    public int Blocks { get; init; }
 
     // Who and where. Both may be unset when a generator cannot route the item — an unrouted
     // item is still worth showing, with the gap made obvious rather than hidden.

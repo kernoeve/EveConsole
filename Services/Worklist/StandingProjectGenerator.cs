@@ -52,8 +52,8 @@ public class StandingProjectGenerator(
 
             foreach (var r in rows)
             {
-                var (verb, detail) = Diagnose(r);
-                if (verb is null) continue;
+                var (title, detail) = Describe(r);
+                if (title is null) continue;
 
                 items.Add(new WorklistItem
                 {
@@ -62,7 +62,7 @@ public class StandingProjectGenerator(
                     Key           = $"standing_project:{r.DbId}",
                     Source        = Id,
                     Kind          = WorklistKind.CorpProject,
-                    Title         = $"{verb} — {r.TypeDisplay}",
+                    Title         = title,
                     Detail        = $"{corpName} · {detail}",
                     Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
                     BlockedBy     = blocked ? "No character assigned to this corporation" : "",
@@ -79,22 +79,67 @@ public class StandingProjectGenerator(
     }
 
     /// <summary>
-    /// What is wrong with one standing definition. Null verb when it is running as intended.
+    /// What one standing definition is asking for. Null title when it is running as intended.
     ///
-    /// "no_systems" is kept distinct from "not_active" rather than collapsed into one "missing":
-    /// the first cannot be fixed by creating a project, because the scope currently resolves to
-    /// nowhere, and telling someone to create a project they cannot create wastes the trip.
+    /// <para>⚠️ The title names the project, not the act. Every row here is a project that does
+    /// not exist, so "Create" was on all of them and distinguished nothing — it cost the width
+    /// of a word on every line and left the actual project type, item and place to the detail.
+    /// The one row that is NOT a create still says so, because the answer there is different:
+    /// the scope resolves to nowhere, and no amount of creating fixes that.</para>
+    ///
+    /// <para>What follows the type varies by type, because the two kinds are identified by
+    /// different things. A delivery is an item and a place to put it. A destroy-NPC project is
+    /// a place and the scope that picked it — a system named directly, or one of many systems
+    /// an ADM rule resolved to, which is worth saying because the second kind reappears as the
+    /// ADM moves.</para>
     /// </summary>
-    private static (string? Verb, string Detail) Diagnose(StandingProjectGridRow r) => r.MatchStatus switch
+    private static (string? Title, string Detail) Describe(StandingProjectGridRow r)
     {
-        "not_active" => ("Create",
-                         $"No active project matches this definition. Target {r.TargetDisplay}"
-                         + (r.DestDisplay.Length > 0 ? $" to {r.DestDisplay}" : "") + "."),
+        var deliver = r.TypeDisplay == "Deliver Item";
 
-        "no_systems" => ("Check scope",
-                         $"Scope resolves to no systems, so nothing can be created for it. "
-                         + $"Target {r.TargetDisplay}."),
+        // ⚠️ Two scopes reach here as different shapes, and the difference matters to the reader.
+        // A definition naming one system carries it in TargetDisplay with no dest. An ADM rule
+        // carries the RULE in TargetDisplay and one row per qualifying system in DestDisplay —
+        // so a system can appear because somebody chose it, or because its ADM dropped under a
+        // threshold, and only the second kind goes away again when the ADM recovers.
+        var byRule = r.DestDisplay.Length > 0;
+        var place  = byRule ? r.DestDisplay : r.TargetDisplay;
 
-        _            => (null, ""),
-    };
+        return r.MatchStatus switch
+        {
+            "not_active" when deliver => (
+                $"{r.TypeDisplay} — {r.TargetDisplay} to "
+              + (r.DestDisplay.Length > 0 ? r.DestDisplay : "any corp office"),
+                "No active project matches this definition."),
+
+            "not_active" => (
+                $"{r.TypeDisplay} — {place}"
+              + (byRule ? $" — {r.TargetDisplay}" : ""),
+                "No active project matches this definition."
+              + (byRule
+                  ? " This system qualifies under an ADM rule, so it drops off the list on its "
+                  + "own once the ADM recovers."
+                  : " This system is named by the definition itself.")),
+
+            // ⚠️ Not a create. There is nothing to create a project against, and saying "create"
+            // would send somebody to try. Three separate reasons reach here and they want three
+            // different answers — one is a fault, one is a misconfiguration, one is good news.
+            "no_adm" => (
+                $"Check ADM data — {r.TypeDisplay}: {r.TargetDisplay}",
+                "Sovereignty data could not be read, so no system can be measured against the "
+              + "threshold. This is a fetch that failed, not a scope that is empty."),
+
+            "no_systems" => (
+                $"Check scope — {r.TypeDisplay}: {r.TargetDisplay}",
+                "The scope expands to no systems at all, so nothing can be created for it."),
+
+            "all_healthy" => (
+                $"{r.TypeDisplay} — nothing to raise in {r.TargetDisplay}",
+                "Every system in scope is at or above the threshold, so the rule selects nothing "
+              + "today. It reappears on its own if an ADM falls."),
+
+
+            _ => (null, ""),
+        };
+    }
 }

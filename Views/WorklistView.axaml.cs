@@ -97,7 +97,75 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     private void OnOpenNeedItem(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as StationNeedRowVm)?.OpenItem();
 
+    private void OnOpenNeedDriver(object? sender, RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as NeedDriverRowVm)?.Open();
+
+    private void OnOpenPrintProduct(object? sender, RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as PrintPressureRowVm)?.Open();
+
+    private void OnOpenShortageItem(object? sender, RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as ItemShortageRowVm)?.Open();
+
+    /// <summary>Opens and closes the "asked for by" panel under a need. Same mechanism as the
+    /// haul manifest above, and for the same reasons — see OnManifestToggle.</summary>
+    private void OnNeedToggle(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control control) return;
+        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
+        if (row.DataContext is not StationNeedRowVm vm || !vm.HasDrivers) return;
+
+        row.AreDetailsVisible = !row.AreDetailsVisible;
+        vm.IsExpanded = row.AreDetailsVisible;
+    }
+
+    /// <summary>Opens the tasks behind a contention row's counts. Same shape as the two toggles
+    /// above it — the glyph lives on the item so it survives row recycling.</summary>
+    private void OnShortageToggle(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control control) return;
+        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
+        if (row.DataContext is not ItemShortageRowVm vm || !vm.HasTasks) return;
+
+        row.AreDetailsVisible = !row.AreDetailsVisible;
+        vm.IsExpanded = row.AreDetailsVisible;
+    }
+
+    /// <summary>Opens the tasks behind a BPO / Formula row's counts.</summary>
+    private void OnPrintToggle(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control control) return;
+        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
+        if (row.DataContext is not PrintPressureRowVm vm || !vm.HasTasks) return;
+
+        row.AreDetailsVisible = !row.AreDetailsVisible;
+        vm.IsExpanded = row.AreDetailsVisible;
+    }
+
+    /// <summary>Opens the tasks behind a Hauling row's counts.</summary>
+    private void OnHaulToggle(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control control) return;
+        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
+        if (row.DataContext is not HaulPressureRowVm vm || !vm.HasTasks) return;
+
+        row.AreDetailsVisible = !row.AreDetailsVisible;
+        vm.IsExpanded = row.AreDetailsVisible;
+    }
+
+    private void OnOpenHaulItem(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: HaulPressureRowVm vm }) vm.OpenItem();
+    }
+
+    private void OnOpenHaulStation(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: HaulPressureRowVm vm }) vm.OpenStation();
+    }
+
     private void OnManifestToggle(object? sender, RoutedEventArgs e)
+
+
+
     {
         if (sender is not Control control) return;
         if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;

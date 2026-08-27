@@ -164,6 +164,11 @@
         <ContextMenu>
           <MenuItem Header="Mark as not for profit" Click="OnMarkNotForProfit" />
           <MenuItem Header="Restore to profit"      Click="OnRestoreToProfit" />
+          <Separator />
+          <!-- Built when the menu opens: the label list grows as things are tagged, and one
+               populated at startup would offer yesterday's. -->
+          <MenuItem x:Name="AddLabelMenu"    Header="Add label" />
+          <MenuItem x:Name="RemoveLabelMenu" Header="Remove label" />
         </ContextMenu>
       </DataGrid.ContextMenu>
       <DataGrid.Columns>
@@ -254,15 +259,43 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <!-- The description typed on the contract. Blank on market rows, which have nowhere to
-             carry one. Trimmed with the whole note on hover, since these run long and the point
-             is to recognise a sale, not to read the note in the grid. -->
-        <DataGridTemplateColumn Header="Note" SortMemberPath="Note" Width="200">
+        <!-- Read-only chips, same colours as the Order Tracker: one tag looks the same wherever
+             it appears. Added and removed by right-click. -->
+        <DataGridTemplateColumn Header="Labels" Width="180">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
-              <TextBlock Text="{Binding Note}" FontSize="11" VerticalAlignment="Center"
-                         Margin="0 0 8 0" TextTrimming="CharacterEllipsis"
-                         ToolTip.Tip="{Binding Note}" />
+              <ItemsControl ItemsSource="{Binding LabelChips}" Margin="0 2" VerticalAlignment="Center">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Background="{Binding Fill}" BorderBrush="{Binding Stroke}"
+                            BorderThickness="1" CornerRadius="2" Padding="5 0"
+                            Margin="0 1 3 1" ToolTip.Tip="{Binding Text}">
+                      <TextBlock Text="{Binding Text}" FontSize="10" Foreground="{Binding Ink}" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- The contract behind the sale, carrying its description where it has one. Blank on
+             market rows. Opens in the Contracts tool, the same jump the Order Tracker offers. -->
+        <DataGridTemplateColumn Header="Contract" SortMemberPath="Contract" Width="220">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleRowVm">
+              <Panel>
+                <Button Classes="link" Click="OnOpenContract" IsVisible="{Binding HasContractLink}"
+                        ToolTip.Tip="{Binding Contract}">
+                  <TextBlock Text="{Binding Contract}" Classes="linktext"
+                             TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding Contract}" IsVisible="{Binding !HasContractLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

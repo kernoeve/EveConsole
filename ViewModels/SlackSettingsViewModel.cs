@@ -48,6 +48,10 @@ public class SlackSettingsViewModel : ReactiveObject
             Channels.Add(_salePostingChannel);
         }
 
+        _top10Webhook       = slack.WebhookUrl(SlackService.AreaCorpTop10);
+        _monthlyWebhook     = slack.WebhookUrl(SlackService.AreaCorpMonthly);
+        _salePostingWebhook = slack.WebhookUrl(SlackService.AreaSalePosting);
+
         SaveAndTestCommand   = ReactiveCommand.CreateFromTask(SaveAndTestAsync);
         LoadChannelsCommand  = ReactiveCommand.CreateFromTask(LoadChannelsAsync);
         OpenSlackAppsCommand = ReactiveCommand.Create(() => OpenUrl(AppsUrl));
@@ -214,6 +218,40 @@ public class SlackSettingsViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _salePostingChannel, value);
             _ = _slack.SetChannelAsync(SlackService.AreaSalePosting, value);
         }
+    }
+
+    // ── Webhooks ─────────────────────────────────────────────────────────────
+    //
+    // ⚠️ The reason these exist: a user token is granted by the workspace that issued it, and an
+    // alliance will hand out an incoming webhook where it would never hand out a token for its
+    // own Slack. A webhook is a URL bound to one channel by whoever made it, so setting one here
+    // overrides the channel picker above for that area — the URL already decides where it lands.
+    //
+    // ⚠️ It also cannot thread. Nothing posted through a webhook comes back with a message id, so
+    // a sale posting's detail arrives as a second message rather than a reply.
+
+    private string _top10Webhook = "";
+    public string Top10Webhook
+    {
+        get => _top10Webhook;
+        set { this.RaiseAndSetIfChanged(ref _top10Webhook, value);
+              _ = _slack.SetWebhookUrlAsync(SlackService.AreaCorpTop10, value); }
+    }
+
+    private string _monthlyWebhook = "";
+    public string MonthlyWebhook
+    {
+        get => _monthlyWebhook;
+        set { this.RaiseAndSetIfChanged(ref _monthlyWebhook, value);
+              _ = _slack.SetWebhookUrlAsync(SlackService.AreaCorpMonthly, value); }
+    }
+
+    private string _salePostingWebhook = "";
+    public string SalePostingWebhook
+    {
+        get => _salePostingWebhook;
+        set { this.RaiseAndSetIfChanged(ref _salePostingWebhook, value);
+              _ = _slack.SetWebhookUrlAsync(SlackService.AreaSalePosting, value); }
     }
 
     private async Task LoadChannelsAsync()

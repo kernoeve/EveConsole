@@ -254,6 +254,20 @@ public sealed class StandingProjectRowVm
     public long   DbId              { get; }
     public string TypeDisplay       { get; }
     public string DescriptionText   { get; }
+
+    /// <summary>
+    /// The whole row in one line, for the Overview panel.
+    ///
+    /// <para>⚠️ Panel only. The Corp Activity grid has Type, Description and Location as
+    /// their own sortable columns and must keep them; the panel shows one column and was
+    /// built when every project was a delivery, so it printed a bare item name and left the
+    /// reader unable to tell a delivery from a destroy-NPC row.</para>
+    ///
+    /// <para>The shape follows the type, because the types are identified by different
+    /// things: a delivery is an item and where it goes, and a destroy-NPC project is just a
+    /// place.</para>
+    /// </summary>
+    public string SummaryText { get; }
     public string LocationText      { get; }
     public string ProjectStatusText { get; }
     public string ProjectStatusColor { get; }
@@ -302,23 +316,41 @@ public sealed class StandingProjectRowVm
         TypeDisplay     = row.TypeDisplay;
         DescriptionText = row.TargetDisplay;
         LocationText    = row.DestDisplay;
+
+        SummaryText = row.TypeDisplay + ": " + (row.ItemTypeId is > 0
+            ? row.TargetDisplay + (row.DestDisplay.Length > 0
+                ? " → " + row.DestDisplay
+                : "")
+            // A destroy-NPC row names the qualifying system in DestDisplay when an ADM rule
+            // selected it, and in TargetDisplay when the definition named it outright.
+            : row.DestDisplay.Length > 0 ? row.DestDisplay : row.TargetDisplay);
         LocationId      = row.StationId ?? 0;
         LocationIsNpc   = row.StationIsNpc;
 
         // Less than 10% of the target left — flag the near-complete (often stuck) projects in orange.
         IsLowRemaining = row.RemainingPercentValue >= 0 && row.RemainingPercentValue < 10.0;
 
+        // ⚠️ Every status this can be given, or the default swallows it. The zero-systems case
+        // was split into three — the ADM read failed, the scope expands to nothing, or every
+        // system is healthy — and the two new ones fell through to "project not active" here,
+        // in red, which is the one thing none of them means.
         string statusColor = row.MatchStatus switch
         {
-            "matched"    => "#6aaa88",
-            "no_systems" => "#888899",
-            _            => "#cc4444",
+            "matched"     => "#6aaa88",
+            "all_healthy" => "#888899",
+            "no_systems"  => "#888899",
+            "no_adm"      => "#e0902e",
+            _             => "#cc4444",
         };
         ProjectStatusText = row.MatchStatus switch
         {
-            "matched"    => row.MatchedName,
-            "no_systems" => "no systems below the minimum ADM",
-            _            => "project not active",
+            "matched"     => row.MatchedName,
+            "all_healthy" => "no systems below the minimum ADM",
+            "no_systems"  => "scope expands to no systems",
+            "no_adm"      => row.StatusNote.Length > 0
+                                 ? $"sovereignty data unavailable — {row.StatusNote}"
+                                 : "sovereignty data unavailable",
+            _             => "project not active",
         };
         ProjectStatusColor = IsLowRemaining ? "#e0902e" : statusColor;
 
@@ -329,9 +361,11 @@ public sealed class StandingProjectRowVm
             ? 1
             : row.MatchStatus switch
             {
-                "matched"    => 3,   // green
-                "no_systems" => 2,   // grey
-                _            => 0,   // red — project not active
+                "matched"     => 3,   // green
+                "all_healthy" => 2,   // grey — the rule selects nothing today, and should not
+                "no_systems"  => 2,   // grey
+                "no_adm"      => 1,   // orange — a fault, above healthy but below a real gap
+                _             => 0,   // red — project not active
             };
 
         RemainingText        = row.RemainingText;
@@ -1529,8 +1563,12 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
     public bool IsSlackTop10Configured => _slack?.IsConfigured(SlackService.AreaCorpTop10) == true;
 
+    /// <summary>Where a post would land, for the button's tooltip. A webhook carries its own
+    /// destination and exposes no channel name, so it says so rather than showing nothing.</summary>
     public string SlackTop10ChannelText =>
-        _slack?.ChannelName(SlackService.AreaCorpTop10) is { Length: > 0 } n ? $"#{n}" : "";
+        _slack?.UsesWebhook(SlackService.AreaCorpTop10) == true
+            ? "via webhook"
+            : _slack?.ChannelName(SlackService.AreaCorpTop10) is { Length: > 0 } n ? $"#{n}" : "";
 
     private string _slackStatus = "";
     public string SlackStatus { get => _slackStatus; private set => this.RaiseAndSetIfChanged(ref _slackStatus, value); }
@@ -1538,7 +1576,9 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public bool IsSlackMonthlyConfigured => _slack?.IsConfigured(SlackService.AreaCorpMonthly) == true;
 
     public string SlackMonthlyChannelText =>
-        _slack?.ChannelName(SlackService.AreaCorpMonthly) is { Length: > 0 } n ? $"#{n}" : "";
+        _slack?.UsesWebhook(SlackService.AreaCorpMonthly) == true
+            ? "via webhook"
+            : _slack?.ChannelName(SlackService.AreaCorpMonthly) is { Length: > 0 } m ? $"#{m}" : "";
 
     public void RefreshSlackState()
     {
@@ -1560,7 +1600,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     {
         if (_slack is null) return;
         var channel = _slack.ChannelId(SlackService.AreaCorpTop10);
-        if (string.IsNullOrEmpty(channel)) { SlackStatus = "No Slack channel configured."; return; }
+        var viaHook = _slack.UsesWebhook(SlackService.AreaCorpTop10);
+        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = "No Slack channel or webhook configured."; return; }
 
         // Guard against accidental double-posting.
         if (_slack.LastPostAt(SlackService.AreaCorpTop10) is { } last
@@ -1579,7 +1620,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         // its bold markers literally instead of rendering them.
         var plain = SelectedExportFormat == "Plain Text";
         var body  = BuildTop10Export(includeIsk);
-        var res   = await _slack.PostMessageAsync(channel, plain ? $"```\n{body}\n```" : body);
+        var res   = await _slack.PostAreaAsync(SlackService.AreaCorpTop10, plain ? $"```\n{body}\n```" : body);
         if (res.Ok) await _slack.SetLastPostAsync(SlackService.AreaCorpTop10, DateTimeOffset.UtcNow);
         SlackStatus = res.Ok
             ? $"Posted to {SlackTop10ChannelText} — {DateTimeOffset.Now:t}"
@@ -1597,7 +1638,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     {
         if (_slack is null) return;
         var channel = _slack.ChannelId(SlackService.AreaCorpMonthly);
-        if (string.IsNullOrEmpty(channel)) { SlackStatus = "No Slack channel configured."; return; }
+        var viaHook = _slack.UsesWebhook(SlackService.AreaCorpMonthly);
+        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = "No Slack channel or webhook configured."; return; }
 
         if (_slack.LastPostAt(SlackService.AreaCorpMonthly) is { } last
             && DateTimeOffset.UtcNow - last < SlackRepostWindow
@@ -1612,7 +1654,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         SlackStatus = "Posting to Slack…";
         var plain = SelectedExportFormat == "Plain Text";
         var body  = BuildMonthlySummaryExport();
-        var res   = await _slack.PostMessageAsync(channel, plain ? $"```\n{body}\n```" : body);
+        var res   = await _slack.PostAreaAsync(SlackService.AreaCorpMonthly, plain ? $"```\n{body}\n```" : body);
         if (res.Ok) await _slack.SetLastPostAsync(SlackService.AreaCorpMonthly, DateTimeOffset.UtcNow);
         SlackStatus = res.Ok
             ? $"Posted to {SlackMonthlyChannelText} — {DateTimeOffset.Now:t}"

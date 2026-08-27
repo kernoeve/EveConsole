@@ -153,30 +153,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct)
             : new Dictionary<int, string>();
 
-        static string RigCategoryFromName(string n)
-        {
-            if (n.Contains("Advanced Small Ship"))     return "adv_small_ships";
-            if (n.Contains("Basic Small Ship"))        return "small_ships";
-            if (n.Contains("Advanced Medium Ship"))    return "adv_medium_ships";
-            if (n.Contains("Basic Medium Ship"))       return "medium_ships";
-            if (n.Contains("Advanced Large Ship"))     return "adv_large_ships";
-            if (n.Contains("Basic Large Ship"))        return "large_ships";
-            if (n.Contains("Capital Ship"))            return "capital_ships";
-            if (n.Contains("Drone and Fighter"))       return "drones_fighters";
-            if (n.Contains("Equipment"))               return "modules_equipment";
-            if (n.Contains("Ammunition"))              return "ammo_charges";
-            if (n.Contains("Basic Capital Component")) return "capital_components";
-            if (n.Contains("Advanced Component"))      return "adv_components";
-            if (n.Contains("Structure"))               return "structure_ammo";
-            // Tatara L-Set: one generic rig covers ALL reaction types — use wildcard key.
-            // Athanor M-Set: separate rigs per reaction subcategory — use specific keys.
-            if (n.Contains("L-Set Reactor"))           return "biochemical_reactions";  // wildcard
-            if (n.Contains("Biochemical Reactor"))     return "react_bio_gas";
-            if (n.Contains("Composite Reactor"))       return "react_composite";
-            if (n.Contains("Hybrid Reactor"))          return "react_composite";
-            if (n.Contains("Reactor"))                 return "biochemical_reactions";  // fallback wildcard
-            return "";
-        }
+        // ⚠️ One copy, in IndyRigMatching. This was a third private transcription of the
+        // same rules, and all three had drifted: none of them knew the XL rigs, so a Sotiyo
+        // costed a titan with no rig bonus at all.
+        static string RigCategoryFromName(string n) => IndyRigMatching.RigCategoryFromName(n);
 
         var rigCategoryKeys = rigTypeIds.ToDictionary(
             id => id,
@@ -359,13 +339,18 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         double RigBonus(IndyStructure? s, string itemCategoryKey, Dictionary<int, double> bonusAttr)
         {
             if (s is null) return 0;
-            bool isReactionCat = itemCategoryKey.StartsWith("react_");
             return rigs.Where(r =>
                 {
                     if (r.StructureId != s.Id || r.RigTypeId == 0) return false;
-                    var rigCat = rigCategoryKeys.GetValueOrDefault(r.RigTypeId);
-                    // "biochemical_reactions" is the generic reactor rig key — it matches all react_* items.
-                    return rigCat == itemCategoryKey || (isReactionCat && rigCat == "biochemical_reactions");
+
+                    // ⚠️ Empty, not null, for a rig this does not classify. RigApplies takes a
+                    // non-nullable string and reads an empty key as "bonuses nothing", which is
+                    // the right answer; the bare GetValueOrDefault handed it a null.
+                    //
+                    // Wildcards live with the rules: the generic reactor rig covers every
+                    // reaction, and the XL rigs cover whole families the same way.
+                    var rigCat = rigCategoryKeys.GetValueOrDefault(r.RigTypeId, "");
+                    return IndyRigMatching.RigApplies(rigCat, itemCategoryKey);
                 })
                 .Sum(r => bonusAttr.TryGetValue(r.RigTypeId, out var b) ? b * SecMult(s, r.RigTypeId) : 0.0);
         }

@@ -384,6 +384,19 @@ public class App : Application
             db.Database.ExecuteSqlRaw("""
                 CREATE INDEX IF NOT EXISTS "IX_OrderLabels_Label" ON "OrderLabels" ("Label")
                 """);
+            // The same labels, on the sales side. Keyed like SaleExclusions because a sale has no
+            // row of its own — it is a wallet transaction or a contract, identified by both.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "SaleLabels" (
+                    "Kind"   TEXT    NOT NULL,
+                    "SaleId" INTEGER NOT NULL,
+                    "Label"  TEXT    NOT NULL,
+                    PRIMARY KEY ("Kind", "SaleId", "Label")
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_SaleLabels_Label" ON "SaleLabels" ("Label")
+                """);
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "Stores" (
                     "Id"            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -399,6 +412,8 @@ public class App : Application
                     "ListenFrom"    TEXT    NOT NULL DEFAULT '',
                     "IsDeleted"     INTEGER NOT NULL DEFAULT 0,
                     "OrderLabels"        TEXT NOT NULL DEFAULT '',
+                    "UseCustomUsage"     INTEGER NOT NULL DEFAULT 0,
+                    "CustomUsage"        TEXT NOT NULL DEFAULT '',
                     "MessageHeader"      TEXT NOT NULL DEFAULT '',
                     "MessageHeaderColor" TEXT NOT NULL DEFAULT '',
                     "MessageFooter"      TEXT NOT NULL DEFAULT '',
@@ -423,6 +438,8 @@ public class App : Application
             // Text the shop puts on every mail it sends, with a colour each.
             // Labels put on every order this store takes.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "OrderLabels" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "UseCustomUsage" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "CustomUsage" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageHeader" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageHeaderColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooter" TEXT NOT NULL DEFAULT ''"""); } catch { }
@@ -1859,7 +1876,8 @@ public class App : Application
                     "FillTargetPercent" REAL    NOT NULL DEFAULT 100,
                     "LocationId"        INTEGER NOT NULL DEFAULT 0,
                     "LocationName"      TEXT    NOT NULL DEFAULT '',
-                    "Enabled"           INTEGER NOT NULL DEFAULT 1
+                    "Enabled"           INTEGER NOT NULL DEFAULT 1,
+                    "IsFinalProduct"    INTEGER NOT NULL DEFAULT 0
                 )
                 """);
 
@@ -1884,6 +1902,10 @@ public class App : Application
             // Added after the rules table shipped on this branch, so it needs its own ALTER —
             // CREATE TABLE IF NOT EXISTS will not add a column to a table that already exists.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistInvRules" ADD COLUMN "Action" TEXT NOT NULL DEFAULT 'Buy' """); } catch { }
+
+            // Whether the group is something the operation sells or flies. Ranks work that
+            // unblocks it above work that only refills a buffer — see WorklistInvRule.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistInvRules" ADD COLUMN "IsFinalProduct" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "WorklistCorpAlts" (
