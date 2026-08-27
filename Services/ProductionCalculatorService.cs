@@ -339,14 +339,17 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         double RigBonus(IndyStructure? s, string itemCategoryKey, Dictionary<int, double> bonusAttr)
         {
             if (s is null) return 0;
-            bool isReactionCat = itemCategoryKey.StartsWith("react_");
             return rigs.Where(r =>
                 {
                     if (r.StructureId != s.Id || r.RigTypeId == 0) return false;
-                    var rigCat = rigCategoryKeys.GetValueOrDefault(r.RigTypeId);
+
+                    // ⚠️ Empty, not null, for a rig this does not classify. RigApplies takes a
+                    // non-nullable string and reads an empty key as "bonuses nothing", which is
+                    // the right answer; the bare GetValueOrDefault handed it a null.
+                    //
                     // Wildcards live with the rules: the generic reactor rig covers every
                     // reaction, and the XL rigs cover whole families the same way.
-                    _ = isReactionCat;
+                    var rigCat = rigCategoryKeys.GetValueOrDefault(r.RigTypeId, "");
                     return IndyRigMatching.RigApplies(rigCat, itemCategoryKey);
                 })
                 .Sum(r => bonusAttr.TryGetValue(r.RigTypeId, out var b) ? b * SecMult(s, r.RigTypeId) : 0.0);

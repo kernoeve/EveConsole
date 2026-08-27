@@ -280,12 +280,10 @@ public class BuildCostService
         double RigBonus(IndyStructure? s, string itemCategoryKey, Dictionary<int, double> bonusAttr)
         {
             if (s is null) return 0;
-            bool isReactionCat = itemCategoryKey.StartsWith("react_");
             return rigs.Where(r =>
                 {
                     if (r.StructureId != s.Id || r.RigTypeId == 0) return false;
                     var rigCat = rigCategoryKeys.GetValueOrDefault(r.RigTypeId, "");
-                    _ = isReactionCat;
                     return IndyRigMatching.RigApplies(rigCat, itemCategoryKey);
                 })
                 .Sum(r => bonusAttr.TryGetValue(r.RigTypeId, out var b) ? b * SecMult(s, r.RigTypeId) : 0.0);
