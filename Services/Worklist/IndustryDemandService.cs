@@ -278,6 +278,21 @@ public class IndustryDemandService(
 
         var topLevel = new List<(int TypeId, long Units)>();
 
+        // ⚠️ Orders are read BEFORE the shelf rules, so a rule can be told what is genuinely
+        // still on the shelf. An order takes its units off the top; what it claims is no longer
+        // stock the level can count on, and a threshold judged on hulls that are already sold
+        // declines to top up a shelf that is about to be empty.
+        //
+        // Measured: a Ragnarok ordered against the only one on hand left the Titans rule
+        // comfortably full, so the replacement never received a stock priority at all. Its job
+        // existed — the order's units still drove the quantity — but at Housekeeping 30, which
+        // is the floor, and it sat below every routine top-up in the list.
+        var orderDemand = await OrderDemandAsync(
+            db, settings.PlanCustomerOrders, scope, wrapped, corps, ct);
+
+        // Units minus what is still outstanding is what the existing stock covered.
+        var claimedByOrders = orderDemand.ToDictionary(o => o.TypeId, o => o.Units - o.Outstanding);
+
         foreach (var rule in rules.OrderByDescending(r => r.ThresholdPercent).ThenBy(r => r.Id))
         {
             if (!groups.TryGetValue(rule.GroupId, out var group)) continue;
@@ -310,12 +325,19 @@ public class IndustryDemandService(
                 g.Level = Math.Max(g.Level, wanted);
                 g.Have  = Math.Max(g.Have, have);
 
-                var need = InvRuleShortfall.For(rule, group, gi, av);
+                var need = InvRuleShortfall.For(
+                    rule, group, gi, av, claimedByOrders.GetValueOrDefault(gi.TypeId));
                 if (need is null) continue;   // comfortably full: contributes its level, asks for nothing
 
                 g.Fires    = true;
-                g.Priority    = Math.Max(g.Priority, WorklistPriority.ForStock(need.Percent));
-                g.OwnPriority = Math.Max(g.OwnPriority, WorklistPriority.ForStock(need.Percent));
+
+                // A rule flagged final puts its items in the band above ordinary stock-keeping.
+                var band = rule.IsFinalProduct
+                    ? WorklistPriority.ForFinalStock(need.Percent)
+                    : WorklistPriority.ForStock(need.Percent);
+
+                g.Priority    = Math.Max(g.Priority, band);
+                g.OwnPriority = Math.Max(g.OwnPriority, band);
                 g.Reasons.Add($"{group.Name} · {need.StockText}.{need.FillText(rule)}");
                 topLevel.Add((gi.TypeId, need.Shortfall));
             }
@@ -323,8 +345,7 @@ public class IndustryDemandService(
 
         // ── Customer orders ───────────────────────────────────────────────────
 
-        foreach (var (typeId, units, outstanding, count, rank) in
-                 await OrderDemandAsync(db, settings.PlanCustomerOrders, scope, wrapped, corps, ct))
+        foreach (var (typeId, units, outstanding, count, rank) in orderDemand)
         {
             if (!ctx.BlueprintByProduct.ContainsKey(typeId)) continue;
 

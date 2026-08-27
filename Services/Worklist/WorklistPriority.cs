@@ -21,6 +21,10 @@ namespace EveConsole.Services.Worklist;
 /// announces itself and this one does not.</item>
 /// <item><b>Missing (90)</b> — something declared to exist that does not.</item>
 /// <item><b>Standing project (85)</b> — declared corp work that is not running.</item>
+/// <item><b>Final products (81–84)</b> — the ships the operation actually sells or flies,
+/// from a rule flagged final. A whole band above every other kind of stock-keeping, and below
+/// everything operational, so a hull is never queued behind a routine top-up but never ahead of
+/// an order either.</item>
 /// <item><b>Stock-keeping (40–80)</b> — scaled by how empty the shelf is, so a group at 25% of
 /// target outranks one at 75%. Capped below the fixed bands: keeping a stockpile full matters,
 /// but not more than an order someone is waiting for.</item>
@@ -100,6 +104,12 @@ public static class WorklistPriority
     private const int StockFloor = 40;
     private const int StockRange = 40;   // so a full shelf scores 40 and an empty one 80
 
+    // Final products sit in their own band directly above stock-keeping. Narrow on purpose:
+    // every one of them has to outrank every ordinary top-up, and none of them may reach
+    // StandingProject (85) or anything above it.
+    private const int FinalFloor = 81;
+    private const int FinalRange = 3;    // 81 when nearly full, 84 when empty
+
     /// <summary>
     /// Stock-keeping urgency from how far below target a group has fallen. At target it scores
     /// the floor; empty scores the top of the band, still below anything a person is waiting on.
@@ -108,5 +118,30 @@ public static class WorklistPriority
     {
         var depleted = Math.Clamp(100 - percentOfTarget, 0, 100) / 100.0;
         return StockFloor + (int)Math.Round(depleted * StockRange);
+    }
+
+    /// <summary>
+    /// The same measure for an item a rule has flagged as a final product.
+    ///
+    /// <para>⚠️ A band, not a bonus. A titan wanted for the shelf is stock-keeping like any
+    /// other, and scored like any other it lands wherever its coverage puts it — a hull at 90%
+    /// of target scored 44 and sat near the bottom of the list, behind intermediates being made
+    /// to top up shelves that block nothing. Priority is the outer sort, so no tie-break below
+    /// it can rescue that.</para>
+    ///
+    /// <para>Being the thing the operation actually sells is worth more than how full its shelf
+    /// happens to be, so every final product outranks every ordinary top-up regardless of
+    /// coverage, and coverage only orders them among themselves. Children inherit a parent's
+    /// priority, so the components a hull is waiting on rise with it — which is the other half
+    /// of the problem: they were low enough to lose to work blocking nothing at all.</para>
+    ///
+    /// <para>Still below everything operational, and far below an order. An item somebody is
+    /// waiting on outranks a hull built to fill a shelf, which is the whole point of the
+    /// ordering.</para>
+    /// </summary>
+    public static int ForFinalStock(double percentOfTarget)
+    {
+        var depleted = Math.Clamp(100 - percentOfTarget, 0, 100) / 100.0;
+        return FinalFloor + (int)Math.Round(depleted * FinalRange);
     }
 }
