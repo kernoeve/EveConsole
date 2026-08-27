@@ -332,15 +332,39 @@ public class IndustryJobGenerator(
             // Against the ORDER-DRIVEN units only. What the shelf also wants is a stocking job
             // and has never been what the order was waiting for.
             var forOrders = s.Demand.OrderDriven;
-            if (forOrders <= 0 || s.Demand.ShelfHave + s.Planned >= forOrders)
-                return s.Demand.OwnPriority;
+            var orderStillShort = forOrders > 0 && s.Demand.ShelfHave + s.Planned < forOrders;
 
+            // ⚠️ ONLY order urgency expires. Returning OwnPriority outright for anything not
+            // order-driven threw away every other kind of inherited priority with it, and an
+            // item nothing had ordered kept only what its own rule justified — nothing, for a
+            // component with no shelf level of its own.
+            //
+            // Genetic Lock Preserver sat at Housekeeping 30 with sixteen final products waiting
+            // on it and nineteen tasks stopped behind it. The neurolink chain feeds every
+            // capital hull we build; it is the biggest bottleneck on the board and it was at the
+            // floor, beneath work blocking nothing, because no customer had ordered it by name.
             var best = s.Demand.OwnPriority;
 
             foreach (var t in s.Demand.Dependents)
-                if (byType.TryGetValue(t, out var dep) && dep.Remaining > 0 &&
-                    dep.Demand.Priority > best)
-                    best = dep.Demand.Priority;
+            {
+                if (!byType.TryGetValue(t, out var dep) || dep.Remaining <= 0) continue;
+
+                // ⚠️ The ancestor's OWN priority, not its inherited one. Dependents is closed over
+                // the whole chain above an item, so the highest own-priority among the ancestors
+                // still asking for something IS the inherited value — computed here, every pass,
+                // rather than read from a number stamped in whatever order the walk happened to
+                // visit things. That stamp is why priority stopped partway down a deep tree.
+                var candidate = dep.Demand.OwnPriority;
+
+                // Order urgency, and only order urgency, lapses once the order-driven portion of
+                // THIS item is fed. Reinforced Carbon Fiber holds 795,615 units: the Ravens and
+                // Apocalypses are satisfied and every further unit is shelf, so it must stop
+                // borrowing their 220. A final product's band is not urgency of that kind and
+                // does not lapse — the hull still wants building.
+                if (candidate >= WorklistPriority.OrderDriven && !orderStillShort) continue;
+
+                if (candidate > best) best = candidate;
+            }
 
             return best;
         }
