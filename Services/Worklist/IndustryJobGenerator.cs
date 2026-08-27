@@ -334,6 +334,15 @@ public class IndustryJobGenerator(
             var forOrders = s.Demand.OrderDriven;
             var orderStillShort = forOrders > 0 && s.Demand.ShelfHave + s.Planned < forOrders;
 
+            // ⚠️ The same test for what the chain above wants. An item's demand is a MIXTURE and
+            // its priority is one number: Reinforced Carbon Fiber feeds the capital chain AND
+            // carries a level of its own asking for a million more. Once enough is on hand or
+            // planned to feed everything above it, every further unit is buffer — and buffer
+            // work does not get to keep the priority the chain conferred, or twenty reaction
+            // jobs rebuilding a stockpile sit level with the parts a titan is waiting for.
+            var forParents = s.Demand.ParentUnits;
+            var chainStillShort = forParents > 0 && s.Demand.ShelfHave + s.Planned < forParents;
+
             // ⚠️ ONLY order urgency expires. Returning OwnPriority outright for anything not
             // order-driven threw away every other kind of inherited priority with it, and an
             // item nothing had ordered kept only what its own rule justified — nothing, for a
@@ -367,9 +376,13 @@ public class IndustryJobGenerator(
                 }
                 else
                 {
-                    // ⚠️ Everything else is capped at ServesOther. Serving a hull is worth less
-                    // than being the hull, or the parts sort above the ship and the emptiest hull
-                    // on the board drags every shared component up to its own number.
+                    // Nothing above is still short of this, so what is left is the item's own
+                    // buffer. It falls back to what its own level justifies.
+                    if (!chainStillShort) continue;
+
+                    // ⚠️ Capped at ServesOther. Serving a hull is worth less than being the hull,
+                    // or the parts sort above the ship and the emptiest hull on the board drags
+                    // every shared component up to its own number.
                     candidate = Math.Min(candidate, WorklistPriority.ServesOther);
                 }
 
@@ -997,7 +1010,11 @@ public class IndustryJobGenerator(
             Key          = $"industry_job:{typeId}:0",
             Source       = Id,
             Kind         = WorklistKind.Job,
-            Title        = name,
+
+            // ⚠️ The amount belongs in the title. There is no run count — that is the whole
+            // point of the row, nothing can be started — but a bare name beside a filled-in
+            // value and volume column reads as a malformed row rather than a blocked one.
+            Title        = units > 0 ? $"{name} — {units:N0} needed" : name,
             Quantity     = units,
             Detail       = detail,
             Readiness    = WorklistReadiness.Blocked,
