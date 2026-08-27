@@ -290,13 +290,21 @@ public class IndustryJobGenerator(
             return (int)Math.Ceiling(n * starving);
         }
 
-        // The same count, restricted to what the operation sells or flies.
+        // How much finished output stands behind this item — what the operation sells or flies,
+        // rather than every task of any kind.
         int BlockedFinalNow(PlanState s)
         {
             var starving = Starving(s);
             if (starving <= 0) return 0;
 
-            var n = 0;
+            // ⚠️ A final product counts ITSELF. Dependents are the things that CONSUME an item,
+            // and nothing consumes a hull, so counting only dependents scored every finished
+            // product zero on the one key meant to protect it. Its components each scored one
+            // for blocking it — so the parts outranked the ship, and the moment they were made
+            // the hull dropped level with any intermediate being built to top up a shelf. The
+            // flag exists precisely to stop a titan queueing behind stock work.
+            var n = s.Demand.IsFinal ? 1 : 0;
+
             foreach (var t in s.Demand.Dependents)
                 if (byType.TryGetValue(t, out var dep) && dep.Remaining > 0 && dep.Demand.IsFinal)
                     n++;
