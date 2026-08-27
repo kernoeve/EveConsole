@@ -401,7 +401,20 @@ public class IndustryJobGenerator(
             var total = s.Demand.ShelfLevel + s.Demand.OrderUnits + s.Demand.ParentUnits;
             if (total <= 0) return 1.0;
 
-            return (double)(s.Demand.ShelfHave + s.Planned) / total;
+            // ⚠️ ACCOUNTED, not planned. Planned is what will really fill the shelf, and the
+            // material and stock arithmetic must keep using it — crediting a blocked job with
+            // stock it cannot make would send the next real job to whoever looks emptiest after
+            // that fiction.
+            //
+            // Ordering asks a different question: how much of this item is still unsaid. A
+            // blocked row has said its part. Measured on Planned, a blocked item looked exactly
+            // as starved after its rows were written as before, so the picker chose it again on
+            // the very next pass and its rows came out as one undifferentiated block — never
+            // interleaving with the work the planner would really have recommended between them.
+            // A waiting job already behaves this way; it counts because it is not blocked.
+            var accounted = s.Demand.Units - s.Remaining;
+
+            return (double)(s.Demand.ShelfHave + accounted) / total;
         }
 
         // Prints already planned against in this pass. See where it is applied for why the real
@@ -901,12 +914,19 @@ public class IndustryJobGenerator(
                         ? $" Sized against a fully researched print (TE{FullyResearchedTe}) — none is owned."
                         : $" Sized against {reference.Describe()}.";
 
-                    var left  = split.RunsUnassigned;
-                    var piece = 0;
-
-                    while (left > 0)
+                    // ⚠️ ONE row per visit, then back to the picker — the same rule the printed
+                    // path follows. Emitting every piece in one loop stamped them all with the
+                    // sequence and sort keys of a single pass, so a type's blocked rows arrived
+                    // as one undifferentiated block: coverage never moved between them, the
+                    // blocked counts never moved between them, and they could not interleave
+                    // with the other work the planner would really have recommended in between.
+                    //
+                    // The piece counter lives on the plan state so it survives the visits, which
+                    // is also what keeps the row keys unique and the MaxUnprintedRows ceiling
+                    // meaningful across them.
                     {
-                        piece++;
+                        var left  = split.RunsUnassigned;
+                        var piece = ++state.UnprintedPieces;
 
                         // ⚠️ The last allowed row takes everything still left, however much that
                         // is. Truncating instead would break the one property this whole block
@@ -958,7 +978,10 @@ public class IndustryJobGenerator(
                             SortCoverage     = dbgCover,
                         });
 
-                        left -= runs;
+                        // Another visit while anything is still unreported. Not credited to
+                        // Planned — no print means no shelf — so this is the only thing asking
+                        // the picker to come back for the rest.
+                        if (state.Remaining > 0) state.Done = false;
                     }
                 }
         }
@@ -989,6 +1012,15 @@ public class IndustryJobGenerator(
 
         /// <summary>No further visit is useful — finished, or unable to go further.</summary>
         public bool Done { get; set; }
+
+        /// <summary>
+        /// How many rows have been emitted for runs no print could carry.
+        ///
+        /// <para>Carried across visits because those rows are emitted one per visit, like every
+        /// other job. It keeps their keys unique and holds the ceiling that stops a single item
+        /// filling the list with its own remainder.</para>
+        /// </summary>
+        public int UnprintedPieces { get; set; }
     }
 
     /// <summary>A shortfall that cannot become a job at all, reported once with the reason.</summary>
