@@ -328,26 +328,43 @@ public class IndustryDemandService(
         {
             if (!ctx.BlueprintByProduct.ContainsKey(typeId)) continue;
 
-            // ⚠️ OUTSTANDING, not ordered. An order already covered by stock or by a job
-            // already running needs nothing built, and until now it still stamped the order
-            // band on the item and added its units to demand — only the queue entry was gated.
-            // One Simurgh, in build and linked to its job, therefore put priority 220 on itself;
-            // a stock rule then carried that 220 down its entire tree, and fifty jobs for three
-            // well-stocked reactions sat above every starving item in the list. Priority has to
-            // stop when the thing that justified it is settled.
+            var g = At(typeId);
+
+            // ⚠️ GROSS units into the quantity, never outstanding. Stock is netted exactly once,
+            // at the end of this method — `Level + Consumed - have` — and subtracting it here as
+            // well spends the same item twice.
+            //
+            // One Ragnarok on hand, an order for one, and a shelf level of one: the order netted
+            // the titan away to nothing, the shelf netted the same titan again, neither asked for
+            // anything, and no replacement was ever queued. The order will take that hull; the
+            // empty shelf it leaves behind is exactly what the level is for. The same arithmetic
+            // silently under-built every partly-stocked order — two ordered against one in
+            // stock came out as nothing to build rather than one.
+            //
+            // It also has to reach topLevel, or the item is never exploded into its materials
+            // and no purchase is raised for any of them.
+            g.Consumed   += units;
+            g.OrderUnits += units;
+            g.Fires       = true;
+            g.Reasons.Add($"{count} pending order(s) for {units:N0}.");
+            topLevel.Add((typeId, units));
+
+            // ⚠️ URGENCY, unlike quantity, does stop when the order is already met. An order
+            // covered by stock or by a job already running needs nothing built NOW, and it used
+            // to stamp the order band regardless: one Simurgh, in build and linked to its job,
+            // put priority 220 on itself, a stock rule carried that 220 down its entire tree,
+            // and fifty jobs for three well-stocked reactions sat above every starving item.
+            //
+            // What such an order leaves behind is the shelf it emptied, and refilling a shelf is
+            // stock work — ranked as stock work by the inventory rules above, not as an order
+            // somebody is waiting on.
             if (outstanding <= 0) continue;
 
-            var g = At(typeId);
-            g.Consumed   += outstanding;
-            g.OrderUnits  += outstanding;
             g.OrderDriven += outstanding;
-            g.Fires       = true;
             // Ranked rather than flat, so the order due first outranks the one due next month.
             // Children inherit this below, so the whole tree under an urgent order stays urgent.
             g.Priority    = Math.Max(g.Priority, WorklistPriority.ForOrder(rank));
             g.OwnPriority = Math.Max(g.OwnPriority, WorklistPriority.ForOrder(rank));
-            g.Reasons.Add($"{count} pending order(s) for {units:N0}.");
-            topLevel.Add((typeId, outstanding));
         }
 
         // ── What those builds will consume ────────────────────────────────────
