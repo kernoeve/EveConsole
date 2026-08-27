@@ -52,16 +52,6 @@ public class IndustryJobGenerator(
     /// </summary>
     private const int FullyResearchedTe = 20;
 
-    /// <summary>
-    /// How many rows the runs with no free print may occupy.
-    ///
-    /// <para>⚠️ A guard against a pathological demand filling the list with hundreds of identical
-    /// blocked rows, not a limit on what is reported. The last allowed row absorbs everything
-    /// still remaining and says that it does, so the jobs always sum to the demand — which is the
-    /// property these rows exist to preserve.</para>
-    /// </summary>
-    private const int MaxUnprintedRows = 12;
-
     public async Task<List<WorklistItem>> GenerateAsync(CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
@@ -962,14 +952,18 @@ public class IndustryJobGenerator(
                         var left  = split.RunsUnassigned;
                         var piece = ++state.UnprintedPieces;
 
-                        // ⚠️ The last allowed row takes everything still left, however much that
-                        // is. Truncating instead would break the one property this whole block
-                        // exists for: the jobs have to sum to the demand. A row larger than a
-                        // single job can be says so in its own text rather than silently going
-                        // missing.
-                        var last = piece >= MaxUnprintedRows;
-                        var runs = last ? left : Math.Min(left, refCap);
-                        var over = last && runs > refCap;
+                        // ⚠️ A real job's worth, always. There used to be a ceiling of twelve rows
+                        // per item, with the twelfth absorbing every run still outstanding — one
+                        // Pressurized Oxidizers row for 568 runs beside twenty-odd of 250, a size
+                        // no formula can hold.
+                        //
+                        // Having no free formula is only the REASON these are blocked. It has no
+                        // bearing on how the work divides: the jobs are the jobs, sized by what a
+                        // formula can carry, and they stay blocked until one frees up. A summary
+                        // row in their place is the same mistake as the "N needed" rows this
+                        // block replaced — and it costs the sequencing too, since a row standing
+                        // for eleven jobs can only hold one set of coverage and blocked counts.
+                        var runs = Math.Min(left, refCap);
 
                         // ⚠️ Reported, therefore accounted for. This block touched nothing on the
                         // plan state at all, so its runs stayed outstanding and every later visit
@@ -991,11 +985,7 @@ public class IndustryJobGenerator(
                                 : $"{name} — {runs:N0} run(s)",
                             Quantity      = runs * (long)Math.Max(1, product.Quantity),
                             Detail        = $"{head} Short {d.Units:N0}. Needs a blueprint at "
-                                          + $"{siteName}.{assumed}"
-                                          + (over
-                                              ? $" Covers every remaining run; more than one job can "
-                                              + "hold, so it will take several once a print is free."
-                                              : ""),
+                                          + $"{siteName}.{assumed}",
                             Readiness      = WorklistReadiness.Blocked,
                             BlockedBy      = printWhy,
                             BlockedByPrint = true,
@@ -1051,8 +1041,7 @@ public class IndustryJobGenerator(
         /// How many rows have been emitted for runs no print could carry.
         ///
         /// <para>Carried across visits because those rows are emitted one per visit, like every
-        /// other job. It keeps their keys unique and holds the ceiling that stops a single item
-        /// filling the list with its own remainder.</para>
+        /// other job, and it is what keeps their keys unique across those visits.</para>
         /// </summary>
         public int UnprintedPieces { get; set; }
     }
