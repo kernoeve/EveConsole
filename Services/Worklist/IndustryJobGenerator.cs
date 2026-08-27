@@ -272,6 +272,18 @@ public class IndustryJobGenerator(
         // once enough is planned to cover it nothing is waiting on this item any more — so its
         // claim on the next slot has to fall to zero even though its shelf is still far from
         // full. A fixed count is what let one item take twenty consecutive slots.
+        // Whether a dependent has still not got what it needs.
+        //
+        // ⚠️ Against PLANNED, never Remaining. Remaining is what has not been REPORTED, and a
+        // blocked row reports its units without producing one of them. Testing it here made a
+        // titan whose every job is on the list but blocked read as needing nothing, so the
+        // components feeding it dropped to fin 0 and blkd 0 while still being exactly what it
+        // waits for — and stopped conferring their priority at the same time.
+        //
+        // The two questions are genuinely different. "Has this been said" orders the list;
+        // "has this been made" is what something downstream is waiting on.
+        static bool StillShort(PlanState s) => s.Demand.Units - s.Planned > 0;
+
         int BlockedNow(PlanState s)
         {
             var starving = Starving(s);
@@ -279,7 +291,7 @@ public class IndustryJobGenerator(
 
             var n = 0;
             foreach (var t in s.Demand.Dependents)
-                if (byType.TryGetValue(t, out var dep) && dep.Remaining > 0) n++;
+                if (byType.TryGetValue(t, out var dep) && StillShort(dep)) n++;
 
             // ⚠️ Scaled by how much of the need is still unmet, so the count falls with EVERY
             // job rather than in one step at the end. Twenty-three dependents share one shortfall:
@@ -306,7 +318,7 @@ public class IndustryJobGenerator(
             var n = s.Demand.IsFinal ? 1 : 0;
 
             foreach (var t in s.Demand.Dependents)
-                if (byType.TryGetValue(t, out var dep) && dep.Remaining > 0 && dep.Demand.IsFinal)
+                if (byType.TryGetValue(t, out var dep) && StillShort(dep) && dep.Demand.IsFinal)
                     n++;
             return (int)Math.Ceiling(n * starving);
         }
@@ -356,7 +368,7 @@ public class IndustryJobGenerator(
 
             foreach (var t in s.Demand.Dependents)
             {
-                if (!byType.TryGetValue(t, out var dep) || dep.Remaining <= 0) continue;
+                if (!byType.TryGetValue(t, out var dep) || !StillShort(dep)) continue;
 
                 // ⚠️ The ancestor's OWN priority, not its inherited one. Dependents is closed over
                 // the whole chain above an item, so the highest own-priority among the ancestors
