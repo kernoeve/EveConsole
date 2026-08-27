@@ -460,7 +460,13 @@ public class IndustryJobGenerator(
 
                 // An inventory level is more urgent the emptier it is, so the priority carries
                 // how far below target it has fallen rather than treating every shortfall alike.
-                var priority = d.Priority;
+                //
+                // ⚠️ The LIVE value, the same one the ordering uses. Blocked rows took the stamped
+                // walk priority instead, which is uncapped and never expires, so an item read 84
+                // while it could not start and 80 once it could — the same work, ranked above
+                // itself for being stuck. Their prio column shows this number directly, since a
+                // row that was never planned has no sort keys of its own.
+                var priority = LivePriority(state);
 
                 var head = d.Head;
 
