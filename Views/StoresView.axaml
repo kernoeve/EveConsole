@@ -62,9 +62,13 @@
 
         <TabItem Header="Overview" FontSize="12">
           <!-- A grid, not a stack in a scroller: the counts are four lines and fixed, and
-               everything left over belongs to the message log. A log sized to a guess wastes
-               half the window on a tall screen and shows six rows on a short one. -->
-          <Grid Margin="14" RowDefinitions="Auto,14,*">
+               everything left over is split between the two logs. A log sized to a guess wastes
+               half the window on a tall screen and shows six rows on a short one.
+
+               Orders above messages, and both starred rather than one of them auto-sized: what
+               the shop still owes people is the reason to open this tab, and a mail log that
+               took the whole window pushed it off the bottom. -->
+          <Grid Margin="14" RowDefinitions="Auto,14,*,14,*">
           <!-- Stats -->
           <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
@@ -87,8 +91,35 @@
               </StackPanel>
             </Grid>
           </Border>
-          <!-- Messages -->
+          <!-- Active orders -->
           <Border Grid.Row="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="14 12">
+            <DockPanel LastChildFill="True">
+              <TextBlock DockPanel.Dock="Top" Text="Active orders" FontSize="13"
+                         FontWeight="SemiBold" Foreground="#c8a84b" Margin="0 0 0 8" />
+              <DataGrid ItemsSource="{Binding Orders}" AutoGenerateColumns="False" IsReadOnly="True"
+                        Background="Transparent" HeadersVisibility="Column" FontSize="11">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Created on" Binding="{Binding Created}" Width="100" />
+                  <DataGridTextColumn Header="Order"      Binding="{Binding Ref}"     Width="80" />
+                  <DataGridTextColumn Header="Item"       Binding="{Binding Item}"    Width="*" />
+                  <!-- Sorted on the number, shown with separators: 9 sorts below 50, which it
+                       would not if the column sorted the text it displays. -->
+                  <DataGridTextColumn Header="Units"      Binding="{Binding UnitsText}"
+                                      SortMemberPath="Units" Width="80" CellStyleClasses="num" />
+                  <DataGridTextColumn Header="Buyer"      Binding="{Binding Buyer}"   Width="160" />
+                  <DataGridTextColumn Header="Est date"   Binding="{Binding EstDate}" Width="90" />
+                  <!-- The column that moves while an order is open. Status is here because it was
+                       asked for and stays correct if the list ever shows more than active orders,
+                       but on this tab it reads "Pending" on every row by construction. -->
+                  <DataGridTextColumn Header="Source"     Binding="{Binding Source}"  Width="100" />
+                  <DataGridTextColumn Header="Status"     Binding="{Binding Status}"  Width="90" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </DockPanel>
+          </Border>
+          <!-- Messages -->
+          <Border Grid.Row="4" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
             <DockPanel LastChildFill="True">
               <TextBlock DockPanel.Dock="Top" Text="Messages" FontSize="13" FontWeight="SemiBold"
