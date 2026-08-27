@@ -252,7 +252,10 @@ public class IndustryJobGenerator(
             var wanted = s.Demand.OrderUnits + s.Demand.ParentUnits;
             if (wanted <= 0) return 0;
 
-            var have = s.Demand.ShelfHave + s.Planned;
+            // ⚠️ Accounted, not Planned — the same reason as StillShort above. This scales both
+            // blocked counts, so measuring it on Planned pinned them at their opening value for
+            // every blocked row of an item and undid the per-row re-evaluation entirely.
+            var have = s.Demand.ShelfHave + (s.Demand.Units - s.Remaining);
             return Math.Clamp(1.0 - (double)have / wanted, 0.0, 1.0);
         }
 
@@ -262,17 +265,19 @@ public class IndustryJobGenerator(
         // once enough is planned to cover it nothing is waiting on this item any more — so its
         // claim on the next slot has to fall to zero even though its shelf is still far from
         // full. A fixed count is what let one item take twenty consecutive slots.
-        // Whether a dependent has still not got what it needs.
+        // Whether a dependent still has work nobody has written down.
         //
-        // ⚠️ Against PLANNED, never Remaining. Remaining is what has not been REPORTED, and a
-        // blocked row reports its units without producing one of them. Testing it here made a
-        // titan whose every job is on the list but blocked read as needing nothing, so the
-        // components feeding it dropped to fin 0 and blkd 0 while still being exactly what it
-        // waits for — and stopped conferring their priority at the same time.
+        // ⚠️ ACCOUNTED, like every other sort key here. One rule, and this is the one place it
+        // was broken: Planned only moves for work that can actually start, so on a chain whose
+        // rows are all blocked it never moves at all, and every count built on it freezes.
+        // Capital Ship Maintenance Bay carried fin 11 and blkd 11 on all ten of its rows while
+        // its coverage climbed from 29.9% to 97.0% beside them.
         //
-        // The two questions are genuinely different. "Has this been said" orders the list;
-        // "has this been made" is what something downstream is waiting on.
-        static bool StillShort(PlanState s) => s.Demand.Units - s.Planned > 0;
+        // The division that matters is not "said" versus "made" for these columns — they are
+        // sort keys, and a sort key has to move as the list grows or it is not sorting anything.
+        // Planned keeps its job in the stock and material arithmetic, where crediting a job
+        // nobody can run would be a lie about the shelf.
+        static bool StillShort(PlanState s) => s.Remaining > 0;
 
         int BlockedNow(PlanState s)
         {
