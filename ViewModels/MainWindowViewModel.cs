@@ -624,7 +624,7 @@ public class MainWindowViewModel : ReactiveObject
                                      new WorklistCorpAltsViewModel(dbFactory, worklistCorpAltService),
                                      new WorklistIndustryViewModel(dbFactory, industryAssignmentService, worklistSettings, errorLogger, corpActivityService, worklistMarketAltService),
                                      new WorklistStationLevelsViewModel(dbFactory, corpActivityService, worklistSettings),
-                                     new WorklistFinalProductsViewModel(dbFactory, errorLogger),
+                                     new WorklistFinalProductsViewModel(dbFactory, appPrefs, errorLogger),
                                      new EveConsole.Services.Worklist.BottleneckService(dbFactory, industryAssignmentService,
                                                            industryBlueprintService, worklistSettings),
                                      new EveConsole.Services.Worklist.ItemContentionService(dbFactory, worklistSettings),

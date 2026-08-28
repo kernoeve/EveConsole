@@ -21,18 +21,18 @@ namespace EveConsole.ViewModels;
 /// <summary>One industry job that produced, or will produce, something the operation sells.</summary>
 public sealed class FinalProductJobVm
 {
-    public int    JobId    { get; init; }
-    public int    TypeId   { get; init; }
-    public string Item     { get; init; } = "";
-    public string Source   { get; init; } = "";   // why it is on this list
-    public string Status   { get; init; } = "";
+    public int    JobId  { get; init; }
+    public int    TypeId { get; init; }
+    public string Item   { get; init; } = "";
+    public string Source { get; init; } = "";   // why it is on this list
+    public string Status { get; init; } = "";
 
     public int    Runs      { get; init; }
     public long   Units     { get; init; }
     public string UnitsText => Units.ToString("N0");
 
-    public DateTime Started    { get; init; }
-    public DateTime Completed  { get; init; }
+    public DateTime Started   { get; init; }
+    public DateTime Completed { get; init; }
     public string StartedText   => Started.ToString("yyyy-MM-dd");
     public string CompletedText => Completed.ToString("yyyy-MM-dd");
 
@@ -40,26 +40,30 @@ public sealed class FinalProductJobVm
     /// day are not interchangeable.</summary>
     public long CompletedSort => Completed.Ticks;
 
-    /// <summary>True where the job has not finished yet, so its figures are today's rather than
-    /// the day's it will land on.</summary>
-    public bool  IsFuture { get; init; }
-    public string AsOfNote => IsFuture ? "today" : CompletedText;
-
     public double BuildCost   { get; init; }
     public double MarketValue { get; init; }
-    public double Profit      => MarketValue - BuildCost;
+
+    /// <summary>⚠️ POTENTIAL. Nothing here has been sold — these are jobs, and the market value
+    /// is what the output would fetch, not what anybody paid.</summary>
+    public double PotentialProfit => MarketValue - BuildCost;
 
     public string BuildText  => BuildCost   > 0 ? MarketFmt.Isk(BuildCost)   : "—";
     public string MarketText => MarketValue > 0 ? MarketFmt.Isk(MarketValue) : "—";
-    public string ProfitText => BuildCost > 0 || MarketValue > 0 ? MarketFmt.Isk(Profit) : "—";
+    public string ProfitText => BuildCost > 0 || MarketValue > 0
+                              ? MarketFmt.Isk(PotentialProfit) : "—";
 
-    public string ProfitColor => Profit >= 0 ? "#4a8a5a" : "#aa4444";
+    public string ProfitColor => PotentialProfit >= 0 ? "#4a8a5a" : "#aa4444";
 
-    public double ProfitPctRaw => BuildCost > 0 ? Profit / BuildCost * 100 : double.MinValue;
-    public string ProfitPct    => BuildCost > 0 ? $"{Profit / BuildCost * 100:N1}%" : "—";
+    public double ProfitPctRaw => BuildCost > 0 ? PotentialProfit / BuildCost * 100 : double.MinValue;
+    public string ProfitPct    => BuildCost > 0 ? $"{PotentialProfit / BuildCost * 100:N1}%" : "—";
 }
 
 public sealed record ChartGrain(string Label, string Key)
+{
+    public override string ToString() => Label;
+}
+
+public sealed record ValuationMode(string Label, string Key)
 {
     public override string ToString() => Label;
 }
@@ -69,18 +73,31 @@ public sealed record ChartGrain(string Label, string Key)
 ///
 /// <para>The rest of the tool is about the work in front of you. This is the record of what that
 /// work produced — every job, past and running, whose output is a final product or something a
-/// buyer has ordered, with what it cost and what it was worth on the day it landed.</para>
+/// buyer has ordered, with what it cost and what it would be worth.</para>
 ///
 /// <para>⚠️ Two sources of "final", because neither is complete on its own. The inventory rules
 /// carry a hand-set final-product flag, which is the operation's own statement of what it sells;
 /// but an order can name anything, and a T2 rig or a batch of battleships sold to one buyer never
-/// appears in those rules. Taking the union means the list matches what was actually sold rather
+/// appears in those rules. Taking the union means the list matches what was actually made rather
 /// than what was configured.</para>
 /// </summary>
 public class WorklistFinalProductsViewModel : ReactiveObject
 {
+    public const string ValuationKey = "worklist.final_products.valuation";
+    public const string OverBuildKey = "worklist.final_products.over_build_pct";
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
+    private readonly AppPreferencesService _prefs;
     private readonly AppErrorLogger _errorLogger;
+
+    /// <summary>Everything the database said, before a valuation or a date range is applied. Held
+    /// so changing either does not go back for figures that have not moved.</summary>
+    private sealed record RawJob(
+        int JobId, int TypeId, string Item, string Source, string Status,
+        int Runs, long Units, DateTime Started, DateTime Completed,
+        double BuildCost, double MarketValue);
+
+    private List<RawJob> _all = [];
 
     public ObservableCollection<FinalProductJobVm> Jobs { get; } = [];
 
@@ -91,11 +108,46 @@ public class WorklistFinalProductsViewModel : ReactiveObject
         new("Monthly", "m"),
     ];
 
+    public IReadOnlyList<ValuationMode> Valuations { get; } =
+    [
+        new("Market value",  "market"),
+        new("% over build",  "pct"),
+    ];
+
     private ChartGrain _grain;
     public ChartGrain Grain
     {
         get => _grain;
         set { this.RaiseAndSetIfChanged(ref _grain, value ?? Grains[0]); BuildCharts(); }
+    }
+
+    private ValuationMode _valuation;
+    public ValuationMode Valuation
+    {
+        get => _valuation;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _valuation, value ?? Valuations[0]);
+            this.RaisePropertyChanged(nameof(IsOverBuild));
+            _ = _prefs.SetAsync(ValuationKey, _valuation.Key);
+            Apply();
+        }
+    }
+
+    /// <summary>Whether the percentage box applies. Bound to its visibility, so the box is absent
+    /// rather than disabled when the market is what is being quoted.</summary>
+    public bool IsOverBuild => Valuation.Key == "pct";
+
+    private int _overBuildPercent;
+    public int OverBuildPercent
+    {
+        get => _overBuildPercent;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _overBuildPercent, value);
+            _ = _prefs.SetAsync(OverBuildKey, value.ToString(CultureInfo.InvariantCulture));
+            if (IsOverBuild) Apply();
+        }
     }
 
     private string _from;
@@ -155,17 +207,26 @@ public class WorklistFinalProductsViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
 
-    /// <summary>Everything loaded, before the date filter. Kept so changing a date does not go
-    /// back to the database for figures that have not moved.</summary>
-    private List<FinalProductJobVm> _all = [];
-
     public WorklistFinalProductsViewModel(IDbContextFactory<AppDbContext> dbFactory,
+                                          AppPreferencesService prefs,
                                           AppErrorLogger errorLogger)
     {
         _dbFactory   = dbFactory;
+        _prefs       = prefs;
         _errorLogger = errorLogger;
 
         _grain = Grains[0];
+
+        // Restored rather than defaulted: which valuation someone works in is a standing
+        // preference, not a per-visit choice, and re-picking it every session is friction.
+        var savedMode = prefs.Get(ValuationKey);
+        _valuation = Valuations.FirstOrDefault(v => v.Key == savedMode) ?? Valuations[0];
+
+        _overBuildPercent =
+            int.TryParse(prefs.Get(OverBuildKey), NumberStyles.Integer,
+                         CultureInfo.InvariantCulture, out var pct) && pct > 0
+                ? pct
+                : 15;
 
         // A year back, so the charts open on something worth looking at. Blank "thru" because the
         // interesting end of this list is the jobs that have not finished yet.
@@ -181,8 +242,7 @@ public class WorklistFinalProductsViewModel : ReactiveObject
 
         try
         {
-            var rows = await Task.Run(() => GatherAsync(ct), ct);
-            _all = rows;
+            _all = await Task.Run(() => GatherAsync(ct), ct);
             Apply();
         }
         catch (OperationCanceledException) { }
@@ -194,7 +254,7 @@ public class WorklistFinalProductsViewModel : ReactiveObject
         finally { IsLoading = false; }
     }
 
-    private async Task<List<FinalProductJobVm>> GatherAsync(CancellationToken ct)
+    private async Task<List<RawJob>> GatherAsync(CancellationToken ct)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
@@ -278,7 +338,7 @@ public class WorklistFinalProductsViewModel : ReactiveObject
                 .ToList());
 
         var today = DateTime.UtcNow.Date;
-        var list  = new List<FinalProductJobVm>(jobs.Count);
+        var list  = new List<RawJob>(jobs.Count);
 
         foreach (var j in jobs)
         {
@@ -287,15 +347,14 @@ public class WorklistFinalProductsViewModel : ReactiveObject
             var typeId = j.ProductTypeId!.Value;
 
             // Finished when it says so, otherwise when it is due. A running job's figures are as
-            // good as today's prices, which is what the note beside them says.
+            // good as today's prices.
             var completed = (j.CompletedDate ?? j.EndDate).UtcDateTime.Date;
-            var future    = completed > today;
 
             // ⚠️ The same rule the Sales Tracker uses: the day itself, else the next day carrying
             // a figure, else the last one before it. A price file with a gap on the day a job
             // landed is normal, and looking only backwards reports nothing at all on a database
             // whose snapshots all postdate the job.
-            var asOf  = (future ? today : completed).ToString("yyyy-MM-dd");
+            var asOf  = (completed > today ? today : completed).ToString("yyyy-MM-dd");
             var units = (long)j.Runs * perRun.GetValueOrDefault(typeId, 1);
 
             var unitBuild  = buildBy.TryGetValue(typeId, out var bs)
@@ -303,51 +362,66 @@ public class WorklistFinalProductsViewModel : ReactiveObject
             var unitMarket = marketBy.TryGetValue(typeId, out var ms)
                            ? TypePriceHistoryService.ValueAsOf(ms, asOf) : null;
 
-            list.Add(new FinalProductJobVm
-            {
-                JobId  = j.JobId,
-                TypeId = typeId,
-                Item   = names.GetValueOrDefault(typeId, $"Type {typeId}"),
+            list.Add(new RawJob(
+                j.JobId, typeId,
+                names.GetValueOrDefault(typeId, $"Type {typeId}"),
 
                 // Which list put it here. An item on both is a final product that also happens to
                 // have been ordered, and saying so is more use than picking one.
-                Source = finalSet.Contains(typeId) && orderSet.Contains(typeId) ? "Final · ordered"
-                       : finalSet.Contains(typeId)                              ? "Final product"
-                       :                                                          "Ordered",
+                finalSet.Contains(typeId) && orderSet.Contains(typeId) ? "Final · ordered"
+              : finalSet.Contains(typeId)                              ? "Final product"
+              :                                                          "Ordered",
 
-                Status    = j.Status.Length > 0 ? char.ToUpper(j.Status[0]) + j.Status[1..] : j.Status,
-                Runs      = j.Runs,
-                Units     = units,
-                Started   = j.StartDate.UtcDateTime.Date,
-                Completed = completed,
-                IsFuture  = future,
-
-                BuildCost   = (unitBuild  ?? 0) * units,
-                MarketValue = (unitMarket ?? 0) * units,
-            });
+                j.Status.Length > 0 ? char.ToUpper(j.Status[0]) + j.Status[1..] : j.Status,
+                j.Runs, units,
+                j.StartDate.UtcDateTime.Date, completed,
+                (unitBuild  ?? 0) * units,
+                (unitMarket ?? 0) * units));
         }
 
         return list;
     }
 
-    /// <summary>Applies the date range, re-sorts, and rebuilds both charts.</summary>
+    /// <summary>Applies the valuation and date range, re-sorts, and rebuilds both charts.</summary>
     private void Apply()
     {
-        IEnumerable<FinalProductJobVm> q = _all;
+        IEnumerable<RawJob> q = _all;
 
         if (TryDate(From, out var from)) q = q.Where(r => r.Completed >= from);
         if (TryDate(Thru, out var thru)) q = q.Where(r => r.Completed <= thru);
 
         // Newest first: the question this list answers is usually "what have we just made".
-        var rows = q.OrderByDescending(r => r.CompletedSort).ToList();
+        var rows = q
+            .OrderByDescending(r => r.Completed)
+            .Select(r => new FinalProductJobVm
+            {
+                JobId     = r.JobId,
+                TypeId    = r.TypeId,
+                Item      = r.Item,
+                Source    = r.Source,
+                Status    = r.Status,
+                Runs      = r.Runs,
+                Units     = r.Units,
+                Started   = r.Started,
+                Completed = r.Completed,
+                BuildCost = r.BuildCost,
+
+                // ⚠️ The market is one answer, not the only one. A shop selling at a fixed margin
+                // over cost never sees the market price, and valuing its work by one describes
+                // somebody else's business. Over-build prices the same job the way it is sold.
+                MarketValue = IsOverBuild
+                    ? r.BuildCost * (1 + OverBuildPercent / 100.0)
+                    : r.MarketValue,
+            })
+            .ToList();
 
         Jobs.Clear();
         foreach (var r in rows) Jobs.Add(r);
 
         StatusText = rows.Count == 0
             ? "No jobs in this range."
-            : $"{rows.Count:N0} job(s) · {MarketFmt.Isk(rows.Sum(r => r.MarketValue))} market value · "
-            + $"{MarketFmt.Isk(rows.Sum(r => r.Profit))} profit";
+            : $"{rows.Count:N0} job(s) · {MarketFmt.Isk(rows.Sum(r => r.MarketValue))} value · "
+            + $"{MarketFmt.Isk(rows.Sum(r => r.PotentialProfit))} potential profit";
 
         BuildCharts();
     }
@@ -362,18 +436,42 @@ public class WorklistFinalProductsViewModel : ReactiveObject
             return;
         }
 
+        var byBucket = rows
+            .GroupBy(r => Bucket(r.Completed))
+            .ToDictionary(
+                g => g.Key,
+                g => (Market: g.Sum(r => r.MarketValue), Profit: g.Sum(r => r.PotentialProfit)));
+
         var market = new List<DateTimePoint>();
         var profit = new List<DateTimePoint>();
 
-        foreach (var g in rows.GroupBy(r => Bucket(r.Completed)).OrderBy(g => g.Key))
+        // ⚠️ Every bucket between the first and the last, whether anything landed in it or not.
+        // Plotting only the days that carry a job draws a line straight from one to the next, so
+        // a month with two jobs in it looks like a month of steady production. A zero says what
+        // actually happened.
+        foreach (var day in Buckets(byBucket.Keys.Min(), byBucket.Keys.Max()))
         {
-            market.Add(new DateTimePoint(g.Key, g.Sum(r => r.MarketValue)));
-            profit.Add(new DateTimePoint(g.Key, g.Sum(r => r.Profit)));
+            var hit = byBucket.GetValueOrDefault(day);
+            market.Add(new DateTimePoint(day, hit.Market));
+            profit.Add(new DateTimePoint(day, hit.Profit));
         }
 
-        MarketSeries = [Line("Market value", market, new SKColor(0x55, 0x99, 0xaa))];
-        ProfitSeries = [Line("Profit",       profit, new SKColor(0x4a, 0x8a, 0x5a))];
+        MarketSeries = [Line("Market value",     market, new SKColor(0x55, 0x99, 0xaa))];
+        ProfitSeries = [Line("Potential profit", profit, new SKColor(0x4a, 0x8a, 0x5a))];
     }
+
+    /// <summary>Every bucket start from <paramref name="first"/> to <paramref name="last"/>.</summary>
+    private IEnumerable<DateTime> Buckets(DateTime first, DateTime last)
+    {
+        for (var d = first; d <= last; d = Step(d)) yield return d;
+    }
+
+    private DateTime Step(DateTime d) => Grain.Key switch
+    {
+        "m" => d.AddMonths(1),
+        "w" => d.AddDays(7),
+        _   => d.AddDays(1),
+    };
 
     /// <summary>
     /// The day a job's figures are counted against, at the chosen granularity.
