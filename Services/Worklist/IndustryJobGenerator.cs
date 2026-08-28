@@ -1025,6 +1025,21 @@ public class IndustryJobGenerator(
                         // committed. Not credited to Planned: no print means no shelf.
                         state.Remaining -= runs * (long)Math.Max(1, product.Quantity);
 
+                        // ⚠️ What this job ALSO lacks, recorded even though a print is what stops
+                        // it today. A blocked row that never says what it is waiting for is
+                        // invisible to the passes that rank hauls and purchases by the work they
+                        // release: a market order that would supply this job showed "frees"
+                        // blank, and sorted below purchases nothing was waiting on.
+                        //
+                        // Materials at the reference print's efficiency — the one these runs
+                        // would use if a copy were free — so the shortfall is the real one and
+                        // not a default-ME guess.
+                        var npMats = await MaterialsForAsync(
+                            ctx, d.TypeId, runs * (long)Math.Max(1, product.Quantity), refMe, ct);
+
+                        var npShort = MissingAtSite(
+                            stock, inScope, ctx, eligible[0], npMats, siteId.Value, committed);
+
                         items.Add(new WorklistItem
                         {
                             Key           = $"industry_job:{d.TypeId}:np{piece}",
@@ -1042,6 +1057,8 @@ public class IndustryJobGenerator(
                             Readiness      = WorklistReadiness.Blocked,
                             BlockedBy      = printWhy,
                             BlockedByPrint = true,
+                            Shortages      = [.. npShort.Select(m => new WorklistShortage(
+                                                    m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy))],
                             LocationId    = siteId.Value,
                             LocationName  = siteName,
                             TypeId        = d.TypeId,
