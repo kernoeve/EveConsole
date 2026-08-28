@@ -336,6 +336,9 @@ public class App : Application
                     "BuyerType"     TEXT    NOT NULL DEFAULT '',
                     "FulfilmentSource" TEXT NOT NULL DEFAULT '',
                     "LinkedJobId"      INTEGER NULL,
+                    "LinkedJobIds"     TEXT    NOT NULL DEFAULT '',
+                    "StockOnHand"      INTEGER NOT NULL DEFAULT 0,
+                    "UnitsInBuild"     INTEGER NOT NULL DEFAULT 0,
                     "LinkedContractId" INTEGER NULL,
                     "CompletedOn"      TEXT NULL,
                     "StoreId"          INTEGER NOT NULL DEFAULT 0,
@@ -369,6 +372,9 @@ public class App : Application
             // OrderFulfilmentService; see the CREATE TABLE above for why they are listed twice.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "FulfilmentSource" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "LinkedJobId" INTEGER NULL"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "LinkedJobIds" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "StockOnHand" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "UnitsInBuild" INTEGER NOT NULL DEFAULT 0"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "LinkedContractId" INTEGER NULL"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "CompletedOn" TEXT NULL"""); } catch { }
 

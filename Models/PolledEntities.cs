@@ -976,8 +976,34 @@ public class TrackedOrder
     /// </summary>
     public string FulfilmentSource { get; set; } = "";
 
-    /// <summary>The industry job expected to produce this order, when the source is a job.</summary>
+    /// <summary>
+    /// The soonest of <see cref="LinkedJobIds"/>, or null when nothing is building this.
+    ///
+    /// <para>⚠️ The head of that list, not a fact of its own. Kept because a contracted order
+    /// clears an in-flight job by id and older rows carry only this one.</para>
+    /// </summary>
     public int?   LinkedJobId      { get; set; }
+
+    /// <summary>
+    /// Every industry job claimed for this order, soonest first, comma separated.
+    ///
+    /// <para>⚠️ An order for fifty needs as many jobs as it takes. One link per order promised
+    /// the whole order against one job's output and left the rest of the shortfall invisible —
+    /// a run of five against an order for fifty read exactly like a run of fifty.</para>
+    /// </summary>
+    public string LinkedJobIds     { get; set; } = "";
+
+    /// <summary>
+    /// Units of this order sitting on the shelf right now, reserved against earlier orders.
+    ///
+    /// <para>Recorded rather than recomputed for display, because the reservation only makes
+    /// sense in rank order: a priority order takes from the shelf before an older ordinary one,
+    /// and only the pass that walks them knows what each was actually left.</para>
+    /// </summary>
+    public int    StockOnHand      { get; set; }
+
+    /// <summary>What the jobs in <see cref="LinkedJobIds"/> will produce, runs times output.</summary>
+    public int    UnitsInBuild     { get; set; }
 
     /// <summary>
     /// The contract that delivered this order — issued by one of our characters or personal

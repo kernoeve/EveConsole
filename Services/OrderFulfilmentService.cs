@@ -127,6 +127,16 @@ public class OrderFulfilmentService(
         // (which cannot be its supply) from a finished one (which may well have been).
         var openJobIds = openJobs.Select(j => j.JobId).ToHashSet();
 
+        // Units a single run of each product yields. A run is not a unit: a run of Nanite Repair
+        // Paste makes far more than one, and counting runs against an order for fifty would call
+        // a single run enough.
+        var perRun = await db.SdeBlueprintProducts
+            .Where(p => typeIds.Contains(p.ProductTypeId)
+                     && (p.Activity == "manufacturing" || p.Activity == "reaction"))
+            .GroupBy(p => p.ProductTypeId)
+            .Select(g => new { TypeId = g.Key, Qty = g.Max(x => x.Quantity) })
+            .ToDictionaryAsync(x => x.TypeId, x => Math.Max(1, x.Qty), ct);
+
         var claimedJobs = new HashSet<int>();
         var changed = false;
 
@@ -192,6 +202,8 @@ public class OrderFulfilmentService(
                 {
                     order.FulfilmentSource = SourceContract;
                     order.LinkedJobId      = null;
+                    order.LinkedJobIds     = "";
+                    order.UnitsInBuild     = 0;
                     changed = true;
                 }
                 else if (order.FulfilmentSource != SourceContract && order.LinkedJobId is null)
@@ -206,32 +218,72 @@ public class OrderFulfilmentService(
             // ── On the shelf? ──────────────────────────────────────────────────
             // Reserved as we go: an earlier order taking the last unit means the next one is not
             // "from stock", which is the whole point of walking them in rank order.
-            if (stock.TryGetValue(order.TypeId, out var available) && available >= order.Units)
+            //
+            // ⚠️ PARTIAL takes are reserved too, and recorded. Nineteen of the fifty an order
+            // wants are as spoken for as fifty would be, and leaving them on the shelf let the
+            // next order count the same nineteen again. It also gives the order tracker a real
+            // number to show: an order for fifty with nineteen on hand reads 19/50 instead of an
+            // empty box that looks identical to nothing at all.
+            var available = stock.GetValueOrDefault(order.TypeId);
+            var take      = (int)Math.Min(available, order.Units);
+
+            if (take > 0) stock[order.TypeId] = available - take;
+
+            if (order.StockOnHand != take) { order.StockOnHand = take; changed = true; }
+
+            if (take >= order.Units)
             {
-                stock[order.TypeId] = available - order.Units;
-                changed |= Set(order, SourceStock, jobId: null);
+                changed |= SetJobs(order, SourceStock, [], 0);
                 continue;
             }
 
             // ── Being made? ────────────────────────────────────────────────────
-            // The soonest unclaimed job producing it. One job per order for the same reason as
-            // contracts: two orders pointing at one job would both promise its output.
-            var job = openJobs
-                .Where(j => j.ProductTypeId == order.TypeId && !claimedJobs.Contains(j.JobId))
-                .OrderBy(j => j.EndDate)
-                .FirstOrDefault();
+            // Unclaimed jobs producing it, soonest first, taken until the shortfall is covered.
+            // A job is claimed by at most one order for the same reason a contract is: two orders
+            // pointing at one job would both promise its output.
+            //
+            // ⚠️ As many as it takes, not one. An order for fifty took the soonest job and stopped,
+            // so a run of five looked exactly like a run of fifty and the other jobs really
+            // building the order were left unattached and free for another order to claim.
+            var shortfall = order.Units - take;
+            var yield     = perRun.GetValueOrDefault(order.TypeId, 1);
 
-            if (job is not null)
+            var picked  = new List<int>();
+            var made    = 0;
+            DateTimeOffset? lastEnd = null;
+
+            foreach (var j in openJobs
+                         .Where(j => j.ProductTypeId == order.TypeId && !claimedJobs.Contains(j.JobId))
+                         .OrderBy(j => j.EndDate))
             {
-                claimedJobs.Add(job.JobId);
-                changed |= Set(order, SourceJob, job.JobId);
+                if (made >= shortfall) break;
 
-                // The job's end date IS the estimate, so it follows the job if that moves.
-                var estimate = job.EndDate.UtcDateTime.ToString("yyyy-MM-dd");
-                if (order.EstimatedDate != estimate)
+                claimedJobs.Add(j.JobId);
+                picked.Add(j.JobId);
+                made   += j.Runs * yield;
+                lastEnd = j.EndDate;
+            }
+
+            if (picked.Count > 0)
+            {
+                changed |= SetJobs(order, SourceJob, picked, made);
+
+                // ⚠️ The date moves only when the jobs actually cover what is missing. On a
+                // single-unit order any job does, which is why this was never noticed; on an
+                // order for fifty, one run of five was pinning a delivery date the order had no
+                // way of meeting. Short of the shortfall, whatever date is on the order — a
+                // human estimate, usually — is better than a confident wrong one.
+                //
+                // The LAST job's end date, not the first: the order is not filled until the one
+                // that finishes latest does.
+                if (made >= shortfall && lastEnd is { } end)
                 {
-                    order.EstimatedDate = estimate;
-                    changed = true;
+                    var estimate = end.UtcDateTime.ToString("yyyy-MM-dd");
+                    if (order.EstimatedDate != estimate)
+                    {
+                        order.EstimatedDate = estimate;
+                        changed = true;
+                    }
                 }
                 continue;
             }
@@ -240,7 +292,7 @@ public class OrderFulfilmentService(
             // ⚠️ Clears a previous derived source, but never the estimated date: a date this
             // service set is left standing rather than wiped the moment a job is delivered, and a
             // date the user typed was never ours to remove.
-            changed |= Set(order, SourceNone, jobId: null);
+            changed |= SetJobs(order, SourceNone, [], 0);
         }
 
         if (changed) await db.SaveChangesAsync(ct);
@@ -253,11 +305,29 @@ public class OrderFulfilmentService(
     }
 
     /// <summary>Sets the derived fields, reporting whether anything actually moved.</summary>
-    private static bool Set(TrackedOrder order, string source, int? jobId)
+    /// <summary>
+    /// Records where an order is coming from, and which jobs are building it.
+    ///
+    /// <para>⚠️ LinkedJobId is written as the head of the list, never independently. It is what
+    /// a contracted order clears by id and what rows written before the list existed carry, so
+    /// it has to stay truthful — but two fields that can disagree about the same thing is how
+    /// the tracker ended up showing a job that no longer had anything to do with the order.</para>
+    /// </summary>
+    private static bool SetJobs(
+        TrackedOrder order, string source, IReadOnlyList<int> jobIds, int unitsInBuild)
     {
-        if (order.FulfilmentSource == source && order.LinkedJobId == jobId) return false;
+        var ids  = string.Join(",", jobIds);
+        var head = jobIds.Count > 0 ? jobIds[0] : (int?)null;
+
+        if (order.FulfilmentSource == source
+         && order.LinkedJobIds     == ids
+         && order.LinkedJobId      == head
+         && order.UnitsInBuild     == unitsInBuild) return false;
+
         order.FulfilmentSource = source;
-        order.LinkedJobId      = jobId;
+        order.LinkedJobIds     = ids;
+        order.LinkedJobId      = head;
+        order.UnitsInBuild     = unitsInBuild;
         return true;
     }
 

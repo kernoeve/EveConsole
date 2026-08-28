@@ -97,6 +97,24 @@ public class TrackedOrderRowVm
     public string IndyJob      { get; }
     public string Contract     { get; }
     public string FromStock    { get; }
+
+    /// <summary>On hand against ordered, as "19/50". Shown beside the tick, which stays an
+    /// all-or-nothing answer — the count is what an order sitting at 19 of 50 has to say for
+    /// itself, and an empty box said the same thing as none at all.</summary>
+    public string StockText    { get; }
+    public int    StockOnHand  { get; }
+
+    /// <summary>Units the linked jobs will produce. ⚠️ Units, not a job number: "Job 664321882"
+    /// told nobody anything, and on an order for fifty the useful question is how many of the
+    /// fifty are actually being made.</summary>
+    public int    UnitsInBuild { get; }
+
+    /// <summary>Ordered less what is on the shelf and in build. Zero when the order is fully
+    /// accounted for; the grid shows it in red when it is not.</summary>
+    public int    Shortfall     { get; }
+    public string ShortfallText { get; }
+    public string ShortColor    => "#cc4444";
+
     public int?   LinkedJobId      { get; }
     public int?   LinkedContractId { get; }
     public bool   HasContractLink => LinkedContractId is > 0;
@@ -165,9 +183,18 @@ public class TrackedOrderRowVm
 
         LinkedJobId      = o.LinkedJobId;
         LinkedContractId = o.LinkedContractId;
-        IndyJob   = o.LinkedJobId is { } job ? $"Job {job}" : "";
         Contract  = contractLabel;
         FromStock = o.FulfilmentSource == OrderFulfilmentService.SourceStock ? "✓" : "";
+
+        StockOnHand  = o.StockOnHand;
+        StockText    = $"{o.StockOnHand:N0}/{o.Units:N0}";
+        UnitsInBuild = o.UnitsInBuild;
+        IndyJob      = o.UnitsInBuild > 0 ? $"{o.UnitsInBuild:N0} in build" : "";
+
+        // Never below zero: a job that overshoots the order is not a negative shortfall, it is
+        // simply covered, and "-6" in a column headed Short reads as a fault.
+        Shortfall     = Math.Max(0, o.Units - o.StockOnHand - o.UnitsInBuild);
+        ShortfallText = Shortfall > 0 ? Shortfall.ToString("N0") : "";
 
         BuildRaw = buildCost ?? 0;
         Build    = buildCost is double b ? MarketFmt.Isk(b) : "—";
