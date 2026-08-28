@@ -6,6 +6,20 @@
              x:DataType="vm:StoresViewModel">
 
   <UserControl.Styles>
+    <!-- The size every other grid in the app uses. ⚠️ Set on the cell text, not by putting
+         FontSize on the DataGrid: the theme gives the cell's TextBlock its own size, which wins
+         over anything inherited from an ancestor, so the FontSize on the grids here was doing
+         nothing and they were drawing at the theme default while every other grid drew at 11. -->
+    <Style Selector="DataGridCell TextBlock">
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+
+    <!-- Headers match at the size the rest of the app uses. Size only: the colours here belong
+         to the card the grid sits on, not to the tool-window palette the other views set. -->
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="FontSize" Value="10" />
+    </Style>
+
     <!-- Amber only once the price list actually splits. A size line that is always coloured is a
          warning nobody reads by the third time they see it. -->
     <Style Selector="TextBlock.warn">
