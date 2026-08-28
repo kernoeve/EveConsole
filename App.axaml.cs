@@ -689,6 +689,16 @@ public class App : Application
                 )
                 """);
 
+            // Final products are flagged on the RULE, not the item — one rule covers a whole
+            // group, which is the grain people set it at. An interim build put the flag on the
+            // item and it moved the same day, but any database opened in between kept the column:
+            // unmapped, always zero, and indistinguishable from a setting when read straight off
+            // the database. Fresh installs never had it, so this only tidies those few.
+            //
+            // Throws "no such column" everywhere else, which is the success case. Safe to drop:
+            // no index, view or trigger refers to it, and every value is zero.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "InvLevelItems" DROP COLUMN "IsFinalProduct" """); } catch { }
+
             // ── Collections (new tables + alter existing tables) ─────────────
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "MarketLevelCollections" (
