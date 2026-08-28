@@ -186,7 +186,7 @@
         <!-- The tick is all-or-nothing and stays that way; this is what it cannot say. Sorted on
              the number so 9 of 50 does not outrank 19 of 50. -->
         <DataGridTextColumn Header="On hand" Binding="{Binding StockText}" Width="80"
-                            SortMemberPath="StockOnHand" />
+                            SortMemberPath="StockOnHand" CellStyleClasses="num" />
 
         <DataGridTextColumn Header="Indy Job" Binding="{Binding IndyJob}" Width="110"
                             SortMemberPath="UnitsInBuild" />
