@@ -117,6 +117,19 @@ public class TrackedOrderRowVm
 
     public int?   LinkedJobId      { get; }
     public int?   LinkedContractId { get; }
+
+    /// <summary>
+    /// Everything the grid draws, as one string.
+    ///
+    /// <para>⚠️ Compared on refresh so an unchanged row keeps its object and the control never
+    /// redraws it. The rows are rebuilt from the database each time, so identity alone says
+    /// nothing — two objects for the same order differ by reference and match in every way a
+    /// reader can see.</para>
+    ///
+    /// <para>Composed rather than hashed: a collision here would leave a stale row on screen,
+    /// and there are tens of orders, not millions.</para>
+    /// </summary>
+    public string Signature { get; private set; } = "";
     public bool   HasContractLink => LinkedContractId is > 0;
 
     public void OpenContract()
@@ -186,14 +199,21 @@ public class TrackedOrderRowVm
         Contract  = contractLabel;
         FromStock = o.FulfilmentSource == OrderFulfilmentService.SourceStock ? "✓" : "";
 
+        // ⚠️ Only while the order is still being worked. A contracted order's goods are already
+        // made out to the buyer, and a settled one is history: "19/50" and a red shortfall on
+        // either is a question about supply that nobody needs to answer any more, and on a
+        // contracted row it contradicts the contract sitting beside it.
+        var open = o.Status == "pending" && o.LinkedContractId is null;
+
         StockOnHand  = o.StockOnHand;
-        StockText    = $"{o.StockOnHand:N0}/{o.Units:N0}";
         UnitsInBuild = o.UnitsInBuild;
-        IndyJob      = o.UnitsInBuild > 0 ? $"{o.UnitsInBuild:N0} in build" : "";
+
+        StockText = open ? $"{o.StockOnHand:N0}/{o.Units:N0}" : "";
+        IndyJob   = o.UnitsInBuild > 0 ? $"{o.UnitsInBuild:N0} in build" : "";
 
         // Never below zero: a job that overshoots the order is not a negative shortfall, it is
         // simply covered, and "-6" in a column headed Short reads as a fault.
-        Shortfall     = Math.Max(0, o.Units - o.StockOnHand - o.UnitsInBuild);
+        Shortfall     = open ? Math.Max(0, o.Units - o.StockOnHand - o.UnitsInBuild) : 0;
         ShortfallText = Shortfall > 0 ? Shortfall.ToString("N0") : "";
 
         BuildRaw = buildCost ?? 0;
@@ -209,6 +229,15 @@ public class TrackedOrderRowVm
         var pct = buildCost is double bc2 && bc2 != 0 ? (o.PurchasePrice - bc2) / bc2 * 100 : (double?)null;
         ProfitPctRaw = pct ?? double.MinValue;
         ProfitPct    = pct is double pp ? $"{pp:N1}%" : "—";
+
+        // Last, once every field above is set. Taken half way through the constructor it would
+        // compare values that are still empty, and a row whose only change was one of them
+        // would never redraw.
+        Signature = string.Join("\u001f",
+            Type, Units, Buyer, EstDate, CompletedOn, PriorityMark, Status,
+            StockText, IndyJob, ShortfallText, Contract, FromStock,
+            Purchase, Build, BuildBasis, Profit, ProfitPct,
+            string.Join(",", LabelList));
     }
 
     public OrderDialogResult ToDialog() =>
@@ -473,9 +502,11 @@ public class OrderTrackerViewModel : ReactiveObject
         var keepId = Selected?.Id;
 
         var list = q.ToList();
-        // One notification rather than one per row: this now runs on a timer, and a grid that
-        // relaid itself once per order every minute would be felt on a long list.
-        Rows.ResetTo(list);
+
+        // In place where the rows and their order have not changed, so a timed refresh does not
+        // blank the grid and throw away the reader's scroll position. Falls back to a single
+        // reset when the shape of the list changes.
+        Rows.SyncTo(list, r => r.Id, r => r.Signature);
 
         if (keepId is { } id) Selected = Rows.FirstOrDefault(r => r.Id == id);
         StatusText = $"{list.Count:N0} order(s)";
