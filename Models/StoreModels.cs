@@ -106,6 +106,18 @@ public class Store
     /// <summary>The custom usage message, EVE mail markup and all. Ignored while the flag is off.</summary>
     public string CustomUsage { get; set; } = "";
 
+    /// <summary>
+    /// What INFO sends: whatever this store wants buyers to know about it.
+    ///
+    /// <para>⚠️ No flag beside it, unlike the usage message. Text is the switch — a store with
+    /// something to say has written it, and one with nothing to say has an empty box. A checkbox
+    /// would add a second way to mean the same thing, and a way for them to disagree.</para>
+    ///
+    /// <para>Whitespace does not count as something to say: a box holding a single blank line
+    /// leaves INFO off the command list, because the command would answer with nothing.</para>
+    /// </summary>
+    public string Info { get; set; } = "";
+
     public string MessageHeader      { get; set; } = "";
     public string MessageHeaderColor { get; set; } = "";
     public string MessageFooter      { get; set; } = "";

@@ -298,12 +298,12 @@ public class StoreMailService(
             // person. Only a failure is worth revisiting.
             if (attempts.Any(a => a.Outcome != "error")) return true;
 
-            // ⚠️ Retried only where a second attempt cannot do damage. PRICES and STATUS read and
-            // report; running either again costs one more mail. ORDER and CANCEL change orders,
-            // and a retry after a reply that failed halfway would place the order twice or cancel
-            // something already cancelled — so those stay one attempt, with the failure on the
-            // record for a person to answer by hand.
-            if (attempts.Any(a => a.Command is not ("PRICES" or "STATUS"))) return true;
+            // ⚠️ Retried only where a second attempt cannot do damage. PRICES, STATUS and INFO
+            // read and report; running any of them again costs one more mail. ORDER and CANCEL
+            // change orders, and a retry after a reply that failed halfway would place the order
+            // twice or cancel something already cancelled — so those stay one attempt, with the
+            // failure on the record for a person to answer by hand.
+            if (attempts.Any(a => a.Command is not ("PRICES" or "STATUS" or "INFO"))) return true;
 
             return attempts.Count >= MaxAttempts;
         }
@@ -425,6 +425,7 @@ public class StoreMailService(
             case "ORDER":  await OrderAsync(db, store, log, ct); break;
             case "STATUS": await StatusAsync(db, store, log, ct); break;
             case "CANCEL": await CancelAsync(db, store, log, ct); break;
+            case "INFO":  await InfoAsync(store, log, ct); break;
             case "HELP":
                 await ReplyAsync(store, log, $"{store.Name} — how to order", Usage(store), ct);
                 break;
@@ -438,6 +439,34 @@ public class StoreMailService(
     /// the same words — a buyer told two different things about the same commands has been given
     /// a reason to doubt both.</para>
     /// </summary>
+    /// <summary>
+    /// Answers INFO with whatever the store has written about itself.
+    ///
+    /// <para>Falls back to the usage message when nothing has been written. INFO answered with
+    /// the usage before this command existed, and a store that has not filled the box in should
+    /// not start replying with an empty mail because the word was given its own meaning.</para>
+    /// </summary>
+    private async Task InfoAsync(Store store, StoreMail log, CancellationToken ct)
+    {
+        if (!HasInfo(store))
+        {
+            log.Detail = "No information written for this store — sent the usage instead.";
+            await ReplyAsync(store, log, $"{store.Name} — how to order", Usage(store), ct);
+            return;
+        }
+
+        await ReplyAsync(store, log, $"{store.Name} — about", AsBreaks(store.Info), ct);
+    }
+
+    /// <summary>
+    /// Whether this store has anything to say about itself.
+    ///
+    /// <para>⚠️ Trimmed. A box holding spaces or a single blank line is empty in every way that
+    /// matters, and offering INFO on the command list for it advertises a command that answers
+    /// with nothing.</para>
+    /// </summary>
+    private static bool HasInfo(Store store) => store.Info.Trim().Length > 0;
+
     private static string Usage(Store store) =>
         store.UseCustomUsage && store.CustomUsage.Trim().Length > 0
             ? AsBreaks(store.CustomUsage)
@@ -506,6 +535,10 @@ public class StoreMailService(
         Dim("This one always needs its reference, from the confirmation mail. " +
             "Subject or body, either works:") + Br +
         Eg("CANCEL 3FVPA9") + Gap +
+
+        // ⚠️ Listed only when the store has written something. A command that answers with an
+        // empty mail is worse than one nobody was told about.
+        (HasInfo(store) ? Cmd("INFO") + "about this store." + Gap : "") +
 
         Cmd("HELP") + "this message." + Gap +
 
@@ -1433,7 +1466,12 @@ public class StoreMailService(
              : word is "ORDER" or "BUY"              ? "ORDER"
              : word is "STATUS"                      ? "STATUS"
              : word is "CANCEL"                      ? "CANCEL"
-             : word is "HELP" or "COMMANDS" or "INFO" ? "HELP"
+             // ⚠️ INFO used to be a third spelling of HELP. It is its own command now, and the
+             // handler falls back to the usage when a store has written no information — so a
+             // buyer who mails INFO at a store that has nothing to say still gets an answer,
+             // and the word keeps meaning what it did before anyone filled the box in.
+             : word is "INFO" or "ABOUT"              ? "INFO"
+             : word is "HELP" or "COMMANDS"           ? "HELP"
              : "";
     }
 

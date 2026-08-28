@@ -332,6 +332,22 @@ public class StoresViewModel : ReactiveObject
     /// <summary>Puts the stock message back in the box, discarding what was written.</summary>
     public void ResetUsage() => CustomUsage = DefaultUsageText();
 
+    private string _storeInfo = "";
+
+    /// <summary>
+    /// What INFO sends. Empty means the command is not offered at all — there is no flag, the
+    /// text is the flag.
+    /// </summary>
+    public string StoreInfo
+    {
+        get => _storeInfo;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _storeInfo, value ?? "");
+            _ = SaveAsync(s => s.Info = value ?? "");
+        }
+    }
+
     /// <summary>
     /// The stock usage message for the selected store, exactly as a buyer would receive it.
     ///
@@ -667,6 +683,7 @@ public class StoresViewModel : ReactiveObject
                     AutoEstimateDays = store.AutoEstimateDays;
                     StoreOrderLabels   = store.OrderLabels;
                     UseCustomUsage     = store.UseCustomUsage;
+                    StoreInfo          = store.Info;
 
                     // ⚠️ The stock text when nothing is saved, so the box always shows what this
                     // store actually sends. Assigned after the flag, since setting the flag is

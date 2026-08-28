@@ -420,6 +420,7 @@ public class App : Application
                     "OrderLabels"        TEXT NOT NULL DEFAULT '',
                     "UseCustomUsage"     INTEGER NOT NULL DEFAULT 0,
                     "CustomUsage"        TEXT NOT NULL DEFAULT '',
+                    "Info"               TEXT NOT NULL DEFAULT '',
                     "MessageHeader"      TEXT NOT NULL DEFAULT '',
                     "MessageHeaderColor" TEXT NOT NULL DEFAULT '',
                     "MessageFooter"      TEXT NOT NULL DEFAULT '',
@@ -446,6 +447,7 @@ public class App : Application
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "OrderLabels" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "UseCustomUsage" INTEGER NOT NULL DEFAULT 0"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "CustomUsage" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "Info" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageHeader" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageHeaderColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooter" TEXT NOT NULL DEFAULT ''"""); } catch { }
