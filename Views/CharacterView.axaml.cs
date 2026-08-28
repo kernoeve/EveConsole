@@ -63,6 +63,7 @@ public partial class CharacterView : UserControl
         "IncomePie"         => SectionIncomePie,
         "ExpensePie"        => SectionExpensePie,
         "IncomeExpense"     => SectionIncomeExpense,
+        "Orders"            => SectionOrders,
         "StandingProjects"  => SectionStandingProjects,
         "StandingBuyOrders" => SectionStandingBuyOrders,
         "WorklistAll"       => SectionWorklistAll,
@@ -258,6 +259,9 @@ public partial class CharacterView : UserControl
 
     private void OnOpenStandingBuyOrders(object? sender, RoutedEventArgs e)
         => _vm?.NavigateToStandingBuyOrders?.Invoke();
+
+    private void OnOpenOrderTracker(object? sender, RoutedEventArgs e)
+        => _vm?.NavigateToOrderTracker?.Invoke();
 
     /// <summary>Expands or collapses a task's manifest, the same gesture the tool uses.</summary>
     private void OnOverviewManifestToggle(object? sender, RoutedEventArgs e)

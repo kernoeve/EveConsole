@@ -97,6 +97,8 @@ public class WorklistService(
     {
         var all = sections.SelectMany(s => s.Items).ToList();
 
+        PromoteUnblockingBuys(sections, all);
+
         // Jobs stopped for want of material that exists somewhere else, by where they run.
         // MustBuy shortfalls are excluded: no haul fixes something nobody owns.
         var stopped = all
@@ -134,6 +136,72 @@ public class WorklistService(
                     Priority = Math.Max(haul.Priority, freed.Max(j => j.Priority)),
                     Detail   = haul.Detail
                              + $" Restarts {freed.Count:N0} stopped job(s) on arrival: "
+                             + string.Join(", ", freed.Take(3).Select(j => j.TypeName))
+                             + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : "."),
+                };
+            }
+        }
+    }
+
+    /// <summary>
+    /// Ranks each purchase by the work it would release, exactly as hauls are ranked.
+    ///
+    /// <para>The two are complements and read the same shortage list from opposite ends. A haul
+    /// answers a shortage of something we own elsewhere; a purchase answers one of something
+    /// nobody owns, which is what <c>MustBuy</c> marks. Neither generator can see the jobs it
+    /// would restart — the purchase generator knows the plan is short, the industry generator
+    /// knows which jobs stopped, and neither knows the other.</para>
+    ///
+    /// <para>⚠️ No destination filter, unlike the haul pass. A haul lands its cargo at one
+    /// station and only frees jobs there; a purchase of something nobody owns answers the
+    /// shortage wherever the job is, because the alternative to buying it is not having it at
+    /// all.</para>
+    ///
+    /// <para>⚠️ The purchase inherits the priority of the most urgent job it frees, never more,
+    /// and the count breaks ties below priority rather than adding to it — the same rule the
+    /// hauls follow, so a crate and a market order for the same material stay commensurable.
+    /// Purchases used to carry a flat OrderDriven, which put every one of them above refining,
+    /// outbid orders, standing projects and final products regardless of what was waiting.</para>
+    /// </summary>
+    private static void PromoteUnblockingBuys(
+        List<WorklistSection> sections, List<WorklistItem> all)
+    {
+        // Jobs stopped for want of something nobody owns, by material. The mirror of the haul
+        // rule below, which excludes exactly these for the same reason.
+        var unowned = all
+            .SelectMany(x => x.Shortages.Where(h => h.MustBuy)
+                              .Select(h => (Job: x, h.TypeId)))
+            .GroupBy(x => x.TypeId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Job).DistinctBy(j => j.Key).ToList());
+
+        if (unowned.Count == 0) return;
+
+        for (var si = 0; si < sections.Count; si++)
+        {
+            var section = sections[si];
+
+            for (var n = 0; n < section.Items.Count; n++)
+            {
+                var buy = section.Items[n];
+                if (buy.Kind != WorklistKind.Buy) continue;
+
+                var bought = buy.Lines.Count > 0
+                    ? buy.Lines.Select(l => l.TypeId)
+                    : [buy.TypeId];
+
+                var freed = bought
+                    .SelectMany(t => unowned.GetValueOrDefault(t, []))
+                    .DistinctBy(j => j.Key)
+                    .ToList();
+
+                if (freed.Count == 0) continue;
+
+                section.Items[n] = buy with
+                {
+                    Unblocks = freed.Count,
+                    Priority = Math.Max(buy.Priority, freed.Max(j => j.Priority)),
+                    Detail   = buy.Detail
+                             + $" Releases {freed.Count:N0} stopped job(s): "
                              + string.Join(", ", freed.Take(3).Select(j => j.TypeName))
                              + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : "."),
                 };

@@ -44,20 +44,6 @@ public sealed record BuildDemand(int TypeId, long Units, int Priority, List<stri
     public int Blocks { get; init; }
 
     /// <summary>
-    /// How many of those dependents are things the operation actually sells or flies.
-    ///
-    /// <para>⚠️ A count of blocked work cannot tell a customer from a cupboard.
-    /// Nanotransistors blocks eleven, and ten of them are component buffers refilling
-    /// themselves — real work, whose only customer is the shelf it came from. An isotropic
-    /// blocking a Neurolink cell blocks every standard capital hull. Both score eleven, and
-    /// only one of them is worth a slot today.</para>
-    ///
-    /// <para>Which items are final is hand-set on the inventory rule, because nothing in the
-    /// blueprint tree can tell: hulls for one operation, rigs or modules for another.</para>
-    /// </summary>
-    public int BlocksFinal { get; init; }
-
-    /// <summary>
     /// Which items are waiting on this one, not merely how many.
     ///
     /// <para>⚠️ The count has to be RECOMPUTED as jobs are planned, and a number cannot be.
@@ -278,6 +264,21 @@ public class IndustryDemandService(
 
         var topLevel = new List<(int TypeId, long Units)>();
 
+        // ⚠️ Orders are read BEFORE the shelf rules, so a rule can be told what is genuinely
+        // still on the shelf. An order takes its units off the top; what it claims is no longer
+        // stock the level can count on, and a threshold judged on hulls that are already sold
+        // declines to top up a shelf that is about to be empty.
+        //
+        // Measured: a Ragnarok ordered against the only one on hand left the Titans rule
+        // comfortably full, so the replacement never received a stock priority at all. Its job
+        // existed — the order's units still drove the quantity — but at Housekeeping 30, which
+        // is the floor, and it sat below every routine top-up in the list.
+        var orderDemand = await OrderDemandAsync(
+            db, settings.PlanCustomerOrders, scope, wrapped, corps, ct);
+
+        // Units minus what is still outstanding is what the existing stock covered.
+        var claimedByOrders = orderDemand.ToDictionary(o => o.TypeId, o => o.Units - o.Outstanding);
+
         foreach (var rule in rules.OrderByDescending(r => r.ThresholdPercent).ThenBy(r => r.Id))
         {
             if (!groups.TryGetValue(rule.GroupId, out var group)) continue;
@@ -310,12 +311,19 @@ public class IndustryDemandService(
                 g.Level = Math.Max(g.Level, wanted);
                 g.Have  = Math.Max(g.Have, have);
 
-                var need = InvRuleShortfall.For(rule, group, gi, av);
+                var need = InvRuleShortfall.For(
+                    rule, group, gi, av, claimedByOrders.GetValueOrDefault(gi.TypeId));
                 if (need is null) continue;   // comfortably full: contributes its level, asks for nothing
 
                 g.Fires    = true;
-                g.Priority    = Math.Max(g.Priority, WorklistPriority.ForStock(need.Percent));
-                g.OwnPriority = Math.Max(g.OwnPriority, WorklistPriority.ForStock(need.Percent));
+
+                // A rule flagged final puts its items in the band above ordinary stock-keeping.
+                var band = rule.IsFinalProduct
+                    ? WorklistPriority.ForFinalStock(need.Percent)
+                    : WorklistPriority.ForStock(need.Percent);
+
+                g.Priority    = Math.Max(g.Priority, band);
+                g.OwnPriority = Math.Max(g.OwnPriority, band);
                 g.Reasons.Add($"{group.Name} · {need.StockText}.{need.FillText(rule)}");
                 topLevel.Add((gi.TypeId, need.Shortfall));
             }
@@ -323,31 +331,47 @@ public class IndustryDemandService(
 
         // ── Customer orders ───────────────────────────────────────────────────
 
-        foreach (var (typeId, units, outstanding, count, rank) in
-                 await OrderDemandAsync(db, settings.PlanCustomerOrders, scope, wrapped, corps, ct))
+        foreach (var (typeId, units, outstanding, count, rank) in orderDemand)
         {
             if (!ctx.BlueprintByProduct.ContainsKey(typeId)) continue;
 
-            // ⚠️ OUTSTANDING, not ordered. An order already covered by stock or by a job
-            // already running needs nothing built, and until now it still stamped the order
-            // band on the item and added its units to demand — only the queue entry was gated.
-            // One Simurgh, in build and linked to its job, therefore put priority 220 on itself;
-            // a stock rule then carried that 220 down its entire tree, and fifty jobs for three
-            // well-stocked reactions sat above every starving item in the list. Priority has to
-            // stop when the thing that justified it is settled.
+            var g = At(typeId);
+
+            // ⚠️ GROSS units into the quantity, never outstanding. Stock is netted exactly once,
+            // at the end of this method — `Level + Consumed - have` — and subtracting it here as
+            // well spends the same item twice.
+            //
+            // One Ragnarok on hand, an order for one, and a shelf level of one: the order netted
+            // the titan away to nothing, the shelf netted the same titan again, neither asked for
+            // anything, and no replacement was ever queued. The order will take that hull; the
+            // empty shelf it leaves behind is exactly what the level is for. The same arithmetic
+            // silently under-built every partly-stocked order — two ordered against one in
+            // stock came out as nothing to build rather than one.
+            //
+            // It also has to reach topLevel, or the item is never exploded into its materials
+            // and no purchase is raised for any of them.
+            g.Consumed   += units;
+            g.OrderUnits += units;
+            g.Fires       = true;
+            g.Reasons.Add($"{count} pending order(s) for {units:N0}.");
+            topLevel.Add((typeId, units));
+
+            // ⚠️ URGENCY, unlike quantity, does stop when the order is already met. An order
+            // covered by stock or by a job already running needs nothing built NOW, and it used
+            // to stamp the order band regardless: one Simurgh, in build and linked to its job,
+            // put priority 220 on itself, a stock rule carried that 220 down its entire tree,
+            // and fifty jobs for three well-stocked reactions sat above every starving item.
+            //
+            // What such an order leaves behind is the shelf it emptied, and refilling a shelf is
+            // stock work — ranked as stock work by the inventory rules above, not as an order
+            // somebody is waiting on.
             if (outstanding <= 0) continue;
 
-            var g = At(typeId);
-            g.Consumed   += outstanding;
-            g.OrderUnits  += outstanding;
             g.OrderDriven += outstanding;
-            g.Fires       = true;
             // Ranked rather than flat, so the order due first outranks the one due next month.
             // Children inherit this below, so the whole tree under an urgent order stays urgent.
             g.Priority    = Math.Max(g.Priority, WorklistPriority.ForOrder(rank));
             g.OwnPriority = Math.Max(g.OwnPriority, WorklistPriority.ForOrder(rank));
-            g.Reasons.Add($"{count} pending order(s) for {units:N0}.");
-            topLevel.Add((typeId, outstanding));
         }
 
         // ── What those builds will consume ────────────────────────────────────
@@ -483,8 +507,6 @@ public class IndustryDemandService(
             result[typeId] = result[typeId] with
             {
                 Blocks      = gross[typeId].Dependents.Count(result.ContainsKey),
-                BlocksFinal = gross[typeId].Dependents
-                                  .Count(x => result.ContainsKey(x) && gross[x].IsFinal),
                 Dependents  = [.. gross[typeId].Dependents.Where(result.ContainsKey)],
                 IsFinal     = gross[typeId].IsFinal,
                 OwnPriority = gross[typeId].OwnPriority,

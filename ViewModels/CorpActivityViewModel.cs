@@ -340,6 +340,7 @@ public sealed class StandingProjectRowVm
             "all_healthy" => "#888899",
             "no_systems"  => "#888899",
             "no_adm"      => "#e0902e",
+            "no_office"   => "#e0902e",
             _             => "#cc4444",
         };
         ProjectStatusText = row.MatchStatus switch
@@ -350,6 +351,14 @@ public sealed class StandingProjectRowVm
             "no_adm"      => row.StatusNote.Length > 0
                                  ? $"sovereignty data unavailable — {row.StatusNote}"
                                  : "sovereignty data unavailable",
+
+            // ⚠️ Not "not active". A delivery destination is named as an office, and the
+            // office-to-station lookup comes from corp assets; while that is missing the row
+            // can be neither matched nor ruled out. Calling it inactive was a claim about the
+            // project made out of a gap in our own data.
+            "no_office"   => row.StatusNote.Length > 0
+                                 ? $"office location unavailable — {row.StatusNote}"
+                                 : "office location unavailable — asset data still loading",
             _             => "project not active",
         };
         ProjectStatusColor = IsLowRemaining ? "#e0902e" : statusColor;
@@ -365,6 +374,7 @@ public sealed class StandingProjectRowVm
                 "all_healthy" => 2,   // grey — the rule selects nothing today, and should not
                 "no_systems"  => 2,   // grey
                 "no_adm"      => 1,   // orange — a fault, above healthy but below a real gap
+                "no_office"   => 1,   // orange — our data is missing, not their project
                 _             => 0,   // red — project not active
             };
 

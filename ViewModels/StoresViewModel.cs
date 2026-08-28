@@ -96,6 +96,7 @@ public class StoresViewModel : ReactiveObject
 
     public ObservableCollection<StoreRowVm>       Stores  { get; } = [];
     public ObservableCollection<StoreMailRowVm>   Mails   { get; } = [];
+    public ObservableCollection<OrderSummaryRowVm> Orders { get; } = [];
     public ObservableCollection<StoreSenderRowVm> Senders { get; } = [];
 
     /// <summary>Characters we hold a token for — the only ones that can be a shop's address.</summary>
@@ -611,10 +612,16 @@ public class StoresViewModel : ReactiveObject
             // ⚠️ Counted off orders, not off the mail log. A mail says what was asked for; only
             // the order says what became of it, and an order cancelled in the Order Tracker by
             // hand never produced a mail at all.
+            // ⚠️ Only StoreId is pushed into SQL. CreatedAt is a DateTimeOffset, which EF cannot
+            // translate against SQLite, so every date decision below happens in memory.
             var orders = await db.TrackedOrders.AsNoTracking()
                 .Where(o => o.StoreId == row.Id)
-                .Select(o => new { o.Status })
                 .ToListAsync();
+
+            var orderTypeIds = orders.Select(o => o.TypeId).Distinct().ToList();
+            var orderTypeNames = await db.SdeTypes.AsNoTracking()
+                .Where(t => orderTypeIds.Contains(t.TypeId))
+                .ToDictionaryAsync(t => t.TypeId, t => t.Name);
 
             // ⚠️ By item, not by order reference. A reference is how the mail tool addresses a
             // conversation — a buyer who asked for three things in one message gets one — and it
@@ -629,6 +636,22 @@ public class StoresViewModel : ReactiveObject
             var cancelled = orders.Count(o => o.Status == "canceled");
 
             var inquiries = mails.Count(m => m.Direction == "in");
+
+            // ⚠️ Built from the same list the "Active items" count above is built from, so the
+            // number and the rows behind it cannot drift apart.
+            //
+            // Soonest promised first, because this is a list of what the shop still owes people;
+            // an order nobody has dated sorts last rather than sorting as blank-is-earliest, and
+            // sits together with the others nobody has answered. Every column is click-sortable
+            // for any other question.
+            var orderRows = orders
+                .Where(o => o.Status == "pending")
+                .OrderBy(o => o.EstimatedDate is { Length: > 0 } ? 0 : 1)
+                .ThenBy(o => o.EstimatedDate, StringComparer.Ordinal)
+                .ThenBy(o => o.CreatedAt)
+                .Select(o => new OrderSummaryRowVm(
+                    o, orderTypeNames.GetValueOrDefault(o.TypeId, "")))
+                .ToList();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -661,6 +684,9 @@ public class StoresViewModel : ReactiveObject
 
                 Mails.Clear();
                 foreach (var m in mails) Mails.Add(new StoreMailRowVm(m));
+
+                Orders.Clear();
+                foreach (var o in orderRows) Orders.Add(o);
 
                 Senders.Clear();
                 foreach (var s in senders) Senders.Add(new StoreSenderRowVm(s));

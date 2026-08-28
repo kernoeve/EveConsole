@@ -512,6 +512,15 @@
         <DataGridTextColumn Binding="{Binding DbgSeq}" FontSize="11" Width="50"
                             CellStyleClasses="num" Header="seq" IsVisible="False"/>
 
+        <!-- How many stopped tasks this row would release: the key that separates hauls and
+             purchases from each other, blank on everything else. Hidden alongside the keys above,
+             but ⚠️ the VALUE is not diagnostic — it is the fourth sort key, and it also raises the
+             priority a haul or purchase inherits. Switch it on with them when asking why one
+             delivery or market order outranks another. Sorted on the number so 9 does not
+             outrank 50. -->
+        <DataGridTextColumn Binding="{Binding UnblocksText}" FontSize="11" Width="70"
+                            SortMemberPath="Unblocks" CellStyleClasses="num" Header="frees" IsVisible="False"/>
+
         <!-- Value and Volume: the two figures worth comparing across every kind, and the pair a
              hauler and a buyer each reach for. Blank rather than zero when unpriced — a science
              job has no stored blueprint value per ME level. -->

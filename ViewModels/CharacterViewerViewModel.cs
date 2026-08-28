@@ -1,10 +1,12 @@
 ﻿using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Reactive;
+using System.Reactive.Linq;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using EveConsole.Data;
 using EveConsole.Models;
+using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
@@ -471,6 +473,22 @@ public class CharacterViewerViewModel : ReactiveObject
 
         RefreshSummaryCommand = ReactiveCommand.CreateFromTask(LoadSummaryAsync);
         _ = LoadSummaryAsync();
+
+        // Keep the summary grid current without anyone pressing Refresh. Online state, location
+        // and ship all change while the window sits open, and the grid is the one place they are
+        // all visible at once.
+        //
+        // ⚠️ Gated and labelled, like every other timer here. This view model lives for the whole
+        // session whether or not the tool is open, so without the tab check it would query on
+        // behalf of a grid nobody is looking at, once a minute, forever.
+        //
+        // Cheap enough to do on a clock: CharacterSummaryService reads local tables, and its only
+        // ESI calls resolve alliance and corporation names for ids it has not seen before. In
+        // steady state that is none.
+        Observable.Interval(TimeSpan.FromSeconds(60))
+            .ObserveOnUi("CharacterViewer.SummaryRefresh")
+            .Where(_ => OuterTabIndex == 0 && !SummaryLoading)
+            .Subscribe(_ => { var t = LoadSummaryAsync(); });
 
         OpenInItemBrowserCommand = ReactiveCommand.Create<int>(typeId => NavigateToItemAction?.Invoke(typeId));
 

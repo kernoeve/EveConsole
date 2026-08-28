@@ -80,8 +80,18 @@ public class MaterialPurchaseGenerator(
             serving[typeId].Add(new DemandSource(what, units));
         }
 
-        await AddStockDemandAsync(db, ctx, Want, ct);
-        await AddOrderDemandAsync(db, settings.PlanCustomerOrders, ctx, reach, scope, Want, ct);
+        // ⚠️ Orders first, and what they claim is passed to the stock rules — they are the first
+        // call on stock that already exists, and what they carry away cannot also be the thing
+        // that keeps the shelf full.
+        //
+        // Both sides used to net the same supply independently: an Avatar ordered with one in
+        // build read as "the order is covered" AND "the shelf is full", so neither asked for
+        // anything and not one material was purchased for the replacement. The class comment
+        // below describes this exact failure for materials, where it was fixed by pooling; the
+        // finished item it is all for was still being counted twice.
+        var claimed = await AddOrderDemandAsync(
+            db, settings.PlanCustomerOrders, ctx, reach, scope, Want, ct);
+        await AddStockDemandAsync(db, ctx, Want, claimed, ct);
 
         if (serving.Count == 0) return [];
 
@@ -224,7 +234,7 @@ public class MaterialPurchaseGenerator(
                 LocationName  = buyName,
                 TypeId        = raw.TypeId,
                 TypeName      = raw.TypeName,
-                Priority      = WorklistPriority.OrderDriven,
+                Priority      = WorklistPriority.ServesOther,
             });
         }
 
@@ -313,7 +323,8 @@ public class MaterialPurchaseGenerator(
 
     private async Task AddStockDemandAsync(
         AppDbContext db, ProductionContext ctx,
-        Action<int, long, string> want, CancellationToken ct)
+        Action<int, long, string> want, IReadOnlyDictionary<int, long> claimed,
+        CancellationToken ct)
     {
         var rules = await db.WorklistInvRules.AsNoTracking()
             .Where(r => r.Enabled && r.Action == "Build")
@@ -338,7 +349,8 @@ public class MaterialPurchaseGenerator(
             foreach (var gi in groupItems.OrderBy(i => i.TypeId))
             {
                 avail.TryGetValue(gi.TypeId, out var av);
-                var need = InvRuleShortfall.For(rule, group, gi, av);
+                var need = InvRuleShortfall.For(
+                    rule, group, gi, av, claimed.GetValueOrDefault(gi.TypeId));
                 if (need is null || need.Shortfall <= 0) continue;
                 if (!ctx.BlueprintByProduct.ContainsKey(gi.TypeId)) continue;
 
@@ -347,17 +359,23 @@ public class MaterialPurchaseGenerator(
         }
     }
 
-    /// <summary>Outstanding customer orders, less what is built or building.</summary>
-    private static async Task AddOrderDemandAsync(
+    /// <summary>
+    /// Outstanding customer orders, less what is built or building.
+    ///
+    /// <para>Returns how much existing stock the orders have spoken for, per type, so the stock
+    /// rules can be told what is genuinely still on the shelf. Recorded even for items nothing
+    /// can build — an order carries the hull away whether or not we could have made another.</para>
+    /// </summary>
+    private static async Task<Dictionary<int, long>> AddOrderDemandAsync(
         AppDbContext db, bool enabled, ProductionContext ctx, ProductionCalculatorService.AssetReach reach,
         HashSet<long>? scope, Action<int, long, string> want, CancellationToken ct)
     {
         // The Customer orders switch on the Sources tab is what says orders should be planned.
-        if (!enabled) return;
+        if (!enabled) return [];
 
         var orders = await db.TrackedOrders.AsNoTracking()
             .Where(o => o.Status == "pending").ToListAsync(ct);
-        if (orders.Count == 0) return;
+        if (orders.Count == 0) return [];
 
         var wanted = orders.Select(o => o.TypeId).Distinct().ToList();
 
@@ -380,16 +398,25 @@ public class MaterialPurchaseGenerator(
             .GroupBy(j => j.ProductTypeId!.Value)
             .ToDictionary(g => g.Key, g => (long)g.Sum(j => j.Runs));
 
+        var claimed = new Dictionary<int, long>();
+
         foreach (var g in orders.GroupBy(o => o.TypeId).OrderBy(g => g.Key))
         {
-            var outstanding = g.Sum(o => (long)o.Units)
-                            - onHand.GetValueOrDefault(g.Key)
-                            - inBuild.GetValueOrDefault(g.Key);
+            var gross  = g.Sum(o => (long)o.Units);
+            var supply = onHand.GetValueOrDefault(g.Key) + inBuild.GetValueOrDefault(g.Key);
+
+            // Recorded before the buildable test: an order takes the hull whether or not we
+            // could have built another one, and the shelf is just as empty either way.
+            claimed[g.Key] = Math.Min(gross, supply);
+
+            var outstanding = gross - supply;
             if (outstanding <= 0) continue;
             if (!ctx.BlueprintByProduct.ContainsKey(g.Key)) continue;
 
             want(g.Key, outstanding, $"{g.Count()} order(s)");
         }
+
+        return claimed;
     }
 
     /// <summary>
@@ -483,7 +510,7 @@ public class MaterialPurchaseGenerator(
                 LocationName  = buyName,
                 TypeId        = bpTypeId,
                 TypeName      = bpName,
-                Priority      = WorklistPriority.OrderDriven,
+                Priority      = WorklistPriority.ServesOther,
             });
         }
 

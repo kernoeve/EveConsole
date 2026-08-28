@@ -83,7 +83,7 @@ public sealed record StandingProjectGridRow(
     string TargetDisplay,
     string DestDisplay,
     int?   ExpandedSystemId,
-    string MatchStatus,       // “matched” | “not_active” | “no_systems”
+    string MatchStatus,       // “matched” | “not_active” | “no_systems” | “no_office”
     string MatchedName,
     string RemainingText,
     string RemainingPayoutText,
@@ -2085,7 +2085,16 @@ public class CorpActivityService
             .Select(a => new { a.ItemId, a.LocationId })
             .ToListAsync(ct);
 
-        _officeMapCache     = offices.ToDictionary(o => o.ItemId, o => o.LocationId);
+        var map = offices.ToDictionary(o => o.ItemId, o => o.LocationId);
+
+        // ⚠️ An empty result is never cached. The corp assets refresh deletes before it
+        // inserts, so a read landing in that window sees no offices at all — and caching that
+        // for ten minutes turns a moment of gap into ten minutes of every delivery project
+        // reporting itself inactive. A corp that genuinely owns no offices pays for a cheap
+        // repeat query; a corp mid-refresh gets the right answer on the next pass.
+        if (map.Count == 0) return map;
+
+        _officeMapCache     = map;
         _officeMapCorpId    = corpId;
         _officeMapCacheTime = DateTimeOffset.UtcNow;
         return _officeMapCache;
@@ -2290,6 +2299,18 @@ public class CorpActivityService
     /// <summary>Why, when it is unavailable. Empty when the read simply returned nothing.</summary>
     public string SovAdmError { get; private set; } = "";
 
+    /// <summary>
+    /// Whether a delivery project named an office this build could not resolve to a place.
+    ///
+    /// <para>⚠️ The same lesson as SovAdmUnavailable above, learned twice. An office that will
+    /// not resolve is not a project that is switched off, but it used to render as one — in
+    /// red, saying "project not active" about a project that was running perfectly.</para>
+    /// </summary>
+    public bool OfficeMapUnavailable { get; private set; }
+
+    /// <summary>Why, when it is unavailable. Empty when the read simply returned nothing.</summary>
+    public string OfficeMapError { get; private set; } = "";
+
     // ── Standing project grid row builder ─────────────────────────────────────
 
     public async Task<List<StandingProjectGridRow>> BuildMaintainGridRowsAsync(
@@ -2309,10 +2330,23 @@ public class CorpActivityService
             .ToListAsync(ct);
 
         Dictionary<long, long> officeMap;
+        OfficeMapUnavailable = false;
+        OfficeMapError       = "";
+
+        // ⚠️ The failure is recorded, not swallowed. This used to be a bare catch, so a lock
+        // timeout on the asset read and a corp with no delivery projects produced the same
+        // empty map and the same red rows, and nothing anywhere said which had happened.
         try   { officeMap = await GetCorpOfficeMapAsync(corpId, ct); }
-        catch { officeMap = []; }
+        catch (Exception ex) { officeMap = []; OfficeMapError = ex.Message; }
+
         var deliverConfigs  = ParseDeliverItemConfigs(activeProjects, officeMap);
         var destroyConfigs  = ParseDestroyNpcConfigs(activeProjects);
+
+        // Any delivery project whose office would not resolve. While that is true, an unmatched
+        // delivery row is unexplained rather than inactive — the station it would have matched
+        // on is exactly what is missing.
+        var officeGap = deliverConfigs.Any(d => d.OfficeUnresolved);
+        if (officeGap) OfficeMapUnavailable = true;
 
         bool needsAdm = standing.Any(p => p.ProjectType == "destroy_npc" &&
                                           p.ScopeType is "region_adm" or "constellation_adm");
@@ -2351,8 +2385,11 @@ public class CorpActivityService
                     TargetDisplay       : sp.ItemTypeName ?? "",
                     DestDisplay         : sp.StationName,
                     ExpandedSystemId    : null,
-                    MatchStatus         : match is not null ? "matched" : "not_active",
+                    MatchStatus         : match is not null ? "matched"
+                                        : officeGap        ? "no_office"
+                                        :                    "not_active",
                     MatchedName         : match?.ProjectName ?? "",
+                    StatusNote          : OfficeMapError,
                     RemainingText       : match is not null ? FormatRemaining(deliverRemaining) : "",
                     RemainingPayoutText : match is not null ? FormatPayout(deliverRemaining, match.RewardPerContrib) : "",
                     RemainingPercentText : match is not null ? FormatRemainingPct(deliverPct) : "",
@@ -2479,7 +2516,11 @@ public class CorpActivityService
         HashSet<long> StationIds,
         long          ProgressDesired,
         long          ProgressCurrent,
-        double        RewardPerContrib);
+        double        RewardPerContrib,
+        /// <summary>The project named an office that the asset data could not place. Its
+        /// station set is therefore incomplete, and a rule failing to match it proves
+        /// nothing.</summary>
+        bool          OfficeUnresolved = false);
 
     private sealed record DestroyNpcConfig(
         string       ProjectName,
@@ -2514,15 +2555,24 @@ public class CorpActivityService
                         if (loc.TryGetProperty("station_id",   out var sid)) stationIds.Add(sid.GetInt64());
                         if (loc.TryGetProperty("structure_id", out var rid)) stationIds.Add(rid.GetInt64());
                     }
+                // office_id is a corp office item ID; resolve to the actual location_id.
+                //
+                // ⚠️ An office that will not resolve is recorded as unresolved, NOT filled in
+                // with the office id itself. That fallback produced a config with a station
+                // nothing could ever equal — a rule pointing at the real structure simply
+                // failed to match it — so a lookup that was merely missing came out as a
+                // project that was not running.
+                var officeUnresolved = false;
                 if (inner.TryGetProperty("office_id", out var oid))
                 {
                     var officeId = oid.GetInt64();
-                    // office_id is a corp office item ID; resolve to the actual location_id
-                    stationIds.Add(officeMap.TryGetValue(officeId, out var locId) ? locId : officeId);
+                    if (officeMap.TryGetValue(officeId, out var locId)) stationIds.Add(locId);
+                    else officeUnresolved = true;
                 }
 
                 result.Add(new DeliverConfig(p.Name, typeIds, stationIds,
-                                             p.ProgressDesired, p.ProgressCurrent, p.RewardPerContrib));
+                                             p.ProgressDesired, p.ProgressCurrent, p.RewardPerContrib,
+                                             officeUnresolved));
             }
             catch { }
         }

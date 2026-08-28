@@ -52,16 +52,6 @@ public class IndustryJobGenerator(
     /// </summary>
     private const int FullyResearchedTe = 20;
 
-    /// <summary>
-    /// How many rows the runs with no free print may occupy.
-    ///
-    /// <para>⚠️ A guard against a pathological demand filling the list with hundreds of identical
-    /// blocked rows, not a limit on what is reported. The last allowed row absorbs everything
-    /// still remaining and says that it does, so the jobs always sum to the demand — which is the
-    /// property these rows exist to preserve.</para>
-    /// </summary>
-    private const int MaxUnprintedRows = 12;
-
     public async Task<List<WorklistItem>> GenerateAsync(CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
@@ -262,7 +252,10 @@ public class IndustryJobGenerator(
             var wanted = s.Demand.OrderUnits + s.Demand.ParentUnits;
             if (wanted <= 0) return 0;
 
-            var have = s.Demand.ShelfHave + s.Planned;
+            // ⚠️ Accounted, not Planned — the same reason as StillShort above. This scales both
+            // blocked counts, so measuring it on Planned pinned them at their opening value for
+            // every blocked row of an item and undid the per-row re-evaluation entirely.
+            var have = s.Demand.ShelfHave + (s.Demand.Units - s.Remaining);
             return Math.Clamp(1.0 - (double)have / wanted, 0.0, 1.0);
         }
 
@@ -272,6 +265,20 @@ public class IndustryJobGenerator(
         // once enough is planned to cover it nothing is waiting on this item any more — so its
         // claim on the next slot has to fall to zero even though its shelf is still far from
         // full. A fixed count is what let one item take twenty consecutive slots.
+        // Whether a dependent still has work nobody has written down.
+        //
+        // ⚠️ ACCOUNTED, like every other sort key here. One rule, and this is the one place it
+        // was broken: Planned only moves for work that can actually start, so on a chain whose
+        // rows are all blocked it never moves at all, and every count built on it freezes.
+        // Capital Ship Maintenance Bay carried fin 11 and blkd 11 on all ten of its rows while
+        // its coverage climbed from 29.9% to 97.0% beside them.
+        //
+        // The division that matters is not "said" versus "made" for these columns — they are
+        // sort keys, and a sort key has to move as the list grows or it is not sorting anything.
+        // Planned keeps its job in the stock and material arithmetic, where crediting a job
+        // nobody can run would be a lie about the shelf.
+        static bool StillShort(PlanState s) => s.Remaining > 0;
+
         int BlockedNow(PlanState s)
         {
             var starving = Starving(s);
@@ -279,7 +286,7 @@ public class IndustryJobGenerator(
 
             var n = 0;
             foreach (var t in s.Demand.Dependents)
-                if (byType.TryGetValue(t, out var dep) && dep.Remaining > 0) n++;
+                if (byType.TryGetValue(t, out var dep) && StillShort(dep)) n++;
 
             // ⚠️ Scaled by how much of the need is still unmet, so the count falls with EVERY
             // job rather than in one step at the end. Twenty-three dependents share one shortfall:
@@ -290,17 +297,73 @@ public class IndustryJobGenerator(
             return (int)Math.Ceiling(n * starving);
         }
 
-        // The same count, restricted to what the operation sells or flies.
+        // How much finished output stands behind this item — what the operation sells or flies,
+        // rather than every task of any kind.
         int BlockedFinalNow(PlanState s)
         {
             var starving = Starving(s);
             if (starving <= 0) return 0;
 
-            var n = 0;
+            // ⚠️ A final product counts ITSELF. Dependents are the things that CONSUME an item,
+            // and nothing consumes a hull, so counting only dependents scored every finished
+            // product zero on the one key meant to protect it. Its components each scored one
+            // for blocking it — so the parts outranked the ship, and the moment they were made
+            // the hull dropped level with any intermediate being built to top up a shelf. The
+            // flag exists precisely to stop a titan queueing behind stock work.
+            var n = s.Demand.IsFinal ? 1 : 0;
+
             foreach (var t in s.Demand.Dependents)
-                if (byType.TryGetValue(t, out var dep) && dep.Remaining > 0 && dep.Demand.IsFinal)
+                if (byType.TryGetValue(t, out var dep) && StillShort(dep) && dep.Demand.IsFinal)
                     n++;
             return (int)Math.Ceiling(n * starving);
+        }
+
+        // What the item's OWN shelf justifies, measured where that shelf stands NOW.
+        //
+        // ⚠️ OwnPriority is stamped once, during the demand walk, from the coverage the item had
+        // before anything was planned. It was the last key here still frozen: an item that fell
+        // out of the serving band settled on whatever number its coverage bought at that moment
+        // and held it for every remaining row, so its jobs arrived as a block at 78, or at 71,
+        // instead of sliding down the band as the shelf filled and letting other items in
+        // between. Recomputing it is what lets several items rise together rather than one
+        // running to completion first.
+        //
+        // Two bands are deliberately left alone. An order's is not a shelf measurement and does
+        // not decay with stock — it expires through orderStillShort instead. Housekeeping means
+        // the rule declined to fire at all, and an item whose shelf is comfortably full has no
+        // claim to the bottom of the stock band either.
+        int OwnLive(PlanState s)
+        {
+            var own = s.Demand.OwnPriority;
+
+            // An order's band is not a shelf measurement and does not decay with stock; it
+            // expires through orderStillShort instead.
+            if (own >= WorklistPriority.OrderDriven) return own;
+
+            // No shelf rule covers this item, so there is no band for it to sit in.
+            var level = s.Demand.ShelfLevel;
+            if (level <= 0) return own;
+
+            // ⚠️ THE SHELF IS FILLED LAST. Stock on hand and in build is allocated to the orders
+            // and jobs that consume this item first; only what survives that is on the shelf.
+            //
+            // 561 Capital Ship Maintenance Bays against a level of 500 reads as full until you
+            // notice the capitals above want far more than 561 of them. Every one is spoken for,
+            // the shelf holds none — and because the rule was evaluated on the raw figure it
+            // declined to fire, so the item never received a band at all and fell to
+            // Housekeeping with all of that work still in front of it.
+            //
+            // Measured here rather than at the rule, because what the jobs above consume is only
+            // known once the tree has been walked, and by then the rule has already been asked.
+            var accounted = s.Demand.Units - s.Remaining;
+            var consuming = s.Demand.OrderUnits + s.Demand.ParentUnits;
+            var onShelf   = Math.Max(0, s.Demand.ShelfHave + accounted - consuming);
+
+            var pct = Math.Clamp(100.0 * onShelf / level, 0.0, 100.0);
+
+            return s.Demand.IsFinal
+                ? WorklistPriority.ForFinalStock(pct)
+                : WorklistPriority.ForStock(pct);
         }
 
         // What this item is worth to the most urgent thing STILL waiting on it.
@@ -324,15 +387,70 @@ public class IndustryJobGenerator(
             // Against the ORDER-DRIVEN units only. What the shelf also wants is a stocking job
             // and has never been what the order was waiting for.
             var forOrders = s.Demand.OrderDriven;
-            if (forOrders <= 0 || s.Demand.ShelfHave + s.Planned >= forOrders)
-                return s.Demand.OwnPriority;
+            var orderStillShort = forOrders > 0 && s.Demand.ShelfHave + s.Planned < forOrders;
 
-            var best = s.Demand.OwnPriority;
+            // ⚠️ The same test for what the chain above wants. An item's demand is a MIXTURE and
+            // its priority is one number: Reinforced Carbon Fiber feeds the capital chain AND
+            // carries a level of its own asking for a million more. Once enough is on hand or
+            // planned to feed everything above it, every further unit is buffer — and buffer
+            // work does not get to keep the priority the chain conferred, or twenty reaction
+            // jobs rebuilding a stockpile sit level with the parts a titan is waiting for.
+            var forParents = s.Demand.ParentUnits;
+            // ⚠️ Against ACCOUNTED units, like Coverage — not Planned. This decides an ORDERING
+            // question, and a blocked row has said its part for the chain as much as a startable
+            // one has. Measured on Planned it could never expire on an item whose rows are
+            // blocked, because Planned is exactly what a blocked row does not move: Pressurized
+            // Oxidizers held 80 for its entire run of jobs, and the shelf-refilling tail that
+            // ought to have dropped into the stock band never did.
+            var accountedForChain = s.Demand.Units - s.Remaining;
+            var chainStillShort =
+                forParents > 0 && s.Demand.ShelfHave + accountedForChain < forParents;
+
+            // ⚠️ ONLY order urgency expires. Returning OwnPriority outright for anything not
+            // order-driven threw away every other kind of inherited priority with it, and an
+            // item nothing had ordered kept only what its own rule justified — nothing, for a
+            // component with no shelf level of its own.
+            //
+            // Genetic Lock Preserver sat at Housekeeping 30 with sixteen final products waiting
+            // on it and nineteen tasks stopped behind it. The neurolink chain feeds every
+            // capital hull we build; it is the biggest bottleneck on the board and it was at the
+            // floor, beneath work blocking nothing, because no customer had ordered it by name.
+            var best = OwnLive(s);
 
             foreach (var t in s.Demand.Dependents)
-                if (byType.TryGetValue(t, out var dep) && dep.Remaining > 0 &&
-                    dep.Demand.Priority > best)
-                    best = dep.Demand.Priority;
+            {
+                if (!byType.TryGetValue(t, out var dep) || !StillShort(dep)) continue;
+
+                // ⚠️ The ancestor's OWN priority, not its inherited one. Dependents is closed over
+                // the whole chain above an item, so the highest own-priority among the ancestors
+                // still asking for something IS the inherited value — computed here, every pass,
+                // rather than read from a number stamped in whatever order the walk happened to
+                // visit things. That stamp is why priority stopped partway down a deep tree.
+                var candidate = OwnLive(dep);
+
+                if (candidate >= WorklistPriority.OrderDriven)
+                {
+                    // Order urgency, and only order urgency, lapses once the order-driven portion
+                    // of THIS item is fed. Reinforced Carbon Fiber holds 795,615 units: the Ravens
+                    // and Apocalypses are satisfied and every further unit is shelf, so it must
+                    // stop borrowing their 220. An order carries its whole tree at its own number,
+                    // uncapped, because the whole tree is genuinely that urgent.
+                    if (!orderStillShort) continue;
+                }
+                else
+                {
+                    // Nothing above is still short of this, so what is left is the item's own
+                    // buffer. It falls back to what its own level justifies.
+                    if (!chainStillShort) continue;
+
+                    // ⚠️ Capped at ServesOther. Serving a hull is worth less than being the hull,
+                    // or the parts sort above the ship and the emptiest hull on the board drags
+                    // every shared component up to its own number.
+                    candidate = Math.Min(candidate, WorklistPriority.ServesOther);
+                }
+
+                if (candidate > best) best = candidate;
+            }
 
             return best;
         }
@@ -346,7 +464,20 @@ public class IndustryJobGenerator(
             var total = s.Demand.ShelfLevel + s.Demand.OrderUnits + s.Demand.ParentUnits;
             if (total <= 0) return 1.0;
 
-            return (double)(s.Demand.ShelfHave + s.Planned) / total;
+            // ⚠️ ACCOUNTED, not planned. Planned is what will really fill the shelf, and the
+            // material and stock arithmetic must keep using it — crediting a blocked job with
+            // stock it cannot make would send the next real job to whoever looks emptiest after
+            // that fiction.
+            //
+            // Ordering asks a different question: how much of this item is still unsaid. A
+            // blocked row has said its part. Measured on Planned, a blocked item looked exactly
+            // as starved after its rows were written as before, so the picker chose it again on
+            // the very next pass and its rows came out as one undifferentiated block — never
+            // interleaving with the work the planner would really have recommended between them.
+            // A waiting job already behaves this way; it counts because it is not blocked.
+            var accounted = s.Demand.Units - s.Remaining;
+
+            return (double)(s.Demand.ShelfHave + accounted) / total;
         }
 
         // Prints already planned against in this pass. See where it is applied for why the real
@@ -405,7 +536,13 @@ public class IndustryJobGenerator(
 
                 // An inventory level is more urgent the emptier it is, so the priority carries
                 // how far below target it has fallen rather than treating every shortfall alike.
-                var priority = d.Priority;
+                //
+                // ⚠️ The LIVE value, the same one the ordering uses. Blocked rows took the stamped
+                // walk priority instead, which is uncapped and never expires, so an item read 84
+                // while it could not start and 80 once it could — the same work, ranked above
+                // itself for being stuck. Their prio column shows this number directly, since a
+                // row that was never planned has no sort keys of its own.
+                var priority = LivePriority(state);
 
                 var head = d.Head;
 
@@ -457,46 +594,18 @@ public class IndustryJobGenerator(
 
                 var prints = usable.Where(p => !printsCommitted.Contains(p.ItemId)).ToList();
 
-                // ⚠️ A print free in EVE but already spoken for by a job further up this same list
-                // is a different answer from no print at all, and saying "none at this station"
-                // would be a lie the user can see through — they are looking at the job holding it.
-                if (prints.Count == 0 && usable.Count > 0)
-                {
-                    items.Add(Unstartable(d.TypeId, name, priority, pool, d.Units,
-                        $"{head} Build {d.Units:N0} ({runsNeeded:N0} run(s)) at {siteName}.",
-                        usable.Count == 1
-                            ? "The only usable blueprint is already committed to a job above — "
-                            + "another would have to be acquired to run these in parallel"
-                            : $"All {usable.Count:N0} usable blueprints are committed to jobs "
-                            + "above — another would have to be acquired to run these in parallel",
-                        siteId.Value, siteName, onPrint: true));
-                    continue;
-                }
-
-
-                if (prints.Count == 0)
-                {
-                    // Owning one somewhere and owning none at all are different problems. The
-                    // first is a move; the second is a purchase, and saying "buy" when the print
-                    // is one structure away would be the more expensive mistake of the two.
-                    // Acquiring the print is Material Purchases' business — it is one purchase
-                    // however many rules and orders are waiting on it. This row only reports why
-                    // the job cannot run.
-                    var allPrints = printsByType.GetValueOrDefault(product.TypeId, []);
-                    var owned     = IndustryBlueprintService.OwnedAnywhere(allPrints, printOwner);
-
-                    items.Add(Unstartable(d.TypeId, name, priority, pool, d.Units,
-                        $"{head} Build {d.Units:N0} ({runsNeeded:N0} run(s)) at {siteName}.",
-                        owned
-                            ? $"No blueprint at {siteName} — one is owned but elsewhere, held by "
-                              + "another character, or locked in a running job"
-                            // No scope in this wording any more: ownership is now checked across
-                            // every character, so "none owned" means none at all rather than
-                            // none within the material scope.
-                            : "No BPO or BPC owned on any character — one has to be acquired",
-                        siteId.Value, siteName, onPrint: true));
-                    continue;
-                }
+                // ⚠️ Having no usable print is NOT a reason to stop planning. Both of these cases
+                // used to bail out here with a single "N needed" row: no runs, no ME, no sequence,
+                // no sort keys. The work never became jobs at all — Capital Doomsday Weapon Mount
+                // sat as "857 needed" while Capital Clone Vat Bay beside it was properly broken
+                // into runs, purely because one had a free print and the other did not.
+                //
+                // A blueprint is just another thing a job waits on. The split below plans the
+                // whole shortfall against whatever prints exist; with none, every run comes back
+                // unassigned, and the block that handles unassigned runs sizes them against the
+                // print that WOULD be used — the best owned, or the default research level for one
+                // that would be bought — and emits real job rows carrying the reason. That path
+                // already distinguishes "busy in a job", "none free here" and "none owned".
 
                 var split = IndustryJobSplit.Plan(
                     runsNeeded,
@@ -737,15 +846,28 @@ public class IndustryJobGenerator(
                         // for another visit only when something was planned is what stops the
                         // picker returning to the same item forever.
                         //
-                        // ⚠️ Blocked runs excluded. A row saying "these 40 runs have no material"
-                        // fills no shelf and consumes nothing; counting it as progress would
-                        // credit an item for work nobody can do, and send the next real job to
-                        // whoever looks emptiest AFTER that fiction.
+                        // ⚠️ Accounted for either way, credited only if it will happen. These are
+                        // two different questions and they were answered by one branch.
+                        //
+                        // Planned is what raises coverage, so a row saying "these 40 runs have no
+                        // material" must not move it: crediting work nobody can do sends the next
+                        // real job to whoever looks emptiest AFTER that fiction.
+                        //
+                        // ⚠️ Remaining is not that. It is what is still UNREPORTED, and a blocked
+                        // row has reported its units — they are on the list, with a reason. Leaving
+                        // them in brought the picker back to the same item to describe the identical
+                        // remainder again: one Capital Clone Vat Bay shortfall put "12 run(s)" and
+                        // "140 run(s)" under sequence 240 and the very same pair under 250. The
+                        // jobs in this list have to add up to what is being asked for.
+                        var accounted = (long)runs * Math.Max(1, product.Quantity);
+                        state.Remaining -= accounted;
+
                         if (readiness != WorklistReadiness.Blocked)
                         {
-                            var madeUnits = (long)runs * Math.Max(1, product.Quantity);
-                            state.Planned     += madeUnits;
-                            state.Remaining   -= madeUnits;
+                            state.Planned += accounted;
+
+                            // Another visit only where something real happened. An item whose
+                            // whole remainder came back blocked has had its say.
                             if (state.Remaining > 0) state.Done = false;
                         }
                     }
@@ -803,7 +925,21 @@ public class IndustryJobGenerator(
                 // Blocked, obviously: there is no free blueprint. But blocked and absent are very
                 // different things — the first is work waiting on one purchase or one job
                 // finishing, and the second is invisible.
-                if (split.RunsUnassigned > 0)
+                // ⚠️ Only when this visit planned nothing else. The printed loop above and this
+                // block both ran on every pass, so one visit produced two rows carrying one
+                // sequence and one coverage figure — and because both are capped by the same
+                // job-length arithmetic they came out the same size, reading as a duplicate:
+                // "Genetic Mutation Inhibitor — 1,498 run(s)" twice at sequence 35, identical
+                // down to the volume. Reactions never showed it because a reaction with no free
+                // formula has no printed job to pair with.
+                //
+                // The rest is not lost by waiting: it stays in Remaining, and the visit asks for
+                // another turn. One job, then back to the picker — the same rule as everywhere
+                // else here.
+                if (split.RunsUnassigned > 0 && split.Jobs.Count > 0)
+                    state.Done = false;
+
+                if (split.RunsUnassigned > 0 && split.Jobs.Count == 0)
                 {
                     // The print these runs would use if one were free: the best owned, wherever it
                     // is and whatever it is doing. Its real ME and TE, rather than an assumption —
@@ -819,6 +955,12 @@ public class IndustryJobGenerator(
                     // Optimistic on purpose — an assumed figure that flattered a blueprint nobody
                     // has is better than no row at all, and the row says the assumption out loud.
                     var refTe = reference?.Te ?? FullyResearchedTe;
+
+                    // ⚠️ The same default the planner itself uses, not a literal 10. It carries the
+                    // exceptions — titans, supercarriers and Keepstars are ME9, because that is
+                    // where their research stops — so a row for a print nobody owns quotes the
+                    // efficiency the job would really run at.
+                    var refMe = reference?.Me ?? await production.GetDefaultMeAsync(d.TypeId, ct);
 
                     var refSecs = IndustryTimeService.PerRunSeconds(
                         timeCtx, product.TypeId, isReaction, refTe, structure, catKey,
@@ -849,27 +991,60 @@ public class IndustryJobGenerator(
                         ? $" Sized against a fully researched print (TE{FullyResearchedTe}) — none is owned."
                         : $" Sized against {reference.Describe()}.";
 
-                    var left  = split.RunsUnassigned;
-                    var piece = 0;
-
-                    while (left > 0)
+                    // ⚠️ ONE row per visit, then back to the picker — the same rule the printed
+                    // path follows. Emitting every piece in one loop stamped them all with the
+                    // sequence and sort keys of a single pass, so a type's blocked rows arrived
+                    // as one undifferentiated block: coverage never moved between them, the
+                    // blocked counts never moved between them, and they could not interleave
+                    // with the other work the planner would really have recommended in between.
+                    //
+                    // The piece counter lives on the plan state so it survives the visits, which
+                    // is also what keeps the row keys unique and the MaxUnprintedRows ceiling
+                    // meaningful across them.
                     {
-                        piece++;
+                        var left  = split.RunsUnassigned;
+                        var piece = ++state.UnprintedPieces;
 
-                        // ⚠️ The last allowed row takes everything still left, however much that
-                        // is. Truncating instead would break the one property this whole block
-                        // exists for: the jobs have to sum to the demand. A row larger than a
-                        // single job can be says so in its own text rather than silently going
-                        // missing.
-                        var last = piece >= MaxUnprintedRows;
-                        var runs = last ? left : Math.Min(left, refCap);
-                        var over = last && runs > refCap;
+                        // ⚠️ A real job's worth, always. There used to be a ceiling of twelve rows
+                        // per item, with the twelfth absorbing every run still outstanding — one
+                        // Pressurized Oxidizers row for 568 runs beside twenty-odd of 250, a size
+                        // no formula can hold.
+                        //
+                        // Having no free formula is only the REASON these are blocked. It has no
+                        // bearing on how the work divides: the jobs are the jobs, sized by what a
+                        // formula can carry, and they stay blocked until one frees up. A summary
+                        // row in their place is the same mistake as the "N needed" rows this
+                        // block replaced — and it costs the sequencing too, since a row standing
+                        // for eleven jobs can only hold one set of coverage and blocked counts.
+                        var runs = Math.Min(left, refCap);
+
+                        // ⚠️ Reported, therefore accounted for. This block touched nothing on the
+                        // plan state at all, so its runs stayed outstanding and every later visit
+                        // emitted them again — the same "12 run(s)" and "140 run(s)" once per pass,
+                        // and then a third time as a bare "152 needed" once every print was
+                        // committed. Not credited to Planned: no print means no shelf.
+                        state.Remaining -= runs * (long)Math.Max(1, product.Quantity);
+
+                        // ⚠️ What this job ALSO lacks, recorded even though a print is what stops
+                        // it today. A blocked row that never says what it is waiting for is
+                        // invisible to the passes that rank hauls and purchases by the work they
+                        // release: a market order that would supply this job showed "frees"
+                        // blank, and sorted below purchases nothing was waiting on.
+                        //
+                        // Materials at the reference print's efficiency — the one these runs
+                        // would use if a copy were free — so the shortfall is the real one and
+                        // not a default-ME guess.
+                        var npMats = await MaterialsForAsync(
+                            ctx, d.TypeId, runs * (long)Math.Max(1, product.Quantity), refMe, ct);
+
+                        var npShort = MissingAtSite(
+                            stock, inScope, ctx, eligible[0], npMats, siteId.Value, committed);
 
                         items.Add(new WorklistItem
                         {
                             Key           = $"industry_job:{d.TypeId}:np{piece}",
                             Pool          = pool,
-                            BlueprintMe   = reference?.Me,
+                            BlueprintMe   = refMe,
                             BlueprintTe   = reference?.Te,
                             Source        = Id,
                             Kind          = WorklistKind.Job,
@@ -878,14 +1053,12 @@ public class IndustryJobGenerator(
                                 : $"{name} — {runs:N0} run(s)",
                             Quantity      = runs * (long)Math.Max(1, product.Quantity),
                             Detail        = $"{head} Short {d.Units:N0}. Needs a blueprint at "
-                                          + $"{siteName}.{assumed}"
-                                          + (over
-                                              ? $" Covers every remaining run; more than one job can "
-                                              + "hold, so it will take several once a print is free."
-                                              : ""),
+                                          + $"{siteName}.{assumed}",
                             Readiness      = WorklistReadiness.Blocked,
                             BlockedBy      = printWhy,
                             BlockedByPrint = true,
+                            Shortages      = [.. npShort.Select(m => new WorklistShortage(
+                                                    m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy))],
                             LocationId    = siteId.Value,
                             LocationName  = siteName,
                             TypeId        = d.TypeId,
@@ -899,7 +1072,10 @@ public class IndustryJobGenerator(
                             SortCoverage     = dbgCover,
                         });
 
-                        left -= runs;
+                        // Another visit while anything is still unreported. Not credited to
+                        // Planned — no print means no shelf — so this is the only thing asking
+                        // the picker to come back for the rest.
+                        if (state.Remaining > 0) state.Done = false;
                     }
                 }
         }
@@ -930,6 +1106,14 @@ public class IndustryJobGenerator(
 
         /// <summary>No further visit is useful — finished, or unable to go further.</summary>
         public bool Done { get; set; }
+
+        /// <summary>
+        /// How many rows have been emitted for runs no print could carry.
+        ///
+        /// <para>Carried across visits because those rows are emitted one per visit, like every
+        /// other job, and it is what keeps their keys unique across those visits.</para>
+        /// </summary>
+        public int UnprintedPieces { get; set; }
     }
 
     /// <summary>A shortfall that cannot become a job at all, reported once with the reason.</summary>
@@ -955,7 +1139,11 @@ public class IndustryJobGenerator(
             Key          = $"industry_job:{typeId}:0",
             Source       = Id,
             Kind         = WorklistKind.Job,
-            Title        = name,
+
+            // ⚠️ The amount belongs in the title. There is no run count — that is the whole
+            // point of the row, nothing can be started — but a bare name beside a filled-in
+            // value and volume column reads as a malformed row rather than a blocked one.
+            Title        = units > 0 ? $"{name} — {units:N0} needed" : name,
             Quantity     = units,
             Detail       = detail,
             Readiness    = WorklistReadiness.Blocked,

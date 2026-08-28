@@ -764,6 +764,59 @@
           </Border>
 
           <!-- ════ Standing Buy Orders ══════════════════════════════════ -->
+          <!-- ———— Orders ———————————————————————————— -->
+          <Border x:Name="SectionOrders" Background="#12121a" BorderBrush="#1e1e2a"
+                  BorderThickness="1" CornerRadius="4" Padding="14 12">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+                <TextBlock Text="Orders" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="newslink" Click="OnOpenOrderTracker" VerticalAlignment="Center">
+                  <TextBlock Text="Order Tracker →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                </Button>
+              </Grid>
+
+              <TextBlock Grid.Row="1" IsVisible="{Binding NoOrders}"
+                         Text="No active orders." FontSize="12" Foreground="#444455" FontStyle="Italic"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+              <DataGrid Grid.Row="1" IsVisible="{Binding HasOrders}"
+                        ItemsSource="{Binding Orders}"
+                        AutoGenerateColumns="False" IsReadOnly="True" RowHeight="22"
+                        CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                        Background="Transparent">
+                <DataGrid.Styles>
+                  <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+                  <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                    <Setter Property="FontSize" Value="10" /><Setter Property="FontWeight" Value="SemiBold" />
+                    <Setter Property="Padding" Value="6 5 2 5" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Created on" Binding="{Binding Created}"
+                                      SortMemberPath="CreatedSort" Width="90" />
+                  <DataGridTextColumn Header="Item"       Binding="{Binding Item}"    Width="*" />
+                  <!-- Sorted on the number, shown with separators: 9 sorts below 50, which it
+                       would not if the column sorted the text it displays. -->
+                  <DataGridTextColumn Header="Units"      Binding="{Binding UnitsText}"
+                                      SortMemberPath="Units" Width="70" CellStyleClasses="num" />
+                  <DataGridTextColumn Header="Buyer"      Binding="{Binding Buyer}"   Width="140" />
+                  <!-- ⚠️ Sorts on EstSortKey, not on the text. An empty date sorts as earliest,
+                       which put the orders nobody has answered at the top of a list ordered by
+                       what is due soonest. -->
+                  <DataGridTextColumn Header="Est date"   Binding="{Binding EstDate}"
+                                      SortMemberPath="EstSortKey" Width="85" />
+                  <!-- The column that moves while an order is open. Status is beside it because
+                       it was asked for and stays correct if this ever shows more than active
+                       orders, but here it reads "Pending" on every row by construction. -->
+                  <DataGridTextColumn Header="Source"     Binding="{Binding Source}"  Width="95" />
+                  <DataGridTextColumn Header="Status"     Binding="{Binding Status}"  Width="80" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
+
           <Border x:Name="SectionStandingBuyOrders" Background="#12121a" BorderBrush="#1e1e2a"
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
