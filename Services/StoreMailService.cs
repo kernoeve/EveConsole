@@ -521,7 +521,13 @@ public class StoreMailService(
         Ind + Item(23757, "Archon") + " x2" + Br +
         Ind + Item(24483, "Nidhoggur") + Br +
         Dim("Typing the name works too. The quantity always goes AFTER the item:") + Br +
-        Eg("Archon x2     Archon 2     Archon") + Gap +
+        Eg("Archon x2     Archon 2     Archon") + Br + Gap +
+
+        // ⚠️ Part of ORDER, not a footnote. It sat under the rule at the bottom, below HELP,
+        // where it read as a general remark about the store — but it is an instruction about
+        // one command, and it only means anything while somebody is writing an order.
+        Ind + "<b>Sending it to someone else?</b> Drag that character or corporation anywhere " +
+        "into the body and the contract will be made out to them instead of you." + Gap +
 
         Cmd("STATUS") + "where your orders have got to." + Br +
         Dim("No reference needed — you will get all of your open ones.") + Br +
@@ -543,9 +549,6 @@ public class StoreMailService(
         Cmd("HELP") + "this message." + Gap +
 
         Rule + Gap +
-
-        "<b>Sending it to someone else?</b> Drag that character or corporation anywhere into the " +
-        "body and the contract will be made out to them instead of you." + Gap +
 
         Dim($"Prices are those on the list at the moment your order is read. — {store.Name}");
 
@@ -1471,7 +1474,7 @@ public class StoreMailService(
              // buyer who mails INFO at a store that has nothing to say still gets an answer,
              // and the word keeps meaning what it did before anyone filled the box in.
              : word is "INFO" or "ABOUT"              ? "INFO"
-             : word is "HELP" or "COMMANDS"           ? "HELP"
+             : word is "HELP" or "COMMANDS" or "USAGE" ? "HELP"
              : "";
     }
 
