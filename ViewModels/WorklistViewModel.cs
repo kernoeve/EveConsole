@@ -81,6 +81,11 @@ public class WorklistRowVm : ReactiveObject
     public int    TypeId        => _item.TypeId;
     public int    Priority      => _item.Priority;
 
+    /// <summary>How many stopped tasks this one would release. Set for hauls and purchases by
+    /// the post-pass in WorklistService — neither generator can see it alone.</summary>
+    public int    Unblocks      => _item.Unblocks;
+    public string UnblocksText  => _item.Unblocks > 0 ? _item.Unblocks.ToString("N0") : "";
+
     // TEMPORARY diagnostics: the keys the planner sorted on, in the order it used them.
     public string DbgPriority => _item.PlanSequence == 0 ? _item.Priority.ToString("N0") : _item.SortPriority.ToString("N0");
     public string DbgFinal    => _item.PlanSequence == 0 ? "" : _item.SortBlockedFinal.ToString("N0");

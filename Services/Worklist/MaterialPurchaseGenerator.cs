@@ -234,7 +234,7 @@ public class MaterialPurchaseGenerator(
                 LocationName  = buyName,
                 TypeId        = raw.TypeId,
                 TypeName      = raw.TypeName,
-                Priority      = WorklistPriority.OrderDriven,
+                Priority      = WorklistPriority.ServesOther,
             });
         }
 
@@ -510,7 +510,7 @@ public class MaterialPurchaseGenerator(
                 LocationName  = buyName,
                 TypeId        = bpTypeId,
                 TypeName      = bpName,
-                Priority      = WorklistPriority.OrderDriven,
+                Priority      = WorklistPriority.ServesOther,
             });
         }
 
