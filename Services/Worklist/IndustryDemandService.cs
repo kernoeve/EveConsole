@@ -44,20 +44,6 @@ public sealed record BuildDemand(int TypeId, long Units, int Priority, List<stri
     public int Blocks { get; init; }
 
     /// <summary>
-    /// How many of those dependents are things the operation actually sells or flies.
-    ///
-    /// <para>⚠️ A count of blocked work cannot tell a customer from a cupboard.
-    /// Nanotransistors blocks eleven, and ten of them are component buffers refilling
-    /// themselves — real work, whose only customer is the shelf it came from. An isotropic
-    /// blocking a Neurolink cell blocks every standard capital hull. Both score eleven, and
-    /// only one of them is worth a slot today.</para>
-    ///
-    /// <para>Which items are final is hand-set on the inventory rule, because nothing in the
-    /// blueprint tree can tell: hulls for one operation, rigs or modules for another.</para>
-    /// </summary>
-    public int BlocksFinal { get; init; }
-
-    /// <summary>
     /// Which items are waiting on this one, not merely how many.
     ///
     /// <para>⚠️ The count has to be RECOMPUTED as jobs are planned, and a number cannot be.
@@ -521,8 +507,6 @@ public class IndustryDemandService(
             result[typeId] = result[typeId] with
             {
                 Blocks      = gross[typeId].Dependents.Count(result.ContainsKey),
-                BlocksFinal = gross[typeId].Dependents
-                                  .Count(x => result.ContainsKey(x) && gross[x].IsFinal),
                 Dependents  = [.. gross[typeId].Dependents.Where(result.ContainsKey)],
                 IsFinal     = gross[typeId].IsFinal,
                 OwnPriority = gross[typeId].OwnPriority,

@@ -185,22 +185,6 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
     }
 
     /// <summary>
-    /// Whether the player already has one of these prints at all, anywhere, on any character.
-    ///
-    /// <para>Deliberately a wider test than <see cref="UsableAt"/>. That one answers "can a job be
-    /// installed from this print here and now", which is rightly narrow — the print has to be at
-    /// the site and belong to someone who can run the job. This one answers "must one be bought",
-    /// and the answer is no if the player owns one anywhere: a copy in a trading alt's Jita hangar
-    /// is a thing to move or trade across, not a thing to buy a second time.</para>
-    ///
-    /// <para>Neither the asset scope nor the industry-character list applies here for that reason.
-    /// Both exist to describe where materials may be drawn from and who may run jobs, and a
-    /// blueprint sitting in the wrong hangar is neither of those problems.</para>
-    /// </summary>
-    public static bool OwnedAnywhere(IReadOnlyList<BlueprintStock> all, PrintOwnership owned) =>
-        all.Any(owned.Owns);
-
-    /// <summary>
     /// Blueprint types held according to the <b>assets</b> table rather than the blueprints table.
     ///
     /// <para>⚠️ Answers "is one owned at all" and nothing else. An asset row carries no runs, ME or
