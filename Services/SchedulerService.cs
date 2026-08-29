@@ -69,65 +69,85 @@ public class SchedulerService(
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var tasks = await db.ScheduledTasks.Where(t => t.Enabled).ToListAsync(ct);
 
-        var ran = false;
+        var dirty = false;
 
         foreach (var task in tasks)
         {
             if (!ScheduleDue.IsDue(task, now)) continue;
 
-            var result = await RunOneAsync(task, now, ct);
+            var (ok, message) = await RunOneAsync(task, now, ct);
 
-            // ⚠️ Stamped whatever happened, success or not. A task that failed and kept its old
-            // LastRun would be due again a minute later, and would spend the outage retrying at
-            // the top of every minute — for a Slack post, that is a flood once Slack returns.
-            task.LastRunUtc = now;
-            task.LastResult = result;
-            ran = true;
+            // ⚠️ A failure does not consume the slot. Being due is a yes-or-no question, not a
+            // count, so a task that keeps its old LastRun through an outage retries once a minute
+            // and posts ONCE when the outage ends — never a run per minute missed. Stamping the
+            // failure instead would spend a monthly task's whole month on a bad minute.
+            if (ok) task.LastRunUtc = now;
+
+            // Written only when it changes, so a task failing all day is one row write, not one
+            // a minute.
+            if (task.LastResult != message)
+            {
+                task.LastResult = message;
+                dirty = true;
+            }
+
+            if (ok) dirty = true;
         }
 
-        if (!ran) return;
+        if (!dirty) return;
 
         await db.SaveChangesAsync(ct);
         TasksChanged?.Invoke();
     }
 
-    /// <summary>Runs one task and returns what to record against it.</summary>
-    public async Task<string> RunOneAsync(ScheduledTask task, DateTime now, CancellationToken ct = default)
+    /// <summary>
+    /// Runs one task, reporting whether it ran and what to record against it.
+    ///
+    /// <para>⚠️ "Ran" means it got as far as deciding what to send — including deciding there was
+    /// nothing to send. A task with no blocks, or whose month is empty, has nothing more to try;
+    /// only a refusal or a thrown exception is worth coming back for.</para>
+    /// </summary>
+    public async Task<(bool Ok, string Message)> RunOneAsync(
+        ScheduledTask task, DateTime now, CancellationToken ct = default)
     {
         try
         {
             return task.TaskType switch
             {
                 ScheduledTaskType.SlackPost => await SlackPostAsync(task, now, ct),
-                _                           => $"Unknown task type \"{task.TaskType}\".",
+
+                // Nothing about an unrecognised type gets better by waiting.
+                _ => (true, $"Unknown task type \"{task.TaskType}\"."),
             };
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
             errors.Log(nameof(SchedulerService), $"task {task.Id} \"{task.Name}\"", ex);
-            return $"Failed: {ex.Message}";
+            return (false, $"Failed: {ex.Message}");
         }
     }
 
-    private async Task<string> SlackPostAsync(ScheduledTask task, DateTime now, CancellationToken ct)
+    private async Task<(bool Ok, string Message)> SlackPostAsync(
+        ScheduledTask task, DateTime now, CancellationToken ct)
     {
         var cfg = SlackPostConfig.FromJson(task.Config);
 
-        if (cfg.Blocks.Count == 0) return "Nothing to post: no blocks configured.";
+        if (cfg.Blocks.Count == 0) return (true, "Nothing to post: no blocks configured.");
 
         var body = await renderer.RenderAsync(cfg.Blocks, now, ct);
 
-        // ⚠️ An empty render is not a failure worth retrying, and not a success either. A Top 10
-        // for a month nobody flew in renders to nothing, and posting an empty message would be
-        // worse than saying so here.
-        if (body.Trim().Length == 0) return "Nothing to post: the blocks rendered empty.";
+        // A Top 10 for a month nobody flew in renders to nothing, and posting an empty message
+        // would be worse than saying so here.
+        if (body.Trim().Length == 0) return (true, "Nothing to post: the blocks rendered empty.");
 
         var res = cfg.DestinationKind == SlackDestination.KindWebhook
             ? await PostWebhookAsync(cfg.DestinationId, body, ct)
             : await slack.PostMessageAsync(cfg.DestinationId, body, ct: ct);
 
-        return res.Ok ? $"Posted {body.Length:N0} characters." : $"Slack refused it: {res.Error}";
+        return res.Ok
+            ? (true,  $"Posted {body.Length:N0} characters.")
+            : (false, $"Slack refused it: {res.Error}");
     }
 
     private async Task<SlackPostResult> PostWebhookAsync(string hookId, string body, CancellationToken ct)

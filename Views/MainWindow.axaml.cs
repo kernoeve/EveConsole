@@ -392,6 +392,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (DataContext is MainWindowViewModel vm) vm.OpenTool("alarms");
     }
 
+    private void OnSchedulerClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) vm.OpenTool("scheduler");
+    }
+
     private async void OnGearClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm)

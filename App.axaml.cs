@@ -2799,6 +2799,10 @@ public class App : Application
 
             Start("alarms",             () => Services.GetRequiredService<AlarmService>().Start());
 
+            // Anything scheduled that came due while the app was closed fires on this first
+            // pass, which is why it starts here rather than waiting for the tool to be opened.
+            Start("scheduler",          () => Services.GetRequiredService<SchedulerService>().Start());
+
             // Helps SQLite's own automatic checkpoint keep the write-ahead log small, and reports
             // when it stops draining. Never blocks: see WalCheckpointService for why that matters.
             Start("WAL checkpoint",     () => Services.GetRequiredService<WalCheckpointService>().Start());
