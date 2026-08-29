@@ -456,8 +456,8 @@ public class WorklistFinalProductsViewModel : ReactiveObject
             profit.Add(new DateTimePoint(day, hit.Profit));
         }
 
-        MarketSeries = [Line("Market value",     market, new SKColor(0x55, 0x99, 0xaa))];
-        ProfitSeries = [Line("Potential profit", profit, new SKColor(0x4a, 0x8a, 0x5a))];
+        MarketSeries = [Bar("Market value",     market, new SKColor(0x55, 0x99, 0xaa))];
+        ProfitSeries = [Bar("Potential profit", profit, new SKColor(0x4a, 0x8a, 0x5a))];
     }
 
     /// <summary>Every bucket start from <paramref name="first"/> to <paramref name="last"/>.</summary>
@@ -486,17 +486,23 @@ public class WorklistFinalProductsViewModel : ReactiveObject
         _   => day,
     };
 
-    private static LineSeries<DateTimePoint> Line(string name, List<DateTimePoint> pts, SKColor color) =>
+    /// <summary>
+    /// A bar per bucket.
+    ///
+    /// <para>⚠️ Bars rather than a line, because this is not a continuous quantity. Jobs land on
+    /// the day they land and nothing happens in between, and a line drawn through that invites
+    /// the eye to read the slope as a rate. A bar of zero height says what a zero-height bar
+    /// means; a line at zero looks like a measurement.</para>
+    /// </summary>
+    private static ColumnSeries<DateTimePoint> Bar(string name, List<DateTimePoint> pts, SKColor color) =>
         new()
         {
-            Name           = name,
-            Values         = pts,
-            Stroke         = new SolidColorPaint(color) { StrokeThickness = 1.5f },
-            Fill           = null,
-            GeometryFill   = null,
-            GeometryStroke = null,
-            GeometrySize   = 0,
-            LineSmoothness = 0.2,
+            Name         = name,
+            Values       = pts,
+            Fill         = new SolidColorPaint(color),
+            Stroke       = null,
+            // Roughly a bucket wide, less a hair, so neighbouring bars do not touch.
+            Padding      = 2,
             YToolTipLabelFormatter = p => $"{name}: {p.Coordinate.PrimaryValue:N0} ISK",
         };
 
