@@ -295,11 +295,10 @@ public class SlackSettingsViewModel : ReactiveObject
         var hook = Webhooks.FirstOrDefault(w => w.Id == id);
         if (hook is null) return;
 
-        // By id. Rows sharing a URL are different rows, and only the one actually chosen is in use.
         var areas = new List<string>();
-        if (_slack.WebhookId(SlackService.AreaCorpTop10)   == hook.Id) areas.Add("Corp Top 10");
-        if (_slack.WebhookId(SlackService.AreaCorpMonthly) == hook.Id) areas.Add("Monthly Summary");
-        if (_slack.WebhookId(SlackService.AreaSalePosting) == hook.Id) areas.Add("Sale Posting");
+        if (InUseBy(SlackService.AreaCorpTop10,   hook)) areas.Add("Corp Top 10");
+        if (InUseBy(SlackService.AreaCorpMonthly, hook)) areas.Add("Monthly Summary");
+        if (InUseBy(SlackService.AreaSalePosting, hook)) areas.Add("Sale Posting");
 
         if (areas.Count > 0)
         {
@@ -311,6 +310,26 @@ public class SlackSettingsViewModel : ReactiveObject
         await _slack.RemoveWebhookAsync(id);
         await ReloadWebhooksAsync();
         WebhookStatus = $"Removed \"{hook.Name}\".";
+    }
+
+    /// <summary>
+    /// Whether an area posts through this webhook.
+    ///
+    /// <para>⚠️ Resolved the same way the sender resolves it, and for the same reason: an id
+    /// where one is stored, and otherwise the URL written against the area before webhooks were
+    /// named. Asking only about the id let a webhook every area was using be deleted, because a
+    /// configuration made before this existed carries no id to compare.</para>
+    ///
+    /// <para>On the URL path a row cannot be distinguished from another carrying the same URL, so
+    /// every one of them reads as in use. That is the safe direction: the alternative is deleting
+    /// the row the sender was about to resolve to.</para>
+    /// </summary>
+    private bool InUseBy(string area, Models.SlackWebhook hook)
+    {
+        if (_slack.WebhookId(area) is int id) return id == hook.Id;
+
+        var url = _slack.WebhookUrl(area);
+        return url.Length > 0 && url == hook.Url;
     }
 
     private async Task ReloadWebhooksAsync()
