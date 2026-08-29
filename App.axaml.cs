@@ -2934,6 +2934,8 @@ public class App : Application
         services.AddSingleton<AppPreferencesService>();
         services.AddSingleton<SlackAuthService>();
         services.AddSingleton<SlackService>();
+        services.AddSingleton<ScheduledBlockRenderer>();
+        services.AddSingleton<SchedulerService>();
         services.AddSingleton<DatabaseBackupService>();
         services.AddSingleton<EsiPollingService>();
         services.AddSingleton<NetWorthService>();
