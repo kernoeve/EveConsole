@@ -101,7 +101,48 @@ public class SlackService
         await db.SaveChangesAsync(ct);
     }
 
-    public string WebhookUrl(string area) => (_prefs.Get(WebhookKey(area)) ?? "").Trim();
+    private static string WebhookIdKey(string area) => $"slack.webhook_id.{area}";
+
+    /// <summary>
+    /// Which named webhook an area posts through, if any.
+    ///
+    /// <para>⚠️ The ID, not the URL. Two webhooks can legitimately carry the same URL — the same
+    /// hook named twice, or one copied while being renamed — and a URL cannot tell them apart.
+    /// Keying on it made the picker show whichever row happened to be first and made "is this in
+    /// use" answer yes for every row sharing the string.</para>
+    /// </summary>
+    public int? WebhookId(string area)
+        => int.TryParse(_prefs.Get(WebhookIdKey(area)), out var id) && id > 0 ? id : null;
+
+    public Task SetWebhookIdAsync(string area, int? id)
+        => _prefs.SetAsync(WebhookIdKey(area), id?.ToString());
+
+    // Webhook URLs by id. Read on every post, so it is cached; the settings screen drops it
+    // whenever the list changes.
+    private Dictionary<int, string>? _hookUrls;
+
+    public void InvalidateWebhooks() => _hookUrls = null;
+
+    private Dictionary<int, string> HookUrls()
+    {
+        if (_hookUrls is not null) return _hookUrls;
+        using var db = _dbFactory.CreateDbContext();
+        return _hookUrls = db.SlackWebhooks.ToDictionary(w => w.Id, w => w.Url);
+    }
+
+    /// <summary>
+    /// Where this area's webhook posts, or empty when it does not use one.
+    ///
+    /// <para>Falls back to a URL stored directly against the area. That is how it worked before
+    /// webhooks were named, and a configuration written then still posts where it did.</para>
+    /// </summary>
+    public string WebhookUrl(string area)
+    {
+        if (WebhookId(area) is int id && HookUrls().TryGetValue(id, out var url))
+            return url.Trim();
+
+        return (_prefs.Get(WebhookKey(area)) ?? "").Trim();
+    }
 
     public Task SetWebhookUrlAsync(string area, string? url) =>
         _prefs.SetAsync(WebhookKey(area), (url ?? "").Trim());

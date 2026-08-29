@@ -235,6 +235,16 @@ public class SlackSettingsViewModel : ReactiveObject
     /// <summary>The named webhooks, as the management grid shows them.</summary>
     public ObservableCollection<Models.SlackWebhook> Webhooks { get; } = [];
 
+    /// <summary>⚠️ This section's own line. These messages were going to Status, which is the
+    /// connection label under the Connect buttons — so "removed webhook" appeared where the
+    /// workspace name belongs, and replaced it.</summary>
+    private string _webhookStatus = "";
+    public string WebhookStatus
+    {
+        get => _webhookStatus;
+        private set => this.RaiseAndSetIfChanged(ref _webhookStatus, value);
+    }
+
     private string _newWebhookName = "";
     public string NewWebhookName
     {
@@ -261,7 +271,7 @@ public class SlackSettingsViewModel : ReactiveObject
         // dropdown, and a row with an empty URL posts nowhere.
         if (name.Length == 0 || !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
-            Status = "A webhook needs a name and an https:// URL.";
+            WebhookStatus = "A webhook needs a name and an https:// URL.";
             return;
         }
 
@@ -269,7 +279,7 @@ public class SlackSettingsViewModel : ReactiveObject
         NewWebhookName = "";
         NewWebhookUrl  = "";
         await ReloadWebhooksAsync();
-        Status = $"Added webhook \"{name}\".";
+        WebhookStatus = $"Added \"{name}\".";
     }
 
     /// <summary>
@@ -285,26 +295,28 @@ public class SlackSettingsViewModel : ReactiveObject
         var hook = Webhooks.FirstOrDefault(w => w.Id == id);
         if (hook is null) return;
 
+        // By id. Rows sharing a URL are different rows, and only the one actually chosen is in use.
         var areas = new List<string>();
-        if (_slack.WebhookUrl(SlackService.AreaCorpTop10)   == hook.Url) areas.Add("Corp Top 10");
-        if (_slack.WebhookUrl(SlackService.AreaCorpMonthly) == hook.Url) areas.Add("Monthly Summary");
-        if (_slack.WebhookUrl(SlackService.AreaSalePosting) == hook.Url) areas.Add("Sale Posting");
+        if (_slack.WebhookId(SlackService.AreaCorpTop10)   == hook.Id) areas.Add("Corp Top 10");
+        if (_slack.WebhookId(SlackService.AreaCorpMonthly) == hook.Id) areas.Add("Monthly Summary");
+        if (_slack.WebhookId(SlackService.AreaSalePosting) == hook.Id) areas.Add("Sale Posting");
 
         if (areas.Count > 0)
         {
-            Status = $"\"{hook.Name}\" is still set for {string.Join(", ", areas)}. "
-                   + "Point those somewhere else first.";
+            WebhookStatus = $"\"{hook.Name}\" is still set for {string.Join(", ", areas)}. "
+                          + "Point those somewhere else first.";
             return;
         }
 
         await _slack.RemoveWebhookAsync(id);
         await ReloadWebhooksAsync();
-        Status = $"Removed webhook \"{hook.Name}\".";
+        WebhookStatus = $"Removed \"{hook.Name}\".";
     }
 
     private async Task ReloadWebhooksAsync()
     {
         var rows = await _slack.WebhooksAsync();
+        _slack.InvalidateWebhooks();
 
         Webhooks.Clear();
         foreach (var w in rows) Webhooks.Add(w);
@@ -364,6 +376,12 @@ public class SlackSettingsViewModel : ReactiveObject
     /// is what the sender has always done with it.</summary>
     private SlackDestination? Resolve(string area)
     {
+        if (_slack.WebhookId(area) is int hookId)
+            return Destinations.FirstOrDefault(
+                d => d.IsWebhook && d.Id == hookId.ToString());
+
+        // Written before webhooks were named: a URL against the area and no id. Matched loosely
+        // because that is all there is to match on.
         var url = _slack.WebhookUrl(area);
         if (url.Length > 0)
             return Destinations.FirstOrDefault(d => d.IsWebhook && d.Url == url);
@@ -382,9 +400,12 @@ public class SlackSettingsViewModel : ReactiveObject
     /// </summary>
     private async Task SetDestinationAsync(string area, SlackDestination? dest)
     {
+        // The legacy per-area URL is cleared in every branch. Left behind it would keep winning
+        // in WebhookUrl for a configuration written before webhooks were named.
         if (dest is null)
         {
             await _slack.SetChannelAsync(area, null);
+            await _slack.SetWebhookIdAsync(area, null);
             await _slack.SetWebhookUrlAsync(area, "");
             return;
         }
@@ -392,10 +413,13 @@ public class SlackSettingsViewModel : ReactiveObject
         if (dest.IsWebhook)
         {
             await _slack.SetChannelAsync(area, null);
-            await _slack.SetWebhookUrlAsync(area, dest.Url);
+            await _slack.SetWebhookUrlAsync(area, "");
+            await _slack.SetWebhookIdAsync(
+                area, int.TryParse(dest.Id, out var hookId) ? hookId : null);
             return;
         }
 
+        await _slack.SetWebhookIdAsync(area, null);
         await _slack.SetWebhookUrlAsync(area, "");
         await _slack.SetChannelAsync(area, Channels.FirstOrDefault(c => c.Id == dest.Id));
     }

@@ -2174,6 +2174,11 @@
                     Background="#0d1a12" Foreground="#4a8a5a"
                     BorderBrush="#1e3a28" BorderThickness="1" />
           </Grid>
+
+          <!-- This section speaks for itself rather than through the connection label above,
+               where a "removed webhook" line replaced the workspace name. -->
+          <TextBlock Text="{Binding SlackVm.WebhookStatus}" FontSize="11" Foreground="#888899"
+                     TextWrapping="Wrap" IsVisible="{Binding SlackVm.WebhookStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         </StackPanel>
 
         <!-- Channel assignment per area -->
