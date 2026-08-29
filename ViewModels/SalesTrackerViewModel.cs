@@ -622,19 +622,28 @@ public class SalesTrackerViewModel : ReactiveObject
         var profit = new List<DateTimePoint>();
         var margin = new List<DateTimePoint>();
 
-        for (var d = byBucket.Keys.Min(); d <= byBucket.Keys.Max(); d = Step(d))
+        foreach (var d in Range(byBucket.Keys.Min(), byBucket.Keys.Max()))
         {
             var hit = byBucket.GetValueOrDefault(d);
-            var net = hit.Sales - hit.Cost;
 
             sales.Add(new DateTimePoint(d, hit.Sales));
             costs.Add(new DateTimePoint(d, hit.Cost));
-            profit.Add(new DateTimePoint(d, net));
-
-            // A bucket that sold nothing has no margin rather than a margin of zero; zero would
-            // draw the line down to a figure nobody earned.
-            margin.Add(new DateTimePoint(d, hit.Sales > 0 ? net / hit.Sales * 100 : null));
+            profit.Add(new DateTimePoint(d, hit.Sales - hit.Cost));
         }
+
+        // ⚠️ Margin is plotted ONLY where something sold, and the line joins across the gaps.
+        //
+        // The other three are amounts: a day with no sales earned nothing, and a zero is the
+        // truth about it. Margin is a ratio, and a day with no sales has no margin at all — not
+        // a margin of zero. Filling those with zero dragged the line to the floor between every
+        // pair of selling days, and filling them with null broke it into disconnected stubs, one
+        // per day, which is what this chart looked like.
+        //
+        // Joining across them says the thing the chart is for: whether the margin being achieved
+        // is rising or falling. The gaps are visible in the three charts beside it.
+        foreach (var kv in byBucket.Where(k => k.Value.Sales > 0).OrderBy(k => k.Key))
+            margin.Add(new DateTimePoint(
+                kv.Key, (kv.Value.Sales - kv.Value.Cost) / kv.Value.Sales * 100));
 
         IskSeries =
         [
@@ -644,6 +653,12 @@ public class SalesTrackerViewModel : ReactiveObject
         ];
 
         MarginSeries = [Line("Margin", margin, new SKColor(0xc8, 0xa8, 0x4b))];
+    }
+
+    /// <summary>Every bucket start from <paramref name="first"/> to <paramref name="last"/>.</summary>
+    private IEnumerable<DateTime> Range(DateTime first, DateTime last)
+    {
+        for (var d = first; d <= last; d = Step(d)) yield return d;
     }
 
     private DateTime Bucket(DateTime day) => Grain.Key switch
