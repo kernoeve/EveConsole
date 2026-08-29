@@ -363,11 +363,16 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     // ── Loading ──────────────────────────────────────────────────────────────
 
-    /// <summary>Reloads everything, the Slack channel list included.</summary>
+    /// <summary>
+    /// Reloads everything, the Slack channel list included.
+    ///
+    /// <para>⚠️ Clears nothing itself. Both lists are bound to combo boxes in the open editor, and
+    /// a Clear pushes null through those bindings — which reads as the user picking nothing, and
+    /// loses the choice before there is a new list to restore it from.</para>
+    /// </summary>
     public async Task RefreshAsync()
     {
-        Destinations.Clear();
-        Corps.Clear();
+        await LoadDestinationsAsync();
         await LoadAsync();
     }
 
@@ -413,10 +418,13 @@ public sealed class SchedulerViewModel : ReactiveObject
         StatusText = $"{Tasks.Count} task(s).";
     }
 
+    /// <summary>
+    /// ⚠️ Merged, never replaced. A block's chosen corp is bound to this collection, so a Clear
+    /// would push null through that binding and lose the choice. Merging also means a corp added
+    /// since the tool was opened turns up without a restart.
+    /// </summary>
     private async Task LoadCorpsAsync()
     {
-        if (Corps.Count > 0) return;
-
         var corps = await Task.Run(async () =>
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
@@ -426,7 +434,8 @@ public sealed class SchedulerViewModel : ReactiveObject
                            .ToListAsync();
         });
 
-        foreach (var c in corps) Corps.Add(new CorpChoice(c.Id, c.Name));
+        foreach (var c in corps)
+            if (Corps.All(x => x.Id != c.Id)) Corps.Add(new CorpChoice(c.Id, c.Name));
     }
 
     /// <summary>
