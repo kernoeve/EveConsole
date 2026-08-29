@@ -122,6 +122,12 @@
                           VerticalAlignment="Bottom" Margin="14 0 0 4" />
               </Grid>
 
+              <StackPanel Spacing="6">
+                <TextBlock Classes="section" Text="WHAT IT DOES" />
+                <ComboBox ItemsSource="{Binding TaskTypes}" SelectedItem="{Binding SelectedTaskType}"
+                          HorizontalAlignment="Stretch" />
+              </StackPanel>
+
               <StackPanel Spacing="8">
                 <TextBlock Classes="section" Text="WHEN" />
 
@@ -133,7 +139,7 @@
 
                 <!-- Interval -->
                 <StackPanel Spacing="6" IsVisible="{Binding IsInterval}">
-                  <Grid ColumnDefinitions="90,Auto">
+                  <Grid ColumnDefinitions="130,Auto">
                     <StackPanel Grid.Column="0">
                       <TextBlock Classes="flabel" Text="EVERY" />
                       <NumericUpDown Value="{Binding IntervalValue}" Minimum="1" Maximum="9999"
@@ -186,7 +192,7 @@
                   <Grid ColumnDefinitions="*,90">
                     <StackPanel Grid.Column="0" Margin="0 0 8 0">
                       <TextBlock Classes="flabel" Text="MONTH" />
-                      <ComboBox ItemsSource="{Binding Months}" SelectedItem="{Binding MonthOfYear}"
+                      <ComboBox ItemsSource="{Binding MonthNames}" SelectedItem="{Binding MonthOfYear}"
                                 HorizontalAlignment="Stretch" />
                     </StackPanel>
                     <StackPanel Grid.Column="1">
@@ -216,7 +222,7 @@
                 </StackPanel>
               </StackPanel>
 
-              <StackPanel Spacing="6">
+              <StackPanel Spacing="6" IsVisible="{Binding IsSlackPost}">
                 <TextBlock Classes="section" Text="POST TO" />
                 <ComboBox ItemsSource="{Binding Destinations}" SelectedItem="{Binding Destination}"
                           HorizontalAlignment="Stretch">
@@ -230,6 +236,13 @@
                            Text="Workspace channels and webhooks defined in Slack settings, in one list." />
               </StackPanel>
 
+              <StackPanel Spacing="6" IsVisible="{Binding IsRaiseAlert}">
+                <TextBlock Classes="section" Text="ALERT" />
+                <TextBox Text="{Binding AlertTitle}" Watermark="Headline" />
+                <TextBlock Classes="hint"
+                           Text="Shows on the Overview and in the Alarms tool until it is dismissed, the same as an alarm's own alert. The message below becomes its body; leave the headline empty to use the task name." />
+              </StackPanel>
+
             </StackPanel>
 
             <Rectangle Grid.Column="1" Fill="#1e1e2a" />
@@ -239,6 +252,7 @@
 
               <Grid ColumnDefinitions="Auto,*">
                 <TextBlock Grid.Column="0" Classes="section" Text="MESSAGE"
+                           ToolTip.Tip="The Slack post, or the alert's body."
                            VerticalAlignment="Center" Margin="0" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
                             HorizontalAlignment="Right">
@@ -282,16 +296,16 @@
 
                         <!-- Corp blocks: whose figures, and for which month -->
                         <StackPanel IsVisible="{Binding IsCorp}" Spacing="8">
-                          <Grid ColumnDefinitions="*,110">
+                          <Grid ColumnDefinitions="*,150">
                             <StackPanel Grid.Column="0" Margin="0 0 8 0">
                               <TextBlock Classes="flabel" Text="CORP" />
                               <ComboBox ItemsSource="{Binding Corps}" SelectedItem="{Binding Corp}"
                                         HorizontalAlignment="Stretch" />
                             </StackPanel>
                             <StackPanel Grid.Column="1">
-                              <TextBlock Classes="flabel" Text="MONTHS BACK" />
-                              <NumericUpDown Value="{Binding MonthsBack}" Minimum="0" Maximum="60"
-                                             Increment="1" FormatString="0" FontSize="11" />
+                              <TextBlock Classes="flabel" Text="MONTH" />
+                              <ComboBox ItemsSource="{Binding Months}" SelectedItem="{Binding Month}"
+                                        HorizontalAlignment="Stretch" />
                             </StackPanel>
                           </Grid>
                           <TextBlock Classes="hint" Text="{Binding MonthsBackText}" />
@@ -338,15 +352,23 @@
         <Border Grid.Row="1" IsVisible="{Binding HasEditor}"
                 Background="#101018" Padding="16 8"
                 BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
-          <StackPanel Orientation="Horizontal" Spacing="10">
-            <Button Classes="tool" Content="Save"    Command="{Binding SaveCommand}" />
-            <Button Classes="tool" Content="Preview" Command="{Binding PreviewCommand}" />
-            <Button Classes="tool" Content="Run Now" Command="{Binding RunNowCommand}"
-                    ToolTip.Tip="Posts for real, and does not count as the scheduled run." />
-            <Button Content="Delete" Command="{Binding DeleteCommand}"
-                    Background="#1a1a28" Foreground="#aa5555" BorderBrush="#442a2a"
-                    BorderThickness="1" Padding="12 4" FontSize="11" />
-          </StackPanel>
+          <!-- The status line belongs beside the buttons, not only in the toolbar. Everything
+               here refuses quietly when something is missing, and a refusal read from the far
+               side of a wide screen is a button that looks broken. -->
+          <Grid ColumnDefinitions="Auto,*">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+              <Button Classes="tool" Content="Save"    Command="{Binding SaveCommand}" />
+              <Button Classes="tool" Content="Preview" Command="{Binding PreviewCommand}" />
+              <Button Classes="tool" Content="Run Now" Command="{Binding RunNowCommand}"
+                      ToolTip.Tip="Does it for real now, and does not count as the scheduled run." />
+              <Button Content="Delete" Command="{Binding DeleteCommand}"
+                      Background="#1a1a28" Foreground="#aa5555" BorderBrush="#442a2a"
+                      BorderThickness="1" Padding="12 4" FontSize="11" />
+            </StackPanel>
+            <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11"
+                       Foreground="#8a8a9a" VerticalAlignment="Center" Margin="14 0 0 0"
+                       TextTrimming="CharacterEllipsis" />
+          </Grid>
         </Border>
 
       </Grid>

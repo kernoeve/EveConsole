@@ -1694,102 +1694,30 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         finally { IsSummaryLoading = false; }
     }
 
+    /// <summary>
+    /// Maps the report's lines into grid rows.
+    ///
+    /// <para>⚠️ What the summary SAYS lives in MonthlySummaryReport, not here. A scheduled
+    /// post has no screen to read this from, and a second copy of these lines that drifted
+    /// from the grid would be the thing everybody asked about.</para>
+    /// </summary>
     private void BuildSummaryLines(CorpActivityService.MonthSummary s)
     {
         SummaryLines.Clear();
-
-        var c = s.Current;
-        var p = s.Previous;
-
-        void Header(string t) => SummaryLines.Add(new MonthSummaryLineVm { Label = t, IsHeader = true });
-
-        // ISK line: value, signed absolute change, and the same change as a percentage.
-        void Isk(string label, decimal cur, decimal prev, string? color = null) =>
+        foreach (var l in MonthlySummaryReport.Build(s))
             SummaryLines.Add(new MonthSummaryLineVm
             {
-                Label = label,
-                Value = FormatIskStatic(cur),
-                Change = SignedIsk(cur - prev),
-                Percent = Pct(cur, prev),
-                ValueColor = color ?? "#ccccdd",
+                Label      = l.Label,
+                Value      = l.Value,
+                Change     = l.Change,
+                Percent    = l.Percent,
+                IsHeader   = l.IsHeader,
+                ValueColor = l.ValueColor,
             });
-
-        void Count(string label, long cur, long prev, string? color = null) =>
-            SummaryLines.Add(new MonthSummaryLineVm
-            {
-                Label = label,
-                Value = cur.ToString("N0"),
-                Change = SignedCount(cur - prev),
-                Percent = Pct(cur, prev),
-                ValueColor = color ?? "#ccccdd",
-            });
-
-        var w  = c.Wallet;
-        var pw = p.Wallet;
-
-        Header("Income");
-        // No "Mining tax" line: EVE has no corp mining-tax wallet entry, and this corp has
-        // never had one. Mining is billed manually and lands in Donations, which cannot be
-        // separated from other donations.
-        Isk("Ratting tax",  w?.RattingTax     ?? 0m, pw?.RattingTax     ?? 0m);
-        Isk("Industry tax", w?.IndustryTax    ?? 0m, pw?.IndustryTax    ?? 0m);
-        Isk("Donations",    w?.Donations      ?? 0m, pw?.Donations      ?? 0m);
-        Isk("Contracts",    w?.ContractIncome ?? 0m, pw?.ContractIncome ?? 0m);
-        Isk("Market",       w?.MarketIncome   ?? 0m, pw?.MarketIncome   ?? 0m);
-        Isk("Other",        w?.OtherIncome    ?? 0m, pw?.OtherIncome    ?? 0m);
-        Isk("Total income", c.TotalIncome,           p.TotalIncome);
-
-        Header("Expenses");
-        Isk("Market",          w?.MarketExpense   ?? 0m, pw?.MarketExpense   ?? 0m);
-        Isk("Contracts",       w?.ContractExpense ?? 0m, pw?.ContractExpense ?? 0m);
-        Isk("Project payouts", w?.ProjectPayouts  ?? 0m, pw?.ProjectPayouts  ?? 0m);
-        Isk("Withdrawals",     w?.AccountWithdraw ?? 0m, pw?.AccountWithdraw ?? 0m);
-        Isk("Other",           w?.OtherExpense    ?? 0m, pw?.OtherExpense    ?? 0m);
-        Isk("Total expenses",  c.TotalExpense,           p.TotalExpense);
-
-        Header("Net");
-        Isk("Net position", c.Net, p.Net, c.Net >= 0 ? "#70ad47" : "#cc6666");
-
-        Header("Combat");
-        Count("Kills",  c.Kills,  p.Kills);
-        Count("Losses", c.Losses, p.Losses);
-        Isk("ISK destroyed", c.IskDestroyed, p.IskDestroyed);
-        Isk("ISK lost",      c.IskLost,      p.IskLost);
-        SummaryLines.Add(new MonthSummaryLineVm
-        {
-            Label   = "ISK efficiency",
-            Value   = c.IskEfficiency is { } e ? $"{e:F1}%" : "—",
-            Change  = c.IskEfficiency is { } e1 && p.IskEfficiency is { } e0
-                      ? $"{(e1 - e0 > 0 ? "+" : "")}{e1 - e0:F1} pts" : "",
-            ValueColor = c.IskEfficiency is { } e2 ? (e2 >= 50 ? "#70ad47" : "#cc6666") : "#ccccdd",
-        });
-
-        Header("Mining");
-        Count("Units mined", c.UnitsMined,  p.UnitsMined);
-        Isk("Mined value",   c.MiningValue, p.MiningValue);
-
-        Header("Corp Projects");
-        Count("Created",         c.ProjectsCreated,        p.ProjectsCreated);
-        Isk("Created value",     c.ProjectsCreatedValue,   p.ProjectsCreatedValue);
-        Count("Completed",       c.ProjectsCompleted,      p.ProjectsCompleted);
-        Isk("Completed value",   c.ProjectsCompletedValue, p.ProjectsCompletedValue);
-
-        Header("Members");
-        Count("Active players", c.PlayersActive, p.PlayersActive);
     }
 
     /// <summary>Month-over-month movement as a percentage. Blank when the previous month
     /// was zero — a percentage change from nothing is undefined, not infinite.</summary>
-    private static string Pct(decimal current, decimal previous)
-    {
-        if (previous == 0m) return "";
-        var change = (double)((current - previous) / Math.Abs(previous)) * 100.0;
-        if (Math.Abs(change) < 0.05) return "0.0%";
-        return $"{(change > 0 ? "+" : "")}{change:F1}%";
-    }
-
-    private static string Pct(long current, long previous) => Pct((decimal)current, previous);
-
     // ── Column layout for exported text ───────────────────────────────────────
     //
     // Columns are space-padded and the data rows are wrapped in the target platform's
@@ -1833,12 +1761,6 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         return sb.ToString();
     }
 
-    private static string SignedIsk(decimal delta) =>
-        delta == 0m ? "—" : $"{(delta > 0 ? "+" : "-")}{FormatIskStatic(Math.Abs(delta))}";
-
-    private static string SignedCount(long delta) =>
-        delta == 0 ? "—" : $"{(delta > 0 ? "+" : "-")}{Math.Abs(delta):N0}";
-
     /// <summary>
     /// The summary as text for Slack / Discord / forums, in the currently selected format.
     /// Walks the same lines the grid shows, so the two cannot disagree.
@@ -1849,71 +1771,14 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     /// </summary>
     public string BuildMonthlySummaryExport() => BuildMonthlySummaryExport(SelectedExportFormat);
 
-    public string BuildMonthlySummaryExport(string formatName)
-    {
-        var fmt   = OutputFormat.ByName(formatName);
-        var plain = fmt.Name == "Plain Text";
-
-        var month  = SelectedSummaryMonth?.Name ?? "?";
-        var year   = SelectedSummaryYear;
-        var corp   = SelectedCorp?.Name;
-        var header = string.IsNullOrWhiteSpace(corp)
-            ? $"Monthly Summary — {month} {year}"
-            : $"{corp} — Monthly Summary — {month} {year}";
-        const string subtitle = "Change columns compare against the previous month.";
-
-        var sb = new System.Text.StringBuilder();
-        sb.AppendLine(plain ? header : fmt.Bold(header));
-        sb.AppendLine(new string('=', Math.Max(header.Length, 32)));
-        sb.AppendLine(plain ? subtitle : fmt.Bold(subtitle));
-
-        // Widths measured across every value row, so all sections share one column grid.
-        var cells  = SummaryLines
-            .Where(l => l.IsValue)
-            .Select(l => new[] { l.Label, l.Value, l.Change, l.Percent })
-            .ToList();
-        var widths = ColumnWidths(cells, 4);
-        var (open, close) = CodeFence(fmt.Name);
-
-        var inFence = false;
-        void CloseFence()
-        {
-            if (!inFence) return;
-            if (close.Length > 0) sb.AppendLine(close);
-            inFence = false;
-        }
-
-        foreach (var line in SummaryLines)
-        {
-            if (line.IsHeader)
-            {
-                CloseFence();
-                sb.AppendLine();
-                sb.AppendLine(plain ? line.Label : fmt.Bold(line.Label));
-                // Slack draws a fenced block as an outlined box, so a rule above it is
-                // just noise. Every other format keeps the rule — the box either is not
-                // drawn or is not distinct enough to replace it.
-                if (fmt.Name != "Slack")
-                    sb.AppendLine(new string('-', Math.Max(line.Label.Length, 16)));
-                continue;
-            }
-
-            if (!inFence)
-            {
-                if (open.Length > 0) sb.AppendLine(open);
-                inFence = true;
-            }
-            sb.AppendLine(PaddedRow([line.Label, line.Value, line.Change, line.Percent], widths));
-        }
-        CloseFence();
-
-        var body = sb.ToString().TrimEnd();
-
-        // Plain Text's Finalize is a markup stripper that also collapses runs of spaces,
-        // which would flatten the column padding this block depends on. Nothing here emits
-        // markup in the first place, so there is nothing to strip.
-        return plain ? body : fmt.Finalize(body);
-    }
+    public string BuildMonthlySummaryExport(string formatName) =>
+        MonthlySummaryReport.Export(
+            [.. SummaryLines.Select(l => new MonthlySummaryReport.SummaryLine(
+                l.Label, l.Value, l.Change, l.Percent, l.IsHeader, l.ValueColor))],
+            MonthlySummaryReport.Header(SelectedCorp?.Name,
+                                       SelectedSummaryMonth?.Name ?? "?",
+                                       SelectedSummaryYear),
+            formatName);
 
     // includeIsk true → "rank  name\tamount"; false → "rank  name\t%" (name + share only).
     public string BuildTop10Export() => BuildTop10Export(includeIsk: true);

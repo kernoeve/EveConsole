@@ -41,12 +41,21 @@ public sealed class MessageBlock
     public List<string> Categories { get; set; } = [];
 }
 
-/// <summary>What a "post to Slack" task is configured to do.</summary>
-public sealed class SlackPostConfig
+/// <summary>
+/// What a task is configured to do.
+///
+/// <para>One config for every task type rather than one each. The blocks are the part both types
+/// share — the same composed message goes to Slack or into an alert — and a type only reads the
+/// fields it needs.</para>
+/// </summary>
+public sealed class ScheduledTaskConfig
 {
-    /// <summary>"chan" or "hook", matching SlackDestination.</summary>
+    /// <summary>Slack posts: "chan" or "hook", matching SlackDestination.</summary>
     public string DestinationKind { get; set; } = "";
     public string DestinationId   { get; set; } = "";
+
+    /// <summary>Alerts: the headline. The body is the composed blocks.</summary>
+    public string AlertTitle { get; set; } = "";
 
     public List<MessageBlock> Blocks { get; set; } = [];
 
@@ -61,11 +70,11 @@ public sealed class SlackPostConfig
     /// <summary>⚠️ Never throws. A task whose configuration cannot be read is reported as a task
     /// with nothing to say, which the runner records — an exception here would take the whole
     /// scheduling loop down with it.</summary>
-    public static SlackPostConfig FromJson(string? json)
+    public static ScheduledTaskConfig FromJson(string? json)
     {
-        if (string.IsNullOrWhiteSpace(json)) return new SlackPostConfig();
-        try   { return JsonSerializer.Deserialize<SlackPostConfig>(json!, Opts) ?? new SlackPostConfig(); }
-        catch { return new SlackPostConfig(); }
+        if (string.IsNullOrWhiteSpace(json)) return new ScheduledTaskConfig();
+        try   { return JsonSerializer.Deserialize<ScheduledTaskConfig>(json!, Opts) ?? new ScheduledTaskConfig(); }
+        catch { return new ScheduledTaskConfig(); }
     }
 }
 
@@ -116,15 +125,22 @@ public class ScheduledBlockRenderer(CorpActivityService corp)
         return string.Join("\n\n", parts);
     }
 
-    /// <summary>The window a "months back" block covers: that whole calendar month.</summary>
-    private static (DateTimeOffset From, DateTimeOffset To, string Label) Window(int monthsBack, DateTime nowUtc)
+    /// <summary>The calendar month a "months back" block names.</summary>
+    private static (int Year, int Month, string Label) Month(int monthsBack, DateTime nowUtc)
     {
         var first = new DateTime(nowUtc.Year, nowUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc)
                         .AddMonths(-Math.Max(0, monthsBack));
 
-        return (new DateTimeOffset(first),
-                new DateTimeOffset(first.AddMonths(1)),
-                first.ToString("MMMM yyyy"));
+        return (first.Year, first.Month, first.ToString("MMMM yyyy"));
+    }
+
+    /// <summary>That same month as a half-open range, for the ranked lists.</summary>
+    private static (DateTimeOffset From, DateTimeOffset To, string Label) Window(int monthsBack, DateTime nowUtc)
+    {
+        var (year, month, label) = Month(monthsBack, nowUtc);
+        var first = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        return (new DateTimeOffset(first), new DateTimeOffset(first.AddMonths(1)), label);
     }
 
     private async Task<string> Top10Async(MessageBlock b, DateTime nowUtc, CancellationToken ct)
@@ -196,33 +212,32 @@ public class ScheduledBlockRenderer(CorpActivityService corp)
     }
 
     /// <summary>
-    /// The month's headline figures.
+    /// The Corp Activity tool's Monthly Summary, rendered for a message.
     ///
-    /// <para>Deliberately the same five lists' totals rather than a second set of numbers: a
-    /// summary that disagreed with the list under it would be the thing everybody asked about.</para>
+    /// <para>⚠️ The same report the screen shows, not a second set of numbers. MonthlySummaryReport
+    /// holds what that summary says; both the export button and this ask it.</para>
     /// </summary>
     private async Task<string> MonthlyAsync(MessageBlock b, DateTime nowUtc, CancellationToken ct)
     {
         if (b.CorpId <= 0) return "";
 
-        var (from, to, label) = Window(b.MonthsBack, nowUtc);
+        var (year, month, _) = Month(b.MonthsBack, nowUtc);
 
-        var ratting  = await corp.GetTopRattersAsync (b.CorpId, from, to, null, ct);
-        var mining   = await corp.GetTopMinersAsync  (b.CorpId, from, to, null, ct);
-        var kills    = await corp.GetTopKillersAsync (b.CorpId, from, to, null, ct);
-        var industry = await corp.GetTopIndustryAsync(b.CorpId, from, to, null, ct);
-        var projects = await corp.GetTopProjectContributorsAsync(b.CorpId, from, to, null, ct);
+        var summary = await corp.GetMonthSummaryAsync(b.CorpId, year, month, ct);
+        var lines   = MonthlySummaryReport.Build(summary);
 
-        var sb = new StringBuilder();
-        sb.AppendLine($"*Monthly summary — {label}*");
-        sb.AppendLine("```");
-        sb.AppendLine($"{"Ratting tax",-24}{MarketFmt.Isk((double)ratting.Sum(r => r.Amount)),18}");
-        sb.AppendLine($"{"Mining (reprocessed)",-24}{MarketFmt.Isk((double)mining.Sum(r => r.Amount)),18}");
-        sb.AppendLine($"{"Industry tax",-24}{MarketFmt.Isk((double)industry.Sum(r => r.Amount)),18}");
-        sb.AppendLine($"{"Project contributions",-24}{MarketFmt.Isk((double)projects.Sum(r => r.IskPayout)),18}");
-        sb.AppendLine($"{"Kills",-24}{((long)kills.Sum(r => r.Amount)).ToString("N0"),18}");
-        sb.AppendLine("```");
+        var header = MonthlySummaryReport.Header(
+            await CorpNameAsync(b.CorpId, ct),
+            System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(month),
+            year);
 
-        return sb.ToString().TrimEnd();
+        return MonthlySummaryReport.Export(lines, header, "Slack");
+    }
+
+    /// <summary>The corp's name, or nothing — a header without one still reads correctly.</summary>
+    private async Task<string?> CorpNameAsync(long corpId, CancellationToken ct)
+    {
+        var names = await corp.ResolveNamesAsync([corpId], ct);
+        return names.GetValueOrDefault(corpId);
     }
 }

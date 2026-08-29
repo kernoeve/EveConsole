@@ -114,7 +114,8 @@ public class SchedulerService(
         {
             return task.TaskType switch
             {
-                ScheduledTaskType.SlackPost => await SlackPostAsync(task, now, ct),
+                ScheduledTaskType.SlackPost  => await SlackPostAsync(task, now, ct),
+                ScheduledTaskType.RaiseAlert => await RaiseAlertAsync(task, now, ct),
 
                 // Nothing about an unrecognised type gets better by waiting.
                 _ => (true, $"Unknown task type \"{task.TaskType}\"."),
@@ -131,7 +132,7 @@ public class SchedulerService(
     private async Task<(bool Ok, string Message)> SlackPostAsync(
         ScheduledTask task, DateTime now, CancellationToken ct)
     {
-        var cfg = SlackPostConfig.FromJson(task.Config);
+        var cfg = ScheduledTaskConfig.FromJson(task.Config);
 
         if (cfg.Blocks.Count == 0) return (true, "Nothing to post: no blocks configured.");
 
@@ -148,6 +149,36 @@ public class SchedulerService(
         return res.Ok
             ? (true,  $"Posted {body.Length:N0} characters.")
             : (false, $"Slack refused it: {res.Error}");
+    }
+
+    /// <summary>
+    /// Raises the same alert an alarm raises.
+    ///
+    /// <para>⚠️ AlarmId and AlarmEventId stay zero: no alarm fired, and inventing one would put a
+    /// row in the alarm history for something that never had a condition. Both readers — the
+    /// Overview and the Alarms tool — show alerts by title and body without joining to an alarm,
+    /// and the delete-alerts-for-alarm sweeps key on a real alarm id, which starts at one.</para>
+    /// </summary>
+    private async Task<(bool Ok, string Message)> RaiseAlertAsync(
+        ScheduledTask task, DateTime now, CancellationToken ct)
+    {
+        var cfg = ScheduledTaskConfig.FromJson(task.Config);
+
+        // The task's own name is the fallback headline. An alert has to say something in the list
+        // it appears in, and the name is what the person who wrote it already chose.
+        var title = cfg.AlertTitle.Trim().Length > 0 ? cfg.AlertTitle.Trim() : task.Name;
+        var body  = cfg.Blocks.Count > 0 ? await renderer.RenderAsync(cfg.Blocks, now, ct) : "";
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        db.AlarmAlerts.Add(new AlarmAlert
+        {
+            CreatedAt = new DateTimeOffset(now, TimeSpan.Zero),
+            Title     = title,
+            Body      = body.Trim().Length > 0 ? body.Trim() : null,
+        });
+        await db.SaveChangesAsync(ct);
+
+        return (true, "Alert raised.");
     }
 
     private async Task<SlackPostResult> PostWebhookAsync(string hookId, string body, CancellationToken ct)

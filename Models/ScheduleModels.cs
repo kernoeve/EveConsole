@@ -22,7 +22,11 @@ public static class ScheduleKind
 /// <summary>What a task does when it fires.</summary>
 public static class ScheduledTaskType
 {
-    public const string SlackPost = "slack_post";
+    public const string SlackPost  = "slack_post";
+
+    /// <summary>Raises the same alert an alarm raises — it shows on the Overview and in the
+    /// Alarms tool, and is dismissed there like any other.</summary>
+    public const string RaiseAlert = "raise_alert";
 }
 
 /// <summary>

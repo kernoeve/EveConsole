@@ -665,7 +665,7 @@ public class MainWindowViewModel : ReactiveObject
             universeMapService, mapStatsService,
             new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds);
-        SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService);
+        SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, errorLogger);
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
 
         // One wiring for every killmail row in the app — browser, corp activity, system

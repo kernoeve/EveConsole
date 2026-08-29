@@ -36,14 +36,28 @@ public sealed class ScheduledTaskRowVm : ReactiveObject
 /// </summary>
 public sealed class MessageBlockVm : ReactiveObject
 {
+    /// <summary>
+    /// The month options, shared by every block.
+    ///
+    /// <para>The current month is first and named as such: "so far this month" is an ordinary
+    /// thing to want posted, and a bare 0 in a spinner did not say so.</para>
+    /// </summary>
+    public static readonly MonthBackChoice[] MonthOptions =
+    [
+        new(0, "Current month"),
+        new(1, "Last month"),
+        .. Enumerable.Range(2, 11).Select(n => new MonthBackChoice(n, $"{n} months back")),
+    ];
+
     public MessageBlockVm(MessageBlock model, IReadOnlyList<CorpChoice> corps)
     {
         Corps = corps;
 
-        _type       = model.Type;
-        _text       = model.Text;
-        _monthsBack = model.MonthsBack;
-        _corp       = corps.FirstOrDefault(c => c.Id == model.CorpId) ?? corps.FirstOrDefault();
+        _type  = model.Type;
+        _text  = model.Text;
+        _month = MonthOptions.FirstOrDefault(m => m.MonthsBack == model.MonthsBack)
+                 ?? MonthOptions[1];
+        _corp  = corps.FirstOrDefault(c => c.Id == model.CorpId) ?? corps.FirstOrDefault();
 
         foreach (var (key, title) in ScheduledBlockRenderer.Top10Categories)
             Categories.Add(new CategoryChoice(key, title) { Selected = model.Categories.Contains(key) });
@@ -84,19 +98,22 @@ public sealed class MessageBlockVm : ReactiveObject
     private CorpChoice? _corp;
     public CorpChoice? Corp { get => _corp; set => this.RaiseAndSetIfChanged(ref _corp, value); }
 
-    /// <summary>0 is the month in progress, 1 last month, and so on.</summary>
-    private int _monthsBack;
-    public int MonthsBack
+    public IReadOnlyList<MonthBackChoice> Months => MonthOptions;
+
+    private MonthBackChoice _month;
+    public MonthBackChoice Month
     {
-        get => _monthsBack;
+        get => _month;
         set
         {
-            this.RaiseAndSetIfChanged(ref _monthsBack, Math.Clamp(value, 0, 60));
+            this.RaiseAndSetIfChanged(ref _month, value ?? MonthOptions[1]);
             this.RaisePropertyChanged(nameof(MonthsBackText));
         }
     }
 
-    /// <summary>Says which month that actually is, so nobody has to count backwards.</summary>
+    public int MonthsBack => Month?.MonthsBack ?? 1;
+
+    /// <summary>Names the month it resolves to today, so nobody has to count backwards.</summary>
     public string MonthsBackText
     {
         get
@@ -105,8 +122,8 @@ public sealed class MessageBlockVm : ReactiveObject
                            .AddMonths(-Math.Max(0, MonthsBack));
 
             return MonthsBack == 0
-                ? $"the month in progress ({when:MMMM yyyy} right now)"
-                : $"{MonthsBack} month(s) back ({when:MMMM yyyy} right now)";
+                ? $"In progress — {when:MMMM yyyy} as things stand."
+                : $"{when:MMMM yyyy} as things stand.";
         }
     }
 
@@ -118,6 +135,19 @@ public sealed class MessageBlockVm : ReactiveObject
         MonthsBack = MonthsBack,
         Categories = [.. Categories.Where(c => c.Selected).Select(c => c.Key)],
     };
+}
+
+/// <summary>
+/// Which month a corp block reports on, counted back from now.
+///
+/// <para>⚠️ Relative, never a fixed month. A task that posts "last month" has to keep meaning last
+/// month every time it runs; a stored year and month would say January forever.</para>
+/// </summary>
+public sealed class MonthBackChoice(int monthsBack, string label)
+{
+    public int    MonthsBack { get; } = monthsBack;
+    public string Label      { get; } = label;
+    public override string ToString() => Label;
 }
 
 /// <summary>A corp the app has a token for, plus its id.</summary>
@@ -136,6 +166,14 @@ public sealed class CategoryChoice(string key, string title) : ReactiveObject
 
     private bool _selected;
     public bool Selected { get => _selected; set => this.RaiseAndSetIfChanged(ref _selected, value); }
+}
+
+/// <summary>One of the things a task can do, under a name worth reading.</summary>
+public sealed class TaskTypeChoice(string key, string label)
+{
+    public string Key   { get; } = key;
+    public string Label { get; } = label;
+    public override string ToString() => Label;
 }
 
 /// <summary>One of the four ways a task can repeat, under a name worth reading.</summary>
@@ -166,17 +204,20 @@ public sealed class SchedulerViewModel : ReactiveObject
     private readonly SchedulerService                _scheduler;
     private readonly ScheduledBlockRenderer          _renderer;
     private readonly SlackService                    _slack;
+    private readonly AppErrorLogger                  _errors;
 
     public SchedulerViewModel(
         IDbContextFactory<AppDbContext> dbFactory,
         SchedulerService                scheduler,
         ScheduledBlockRenderer          renderer,
-        SlackService                    slack)
+        SlackService                    slack,
+        AppErrorLogger                  errors)
     {
         _dbFactory = dbFactory;
         _scheduler = scheduler;
         _renderer  = renderer;
         _slack     = slack;
+        _errors    = errors;
 
         NewCommand     = ReactiveCommand.Create(NewTask);
         SaveCommand    = ReactiveCommand.CreateFromTask(SaveAsync);
@@ -197,6 +238,24 @@ public sealed class SchedulerViewModel : ReactiveObject
             Days.Add(new DayChoice(i, ((DayOfWeek)i).ToString()[..3]) { Selected = true });
 
         PickKind(ScheduleKind.Weekly);
+        PickTaskType(ScheduledTaskType.SlackPost);
+
+        // ⚠️ A command that throws otherwise fails in silence: ReactiveUI routes the exception
+        // here and nowhere else, so the button just appears not to work. Every failure now says
+        // so on the line beside the buttons.
+        foreach (var cmd in new IHandleObservableErrors[]
+                 {
+                     NewCommand, SaveCommand, DeleteCommand, RefreshCommand, RunNowCommand,
+                     PreviewCommand, AddTextCommand, AddTop10Command, AddMonthlyCommand,
+                     MoveUpCommand, MoveDownCommand, RemoveCommand,
+                 })
+        {
+            cmd.ThrownExceptions.Subscribe(ex =>
+            {
+                StatusText = $"Failed: {ex.Message}";
+                _errors.Log(nameof(SchedulerViewModel), "command", ex);
+            });
+        }
 
         this.WhenAnyValue(x => x.SelectedTask)
             .Where(t => t is not null)
@@ -217,6 +276,12 @@ public sealed class SchedulerViewModel : ReactiveObject
     public ObservableCollection<DayChoice>          Days        { get; } = [];
     public ObservableCollection<CorpChoice>         Corps       { get; } = [];
 
+    public List<TaskTypeChoice> TaskTypes { get; } =
+    [
+        new(ScheduledTaskType.SlackPost,  "Post to Slack"),
+        new(ScheduledTaskType.RaiseAlert, "Raise an alert"),
+    ];
+
     public List<KindChoice> Kinds { get; } =
     [
         new(ScheduleKind.Interval, "Every so often"),
@@ -225,7 +290,8 @@ public sealed class SchedulerViewModel : ReactiveObject
         new(ScheduleKind.Yearly,   "Once a year"),
     ];
 
-    public List<string> Months { get; } =
+    /// <summary>Calendar month names, for a yearly task's chosen month.</summary>
+    public List<string> MonthNames { get; } =
         [.. Enumerable.Range(1, 12).Select(m =>
             System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(m))];
 
@@ -249,6 +315,31 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     private bool _enabled = true;
     public bool Enabled { get => _enabled; set => this.RaiseAndSetIfChanged(ref _enabled, value); }
+
+    private TaskTypeChoice? _selectedTaskType;
+    public TaskTypeChoice? SelectedTaskType
+    {
+        get => _selectedTaskType;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedTaskType, value);
+            this.RaisePropertyChanged(nameof(TaskType));
+            this.RaisePropertyChanged(nameof(IsSlackPost));
+            this.RaisePropertyChanged(nameof(IsRaiseAlert));
+        }
+    }
+
+    public string TaskType => SelectedTaskType?.Key ?? ScheduledTaskType.SlackPost;
+
+    public bool IsSlackPost  => TaskType == ScheduledTaskType.SlackPost;
+    public bool IsRaiseAlert => TaskType == ScheduledTaskType.RaiseAlert;
+
+    private void PickTaskType(string key) =>
+        SelectedTaskType = TaskTypes.FirstOrDefault(t => t.Key == key) ?? TaskTypes[0];
+
+    /// <summary>Alerts: the headline. Empty falls back to the task's own name.</summary>
+    private string _alertTitle = "";
+    public string AlertTitle { get => _alertTitle; set => this.RaiseAndSetIfChanged(ref _alertTitle, value); }
 
     private KindChoice? _selectedKind;
     public KindChoice? SelectedKind
@@ -484,6 +575,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         Name      = task.Name;
         Enabled   = task.Enabled;
         PickKind(task.Kind);
+        PickTaskType(task.TaskType);
 
         if (task.IntervalMinutes % 60 == 0 && task.IntervalMinutes >= 60)
         {
@@ -498,13 +590,14 @@ public sealed class SchedulerViewModel : ReactiveObject
 
         TimeOfDay    = $"{task.TimeOfDayMinutes / 60:00}:{task.TimeOfDayMinutes % 60:00}";
         DayOfMonth   = task.DayOfMonth;
-        MonthOfYear  = Months[Math.Clamp(task.MonthOfYear, 1, 12) - 1];
+        MonthOfYear  = MonthNames[Math.Clamp(task.MonthOfYear, 1, 12) - 1];
         SkipIfMissed = task.SkipIfMissed;
 
         foreach (var d in Days) d.Selected = (task.DaysOfWeek & (1 << d.Bit)) != 0;
 
-        var cfg = SlackPostConfig.FromJson(task.Config);
+        var cfg = ScheduledTaskConfig.FromJson(task.Config);
 
+        AlertTitle  = cfg.AlertTitle;
         Destination = Destinations.FirstOrDefault(
             d => d.Kind == cfg.DestinationKind && d.Id == cfg.DestinationId);
 
@@ -525,11 +618,13 @@ public sealed class SchedulerViewModel : ReactiveObject
         Name         = "";
         Enabled      = true;
         PickKind(ScheduleKind.Weekly);
+        PickTaskType(ScheduledTaskType.SlackPost);
+        AlertTitle      = "";
         IntervalValue   = 1;
         IntervalInHours = true;
         TimeOfDay    = "00:01";
         DayOfMonth   = 1;
-        MonthOfYear  = Months[0];
+        MonthOfYear  = MonthNames[0];
         SkipIfMissed = false;
         Destination  = null;
 
@@ -547,7 +642,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     private void AddBlock(string type)
     {
         Blocks.Add(new MessageBlockVm(
-            new MessageBlock { Type = type, MonthsBack = type == MessageBlock.TypeText ? 0 : 1 },
+            new MessageBlock { Type = type, MonthsBack = 1 },
             Corps));
     }
 
@@ -580,13 +675,33 @@ public sealed class SchedulerViewModel : ReactiveObject
 
         if (IsWeekly && Days.All(d => !d.Selected)) { StatusText = "Pick at least one day."; return null; }
 
-        if (Destination is null) { StatusText = "Pick where to post it."; return null; }
-        if (Blocks.Count == 0)   { StatusText = "Add something to say."; return null; }
-
-        var cfg = new SlackPostConfig
+        // Each type asks for what it actually needs. An alert with a headline and nothing else is
+        // a perfectly good reminder; a Slack post with nothing to say is not a post.
+        if (IsSlackPost)
         {
-            DestinationKind = Destination.Kind,
-            DestinationId   = Destination.Id,
+            if (Destination is null)
+            {
+                StatusText = Destinations.Count == 0
+                    ? "No channels or webhooks yet — add one under Settings, Slack."
+                    : "Pick where to post it.";
+                return null;
+            }
+            if (Blocks.Count == 0) { StatusText = "Add something to say."; return null; }
+        }
+        else if (IsRaiseAlert)
+        {
+            if (string.IsNullOrWhiteSpace(AlertTitle) && Blocks.Count == 0)
+            {
+                StatusText = "Give the alert a headline, or something to say.";
+                return null;
+            }
+        }
+
+        var cfg = new ScheduledTaskConfig
+        {
+            DestinationKind = Destination?.Kind ?? "",
+            DestinationId   = Destination?.Id   ?? "",
+            AlertTitle      = AlertTitle.Trim(),
             Blocks          = [.. Blocks.Select(b => b.ToModel())],
         };
 
@@ -600,13 +715,13 @@ public sealed class SchedulerViewModel : ReactiveObject
             DaysOfWeek       = Days.Where(d => d.Selected).Sum(d => 1 << d.Bit),
             TimeOfDayMinutes = minutes ?? 0,
             DayOfMonth       = DayOfMonth,
-            MonthOfYear      = Months.IndexOf(MonthOfYear) + 1,
+            MonthOfYear      = MonthNames.IndexOf(MonthOfYear) + 1,
 
             // ⚠️ Only stored where it is offered. Left set from a previous kind it would sit in
             // the row unseen and change what a monthly task does the day somebody switched to it.
             SkipIfMissed     = CanSkipIfMissed && SkipIfMissed,
 
-            TaskType         = ScheduledTaskType.SlackPost,
+            TaskType         = TaskType,
             Config           = cfg.ToJson(),
         };
     }
@@ -683,7 +798,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     /// </summary>
     private async Task PreviewAsync()
     {
-        if (Blocks.Count == 0) { StatusText = "Add something to say."; return; }
+        if (Blocks.Count == 0) { StatusText = "Nothing to render: this task has no blocks."; return; }
 
         StatusText = "Rendering…";
         try
@@ -702,16 +817,18 @@ public sealed class SchedulerViewModel : ReactiveObject
     }
 
     /// <summary>
-    /// Runs the SAVED task now, and posts for real.
+    /// Runs the SAVED task now, for real.
     ///
-    /// <para>⚠️ Does not touch LastRun. A test send that counted as the run would cancel the
-    /// scheduled one — the point of testing is to find out whether the real run will work.</para>
+    /// <para>It posts to the real channel and raises a real alert, so it counts as the run: the
+    /// last-run stamp moves, and a daily task run by hand at noon does not go again at midnight.
+    /// Preview is the button for trying something out without any of that.</para>
     /// </summary>
     private async Task RunNowAsync()
     {
         if (EditingId == 0) { StatusText = "Save it first."; return; }
 
-        var id = EditingId;
+        var id  = EditingId;
+        var now = DateTime.UtcNow;
         StatusText = "Running…";
 
         var task = await Task.Run(async () =>
@@ -722,7 +839,24 @@ public sealed class SchedulerViewModel : ReactiveObject
 
         if (task is null) { StatusText = "That task is gone."; return; }
 
-        var (_, message) = await _scheduler.RunOneAsync(task, DateTime.UtcNow);
+        var (ok, message) = await _scheduler.RunOneAsync(task, now);
+
+        // Stamped on the same rule the scheduler uses: a run that got as far as deciding what to
+        // send counts, a refusal does not.
+        if (ok)
+        {
+            await Task.Run(async () =>
+            {
+                await using var db = await _dbFactory.CreateDbContextAsync();
+                var row = await db.ScheduledTasks.FirstOrDefaultAsync(t => t.Id == id);
+                if (row is null) return;
+                row.LastRunUtc = now;
+                row.LastResult = message;
+                await db.SaveChangesAsync();
+            });
+        }
+
+        await LoadAsync();
         StatusText = message;
     }
 }
