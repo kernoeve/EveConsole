@@ -453,6 +453,24 @@ public class App : Application
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooter" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooterColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
             db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "ScheduledTasks" (
+                    "Id"               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "Name"             TEXT    NOT NULL DEFAULT '',
+                    "Enabled"          INTEGER NOT NULL DEFAULT 1,
+                    "Kind"             TEXT    NOT NULL DEFAULT 'weekly',
+                    "IntervalMinutes"  INTEGER NOT NULL DEFAULT 60,
+                    "DaysOfWeek"       INTEGER NOT NULL DEFAULT 127,
+                    "TimeOfDayMinutes" INTEGER NOT NULL DEFAULT 0,
+                    "DayOfMonth"       INTEGER NOT NULL DEFAULT 1,
+                    "MonthOfYear"      INTEGER NOT NULL DEFAULT 1,
+                    "SkipIfMissed"     INTEGER NOT NULL DEFAULT 0,
+                    "TaskType"         TEXT    NOT NULL DEFAULT 'slack_post',
+                    "Config"           TEXT    NOT NULL DEFAULT '',
+                    "LastRunUtc"       TEXT    NULL,
+                    "LastResult"       TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "SlackWebhooks" (
                     "Id"   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     "Name" TEXT    NOT NULL DEFAULT '',
