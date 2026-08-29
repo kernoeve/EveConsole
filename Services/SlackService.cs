@@ -22,6 +22,24 @@ public class SlackChannel
     public bool   IsSelfDm  { get; init; }
     public override string ToString() => IsSelfDm ? $"📝 {Name}" : IsPrivate ? $"🔒 {Name}" : $"# {Name}";
 }
+/// <summary>
+/// Somewhere a post can go: a workspace channel, or one of the named webhooks.
+///
+/// <para>⚠️ One list, one field. A channel picker beside a webhook box made the reader work out
+/// which of the two won — and the answer, that a webhook silently overrode the channel, was
+/// written in help text rather than shown. Choosing one thing from one list cannot be ambiguous.</para>
+/// </summary>
+public sealed record SlackDestination(string Kind, string Id, string Label, string Url = "")
+{
+    public const string KindChannel = "chan";
+    public const string KindWebhook = "hook";
+
+    public bool IsWebhook => Kind == KindWebhook;
+
+    /// <summary>What the dropdown shows. Webhooks are prefixed so one is never read as a channel
+    /// of the same name — they land in different workspaces and behave differently.</summary>
+    public override string ToString() => Label;
+}
 
 /// <summary>
 /// Posts to Slack on the capsuleer's behalf using a user token (xoxp-), so messages appear as
@@ -29,6 +47,7 @@ public class SlackChannel
 /// (api.slack.com/apps → User Token Scopes → Install), so no client secret ships with EVE Console.
 /// Slack returns HTTP 200 even for failures, with {"ok":false,"error":"..."} — always check "ok".
 /// </summary>
+
 public class SlackService
 {
     public const string TokenKey    = "slack.user_token";
@@ -54,6 +73,34 @@ public class SlackService
     /// destination, so nothing here chooses where it lands. That is the point of it: an alliance
     /// workspace will hand out a webhook where it would never hand out a user token.</para>
     /// </summary>
+    // — Named webhooks ———————————————————————————————————————
+
+    /// <summary>Every webhook the user has named, in the order they will appear in a dropdown.</summary>
+    public async Task<List<Models.SlackWebhook>> WebhooksAsync(CancellationToken ct = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        return await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions
+            .ToListAsync(db.SlackWebhooks.OrderBy(w => w.Name), ct);
+    }
+
+    public async Task<Models.SlackWebhook> AddWebhookAsync(string name, string url, CancellationToken ct = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var row = new Models.SlackWebhook { Name = (name ?? "").Trim(), Url = (url ?? "").Trim() };
+        db.SlackWebhooks.Add(row);
+        await db.SaveChangesAsync(ct);
+        return row;
+    }
+
+    public async Task RemoveWebhookAsync(int id, CancellationToken ct = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var row = await db.SlackWebhooks.FindAsync([id], ct);
+        if (row is null) return;
+        db.SlackWebhooks.Remove(row);
+        await db.SaveChangesAsync(ct);
+    }
+
     public string WebhookUrl(string area) => (_prefs.Get(WebhookKey(area)) ?? "").Trim();
 
     public Task SetWebhookUrlAsync(string area, string? url) =>
@@ -67,13 +114,17 @@ public class SlackService
     private readonly AppErrorLogger         _errors;
     private readonly SlackAuthService       _auth;
 
+    private readonly Microsoft.EntityFrameworkCore.IDbContextFactory<Data.AppDbContext> _dbFactory;
+
     public SlackService(IHttpClientFactory httpFactory, AppPreferencesService prefs,
-                        AppErrorLogger errors, SlackAuthService auth)
+                        AppErrorLogger errors, SlackAuthService auth,
+                        Microsoft.EntityFrameworkCore.IDbContextFactory<Data.AppDbContext> dbFactory)
     {
         _httpFactory = httpFactory;
         _prefs       = prefs;
         _errors      = errors;
         _auth        = auth;
+        _dbFactory   = dbFactory;
     }
 
     public string? Token       => _prefs.Get(TokenKey);

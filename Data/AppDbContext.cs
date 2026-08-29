@@ -215,6 +215,7 @@ public class AppDbContext : DbContext
 
     // ── Stores (EVE mail order desk) ────────────────────────────────────────
     public DbSet<Store>       Stores       => Set<Store>();
+    public DbSet<SlackWebhook> SlackWebhooks => Set<SlackWebhook>();
     public DbSet<StoreSender> StoreSenders => Set<StoreSender>();
     public DbSet<StoreMail>   StoreMails   => Set<StoreMail>();
     public DbSet<OrderLabel>  OrderLabels  => Set<OrderLabel>();
@@ -1006,6 +1007,10 @@ public class AppDbContext : DbContext
         mb.Entity<Store>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("Stores"); });
+
+        mb.Entity<SlackWebhook>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("SlackWebhooks"); });
 
         mb.Entity<StoreSender>(e => {
             e.HasKey(x => x.Id);

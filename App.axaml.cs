@@ -453,6 +453,13 @@ public class App : Application
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooter" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooterColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
             db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "SlackWebhooks" (
+                    "Id"   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "Name" TEXT    NOT NULL DEFAULT '',
+                    "Url"  TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "StoreSenders" (
                     "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     "StoreId"    INTEGER NOT NULL DEFAULT 0,

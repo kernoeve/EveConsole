@@ -48,9 +48,16 @@ public class SlackSettingsViewModel : ReactiveObject
             Channels.Add(_salePostingChannel);
         }
 
-        _top10Webhook       = slack.WebhookUrl(SlackService.AreaCorpTop10);
-        _monthlyWebhook     = slack.WebhookUrl(SlackService.AreaCorpMonthly);
-        _salePostingWebhook = slack.WebhookUrl(SlackService.AreaSalePosting);
+        AddWebhookCommand    = ReactiveCommand.CreateFromTask(AddWebhookAsync);
+        RemoveWebhookCommand = ReactiveCommand.CreateFromTask<int>(async id =>
+        {
+            await _slack.RemoveWebhookAsync(id);
+            await ReloadWebhooksAsync();
+        });
+
+        // ⚠️ After the commands exist, and not awaited. The constructor cannot block on the
+        // database, and the pickers are empty until it returns either way.
+        _ = ReloadWebhooksAsync();
 
         SaveAndTestCommand   = ReactiveCommand.CreateFromTask(SaveAndTestAsync);
         LoadChannelsCommand  = ReactiveCommand.CreateFromTask(LoadChannelsAsync);
@@ -224,34 +231,155 @@ public class SlackSettingsViewModel : ReactiveObject
     //
     // ⚠️ The reason these exist: a user token is granted by the workspace that issued it, and an
     // alliance will hand out an incoming webhook where it would never hand out a token for its
-    // own Slack. A webhook is a URL bound to one channel by whoever made it, so setting one here
-    // overrides the channel picker above for that area — the URL already decides where it lands.
+    // own Slack.
     //
-    // ⚠️ It also cannot thread. Nothing posted through a webhook comes back with a message id, so
-    // a sale posting's detail arrives as a second message rather than a reply.
+    // ⚠️ A webhook cannot thread. Nothing posted through one comes back with a message id, so a
+    // sale posting's detail arrives as a second message rather than a reply.
 
-    private string _top10Webhook = "";
-    public string Top10Webhook
+    /// <summary>The named webhooks, as the management grid shows them.</summary>
+    public ObservableCollection<Models.SlackWebhook> Webhooks { get; } = [];
+
+    private string _newWebhookName = "";
+    public string NewWebhookName
     {
-        get => _top10Webhook;
-        set { this.RaiseAndSetIfChanged(ref _top10Webhook, value);
-              _ = _slack.SetWebhookUrlAsync(SlackService.AreaCorpTop10, value); }
+        get => _newWebhookName;
+        set => this.RaiseAndSetIfChanged(ref _newWebhookName, value);
     }
 
-    private string _monthlyWebhook = "";
-    public string MonthlyWebhook
+    private string _newWebhookUrl = "";
+    public string NewWebhookUrl
     {
-        get => _monthlyWebhook;
-        set { this.RaiseAndSetIfChanged(ref _monthlyWebhook, value);
-              _ = _slack.SetWebhookUrlAsync(SlackService.AreaCorpMonthly, value); }
+        get => _newWebhookUrl;
+        set => this.RaiseAndSetIfChanged(ref _newWebhookUrl, value);
     }
 
-    private string _salePostingWebhook = "";
-    public string SalePostingWebhook
+    public ReactiveCommand<Unit, Unit> AddWebhookCommand    { get; private set; } = null!;
+    public ReactiveCommand<int,  Unit> RemoveWebhookCommand { get; private set; } = null!;
+
+    private async Task AddWebhookAsync()
     {
-        get => _salePostingWebhook;
-        set { this.RaiseAndSetIfChanged(ref _salePostingWebhook, value);
-              _ = _slack.SetWebhookUrlAsync(SlackService.AreaSalePosting, value); }
+        var name = NewWebhookName.Trim();
+        var url  = NewWebhookUrl.Trim();
+
+        // Both, and a URL that is actually one. A row with an empty name is unpickable in a
+        // dropdown, and a row with an empty URL posts nowhere.
+        if (name.Length == 0 || !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            Status = "A webhook needs a name and an https:// URL.";
+            return;
+        }
+
+        await _slack.AddWebhookAsync(name, url);
+        NewWebhookName = "";
+        NewWebhookUrl  = "";
+        await ReloadWebhooksAsync();
+        Status = $"Added webhook \"{name}\".";
+    }
+
+    private async Task ReloadWebhooksAsync()
+    {
+        var rows = await _slack.WebhooksAsync();
+
+        Webhooks.Clear();
+        foreach (var w in rows) Webhooks.Add(w);
+
+        RebuildDestinations();
+    }
+
+    // — Destinations —————————————————————————————————
+
+    /// <summary>Channels and webhooks in one list, which is what every picker binds to.</summary>
+    public ObservableCollection<SlackDestination> Destinations { get; } = [];
+
+    /// <summary>
+    /// Rebuilds the picker list and re-points each area at its current setting.
+    ///
+    /// <para>⚠️ The selections are re-resolved by value, not kept. These are new objects every
+    /// time the list is rebuilt, so a ComboBox holding the old instance would show blank the
+    /// moment channels were reloaded.</para>
+    /// </summary>
+    private void RebuildDestinations()
+    {
+        Destinations.Clear();
+
+        foreach (var c in Channels)
+            Destinations.Add(new SlackDestination(SlackDestination.KindChannel, c.Id, "#" + c.Name));
+
+        foreach (var w in Webhooks)
+            Destinations.Add(new SlackDestination(
+                SlackDestination.KindWebhook, w.Id.ToString(), "Webhook: " + w.Name, w.Url));
+
+        _corpTop10Dest    = Resolve(SlackService.AreaCorpTop10);
+        _corpMonthlyDest  = Resolve(SlackService.AreaCorpMonthly);
+        _salePostingDest  = Resolve(SlackService.AreaSalePosting);
+
+        this.RaisePropertyChanged(nameof(CorpTop10Dest));
+        this.RaisePropertyChanged(nameof(CorpMonthlyDest));
+        this.RaisePropertyChanged(nameof(SalePostingDest));
+    }
+
+    /// <summary>What an area is set to now. A webhook URL wins where one is stored, because that
+    /// is what the sender has always done with it.</summary>
+    private SlackDestination? Resolve(string area)
+    {
+        var url = _slack.WebhookUrl(area);
+        if (url.Length > 0)
+            return Destinations.FirstOrDefault(d => d.IsWebhook && d.Url == url);
+
+        var id = _slack.ChannelId(area);
+        return id is null ? null
+             : Destinations.FirstOrDefault(d => !d.IsWebhook && d.Id == id);
+    }
+
+    /// <summary>
+    /// Points an area at one destination, and clears the other kind.
+    ///
+    /// <para>⚠️ Both settings are written on every change. Leaving the old webhook URL in place
+    /// while setting a channel would have the sender keep using the webhook, and the picker would
+    /// then be showing a channel the post never reaches.</para>
+    /// </summary>
+    private async Task SetDestinationAsync(string area, SlackDestination? dest)
+    {
+        if (dest is null)
+        {
+            await _slack.SetChannelAsync(area, null);
+            await _slack.SetWebhookUrlAsync(area, "");
+            return;
+        }
+
+        if (dest.IsWebhook)
+        {
+            await _slack.SetChannelAsync(area, null);
+            await _slack.SetWebhookUrlAsync(area, dest.Url);
+            return;
+        }
+
+        await _slack.SetWebhookUrlAsync(area, "");
+        await _slack.SetChannelAsync(area, Channels.FirstOrDefault(c => c.Id == dest.Id));
+    }
+
+    private SlackDestination? _corpTop10Dest;
+    public SlackDestination? CorpTop10Dest
+    {
+        get => _corpTop10Dest;
+        set { this.RaiseAndSetIfChanged(ref _corpTop10Dest, value);
+              _ = SetDestinationAsync(SlackService.AreaCorpTop10, value); }
+    }
+
+    private SlackDestination? _corpMonthlyDest;
+    public SlackDestination? CorpMonthlyDest
+    {
+        get => _corpMonthlyDest;
+        set { this.RaiseAndSetIfChanged(ref _corpMonthlyDest, value);
+              _ = SetDestinationAsync(SlackService.AreaCorpMonthly, value); }
+    }
+
+    private SlackDestination? _salePostingDest;
+    public SlackDestination? SalePostingDest
+    {
+        get => _salePostingDest;
+        set { this.RaiseAndSetIfChanged(ref _salePostingDest, value);
+              _ = SetDestinationAsync(SlackService.AreaSalePosting, value); }
     }
 
     private async Task LoadChannelsAsync()
@@ -298,6 +426,9 @@ public class SlackSettingsViewModel : ReactiveObject
                     this.RaisePropertyChanged(nameof(SalePostingChannel));
                 }
             }
+            // The pickers list channels and webhooks together, so a channel reload rebuilds both.
+            RebuildDestinations();
+
             Status = $"{Channels.Count:N0} channel(s) available.";
         }
         finally { IsBusy = false; }

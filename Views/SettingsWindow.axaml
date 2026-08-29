@@ -2126,6 +2126,52 @@
 
         <Border Height="1" Background="#1e1e2a" />
 
+        <!-- —— Named webhooks ——————————————————————————
+             Defined once and picked by name everywhere after. A webhook URL is a long opaque
+             secret bound to one channel: pasting it per area gave three copies of the same
+             string with no way to tell whether they were the same hook, and no way to change it
+             in one place when it was rotated. -->
+        <StackPanel Spacing="8">
+          <TextBlock Text="Webhooks" FontSize="12" FontWeight="SemiBold" Foreground="#c8c8d8" />
+          <TextBlock TextWrapping="Wrap" Foreground="#8a8a99" FontSize="11"
+                     Text="For workspaces you cannot connect to as yourself — an alliance Slack, typically, which will hand out a webhook where it would never hand out a token. Name one here and it appears in every destination list below." />
+          <TextBlock TextWrapping="Wrap" Foreground="#8a8a99" FontSize="11"
+                     Text="⚠ A webhook cannot thread. Nothing posted through one returns a message id, so a sale posting's detail arrives as a second message instead of a reply under the first. Posts also arrive as the webhook's own app rather than as you." />
+
+          <DataGrid ItemsSource="{Binding SlackVm.Webhooks}" AutoGenerateColumns="False"
+                    IsReadOnly="True" MaxHeight="150" HeadersVisibility="Column"
+                    Background="Transparent">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200" />
+              <DataGridTextColumn Header="URL"  Binding="{Binding Url}"  Width="*" />
+              <DataGridTemplateColumn Header="" Width="80">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="models:SlackWebhook">
+                    <Button Content="Remove" FontSize="10" Padding="6 1" Cursor="Hand"
+                            Command="{Binding $parent[UserControl].((vm:SettingsViewModel)DataContext).SlackVm.RemoveWebhookCommand}"
+                            CommandParameter="{Binding Id}"
+                            Background="#2a1010" Foreground="#aa4444"
+                            BorderBrush="#3a2020" BorderThickness="1" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <Grid ColumnDefinitions="200,*,Auto">
+            <TextBox Grid.Column="0" Text="{Binding SlackVm.NewWebhookName}"
+                     Watermark="Name" FontSize="12"
+                     Background="#131320" Foreground="#ccccdd" BorderBrush="#2a2a3a" />
+            <TextBox Grid.Column="1" Text="{Binding SlackVm.NewWebhookUrl}"
+                     Watermark="https://hooks.slack.com/services/…" FontSize="12" Margin="8 0"
+                     Background="#131320" Foreground="#ccccdd" BorderBrush="#2a2a3a" />
+            <Button Grid.Column="2" Content="Add" Command="{Binding SlackVm.AddWebhookCommand}"
+                    Padding="14 5" FontSize="12"
+                    Background="#0d1a12" Foreground="#4a8a5a"
+                    BorderBrush="#1e3a28" BorderThickness="1" />
+          </Grid>
+        </StackPanel>
+
         <!-- Channel assignment per area -->
         <StackPanel Spacing="6">
           <TextBlock Text="Channels" FontSize="12" FontWeight="SemiBold" Foreground="#c8c8d8" />
@@ -2135,8 +2181,8 @@
             <TextBlock Grid.Column="0" Text="Corp Activity — Top 10" FontSize="12" Foreground="#c8c8d8"
                        VerticalAlignment="Center" />
             <ComboBox Grid.Column="1"
-                      ItemsSource="{Binding SlackVm.Channels}"
-                      SelectedItem="{Binding SlackVm.CorpTop10Channel}"
+                      ItemsSource="{Binding SlackVm.Destinations}"
+                      SelectedItem="{Binding SlackVm.CorpTop10Dest}"
                       PlaceholderText="Select a channel…"
                       HorizontalAlignment="Stretch" FontSize="12"
                       Background="#131320" Foreground="#ccccdd"
@@ -2146,8 +2192,8 @@
             <TextBlock Grid.Column="0" Text="Corp Activity — Monthly Summary" FontSize="12" Foreground="#c8c8d8"
                        VerticalAlignment="Center" TextWrapping="Wrap" />
             <ComboBox Grid.Column="1"
-                      ItemsSource="{Binding SlackVm.Channels}"
-                      SelectedItem="{Binding SlackVm.CorpMonthlyChannel}"
+                      ItemsSource="{Binding SlackVm.Destinations}"
+                      SelectedItem="{Binding SlackVm.CorpMonthlyDest}"
                       PlaceholderText="Select a channel…"
                       HorizontalAlignment="Stretch" FontSize="12"
                       Background="#131320" Foreground="#ccccdd"
@@ -2157,8 +2203,8 @@
             <TextBlock Grid.Column="0" Text="Sale Posting" FontSize="12" Foreground="#c8c8d8"
                        VerticalAlignment="Center" />
             <ComboBox Grid.Column="1"
-                      ItemsSource="{Binding SlackVm.Channels}"
-                      SelectedItem="{Binding SlackVm.SalePostingChannel}"
+                      ItemsSource="{Binding SlackVm.Destinations}"
+                      SelectedItem="{Binding SlackVm.SalePostingDest}"
                       PlaceholderText="Select a channel…"
                       HorizontalAlignment="Stretch" FontSize="12"
                       Background="#131320" Foreground="#ccccdd"
@@ -2166,41 +2212,6 @@
           </Grid>
           <TextBlock TextWrapping="Wrap" Foreground="#666677" FontSize="11"
                      Text="Private channels only appear if you are a member of them. If a channel is missing, use Reload Channels." />
-        </StackPanel>
-
-        <!-- ── Incoming webhooks ──────────────────────────────────────────
-             The reason these exist: a user token is granted by the workspace that issued it, and
-             an alliance will hand out a webhook where it would never hand out a token for its own
-             Slack. -->
-        <StackPanel Spacing="8">
-          <TextBlock Text="Incoming Webhooks" FontSize="14" FontWeight="SemiBold"
-                     Foreground="#c8a84b" />
-          <TextBlock TextWrapping="Wrap" Foreground="#8a8a99" FontSize="11"
-                     Text="For workspaces you cannot connect to as yourself — an alliance Slack, typically. A webhook URL is created in that workspace and is bound to one channel, so setting one here overrides the channel chosen above for that area. Posts arrive as the webhook's own app rather than as you." />
-          <TextBlock TextWrapping="Wrap" Foreground="#8a8a99" FontSize="11"
-                     Text="⚠ A webhook cannot thread. Nothing posted through one returns a message id, so a sale posting's detail arrives as a second message instead of a reply under the first." />
-
-          <Grid ColumnDefinitions="200,*" Margin="0 4 0 0">
-            <TextBlock Grid.Column="0" Text="Corp Top 10" FontSize="12" Foreground="#c8c8d8"
-                       VerticalAlignment="Center" />
-            <TextBox Grid.Column="1" Text="{Binding SlackVm.Top10Webhook, UpdateSourceTrigger=LostFocus}"
-                     Watermark="https://hooks.slack.com/services/…" FontSize="12"
-                     Background="#131320" Foreground="#ccccdd" BorderBrush="#2a2a3a" />
-          </Grid>
-          <Grid ColumnDefinitions="200,*">
-            <TextBlock Grid.Column="0" Text="Monthly Summary" FontSize="12" Foreground="#c8c8d8"
-                       VerticalAlignment="Center" />
-            <TextBox Grid.Column="1" Text="{Binding SlackVm.MonthlyWebhook, UpdateSourceTrigger=LostFocus}"
-                     Watermark="https://hooks.slack.com/services/…" FontSize="12"
-                     Background="#131320" Foreground="#ccccdd" BorderBrush="#2a2a3a" />
-          </Grid>
-          <Grid ColumnDefinitions="200,*">
-            <TextBlock Grid.Column="0" Text="Sale Posting" FontSize="12" Foreground="#c8c8d8"
-                       VerticalAlignment="Center" />
-            <TextBox Grid.Column="1" Text="{Binding SlackVm.SalePostingWebhook, UpdateSourceTrigger=LostFocus}"
-                     Watermark="https://hooks.slack.com/services/…" FontSize="12"
-                     Background="#131320" Foreground="#ccccdd" BorderBrush="#2a2a3a" />
-          </Grid>
         </StackPanel>
 
       </StackPanel>
