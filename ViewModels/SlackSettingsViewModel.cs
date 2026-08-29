@@ -49,11 +49,7 @@ public class SlackSettingsViewModel : ReactiveObject
         }
 
         AddWebhookCommand    = ReactiveCommand.CreateFromTask(AddWebhookAsync);
-        RemoveWebhookCommand = ReactiveCommand.CreateFromTask<int>(async id =>
-        {
-            await _slack.RemoveWebhookAsync(id);
-            await ReloadWebhooksAsync();
-        });
+        RemoveWebhookCommand = ReactiveCommand.CreateFromTask<int>(RemoveWebhookAsync);
 
         // ⚠️ After the commands exist, and not awaited. The constructor cannot block on the
         // database, and the pickers are empty until it returns either way.
@@ -276,6 +272,36 @@ public class SlackSettingsViewModel : ReactiveObject
         Status = $"Added webhook \"{name}\".";
     }
 
+    /// <summary>
+    /// Removes a webhook, unless something is still posting through it.
+    ///
+    /// <para>⚠️ Refused rather than cascaded. The URL is stored per area, so deleting the row it
+    /// came from would leave those areas posting to a hook that is no longer listed — working,
+    /// but with nothing on screen saying where. Clearing them silently is the other way to be
+    /// surprising. Naming the areas lets the choice be made deliberately.</para>
+    /// </summary>
+    private async Task RemoveWebhookAsync(int id)
+    {
+        var hook = Webhooks.FirstOrDefault(w => w.Id == id);
+        if (hook is null) return;
+
+        var areas = new List<string>();
+        if (_slack.WebhookUrl(SlackService.AreaCorpTop10)   == hook.Url) areas.Add("Corp Top 10");
+        if (_slack.WebhookUrl(SlackService.AreaCorpMonthly) == hook.Url) areas.Add("Monthly Summary");
+        if (_slack.WebhookUrl(SlackService.AreaSalePosting) == hook.Url) areas.Add("Sale Posting");
+
+        if (areas.Count > 0)
+        {
+            Status = $"\"{hook.Name}\" is still set for {string.Join(", ", areas)}. "
+                   + "Point those somewhere else first.";
+            return;
+        }
+
+        await _slack.RemoveWebhookAsync(id);
+        await ReloadWebhooksAsync();
+        Status = $"Removed webhook \"{hook.Name}\".";
+    }
+
     private async Task ReloadWebhooksAsync()
     {
         var rows = await _slack.WebhooksAsync();
@@ -298,8 +324,22 @@ public class SlackSettingsViewModel : ReactiveObject
     /// time the list is rebuilt, so a ComboBox holding the old instance would show blank the
     /// moment channels were reloaded.</para>
     /// </summary>
+    /// <summary>
+    /// Set while the picker list is being replaced.
+    ///
+    /// <para>⚠️ Clearing the list makes every ComboBox bound to it push null into its
+    /// SelectedItem, which lands in the setters below and looks exactly like somebody choosing
+    /// the empty entry. Adding a webhook was silently clearing whichever channels happened to be
+    /// selected — not always the same ones, because it depends on which pickers had resolved a
+    /// selection by then.</para>
+    /// </summary>
+    private bool _rebuilding;
+
     private void RebuildDestinations()
     {
+        _rebuilding = true;
+        try
+        {
         Destinations.Clear();
 
         foreach (var c in Channels)
@@ -316,6 +356,8 @@ public class SlackSettingsViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(CorpTop10Dest));
         this.RaisePropertyChanged(nameof(CorpMonthlyDest));
         this.RaisePropertyChanged(nameof(SalePostingDest));
+        }
+        finally { _rebuilding = false; }
     }
 
     /// <summary>What an area is set to now. A webhook URL wins where one is stored, because that
@@ -363,7 +405,7 @@ public class SlackSettingsViewModel : ReactiveObject
     {
         get => _corpTop10Dest;
         set { this.RaiseAndSetIfChanged(ref _corpTop10Dest, value);
-              _ = SetDestinationAsync(SlackService.AreaCorpTop10, value); }
+              if (!_rebuilding) _ = SetDestinationAsync(SlackService.AreaCorpTop10, value); }
     }
 
     private SlackDestination? _corpMonthlyDest;
@@ -371,7 +413,7 @@ public class SlackSettingsViewModel : ReactiveObject
     {
         get => _corpMonthlyDest;
         set { this.RaiseAndSetIfChanged(ref _corpMonthlyDest, value);
-              _ = SetDestinationAsync(SlackService.AreaCorpMonthly, value); }
+              if (!_rebuilding) _ = SetDestinationAsync(SlackService.AreaCorpMonthly, value); }
     }
 
     private SlackDestination? _salePostingDest;
@@ -379,7 +421,7 @@ public class SlackSettingsViewModel : ReactiveObject
     {
         get => _salePostingDest;
         set { this.RaiseAndSetIfChanged(ref _salePostingDest, value);
-              _ = SetDestinationAsync(SlackService.AreaSalePosting, value); }
+              if (!_rebuilding) _ = SetDestinationAsync(SlackService.AreaSalePosting, value); }
     }
 
     private async Task LoadChannelsAsync()

@@ -2147,8 +2147,12 @@
               <DataGridTemplateColumn Header="" Width="80">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="models:SlackWebhook">
+                    <!-- ⚠️ $parent[Window]. Settings is a Window, and the UserControl this asked
+                         for does not exist above it, so the command resolved to null: the button
+                         rendered disabled, and inconsistently so as the grid recycled its cells
+                         between one row and the next. -->
                     <Button Content="Remove" FontSize="10" Padding="6 1" Cursor="Hand"
-                            Command="{Binding $parent[UserControl].((vm:SettingsViewModel)DataContext).SlackVm.RemoveWebhookCommand}"
+                            Command="{Binding $parent[Window].((vm:SettingsViewModel)DataContext).SlackVm.RemoveWebhookCommand}"
                             CommandParameter="{Binding Id}"
                             Background="#2a1010" Foreground="#aa4444"
                             BorderBrush="#3a2020" BorderThickness="1" />
