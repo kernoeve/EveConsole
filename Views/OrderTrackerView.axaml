@@ -182,8 +182,27 @@
              erased the job that built the thing. -->
         <DataGridTextColumn Header="Stock" Binding="{Binding FromStock}" Width="55"
                             SortMemberPath="FromStock" />
+
+        <!-- The tick is all-or-nothing and stays that way; this is what it cannot say. Sorted on
+             the number so 9 of 50 does not outrank 19 of 50. -->
+        <DataGridTextColumn Header="On hand" Binding="{Binding StockText}" Width="80"
+                            SortMemberPath="StockOnHand" CellStyleClasses="num" />
+
         <DataGridTextColumn Header="Indy Job" Binding="{Binding IndyJob}" Width="110"
-                            SortMemberPath="IndyJob" />
+                            SortMemberPath="UnitsInBuild" />
+
+        <!-- What is still unaccounted for once the shelf and the jobs are counted. Red only when
+             there is something to show: a column of zeroes in red trains the eye to ignore it. -->
+        <DataGridTemplateColumn Header="Short" Width="80" SortMemberPath="Shortfall">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrackedOrderRowVm">
+              <TextBlock Text="{Binding ShortfallText}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Margin="0 0 6 0"
+                         Foreground="{Binding ShortColor}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTemplateColumn Header="Contract" Width="220" SortMemberPath="Contract">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">

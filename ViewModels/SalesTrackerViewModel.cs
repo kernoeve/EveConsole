@@ -5,10 +5,21 @@ using Avalonia.Media;
 using EveConsole.Controls;
 using EveConsole.Data;
 using EveConsole.Services;
+using LiveChartsCore;
+using LiveChartsCore.Defaults;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using SkiaSharp;
 
 namespace EveConsole.ViewModels;
+
+/// <summary>How wide a bucket the summary charts group into.</summary>
+public sealed record SalesGrain(string Label, string Key)
+{
+    public override string ToString() => Label;
+}
 
 // Shared profit-colour brushes for the sales grids.
 internal static class ProfitBrushes
@@ -99,6 +110,10 @@ public class SaleRowVm : ReactiveObject
     public string Total  { get; } public double TotalRaw  { get; }
     public string Build  { get; } public double BuildRaw  { get; }
     public string Market { get; } public double MarketRaw { get; }
+    /// <summary>The cost basis actually used for this row, or null where neither a build cost
+    /// nor a market value was known. Set by ApplyBasis alongside the profit it produces.</summary>
+    public double? CostRaw { get; private set; }
+
     public string Profit    { get; private set; } = "—"; public double ProfitRaw    { get; private set; } = double.MinValue;
     public string ProfitPct { get; private set; } = "—"; public double ProfitPctRaw { get; private set; } = double.MinValue;
 
@@ -204,6 +219,12 @@ public class SaleRowVm : ReactiveObject
             ? BuildOrNull ?? MarketOrNull
             : MarketOrNull;
         var profit = cost is double c ? TotalRaw - c : (double?)null;
+
+        // ⚠️ Kept, not just used. The charts need cost and sale as separate figures, and
+        // recomputing the basis rule beside them would be a second copy of the fallback above
+        // waiting to disagree with this one.
+        CostRaw = cost;
+
         ProfitRaw = profit ?? double.MinValue;
         Profit    = profit is double p ? MarketFmt.Isk(p) : "—";
         var pct = cost is double c2 && c2 != 0 ? (TotalRaw - c2) / c2 * 100 : (double?)null;
@@ -283,6 +304,83 @@ public class SalesTrackerViewModel : ReactiveObject
 
     // Rollup grids (grouped over the filtered sales). Top Buyers ranks by ISK sold; the market
     // group and item grids rank by build-based profit.
+    // — Summary charts ———————————————————————————————————
+
+    public IReadOnlyList<SalesGrain> Grains { get; } =
+    [
+        new("Daily",   "d"),
+        new("Weekly",  "w"),
+        new("Monthly", "m"),
+    ];
+
+    private SalesGrain _grain;
+    public SalesGrain Grain
+    {
+        get => _grain;
+        set { this.RaiseAndSetIfChanged(ref _grain, value ?? Grains[0]); ApplyFilters(); }
+    }
+
+    private ISeries[] _iskSeries = [];
+    public ISeries[] IskSeries { get => _iskSeries; private set => this.RaiseAndSetIfChanged(ref _iskSeries, value); }
+
+    private ISeries[] _marginSeries = [];
+    public ISeries[] MarginSeries { get => _marginSeries; private set => this.RaiseAndSetIfChanged(ref _marginSeries, value); }
+
+    /// <summary>Sales in the filter with no cost basis on either side. They are left out of the
+    /// charts so the three ISK lines still add up, and the count says so rather than the figures
+    /// quietly disagreeing with the grid.</summary>
+    public int Uncosted { get; private set; }
+    public string UncostedNote => Uncosted > 0
+        ? $"{Uncosted:N0} sale(s) have no cost on either basis and are not charted."
+        : "";
+
+    public Axis[] ChartXAxes { get; } =
+    [
+        new Axis
+        {
+            Labeler = v =>
+            {
+                var t = (long)v;
+                return t < DateTime.MinValue.Ticks || t > DateTime.MaxValue.Ticks
+                    ? "" : new DateTime(t).ToString("MMM d");
+            },
+            UnitWidth       = TimeSpan.FromDays(1).Ticks,
+            MinStep         = TimeSpan.FromDays(1).Ticks,
+            TextSize        = 11,
+            LabelsPaint     = new SolidColorPaint(new SKColor(0x88, 0x88, 0x99)),
+            SeparatorsPaint = new SolidColorPaint(new SKColor(0x1e, 0x1e, 0x2e)),
+        }
+    ];
+
+    public Axis[] IskYAxes { get; } =
+    [
+        new Axis
+        {
+            Labeler         = FormatIskAxis,
+            TextSize        = 11,
+            LabelsPaint     = new SolidColorPaint(new SKColor(0x88, 0x88, 0x99)),
+            SeparatorsPaint = new SolidColorPaint(new SKColor(0x1e, 0x1e, 0x2e)),
+        }
+    ];
+
+    public Axis[] MarginYAxes { get; } =
+    [
+        new Axis
+        {
+            Labeler         = v => $"{v:N0}%",
+            TextSize        = 11,
+            LabelsPaint     = new SolidColorPaint(new SKColor(0x88, 0x88, 0x99)),
+            SeparatorsPaint = new SolidColorPaint(new SKColor(0x1e, 0x1e, 0x2e)),
+        }
+    ];
+
+    private static string FormatIskAxis(double v) =>
+        Math.Abs(v) >= 1_000_000_000_000 ? $"{v / 1_000_000_000_000:N1}T"
+      : Math.Abs(v) >= 1_000_000_000     ? $"{v / 1_000_000_000:N1}B"
+      : Math.Abs(v) >= 1_000_000         ? $"{v / 1_000_000:N1}M"
+      : Math.Abs(v) >= 1_000             ? $"{v / 1_000:N1}K"
+      :                                    v.ToString("N0");
+
     public ObservableCollection<GroupRowVm>       TopBuyers    { get; } = new();
     public ObservableCollection<ProfitGroupRowVm> MarketGroups { get; } = new();
     public ObservableCollection<ProfitGroupRowVm> TopItems     { get; } = new();
@@ -368,7 +466,9 @@ public class SalesTrackerViewModel : ReactiveObject
         _labels      = labels;
         _selectedOwner = OwnerOptions[1];                                  // All Characters and Personal Corps
         _selectedType  = SaleTypeOptions[0];                               // All types
-        _dateFrom      = DateTime.UtcNow.AddDays(-90).ToString("yyyy-MM-dd"); // last 90 days
+        // A year, so the charts open on a trend rather than a quarter of one.
+        _grain         = Grains[0];
+        _dateFrom      = DateTime.UtcNow.Date.AddYears(-1).ToString("yyyy-MM-dd");
 
         Observable.Interval(TimeSpan.FromMinutes(5))
             .ObserveOnUi("SalesTracker.AutoRefresh")
@@ -452,8 +552,10 @@ public class SalesTrackerViewModel : ReactiveObject
 
         var matched = q.ToList();
 
-        // Sales marked as not for profit never reach the rollups — that is the point of the
-        // mark. The grid can be asked to show them, so it is filtered separately.
+        // ⚠️ One filtered set, used by everything on the screen. The rollups used to be built
+        // from the for-profit rows whatever the checkbox said, so ticking "show not for profit"
+        // changed the grid underneath three summaries that still described a different set of
+        // sales. A filter that moves half the screen is worse than one that moves none of it.
         var forProfit = matched.Where(r => !r.NotForProfit).ToList();
         var excluded  = matched.Count - forProfit.Count;
         var list      = ShowNotForProfit ? matched : forProfit;
@@ -472,12 +574,121 @@ public class SalesTrackerViewModel : ReactiveObject
 
         // Buyers and items link the same way their columns in the grid below do. Market group is
         // deliberately plain: "Standard Dreadnoughts" is a category, not a thing with a page.
-        FillGroup(TopBuyers,          forProfit, r => r.Buyer,
+        FillGroup(TopBuyers,          list, r => r.Buyer,
                   r => r.HasBuyerLink ? r.OpenBuyer : null);
-        FillProfitGroup(MarketGroups, forProfit, r => r.MarketGroup);
-        FillProfitGroup(TopItems,     forProfit, r => r.Items,
+        FillProfitGroup(MarketGroups, list, r => r.MarketGroup);
+        FillProfitGroup(TopItems,     list, r => r.Items,
                   r => r.HasItemLink ? r.OpenItem : null);
+
+        BuildCharts(list);
     }
+
+    // — Summary charts ————————————————————————————————
+
+    /// <summary>
+    /// Costs, sales and profit over time, and the margin they imply.
+    ///
+    /// <para>⚠️ Built only from sales whose cost is known, so the three ISK series add up: sales
+    /// less costs IS the profit line, and the margin is that profit over those same sales. A sale
+    /// with no cost basis on either side would otherwise land in the sales line and nowhere else,
+    /// lifting both profit and margin by an amount that never existed.</para>
+    ///
+    /// <para>⚠️ Every bucket between the first and the last is plotted, filled with zero where
+    /// nothing sold. Plotting only the days that carry a sale draws a line straight from one to
+    /// the next, and a quiet fortnight then reads as a steady one.</para>
+    /// </summary>
+    private void BuildCharts(List<SaleRowVm> rows)
+    {
+        var costed = rows.Where(r => r.CostRaw is not null).ToList();
+
+        Uncosted = rows.Count - costed.Count;
+        this.RaisePropertyChanged(nameof(UncostedNote));
+
+        if (costed.Count == 0)
+        {
+            IskSeries    = [];
+            MarginSeries = [];
+            return;
+        }
+
+        var byBucket = costed
+            .GroupBy(r => Bucket(r.When.UtcDateTime.Date))
+            .ToDictionary(
+                g => g.Key,
+                g => (Sales: g.Sum(r => r.TotalRaw), Cost: g.Sum(r => r.CostRaw!.Value)));
+
+        var sales  = new List<DateTimePoint>();
+        var costs  = new List<DateTimePoint>();
+        var profit = new List<DateTimePoint>();
+        var margin = new List<DateTimePoint>();
+
+        foreach (var d in Range(byBucket.Keys.Min(), byBucket.Keys.Max()))
+        {
+            var hit = byBucket.GetValueOrDefault(d);
+
+            sales.Add(new DateTimePoint(d, hit.Sales));
+            costs.Add(new DateTimePoint(d, hit.Cost));
+            profit.Add(new DateTimePoint(d, hit.Sales - hit.Cost));
+        }
+
+        // ⚠️ Margin is plotted ONLY where something sold, and the line joins across the gaps.
+        //
+        // The other three are amounts: a day with no sales earned nothing, and a zero is the
+        // truth about it. Margin is a ratio, and a day with no sales has no margin at all — not
+        // a margin of zero. Filling those with zero dragged the line to the floor between every
+        // pair of selling days, and filling them with null broke it into disconnected stubs, one
+        // per day, which is what this chart looked like.
+        //
+        // Joining across them says the thing the chart is for: whether the margin being achieved
+        // is rising or falling. The gaps are visible in the three charts beside it.
+        foreach (var kv in byBucket.Where(k => k.Value.Sales > 0).OrderBy(k => k.Key))
+            margin.Add(new DateTimePoint(
+                kv.Key, (kv.Value.Sales - kv.Value.Cost) / kv.Value.Sales * 100));
+
+        IskSeries =
+        [
+            Line("Gross costs", costs,  new SKColor(0xaa, 0x44, 0x44)),
+            Line("Gross sales", sales,  new SKColor(0x55, 0x99, 0xaa)),
+            Line("Net profit",  profit, new SKColor(0x4a, 0x8a, 0x5a)),
+        ];
+
+        MarginSeries = [Line("Margin", margin, new SKColor(0xc8, 0xa8, 0x4b))];
+    }
+
+    /// <summary>Every bucket start from <paramref name="first"/> to <paramref name="last"/>.</summary>
+    private IEnumerable<DateTime> Range(DateTime first, DateTime last)
+    {
+        for (var d = first; d <= last; d = Step(d)) yield return d;
+    }
+
+    private DateTime Bucket(DateTime day) => Grain.Key switch
+    {
+        "m" => new DateTime(day.Year, day.Month, 1),
+        // Monday, not the first row's day: a bucket that floats with the data cannot be compared
+        // between two loads of the same chart.
+        "w" => day.AddDays(-(((int)day.DayOfWeek + 6) % 7)),
+        _   => day,
+    };
+
+    private DateTime Step(DateTime d) => Grain.Key switch
+    {
+        "m" => d.AddMonths(1),
+        "w" => d.AddDays(7),
+        _   => d.AddDays(1),
+    };
+
+    private static LineSeries<DateTimePoint> Line(string name, List<DateTimePoint> pts, SKColor color) =>
+        new()
+        {
+            Name           = name,
+            Values         = pts,
+            Stroke         = new SolidColorPaint(color) { StrokeThickness = 1.5f },
+            Fill           = null,
+            GeometryFill   = null,
+            GeometryStroke = null,
+            GeometrySize   = 0,
+            LineSmoothness = 0.2,
+        };
 
     private static void FillGroup(ObservableCollection<GroupRowVm> target, List<SaleRowVm> rows,
                                   Func<SaleRowVm, string> key, Func<SaleRowVm, Action?>? link = null)

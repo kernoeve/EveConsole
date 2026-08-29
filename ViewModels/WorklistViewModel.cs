@@ -1060,10 +1060,18 @@ public class WorklistViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _outerTabIndex, value);
             if (value == StationNeedsTab && Needs.Count == 0 && !NeedsLoading) _ = LoadNeedsAsync();
+
+            // ⚠️ Loaded when the tab is opened, not at startup. It reads every industry job the
+            // operation has ever run and the whole price history for those types, which is not
+            // work to do on behalf of a tool nobody has looked at.
+            if (value == FinalProductsTab
+             && FinalProductsVm.Jobs.Count == 0
+             && !FinalProductsVm.IsLoading) _ = FinalProductsVm.LoadAsync();
         }
     }
 
-    private const int StationNeedsTab = 1;
+    private const int StationNeedsTab  = 1;
+    private const int FinalProductsTab = 4;
 
     /// <summary>Selects the Station Needs tab — what the Overview's link to it needs, so that
     /// following it lands on the report rather than on whatever tab was last open.</summary>
@@ -1162,6 +1170,9 @@ public class WorklistViewModel : ReactiveObject
     /// <summary>Where each group's stock should live. Distribution, not demand.</summary>
     public WorklistStationLevelsViewModel StationLevelsVm { get; }
 
+    /// <summary>What the work was ultimately for: jobs producing the things we sell.</summary>
+    public WorklistFinalProductsViewModel FinalProductsVm { get; }
+
     /// <summary>Which sources run, and which conditions each one raises.</summary>
     public ObservableCollection<WorklistToggleVm> Sources    { get; } = [];
     public ObservableCollection<WorklistToggleVm> Conditions { get; } = [];
@@ -1174,6 +1185,7 @@ public class WorklistViewModel : ReactiveObject
                              WorklistCorpAltsViewModel corpAlts,
                              WorklistIndustryViewModel industry,
                              WorklistStationLevelsViewModel stationLevels,
+                             WorklistFinalProductsViewModel finalProducts,
                              BottleneckService bottlenecks,
                              ItemContentionService itemContention,
                              HaulPressureService   haulPressure)
@@ -1222,6 +1234,7 @@ public class WorklistViewModel : ReactiveObject
         IndustryVm = industry;
         IndustryVm.IndustryChanged = RefreshAsync;
         StationLevelsVm = stationLevels;
+        FinalProductsVm = finalProducts;
         StationLevelsVm.LevelsChanged = RefreshAsync;
 
         // Assigning a market alt unblocks items, so the list should reflect it without a manual

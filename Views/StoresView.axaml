@@ -6,6 +6,20 @@
              x:DataType="vm:StoresViewModel">
 
   <UserControl.Styles>
+    <!-- The size every other grid in the app uses. ⚠️ Set on the cell text, not by putting
+         FontSize on the DataGrid: the theme gives the cell's TextBlock its own size, which wins
+         over anything inherited from an ancestor, so the FontSize on the grids here was doing
+         nothing and they were drawing at the theme default while every other grid drew at 11. -->
+    <Style Selector="DataGridCell TextBlock">
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+
+    <!-- Headers match at the size the rest of the app uses. Size only: the colours here belong
+         to the card the grid sits on, not to the tool-window palette the other views set. -->
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="FontSize" Value="10" />
+    </Style>
+
     <!-- Amber only once the price list actually splits. A size line that is always coloured is a
          warning nobody reads by the third time they see it. -->
     <Style Selector="TextBlock.warn">
@@ -323,6 +337,39 @@
               </DataGrid>
             </StackPanel>
           </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+        <TabItem Header="Info" FontSize="12">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="14" Spacing="14">
+
+              <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                      CornerRadius="4" Padding="14 12">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="About this store" FontSize="13" FontWeight="SemiBold"
+                             Foreground="#c8a84b" />
+                  <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                             Text="What INFO sends back: who runs the store, what it stocks, delivery terms, whatever a buyer should know before ordering. Leave it empty and the command is not offered — the usage message will not mention INFO, and anyone who mails it anyway gets the usage instead." />
+
+                  <!-- ⚠️ No checkbox, unlike the usage message. The text is the switch: a store
+                       with something to say has written it. A flag as well would be a second way
+                       to say the same thing, and a way for the two to disagree. -->
+                  <TextBlock Text="INFORMATION" FontSize="10" FontWeight="SemiBold"
+                             Foreground="#555566" LetterSpacing="1" Margin="0 4 0 0" />
+                  <TextBox Text="{Binding StoreInfo, UpdateSourceTrigger=LostFocus}"
+                           AcceptsReturn="True" TextWrapping="Wrap"
+                           MinHeight="320" MaxHeight="560" FontSize="11"
+                           FontFamily="Consolas,Menlo,monospace"
+                           Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a"
+                           VerticalContentAlignment="Top" />
+
+                  <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                             Text="Write it as text — newlines become line breaks when it is sent. The same EVE mail markup the usage message takes: &lt;b&gt; &lt;i&gt; &lt;u&gt;, &lt;font size=&quot;12&quot;&gt; and &lt;font color=&quot;#ffc8a84b&quot;&gt; — colours are ARGB, so the alpha pair is not optional. Whitespace on its own does not count as filled in." />
+                </StackPanel>
+              </Border>
+
             </StackPanel>
           </ScrollViewer>
         </TabItem>

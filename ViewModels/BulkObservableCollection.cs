@@ -30,6 +30,44 @@ public sealed class BulkObservableCollection<T> : ObservableCollection<T>
     public BulkObservableCollection(IEnumerable<T> items) : base(items) { }
 
     /// <summary>
+    /// Update in place where the order of the rows has not changed, so a control keeps its scroll
+    /// position and redraws only the rows that actually differ.
+    ///
+    /// <para>⚠️ A refresh that resets the collection makes the grid rebuild every row, which the
+    /// user sees as the list blanking and coming back — on a timer, repeatedly, for a list that
+    /// mostly did not change. Rows are rebuilt objects each time, so reference identity cannot
+    /// tell a changed row from an identical one; <paramref name="signature"/> is what does.</para>
+    ///
+    /// <para>Falls back to <see cref="ResetTo"/> the moment the sequence of keys differs. Rows
+    /// appearing, disappearing or reordering is exactly when a control has to rebuild anyway,
+    /// and a diff that handled it would cost more to get right than it saves.</para>
+    /// </summary>
+    public void SyncTo<TKey>(
+        IReadOnlyList<T> items, Func<T, TKey> key, Func<T, string> signature)
+    {
+        if (items.Count != Count)
+        {
+            ResetTo(items);
+            return;
+        }
+
+        var comparer = EqualityComparer<TKey>.Default;
+
+        for (var i = 0; i < items.Count; i++)
+            if (!comparer.Equals(key(Items[i]), key(items[i])))
+            {
+                ResetTo(items);
+                return;
+            }
+
+        // Same rows, same order. Replace only the ones that read differently: each SetItem
+        // raises a single Replace, which redraws one row and leaves the rest untouched.
+        for (var i = 0; i < items.Count; i++)
+            if (signature(Items[i]) != signature(items[i]))
+                SetItem(i, items[i]);
+    }
+
+    /// <summary>
     /// Replace everything with <paramref name="items"/>, notifying once.
     ///
     /// <para>⚠️ Reset rather than a diff, deliberately. A diff would preserve selection, but the

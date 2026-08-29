@@ -6,6 +6,7 @@
              xmlns:wl="clr-namespace:EveConsole.Services.Worklist"
              xmlns:conv="clr-namespace:EveConsole.Views"
              xmlns:collections="clr-namespace:Avalonia.Collections;assembly=Avalonia.Controls.DataGrid"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.WorklistView"
              x:DataType="vm:WorklistViewModel">
 
@@ -1670,6 +1671,123 @@
         </TabControl>
       </Grid>
     </TabItem>
+    <!-- ════ Final Products ═════════════════════════════
+         What all the work above is for. Every other tab is about what to do next; this one is
+         the record of what that work produced — each job whose output is something the operation
+         sells, with what it cost and what it was worth on the day it landed. -->
+    <TabItem Header="Final Products">
+      <Grid Margin="10" RowDefinitions="Auto,*,8,260"
+            DataContext="{Binding FinalProductsVm}" x:DataType="vm:WorklistFinalProductsViewModel">
+
+        <!-- Filters -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*"
+              Margin="0 0 0 8">
+          <TextBlock Grid.Column="0" Text="Completed" VerticalAlignment="Center"
+                     FontSize="11" Foreground="#555566" Margin="0 0 8 0" />
+          <TextBox Grid.Column="1" Text="{Binding From}" Watermark="from yyyy-MM-dd"
+                   FontSize="11" MinWidth="120" Background="#1a1a28" Foreground="#c8c8d8"
+                   BorderBrush="#2a2a3a" />
+          <TextBox Grid.Column="2" Text="{Binding Thru}" Watermark="thru yyyy-MM-dd"
+                   FontSize="11" MinWidth="120" Margin="6 0 0 0" Background="#1a1a28"
+                   Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+
+          <!-- What the output is worth. A shop selling at a fixed margin over cost never sees the
+               market price, so valuing its work by one describes somebody else's business. -->
+          <TextBlock Grid.Column="3" Text="Value at" VerticalAlignment="Center"
+                     FontSize="11" Foreground="#555566" Margin="16 0 8 0" />
+          <ComboBox Grid.Column="4" ItemsSource="{Binding Valuations}"
+                    SelectedItem="{Binding Valuation}"
+                    FontSize="11" MinWidth="120" Background="#1a1a28" Foreground="#c8c8d8"
+                    BorderBrush="#2a2a3a" />
+
+          <!-- ⚠️ Wide enough for the DIGITS: a NumericUpDown spends most of its width on the two
+               spinner buttons. Hidden rather than disabled when the market is being quoted — a
+               greyed box invites a click that does nothing. -->
+          <NumericUpDown Grid.Column="5" Value="{Binding OverBuildPercent}"
+                         IsVisible="{Binding IsOverBuild}"
+                         Minimum="0" Maximum="1000" Increment="1" FormatString="0"
+                         Width="120" FontSize="11" Margin="6 0 0 0"
+                         Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+
+          <TextBlock Grid.Column="6" Text="Chart by" VerticalAlignment="Center"
+                     FontSize="11" Foreground="#555566" Margin="16 0 8 0" />
+          <ComboBox Grid.Column="7" ItemsSource="{Binding Grains}" SelectedItem="{Binding Grain}"
+                    FontSize="11" MinWidth="100" Background="#1a1a28" Foreground="#c8c8d8"
+                    BorderBrush="#2a2a3a" />
+
+          <Button Grid.Column="8" Command="{Binding RefreshCommand}" Content="Refresh"
+                  FontSize="11" Padding="12 4" Margin="16 0 0 0"
+                  Background="#1a1a28" Foreground="#888899" BorderBrush="#2a2a3a" />
+
+          <TextBlock Grid.Column="9" Text="{Binding StatusText}" FontSize="11"
+                     Foreground="#666677" VerticalAlignment="Center"
+                     HorizontalAlignment="Right" Margin="16 0 0 0" />
+        </Grid>
+
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Jobs}"
+                  AutoGenerateColumns="False" IsReadOnly="True"
+                  CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                  Background="Transparent" HeadersVisibility="Column">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Item"   Binding="{Binding Item}"   Width="*" />
+            <DataGridTextColumn Header="Why"    Binding="{Binding Source}" Width="120" />
+            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" />
+            <!-- Sorted on the number: 9 does not outrank 50. -->
+            <DataGridTextColumn Header="Units"  Binding="{Binding UnitsText}"
+                                SortMemberPath="Units" Width="90" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Started" Binding="{Binding StartedText}" Width="100" />
+            <!-- ⚠️ Sorted on the tick count, not the text: the column shows a date, and two jobs
+                 finishing on one day are not interchangeable. -->
+            <DataGridTextColumn Header="Completed" Binding="{Binding CompletedText}"
+                                SortMemberPath="CompletedSort" Width="110" />
+            <DataGridTextColumn Header="Build Cost" Binding="{Binding BuildText}"
+                                SortMemberPath="BuildCost" Width="120" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Market Value" Binding="{Binding MarketText}"
+                                SortMemberPath="MarketValue" Width="120" CellStyleClasses="num" />
+            <DataGridTemplateColumn Header="Potential Profit" Width="130"
+                                    SortMemberPath="PotentialProfit" CellStyleClasses="num">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:FinalProductJobVm">
+                  <TextBlock Text="{Binding ProfitText}" Foreground="{Binding ProfitColor}"
+                             VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Potential %" Binding="{Binding ProfitPct}"
+                                SortMemberPath="ProfitPctRaw" Width="90" CellStyleClasses="num" />
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- The grid's own figures, summed into the chosen bucket. Side by side because the
+             question is whether profit follows value or diverges from it. -->
+        <Grid Grid.Row="3" ColumnDefinitions="*,10,*">
+          <Border Grid.Column="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="10 8">
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Top" Text="Market value" FontSize="12"
+                         FontWeight="SemiBold" Foreground="#5599aa" Margin="0 0 0 6" />
+              <lvc:CartesianChart Series="{Binding MarketSeries}"
+                                  XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
+                                  TooltipPosition="Top" EasingFunction="{x:Null}"
+                                  Background="Transparent" />
+            </DockPanel>
+          </Border>
+
+          <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="10 8">
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Top" Text="Potential profit" FontSize="12"
+                         FontWeight="SemiBold" Foreground="#4a8a5a" Margin="0 0 0 6" />
+              <lvc:CartesianChart Series="{Binding ProfitSeries}"
+                                  XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
+                                  TooltipPosition="Top" EasingFunction="{x:Null}"
+                                  Background="Transparent" />
+            </DockPanel>
+          </Border>
+        </Grid>
+      </Grid>
+    </TabItem>
+
     <!-- ════ Config ═════════════════════════════════════════════════════════════
          Everything that sets the tool up, behind one tab so the two tabs that are
          read every session are not buried among seven that are set once. -->
