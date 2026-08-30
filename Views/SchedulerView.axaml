@@ -356,7 +356,7 @@
                                     </ItemsControl.ItemTemplate>
                                   </ItemsControl>
                                   <TextBlock Classes="hint"
-                                             Text="One row per project as defined. A project scoped to a region or constellation is listed once here and expands to a row per qualifying system when it is posted." />
+                                             Text="One row per project as defined; a project scoped to a region or constellation is listed once here and expands to a row per qualifying system when it is posted. What is ticked when you save is what gets posted — a project defined later will not join on its own." />
                                 </StackPanel>
                               </StackPanel>
 

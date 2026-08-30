@@ -49,14 +49,13 @@ public sealed class MessageBlock
     public string ProjectType { get; set; } = "destroy_npc";
 
     /// <summary>
-    /// Standing project blocks: the projects to LEAVE OUT.
+    /// Standing project blocks: exactly the projects to report on.
     ///
-    /// <para>⚠️ Exclusions, not inclusions. The editor starts with every project ticked, so the
-    /// block means "my projects of this type, except these" — and a project defined next month
-    /// then turns up in the post on its own. Stored the other way round, a list written today
-    /// would quietly stop being the whole list the first time one was added.</para>
+    /// <para>⚠️ Inclusions, not exclusions. A new section starts with everything ticked, but what
+    /// gets stored is the list itself — so a project defined next month does NOT appear in a task
+    /// written today. Nothing joins a saved post without somebody putting it there.</para>
     /// </summary>
-    public List<long> ExcludedProjectIds { get; set; } = [];
+    public List<long> IncludedProjectIds { get; set; } = [];
 }
 
 /// <summary>
@@ -293,11 +292,14 @@ public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService
         // ⚠️ The type comes from the DEFINITIONS, not from reading it back off an expanded row.
         // A row could only be classified by whether it names an item, and a delivery project saved
         // without one would then be filed under destroy-NPC — wrong, and silently so.
+        //
+        // Intersected with what still exists, so a deleted project drops out rather than being
+        // looked for among rows that no longer mention it.
         var defs = await corp.GetStandingProjectsAsync(b.CorpId, ct);
-        var drop = b.ExcludedProjectIds.ToHashSet();
+        var want = b.IncludedProjectIds.ToHashSet();
 
         var keep = defs
-            .Where(d => d.ProjectType == b.ProjectType && !drop.Contains(d.Id))
+            .Where(d => d.ProjectType == b.ProjectType && want.Contains(d.Id))
             .Select(d => d.Id)
             .ToHashSet();
 

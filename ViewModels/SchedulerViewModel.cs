@@ -131,23 +131,35 @@ public sealed class MessageBlockVm : ReactiveObject
     private readonly Func<long, string, Task<IReadOnlyList<Models.CorpStandingProject>>>? _loadProjects;
 
     /// <summary>
-    /// The projects to leave out.
+    /// Exactly the projects to report on.
     ///
     /// <para>⚠️ Kept here rather than read off the tick boxes, so switching project type and back
-    /// does not lose what was already unticked — the boxes are rebuilt from this each time.</para>
+    /// does not lose the choice — the boxes are rebuilt from this each time.</para>
     /// </summary>
-    private readonly HashSet<long> _excluded;
+    private readonly HashSet<long> _included;
+
+    /// <summary>
+    /// Whether this section has never been saved.
+    ///
+    /// <para>⚠️ The whole difference between "tick everything by default" and "never add anything
+    /// the author did not". A NEW section ticks whatever it finds, because an empty list is not a
+    /// choice anybody made. A SAVED one ticks only what is stored, so a project defined later stays
+    /// out of a post written before it existed.</para>
+    /// </summary>
+    private bool _fresh;
 
     public MessageBlockVm(
         MessageBlock                  model,
         IReadOnlyList<CorpChoice>     corps,
         IReadOnlyList<PostingChoice>  postings,
-        Func<long, string, Task<IReadOnlyList<Models.CorpStandingProject>>>? loadProjects = null)
+        Func<long, string, Task<IReadOnlyList<Models.CorpStandingProject>>>? loadProjects = null,
+        bool                          fresh = false)
     {
         Corps         = corps;
         Postings      = postings;
         _loadProjects = loadProjects;
-        _excluded     = [.. model.ExcludedProjectIds];
+        _included     = [.. model.IncludedProjectIds];
+        _fresh        = fresh;
 
         _type    = model.Type;
         _text    = model.Text;
@@ -271,8 +283,8 @@ public sealed class MessageBlockVm : ReactiveObject
     /// <summary>
     /// Rebuilds the tick list for the chosen corp and project type.
     ///
-    /// <para>Everything starts ticked. The block means "my projects of this type, except these",
-    /// so one defined next month turns up in the post without anyone editing the task.</para>
+    /// <para>A new section ticks whatever it finds; a saved one ticks only what it stored. That is
+    /// the whole rule — nothing joins a saved post on its own.</para>
     /// </summary>
     private async Task ReloadProjectsAsync()
     {
@@ -295,17 +307,26 @@ public sealed class MessageBlockVm : ReactiveObject
         {
             var choice = new ProjectChoice(p.Id, StandingProjectReport.Describe(p))
             {
-                Selected = !_excluded.Contains(p.Id),
+                Selected = _fresh || _included.Contains(p.Id),
             };
 
             // The set is the record, not the boxes: the boxes are thrown away and rebuilt every
-            // time the corp or the type changes.
+            // time the corp or the type changes. Subscribing fires once with the current value,
+            // which is what seeds a fresh section's list.
             choice.WhenAnyValue(x => x.Selected)
-                  .Subscribe(on => { if (on) _excluded.Remove(choice.Id); else _excluded.Add(choice.Id); });
+                  .Subscribe(on => { if (on) _included.Add(choice.Id); else _included.Remove(choice.Id); });
 
             Projects.Add(choice);
         }
     }
+
+    /// <summary>
+    /// This section is now on disk, so stop defaulting new projects to ticked.
+    ///
+    /// <para>⚠️ Without this, switching project type after a save would re-tick everything under
+    /// the new type — which is exactly the surprise the stored list exists to prevent.</para>
+    /// </summary>
+    public void MarkSaved() => _fresh = false;
 
     public MessageBlock ToModel() => new()
     {
@@ -316,7 +337,7 @@ public sealed class MessageBlockVm : ReactiveObject
         Categories         = [.. Categories.Where(c => c.Selected).Select(c => c.Key)],
         PostingId          = Posting?.Id ?? 0,
         ProjectType        = ProjectType?.Key ?? StandingProjectReport.DestroyNpc,
-        ExcludedProjectIds = [.. _excluded],
+        IncludedProjectIds = [.. _included],
     };
 }
 
@@ -816,7 +837,7 @@ public sealed class SchedulerViewModel : ReactiveObject
             d => d.Kind == cfg.DestinationKind && d.Id == cfg.DestinationId);
 
         Blocks.Clear();
-        foreach (var b in cfg.Blocks) Blocks.Add(NewBlock(b));
+        foreach (var b in cfg.Blocks) Blocks.Add(NewBlock(b, fresh: false));
 
         PreviewText      = "";
         HasEditor        = true;
@@ -854,13 +875,13 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     // ── Blocks ───────────────────────────────────────────────────────────────
 
-    private MessageBlockVm NewBlock(MessageBlock model) =>
-        new(model, Corps, Postings, LoadStandingProjectsAsync);
+    private MessageBlockVm NewBlock(MessageBlock model, bool fresh) =>
+        new(model, Corps, Postings, LoadStandingProjectsAsync, fresh);
 
     private void AddSection()
     {
         var type = SelectedSectionType?.Key ?? MessageBlock.TypeText;
-        Blocks.Add(NewBlock(new MessageBlock { Type = type, MonthsBack = 1 }));
+        Blocks.Add(NewBlock(new MessageBlock { Type = type, MonthsBack = 1 }, fresh: true));
     }
 
     private void Move(MessageBlockVm block, int by)
@@ -959,10 +980,11 @@ public sealed class SchedulerViewModel : ReactiveObject
             if (b.IsTop10   && b.Categories.All(c => !c.Selected))  return $"{who} needs at least one list.";
             if (b.IsText    && string.IsNullOrWhiteSpace(b.Text))   return $"{who} is empty.";
 
-            // Standing projects with everything unticked is a section that would print a heading
-            // and no rows.
-            if (b.IsProjects && b.Projects.Count > 0 && b.Projects.All(pr => !pr.Selected))
-                return $"{who} has every project unticked.";
+            // ⚠️ Not guarded on Projects.Count. With the list stored as inclusions, a section
+            // saved before its projects finished loading would store an empty list and quietly
+            // post nothing — so "none ticked" and "none loaded" are both refused here.
+            if (b.IsProjects && b.Projects.All(pr => !pr.Selected))
+                return $"{who} needs at least one project ticked.";
         }
 
         return null;
@@ -1003,6 +1025,9 @@ public sealed class SchedulerViewModel : ReactiveObject
             await db.SaveChangesAsync();
             return row.Id;
         });
+
+        // On disk now, so a section stops ticking projects it has not been told about.
+        foreach (var b in Blocks) b.MarkSaved();
 
         await LoadAsync();
 
