@@ -91,36 +91,41 @@ public static class StandingProjectReport
                       .ThenBy(r => r.SystemName, StringComparer.OrdinalIgnoreCase)]
             : rows.OrderBy(Describe, StringComparer.OrdinalIgnoreCase).ToList();
 
-        // ⚠️ Header and cell defined together, so a column cannot be switched off in one place
-        // and left behind in the other. The optional ones are simply not added.
-        var cols = new List<(string Header, Func<StandingProjectGridRow, string> Cell)>();
+        // ⚠️ Header, cell and alignment defined together, so a column cannot be switched off or
+        // moved in one place and left behind in another. The optional ones are simply not added.
+        //
+        // Right is for the columns that hold a quantity: digits line up on their last character,
+        // so magnitudes are comparable down the column instead of every number starting in the
+        // same place and ending wherever it happens to.
+        var cols = new List<(string Header, Func<StandingProjectGridRow, string> Cell, bool Right)>();
 
         if (byPlace)
         {
-            cols.Add(("Region", r => r.RegionName));
+            cols.Add(("Region", r => r.RegionName, false));
             // A named system that never expanded still has a name on the row; fall back to it
             // rather than printing a blank where the place should be.
-            cols.Add(("System", r => r.SystemName.Length > 0 ? r.SystemName : Describe(r)));
-            cols.Add(("ADM",    r => r.Adm is { } a ? a.ToString("F2") : ""));
+            cols.Add(("System", r => r.SystemName.Length > 0 ? r.SystemName : Describe(r), false));
+            cols.Add(("ADM",    r => r.Adm is { } a ? a.ToString("F2") : "", false));
         }
         else
         {
             // No "Deliver Item:" prefix — the whole table is one type and the title says which.
-            cols.Add(("Project", Describe));
+            cols.Add(("Project", Describe, false));
         }
 
-        cols.Add(("Status",    Status));
+        cols.Add(("Status",    Status, false));
 
         // Remaining is the count still to do; ISK Left is what that count is worth at the
         // project's reward per contribution. One answers "how much work", the other "how much is
         // in it", and neither implies the other.
-        cols.Add(("Remaining", r => r.RemainingText));
-        if (showIskLeft) cols.Add(("ISK Left", r => r.RemainingPayoutText));
+        cols.Add(("Remaining", r => r.RemainingText, true));
+        if (showIskLeft) cols.Add(("ISK Left", r => r.RemainingPayoutText, true));
 
-        cols.Add(("%", r => r.RemainingPercentText));
-        if (showLastCompleted) cols.Add(("Last Completed", LastDone));
+        cols.Add(("%", r => r.RemainingPercentText, true));
+        if (showLastCompleted) cols.Add(("Last Completed", LastDone, false));
 
         var headers = cols.Select(c => c.Header).ToArray();
+        var aligns  = cols.Select(c => c.Right).ToArray();
         var cells   = ordered.Select(r => cols.Select(c => c.Cell(r)).ToArray()).ToList();
 
         var columns = cols.Count;
@@ -149,14 +154,14 @@ public static class StandingProjectReport
         // means there is something for the headers to describe.
         if (showHeaders)
         {
-            sb.AppendLine(Row(headers, widths));
+            sb.AppendLine(Row(headers, widths, aligns));
 
             // A rule under them, each dash run as wide as its own column, so the break lines up
             // with the columns rather than running the width of the widest line.
-            sb.AppendLine(Row([.. widths.Select(w => new string('-', w))], widths));
+            sb.AppendLine(Row([.. widths.Select(w => new string('-', w))], widths, aligns));
         }
 
-        foreach (var c in cells) sb.AppendLine(Row(c, widths));
+        foreach (var c in cells) sb.AppendLine(Row(c, widths, aligns));
 
         sb.AppendLine("```");
         return sb.ToString().TrimEnd();
@@ -178,16 +183,27 @@ public static class StandingProjectReport
             ? d.UtcDateTime.ToString("yyyy-MM-dd")
             : "";
 
-    /// <summary>One padded line. The last populated cell is not padded, so no line ends in
-    /// whitespace inside the fence.</summary>
-    private static string Row(string[] cells, int[] widths)
+    /// <summary>
+    /// One padded line.
+    ///
+    /// <para>A right-aligned cell is padded on the left to its column width; the gutter is then
+    /// added after it, so the two spaces between columns are the same wherever the text sits.</para>
+    ///
+    /// <para>⚠️ The last populated cell keeps its alignment but takes no gutter, so no line ends
+    /// in whitespace inside the fence. Right-aligning it adds LEADING spaces, which is why that
+    /// stays safe.</para>
+    /// </summary>
+    private static string Row(string[] cells, int[] widths, bool[] right)
     {
         var last = cells.Length - 1;
         while (last > 0 && string.IsNullOrEmpty(cells[last])) last--;
 
         var line = new StringBuilder();
         for (var i = 0; i <= last; i++)
-            line.Append(i == last ? cells[i] : cells[i].PadRight(widths[i] + 2));
+        {
+            var cell = right[i] ? cells[i].PadLeft(widths[i]) : cells[i];
+            line.Append(i == last ? cell : cell.PadRight(widths[i] + 2));
+        }
 
         return line.ToString();
     }
