@@ -493,8 +493,19 @@ public class BuildCostService
                    or "Jump Freighter" or "Industrial Command Ship")                        => "capital_ships",
                 // ── Other categories ────────────────────────────────────────────────
                 (7, _)          => "modules_equipment",
-                // Structure Modules — service modules and all structure rigs — are built at
-                // engineering complexes like equipment.
+
+                // ⚠️ A structure RIG takes the structure rig, not the equipment one, and this
+                // is the material side of it. Every rig group in category 66 is named
+                // "... Rig <size> - ..."; no module, weapon or service-module group contains
+                // " Rig ". See IndyRigMatching.ItemCategoryKey for the measurement.
+                //
+                // ⚠️ THIS MAPPING EXISTS THREE TIMES — here, in ProductionCalculatorService
+                // and in IndyRigMatching — and they have to agree. Fixing one and not the
+                // others is how a structure rig came to be costed against an equipment rig it
+                // could never match.
+                (66, var n) when n.Contains(" Rig ")                                    => "structure_ammo",
+
+                // The rest of category 66: service modules, weapons, fitting modules.
                 (66, _)         => "modules_equipment",
                 // T3 subsystems — Loki/Tengu/Legion/Proteus. Previously unmapped, so every
                 // subsystem threw "cannot be assigned to a structure" and lost its chain cost.
