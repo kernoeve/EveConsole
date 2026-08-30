@@ -125,7 +125,10 @@ public static class CorpTrendChartReport
                 LabelsPaint     = new SolidColorPaint(Label),
                 // Transparent, or the second axis draws its own grid over the first one's.
                 SeparatorsPaint = new SolidColorPaint(SKColors.Transparent),
-                Labeler         = v => v >= 1_000_000 ? $"{v / 1_000_000:F0}M" : $"{v:N0}",
+                // ⚠️ One decimal on the millions. F0 rounded 1.2M and 1.4M to the same
+                // string, so two gridlines carried the identical label and the axis stopped
+                // being readable exactly where the mined figures live.
+                Labeler         = v => v >= 1_000_000 ? $"{v / 1_000_000:F1}M" : $"{v:N0}",
             },
         ];
 
