@@ -207,7 +207,10 @@ public sealed record RenderedMessage(string Text, bool AnyDynamicContent);
 /// selected month, rows already fetched. A task firing at 00:01 has none of that, so it asks the
 /// service for the figures it wants and formats them here.</para>
 /// </summary>
-public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService sales)
+public class ScheduledBlockRenderer(
+    CorpActivityService     corp,
+    SalePostingService      sales,
+    CorpTop10ExcludeService excludes)
 {
     /// <summary>The five lists, in the order the manual export prints them.</summary>
     public static readonly (string Key, string Title)[] Top10Categories =
@@ -301,6 +304,11 @@ public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService
 
         var (from, to, label) = Window(b.MonthsBack, nowUtc);
 
+        // ⚠️ The same exclusions the Top 10 tab honours. These lists were being built with the
+        // exclude argument left null, so a corp somebody had deliberately hidden on the settings
+        // tab came back in the post — the one place nobody would think to check it.
+        var hidden = excludes.GetExcludeIds();
+
         // Gathered before anything is printed, so every list shares one column grid rather than
         // each finding its own widths and the five sections stepping in and out.
         var lists = new List<(string Title, List<string[]> Cells)>();
@@ -317,7 +325,7 @@ public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService
 
             if (key == "projects")
             {
-                var contrib = await corp.GetTopProjectContributorsAsync(b.CorpId, from, to, null, ct);
+                var contrib = await corp.GetTopProjectContributorsAsync(b.CorpId, from, to, hidden, ct);
                 rows  = [.. contrib.Select(c => (c.CharacterId, c.IskPayout))];
                 names = contrib
                     .GroupBy(c => c.CharacterId)
@@ -327,10 +335,10 @@ public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService
             {
                 var ranked = key switch
                 {
-                    "ratting"  => await corp.GetTopRattersAsync(b.CorpId, from, to, null, ct),
-                    "mining"   => await corp.GetTopMinersAsync(b.CorpId, from, to, null, ct),
-                    "kills"    => await corp.GetTopKillersAsync(b.CorpId, from, to, null, ct),
-                    "industry" => await corp.GetTopIndustryAsync(b.CorpId, from, to, null, ct),
+                    "ratting"  => await corp.GetTopRattersAsync(b.CorpId, from, to, hidden, ct),
+                    "mining"   => await corp.GetTopMinersAsync(b.CorpId, from, to, hidden, ct),
+                    "kills"    => await corp.GetTopKillersAsync(b.CorpId, from, to, hidden, ct),
+                    "industry" => await corp.GetTopIndustryAsync(b.CorpId, from, to, hidden, ct),
                     _          => [],
                 };
 
