@@ -185,7 +185,13 @@ public sealed class MessageBlockVm : ReactiveObject
                        ?? ProjectTypeOptions[0];
         _projectFilter = ProjectFilterOptions.FirstOrDefault(f => f.Key == model.ProjectFilter)
                        ?? ProjectFilterOptions[^1];
-        _sectionTitle = model.SectionTitle;
+        // ⚠️ Filled with the default rather than left blank behind a watermark, because blank now
+        // MEANS no title. A section stored before that was true reads as blank and would silently
+        // lose its heading, so an empty stored title becomes the default here and blanking it
+        // afterwards is then a deliberate act.
+        _sectionTitle = model.SectionTitle.Length > 0 || model.Type != MessageBlock.TypeProjects
+            ? model.SectionTitle
+            : StandingProjectReport.DefaultTitle(model.ProjectType, model.ProjectFilter);
         _showHeaders       = model.ShowHeaders;
         _showIskLeft       = model.ShowIskLeft;
         _showLastCompleted = model.ShowLastCompleted;
@@ -274,8 +280,10 @@ public sealed class MessageBlockVm : ReactiveObject
         get => _projectFilter;
         set
         {
+            var followed = FollowsDefault;
             this.RaiseAndSetIfChanged(ref _projectFilter, value ?? ProjectFilterOptions[^1]);
             this.RaisePropertyChanged(nameof(DefaultTitle));
+            if (followed) SectionTitle = DefaultTitle;
         }
     }
 
@@ -288,7 +296,16 @@ public sealed class MessageBlockVm : ReactiveObject
     private string _sectionTitle = "";
     public string SectionTitle { get => _sectionTitle; set => this.RaiseAndSetIfChanged(ref _sectionTitle, value); }
 
-    /// <summary>What the title box shows when it is empty, and what the post then prints.</summary>
+    /// <summary>
+    /// Whether the box still holds the title this section would write for itself.
+    ///
+    /// <para>Changing the type or the filter rewrites the box while that is true, so a title
+    /// nobody edited keeps describing what is actually being reported. Once it has been changed
+    /// — to anything, including blank — it is left alone.</para>
+    /// </summary>
+    private bool FollowsDefault => SectionTitle == DefaultTitle;
+
+    /// <summary>The title this section writes for itself, and what the box is filled with.</summary>
     public string DefaultTitle =>
         StandingProjectReport.DefaultTitle(ProjectType?.Key ?? StandingProjectReport.DestroyNpc,
                                            ProjectFilter?.Key ?? EveConsole.Services.ProjectFilters.All);
@@ -312,8 +329,10 @@ public sealed class MessageBlockVm : ReactiveObject
         get => _projectType;
         set
         {
+            var followed = FollowsDefault;
             this.RaiseAndSetIfChanged(ref _projectType, value ?? ProjectTypeOptions[0]);
             this.RaisePropertyChanged(nameof(DefaultTitle));
+            if (followed) SectionTitle = DefaultTitle;
             _ = ReloadProjectsAsync();
         }
     }

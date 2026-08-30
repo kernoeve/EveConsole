@@ -137,7 +137,12 @@ public static class StandingProjectReport
                 widths[i] = Math.Max(widths[i], c[i].Length);
 
         var sb = new StringBuilder();
-        sb.AppendLine($"*{heading}*");
+
+        // ⚠️ An empty heading prints NOTHING, not an empty bold line. The editor materialises the
+        // default into its box, so blank is a choice somebody made rather than a field they left
+        // alone — and a stray blank line above a table reads as a rendering fault.
+        if (heading.Trim().Length > 0) sb.AppendLine($"*{heading.Trim()}*");
+
         sb.AppendLine("```");
 
         // Only with rows to head. Export has already returned on an empty set, so reaching here

@@ -454,9 +454,10 @@ public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService
             .Where(r => StandingProjectReport.Wanted(r, b.ProjectFilter))
             .ToList();
 
-        var heading = b.SectionTitle.Trim().Length > 0
-            ? b.SectionTitle.Trim()
-            : StandingProjectReport.DefaultTitle(b.ProjectType, b.ProjectFilter);
+        // ⚠️ Taken as written, blank included. The default lives in the editor now, filled into
+        // the box when the section is built; substituting it here as well would make a title
+        // impossible to remove.
+        var heading = b.SectionTitle.Trim();
 
         return StandingProjectReport.Export(
             [.. wanted], heading, b.ProjectType, b.ShowHeaders, b.ShowIskLeft, b.ShowLastCompleted);
