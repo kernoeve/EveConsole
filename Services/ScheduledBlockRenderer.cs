@@ -85,8 +85,13 @@ public sealed class MessageBlock
     /// </summary>
     public string SectionTitle { get; set; } = "";
 
-    /// <summary>
-    /// Standing project blocks: print a header row above the table.
+    /// <summary>Standing project blocks: print the ISK still payable for the outstanding work.</summary>
+    public bool ShowIskLeft { get; set; } = true;
+
+    /// <summary>Standing project blocks: print when a matching project last completed.</summary>
+    public bool ShowLastCompleted { get; set; } = true;
+
+    /// <summary>Standing project blocks: print a header row above the table.</summary>
     ///
     /// <para>On by default. A section saved before this existed stored its own false and keeps it;
     /// only a section written from here on starts with headers.</para>
@@ -453,7 +458,8 @@ public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService
             ? b.SectionTitle.Trim()
             : StandingProjectReport.DefaultTitle(b.ProjectType, b.ProjectFilter);
 
-        return StandingProjectReport.Export([.. wanted], heading, b.ProjectType, b.ShowHeaders);
+        return StandingProjectReport.Export(
+            [.. wanted], heading, b.ProjectType, b.ShowHeaders, b.ShowIskLeft, b.ShowLastCompleted);
     }
 
     /// <summary>The corp's name, or nothing — a header without one still reads correctly.</summary>

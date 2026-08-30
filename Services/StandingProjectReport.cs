@@ -73,8 +73,10 @@ public static class StandingProjectReport
     public static string Export(
         IReadOnlyList<StandingProjectGridRow> rows,
         string heading,
-        string projectType   = DestroyNpc,
-        bool   showHeaders   = false)
+        string projectType      = DestroyNpc,
+        bool   showHeaders      = false,
+        bool   showIskLeft      = true,
+        bool   showLastCompleted = true)
     {
         if (rows.Count == 0) return "";
 
@@ -89,37 +91,39 @@ public static class StandingProjectReport
                       .ThenBy(r => r.SystemName, StringComparer.OrdinalIgnoreCase)]
             : rows.OrderBy(Describe, StringComparer.OrdinalIgnoreCase).ToList();
 
-        // Remaining is the count still to do; ISK Left is what that count is still worth at the
-        // project's reward per contribution. Both, because one answers "how much work" and the
-        // other "how much is in it", and neither implies the other.
-        string[] headers = byPlace
-            ? ["Region", "System", "ADM", "Status", "Remaining", "ISK Left", "%", "Last Done"]
-            : ["Project", "Status", "Remaining", "ISK Left", "%", "Last Done"];
+        // ⚠️ Header and cell defined together, so a column cannot be switched off in one place
+        // and left behind in the other. The optional ones are simply not added.
+        var cols = new List<(string Header, Func<StandingProjectGridRow, string> Cell)>();
 
-        var cells = ordered.Select(r => byPlace
-            ? new[]
-              {
-                  r.RegionName,
-                  // A named system that never expanded still has a name on the row; fall back to
-                  // it rather than printing a blank where the place should be.
-                  r.SystemName.Length > 0 ? r.SystemName : Describe(r),
-                  r.Adm is { } a ? a.ToString("F2") : "",
-                  Status(r),
-                  r.RemainingText,
-                  r.RemainingPayoutText,
-                  r.RemainingPercentText,
-                  LastDone(r),
-              }
-            : new[]
-              {
-                  // No "Deliver Item:" prefix — the whole table is one type and the title
-                  // already says which.
-                  Describe(r), Status(r), r.RemainingText,
-                  r.RemainingPayoutText, r.RemainingPercentText, LastDone(r),
-              })
-            .ToList();
+        if (byPlace)
+        {
+            cols.Add(("Region", r => r.RegionName));
+            // A named system that never expanded still has a name on the row; fall back to it
+            // rather than printing a blank where the place should be.
+            cols.Add(("System", r => r.SystemName.Length > 0 ? r.SystemName : Describe(r)));
+            cols.Add(("ADM",    r => r.Adm is { } a ? a.ToString("F2") : ""));
+        }
+        else
+        {
+            // No "Deliver Item:" prefix — the whole table is one type and the title says which.
+            cols.Add(("Project", Describe));
+        }
 
-        var columns = headers.Length;
+        cols.Add(("Status",    Status));
+
+        // Remaining is the count still to do; ISK Left is what that count is worth at the
+        // project's reward per contribution. One answers "how much work", the other "how much is
+        // in it", and neither implies the other.
+        cols.Add(("Remaining", r => r.RemainingText));
+        if (showIskLeft) cols.Add(("ISK Left", r => r.RemainingPayoutText));
+
+        cols.Add(("%", r => r.RemainingPercentText));
+        if (showLastCompleted) cols.Add(("Last Completed", LastDone));
+
+        var headers = cols.Select(c => c.Header).ToArray();
+        var cells   = ordered.Select(r => cols.Select(c => c.Cell(r)).ToArray()).ToList();
+
+        var columns = cols.Count;
         var widths  = new int[columns];
 
         // ⚠️ Headers are measured into the widths only when they are being printed. Sized in
@@ -159,9 +163,15 @@ public static class StandingProjectReport
     /// <para>The date rather than a count of days, because the column is read beside a status
     /// that says whether anything is running NOW — "gone since the 3rd" answers both how long
     /// and when, where a bare "12 days" answers only the first.</para>
+    ///
+    /// <para>⚠️ Blank while a project IS running. The column exists to say how long a gap has
+    /// been open, and on a covered line there is no gap — printing a date there would invite
+    /// reading it as when the current project started.</para>
     /// </summary>
     private static string LastDone(StandingProjectGridRow row) =>
-        row.LastDone is { } d ? d.UtcDateTime.ToString("yyyy-MM-dd") : "";
+        row.MatchStatus != "matched" && row.LastDone is { } d
+            ? d.UtcDateTime.ToString("yyyy-MM-dd")
+            : "";
 
     /// <summary>One padded line. The last populated cell is not padded, so no line ends in
     /// whitespace inside the fence.</summary>

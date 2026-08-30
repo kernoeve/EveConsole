@@ -2719,8 +2719,14 @@ public class CorpActivityService
         /// station set is therefore incomplete, and a rule failing to match it proves
         /// nothing.</summary>
         bool          OfficeUnresolved = false,
-        /// <summary>When the project was last touched. On a completed one that is when it
-        /// finished, which is the only date ESI offers for it.</summary>
+        /// <summary>
+        /// When the project was last touched. On a completed one that is when it finished, which
+        /// is the only date ESI offers for it.
+        ///
+        /// <para>⚠️ Defaulted so the two call sites that do not care need not pass it — which
+        /// is exactly how it shipped once reading 0001-01-01 for every row, because the parsers
+        /// were never taught to fill it. Both do now.</para>
+        /// </summary>
         DateTimeOffset LastModified = default);
 
     private sealed record DestroyNpcConfig(
@@ -2774,7 +2780,7 @@ public class CorpActivityService
 
                 result.Add(new DeliverConfig(p.Name, typeIds, stationIds,
                                              p.ProgressDesired, p.ProgressCurrent, p.RewardPerContrib,
-                                             officeUnresolved));
+                                             officeUnresolved, p.LastModified));
             }
             catch { }
         }
@@ -2799,7 +2805,8 @@ public class CorpActivityService
                             systemIds.Add(sid.GetInt32());
 
                 result.Add(new DestroyNpcConfig(p.Name, systemIds,
-                                                p.ProgressDesired, p.ProgressCurrent, p.RewardPerContrib));
+                                                p.ProgressDesired, p.ProgressCurrent, p.RewardPerContrib,
+                                                p.LastModified));
             }
             catch { }
         }

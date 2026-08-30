@@ -186,7 +186,9 @@ public sealed class MessageBlockVm : ReactiveObject
         _projectFilter = ProjectFilterOptions.FirstOrDefault(f => f.Key == model.ProjectFilter)
                        ?? ProjectFilterOptions[^1];
         _sectionTitle = model.SectionTitle;
-        _showHeaders  = model.ShowHeaders;
+        _showHeaders       = model.ShowHeaders;
+        _showIskLeft       = model.ShowIskLeft;
+        _showLastCompleted = model.ShowLastCompleted;
 
         foreach (var (key, title) in ScheduledBlockRenderer.Top10Categories)
             Categories.Add(new CategoryChoice(key, title) { Selected = model.Categories.Contains(key) });
@@ -293,6 +295,16 @@ public sealed class MessageBlockVm : ReactiveObject
 
     private bool _showHeaders = true;
     public bool ShowHeaders { get => _showHeaders; set => this.RaiseAndSetIfChanged(ref _showHeaders, value); }
+
+    private bool _showIskLeft = true;
+    public bool ShowIskLeft { get => _showIskLeft; set => this.RaiseAndSetIfChanged(ref _showIskLeft, value); }
+
+    private bool _showLastCompleted = true;
+    public bool ShowLastCompleted
+    {
+        get => _showLastCompleted;
+        set => this.RaiseAndSetIfChanged(ref _showLastCompleted, value);
+    }
 
     private LabelledChoice _projectType;
     public LabelledChoice ProjectType
@@ -413,6 +425,8 @@ public sealed class MessageBlockVm : ReactiveObject
         ProjectFilter      = ProjectFilter?.Key ?? EveConsole.Services.ProjectFilters.All,
         SectionTitle       = SectionTitle.Trim(),
         ShowHeaders        = ShowHeaders,
+        ShowIskLeft        = ShowIskLeft,
+        ShowLastCompleted  = ShowLastCompleted,
         // Sorted, so two identical selections always render the same JSON. The unsaved-changes
         // check compares that text, and a HashSet's order is not a promise.
         IncludedProjectIds = [.. _included.OrderBy(x => x)],

@@ -381,6 +381,11 @@
                                             VerticalAlignment="Bottom" Margin="0 0 0 5" />
                                 </Grid>
 
+                                <StackPanel Orientation="Horizontal" Spacing="14">
+                                  <CheckBox IsChecked="{Binding ShowIskLeft}" Content="ISK Left column" />
+                                  <CheckBox IsChecked="{Binding ShowLastCompleted}" Content="Last Completed column" />
+                                </StackPanel>
+
                                 <TextBlock Classes="hint" Text="{Binding ProjectsNote}"
                                            IsVisible="{Binding ProjectsNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
