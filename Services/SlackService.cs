@@ -476,7 +476,19 @@ public class SlackService
             using var getDoc  = JsonDocument.Parse(await getRes.Content.ReadAsStringAsync(ct));
             var       getRoot = getDoc.RootElement;
 
-            if (!IsOk(getRoot)) return Err(getRoot, "files.getUploadURLExternal");
+            if (!IsOk(getRoot))
+            {
+                var why = Err(getRoot, "files.getUploadURLExternal");
+
+                // ⚠️ Slack answers "missing_scope", which says nothing about what to do. A
+                // token issued before files:write was requested cannot gain it by being used;
+                // the connection has to be made again.
+                return why.Contains("missing_scope", StringComparison.OrdinalIgnoreCase)
+                    ? "Slack has not granted this connection permission to upload files. " +
+                      "Reconnect Slack in Settings — the token was issued before the app asked " +
+                      "for it, and an existing one cannot gain a scope."
+                    : why;
+            }
 
             var uploadUrl = getRoot.GetProperty("upload_url").GetString() ?? "";
             var fileId    = getRoot.GetProperty("file_id").GetString() ?? "";
