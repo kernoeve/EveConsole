@@ -34,19 +34,6 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
     private const int AttrStructMfgTime   = 2602;
     private const int AttrStructRxnTime   = 2721;
 
-    /// <summary>
-    /// A structure's role bonus to job time, as a percentage — the Tatara's second one.
-    ///
-    /// <para>⚠️ A reaction structure carries TWO time bonuses and the app read one. A Tatara has
-    /// 2721 = 0.75 as a multiplier AND this at -20, and EVE applies both: 0.75 x 0.80 x the rig's
-    /// 0.736 is 0.4416, which is exactly what 600+ real reaction jobs measure. On its own, 2721
-    /// modelled a reaction 25% slower than the game charges.</para>
-    ///
-    /// <para>⚠️ Reactions only. It also sits on Fortizars, Azbels, Sotiyos and Keepstars, where
-    /// measurement says it does NOT shorten a manufacturing job — see where it is folded in.</para>
-    /// </summary>
-    private const int AttrStructRoleTime  = 2749;
-
     // Science rig bonuses. Copying and invention are separately bonused, so a lab rigged for one
     // does nothing for the other and they cannot share a lookup.
     private const int AttrCopyRigTime      = 2780;
@@ -57,6 +44,9 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
     // formula's TE is always zero and the term drops out on its own.
     private const int SkillIndustry         = 3380;
     private const int SkillAdvancedIndustry = 3388;
+
+    /// <summary>-4% reaction time per level, and the only skill that shortens a reaction.</summary>
+    private const int SkillReactions        = 45746;
 
     /// <summary>
     /// Science cuts copying time by 5% a level — and copying only. Invention takes Advanced
@@ -112,8 +102,7 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
             .Where(a => a.AttributeId == AttrMfgRigTime     || a.AttributeId == AttrRxnRigTime
                      || a.AttributeId == AttrRigLowsecMult  || a.AttributeId == AttrRigNullsecMult
                      || a.AttributeId == AttrCopyRigTime    || a.AttributeId == AttrInventionRigTime
-                     || a.AttributeId == AttrStructMfgTime  || a.AttributeId == AttrStructRxnTime
-                     || a.AttributeId == AttrStructRoleTime)
+                     || a.AttributeId == AttrStructMfgTime  || a.AttributeId == AttrStructRxnTime)
             .Select(a => new { a.TypeId, a.AttributeId, a.Value })
             .ToListAsync(ct);
 
@@ -123,7 +112,6 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         var invRig = new Dictionary<int, double>();
         var lowMul = new Dictionary<int, double>();
         var nulMul = new Dictionary<int, double>();
-        var roleTime = new Dictionary<int, double>();
         var structTypeIds = new List<int>();
 
         foreach (var a in attrs)
@@ -136,7 +124,6 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
                 case AttrInventionRigTime: invRig[a.TypeId] = Math.Abs(a.Value) / 100.0; break;
                 case AttrRigLowsecMult:    lowMul[a.TypeId] = a.Value; break;
                 case AttrRigNullsecMult:   nulMul[a.TypeId] = a.Value; break;
-                case AttrStructRoleTime:   roleTime[a.TypeId] = 1.0 - Math.Abs(a.Value) / 100.0; break;
                 default:                   structTypeIds.Add(a.TypeId); break;
             }
         }
@@ -153,32 +140,14 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         {
             if (a.AttributeId != AttrStructMfgTime && a.AttributeId != AttrStructRxnTime) continue;
             if (!structNames.TryGetValue(a.TypeId, out var key)) continue;
-            if (a.AttributeId == AttrStructMfgTime)
-            {
-                structMfg[key] = a.Value;
-                continue;
-            }
-
-            // ⚠️ Both of a reaction structure's role bonuses, combined here so the one lookup
-            // downstream carries the whole thing.
-            //
-            // 2749 is folded in ONLY where 2721 is present, which is what makes a structure a
-            // reaction structure. Fortizars, Azbels, Sotiyos and Keepstars carry 2749 as well and
-            // cannot run a reaction at all, so reading it on its own would invent a bonus for a
-            // structure that never gets asked.
-            //
-            // ⚠️ Manufacturing does NOT get it, and that is measured rather than assumed.
-            // Dividing blueprint TE and the skill factor out of real jobs leaves role x rig, and
-            // all three cases land exactly on 2602 alone:
-            //
-            //     Raitaru, no applicable rig      0.85   = 2602
-            //     Azbel + L-Set Cap Ship Mfg I    0.464  = 0.8 x 0.58   (-20% x 2.1 nullsec)
-            //     Sotiyo + XL-Set Ship Mfg I      0.406  = 0.7 x 0.58
-            //
-            // Folding 2749 in would make those 0.64 x rig and 0.49 x rig, and neither then
-            // divides into a whole rig bonus. Whatever 2749 does on a Fortizar or an Azbel, it
-            // does not shorten a manufacturing job.
-            structRxn[key] = a.Value * roleTime.GetValueOrDefault(a.TypeId, 1.0);
+            // ⚠️ One attribute each, and no second one. Attribute 2749 (-20 on a Tatara, and on
+            // the Fortizars, Azbels, Sotiyos and Keepstars too) looks like a second time bonus and
+            // is not: on a Tatara its -20 happens to equal the Reactions skill at V, which is what
+            // actually supplies that 20%. Measured on real jobs, role x rig lands exactly on the
+            // one attribute here — Raitaru unrigged 0.85 = 2602, Azbel + L-Set Cap Ship Mfg I
+            // 0.464 = 0.8 x 0.58, Sotiyo + XL-Set 0.406 = 0.7 x 0.58. Do not fold 2749 in.
+            if (a.AttributeId == AttrStructMfgTime) structMfg[key] = a.Value;
+            else                                    structRxn[key] = a.Value;
         }
 
         var rigs = await db.IndyStructureRigs.AsNoTracking()
@@ -231,17 +200,17 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         // Reaction formulas cannot be researched, so any TE on one is noise, not a bonus.
         var teFactor = isReaction ? 1.0 : 1.0 - Math.Clamp(timeEfficiency, 0, 20) / 100.0;
 
-        // ⚠️ NEITHER industry skill touches a reaction. Advanced Industry was being applied to
-        // one, and it is not: measured across 600+ real reaction jobs, the per-run time is
-        // identical at Advanced Industry 0 and V, and at Industry 1, 3 and 5.
-        //
-        // It mattered beyond the 15%. EligibleFor deliberately ranks the LEAST capable character
-        // first, and that character is the one the job is sized against — so enabling an
-        // untrained alt for reactions silently shortened every reaction job in the plan.
+        // ⚠️ A reaction is shortened by the REACTIONS skill and by nothing else. Neither
+        // industry skill touches one: measured across 600+ real reaction jobs, the per-run time is
+        // identical at Advanced Industry 0 and V and at Industry 1, 3 and 5, while Reactions IV
+        // and V give 0.84 and 0.80 of the structure-and-rig figure exactly. One character's jobs
+        // straddle the moment they finished the level and show both.
         var advIndustry = Math.Clamp(skills.GetValueOrDefault(SkillAdvancedIndustry), 0, 5);
         var industry    = Math.Clamp(skills.GetValueOrDefault(SkillIndustry), 0, 5);
+        var reactions   = Math.Clamp(skills.GetValueOrDefault(SkillReactions), 0, 5);
+
         var skillFactor = isReaction
-            ? 1.0
+            ? 1.0 - 0.04 * reactions
             : (1.0 - 0.03 * advIndustry) * (1.0 - 0.04 * industry);
 
         var roleFactor = 1.0;
