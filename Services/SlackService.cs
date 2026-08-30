@@ -446,6 +446,85 @@ public class SlackService
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Uploads a file and shares it into a channel. Returns null on success, or why it failed.
+    ///
+    /// <para>⚠️ A CHANNEL only. An incoming webhook posts JSON and cannot carry a file at all,
+    /// so anything wanting to send one has to be sent as the token's user instead. The caller is
+    /// expected to have decided that already; this refuses rather than guessing.</para>
+    ///
+    /// <para>Three steps, which is what Slack now requires: ask for a URL, PUT the bytes at it,
+    /// then tell Slack the upload finished and where to share it. The old single-call files.upload
+    /// is retired.</para>
+    /// </summary>
+    public async Task<string?> UploadFileAsync(
+        string channelId, byte[] content, string filename, string? title = null,
+        string? comment = null, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(channelId)) return "No channel to upload to.";
+        if (content.Length == 0)                  return "Nothing to upload.";
+
+        try
+        {
+            using var client = Client(null);
+
+            // 1. Somewhere to put it.
+            var getUrl = $"https://slack.com/api/files.getUploadURLExternal" +
+                         $"?filename={Uri.EscapeDataString(filename)}&length={content.Length}";
+
+            using var getRes  = await client.GetAsync(getUrl, ct);
+            using var getDoc  = JsonDocument.Parse(await getRes.Content.ReadAsStringAsync(ct));
+            var       getRoot = getDoc.RootElement;
+
+            if (!IsOk(getRoot)) return Err(getRoot, "files.getUploadURLExternal");
+
+            var uploadUrl = getRoot.GetProperty("upload_url").GetString() ?? "";
+            var fileId    = getRoot.GetProperty("file_id").GetString() ?? "";
+            if (uploadUrl.Length == 0 || fileId.Length == 0)
+                return "Slack did not return an upload URL.";
+
+            // 2. The bytes. ⚠️ No bearer token on this one: the URL is its own credential, and
+            // it is not a slack.com host.
+            using (var raw  = _httpFactory.CreateClient())
+            using (var body = new ByteArrayContent(content))
+            {
+                body.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                using var putRes = await raw.PostAsync(uploadUrl, body, ct);
+                if (!putRes.IsSuccessStatusCode)
+                    return $"Upload rejected: HTTP {(int)putRes.StatusCode}";
+            }
+
+            // 3. Finish it, and say where it goes.
+            var files = new[] { new Dictionary<string, string?> { ["id"] = fileId, ["title"] = title ?? filename } };
+            var done  = new Dictionary<string, object?>
+            {
+                ["files"]      = files,
+                ["channel_id"] = channelId,
+            };
+            if (!string.IsNullOrWhiteSpace(comment)) done["initial_comment"] = comment;
+
+            using var doneContent = new StringContent(
+                JsonSerializer.Serialize(done), Encoding.UTF8, "application/json");
+            using var doneRes = await client.PostAsync(
+                "https://slack.com/api/files.completeUploadExternal", doneContent, ct);
+
+            using var doneDoc = JsonDocument.Parse(await doneRes.Content.ReadAsStringAsync(ct));
+            return IsOk(doneDoc.RootElement) ? null : Err(doneDoc.RootElement, "files.completeUploadExternal");
+        }
+        catch (Exception ex)
+        {
+            _errors.Log("SlackService", "file upload", ex);
+            return ex.Message;
+        }
+    }
+
+    private string Err(JsonElement root, string call)
+    {
+        var reason = root.TryGetProperty("error", out var e) ? e.GetString() ?? "unknown" : "unknown";
+        _errors.Log("SlackService", call, reason);
+        return reason;
+    }
+
     private HttpClient Client(string? token)
     {
         var client = _httpFactory.CreateClient("slack");

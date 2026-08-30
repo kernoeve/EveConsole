@@ -23,6 +23,10 @@ public sealed class MessageBlock
     public const string TypeSale    = "sale_posting";
     public const string TypeProjects = "standing_projects";
 
+    /// <summary>The two monthly trend charts. Pictures, not text.</summary>
+    public const string TypeIskChart      = "corp_isk_chart";
+    public const string TypeActivityChart = "corp_activity_chart";
+
     public string Type { get; set; } = TypeText;
 
     /// <summary>
@@ -33,6 +37,14 @@ public sealed class MessageBlock
     /// — which is what "do not post if the dynamic sections are empty" is about.</para>
     /// </summary>
     public bool IsDynamic => Type != TypeText;
+
+    /// <summary>
+    /// Whether this section is an image rather than a line of text.
+    ///
+    /// <para>⚠️ A webhook cannot carry one. It posts JSON and has no way to attach a file, so a
+    /// chart section only renders where the destination is a channel and the token can upload.</para>
+    /// </summary>
+    public bool IsChart => Type is TypeIskChart or TypeActivityChart;
 
     /// <summary>Static text blocks: what to say.</summary>
     public string Text { get; set; } = "";
@@ -210,6 +222,29 @@ public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService
     public static string TitleFor(string key) =>
         Top10Categories.FirstOrDefault(c => c.Key == key).Title ?? key;
 
+    /// <summary>
+    /// One chart, drawn.
+    ///
+    /// <para>Returns null when the corp has no monthly rows to plot — an empty chart says less
+    /// than no chart, and the caller drops the section rather than posting axes with nothing
+    /// between them.</para>
+    /// </summary>
+    public async Task<(byte[] Png, string Title)?> RenderChartAsync(
+        MessageBlock b, CancellationToken ct = default)
+    {
+        if (!b.IsChart || b.CorpId <= 0) return null;
+
+        var rows = await corp.GetMonthlyActivityAsync(b.CorpId, 12, ct);
+
+        var chart = b.Type == MessageBlock.TypeIskChart
+            ? CorpTrendChartReport.IskTrends(rows)
+            : CorpTrendChartReport.ActivityTrends(rows);
+
+        if (chart is null) return null;
+
+        return (CorpTrendChartReport.RenderPng(chart), chart.Title);
+    }
+
     /// <summary>Renders every block, in order, into one message.</summary>
     public async Task<RenderedMessage> RenderAsync(
         IReadOnlyList<MessageBlock> blocks, DateTime nowUtc, CancellationToken ct = default)
@@ -228,6 +263,8 @@ public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService
                 MessageBlock.TypeMonthly  => await MonthlyAsync(b, nowUtc, ct),
                 MessageBlock.TypeSale     => await SalePostingAsync(b, ct),
                 MessageBlock.TypeProjects => await StandingProjectsAsync(b, ct),
+
+                // A chart contributes no text. It is uploaded separately, by whoever is posting.
                 _                         => "",
             };
 

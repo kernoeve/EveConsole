@@ -2210,64 +2210,27 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         BuildMonthlyCharts(rows);
     }
 
+    /// <summary>
+    /// Binds the two monthly trend charts.
+    ///
+    /// <para>⚠️ What they PLOT lives in CorpTrendChartReport, not here. A scheduled post draws
+    /// the same series to a PNG, and a chart that disagreed with the screen it is named after
+    /// would be worse than no chart at all.</para>
+    ///
+    /// <para>Both charts share one X axis: they are the same twelve months, and two axis objects
+    /// would be two things to keep saying the same thing.</para>
+    /// </summary>
     private void BuildMonthlyCharts(List<MonthlyActivityRow> rows)
     {
-        if (rows.Count == 0)
-        {
-            MonthlyIskSeries = []; MonthlyCountSeries = [];
-            MonthlyXAxes = []; MonthlyIskYAxes = []; MonthlyCountAndMineYAxes = [];
-            return;
-        }
+        var isk      = CorpTrendChartReport.IskTrends(rows);
+        var activity = CorpTrendChartReport.ActivityTrends(rows);
 
-        // Oldest-first for charts
-        var ordered = rows.OrderBy(r => r.Month).ToList();
-        var labels  = ordered.Select(r => r.Month).ToArray();
+        MonthlyIskSeries = isk?.Series ?? [];
+        MonthlyXAxes     = isk?.XAxes  ?? [];
+        MonthlyIskYAxes  = isk?.YAxes  ?? [];
 
-        static LineSeries<double> Line(string name, IEnumerable<double> vals, SKColor color, int scaleY = 0) =>
-            new LineSeries<double>
-            {
-                Name = name, Values = vals.ToArray(),
-                Stroke = new SolidColorPaint(color, 2), Fill = null, GeometrySize = 0,
-                EasingFunction = null, ScalesYAt = scaleY,
-            };
-
-        MonthlyIskSeries =
-        [
-            Line("Income",       ordered.Select(r => (double)(r.TotalIncome  / 1_000_000_000m)), new SKColor(106, 170, 136)),
-            Line("Expenses",     ordered.Select(r => (double)(r.TotalExpense / 1_000_000_000m)), new SKColor(204, 100, 100)),
-            Line("Ratting Tax",  ordered.Select(r => (double)(r.RattingTax   / 1_000_000_000m)), new SKColor(200, 168,  75)),
-            Line("Industry Tax", ordered.Select(r => (double)(r.IndustryTax  / 1_000_000_000m)), new SKColor( 91, 155, 213)),
-            Line("Proj Payouts", ordered.Select(r => (double)(r.ProjectPayouts / 1_000_000_000m)), new SKColor(155, 120, 200)),
-        ];
-
-        MonthlyCountSeries =
-        [
-            Line("Kills",        ordered.Select(r => (double)r.Kills),       new SKColor(106, 170, 136), 0),
-            Line("Losses",       ordered.Select(r => (double)r.Losses),      new SKColor(204, 100, 100), 0),
-            Line("Units Mined",  ordered.Select(r => (double)r.UnitsMined),  new SKColor(200, 168,  75), 1),
-        ];
-
-        static Axis XAx(string[] labs) => new Axis
-        {
-            Labels = labs, LabelsRotation = -45, TextSize = 9,
-            SeparatorsPaint = new SolidColorPaint(new SKColor(30, 30, 42)),
-            LabelsPaint     = new SolidColorPaint(new SKColor(85, 85, 102)),
-        };
-        static Axis YAx(string unit) => new Axis
-        {
-            TextSize = 9, MinLimit = 0,
-            LabelsPaint     = new SolidColorPaint(new SKColor(85, 85, 102)),
-            SeparatorsPaint = new SolidColorPaint(new SKColor(30, 30, 42)),
-            Labeler = v => $"{v:F1}{unit}",
-        };
-
-        MonthlyXAxes = [XAx(labels)];
-        MonthlyIskYAxes = [YAx("B")];
-        MonthlyCountAndMineYAxes =
-        [
-            new Axis { TextSize = 9, MinLimit = 0, LabelsPaint = new SolidColorPaint(new SKColor(85, 85, 102)), SeparatorsPaint = new SolidColorPaint(new SKColor(30, 30, 42)) },
-            new Axis { TextSize = 9, MinLimit = 0, Position = LiveChartsCore.Measure.AxisPosition.End, LabelsPaint = new SolidColorPaint(new SKColor(85, 85, 102)), SeparatorsPaint = new SolidColorPaint(SKColors.Transparent), Labeler = v => v >= 1_000_000 ? $"{v/1_000_000:F0}M" : $"{v:N0}" },
-        ];
+        MonthlyCountSeries       = activity?.Series ?? [];
+        MonthlyCountAndMineYAxes = activity?.YAxes  ?? [];
     }
 
     private async Task LoadProjectsAsync(long corpId, CancellationToken ct)

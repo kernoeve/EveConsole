@@ -134,29 +134,86 @@ public class SchedulerService(
     {
         var cfg = ScheduledTaskConfig.FromJson(task.Config);
 
-        if (cfg.Blocks.Count == 0) return (true, "Nothing to post: no blocks configured.");
+        if (cfg.Blocks.Count == 0) return (true, "Nothing to post: no sections configured.");
+
+        var viaWebhook = cfg.DestinationKind == SlackDestination.KindWebhook;
 
         var render = await renderer.RenderAsync(cfg.Blocks, now, ct);
-        var body   = render.Text;
+        var body   = render.Text.Trim();
 
-        // A Top 10 for a month nobody flew in renders to nothing, and posting an empty message
-        // would be worse than saying so here.
-        if (body.Trim().Length == 0) return (true, "Nothing to post: the sections rendered empty.");
+        // ⚠️ Charts are drawn BEFORE anything is decided, because whether they came out is part
+        // of whether there is anything to post. A task of nothing but charts renders no text at
+        // all, and testing the text alone would have declared it empty and stopped.
+        var charts  = cfg.Blocks.Where(b => b.IsChart).ToList();
+        var drawn   = new List<(byte[] Png, string Title)>();
+        var skipped = 0;
+
+        foreach (var b in charts)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            // No point drawing what cannot be sent. The count is still reported, so a task
+            // pointed at a webhook says what it could not do rather than looking complete.
+            if (viaWebhook) { skipped++; continue; }
+
+            if (await renderer.RenderChartAsync(b, ct) is { } c) drawn.Add(c);
+        }
+
+        if (body.Length == 0 && drawn.Count == 0)
+            return (true, WithSkipped("Nothing to post: the sections rendered empty.", skipped));
 
         // Asked for, and only then: a task whose static text is the point should still go out on a
-        // quiet month. ⚠️ Counts as the run either way — it got as far as deciding what to
-        // send, and deciding to send nothing is a decision, not a failure to retry.
-        if (cfg.SkipIfNoDynamicContent && !render.AnyDynamicContent)
-            return (true, "Nothing to post: no dynamic section had anything to say.");
+        // quiet month. A chart that drew counts as something to say. ⚠️ Counts as the run either
+        // way — it got as far as deciding what to send, and deciding to send nothing is a
+        // decision, not a failure to retry.
+        if (cfg.SkipIfNoDynamicContent && !render.AnyDynamicContent && drawn.Count == 0)
+            return (true, WithSkipped("Nothing to post: no dynamic section had anything to say.", skipped));
 
-        var res = cfg.DestinationKind == SlackDestination.KindWebhook
-            ? await PostWebhookAsync(cfg.DestinationId, body, ct)
-            : await slack.PostMessageAsync(cfg.DestinationId, body, ct: ct);
+        var posted = 0;
 
-        return res.Ok
-            ? (true,  $"Posted {body.Length:N0} characters.")
-            : (false, $"Slack refused it: {res.Error}");
+        if (body.Length > 0)
+        {
+            var res = viaWebhook
+                ? await PostWebhookAsync(cfg.DestinationId, body, ct)
+                : await slack.PostMessageAsync(cfg.DestinationId, body, ct: ct);
+
+            if (!res.Ok) return (false, $"Slack refused it: {res.Error}");
+            posted = body.Length;
+        }
+
+        // After the text, so the message reads in the order it was composed: the words, then the
+        // pictures under them.
+        var failed = new List<string>();
+
+        foreach (var (png, title) in drawn)
+        {
+            var error = await slack.UploadFileAsync(
+                cfg.DestinationId, png,
+                filename: $"{title.Replace(' ', '-').ToLowerInvariant()}.png",
+                title:    title,
+                ct:       ct);
+
+            if (error is not null) failed.Add($"{title}: {error}");
+        }
+
+        var what = posted > 0 ? $"Posted {posted:N0} characters." : "Posted.";
+        if (drawn.Count > failed.Count) what += $" {drawn.Count - failed.Count} chart(s) uploaded.";
+        if (failed.Count > 0)           what += $" {failed.Count} chart(s) failed: {string.Join("; ", failed)}.";
+
+        return (true, WithSkipped(what, skipped));
     }
+
+    /// <summary>
+    /// Appends what a webhook could not carry.
+    ///
+    /// <para>⚠️ Said out loud on every outcome. A chart section pointed at a webhook is dropped
+    /// in a way nothing else would reveal, and a run reporting plain success while half of what it
+    /// was asked to send never existed is the kind of quiet that costs a month.</para>
+    /// </summary>
+    private static string WithSkipped(string message, int skipped) =>
+        skipped == 0
+            ? message
+            : $"{message} {skipped} chart section(s) skipped: a webhook cannot carry an image.";
 
     /// <summary>
     /// Raises the same alert an alarm raises.

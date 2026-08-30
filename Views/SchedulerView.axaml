@@ -345,7 +345,19 @@
                                            Text="Each list prints the amount and its share. Ticked, the amount comes off — except Kills, whose number is a count rather than a value." />
                               </StackPanel>
 
-                              <!-- Sale posting: which one -->
+                              <!-- Charts: whose figures, and a word about where they can go -->
+                          <StackPanel IsVisible="{Binding IsChart}" Spacing="6">
+                            <TextBlock Classes="hint"
+                                       Text="Twelve months of trends, drawn as an image and uploaded under the message." />
+                            <Border IsVisible="{Binding ShowWebhookChartWarning}"
+                                    Background="#231d10" BorderBrush="#4a3a1a" BorderThickness="1"
+                                    CornerRadius="3" Padding="8 6">
+                              <TextBlock FontSize="10.5" Foreground="#c8a84b" TextWrapping="Wrap"
+                                         Text="This section will not be posted. The task is aimed at a webhook, and a webhook cannot carry an image — pick a workspace channel above, or this section is skipped when the task runs." />
+                            </Border>
+                          </StackPanel>
+
+                          <!-- Sale posting: which one -->
                               <StackPanel IsVisible="{Binding IsSale}" Spacing="4">
                                 <TextBlock Classes="flabel" Text="POSTING" />
                                 <ComboBox ItemsSource="{Binding Postings}" SelectedItem="{Binding Posting}"

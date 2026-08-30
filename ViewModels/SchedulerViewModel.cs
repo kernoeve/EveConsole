@@ -166,8 +166,10 @@ public sealed class MessageBlockVm : ReactiveObject
         IReadOnlyList<CorpChoice>     corps,
         IReadOnlyList<PostingChoice>  postings,
         Func<long, string, Task<IReadOnlyList<Models.CorpStandingProject>>>? loadProjects = null,
-        bool                          fresh = false)
+        bool                          fresh = false,
+        Func<bool>?                   destinationIsWebhook = null)
     {
+        _destinationIsWebhook = destinationIsWebhook ?? (() => false);
         Corps         = corps;
         Postings      = postings;
         _loadProjects = loadProjects;
@@ -226,7 +228,8 @@ public sealed class MessageBlockVm : ReactiveObject
             foreach (var n in new[]
                      {
                          nameof(IsText), nameof(NeedsCorp), nameof(NeedsMonth),
-                         nameof(IsTop10), nameof(IsSale), nameof(IsProjects), nameof(Heading),
+                         nameof(IsTop10), nameof(IsSale), nameof(IsProjects), nameof(IsChart),
+                         nameof(Heading), nameof(ShowWebhookChartWarning),
                      })
                 this.RaisePropertyChanged(n);
 
@@ -235,13 +238,18 @@ public sealed class MessageBlockVm : ReactiveObject
     }
 
     public bool IsText     => Type == MessageBlock.TypeText;
+
+    /// <summary>A picture rather than text, and so a section a webhook cannot carry.</summary>
+    public bool IsChart    => Type is MessageBlock.TypeIskChart or MessageBlock.TypeActivityChart;
     public bool IsTop10    => Type == MessageBlock.TypeTop10;
     public bool IsSale     => Type == MessageBlock.TypeSale;
     public bool IsProjects => Type == MessageBlock.TypeProjects;
 
     /// <summary>Standing projects need a corp too; only the two report blocks need a month.</summary>
     public bool NeedsCorp  => Type is MessageBlock.TypeTop10 or MessageBlock.TypeMonthly
-                                   or MessageBlock.TypeProjects;
+                                   or MessageBlock.TypeProjects
+                                   or MessageBlock.TypeIskChart
+                                   or MessageBlock.TypeActivityChart;
     public bool NeedsMonth => Type is MessageBlock.TypeTop10 or MessageBlock.TypeMonthly;
 
     public string Heading => Type switch
@@ -250,6 +258,8 @@ public sealed class MessageBlockVm : ReactiveObject
         MessageBlock.TypeMonthly  => "CORP MONTHLY SUMMARY",
         MessageBlock.TypeSale     => "SALE POSTING",
         MessageBlock.TypeProjects => "STANDING PROJECTS",
+        MessageBlock.TypeIskChart      => "CORP ISK TRENDS CHART",
+        MessageBlock.TypeActivityChart => "CORP ACTIVITY TRENDS CHART",
         _                         => "TEXT",
     };
 
@@ -382,6 +392,21 @@ public sealed class MessageBlockVm : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> SelectAllCommand  { get; }
     public ReactiveCommand<Unit, Unit> SelectNoneCommand { get; }
+
+    /// <summary>
+    /// True while this section draws a chart and the task is aimed at a webhook.
+    ///
+    /// <para>⚠️ Read off the task's destination, which lives a level up. The section is where
+    /// somebody is looking when they add a chart, so the section is where the warning has to be
+    /// — finding out at 00:01 from a status line is finding out too late.</para>
+    /// </summary>
+    public bool ShowWebhookChartWarning => IsChart && _destinationIsWebhook();
+
+    private readonly Func<bool> _destinationIsWebhook;
+
+    /// <summary>Called by the editor when the destination changes, since it is not this
+    /// section's own property to watch.</summary>
+    public void DestinationChanged() => this.RaisePropertyChanged(nameof(ShowWebhookChartWarning));
 
     private string _projectsNote = "";
     public string ProjectsNote { get => _projectsNote; private set => this.RaiseAndSetIfChanged(ref _projectsNote, value); }
@@ -583,6 +608,8 @@ public sealed class SchedulerViewModel : ReactiveObject
         new(MessageBlock.TypeMonthly,  "Corp Monthly Summary"),
         new(MessageBlock.TypeSale,     "Sale Posting"),
         new(MessageBlock.TypeProjects, "Standing Projects"),
+        new(MessageBlock.TypeIskChart,      "Corp ISK Trends Chart"),
+        new(MessageBlock.TypeActivityChart, "Corp Activity Trends Chart"),
     ];
 
     private LabelledChoice? _selectedSectionType;
@@ -775,7 +802,18 @@ public sealed class SchedulerViewModel : ReactiveObject
     public bool SkipIfMissed { get => _skipIfMissed; set => this.RaiseAndSetIfChanged(ref _skipIfMissed, value); }
 
     private SlackDestination? _destination;
-    public SlackDestination? Destination { get => _destination; set => this.RaiseAndSetIfChanged(ref _destination, value); }
+    public SlackDestination? Destination
+    {
+        get => _destination;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _destination, value);
+
+            // A chart section's warning depends on this, and a section cannot watch a property
+            // that is not its own.
+            foreach (var b in Blocks) b.DestinationChanged();
+        }
+    }
 
     private string _statusText = "";
     public string StatusText { get => _statusText; private set => this.RaiseAndSetIfChanged(ref _statusText, value); }
@@ -1041,7 +1079,8 @@ public sealed class SchedulerViewModel : ReactiveObject
     // ── Blocks ───────────────────────────────────────────────────────────────
 
     private MessageBlockVm NewBlock(MessageBlock model, bool fresh) =>
-        new(model, Corps, Postings, LoadStandingProjectsAsync, fresh);
+        new(model, Corps, Postings, LoadStandingProjectsAsync, fresh,
+            () => Destination?.IsWebhook == true);
 
     private void AddSection()
     {
@@ -1315,7 +1354,18 @@ public sealed class SchedulerViewModel : ReactiveObject
             var render = await _renderer.RenderAsync(
                 [.. Blocks.Select(b => b.ToModel())], DateTime.UtcNow);
 
-            PreviewText = render.Text.Length > 0 ? render.Text : "(the sections rendered empty)";
+            // WARN Charts are named, not drawn. They contribute no text, so a preview that
+            // showed only the text would call a chart-only message empty and read as broken.
+            // Drawing them here would also mean rendering twice for a button that sends nothing.
+            var noted = string.Join("\n", Blocks.Where(b => b.IsChart)
+                .Select(b => b.ShowWebhookChartWarning
+                    ? $"[{b.Heading} — skipped: the destination is a webhook]"
+                    : $"[{b.Heading} — uploaded as an image]"));
+
+            var shown = string.Join("\n\n",
+                new[] { render.Text, noted }.Where(t => t.Length > 0));
+
+            PreviewText = shown.Length > 0 ? shown : "(the sections rendered empty)";
 
             // The preview is also where you find out the switch would have held the post back,
             // rather than finding out from a channel that stayed quiet.
