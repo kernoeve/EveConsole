@@ -39,8 +39,11 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
     ///
     /// <para>⚠️ A reaction structure carries TWO time bonuses and the app read one. A Tatara has
     /// 2721 = 0.75 as a multiplier AND this at -20, and EVE applies both: 0.75 x 0.80 x the rig's
-    /// 0.736 is 0.4416, which is exactly what 600+ of the user's own reaction jobs measure. On its
-    /// own, 2721 modelled a reaction 25% slower than the game charges.</para>
+    /// 0.736 is 0.4416, which is exactly what 600+ real reaction jobs measure. On its own, 2721
+    /// modelled a reaction 25% slower than the game charges.</para>
+    ///
+    /// <para>⚠️ Reactions only. It also sits on Fortizars, Azbels, Sotiyos and Keepstars, where
+    /// measurement says it does NOT shorten a manufacturing job — see where it is folded in.</para>
     /// </summary>
     private const int AttrStructRoleTime  = 2749;
 
@@ -164,9 +167,17 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
             // cannot run a reaction at all, so reading it on its own would invent a bonus for a
             // structure that never gets asked.
             //
-            // Manufacturing is deliberately left alone: those same structures may well have the
-            // same gap, but blueprint TE and rig fits vary across real manufacturing jobs and no
-            // measurement here separates them, so changing it would be a guess.
+            // ⚠️ Manufacturing does NOT get it, and that is measured rather than assumed.
+            // Dividing blueprint TE and the skill factor out of real jobs leaves role x rig, and
+            // all three cases land exactly on 2602 alone:
+            //
+            //     Raitaru, no applicable rig      0.85   = 2602
+            //     Azbel + L-Set Cap Ship Mfg I    0.464  = 0.8 x 0.58   (-20% x 2.1 nullsec)
+            //     Sotiyo + XL-Set Ship Mfg I      0.406  = 0.7 x 0.58
+            //
+            // Folding 2749 in would make those 0.64 x rig and 0.49 x rig, and neither then
+            // divides into a whole rig bonus. Whatever 2749 does on a Fortizar or an Azbel, it
+            // does not shorten a manufacturing job.
             structRxn[key] = a.Value * roleTime.GetValueOrDefault(a.TypeId, 1.0);
         }
 
