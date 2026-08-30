@@ -263,9 +263,7 @@ public sealed class StandingProjectRowVm
     /// built when every project was a delivery, so it printed a bare item name and left the
     /// reader unable to tell a delivery from a destroy-NPC row.</para>
     ///
-    /// <para>The shape follows the type, because the types are identified by different
-    /// things: a delivery is an item and where it goes, and a destroy-NPC project is just a
-    /// place.</para>
+    /// <para>Shaped by StandingProjectReport, which a scheduled post prints from too.</para>
     /// </summary>
     public string SummaryText { get; }
     public string LocationText      { get; }
@@ -317,13 +315,7 @@ public sealed class StandingProjectRowVm
         DescriptionText = row.TargetDisplay;
         LocationText    = row.DestDisplay;
 
-        SummaryText = row.TypeDisplay + ": " + (row.ItemTypeId is > 0
-            ? row.TargetDisplay + (row.DestDisplay.Length > 0
-                ? " → " + row.DestDisplay
-                : "")
-            // A destroy-NPC row names the qualifying system in DestDisplay when an ADM rule
-            // selected it, and in TargetDisplay when the definition named it outright.
-            : row.DestDisplay.Length > 0 ? row.DestDisplay : row.TargetDisplay);
+        SummaryText = StandingProjectReport.Summary(row);
         LocationId      = row.StationId ?? 0;
         LocationIsNpc   = row.StationIsNpc;
 

@@ -167,14 +167,17 @@ public class SchedulerService(
 
         if (text.Length == 0) return (true, "Nothing to raise: the alert has no text.");
 
-        // The task's name is the headline. Both readers lead with the title and put the body under
-        // it, so the name answers "which task said this" without asking for a second field that
-        // would usually just repeat the name.
+        // Both readers lead with the title and put the body under it. An unwritten headline falls
+        // back to the task's name, which already answers "which task said this".
+        var title = cfg.AlertTitle.Trim();
+        if (title.Length == 0) title = task.Name.Trim();
+        if (title.Length == 0) title = "Scheduled alert";
+
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         db.AlarmAlerts.Add(new AlarmAlert
         {
             CreatedAt = new DateTimeOffset(now, TimeSpan.Zero),
-            Title     = task.Name.Trim().Length > 0 ? task.Name.Trim() : "Scheduled alert",
+            Title     = title,
             Body      = text,
         });
         await db.SaveChangesAsync(ct);

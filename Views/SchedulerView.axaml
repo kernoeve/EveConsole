@@ -234,112 +234,182 @@
               </StackPanel>
 
               <StackPanel Spacing="10">
+
                 <Grid ColumnDefinitions="Auto,*">
                   <TextBlock Grid.Column="0" Classes="section" Text="MESSAGE" Margin="0"
                              VerticalAlignment="Center" />
-                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
+                  <!-- One picker and one Add, rather than a button per section type: the list of
+                       types is going to keep growing, and a row of buttons does not. -->
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
                               HorizontalAlignment="Left" Margin="16 0 0 0">
-                    <Button Classes="small" Content="+ Text"    Command="{Binding AddTextCommand}" />
-                    <Button Classes="small" Content="+ Top 10"  Command="{Binding AddTop10Command}" />
-                    <Button Classes="small" Content="+ Monthly" Command="{Binding AddMonthlyCommand}" />
+                    <ComboBox ItemsSource="{Binding SectionTypes}"
+                              SelectedItem="{Binding SelectedSectionType}" Width="180" />
+                    <Button Classes="small" Content="Add Section" Padding="10 3"
+                            Command="{Binding AddSectionCommand}" />
+                    <Button Classes="small" Content="Preview" Padding="10 3"
+                            Command="{Binding PreviewCommand}"
+                            ToolTip.Tip="Renders the sections as they would be posted, without posting." />
                   </StackPanel>
                 </Grid>
 
-                <TextBlock Classes="hint" IsVisible="{Binding !Blocks.Count}"
-                           Text="Nothing to say yet. Add blocks above — they go out in this order, as one message." />
+                <!-- Sections on the left, what they come out as on the right. -->
+                <Grid ColumnDefinitions="*,14,*">
 
-                <ItemsControl ItemsSource="{Binding Blocks}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:MessageBlockVm">
-                      <Border Background="#101018" BorderBrush="#1e1e2a" BorderThickness="1"
-                              CornerRadius="3" Padding="10 8" Margin="0 0 0 8" MaxWidth="820"
-                              HorizontalAlignment="Left">
-                        <StackPanel Spacing="8">
+                  <StackPanel Grid.Column="0" Spacing="8">
 
-                          <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Grid.Column="0" Text="{Binding Heading}" FontSize="10"
-                                       FontWeight="SemiBold" Foreground="#5599aa"
-                                       VerticalAlignment="Center" />
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
-                              <Button Classes="small" Content="↑"
-                                      Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).MoveUpCommand}"
-                                      CommandParameter="{Binding}" />
-                              <Button Classes="small" Content="↓"
-                                      Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).MoveDownCommand}"
-                                      CommandParameter="{Binding}" />
-                              <Button Classes="small" Content="✕" Foreground="#aa5555"
-                                      Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).RemoveCommand}"
-                                      CommandParameter="{Binding}" />
-                            </StackPanel>
-                          </Grid>
+                    <TextBlock Classes="hint" IsVisible="{Binding !Blocks.Count}"
+                               Text="Nothing to say yet. Pick a section type and add it — sections go out in this order, as one message." />
 
-                          <!-- Static text -->
-                          <TextBox IsVisible="{Binding IsText}" Text="{Binding Text}"
-                                   AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70"
-                                   Watermark="What to say. Slack markup works here." />
+                    <ItemsControl ItemsSource="{Binding Blocks}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:MessageBlockVm">
+                          <Border Background="#101018" BorderBrush="#1e1e2a" BorderThickness="1"
+                                  CornerRadius="3" Padding="10 8" Margin="0 0 0 8">
+                            <StackPanel Spacing="8">
 
-                          <!-- Corp blocks: whose figures, and for which month -->
-                          <StackPanel IsVisible="{Binding IsCorp}" Spacing="8">
-                            <Grid ColumnDefinitions="*,150">
-                              <StackPanel Grid.Column="0" Margin="0 0 8 0">
-                                <TextBlock Classes="flabel" Text="CORP" />
-                                <ComboBox ItemsSource="{Binding Corps}" SelectedItem="{Binding Corp}"
-                                          HorizontalAlignment="Stretch" />
+                              <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Text="{Binding Heading}" FontSize="10"
+                                           FontWeight="SemiBold" Foreground="#5599aa"
+                                           VerticalAlignment="Center" />
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                  <Button Classes="small" Content="↑"
+                                          Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).MoveUpCommand}"
+                                          CommandParameter="{Binding}" />
+                                  <Button Classes="small" Content="↓"
+                                          Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).MoveDownCommand}"
+                                          CommandParameter="{Binding}" />
+                                  <Button Classes="small" Content="✕" Foreground="#aa5555"
+                                          Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).RemoveCommand}"
+                                          CommandParameter="{Binding}" />
+                                </StackPanel>
+                              </Grid>
+
+                              <!-- Static text -->
+                              <TextBox IsVisible="{Binding IsText}" Text="{Binding Text}"
+                                       AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70"
+                                       Watermark="What to say. Slack markup works here." />
+
+                              <!-- Whose figures. Top 10, Monthly and Standing Projects all need one. -->
+                              <Grid ColumnDefinitions="*,150" IsVisible="{Binding NeedsCorp}">
+                                <StackPanel Grid.Column="0" Margin="0 0 8 0">
+                                  <TextBlock Classes="flabel" Text="CORP" />
+                                  <ComboBox ItemsSource="{Binding Corps}" SelectedItem="{Binding Corp}"
+                                            HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" IsVisible="{Binding NeedsMonth}">
+                                  <TextBlock Classes="flabel" Text="MONTH" />
+                                  <ComboBox ItemsSource="{Binding Months}" SelectedItem="{Binding Month}"
+                                            HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                              </Grid>
+
+                              <TextBlock Classes="hint" IsVisible="{Binding NeedsMonth}"
+                                         Text="{Binding MonthsBackText}" />
+
+                              <!-- Top 10: which lists -->
+                              <StackPanel IsVisible="{Binding IsTop10}" Spacing="4">
+                                <TextBlock Classes="flabel" Text="LISTS TO INCLUDE" />
+                                <ItemsControl ItemsSource="{Binding Categories}">
+                                  <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                      <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                  </ItemsControl.ItemsPanel>
+                                  <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:CategoryChoice">
+                                      <CheckBox IsChecked="{Binding Selected}" Content="{Binding Title}"
+                                                Margin="0 0 12 0" />
+                                    </DataTemplate>
+                                  </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                               </StackPanel>
-                              <StackPanel Grid.Column="1">
-                                <TextBlock Classes="flabel" Text="MONTH" />
-                                <ComboBox ItemsSource="{Binding Months}" SelectedItem="{Binding Month}"
+
+                              <!-- Sale posting: which one -->
+                              <StackPanel IsVisible="{Binding IsSale}" Spacing="4">
+                                <TextBlock Classes="flabel" Text="POSTING" />
+                                <ComboBox ItemsSource="{Binding Postings}" SelectedItem="{Binding Posting}"
                                           HorizontalAlignment="Stretch" />
+                                <TextBlock Classes="hint"
+                                           Text="Priced and counted exactly as the Sale Posting tool shows it. Its post blocks are joined in order into this one section." />
                               </StackPanel>
-                            </Grid>
-                            <TextBlock Classes="hint" Text="{Binding MonthsBackText}" />
 
-                            <StackPanel IsVisible="{Binding IsTop10}" Spacing="4">
-                              <TextBlock Classes="flabel" Text="LISTS TO INCLUDE" />
-                              <ItemsControl ItemsSource="{Binding Categories}">
-                                <ItemsControl.ItemsPanel>
-                                  <ItemsPanelTemplate>
-                                    <WrapPanel />
-                                  </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                  <DataTemplate x:DataType="vm:CategoryChoice">
-                                    <CheckBox IsChecked="{Binding Selected}" Content="{Binding Title}"
-                                              Margin="0 0 12 0" />
-                                  </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                              </ItemsControl>
+                              <!-- Standing projects: which type, then which of them -->
+                              <StackPanel IsVisible="{Binding IsProjects}" Spacing="6">
+                                <StackPanel Width="180" HorizontalAlignment="Left">
+                                  <TextBlock Classes="flabel" Text="PROJECT TYPE" />
+                                  <ComboBox ItemsSource="{Binding ProjectTypes}"
+                                            SelectedItem="{Binding ProjectType}"
+                                            HorizontalAlignment="Stretch" />
+                                </StackPanel>
+
+                                <TextBlock Classes="hint" Text="{Binding ProjectsNote}"
+                                           IsVisible="{Binding ProjectsNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                                <StackPanel IsVisible="{Binding Projects.Count}" Spacing="4">
+                                  <TextBlock Classes="flabel" Text="PROJECTS TO INCLUDE" />
+                                  <ItemsControl ItemsSource="{Binding Projects}">
+                                    <ItemsControl.ItemTemplate>
+                                      <DataTemplate x:DataType="vm:ProjectChoice">
+                                        <CheckBox IsChecked="{Binding Selected}" Content="{Binding Label}"
+                                                  Margin="0 0 0 1" />
+                                      </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                  </ItemsControl>
+                                  <TextBlock Classes="hint"
+                                             Text="One row per project as defined. A project scoped to a region or constellation is listed once here and expands to a row per qualifying system when it is posted." />
+                                </StackPanel>
+                              </StackPanel>
+
                             </StackPanel>
-                          </StackPanel>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
 
-                        </StackPanel>
-                      </Border>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-
-                <!-- Preview -->
-                <StackPanel Spacing="6" IsVisible="{Binding HasPreview}">
-                  <TextBlock Classes="section" Text="PREVIEW" Margin="0" />
-                  <Border Background="#0b0b10" BorderBrush="#1e1e2a" BorderThickness="1"
-                          CornerRadius="3" Padding="10 8" MaxWidth="820"
-                          HorizontalAlignment="Left">
-                    <SelectableTextBlock Text="{Binding PreviewText}" FontFamily="Consolas,monospace"
-                                         FontSize="11" Foreground="#99a" TextWrapping="Wrap" />
+                  <!-- Preview -->
+                  <Border Grid.Column="2" Background="#0b0b10" BorderBrush="#1e1e2a"
+                          BorderThickness="1" CornerRadius="3" Padding="10 8"
+                          VerticalAlignment="Top" MinHeight="120">
+                    <StackPanel Spacing="6">
+                      <TextBlock Classes="flabel" Text="PREVIEW" />
+                      <TextBlock Classes="hint" IsVisible="{Binding !HasPreview}"
+                                 Text="Press Preview to render the sections as they would be posted." />
+                      <!-- Its own horizontal scroll: a fenced table is monospace and as wide as
+                           its widest row, and wrapping one would destroy the columns it is made of. -->
+                      <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                    VerticalScrollBarVisibility="Auto"
+                                    MaxHeight="620" IsVisible="{Binding HasPreview}">
+                        <SelectableTextBlock Text="{Binding PreviewText}"
+                                             FontFamily="Consolas,monospace"
+                                             FontSize="11" Foreground="#99a" />
+                      </ScrollViewer>
+                    </StackPanel>
                   </Border>
-                </StackPanel>
+
+                </Grid>
               </StackPanel>
 
             </StackPanel>
 
             <!-- ── Raise an alert ─────────────────────────────────────────── -->
-            <StackPanel Spacing="6" IsVisible="{Binding IsRaiseAlert}">
-              <TextBlock Classes="section" Text="ALERT TEXT" Margin="0" />
-              <TextBox Text="{Binding AlertText}" AcceptsReturn="True" TextWrapping="Wrap"
-                       MinHeight="170" MaxWidth="820" HorizontalAlignment="Left"
-                       Watermark="What the alert should say." />
+            <StackPanel Spacing="8" IsVisible="{Binding IsRaiseAlert}">
+              <TextBlock Classes="section" Text="ALERT" Margin="0" />
+
+              <StackPanel MaxWidth="820" HorizontalAlignment="Left">
+                <TextBlock Classes="flabel" Text="HEADLINE" />
+                <TextBox Text="{Binding AlertTitle}"
+                         Watermark="Leave empty to use the task's name." />
+              </StackPanel>
+
+              <StackPanel MaxWidth="820" HorizontalAlignment="Left">
+                <TextBlock Classes="flabel" Text="TEXT" />
+                <TextBox Text="{Binding AlertText}" AcceptsReturn="True" TextWrapping="Wrap"
+                         MinHeight="170" Watermark="What the alert should say." />
+              </StackPanel>
+
               <TextBlock Classes="hint" MaxWidth="820" HorizontalAlignment="Left"
-                         Text="Shows on the Overview and in the Alarms tool until it is dismissed, the same as an alarm's own alert. The task's name is its headline." />
+                         Text="Shows on the Overview and in the Alarms tool until it is dismissed, the same as an alarm's own alert." />
             </StackPanel>
 
           </StackPanel>

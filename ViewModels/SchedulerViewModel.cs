@@ -27,17 +27,90 @@ public sealed class ScheduledTaskRowVm : ReactiveObject
     public string LastResult  { get; init; } = "";
 }
 
+/// <summary>A key and the name it goes by on screen. Every picker in this tool is this shape.</summary>
+public sealed class LabelledChoice(string key, string label)
+{
+    public string Key   { get; } = key;
+    public string Label { get; } = label;
+    public override string ToString() => Label;
+}
+
 /// <summary>
-/// One block in the message being composed.
+/// Which month a corp block reports on, counted back from now.
 ///
-/// <para>⚠️ Carries its own parameters rather than reading them off the screen. A block is saved
-/// into a task that runs at 00:01 with nobody watching, so "which corp" and "which month" have to
-/// be part of the block itself.</para>
+/// <para>⚠️ Relative, never a fixed month. A task that posts "last month" has to keep meaning last
+/// month every time it runs; a stored year and month would say January forever.</para>
+/// </summary>
+public sealed class MonthBackChoice(int monthsBack, string label)
+{
+    public int    MonthsBack { get; } = monthsBack;
+    public string Label      { get; } = label;
+    public override string ToString() => Label;
+}
+
+/// <summary>A corp the app has a token for, plus its id.</summary>
+public sealed class CorpChoice(long id, string name)
+{
+    public long   Id   { get; } = id;
+    public string Name { get; } = name;
+    public override string ToString() => Name;
+}
+
+/// <summary>A defined sale posting, plus its id.</summary>
+public sealed class PostingChoice(int id, string name)
+{
+    public int    Id   { get; } = id;
+    public string Name { get; } = name;
+    public override string ToString() => Name;
+}
+
+/// <summary>One of the five Top 10 lists, ticked or not.</summary>
+public sealed class CategoryChoice(string key, string title) : ReactiveObject
+{
+    public string Key   { get; } = key;
+    public string Title { get; } = title;
+
+    private bool _selected;
+    public bool Selected { get => _selected; set => this.RaiseAndSetIfChanged(ref _selected, value); }
+}
+
+/// <summary>
+/// One standing project DEFINITION, ticked or not.
+///
+/// <para>⚠️ One row per definition, never per system. A project scoped to a region expands into a
+/// row per qualifying system when it is reported, and that set moves with sovereignty — picking
+/// from it would mean re-picking every week. The definition is the thing that holds still.</para>
+/// </summary>
+public sealed class ProjectChoice(long id, string label) : ReactiveObject
+{
+    public long   Id    { get; } = id;
+    public string Label { get; } = label;
+
+    private bool _selected = true;
+    public bool Selected { get => _selected; set => this.RaiseAndSetIfChanged(ref _selected, value); }
+}
+
+/// <summary>A day of the week, ticked or not.</summary>
+public sealed class DayChoice(int bit, string name) : ReactiveObject
+{
+    public int    Bit  { get; } = bit;
+    public string Name { get; } = name;
+
+    private bool _selected;
+    public bool Selected { get => _selected; set => this.RaiseAndSetIfChanged(ref _selected, value); }
+}
+
+/// <summary>
+/// One section of the message being composed.
+///
+/// <para>⚠️ Carries its own parameters rather than reading them off the screen. A section is
+/// saved into a task that runs at 00:01 with nobody watching, so "which corp", "which month" and
+/// "which projects" have to be part of the section itself.</para>
 /// </summary>
 public sealed class MessageBlockVm : ReactiveObject
 {
     /// <summary>
-    /// The month options, shared by every block.
+    /// The month options, shared by every section.
     ///
     /// <para>The current month is first and named as such: "so far this month" is an ordinary
     /// thing to want posted, and a bare 0 in a spinner did not say so.</para>
@@ -49,23 +122,54 @@ public sealed class MessageBlockVm : ReactiveObject
         .. Enumerable.Range(2, 11).Select(n => new MonthBackChoice(n, $"{n} months back")),
     ];
 
-    public MessageBlockVm(MessageBlock model, IReadOnlyList<CorpChoice> corps)
-    {
-        Corps = corps;
+    public static readonly LabelledChoice[] ProjectTypeOptions =
+    [
+        new(StandingProjectReport.DeliverItem, "Deliver item"),
+        new(StandingProjectReport.DestroyNpc,  "Destroy NPC"),
+    ];
 
-        _type  = model.Type;
-        _text  = model.Text;
-        _month = MonthOptions.FirstOrDefault(m => m.MonthsBack == model.MonthsBack)
-                 ?? MonthOptions[1];
-        _corp  = corps.FirstOrDefault(c => c.Id == model.CorpId) ?? corps.FirstOrDefault();
+    private readonly Func<long, string, Task<IReadOnlyList<Models.CorpStandingProject>>>? _loadProjects;
+
+    /// <summary>
+    /// The projects to leave out.
+    ///
+    /// <para>⚠️ Kept here rather than read off the tick boxes, so switching project type and back
+    /// does not lose what was already unticked — the boxes are rebuilt from this each time.</para>
+    /// </summary>
+    private readonly HashSet<long> _excluded;
+
+    public MessageBlockVm(
+        MessageBlock                  model,
+        IReadOnlyList<CorpChoice>     corps,
+        IReadOnlyList<PostingChoice>  postings,
+        Func<long, string, Task<IReadOnlyList<Models.CorpStandingProject>>>? loadProjects = null)
+    {
+        Corps         = corps;
+        Postings      = postings;
+        _loadProjects = loadProjects;
+        _excluded     = [.. model.ExcludedProjectIds];
+
+        _type    = model.Type;
+        _text    = model.Text;
+        _month   = MonthOptions.FirstOrDefault(m => m.MonthsBack == model.MonthsBack)
+                   ?? MonthOptions[1];
+        _corp    = corps.FirstOrDefault(c => c.Id == model.CorpId) ?? corps.FirstOrDefault();
+        _posting = postings.FirstOrDefault(p => p.Id == model.PostingId);
+        _projectType = ProjectTypeOptions.FirstOrDefault(t => t.Key == model.ProjectType)
+                       ?? ProjectTypeOptions[0];
 
         foreach (var (key, title) in ScheduledBlockRenderer.Top10Categories)
             Categories.Add(new CategoryChoice(key, title) { Selected = model.Categories.Contains(key) });
+
+        if (IsProjects) _ = ReloadProjectsAsync();
     }
 
-    public IReadOnlyList<CorpChoice> Corps { get; }
+    public IReadOnlyList<CorpChoice>     Corps        { get; }
+    public IReadOnlyList<PostingChoice>  Postings     { get; }
+    public IReadOnlyList<LabelledChoice> ProjectTypes => ProjectTypeOptions;
 
     public ObservableCollection<CategoryChoice> Categories { get; } = [];
+    public ObservableCollection<ProjectChoice>  Projects   { get; } = [];
 
     private string _type;
     public string Type
@@ -74,29 +178,63 @@ public sealed class MessageBlockVm : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _type, value);
-            this.RaisePropertyChanged(nameof(IsText));
-            this.RaisePropertyChanged(nameof(IsCorp));
-            this.RaisePropertyChanged(nameof(IsTop10));
-            this.RaisePropertyChanged(nameof(Heading));
+            foreach (var n in new[]
+                     {
+                         nameof(IsText), nameof(NeedsCorp), nameof(NeedsMonth),
+                         nameof(IsTop10), nameof(IsSale), nameof(IsProjects), nameof(Heading),
+                     })
+                this.RaisePropertyChanged(n);
+
+            if (IsProjects) _ = ReloadProjectsAsync();
         }
     }
 
-    public bool IsText  => Type == MessageBlock.TypeText;
-    public bool IsCorp  => Type is MessageBlock.TypeTop10 or MessageBlock.TypeMonthly;
-    public bool IsTop10 => Type == MessageBlock.TypeTop10;
+    public bool IsText     => Type == MessageBlock.TypeText;
+    public bool IsTop10    => Type == MessageBlock.TypeTop10;
+    public bool IsSale     => Type == MessageBlock.TypeSale;
+    public bool IsProjects => Type == MessageBlock.TypeProjects;
+
+    /// <summary>Standing projects need a corp too; only the two report blocks need a month.</summary>
+    public bool NeedsCorp  => Type is MessageBlock.TypeTop10 or MessageBlock.TypeMonthly
+                                   or MessageBlock.TypeProjects;
+    public bool NeedsMonth => Type is MessageBlock.TypeTop10 or MessageBlock.TypeMonthly;
 
     public string Heading => Type switch
     {
-        MessageBlock.TypeTop10   => "TOP 10 LISTS",
-        MessageBlock.TypeMonthly => "MONTHLY SUMMARY",
-        _                        => "TEXT",
+        MessageBlock.TypeTop10    => "TOP 10 LISTS",
+        MessageBlock.TypeMonthly  => "MONTHLY SUMMARY",
+        MessageBlock.TypeSale     => "SALE POSTING",
+        MessageBlock.TypeProjects => "STANDING PROJECTS",
+        _                         => "TEXT",
     };
 
     private string _text;
     public string Text { get => _text; set => this.RaiseAndSetIfChanged(ref _text, value); }
 
     private CorpChoice? _corp;
-    public CorpChoice? Corp { get => _corp; set => this.RaiseAndSetIfChanged(ref _corp, value); }
+    public CorpChoice? Corp
+    {
+        get => _corp;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _corp, value);
+            if (IsProjects) _ = ReloadProjectsAsync();
+        }
+    }
+
+    private PostingChoice? _posting;
+    public PostingChoice? Posting { get => _posting; set => this.RaiseAndSetIfChanged(ref _posting, value); }
+
+    private LabelledChoice _projectType;
+    public LabelledChoice ProjectType
+    {
+        get => _projectType;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _projectType, value ?? ProjectTypeOptions[0]);
+            _ = ReloadProjectsAsync();
+        }
+    }
 
     public IReadOnlyList<MonthBackChoice> Months => MonthOptions;
 
@@ -127,71 +265,59 @@ public sealed class MessageBlockVm : ReactiveObject
         }
     }
 
+    private string _projectsNote = "";
+    public string ProjectsNote { get => _projectsNote; private set => this.RaiseAndSetIfChanged(ref _projectsNote, value); }
+
+    /// <summary>
+    /// Rebuilds the tick list for the chosen corp and project type.
+    ///
+    /// <para>Everything starts ticked. The block means "my projects of this type, except these",
+    /// so one defined next month turns up in the post without anyone editing the task.</para>
+    /// </summary>
+    private async Task ReloadProjectsAsync()
+    {
+        Projects.Clear();
+        ProjectsNote = "";
+
+        if (_loadProjects is null || Corp is null || !IsProjects) return;
+
+        List<Models.CorpStandingProject> list;
+        try { list = [.. await _loadProjects(Corp.Id, ProjectType.Key)]; }
+        catch (Exception ex) { ProjectsNote = $"Could not read the projects: {ex.Message}"; return; }
+
+        if (list.Count == 0)
+        {
+            ProjectsNote = $"No {ProjectType.Label.ToLowerInvariant()} projects are defined for this corp.";
+            return;
+        }
+
+        foreach (var p in list)
+        {
+            var choice = new ProjectChoice(p.Id, StandingProjectReport.Describe(p))
+            {
+                Selected = !_excluded.Contains(p.Id),
+            };
+
+            // The set is the record, not the boxes: the boxes are thrown away and rebuilt every
+            // time the corp or the type changes.
+            choice.WhenAnyValue(x => x.Selected)
+                  .Subscribe(on => { if (on) _excluded.Remove(choice.Id); else _excluded.Add(choice.Id); });
+
+            Projects.Add(choice);
+        }
+    }
+
     public MessageBlock ToModel() => new()
     {
-        Type       = Type,
-        Text       = Text,
-        CorpId     = Corp?.Id ?? 0,
-        MonthsBack = MonthsBack,
-        Categories = [.. Categories.Where(c => c.Selected).Select(c => c.Key)],
+        Type               = Type,
+        Text               = Text,
+        CorpId             = Corp?.Id ?? 0,
+        MonthsBack         = MonthsBack,
+        Categories         = [.. Categories.Where(c => c.Selected).Select(c => c.Key)],
+        PostingId          = Posting?.Id ?? 0,
+        ProjectType        = ProjectType?.Key ?? StandingProjectReport.DestroyNpc,
+        ExcludedProjectIds = [.. _excluded],
     };
-}
-
-/// <summary>
-/// Which month a corp block reports on, counted back from now.
-///
-/// <para>⚠️ Relative, never a fixed month. A task that posts "last month" has to keep meaning last
-/// month every time it runs; a stored year and month would say January forever.</para>
-/// </summary>
-public sealed class MonthBackChoice(int monthsBack, string label)
-{
-    public int    MonthsBack { get; } = monthsBack;
-    public string Label      { get; } = label;
-    public override string ToString() => Label;
-}
-
-/// <summary>A corp the app has a token for, plus its id.</summary>
-public sealed class CorpChoice(long id, string name)
-{
-    public long   Id   { get; } = id;
-    public string Name { get; } = name;
-    public override string ToString() => Name;
-}
-
-/// <summary>One of the five Top 10 lists, ticked or not.</summary>
-public sealed class CategoryChoice(string key, string title) : ReactiveObject
-{
-    public string Key   { get; } = key;
-    public string Title { get; } = title;
-
-    private bool _selected;
-    public bool Selected { get => _selected; set => this.RaiseAndSetIfChanged(ref _selected, value); }
-}
-
-/// <summary>One of the things a task can do, under a name worth reading.</summary>
-public sealed class TaskTypeChoice(string key, string label)
-{
-    public string Key   { get; } = key;
-    public string Label { get; } = label;
-    public override string ToString() => Label;
-}
-
-/// <summary>One of the four ways a task can repeat, under a name worth reading.</summary>
-public sealed class KindChoice(string key, string label)
-{
-    public string Key   { get; } = key;
-    public string Label { get; } = label;
-    public override string ToString() => Label;
-}
-
-/// <summary>A day of the week, ticked or not.</summary>
-public sealed class DayChoice(int bit, string name) : ReactiveObject
-{
-    public int    Bit  { get; } = bit;
-    public string Name { get; } = name;
-
-    private bool _selected;
-    public bool Selected { get => _selected; set => this.RaiseAndSetIfChanged(ref _selected, value); }
 }
 
 /// <summary>
@@ -204,6 +330,8 @@ public sealed class SchedulerViewModel : ReactiveObject
     private readonly SchedulerService                _scheduler;
     private readonly ScheduledBlockRenderer          _renderer;
     private readonly SlackService                    _slack;
+    private readonly CorpActivityService             _corp;
+    private readonly SalePostingService              _sales;
     private readonly AppErrorLogger                  _errors;
 
     public SchedulerViewModel(
@@ -211,12 +339,16 @@ public sealed class SchedulerViewModel : ReactiveObject
         SchedulerService                scheduler,
         ScheduledBlockRenderer          renderer,
         SlackService                    slack,
+        CorpActivityService             corp,
+        SalePostingService              sales,
         AppErrorLogger                  errors)
     {
         _dbFactory = dbFactory;
         _scheduler = scheduler;
         _renderer  = renderer;
         _slack     = slack;
+        _corp      = corp;
+        _sales     = sales;
         _errors    = errors;
 
         NewCommand     = ReactiveCommand.Create(NewTask);
@@ -226,9 +358,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         RunNowCommand  = ReactiveCommand.CreateFromTask(RunNowAsync);
         PreviewCommand = ReactiveCommand.CreateFromTask(PreviewAsync);
 
-        AddTextCommand    = ReactiveCommand.Create(() => AddBlock(MessageBlock.TypeText));
-        AddTop10Command   = ReactiveCommand.Create(() => AddBlock(MessageBlock.TypeTop10));
-        AddMonthlyCommand = ReactiveCommand.Create(() => AddBlock(MessageBlock.TypeMonthly));
+        AddSectionCommand = ReactiveCommand.Create(AddSection);
 
         MoveUpCommand   = ReactiveCommand.Create<MessageBlockVm>(b => Move(b, -1));
         MoveDownCommand = ReactiveCommand.Create<MessageBlockVm>(b => Move(b, +1));
@@ -239,6 +369,7 @@ public sealed class SchedulerViewModel : ReactiveObject
 
         PickKind(ScheduleKind.Weekly);
         PickTaskType(ScheduledTaskType.SlackPost);
+        SelectedSectionType = SectionTypes[0];
 
         // ⚠️ A command that throws otherwise fails in silence: ReactiveUI routes the exception
         // here and nowhere else, so the button just appears not to work. Every failure now says
@@ -246,7 +377,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         foreach (var cmd in new IHandleObservableErrors[]
                  {
                      NewCommand, SaveCommand, DeleteCommand, RefreshCommand, RunNowCommand,
-                     PreviewCommand, AddTextCommand, AddTop10Command, AddMonthlyCommand,
+                     PreviewCommand, AddSectionCommand,
                      MoveUpCommand, MoveDownCommand, RemoveCommand,
                  })
         {
@@ -275,14 +406,32 @@ public sealed class SchedulerViewModel : ReactiveObject
     public ObservableCollection<SlackDestination>   Destinations { get; } = [];
     public ObservableCollection<DayChoice>          Days        { get; } = [];
     public ObservableCollection<CorpChoice>         Corps       { get; } = [];
+    public ObservableCollection<PostingChoice>      Postings    { get; } = [];
 
-    public List<TaskTypeChoice> TaskTypes { get; } =
+    public List<LabelledChoice> TaskTypes { get; } =
     [
         new(ScheduledTaskType.SlackPost,  "Post to Slack"),
         new(ScheduledTaskType.RaiseAlert, "Raise an alert"),
     ];
 
-    public List<KindChoice> Kinds { get; } =
+    /// <summary>What a message section can be. One list, one Add button.</summary>
+    public List<LabelledChoice> SectionTypes { get; } =
+    [
+        new(MessageBlock.TypeText,     "Text"),
+        new(MessageBlock.TypeTop10,    "Corp Top 10"),
+        new(MessageBlock.TypeMonthly,  "Monthly Summary"),
+        new(MessageBlock.TypeSale,     "Sale Posting"),
+        new(MessageBlock.TypeProjects, "Standing Projects"),
+    ];
+
+    private LabelledChoice? _selectedSectionType;
+    public LabelledChoice? SelectedSectionType
+    {
+        get => _selectedSectionType;
+        set => this.RaiseAndSetIfChanged(ref _selectedSectionType, value);
+    }
+
+    public List<LabelledChoice> Kinds { get; } =
     [
         new(ScheduleKind.Interval, "Every so often"),
         new(ScheduleKind.Weekly,   "Days of the week"),
@@ -316,8 +465,8 @@ public sealed class SchedulerViewModel : ReactiveObject
     private bool _enabled = true;
     public bool Enabled { get => _enabled; set => this.RaiseAndSetIfChanged(ref _enabled, value); }
 
-    private TaskTypeChoice? _selectedTaskType;
-    public TaskTypeChoice? SelectedTaskType
+    private LabelledChoice? _selectedTaskType;
+    public LabelledChoice? SelectedTaskType
     {
         get => _selectedTaskType;
         set
@@ -341,12 +490,16 @@ public sealed class SchedulerViewModel : ReactiveObject
     private void PickTaskType(string key) =>
         SelectedTaskType = TaskTypes.FirstOrDefault(t => t.Key == key) ?? TaskTypes[0];
 
-    /// <summary>Alerts: what it says. The task's name is the headline.</summary>
+    /// <summary>Alerts: the headline. Empty falls back to the task's own name.</summary>
+    private string _alertTitle = "";
+    public string AlertTitle { get => _alertTitle; set => this.RaiseAndSetIfChanged(ref _alertTitle, value); }
+
+    /// <summary>Alerts: what it says, under the headline.</summary>
     private string _alertText = "";
     public string AlertText { get => _alertText; set => this.RaiseAndSetIfChanged(ref _alertText, value); }
 
-    private KindChoice? _selectedKind;
-    public KindChoice? SelectedKind
+    private LabelledChoice? _selectedKind;
+    public LabelledChoice? SelectedKind
     {
         get => _selectedKind;
         set
@@ -478,9 +631,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> RunNowCommand  { get; }
     public ReactiveCommand<Unit, Unit> PreviewCommand { get; }
 
-    public ReactiveCommand<Unit, Unit> AddTextCommand    { get; }
-    public ReactiveCommand<Unit, Unit> AddTop10Command   { get; }
-    public ReactiveCommand<Unit, Unit> AddMonthlyCommand { get; }
+    public ReactiveCommand<Unit, Unit> AddSectionCommand { get; }
 
     public ReactiveCommand<MessageBlockVm, Unit> MoveUpCommand   { get; }
     public ReactiveCommand<MessageBlockVm, Unit> MoveDownCommand { get; }
@@ -504,6 +655,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     public async Task LoadAsync()
     {
         await LoadCorpsAsync();
+        await LoadPostingsAsync();
 
         // ⚠️ Only when there is nothing to show. This also runs on every background tick that
         // changed a task, and asking Slack for its channel list once a minute would be a network
@@ -561,6 +713,33 @@ public sealed class SchedulerViewModel : ReactiveObject
 
         foreach (var c in corps)
             if (Corps.All(x => x.Id != c.Id)) Corps.Add(new CorpChoice(c.Id, c.Name));
+    }
+
+    /// <summary>Merged for the same reason the corps are: a section's chosen posting is bound to
+    /// this collection, and a Clear would push null through that binding.</summary>
+    private async Task LoadPostingsAsync()
+    {
+        List<Models.SalePosting> rows;
+        try   { rows = await _sales.LoadPostingsAsync(); }
+        catch (Exception ex) { _errors.Log(nameof(SchedulerViewModel), "postings", ex); return; }
+
+        foreach (var p in rows)
+            if (Postings.All(x => x.Id != p.Id)) Postings.Add(new PostingChoice(p.Id, p.Name));
+    }
+
+    /// <summary>
+    /// The standing project DEFINITIONS of one type, for a section's tick list.
+    ///
+    /// <para>⚠️ Definitions, not the expanded rows. A region-scoped project is one thing to tick
+    /// even though it reports as a row per qualifying system.</para>
+    /// </summary>
+    private async Task<IReadOnlyList<Models.CorpStandingProject>> LoadStandingProjectsAsync(
+        long corpId, string projectType)
+    {
+        // ⚠️ Off the UI thread. This runs from a combo box setter, and EF over SQLite completes
+        // synchronously often enough that awaiting it on the UI thread is a stall, not a yield.
+        var all = await Task.Run(() => _corp.GetStandingProjectsAsync(corpId));
+        return [.. all.Where(p => p.ProjectType == projectType)];
     }
 
     /// <summary>
@@ -631,12 +810,13 @@ public sealed class SchedulerViewModel : ReactiveObject
 
         var cfg = ScheduledTaskConfig.FromJson(task.Config);
 
+        AlertTitle  = cfg.AlertTitle;
         AlertText   = cfg.AlertText;
         Destination = Destinations.FirstOrDefault(
             d => d.Kind == cfg.DestinationKind && d.Id == cfg.DestinationId);
 
         Blocks.Clear();
-        foreach (var b in cfg.Blocks) Blocks.Add(new MessageBlockVm(b, Corps));
+        foreach (var b in cfg.Blocks) Blocks.Add(NewBlock(b));
 
         PreviewText      = "";
         HasEditor        = true;
@@ -653,6 +833,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         Enabled      = true;
         PickKind(ScheduleKind.Weekly);
         PickTaskType(ScheduledTaskType.SlackPost);
+        AlertTitle      = "";
         AlertText       = "";
         IntervalValue   = 1;
         IntervalInHours = true;
@@ -673,11 +854,13 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     // ── Blocks ───────────────────────────────────────────────────────────────
 
-    private void AddBlock(string type)
+    private MessageBlockVm NewBlock(MessageBlock model) =>
+        new(model, Corps, Postings, LoadStandingProjectsAsync);
+
+    private void AddSection()
     {
-        Blocks.Add(new MessageBlockVm(
-            new MessageBlock { Type = type, MonthsBack = 1 },
-            Corps));
+        var type = SelectedSectionType?.Key ?? MessageBlock.TypeText;
+        Blocks.Add(NewBlock(new MessageBlock { Type = type, MonthsBack = 1 }));
     }
 
     private void Move(MessageBlockVm block, int by)
@@ -721,6 +904,11 @@ public sealed class SchedulerViewModel : ReactiveObject
                 return null;
             }
             if (Blocks.Count == 0) { StatusText = "Add something to say."; return null; }
+
+            // ⚠️ A section missing its own parameter renders to nothing, and a message that
+            // silently came out one section short is the hardest kind of wrong to notice. Refused
+            // here instead, while the section is still in front of whoever built it.
+            if (IncompleteSection() is { } complaint) { StatusText = complaint; return null; }
         }
         else if (IsRaiseAlert && string.IsNullOrWhiteSpace(AlertText))
         {
@@ -732,6 +920,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         {
             DestinationKind = Destination?.Kind ?? "",
             DestinationId   = Destination?.Id   ?? "",
+            AlertTitle      = AlertTitle.Trim(),
             AlertText       = AlertText.Trim(),
             Blocks          = [.. Blocks.Select(b => b.ToModel())],
         };
@@ -755,6 +944,28 @@ public sealed class SchedulerViewModel : ReactiveObject
             TaskType         = TaskType,
             Config           = cfg.ToJson(),
         };
+    }
+
+    /// <summary>What is missing from the first section that is missing something, or null.</summary>
+    private string? IncompleteSection()
+    {
+        for (var i = 0; i < Blocks.Count; i++)
+        {
+            var b   = Blocks[i];
+            var who = $"Section {i + 1} ({b.Heading.ToLowerInvariant()})";
+
+            if (b.NeedsCorp && b.Corp is null)                      return $"{who} needs a corp.";
+            if (b.IsSale    && b.Posting is null)                   return $"{who} needs a posting.";
+            if (b.IsTop10   && b.Categories.All(c => !c.Selected))  return $"{who} needs at least one list.";
+            if (b.IsText    && string.IsNullOrWhiteSpace(b.Text))   return $"{who} is empty.";
+
+            // Standing projects with everything unticked is a section that would print a heading
+            // and no rows.
+            if (b.IsProjects && b.Projects.Count > 0 && b.Projects.All(pr => !pr.Selected))
+                return $"{who} has every project unticked.";
+        }
+
+        return null;
     }
 
     private async Task SaveAsync()

@@ -20,6 +20,8 @@ public sealed class MessageBlock
     public const string TypeText    = "text";
     public const string TypeTop10   = "corp_top10";
     public const string TypeMonthly = "corp_monthly";
+    public const string TypeSale    = "sale_posting";
+    public const string TypeProjects = "standing_projects";
 
     public string Type { get; set; } = TypeText;
 
@@ -39,6 +41,22 @@ public sealed class MessageBlock
 
     /// <summary>Top 10 blocks: which of the five lists to include, by key.</summary>
     public List<string> Categories { get; set; } = [];
+
+    /// <summary>Sale posting blocks: which defined posting to render.</summary>
+    public int PostingId { get; set; }
+
+    /// <summary>Standing project blocks: "deliver_item" or "destroy_npc".</summary>
+    public string ProjectType { get; set; } = "destroy_npc";
+
+    /// <summary>
+    /// Standing project blocks: the projects to LEAVE OUT.
+    ///
+    /// <para>⚠️ Exclusions, not inclusions. The editor starts with every project ticked, so the
+    /// block means "my projects of this type, except these" — and a project defined next month
+    /// then turns up in the post on its own. Stored the other way round, a list written today
+    /// would quietly stop being the whole list the first time one was added.</para>
+    /// </summary>
+    public List<long> ExcludedProjectIds { get; set; } = [];
 }
 
 /// <summary>
@@ -54,7 +72,10 @@ public sealed class ScheduledTaskConfig
     public string DestinationKind { get; set; } = "";
     public string DestinationId   { get; set; } = "";
 
-    /// <summary>Alerts: what the alert says. The task's name is its headline.</summary>
+    /// <summary>Alerts: the headline. Empty falls back to the task's own name.</summary>
+    public string AlertTitle { get; set; } = "";
+
+    /// <summary>Alerts: what the alert says, under the headline.</summary>
     public string AlertText { get; set; } = "";
 
     public List<MessageBlock> Blocks { get; set; } = [];
@@ -86,7 +107,7 @@ public sealed class ScheduledTaskConfig
 /// selected month, rows already fetched. A task firing at 00:01 has none of that, so it asks the
 /// service for the figures it wants and formats them here.</para>
 /// </summary>
-public class ScheduledBlockRenderer(CorpActivityService corp)
+public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService sales)
 {
     /// <summary>The five lists, in the order the manual export prints them.</summary>
     public static readonly (string Key, string Title)[] Top10Categories =
@@ -113,10 +134,12 @@ public class ScheduledBlockRenderer(CorpActivityService corp)
 
             var text = b.Type switch
             {
-                MessageBlock.TypeText    => b.Text.Trim(),
-                MessageBlock.TypeTop10   => await Top10Async(b, nowUtc, ct),
-                MessageBlock.TypeMonthly => await MonthlyAsync(b, nowUtc, ct),
-                _                        => "",
+                MessageBlock.TypeText     => b.Text.Trim(),
+                MessageBlock.TypeTop10    => await Top10Async(b, nowUtc, ct),
+                MessageBlock.TypeMonthly  => await MonthlyAsync(b, nowUtc, ct),
+                MessageBlock.TypeSale     => await SalePostingAsync(b, ct),
+                MessageBlock.TypeProjects => await StandingProjectsAsync(b, ct),
+                _                         => "",
             };
 
             if (text.Length > 0) parts.Add(text);
@@ -232,6 +255,59 @@ public class ScheduledBlockRenderer(CorpActivityService corp)
             year);
 
         return MonthlySummaryReport.Export(lines, header, "Slack");
+    }
+
+    /// <summary>
+    /// A defined sale posting, rendered for a message.
+    ///
+    /// <para>⚠️ The same render the Sale Posting tool and the store mail use, so a scheduled
+    /// listing prices an item exactly as the screen does. Nothing about pricing is decided here.</para>
+    ///
+    /// <para>The tool posts block 0 as a message and the rest as threaded replies. A scheduled
+    /// block is one piece of one message, so they are joined in the same order instead — the
+    /// thread is a shape the tool's own button owns, not the posting's.</para>
+    /// </summary>
+    private async Task<string> SalePostingAsync(MessageBlock b, CancellationToken ct)
+    {
+        if (b.PostingId <= 0) return "";
+
+        var posts = await sales.RenderAsync(b.PostingId, "Slack", ct);
+
+        return string.Join("\n\n", posts
+            .Select(p => p.Text.Trim())
+            .Where(t => t.Length > 0));
+    }
+
+    /// <summary>
+    /// The standing projects of one type, expanded.
+    ///
+    /// <para>⚠️ Expanded here, chosen unexpanded. One definition scoped to a region becomes a row
+    /// per qualifying system, which is the whole point of reporting it — but the person picking
+    /// which projects to report on picked definitions, so the exclusions are matched against
+    /// DbId, which every expanded row still carries.</para>
+    /// </summary>
+    private async Task<string> StandingProjectsAsync(MessageBlock b, CancellationToken ct)
+    {
+        if (b.CorpId <= 0) return "";
+
+        // ⚠️ The type comes from the DEFINITIONS, not from reading it back off an expanded row.
+        // A row could only be classified by whether it names an item, and a delivery project saved
+        // without one would then be filed under destroy-NPC — wrong, and silently so.
+        var defs = await corp.GetStandingProjectsAsync(b.CorpId, ct);
+        var drop = b.ExcludedProjectIds.ToHashSet();
+
+        var keep = defs
+            .Where(d => d.ProjectType == b.ProjectType && !drop.Contains(d.Id))
+            .Select(d => d.Id)
+            .ToHashSet();
+
+        if (keep.Count == 0) return "";
+
+        var rows = await corp.BuildMaintainGridRowsAsync(b.CorpId, ct);
+
+        return StandingProjectReport.Export(
+            [.. rows.Where(r => keep.Contains(r.DbId))],
+            StandingProjectReport.TypeLabel(b.ProjectType) + " projects");
     }
 
     /// <summary>The corp's name, or nothing — a header without one still reads correctly.</summary>
