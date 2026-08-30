@@ -22,27 +22,41 @@ public static class StandingProjectReport
     public const string DestroyNpc  = "destroy_npc";
 
     /// <summary>
-    /// The whole row in one line.
+    /// The whole row in one line, WITH the project type named.
+    ///
+    /// <para>For the Overview panel, whose one column mixes both types and has no heading to say
+    /// which is which. A report is all one type and says so in its title, so it uses Describe.</para>
+    /// </summary>
+    public static string Summary(StandingProjectGridRow row) =>
+        row.TypeDisplay + ": " + Describe(row);
+
+    /// <summary>
+    /// The row without the type prefix.
     ///
     /// <para>The shape follows the type, because the types are identified by different things: a
     /// delivery is an item and where it goes, and a destroy-NPC project is just a place.</para>
     /// </summary>
-    public static string Summary(StandingProjectGridRow row) =>
-        row.TypeDisplay + ": " + (row.ItemTypeId is > 0
+    public static string Describe(StandingProjectGridRow row) =>
+        row.ItemTypeId is > 0
             ? row.TargetDisplay + (row.DestDisplay.Length > 0 ? " → " + row.DestDisplay : "")
             // A destroy-NPC row names the qualifying system in DestDisplay when an ADM rule
             // selected it, and in TargetDisplay when the definition named it outright.
-            : row.DestDisplay.Length > 0 ? row.DestDisplay : row.TargetDisplay);
+            : row.DestDisplay.Length > 0 ? row.DestDisplay : row.TargetDisplay;
 
-    /// <summary>What a row's match status says in plain words.</summary>
+    /// <summary>
+    /// What a row's match status says in plain words.
+    ///
+    /// <para>Title case, matching the column headers above it. The shouted NO PROJECT this
+    /// replaced was carrying the emphasis a whole column of statuses cannot all have.</para>
+    /// </summary>
     public static string Status(StandingProjectGridRow row) => row.MatchStatus switch
     {
-        "matched"     => "active",
-        "all_healthy" => "all healthy",
-        "not_active"  => "NO PROJECT",
-        "no_systems"  => "no systems in scope",
-        "no_office"   => "no office",
-        "no_adm"      => "ADM unavailable",
+        "matched"     => "Active",
+        "all_healthy" => "All Healthy",
+        "not_active"  => "No Project",
+        "no_systems"  => "No Systems In Scope",
+        "no_office"   => "No Office",
+        "no_adm"      => "ADM Unavailable",
         _             => row.MatchStatus,
     };
 
@@ -73,25 +87,36 @@ public static class StandingProjectReport
             ? [.. rows.OrderBy(r => r.RegionName.Length == 0)
                       .ThenBy(r => r.RegionName, StringComparer.OrdinalIgnoreCase)
                       .ThenBy(r => r.SystemName, StringComparer.OrdinalIgnoreCase)]
-            : rows.OrderBy(r => Summary(r), StringComparer.OrdinalIgnoreCase).ToList();
+            : rows.OrderBy(Describe, StringComparer.OrdinalIgnoreCase).ToList();
 
+        // Remaining is the count still to do; ISK Left is what that count is still worth at the
+        // project's reward per contribution. Both, because one answers "how much work" and the
+        // other "how much is in it", and neither implies the other.
         string[] headers = byPlace
-            ? ["Region", "System", "ADM", "Status", "Remaining", "%"]
-            : ["Project", "Status", "Remaining", "%"];
+            ? ["Region", "System", "ADM", "Status", "Remaining", "ISK Left", "%", "Last Done"]
+            : ["Project", "Status", "Remaining", "ISK Left", "%", "Last Done"];
 
         var cells = ordered.Select(r => byPlace
             ? new[]
               {
                   r.RegionName,
-                  // A named system that never expanded still has a name in the summary; fall back
-                  // to it rather than printing a blank where the place should be.
-                  r.SystemName.Length > 0 ? r.SystemName : Summary(r),
+                  // A named system that never expanded still has a name on the row; fall back to
+                  // it rather than printing a blank where the place should be.
+                  r.SystemName.Length > 0 ? r.SystemName : Describe(r),
                   r.Adm is { } a ? a.ToString("F2") : "",
                   Status(r),
                   r.RemainingText,
+                  r.RemainingPayoutText,
                   r.RemainingPercentText,
+                  LastDone(r),
               }
-            : new[] { Summary(r), Status(r), r.RemainingText, r.RemainingPercentText })
+            : new[]
+              {
+                  // No "Deliver Item:" prefix — the whole table is one type and the title
+                  // already says which.
+                  Describe(r), Status(r), r.RemainingText,
+                  r.RemainingPayoutText, r.RemainingPercentText, LastDone(r),
+              })
             .ToList();
 
         var columns = headers.Length;
@@ -113,13 +138,30 @@ public static class StandingProjectReport
 
         // Only with rows to head. Export has already returned on an empty set, so reaching here
         // means there is something for the headers to describe.
-        if (showHeaders) sb.AppendLine(Row(headers, widths));
+        if (showHeaders)
+        {
+            sb.AppendLine(Row(headers, widths));
+
+            // A rule under them, each dash run as wide as its own column, so the break lines up
+            // with the columns rather than running the width of the widest line.
+            sb.AppendLine(Row([.. widths.Select(w => new string('-', w))], widths));
+        }
 
         foreach (var c in cells) sb.AppendLine(Row(c, widths));
 
         sb.AppendLine("```");
         return sb.ToString().TrimEnd();
     }
+
+    /// <summary>
+    /// When a project matching this line was last completed, as a date.
+    ///
+    /// <para>The date rather than a count of days, because the column is read beside a status
+    /// that says whether anything is running NOW — "gone since the 3rd" answers both how long
+    /// and when, where a bare "12 days" answers only the first.</para>
+    /// </summary>
+    private static string LastDone(StandingProjectGridRow row) =>
+        row.LastDone is { } d ? d.UtcDateTime.ToString("yyyy-MM-dd") : "";
 
     /// <summary>One padded line. The last populated cell is not padded, so no line ends in
     /// whitespace inside the fence.</summary>

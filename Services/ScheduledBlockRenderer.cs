@@ -85,8 +85,13 @@ public sealed class MessageBlock
     /// </summary>
     public string SectionTitle { get; set; } = "";
 
-    /// <summary>Standing project blocks: print a header row above the table.</summary>
-    public bool ShowHeaders { get; set; }
+    /// <summary>
+    /// Standing project blocks: print a header row above the table.
+    ///
+    /// <para>On by default. A section saved before this existed stored its own false and keeps it;
+    /// only a section written from here on starts with headers.</para>
+    /// </summary>
+    public bool ShowHeaders { get; set; } = true;
 
     /// <summary>
     /// Standing project blocks: exactly the projects to report on.

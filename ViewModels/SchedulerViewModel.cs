@@ -191,6 +191,9 @@ public sealed class MessageBlockVm : ReactiveObject
         foreach (var (key, title) in ScheduledBlockRenderer.Top10Categories)
             Categories.Add(new CategoryChoice(key, title) { Selected = model.Categories.Contains(key) });
 
+        SelectAllCommand  = ReactiveCommand.Create(() => SelectAllProjects(true));
+        SelectNoneCommand = ReactiveCommand.Create(() => SelectAllProjects(false));
+
         if (IsProjects) _ = ReloadProjectsAsync();
     }
 
@@ -288,7 +291,7 @@ public sealed class MessageBlockVm : ReactiveObject
         StandingProjectReport.DefaultTitle(ProjectType?.Key ?? StandingProjectReport.DestroyNpc,
                                            ProjectFilter?.Key ?? EveConsole.Services.ProjectFilters.All);
 
-    private bool _showHeaders;
+    private bool _showHeaders = true;
     public bool ShowHeaders { get => _showHeaders; set => this.RaiseAndSetIfChanged(ref _showHeaders, value); }
 
     private LabelledChoice _projectType;
@@ -331,6 +334,20 @@ public sealed class MessageBlockVm : ReactiveObject
                 : $"{when:MMMM yyyy} as things stand.";
         }
     }
+
+    /// <summary>
+    /// Ticks or clears every project at once.
+    ///
+    /// <para>Sets the boxes rather than the set behind them: each box's own subscription keeps the
+    /// stored list in step, so there is one path in and out of it.</para>
+    /// </summary>
+    public void SelectAllProjects(bool on)
+    {
+        foreach (var p in Projects) p.Selected = on;
+    }
+
+    public ReactiveCommand<Unit, Unit> SelectAllCommand  { get; }
+    public ReactiveCommand<Unit, Unit> SelectNoneCommand { get; }
 
     private string _projectsNote = "";
     public string ProjectsNote { get => _projectsNote; private set => this.RaiseAndSetIfChanged(ref _projectsNote, value); }
@@ -396,7 +413,9 @@ public sealed class MessageBlockVm : ReactiveObject
         ProjectFilter      = ProjectFilter?.Key ?? EveConsole.Services.ProjectFilters.All,
         SectionTitle       = SectionTitle.Trim(),
         ShowHeaders        = ShowHeaders,
-        IncludedProjectIds = [.. _included],
+        // Sorted, so two identical selections always render the same JSON. The unsaved-changes
+        // check compares that text, and a HashSet's order is not a promise.
+        IncludedProjectIds = [.. _included.OrderBy(x => x)],
     };
 }
 
@@ -431,7 +450,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         _sales     = sales;
         _errors    = errors;
 
-        NewCommand     = ReactiveCommand.Create(NewTask);
+        NewCommand     = ReactiveCommand.CreateFromTask(NewTaskAsync);
         SaveCommand    = ReactiveCommand.CreateFromTask(SaveAsync);
         DeleteCommand  = ReactiveCommand.CreateFromTask(DeleteAsync);
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
@@ -470,7 +489,7 @@ public sealed class SchedulerViewModel : ReactiveObject
 
         this.WhenAnyValue(x => x.SelectedTask)
             .Where(t => t is not null)
-            .Subscribe(t => _ = LoadEditorAsync(t!.Id));
+            .Subscribe(t => _ = SelectAsync(t!));
 
         // A task that fires while the tool is open should show its new last-run without the
         // user going looking for Refresh.
@@ -478,6 +497,31 @@ public sealed class SchedulerViewModel : ReactiveObject
     }
 
     private void OnTasksChanged() => Dispatcher.UIThread.Post(() => _ = LoadAsync());
+
+    /// <summary>
+    /// Moving to another task, with a stop if the current one has unsaved edits.
+    ///
+    /// <para>⚠️ Puts the selection back when the answer is no. The list has already moved by the
+    /// time this runs — a ListBox selects on click — so declining has to undo it, and the
+    /// guard stops that undo from being read as another selection.</para>
+    /// </summary>
+    private bool _reselecting;
+
+    private async Task SelectAsync(ScheduledTaskRowVm row)
+    {
+        if (_reselecting) return;
+
+        if (row.Id != EditingId && !await MayDiscardAsync("Move to another task and lose them?"))
+        {
+            var back = Tasks.FirstOrDefault(t => t.Id == EditingId);
+            _reselecting = true;
+            try { SelectedTask = back; }
+            finally { _reselecting = false; }
+            return;
+        }
+
+        await LoadEditorAsync(row.Id);
+    }
 
     // ── Lists ────────────────────────────────────────────────────────────────
 
@@ -727,6 +771,12 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     // ── Loading ──────────────────────────────────────────────────────────────
 
+    private async Task RefreshAsync()
+    {
+        if (!await MayDiscardAsync("Refresh and lose them?")) return;
+        await ReloadAsync();
+    }
+
     /// <summary>
     /// Reloads everything, the Slack channel list included.
     ///
@@ -734,7 +784,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     /// a Clear pushes null through those bindings — which reads as the user picking nothing, and
     /// loses the choice before there is a new list to restore it from.</para>
     /// </summary>
-    public async Task RefreshAsync()
+    public async Task ReloadAsync()
     {
         await LoadDestinationsAsync();
         await LoadAsync();
@@ -910,6 +960,13 @@ public sealed class SchedulerViewModel : ReactiveObject
         PreviewText      = "";
         HasEditor        = true;
         _editorLoadedFor = task.Id;
+        MarkClean();
+    }
+
+    private async Task NewTaskAsync()
+    {
+        if (!await MayDiscardAsync("Start a new task and lose them?")) return;
+        NewTask();
     }
 
     private void NewTask()
@@ -940,6 +997,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         HasEditor        = true;
         _editorLoadedFor = -1;
         StatusText       = "New task.";
+        MarkClean();
     }
 
     // ── Blocks ───────────────────────────────────────────────────────────────
@@ -971,6 +1029,69 @@ public sealed class SchedulerViewModel : ReactiveObject
         if (!int.TryParse(parts[0], out var h) || !int.TryParse(parts[1], out var m)) return null;
         if (h is < 0 or > 23 || m is < 0 or > 59) return null;
         return h * 60 + m;
+    }
+
+    /// <summary>
+    /// The editor as a task, with nothing checked.
+    ///
+    /// <para>Separated from Collect so the unsaved-changes test can build one from a half-finished
+    /// editor. Validation belongs to saving and running, not to asking whether anything changed.</para>
+    /// </summary>
+    private ScheduledTask Snapshot()
+    {
+        var cfg = new ScheduledTaskConfig
+        {
+            DestinationKind        = Destination?.Kind ?? "",
+            DestinationId          = Destination?.Id   ?? "",
+            SkipIfNoDynamicContent = SkipIfNoDynamicContent,
+            AlertTitle             = AlertTitle.Trim(),
+            AlertText              = AlertText.Trim(),
+            Blocks                 = [.. Blocks.Select(b => b.ToModel())],
+        };
+
+        return new ScheduledTask
+        {
+            Id               = EditingId,
+            Name             = Name.Trim(),
+            Enabled          = Enabled,
+            Kind             = Kind,
+            IntervalMinutes  = IntervalInHours ? IntervalValue * 60 : IntervalValue,
+            DaysOfWeek       = Days.Where(d => d.Selected).Sum(d => 1 << d.Bit),
+            TimeOfDayMinutes = ParsedTime() ?? 0,
+            DayOfMonth       = DayOfMonth,
+            MonthOfYear      = MonthNames.IndexOf(MonthOfYear) + 1,
+            SkipIfMissed     = CanSkipIfMissed && SkipIfMissed,
+            TaskType         = TaskType,
+            Config           = cfg.ToJson(),
+        };
+    }
+
+    /// <summary>Everything that distinguishes one saved task from another, as one string.</summary>
+    private static string Signature(ScheduledTask t) => string.Join('\u0001',
+        t.Name, t.Enabled, t.Kind, t.IntervalMinutes, t.DaysOfWeek, t.TimeOfDayMinutes,
+        t.DayOfMonth, t.MonthOfYear, t.SkipIfMissed, t.TaskType, t.Config);
+
+    /// <summary>What was last loaded or saved. Empty while no editor is open.</summary>
+    private string _savedSignature = "";
+
+    private void MarkClean() => _savedSignature = Signature(Snapshot());
+
+    /// <summary>Whether the editor holds anything the database does not.</summary>
+    public bool IsDirty => HasEditor && Signature(Snapshot()) != _savedSignature;
+
+    /// <summary>
+    /// Asks whether to abandon unsaved edits. Set by the view, which is the only thing with a
+    /// window to hang a dialog off. Absent, nothing is guarded and nothing blocks.
+    /// </summary>
+    public Func<string, Task<bool>>? ConfirmDiscard { get; set; }
+
+    /// <summary>True to carry on. Silent when there is nothing to lose.</summary>
+    private async Task<bool> MayDiscardAsync(string what)
+    {
+        if (!IsDirty || ConfirmDiscard is null) return true;
+
+        return await ConfirmDiscard(
+            $"\"{(Name.Trim().Length > 0 ? Name.Trim() : "This task")}\" has unsaved changes.\n\n{what}");
     }
 
     private ScheduledTask? Collect()
@@ -1006,35 +1127,10 @@ public sealed class SchedulerViewModel : ReactiveObject
             return null;
         }
 
-        var cfg = new ScheduledTaskConfig
-        {
-            DestinationKind = Destination?.Kind ?? "",
-            DestinationId   = Destination?.Id   ?? "",
-            SkipIfNoDynamicContent = SkipIfNoDynamicContent,
-            AlertTitle      = AlertTitle.Trim(),
-            AlertText       = AlertText.Trim(),
-            Blocks          = [.. Blocks.Select(b => b.ToModel())],
-        };
-
-        return new ScheduledTask
-        {
-            Id               = EditingId,
-            Name             = Name.Trim(),
-            Enabled          = Enabled,
-            Kind             = Kind,
-            IntervalMinutes  = IntervalInHours ? IntervalValue * 60 : IntervalValue,
-            DaysOfWeek       = Days.Where(d => d.Selected).Sum(d => 1 << d.Bit),
-            TimeOfDayMinutes = minutes ?? 0,
-            DayOfMonth       = DayOfMonth,
-            MonthOfYear      = MonthNames.IndexOf(MonthOfYear) + 1,
-
-            // ⚠️ Only stored where it is offered. Left set from a previous kind it would sit in
-            // the row unseen and change what a monthly task does the day somebody switched to it.
-            SkipIfMissed     = CanSkipIfMissed && SkipIfMissed,
-
-            TaskType         = TaskType,
-            Config           = cfg.ToJson(),
-        };
+        // ⚠️ SkipIfMissed is stored only where it is offered, and TimeOfDayMinutes only where a
+        // clock applies — both handled in Snapshot, which is the single place the editor is
+        // turned into a task.
+        return Snapshot();
     }
 
     /// <summary>What is missing from the first section that is missing something, or null.</summary>
@@ -1103,6 +1199,7 @@ public sealed class SchedulerViewModel : ReactiveObject
 
         SelectedTask = Tasks.FirstOrDefault(t => t.Id == id);
         EditingId    = id;
+        MarkClean();
         StatusText   = "Saved.";
     }
 
@@ -1165,27 +1262,49 @@ public sealed class SchedulerViewModel : ReactiveObject
     /// last-run stamp moves, and a daily task run by hand at noon does not go again at midnight.
     /// Preview is the button for trying something out without any of that.</para>
     /// </summary>
+    private bool _isRunning;
+
+    /// <summary>
+    /// True while a manual run is in flight.
+    ///
+    /// <para>⚠️ The button disables itself while the command runs, and a render that asks ESI
+    /// for sovereignty can take seconds. Without something saying so, a second click lands on a
+    /// dead button and the whole thing reads as broken.</para>
+    /// </summary>
+    public bool IsRunning
+    {
+        get => _isRunning;
+        private set { this.RaiseAndSetIfChanged(ref _isRunning, value); this.RaisePropertyChanged(nameof(RunLabel)); }
+    }
+
+    public string RunLabel => IsRunning ? "Running…" : "Run Now";
+
+    /// <summary>
+    /// Runs what is ON SCREEN, for real.
+    ///
+    /// <para>⚠️ The editor, not the saved row — the same thing Preview renders. Running one
+    /// config while looking at another is the kind of difference nobody catches until the wrong
+    /// message is already in the channel.</para>
+    ///
+    /// <para>An unsaved task can be run: there is simply no row to stamp afterwards.</para>
+    /// </summary>
     private async Task RunNowAsync()
     {
-        if (EditingId == 0) { StatusText = "Save it first."; return; }
+        var task = Collect();
+        if (task is null) return;
 
         var id  = EditingId;
         var now = DateTime.UtcNow;
+
+        IsRunning  = true;
         StatusText = "Running…";
 
-        var task = await Task.Run(async () =>
-        {
-            await using var db = await _dbFactory.CreateDbContextAsync();
-            return await db.ScheduledTasks.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
-        });
-
-        if (task is null) { StatusText = "That task is gone."; return; }
-
         var (ok, message) = await _scheduler.RunOneAsync(task, now);
+        IsRunning = false;
 
         // Stamped on the same rule the scheduler uses: a run that got as far as deciding what to
-        // send counts, a refusal does not.
-        if (ok)
+        // send counts, a refusal does not. Nothing to stamp on a task that has never been saved.
+        if (ok && id != 0)
         {
             await Task.Run(async () =>
             {

@@ -385,7 +385,15 @@
                                            IsVisible="{Binding ProjectsNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
                                 <StackPanel IsVisible="{Binding Projects.Count}" Spacing="4">
-                                  <TextBlock Classes="flabel" Text="PROJECTS TO INCLUDE" />
+                                  <Grid ColumnDefinitions="Auto,*">
+                                    <TextBlock Grid.Column="0" Classes="flabel"
+                                               Text="PROJECTS TO INCLUDE" VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
+                                                HorizontalAlignment="Left" Margin="12 0 0 2">
+                                      <Button Classes="small" Content="All"  Command="{Binding SelectAllCommand}" />
+                                      <Button Classes="small" Content="None" Command="{Binding SelectNoneCommand}" />
+                                    </StackPanel>
+                                  </Grid>
                                   <ItemsControl ItemsSource="{Binding Projects}">
                                     <ItemsControl.ItemTemplate>
                                       <DataTemplate x:DataType="vm:ProjectChoice">
@@ -467,8 +475,8 @@
               <Button Classes="tool" Content="Save"    Command="{Binding SaveCommand}" />
               <Button Classes="tool" Content="Preview" Command="{Binding PreviewCommand}"
                       IsVisible="{Binding CanPreview}" />
-              <Button Classes="tool" Content="Run Now" Command="{Binding RunNowCommand}"
-                      ToolTip.Tip="Does it for real now, and counts as the scheduled run." />
+              <Button Classes="tool" Content="{Binding RunLabel}" Command="{Binding RunNowCommand}"
+                      ToolTip.Tip="Runs what is on screen, for real, and counts as the scheduled run." />
               <Button Content="Delete" Command="{Binding DeleteCommand}"
                       Background="#1a1a28" Foreground="#aa5555" BorderBrush="#442a2a"
                       BorderThickness="1" Padding="12 4" FontSize="11" />
