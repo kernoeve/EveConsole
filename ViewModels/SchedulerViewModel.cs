@@ -1211,11 +1211,17 @@ public sealed class SchedulerViewModel : ReactiveObject
         // On disk now, so a section stops ticking projects it has not been told about.
         foreach (var b in Blocks) b.MarkSaved();
 
+        // ⚠️ Clean, and owning the new id, BEFORE the list is touched. Assigning
+        // SelectedTask runs the unsaved-changes guard, which compares the row against
+        // EditingId — still 0 on a task saved for the first time, so the guard read its own
+        // freshly saved row as a move to a different task and asked whether to discard the
+        // changes it had just written.
+        EditingId = id;
+        MarkClean();
+
         await LoadAsync();
 
         SelectedTask = Tasks.FirstOrDefault(t => t.Id == id);
-        EditingId    = id;
-        MarkClean();
         StatusText   = "Saved.";
     }
 
