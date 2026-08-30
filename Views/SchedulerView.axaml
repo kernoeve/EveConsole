@@ -478,6 +478,8 @@
           <Grid ColumnDefinitions="Auto,*">
             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
               <Button Classes="tool" Content="Save"    Command="{Binding SaveCommand}" />
+              <Button Classes="tool" Content="Discard Changes" Command="{Binding DiscardCommand}"
+                      ToolTip.Tip="Puts the editor back to what is saved." />
               <Button Classes="tool" Content="Preview" Command="{Binding PreviewCommand}"
                       IsVisible="{Binding CanPreview}" />
               <Button Classes="tool" Content="{Binding RunLabel}" Command="{Binding RunNowCommand}"

@@ -466,6 +466,7 @@ public sealed class SchedulerViewModel : ReactiveObject
 
         NewCommand     = ReactiveCommand.CreateFromTask(NewTaskAsync);
         SaveCommand    = ReactiveCommand.CreateFromTask(SaveAsync);
+        DiscardCommand = ReactiveCommand.CreateFromTask(DiscardAsync);
         DeleteCommand  = ReactiveCommand.CreateFromTask(DeleteAsync);
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
         RunNowCommand  = ReactiveCommand.CreateFromTask(RunNowAsync);
@@ -489,7 +490,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         // so on the line beside the buttons.
         foreach (var cmd in new IHandleObservableErrors[]
                  {
-                     NewCommand, SaveCommand, DeleteCommand, RefreshCommand, RunNowCommand,
+                     NewCommand, SaveCommand, DiscardCommand, DeleteCommand, RefreshCommand, RunNowCommand,
                      PreviewCommand, AddSectionCommand,
                      MoveUpCommand, MoveDownCommand, RemoveCommand,
                  })
@@ -772,6 +773,7 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> NewCommand     { get; }
     public ReactiveCommand<Unit, Unit> SaveCommand    { get; }
+    public ReactiveCommand<Unit, Unit> DiscardCommand { get; }
     public ReactiveCommand<Unit, Unit> DeleteCommand  { get; }
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
     public ReactiveCommand<Unit, Unit> RunNowCommand  { get; }
@@ -1215,6 +1217,37 @@ public sealed class SchedulerViewModel : ReactiveObject
         EditingId    = id;
         MarkClean();
         StatusText   = "Saved.";
+    }
+
+    /// <summary>
+    /// Puts the editor back to what is on disk.
+    ///
+    /// <para>Does not ask. The button IS the confirmation — an "are you sure" over a control
+    /// labelled Discard Changes is a second question about the same decision.</para>
+    /// </summary>
+    private async Task DiscardAsync()
+    {
+        if (!IsDirty) { StatusText = "Nothing to discard."; return; }
+
+        // Never saved: there is no row to go back to, so the editor closes rather than reverting
+        // to a blank version of a task that does not exist.
+        if (EditingId == 0)
+        {
+            HasEditor        = false;
+            _editorLoadedFor = -1;
+            _savedSignature  = "";
+            StatusText       = "Discarded.";
+            return;
+        }
+
+        // ⚠️ Cleared first: LoadEditorAsync refuses to re-read the task it already has open,
+        // which is what stops a background refresh from throwing away an edit in progress. Here
+        // throwing it away is the point.
+        var id = EditingId;
+        _editorLoadedFor = -1;
+        await LoadEditorAsync(id);
+
+        StatusText = "Discarded.";
     }
 
     private async Task DeleteAsync()
