@@ -247,7 +247,7 @@ public sealed class MessageBlockVm : ReactiveObject
     public string Heading => Type switch
     {
         MessageBlock.TypeTop10    => "TOP 10 LISTS",
-        MessageBlock.TypeMonthly  => "MONTHLY SUMMARY",
+        MessageBlock.TypeMonthly  => "CORP MONTHLY SUMMARY",
         MessageBlock.TypeSale     => "SALE POSTING",
         MessageBlock.TypeProjects => "STANDING PROJECTS",
         _                         => "TEXT",
@@ -580,7 +580,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     [
         new(MessageBlock.TypeText,     "Text"),
         new(MessageBlock.TypeTop10,    "Corp Top 10"),
-        new(MessageBlock.TypeMonthly,  "Monthly Summary"),
+        new(MessageBlock.TypeMonthly,  "Corp Monthly Summary"),
         new(MessageBlock.TypeSale,     "Sale Posting"),
         new(MessageBlock.TypeProjects, "Standing Projects"),
     ];

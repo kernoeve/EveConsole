@@ -442,6 +442,10 @@ public sealed class MonthSummaryLineVm
     /// where a percentage would be meaningless rather than merely large.</summary>
     public string Percent { get; init; } = "";
     public bool   IsHeader { get; init; }
+
+    /// <summary>A summing line. Carried so the export can rule it off from the rows it adds up
+    /// — the report decides which lines those are, and this is only the trip through the grid.</summary>
+    public bool   IsTotal  { get; init; }
     /// <summary>Set only where the sign carries meaning — net position, efficiency.</summary>
     public string ValueColor { get; init; } = "#ccccdd";
 
@@ -1704,6 +1708,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                 Change     = l.Change,
                 Percent    = l.Percent,
                 IsHeader   = l.IsHeader,
+                IsTotal    = l.IsTotal,
                 ValueColor = l.ValueColor,
             });
     }
@@ -1766,7 +1771,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public string BuildMonthlySummaryExport(string formatName) =>
         MonthlySummaryReport.Export(
             [.. SummaryLines.Select(l => new MonthlySummaryReport.SummaryLine(
-                l.Label, l.Value, l.Change, l.Percent, l.IsHeader, l.ValueColor))],
+                l.Label, l.Value, l.Change, l.Percent, l.IsHeader, l.ValueColor, l.IsTotal))],
             MonthlySummaryReport.Header(SelectedCorp?.Name,
                                        SelectedSummaryMonth?.Name ?? "?",
                                        SelectedSummaryYear),

@@ -30,7 +30,9 @@ public static class MonthlySummaryReport
         string Change     = "",
         string Percent    = "",
         bool   IsHeader   = false,
-        string ValueColor = "#ccccdd");
+        string ValueColor = "#ccccdd",
+        /// <summary>A summing line, ruled off from the rows it adds up.</summary>
+        bool   IsTotal    = false);
 
     // ── The lines ────────────────────────────────────────────────────────────
 
@@ -44,10 +46,10 @@ public static class MonthlySummaryReport
         void Header(string t) => lines.Add(new SummaryLine(t, IsHeader: true));
 
         // ISK line: value, signed absolute change, and the same change as a percentage.
-        void Isk(string label, decimal cur, decimal prev, string? color = null) =>
+        void Isk(string label, decimal cur, decimal prev, string? color = null, bool total = false) =>
             lines.Add(new SummaryLine(
                 label, FormatIsk(cur), SignedIsk(cur - prev), Pct(cur, prev),
-                ValueColor: color ?? "#ccccdd"));
+                ValueColor: color ?? "#ccccdd", IsTotal: total));
 
         void Count(string label, long cur, long prev, string? color = null) =>
             lines.Add(new SummaryLine(
@@ -67,7 +69,7 @@ public static class MonthlySummaryReport
         Isk("Contracts",    w?.ContractIncome ?? 0m, pw?.ContractIncome ?? 0m);
         Isk("Market",       w?.MarketIncome   ?? 0m, pw?.MarketIncome   ?? 0m);
         Isk("Other",        w?.OtherIncome    ?? 0m, pw?.OtherIncome    ?? 0m);
-        Isk("Total income", c.TotalIncome,           p.TotalIncome);
+        Isk("Total income", c.TotalIncome,           p.TotalIncome, total: true);
 
         Header("Expenses");
         Isk("Market",          w?.MarketExpense   ?? 0m, pw?.MarketExpense   ?? 0m);
@@ -75,7 +77,7 @@ public static class MonthlySummaryReport
         Isk("Project payouts", w?.ProjectPayouts  ?? 0m, pw?.ProjectPayouts  ?? 0m);
         Isk("Withdrawals",     w?.AccountWithdraw ?? 0m, pw?.AccountWithdraw ?? 0m);
         Isk("Other",           w?.OtherExpense    ?? 0m, pw?.OtherExpense    ?? 0m);
-        Isk("Total expenses",  c.TotalExpense,           p.TotalExpense);
+        Isk("Total expenses",  c.TotalExpense,           p.TotalExpense, total: true);
 
         Header("Net");
         Isk("Net position", c.Net, p.Net, c.Net >= 0 ? "#70ad47" : "#cc6666");
@@ -129,12 +131,20 @@ public static class MonthlySummaryReport
         sb.AppendLine(new string('=', Math.Max(header.Length, 32)));
         sb.AppendLine(plain ? subtitle : fmt.Bold(subtitle));
 
-        // Widths measured across every value row, so all sections share one column grid.
+        string[] columnNames = ["Item", "Amount", "Change", "%"];
+
+        // Widths measured across every value row AND the header, so all sections share one column
+        // grid and the headings fit inside it.
         var cells  = lines.Where(l => !l.IsHeader)
                           .Select(l => new[] { l.Label, l.Value, l.Change, l.Percent })
+                          .Append(columnNames)
                           .ToList();
         var widths = ColumnWidths(cells, 4);
         var (open, close) = CodeFence(fmt.Name);
+
+        // A dash run per column, so the break lines up with the columns rather than running the
+        // width of the widest line.
+        string Rule() => PaddedRow([.. widths.Select(w => new string('-', w))], widths);
 
         var inFence = false;
         void CloseFence()
@@ -163,7 +173,16 @@ public static class MonthlySummaryReport
             {
                 if (open.Length > 0) sb.AppendLine(open);
                 inFence = true;
+
+                // ⚠️ Per section, not once at the top. Each fence is its own box in Slack, and a
+                // heading in the first one describes nothing about the six below it.
+                sb.AppendLine(PaddedRow(columnNames, widths));
+                sb.AppendLine(Rule());
             }
+
+            // A total is ruled off from the rows it sums, the same way the header is.
+            if (line.IsTotal) sb.AppendLine(Rule());
+
             sb.AppendLine(PaddedRow([line.Label, line.Value, line.Change, line.Percent], widths));
         }
         CloseFence();
