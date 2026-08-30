@@ -128,6 +128,19 @@ public sealed class MessageBlockVm : ReactiveObject
         new(StandingProjectReport.DestroyNpc,  "Destroy NPC"),
     ];
 
+    /// <summary>
+    /// How much of the list to report.
+    ///
+    /// <para>All is last and is the default, because it is what these sections did before the
+    /// choice existed — a task written yesterday keeps saying what it said yesterday.</para>
+    /// </summary>
+    public static readonly LabelledChoice[] ProjectFilterOptions =
+    [
+        new(ProjectFilters.Missing,       "Missing projects"),
+        new(ProjectFilters.MissingAndLow, "Missing and low projects"),
+        new(ProjectFilters.All,           "All projects"),
+    ];
+
     private readonly Func<long, string, Task<IReadOnlyList<Models.CorpStandingProject>>>? _loadProjects;
 
     /// <summary>
@@ -170,6 +183,8 @@ public sealed class MessageBlockVm : ReactiveObject
         _posting = postings.FirstOrDefault(p => p.Id == model.PostingId);
         _projectType = ProjectTypeOptions.FirstOrDefault(t => t.Key == model.ProjectType)
                        ?? ProjectTypeOptions[0];
+        _projectFilter = ProjectFilterOptions.FirstOrDefault(f => f.Key == model.ProjectFilter)
+                       ?? ProjectFilterOptions[^1];
 
         foreach (var (key, title) in ScheduledBlockRenderer.Top10Categories)
             Categories.Add(new CategoryChoice(key, title) { Selected = model.Categories.Contains(key) });
@@ -179,7 +194,8 @@ public sealed class MessageBlockVm : ReactiveObject
 
     public IReadOnlyList<CorpChoice>     Corps        { get; }
     public IReadOnlyList<PostingChoice>  Postings     { get; }
-    public IReadOnlyList<LabelledChoice> ProjectTypes => ProjectTypeOptions;
+    public IReadOnlyList<LabelledChoice> ProjectTypes   => ProjectTypeOptions;
+    public IReadOnlyList<LabelledChoice> ReportFilters  => ProjectFilterOptions;
 
     public ObservableCollection<CategoryChoice> Categories { get; } = [];
     public ObservableCollection<ProjectChoice>  Projects   { get; } = [];
@@ -241,6 +257,16 @@ public sealed class MessageBlockVm : ReactiveObject
 
     private PostingChoice? _posting;
     public PostingChoice? Posting { get => _posting; set => this.RaiseAndSetIfChanged(ref _posting, value); }
+
+    private LabelledChoice _projectFilter;
+
+    /// <summary>Which rows the section reports. Does not touch the tick list: that chooses which
+    /// projects are in scope, this chooses which of them are worth printing.</summary>
+    public LabelledChoice ProjectFilter
+    {
+        get => _projectFilter;
+        set => this.RaiseAndSetIfChanged(ref _projectFilter, value ?? ProjectFilterOptions[^1]);
+    }
 
     private LabelledChoice _projectType;
     public LabelledChoice ProjectType
@@ -343,6 +369,7 @@ public sealed class MessageBlockVm : ReactiveObject
         HideIsk            = HideIsk,
         PostingId          = Posting?.Id ?? 0,
         ProjectType        = ProjectType?.Key ?? StandingProjectReport.DestroyNpc,
+        ProjectFilter      = ProjectFilter?.Key ?? EveConsole.Services.ProjectFilters.All,
         IncludedProjectIds = [.. _included],
     };
 }

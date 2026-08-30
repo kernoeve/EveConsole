@@ -69,6 +69,14 @@ public sealed class MessageBlock
     public string ProjectType { get; set; } = "destroy_npc";
 
     /// <summary>
+    /// Standing project blocks: how much of the list to report.
+    ///
+    /// <para>⚠️ Defaults to All, which is what these sections did before there was a choice. A
+    /// task written yesterday has to keep saying what it said yesterday.</para>
+    /// </summary>
+    public string ProjectFilter { get; set; } = ProjectFilters.All;
+
+    /// <summary>
     /// Standing project blocks: exactly the projects to report on.
     ///
     /// <para>⚠️ Inclusions, not exclusions. A new section starts with everything ticked, but what
@@ -76,6 +84,25 @@ public sealed class MessageBlock
     /// written today. Nothing joins a saved post without somebody putting it there.</para>
     /// </summary>
     public List<long> IncludedProjectIds { get; set; } = [];
+}
+
+/// <summary>How much of a standing project list to report.</summary>
+public static class ProjectFilters
+{
+    /// <summary>Only what no active project is currently covering.</summary>
+    public const string Missing = "missing";
+
+    /// <summary>That, plus the ones nearly finished and about to need replacing.</summary>
+    public const string MissingAndLow = "missing_low";
+
+    public const string All = "all";
+
+    public static string Label(string key) => key switch
+    {
+        Missing       => "Missing projects",
+        MissingAndLow => "Missing and low projects",
+        _             => "All projects",
+    };
 }
 
 /// <summary>
@@ -400,9 +427,16 @@ public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService
 
         var rows = await corp.BuildMaintainGridRowsAsync(b.CorpId, ct);
 
-        return StandingProjectReport.Export(
-            [.. rows.Where(r => keep.Contains(r.DbId))],
-            StandingProjectReport.TypeLabel(b.ProjectType) + " projects");
+        var wanted = rows
+            .Where(r => keep.Contains(r.DbId))
+            .Where(r => StandingProjectReport.Wanted(r, b.ProjectFilter))
+            .ToList();
+
+        var heading = StandingProjectReport.TypeLabel(b.ProjectType) + " projects";
+        if (b.ProjectFilter != ProjectFilters.All)
+            heading += " — " + ProjectFilters.Label(b.ProjectFilter).ToLowerInvariant();
+
+        return StandingProjectReport.Export([.. wanted], heading);
     }
 
     /// <summary>The corp's name, or nothing — a header without one still reads correctly.</summary>

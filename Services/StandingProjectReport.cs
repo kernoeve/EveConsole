@@ -88,6 +88,32 @@ public static class StandingProjectReport
         return sb.ToString().TrimEnd();
     }
 
+    /// <summary>
+    /// Whether a row belongs in a report filtered to <paramref name="filter"/>.
+    ///
+    /// <para>"Missing" is defined by what it EXCLUDES: a row is uninteresting only when an active
+    /// project is covering it, or when the scope expanded and every system in it is healthy. Those
+    /// are the two states that mean nothing to do.</para>
+    ///
+    /// <para>⚠️ Everything else stays in, including the rows that could not be judged — no
+    /// office, no ADM reading, a scope that expanded to nothing. A list of what needs attention
+    /// that quietly drops the ones it could not check is worse than one that admits them.</para>
+    /// </summary>
+    public static bool Wanted(StandingProjectGridRow row, string filter)
+    {
+        if (filter == ProjectFilters.All) return true;
+
+        var covered = row.MatchStatus is "matched" or "all_healthy";
+        if (!covered) return true;
+
+        // Nearly finished, so it is about to need replacing. The same under-10% threshold the
+        // grid already flags.
+        return filter == ProjectFilters.MissingAndLow
+            && row.MatchStatus == "matched"
+            && row.RemainingPercentValue >= 0
+            && row.RemainingPercentValue < 10.0;
+    }
+
     /// <summary>How a definition reads in the picker: one line per definition, unexpanded.</summary>
     public static string Describe(Models.CorpStandingProject p) =>
         p.ProjectType == DeliverItem

@@ -352,12 +352,23 @@
 
                               <!-- Standing projects: which type, then which of them -->
                               <StackPanel IsVisible="{Binding IsProjects}" Spacing="6">
-                                <StackPanel Width="180" HorizontalAlignment="Left">
-                                  <TextBlock Classes="flabel" Text="PROJECT TYPE" />
-                                  <ComboBox ItemsSource="{Binding ProjectTypes}"
-                                            SelectedItem="{Binding ProjectType}"
-                                            HorizontalAlignment="Stretch" />
-                                </StackPanel>
+                                <Grid ColumnDefinitions="180,10,220" HorizontalAlignment="Left">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="PROJECT TYPE" />
+                                    <ComboBox ItemsSource="{Binding ProjectTypes}"
+                                              SelectedItem="{Binding ProjectType}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="2">
+                                    <TextBlock Classes="flabel" Text="REPORT" />
+                                    <ComboBox ItemsSource="{Binding ReportFilters}"
+                                              SelectedItem="{Binding ProjectFilter}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                </Grid>
+
+                                <TextBlock Classes="hint"
+                                           Text="Missing is anything no active project is covering — including any the app could not check. Low adds the ones under 10% remaining, about to need replacing." />
 
                                 <TextBlock Classes="hint" Text="{Binding ProjectsNote}"
                                            IsVisible="{Binding ProjectsNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
