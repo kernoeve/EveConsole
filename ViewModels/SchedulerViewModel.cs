@@ -166,6 +166,7 @@ public sealed class MessageBlockVm : ReactiveObject
         _month   = MonthOptions.FirstOrDefault(m => m.MonthsBack == model.MonthsBack)
                    ?? MonthOptions[1];
         _corp    = corps.FirstOrDefault(c => c.Id == model.CorpId) ?? corps.FirstOrDefault();
+        _hideIsk = model.HideIsk;
         _posting = postings.FirstOrDefault(p => p.Id == model.PostingId);
         _projectType = ProjectTypeOptions.FirstOrDefault(t => t.Key == model.ProjectType)
                        ?? ProjectTypeOptions[0];
@@ -222,6 +223,10 @@ public sealed class MessageBlockVm : ReactiveObject
 
     private string _text;
     public string Text { get => _text; set => this.RaiseAndSetIfChanged(ref _text, value); }
+
+    /// <summary>Top 10: print the share of the total and not what it was worth.</summary>
+    private bool _hideIsk;
+    public bool HideIsk { get => _hideIsk; set => this.RaiseAndSetIfChanged(ref _hideIsk, value); }
 
     private CorpChoice? _corp;
     public CorpChoice? Corp
@@ -335,6 +340,7 @@ public sealed class MessageBlockVm : ReactiveObject
         CorpId             = Corp?.Id ?? 0,
         MonthsBack         = MonthsBack,
         Categories         = [.. Categories.Where(c => c.Selected).Select(c => c.Key)],
+        HideIsk            = HideIsk,
         PostingId          = Posting?.Id ?? 0,
         ProjectType        = ProjectType?.Key ?? StandingProjectReport.DestroyNpc,
         IncludedProjectIds = [.. _included],

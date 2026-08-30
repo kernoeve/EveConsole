@@ -334,6 +334,11 @@
                                     </DataTemplate>
                                   </ItemsControl.ItemTemplate>
                                 </ItemsControl>
+
+                                <CheckBox IsChecked="{Binding HideIsk}" Margin="0 4 0 0"
+                                          Content="Show only the share of the total, not the ISK" />
+                                <TextBlock Classes="hint"
+                                           Text="Each list prints the amount and its share. Ticked, the amount comes off — except Kills, whose number is a count rather than a value." />
                               </StackPanel>
 
                               <!-- Sale posting: which one -->

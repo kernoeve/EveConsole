@@ -51,6 +51,17 @@ public sealed class MessageBlock
     /// <summary>Top 10 blocks: which of the five lists to include, by key.</summary>
     public List<string> Categories { get; set; } = [];
 
+    /// <summary>
+    /// Top 10 blocks: print the share of the total, and not what it was worth.
+    ///
+    /// <para>The same switch the Corp Activity tab offers, for the same reason: a ranking is
+    /// often the point where the ISK is nobody else's business.</para>
+    ///
+    /// <para>⚠️ Kills keeps its number either way. Its "amount" is a count of kills, not a
+    /// value, so there is nothing to withhold and dropping it would leave a list of names.</para>
+    /// </summary>
+    public bool HideIsk { get; set; }
+
     /// <summary>Sale posting blocks: which defined posting to render.</summary>
     public int PostingId { get; set; }
 
@@ -203,9 +214,10 @@ public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService
         if (b.CorpId <= 0 || b.Categories.Count == 0) return "";
 
         var (from, to, label) = Window(b.MonthsBack, nowUtc);
-        var sb = new StringBuilder();
 
-        sb.AppendLine($"*Top 10 — {label}*");
+        // Gathered before anything is printed, so every list shares one column grid rather than
+        // each finding its own widths and the five sections stepping in and out.
+        var lists = new List<(string Title, List<string[]> Cells)>();
 
         foreach (var key in b.Categories)
         {
@@ -243,21 +255,69 @@ public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService
 
             if (rows.Count == 0) continue;
 
-            sb.AppendLine();
-            sb.AppendLine($"*{TitleFor(key)}*");
-            sb.AppendLine("```");
+            // ⚠️ The share is of what this list totals, not of some corp-wide figure. These are
+            // the top ten, so the total is the ten shown DASH which is what "% of total" means on
+            // the tab this mirrors.
+            var total = rows.Sum(r => r.Amount);
 
-            var rank = 0;
+            // Kills counts kills; everything else is ISK. Printing "1,204 ISK" for a kill count
+            // would be a units error nobody would question in a Slack post — and it is why kills
+            // keeps its number even when the ISK is suppressed.
+            var isKills   = key == "kills";
+            var showValue = isKills || !b.HideIsk;
+
+            var cells = new List<string[]>();
+            var rank  = 0;
+
             foreach (var row in rows)
             {
-                // Kills counts kills; everything else is ISK. Printing "1,204 ISK" for a kill
-                // count would be a units error nobody would question in a Slack post.
-                var amount = key == "kills"
+                var who   = names.GetValueOrDefault(row.Id, row.Id.ToString());
+                var value = isKills
                     ? ((long)row.Amount).ToString("N0")
                     : MarketFmt.Isk((double)row.Amount);
 
-                var who = names.GetValueOrDefault(row.Id, row.Id.ToString());
-                sb.AppendLine($"{++rank,2}. {who,-24} {amount,18}");
+                var share = total > 0
+                    ? ((double)(row.Amount / total) * 100.0).ToString("F1") + "%"
+                    : "";
+
+                cells.Add(showValue ? [$"{++rank}.", who, value, share]
+                                    : [$"{++rank}.", who, share]);
+            }
+
+            lists.Add((TitleFor(key), cells));
+        }
+
+        if (lists.Count == 0) return "";
+
+        // One grid across every list in this section.
+        var columns = lists.Max(l => l.Cells.Max(c => c.Length));
+        var widths  = new int[columns];
+        foreach (var l in lists)
+            foreach (var c in l.Cells)
+                for (var i = 0; i < c.Length; i++)
+                    widths[i] = Math.Max(widths[i], c[i].Length);
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"*Top 10 — {label}*");
+
+        foreach (var (title, cells) in lists)
+        {
+            sb.AppendLine();
+            sb.AppendLine($"*{title}*");
+            sb.AppendLine("```");
+
+            foreach (var c in cells)
+            {
+                var line = new StringBuilder();
+                for (var i = 0; i < c.Length; i++)
+                {
+                    // Numbers read right-aligned, the name reads left. The last cell is not padded,
+                    // so there is no trailing whitespace inside the fence.
+                    if (i == c.Length - 1)      line.Append(c[i].PadLeft(widths[i]));
+                    else if (i == 1)            line.Append(c[i].PadRight(widths[i] + 2));
+                    else                        line.Append(c[i].PadLeft(widths[i])).Append("  ");
+                }
+                sb.AppendLine(line.ToString());
             }
 
             sb.AppendLine("```");
