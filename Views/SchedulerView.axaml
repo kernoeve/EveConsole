@@ -199,8 +199,10 @@
                 </StackPanel>
 
                 <!-- Time of day -->
-                <StackPanel Width="100" IsVisible="{Binding HasClock}">
-                  <TextBlock Classes="flabel" Text="AT (HH:MM)" />
+                <!-- The zone belongs on the field, not only in the corner of the toolbar: this is
+                     the one control whose meaning changes with it. -->
+                <StackPanel Width="125" IsVisible="{Binding HasClock}">
+                  <TextBlock Classes="flabel" Text="AT (HH:MM EVE)" />
                   <TextBox Text="{Binding TimeOfDay}" Watermark="00:01" />
                 </StackPanel>
 

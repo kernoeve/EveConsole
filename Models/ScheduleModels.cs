@@ -186,10 +186,15 @@ public static class ScheduleDue
         return last is null || last.Value.Year != now.Year;
     }
 
-    /// <summary>A plain-English description of the schedule, for the list.</summary>
+    /// <summary>
+    /// A plain-English description of the schedule, for the list.
+    ///
+    /// <para>Says EVE wherever it says a time. The zone is the first thing anyone checks against a
+    /// schedule they did not write this minute, and a bare "at 09:00" does not answer it.</para>
+    /// </summary>
     public static string Describe(ScheduledTask t)
     {
-        var at = $"{t.TimeOfDayMinutes / 60:00}:{t.TimeOfDayMinutes % 60:00}";
+        var at = $"{t.TimeOfDayMinutes / 60:00}:{t.TimeOfDayMinutes % 60:00} EVE";
 
         return t.Kind switch
         {
