@@ -185,13 +185,11 @@ public sealed class MessageBlockVm : ReactiveObject
                        ?? ProjectTypeOptions[0];
         _projectFilter = ProjectFilterOptions.FirstOrDefault(f => f.Key == model.ProjectFilter)
                        ?? ProjectFilterOptions[^1];
-        // ⚠️ Filled with the default rather than left blank behind a watermark, because blank now
-        // MEANS no title. A section stored before that was true reads as blank and would silently
-        // lose its heading, so an empty stored title becomes the default here and blanking it
-        // afterwards is then a deliberate act.
-        _sectionTitle = model.SectionTitle.Length > 0 || model.Type != MessageBlock.TypeProjects
-            ? model.SectionTitle
-            : StandingProjectReport.DefaultTitle(model.ProjectType, model.ProjectFilter);
+        // ⚠️ Taken as stored, blank included. A NEW section is filled with the default below;
+        // a saved one is not, because by then blank is an answer somebody gave. Filling it in on
+        // load was briefly done to protect sections written before blank meant anything, and it
+        // made a cleared title come back every time the task was reopened.
+        _sectionTitle = model.SectionTitle;
         _showHeaders       = model.ShowHeaders;
         _showIskLeft       = model.ShowIskLeft;
         _showLastCompleted = model.ShowLastCompleted;
@@ -201,6 +199,11 @@ public sealed class MessageBlockVm : ReactiveObject
 
         SelectAllCommand  = ReactiveCommand.Create(() => SelectAllProjects(true));
         SelectNoneCommand = ReactiveCommand.Create(() => SelectAllProjects(false));
+
+        // A new section starts with the title it would write for itself, so the box shows what
+        // will be posted rather than promising it from behind a watermark.
+        if (fresh && IsProjects && _sectionTitle.Length == 0)
+            _sectionTitle = DefaultTitle;
 
         if (IsProjects) _ = ReloadProjectsAsync();
     }
