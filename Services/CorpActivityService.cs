@@ -2102,6 +2102,32 @@ public class CorpActivityService
 
     // ── Standing projects CRUD ────────────────────────────────────────────────
 
+    /// <summary>
+    /// The alliances this installation is actually in, for the alliance-sov scope picker.
+    ///
+    /// <para>⚠️ Read from the CHARACTERS. Corporations carry no alliance id of their own here, and
+    /// a corp we hold a token for has one of our characters in it — so the characters are both
+    /// the available answer and a correct one.</para>
+    /// </summary>
+    public async Task<List<(long Id, string Name)>> GetTrackedAlliancesAsync(CancellationToken ct = default)
+    {
+        using var db = _dbFactory.CreateDbContext();
+
+        var ids = await db.Characters.AsNoTracking()
+            .Where(c => c.AllianceId != null && c.AllianceId > 0)
+            .Select(c => (long)c.AllianceId!.Value)
+            .Distinct()
+            .ToListAsync(ct);
+
+        if (ids.Count == 0) return [];
+
+        var names = await ResolveNamesAsync(ids, ct);
+
+        return [.. ids
+            .Select(id => (Id: id, Name: names.GetValueOrDefault(id, id.ToString())))
+            .OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase)];
+    }
+
     public async Task<List<CorpStandingProject>> GetStandingProjectsAsync(
         long corpId, CancellationToken ct = default)
     {
@@ -2246,9 +2272,50 @@ public class CorpActivityService
             .ToListAsync(ct);
     }
 
+    /// <summary>
+    /// Names for a set of system ids, in name order.
+    ///
+    /// <para>⚠️ Wormholes are excluded here as they are everywhere else this builds a system
+    /// list — nothing holds sovereignty in one, so an id that only matched a wormhole would be
+    /// a sign the map was misread rather than a system worth listing.</para>
+    /// </summary>
+    public async Task<List<SdeSystemResult>> GetSystemNamesAsync(
+        IReadOnlyList<int> systemIds, CancellationToken ct = default)
+    {
+        if (systemIds.Count == 0) return [];
+
+        using var db = _dbFactory.CreateDbContext();
+        return await db.SdeSolarSystems
+            .Where(s => systemIds.Contains(s.SolarSystemId) && !s.IsWormhole)
+            .OrderBy(s => s.Name)
+            .Select(s => new SdeSystemResult(s.SolarSystemId, s.Name))
+            .ToListAsync(ct);
+    }
+
     // ADM data cached for 30 minutes
     private Dictionary<int, double>? _sovAdmCache;
+
+    /// <summary>
+    /// System to the alliance holding it, from the same read as the ADM map.
+    ///
+    /// <para>⚠️ Filled by GetSovAdmLevelsAsync, never on its own. One endpoint answers both
+    /// questions, and fetching it twice would double the traffic to a call already cached for half
+    /// an hour precisely because it is expensive.</para>
+    /// </summary>
+    private Dictionary<int, long>? _sovAllianceCache;
     private DateTimeOffset _sovAdmCacheTime;
+
+    /// <summary>
+    /// Which alliance holds each sovereign system.
+    ///
+    /// <para>Shares the ADM call's cache and its failure flags — an empty map means the read
+    /// failed, since every sovereign system in the game is held by somebody.</para>
+    /// </summary>
+    public async Task<Dictionary<int, long>> GetSovAllianceMapAsync(CancellationToken ct = default)
+    {
+        await GetSovAdmLevelsAsync(ct);
+        return _sovAllianceCache ?? [];
+    }
 
     public async Task<Dictionary<int, double>> GetSovAdmLevelsAsync(CancellationToken ct = default)
     {
@@ -2264,6 +2331,12 @@ public class CorpActivityService
                 .Where(s => s.Adm.HasValue)
                 .ToDictionary(s => s.SolarSystemId, s => s.Adm!.Value);
 
+            // Held systems, whether or not they report a development level: a system can be
+            // claimed and carry no ADM, and it is still that alliance's.
+            var owners = systems
+                .Where(s => s.Claim?.Alliance is { AllianceId: > 0 })
+                .ToDictionary(s => s.SolarSystemId, s => s.Claim!.Alliance!.AllianceId);
+
             // An empty map is a failure, not an answer: every sovereign system in the game
             // carries an occupancy level, so nothing is the one result this cannot mean.
             SovAdmUnavailable = dict.Count == 0;
@@ -2273,8 +2346,9 @@ public class CorpActivityService
                 return _sovAdmCache ?? [];
             }
 
-            _sovAdmCache     = dict;
-            _sovAdmCacheTime = DateTimeOffset.UtcNow;
+            _sovAdmCache      = dict;
+            _sovAllianceCache = owners;
+            _sovAdmCacheTime  = DateTimeOffset.UtcNow;
             return dict;
         }
         catch (Exception ex)
@@ -2348,8 +2422,12 @@ public class CorpActivityService
         var officeGap = deliverConfigs.Any(d => d.OfficeUnresolved);
         if (officeGap) OfficeMapUnavailable = true;
 
+        // ⚠️ Alliance-sov needs the same read. It does not filter on ADM, but the system-to-owner
+        // map comes from the same endpoint, so it has to be fetched here or the scope expands to
+        // nothing and says the scope was empty.
         bool needsAdm = standing.Any(p => p.ProjectType == "destroy_npc" &&
-                                          p.ScopeType is "region_adm" or "constellation_adm");
+                                          p.ScopeType is "region_adm" or "constellation_adm"
+                                                      or "alliance_sov");
         if (needsAdm) { SovAdmUnavailable = false; SovAdmError = ""; }
         var adm = needsAdm ? await GetSovAdmLevelsAsync(ct) : [];
 
@@ -2428,21 +2506,48 @@ public class CorpActivityService
 
                     case "region_adm":
                     case "constellation_adm":
+                    case "alliance_sov":
                     {
-                        var systems = sp.ScopeType == "region_adm" && sp.ScopeEntityId.HasValue
-                            ? await GetSystemsInRegionAsync(sp.ScopeEntityId.Value, ct)
-                            : sp.ScopeEntityId.HasValue
-                                ? await GetSystemsInConstellationAsync(sp.ScopeEntityId.Value, ct)
-                                : [];
+                        var isAlliance = sp.ScopeType == "alliance_sov";
+
+                        // ⚠️ The alliance scope is the sovereignty map read the other way round.
+                        // The ADM scopes start from a region or constellation and keep the systems
+                        // that are weak; this one starts from the map itself and keeps every system
+                        // the alliance holds, so there is no geography to look up first.
+                        List<SdeSystemResult> systems;
+                        if (isAlliance)
+                        {
+                            var owners = await GetSovAllianceMapAsync(ct);
+                            var held   = owners
+                                .Where(kv => kv.Value == (sp.ScopeEntityId ?? 0))
+                                .Select(kv => kv.Key)
+                                .ToList();
+
+                            systems = await GetSystemNamesAsync(held, ct);
+                        }
+                        else
+                        {
+                            systems = sp.ScopeType == "region_adm" && sp.ScopeEntityId.HasValue
+                                ? await GetSystemsInRegionAsync(sp.ScopeEntityId.Value, ct)
+                                : sp.ScopeEntityId.HasValue
+                                    ? await GetSystemsInConstellationAsync(sp.ScopeEntityId.Value, ct)
+                                    : [];
+                        }
 
                         var minAdm     = sp.MinAdm ?? 6.0;
-                        var scopeLabel = sp.ScopeType == "region_adm"
-                            ? $"Region: {sp.ScopeEntityName} (ADM < {minAdm:F1})"
-                            : $"Const: {sp.ScopeEntityName} (ADM < {minAdm:F1})";
+                        var scopeLabel = sp.ScopeType switch
+                        {
+                            "region_adm"   => $"Region: {sp.ScopeEntityName} (ADM < {minAdm:F1})",
+                            "alliance_sov" => $"Sov: {sp.ScopeEntityName}",
+                            _              => $"Const: {sp.ScopeEntityName} (ADM < {minAdm:F1})",
+                        };
 
-                        var qualifying = systems
-                            .Where(s => adm.TryGetValue(s.SystemId, out var a) && a < minAdm)
-                            .ToList();
+                        // ⚠️ No ADM filter on the alliance scope. It asks for every system the
+                        // alliance holds, and quietly dropping the healthy ones would answer a
+                        // question nobody asked.
+                        var qualifying = isAlliance
+                            ? systems
+                            : [.. systems.Where(x => adm.TryGetValue(x.SystemId, out var a) && a < minAdm)];
 
                         if (qualifying.Count == 0)
                         {

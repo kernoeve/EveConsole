@@ -892,10 +892,13 @@ public class CorpStandingProject
     public long?  StationId       { get; set; }
     public string StationName     { get; set; } = "";
     // destroy_npc fields
-    public string ScopeType       { get; set; } = "system";  // "system" | "region_adm" | "constellation_adm"
+    // "system" | "region_adm" | "constellation_adm" | "alliance_sov"
+    public string ScopeType       { get; set; } = "system";
     public int?   SolarSystemId   { get; set; }
     public string SolarSystemName { get; set; } = "";
-    public int?   ScopeEntityId   { get; set; }   // region or constellation ID for ADM scopes
+    // Region, constellation or alliance ID, depending on ScopeType. Alliance ids are well inside
+    // int range, and one column beats three places to look for what a project is scoped to.
+    public int?   ScopeEntityId   { get; set; }
     public string ScopeEntityName { get; set; } = "";
     public double? MinAdm         { get; set; }   // minimum ADM threshold for ADM scopes
     public DateTimeOffset CreatedAt { get; set; }

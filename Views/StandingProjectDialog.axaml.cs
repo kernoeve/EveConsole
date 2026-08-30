@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -24,15 +26,44 @@ public partial class StandingProjectDialog : Window
     private int?   _selectedConstId;
     private string _selectedConstName   = "";
 
+    /// <summary>One alliance in the picker. Named rather than shown as an id, obviously.</summary>
+    private sealed record AllianceRow(long Id, string Name)
+    {
+        public override string ToString() => Name;
+    }
+
     public StandingProjectDialog(CorpActivityService service, CorpStandingProject? existing = null)
     {
         InitializeComponent();
         _service = service;
 
+        // ⚠️ Loaded before Populate, so an existing project can select its own alliance out of a
+        // list that is already there. Fired and awaited inside, because a constructor cannot await
+        // — Populate re-selects once the rows land.
+        _ = LoadAlliancesAsync(existing?.ScopeEntityId);
+
         if (existing is not null)
             Populate(existing);
         else
             TypeCombo.SelectedIndex = 1; // default to destroy_npc
+    }
+
+    private async Task LoadAlliancesAsync(int? selectId)
+    {
+        List<(long Id, string Name)> rows;
+        try   { rows = await _service.GetTrackedAlliancesAsync(); }
+        catch { rows = []; }
+
+        AllianceCombo.ItemsSource = rows.Select(a => new AllianceRow(a.Id, a.Name)).ToList();
+
+        // Said plainly rather than left as an empty dropdown, which reads as "still loading".
+        AllianceEmptyLabel.IsVisible = rows.Count == 0;
+        AllianceCombo.IsVisible      = rows.Count > 0;
+
+        if (AllianceCombo.ItemsSource is IEnumerable<AllianceRow> list)
+            AllianceCombo.SelectedItem = selectId is > 0
+                ? list.FirstOrDefault(a => a.Id == selectId.Value)
+                : list.FirstOrDefault();
     }
 
     private void Populate(CorpStandingProject p)
@@ -82,6 +113,11 @@ public partial class StandingProjectDialog : Window
                 }
                 ConstAdmBox.Value = (decimal)(p.MinAdm ?? 4.0);
                 break;
+            case "alliance_sov":
+                ScopeAllianceSov.IsChecked = true;
+                // The combo is filled asynchronously; LoadAlliancesAsync re-selects this id when
+                // the rows arrive.
+                break;
             default:
                 ScopeSystem.IsChecked = true;
                 if (p.SolarSystemId.HasValue)
@@ -112,9 +148,10 @@ public partial class StandingProjectDialog : Window
 
     private void UpdateScopePanels()
     {
-        SystemPanel.IsVisible = ScopeSystem.IsChecked == true;
-        RegionPanel.IsVisible = ScopeRegionAdm.IsChecked == true;
-        ConstPanel.IsVisible  = ScopeConstAdm.IsChecked == true;
+        SystemPanel.IsVisible   = ScopeSystem.IsChecked == true;
+        RegionPanel.IsVisible   = ScopeRegionAdm.IsChecked == true;
+        ConstPanel.IsVisible    = ScopeConstAdm.IsChecked == true;
+        AlliancePanel.IsVisible = ScopeAllianceSov.IsChecked == true;
     }
 
     // ── Item type search ──────────────────────────────────────────────────────
@@ -356,6 +393,24 @@ public partial class StandingProjectDialog : Window
                     ScopeEntityId   = _selectedRegionId,
                     ScopeEntityName = _selectedRegionName,
                     MinAdm          = (double)(RegionAdmBox.Value ?? 4.0m),
+                });
+            }
+            else if (ScopeAllianceSov.IsChecked == true)
+            {
+                if (AllianceCombo.SelectedItem is not AllianceRow alliance)
+                {
+                    ShowValidation("Please select an alliance.");
+                    return;
+                }
+                Close(new CorpStandingProject
+                {
+                    ProjectType     = "destroy_npc",
+                    ScopeType       = "alliance_sov",
+                    // ⚠️ Stored in ScopeEntityId like the other scoped types. Alliance ids are
+                    // well inside int range, and giving this scope its own column would leave
+                    // three places to look for "what is this project scoped to".
+                    ScopeEntityId   = (int)alliance.Id,
+                    ScopeEntityName = alliance.Name,
                 });
             }
             else

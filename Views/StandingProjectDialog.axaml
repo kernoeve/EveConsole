@@ -126,6 +126,10 @@
                            GroupName="Scope"
                            Foreground="#c8c8d8" FontSize="12"
                            Checked="OnScopeChanged" />
+              <RadioButton x:Name="ScopeAllianceSov" Content="All systems where an Alliance holds sovereignty"
+                           GroupName="Scope"
+                           Foreground="#c8c8d8" FontSize="12"
+                           Checked="OnScopeChanged" />
             </StackPanel>
           </StackPanel>
 
@@ -265,6 +269,22 @@
                              Background="#131320" BorderBrush="#2a2a3a"
                              Foreground="#c8c8d8" />
             </Grid>
+          </StackPanel>
+
+          <!-- Alliance sovereignty. No ADM box: this scope is every system the alliance holds,
+               and filtering it by health would answer a different question. -->
+          <StackPanel x:Name="AlliancePanel" Spacing="5" IsVisible="False">
+            <TextBlock Text="ALLIANCE" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" />
+            <ComboBox x:Name="AllianceCombo"
+                      HorizontalAlignment="Stretch"
+                      Background="#131320" BorderBrush="#2a2a3a"
+                      Foreground="#c8c8d8" FontSize="12" />
+            <TextBlock x:Name="AllianceEmptyLabel"
+                       Text="No alliance found on any tracked character."
+                       FontSize="11" Foreground="#aa8844" IsVisible="False" TextWrapping="Wrap" />
+            <TextBlock Text="Every sovereign system this alliance holds, refreshed from the sovereignty map each time the grid is built."
+                       FontSize="10.5" Foreground="#556" TextWrapping="Wrap" Margin="0 2 0 0" />
           </StackPanel>
 
         </StackPanel>
