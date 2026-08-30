@@ -54,8 +54,8 @@ public sealed class ScheduledTaskConfig
     public string DestinationKind { get; set; } = "";
     public string DestinationId   { get; set; } = "";
 
-    /// <summary>Alerts: the headline. The body is the composed blocks.</summary>
-    public string AlertTitle { get; set; } = "";
+    /// <summary>Alerts: what the alert says. The task's name is its headline.</summary>
+    public string AlertText { get; set; } = "";
 
     public List<MessageBlock> Blocks { get; set; } = [];
 

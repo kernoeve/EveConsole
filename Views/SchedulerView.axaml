@@ -107,63 +107,65 @@
 
         <ScrollViewer Grid.Row="0" IsVisible="{Binding HasEditor}">
           <!-- Margin on the content, not padding on the ScrollViewer: padding is not counted in
-               the scrollable extent, so the last thing in the panel stays clipped. -->
-          <Grid ColumnDefinitions="340,1,*" Margin="0">
+               the scrollable extent, so the last thing in the panel stays clipped.
 
-            <!-- ── Schedule ──────────────────────────────────────────────── -->
-            <StackPanel Grid.Column="0" Spacing="14" Margin="16 14 16 16">
+               Every task has a name, a switch and a time; what it then DOES is one choice among
+               several, and only that choice's own fields belong below the rule. Laying the whole
+               editor out as one task type's form is what made a second type awkward to add. -->
+          <StackPanel Spacing="14" Margin="16 14 16 16">
 
-              <Grid ColumnDefinitions="*,Auto">
-                <StackPanel Grid.Column="0">
-                  <TextBlock Classes="flabel" Text="NAME" />
-                  <TextBox Text="{Binding Name}" Watermark="What does this task do?" />
-                </StackPanel>
-                <CheckBox Grid.Column="1" IsChecked="{Binding Enabled}" Content="Enabled"
-                          VerticalAlignment="Bottom" Margin="14 0 0 4" />
-              </Grid>
+            <!-- ══ Common: every task has these ═══════════════════════════ -->
 
-              <StackPanel Spacing="6">
-                <TextBlock Classes="section" Text="WHAT IT DOES" />
+            <Grid ColumnDefinitions="*,Auto,230">
+              <StackPanel Grid.Column="0" Margin="0 0 12 0">
+                <TextBlock Classes="flabel" Text="NAME" />
+                <TextBox Text="{Binding Name}" Watermark="What does this task do?" />
+              </StackPanel>
+              <CheckBox Grid.Column="1" IsChecked="{Binding Enabled}" Content="Enabled"
+                        VerticalAlignment="Bottom" Margin="0 0 12 5" />
+              <StackPanel Grid.Column="2">
+                <TextBlock Classes="flabel" Text="TASK TYPE" />
                 <ComboBox ItemsSource="{Binding TaskTypes}" SelectedItem="{Binding SelectedTaskType}"
                           HorizontalAlignment="Stretch" />
               </StackPanel>
+            </Grid>
 
-              <StackPanel Spacing="8">
-                <TextBlock Classes="section" Text="WHEN" />
+            <StackPanel Spacing="8">
+              <TextBlock Classes="section" Text="WHEN" Margin="0" />
 
-                <StackPanel>
+              <!-- One row: the kind, then whatever that kind needs. Hidden panels take no
+                   space, so the row closes up rather than leaving gaps. -->
+              <StackPanel Orientation="Horizontal" Spacing="12">
+
+                <StackPanel Width="180">
                   <TextBlock Classes="flabel" Text="REPEATS" />
                   <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding SelectedKind}"
                             HorizontalAlignment="Stretch" />
                 </StackPanel>
 
                 <!-- Interval -->
-                <StackPanel Spacing="6" IsVisible="{Binding IsInterval}">
-                  <Grid ColumnDefinitions="130,Auto">
-                    <StackPanel Grid.Column="0">
-                      <TextBlock Classes="flabel" Text="EVERY" />
-                      <NumericUpDown Value="{Binding IntervalValue}" Minimum="1" Maximum="9999"
-                                     Increment="1" FormatString="0" FontSize="11" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"
-                                VerticalAlignment="Bottom" Margin="10 0 0 6">
-                      <RadioButton GroupName="unit" IsChecked="{Binding IntervalInMinutes}"
-                                   Content="minutes" FontSize="11" Foreground="#999" />
-                      <RadioButton GroupName="unit" IsChecked="{Binding IntervalInHours}"
-                                   Content="hours" FontSize="11" Foreground="#999" />
-                    </StackPanel>
-                  </Grid>
-                  <TextBlock Classes="hint"
-                             Text="Measured from the last run. If the app was closed for longer than the interval, it runs once when it opens — not once per period missed." />
+                <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsInterval}">
+                  <StackPanel Width="120">
+                    <TextBlock Classes="flabel" Text="EVERY" />
+                    <NumericUpDown Value="{Binding IntervalValue}" Minimum="1" Maximum="9999"
+                                   Increment="1" FormatString="0" FontSize="11" />
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="10"
+                              VerticalAlignment="Bottom" Margin="0 0 0 6">
+                    <RadioButton GroupName="unit" IsChecked="{Binding IntervalInMinutes}"
+                                 Content="minutes" FontSize="11" Foreground="#999" />
+                    <RadioButton GroupName="unit" IsChecked="{Binding IntervalInHours}"
+                                 Content="hours" FontSize="11" Foreground="#999" />
+                  </StackPanel>
                 </StackPanel>
 
                 <!-- Weekly -->
-                <StackPanel Spacing="6" IsVisible="{Binding IsWeekly}">
+                <StackPanel IsVisible="{Binding IsWeekly}">
                   <TextBlock Classes="flabel" Text="ON THESE DAYS" />
-                  <ItemsControl ItemsSource="{Binding Days}">
+                  <ItemsControl ItemsSource="{Binding Days}" Margin="0 4 0 0">
                     <ItemsControl.ItemsPanel>
                       <ItemsPanelTemplate>
-                        <WrapPanel />
+                        <StackPanel Orientation="Horizontal" />
                       </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
@@ -173,59 +175,54 @@
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
-                  <TextBlock Classes="hint"
-                             Text="Every day ticked is a daily task. A day that passes while the app is closed is not made up later." />
                 </StackPanel>
 
                 <!-- Monthly -->
-                <StackPanel Spacing="6" IsVisible="{Binding IsMonthly}">
-                  <TextBlock Classes="flabel" Text="DAY OF THE MONTH" />
+                <StackPanel Width="110" IsVisible="{Binding IsMonthly}">
+                  <TextBlock Classes="flabel" Text="DAY OF MONTH" />
                   <NumericUpDown Value="{Binding DayOfMonth}" Minimum="1" Maximum="31"
-                                 Increment="1" FormatString="0" FontSize="11" Width="90"
-                                 HorizontalAlignment="Left" />
-                  <TextBlock Classes="hint"
-                             Text="A day past the end of a short month runs on its last day, so the 31st still happens in February." />
+                                 Increment="1" FormatString="0" FontSize="11" />
                 </StackPanel>
 
                 <!-- Yearly -->
-                <StackPanel Spacing="6" IsVisible="{Binding IsYearly}">
-                  <Grid ColumnDefinitions="*,90">
-                    <StackPanel Grid.Column="0" Margin="0 0 8 0">
-                      <TextBlock Classes="flabel" Text="MONTH" />
-                      <ComboBox ItemsSource="{Binding MonthNames}" SelectedItem="{Binding MonthOfYear}"
-                                HorizontalAlignment="Stretch" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="1">
-                      <TextBlock Classes="flabel" Text="DAY" />
-                      <NumericUpDown Value="{Binding DayOfMonth}" Minimum="1" Maximum="31"
-                                     Increment="1" FormatString="0" FontSize="11" />
-                    </StackPanel>
-                  </Grid>
+                <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsYearly}">
+                  <StackPanel Width="150">
+                    <TextBlock Classes="flabel" Text="MONTH" />
+                    <ComboBox ItemsSource="{Binding MonthNames}" SelectedItem="{Binding MonthOfYear}"
+                              HorizontalAlignment="Stretch" />
+                  </StackPanel>
+                  <StackPanel Width="110">
+                    <TextBlock Classes="flabel" Text="DAY" />
+                    <NumericUpDown Value="{Binding DayOfMonth}" Minimum="1" Maximum="31"
+                                   Increment="1" FormatString="0" FontSize="11" />
+                  </StackPanel>
                 </StackPanel>
 
                 <!-- Time of day -->
-                <StackPanel IsVisible="{Binding HasClock}" Spacing="6">
-                  <StackPanel>
-                    <TextBlock Classes="flabel" Text="AT (HH:MM, EVE TIME)" />
-                    <TextBox Text="{Binding TimeOfDay}" Width="90" HorizontalAlignment="Left"
-                             Watermark="00:01" />
-                  </StackPanel>
-                  <TextBlock Classes="hint"
-                             Text="Just after midnight beats just before it: a task set for 23:59 has a minute to be caught, and 00:01 has the rest of the day." />
+                <StackPanel Width="100" IsVisible="{Binding HasClock}">
+                  <TextBlock Classes="flabel" Text="AT (HH:MM)" />
+                  <TextBox Text="{Binding TimeOfDay}" Watermark="00:01" />
                 </StackPanel>
 
-                <StackPanel IsVisible="{Binding CanSkipIfMissed}" Spacing="4">
-                  <CheckBox IsChecked="{Binding SkipIfMissed}"
-                            Content="Skip it if the app was closed on the day" />
-                  <TextBlock Classes="hint"
-                             Text="Off, a task whose day has passed still runs when the app next opens, as long as it is the same month (or year). On, the chance is simply missed." />
-                </StackPanel>
+                <CheckBox IsVisible="{Binding CanSkipIfMissed}" IsChecked="{Binding SkipIfMissed}"
+                          Content="Skip if the app was closed on the day"
+                          VerticalAlignment="Bottom" Margin="0 0 0 6" />
               </StackPanel>
 
-              <StackPanel Spacing="6" IsVisible="{Binding IsSlackPost}">
-                <TextBlock Classes="section" Text="POST TO" />
+              <TextBlock Classes="hint" Text="{Binding ScheduleHint}" MaxWidth="820"
+                         HorizontalAlignment="Left" />
+            </StackPanel>
+
+            <!-- ══ The rule, and below it only what this task type needs ══ -->
+            <Rectangle Height="1" Fill="#1e1e2a" Margin="0 2" />
+
+            <!-- ── Post to Slack ──────────────────────────────────────────── -->
+            <StackPanel Spacing="14" IsVisible="{Binding IsSlackPost}">
+
+              <StackPanel Spacing="6">
+                <TextBlock Classes="section" Text="POST TO" Margin="0" />
                 <ComboBox ItemsSource="{Binding Destinations}" SelectedItem="{Binding Destination}"
-                          HorizontalAlignment="Stretch">
+                          Width="340" HorizontalAlignment="Left">
                   <ComboBox.ItemTemplate>
                     <DataTemplate x:DataType="svc:SlackDestination">
                       <TextBlock Text="{Binding Label}" FontSize="11" />
@@ -236,131 +233,133 @@
                            Text="Workspace channels and webhooks defined in Slack settings, in one list." />
               </StackPanel>
 
-              <StackPanel Spacing="6" IsVisible="{Binding IsRaiseAlert}">
-                <TextBlock Classes="section" Text="ALERT" />
-                <TextBox Text="{Binding AlertTitle}" Watermark="Headline" />
-                <TextBlock Classes="hint"
-                           Text="Shows on the Overview and in the Alarms tool until it is dismissed, the same as an alarm's own alert. The message below becomes its body; leave the headline empty to use the task name." />
-              </StackPanel>
+              <StackPanel Spacing="10">
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Grid.Column="0" Classes="section" Text="MESSAGE" Margin="0"
+                             VerticalAlignment="Center" />
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
+                              HorizontalAlignment="Left" Margin="16 0 0 0">
+                    <Button Classes="small" Content="+ Text"    Command="{Binding AddTextCommand}" />
+                    <Button Classes="small" Content="+ Top 10"  Command="{Binding AddTop10Command}" />
+                    <Button Classes="small" Content="+ Monthly" Command="{Binding AddMonthlyCommand}" />
+                  </StackPanel>
+                </Grid>
 
-            </StackPanel>
+                <TextBlock Classes="hint" IsVisible="{Binding !Blocks.Count}"
+                           Text="Nothing to say yet. Add blocks above — they go out in this order, as one message." />
 
-            <Rectangle Grid.Column="1" Fill="#1e1e2a" />
+                <ItemsControl ItemsSource="{Binding Blocks}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MessageBlockVm">
+                      <Border Background="#101018" BorderBrush="#1e1e2a" BorderThickness="1"
+                              CornerRadius="3" Padding="10 8" Margin="0 0 0 8" MaxWidth="820"
+                              HorizontalAlignment="Left">
+                        <StackPanel Spacing="8">
 
-            <!-- ── Message ───────────────────────────────────────────────── -->
-            <StackPanel Grid.Column="2" Spacing="10" Margin="16 14 16 16">
-
-              <Grid ColumnDefinitions="Auto,*">
-                <TextBlock Grid.Column="0" Classes="section" Text="MESSAGE"
-                           ToolTip.Tip="The Slack post, or the alert's body."
-                           VerticalAlignment="Center" Margin="0" />
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
-                            HorizontalAlignment="Right">
-                  <Button Classes="small" Content="+ Text"    Command="{Binding AddTextCommand}" />
-                  <Button Classes="small" Content="+ Top 10"  Command="{Binding AddTop10Command}" />
-                  <Button Classes="small" Content="+ Monthly" Command="{Binding AddMonthlyCommand}" />
-                </StackPanel>
-              </Grid>
-
-              <TextBlock Classes="hint" IsVisible="{Binding !Blocks.Count}"
-                         Text="Nothing to say yet. Add blocks above — they go out in this order, as one message." />
-
-              <ItemsControl ItemsSource="{Binding Blocks}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="vm:MessageBlockVm">
-                    <Border Background="#101018" BorderBrush="#1e1e2a" BorderThickness="1"
-                            CornerRadius="3" Padding="10 8" Margin="0 0 0 8">
-                      <StackPanel Spacing="8">
-
-                        <Grid ColumnDefinitions="*,Auto">
-                          <TextBlock Grid.Column="0" Text="{Binding Heading}" FontSize="10"
-                                     FontWeight="SemiBold" Foreground="#5599aa"
-                                     VerticalAlignment="Center" />
-                          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
-                            <Button Classes="small" Content="↑"
-                                    Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).MoveUpCommand}"
-                                    CommandParameter="{Binding}" />
-                            <Button Classes="small" Content="↓"
-                                    Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).MoveDownCommand}"
-                                    CommandParameter="{Binding}" />
-                            <Button Classes="small" Content="✕" Foreground="#aa5555"
-                                    Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).RemoveCommand}"
-                                    CommandParameter="{Binding}" />
-                          </StackPanel>
-                        </Grid>
-
-                        <!-- Static text -->
-                        <TextBox IsVisible="{Binding IsText}" Text="{Binding Text}"
-                                 AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70"
-                                 Watermark="What to say. Slack markup works here." />
-
-                        <!-- Corp blocks: whose figures, and for which month -->
-                        <StackPanel IsVisible="{Binding IsCorp}" Spacing="8">
-                          <Grid ColumnDefinitions="*,150">
-                            <StackPanel Grid.Column="0" Margin="0 0 8 0">
-                              <TextBlock Classes="flabel" Text="CORP" />
-                              <ComboBox ItemsSource="{Binding Corps}" SelectedItem="{Binding Corp}"
-                                        HorizontalAlignment="Stretch" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="1">
-                              <TextBlock Classes="flabel" Text="MONTH" />
-                              <ComboBox ItemsSource="{Binding Months}" SelectedItem="{Binding Month}"
-                                        HorizontalAlignment="Stretch" />
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="{Binding Heading}" FontSize="10"
+                                       FontWeight="SemiBold" Foreground="#5599aa"
+                                       VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                              <Button Classes="small" Content="↑"
+                                      Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).MoveUpCommand}"
+                                      CommandParameter="{Binding}" />
+                              <Button Classes="small" Content="↓"
+                                      Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).MoveDownCommand}"
+                                      CommandParameter="{Binding}" />
+                              <Button Classes="small" Content="✕" Foreground="#aa5555"
+                                      Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).RemoveCommand}"
+                                      CommandParameter="{Binding}" />
                             </StackPanel>
                           </Grid>
-                          <TextBlock Classes="hint" Text="{Binding MonthsBackText}" />
 
-                          <StackPanel IsVisible="{Binding IsTop10}" Spacing="4">
-                            <TextBlock Classes="flabel" Text="LISTS TO INCLUDE" />
-                            <ItemsControl ItemsSource="{Binding Categories}">
-                              <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                  <WrapPanel />
-                                </ItemsPanelTemplate>
-                              </ItemsControl.ItemsPanel>
-                              <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:CategoryChoice">
-                                  <CheckBox IsChecked="{Binding Selected}" Content="{Binding Title}"
-                                            Margin="0 0 12 0" />
-                                </DataTemplate>
-                              </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                          <!-- Static text -->
+                          <TextBox IsVisible="{Binding IsText}" Text="{Binding Text}"
+                                   AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70"
+                                   Watermark="What to say. Slack markup works here." />
+
+                          <!-- Corp blocks: whose figures, and for which month -->
+                          <StackPanel IsVisible="{Binding IsCorp}" Spacing="8">
+                            <Grid ColumnDefinitions="*,150">
+                              <StackPanel Grid.Column="0" Margin="0 0 8 0">
+                                <TextBlock Classes="flabel" Text="CORP" />
+                                <ComboBox ItemsSource="{Binding Corps}" SelectedItem="{Binding Corp}"
+                                          HorizontalAlignment="Stretch" />
+                              </StackPanel>
+                              <StackPanel Grid.Column="1">
+                                <TextBlock Classes="flabel" Text="MONTH" />
+                                <ComboBox ItemsSource="{Binding Months}" SelectedItem="{Binding Month}"
+                                          HorizontalAlignment="Stretch" />
+                              </StackPanel>
+                            </Grid>
+                            <TextBlock Classes="hint" Text="{Binding MonthsBackText}" />
+
+                            <StackPanel IsVisible="{Binding IsTop10}" Spacing="4">
+                              <TextBlock Classes="flabel" Text="LISTS TO INCLUDE" />
+                              <ItemsControl ItemsSource="{Binding Categories}">
+                                <ItemsControl.ItemsPanel>
+                                  <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                  </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                  <DataTemplate x:DataType="vm:CategoryChoice">
+                                    <CheckBox IsChecked="{Binding Selected}" Content="{Binding Title}"
+                                              Margin="0 0 12 0" />
+                                  </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                            </StackPanel>
                           </StackPanel>
+
                         </StackPanel>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
-                      </StackPanel>
-                    </Border>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-
-              <!-- Preview -->
-              <StackPanel Spacing="6" IsVisible="{Binding HasPreview}">
-                <TextBlock Classes="section" Text="PREVIEW" />
-                <Border Background="#0b0b10" BorderBrush="#1e1e2a" BorderThickness="1"
-                        CornerRadius="3" Padding="10 8">
-                  <SelectableTextBlock Text="{Binding PreviewText}" FontFamily="Consolas,monospace"
-                                       FontSize="11" Foreground="#99a" TextWrapping="Wrap" />
-                </Border>
+                <!-- Preview -->
+                <StackPanel Spacing="6" IsVisible="{Binding HasPreview}">
+                  <TextBlock Classes="section" Text="PREVIEW" Margin="0" />
+                  <Border Background="#0b0b10" BorderBrush="#1e1e2a" BorderThickness="1"
+                          CornerRadius="3" Padding="10 8" MaxWidth="820"
+                          HorizontalAlignment="Left">
+                    <SelectableTextBlock Text="{Binding PreviewText}" FontFamily="Consolas,monospace"
+                                         FontSize="11" Foreground="#99a" TextWrapping="Wrap" />
+                  </Border>
+                </StackPanel>
               </StackPanel>
 
             </StackPanel>
-          </Grid>
+
+            <!-- ── Raise an alert ─────────────────────────────────────────── -->
+            <StackPanel Spacing="6" IsVisible="{Binding IsRaiseAlert}">
+              <TextBlock Classes="section" Text="ALERT TEXT" Margin="0" />
+              <TextBox Text="{Binding AlertText}" AcceptsReturn="True" TextWrapping="Wrap"
+                       MinHeight="170" MaxWidth="820" HorizontalAlignment="Left"
+                       Watermark="What the alert should say." />
+              <TextBlock Classes="hint" MaxWidth="820" HorizontalAlignment="Left"
+                         Text="Shows on the Overview and in the Alarms tool until it is dismissed, the same as an alarm's own alert. The task's name is its headline." />
+            </StackPanel>
+
+          </StackPanel>
         </ScrollViewer>
 
-        <!-- Action bar. Outside the scroll region so Save is never something to scroll for. -->
+        <!-- Action bar. Outside the scroll region so Save is never something to scroll for.
+
+             The status line belongs beside the buttons, not only in the toolbar. Everything here
+             refuses quietly when something is missing, and a refusal read from the far side of a
+             wide screen is a button that looks broken. -->
         <Border Grid.Row="1" IsVisible="{Binding HasEditor}"
                 Background="#101018" Padding="16 8"
                 BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
-          <!-- The status line belongs beside the buttons, not only in the toolbar. Everything
-               here refuses quietly when something is missing, and a refusal read from the far
-               side of a wide screen is a button that looks broken. -->
           <Grid ColumnDefinitions="Auto,*">
             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
               <Button Classes="tool" Content="Save"    Command="{Binding SaveCommand}" />
-              <Button Classes="tool" Content="Preview" Command="{Binding PreviewCommand}" />
+              <Button Classes="tool" Content="Preview" Command="{Binding PreviewCommand}"
+                      IsVisible="{Binding CanPreview}" />
               <Button Classes="tool" Content="Run Now" Command="{Binding RunNowCommand}"
-                      ToolTip.Tip="Does it for real now, and does not count as the scheduled run." />
+                      ToolTip.Tip="Does it for real now, and counts as the scheduled run." />
               <Button Content="Delete" Command="{Binding DeleteCommand}"
                       Background="#1a1a28" Foreground="#aa5555" BorderBrush="#442a2a"
                       BorderThickness="1" Padding="12 4" FontSize="11" />

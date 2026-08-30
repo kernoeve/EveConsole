@@ -162,19 +162,20 @@ public class SchedulerService(
     private async Task<(bool Ok, string Message)> RaiseAlertAsync(
         ScheduledTask task, DateTime now, CancellationToken ct)
     {
-        var cfg = ScheduledTaskConfig.FromJson(task.Config);
+        var cfg  = ScheduledTaskConfig.FromJson(task.Config);
+        var text = cfg.AlertText.Trim();
 
-        // The task's own name is the fallback headline. An alert has to say something in the list
-        // it appears in, and the name is what the person who wrote it already chose.
-        var title = cfg.AlertTitle.Trim().Length > 0 ? cfg.AlertTitle.Trim() : task.Name;
-        var body  = cfg.Blocks.Count > 0 ? await renderer.RenderAsync(cfg.Blocks, now, ct) : "";
+        if (text.Length == 0) return (true, "Nothing to raise: the alert has no text.");
 
+        // The task's name is the headline. Both readers lead with the title and put the body under
+        // it, so the name answers "which task said this" without asking for a second field that
+        // would usually just repeat the name.
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         db.AlarmAlerts.Add(new AlarmAlert
         {
             CreatedAt = new DateTimeOffset(now, TimeSpan.Zero),
-            Title     = title,
-            Body      = body.Trim().Length > 0 ? body.Trim() : null,
+            Title     = task.Name.Trim().Length > 0 ? task.Name.Trim() : "Scheduled alert",
+            Body      = text,
         });
         await db.SaveChangesAsync(ct);
 

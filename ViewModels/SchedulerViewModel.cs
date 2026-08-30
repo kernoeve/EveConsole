@@ -326,6 +326,7 @@ public sealed class SchedulerViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(TaskType));
             this.RaisePropertyChanged(nameof(IsSlackPost));
             this.RaisePropertyChanged(nameof(IsRaiseAlert));
+            this.RaisePropertyChanged(nameof(CanPreview));
         }
     }
 
@@ -334,12 +335,15 @@ public sealed class SchedulerViewModel : ReactiveObject
     public bool IsSlackPost  => TaskType == ScheduledTaskType.SlackPost;
     public bool IsRaiseAlert => TaskType == ScheduledTaskType.RaiseAlert;
 
+    /// <summary>Preview renders blocks. An alert is the text you already typed.</summary>
+    public bool CanPreview => IsSlackPost;
+
     private void PickTaskType(string key) =>
         SelectedTaskType = TaskTypes.FirstOrDefault(t => t.Key == key) ?? TaskTypes[0];
 
-    /// <summary>Alerts: the headline. Empty falls back to the task's own name.</summary>
-    private string _alertTitle = "";
-    public string AlertTitle { get => _alertTitle; set => this.RaiseAndSetIfChanged(ref _alertTitle, value); }
+    /// <summary>Alerts: what it says. The task's name is the headline.</summary>
+    private string _alertText = "";
+    public string AlertText { get => _alertText; set => this.RaiseAndSetIfChanged(ref _alertText, value); }
 
     private KindChoice? _selectedKind;
     public KindChoice? SelectedKind
@@ -355,12 +359,42 @@ public sealed class SchedulerViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(IsYearly));
             this.RaisePropertyChanged(nameof(HasClock));
             this.RaisePropertyChanged(nameof(CanSkipIfMissed));
+            this.RaisePropertyChanged(nameof(ScheduleHint));
         }
     }
 
     /// <summary>The stored key. Derived from the picker rather than kept beside it, so there is
     /// one thing to set and no pair to fall out of step.</summary>
     public string Kind => SelectedKind?.Key ?? ScheduleKind.Weekly;
+
+    /// <summary>
+    /// What happens when the app was closed at the time — the only part of scheduling anyone
+    /// actually asks about.
+    ///
+    /// <para>One line that changes with the kind, rather than four blocks each showing and hiding.
+    /// The schedule fields sit in a row now, and four stacked paragraphs under them would be the
+    /// tallest thing on a screen whose real subject is below.</para>
+    /// </summary>
+    public string ScheduleHint => Kind switch
+    {
+        ScheduleKind.Interval =>
+            "Measured from the last run. Closed for longer than the interval, it runs once when it "
+          + "opens — not once per period missed.",
+
+        ScheduleKind.Weekly =>
+            "Every day ticked is a daily task. A day that passes while the app is closed is not "
+          + "made up later, so just after midnight beats just before it.",
+
+        ScheduleKind.Monthly =>
+            "Runs once in the month, from that day and time onward. A day past the end of a short "
+          + "month runs on its last day, so the 31st still happens in February.",
+
+        ScheduleKind.Yearly =>
+            "Runs once in the year, from that day and time onward. 29 February falls back to the "
+          + "28th in the three years out of four that lack it.",
+
+        _ => "",
+    };
 
     private void PickKind(string key) =>
         SelectedKind = Kinds.FirstOrDefault(k => k.Key == key) ?? Kinds[1];
@@ -597,7 +631,7 @@ public sealed class SchedulerViewModel : ReactiveObject
 
         var cfg = ScheduledTaskConfig.FromJson(task.Config);
 
-        AlertTitle  = cfg.AlertTitle;
+        AlertText   = cfg.AlertText;
         Destination = Destinations.FirstOrDefault(
             d => d.Kind == cfg.DestinationKind && d.Id == cfg.DestinationId);
 
@@ -619,7 +653,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         Enabled      = true;
         PickKind(ScheduleKind.Weekly);
         PickTaskType(ScheduledTaskType.SlackPost);
-        AlertTitle      = "";
+        AlertText       = "";
         IntervalValue   = 1;
         IntervalInHours = true;
         TimeOfDay    = "00:01";
@@ -688,20 +722,17 @@ public sealed class SchedulerViewModel : ReactiveObject
             }
             if (Blocks.Count == 0) { StatusText = "Add something to say."; return null; }
         }
-        else if (IsRaiseAlert)
+        else if (IsRaiseAlert && string.IsNullOrWhiteSpace(AlertText))
         {
-            if (string.IsNullOrWhiteSpace(AlertTitle) && Blocks.Count == 0)
-            {
-                StatusText = "Give the alert a headline, or something to say.";
-                return null;
-            }
+            StatusText = "Write what the alert should say.";
+            return null;
         }
 
         var cfg = new ScheduledTaskConfig
         {
             DestinationKind = Destination?.Kind ?? "",
             DestinationId   = Destination?.Id   ?? "",
-            AlertTitle      = AlertTitle.Trim(),
+            AlertText       = AlertText.Trim(),
             Blocks          = [.. Blocks.Select(b => b.ToModel())],
         };
 
