@@ -210,20 +210,12 @@ public sealed record RenderedMessage(string Text, bool AnyDynamicContent);
 public class ScheduledBlockRenderer(
     CorpActivityService     corp,
     SalePostingService      sales,
-    CorpTop10ExcludeService excludes)
+    CorpTop10ExcludeService excludes,
+    CorpTop10Titles         titles)
 {
-    /// <summary>The five lists, in the order the manual export prints them.</summary>
-    public static readonly (string Key, string Title)[] Top10Categories =
-    [
-        ("ratting",  "Ratting Tax"),
-        ("mining",   "Mining — Reprocessed Value"),
-        ("kills",    "Kills"),
-        ("projects", "Project Contributors"),
-        ("industry", "Industry Tax"),
-    ];
-
-    public static string TitleFor(string key) =>
-        Top10Categories.FirstOrDefault(c => c.Key == key).Title ?? key;
+    /// <summary>The five lists, in the order the exports print them. Defined by CorpTop10Titles,
+    /// which is also what the settings tab overrides and what names them on screen.</summary>
+    public static (string Key, string Title)[] Top10Categories => CorpTop10Titles.Categories;
 
     /// <summary>
     /// One chart, drawn.
@@ -378,10 +370,14 @@ public class ScheduledBlockRenderer(
                                     : [$"{++rank}.", who, share]);
             }
 
-            lists.Add((TitleFor(key), cells));
+            lists.Add((titles.TitleFor(key, label), cells));
         }
 
         if (lists.Count == 0) return "";
+
+        // ⚠️ No "Top 10 — August 2026" line above them. Each fenced list is its own box in
+        // Slack, so a single date line travelled with none of them; the month is on every heading
+        // instead, where a list pasted on its own still carries it.
 
         // One grid across every list in this section.
         var columns = lists.Max(l => l.Cells.Max(c => c.Length));
@@ -392,7 +388,6 @@ public class ScheduledBlockRenderer(
                     widths[i] = Math.Max(widths[i], c[i].Length);
 
         var sb = new StringBuilder();
-        sb.AppendLine($"*Top 10 — {label}*");
 
         foreach (var (title, cells) in lists)
         {

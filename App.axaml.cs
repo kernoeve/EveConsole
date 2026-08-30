@@ -2967,6 +2967,7 @@ public class App : Application
         services.AddSingleton<CharacterSummaryService>();
         services.AddSingleton<KillmailBrowserService>();
         services.AddSingleton<CorpTop10ExcludeService>();
+        services.AddSingleton<CorpTop10Titles>();
         services.AddSingleton<MarketCompetitionService>();
         services.AddSingleton<StandingBuyOrderService>();
 

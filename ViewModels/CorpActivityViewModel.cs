@@ -706,6 +706,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
     private readonly CorpActivityService     _service;
     private readonly CorpTop10ExcludeService _excludeSvc;
+    private readonly CorpTop10Titles         _titles;
     private CancellationTokenSource          _top10Cts = new();
     private int                              _refreshTick;
 
@@ -1202,11 +1203,13 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public CorpActivityViewModel(CorpActivityService service,
                                  ObservableCollection<Corporation> corps,
                                  CorpTop10ExcludeService? excludeSvc = null,
+                                 CorpTop10Titles? titles = null,
                                  SlackService? slack = null,
                                  ExportFormatSettings? exportFormat = null)
     {
         _service      = service;
         _excludeSvc   = excludeSvc!;
+        _titles       = titles!;
         _slack        = slack;
         _exportFormat = exportFormat;
         Corps         = corps;
@@ -1827,11 +1830,17 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         sb.AppendLine(new string('=', Math.Max(header.Length, 32)));
         sb.AppendLine();
 
-        AppendList("Ratting Tax",           TopRatters);
-        AppendList("Mining — Reprocessed Value", TopMiners);
-        AppendList("Kills",                 TopKillers, alwaysAmount: true);
-        AppendList("Project Contributors",  TopContributors);
-        AppendList("Industry Tax",          TopIndustry);
+        // ⚠️ The headings the settings tab defines, not five literals. A list renamed there
+        // has to be renamed everywhere it appears, or the export and the scheduled post
+        // would call the same table two different things.
+        //
+        // No month suffix here: this export already opens with the corp and the month, and
+        // it is copied as one block rather than split into separate Slack boxes.
+        AppendList(_titles.Title("ratting"),  TopRatters);
+        AppendList(_titles.Title("mining"),   TopMiners);
+        AppendList(_titles.Title("kills"),    TopKillers, alwaysAmount: true);
+        AppendList(_titles.Title("projects"), TopContributors);
+        AppendList(_titles.Title("industry"), TopIndustry);
 
         var body = sb.ToString().TrimEnd();
         // See BuildMonthlySummaryExport: Plain Text's Finalize also collapses runs of

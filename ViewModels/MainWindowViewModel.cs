@@ -505,6 +505,7 @@ public class MainWindowViewModel : ReactiveObject
         AppPreferencesService           appPrefs,
         DatabaseBackupService           dbBackup,
         CorpTop10ExcludeService         corpTop10Exclude,
+        CorpTop10Titles                 corpTop10Titles,
         MarketHistoryService            historyService,
         ContractsService                contractsService,
         SlackService                    slackService,
@@ -571,7 +572,7 @@ public class MainWindowViewModel : ReactiveObject
             CharacterVm.Characters, CharacterVm.Corporations);
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
         StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger);
-        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, slackService, exportFormat);
+        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpTop10Titles, slackService, exportFormat);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
@@ -606,7 +607,7 @@ public class MainWindowViewModel : ReactiveObject
 
         PriceHistorySettingsVm = new PriceHistorySettingsViewModel(dbFactory.CreateDbContext());
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
-        CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);
+        CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude, corpTop10Titles);
         ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService, dbFactory, appPrefs);
         IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger,
                                                         indyStructureLink, indyBulkAdd, pollingService);

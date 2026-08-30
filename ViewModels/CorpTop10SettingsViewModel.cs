@@ -21,12 +21,35 @@ public sealed class CorpTop10ExcludeRowVm : ReactiveObject
     }
 }
 
+/// <summary>One list's heading, as the reader may have renamed it.</summary>
+public sealed class Top10TitleRowVm : ReactiveObject
+{
+    public string Key          { get; }
+    public string DefaultTitle { get; }
+
+    private string _title;
+
+    /// <summary>Empty means the built-in heading. Held as typed and trimmed on save, so a
+    /// half-typed name is not treated as a clearing.</summary>
+    public string Title { get => _title; set => this.RaiseAndSetIfChanged(ref _title, value); }
+
+    public Top10TitleRowVm(string key, string defaultTitle, string current)
+    {
+        Key          = key;
+        DefaultTitle = defaultTitle;
+        _title       = current;
+    }
+}
+
 public sealed class CorpTop10SettingsViewModel : ReactiveObject
 {
     private readonly CorpTop10ExcludeService _svc;
+    private readonly CorpTop10Titles         _titles;
 
-    public ObservableCollection<CorpTop10ExcludeRowVm> Excludes       { get; } = [];
-    public ObservableCollection<CorpTop10ExcludeRowVm> SearchResults  { get; } = [];
+    public ObservableCollection<CorpTop10ExcludeRowVm> Excludes { get; } = [];
+
+    /// <summary>The five headings, each overridable.</summary>
+    public ObservableCollection<Top10TitleRowVm> Titles { get; } = [];
 
     private string _searchText = "";
     public string SearchText
@@ -34,6 +57,34 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
         get => _searchText;
         set => this.RaiseAndSetIfChanged(ref _searchText, value);
     }
+
+    private CorpTop10ExcludeRowVm? _searchMatch;
+
+    /// <summary>The row the box is sitting on. Adding takes this rather than the typed
+    /// text, so an id is never guessed from a name somebody half-typed.</summary>
+    public CorpTop10ExcludeRowVm? SearchMatch
+    {
+        get => _searchMatch;
+        set => this.RaiseAndSetIfChanged(ref _searchMatch, value);
+    }
+
+    /// <summary>
+    /// Names matching what has been typed.
+    ///
+    /// <para>⚠️ AsyncPopulator with FilterMode None, the same shape the store's sender box
+    /// uses. The search has already narrowed the list; letting the box filter again would
+    /// drop matches it never received, and handing it the whole name cache would lay out
+    /// hundreds of thousands of rows.</para>
+    /// </summary>
+    public Func<string?, System.Threading.CancellationToken, Task<IEnumerable<object>>> SearchPopulator =>
+        async (text, ct) =>
+        {
+            var needle = (text ?? "").Trim();
+            if (needle.Length < 2) return [];
+
+            var hits = await _svc.SearchAsync(needle, EntityType, ct);
+            return hits.Select(h => new CorpTop10ExcludeRowVm(h)).ToList();
+        };
 
     private string _entityType = "character";
     public string EntityType
@@ -51,21 +102,22 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
 
     public IReadOnlyList<string> EntityTypes { get; } = ["character", "corporation"];
 
-    public ReactiveCommand<Unit, Unit>               SearchCommand { get; }
-    public ReactiveCommand<CorpTop10ExcludeRowVm, Unit> AddCommand    { get; }
-    public ReactiveCommand<CorpTop10ExcludeRowVm, Unit> RemoveCommand { get; }
+    public ReactiveCommand<Unit, Unit>                 AddCommand       { get; }
+    public ReactiveCommand<CorpTop10ExcludeRowVm, Unit> RemoveCommand    { get; }
+    public ReactiveCommand<Unit, Unit>                 SaveTitlesCommand { get; }
 
-    public CorpTop10SettingsViewModel(CorpTop10ExcludeService svc)
+    public CorpTop10SettingsViewModel(CorpTop10ExcludeService svc, CorpTop10Titles titles)
     {
-        _svc = svc;
+        _svc    = svc;
+        _titles = titles;
 
-        SearchCommand = ReactiveCommand.CreateFromTask(SearchAsync);
-        AddCommand    = ReactiveCommand.CreateFromTask<CorpTop10ExcludeRowVm>(AddAsync);
-        RemoveCommand = ReactiveCommand.CreateFromTask<CorpTop10ExcludeRowVm>(RemoveAsync);
+        AddCommand        = ReactiveCommand.CreateFromTask(AddSelectedAsync);
+        RemoveCommand     = ReactiveCommand.CreateFromTask<CorpTop10ExcludeRowVm>(RemoveAsync);
+        SaveTitlesCommand = ReactiveCommand.CreateFromTask(SaveTitlesAsync);
 
-        SearchCommand.ThrownExceptions.Subscribe(ex => StatusText = $"Search error: {ex.Message}");
-        AddCommand   .ThrownExceptions.Subscribe(ex => StatusText = $"Add error: {ex.Message}");
-        RemoveCommand.ThrownExceptions.Subscribe(ex => StatusText = $"Remove error: {ex.Message}");
+        AddCommand       .ThrownExceptions.Subscribe(ex => StatusText = $"Add error: {ex.Message}");
+        RemoveCommand    .ThrownExceptions.Subscribe(ex => StatusText = $"Remove error: {ex.Message}");
+        SaveTitlesCommand.ThrownExceptions.Subscribe(ex => StatusText = $"Save error: {ex.Message}");
     }
 
     public void Load()
@@ -73,16 +125,28 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
         Excludes.Clear();
         foreach (var e in _svc.GetAll())
             Excludes.Add(new CorpTop10ExcludeRowVm(e));
+
+        Titles.Clear();
+        foreach (var (key, title) in CorpTop10Titles.Categories)
+            Titles.Add(new Top10TitleRowVm(key, title, _titles.Override(key)));
     }
 
-    private async Task SearchAsync(CancellationToken ct = default)
+    private async Task SaveTitlesAsync(System.Threading.CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(SearchText)) return;
-        var results = await _svc.SearchAsync(SearchText.Trim(), EntityType, ct);
-        SearchResults.Clear();
-        foreach (var r in results)
-            SearchResults.Add(new CorpTop10ExcludeRowVm(r));
-        StatusText = results.Count == 0 ? "No results found." : "";
+        foreach (var t in Titles) await _titles.SetOverrideAsync(t.Key, t.Title);
+        StatusText = "Titles saved.";
+    }
+
+    /// <summary>Adds whatever the box is sitting on. ⚠️ The SELECTED row, never the typed
+    /// text: two corporations can share the opening of a name, and an exclusion aimed at the
+    /// wrong id hides the wrong entity silently.</summary>
+    private async Task AddSelectedAsync(CancellationToken ct = default)
+    {
+        if (SearchMatch is not { } row) { StatusText = "Pick a name from the list first."; return; }
+
+        await AddAsync(row, ct);
+        SearchMatch = null;
+        SearchText  = "";
     }
 
     private async Task AddAsync(CorpTop10ExcludeRowVm row, CancellationToken ct = default)

@@ -1496,105 +1496,100 @@
 
     <!-- ══ Corp Top 10 ════════════════════════════════════════════════════════ -->
     <TabItem Header="Corp Top 10">
-      <Grid RowDefinitions="*,Auto" Margin="0 8 0 0">
+      <Grid ColumnDefinitions="*,8,*" Margin="0 8 0 0" DataContext="{Binding CorpTop10Vm}">
 
-        <Grid Grid.Row="0" ColumnDefinitions="*,8,*">
+        <!-- Left: what each list is called -->
+        <Border Grid.Column="0" BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+          <Grid RowDefinitions="Auto,Auto,*,Auto">
+            <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+              <TextBlock Text="List Titles" FontWeight="SemiBold" Foreground="#c8a84b" />
+            </Border>
 
-          <!-- Left: Search + Results -->
-          <Border Grid.Column="0" BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
-            <Grid RowDefinitions="Auto,Auto,*">
-              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
-                <TextBlock Text="Add to Exclude List" FontWeight="SemiBold" Foreground="#c8a84b" />
-              </Border>
+            <TextBlock Grid.Row="1" Margin="10 8 10 6" FontSize="11" Foreground="#888"
+                       TextWrapping="Wrap"
+                       Text="The heading each list is posted under. Leave one empty to use the built-in name. Every heading carries the month it covers, so a list read on its own still says which month it is." />
 
-              <StackPanel Grid.Row="1" Margin="10 8 10 6" Spacing="6"
-                          DataContext="{Binding CorpTop10Vm}">
-                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
-                           Text="Excluded members/corps will not appear in any Top 10 list. They still appear in all other Corp Activity views." />
+            <ItemsControl Grid.Row="2" ItemsSource="{Binding Titles}" Margin="10 0 10 6">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:Top10TitleRowVm">
+                  <StackPanel Margin="0 0 0 8">
+                    <TextBlock Text="{Binding DefaultTitle}" FontSize="10" FontWeight="SemiBold"
+                               Foreground="#555566" Margin="2 0 0 2" />
+                    <TextBox Text="{Binding Title}"
+                             Watermark="{Binding DefaultTitle}"
+                             FontSize="11" Background="#1a1a28" Foreground="#c8c8d8"
+                             BorderBrush="#2a2a3a" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
-                <Grid ColumnDefinitions="*,8,Auto" Margin="0 4 0 0">
-                  <TextBox Grid.Column="0"
-                           Text="{Binding SearchText}"
-                           Watermark="Name to search…"
-                           FontSize="11" />
-                  <ComboBox Grid.Column="2"
-                            ItemsSource="{Binding EntityTypes}"
-                            SelectedItem="{Binding EntityType}"
-                            MinWidth="120" FontSize="11"
-                            Background="#1a1a28" Foreground="#c8c8d8"
-                            BorderBrush="#2a2a3a" />
-                </Grid>
+            <Button Grid.Row="3" Content="Save Titles" Command="{Binding SaveTitlesCommand}"
+                    Margin="10 0 10 10" HorizontalAlignment="Left"
+                    FontSize="11" Padding="12 4"
+                    Background="#1a1a28" Foreground="#5599aa"
+                    BorderBrush="#2a3a44" BorderThickness="1" />
+          </Grid>
+        </Border>
 
-                <Button Content="Search"
-                        Command="{Binding SearchCommand}"
-                        HorizontalAlignment="Left"
+        <!-- Right: who is left out. The picker sits directly over the list it feeds. -->
+        <Border Grid.Column="2" BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+          <Grid RowDefinitions="Auto,Auto,*">
+            <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+              <TextBlock Text="Exclude List" FontWeight="SemiBold" Foreground="#c8a84b" />
+            </Border>
+
+            <StackPanel Grid.Row="1" Margin="10 8 10 6" Spacing="6">
+              <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                         Text="Anyone here is left out of every Top 10 list, on this tab and in scheduled posts." />
+
+              <Grid ColumnDefinitions="120,8,*,8,Auto">
+                <ComboBox Grid.Column="0" ItemsSource="{Binding EntityTypes}"
+                          SelectedItem="{Binding EntityType}"
+                          HorizontalAlignment="Stretch" FontSize="11"
+                          Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+
+                <AutoCompleteBox Grid.Column="2"
+                                 AsyncPopulator="{Binding SearchPopulator}"
+                                 SelectedItem="{Binding SearchMatch}"
+                                 Text="{Binding SearchText}"
+                                 ValueMemberBinding="{Binding EntityName}"
+                                 FilterMode="None" MinimumPrefixLength="2"
+                                 Watermark="Type two letters of the name…"
+                                 FontSize="11" Background="#1a1a28" Foreground="#c8c8d8"
+                                 BorderBrush="#2a2a3a" />
+
+                <Button Grid.Column="4" Content="Add" Command="{Binding AddCommand}"
+                        FontSize="11" Padding="12 4"
                         Background="#1a1a28" Foreground="#5599aa"
-                        BorderBrush="#2a3a44" BorderThickness="1"
-                        Padding="14 4" FontSize="11" />
+                        BorderBrush="#2a3a44" BorderThickness="1" />
+              </Grid>
 
-                <TextBlock Text="{Binding StatusText}"
-                           FontSize="11" Foreground="#c8a84b"
-                           IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-              </StackPanel>
+              <TextBlock Text="{Binding StatusText}" FontSize="10.5" Foreground="#7a7a8a"
+                         TextWrapping="Wrap"
+                         IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
 
-              <!-- Search results list -->
-              <Border Grid.Row="2" Margin="10 0 10 10"
-                      BorderBrush="#252530" BorderThickness="1" CornerRadius="3">
-                <ListBox ItemsSource="{Binding CorpTop10Vm.SearchResults}"
-                         Background="Transparent"
-                         SelectionMode="Single">
-                  <ListBox.ItemTemplate>
-                    <DataTemplate x:DataType="vm:CorpTop10ExcludeRowVm">
-                      <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Grid.Column="0" Text="{Binding Display}"
-                                   FontSize="11" Foreground="#c8c8d8"
-                                   VerticalAlignment="Center" />
-                        <Button Grid.Column="1" Content="+ Add"
-                                Command="{Binding $parent[ListBox].((vm:SettingsViewModel)DataContext).CorpTop10Vm.AddCommand}"
-                                CommandParameter="{Binding}"
-                                FontSize="10" Padding="8 2"
-                                Background="#1a2a1a" Foreground="#6aaa88"
-                                BorderBrush="#2a3a2a" BorderThickness="1" />
-                      </Grid>
-                    </DataTemplate>
-                  </ListBox.ItemTemplate>
-                </ListBox>
-              </Border>
-            </Grid>
-          </Border>
-
-          <!-- Right: Current Excludes -->
-          <Border Grid.Column="2" BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
-            <Grid RowDefinitions="Auto,*">
-              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
-                <TextBlock Text="Current Exclude List" FontWeight="SemiBold" Foreground="#c8a84b" />
-              </Border>
-
-              <ListBox Grid.Row="1"
-                       ItemsSource="{Binding CorpTop10Vm.Excludes}"
-                       Background="Transparent"
-                       SelectionMode="Single"
-                       Margin="4 4 4 4">
-                <ListBox.ItemTemplate>
-                  <DataTemplate x:DataType="vm:CorpTop10ExcludeRowVm">
-                    <Grid ColumnDefinitions="*,Auto">
-                      <TextBlock Grid.Column="0" Text="{Binding Display}"
-                                 FontSize="11" Foreground="#c8c8d8"
-                                 VerticalAlignment="Center" />
-                      <Button Grid.Column="1" Content="Remove"
-                              Command="{Binding $parent[ListBox].((vm:SettingsViewModel)DataContext).CorpTop10Vm.RemoveCommand}"
-                              CommandParameter="{Binding}"
-                              FontSize="10" Padding="8 2"
-                              Background="#2a1a1a" Foreground="#cc7766"
-                              BorderBrush="#3a2a2a" BorderThickness="1" />
-                    </Grid>
-                  </DataTemplate>
-                </ListBox.ItemTemplate>
-              </ListBox>
-            </Grid>
-          </Border>
-
-        </Grid>
+            <ListBox Grid.Row="2" ItemsSource="{Binding Excludes}"
+                     Background="Transparent" SelectionMode="Single" Margin="4 0 4 4">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:CorpTop10ExcludeRowVm">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding Display}"
+                               FontSize="11" Foreground="#c8c8d8"
+                               VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Content="Remove"
+                            Command="{Binding $parent[ListBox].((vm:CorpTop10SettingsViewModel)DataContext).RemoveCommand}"
+                            CommandParameter="{Binding}"
+                            FontSize="10" Padding="8 2"
+                            Background="#2a1a1a" Foreground="#cc7766"
+                            BorderBrush="#3a2a2a" BorderThickness="1" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+        </Border>
 
       </Grid>
     </TabItem>
