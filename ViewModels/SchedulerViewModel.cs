@@ -511,6 +511,14 @@ public sealed class SchedulerViewModel : ReactiveObject
     private void PickTaskType(string key) =>
         SelectedTaskType = TaskTypes.FirstOrDefault(t => t.Key == key) ?? TaskTypes[0];
 
+    /// <summary>Slack posts: stay silent unless a dynamic section actually said something.</summary>
+    private bool _skipIfNoDynamicContent;
+    public bool SkipIfNoDynamicContent
+    {
+        get => _skipIfNoDynamicContent;
+        set => this.RaiseAndSetIfChanged(ref _skipIfNoDynamicContent, value);
+    }
+
     /// <summary>Alerts: the headline. Empty falls back to the task's own name.</summary>
     private string _alertTitle = "";
     public string AlertTitle { get => _alertTitle; set => this.RaiseAndSetIfChanged(ref _alertTitle, value); }
@@ -831,6 +839,7 @@ public sealed class SchedulerViewModel : ReactiveObject
 
         var cfg = ScheduledTaskConfig.FromJson(task.Config);
 
+        SkipIfNoDynamicContent = cfg.SkipIfNoDynamicContent;
         AlertTitle  = cfg.AlertTitle;
         AlertText   = cfg.AlertText;
         Destination = Destinations.FirstOrDefault(
@@ -854,6 +863,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         Enabled      = true;
         PickKind(ScheduleKind.Weekly);
         PickTaskType(ScheduledTaskType.SlackPost);
+        SkipIfNoDynamicContent = false;
         AlertTitle      = "";
         AlertText       = "";
         IntervalValue   = 1;
@@ -941,6 +951,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         {
             DestinationKind = Destination?.Kind ?? "",
             DestinationId   = Destination?.Id   ?? "",
+            SkipIfNoDynamicContent = SkipIfNoDynamicContent,
             AlertTitle      = AlertTitle.Trim(),
             AlertText       = AlertText.Trim(),
             Blocks          = [.. Blocks.Select(b => b.ToModel())],
@@ -1070,11 +1081,16 @@ public sealed class SchedulerViewModel : ReactiveObject
         StatusText = "Rendering…";
         try
         {
-            var body = await _renderer.RenderAsync(
+            var render = await _renderer.RenderAsync(
                 [.. Blocks.Select(b => b.ToModel())], DateTime.UtcNow);
 
-            PreviewText = body.Length > 0 ? body : "(the blocks rendered empty)";
-            StatusText  = $"{body.Length:N0} characters.";
+            PreviewText = render.Text.Length > 0 ? render.Text : "(the sections rendered empty)";
+
+            // The preview is also where you find out the switch would have held the post back,
+            // rather than finding out from a channel that stayed quiet.
+            StatusText = SkipIfNoDynamicContent && !render.AnyDynamicContent
+                ? "Rendered, but no dynamic section had anything to say — this would not post."
+                : $"{render.Text.Length:N0} characters.";
         }
         catch (Exception ex)
         {

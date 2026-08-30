@@ -25,6 +25,15 @@ public sealed class MessageBlock
 
     public string Type { get; set; } = TypeText;
 
+    /// <summary>
+    /// Whether this section's content comes from the data rather than from what was typed.
+    ///
+    /// <para>Text is the only section that always has something to say. Every other kind can
+    /// render to nothing — an empty month, a posting with no stock, no project needing anything
+    /// — which is what "do not post if the dynamic sections are empty" is about.</para>
+    /// </summary>
+    public bool IsDynamic => Type != TypeText;
+
     /// <summary>Static text blocks: what to say.</summary>
     public string Text { get; set; } = "";
 
@@ -79,6 +88,15 @@ public sealed class ScheduledTaskConfig
 
     public List<MessageBlock> Blocks { get; set; } = [];
 
+    /// <summary>
+    /// Slack posts: stay silent unless a dynamic section actually said something.
+    ///
+    /// <para>Off by default, because a post whose static text is the point should still go out.
+    /// On, a message of headings over empty data is not worth sending — and a channel that only
+    /// hears from this task when there is something to hear is a channel people keep reading.</para>
+    /// </summary>
+    public bool SkipIfNoDynamicContent { get; set; }
+
     private static readonly JsonSerializerOptions Opts = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -97,6 +115,17 @@ public sealed class ScheduledTaskConfig
         catch { return new ScheduledTaskConfig(); }
     }
 }
+
+/// <summary>
+/// A rendered message, and whether any of the data-driven part of it had anything to say.
+/// </summary>
+/// <param name="Text">The whole message.</param>
+/// <param name="AnyDynamicContent">
+/// True when at least one dynamic section rendered to something. ⚠️ False also when there are no
+/// dynamic sections at all: "post only when there is data" cannot be satisfied by a message that
+/// never asks for any.
+/// </param>
+public sealed record RenderedMessage(string Text, bool AnyDynamicContent);
 
 /// <summary>
 /// Turns message blocks into the text a scheduled post sends.
@@ -122,10 +151,11 @@ public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService
         Top10Categories.FirstOrDefault(c => c.Key == key).Title ?? key;
 
     /// <summary>Renders every block, in order, into one message.</summary>
-    public async Task<string> RenderAsync(
+    public async Task<RenderedMessage> RenderAsync(
         IReadOnlyList<MessageBlock> blocks, DateTime nowUtc, CancellationToken ct = default)
     {
-        var parts = new List<string>();
+        var parts      = new List<string>();
+        var anyDynamic = false;
 
         foreach (var b in blocks)
         {
@@ -141,10 +171,13 @@ public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService
                 _                         => "",
             };
 
-            if (text.Length > 0) parts.Add(text);
+            if (text.Length == 0) continue;
+
+            parts.Add(text);
+            if (b.IsDynamic) anyDynamic = true;
         }
 
-        return string.Join("\n\n", parts);
+        return new RenderedMessage(string.Join("\n\n", parts), anyDynamic);
     }
 
     /// <summary>The calendar month a "months back" block names.</summary>

@@ -136,11 +136,18 @@ public class SchedulerService(
 
         if (cfg.Blocks.Count == 0) return (true, "Nothing to post: no blocks configured.");
 
-        var body = await renderer.RenderAsync(cfg.Blocks, now, ct);
+        var render = await renderer.RenderAsync(cfg.Blocks, now, ct);
+        var body   = render.Text;
 
         // A Top 10 for a month nobody flew in renders to nothing, and posting an empty message
         // would be worse than saying so here.
-        if (body.Trim().Length == 0) return (true, "Nothing to post: the blocks rendered empty.");
+        if (body.Trim().Length == 0) return (true, "Nothing to post: the sections rendered empty.");
+
+        // Asked for, and only then: a task whose static text is the point should still go out on a
+        // quiet month. ⚠️ Counts as the run either way — it got as far as deciding what to
+        // send, and deciding to send nothing is a decision, not a failure to retry.
+        if (cfg.SkipIfNoDynamicContent && !render.AnyDynamicContent)
+            return (true, "Nothing to post: no dynamic section had anything to say.");
 
         var res = cfg.DestinationKind == SlackDestination.KindWebhook
             ? await PostWebhookAsync(cfg.DestinationId, body, ct)
