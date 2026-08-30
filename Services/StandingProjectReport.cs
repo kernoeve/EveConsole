@@ -105,7 +105,10 @@ public static class StandingProjectReport
             // A named system that never expanded still has a name on the row; fall back to it
             // rather than printing a blank where the place should be.
             cols.Add(("System", r => r.SystemName.Length > 0 ? r.SystemName : Describe(r), false));
-            cols.Add(("ADM",    r => r.Adm is { } a ? a.ToString("F2") : "", false));
+            // WARN One decimal. ADM moves in tenths and never carries a second: 268,305
+            // stored readings hold nothing but clean tenths from 1.0 to 6.0, and the game
+            // and dotlan both show it that way. F2 was printing a digit that is always zero.
+            cols.Add(("ADM",    r => r.Adm is { } a ? a.ToString("F1") : "", false));
         }
         else
         {
