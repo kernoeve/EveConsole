@@ -370,6 +370,17 @@
                                 <TextBlock Classes="hint"
                                            Text="Missing is anything no active project is covering — including any the app could not check. Low adds the ones under 10% remaining, about to need replacing." />
 
+                                <Grid ColumnDefinitions="*,12,Auto">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="SECTION TITLE" />
+                                    <TextBox Text="{Binding SectionTitle}"
+                                             Watermark="{Binding DefaultTitle}" />
+                                  </StackPanel>
+                                  <CheckBox Grid.Column="2" IsChecked="{Binding ShowHeaders}"
+                                            Content="Column headers"
+                                            VerticalAlignment="Bottom" Margin="0 0 0 5" />
+                                </Grid>
+
                                 <TextBlock Classes="hint" Text="{Binding ProjectsNote}"
                                            IsVisible="{Binding ProjectsNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 

@@ -51,41 +51,88 @@ public static class StandingProjectReport
     ///
     /// <para>Columns are space-padded inside a code fence for the same reason the monthly summary
     /// is: Slack renders proportionally, so nothing but a monospace block lines up.</para>
+    ///
+    /// <para>⚠️ The shape follows the project type, because the two are identified by different
+    /// things. A destroy-NPC row is a place, so it gets Region, System and the system's ADM. A
+    /// delivery is an item and where it goes, and has no system of its own to put in a column.</para>
     /// </summary>
-    public static string Export(IReadOnlyList<StandingProjectGridRow> rows, string heading)
+    public static string Export(
+        IReadOnlyList<StandingProjectGridRow> rows,
+        string heading,
+        string projectType   = DestroyNpc,
+        bool   showHeaders   = false)
     {
         if (rows.Count == 0) return "";
 
-        var cells = rows.Select(r => new[]
-        {
-            Summary(r),
-            Status(r),
-            r.RemainingText,
-            r.RemainingPercentText,
-        }).ToList();
+        var byPlace = projectType == DestroyNpc;
 
-        var widths = new int[4];
-        for (var i = 0; i < 4; i++) widths[i] = cells.Max(c => c[i].Length);
+        // Region then system, so the list reads as a tour of the map rather than in whatever order
+        // the scopes happened to expand. Rows with no system sort last rather than first, since an
+        // empty string would otherwise head the list.
+        var ordered = byPlace
+            ? [.. rows.OrderBy(r => r.RegionName.Length == 0)
+                      .ThenBy(r => r.RegionName, StringComparer.OrdinalIgnoreCase)
+                      .ThenBy(r => r.SystemName, StringComparer.OrdinalIgnoreCase)]
+            : rows.OrderBy(r => Summary(r), StringComparer.OrdinalIgnoreCase).ToList();
+
+        string[] headers = byPlace
+            ? ["Region", "System", "ADM", "Status", "Remaining", "%"]
+            : ["Project", "Status", "Remaining", "%"];
+
+        var cells = ordered.Select(r => byPlace
+            ? new[]
+              {
+                  r.RegionName,
+                  // A named system that never expanded still has a name in the summary; fall back
+                  // to it rather than printing a blank where the place should be.
+                  r.SystemName.Length > 0 ? r.SystemName : Summary(r),
+                  r.Adm is { } a ? a.ToString("F2") : "",
+                  Status(r),
+                  r.RemainingText,
+                  r.RemainingPercentText,
+              }
+            : new[] { Summary(r), Status(r), r.RemainingText, r.RemainingPercentText })
+            .ToList();
+
+        var columns = headers.Length;
+        var widths  = new int[columns];
+
+        // ⚠️ Headers are measured into the widths only when they are being printed. Sized in
+        // regardless, a hidden "Remaining" header would pad a column of three-digit numbers to
+        // nine characters and the block would look wrong for a heading nobody asked for.
+        if (showHeaders)
+            for (var i = 0; i < columns; i++) widths[i] = headers[i].Length;
+
+        foreach (var c in cells)
+            for (var i = 0; i < columns; i++)
+                widths[i] = Math.Max(widths[i], c[i].Length);
 
         var sb = new StringBuilder();
         sb.AppendLine($"*{heading}*");
         sb.AppendLine("```");
 
-        foreach (var c in cells)
-        {
-            // The last populated cell is not padded, so there is no trailing whitespace.
-            var last = c.Length - 1;
-            while (last > 0 && string.IsNullOrEmpty(c[last])) last--;
+        // Only with rows to head. Export has already returned on an empty set, so reaching here
+        // means there is something for the headers to describe.
+        if (showHeaders) sb.AppendLine(Row(headers, widths));
 
-            var line = new StringBuilder();
-            for (var i = 0; i <= last; i++)
-                line.Append(i == last ? c[i] : c[i].PadRight(widths[i] + 2));
-
-            sb.AppendLine(line.ToString());
-        }
+        foreach (var c in cells) sb.AppendLine(Row(c, widths));
 
         sb.AppendLine("```");
         return sb.ToString().TrimEnd();
+    }
+
+    /// <summary>One padded line. The last populated cell is not padded, so no line ends in
+    /// whitespace inside the fence.</summary>
+    private static string Row(string[] cells, int[] widths)
+    {
+        var last = cells.Length - 1;
+        while (last > 0 && string.IsNullOrEmpty(cells[last])) last--;
+
+        var line = new StringBuilder();
+        for (var i = 0; i <= last; i++)
+            line.Append(i == last ? cells[i] : cells[i].PadRight(widths[i] + 2));
+
+        return line.ToString();
     }
 
     /// <summary>
@@ -131,4 +178,19 @@ public static class StandingProjectReport
 
     public static string TypeLabel(string projectType) =>
         projectType == DeliverItem ? "Deliver item" : "Destroy NPC";
+
+    /// <summary>
+    /// The heading a section writes for itself when nobody has retitled it.
+    ///
+    /// <para>Shared with the editor, which shows it as the placeholder in the title box — so
+    /// what the box promises and what the post prints cannot drift.</para>
+    /// </summary>
+    public static string DefaultTitle(string projectType, string filter)
+    {
+        var title = TypeLabel(projectType) + " projects";
+
+        return filter == ProjectFilters.All
+            ? title
+            : title + " — " + ProjectFilters.Label(filter).ToLowerInvariant();
+    }
 }

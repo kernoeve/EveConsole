@@ -77,6 +77,18 @@ public sealed class MessageBlock
     public string ProjectFilter { get; set; } = ProjectFilters.All;
 
     /// <summary>
+    /// Standing project blocks: the heading over the table.
+    ///
+    /// <para>Empty means the one the section builds for itself. Stored empty rather than stamped
+    /// with today's default, so a section that was never retitled keeps following the type and
+    /// filter it is actually reporting on.</para>
+    /// </summary>
+    public string SectionTitle { get; set; } = "";
+
+    /// <summary>Standing project blocks: print a header row above the table.</summary>
+    public bool ShowHeaders { get; set; }
+
+    /// <summary>
     /// Standing project blocks: exactly the projects to report on.
     ///
     /// <para>⚠️ Inclusions, not exclusions. A new section starts with everything ticked, but what
@@ -432,11 +444,11 @@ public class ScheduledBlockRenderer(CorpActivityService corp, SalePostingService
             .Where(r => StandingProjectReport.Wanted(r, b.ProjectFilter))
             .ToList();
 
-        var heading = StandingProjectReport.TypeLabel(b.ProjectType) + " projects";
-        if (b.ProjectFilter != ProjectFilters.All)
-            heading += " — " + ProjectFilters.Label(b.ProjectFilter).ToLowerInvariant();
+        var heading = b.SectionTitle.Trim().Length > 0
+            ? b.SectionTitle.Trim()
+            : StandingProjectReport.DefaultTitle(b.ProjectType, b.ProjectFilter);
 
-        return StandingProjectReport.Export([.. wanted], heading);
+        return StandingProjectReport.Export([.. wanted], heading, b.ProjectType, b.ShowHeaders);
     }
 
     /// <summary>The corp's name, or nothing — a header without one still reads correctly.</summary>

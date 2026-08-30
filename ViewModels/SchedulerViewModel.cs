@@ -185,6 +185,8 @@ public sealed class MessageBlockVm : ReactiveObject
                        ?? ProjectTypeOptions[0];
         _projectFilter = ProjectFilterOptions.FirstOrDefault(f => f.Key == model.ProjectFilter)
                        ?? ProjectFilterOptions[^1];
+        _sectionTitle = model.SectionTitle;
+        _showHeaders  = model.ShowHeaders;
 
         foreach (var (key, title) in ScheduledBlockRenderer.Top10Categories)
             Categories.Add(new CategoryChoice(key, title) { Selected = model.Categories.Contains(key) });
@@ -265,8 +267,29 @@ public sealed class MessageBlockVm : ReactiveObject
     public LabelledChoice ProjectFilter
     {
         get => _projectFilter;
-        set => this.RaiseAndSetIfChanged(ref _projectFilter, value ?? ProjectFilterOptions[^1]);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _projectFilter, value ?? ProjectFilterOptions[^1]);
+            this.RaisePropertyChanged(nameof(DefaultTitle));
+        }
     }
+
+    /// <summary>
+    /// The heading over the table. Empty means the one the section writes for itself.
+    ///
+    /// <para>Stored empty rather than filled in with today's default, so a section nobody retitled
+    /// keeps following the type and filter it actually reports on.</para>
+    /// </summary>
+    private string _sectionTitle = "";
+    public string SectionTitle { get => _sectionTitle; set => this.RaiseAndSetIfChanged(ref _sectionTitle, value); }
+
+    /// <summary>What the title box shows when it is empty, and what the post then prints.</summary>
+    public string DefaultTitle =>
+        StandingProjectReport.DefaultTitle(ProjectType?.Key ?? StandingProjectReport.DestroyNpc,
+                                           ProjectFilter?.Key ?? EveConsole.Services.ProjectFilters.All);
+
+    private bool _showHeaders;
+    public bool ShowHeaders { get => _showHeaders; set => this.RaiseAndSetIfChanged(ref _showHeaders, value); }
 
     private LabelledChoice _projectType;
     public LabelledChoice ProjectType
@@ -275,6 +298,7 @@ public sealed class MessageBlockVm : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _projectType, value ?? ProjectTypeOptions[0]);
+            this.RaisePropertyChanged(nameof(DefaultTitle));
             _ = ReloadProjectsAsync();
         }
     }
@@ -370,6 +394,8 @@ public sealed class MessageBlockVm : ReactiveObject
         PostingId          = Posting?.Id ?? 0,
         ProjectType        = ProjectType?.Key ?? StandingProjectReport.DestroyNpc,
         ProjectFilter      = ProjectFilter?.Key ?? EveConsole.Services.ProjectFilters.All,
+        SectionTitle       = SectionTitle.Trim(),
+        ShowHeaders        = ShowHeaders,
         IncludedProjectIds = [.. _included],
     };
 }

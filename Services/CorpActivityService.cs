@@ -102,7 +102,14 @@ public sealed record StandingProjectGridRow(
     /// <summary>Why a status is what it is, where the status alone is not enough to act on.
     /// Carries the fetch error behind "no_adm", so a broken call names itself instead of
     /// presenting as an empty scope.</summary>
-    string StatusNote = "");
+    string StatusNote = "",
+    /// <summary>The system this row is about, and the region holding it. Filled for any row that
+    /// names a system; a delivery row names a station instead and leaves both empty.</summary>
+    string SystemName = "",
+    string RegionName = "",
+    /// <summary>The system's occupancy level, where there is one. Null on a row that names no
+    /// system, and on a system nobody holds.</summary>
+    double? Adm = null);
 
 // â”€â”€ Service â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -2422,12 +2429,11 @@ public class CorpActivityService
         var officeGap = deliverConfigs.Any(d => d.OfficeUnresolved);
         if (officeGap) OfficeMapUnavailable = true;
 
-        // ⚠️ Alliance-sov needs the same read. It does not filter on ADM, but the system-to-owner
-        // map comes from the same endpoint, so it has to be fetched here or the scope expands to
-        // nothing and says the scope was empty.
-        bool needsAdm = standing.Any(p => p.ProjectType == "destroy_npc" &&
-                                          p.ScopeType is "region_adm" or "constellation_adm"
-                                                      or "alliance_sov");
+        // ⚠️ Every destroy-NPC project needs the read now, not only the scoped ones. The ADM
+        // scopes filter on it and alliance-sov takes the system-to-owner map from the same call,
+        // but a plainly named system reports its ADM too — so the one cached call covers all
+        // three rather than leaving the simplest scope as the only one that cannot say.
+        bool needsAdm = standing.Any(p => p.ProjectType == "destroy_npc");
         if (needsAdm) { SovAdmUnavailable = false; SovAdmError = ""; }
         var adm = needsAdm ? await GetSovAdmLevelsAsync(ct) : [];
 
@@ -2493,6 +2499,9 @@ public class CorpActivityService
                             TargetDisplay       : sp.SolarSystemName,
                             DestDisplay         : "",
                             ExpandedSystemId    : sp.SolarSystemId,
+                            Adm                 : sp.SolarSystemId is int sysId
+                                                  && adm.TryGetValue(sysId, out var sysAdm)
+                                                      ? sysAdm : null,
                             MatchStatus         : match is not null ? "matched" : "not_active",
                             MatchedName         : match?.ProjectName ?? "",
                             RemainingText       : match is not null ? FormatRemaining(sysRemaining) : "",
@@ -2587,6 +2596,8 @@ public class CorpActivityService
                                     TargetDisplay       : scopeLabel,
                                     DestDisplay         : sys.Name,
                                     ExpandedSystemId    : sys.SystemId,
+                                    Adm                 : adm.TryGetValue(sys.SystemId, out var qAdm)
+                                                              ? qAdm : null,
                                     MatchStatus         : match is not null ? "matched" : "not_active",
                                     MatchedName         : match?.ProjectName ?? "",
                                     RemainingText       : match is not null ? FormatRemaining(admRemaining) : "",
@@ -2603,7 +2614,26 @@ public class CorpActivityService
             }
         }
 
-        return rows;
+        // Where each row is, stamped in one pass at the end rather than looked up inside the
+        // expansion: the ADM scopes do not know which systems they will produce until they have
+        // produced them, so there is no earlier point where the whole set is known.
+        var sysIds = rows.Where(r => r.ExpandedSystemId is > 0)
+                         .Select(r => r.ExpandedSystemId!.Value)
+                         .Distinct()
+                         .ToList();
+
+        if (sysIds.Count == 0) return rows;
+
+        var geo = await db.SdeSolarSystems.AsNoTracking()
+            .Where(x => sysIds.Contains(x.SolarSystemId))
+            .Join(db.SdeRegions.AsNoTracking(), x => x.RegionId, g => g.RegionId,
+                  (x, g) => new { x.SolarSystemId, System = x.Name, Region = g.Name })
+            .ToDictionaryAsync(x => x.SolarSystemId, x => (x.System, x.Region), ct);
+
+        return [.. rows.Select(r =>
+            r.ExpandedSystemId is int sid && geo.TryGetValue(sid, out var g)
+                ? r with { SystemName = g.System, RegionName = g.Region }
+                : r)];
     }
 
     // Counts standing projects with no currently-matching active ESI project (used for the
