@@ -34,6 +34,16 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
     private const int AttrStructMfgTime   = 2602;
     private const int AttrStructRxnTime   = 2721;
 
+    /// <summary>
+    /// A structure's role bonus to job time, as a percentage — the Tatara's second one.
+    ///
+    /// <para>⚠️ A reaction structure carries TWO time bonuses and the app read one. A Tatara has
+    /// 2721 = 0.75 as a multiplier AND this at -20, and EVE applies both: 0.75 x 0.80 x the rig's
+    /// 0.736 is 0.4416, which is exactly what 600+ of the user's own reaction jobs measure. On its
+    /// own, 2721 modelled a reaction 25% slower than the game charges.</para>
+    /// </summary>
+    private const int AttrStructRoleTime  = 2749;
+
     // Science rig bonuses. Copying and invention are separately bonused, so a lab rigged for one
     // does nothing for the other and they cannot share a lookup.
     private const int AttrCopyRigTime      = 2780;
@@ -99,7 +109,8 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
             .Where(a => a.AttributeId == AttrMfgRigTime     || a.AttributeId == AttrRxnRigTime
                      || a.AttributeId == AttrRigLowsecMult  || a.AttributeId == AttrRigNullsecMult
                      || a.AttributeId == AttrCopyRigTime    || a.AttributeId == AttrInventionRigTime
-                     || a.AttributeId == AttrStructMfgTime  || a.AttributeId == AttrStructRxnTime)
+                     || a.AttributeId == AttrStructMfgTime  || a.AttributeId == AttrStructRxnTime
+                     || a.AttributeId == AttrStructRoleTime)
             .Select(a => new { a.TypeId, a.AttributeId, a.Value })
             .ToListAsync(ct);
 
@@ -109,6 +120,7 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         var invRig = new Dictionary<int, double>();
         var lowMul = new Dictionary<int, double>();
         var nulMul = new Dictionary<int, double>();
+        var roleTime = new Dictionary<int, double>();
         var structTypeIds = new List<int>();
 
         foreach (var a in attrs)
@@ -121,6 +133,7 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
                 case AttrInventionRigTime: invRig[a.TypeId] = Math.Abs(a.Value) / 100.0; break;
                 case AttrRigLowsecMult:    lowMul[a.TypeId] = a.Value; break;
                 case AttrRigNullsecMult:   nulMul[a.TypeId] = a.Value; break;
+                case AttrStructRoleTime:   roleTime[a.TypeId] = 1.0 - Math.Abs(a.Value) / 100.0; break;
                 default:                   structTypeIds.Add(a.TypeId); break;
             }
         }
@@ -137,8 +150,24 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         {
             if (a.AttributeId != AttrStructMfgTime && a.AttributeId != AttrStructRxnTime) continue;
             if (!structNames.TryGetValue(a.TypeId, out var key)) continue;
-            if (a.AttributeId == AttrStructMfgTime) structMfg[key] = a.Value;
-            else                                    structRxn[key] = a.Value;
+            if (a.AttributeId == AttrStructMfgTime)
+            {
+                structMfg[key] = a.Value;
+                continue;
+            }
+
+            // ⚠️ Both of a reaction structure's role bonuses, combined here so the one lookup
+            // downstream carries the whole thing.
+            //
+            // 2749 is folded in ONLY where 2721 is present, which is what makes a structure a
+            // reaction structure. Fortizars, Azbels, Sotiyos and Keepstars carry 2749 as well and
+            // cannot run a reaction at all, so reading it on its own would invent a bonus for a
+            // structure that never gets asked.
+            //
+            // Manufacturing is deliberately left alone: those same structures may well have the
+            // same gap, but blueprint TE and rig fits vary across real manufacturing jobs and no
+            // measurement here separates them, so changing it would be a guess.
+            structRxn[key] = a.Value * roleTime.GetValueOrDefault(a.TypeId, 1.0);
         }
 
         var rigs = await db.IndyStructureRigs.AsNoTracking()
@@ -191,10 +220,18 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         // Reaction formulas cannot be researched, so any TE on one is noise, not a bonus.
         var teFactor = isReaction ? 1.0 : 1.0 - Math.Clamp(timeEfficiency, 0, 20) / 100.0;
 
+        // ⚠️ NEITHER industry skill touches a reaction. Advanced Industry was being applied to
+        // one, and it is not: measured across 600+ real reaction jobs, the per-run time is
+        // identical at Advanced Industry 0 and V, and at Industry 1, 3 and 5.
+        //
+        // It mattered beyond the 15%. EligibleFor deliberately ranks the LEAST capable character
+        // first, and that character is the one the job is sized against — so enabling an
+        // untrained alt for reactions silently shortened every reaction job in the plan.
         var advIndustry = Math.Clamp(skills.GetValueOrDefault(SkillAdvancedIndustry), 0, 5);
         var industry    = Math.Clamp(skills.GetValueOrDefault(SkillIndustry), 0, 5);
-        var skillFactor = (1.0 - 0.03 * advIndustry)
-                        * (isReaction ? 1.0 : 1.0 - 0.04 * industry);
+        var skillFactor = isReaction
+            ? 1.0
+            : (1.0 - 0.03 * advIndustry) * (1.0 - 0.04 * industry);
 
         var roleFactor = 1.0;
         if (structure is not null)
