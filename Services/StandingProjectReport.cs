@@ -99,7 +99,7 @@ public static class StandingProjectReport
                 // be unrecognisable from one week to the next.
                 "region_adm"        => $"{p.ScopeEntityName} — region, ADM below {p.MinAdm ?? 0:0.##}",
                 "constellation_adm" => $"{p.ScopeEntityName} — constellation, ADM below {p.MinAdm ?? 0:0.##}",
-                "alliance_sov"      => $"{p.ScopeEntityName} — everywhere it holds sov",
+                "alliance_sov"      => $"{p.ScopeEntityName} — sov, ADM below {p.MinAdm ?? 0:0.##}",
                 _                   => p.SolarSystemName,
             };
 

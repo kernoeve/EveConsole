@@ -2538,16 +2538,16 @@ public class CorpActivityService
                         var scopeLabel = sp.ScopeType switch
                         {
                             "region_adm"   => $"Region: {sp.ScopeEntityName} (ADM < {minAdm:F1})",
-                            "alliance_sov" => $"Sov: {sp.ScopeEntityName}",
+                            "alliance_sov" => $"Sov: {sp.ScopeEntityName} (ADM < {minAdm:F1})",
                             _              => $"Const: {sp.ScopeEntityName} (ADM < {minAdm:F1})",
                         };
 
-                        // ⚠️ No ADM filter on the alliance scope. It asks for every system the
-                        // alliance holds, and quietly dropping the healthy ones would answer a
-                        // question nobody asked.
-                        var qualifying = isAlliance
-                            ? systems
-                            : [.. systems.Where(x => adm.TryGetValue(x.SystemId, out var a) && a < minAdm)];
+                        // All three scopes filter the same way. The scope chooses WHICH systems are
+                        // in question; the ADM chooses which of those currently need something
+                        // doing, and that second half is the same question everywhere.
+                        var qualifying = systems
+                            .Where(x => adm.TryGetValue(x.SystemId, out var a) && a < minAdm)
+                            .ToList();
 
                         if (qualifying.Count == 0)
                         {

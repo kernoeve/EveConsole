@@ -115,6 +115,7 @@ public partial class StandingProjectDialog : Window
                 break;
             case "alliance_sov":
                 ScopeAllianceSov.IsChecked = true;
+                AllianceAdmBox.Value = (decimal)(p.MinAdm ?? 4.0);
                 // The combo is filled asynchronously; LoadAlliancesAsync re-selects this id when
                 // the rows arrive.
                 break;
@@ -139,12 +140,10 @@ public partial class StandingProjectDialog : Window
         DestroyPanel.IsVisible = !isDeliver;
     }
 
-    private void OnScopeChanged(object? sender, RoutedEventArgs e)
-    {
-        SystemPanel.IsVisible = ReferenceEquals(sender, ScopeSystem);
-        RegionPanel.IsVisible = ReferenceEquals(sender, ScopeRegionAdm);
-        ConstPanel.IsVisible  = ReferenceEquals(sender, ScopeConstAdm);
-    }
+    // ⚠️ Defers to UpdateScopePanels rather than repeating it. This used to set the three panels
+    // itself, so adding a fourth scope showed its radio, hid the others, and displayed nothing:
+    // the panel it should have shown was only known to the other copy.
+    private void OnScopeChanged(object? sender, RoutedEventArgs e) => UpdateScopePanels();
 
     private void UpdateScopePanels()
     {
@@ -411,6 +410,7 @@ public partial class StandingProjectDialog : Window
                     // three places to look for "what is this project scoped to".
                     ScopeEntityId   = (int)alliance.Id,
                     ScopeEntityName = alliance.Name,
+                    MinAdm          = (double)(AllianceAdmBox.Value ?? 4.0m),
                 });
             }
             else
