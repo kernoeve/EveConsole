@@ -2,6 +2,7 @@ using System.Reactive.Linq;
 using System.Text;
 using EveConsole.Services;
 using Avalonia;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -82,7 +83,21 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         var x = prefs.GetLong("window.x", long.MinValue);
         var y = prefs.GetLong("window.y", long.MinValue);
         if (x != long.MinValue && y != long.MinValue)
-            Position = new Avalonia.PixelPoint((int)x, (int)y);
+        {
+            var saved = new Avalonia.PixelPoint((int)x, (int)y);
+
+            // ⚠️ Only if that point is still on a monitor. A position saved against a screen
+            // that has since been unplugged — a laptop undocked, a second monitor moved
+            // — restores the window somewhere nobody can reach, and every dialog it owns
+            // opens centred on it and vanishes too. The splash has always checked this; the
+            // main window never did.
+            //
+            // Left unset the window is placed by the OS, which is the right answer: it knows
+            // what screens exist right now and this code does not have to guess.
+            var onScreen = Screens?.All?.Any(sc => sc.Bounds.Contains(saved)) ?? false;
+
+            if (onScreen) Position = saved;
+        }
 
         // Maximize after position is set so it maximizes on the correct monitor.
         var stateStr = prefs.Get("window.state");
