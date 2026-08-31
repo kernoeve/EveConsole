@@ -32,23 +32,6 @@ public class StandingBuyOrderGenerator(
         var altMap  = await marketAlts.GetByLocationAsync(ct);
         var asOf     = await MarketDataAsOfAsync(ct);
 
-        // Names for the characters holding these orders. Only personal orders: a corp order is
-        // not one character's to change, and OwnerId is already zero where several owners back
-        // one declaration.
-        var ownerIds = rows.Where(r => r.OwnerId > 0 && r.OwnerType != "corporation")
-                           .Select(r => r.OwnerId)
-                           .Distinct()
-                           .ToList();
-
-        var ownerNames = new Dictionary<long, string>();
-        if (ownerIds.Count > 0)
-        {
-            await using var db = await dbFactory.CreateDbContextAsync(ct);
-            ownerNames = await db.Characters.AsNoTracking()
-                .Where(c => ownerIds.Contains(c.Id))
-                .ToDictionaryAsync(c => c.Id, c => c.Name, ct);
-        }
-
         var items = new List<WorklistItem>();
 
         foreach (var r in rows)
@@ -62,19 +45,19 @@ public class StandingBuyOrderGenerator(
 
             // ── Who has to log in ─────────────────────────────────────────────
             //
-            // ⚠️ An order that already exists is changed by the character who placed it, not
-            // by whoever is assigned to that station. Naming the station's alt sent "raise the
-            // bid on Compressed Kylixium IV-Grade" to a character with no such order — the
-            // order was another alt's, and the named one cannot touch its price.
+            // ⚠️ An order that already exists is changed by the character who placed it, and
+            // by nobody else. Routing these to the market alt assigned to the station sent
+            // "raise the bid" to a character with no such order — somebody else's order, and
+            // the named one cannot touch its price.
             //
-            // Only for the verbs that act on an existing order. "Place order" is the opposite
+            // PlacedById, not OwnerId: a corp order is held by the corporation, so its owner is
+            // a wallet rather than a person, but it was still placed by one of our characters
+            // and that is who has to log in.
+            //
+            // Only for the verbs that act on an order that exists. "Place order" is the opposite
             // case: nothing has been placed, so the station's alt is exactly who should.
-            //
-            // Corp orders keep the alt too. OwnerId is zero for them here, and the tool already
-            // treats a corp order as actionable by anyone holding the role — see
-            // OutbidOrderService.Task, which reaches the same conclusion from the other side.
-            var placedBy  = verb == PlaceOrderVerb ? 0 : r.OwnerId;
-            var ownerName = placedBy > 0 ? ownerNames.GetValueOrDefault(placedBy, "") : "";
+            var placedBy  = verb == PlaceOrderVerb ? 0 : r.PlacedById;
+            var ownerName = placedBy > 0 ? r.PlacedByName : "";
             var named     = ownerName.Length > 0;
 
             // No character at all is a real blocker rather than a detail: the point of the list
