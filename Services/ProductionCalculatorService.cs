@@ -19,16 +19,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     private static readonly HashSet<string> UpwellKeys    = ["raitaru","azbel","sotiyo","athanor","tatara","astrahus","fortizar","keepstar","draccous","horiuchi","moreau","prometheus","lancer"];
     private static readonly HashSet<string> EngComplexKeys = ["raitaru","azbel","sotiyo"];
 
-    // EVE material consumption for a whole job: the per-run adjusted quantity (base × ME/rig/role
-    // modifiers) is rounded to 2 dp, multiplied by the run count, and ceilinged ONCE — not rounded
-    // per unit and then multiplied. Floors at one per run. Rounding per unit inflates batches (e.g.
-    // a 4.5/run material over 2 runs is 9, not ceil(4.5)×2 = 10).
-    private static int JobMaterialTotal(int baseQty, double factor, int runs)
-    {
-        double perRun = Math.Round(baseQty * factor, 2);
-        double total  = Math.Round(perRun * runs, 4);   // guard floating-point before the ceiling
-        return Math.Max(runs, (int)Math.Ceiling(total));
-    }
+    // What a whole job eats of one material. See IndustryMe.JobMaterialTotal — one definition,
+    // shared with the build costs so the plan and the price of it cannot disagree.
+    private static int JobMaterialTotal(int baseQty, double factor, int runs) =>
+        IndustryMe.JobMaterialTotal(baseQty, factor, runs);
 
     /// <summary>
     /// Loads a plan once and reuses it. Identical for every item and responsible for nearly all
