@@ -1495,106 +1495,135 @@
     </TabItem>
 
     <!-- ══ Corp Top 10 ════════════════════════════════════════════════════════ -->
-    <TabItem Header="Corp Top 10">
-      <Grid RowDefinitions="*,Auto" Margin="0 8 0 0">
+    <TabItem Header="Corp Top 10 / Summary">
+      <Grid ColumnDefinitions="*,8,*" Margin="0 8 0 0" DataContext="{Binding CorpTop10Vm}">
 
-        <Grid Grid.Row="0" ColumnDefinitions="*,8,*">
+        <!-- Left: what every section is called. Scrolls, because twelve fields and a
+             prefix do not fit a settings pane at every window height. -->
+        <Border Grid.Column="0" BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+          <Grid RowDefinitions="Auto,Auto,*,Auto">
+            <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+              <TextBlock Text="Top 10 List Titles" FontWeight="SemiBold" Foreground="#c8a84b" />
+            </Border>
 
-          <!-- Left: Search + Results -->
-          <Border Grid.Column="0" BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
-            <Grid RowDefinitions="Auto,Auto,*">
-              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
-                <TextBlock Text="Add to Exclude List" FontWeight="SemiBold" Foreground="#c8a84b" />
-              </Border>
+            <TextBlock Grid.Row="1" Margin="10 8 10 6" FontSize="11" Foreground="#888"
+                       TextWrapping="Wrap"
+                       Text="The heading each section is posted under. Leave one empty to use the built-in name. Every Top 10 heading carries the month it covers, so a list read on its own still says which month it is." />
 
-              <StackPanel Grid.Row="1" Margin="10 8 10 6" Spacing="6"
-                          DataContext="{Binding CorpTop10Vm}">
-                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
-                           Text="Excluded members/corps will not appear in any Top 10 list. They still appear in all other Corp Activity views." />
+            <ScrollViewer Grid.Row="2" Margin="10 0 10 6">
+              <StackPanel Spacing="10">
 
-                <Grid ColumnDefinitions="*,8,Auto" Margin="0 4 0 0">
-                  <TextBox Grid.Column="0"
-                           Text="{Binding SearchText}"
-                           Watermark="Name to search…"
-                           FontSize="11" />
-                  <ComboBox Grid.Column="2"
-                            ItemsSource="{Binding EntityTypes}"
-                            SelectedItem="{Binding EntityType}"
-                            MinWidth="120" FontSize="11"
-                            Background="#1a1a28" Foreground="#c8c8d8"
-                            BorderBrush="#2a2a3a" />
-                </Grid>
-
-                <Button Content="Search"
-                        Command="{Binding SearchCommand}"
-                        HorizontalAlignment="Left"
-                        Background="#1a1a28" Foreground="#5599aa"
-                        BorderBrush="#2a3a44" BorderThickness="1"
-                        Padding="14 4" FontSize="11" />
-
-                <TextBlock Text="{Binding StatusText}"
-                           FontSize="11" Foreground="#c8a84b"
-                           IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-              </StackPanel>
-
-              <!-- Search results list -->
-              <Border Grid.Row="2" Margin="10 0 10 10"
-                      BorderBrush="#252530" BorderThickness="1" CornerRadius="3">
-                <ListBox ItemsSource="{Binding CorpTop10Vm.SearchResults}"
-                         Background="Transparent"
-                         SelectionMode="Single">
-                  <ListBox.ItemTemplate>
-                    <DataTemplate x:DataType="vm:CorpTop10ExcludeRowVm">
-                      <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Grid.Column="0" Text="{Binding Display}"
-                                   FontSize="11" Foreground="#c8c8d8"
-                                   VerticalAlignment="Center" />
-                        <Button Grid.Column="1" Content="+ Add"
-                                Command="{Binding $parent[ListBox].((vm:SettingsViewModel)DataContext).CorpTop10Vm.AddCommand}"
-                                CommandParameter="{Binding}"
-                                FontSize="10" Padding="8 2"
-                                Background="#1a2a1a" Foreground="#6aaa88"
-                                BorderBrush="#2a3a2a" BorderThickness="1" />
-                      </Grid>
+                <ItemsControl ItemsSource="{Binding Titles}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:Top10TitleRowVm">
+                      <StackPanel Margin="0 0 0 8">
+                        <TextBlock Text="{Binding DefaultTitle}" FontSize="10" FontWeight="SemiBold"
+                                   Foreground="#555566" Margin="2 0 0 2" />
+                        <TextBox Text="{Binding Title}" Watermark="{Binding DefaultTitle}"
+                                 FontSize="11" Background="#1a1a28" Foreground="#c8c8d8"
+                                 BorderBrush="#2a2a3a" />
+                      </StackPanel>
                     </DataTemplate>
-                  </ListBox.ItemTemplate>
-                </ListBox>
-              </Border>
-            </Grid>
-          </Border>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
-          <!-- Right: Current Excludes -->
-          <Border Grid.Column="2" BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
-            <Grid RowDefinitions="Auto,*">
-              <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
-                <TextBlock Text="Current Exclude List" FontWeight="SemiBold" Foreground="#c8a84b" />
-              </Border>
+                <Border Background="#161620" CornerRadius="3" Padding="8 5">
+                  <TextBlock Text="Summary Titles" FontWeight="SemiBold" Foreground="#c8a84b"
+                             FontSize="12" />
+                </Border>
 
-              <ListBox Grid.Row="1"
-                       ItemsSource="{Binding CorpTop10Vm.Excludes}"
-                       Background="Transparent"
-                       SelectionMode="Single"
-                       Margin="4 4 4 4">
-                <ListBox.ItemTemplate>
-                  <DataTemplate x:DataType="vm:CorpTop10ExcludeRowVm">
-                    <Grid ColumnDefinitions="*,Auto">
-                      <TextBlock Grid.Column="0" Text="{Binding Display}"
-                                 FontSize="11" Foreground="#c8c8d8"
-                                 VerticalAlignment="Center" />
-                      <Button Grid.Column="1" Content="Remove"
-                              Command="{Binding $parent[ListBox].((vm:SettingsViewModel)DataContext).CorpTop10Vm.RemoveCommand}"
-                              CommandParameter="{Binding}"
-                              FontSize="10" Padding="8 2"
-                              Background="#2a1a1a" Foreground="#cc7766"
-                              BorderBrush="#3a2a2a" BorderThickness="1" />
-                    </Grid>
-                  </DataTemplate>
-                </ListBox.ItemTemplate>
-              </ListBox>
-            </Grid>
-          </Border>
+                <StackPanel>
+                  <TextBlock Text="SUMMARY HEADER PREFIX" FontSize="10" FontWeight="SemiBold"
+                             Foreground="#555566" Margin="2 0 0 2" />
+                  <TextBox Text="{Binding HeaderPrefix}"
+                           Watermark="Put in front of the summary's first line"
+                           FontSize="11" Background="#1a1a28" Foreground="#c8c8d8"
+                           BorderBrush="#2a2a3a" />
+                </StackPanel>
 
-        </Grid>
+                <ItemsControl ItemsSource="{Binding SummaryTitles}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:Top10TitleRowVm">
+                      <StackPanel Margin="0 0 0 8">
+                        <TextBlock Text="{Binding DefaultTitle}" FontSize="10" FontWeight="SemiBold"
+                                   Foreground="#555566" Margin="2 0 0 2" />
+                        <TextBox Text="{Binding Title}" Watermark="{Binding DefaultTitle}"
+                                 FontSize="11" Background="#1a1a28" Foreground="#c8c8d8"
+                                 BorderBrush="#2a2a3a" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+              </StackPanel>
+            </ScrollViewer>
+
+            <Button Grid.Row="3" Content="Save Titles" Command="{Binding SaveTitlesCommand}"
+                    Margin="10 0 10 10" HorizontalAlignment="Left"
+                    FontSize="11" Padding="12 4"
+                    Background="#1a1a28" Foreground="#5599aa"
+                    BorderBrush="#2a3a44" BorderThickness="1" />
+          </Grid>
+        </Border>
+
+        <!-- Right: who is left out. The picker sits directly over the list it feeds. -->
+        <Border Grid.Column="2" BorderBrush="#252530" BorderThickness="1" CornerRadius="4">
+          <Grid RowDefinitions="Auto,Auto,*">
+            <Border Grid.Row="0" Background="#161620" CornerRadius="4 4 0 0" Padding="10 6">
+              <TextBlock Text="Top 10 Exclude List" FontWeight="SemiBold" Foreground="#c8a84b" />
+            </Border>
+
+            <StackPanel Grid.Row="1" Margin="10 8 10 6" Spacing="6">
+              <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap"
+                         Text="Anyone here is left out of every Top 10 list, on this tab and in scheduled posts." />
+
+              <Grid ColumnDefinitions="120,8,*,8,Auto">
+                <ComboBox Grid.Column="0" ItemsSource="{Binding EntityTypes}"
+                          SelectedItem="{Binding EntityType}"
+                          HorizontalAlignment="Stretch" FontSize="11"
+                          Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+
+                <AutoCompleteBox Grid.Column="2"
+                                 AsyncPopulator="{Binding SearchPopulator}"
+                                 SelectedItem="{Binding SearchMatch}"
+                                 Text="{Binding SearchText}"
+                                 ValueMemberBinding="{Binding EntityName}"
+                                 FilterMode="None" MinimumPrefixLength="2"
+                                 Watermark="Type two letters of the name…"
+                                 FontSize="11" Background="#1a1a28" Foreground="#c8c8d8"
+                                 BorderBrush="#2a2a3a" />
+
+                <Button Grid.Column="4" Content="Add" Command="{Binding AddCommand}"
+                        FontSize="11" Padding="12 4"
+                        Background="#1a1a28" Foreground="#5599aa"
+                        BorderBrush="#2a3a44" BorderThickness="1" />
+              </Grid>
+
+              <TextBlock Text="{Binding StatusText}" FontSize="10.5" Foreground="#7a7a8a"
+                         TextWrapping="Wrap"
+                         IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+
+            <ListBox Grid.Row="2" ItemsSource="{Binding Excludes}"
+                     Background="Transparent" SelectionMode="Single" Margin="4 0 4 4">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:CorpTop10ExcludeRowVm">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding Display}"
+                               FontSize="11" Foreground="#c8c8d8"
+                               VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Content="Remove"
+                            Command="{Binding $parent[ListBox].((vm:CorpTop10SettingsViewModel)DataContext).RemoveCommand}"
+                            CommandParameter="{Binding}"
+                            FontSize="10" Padding="8 2"
+                            Background="#2a1a1a" Foreground="#cc7766"
+                            BorderBrush="#3a2a2a" BorderThickness="1" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+        </Border>
 
       </Grid>
     </TabItem>
@@ -2126,6 +2155,61 @@
 
         <Border Height="1" Background="#1e1e2a" />
 
+        <!-- —— Named webhooks ——————————————————————————
+             Defined once and picked by name everywhere after. A webhook URL is a long opaque
+             secret bound to one channel: pasting it per area gave three copies of the same
+             string with no way to tell whether they were the same hook, and no way to change it
+             in one place when it was rotated. -->
+        <StackPanel Spacing="8">
+          <TextBlock Text="Webhooks" FontSize="12" FontWeight="SemiBold" Foreground="#c8c8d8" />
+          <TextBlock TextWrapping="Wrap" Foreground="#8a8a99" FontSize="11"
+                     Text="For workspaces you cannot connect to as yourself — an alliance Slack, typically, which will hand out a webhook where it would never hand out a token. Name one here and it appears in every destination list below." />
+          <TextBlock TextWrapping="Wrap" Foreground="#8a8a99" FontSize="11"
+                     Text="⚠ A webhook cannot thread. Nothing posted through one returns a message id, so a sale posting's detail arrives as a second message instead of a reply under the first. Posts also arrive as the webhook's own app rather than as you." />
+
+          <DataGrid ItemsSource="{Binding SlackVm.Webhooks}" AutoGenerateColumns="False"
+                    IsReadOnly="True" MaxHeight="150" HeadersVisibility="Column"
+                    Background="Transparent">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200" />
+              <DataGridTextColumn Header="URL"  Binding="{Binding Url}"  Width="*" />
+              <DataGridTemplateColumn Header="" Width="80">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="models:SlackWebhook">
+                    <!-- ⚠️ $parent[Window]. Settings is a Window, and the UserControl this asked
+                         for does not exist above it, so the command resolved to null: the button
+                         rendered disabled, and inconsistently so as the grid recycled its cells
+                         between one row and the next. -->
+                    <Button Content="Remove" FontSize="10" Padding="6 1" Cursor="Hand"
+                            Command="{Binding $parent[Window].((vm:SettingsViewModel)DataContext).SlackVm.RemoveWebhookCommand}"
+                            CommandParameter="{Binding Id}"
+                            Background="#2a1010" Foreground="#aa4444"
+                            BorderBrush="#3a2020" BorderThickness="1" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <Grid ColumnDefinitions="200,*,Auto">
+            <TextBox Grid.Column="0" Text="{Binding SlackVm.NewWebhookName}"
+                     Watermark="Name" FontSize="12"
+                     Background="#131320" Foreground="#ccccdd" BorderBrush="#2a2a3a" />
+            <TextBox Grid.Column="1" Text="{Binding SlackVm.NewWebhookUrl}"
+                     Watermark="https://hooks.slack.com/services/…" FontSize="12" Margin="8 0"
+                     Background="#131320" Foreground="#ccccdd" BorderBrush="#2a2a3a" />
+            <Button Grid.Column="2" Content="Add" Command="{Binding SlackVm.AddWebhookCommand}"
+                    Padding="14 5" FontSize="12"
+                    Background="#0d1a12" Foreground="#4a8a5a"
+                    BorderBrush="#1e3a28" BorderThickness="1" />
+          </Grid>
+
+          <!-- This section speaks for itself rather than through the connection label above,
+               where a "removed webhook" line replaced the workspace name. -->
+          <TextBlock Text="{Binding SlackVm.WebhookStatus}" FontSize="11" Foreground="#888899"
+                     TextWrapping="Wrap" IsVisible="{Binding SlackVm.WebhookStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+
         <!-- Channel assignment per area -->
         <StackPanel Spacing="6">
           <TextBlock Text="Channels" FontSize="12" FontWeight="SemiBold" Foreground="#c8c8d8" />
@@ -2135,8 +2219,8 @@
             <TextBlock Grid.Column="0" Text="Corp Activity — Top 10" FontSize="12" Foreground="#c8c8d8"
                        VerticalAlignment="Center" />
             <ComboBox Grid.Column="1"
-                      ItemsSource="{Binding SlackVm.Channels}"
-                      SelectedItem="{Binding SlackVm.CorpTop10Channel}"
+                      ItemsSource="{Binding SlackVm.Destinations}"
+                      SelectedItem="{Binding SlackVm.CorpTop10Dest}"
                       PlaceholderText="Select a channel…"
                       HorizontalAlignment="Stretch" FontSize="12"
                       Background="#131320" Foreground="#ccccdd"
@@ -2146,8 +2230,8 @@
             <TextBlock Grid.Column="0" Text="Corp Activity — Monthly Summary" FontSize="12" Foreground="#c8c8d8"
                        VerticalAlignment="Center" TextWrapping="Wrap" />
             <ComboBox Grid.Column="1"
-                      ItemsSource="{Binding SlackVm.Channels}"
-                      SelectedItem="{Binding SlackVm.CorpMonthlyChannel}"
+                      ItemsSource="{Binding SlackVm.Destinations}"
+                      SelectedItem="{Binding SlackVm.CorpMonthlyDest}"
                       PlaceholderText="Select a channel…"
                       HorizontalAlignment="Stretch" FontSize="12"
                       Background="#131320" Foreground="#ccccdd"
@@ -2157,8 +2241,8 @@
             <TextBlock Grid.Column="0" Text="Sale Posting" FontSize="12" Foreground="#c8c8d8"
                        VerticalAlignment="Center" />
             <ComboBox Grid.Column="1"
-                      ItemsSource="{Binding SlackVm.Channels}"
-                      SelectedItem="{Binding SlackVm.SalePostingChannel}"
+                      ItemsSource="{Binding SlackVm.Destinations}"
+                      SelectedItem="{Binding SlackVm.SalePostingDest}"
                       PlaceholderText="Select a channel…"
                       HorizontalAlignment="Stretch" FontSize="12"
                       Background="#131320" Foreground="#ccccdd"
@@ -2166,41 +2250,6 @@
           </Grid>
           <TextBlock TextWrapping="Wrap" Foreground="#666677" FontSize="11"
                      Text="Private channels only appear if you are a member of them. If a channel is missing, use Reload Channels." />
-        </StackPanel>
-
-        <!-- ── Incoming webhooks ──────────────────────────────────────────
-             The reason these exist: a user token is granted by the workspace that issued it, and
-             an alliance will hand out a webhook where it would never hand out a token for its own
-             Slack. -->
-        <StackPanel Spacing="8">
-          <TextBlock Text="Incoming Webhooks" FontSize="14" FontWeight="SemiBold"
-                     Foreground="#c8a84b" />
-          <TextBlock TextWrapping="Wrap" Foreground="#8a8a99" FontSize="11"
-                     Text="For workspaces you cannot connect to as yourself — an alliance Slack, typically. A webhook URL is created in that workspace and is bound to one channel, so setting one here overrides the channel chosen above for that area. Posts arrive as the webhook's own app rather than as you." />
-          <TextBlock TextWrapping="Wrap" Foreground="#8a8a99" FontSize="11"
-                     Text="⚠ A webhook cannot thread. Nothing posted through one returns a message id, so a sale posting's detail arrives as a second message instead of a reply under the first." />
-
-          <Grid ColumnDefinitions="200,*" Margin="0 4 0 0">
-            <TextBlock Grid.Column="0" Text="Corp Top 10" FontSize="12" Foreground="#c8c8d8"
-                       VerticalAlignment="Center" />
-            <TextBox Grid.Column="1" Text="{Binding SlackVm.Top10Webhook, UpdateSourceTrigger=LostFocus}"
-                     Watermark="https://hooks.slack.com/services/…" FontSize="12"
-                     Background="#131320" Foreground="#ccccdd" BorderBrush="#2a2a3a" />
-          </Grid>
-          <Grid ColumnDefinitions="200,*">
-            <TextBlock Grid.Column="0" Text="Monthly Summary" FontSize="12" Foreground="#c8c8d8"
-                       VerticalAlignment="Center" />
-            <TextBox Grid.Column="1" Text="{Binding SlackVm.MonthlyWebhook, UpdateSourceTrigger=LostFocus}"
-                     Watermark="https://hooks.slack.com/services/…" FontSize="12"
-                     Background="#131320" Foreground="#ccccdd" BorderBrush="#2a2a3a" />
-          </Grid>
-          <Grid ColumnDefinitions="200,*">
-            <TextBlock Grid.Column="0" Text="Sale Posting" FontSize="12" Foreground="#c8c8d8"
-                       VerticalAlignment="Center" />
-            <TextBox Grid.Column="1" Text="{Binding SlackVm.SalePostingWebhook, UpdateSourceTrigger=LostFocus}"
-                     Watermark="https://hooks.slack.com/services/…" FontSize="12"
-                     Background="#131320" Foreground="#ccccdd" BorderBrush="#2a2a3a" />
-          </Grid>
         </StackPanel>
 
       </StackPanel>

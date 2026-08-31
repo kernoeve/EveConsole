@@ -102,7 +102,17 @@ public sealed record StandingProjectGridRow(
     /// <summary>Why a status is what it is, where the status alone is not enough to act on.
     /// Carries the fetch error behind "no_adm", so a broken call names itself instead of
     /// presenting as an empty scope.</summary>
-    string StatusNote = "");
+    string StatusNote = "",
+    /// <summary>The system this row is about, and the region holding it. Filled for any row that
+    /// names a system; a delivery row names a station instead and leaves both empty.</summary>
+    string SystemName = "",
+    string RegionName = "",
+    /// <summary>The system's occupancy level, where there is one. Null on a row that names no
+    /// system, and on a system nobody holds.</summary>
+    double? Adm = null,
+    /// <summary>When a project matching this line was last COMPLETED, so an absent one can be
+    /// read as "gone since" rather than merely absent. Null where none ever was.</summary>
+    DateTimeOffset? LastDone = null);
 
 // â”€â”€ Service â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -2102,6 +2112,32 @@ public class CorpActivityService
 
     // ── Standing projects CRUD ────────────────────────────────────────────────
 
+    /// <summary>
+    /// The alliances this installation is actually in, for the alliance-sov scope picker.
+    ///
+    /// <para>⚠️ Read from the CHARACTERS. Corporations carry no alliance id of their own here, and
+    /// a corp we hold a token for has one of our characters in it — so the characters are both
+    /// the available answer and a correct one.</para>
+    /// </summary>
+    public async Task<List<(long Id, string Name)>> GetTrackedAlliancesAsync(CancellationToken ct = default)
+    {
+        using var db = _dbFactory.CreateDbContext();
+
+        var ids = await db.Characters.AsNoTracking()
+            .Where(c => c.AllianceId != null && c.AllianceId > 0)
+            .Select(c => (long)c.AllianceId!.Value)
+            .Distinct()
+            .ToListAsync(ct);
+
+        if (ids.Count == 0) return [];
+
+        var names = await ResolveNamesAsync(ids, ct);
+
+        return [.. ids
+            .Select(id => (Id: id, Name: names.GetValueOrDefault(id, id.ToString())))
+            .OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase)];
+    }
+
     public async Task<List<CorpStandingProject>> GetStandingProjectsAsync(
         long corpId, CancellationToken ct = default)
     {
@@ -2246,10 +2282,70 @@ public class CorpActivityService
             .ToListAsync(ct);
     }
 
+    /// <summary>
+    /// Names for a set of system ids, in name order.
+    ///
+    /// <para>⚠️ Wormholes are excluded here as they are everywhere else this builds a system
+    /// list — nothing holds sovereignty in one, so an id that only matched a wormhole would be
+    /// a sign the map was misread rather than a system worth listing.</para>
+    /// </summary>
+    public async Task<List<SdeSystemResult>> GetSystemNamesAsync(
+        IReadOnlyList<int> systemIds, CancellationToken ct = default)
+    {
+        if (systemIds.Count == 0) return [];
+
+        using var db = _dbFactory.CreateDbContext();
+        return await db.SdeSolarSystems
+            .Where(s => systemIds.Contains(s.SolarSystemId) && !s.IsWormhole)
+            .OrderBy(s => s.Name)
+            .Select(s => new SdeSystemResult(s.SolarSystemId, s.Name))
+            .ToListAsync(ct);
+    }
+
     // ADM data cached for 30 minutes
     private Dictionary<int, double>? _sovAdmCache;
+
+    /// <summary>
+    /// System to the alliance holding it, from the same read as the ADM map.
+    ///
+    /// <para>⚠️ Filled by GetSovAdmLevelsAsync, never on its own. One endpoint answers both
+    /// questions, and fetching it twice would double the traffic to a call already cached for half
+    /// an hour precisely because it is expensive.</para>
+    /// </summary>
+    private Dictionary<int, long>? _sovAllianceCache;
     private DateTimeOffset _sovAdmCacheTime;
 
+    /// <summary>
+    /// Which alliance holds each sovereign system.
+    ///
+    /// <para>Shares the ADM call's cache and its failure flags — an empty map means the read
+    /// failed, since every sovereign system in the game is held by somebody.</para>
+    /// </summary>
+    /// <summary>
+    /// Which alliance holds each sovereign system.
+    ///
+    /// <para>Shares the ADM call's cache and its failure flags — an empty map means the read
+    /// failed, since every sovereign system in the game is held by somebody.</para>
+    ///
+    /// <para>⚠️ LIVE, not the stored snapshots the Universe map draws. The two legitimately
+    /// disagree: the snapshots are hourly, so a system reading 4.5 right now can still show as
+    /// 4.1 on the map for the rest of the hour. A rule that decides whether a system needs work
+    /// wants the current figure, and the map wants a history — neither is the other's bug.</para>
+    /// </summary>
+    public async Task<Dictionary<int, long>> GetSovAllianceMapAsync(CancellationToken ct = default)
+    {
+        await GetSovAdmLevelsAsync(ct);
+        return _sovAllianceCache ?? [];
+    }
+
+    /// <summary>
+    /// System occupancy levels, read live.
+    ///
+    /// <para>⚠️ Deliberately NOT the stored snapshots behind the Universe map. Those are
+    /// hourly and exist to draw a history; this decides whether a system needs work right
+    /// now, and an hour is long enough for an ADM to cross the threshold a rule is written
+    /// against. When the two disagree the map is simply older, not wrong.</para>
+    /// </summary>
     public async Task<Dictionary<int, double>> GetSovAdmLevelsAsync(CancellationToken ct = default)
     {
         if (_sovAdmCache is not null &&
@@ -2264,6 +2360,12 @@ public class CorpActivityService
                 .Where(s => s.Adm.HasValue)
                 .ToDictionary(s => s.SolarSystemId, s => s.Adm!.Value);
 
+            // Held systems, whether or not they report a development level: a system can be
+            // claimed and carry no ADM, and it is still that alliance's.
+            var owners = systems
+                .Where(s => s.Claim?.Alliance is { AllianceId: > 0 })
+                .ToDictionary(s => s.SolarSystemId, s => s.Claim!.Alliance!.AllianceId);
+
             // An empty map is a failure, not an answer: every sovereign system in the game
             // carries an occupancy level, so nothing is the one result this cannot mean.
             SovAdmUnavailable = dict.Count == 0;
@@ -2273,8 +2375,9 @@ public class CorpActivityService
                 return _sovAdmCache ?? [];
             }
 
-            _sovAdmCache     = dict;
-            _sovAdmCacheTime = DateTimeOffset.UtcNow;
+            _sovAdmCache      = dict;
+            _sovAllianceCache = owners;
+            _sovAdmCacheTime  = DateTimeOffset.UtcNow;
             return dict;
         }
         catch (Exception ex)
@@ -2342,14 +2445,41 @@ public class CorpActivityService
         var deliverConfigs  = ParseDeliverItemConfigs(activeProjects, officeMap);
         var destroyConfigs  = ParseDestroyNpcConfigs(activeProjects);
 
+        // ⚠️ Completed only. Closed, Expired and Deleted are projects that STOPPED, and reading
+        // one of those as "last done" would report a job nobody finished as the last time the job
+        // was finished.
+        var doneProjects = await db.EsiCorpProjects
+            .Where(p => p.CorporationId == corpId && p.State == "Completed")
+            .ToListAsync(ct);
+
+        var lastDoneSystem  = new Dictionary<int, DateTimeOffset>();
+        var lastDoneDeliver = new Dictionary<(int TypeId, long StationId), DateTimeOffset>();
+
+        foreach (var d in ParseDestroyNpcConfigs(doneProjects))
+            foreach (var sysId in d.SystemIds)
+                if (!lastDoneSystem.TryGetValue(sysId, out var seen) || d.LastModified > seen)
+                    lastDoneSystem[sysId] = d.LastModified;
+
+        foreach (var d in ParseDeliverItemConfigs(doneProjects, officeMap))
+            foreach (var typeId in d.TypeIds)
+                foreach (var stationId in d.StationIds)
+                {
+                    var key = (typeId, stationId);
+                    if (!lastDoneDeliver.TryGetValue(key, out var seen) || d.LastModified > seen)
+                        lastDoneDeliver[key] = d.LastModified;
+                }
+
         // Any delivery project whose office would not resolve. While that is true, an unmatched
         // delivery row is unexplained rather than inactive — the station it would have matched
         // on is exactly what is missing.
         var officeGap = deliverConfigs.Any(d => d.OfficeUnresolved);
         if (officeGap) OfficeMapUnavailable = true;
 
-        bool needsAdm = standing.Any(p => p.ProjectType == "destroy_npc" &&
-                                          p.ScopeType is "region_adm" or "constellation_adm");
+        // ⚠️ Every destroy-NPC project needs the read now, not only the scoped ones. The ADM
+        // scopes filter on it and alliance-sov takes the system-to-owner map from the same call,
+        // but a plainly named system reports its ADM too — so the one cached call covers all
+        // three rather than leaving the simplest scope as the only one that cannot say.
+        bool needsAdm = standing.Any(p => p.ProjectType == "destroy_npc");
         if (needsAdm) { SovAdmUnavailable = false; SovAdmError = ""; }
         var adm = needsAdm ? await GetSovAdmLevelsAsync(ct) : [];
 
@@ -2390,6 +2520,9 @@ public class CorpActivityService
                                         :                    "not_active",
                     MatchedName         : match?.ProjectName ?? "",
                     StatusNote          : OfficeMapError,
+                    LastDone            : sp.ItemTypeId is int dItem && sp.StationId is long dStation
+                                          && lastDoneDeliver.TryGetValue((dItem, dStation), out var dDone)
+                                              ? dDone : null,
                     RemainingText       : match is not null ? FormatRemaining(deliverRemaining) : "",
                     RemainingPayoutText : match is not null ? FormatPayout(deliverRemaining, match.RewardPerContrib) : "",
                     RemainingPercentText : match is not null ? FormatRemainingPct(deliverPct) : "",
@@ -2415,6 +2548,12 @@ public class CorpActivityService
                             TargetDisplay       : sp.SolarSystemName,
                             DestDisplay         : "",
                             ExpandedSystemId    : sp.SolarSystemId,
+                            Adm                 : sp.SolarSystemId is int sysId
+                                                  && adm.TryGetValue(sysId, out var sysAdm)
+                                                      ? sysAdm : null,
+                            LastDone            : sp.SolarSystemId is int doneId
+                                                  && lastDoneSystem.TryGetValue(doneId, out var sysDone)
+                                                      ? sysDone : null,
                             MatchStatus         : match is not null ? "matched" : "not_active",
                             MatchedName         : match?.ProjectName ?? "",
                             RemainingText       : match is not null ? FormatRemaining(sysRemaining) : "",
@@ -2428,20 +2567,56 @@ public class CorpActivityService
 
                     case "region_adm":
                     case "constellation_adm":
+                    case "alliance_sov":
                     {
-                        var systems = sp.ScopeType == "region_adm" && sp.ScopeEntityId.HasValue
-                            ? await GetSystemsInRegionAsync(sp.ScopeEntityId.Value, ct)
-                            : sp.ScopeEntityId.HasValue
-                                ? await GetSystemsInConstellationAsync(sp.ScopeEntityId.Value, ct)
-                                : [];
+                        var isAlliance = sp.ScopeType == "alliance_sov";
+
+                        // ⚠️ The alliance scope is the sovereignty map read the other way round.
+                        // The ADM scopes start from a region or constellation and keep the systems
+                        // that are weak; this one starts from the map itself and keeps every system
+                        // the alliance holds, so there is no geography to look up first.
+                        List<SdeSystemResult> systems;
+                        if (isAlliance)
+                        {
+                            var owners = await GetSovAllianceMapAsync(ct);
+                            var held   = owners
+                                .Where(kv => kv.Value == (sp.ScopeEntityId ?? 0))
+                                .Select(kv => kv.Key)
+                                .ToList();
+
+                            systems = await GetSystemNamesAsync(held, ct);
+                        }
+                        else
+                        {
+                            systems = sp.ScopeType == "region_adm" && sp.ScopeEntityId.HasValue
+                                ? await GetSystemsInRegionAsync(sp.ScopeEntityId.Value, ct)
+                                : sp.ScopeEntityId.HasValue
+                                    ? await GetSystemsInConstellationAsync(sp.ScopeEntityId.Value, ct)
+                                    : [];
+                        }
 
                         var minAdm     = sp.MinAdm ?? 6.0;
-                        var scopeLabel = sp.ScopeType == "region_adm"
-                            ? $"Region: {sp.ScopeEntityName} (ADM < {minAdm:F1})"
-                            : $"Const: {sp.ScopeEntityName} (ADM < {minAdm:F1})";
+                        var scopeLabel = sp.ScopeType switch
+                        {
+                            "region_adm"   => $"Region: {sp.ScopeEntityName} (ADM < {minAdm:F1})",
+                            "alliance_sov" => $"Sov: {sp.ScopeEntityName} (ADM < {minAdm:F1})",
+                            _              => $"Const: {sp.ScopeEntityName} (ADM < {minAdm:F1})",
+                        };
 
+                        // All three scopes filter the same way. The scope chooses WHICH systems are
+                        // in question; the ADM chooses which of those currently need something
+                        // doing, and that second half is the same question everywhere.
+                        //
+                        // ⚠️ Except that on the ALLIANCE scope a system with no ADM reading is
+                        // kept rather than dropped. Ownership already says it belongs in the
+                        // report, so a missing reading is a gap in the data, not an answer — and
+                        // a system that vanishes for want of a number is the one nobody notices.
+                        // The region and constellation scopes cannot do the same: they start from
+                        // every system in the area, most of which nobody holds.
                         var qualifying = systems
-                            .Where(s => adm.TryGetValue(s.SystemId, out var a) && a < minAdm)
+                            .Where(x => adm.TryGetValue(x.SystemId, out var a)
+                                            ? a < minAdm
+                                            : isAlliance)
                             .ToList();
 
                         if (qualifying.Count == 0)
@@ -2482,6 +2657,10 @@ public class CorpActivityService
                                     TargetDisplay       : scopeLabel,
                                     DestDisplay         : sys.Name,
                                     ExpandedSystemId    : sys.SystemId,
+                                    Adm                 : adm.TryGetValue(sys.SystemId, out var qAdm)
+                                                              ? qAdm : null,
+                                    LastDone            : lastDoneSystem.TryGetValue(sys.SystemId, out var qDone)
+                                                              ? qDone : null,
                                     MatchStatus         : match is not null ? "matched" : "not_active",
                                     MatchedName         : match?.ProjectName ?? "",
                                     RemainingText       : match is not null ? FormatRemaining(admRemaining) : "",
@@ -2498,7 +2677,26 @@ public class CorpActivityService
             }
         }
 
-        return rows;
+        // Where each row is, stamped in one pass at the end rather than looked up inside the
+        // expansion: the ADM scopes do not know which systems they will produce until they have
+        // produced them, so there is no earlier point where the whole set is known.
+        var sysIds = rows.Where(r => r.ExpandedSystemId is > 0)
+                         .Select(r => r.ExpandedSystemId!.Value)
+                         .Distinct()
+                         .ToList();
+
+        if (sysIds.Count == 0) return rows;
+
+        var geo = await db.SdeSolarSystems.AsNoTracking()
+            .Where(x => sysIds.Contains(x.SolarSystemId))
+            .Join(db.SdeRegions.AsNoTracking(), x => x.RegionId, g => g.RegionId,
+                  (x, g) => new { x.SolarSystemId, System = x.Name, Region = g.Name })
+            .ToDictionaryAsync(x => x.SolarSystemId, x => (x.System, x.Region), ct);
+
+        return [.. rows.Select(r =>
+            r.ExpandedSystemId is int sid && geo.TryGetValue(sid, out var g)
+                ? r with { SystemName = g.System, RegionName = g.Region }
+                : r)];
     }
 
     // Counts standing projects with no currently-matching active ESI project (used for the
@@ -2520,14 +2718,24 @@ public class CorpActivityService
         /// <summary>The project named an office that the asset data could not place. Its
         /// station set is therefore incomplete, and a rule failing to match it proves
         /// nothing.</summary>
-        bool          OfficeUnresolved = false);
+        bool          OfficeUnresolved = false,
+        /// <summary>
+        /// When the project was last touched. On a completed one that is when it finished, which
+        /// is the only date ESI offers for it.
+        ///
+        /// <para>⚠️ Defaulted so the two call sites that do not care need not pass it — which
+        /// is exactly how it shipped once reading 0001-01-01 for every row, because the parsers
+        /// were never taught to fill it. Both do now.</para>
+        /// </summary>
+        DateTimeOffset LastModified = default);
 
     private sealed record DestroyNpcConfig(
         string       ProjectName,
         HashSet<int> SystemIds,
         long         ProgressDesired,
         long         ProgressCurrent,
-        double       RewardPerContrib);
+        double       RewardPerContrib,
+        DateTimeOffset LastModified = default);
 
     private static List<DeliverConfig> ParseDeliverItemConfigs(
         List<CorpProject> projects, IReadOnlyDictionary<long, long> officeMap)
@@ -2572,7 +2780,7 @@ public class CorpActivityService
 
                 result.Add(new DeliverConfig(p.Name, typeIds, stationIds,
                                              p.ProgressDesired, p.ProgressCurrent, p.RewardPerContrib,
-                                             officeUnresolved));
+                                             officeUnresolved, p.LastModified));
             }
             catch { }
         }
@@ -2597,7 +2805,8 @@ public class CorpActivityService
                             systemIds.Add(sid.GetInt32());
 
                 result.Add(new DestroyNpcConfig(p.Name, systemIds,
-                                                p.ProgressDesired, p.ProgressCurrent, p.RewardPerContrib));
+                                                p.ProgressDesired, p.ProgressCurrent, p.RewardPerContrib,
+                                                p.LastModified));
             }
             catch { }
         }

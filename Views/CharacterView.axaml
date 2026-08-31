@@ -1015,6 +1015,17 @@
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                           </StackPanel>
 
+                          <!-- Reprocess and decompress: what to do, and the one station to do it
+                               at. ⚠️ Its own branch, because IsOther excludes refining —
+                               without this the row matched none of the four and drew an empty
+                               cell, which is indistinguishable from a task with nothing to say. -->
+                          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsRefining}">
+                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                          </StackPanel>
+
                           <!-- Corp projects, asset safety, skill queues: no shared shape, so the
                                plain title, plus the character where there is one. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsOther}">

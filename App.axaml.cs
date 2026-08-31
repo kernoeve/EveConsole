@@ -453,6 +453,31 @@ public class App : Application
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooter" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooterColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
             db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "ScheduledTasks" (
+                    "Id"               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "Name"             TEXT    NOT NULL DEFAULT '',
+                    "Enabled"          INTEGER NOT NULL DEFAULT 1,
+                    "Kind"             TEXT    NOT NULL DEFAULT 'weekly',
+                    "IntervalMinutes"  INTEGER NOT NULL DEFAULT 60,
+                    "DaysOfWeek"       INTEGER NOT NULL DEFAULT 127,
+                    "TimeOfDayMinutes" INTEGER NOT NULL DEFAULT 0,
+                    "DayOfMonth"       INTEGER NOT NULL DEFAULT 1,
+                    "MonthOfYear"      INTEGER NOT NULL DEFAULT 1,
+                    "SkipIfMissed"     INTEGER NOT NULL DEFAULT 0,
+                    "TaskType"         TEXT    NOT NULL DEFAULT 'slack_post',
+                    "Config"           TEXT    NOT NULL DEFAULT '',
+                    "LastRunUtc"       TEXT    NULL,
+                    "LastResult"       TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "SlackWebhooks" (
+                    "Id"   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "Name" TEXT    NOT NULL DEFAULT '',
+                    "Url"  TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "StoreSenders" (
                     "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     "StoreId"    INTEGER NOT NULL DEFAULT 0,
@@ -2774,6 +2799,10 @@ public class App : Application
 
             Start("alarms",             () => Services.GetRequiredService<AlarmService>().Start());
 
+            // Anything scheduled that came due while the app was closed fires on this first
+            // pass, which is why it starts here rather than waiting for the tool to be opened.
+            Start("scheduler",          () => Services.GetRequiredService<SchedulerService>().Start());
+
             // Helps SQLite's own automatic checkpoint keep the write-ahead log small, and reports
             // when it stops draining. Never blocks: see WalCheckpointService for why that matters.
             Start("WAL checkpoint",     () => Services.GetRequiredService<WalCheckpointService>().Start());
@@ -2909,6 +2938,8 @@ public class App : Application
         services.AddSingleton<AppPreferencesService>();
         services.AddSingleton<SlackAuthService>();
         services.AddSingleton<SlackService>();
+        services.AddSingleton<ScheduledBlockRenderer>();
+        services.AddSingleton<SchedulerService>();
         services.AddSingleton<DatabaseBackupService>();
         services.AddSingleton<EsiPollingService>();
         services.AddSingleton<NetWorthService>();
@@ -2936,6 +2967,7 @@ public class App : Application
         services.AddSingleton<CharacterSummaryService>();
         services.AddSingleton<KillmailBrowserService>();
         services.AddSingleton<CorpTop10ExcludeService>();
+        services.AddSingleton<CorpReportTitles>();
         services.AddSingleton<MarketCompetitionService>();
         services.AddSingleton<StandingBuyOrderService>();
 

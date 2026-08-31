@@ -2,6 +2,7 @@ using System.Reactive.Linq;
 using System.Text;
 using EveConsole.Services;
 using Avalonia;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -64,13 +65,27 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         base.OnClosing(e);
     }
 
+    /// <summary>
+    /// Puts the window back where it was.
+    ///
+    /// <para>⚠️ Kept in config.json, not the database. It is per-installation UI state rather
+    /// than the user's data, the file is readable before the database is even opened, and when a
+    /// window does end up somewhere unreachable a text file is something a person can fix.</para>
+    ///
+    /// <para>An installation that last ran under the old arrangement is read out of the database
+    /// once and written to the file from then on, so nobody's window jumps for the upgrade.</para>
+    /// </summary>
     private void RestoreWindowState()
     {
         if (DataContext is not MainWindowViewModel vm) return;
         var prefs = vm.AppPrefs;
 
-        var w = prefs.GetLong("window.width",  0);
-        var h = prefs.GetLong("window.height", 0);
+        var saved = Services.AppConfig.GetMainWindow();
+
+        var w        = saved?.Width  ?? prefs.GetLong("window.width",  0);
+        var h        = saved?.Height ?? prefs.GetLong("window.height", 0);
+        var stateStr = saved?.State  ?? prefs.Get("window.state");
+
         if (w > 200 && h > 100)
         {
             Width  = w;
@@ -79,34 +94,50 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         // Restore position first so the window lands on the right monitor.
         // long.MinValue is used as sentinel for "never saved".
-        var x = prefs.GetLong("window.x", long.MinValue);
-        var y = prefs.GetLong("window.y", long.MinValue);
+        var x = saved?.X ?? prefs.GetLong("window.x", long.MinValue);
+        var y = saved?.Y ?? prefs.GetLong("window.y", long.MinValue);
         if (x != long.MinValue && y != long.MinValue)
-            Position = new Avalonia.PixelPoint((int)x, (int)y);
+        {
+            var point = new Avalonia.PixelPoint((int)x, (int)y);
+
+            // ⚠️ Only if that point is still on a monitor. A position saved against a screen
+            // that has since been unplugged — a laptop undocked, a second monitor moved
+            // — restores the window somewhere nobody can reach, and every dialog it owns
+            // opens centred on it and vanishes too. The splash has always checked this; the
+            // main window never did.
+            //
+            // Left unset the window is placed by the OS, which is the right answer: it knows
+            // what screens exist right now and this code does not have to guess.
+            var onScreen = Screens?.All?.Any(sc => sc.Bounds.Contains(point)) ?? false;
+
+            if (onScreen) Position = point;
+        }
 
         // Maximize after position is set so it maximizes on the correct monitor.
-        var stateStr = prefs.Get("window.state");
         if (stateStr == "Maximized")
             WindowState = WindowState.Maximized;
     }
 
+    /// <summary>
+    /// Remembers where the window was.
+    ///
+    /// <para>Written straight to config.json rather than queued through the preference table: this
+    /// runs while the window is closing, and a write that has to reach the database may not finish
+    /// before the process does.</para>
+    /// </summary>
     private void SaveWindowState()
     {
-        if (DataContext is not MainWindowViewModel vm) return;
-        var prefs = vm.AppPrefs;
+        // ⚠️ Size only while Normal. Maximised, Width and Height report the whole screen, and
+        // storing that as the restore size means un-maximising gives a window the size of the
+        // monitor. Zero tells AppConfig to keep what it had.
+        var normal = WindowState == WindowState.Normal;
 
-        _ = prefs.SetAsync("window.state", WindowState.ToString());
-
-        if (WindowState == WindowState.Normal)
-        {
-            _ = prefs.SetLongAsync("window.width",  (long)Width);
-            _ = prefs.SetLongAsync("window.height", (long)Height);
-        }
-
-        // Always save position so the monitor is remembered even when maximized.
-        // When maximized, Position gives the top-left corner of the monitor.
-        _ = prefs.SetLongAsync("window.x", Position.X);
-        _ = prefs.SetLongAsync("window.y", Position.Y);
+        // Position is saved even when maximised, because it is what names the monitor.
+        Services.AppConfig.SetMainWindow(
+            Position.X, Position.Y,
+            normal ? (int)Width  : 0,
+            normal ? (int)Height : 0,
+            WindowState.ToString());
 
         // Mirror the center of the current screen to config.json so the splash can
         // find the right monitor before DI starts. Using screen center rather than
@@ -390,6 +421,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void OnAlarmsClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm) vm.OpenTool("alarms");
+    }
+
+    private void OnSchedulerClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) vm.OpenTool("scheduler");
     }
 
     private async void OnGearClick(object? sender, RoutedEventArgs e)

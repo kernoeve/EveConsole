@@ -126,6 +126,10 @@
                            GroupName="Scope"
                            Foreground="#c8c8d8" FontSize="12"
                            Checked="OnScopeChanged" />
+              <RadioButton x:Name="ScopeAllianceSov" Content="All systems where an Alliance holds sovereignty"
+                           GroupName="Scope"
+                           Foreground="#c8c8d8" FontSize="12"
+                           Checked="OnScopeChanged" />
             </StackPanel>
           </StackPanel>
 
@@ -265,6 +269,35 @@
                              Background="#131320" BorderBrush="#2a2a3a"
                              Foreground="#c8c8d8" />
             </Grid>
+          </StackPanel>
+
+          <!-- Alliance sovereignty. Same min-ADM rule as the region and constellation scopes:
+               the alliance chooses WHICH systems are in scope, the ADM chooses which of those
+               currently need something doing. -->
+          <StackPanel x:Name="AlliancePanel" Spacing="5" IsVisible="False">
+            <TextBlock Text="ALLIANCE" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#555566" LetterSpacing="1" />
+            <ComboBox x:Name="AllianceCombo"
+                      HorizontalAlignment="Stretch"
+                      Background="#131320" BorderBrush="#2a2a3a"
+                      Foreground="#c8c8d8" FontSize="12" />
+            <TextBlock x:Name="AllianceEmptyLabel"
+                       Text="No alliance found on any tracked character."
+                       FontSize="11" Foreground="#aa8844" IsVisible="False" TextWrapping="Wrap" />
+            <Grid ColumnDefinitions="Auto,*" Margin="0 4 0 0">
+              <TextBlock Grid.Column="0" Text="MIN ADM:" FontSize="11" Foreground="#888899"
+                         VerticalAlignment="Center" Margin="0 0 10 0" />
+              <NumericUpDown x:Name="AllianceAdmBox"
+                             Grid.Column="1"
+                             Value="4.0" Minimum="0" Maximum="6" Increment="0.5"
+                             FormatString="F1"
+                             ShowButtonSpinner="True"
+                             FontSize="12"
+                             Background="#131320" BorderBrush="#2a2a3a"
+                             Foreground="#c8c8d8" />
+            </Grid>
+            <TextBlock Text="Every system this alliance holds that is below the ADM, wherever it is. Re-read from the sovereignty map each time the grid is built."
+                       FontSize="10.5" Foreground="#556" TextWrapping="Wrap" Margin="0 2 0 0" />
           </StackPanel>
 
         </StackPanel>

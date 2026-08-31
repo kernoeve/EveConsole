@@ -40,6 +40,7 @@ public class MainWindowViewModel : ReactiveObject
     public StructureBrowserViewModel      StructureBrowserVm     { get; }
     public UniverseViewModel              UniverseVm             { get; }
     public AlarmsViewModel                AlarmsVm               { get; }
+    public SchedulerViewModel             SchedulerVm            { get; }
     public JumpPlannerViewModel           JumpPlannerVm          { get; }
     public AlarmActionRunner              AlarmActions           { get; }
     public WalletViewModel                WalletVm               { get; }
@@ -354,7 +355,8 @@ public class MainWindowViewModel : ReactiveObject
             SelectedTab = existing;
             // Returning to an already-open tab has to refresh too, or an alarm that fired while
             // the tab sat in the background shows nothing until something else triggers a load.
-            if (toolId == "alarms") _ = AlarmsVm.LoadAsync();
+            if (toolId == "alarms")    _ = AlarmsVm.LoadAsync();
+            if (toolId == "scheduler") _ = SchedulerVm.LoadAsync();
             return;
         }
 
@@ -371,6 +373,7 @@ public class MainWindowViewModel : ReactiveObject
             "structure_browser" => ("Structure Browser", StructureBrowserVm, true),
             "universe"        => ("Universe",        UniverseVm,        true),
             "alarms"          => ("Alarms",          AlarmsVm,          true),
+            "scheduler"       => ("Scheduler",       SchedulerVm,       true),
             "jump_planner"    => ("Jump Planner",    JumpPlannerVm,     true),
             "trade"           => ("Trade",           TradeOpportunitiesVm,     true),
             "industry_opps"   => ("Industry Opps",   IndustryOpportunitiesVm,  true),
@@ -413,7 +416,8 @@ public class MainWindowViewModel : ReactiveObject
 
         // Loaded on open rather than at construction — nothing else needs the alarm list, and
         // a fresh read also picks up anything the agent created since the tab was last shown.
-        if (toolId == "alarms") _ = AlarmsVm.LoadAsync();
+        if (toolId == "alarms")    _ = AlarmsVm.LoadAsync();
+        if (toolId == "scheduler") _ = SchedulerVm.LoadAsync();
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
         if (navItem is not null) navItem.IsOpen = true;
@@ -501,6 +505,7 @@ public class MainWindowViewModel : ReactiveObject
         AppPreferencesService           appPrefs,
         DatabaseBackupService           dbBackup,
         CorpTop10ExcludeService         corpTop10Exclude,
+        CorpReportTitles                 corpReportTitles,
         MarketHistoryService            historyService,
         ContractsService                contractsService,
         SlackService                    slackService,
@@ -529,7 +534,9 @@ public class MainWindowViewModel : ReactiveObject
         AlarmActionRunner               alarmActions,
         JumpPlannerService              jumpPlanner,
         LpStoreService                  lpStoreService,
-        LpValueService                  lpValueService)
+        LpValueService                  lpValueService,
+        SchedulerService                schedulerService,
+        ScheduledBlockRenderer          blockRenderer)
     {
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
@@ -565,7 +572,7 @@ public class MainWindowViewModel : ReactiveObject
             CharacterVm.Characters, CharacterVm.Corporations);
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
         StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger);
-        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, slackService, exportFormat);
+        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
@@ -600,7 +607,7 @@ public class MainWindowViewModel : ReactiveObject
 
         PriceHistorySettingsVm = new PriceHistorySettingsViewModel(dbFactory.CreateDbContext());
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
-        CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);
+        CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude, corpReportTitles);
         ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService, dbFactory, appPrefs);
         IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger,
                                                         indyStructureLink, indyBulkAdd, pollingService);
@@ -659,6 +666,8 @@ public class MainWindowViewModel : ReactiveObject
             universeMapService, mapStatsService,
             new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds);
+        SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService,
+                                                        corpActivityService, salePostingService, errorLogger);
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
 
         // One wiring for every killmail row in the app — browser, corp activity, system

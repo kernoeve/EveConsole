@@ -55,6 +55,35 @@ public static class AppConfig
         Save(c);
     }
 
+    /// <summary>Where the main window was, and how big. Null on a fresh install.</summary>
+    public static (int X, int Y, int Width, int Height, string State)? GetMainWindow()
+    {
+        var c = Load();
+        return c.MainX is int x && c.MainY is int y
+            ? (x, y, c.MainWidth ?? 0, c.MainHeight ?? 0, c.MainState ?? "Normal")
+            : null;
+    }
+
+    /// <summary>
+    /// Remembers the main window.
+    ///
+    /// <para>⚠️ Width and height of zero mean "do not change it", which is what a maximised
+    /// window reports as its restore size in some cases. Writing those through would shrink the
+    /// window to nothing on the next launch.</para>
+    /// </summary>
+    public static void SetMainWindow(int x, int y, int width, int height, string state)
+    {
+        var c = Load();
+        c.MainX     = x;
+        c.MainY     = y;
+        c.MainState = state;
+
+        if (width  > 200) c.MainWidth  = width;
+        if (height > 100) c.MainHeight = height;
+
+        Save(c);
+    }
+
     /// <summary>
     /// Whether a database shrink was requested and has not run yet.
     ///
@@ -187,6 +216,15 @@ public static class AppConfig
         [JsonPropertyName("dbPath")]  public string? DbPath  { get; set; }
         [JsonPropertyName("windowX")] public int?    WindowX { get; set; }
         [JsonPropertyName("windowY")] public int?    WindowY { get; set; }
+
+        // The main window, kept beside the splash's position rather than in the database. It is
+        // per-installation UI state, not the user's data, and a file is something somebody can
+        // open and fix when a window ends up on a monitor that no longer exists.
+        [JsonPropertyName("mainX")]      public int?    MainX      { get; set; }
+        [JsonPropertyName("mainY")]      public int?    MainY      { get; set; }
+        [JsonPropertyName("mainWidth")]  public int?    MainWidth  { get; set; }
+        [JsonPropertyName("mainHeight")] public int?    MainHeight { get; set; }
+        [JsonPropertyName("mainState")]  public string? MainState  { get; set; }
         [JsonPropertyName("shrinkPending")] public bool? ShrinkPending { get; set; }
         [JsonPropertyName("relocateTo")]   public string? RelocateTo   { get; set; }
     }

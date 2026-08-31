@@ -127,7 +127,21 @@ public static class IndyRigMatching
 
             // ── Other categories ─────────────────────────────────────────────
             (7, _)          => "modules_equipment",
-            // Structure Modules — service modules and structure rigs — are built at
+
+            // ⚠️ Category 66 holds two unlike things and they take DIFFERENT rigs.
+            //
+            // A structure RIG is bonused by the structure rig, not the equipment one. Measured on
+            // a real job: a Standup L-Set Reprocessing Monitor II built in a Raitaru fitted with
+            // nothing but Structure Manufacturing ME II and TE II came out at 0.3845 of base after
+            // TE and skills, against 0.85 for the Raitaru's role alone. A rig was applied, and a
+            // structure rig is the only kind fitted there.
+            //
+            // Every rig group in the category is named "... Rig <size> - ...", and no module,
+            // weapon or service-module group contains " Rig " — so the name separates them
+            // cleanly where the category cannot.
+            (66, var n) when n.Contains(" Rig ")                                     => "structure_ammo",
+
+            // The rest of category 66: service modules, weapons, fitting modules. Built at
             // engineering complexes like equipment.
             (66, _)         => "modules_equipment",
             // T3 subsystems — Loki/Tengu/Legion/Proteus. Previously unmapped, so every

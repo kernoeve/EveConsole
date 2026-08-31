@@ -1,0 +1,516 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:svc="clr-namespace:EveConsole.Services"
+             x:Class="EveConsole.Views.SchedulerView"
+             x:DataType="vm:SchedulerViewModel"
+             Background="#0d0d12">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize" Value="9.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Margin" Value="2 0 0 2" />
+    </Style>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#5599aa" />
+      <Setter Property="Margin" Value="0 0 0 6" />
+    </Style>
+    <Style Selector="TextBlock.hint">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="Foreground" Value="#556" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="Button.tool">
+      <Setter Property="Background" Value="#1a1a28" />
+      <Setter Property="Foreground" Value="#5599aa" />
+      <Setter Property="BorderBrush" Value="#2a3a44" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="12 4" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="Button.small">
+      <Setter Property="Background" Value="#16161d" />
+      <Setter Property="Foreground" Value="#7a8a99" />
+      <Setter Property="BorderBrush" Value="#252533" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="7 1" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="ComboBox">
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="CheckBox">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="#999" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,1,*">
+
+    <!-- ── Toolbar ──────────────────────────────────────────────────────── -->
+    <Border Grid.Row="0" Background="#12121a" Padding="12 8"
+            BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+      <StackPanel Spacing="5">
+      <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+        <Button Grid.Column="0" Classes="tool" Command="{Binding NewCommand}" Content="New Task" />
+        <Button Grid.Column="1" Classes="tool" Command="{Binding RefreshCommand}"
+                Content="Refresh" Margin="8 0 0 0" />
+        <TextBlock Grid.Column="2" Text="{Binding StatusText}" FontSize="11" Foreground="#666677"
+                   VerticalAlignment="Center" Margin="16 0 0 0" TextTrimming="CharacterEllipsis" />
+        <TextBlock Grid.Column="3" Text="Times are EVE time" FontSize="10.5"
+                   Foreground="#4a4a5a" VerticalAlignment="Center" Margin="12 0 0 0" />
+      </Grid>
+        <TextBlock Text="Early development — this tool is still taking shape, and its behaviour, layout and stored settings are all subject to change."
+                   FontSize="10.5" Foreground="#c8a84b" TextWrapping="Wrap" Margin="1 0 0 0" />
+      </StackPanel>
+    </Border>
+
+    <Rectangle Grid.Row="1" Fill="#1e1e2a" />
+
+    <Grid Grid.Row="2" ColumnDefinitions="300,1,*">
+
+      <!-- ── Left: the tasks ────────────────────────────────────────────── -->
+      <ListBox Grid.Column="0" ItemsSource="{Binding Tasks}"
+               SelectedItem="{Binding SelectedTask}"
+               Background="#0b0b10" BorderThickness="0">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:ScheduledTaskRowVm">
+            <Grid ColumnDefinitions="Auto,*" Margin="0 3">
+              <CheckBox Grid.Column="0" IsChecked="{Binding Enabled}" IsHitTestVisible="False"
+                        VerticalAlignment="Top" Margin="0 2 6 0" />
+              <StackPanel Grid.Column="1" Spacing="1">
+                <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#ddd"
+                           FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding Schedule}" FontSize="10.5" Foreground="#7a7a8a"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding LastRunText}" FontSize="10" Foreground="#556" />
+                <TextBlock Text="{Binding LastResult}" FontSize="10" Foreground="#445"
+                           TextTrimming="CharacterEllipsis" />
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <Rectangle Grid.Column="1" Fill="#1e1e2a" />
+
+      <!-- ── Right: the editor, then a fixed action bar ──────────────────── -->
+      <Grid Grid.Column="2" RowDefinitions="*,Auto">
+
+        <TextBlock Grid.Row="0" IsVisible="{Binding !HasEditor}"
+                   Text="Select a task, or create one."
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   FontSize="12" Foreground="#445" />
+
+        <ScrollViewer Grid.Row="0" IsVisible="{Binding HasEditor}">
+          <!-- Margin on the content, not padding on the ScrollViewer: padding is not counted in
+               the scrollable extent, so the last thing in the panel stays clipped.
+
+               Every task has a name, a switch and a time; what it then DOES is one choice among
+               several, and only that choice's own fields belong below the rule. Laying the whole
+               editor out as one task type's form is what made a second type awkward to add. -->
+          <StackPanel Spacing="14" Margin="16 14 16 16">
+
+            <!-- ══ Common: every task has these ═══════════════════════════ -->
+
+            <StackPanel Spacing="10">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Margin="0 0 12 0">
+                  <TextBlock Classes="flabel" Text="NAME" />
+                  <TextBox Text="{Binding Name}" Watermark="What does this task do?" />
+                </StackPanel>
+                <CheckBox Grid.Column="1" IsChecked="{Binding Enabled}" Content="Enabled"
+                          VerticalAlignment="Bottom" Margin="0 0 0 5" />
+              </Grid>
+
+              <!-- Its own line under the name. Sharing the row with the name put it against the
+                   right edge, where it was the first thing to go when the pane narrowed. -->
+              <StackPanel Width="260" HorizontalAlignment="Left">
+                <TextBlock Classes="flabel" Text="TASK TYPE" />
+                <ComboBox ItemsSource="{Binding TaskTypes}" SelectedItem="{Binding SelectedTaskType}"
+                          HorizontalAlignment="Stretch" />
+              </StackPanel>
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+              <TextBlock Classes="section" Text="WHEN" Margin="0" />
+
+              <!-- One row: the kind, then whatever that kind needs. Hidden panels take no
+                   space, so the row closes up rather than leaving gaps. -->
+              <StackPanel Orientation="Horizontal" Spacing="12">
+
+                <StackPanel Width="180">
+                  <TextBlock Classes="flabel" Text="REPEATS" />
+                  <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding SelectedKind}"
+                            HorizontalAlignment="Stretch" />
+                </StackPanel>
+
+                <!-- Interval -->
+                <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsInterval}">
+                  <StackPanel Width="120">
+                    <TextBlock Classes="flabel" Text="EVERY" />
+                    <NumericUpDown Value="{Binding IntervalValue}" Minimum="1" Maximum="9999"
+                                   Increment="1" FormatString="0" FontSize="11" />
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="10"
+                              VerticalAlignment="Bottom" Margin="0 0 0 6">
+                    <RadioButton GroupName="unit" IsChecked="{Binding IntervalInMinutes}"
+                                 Content="minutes" FontSize="11" Foreground="#999" />
+                    <RadioButton GroupName="unit" IsChecked="{Binding IntervalInHours}"
+                                 Content="hours" FontSize="11" Foreground="#999" />
+                  </StackPanel>
+                </StackPanel>
+
+                <!-- Weekly -->
+                <StackPanel IsVisible="{Binding IsWeekly}">
+                  <TextBlock Classes="flabel" Text="ON THESE DAYS" />
+                  <ItemsControl ItemsSource="{Binding Days}" Margin="0 4 0 0">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:DayChoice">
+                        <CheckBox IsChecked="{Binding Selected}" Content="{Binding Name}"
+                                  Margin="0 0 10 0" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <!-- Monthly -->
+                <StackPanel Width="110" IsVisible="{Binding IsMonthly}">
+                  <TextBlock Classes="flabel" Text="DAY OF MONTH" />
+                  <NumericUpDown Value="{Binding DayOfMonth}" Minimum="1" Maximum="31"
+                                 Increment="1" FormatString="0" FontSize="11" />
+                </StackPanel>
+
+                <!-- Yearly -->
+                <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsYearly}">
+                  <StackPanel Width="150">
+                    <TextBlock Classes="flabel" Text="MONTH" />
+                    <ComboBox ItemsSource="{Binding MonthNames}" SelectedItem="{Binding MonthOfYear}"
+                              HorizontalAlignment="Stretch" />
+                  </StackPanel>
+                  <StackPanel Width="110">
+                    <TextBlock Classes="flabel" Text="DAY" />
+                    <NumericUpDown Value="{Binding DayOfMonth}" Minimum="1" Maximum="31"
+                                   Increment="1" FormatString="0" FontSize="11" />
+                  </StackPanel>
+                </StackPanel>
+
+                <!-- Time of day -->
+                <!-- The zone belongs on the field, not only in the corner of the toolbar: this is
+                     the one control whose meaning changes with it. -->
+                <StackPanel Width="125" IsVisible="{Binding HasClock}">
+                  <TextBlock Classes="flabel" Text="AT (HH:MM EVE)" />
+                  <TextBox Text="{Binding TimeOfDay}" Watermark="00:01" />
+                </StackPanel>
+
+                <CheckBox IsVisible="{Binding CanSkipIfMissed}" IsChecked="{Binding SkipIfMissed}"
+                          Content="Skip if the app was closed on the day"
+                          VerticalAlignment="Bottom" Margin="0 0 0 6" />
+              </StackPanel>
+
+              <TextBlock Classes="hint" Text="{Binding ScheduleHint}" MaxWidth="820"
+                         HorizontalAlignment="Left" />
+            </StackPanel>
+
+            <!-- ══ The rule, and below it only what this task type needs ══ -->
+            <Rectangle Height="1" Fill="#1e1e2a" Margin="0 2" />
+
+            <!-- ── Post to Slack ──────────────────────────────────────────── -->
+            <StackPanel Spacing="14" IsVisible="{Binding IsSlackPost}">
+
+              <StackPanel Spacing="6">
+                <TextBlock Classes="section" Text="POST TO" Margin="0" />
+                <ComboBox ItemsSource="{Binding Destinations}" SelectedItem="{Binding Destination}"
+                          Width="340" HorizontalAlignment="Left">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="svc:SlackDestination">
+                      <TextBlock Text="{Binding Label}" FontSize="11" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock Classes="hint"
+                           Text="Workspace channels and webhooks defined in Slack settings, in one list." />
+
+                <CheckBox IsChecked="{Binding SkipIfNoDynamicContent}" Margin="0 4 0 0"
+                          Content="Do not post if the dynamic sections are empty" />
+                <TextBlock Classes="hint" MaxWidth="560" HorizontalAlignment="Left"
+                           Text="Off, the message goes out whatever the data says. On, it is held back unless at least one section that reads from the data — anything but a Text section — actually has something to say." />
+              </StackPanel>
+
+              <StackPanel Spacing="10">
+
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Grid.Column="0" Classes="section" Text="MESSAGE" Margin="0"
+                             VerticalAlignment="Center" />
+                  <!-- One picker and one Add, rather than a button per section type: the list of
+                       types is going to keep growing, and a row of buttons does not. -->
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                              HorizontalAlignment="Left" Margin="16 0 0 0">
+                    <ComboBox ItemsSource="{Binding SectionTypes}"
+                              SelectedItem="{Binding SelectedSectionType}" Width="180" />
+                    <Button Classes="small" Content="Add Section" Padding="10 3"
+                            Command="{Binding AddSectionCommand}" />
+                    <Button Classes="small" Content="Preview" Padding="10 3"
+                            Command="{Binding PreviewCommand}"
+                            ToolTip.Tip="Renders the sections as they would be posted, without posting." />
+                  </StackPanel>
+                </Grid>
+
+                <!-- Sections on the left, what they come out as on the right. -->
+                <Grid ColumnDefinitions="*,14,*">
+
+                  <StackPanel Grid.Column="0" Spacing="8">
+
+                    <TextBlock Classes="hint" IsVisible="{Binding !Blocks.Count}"
+                               Text="Nothing to say yet. Pick a section type and add it — sections go out in this order, as one message." />
+
+                    <ItemsControl ItemsSource="{Binding Blocks}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:MessageBlockVm">
+                          <Border Background="#101018" BorderBrush="#1e1e2a" BorderThickness="1"
+                                  CornerRadius="3" Padding="10 8" Margin="0 0 0 8">
+                            <StackPanel Spacing="8">
+
+                              <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Text="{Binding Heading}" FontSize="10"
+                                           FontWeight="SemiBold" Foreground="#5599aa"
+                                           VerticalAlignment="Center" />
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                  <Button Classes="small" Content="↑"
+                                          Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).MoveUpCommand}"
+                                          CommandParameter="{Binding}" />
+                                  <Button Classes="small" Content="↓"
+                                          Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).MoveDownCommand}"
+                                          CommandParameter="{Binding}" />
+                                  <Button Classes="small" Content="✕" Foreground="#aa5555"
+                                          Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).RemoveCommand}"
+                                          CommandParameter="{Binding}" />
+                                </StackPanel>
+                              </Grid>
+
+                              <!-- Static text -->
+                              <TextBox IsVisible="{Binding IsText}" Text="{Binding Text}"
+                                       AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70"
+                                       Watermark="What to say. Slack markup works here." />
+
+                              <!-- Whose figures. Top 10, Monthly and Standing Projects all need one. -->
+                              <Grid ColumnDefinitions="*,150" IsVisible="{Binding NeedsCorp}">
+                                <StackPanel Grid.Column="0" Margin="0 0 8 0">
+                                  <TextBlock Classes="flabel" Text="CORP" />
+                                  <ComboBox ItemsSource="{Binding Corps}" SelectedItem="{Binding Corp}"
+                                            HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" IsVisible="{Binding NeedsMonth}">
+                                  <TextBlock Classes="flabel" Text="MONTH" />
+                                  <ComboBox ItemsSource="{Binding Months}" SelectedItem="{Binding Month}"
+                                            HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                              </Grid>
+
+                              <TextBlock Classes="hint" IsVisible="{Binding NeedsMonth}"
+                                         Text="{Binding MonthsBackText}" />
+
+                              <!-- Top 10: which lists -->
+                              <StackPanel IsVisible="{Binding IsTop10}" Spacing="4">
+                                <TextBlock Classes="flabel" Text="LISTS TO INCLUDE" />
+                                <ItemsControl ItemsSource="{Binding Categories}">
+                                  <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                      <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                  </ItemsControl.ItemsPanel>
+                                  <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:CategoryChoice">
+                                      <CheckBox IsChecked="{Binding Selected}" Content="{Binding Title}"
+                                                Margin="0 0 12 0" />
+                                    </DataTemplate>
+                                  </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <CheckBox IsChecked="{Binding HideIsk}" Margin="0 4 0 0"
+                                          Content="Show only the share of the total, not the ISK" />
+                                <TextBlock Classes="hint"
+                                           Text="Each list prints the amount and its share. Ticked, the amount comes off — except Kills, whose number is a count rather than a value." />
+                              </StackPanel>
+
+                              <!-- Charts: whose figures, and a word about where they can go -->
+                          <StackPanel IsVisible="{Binding IsChart}" Spacing="6">
+                            <TextBlock Classes="hint"
+                                       Text="Twelve months of trends, drawn as an image and uploaded under the message." />
+                            <Border IsVisible="{Binding ShowWebhookChartWarning}"
+                                    Background="#231d10" BorderBrush="#4a3a1a" BorderThickness="1"
+                                    CornerRadius="3" Padding="8 6">
+                              <TextBlock FontSize="10.5" Foreground="#c8a84b" TextWrapping="Wrap"
+                                         Text="This section will not be posted. The task is aimed at a webhook, and a webhook cannot carry an image — pick a workspace channel above, or this section is skipped when the task runs." />
+                            </Border>
+                          </StackPanel>
+
+                          <!-- Sale posting: which one -->
+                              <StackPanel IsVisible="{Binding IsSale}" Spacing="4">
+                                <TextBlock Classes="flabel" Text="POSTING" />
+                                <ComboBox ItemsSource="{Binding Postings}" SelectedItem="{Binding Posting}"
+                                          HorizontalAlignment="Stretch" />
+                                <TextBlock Classes="hint"
+                                           Text="Priced and counted exactly as the Sale Posting tool shows it. Its post blocks are joined in order into this one section." />
+                              </StackPanel>
+
+                              <!-- Standing projects: which type, then which of them -->
+                              <StackPanel IsVisible="{Binding IsProjects}" Spacing="6">
+                                <Grid ColumnDefinitions="180,10,220" HorizontalAlignment="Left">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="PROJECT TYPE" />
+                                    <ComboBox ItemsSource="{Binding ProjectTypes}"
+                                              SelectedItem="{Binding ProjectType}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="2">
+                                    <TextBlock Classes="flabel" Text="REPORT" />
+                                    <ComboBox ItemsSource="{Binding ReportFilters}"
+                                              SelectedItem="{Binding ProjectFilter}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                </Grid>
+
+                                <TextBlock Classes="hint"
+                                           Text="Missing is anything no active project is covering — including any the app could not check. Low adds the ones under 10% remaining, about to need replacing." />
+
+                                <Grid ColumnDefinitions="*,12,Auto">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="SECTION TITLE" />
+                                    <TextBox Text="{Binding SectionTitle}"
+                                             Watermark="No title" />
+                                  </StackPanel>
+                                  <CheckBox Grid.Column="2" IsChecked="{Binding ShowHeaders}"
+                                            Content="Column headers"
+                                            VerticalAlignment="Bottom" Margin="0 0 0 5" />
+                                </Grid>
+
+                                <StackPanel Orientation="Horizontal" Spacing="14">
+                                  <CheckBox IsChecked="{Binding ShowIskLeft}" Content="ISK Left column" />
+                                  <CheckBox IsChecked="{Binding ShowLastCompleted}" Content="Last Completed column" />
+                                </StackPanel>
+
+                                <TextBlock Classes="hint" Text="{Binding ProjectsNote}"
+                                           IsVisible="{Binding ProjectsNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                                <StackPanel IsVisible="{Binding Projects.Count}" Spacing="4">
+                                  <Grid ColumnDefinitions="Auto,*">
+                                    <TextBlock Grid.Column="0" Classes="flabel"
+                                               Text="PROJECTS TO INCLUDE" VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
+                                                HorizontalAlignment="Left" Margin="12 0 0 2">
+                                      <Button Classes="small" Content="All"  Command="{Binding SelectAllCommand}" />
+                                      <Button Classes="small" Content="None" Command="{Binding SelectNoneCommand}" />
+                                    </StackPanel>
+                                  </Grid>
+                                  <ItemsControl ItemsSource="{Binding Projects}">
+                                    <ItemsControl.ItemTemplate>
+                                      <DataTemplate x:DataType="vm:ProjectChoice">
+                                        <CheckBox IsChecked="{Binding Selected}" Content="{Binding Label}"
+                                                  Margin="0 0 0 1" />
+                                      </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                  </ItemsControl>
+                                  <TextBlock Classes="hint"
+                                             Text="One row per project as defined; a project scoped to a region or constellation is listed once here and expands to a row per qualifying system when it is posted. What is ticked when you save is what gets posted — a project defined later will not join on its own." />
+                                </StackPanel>
+                              </StackPanel>
+
+                            </StackPanel>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+
+                  <!-- Preview -->
+                  <Border Grid.Column="2" Background="#0b0b10" BorderBrush="#1e1e2a"
+                          BorderThickness="1" CornerRadius="3" Padding="10 8"
+                          VerticalAlignment="Top" MinHeight="120">
+                    <StackPanel Spacing="6">
+                      <TextBlock Classes="flabel" Text="PREVIEW" />
+                      <TextBlock Classes="hint" IsVisible="{Binding !HasPreview}"
+                                 Text="Press Preview to render the sections as they would be posted." />
+                      <!-- Its own horizontal scroll: a fenced table is monospace and as wide as
+                           its widest row, and wrapping one would destroy the columns it is made of. -->
+                      <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                    VerticalScrollBarVisibility="Auto"
+                                    MaxHeight="620" IsVisible="{Binding HasPreview}">
+                        <SelectableTextBlock Text="{Binding PreviewText}"
+                                             FontFamily="Consolas,monospace"
+                                             FontSize="11" Foreground="#99a" />
+                      </ScrollViewer>
+                    </StackPanel>
+                  </Border>
+
+                </Grid>
+              </StackPanel>
+
+            </StackPanel>
+
+            <!-- ── Raise an alert ─────────────────────────────────────────── -->
+            <StackPanel Spacing="8" IsVisible="{Binding IsRaiseAlert}">
+              <TextBlock Classes="section" Text="ALERT" Margin="0" />
+
+              <StackPanel MaxWidth="820" HorizontalAlignment="Left">
+                <TextBlock Classes="flabel" Text="HEADLINE" />
+                <TextBox Text="{Binding AlertTitle}"
+                         Watermark="Leave empty to use the task's name." />
+              </StackPanel>
+
+              <StackPanel MaxWidth="820" HorizontalAlignment="Left">
+                <TextBlock Classes="flabel" Text="TEXT" />
+                <TextBox Text="{Binding AlertText}" AcceptsReturn="True" TextWrapping="Wrap"
+                         MinHeight="170" Watermark="What the alert should say." />
+              </StackPanel>
+
+              <TextBlock Classes="hint" MaxWidth="820" HorizontalAlignment="Left"
+                         Text="Shows on the Overview and in the Alarms tool until it is dismissed, the same as an alarm's own alert." />
+            </StackPanel>
+
+          </StackPanel>
+        </ScrollViewer>
+
+        <!-- Action bar. Outside the scroll region so Save is never something to scroll for.
+
+             The status line belongs beside the buttons, not only in the toolbar. Everything here
+             refuses quietly when something is missing, and a refusal read from the far side of a
+             wide screen is a button that looks broken. -->
+        <Border Grid.Row="1" IsVisible="{Binding HasEditor}"
+                Background="#101018" Padding="16 8"
+                BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
+          <Grid ColumnDefinitions="Auto,*">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+              <Button Classes="tool" Content="Save"    Command="{Binding SaveCommand}" />
+              <Button Classes="tool" Content="Discard Changes" Command="{Binding DiscardCommand}"
+                      ToolTip.Tip="Puts the editor back to what is saved." />
+              <Button Classes="tool" Content="Preview" Command="{Binding PreviewCommand}"
+                      IsVisible="{Binding CanPreview}" />
+              <Button Classes="tool" Content="{Binding RunLabel}" Command="{Binding RunNowCommand}"
+                      ToolTip.Tip="Runs what is on screen, for real, and counts as the scheduled run." />
+              <Button Content="Delete" Command="{Binding DeleteCommand}"
+                      Background="#1a1a28" Foreground="#aa5555" BorderBrush="#442a2a"
+                      BorderThickness="1" Padding="12 4" FontSize="11" />
+            </StackPanel>
+            <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11"
+                       Foreground="#8a8a9a" VerticalAlignment="Center" Margin="14 0 0 0"
+                       TextTrimming="CharacterEllipsis" />
+          </Grid>
+        </Border>
+
+      </Grid>
+    </Grid>
+  </Grid>
+</UserControl>
