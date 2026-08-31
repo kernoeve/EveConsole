@@ -211,11 +211,11 @@ public class ScheduledBlockRenderer(
     CorpActivityService     corp,
     SalePostingService      sales,
     CorpTop10ExcludeService excludes,
-    CorpTop10Titles         titles)
+    CorpReportTitles         titles)
 {
-    /// <summary>The five lists, in the order the exports print them. Defined by CorpTop10Titles,
+    /// <summary>The five lists, in the order the exports print them. Defined by CorpReportTitles,
     /// which is also what the settings tab overrides and what names them on screen.</summary>
-    public static (string Key, string Title)[] Top10Categories => CorpTop10Titles.Categories;
+    public static (string Key, string Title)[] Top10Categories => CorpReportTitles.Top10Categories;
 
     /// <summary>
     /// One chart, drawn.
@@ -370,7 +370,7 @@ public class ScheduledBlockRenderer(
                                     : [$"{++rank}.", who, share]);
             }
 
-            lists.Add((titles.TitleFor(key, label), cells));
+            lists.Add((titles.Top10TitleFor(key, label), cells));
         }
 
         if (lists.Count == 0) return "";
@@ -428,12 +428,13 @@ public class ScheduledBlockRenderer(
         var (year, month, _) = Month(b.MonthsBack, nowUtc);
 
         var summary = await corp.GetMonthSummaryAsync(b.CorpId, year, month, ct);
-        var lines   = MonthlySummaryReport.Build(summary);
+        var lines   = MonthlySummaryReport.Build(summary, titles);
 
         var header = MonthlySummaryReport.Header(
             await CorpNameAsync(b.CorpId, ct),
             System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(month),
-            year);
+            year,
+            titles.HeaderPrefix);
 
         return MonthlySummaryReport.Export(lines, header, "Slack");
     }

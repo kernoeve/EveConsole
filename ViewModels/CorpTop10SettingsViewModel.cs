@@ -24,6 +24,7 @@ public sealed class CorpTop10ExcludeRowVm : ReactiveObject
 /// <summary>One list's heading, as the reader may have renamed it.</summary>
 public sealed class Top10TitleRowVm : ReactiveObject
 {
+    public string Group        { get; }
     public string Key          { get; }
     public string DefaultTitle { get; }
 
@@ -33,8 +34,9 @@ public sealed class Top10TitleRowVm : ReactiveObject
     /// half-typed name is not treated as a clearing.</summary>
     public string Title { get => _title; set => this.RaiseAndSetIfChanged(ref _title, value); }
 
-    public Top10TitleRowVm(string key, string defaultTitle, string current)
+    public Top10TitleRowVm(string group, string key, string defaultTitle, string current)
     {
+        Group        = group;
         Key          = key;
         DefaultTitle = defaultTitle;
         _title       = current;
@@ -44,12 +46,24 @@ public sealed class Top10TitleRowVm : ReactiveObject
 public sealed class CorpTop10SettingsViewModel : ReactiveObject
 {
     private readonly CorpTop10ExcludeService _svc;
-    private readonly CorpTop10Titles         _titles;
+    private readonly CorpReportTitles         _titles;
 
     public ObservableCollection<CorpTop10ExcludeRowVm> Excludes { get; } = [];
 
-    /// <summary>The five headings, each overridable.</summary>
+    /// <summary>The five Top 10 headings, each overridable.</summary>
     public ObservableCollection<Top10TitleRowVm> Titles { get; } = [];
+
+    /// <summary>The monthly summary's seven section headings.</summary>
+    public ObservableCollection<Top10TitleRowVm> SummaryTitles { get; } = [];
+
+    private string _headerPrefix = "";
+
+    /// <summary>Put in front of the summary's first line. Empty leaves it alone.</summary>
+    public string HeaderPrefix
+    {
+        get => _headerPrefix;
+        set => this.RaiseAndSetIfChanged(ref _headerPrefix, value);
+    }
 
     private string _searchText = "";
     public string SearchText
@@ -106,7 +120,7 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
     public ReactiveCommand<CorpTop10ExcludeRowVm, Unit> RemoveCommand    { get; }
     public ReactiveCommand<Unit, Unit>                 SaveTitlesCommand { get; }
 
-    public CorpTop10SettingsViewModel(CorpTop10ExcludeService svc, CorpTop10Titles titles)
+    public CorpTop10SettingsViewModel(CorpTop10ExcludeService svc, CorpReportTitles titles)
     {
         _svc    = svc;
         _titles = titles;
@@ -127,13 +141,26 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
             Excludes.Add(new CorpTop10ExcludeRowVm(e));
 
         Titles.Clear();
-        foreach (var (key, title) in CorpTop10Titles.Categories)
-            Titles.Add(new Top10TitleRowVm(key, title, _titles.Override(key)));
+        foreach (var (key, title) in CorpReportTitles.Top10Categories)
+            Titles.Add(new Top10TitleRowVm(
+                CorpReportTitles.Top10Group, key, title,
+                _titles.Override(CorpReportTitles.Top10Group, key)));
+
+        SummaryTitles.Clear();
+        foreach (var (key, title) in CorpReportTitles.SummarySections)
+            SummaryTitles.Add(new Top10TitleRowVm(
+                CorpReportTitles.SummaryGroup, key, title,
+                _titles.Override(CorpReportTitles.SummaryGroup, key)));
+
+        HeaderPrefix = _titles.HeaderPrefix;
     }
 
     private async Task SaveTitlesAsync(System.Threading.CancellationToken ct = default)
     {
-        foreach (var t in Titles) await _titles.SetOverrideAsync(t.Key, t.Title);
+        foreach (var t in Titles.Concat(SummaryTitles))
+            await _titles.SetOverrideAsync(t.Group, t.Key, t.Title);
+
+        await _titles.SetHeaderPrefixAsync(HeaderPrefix);
         StatusText = "Titles saved.";
     }
 

@@ -36,14 +36,19 @@ public static class MonthlySummaryReport
 
     // ── The lines ────────────────────────────────────────────────────────────
 
-    public static List<SummaryLine> Build(CorpActivityService.MonthSummary s)
+    public static List<SummaryLine> Build(
+        CorpActivityService.MonthSummary s, CorpReportTitles? titles = null)
     {
         var lines = new List<SummaryLine>();
 
         var c = s.Current;
         var p = s.Previous;
 
-        void Header(string t) => lines.Add(new SummaryLine(t, IsHeader: true));
+        // ⚠️ Renamed on the way in, so every line downstream already carries the heading the
+        // reader chose. Renaming at print time instead would leave the grid and the export
+        // showing different words for the same section.
+        void Header(string t) =>
+            lines.Add(new SummaryLine(titles?.SummaryTitleForDefault(t) ?? t, IsHeader: true));
 
         // ISK line: value, signed absolute change, and the same change as a percentage.
         void Isk(string label, decimal cur, decimal prev, string? color = null, bool total = false) =>
@@ -196,10 +201,14 @@ public static class MonthlySummaryReport
     }
 
     /// <summary>The title line, built the one way so the screen and a scheduled post agree.</summary>
-    public static string Header(string? corpName, string monthName, int year)
+    public static string Header(string? corpName, string monthName, int year, string prefix = "")
     {
         var tail = $"Monthly Summary — {monthName} {year}";
-        return string.IsNullOrWhiteSpace(corpName) ? tail : $"{corpName} — {tail}";
+        var line = string.IsNullOrWhiteSpace(corpName) ? tail : $"{corpName} — {tail}";
+
+        // Prepended verbatim with one space. Whatever punctuation belongs after it is the
+        // author's to type, since only they know whether it reads as a label or a sentence.
+        return string.IsNullOrWhiteSpace(prefix) ? line : $"{prefix.Trim()} {line}";
     }
 
     // ── Column layout for exported text ──────────────────────────────────────
