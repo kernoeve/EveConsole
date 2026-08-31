@@ -336,14 +336,33 @@ public class App : Application
                     "BuyerType"     TEXT    NOT NULL DEFAULT '',
                     "FulfilmentSource" TEXT NOT NULL DEFAULT '',
                     "LinkedJobId"      INTEGER NULL,
+                    "LinkedJobIds"     TEXT    NOT NULL DEFAULT '',
+                    "StockOnHand"      INTEGER NOT NULL DEFAULT 0,
+                    "UnitsInBuild"     INTEGER NOT NULL DEFAULT 0,
                     "LinkedContractId" INTEGER NULL,
-                    "CompletedOn"      TEXT NULL
+                    "CompletedOn"      TEXT NULL,
+                    "StoreId"          INTEGER NOT NULL DEFAULT 0,
+                    "OrderRef"         TEXT    NOT NULL DEFAULT '',
+                    "NotifiedState"    TEXT    NOT NULL DEFAULT '',
+                    "ContractToId"     INTEGER NOT NULL DEFAULT 0,
+                    "ContractToName"   TEXT    NOT NULL DEFAULT '',
+                    "ContractToType"   TEXT    NOT NULL DEFAULT ''
                 )
                 """);
 
             // Hand-marked to jump the queue, for an order whose urgency the estimated date does
             // not capture. Everything it needs outranks every other order.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "IsPriority" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+
+            // Orders that arrived by EVE mail: which shop took them, and what ties the rows of
+            // one multi-item order together. Zero and empty on everything entered by hand.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "StoreId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "OrderRef" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "NotifiedState" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            // Who the contract is made out to, when that is not the buyer.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "ContractToId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "ContractToName" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "ContractToType" TEXT NOT NULL DEFAULT ''"""); } catch { }
 
             // The buyer became a picked character or corporation rather than typed text. Existing
             // rows keep their name with a zero id and simply do not link until re-picked.
@@ -353,10 +372,152 @@ public class App : Application
             // OrderFulfilmentService; see the CREATE TABLE above for why they are listed twice.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "FulfilmentSource" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "LinkedJobId" INTEGER NULL"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "LinkedJobIds" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "StockOnHand" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "UnitsInBuild" INTEGER NOT NULL DEFAULT 0"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "LinkedContractId" INTEGER NULL"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "CompletedOn" TEXT NULL"""); } catch { }
 
             // Sale Posting — postings → sections → items (see SalePostingModels.cs)
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "OrderLabels" (
+                    "OrderId" INTEGER NOT NULL,
+                    "Label"   TEXT    NOT NULL,
+                    PRIMARY KEY ("OrderId", "Label")
+                )
+                """);
+            // Filtering is by label, so that is the way the index has to read.
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_OrderLabels_Label" ON "OrderLabels" ("Label")
+                """);
+            // The same labels, on the sales side. Keyed like SaleExclusions because a sale has no
+            // row of its own — it is a wallet transaction or a contract, identified by both.
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "SaleLabels" (
+                    "Kind"   TEXT    NOT NULL,
+                    "SaleId" INTEGER NOT NULL,
+                    "Label"  TEXT    NOT NULL,
+                    PRIMARY KEY ("Kind", "SaleId", "Label")
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_SaleLabels_Label" ON "SaleLabels" ("Label")
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "Stores" (
+                    "Id"            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "Name"          TEXT    NOT NULL DEFAULT '',
+                    "CharacterId"   INTEGER NOT NULL DEFAULT 0,
+                    "CharacterName" TEXT    NOT NULL DEFAULT '',
+                    "PostingId"     INTEGER NOT NULL DEFAULT 0,
+                    -- ⚠️ Both default to the closed position. A shop that served everyone the
+                    -- moment it was created would start answering strangers before its owner had
+                    -- decided that was wanted, and a mail cannot be unsent.
+                    "SenderPolicy"  TEXT    NOT NULL DEFAULT 'List',
+                    "Enabled"       INTEGER NOT NULL DEFAULT 0,
+                    "ListenFrom"    TEXT    NOT NULL DEFAULT '',
+                    "IsDeleted"     INTEGER NOT NULL DEFAULT 0,
+                    "OrderLabels"        TEXT NOT NULL DEFAULT '',
+                    "UseCustomUsage"     INTEGER NOT NULL DEFAULT 0,
+                    "CustomUsage"        TEXT NOT NULL DEFAULT '',
+                    "Info"               TEXT NOT NULL DEFAULT '',
+                    "MessageHeader"      TEXT NOT NULL DEFAULT '',
+                    "MessageHeaderColor" TEXT NOT NULL DEFAULT '',
+                    "MessageFooter"      TEXT NOT NULL DEFAULT '',
+                    "MessageFooterColor" TEXT NOT NULL DEFAULT '',
+                    "AutoEstimateInStock" INTEGER NOT NULL DEFAULT 1,
+                    "AutoEstimateDays"    INTEGER NOT NULL DEFAULT 1,
+                    "CreatedAt"     TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            // ⚠️ Listed in the CREATE above AND altered in here, like every other column added
+            // after a table shipped. The CREATE only runs on an install that has never had the
+            // table; anyone who ran the previous build already has Stores without this column,
+            // and IF NOT EXISTS silently does nothing for them. That is the whole trap: it works
+            // on a fresh machine and fails on every existing one.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "ListenFrom" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            // Deleting a store hides it rather than removing the row, so orders and messages
+            // that point at it still resolve.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "IsDeleted" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            // An expected date for orders filled from stock, which have no job to take one from.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "AutoEstimateInStock" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "AutoEstimateDays" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+            // Text the shop puts on every mail it sends, with a colour each.
+            // Labels put on every order this store takes.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "OrderLabels" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "UseCustomUsage" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "CustomUsage" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "Info" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageHeader" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageHeaderColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooter" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooterColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "ScheduledTasks" (
+                    "Id"               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "Name"             TEXT    NOT NULL DEFAULT '',
+                    "Enabled"          INTEGER NOT NULL DEFAULT 1,
+                    "Kind"             TEXT    NOT NULL DEFAULT 'weekly',
+                    "IntervalMinutes"  INTEGER NOT NULL DEFAULT 60,
+                    "DaysOfWeek"       INTEGER NOT NULL DEFAULT 127,
+                    "TimeOfDayMinutes" INTEGER NOT NULL DEFAULT 0,
+                    "DayOfMonth"       INTEGER NOT NULL DEFAULT 1,
+                    "MonthOfYear"      INTEGER NOT NULL DEFAULT 1,
+                    "SkipIfMissed"     INTEGER NOT NULL DEFAULT 0,
+                    "TaskType"         TEXT    NOT NULL DEFAULT 'slack_post',
+                    "Config"           TEXT    NOT NULL DEFAULT '',
+                    "LastRunUtc"       TEXT    NULL,
+                    "LastResult"       TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "SlackWebhooks" (
+                    "Id"   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "Name" TEXT    NOT NULL DEFAULT '',
+                    "Url"  TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "StoreSenders" (
+                    "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "StoreId"    INTEGER NOT NULL DEFAULT 0,
+                    "EntityId"   INTEGER NOT NULL DEFAULT 0,
+                    "EntityType" TEXT    NOT NULL DEFAULT '',
+                    "Name"       TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "StoreMails" (
+                    "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "StoreId"   INTEGER NOT NULL DEFAULT 0,
+                    "Direction" TEXT    NOT NULL DEFAULT 'in',
+                    "MailId"    INTEGER NOT NULL DEFAULT 0,
+                    "PartyId"   INTEGER NOT NULL DEFAULT 0,
+                    "PartyName" TEXT    NOT NULL DEFAULT '',
+                    "Subject"   TEXT    NOT NULL DEFAULT '',
+                    "Body"      TEXT    NOT NULL DEFAULT '',
+                    "Command"   TEXT    NOT NULL DEFAULT '',
+                    "Outcome"   TEXT    NOT NULL DEFAULT '',
+                    "Detail"    TEXT    NOT NULL DEFAULT '',
+                    "OrderRef"  TEXT    NOT NULL DEFAULT '',
+                    "At"        TEXT    NOT NULL DEFAULT ''
+                )
+                """);
+            // ⚠️ Deliberately NOT unique any more. It began as a unique index to stop a mail
+            // being answered twice, but that put the rule in the wrong place: a reply that fails
+            // because ESI refused it should be retried, and a unique row made the first failure
+            // permanent. StoreMailService decides what may be retried — only the commands that
+            // create nothing — and each attempt is a row, so the history is visible and the
+            // attempt count is countable. Dropped first, because existing installs have the
+            // unique version.
+            db.Database.ExecuteSqlRaw("""DROP INDEX IF EXISTS "IX_StoreMails_In" """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_StoreMails_In"
+                ON "StoreMails" ("StoreId", "MailId", "Direction")
+                """);
+            db.Database.ExecuteSqlRaw("""
+                CREATE INDEX IF NOT EXISTS "IX_StoreMails_Store_At" ON "StoreMails" ("StoreId", "At")
+                """);
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "SalePostings" (
                     "Id"               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -373,7 +534,11 @@ public class App : Application
                     "ShowInBuild"       INTEGER NOT NULL DEFAULT 1,
                     "ShowReserved"      INTEGER NOT NULL DEFAULT 1,
                     "IncludeCompletionDate" INTEGER NOT NULL DEFAULT 0,
-                    "OnlyPackaged"      INTEGER NOT NULL DEFAULT 0
+                    "OnlyPackaged"      INTEGER NOT NULL DEFAULT 0,
+                    "ColorByState"      INTEGER NOT NULL DEFAULT 0,
+                    "ColorInStock"      TEXT    NOT NULL DEFAULT '#4a9a5a',
+                    "ColorInBuild"      TEXT    NOT NULL DEFAULT '#c8a84b',
+                    "ColorNone"         TEXT    NOT NULL DEFAULT '#888899'
                 )
                 """);
             // Existing installs created before the Market-basis reworked to station pricing.
@@ -382,6 +547,21 @@ public class App : Application
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "MarketPriceType" TEXT NOT NULL DEFAULT 'Sell'"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "IncludeCompletionDate" INTEGER NOT NULL DEFAULT 0"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "OnlyPackaged" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+
+            // Colour, which only EVE mail shows. ⚠️ In the CREATEs above as well as here — the
+            // CREATE runs only where the table has never existed, and the ALTER only where it has.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorByState" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorInStock" TEXT NOT NULL DEFAULT '#4a9a5a'"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorInBuild" TEXT NOT NULL DEFAULT '#c8a84b'"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorNone" TEXT NOT NULL DEFAULT '#888899'"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingSections" ADD COLUMN "Color" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            // One colour became two: the heading and the rows under it. The old single value was
+            // the heading's, so it moves there. Guarded on HeaderColor being empty so it runs
+            // once and never overwrites anything set since.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingSections" ADD COLUMN "HeaderColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingSections" ADD COLUMN "RowColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""UPDATE "SalePostingSections" SET "HeaderColor" = "Color" WHERE "HeaderColor" = '' AND "Color" <> ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingItems" ADD COLUMN "Color" TEXT NOT NULL DEFAULT ''"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "SalePostingSections" (
                     "Id"                INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -399,7 +579,10 @@ public class App : Application
                     "MarketStationName" TEXT    NOT NULL DEFAULT '',
                     "MarketPriceType"   TEXT    NOT NULL DEFAULT 'Sell',
                     "OverrideOnlyPackaged" INTEGER NOT NULL DEFAULT 0,
-                    "OnlyPackaged"      INTEGER NOT NULL DEFAULT 0
+                    "OnlyPackaged"      INTEGER NOT NULL DEFAULT 0,
+                    "Color"             TEXT    NOT NULL DEFAULT '',
+                    "HeaderColor"       TEXT    NOT NULL DEFAULT '',
+                    "RowColor"          TEXT    NOT NULL DEFAULT ''
                 )
                 """);
             // Existing installs created before section-level overrides.
@@ -427,7 +610,8 @@ public class App : Application
                     "NamePrefix"       TEXT,
                     "InStockOverride"  INTEGER,
                     "InBuildOverride"  INTEGER,
-                    "ReservedOverride" INTEGER
+                    "ReservedOverride" INTEGER,
+                    "Color"            TEXT    NOT NULL DEFAULT ''
                 )
                 """);
             db.Database.ExecuteSqlRaw("""
@@ -439,11 +623,15 @@ public class App : Application
                     "Name"          TEXT    NOT NULL DEFAULT '',
                     "StaticContent" TEXT,
                     "Header"        TEXT    NOT NULL DEFAULT '',
-                    "Footer"        TEXT    NOT NULL DEFAULT ''
+                    "Footer"        TEXT    NOT NULL DEFAULT '',
+                    "HeaderColor"   TEXT    NOT NULL DEFAULT '',
+                    "FooterColor"   TEXT    NOT NULL DEFAULT ''
                 )
                 """);
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingPosts" ADD COLUMN "Header" TEXT NOT NULL DEFAULT ''"""); } catch { }
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingPosts" ADD COLUMN "Footer" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingPosts" ADD COLUMN "HeaderColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingPosts" ADD COLUMN "FooterColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
 
             // Market price history — on-demand ESI fetch cache
             db.Database.ExecuteSqlRaw("""
@@ -533,6 +721,16 @@ public class App : Application
                     "TargetQuantity" INTEGER NOT NULL DEFAULT 1
                 )
                 """);
+
+            // Final products are flagged on the RULE, not the item — one rule covers a whole
+            // group, which is the grain people set it at. An interim build put the flag on the
+            // item and it moved the same day, but any database opened in between kept the column:
+            // unmapped, always zero, and indistinguishable from a setting when read straight off
+            // the database. Fresh installs never had it, so this only tidies those few.
+            //
+            // Throws "no such column" everywhere else, which is the success case. Safe to drop:
+            // no index, view or trigger refers to it, and every value is zero.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "InvLevelItems" DROP COLUMN "IsFinalProduct" """); } catch { }
 
             // ── Collections (new tables + alter existing tables) ─────────────
             db.Database.ExecuteSqlRaw("""
@@ -1721,7 +1919,8 @@ public class App : Application
                     "FillTargetPercent" REAL    NOT NULL DEFAULT 100,
                     "LocationId"        INTEGER NOT NULL DEFAULT 0,
                     "LocationName"      TEXT    NOT NULL DEFAULT '',
-                    "Enabled"           INTEGER NOT NULL DEFAULT 1
+                    "Enabled"           INTEGER NOT NULL DEFAULT 1,
+                    "IsFinalProduct"    INTEGER NOT NULL DEFAULT 0
                 )
                 """);
 
@@ -1746,6 +1945,10 @@ public class App : Application
             // Added after the rules table shipped on this branch, so it needs its own ALTER —
             // CREATE TABLE IF NOT EXISTS will not add a column to a table that already exists.
             try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistInvRules" ADD COLUMN "Action" TEXT NOT NULL DEFAULT 'Buy' """); } catch { }
+
+            // Whether the group is something the operation sells or flies. Ranks work that
+            // unblocks it above work that only refills a buffer — see WorklistInvRule.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistInvRules" ADD COLUMN "IsFinalProduct" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "WorklistCorpAlts" (
@@ -2590,7 +2793,15 @@ public class App : Application
             // Links pending orders to stock, jobs and the contracts that deliver them.
             Start("order fulfilment",   () => Services.GetRequiredService<OrderFulfilmentService>().Start());
 
+            // Answers mail sent to a store's character. Does nothing at all until a store exists
+            // and has been switched on, and never replies to mail older than that moment.
+            Start("store mail",         () => Services.GetRequiredService<StoreMailService>().Start());
+
             Start("alarms",             () => Services.GetRequiredService<AlarmService>().Start());
+
+            // Anything scheduled that came due while the app was closed fires on this first
+            // pass, which is why it starts here rather than waiting for the tool to be opened.
+            Start("scheduler",          () => Services.GetRequiredService<SchedulerService>().Start());
 
             // Helps SQLite's own automatic checkpoint keep the write-ahead log small, and reports
             // when it stops draining. Never blocks: see WalCheckpointService for why that matters.
@@ -2598,7 +2809,7 @@ public class App : Application
 
             // Diagnostic only, and the error log is the sole place it reports — so when the switch
             // is off it is not started at all, which also drops its half-second heartbeat.
-            if (PerfDiagnostics.Enabled)
+            if (PerfDiagnostics.UiStalls)
                 Start("UI stall monitor", () => Services.GetRequiredService<UiStallMonitor>().Start());
 
             void Start(string name, Action start)
@@ -2727,6 +2938,8 @@ public class App : Application
         services.AddSingleton<AppPreferencesService>();
         services.AddSingleton<SlackAuthService>();
         services.AddSingleton<SlackService>();
+        services.AddSingleton<ScheduledBlockRenderer>();
+        services.AddSingleton<SchedulerService>();
         services.AddSingleton<DatabaseBackupService>();
         services.AddSingleton<EsiPollingService>();
         services.AddSingleton<NetWorthService>();
@@ -2754,6 +2967,7 @@ public class App : Application
         services.AddSingleton<CharacterSummaryService>();
         services.AddSingleton<KillmailBrowserService>();
         services.AddSingleton<CorpTop10ExcludeService>();
+        services.AddSingleton<CorpReportTitles>();
         services.AddSingleton<MarketCompetitionService>();
         services.AddSingleton<StandingBuyOrderService>();
 
@@ -2777,6 +2991,7 @@ public class App : Application
         services.AddSingleton<EveConsole.Services.Worklist.IndustryTimeService>();
         services.AddSingleton<EveConsole.Services.Worklist.IndustryDemandService>();
         services.AddSingleton<EveConsole.Services.Worklist.MaterialSubstitutionService>();
+        services.AddSingleton<EveConsole.Services.Worklist.OutbidOrderService>();
         services.AddSingleton<EveConsole.Services.Worklist.JumpDistanceService>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.LogisticsGenerator>();
@@ -2788,6 +3003,8 @@ public class App : Application
                               EveConsole.Services.Worklist.SkillQueueGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.AssetSafetyGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.RefiningGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.InventionService>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.InventionGenerator>();
@@ -2858,6 +3075,9 @@ public class App : Application
         services.AddSingleton<UiLinkSettings>();
         services.AddSingleton<DataRetentionService>();
         services.AddSingleton<OrderFulfilmentService>();
+        services.AddSingleton<MailBudget>();
+        services.AddSingleton<OrderLabelService>();
+        services.AddSingleton<StoreMailService>();
         services.AddSingleton<WalCheckpointService>();
         services.AddSingleton<TimerForceService>();
         services.AddSingleton<ExportFormatSettings>();

@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="EveConsole.Controls.LabelsBox">
+
+  <StackPanel Spacing="0">
+
+    <!-- One box that looks like a text field and behaves like one: click anywhere in it and the
+         caret is in the entry, whatever chips are already there. -->
+    <Border x:Name="Frame" Background="#131320" BorderBrush="#2a2a3a" BorderThickness="1"
+            CornerRadius="3" Padding="4 3" MinHeight="30" PointerPressed="OnFramePressed">
+      <Grid ColumnDefinitions="*,Auto">
+        <WrapPanel x:Name="Host" Grid.Column="0" ItemWidth="NaN" />
+        <Button x:Name="ChevronButton" Grid.Column="1" Content="⌄" Padding="6 0"
+                Background="Transparent" BorderThickness="0" Foreground="#666677"
+                FontSize="13" VerticalAlignment="Center"
+                ToolTip.Tip="Show every label already in use" />
+      </Grid>
+    </Border>
+
+    <!-- Sits under the box rather than floating over it: this dialog scrolls, and a popup that
+         does not scroll with its field ends up somewhere else on the screen. -->
+    <Border x:Name="SuggestBox" IsVisible="False" Margin="0 2 0 0"
+            Background="#12121a" CornerRadius="3" BorderBrush="#1e1e2a" BorderThickness="1"
+            MaxHeight="130">
+      <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <ListBox x:Name="SuggestList" Background="Transparent" BorderThickness="0"
+                 SelectionChanged="OnSuggestionPicked">
+          <ListBox.Styles>
+            <Style Selector="ListBoxItem"><Setter Property="Padding" Value="8 4" /></Style>
+            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+              <Setter Property="Background" Value="#1a2030" />
+            </Style>
+          </ListBox.Styles>
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding}" FontSize="11" Foreground="#c8c8d8" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </ScrollViewer>
+    </Border>
+
+    <TextBlock x:Name="EmptyNote" IsVisible="False" Margin="2 3 0 0"
+               FontSize="10" Foreground="#555566" Text="No matches — press Enter to create it." />
+
+  </StackPanel>
+</UserControl>

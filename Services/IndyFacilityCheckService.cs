@@ -52,9 +52,15 @@ public class IndyFacilityCheckService(IDbContextFactory<AppDbContext> dbFactory)
             .ToListAsync(ct);
         if (linked.Count == 0) return results;
 
+        // ⚠️ Several park entries can name the same real structure, and taking the first of
+        // them picked one arbitrarily: two entries for one Sotiyo, the rigs described on the
+        // other one, and a job in it reported as unrigged. Every entry for a facility describes
+        // the same facility, so the rigs are read from all of them together.
         var byFacility = linked
             .GroupBy(s => s.RealStructureId!.Value)
-            .ToDictionary(g => g.Key, g => g.First());
+            .ToDictionary(g => g.Key, g => (
+                Ids:         g.Select(s => s.Id).ToList(),
+                DisplayName: g.First().DisplayName));
 
         var jobs = await db.EsiIndustryJobs.AsNoTracking()
             .Where(j => jobIds.Contains(j.JobId))
@@ -126,7 +132,10 @@ public class IndyFacilityCheckService(IDbContextFactory<AppDbContext> dbFactory)
                 continue;
             }
 
-            var fitted  = rigCategoryByStructure.GetValueOrDefault(park.Id, []);
+            var fitted  = park.Ids
+                .SelectMany(id => rigCategoryByStructure.GetValueOrDefault(id, []))
+                .Distinct()
+                .ToList();
             var applies = fitted.Any(c => IndyRigMatching.RigApplies(c, itemCat));
 
             results[j.JobId] = applies

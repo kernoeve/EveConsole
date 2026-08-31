@@ -63,14 +63,184 @@ public class WorklistService(
 
         var sections = (await Task.WhenAll(tasks)).ToList();
 
+        // Before the merge, because these carry no quantity and would not merge — two rows saying
+        // the same bid is losing is a duplicate however the amounts work out.
+        DropDuplicateOutbid(sections);
+
         // Before volume and state: the merged task must be sized and aged as the one task it is,
         // not as whichever fragment happened to be written first.
         MergeDuplicatePurchases(sections);
+
+        // After the merge, so a haul that was two rows is promoted once, as the trip it is.
+        PromoteUnblockingHauls(sections);
 
         await ApplyVolumeAsync(sections, ct);
         await ApplyStateAsync(sections, ct);
 
         return new WorklistRun(sections, DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>
+    /// Ranks each haul by the work it would restart.
+    ///
+    /// <para>A delivery is worth what it unblocks, and no generator can see that on its own:
+    /// the logistics generator knows a station is short of something, and the industry
+    /// generator knows which jobs stopped because of it, and neither knows the other. One
+    /// crate of Self-Harmonizing Power Cores restarting four jobs at one station outranks a
+    /// trip that restarts one, and until now they sorted identically.</para>
+    ///
+    /// <para>⚠️ The haul inherits the priority of the most urgent job it frees, never more.
+    /// Adding a bonus per job unblocked would push a haul through the order band, where one
+    /// step means one customer order — so the count breaks ties instead, below priority.</para>
+    /// </summary>
+    private static void PromoteUnblockingHauls(List<WorklistSection> sections)
+    {
+        var all = sections.SelectMany(s => s.Items).ToList();
+
+        PromoteUnblockingBuys(sections, all);
+
+        // Jobs stopped for want of material that exists somewhere else, by where they run.
+        // MustBuy shortfalls are excluded: no haul fixes something nobody owns.
+        var stopped = all
+            .Where(x => x.LocationId > 0)
+            .SelectMany(x => x.Shortages.Where(h => !h.MustBuy)
+                              .Select(h => (Job: x, Key: (x.LocationId, h.TypeId))))
+            .GroupBy(x => x.Key)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Job).ToList());
+
+        if (stopped.Count == 0) return;
+
+        for (var si = 0; si < sections.Count; si++)
+        {
+            var section = sections[si];
+
+            for (var n = 0; n < section.Items.Count; n++)
+            {
+                var haul = section.Items[n];
+                if (haul.Kind != WorklistKind.Haul || haul.DestinationId <= 0) continue;
+
+                var carried = haul.Lines.Count > 0
+                    ? haul.Lines.Select(l => l.TypeId)
+                    : [haul.TypeId];
+
+                var freed = carried
+                    .SelectMany(t => stopped.GetValueOrDefault((haul.DestinationId, t), []))
+                    .DistinctBy(j => j.Key)
+                    .ToList();
+
+                if (freed.Count == 0) continue;
+
+                section.Items[n] = haul with
+                {
+                    Unblocks = freed.Count,
+                    Priority = Math.Max(haul.Priority, freed.Max(j => j.Priority)),
+                    Detail   = haul.Detail
+                             + $" Restarts {freed.Count:N0} stopped job(s) on arrival: "
+                             + string.Join(", ", freed.Take(3).Select(j => j.TypeName))
+                             + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : "."),
+                };
+            }
+        }
+    }
+
+    /// <summary>
+    /// Ranks each purchase by the work it would release, exactly as hauls are ranked.
+    ///
+    /// <para>The two are complements and read the same shortage list from opposite ends. A haul
+    /// answers a shortage of something we own elsewhere; a purchase answers one of something
+    /// nobody owns, which is what <c>MustBuy</c> marks. Neither generator can see the jobs it
+    /// would restart — the purchase generator knows the plan is short, the industry generator
+    /// knows which jobs stopped, and neither knows the other.</para>
+    ///
+    /// <para>⚠️ No destination filter, unlike the haul pass. A haul lands its cargo at one
+    /// station and only frees jobs there; a purchase of something nobody owns answers the
+    /// shortage wherever the job is, because the alternative to buying it is not having it at
+    /// all.</para>
+    ///
+    /// <para>⚠️ The purchase inherits the priority of the most urgent job it frees, never more,
+    /// and the count breaks ties below priority rather than adding to it — the same rule the
+    /// hauls follow, so a crate and a market order for the same material stay commensurable.
+    /// Purchases used to carry a flat OrderDriven, which put every one of them above refining,
+    /// outbid orders, standing projects and final products regardless of what was waiting.</para>
+    /// </summary>
+    private static void PromoteUnblockingBuys(
+        List<WorklistSection> sections, List<WorklistItem> all)
+    {
+        // Jobs stopped for want of something nobody owns, by material. The mirror of the haul
+        // rule below, which excludes exactly these for the same reason.
+        var unowned = all
+            .SelectMany(x => x.Shortages.Where(h => h.MustBuy)
+                              .Select(h => (Job: x, h.TypeId)))
+            .GroupBy(x => x.TypeId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Job).DistinctBy(j => j.Key).ToList());
+
+        if (unowned.Count == 0) return;
+
+        for (var si = 0; si < sections.Count; si++)
+        {
+            var section = sections[si];
+
+            for (var n = 0; n < section.Items.Count; n++)
+            {
+                var buy = section.Items[n];
+                if (buy.Kind != WorklistKind.Buy) continue;
+
+                var bought = buy.Lines.Count > 0
+                    ? buy.Lines.Select(l => l.TypeId)
+                    : [buy.TypeId];
+
+                var freed = bought
+                    .SelectMany(t => unowned.GetValueOrDefault(t, []))
+                    .DistinctBy(j => j.Key)
+                    .ToList();
+
+                if (freed.Count == 0) continue;
+
+                section.Items[n] = buy with
+                {
+                    Unblocks = freed.Count,
+                    Priority = Math.Max(buy.Priority, freed.Max(j => j.Priority)),
+                    Detail   = buy.Detail
+                             + $" Releases {freed.Count:N0} stopped job(s): "
+                             + string.Join(", ", freed.Take(3).Select(j => j.TypeName))
+                             + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : "."),
+                };
+            }
+        }
+    }
+
+    /// <summary>
+    /// One row per losing bid, however many reasons there are to care about it.
+    ///
+    /// <para>An order can be needed by a build plan, by a stocking rule, and be a standing order
+    /// the player maintains on its own terms — three sources, one price to change. Each finds it
+    /// honestly and independently, which is what keeps them from having to know about each other,
+    /// and the reader would get the same sentence three times.</para>
+    ///
+    /// <para>Matched on the order's type and station rather than on the task key, because that is
+    /// what identifies the order; the sources key their tasks differently and rightly so. The most
+    /// specific survivor wins: a standing order the player configured explicitly says more about
+    /// what to do than a shortfall that merely happens to depend on it, so a source that names the
+    /// order outright is kept over one that inferred it from a need.</para>
+    /// </summary>
+    private static void DropDuplicateOutbid(List<WorklistSection> sections)
+    {
+        var dupes = sections
+            .SelectMany(s => s.Items.Select(i => (Section: s, Item: i)))
+            .Where(x => x.Item.Priority == WorklistPriority.Outbid && x.Item.TypeId > 0)
+            .GroupBy(x => (x.Item.TypeId, x.Item.LocationId))
+            .Where(g => g.Count() > 1);
+
+        foreach (var group in dupes)
+        {
+            // Anything that is not this service's own inferred row is a source that knows the
+            // order first-hand. Falls back to the first when they all are.
+            var keep = group.FirstOrDefault(x => x.Item.Source != "outbid");
+            if (keep.Item is null) keep = group.First();
+
+            foreach (var x in group)
+                if (!ReferenceEquals(x.Item, keep.Item)) x.Section.Items.Remove(x.Item);
+        }
     }
 
     /// <summary>
@@ -101,7 +271,23 @@ public class WorklistService(
             var parts = group.OrderByDescending(x => x.Item.Priority).ToList();
             var lead  = parts[0];
 
-            var total = parts.Sum(p => p.Item.Quantity);
+            // ⚠️ Demands add up; the stock that fills them does not. Every contributor has already
+            // subtracted the same pile from its own demand, so summing their answers credits that
+            // pile once per contributor. Measured on Fullerite-C32: a job wanting 540,933 and a
+            // rule wanting 500,000 both subtracted the same 125,298 on hand, 12,886 on order and
+            // 333,374 recoverable, and the row asked for 97,817 against a real requirement of
+            // 569,375 — the whole supply credited twice.
+            //
+            // So pooled demand less supply counted once, at the largest figure any contributor
+            // claimed. Falls back to the old sum when a contributor cannot report its halves,
+            // which is right for anything that is genuinely a separate errand.
+            var pooled = parts.All(p => p.Item.GrossDemand is not null && p.Item.SupplyCredited is not null);
+
+            var demand = pooled ? parts.Sum(p => p.Item.GrossDemand!.Value)      : 0;
+            var supply = pooled ? parts.Max(p => p.Item.SupplyCredited!.Value)   : 0;
+
+            var total = pooled ? Math.Max(0, demand - supply)
+                               : parts.Sum(p => p.Item.Quantity);
 
             // Each contributor's reason is kept verbatim. The point of merging is one errand, not
             // one explanation — "why am I buying this many" is the question the row has to answer.
@@ -130,7 +316,14 @@ public class WorklistService(
                     _         => $"{lead.Item.TypeName} — {tag} × {total:N0}",
                 },
                 Quantity  = total,
-                Detail    = $"{total:N0} in total. {reasons}",
+                // ⚠️ The contributors' own figures do not add up to this, and saying so is the
+                // point. Each was computed against the whole of the shared stock, so a reader
+                // adding the "short" numbers gets a figure that credits that stock once per
+                // demand — which is what this row used to print. The sum is spelled out instead.
+                Detail    = pooled
+                    ? $"{total:N0} in total — {demand:N0} wanted between them, less {supply:N0} " +
+                      $"already on hand, on order or recoverable, counted once. {reasons}"
+                    : $"{total:N0} in total. {reasons}",
                 Priority  = parts.Max(p => p.Item.Priority),
                 Readiness = blocked is not null ? blocked.Readiness : lead.Item.Readiness,
                 BlockedBy = blocked?.BlockedBy ?? "",

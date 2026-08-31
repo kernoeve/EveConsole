@@ -1058,6 +1058,17 @@ public class EsiPollingService : ReactiveObject
         if (!r.IsSuccess) return FromResult(r);
 
         var roots = ComputeRootLocations(r.Data!);
+
+        // ⚠️ Delete and replace in ONE transaction. ExecuteDeleteAsync commits on its own, so
+        // without this the character's assets are simply absent from the database between the
+        // two statements — and anything reading in that window sees a hangar with nothing in it.
+        // Measured: an order filled from stock was downgraded to "waiting on materials" by a
+        // fulfilment pass that landed in the gap, and the store mailed the buyer about it.
+        //
+        // No extra lock time worth speaking of: the delete and the insert already ran back to
+        // back, each taking the write lock in turn. This merges them rather than adding anything.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
         await db.EsiAssets
             .Where(a => a.OwnerId == charId && a.OwnerType == "character")
             .ExecuteDeleteAsync(ct);
@@ -1077,6 +1088,7 @@ public class EsiPollingService : ReactiveObject
             RootLocationType = roots[a.ItemId].RootType,
         }));
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
 
         // ESI's assets endpoint omits the character's ACTIVE ship (the one they are currently
         // in — e.g. a titan a character is logged off in). Pull it via the ship + location
@@ -1894,7 +1906,12 @@ public class EsiPollingService : ReactiveObject
         new("char.titles",          3600,  7200, FetchTitlesAsync),
         new("char.roles",           3600,  7200, FetchRolesAsync),
         new("char.fittings",        300,   1800, FetchFittingsAsync),
-        new("char.mail",            300,    600, FetchMailAsync),
+        // ⚠️ 30s, which is what ESI actually caches this at (x-server-cache-ttl on
+        // /characters/{id}/mail). It was 300 — an order of magnitude over-conservative, and it
+        // put a five-minute floor under how fast a store could answer a buyer for no reason at
+        // all. The rate limit is the real constraint: 600 calls per 15 minutes on the
+        // char-social group, which a minute's cadence per character sits comfortably inside.
+        new("char.mail",             30,    600, FetchMailAsync),
         // Live session state. Much faster cadence than everything else here — these
         // endpoints cache for 5s (location, ship) and 60s (online) rather than minutes.
         new("char.online",          60,      60, FetchOnlineAsync),
@@ -2359,6 +2376,19 @@ public class EsiPollingService : ReactiveObject
         if (!r.IsSuccess) return FromResult(r);
 
         var roots = ComputeRootLocations(r.Data!);
+
+        // ⚠️ Delete and replace in ONE transaction, exactly as FetchAssetsAsync does for a
+        // character — and for the same reason, which this side went without until it bit.
+        // ExecuteDeleteAsync commits on its own, so between the two statements the corp owns
+        // nothing at all as far as the database is concerned.
+        //
+        // Measured: every standing delivery project reported "project not active" at once.
+        // A delivery project names an office_id, and the lookup from office to station is
+        // built from these very rows (TypeId 27); a read landing in the gap found no offices,
+        // so no delivery config resolved to a station and none of them matched. Nothing was
+        // wrong with the projects — the app had briefly lost the ability to recognise them.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
         await db.EsiAssets
             .Where(a => a.OwnerId == corpId && a.OwnerType == "corporation")
             .ExecuteDeleteAsync(ct);
@@ -2379,6 +2409,7 @@ public class EsiPollingService : ReactiveObject
             RootLocationType = roots[a.ItemId].RootType,
         }));
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
 
         // Corp offices (OfficeFolder, TypeId=27) and SAG divisions appear as items in the
         // asset list with their own ItemId > 1T. A LocationId > 1T is the actual structure
@@ -2409,6 +2440,12 @@ public class EsiPollingService : ReactiveObject
             corpId, $"corporations/{corpId}/blueprints/", ct);
         if (!r.IsSuccess) return FromResult(r);
 
+        // ⚠️ The same delete-then-insert window as the assets above. Blueprint supply nets job
+        // and shelf demand against what is owned by reading EsiBlueprints and EsiAssets
+        // together, so an empty moment here reads as "we own none of it" and would raise a
+        // purchase for prints already sitting in the hangar.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
         await db.EsiBlueprints
             .Where(b => b.OwnerId == corpId && b.OwnerType == "corporation")
             .ExecuteDeleteAsync(ct);
@@ -2427,6 +2464,7 @@ public class EsiPollingService : ReactiveObject
             Runs               = b.Runs,
         }));
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return FromResult(r);
     }
 

@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.SalesTrackerView"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:DataType="vm:SalesTrackerViewModel"
              Background="#0d0d12">
 
@@ -36,7 +37,7 @@
     </Style>
   </UserControl.Styles>
 
-  <Grid RowDefinitions="Auto,Auto,*">
+  <Grid RowDefinitions="Auto,*">
 
     <!-- Header + filters -->
     <Border Grid.Row="0" Background="#0d0d12" Padding="10 6" BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
@@ -74,13 +75,20 @@
           <ComboBox ItemsSource="{Binding ProfitBasisOptions}" SelectedItem="{Binding SelectedProfitBasis}" MinWidth="90" />
           <CheckBox IsChecked="{Binding ShowNotForProfit}" Content="Show not for profit"
                     FontSize="11" Foreground="#999" Margin="12 0 0 0" VerticalAlignment="Center"
-                    ToolTip.Tip="List sales marked as not for profit. They are never counted in the summaries above, shown or not." />
+                    ToolTip.Tip="Include sales marked as not for profit. They count everywhere on this screen when shown: the summaries, the charts and the grid all follow this box." />
         </StackPanel>
       </StackPanel>
     </Border>
 
+    <!-- ⚠️ The filter row stays outside the tabs. It governs both of them, and a filter that
+         lived on one tab would look like it applied to that tab only. -->
+    <TabControl Grid.Row="1" Padding="0" Background="Transparent">
+
+    <TabItem Header="Summary" FontSize="12">
+      <Grid RowDefinitions="190,Auto,*">
+
     <!-- Rollups: Top Buyers / By Market Group / By Item (grouped over the filtered sales) -->
-    <Grid Grid.Row="1" Height="190" ColumnDefinitions="*,8,*,8,*" Margin="10 8 10 0">
+    <Grid Grid.Row="0" ColumnDefinitions="*,8,*,8,*" Margin="10 8 10 0">
 
       <Border Grid.Column="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="4">
         <Grid RowDefinitions="Auto,*">
@@ -154,15 +162,65 @@
 
     </Grid>
 
-    <DataGrid Grid.Row="2" x:Name="SalesGrid" ItemsSource="{Binding Rows}"
+        <!-- Granularity sits with the charts it governs, not on the filter row: the filter row
+             decides which sales are counted, this decides how they are bucketed. -->
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,*" Margin="10 10 10 4">
+          <TextBlock Grid.Column="0" Text="Chart by" VerticalAlignment="Center"
+                     FontSize="11" Foreground="#555566" Margin="0 0 8 0" />
+          <ComboBox Grid.Column="1" ItemsSource="{Binding Grains}" SelectedItem="{Binding Grain}"
+                    FontSize="11" MinWidth="100" Background="#131320" Foreground="#ccccdd"
+                    BorderBrush="#2a2a3a" />
+          <TextBlock Grid.Column="3" Text="{Binding UncostedNote}" FontSize="10"
+                     Foreground="#8a6a2e" VerticalAlignment="Center"
+                     HorizontalAlignment="Right" TextWrapping="NoWrap" />
+        </Grid>
+
+        <!-- ⚠️ Two charts, because margin is a percentage. Sharing an axis with figures in the
+             billions would flatten it to the zero line and make it unreadable. -->
+        <Grid Grid.Row="2" ColumnDefinitions="2*,8,*" Margin="10 0 10 10">
+          <Border Grid.Column="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="10 8">
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Top" Text="Costs, sales and profit" FontSize="11"
+                         FontWeight="SemiBold" Foreground="#c8a84b" Margin="0 0 0 6" />
+              <lvc:CartesianChart Series="{Binding IskSeries}"
+                                  XAxes="{Binding ChartXAxes}" YAxes="{Binding IskYAxes}"
+                                  LegendPosition="Top" TooltipPosition="Top"
+                                  EasingFunction="{x:Null}" Background="Transparent" />
+            </DockPanel>
+          </Border>
+
+          <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="10 8">
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Top" Text="Margin" FontSize="11"
+                         FontWeight="SemiBold" Foreground="#c8a84b" Margin="0 0 0 6" />
+              <lvc:CartesianChart Series="{Binding MarginSeries}"
+                                  XAxes="{Binding ChartXAxes}" YAxes="{Binding MarginYAxes}"
+                                  TooltipPosition="Top"
+                                  EasingFunction="{x:Null}" Background="Transparent" />
+            </DockPanel>
+          </Border>
+        </Grid>
+      </Grid>
+    </TabItem>
+
+    <TabItem Header="Detail" FontSize="12">
+    <DataGrid x:Name="SalesGrid" ItemsSource="{Binding Rows}"
               AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
               SelectionMode="Extended"
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+              DoubleTapped="OnRowDoubleTapped"
               Background="#0d0d12">
       <DataGrid.ContextMenu>
         <ContextMenu>
           <MenuItem Header="Mark as not for profit" Click="OnMarkNotForProfit" />
           <MenuItem Header="Restore to profit"      Click="OnRestoreToProfit" />
+          <Separator />
+          <!-- Built when the menu opens: the label list grows as things are tagged, and one
+               populated at startup would offer yesterday's. -->
+          <MenuItem x:Name="AddLabelMenu"    Header="Add label" />
+          <MenuItem x:Name="RemoveLabelMenu" Header="Remove label" />
         </ContextMenu>
       </DataGrid.ContextMenu>
       <DataGrid.Columns>
@@ -252,8 +310,51 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
+
+        <!-- Read-only chips, same colours as the Order Tracker: one tag looks the same wherever
+             it appears. Added and removed by right-click. -->
+        <DataGridTemplateColumn Header="Labels" Width="180">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleRowVm">
+              <ItemsControl ItemsSource="{Binding LabelChips}" Margin="0 2" VerticalAlignment="Center">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Background="{Binding Fill}" BorderBrush="{Binding Stroke}"
+                            BorderThickness="1" CornerRadius="2" Padding="5 0"
+                            Margin="0 1 3 1" ToolTip.Tip="{Binding Text}">
+                      <TextBlock Text="{Binding Text}" FontSize="10" Foreground="{Binding Ink}" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- The contract behind the sale, carrying its description where it has one. Blank on
+             market rows. Opens in the Contracts tool, the same jump the Order Tracker offers. -->
+        <DataGridTemplateColumn Header="Contract" SortMemberPath="Contract" Width="220">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleRowVm">
+              <Panel>
+                <Button Classes="link" Click="OnOpenContract" IsVisible="{Binding HasContractLink}"
+                        ToolTip.Tip="{Binding Contract}">
+                  <TextBlock Text="{Binding Contract}" Classes="linktext"
+                             TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding Contract}" IsVisible="{Binding !HasContractLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
       </DataGrid.Columns>
     </DataGrid>
+    </TabItem>
 
+    </TabControl>
   </Grid>
 </UserControl>

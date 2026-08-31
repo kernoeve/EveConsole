@@ -78,15 +78,30 @@
           <TextBox Text="{Binding TypeFilter}" Watermark="item name" Width="150" />
           <TextBlock Classes="fl" Text="Buyer" Margin="8 0 0 0" />
           <TextBox Text="{Binding BuyerFilter}" Watermark="buyer" Width="130" />
+          <TextBlock Classes="fl" Text="Label" Margin="8 0 0 0" />
+          <!-- "(any)" is no filter at all; "(labelled)" is anything tagged, whatever the tag —
+               the two questions people actually ask, alongside picking one label. -->
+          <ComboBox ItemsSource="{Binding LabelOptions}" SelectedItem="{Binding LabelFilter}"
+                    MinWidth="160" />
         </StackPanel>
 
       </StackPanel>
     </Border>
 
-    <DataGrid Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}"
+    <!-- ⚠️ Extended selection, so a right-click can label a batch. Labelling twenty orders one
+         at a time is not a feature anybody would use. -->
+    <DataGrid Grid.Row="1" x:Name="OrdersGrid"
+              ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}"
+              SelectionMode="Extended"
               AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
               Background="#0d0d12" DoubleTapped="OnRowDoubleTapped">
+      <DataGrid.ContextMenu>
+        <ContextMenu>
+          <MenuItem x:Name="AddLabelMenu"    Header="Add label" />
+          <MenuItem x:Name="RemoveLabelMenu" Header="Remove label" />
+        </ContextMenu>
+      </DataGrid.ContextMenu>
       <DataGrid.Columns>
         <DataGridTextColumn Header="Created"        Binding="{Binding CreatedText}" SortMemberPath="CreatedSort" Width="100" />
         <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="230">
@@ -118,13 +133,76 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
+        <!-- Shared by every row of one order, so several rows repeating a code is a multi-item
+             order rather than a duplicate. -->
+        <DataGridTextColumn Header="Order #" Binding="{Binding OrderRef}" Width="90" />
+        <!-- Chips rather than a comma-separated string: colour is what makes a column of tags
+             readable at a glance, which is the only reason to have the column at all. Read-only
+             here — labels are added by right-click or in the edit window. -->
+        <DataGridTemplateColumn Header="Labels" Width="180">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <ItemsControl ItemsSource="{Binding LabelChips}" Margin="0 2" VerticalAlignment="Center">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Background="{Binding Fill}" BorderBrush="{Binding Stroke}"
+                            BorderThickness="1" CornerRadius="2" Padding="5 0"
+                            Margin="0 1 3 1" ToolTip.Tip="{Binding Text}">
+                      <TextBlock Text="{Binding Text}" FontSize="10" Foreground="{Binding Ink}" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <!-- Blank means entered by hand rather than taken by mail. -->
+        <DataGridTextColumn Header="Store" Binding="{Binding Store}" Width="130" />
+        <!-- Blank means the buyer, not "unknown": a contract with nobody named goes to whoever
+             ordered. Only orders where someone said otherwise carry a name here. -->
+        <DataGridTemplateColumn Header="Contract To" SortMemberPath="ContractTo" Width="150">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrackedOrderRowVm">
+              <Panel>
+                <Button Classes="link" Click="OnOpenRowContractTo" IsVisible="{Binding HasContractToLink}" ToolTip.Tip="Open in the entity browser">
+                  <TextBlock Text="{Binding ContractTo}" Classes="linktext"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </Button>
+                <TextBlock Text="{Binding ContractTo}" IsVisible="{Binding !HasContractToLink}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <!-- Three separate facts, deliberately not one "source" field: what is on the shelf, what
              is making it, and what delivered it. Folding them together meant linking a contract
              erased the job that built the thing. -->
         <DataGridTextColumn Header="Stock" Binding="{Binding FromStock}" Width="55"
                             SortMemberPath="FromStock" />
+
+        <!-- The tick is all-or-nothing and stays that way; this is what it cannot say. Sorted on
+             the number so 9 of 50 does not outrank 19 of 50. -->
+        <DataGridTextColumn Header="On hand" Binding="{Binding StockText}" Width="80"
+                            SortMemberPath="StockOnHand" CellStyleClasses="num" />
+
         <DataGridTextColumn Header="Indy Job" Binding="{Binding IndyJob}" Width="110"
-                            SortMemberPath="IndyJob" />
+                            SortMemberPath="UnitsInBuild" />
+
+        <!-- What is still unaccounted for once the shelf and the jobs are counted. Red only when
+             there is something to show: a column of zeroes in red trains the eye to ignore it. -->
+        <DataGridTemplateColumn Header="Short" Width="80" SortMemberPath="Shortfall">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrackedOrderRowVm">
+              <TextBlock Text="{Binding ShortfallText}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Margin="0 0 6 0"
+                         Foreground="{Binding ShortColor}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTemplateColumn Header="Contract" Width="220" SortMemberPath="Contract">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">

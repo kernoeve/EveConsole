@@ -37,7 +37,8 @@ public sealed record EveMailResolvedRecipient(
     string Type  // "character" | "corporation" | "alliance"
 );
 
-public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient esi, AppErrorLogger errorLogger)
+public class EveMailService(
+    IDbContextFactory<AppDbContext> dbFactory, EsiClient esi, MailBudget budget, AppErrorLogger errorLogger)
 {
     // Uses raw ADO.NET so table creation is completely independent of EF's connection lifecycle.
     // Idempotent (CREATE TABLE IF NOT EXISTS) but only worth running once per process — the tables
@@ -119,6 +120,10 @@ public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient
 
     public async Task<PollingResult> FetchHeadersAsync(long charId, AppDbContext db, CancellationToken ct)
     {
+        // The ordinary poll counts too — same bucket. It is not throttled by this, only measured:
+        // a person's mail must keep syncing, and if anything has to give way it is the shop.
+        budget.Spend(charId);
+
         await EnsureTablesAsync(db);
         var r = await esi.ExecuteAuthAsync<List<EsiMailListEntry>>(
             charId, $"characters/{charId}/mail/", ct);
@@ -318,18 +323,41 @@ public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient
             .ToList();
     }
 
-    public async Task<string> GetBodyAsync(long charId, int mailId, CancellationToken ct = default)
+    /// <summary>A mail body as readable text, for showing a person.</summary>
+    public async Task<string> GetBodyAsync(long charId, int mailId, CancellationToken ct = default) =>
+        StripHtml(await GetRawBodyAsync(charId, mailId, ct));
+
+    /// <summary>
+    /// A mail body exactly as EVE wrote it, markup and all.
+    ///
+    /// <para><b>⚠️ Anything reading the CONTENT of a mail must use this, not
+    /// <see cref="GetBodyAsync"/>.</b> Everything a buyer drags into a mail — an item, a
+    /// character, a structure — arrives as an anchor carrying its id, and stripping the markup
+    /// throws that id away and leaves a name to guess at. The store's order parser was reading
+    /// the stripped text and seeing "Apostle  Kerno Adler": two links, both flattened, matching
+    /// nothing.</para>
+    ///
+    /// <para>The raw body was in the database the whole time — it is what gets cached — and only
+    /// the return value was stripped, which is why this is a split rather than a re-fetch.</para>
+    /// </summary>
+    public async Task<string> GetRawBodyAsync(long charId, int mailId, CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();
 
         var stored = await db.EsiMailBodies.FindAsync([mailId], ct);
-        if (stored is not null) return StripHtml(stored.Body);
+        if (stored is not null) return stored.Body;
 
         var header = await db.EsiMailHeaders.FindAsync([mailId, charId], ct);
         if (header?.BodyFetched == true) return "";
 
+        // ⚠️ Counted, because it is the same bucket as sending. A body fetch looks like a read
+        // and therefore free, and it is neither: char-social pays for reading the mail AND for
+        // answering it, so a shop that answers a hundred mails spends two hundred calls.
+        budget.Spend(charId);
+
         var r = await esi.ExecuteAuthAsync<EsiMailDetail>(
             charId, $"characters/{charId}/mail/{mailId}/", ct);
+        budget.Observe(charId, r.RateLimitRemaining);
         if (!r.IsSuccess || r.Data is null) return "(could not load mail body)";
 
         var rawBody = r.Data.Body ?? "";
@@ -337,11 +365,12 @@ public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient
         if (header is not null) header.BodyFetched = true;
         await db.SaveChangesAsync(ct);
 
-        return StripHtml(rawBody);
+        return rawBody;
     }
 
     public async Task<bool> MarkReadAsync(long charId, int mailId, CancellationToken ct = default)
     {
+        budget.Spend(charId);
         await esi.PutAuthAsync(charId, $"characters/{charId}/mail/{mailId}/",
             new { read = true }, ct);
 
@@ -372,12 +401,22 @@ public class EveMailService(IDbContextFactory<AppDbContext> dbFactory, EsiClient
             }).ToList(),
         };
 
-        var (statusCode, _) = await esi.PostAuthAsync<int>(
+        // ⚠️ Recorded before the answer comes back. The token is spent when the request goes out,
+        // whatever ESI says about it — counting only successes would let a run of failures look
+        // free and keep the shop hammering a limit it had already reached.
+        budget.Spend(fromCharId);
+
+        var (statusCode, error, remaining) = await esi.PostAuthRawAsync(
             fromCharId, $"characters/{fromCharId}/mail/", payload, ct);
+
+        budget.Observe(fromCharId, remaining);
 
         return statusCode is >= 200 and < 300
             ? (true, null)
-            : (false, $"ESI returned HTTP {statusCode}");
+            // ⚠️ ESI's own words, not just the code. A 400 from this endpoint names the field it
+            // objected to — body too long, recipient not found — and the code alone sends the
+            // reader hunting through every field the request had.
+            : (false, $"HTTP {statusCode}{(string.IsNullOrWhiteSpace(error) ? "" : $": {error.Trim()}")}");
     }
 
     // Resolve character name → id using ESI search

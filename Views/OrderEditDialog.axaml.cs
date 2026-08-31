@@ -30,11 +30,17 @@ public partial class OrderEditDialog : Window
     public OrderEditDialog() : this(_ => Task.FromResult(new List<TypeResultVm>()), null) { }
 
     public OrderEditDialog(Func<string, Task<List<TypeResultVm>>> searchFunc, OrderDialogResult? initial,
-                           Func<string, Task<List<BuyerResultVm>>>? buyerSearchFunc = null)
+                           Func<string, Task<List<BuyerResultVm>>>? buyerSearchFunc = null,
+                           IReadOnlyList<string>? knownLabels = null)
     {
         InitializeComponent();
         _searchFunc      = searchFunc;
         _buyerSearchFunc = buyerSearchFunc;
+
+        // ⚠️ Known labels before the order's own, so a label already in use keeps its existing
+        // spelling on the chip rather than gaining a second one that reads the same.
+        LabelsField.SetKnown(knownLabels ?? []);
+        LabelsField.SetLabels(initial?.Labels ?? []);
 
         if (initial is not null)
         {
@@ -170,7 +176,8 @@ public partial class OrderEditDialog : Window
             PriorityBox.IsChecked == true,
             _buyerId, _buyerType,
             int.TryParse(ContractBox.Text, out var contractId) && contractId > 0 ? contractId : null,
-            completed));
+            completed,
+            LabelsField.Labels.ToList()));
     }
 
     private void OnCancel(object? sender, RoutedEventArgs e) => Close(null);

@@ -38,6 +38,7 @@ public sealed class OverviewLayout
         ("IncomePie",         "Income (Pie)"),
         ("ExpensePie",        "Expenses (Pie)"),
         ("IncomeExpense",     "Income & Expense"),
+        ("Orders",            "Orders"),
         ("StandingProjects",  "Standing Projects"),
         ("StandingBuyOrders", "Standing Buy Orders"),
         ("WorklistAll",       "Worklist (All)"),

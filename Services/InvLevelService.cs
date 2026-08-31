@@ -418,10 +418,25 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             if (stationFilter != null)
                 q = q.Where(o => stationFilter.Contains(o.LocationId));
 
-            var totals = await q.GroupBy(o => o.TypeId)
-                .Select(g => new { TypeId = g.Key, Total = g.Sum(o => (long)o.VolumeRemain) })
+            // ⚠️ One order, two rows. A corporation order placed by a character comes back from
+            // both the character endpoint and the corporation one, and both are stored — 25 open
+            // buy orders here are duplicated that way. Summing VolumeRemain straight off the table
+            // therefore counts the same order twice: 12,886 units of Fullerite-C32 on order read
+            // as 25,772, and a rule saw stock arriving that does not exist.
+            //
+            // Deduplicated by OrderId, preferring the corporation's row — the same rule
+            // MaterialPurchaseGenerator and InventoryLevelGenerator already apply. This method was
+            // the one place that did not, so the tool and the worklist disagreed about the same
+            // order.
+            var rows = await q
+                .Select(o => new { o.OrderId, o.OwnerType, o.TypeId, o.VolumeRemain })
                 .ToListAsync(ct);
-            foreach (var t in totals) orders[t.TypeId] = t.Total;
+
+            foreach (var g in rows
+                         .GroupBy(o => o.OrderId)
+                         .Select(g => g.FirstOrDefault(o => o.OwnerType == "corporation") ?? g.First())
+                         .GroupBy(o => o.TypeId))
+                orders[g.Key] = g.Sum(o => (long)o.VolumeRemain);
         }
 
         return typeIds.Distinct().ToDictionary(

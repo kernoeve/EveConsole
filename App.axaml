@@ -32,6 +32,11 @@
   <Application.Styles>
     <FluentTheme />
     <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+    <!-- ⚠️ Without this the ColorView renders as an empty rectangle. Like DataGrid, the colour
+         picker ships its control themes in its own assembly rather than in Fluent, so the
+         control resolves, lays out, and draws nothing at all — which looks like a broken
+         control rather than a missing style. -->
+    <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
 
     <Styles>
 
@@ -207,14 +212,31 @@
       <!-- Shared cell classes, so a view says what a column means rather than restating the
            same alignment and colour. Both were being redeclared per view; the numeric one alone
            appears in the Worklist, Sale Listing, Killmail and Sales Tracker grids. -->
-      <!-- TextAlignment as well as HorizontalAlignment: a DataGridTemplateColumn does not stretch
-           its cell content, so alignment alone leaves the text wherever the presenter put it.
-           TextAlignment right-aligns within the TextBlock either way, which makes this class
-           behave the same on text and template columns. -->
+      <!-- ⚠️ Aligned TWICE, on the cell and on the text inside it, and both are load-bearing.
+           .num is a class on the CELL, so anything styling the text is a descendant selector
+           keyed on an ancestor's class — and CellStyleClasses puts those classes on the cell
+           after its child already exists. Avalonia does not reliably re-evaluate a descendant
+           selector when an ancestor's classes change afterwards, which shows up as numbers
+           left-aligned on scattered rows of a column whose other rows are fine, cleared by
+           anything that rebuilds the cells: a refresh, or closing and reopening the tab.
+
+           The cell-level setters below do not depend on that resolving. DataGridCell is a
+           ContentControl, so aligning its CONTENT right lands the text in the same place even
+           when the descendant style never applies, and the padding keeps the gap the Margin
+           would have given it. Where both do apply the result is identical — a stretched
+           TextBlock right-aligning its own text inside a right-aligned cell.
+
+           TextAlignment as well as HorizontalAlignment on the text: a DataGridTemplateColumn
+           does not stretch its cell content, so alignment alone leaves the text wherever the
+           presenter put it. TextAlignment right-aligns within the TextBlock either way, which
+           makes this class behave the same on text and template columns. -->
+      <Style Selector="DataGridCell.num">
+        <Setter Property="HorizontalContentAlignment" Value="Right" />
+        <Setter Property="Padding"                    Value="6 0 8 0" />
+      </Style>
       <Style Selector="DataGridCell.num TextBlock">
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="TextAlignment"       Value="Right" />
-        <Setter Property="Margin"              Value="0 0 8 0" />
       </Style>
       <Style Selector="DataGridCell.dim TextBlock">
         <Setter Property="Foreground" Value="#7a7a88" />

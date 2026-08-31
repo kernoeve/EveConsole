@@ -32,6 +32,7 @@ public class MaterialPurchaseGenerator(
     ProductionCalculatorService     production,
     WorklistMarketAltService        marketAlts,
     WorklistSettings                settings,
+    OutbidOrderService              outbidOrders,
     AppErrorLogger                  errorLogger) : IWorklistGenerator
 {
     public string Id          => "material_purchases";
@@ -79,8 +80,18 @@ public class MaterialPurchaseGenerator(
             serving[typeId].Add(new DemandSource(what, units));
         }
 
-        await AddStockDemandAsync(db, ctx, Want, ct);
-        await AddOrderDemandAsync(db, settings.PlanCustomerOrders, ctx, reach, scope, Want, ct);
+        // ⚠️ Orders first, and what they claim is passed to the stock rules — they are the first
+        // call on stock that already exists, and what they carry away cannot also be the thing
+        // that keeps the shelf full.
+        //
+        // Both sides used to net the same supply independently: an Avatar ordered with one in
+        // build read as "the order is covered" AND "the shelf is full", so neither asked for
+        // anything and not one material was purchased for the replacement. The class comment
+        // below describes this exact failure for materials, where it was fixed by pooling; the
+        // finished item it is all for was still being counted twice.
+        var claimed = await AddOrderDemandAsync(
+            db, settings.PlanCustomerOrders, ctx, reach, scope, Want, ct);
+        await AddStockDemandAsync(db, ctx, Want, claimed, ct);
 
         if (serving.Count == 0) return [];
 
@@ -116,8 +127,9 @@ public class MaterialPurchaseGenerator(
             return [];
         }
 
-        // Anything a Build rule covers is made, not bought.
-        var buildManaged = await BuildManagedTypesAsync(db, ct);
+        // Anything a Build rule covers is made, not bought — unless nothing can make it, in which
+        // case buying is the only way it ever arrives.
+        var buildManaged = await BuildManagedTypesAsync(db, ctx, ct);
 
         // Blueprints the plan itself asks to buy — BPC-only items carry their copies as a raw
         // material with a real quantity. Those are better handled there than by the
@@ -156,6 +168,10 @@ public class MaterialPurchaseGenerator(
         var inFlight = await InFlightOutputAsync(
             db, ctx, shortfalls.Select(s => s.TypeId).ToList(), scope, ct);
 
+        // Materials the plan would still be missing if none of our orders existed — the ones an
+        // order is actually needed for. See the note where these are reported.
+        var needed = new HashSet<int>();
+
         foreach (var raw in shortfalls.OrderBy(r => r.TypeName))
         {
             if (buildManaged.Contains(raw.TypeId)) continue;
@@ -164,6 +180,12 @@ public class MaterialPurchaseGenerator(
             var building = inFlight.GetValueOrDefault(raw.TypeId);
             var held     = subsStock.GetValueOrDefault(raw.TypeId);
             var short_   = raw.Missing - ordered - building - held.Units;
+
+            // ⚠️ Everything except the orders. An order covering the last of a shortfall is the
+            // reason that shortfall is not a task, which makes it the one order whose failing
+            // matters most — and subtracting it here would hide exactly that case.
+            if (raw.Missing - building - held.Units > 0) needed.Add(raw.TypeId);
+
             if (short_ <= 0) continue;
 
             // A blueprint is acquired, not market-ordered, so it is titled the way the print
@@ -189,6 +211,12 @@ public class MaterialPurchaseGenerator(
                 // mineral are one order — the contract-versus-market distinction only matters
                 // against a market row for the same type, and a blueprint never has one.
                 MergeKey      = WorklistItem.BuyMergeKey(buyAt, raw.TypeId),
+                // Both halves of the subtraction, so a merge with an inventory rule wanting the
+                // same material nets the shared stock once rather than once per demand.
+                // raw.Missing already has Available taken off it, so the gross figure is the
+                // requirement itself and Available belongs with the supply.
+                GrossDemand    = raw.Quantity,
+                SupplyCredited = (long)raw.Available + ordered + building + held.Units,
                 Detail        = $"{WantedBy(plan, raw.TypeId)}: need {raw.Quantity:N0}; "
                               + $"{raw.Available:N0} on hand{settings.IndustryScopeSuffix}"
                               + (ordered  > 0 ? $", {ordered:N0} on order" : "")
@@ -206,9 +234,16 @@ public class MaterialPurchaseGenerator(
                 LocationName  = buyName,
                 TypeId        = raw.TypeId,
                 TypeName      = raw.TypeName,
-                Priority      = WorklistPriority.OrderDriven,
+                Priority      = WorklistPriority.ServesOther,
             });
         }
+
+        // Orders failing to buy what the plan still needs. Reported alongside the purchase tasks
+        // rather than instead of them: an order can be losing while it is the only thing covering
+        // the shortfall, and a shortfall can want a second order placed while the first is also
+        // underbid. Keyed by type and station, so an order the inventory rules also depend on is
+        // one task, not one per reason it is wanted.
+        items.AddRange((await outbidOrders.FindAsync(needed, ct)).Select(OutbidOrderService.Task));
 
         return items;
     }
@@ -288,7 +323,8 @@ public class MaterialPurchaseGenerator(
 
     private async Task AddStockDemandAsync(
         AppDbContext db, ProductionContext ctx,
-        Action<int, long, string> want, CancellationToken ct)
+        Action<int, long, string> want, IReadOnlyDictionary<int, long> claimed,
+        CancellationToken ct)
     {
         var rules = await db.WorklistInvRules.AsNoTracking()
             .Where(r => r.Enabled && r.Action == "Build")
@@ -313,7 +349,8 @@ public class MaterialPurchaseGenerator(
             foreach (var gi in groupItems.OrderBy(i => i.TypeId))
             {
                 avail.TryGetValue(gi.TypeId, out var av);
-                var need = InvRuleShortfall.For(rule, group, gi, av);
+                var need = InvRuleShortfall.For(
+                    rule, group, gi, av, claimed.GetValueOrDefault(gi.TypeId));
                 if (need is null || need.Shortfall <= 0) continue;
                 if (!ctx.BlueprintByProduct.ContainsKey(gi.TypeId)) continue;
 
@@ -322,17 +359,23 @@ public class MaterialPurchaseGenerator(
         }
     }
 
-    /// <summary>Outstanding customer orders, less what is built or building.</summary>
-    private static async Task AddOrderDemandAsync(
+    /// <summary>
+    /// Outstanding customer orders, less what is built or building.
+    ///
+    /// <para>Returns how much existing stock the orders have spoken for, per type, so the stock
+    /// rules can be told what is genuinely still on the shelf. Recorded even for items nothing
+    /// can build — an order carries the hull away whether or not we could have made another.</para>
+    /// </summary>
+    private static async Task<Dictionary<int, long>> AddOrderDemandAsync(
         AppDbContext db, bool enabled, ProductionContext ctx, ProductionCalculatorService.AssetReach reach,
         HashSet<long>? scope, Action<int, long, string> want, CancellationToken ct)
     {
         // The Customer orders switch on the Sources tab is what says orders should be planned.
-        if (!enabled) return;
+        if (!enabled) return [];
 
         var orders = await db.TrackedOrders.AsNoTracking()
             .Where(o => o.Status == "pending").ToListAsync(ct);
-        if (orders.Count == 0) return;
+        if (orders.Count == 0) return [];
 
         var wanted = orders.Select(o => o.TypeId).Distinct().ToList();
 
@@ -355,16 +398,25 @@ public class MaterialPurchaseGenerator(
             .GroupBy(j => j.ProductTypeId!.Value)
             .ToDictionary(g => g.Key, g => (long)g.Sum(j => j.Runs));
 
+        var claimed = new Dictionary<int, long>();
+
         foreach (var g in orders.GroupBy(o => o.TypeId).OrderBy(g => g.Key))
         {
-            var outstanding = g.Sum(o => (long)o.Units)
-                            - onHand.GetValueOrDefault(g.Key)
-                            - inBuild.GetValueOrDefault(g.Key);
+            var gross  = g.Sum(o => (long)o.Units);
+            var supply = onHand.GetValueOrDefault(g.Key) + inBuild.GetValueOrDefault(g.Key);
+
+            // Recorded before the buildable test: an order takes the hull whether or not we
+            // could have built another one, and the shelf is just as empty either way.
+            claimed[g.Key] = Math.Min(gross, supply);
+
+            var outstanding = gross - supply;
             if (outstanding <= 0) continue;
             if (!ctx.BlueprintByProduct.ContainsKey(g.Key)) continue;
 
             want(g.Key, outstanding, $"{g.Count()} order(s)");
         }
+
+        return claimed;
     }
 
     /// <summary>
@@ -458,7 +510,7 @@ public class MaterialPurchaseGenerator(
                 LocationName  = buyName,
                 TypeId        = bpTypeId,
                 TypeName      = bpName,
-                Priority      = WorklistPriority.OrderDriven,
+                Priority      = WorklistPriority.ServesOther,
             });
         }
 
@@ -568,12 +620,32 @@ public class MaterialPurchaseGenerator(
         return scope;
     }
 
-    private static async Task<HashSet<int>> BuildManagedTypesAsync(AppDbContext db, CancellationToken ct) =>
+    /// <summary>
+    /// Types a Build rule has taken responsibility for, so this generator leaves them alone.
+    ///
+    /// <para>⚠️ Only the ones something can actually make. A group is a list of items and a rule
+    /// applies to all of them, so a Build rule routinely covers something with no blueprint at
+    /// all — a planetary product like Self-Harmonizing Power Core sitting in a group beside
+    /// components that are built. Claiming those here dropped them from the worklist entirely:
+    /// nothing bought them because a Build rule covered them, and no job could be made because
+    /// nothing manufactures them. No row, no warning, and the job generator's own comment on
+    /// skipping them says "a Buy rule's job, not this" — the rule that had just been switched
+    /// away.</para>
+    ///
+    /// <para>Tested against the same index the job generator uses, so the two agree by
+    /// construction rather than by both remembering to. This does not second-guess a rule: a
+    /// buildable item under a Buy rule is still bought, which is a legitimate choice, and a
+    /// buildable item under a Build rule is still left to the job side. Only the impossible case
+    /// falls back.</para>
+    /// </summary>
+    private static async Task<HashSet<int>> BuildManagedTypesAsync(
+        AppDbContext db, ProductionContext ctx, CancellationToken ct) =>
         (await db.InvLevelItems.AsNoTracking()
             .Where(i => db.WorklistInvRules.Any(r => r.Enabled && r.Action == "Build"
                                                   && r.GroupId == i.GroupId))
             .Select(i => i.TypeId)
             .ToListAsync(ct))
+        .Where(ctx.BlueprintByProduct.ContainsKey)
         .ToHashSet();
 
     /// <summary>Open buy orders, deduped the way the rest of the tool does: a corp order placed

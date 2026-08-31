@@ -146,3 +146,41 @@ public class ProfitColorConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
+/// <summary>
+/// Path data to a <see cref="Geometry"/>, so a view model can name a shape without referencing
+/// drawing types.
+///
+/// <para>Used by the worklist's kind glyphs. Parsing is cached: the same handful of strings come
+/// back on every row of every refresh, and re-parsing each one per row is work with a known
+/// answer.</para>
+/// </summary>
+public class PathGeometryConverter : IValueConverter
+{
+    public static readonly PathGeometryConverter Instance = new();
+
+    private static readonly Dictionary<string, Geometry> Cache = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not string data || data.Length == 0) return null;
+
+        lock (Cache)
+        {
+            if (Cache.TryGetValue(data, out var cached)) return cached;
+
+            // A malformed path must not take the grid down with it — the row is still readable
+            // without its glyph.
+            try
+            {
+                var geometry = Geometry.Parse(data);
+                Cache[data] = geometry;
+                return geometry;
+            }
+            catch { return null; }
+        }
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}

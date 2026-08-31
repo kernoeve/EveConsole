@@ -193,11 +193,27 @@ public sealed class WriteContentionInterceptor(AppErrorLogger log)
             new InFlight(Trim(command.CommandText), DateTimeOffset.UtcNow, IsWrite(command.CommandText));
     }
 
+    /// <summary>
+    /// The last write that held the lock long enough to be worth blaming, and when it let go.
+    ///
+    /// <para>⚠️ Without this the blocked report names a fellow victim. Everything queued behind
+    /// one long holder fails at the same moment — SQLite releases them all when it finishes — so
+    /// by the time any of them reports, the holder is no longer in flight and the oldest write
+    /// still running is just another victim that had been waiting equally long. Fourteen reports
+    /// in one burst each blamed a different one-row UPDATE, and the actual holder, a checkpoint,
+    /// appeared in none of them.</para>
+    /// </summary>
+    private static volatile Held? LastLongHold;
+
+    private sealed record Held(string Sql, double Seconds, DateTimeOffset EndedAt);
+
     private void Done(CommandExecutedEventData eventData)
     {
         if (!Running.TryRemove(eventData.CommandId, out var entry)) return;
         if (Logging.Value || !entry.IsWrite) return;
         if (eventData.Duration.TotalMilliseconds < SlowWriteMs) return;
+
+        LastLongHold = new Held(entry.Sql, eventData.Duration.TotalSeconds, DateTimeOffset.UtcNow);
 
         Report("slow write",
             $"Held the write lock {eventData.Duration.TotalSeconds:N1}s: {entry.Sql}");
@@ -211,18 +227,31 @@ public sealed class WriteContentionInterceptor(AppErrorLogger log)
         if (eventData.Exception is not SqliteException { SqliteErrorCode: 5 or 6 } || Logging.Value)
             return;
 
-        // Whatever is still running is the candidate — with one writer at a time, the oldest
-        // in-flight write is the one that was in the way.
-        var holder = Running.Values.Where(v => v.IsWrite)
-            .OrderBy(v => v.StartedAt).FirstOrDefault();
+        var waited = eventData.Duration.TotalSeconds;
+        var began  = DateTimeOffset.UtcNow - eventData.Duration;
 
-        var waited  = eventData.Duration.TotalSeconds;
-        var blocker = holder is null
-            ? "Nothing was still in flight when this failed — so the holder had already finished, " +
-              "or this was a transaction upgrading from a read to a write, which SQLite refuses " +
-              "immediately rather than waiting."
-            : $"Blocked by a write running {(DateTimeOffset.UtcNow - holder.StartedAt).TotalSeconds:N1}s " +
-              $"by then: {holder.Sql}";
+        // ⚠️ A holder that finished DURING our wait is the better answer, and is checked first.
+        // The queue behind a long holder is released all at once, so a report written afterwards
+        // finds only fellow victims still in flight — see LastLongHold.
+        var finished = LastLongHold is { } h && h.EndedAt >= began ? h : null;
+
+        // Otherwise whatever is still running: with one writer at a time, the oldest in-flight
+        // write is the candidate. Only trusted when it actually predates our wait — one that
+        // started alongside us was queued alongside us and blocked nothing.
+        var holder = finished is not null ? null
+            : Running.Values.Where(v => v.IsWrite && v.StartedAt < began)
+                .OrderBy(v => v.StartedAt).FirstOrDefault();
+
+        var blocker =
+            finished is not null
+                ? $"Blocked by a write that held the lock {finished.Seconds:N1}s and released it " +
+                  $"{(DateTimeOffset.UtcNow - finished.EndedAt).TotalSeconds:N1}s ago: {finished.Sql}"
+          : holder is not null
+                ? $"Blocked by a write running {(DateTimeOffset.UtcNow - holder.StartedAt).TotalSeconds:N1}s " +
+                  $"by then: {holder.Sql}"
+          : "No holder identified — it had already finished without being slow enough to record, " +
+            "or this was a transaction upgrading from a read to a write, which SQLite refuses " +
+            "immediately rather than waiting. " + DescribeLongRunning(TimeSpan.FromSeconds(5));
 
         Report("blocked",
             $"Waited {waited:N1}s then gave up. {blocker} Wanted: {Trim(command.CommandText)}");

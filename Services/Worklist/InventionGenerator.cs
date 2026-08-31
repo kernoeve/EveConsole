@@ -189,86 +189,149 @@ public class InventionGenerator(
 
         foreach (var job in split.Jobs)
         {
+            // Per attempt, so a run count can be costed. Datacores scale exactly with attempts —
+            // no efficiency rounding applies to invention — so unlike manufacturing, how many
+            // attempts the stock covers is a division rather than a search.
+            var perAttempt = plan.Recipe.Datacores
+                .Select(d => (d.TypeId, Qty: (long)d.Quantity))
+                .Concat(plan.Decryptor.IsNone ? [] : new[] { (plan.Decryptor.TypeId, Qty: 1L) })
+                .ToList();
+
+            List<(int TypeId, long Qty)> MatsFor(int runs) =>
+                perAttempt.Select(m => (m.TypeId, Qty: m.Qty * runs)).ToList();
+
             // Per job, not per batch. Each job consumes only its own runs' worth, and charging the
             // whole line's datacores against the first job would block every one of them on a
             // shortfall none of them individually has.
-            var mats = plan.Recipe.Datacores
-                .Select(d => (d.TypeId, Qty: d.Quantity * job.Runs))
-                .Concat(plan.Decryptor.IsNone ? [] : new[] { (plan.Decryptor.TypeId, Qty: (long)job.Runs) })
-                .ToList();
+            var mats = MatsFor(job.Runs);
 
-            var missing = mats
-                .Where(m => Available(m.TypeId) < m.Qty)
-                .Select(m => $"{names.GetValueOrDefault(m.TypeId, $"Type {m.TypeId}")} " +
-                             $"({Available(m.TypeId):N0} of {m.Qty:N0})")
-                .ToList();
+            List<string> Short(IReadOnlyList<(int TypeId, long Qty)> want) =>
+                want.Where(m => Available(m.TypeId) < m.Qty)
+                    .Select(m => $"{names.GetValueOrDefault(m.TypeId, $"Type {m.TypeId}")} " +
+                                 $"({Available(m.TypeId):N0} of {m.Qty:N0})")
+                    .ToList();
+
+            var missing = Short(mats);
+
+            // ⚠️ How many attempts the datacores actually cover. Waiting for a full batch means
+            // inventing nothing at all until every datacore has arrived, and the copies that
+            // batch would produce are what everything downstream is waiting on. Whatever can be
+            // started is worth starting.
+            var runnable = missing.Count == 0
+                ? job.Runs
+                : (int)perAttempt
+                    .Select(m => m.Qty <= 0 ? job.Runs : Math.Min(job.Runs, Available(m.TypeId) / m.Qty))
+                    .DefaultIfEmpty(job.Runs)
+                    .Min();
 
             var free = scientists.FirstOrDefault(c => slotsLeft.GetValueOrDefault(c.Config.CharacterId) > 0);
             var who  = free ?? best;
 
-            var readiness = WorklistReadiness.Ready;
-            var blockedBy = "";
+            if (runnable > 0)
+            {
+                var runMats = runnable == job.Runs ? mats : MatsFor(runnable);
 
-            if (missing.Count > 0)
-            {
-                readiness = WorklistReadiness.Blocked;
-                blockedBy = $"Not at {lab.Name}: {string.Join(", ", missing)}";
-            }
-            else if (free is null)
-            {
-                readiness = WorklistReadiness.Waiting;
-                blockedBy = "Every character who runs science has all slots busy";
-            }
-            else
-            {
-                // Only a job that could start now claims a slot and its share of the datacores.
-                slotsLeft[who.Config.CharacterId] -= 1;
-                foreach (var m in mats)
-                    committed[(lab.Site, m.TypeId)] = committed.GetValueOrDefault((lab.Site, m.TypeId)) + m.Qty;
+                var readiness = free is null ? WorklistReadiness.Waiting : WorklistReadiness.Ready;
+                var blockedBy = free is null ? "Every character who runs science has all slots busy" : "";
+
+                if (free is not null)
+                {
+                    // Only a job that could start now claims a slot and its share of the datacores.
+                    slotsLeft[who.Config.CharacterId] -= 1;
+                    foreach (var m in runMats)
+                        committed[(lab.Site, m.TypeId)] = committed.GetValueOrDefault((lab.Site, m.TypeId)) + m.Qty;
+                }
+
+                Emit(runnable, runMats, readiness, blockedBy, "",
+                     runnable < job.Runs
+                         ? $" Cut to what the datacores on hand cover — {job.Runs - runnable:N0} "
+                         + "more attempt(s) are on a separate row."
+                         : "");
             }
 
-            var duration = IndustryJobSplit.Duration(job.Seconds);
-            var durText  = duration.Length > 0 ? $" ~{duration}." : "";
-            var ofText   = split.Jobs.Count > 1 ? $" (job {job.Index} of {job.Of})" : "";
-            var capText  = split.Jobs.Count == 1 && split.RunsUnassigned == 0 ? "" : job.Cap switch
+            if (runnable < job.Runs)
             {
-                SplitCap.GameLimit => " Capped by EVE's 30-day limit on a single job.",
-                SplitCap.CopyRuns  => " Capped by the runs left on the source copy.",
-                SplitCap.JobLength => $" Capped by the {settings.MaxJobDaysScience:0.#}-day job length.",
-                _                  => "",
-            };
-            var shortText = job.Index == split.Jobs.Count && split.RunsUnassigned > 0
-                ? $" {split.RunsUnassigned:N0} further attempt(s) need a source copy — none free."
-                : "";
+                // ⚠️ Measured after the startable half has claimed its share — Available() reads
+                // through `committed`, which the branch above has already added to. Naming a
+                // datacore the first row just consumed would send someone hunting for a shortage
+                // the plan itself created.
+                var restRuns = job.Runs - runnable;
+                var restMats = MatsFor(restRuns);
 
-            items.Add(new WorklistItem
+                // ⚠️ Only when the startable half did NOT claim. It claims only if a slot was
+                // free; with every scientist busy nothing was committed, and measuring the
+                // remainder against the full stock would report no shortage at all — printing
+                // "Not at Lab: " with nothing after it.
+                var unclaimed = runnable > 0 && free is null
+                    ? MatsFor(runnable).ToDictionary(m => m.TypeId, m => m.Qty)
+                    : [];
+
+                var shortNames = restMats
+                    .Where(m => Available(m.TypeId) - unclaimed.GetValueOrDefault(m.TypeId) < m.Qty)
+                    .Select(m =>
+                    {
+                        var have = Available(m.TypeId) - unclaimed.GetValueOrDefault(m.TypeId);
+                        return $"{names.GetValueOrDefault(m.TypeId, $"Type {m.TypeId}")} " +
+                               $"({have:N0} of {m.Qty:N0})";
+                    })
+                    .ToList();
+
+                Emit(restRuns, restMats, WorklistReadiness.Blocked,
+                     $"Not at {lab.Name}: {string.Join(", ", shortNames)}",
+                     runnable > 0 ? ":short" : "",
+                     runnable > 0 ? " The rest of this batch, waiting on datacores." : "");
+            }
+
+            void Emit(int runs, IReadOnlyList<(int TypeId, long Qty)> lineMats,
+                      WorklistReadiness readiness, string blockedBy,
+                      string keySuffix, string extraDetail)
             {
-                Key           = $"invention:{recipe.ProductTypeId}:{job.Index}",
-                Source        = Id,
-                Kind          = WorklistKind.Job,
-                Pool          = IndustryPool.Science,
-                Title         = $"{name} — invent {job.Runs:N0} run(s)",
-                Quantity      = job.Runs,
-                Detail        = $"{head}{ofText} {plan.Chance:P1} a run "
-                              + $"({recipe.BaseChance:P0} base, {DecryptorText(plan.Decryptor)}) "
-                              + $"→ {plan.SuccessesNeeded:N0} BPC(s) of {plan.RunsPerBpc} run(s) "
-                              + $"at ME{plan.InventedMe}/TE{plan.InventedTe} over {plan.Attempts:N0} "
-                              + $"attempt(s). {recipe.SourceBlueprintName} "
-                              + $"{job.Print.Describe()} at {lab.Name}.{durText}{capText}{shortText}",
-                Readiness     = readiness,
-                BlockedBy     = blockedBy,
-                CharacterId   = who.Config.CharacterId,
-                CharacterName = who.Config.CharacterName,
-                LocationId    = lab.Site,
-                LocationName  = lab.Name,
-                TypeId        = recipe.ProductTypeId,
-                TypeName      = name,
-                Priority      = priority,
-                Lines         = mats
-                    .Select(m => new WorklistLine(
-                        m.TypeId, names.GetValueOrDefault(m.TypeId, $"Type {m.TypeId}"), m.Qty))
-                    .ToList(),
-            });
+                // Scaled: job.Seconds covers the whole planned batch, and a row for part of it
+                // that quoted the whole duration would read as the longer job it is not.
+                var seconds  = job.Runs > 0 ? job.Seconds * runs / job.Runs : 0;
+                var duration = IndustryJobSplit.Duration(seconds);
+                var durText  = duration.Length > 0 ? $" ~{duration}." : "";
+                var ofText   = split.Jobs.Count > 1 ? $" (job {job.Index} of {job.Of})" : "";
+                var capText  = split.Jobs.Count == 1 && split.RunsUnassigned == 0 ? "" : job.Cap switch
+                {
+                    SplitCap.GameLimit => " Capped by EVE's 30-day limit on a single job.",
+                    SplitCap.CopyRuns  => " Capped by the runs left on the source copy.",
+                    SplitCap.JobLength => $" Capped by the {settings.MaxJobDaysScience:0.#}-day job length.",
+                    _                  => "",
+                };
+                var shortText = job.Index == split.Jobs.Count && split.RunsUnassigned > 0
+                    ? $" {split.RunsUnassigned:N0} further attempt(s) need a source copy — none free."
+                    : "";
+
+                items.Add(new WorklistItem
+                {
+                    Key           = $"invention:{recipe.ProductTypeId}:{job.Index}{keySuffix}",
+                    Source        = Id,
+                    Kind          = WorklistKind.Job,
+                    Pool          = IndustryPool.Science,
+                    Title         = $"{name} — invent {runs:N0} run(s)",
+                    Quantity      = runs,
+                    Detail        = $"{head}{ofText} {plan.Chance:P1} a run "
+                                  + $"({recipe.BaseChance:P0} base, {DecryptorText(plan.Decryptor)}) "
+                                  + $"→ {plan.SuccessesNeeded:N0} BPC(s) of {plan.RunsPerBpc} run(s) "
+                                  + $"at ME{plan.InventedMe}/TE{plan.InventedTe} over {plan.Attempts:N0} "
+                                  + $"attempt(s). {recipe.SourceBlueprintName} "
+                                  + $"{job.Print.Describe()} at {lab.Name}.{durText}{capText}{extraDetail}{shortText}",
+                    Readiness     = readiness,
+                    BlockedBy     = blockedBy,
+                    CharacterId   = who.Config.CharacterId,
+                    CharacterName = who.Config.CharacterName,
+                    LocationId    = lab.Site,
+                    LocationName  = lab.Name,
+                    TypeId        = recipe.ProductTypeId,
+                    TypeName      = name,
+                    Priority      = priority,
+                    Lines         = lineMats
+                        .Select(m => new WorklistLine(
+                            m.TypeId, names.GetValueOrDefault(m.TypeId, $"Type {m.TypeId}"), m.Qty))
+                        .ToList(),
+                });
+            }
         }
 
         // No copy at the lab at all: the split placed nothing, but the work is still real and the
@@ -285,7 +348,8 @@ public class InventionGenerator(
                 Detail    = $"{head} {plan.Chance:P1} a run → {plan.SuccessesNeeded:N0} BPC(s) "
                           + $"of {plan.RunsPerBpc} run(s).",
                 Readiness = WorklistReadiness.Blocked,
-                BlockedBy = $"No {recipe.SourceBlueprintName} copy at {lab.Name} to invent from",
+                BlockedBy      = $"No {recipe.SourceBlueprintName} copy at {lab.Name} to invent from",
+                BlockedByPrint = true,
                 LocationId   = lab.Site,
                 LocationName = lab.Name,
                 TypeId    = recipe.ProductTypeId,
@@ -337,8 +401,9 @@ public class InventionGenerator(
                 Detail    = $"{head} Invention needs {plan.CopyRunsNeeded:N0} copy run(s) and "
                           + $"{ownedCopyRuns:N0} are owned.",
                 Readiness = WorklistReadiness.Blocked,
-                BlockedBy = "No BPO owned on any character — one has to be acquired, "
-                          + "or the copies bought outright",
+                BlockedBy      = "No BPO owned on any character — one has to be acquired, "
+                               + "or the copies bought outright",
+                BlockedByPrint = true,
                 TypeId    = recipe.SourceBlueprintTypeId,
                 TypeName  = recipe.SourceBlueprintName,
                 Priority  = priority,

@@ -22,6 +22,24 @@ public class SlackChannel
     public bool   IsSelfDm  { get; init; }
     public override string ToString() => IsSelfDm ? $"📝 {Name}" : IsPrivate ? $"🔒 {Name}" : $"# {Name}";
 }
+/// <summary>
+/// Somewhere a post can go: a workspace channel, or one of the named webhooks.
+///
+/// <para>⚠️ One list, one field. A channel picker beside a webhook box made the reader work out
+/// which of the two won — and the answer, that a webhook silently overrode the channel, was
+/// written in help text rather than shown. Choosing one thing from one list cannot be ambiguous.</para>
+/// </summary>
+public sealed record SlackDestination(string Kind, string Id, string Label, string Url = "")
+{
+    public const string KindChannel = "chan";
+    public const string KindWebhook = "hook";
+
+    public bool IsWebhook => Kind == KindWebhook;
+
+    /// <summary>What the dropdown shows. Webhooks are prefixed so one is never read as a channel
+    /// of the same name — they land in different workspaces and behave differently.</summary>
+    public override string ToString() => Label;
+}
 
 /// <summary>
 /// Posts to Slack on the capsuleer's behalf using a user token (xoxp-), so messages appear as
@@ -29,6 +47,7 @@ public class SlackChannel
 /// (api.slack.com/apps → User Token Scopes → Install), so no client secret ships with EVE Console.
 /// Slack returns HTTP 200 even for failures, with {"ok":false,"error":"..."} — always check "ok".
 /// </summary>
+
 public class SlackService
 {
     public const string TokenKey    = "slack.user_token";
@@ -45,19 +64,108 @@ public class SlackService
     private static string ChanIdKey(string area)   => $"slack.channel.{area}.id";
     private static string ChanNameKey(string area) => $"slack.channel.{area}.name";
     private static string LastPostKey(string area) => $"slack.lastpost.{area}";
+    private static string WebhookKey(string area)  => $"slack.webhook.{area}";
+
+    /// <summary>
+    /// The incoming-webhook URL for an area, or empty when this area posts as the user.
+    ///
+    /// <para>⚠️ A webhook is bound to ONE channel by whoever created it — the URL carries the
+    /// destination, so nothing here chooses where it lands. That is the point of it: an alliance
+    /// workspace will hand out a webhook where it would never hand out a user token.</para>
+    /// </summary>
+    // — Named webhooks ———————————————————————————————————————
+
+    /// <summary>Every webhook the user has named, in the order they will appear in a dropdown.</summary>
+    public async Task<List<Models.SlackWebhook>> WebhooksAsync(CancellationToken ct = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        return await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions
+            .ToListAsync(db.SlackWebhooks.OrderBy(w => w.Name), ct);
+    }
+
+    public async Task<Models.SlackWebhook> AddWebhookAsync(string name, string url, CancellationToken ct = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var row = new Models.SlackWebhook { Name = (name ?? "").Trim(), Url = (url ?? "").Trim() };
+        db.SlackWebhooks.Add(row);
+        await db.SaveChangesAsync(ct);
+        return row;
+    }
+
+    public async Task RemoveWebhookAsync(int id, CancellationToken ct = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var row = await db.SlackWebhooks.FindAsync([id], ct);
+        if (row is null) return;
+        db.SlackWebhooks.Remove(row);
+        await db.SaveChangesAsync(ct);
+    }
+
+    private static string WebhookIdKey(string area) => $"slack.webhook_id.{area}";
+
+    /// <summary>
+    /// Which named webhook an area posts through, if any.
+    ///
+    /// <para>⚠️ The ID, not the URL. Two webhooks can legitimately carry the same URL — the same
+    /// hook named twice, or one copied while being renamed — and a URL cannot tell them apart.
+    /// Keying on it made the picker show whichever row happened to be first and made "is this in
+    /// use" answer yes for every row sharing the string.</para>
+    /// </summary>
+    public int? WebhookId(string area)
+        => int.TryParse(_prefs.Get(WebhookIdKey(area)), out var id) && id > 0 ? id : null;
+
+    public Task SetWebhookIdAsync(string area, int? id)
+        => _prefs.SetAsync(WebhookIdKey(area), id?.ToString());
+
+    // Webhook URLs by id. Read on every post, so it is cached; the settings screen drops it
+    // whenever the list changes.
+    private Dictionary<int, string>? _hookUrls;
+
+    public void InvalidateWebhooks() => _hookUrls = null;
+
+    private Dictionary<int, string> HookUrls()
+    {
+        if (_hookUrls is not null) return _hookUrls;
+        using var db = _dbFactory.CreateDbContext();
+        return _hookUrls = db.SlackWebhooks.ToDictionary(w => w.Id, w => w.Url);
+    }
+
+    /// <summary>
+    /// Where this area's webhook posts, or empty when it does not use one.
+    ///
+    /// <para>Falls back to a URL stored directly against the area. That is how it worked before
+    /// webhooks were named, and a configuration written then still posts where it did.</para>
+    /// </summary>
+    public string WebhookUrl(string area)
+    {
+        if (WebhookId(area) is int id && HookUrls().TryGetValue(id, out var url))
+            return url.Trim();
+
+        return (_prefs.Get(WebhookKey(area)) ?? "").Trim();
+    }
+
+    public Task SetWebhookUrlAsync(string area, string? url) =>
+        _prefs.SetAsync(WebhookKey(area), (url ?? "").Trim());
+
+    /// <summary>Whether this area posts through a webhook rather than as the connected user.</summary>
+    public bool UsesWebhook(string area) => WebhookUrl(area).Length > 0;
 
     private readonly IHttpClientFactory     _httpFactory;
     private readonly AppPreferencesService  _prefs;
     private readonly AppErrorLogger         _errors;
     private readonly SlackAuthService       _auth;
 
+    private readonly Microsoft.EntityFrameworkCore.IDbContextFactory<Data.AppDbContext> _dbFactory;
+
     public SlackService(IHttpClientFactory httpFactory, AppPreferencesService prefs,
-                        AppErrorLogger errors, SlackAuthService auth)
+                        AppErrorLogger errors, SlackAuthService auth,
+                        Microsoft.EntityFrameworkCore.IDbContextFactory<Data.AppDbContext> dbFactory)
     {
         _httpFactory = httpFactory;
         _prefs       = prefs;
         _errors      = errors;
         _auth        = auth;
+        _dbFactory   = dbFactory;
     }
 
     public string? Token       => _prefs.Get(TokenKey);
@@ -68,8 +176,17 @@ public class SlackService
     public string? ChannelName(string area) => _prefs.Get(ChanNameKey(area));
 
     /// <summary>True when both a token and a channel for this area are set.</summary>
+    /// <summary>
+    /// Whether this area can post at all — as the connected user, or through a webhook.
+    ///
+    /// <para>⚠️ Either route counts. This gates the Post buttons, and while it asked only about a
+    /// token a webhook-only setup could be configured, tested successfully, and still have no
+    /// button to press — the one workspace a webhook exists to reach was the one the app would
+    /// not offer to post to.</para>
+    /// </summary>
     public bool IsConfigured(string area)
-        => HasToken && !string.IsNullOrWhiteSpace(ChannelId(area));
+        => UsesWebhook(area)
+        || (HasToken && !string.IsNullOrWhiteSpace(ChannelId(area)));
 
     public Task SetTokenAsync(string? token)
         => _prefs.SetAsync(TokenKey, string.IsNullOrWhiteSpace(token) ? null : token.Trim());
@@ -264,7 +381,161 @@ public class SlackService
         }
     }
 
+    /// <summary>
+    /// Posts whatever this area is configured for: a webhook when one is set, otherwise the
+    /// connected user's token.
+    ///
+    /// <para>⚠️ The two are not equivalent, and the difference is threading. A webhook returns no
+    /// message id, so nothing posted through one can be replied to — a sale posting that would
+    /// have put its detail in a thread posts it as a second message instead. Everything else is
+    /// the same, including block formatting.</para>
+    /// </summary>
+    public async Task<SlackPostResult> PostAreaAsync(
+        string area, string text, string? threadTs = null, bool broadcast = false,
+        object? blocks = null, CancellationToken ct = default)
+    {
+        var hook = WebhookUrl(area);
+        if (hook.Length == 0)
+            return await PostMessageAsync(ChannelId(area) ?? "", text, threadTs, broadcast, blocks, ct);
+
+        // ⚠️ threadTs is dropped rather than sent. A webhook has never returned an id for anything,
+        // so any value reaching here came from a different post — threading onto it would attach
+        // this message under an unrelated parent.
+        return await PostWebhookAsync(hook, text, blocks, ct);
+    }
+
+    /// <summary>
+    /// Posts to an incoming webhook.
+    ///
+    /// <para>⚠️ No bearer token, and no JSON envelope to check: a webhook answers with the literal
+    /// body "ok" and an HTTP status, not with Slack's usual <c>{"ok":true}</c>. Parsing the reply
+    /// as JSON throws on success.</para>
+    /// </summary>
+    public async Task<SlackPostResult> PostWebhookAsync(
+        string url, string text, object? blocks = null, CancellationToken ct = default)
+    {
+        try
+        {
+            var payload = new Dictionary<string, object?> { ["text"] = text };
+            if (blocks is not null) payload["blocks"] = blocks;
+
+            // ⚠️ A bare client, not Client(): a webhook URL is its own credential and carries the
+            // whole destination. Sending an Authorization header alongside it is at best noise and
+            // at worst a token posted to a workspace that is not the token's own.
+            using var client  = _httpFactory.CreateClient();
+            using var content = new StringContent(
+                JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+            using var res  = await client.PostAsync(url, content, ct);
+            var       body = (await res.Content.ReadAsStringAsync(ct)).Trim();
+
+            if (res.IsSuccessStatusCode && body.Equals("ok", StringComparison.OrdinalIgnoreCase))
+                return new SlackPostResult(true, null, null, null);
+
+            // Webhook errors are plain words — invalid_payload, channel_not_found, no_service.
+            var err = body.Length > 0 ? body : $"HTTP {(int)res.StatusCode}";
+            _errors.Log("SlackService", "incoming webhook", err);
+            return new SlackPostResult(false, null, null, err);
+        }
+        catch (Exception ex)
+        {
+            _errors.Log("SlackService", "incoming webhook", ex);
+            return new SlackPostResult(false, null, null, ex.Message);
+        }
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Uploads a file and shares it into a channel. Returns null on success, or why it failed.
+    ///
+    /// <para>⚠️ A CHANNEL only. An incoming webhook posts JSON and cannot carry a file at all,
+    /// so anything wanting to send one has to be sent as the token's user instead. The caller is
+    /// expected to have decided that already; this refuses rather than guessing.</para>
+    ///
+    /// <para>Three steps, which is what Slack now requires: ask for a URL, PUT the bytes at it,
+    /// then tell Slack the upload finished and where to share it. The old single-call files.upload
+    /// is retired.</para>
+    /// </summary>
+    public async Task<string?> UploadFileAsync(
+        string channelId, byte[] content, string filename, string? title = null,
+        string? comment = null, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(channelId)) return "No channel to upload to.";
+        if (content.Length == 0)                  return "Nothing to upload.";
+
+        try
+        {
+            using var client = Client(null);
+
+            // 1. Somewhere to put it.
+            var getUrl = $"https://slack.com/api/files.getUploadURLExternal" +
+                         $"?filename={Uri.EscapeDataString(filename)}&length={content.Length}";
+
+            using var getRes  = await client.GetAsync(getUrl, ct);
+            using var getDoc  = JsonDocument.Parse(await getRes.Content.ReadAsStringAsync(ct));
+            var       getRoot = getDoc.RootElement;
+
+            if (!IsOk(getRoot))
+            {
+                var why = Err(getRoot, "files.getUploadURLExternal");
+
+                // ⚠️ Slack answers "missing_scope", which says nothing about what to do. A
+                // token issued before files:write was requested cannot gain it by being used;
+                // the connection has to be made again.
+                return why.Contains("missing_scope", StringComparison.OrdinalIgnoreCase)
+                    ? "Slack has not granted this connection permission to upload files. " +
+                      "Reconnect Slack in Settings — the token was issued before the app asked " +
+                      "for it, and an existing one cannot gain a scope."
+                    : why;
+            }
+
+            var uploadUrl = getRoot.GetProperty("upload_url").GetString() ?? "";
+            var fileId    = getRoot.GetProperty("file_id").GetString() ?? "";
+            if (uploadUrl.Length == 0 || fileId.Length == 0)
+                return "Slack did not return an upload URL.";
+
+            // 2. The bytes. ⚠️ No bearer token on this one: the URL is its own credential, and
+            // it is not a slack.com host.
+            using (var raw  = _httpFactory.CreateClient())
+            using (var body = new ByteArrayContent(content))
+            {
+                body.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                using var putRes = await raw.PostAsync(uploadUrl, body, ct);
+                if (!putRes.IsSuccessStatusCode)
+                    return $"Upload rejected: HTTP {(int)putRes.StatusCode}";
+            }
+
+            // 3. Finish it, and say where it goes.
+            var files = new[] { new Dictionary<string, string?> { ["id"] = fileId, ["title"] = title ?? filename } };
+            var done  = new Dictionary<string, object?>
+            {
+                ["files"]      = files,
+                ["channel_id"] = channelId,
+            };
+            if (!string.IsNullOrWhiteSpace(comment)) done["initial_comment"] = comment;
+
+            using var doneContent = new StringContent(
+                JsonSerializer.Serialize(done), Encoding.UTF8, "application/json");
+            using var doneRes = await client.PostAsync(
+                "https://slack.com/api/files.completeUploadExternal", doneContent, ct);
+
+            using var doneDoc = JsonDocument.Parse(await doneRes.Content.ReadAsStringAsync(ct));
+            return IsOk(doneDoc.RootElement) ? null : Err(doneDoc.RootElement, "files.completeUploadExternal");
+        }
+        catch (Exception ex)
+        {
+            _errors.Log("SlackService", "file upload", ex);
+            return ex.Message;
+        }
+    }
+
+    private string Err(JsonElement root, string call)
+    {
+        var reason = root.TryGetProperty("error", out var e) ? e.GetString() ?? "unknown" : "unknown";
+        _errors.Log("SlackService", call, reason);
+        return reason;
+    }
 
     private HttpClient Client(string? token)
     {

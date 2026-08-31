@@ -892,10 +892,13 @@ public class CorpStandingProject
     public long?  StationId       { get; set; }
     public string StationName     { get; set; } = "";
     // destroy_npc fields
-    public string ScopeType       { get; set; } = "system";  // "system" | "region_adm" | "constellation_adm"
+    // "system" | "region_adm" | "constellation_adm" | "alliance_sov"
+    public string ScopeType       { get; set; } = "system";
     public int?   SolarSystemId   { get; set; }
     public string SolarSystemName { get; set; } = "";
-    public int?   ScopeEntityId   { get; set; }   // region or constellation ID for ADM scopes
+    // Region, constellation or alliance ID, depending on ScopeType. Alliance ids are well inside
+    // int range, and one column beats three places to look for what a project is scoped to.
+    public int?   ScopeEntityId   { get; set; }
     public string ScopeEntityName { get; set; } = "";
     public double? MinAdm         { get; set; }   // minimum ADM threshold for ADM scopes
     public DateTimeOffset CreatedAt { get; set; }
@@ -976,8 +979,34 @@ public class TrackedOrder
     /// </summary>
     public string FulfilmentSource { get; set; } = "";
 
-    /// <summary>The industry job expected to produce this order, when the source is a job.</summary>
+    /// <summary>
+    /// The soonest of <see cref="LinkedJobIds"/>, or null when nothing is building this.
+    ///
+    /// <para>⚠️ The head of that list, not a fact of its own. Kept because a contracted order
+    /// clears an in-flight job by id and older rows carry only this one.</para>
+    /// </summary>
     public int?   LinkedJobId      { get; set; }
+
+    /// <summary>
+    /// Every industry job claimed for this order, soonest first, comma separated.
+    ///
+    /// <para>⚠️ An order for fifty needs as many jobs as it takes. One link per order promised
+    /// the whole order against one job's output and left the rest of the shortfall invisible —
+    /// a run of five against an order for fifty read exactly like a run of fifty.</para>
+    /// </summary>
+    public string LinkedJobIds     { get; set; } = "";
+
+    /// <summary>
+    /// Units of this order sitting on the shelf right now, reserved against earlier orders.
+    ///
+    /// <para>Recorded rather than recomputed for display, because the reservation only makes
+    /// sense in rank order: a priority order takes from the shelf before an older ordinary one,
+    /// and only the pass that walks them knows what each was actually left.</para>
+    /// </summary>
+    public int    StockOnHand      { get; set; }
+
+    /// <summary>What the jobs in <see cref="LinkedJobIds"/> will produce, runs times output.</summary>
+    public int    UnitsInBuild     { get; set; }
 
     /// <summary>
     /// The contract that delivered this order — issued by one of our characters or personal
@@ -993,7 +1022,97 @@ public class TrackedOrder
 
     /// <summary>Hand-marked to jump the queue, ahead of every order ranked by date.</summary>
     public bool   IsPriority    { get; set; }
+
+    /// <summary>
+    /// The store this order came from, or zero for one entered by hand.
+    ///
+    /// <para>Also what marks an order as having arrived by mail, which decides whether the buyer
+    /// is told about changes to it. An order typed in after a conversation in chat has no thread
+    /// to reply to, and mailing its owner out of the blue about a date they already know would be
+    /// noise.</para>
+    /// </summary>
+    public int    StoreId       { get; set; }
+
+    /// <summary>
+    /// What ties the rows of one order together, and what the buyer quotes back.
+    ///
+    /// <para>⚠️ An order is one row per item type, but a buyer orders several things at once and
+    /// then asks about "my order" as one thing. This is that thing. Empty on orders entered by
+    /// hand, which are already single items in practice.</para>
+    ///
+    /// <para>Held on the rows rather than in a header table so the Order Tracker keeps working
+    /// exactly as it does — every row is still an order of one item, with its own status and its
+    /// own fulfilment. Cancelling "the order" cancels its rows; a partly-delivered order is
+    /// simply rows in different states, which is the truth of it.</para>
+    /// </summary>
+    public string OrderRef      { get; set; } = "";
+
+    /// <summary>
+    /// What the buyer was last told about this line: its status and estimated date, joined.
+    ///
+    /// <para>⚠️ How a mailed order knows it owes an update, without the fulfilment pass having to
+    /// know anything about mail. OrderFulfilmentService writes the estimate; the store's own pass
+    /// notices that what is on the row differs from what was sent and sends the difference. No
+    /// call between them, and it survives a restart mid-change — the comparison is against
+    /// persisted state, not an event nobody caught.</para>
+    ///
+    /// <para>Set when the order is created, so the confirmation mail counts as having told them.</para>
+    /// </summary>
+    public string NotifiedState  { get; set; } = "";
+
+    /// <summary>
+    /// Who the contract should be made out to, when that is not the buyer.
+    ///
+    /// <para>Optional, and empty on most orders — a contract goes to whoever ordered unless told
+    /// otherwise. A buyer ordering on behalf of their corporation, or for an alt that will
+    /// actually fly the thing, needs somewhere to say so, and saying it in the order is better
+    /// than saying it in a separate conversation nobody can find later.</para>
+    ///
+    /// <para>⚠️ Set from a dragged link rather than typed text. A character and a corporation can
+    /// share a name, and "make the contract out to Kerno" is not something to guess at.</para>
+    /// </summary>
+    public long   ContractToId   { get; set; }
+    public string ContractToName { get; set; } = "";
+    public string ContractToType { get; set; } = "";   // "character" | "corporation" | ""
+
     public DateTimeOffset CreatedAt { get; set; }
+}
+
+/// <summary>
+/// One tag on one order.
+///
+/// <para><b>Free text, and no table of its own.</b> A label is whatever somebody typed — "BNI
+/// First Capital Program" — and the list offered in the pickers is simply the distinct values in
+/// use. That means a label nothing carries any more stops being offered, which is the right
+/// behaviour: a list of tags nobody uses is a list nobody reads.</para>
+///
+/// <para>⚠️ A row per label rather than a delimited string on the order. Orders are filtered and
+/// counted by label, and a LIKE against a comma-separated column matches "Capital" inside
+/// "First Capital Program" — which is the kind of wrong answer nobody checks.</para>
+/// </summary>
+public class OrderLabel
+{
+    public int    OrderId { get; set; }
+    public string Label   { get; set; } = "";
+}
+
+/// <summary>
+/// The same labels, on a sale.
+///
+/// <para>Keyed like <c>SaleExclusions</c>: a sale has no row of its own to hang an id on — it is
+/// a wallet transaction or a contract, and only the pair identifies it.</para>
+///
+/// <para>⚠️ Kept in step with <see cref="OrderLabel"/> wherever an order and a sale are the same
+/// contract. Two tables rather than one because the two sides exist independently and either can
+/// be labelled first — an order is tagged the day it is placed, and the contract that fulfils it
+/// may not exist for a week. See OrderLabelService.</para>
+/// </summary>
+public class SaleLabel
+{
+    /// <summary>"Market" or "Contract" — matches SaleRowVm.Kind.</summary>
+    public string Kind   { get; set; } = "";
+    public long   SaleId { get; set; }
+    public string Label  { get; set; } = "";
 }
 
 // ── Error logging ─────────────────────────────────────────────────────────────

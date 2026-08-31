@@ -16,6 +16,9 @@ public class WorklistRowVm : ReactiveObject
 {
     private readonly WorklistItem _item;
 
+    /// <summary>The item behind the row, for analysis that reads the list rather than the grid.</summary>
+    public WorklistItem Item => _item;
+
     public WorklistRowVm(WorklistItem item, int sequence)
     {
         _item    = item;
@@ -32,7 +35,18 @@ public class WorklistRowVm : ReactiveObject
     public int Sequence { get; }
 
     public string Key           => _item.Key;
-    public string Title         => _item.Title;
+    /// <summary>
+    /// The task in a few words — and for a haul, how big it is.
+    ///
+    /// <para>⚠️ Composed here rather than in the generator, which cannot know: volume is priced
+    /// from the SDE after the sections are built, so at the moment a haul row is created its own
+    /// size is not yet a number. The Volume column carries it too; this puts it where the count
+    /// is, because "twelve items" and "how many trips is that" are one question when the answer
+    /// decides which ship to undock.</para>
+    /// </summary>
+    public string Title => _item.Kind == WorklistKind.Haul && _item.Volume > 0
+        ? $"{_item.Title} · {VolumeText}"
+        : _item.Title;
     public string Detail        => _item.Detail;
     public string SourceName    => _item.Source;
     public string CharacterName => _item.CharacterName.Length > 0 ? _item.CharacterName : "—";
@@ -66,6 +80,18 @@ public class WorklistRowVm : ReactiveObject
     public void OpenItem() => EntityNavigator.Instance.Item(_item.TypeId);
     public int    TypeId        => _item.TypeId;
     public int    Priority      => _item.Priority;
+
+    /// <summary>How many stopped tasks this one would release. Set for hauls and purchases by
+    /// the post-pass in WorklistService — neither generator can see it alone.</summary>
+    public int    Unblocks      => _item.Unblocks;
+    public string UnblocksText  => _item.Unblocks > 0 ? _item.Unblocks.ToString("N0") : "";
+
+    // TEMPORARY diagnostics: the keys the planner sorted on, in the order it used them.
+    public string DbgPriority => _item.PlanSequence == 0 ? _item.Priority.ToString("N0") : _item.SortPriority.ToString("N0");
+    public string DbgFinal    => _item.PlanSequence == 0 ? "" : _item.SortBlockedFinal.ToString("N0");
+    public string DbgBlocked  => _item.PlanSequence == 0 ? "" : _item.SortBlocked.ToString("N0");
+    public string DbgCoverage => _item.PlanSequence == 0 ? "" : $"{_item.SortCoverage * 100:N1}%";
+    public string DbgSeq      => _item.PlanSequence == 0 ? "" : _item.PlanSequence.ToString("N0");
     public bool   IsSnoozed     => _item.IsSnoozed;
     public double Value         => _item.Value;
     public double VolumeRaw     => _item.Volume;
@@ -76,11 +102,129 @@ public class WorklistRowVm : ReactiveObject
     {
         WorklistKind.Buy         => "Buy",
         WorklistKind.Haul        => "Haul",
+        WorklistKind.Refine      => "Refine",
+        WorklistKind.Decompress  => "Decompress",
         WorklistKind.Job         => "Job",
         WorklistKind.AssetSafety => "Asset Safety",
         WorklistKind.SkillQueue  => "Skill Queue",
         _                        => "Corp Project",
     };
+
+    /// <summary>
+    /// What kind of work this is, at a glance, before the row is read.
+    ///
+    /// <para>⚠️ Drawn rather than fetched. EVE's image server serves types, characters and corps —
+    /// there is no endpoint for "manufacturing" or "reaction", and the client's own activity icons
+    /// are CCP's art rather than ours to redistribute. These are simple shapes on the same 16-unit
+    /// grid, which also means they stay crisp at row height and take their colour from the theme
+    /// instead of arriving as a fixed-colour bitmap.</para>
+    ///
+    /// <para>A job is split by the slot pool it occupies, because "run a reaction" and "copy a
+    /// blueprint" are different errands in different places — the distinction the group header
+    /// alone cannot make once the list is sorted by anything else.</para>
+    /// </summary>
+    public string KindGlyph => (_item.Kind, _item.Pool) switch
+    {
+        // Cart: something to acquire.
+        (WorklistKind.Buy, _) =>
+            "M2,3 H4.5 L6.5,10.5 H13 L14.5,5.5 H5.5 M7,13 A1,1 0 1,0 7,12.9 M12,13 A1,1 0 1,0 12,12.9",
+
+        // Arrow between two points: something to move.
+        (WorklistKind.Haul, _) =>
+            "M2,8 H11 M8.5,5 L12,8 L8.5,11 M13.5,4 V12",
+
+        // A rock breaking into pieces: reprocessing.
+        (WorklistKind.Refine, _) =>
+            "M8,1.5 L13,4.5 V10 L8,13.5 L3,10 V4.5 Z M3,4.5 L8,7.5 L13,4.5 M8,7.5 V13.5",
+
+        // Opening outward: decompression.
+        (WorklistKind.Decompress, _) =>
+            "M4,7 H2 M12,7 H14 M4,9.5 H2 M12,9.5 H14 M5.5,3.5 L8,1.5 L10.5,3.5 " +
+            "M5,6 H11 V11 H5 Z",
+
+        // Factory roofline.
+        (WorklistKind.Job, IndustryPool.Manufacturing) =>
+            "M2,13 V6 L6,8.5 V6 L10,8.5 V6 L14,8.5 V13 Z",
+
+        // ⚠️ Atom, not a flask. The flask is what EVE draws for science, so using it here read as
+        // "copying" on every reaction row — the two got swapped on first writing. In the client's
+        // facility list the reaction icon is the last of the activity marks and is the round one.
+        (WorklistKind.Job, IndustryPool.Reaction) =>
+            "M8,6.75 A1.25,1.25 0 1,0 8,9.25 A1.25,1.25 0 1,0 8,6.75 " +
+            "M4.3,11.7 A5.2,2.4 45 1,1 11.7,4.3 A5.2,2.4 45 1,1 4.3,11.7 " +
+            "M4.3,4.3 A5.2,2.4 -45 1,1 11.7,11.7 A5.2,2.4 -45 1,1 4.3,4.3",
+
+        // Flask: copying and invention, which share the science slots — and which is what the
+        // client marks those activities with.
+        (WorklistKind.Job, IndustryPool.Science) =>
+            "M6.5,2 V6 L3,12.5 A1,1 0 0,0 4,14 H12 A1,1 0 0,0 13,12.5 L9.5,6 V2 Z M5.5,2 H10.5",
+
+        // Gear, for a job whose pool is not known.
+        (WorklistKind.Job, _) =>
+            "M8,5.5 A2.5,2.5 0 1,0 8,10.5 A2.5,2.5 0 1,0 8,5.5 M8,1.5 V3.5 M8,12.5 V14.5 " +
+            "M1.5,8 H3.5 M12.5,8 H14.5 M3.5,3.5 L5,5 M11,11 L12.5,12.5 M12.5,3.5 L11,5 M5,11 L3.5,12.5",
+
+        // Flag: a corp project.
+        (WorklistKind.CorpProject, _) =>
+            "M4,2 V14 M4,3 H13 L10.5,6 L13,9 H4",
+
+        // Shield: asset safety.
+        (WorklistKind.AssetSafety, _) =>
+            "M8,2 L13.5,4 V8 C13.5,11 11,13.2 8,14 C5,13.2 2.5,11 2.5,8 V4 Z",
+
+        // Rising bars: a skill queue.
+        _ => "M3,13 V9.5 M6.5,13 V7 M10,13 V4.5 M13.5,13 V2",
+    };
+
+    /// <summary>
+    /// What the glyph column sorts on: the same distinction the glyph draws, so rows showing the
+    /// same icon land together.
+    ///
+    /// <para><see cref="KindRank"/> alone would scatter the three job icons, since it cannot see
+    /// the pool. Kind leads so the order stays the enum's — buy, haul, job, and so on — with jobs
+    /// sub-ordered manufacturing, reaction, science.</para>
+    /// </summary>
+    public int KindSort => (int)_item.Kind * 10 + _item.Pool switch
+    {
+        IndustryPool.Manufacturing => 1,
+        IndustryPool.Reaction      => 2,
+        IndustryPool.Science       => 3,
+        _                          => 0,
+    };
+
+    /// <summary>Names the glyph, since a shape at row height can only hint.</summary>
+    public string KindGlyphTip => (_item.Kind, _item.Pool) switch
+    {
+        (WorklistKind.Buy,  _)                        => "Buy",
+        (WorklistKind.Haul, _)                        => "Haul",
+        (WorklistKind.Refine, _)                      => "Reprocess ore",
+        (WorklistKind.Decompress, _)                  => "Decompress gas",
+        (WorklistKind.Job, IndustryPool.Manufacturing) => "Manufacturing job",
+        (WorklistKind.Job, IndustryPool.Reaction)      => "Reaction job",
+        (WorklistKind.Job, IndustryPool.Science)       => "Science job — copying or invention",
+        (WorklistKind.Job, _)                          => "Industry job",
+        (WorklistKind.CorpProject, _)                  => "Corp project",
+        (WorklistKind.AssetSafety, _)                  => "Asset safety",
+        _                                              => "Skill queue",
+    };
+
+    /// <summary>
+    /// The print the job was planned against — "ME9 TE20" — or blank.
+    ///
+    /// <para>One string rather than two labels: the row's panel spaces its children eight pixels
+    /// apart, which would read as two separate facts when the pair is how a blueprint is described
+    /// everywhere else.</para>
+    ///
+    /// <para>⚠️ Manufacturing only. A reaction formula has no efficiency to speak of and a copy or
+    /// invention job does not consume by it, so both figures would be a meaningless "ME0 TE0" on
+    /// every one of those rows.</para>
+    /// </summary>
+    public string BlueprintMeText =>
+        _item.Pool == IndustryPool.Manufacturing && _item.BlueprintMe is { } me
+            ? $"ME{me} TE{_item.BlueprintTe ?? 0}"
+            : "";
+
+    public bool HasBlueprintMe => BlueprintMeText.Length > 0;
 
     /// <summary>Only a haul has a far end.</summary>
     public string DestinationName => _item.DestinationName;
@@ -129,7 +273,11 @@ public class WorklistRowVm : ReactiveObject
     public bool IsHaul  => _item.Kind == WorklistKind.Haul;
     public bool IsJob   => _item.Kind == WorklistKind.Job;
     public bool IsBuy   => _item.Kind == WorklistKind.Buy;
-    public bool IsOther => !IsHaul && !IsJob && !IsBuy;
+    /// <summary>Reprocessing and decompressing share a shape: what to do, and the one station to
+    /// do it at.</summary>
+    public bool IsRefining => _item.Kind is WorklistKind.Refine or WorklistKind.Decompress;
+
+    public bool IsOther => !IsHaul && !IsJob && !IsBuy && !IsRefining;
 
     /// <summary>Source and destination as one phrase, since a haul is the pairing rather than two
     /// independent facts.</summary>
@@ -238,8 +386,404 @@ public class WorklistRowVm : ReactiveObject
 /// <para>Formatted text alongside the raw value each column sorts on, so the grid orders by
 /// quantity rather than by the digits of a thousands-separated string.</para>
 /// </summary>
-public sealed class StationNeedRowVm(StationNeed n)
+/// <summary>A slot pool, how hard it is being pushed, and what would buy more of it.</summary>
+public sealed class SlotPressureRowVm(SlotPressure p)
 {
+    public string Pool     => p.Pool.ToString();
+    public string Capacity => p.Capacity.ToString("N0");
+    public string InUse    => p.InUse.ToString("N0");
+    public string Free     => p.Free.ToString("N0");
+    public string Waiting  => p.Waiting > 0 ? p.Waiting.ToString("N0") : "";
+    public string Blocked  => p.Blocked > 0 ? p.Blocked.ToString("N0") : "";
+    public string Utilised => $"{p.Utilised:N0}%";
+
+    /// <summary>Amber only where work is actually queued behind a full pool.</summary>
+    public string UtilisedColor => p.IsBottleneck ? "#c8a84b" : p.Utilised >= 90 ? "#8a8a99" : "#666677";
+
+    public bool IsBottleneck => p.IsBottleneck;
+
+    /// <summary>
+    /// ⚠️ Leads with time, not with free slots. Ten idle slots against two hundred waiting jobs
+    /// is a bottleneck, and a headline that opened with the ten would read as though there were
+    /// room — while "eleven weeks to catch up" is the fact somebody can act on.
+    /// </summary>
+    public string Headline => p.IsBottleneck
+        ? $"{p.Waiting:N0} job(s) queued — {p.ClearDays:N0} day(s) to work through at "
+        + $"{p.Capacity:N0} slot(s), which have been turning out {p.ThroughputPerDay:N1} job(s) a day."
+        : p.Capacity == 0
+            ? $"No character is configured to run {p.Pool.ToString().ToLowerInvariant()} jobs."
+            : $"Nothing is queued behind this pool. {p.Free:N0} free of {p.Capacity:N0}.";
+
+    /// <summary>
+    /// How long the queue takes to work off at the bandwidth on hand.
+    ///
+    /// <para>⚠️ Days, not slots. A backlog is not a shopping list — five hundred waiting jobs
+    /// accumulated while throughput sat under demand, and the question is how long catching up
+    /// takes, not how many slots would start everything at once.</para>
+    /// </summary>
+    public string ClearDays => !p.IsBottleneck ? ""
+                             : double.IsInfinity(p.ClearDays) ? "—"
+                             : $"{p.ClearDays:N0}d";
+
+    public string Throughput => p.JobsDone == 0 ? ""
+                              : $"{p.ThroughputPerDay:N1}/d";
+
+    public string AvgJob => p.AvgJobDays <= 0 ? ""
+                          : p.AvgJobDays >= 1 ? $"{p.AvgJobDays:N1}d" : $"{p.AvgJobDays * 24:N1}h";
+
+    public IReadOnlyList<SlotRemedy> Remedies => p.Remedies;
+}
+/// <summary>
+/// A material the pipeline keeps running out of.
+///
+/// <para>Every figure is a rate or the days a rate implies: a stock number on its own cannot say
+/// whether a buffer is the right size.</para>
+/// </summary>
+/// <summary>One line of the expanded contention row.</summary>
+public sealed class ShortageTaskRowVm(ShortageTask t)
+{
+    public string Title => t.Title;
+    public string Why   => t.Why;
+    public string State => t.State;
+
+    /// <summary>What this task makes. Blank on an installed job, whose title says it already.</summary>
+    public string Item => t.TypeName;
+
+    /// <summary>Indented by how far down the chain it sits, so the hops read as a shape rather
+    /// than as a column of numbers.</summary>
+    public Avalonia.Thickness Indent => new(t.Hop > 0 ? t.Hop * 14 : 0, 0, 0, 0);
+
+    /// <summary>Where it sits: directly short of the material, behind something that is, or
+    /// making the material itself.</summary>
+    public string Role => t.Role == "Hauling" ? "the trip"
+                        : t.Role == "Needs"   ? "needs"
+                        : t.Role == "Using"  ? "uses it"
+                        : t.Role == "Making" ? "makes it"
+                        : t.Hop == 0         ? "needs it"
+                        :                      $"behind ({t.Hop})";
+
+    public string StateColor => t.State switch
+    {
+        "Blocked" => "#c85a5a",
+        "Waiting" => "#c8a84b",
+        "Running" => "#4a8a5a",
+        "Ready"   => "#4a8a5a",
+        _         => "#8a8a99",
+    };
+}
+
+public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
+{
+    private bool _isExpanded;
+
+    /// <summary>Whether the task list is open. Lives on the item, not the row, so the
+    /// glyph stays right when the grid recycles rows during a scroll.</summary>
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set { this.RaiseAndSetIfChanged(ref _isExpanded, value); this.RaisePropertyChanged(nameof(Glyph)); }
+    }
+
+    public string Glyph => !HasTasks ? "" : _isExpanded ? "▾" : "▸";
+
+    public string Item      => s.Name;
+    public string Used      => $"{s.UsedPerDay:N1}/d";
+    public string Made      => s.Buildable ? $"{s.MadePerDay:N1}/d" : "—";
+    public string Level     => s.Level > 0 ? s.Level.ToString("N0") : "";
+    public string OnHand    => s.OnHand.ToString("N0");
+
+    /// <summary>What the work on the list actually wants — on hand plus what it fell short by.</summary>
+    public string Need      => s.Need > s.OnHand ? s.Need.ToString("N0") : "";
+
+    /// <summary>⚠️ Red once the work needs more than exists: a level being met is beside the
+    /// point when the demand in front of it is larger than the level.</summary>
+    public string NeedColor => s.Need > s.OnHand ? "#c85a5a" : "#666677";
+
+    /// <summary>
+    /// Tasks this shortage is holding up, its own consumers and everything stopped behind them.
+    ///
+    /// <para>Two columns until it was clear neither was worth reading alone. One counted tasks
+    /// directly short of it, the other counted TYPES that could consume it anywhere in the recipe
+    /// tree — which said a Leviathan waits on this whether or not anyone is building one.</para>
+    /// </summary>
+    public string Blocking => s.StalledTasks > 0 ? s.StalledTasks.ToString("N0") : "";
+
+    // What is refilling it. Zeros are left blank: a column of noughts reads as data.
+    public string MakeRunning => s.MakingRunning > 0 ? s.MakingRunning.ToString("N0") : "";
+    public string MakeReady   => s.MakingReady   > 0 ? s.MakingReady  .ToString("N0") : "";
+    public string MakeWaiting => s.MakingWaiting > 0 ? s.MakingWaiting.ToString("N0") : "";
+    public string MakeBlocked => s.MakingBlocked > 0 ? s.MakingBlocked.ToString("N0") : "";
+
+    /// <summary>Red where the thing that is short has nothing arriving to refill it.</summary>
+    public string MakeBlockedColor =>
+        s.MakingBlocked > 0 && s.MakingRunning == 0 && s.MakingReady == 0 ? "#c85a5a" : "#666677";
+    /// <summary>
+    /// The tasks behind the counts, shown by expanding the row.
+    ///
+    /// <para>A count nobody can take apart is a count nobody can act on: "Blocking 4" becomes
+    /// useful at the moment it can be read as four named tasks.</para>
+    /// </summary>
+    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
+        (s.Tasks ?? []).Select(t => new ShortageTaskRowVm(t)).ToList();
+
+    public bool HasTasks => s.Tasks is { Count: > 0 };
+
+    public string Verdict   => s.Verdict;
+    public string Advice    => s.Advice;
+
+    /// <summary>Days the level covers at the current draw. The number a buffer is judged on.</summary>
+    public string Cover => s.Level <= 0 ? "—"
+                         : double.IsInfinity(s.DaysOfCover) ? "—"
+                         : $"{s.DaysOfCover:N0}d";
+
+    /// <summary>Made per unit consumed. Under 1.0 and the shelf drains however full it looks.</summary>
+    public string Balance => !s.Buildable ? "—" : $"{s.Balance:N2}×";
+
+    /// <summary>⚠️ Amber, not red, during a wave — a deficit while a big order passes
+    /// through is expected, and absorbing it is what the buffer is for.</summary>
+    public string BalanceColor => !s.Buildable             ? "#666677"
+                                : s.IsDraining && s.IsWave ? "#c8a84b"
+                                : s.IsDraining             ? "#c85a5a"
+                                : "#4a8a5a";
+
+    /// <summary>How much harder than usual this is being drawn on right now.</summary>
+    public string Surge => s.Surge >= 1.2 ? $"{s.Surge:N1}×" : "";
+
+    public string VerdictColor => s.Verdict switch
+    {
+        "Buy now"        => "#c85a5a",
+        "On order"       => "#4a8a5a",
+        "Buffer spent"   => "#c85a5a",
+        "Blocked"        => "#c85a5a",
+        "Level too low"  => "#c85a5a",
+        "No buffer"      => "#c85a5a",
+        "Not the shelf"  => "#8a8a99",
+        "Making too few" => "#c8a84b",
+        "Buy"            => "#5599aa",
+        "Buffer thin"    => "#c8a84b",
+        "No level set"   => "#c8a84b",
+        "Wave"           => "#8a8a99",
+        _                => "#666677",
+    };
+
+    /// <summary>⚠️ Marks a rate that is itself throttled by the shortage being measured.</summary>
+
+    public bool HasLink => s.TypeId > 0;
+    public void Open()  => s.OpenItem();
+}
+
+/// <summary>
+/// A product whose blueprint count is the ceiling on how fast it can be made.
+///
+/// <para>Everything here is a rate. "Two prints" says nothing on its own; "two prints turning out
+/// 0.28 a day against 0.81 a day consumed" says what to buy.</para>
+/// </summary>
+/// <summary>One finding on the Summary tab. Prose, so there is almost nothing to format.</summary>
+public sealed class ObservationVm(Observation o)
+{
+    public string Headline => o.Headline;
+    public string Body     => o.Body;
+    public IReadOnlyList<string> Points => o.Points;
+
+    public bool HasPoints => o.Points.Count > 0;
+
+    /// <summary>The one finding to act on is marked, not merely first: a list read top-down
+    /// reads as four jobs to do rather than one lever and three things to know about.</summary>
+    public string Marker      => o.IsPrimary ? "START HERE" : Kind;
+    public string MarkerColor => o.IsPrimary ? "#c8a84b" : "#555566";
+    public string RuleColor   => o.IsPrimary ? "#c8a84b" : "#2c2c3a";
+
+    private string Kind => o.Kind switch
+    {
+        "slots"     => "SLOTS",
+        "prints"    => "BLUEPRINTS",
+        "formulas"  => "FORMULAS",
+        "buying"    => "BUYING",
+        "levels"    => "BUFFERS",
+        _           => "HAULING",
+    };
+}
+
+/// <summary>One stopped job on the Hauling tab.</summary>
+
+public sealed class HaulPressureRowVm(HaulBlock h) : ReactiveObject
+{
+    private bool _isExpanded;
+
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set { this.RaiseAndSetIfChanged(ref _isExpanded, value); this.RaisePropertyChanged(nameof(Glyph)); }
+    }
+
+    public string Glyph => !HasTasks ? "" : _isExpanded ? "▾" : "▸";
+
+    public string Task     => h.Title;
+    public string Station  => h.StationName.Length > 0 ? h.StationName : $"Location {h.StationId}";
+    public string Blocking => h.StalledTasks > 0 ? h.StalledTasks.ToString("N0") : "";
+    public string Hauls    => h.HaulTasks > 0 ? h.HaulTasks.ToString("N0") : "";
+    public string Items    => h.ItemTypes.ToString("N0");
+    public string Sources  => h.Sources > 0 ? h.Sources.ToString("N0") : "";
+    public string Verdict  => h.Verdict;
+    public string Advice   => h.Advice;
+
+    /// <summary>Sized the way a hauler thinks about it, not to the nearest cubic metre.</summary>
+    public string Volume => h.Volume >= 1_000_000 ? $"{h.Volume / 1_000_000:N1}M m3"
+                          : h.Volume >= 1_000     ? $"{h.Volume / 1_000:N0}k m3"
+                          :                         $"{h.Volume:N0} m3";
+
+    /// <summary>Red where nothing is moving: the material exists and no trip has been raised.</summary>
+    public string VerdictColor => h.Verdict switch
+    {
+        "Nothing moving" => "#c85a5a",
+        "Several stops"  => "#c8a84b",
+        _                => "#4a8a5a",
+    };
+
+    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
+        h.Tasks.Select(t => new ShortageTaskRowVm(t)).ToList();
+
+    public bool HasTasks => h.Tasks.Count > 0;
+
+    public bool HasItemLink    => h.TypeId > 0;
+    public bool HasStationLink => h.StationId > 0;
+
+    public void OpenItem() => EntityNavigator.Instance.Item(h.TypeId);
+
+    /// <summary>⚠️ Station versus structure by int range, as Station Needs does it: an id above
+    /// int range cannot be an NPC station, and the row carries no discriminator.</summary>
+    public void OpenStation()
+    {
+        if (h.StationId <= 0) return;
+        if (h.StationId <= int.MaxValue)
+            EntityNavigator.Instance.Entity(EntityKind.Station, h.StationId);
+        else
+            EntityNavigator.Instance.Structure(h.StationId);
+    }
+}
+
+public sealed class PrintPressureRowVm(ItemBandwidth p) : ReactiveObject
+
+{
+    private bool _isExpanded;
+
+    /// <summary>Whether the task list is open. On the item, not the row, so the glyph
+    /// survives the grid recycling rows during a scroll.</summary>
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set { this.RaiseAndSetIfChanged(ref _isExpanded, value); this.RaisePropertyChanged(nameof(Glyph)); }
+    }
+
+    public string Glyph => !HasTasks ? "" : _isExpanded ? "▾" : "▸";
+
+    /// <summary>
+    /// Work waiting on what this blueprint makes — the same walk Item Contention uses,
+    /// seeded from the output rather than from a missing material.
+    ///
+    /// <para>Distinct from Blocked beside it, which counts only jobs held up by the print
+    /// itself. A blueprint can be uncontended and still have a queue behind its output.</para>
+    /// </summary>
+    public string Blocking => p.StalledTasks > 0 ? p.StalledTasks.ToString("N0") : "";
+
+    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
+        p.Tasks.Select(t => new ShortageTaskRowVm(t)).ToList();
+
+    public bool HasTasks => p.Tasks.Count > 0;
+
+    public string Product   => p.ProductName;
+    public string Cycle     => p.CycleDays >= 1 ? $"{p.CycleDays:N1}d" : $"{p.CycleDays * 24:N1}h";
+    public string Prints    => p.Prints.ToString("N0");
+    public string Busy      => p.Busy > 0 ? p.Busy.ToString("N0") : "";
+    public string Capacity  => $"{p.CapacityPerDay:N2}/d";
+    public string Demand    => $"{p.MadePerDay:N2}/d";
+
+    /// <summary>
+    /// ⚠️ The share of the window when EVERY copy was busy — the only figure that says whether
+    /// wanting another job meant waiting. Plain utilisation cannot: a formula run flat out across
+    /// eight copies is heavily used and has never blocked anything.
+    /// </summary>
+    public string Cover     => $"{p.ContentionPercent:N0}%";
+
+    /// <summary>Where it sits among this operation's own prints, which is what decides the flag.</summary>
+    public string Rank      => p.ContentionPercent <= 0 ? "" : $"top {Math.Max(1, 100 - p.ContentionRank):N0}%";
+
+    /// <summary>Kept beside it as context, deliberately not as the ranking.</summary>
+    public string Used      => $"{p.UtilPercent:N0}%";
+    public string Blocked   => p.BlockedNow > 0 ? p.BlockedNow.ToString("N0") : "";
+
+    public string WithOneMore => $"{p.CeilingWithOneMore:N2}/d";
+    public string Wanted      => p.WantedNow > 0 ? p.WantedNow.ToString("N0") : "";
+    /// <summary>Named Verdict like the other two tabs: three columns doing the same job
+    /// under three names made them read as three different kinds of thing.</summary>
+    public string Verdict      => p.Verdict;
+
+    /// <summary>Recent squeeze against the whole window — a quarter-long average hides a busy month.</summary>
+    public string Trend       => p.Trend;
+    public string Recent      => p.RecentContentionPercent <= 0 ? "" : $"{p.RecentContentionPercent:N0}%";
+
+    public string TrendColor => p.Trend switch
+    {
+        "Rising" => "#c85a5a",
+        "Easing" => "#4a8a5a",
+        _        => "#666677",
+    };
+    public string Advice      => p.Advice;
+
+    /// <summary>
+    /// ⚠️ Judged against what a hand-run print reaches, not against 100%. A job ends while its
+    /// owner is asleep and the next starts when they log in, so a blueprint wanted every hour of
+    /// every day still measures around 60% — and a scale that called that "idle" would report
+    /// that nothing is ever a bottleneck.
+    /// </summary>
+    public string CoverColor => p.IsTight ? "#c85a5a"
+                             : p.IsIdle   ? "#666677"
+                             : "#c8a84b";
+
+    /// <summary>⚠️ Muted always. It is context, and colouring it would invite ranking by it.</summary>
+    public string UsedColor => "#666677";
+
+    /// <summary>Steady is the one worth buying for; a surge is a week of work, not a shortage.</summary>
+    public string VerdictColor => p.Verdict switch
+    {
+        "Blocking" => "#c85a5a",
+        "Steady"   => "#c85a5a",
+        "Blocked"  => "#c8a84b",
+        "Surge"    => "#5599aa",
+        "Minor"    => "#666677",
+        _          => "#8a8a99",
+    };
+
+    public bool HasLink => p.ProductTypeId > 0;
+    public void Open()  => p.OpenItem();
+}
+
+/// <summary>One line of "what is asking for this", under a need.</summary>
+public sealed class NeedDriverRowVm(NeedDriver d)
+{
+    public string Driver => d.Label;
+    public string Kind   => d.Kind;
+    public long   QtyRaw => d.Qty;
+    public string Qty    => d.Qty.ToString("N0");
+
+    public bool HasLink => d.DriverTypeId > 0;
+    public void Open()  { if (d.DriverTypeId > 0) EntityNavigator.Instance.Item(d.DriverTypeId); }
+}
+
+public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject
+{
+    private bool _isExpanded;
+
+    /// <summary>Whether the "asked for by" panel is open. Lives on the item, not the row, so the
+    /// glyph stays right when the grid recycles rows during a scroll.</summary>
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set { this.RaiseAndSetIfChanged(ref _isExpanded, value); this.RaisePropertyChanged(nameof(Glyph)); }
+    }
+
+    public string Glyph => !HasDrivers ? "" : _isExpanded ? "▾" : "▸";
+
     public string Station => n.StationName;
     public string Item    => n.TypeName;
 
@@ -277,6 +821,19 @@ public sealed class StationNeedRowVm(StationNeed n)
     public double ShortVolumeRaw => n.ShortfallVolume;
     public string ShortVolume    => n.Shortfall > 0 ? $"{n.ShortfallVolume:N0} m³" : "";
 
+    /// <summary>
+    /// What is asking for this here — the jobs behind the number, largest share first.
+    ///
+    /// <para>Shown as row details rather than a column: it is a list of variable length, and the
+    /// question it answers ("what is this FOR") is one people ask of a single row, not one they
+    /// scan a grid for.</para>
+    /// </summary>
+    public IReadOnlyList<NeedDriverRowVm> Drivers { get; } =
+        n.Why.Select(d => new NeedDriverRowVm(d)).ToList();
+
+    /// <summary>False when nothing itemised this need, so the row shows no expander.</summary>
+    public bool HasDrivers => n.Why.Count > 0;
+
     public long   OrderJobsRaw => n.OrderJobs;
     public long   JobsRaw      => n.Jobs;
     public long   InvLevelsRaw => n.InventoryLevels;
@@ -310,9 +867,13 @@ public sealed class StationNeedRowVm(StationNeed n)
 /// </summary>
 public class WorklistViewModel : ReactiveObject
 {
-    private readonly WorklistService _service;
+    private readonly WorklistService   _service;
+    private readonly BottleneckService     _bottlenecks;
+    private readonly ItemContentionService _itemContention;
+    private readonly HaulPressureService   _haulPressure;
+    private readonly BottleneckSummaryService _summary = new();
 
-    public ObservableCollection<WorklistRowVm> Rows { get; } = [];
+    public BulkObservableCollection<WorklistRowVm> Rows { get; } = [];
 
     /// <summary>
     /// What the grid actually binds to: <see cref="Rows"/> grouped by task.
@@ -349,6 +910,134 @@ public class WorklistViewModel : ReactiveObject
     /// </summary>
     public DataGridCollectionView NeedsView { get; }
 
+    /// <summary>The same needs with the item as the heading and the stations beneath it.</summary>
+    public DataGridCollectionView ItemNeedsView { get; }
+
+    // ── Bottlenecks ───────────────────────────────────────────────────────────
+
+    public ObservableCollection<SlotPressureRowVm>  SlotPressure  { get; } = [];
+    public ObservableCollection<PrintPressureRowVm> PrintPressure { get; } = [];
+    public ObservableCollection<ItemShortageRowVm>  ItemShortages { get; } = [];
+    public ObservableCollection<HaulPressureRowVm>  HaulPressures { get; } = [];
+    public ObservableCollection<ObservationVm>      Observations  { get; } = [];
+
+    /// <summary>Deliveries that would restart several jobs at once. Above the grid rather
+    /// than in it: one row per stopped job cannot say that four of them are one trip.</summary>
+    public ObservableCollection<string>             SharedTrips   { get; } = [];
+
+    private bool _hasSharedTrips;
+    public bool HasSharedTrips
+    {
+        get => _hasSharedTrips;
+        private set => this.RaiseAndSetIfChanged(ref _hasSharedTrips, value);
+    }
+
+    private string _bottleneckStatus = "Not loaded yet.";
+    public string BottleneckStatus
+    {
+        get => _bottleneckStatus;
+        private set => this.RaiseAndSetIfChanged(ref _bottleneckStatus, value);
+    }
+
+    private bool _bottlenecksLoading;
+    public bool BottlenecksLoading
+    {
+        get => _bottlenecksLoading;
+        private set => this.RaiseAndSetIfChanged(ref _bottlenecksLoading, value);
+    }
+
+    public ReactiveCommand<Unit, Unit>? RefreshBottlenecksCommand { get; private set; }
+
+    /// <summary>
+    /// Reads the current worklist for what is holding it up.
+    ///
+    /// <para>⚠️ Against the rows already on screen, not a fresh generation. The question is "why
+    /// is THIS list stuck", and regenerating first would answer it about a different list.</para>
+    /// </summary>
+    /// <summary>
+    /// Names the case where the two panels disagree about where the constraint is.
+    ///
+    /// <para>⚠️ Free slots and contended prints at the same time is the easiest bottleneck to
+    /// misread, because the slot panel looks healthy and nothing appears to be queued — jobs that
+    /// cannot be created for want of a blueprint never reach a queue to be counted in. Idle slots
+    /// are then evidence of the constraint rather than the absence of one, and saying so is the
+    /// difference between buying an account and buying a print.</para>
+    /// </summary>
+    private static string Crossed(
+        IReadOnlyList<SlotPressure> slots, IReadOnlyList<ItemBandwidth> prints)
+    {
+        var free    = slots.Sum(s => s.Free);
+        var pinched = prints.Count(p => p.IsTight);
+        if (free <= 0 || pinched == 0) return "";
+
+        return $"⚠ {free:N0} slot(s) sitting free while {pinched} blueprint(s) have every copy "
+             + "busy — the constraint here is prints, not slots. ";
+    }
+
+    private async Task RefreshBottlenecksAsync()
+    {
+        BottlenecksLoading = true;
+        try
+        {
+            // ⚠️ The whole run, not the rows on screen. Where the pipeline is constrained does
+            // not depend on which tasks somebody happens to be looking at, but this read the
+            // filtered grid — so hiding blocked work made the blueprints holding it up report no
+            // blocked jobs, and the whole page changed meaning with a filter that has nothing to
+            // do with it. The summary strip already counts off the run for the same reason.
+            //
+            // Still the current run rather than a fresh generation: the question is why THIS
+            // list is stuck, and regenerating first would answer it about a different one.
+            var items = _runItems;
+
+            var slots  = await _bottlenecks.SlotPressureAsync(items);
+            var prints = await _bottlenecks.BlueprintBandwidthAsync(items);
+            var shorts = await _itemContention.ShortagesAsync(items);
+            var hauls  = await _haulPressure.PressuresAsync(items);
+            var scale  = await _bottlenecks.ContentionScaleAsync();
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                SlotPressure.Clear();
+                foreach (var s in slots) SlotPressure.Add(new SlotPressureRowVm(s));
+
+                PrintPressure.Clear();
+                foreach (var p in prints) PrintPressure.Add(new PrintPressureRowVm(p));
+
+                ItemShortages.Clear();
+                foreach (var s in shorts) ItemShortages.Add(new ItemShortageRowVm(s));
+
+                HaulPressures.Clear();
+                foreach (var h in hauls) HaulPressures.Add(new HaulPressureRowVm(h));
+
+                SharedTrips.Clear();
+                foreach (var t in SharedHauls.Find(hauls).Take(6)) SharedTrips.Add(t.Line);
+                HasSharedTrips = SharedTrips.Count > 0;
+
+                Observations.Clear();
+                foreach (var o in _summary.Summarise(items, slots, prints, shorts, hauls))
+                    Observations.Add(new ObservationVm(o));
+
+                var tight = slots.Count(s => s.IsBottleneck);
+
+                // ⚠️ The calibration is stated, not hidden. Nothing here uses a fixed cut-off any
+                // more, so the reader is owed the scale the flags were drawn against — otherwise
+                // "top 10%" is a number with no visible basis.
+                BottleneckStatus = items.Count == 0
+                    ? "The worklist is empty — generate it first and this will have something to read."
+                    : tight == 0 && prints.Count == 0
+                        ? "Nothing is bottlenecked: no pool has work waiting on a slot, and no "
+                        + "blueprint has had every copy busy often enough to make anything wait. "
+                        + scale
+                        : $"{tight} pool(s) with work waiting on a slot; "
+                        + $"{prints.Count} blueprint(s) worth a look; "
+                        + $"{shorts.Count(s => s.IsDraining)} material(s) being used faster than "
+                        + "they are made. "
+                        + Crossed(slots, prints) + scale;
+            });
+        }
+        finally { BottlenecksLoading = false; }
+    }
+
     private bool _needsLoading;
     public bool NeedsLoading { get => _needsLoading; private set => this.RaiseAndSetIfChanged(ref _needsLoading, value); }
 
@@ -371,10 +1060,18 @@ public class WorklistViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _outerTabIndex, value);
             if (value == StationNeedsTab && Needs.Count == 0 && !NeedsLoading) _ = LoadNeedsAsync();
+
+            // ⚠️ Loaded when the tab is opened, not at startup. It reads every industry job the
+            // operation has ever run and the whole price history for those types, which is not
+            // work to do on behalf of a tool nobody has looked at.
+            if (value == FinalProductsTab
+             && FinalProductsVm.Jobs.Count == 0
+             && !FinalProductsVm.IsLoading) _ = FinalProductsVm.LoadAsync();
         }
     }
 
-    private const int StationNeedsTab = 1;
+    private const int StationNeedsTab  = 1;
+    private const int FinalProductsTab = 4;
 
     /// <summary>Selects the Station Needs tab — what the Overview's link to it needs, so that
     /// following it lands on the report rather than on whatever tab was last open.</summary>
@@ -435,6 +1132,13 @@ public class WorklistViewModel : ReactiveObject
                 foreach (var r in rows.OrderByDescending(r => r.Shortfall).ThenBy(r => r.StationName))
                     Needs.Add(new StationNeedRowVm(r));
 
+                // ⚠️ Both views, explicitly. A DataGridCollectionView groups what it is holding
+                // when it is asked to, and a view whose grid has never been realised is not asked
+                // — so the Item Needs tab drew a flat list on first open and grouped itself only
+                // after being left and returned to, which is the grid attaching a second time.
+                NeedsView.Refresh();
+                ItemNeedsView.Refresh();
+
                 var stations = rows.Select(r => r.StationId).Distinct().Count();
                 var short_   = rows.Count(r => r.Shortfall > 0);
                 NeedsStatus = rows.Count == 0
@@ -466,6 +1170,9 @@ public class WorklistViewModel : ReactiveObject
     /// <summary>Where each group's stock should live. Distribution, not demand.</summary>
     public WorklistStationLevelsViewModel StationLevelsVm { get; }
 
+    /// <summary>What the work was ultimately for: jobs producing the things we sell.</summary>
+    public WorklistFinalProductsViewModel FinalProductsVm { get; }
+
     /// <summary>Which sources run, and which conditions each one raises.</summary>
     public ObservableCollection<WorklistToggleVm> Sources    { get; } = [];
     public ObservableCollection<WorklistToggleVm> Conditions { get; } = [];
@@ -477,9 +1184,16 @@ public class WorklistViewModel : ReactiveObject
                              WorklistInvRulesViewModel rules,
                              WorklistCorpAltsViewModel corpAlts,
                              WorklistIndustryViewModel industry,
-                             WorklistStationLevelsViewModel stationLevels)
+                             WorklistStationLevelsViewModel stationLevels,
+                             WorklistFinalProductsViewModel finalProducts,
+                             BottleneckService bottlenecks,
+                             ItemContentionService itemContention,
+                             HaulPressureService   haulPressure)
     {
-        _service = service;
+        _service        = service;
+        _bottlenecks    = bottlenecks;
+        _itemContention = itemContention;
+        _haulPressure   = haulPressure;
 
         RowsView = new DataGridCollectionView(Rows);
         RowsView.GroupDescriptions.Add(new DataGridPathGroupDescription(nameof(WorklistRowVm.KindText)));
@@ -499,6 +1213,19 @@ public class WorklistViewModel : ReactiveObject
         PinNeedsGroupOrder();
         NeedsView.SortDescriptions.CollectionChanged += (_, _) => PinNeedsGroupOrder();
 
+        // ⚠️ The same rows, grouped the other way round — not a second query. A need belongs to a
+        // station AND to an item; which one is the heading depends on the question being asked
+        // ("what does this station want" against "who wants this item"), and building it twice
+        // would be two answers that could disagree.
+        ItemNeedsView = new DataGridCollectionView(Needs);
+        ItemNeedsView.GroupDescriptions.Add(new DataGridPathGroupDescription(nameof(StationNeedRowVm.Item)));
+        PinItemNeedsGroupOrder();
+        ItemNeedsView.SortDescriptions.CollectionChanged += (_, _) => PinItemNeedsGroupOrder();
+
+        RefreshBottlenecksCommand = ReactiveCommand.CreateFromTask(RefreshBottlenecksAsync);
+        RefreshBottlenecksCommand.ThrownExceptions.Subscribe(
+            ex => BottleneckStatus = $"Could not read the bottlenecks: {ex.Message}");
+
         MarketAltsVm  = marketAlts;
         RulesVm  = rules;
         RulesVm.RulesChanged = RefreshAsync;
@@ -507,6 +1234,7 @@ public class WorklistViewModel : ReactiveObject
         IndustryVm = industry;
         IndustryVm.IndustryChanged = RefreshAsync;
         StationLevelsVm = stationLevels;
+        FinalProductsVm = finalProducts;
         StationLevelsVm.LevelsChanged = RefreshAsync;
 
         // Assigning a market alt unblocks items, so the list should reflect it without a manual
@@ -632,11 +1360,21 @@ public class WorklistViewModel : ReactiveObject
     private List<WorklistRowVm> _pool = [];
 
     /// <summary>
+    /// Every item the last run produced, before any of the view's filters.
+    ///
+    /// <para>⚠️ Not <see cref="_pool"/>, which looks unfiltered and is not: it has already had the
+    /// show-snoozed and show-not-ready toggles applied. Reading it for the Bottlenecks tab meant
+    /// that hiding blocked work hid the very rows the tab exists to count, so the page reported
+    /// nothing blocked whenever the grid was set to show only what is ready.</para>
+    /// </summary>
+    private List<WorklistItem> _runItems = [];
+
+    /// <summary>
     /// Every row this run produced, before the column filters — what the Overview's worklist
     /// sections show. Kept separate from <see cref="Rows"/> so a filter typed in the tool does not
     /// silently reshape a dashboard panel that has no filter row to explain it.
     /// </summary>
-    public ObservableCollection<WorklistRowVm> PoolRows { get; } = [];
+    public BulkObservableCollection<WorklistRowVm> PoolRows { get; } = [];
 
     private DateTimeOffset? _lastRefreshUtc;
 
@@ -707,17 +1445,32 @@ public class WorklistViewModel : ReactiveObject
         Keep(ref _sourceFilter,    SourceOptions,    nameof(SourceFilter));
         Keep(ref _destFilter,      DestOptions,      nameof(DestFilter));
 
+        // ⚠️ Reconciled in place, never cleared and refilled. Clearing removes the item the
+        // dropdown has selected, so the control sets SelectedItem to null and the two-way binding
+        // writes that straight back into the filter — before the Keep below can protect it. Every
+        // refresh dropped the filters, even when the value was about to reappear in the same list,
+        // which is why a refresh looked like it was resetting them on purpose.
         void Fill(ObservableCollection<string> target, IEnumerable<string> values)
         {
-            var distinct = values
+            var wanted = new List<string> { AnyValue };
+            wanted.AddRange(values
                 .Select(v => string.IsNullOrWhiteSpace(v) ? "—" : v)
                 .Distinct()
-                .OrderBy(v => v, StringComparer.OrdinalIgnoreCase)
-                .ToList();
+                .OrderBy(v => v, StringComparer.OrdinalIgnoreCase));
 
-            target.Clear();
-            target.Add(AnyValue);
-            foreach (var v in distinct) target.Add(v);
+            // What has gone, first — so the pass below only ever inserts.
+            var keep = wanted.ToHashSet(StringComparer.Ordinal);
+            for (var i = target.Count - 1; i >= 0; i--)
+                if (!keep.Contains(target[i]))
+                    target.RemoveAt(i);
+
+            // Both sides are in the same order, so one pass lines them up. A value that survives
+            // is never touched, and that is what keeps the selection alive.
+            for (var i = 0; i < wanted.Count; i++)
+                if (i >= target.Count || !string.Equals(target[i], wanted[i], StringComparison.Ordinal))
+                    target.Insert(i, wanted[i]);
+
+            while (target.Count > wanted.Count) target.RemoveAt(target.Count - 1);
         }
 
         void Keep(ref string field, ObservableCollection<string> options, string propertyName)
@@ -763,12 +1516,23 @@ public class WorklistViewModel : ReactiveObject
         finally { _pinningNeedsGroupOrder = false; }
     }
 
+    private bool _pinningItemNeedsGroupOrder;
+
+    private void PinItemNeedsGroupOrder()
+    {
+        if (_pinningItemNeedsGroupOrder) return;
+        var sorts = ItemNeedsView.SortDescriptions;
+        if (sorts.Count > 0 && sorts[0].PropertyPath == nameof(StationNeedRowVm.Item)) return;
+
+        _pinningItemNeedsGroupOrder = true;
+        try   { sorts.Insert(0, DataGridSortDescription.FromPath(nameof(StationNeedRowVm.Item))); }
+        finally { _pinningItemNeedsGroupOrder = false; }
+    }
+
     private void ApplyFilters()
     {
-        var rows = _pool.Where(Matches).ToList();
-
-        Rows.Clear();
-        foreach (var r in rows) Rows.Add(r);
+        // One notification, not one per row: this is the grid's ItemsSource.
+        Rows.ResetTo(_pool.Where(Matches));
 
         UpdateStatus();
         this.RaisePropertyChanged(nameof(HasFilters));
@@ -925,33 +1689,67 @@ public class WorklistViewModel : ReactiveObject
         IsLoading = true;
         try
         {
-            var run = await _service.BuildAsync();
+            // ⚠️ Task.Run around the whole computation, not just the build. RefreshAsync is
+            // called from the UI thread (the Overview's refresh, the toolbar button), and
+            // awaiting BuildAsync does NOT get off it: EF Core on SQLite completes its "async"
+            // work synchronously, so every generator, every query and every sort below ran
+            // inline on the UI thread. That was the freeze — thirteen seconds of worklist build
+            // with ten seconds of it holding the UI, once every six minutes.
+            //
+            // Only the collection updates need the UI thread, and they are the cheap part.
+            var (run, unsnoozed, pool, failed) = await Task.Run(async () =>
+            {
+                var built = await _service.BuildAsync();
 
-            var unsnoozed = run.AllItems.Where(i => ShowSnoozed || !i.IsSnoozed).ToList();
+                var alive = built.AllItems.Where(i => ShowSnoozed || !i.IsSnoozed).ToList();
 
-            var visible = unsnoozed
-                .Where(i => ShowNotReady || i.Readiness == WorklistReadiness.Ready)
-                // Blocked last: the list is read top-down looking for something to do, and an
-                // item that cannot be actioned does not belong at the top of that read.
-                .OrderBy(i => i.Readiness == WorklistReadiness.Blocked ? 1 : 0)
-                .ThenByDescending(i => i.Priority)
-                .ThenBy(i => i.CharacterName)
-                .ThenBy(i => i.Title)
-                .ToList();
+                var visible = alive
+                    .Where(i => ShowNotReady || i.Readiness == WorklistReadiness.Ready)
+                    // Blocked last: the list is read top-down looking for something to do, and an
+                    // item that cannot be actioned does not belong at the top of that read.
+                    .OrderBy(i => i.Readiness == WorklistReadiness.Blocked ? 1 : 0)
+                    // ⚠️ The LIVE priority for anything the planner ranked, not the stamped
+                    // one. Priority is inherited during the demand walk and expires as the
+                    // work that justified it is planned, so the stamped figure and the figure
+                    // the planner actually sorted on are different numbers — and sorting on
+                    // the stamped one produced a list running 50, then 30, then 216, then 80
+                    // while claiming to be in priority order.
+                    .ThenByDescending(i => i.PlanSequence == 0 ? i.Priority : i.SortPriority)
+                    // ⚠️ Plan order, before anything alphabetical. Everything the industry
+                    // planner raises inherits one priority from the order at the top of its
+                    // chain, so priority separates none of it and the sort used to fall through
+                    // to the title — presenting a ranked plan as an alphabetical list.
+                    .ThenBy(i => i.PlanSequence == 0 ? int.MaxValue : i.PlanSequence)
+                    // ⚠️ Below priority, never folded into it. A haul that restarts four
+                    // jobs beats one that restarts one, but neither may jump the order band,
+                    // where a single step means a whole customer order.
+                    .ThenByDescending(i => i.Unblocks)
+                    .ThenBy(i => i.CharacterName)
+                    .ThenBy(i => i.Title)
+                    .ToList();
 
-            var failed = run.Sections.Where(s => s.Error is not null).ToList();
+                // Numbered here, off the ordered list, so the sequence is the default order itself
+                // rather than a second guess at it. Built off-thread with everything else — the
+                // rows are plain view models until something binds to them.
+                var rows = visible.Select((i, n) => new WorklistRowVm(i, n + 1)).ToList();
+
+                return (built, alive, rows,
+                        built.Sections.Where(s => s.Error is not null).ToList());
+            });
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                // Numbered here, off the ordered list, so the sequence is the default order itself
-                // rather than a second guess at it.
-                _pool = visible.Select((i, n) => new WorklistRowVm(i, n + 1)).ToList();
+                _pool     = pool;
+                _runItems = run.AllItems.ToList();
 
                 // The Overview sections bind here rather than to Rows: they have no filter row of
                 // their own, and inheriting whatever the tool happened to be filtered to would make
                 // a dashboard panel change behind the user for reasons not visible on it.
-                PoolRows.Clear();
-                foreach (var r in _pool) PoolRows.Add(r);
+                //
+                // ⚠️ One Reset, not one notification per row. The Overview rebuilds four more
+                // bound collections whenever this changes, so an item-by-item fill here was
+                // quadratic — see BulkObservableCollection.
+                PoolRows.ResetTo(_pool);
                 _lastRefreshUtc = DateTimeOffset.UtcNow;
                 RefreshedText   = $"Refreshed {DateTime.Now:HH:mm}";
 
@@ -985,6 +1783,11 @@ public class WorklistViewModel : ReactiveObject
                     : string.Join("  ·  ", failed.Select(f => $"{f.DisplayName}: {f.Error}"));
                 this.RaisePropertyChanged(nameof(HasErrors));
             });
+
+            // ⚠️ Built with the run, not on a button. Everything it reads is already in memory
+            // and the whole pass costs no measurable time, so making the reader press Refresh to
+            // see an empty tab fill in was a step that existed only because nothing called it.
+            await RefreshBottlenecksAsync();
         }
         catch (Exception ex)
         {

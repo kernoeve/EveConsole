@@ -1,10 +1,12 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
              xmlns:models="clr-namespace:EveConsole.Models"
              xmlns:wl="clr-namespace:EveConsole.Services.Worklist"
              xmlns:conv="clr-namespace:EveConsole.Views"
              xmlns:collections="clr-namespace:Avalonia.Collections;assembly=Avalonia.Controls.DataGrid"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.WorklistView"
              x:DataType="vm:WorklistViewModel">
 
@@ -315,6 +317,24 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
+        <!-- What kind of work this is, drawn rather than spelled out. The rows group by kind, but
+             that header is gone the moment the list is sorted on something else, and a shape is
+             read faster than a word when scanning. Stroked rather than filled so it stays legible
+             at row height and takes its weight from the theme. -->
+        <DataGridTemplateColumn Header="" Width="22" CanUserResize="False"
+                                SortMemberPath="KindSort">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:WorklistRowVm">
+              <Path Data="{Binding KindGlyph, Converter={x:Static views:PathGeometryConverter.Instance}}"
+                    Stroke="#8f9dab" StrokeThickness="1.15"
+                    StrokeLineCap="Round" StrokeJoin="Round"
+                    Width="16" Height="16"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    ToolTip.Tip="{Binding KindGlyphTip}"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
         <!-- Expander. Only drawn where there is a manifest, so an empty cell reads as "this task
              is the one item named in the description" rather than as a control that does nothing. -->
         <DataGridTemplateColumn Header="" Width="24" CanUserSort="False" CanUserResize="False">
@@ -346,7 +366,11 @@
              "1 item(s)" where the actual content sat in Note. Each kind now shows what that kind
              is about. What is lost is sorting on those five as columns — the filter row above still
              narrows by character, source and destination, and #, Value and Volume remain sortable. -->
-        <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="Title">
+        <!-- ⚠️ Sorts on TaskSortText, not Title. A haul row shows its route rather than its title,
+             so sorting on the title ordered those rows by text nobody can see — which reads as no
+             ordering at all. The Overview's sections were fixed this way already; the tool's own
+             grid kept the old path. -->
+        <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <Panel VerticalAlignment="Center">
@@ -365,6 +389,12 @@
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsJob}">
                   <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="16"
                              TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  <!-- The efficiency the materials were planned at. Sits with the station and the
+                       character because it is the same sort of fact — context for the job rather
+                       than part of its name. Manufacturing only; see BlueprintMeText. -->
+                  <TextBlock Text="{Binding BlueprintMeText}" IsVisible="{Binding HasBlueprintMe}"
+                             Foreground="#7a7a88" FontSize="14" VerticalAlignment="Center"
+                             ToolTip.Tip="Material and time efficiency of the blueprint this job would use"/>
                   <Panel>
                     <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
                             ToolTip.Tip="Open this station or structure">
@@ -412,6 +442,24 @@
                   </Panel>
                 </StackPanel>
 
+                <!-- Reprocessing and decompressing: what to do, and the one station to do it at.
+                     No character, because the action needs whoever is already there rather than a
+                     particular pilot. -->
+                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsRefining}">
+                  <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="16"
+                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
+                            ToolTip.Tip="Open this station or structure">
+                      <TextBlock Text="{Binding LocationName}" Classes="linktext"
+                                 Foreground="#7a7a88" FontSize="14" TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding LocationName}" IsVisible="{Binding !HasLocationLink}"
+                               Foreground="#7a7a88" FontSize="14"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                  </Panel>
+                </StackPanel>
+
                 <!-- Corp projects, asset safety, skill queues: no shared shape between them, so
                      they keep the plain title. -->
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsOther}">
@@ -448,6 +496,31 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
+
+        <!-- The planner's sort keys, in the order it applies them. Hidden rather than removed:
+             they explain an ordering that cannot be audited from the outside, and the next
+             question about why one job outranks another is answered by switching them back on.
+             ⚠️ SortPriority is NOT debug-only — the row order itself sorts on it, since the
+             stamped priority and the one the planner used are different numbers. -->
+        <DataGridTextColumn Binding="{Binding DbgPriority}" FontSize="11" Width="55"
+                            CellStyleClasses="num" Header="prio" IsVisible="False"/>
+        <DataGridTextColumn Binding="{Binding DbgFinal}" FontSize="11" Width="50"
+                            CellStyleClasses="num" Header="fin" IsVisible="False"/>
+        <DataGridTextColumn Binding="{Binding DbgBlocked}" FontSize="11" Width="55"
+                            CellStyleClasses="num" Header="blkd" IsVisible="False"/>
+        <DataGridTextColumn Binding="{Binding DbgCoverage}" FontSize="11" Width="65"
+                            CellStyleClasses="num" Header="cover" IsVisible="False"/>
+        <DataGridTextColumn Binding="{Binding DbgSeq}" FontSize="11" Width="50"
+                            CellStyleClasses="num" Header="seq" IsVisible="False"/>
+
+        <!-- How many stopped tasks this row would release: the key that separates hauls and
+             purchases from each other, blank on everything else. Hidden alongside the keys above,
+             but ⚠️ the VALUE is not diagnostic — it is the fourth sort key, and it also raises the
+             priority a haul or purchase inherits. Switch it on with them when asking why one
+             delivery or market order outranks another. Sorted on the number so 9 does not
+             outrank 50. -->
+        <DataGridTextColumn Binding="{Binding UnblocksText}" FontSize="11" Width="70"
+                            SortMemberPath="Unblocks" CellStyleClasses="num" Header="frees" IsVisible="False"/>
 
         <!-- Value and Volume: the two figures worth comparing across every kind, and the pair a
              hauler and a buyer each reach for. Blank rather than zero when unpriced — a science
@@ -506,6 +579,7 @@
         <DataGrid Grid.Row="2" ItemsSource="{Binding NeedsView}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   CanUserSortColumns="True"
+                  AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <DataGrid.Styles>
             <Style Selector="DataGridCell TextBlock">
@@ -544,6 +618,32 @@
             </Style>
           </DataGrid.Styles>
           <DataGrid.Columns>
+            <!-- ⚠️ A dash rather than an empty cell when nothing itemised the need. Blank reads
+                 as "the feature is broken"; a dash says "asked, and there is nothing to show". -->
+            <DataGridTemplateColumn Header="Why" Width="34" MinWidth="34" CanUserSort="False">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StationNeedRowVm">
+                  <Panel>
+                    <!-- ⚠️ Sized like the Item Contention expander, box and all. Capping the
+                         height at 20 to stop the bigger glyph dragging every row taller cropped
+                         the glyph instead: the line box the character is drawn in is taller than
+                         its ink, so clipping the box clips the triangle. A square button with no
+                         padding holds it whole. -->
+                    <Button Classes="expander" Click="OnNeedToggle"
+                            Background="Transparent" BorderThickness="0" Cursor="Hand"
+                            Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
+                            FontSize="20" Foreground="#8a99a8"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                            IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
+                            ToolTip.Tip="What is asking for this"/>
+                    <TextBlock Text="—" FontSize="12" Foreground="#3f3f4d" Margin="6 0"
+                               VerticalAlignment="Center" IsVisible="{Binding !HasDrivers}"
+                               ToolTip.Tip="Nothing itemised this need"/>
+                  </Panel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
             <DataGridTemplateColumn Header="Station" Width="230" SortMemberPath="Station">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
@@ -601,7 +701,1090 @@
             <DataGridTextColumn Header="Inventory levels" Binding="{Binding InvLevels}" SortMemberPath="InvLevelsRaw" Width="120"/>
             <DataGridTextColumn Header="Station levels"   Binding="{Binding StnLevels}" SortMemberPath="StnLevelsRaw" Width="*"/>
           </DataGrid.Columns>
+
+          <!-- The third level: what is asking for this item HERE. A need is a number until you
+               know what it is for, and "what is this for" is asked of one row at a time — so it
+               opens under the row rather than taking a column that would be empty on most of
+               them. -->
+          <DataGrid.RowDetailsTemplate>
+            <DataTemplate x:DataType="vm:StationNeedRowVm">
+              <Border Background="#0d0d14" BorderBrush="#1e1e2a" BorderThickness="0 1 0 1"
+                      Padding="24 6 8 8" IsVisible="{Binding HasDrivers}">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="ASKED FOR BY" FontSize="9" FontWeight="SemiBold"
+                             Foreground="#555566" LetterSpacing="1"/>
+                  <ItemsControl ItemsSource="{Binding Drivers}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:NeedDriverRowVm">
+                        <Grid ColumnDefinitions="240,110,*" Margin="0 1">
+                          <Panel Grid.Column="0">
+                            <Button Classes="link" Click="OnOpenNeedDriver" IsVisible="{Binding HasLink}"
+                                    ToolTip.Tip="Open this item">
+                              <TextBlock Text="{Binding Driver}" Classes="linktext" FontSize="10"/>
+                            </Button>
+                            <TextBlock Text="{Binding Driver}" IsVisible="{Binding !HasLink}"
+                                       FontSize="10" Foreground="#8a8a99" VerticalAlignment="Center"/>
+                          </Panel>
+                          <TextBlock Grid.Column="1" Text="{Binding Qty}" FontSize="10"
+                                     Foreground="#c8c8d8" HorizontalAlignment="Right" Margin="0 0 12 0"/>
+                          <TextBlock Grid.Column="2" Text="{Binding Kind}" FontSize="10"
+                                     Foreground="#666677"/>
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </DataGrid.RowDetailsTemplate>
         </DataGrid>
+      </Grid>
+    </TabItem>
+
+    <!-- ════ Item Needs ═════════════════════════════════════════════════════════
+         The same needs read the other way round: each item once, and every station
+         waiting on it beneath. Station Needs answers "what does this place want";
+         this answers "who is waiting on this, and how much do I need in total". -->
+    <TabItem Header="Item Needs">
+      <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
+          <TextBlock Text="Item Needs" FontSize="15" FontWeight="SemiBold"
+                     Foreground="#c8a84b" VerticalAlignment="Center"/>
+          <Button Content="Refresh" Command="{Binding RefreshNeedsCommand}"
+                  IsEnabled="{Binding !NeedsLoading}" FontSize="11" Padding="10 4"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="1" Text="{Binding NeedsStatus}" FontSize="10" Foreground="#7a8896"
+                   TextWrapping="Wrap" Margin="0 0 0 8"/>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding ItemNeedsView}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                  CanUserSortColumns="True"
+                  AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+          <DataGrid.Styles>
+            <Style Selector="DataGridCell TextBlock">
+              <Setter Property="FontSize" Value="10" />
+            </Style>
+
+            <!-- Group header: the station once, with what its rows add up to, rather than the
+                 Station column repeating it on every line. Same retemplate as the task grid above
+                 — see that comment for why the stock template is replaced rather than styled, and
+                 why PART_ExpanderButton must keep its name.
+                 ⚠️ The item name here is deliberately plain. The header is a
+                 DataGridCollectionViewGroup and knows only its key string, not the row behind it,
+                 so it has no id to open; the Item column on each row carries the link. -->
+            <Style Selector="DataGridRowGroupHeader">
+              <Setter Property="Background" Value="#12121a"/>
+              <Setter Property="Foreground" Value="#c8a84b"/>
+              <Setter Property="MinHeight"  Value="28"/>
+              <Setter Property="Template">
+                <ControlTemplate x:DataType="collections:DataGridCollectionViewGroup">
+                  <Border Background="{TemplateBinding Background}"
+                          BorderBrush="#1e1e2a" BorderThickness="0 1 0 1">
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="6 0"
+                                VerticalAlignment="Center">
+                      <ToggleButton Name="PART_ExpanderButton" Width="12" Height="12"
+                                    Theme="{DynamicResource FluentDataGridRowGroupExpanderButtonTheme}"
+                                    Background="Transparent" BorderThickness="0"/>
+                      <TextBlock Text="{Binding Key}" FontSize="13" FontWeight="SemiBold"
+                                 Foreground="#c8a84b" VerticalAlignment="Center"/>
+                      <TextBlock FontSize="11" Foreground="#8a8a99" VerticalAlignment="Center"
+                                 Text="{Binding Items, Converter={x:Static conv:GroupTotalConverter.Instance},
+                                                 ConverterParameter=Count}"/>
+                    </StackPanel>
+                  </Border>
+                </ControlTemplate>
+              </Setter>
+            </Style>
+          </DataGrid.Styles>
+          <DataGrid.Columns>
+            <!-- ⚠️ A dash rather than an empty cell when nothing itemised the need. Blank reads
+                 as "the feature is broken"; a dash says "asked, and there is nothing to show". -->
+            <DataGridTemplateColumn Header="Why" Width="34" MinWidth="34" CanUserSort="False">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StationNeedRowVm">
+                  <Panel>
+                    <!-- ⚠️ Sized like the Item Contention expander, box and all. Capping the
+                         height at 20 to stop the bigger glyph dragging every row taller cropped
+                         the glyph instead: the line box the character is drawn in is taller than
+                         its ink, so clipping the box clips the triangle. A square button with no
+                         padding holds it whole. -->
+                    <Button Classes="expander" Click="OnNeedToggle"
+                            Background="Transparent" BorderThickness="0" Cursor="Hand"
+                            Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
+                            FontSize="20" Foreground="#8a99a8"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                            IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
+                            ToolTip.Tip="What is asking for this"/>
+                    <TextBlock Text="—" FontSize="12" Foreground="#3f3f4d" Margin="6 0"
+                               VerticalAlignment="Center" IsVisible="{Binding !HasDrivers}"
+                               ToolTip.Tip="Nothing itemised this need"/>
+                  </Panel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="Station" Width="230" SortMemberPath="Station">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StationNeedRowVm">
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenNeedStation" IsVisible="{Binding HasStationLink}"
+                            ToolTip.Tip="Open this station or structure">
+                      <TextBlock Text="{Binding Station}" Classes="linktext"
+                                 TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding Station}" IsVisible="{Binding !HasStationLink}"
+                               ToolTip.Tip="{Binding Station}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                  </Panel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTemplateColumn Header="Item" Width="230" SortMemberPath="Item">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StationNeedRowVm">
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenNeedItem" IsVisible="{Binding HasItemLink}"
+                            ToolTip.Tip="Open in the Item Browser">
+                      <TextBlock Text="{Binding Item}" Classes="linktext"
+                                 TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding Item}" IsVisible="{Binding !HasItemLink}"
+                               ToolTip.Tip="{Binding Item}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                  </Panel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTextColumn Header="Total"   Binding="{Binding Total}"  SortMemberPath="TotalRaw"  Width="110"/>
+            <DataGridTextColumn Header="On hand" Binding="{Binding OnHand}" SortMemberPath="OnHandRaw" Width="110"/>
+
+            <DataGridTemplateColumn Header="Short" Width="110" SortMemberPath="ShortRaw">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StationNeedRowVm">
+                  <TextBlock Text="{Binding Short}" Foreground="{Binding ShortColor}"
+                             FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTextColumn Header="Short value"  Binding="{Binding ShortValue}"
+                                SortMemberPath="ShortValueRaw"  Width="100"/>
+            <DataGridTextColumn Header="Short volume" Binding="{Binding ShortVolume}"
+                                SortMemberPath="ShortVolumeRaw" Width="110"/>
+
+            <!-- The breakdown. These four always add back to Total. -->
+            <DataGridTextColumn Header="Order jobs"       Binding="{Binding OrderJobs}" SortMemberPath="OrderJobsRaw" Width="110"/>
+            <DataGridTextColumn Header="Jobs"             Binding="{Binding Jobs}"      SortMemberPath="JobsRaw"      Width="110"/>
+            <DataGridTextColumn Header="Inventory levels" Binding="{Binding InvLevels}" SortMemberPath="InvLevelsRaw" Width="120"/>
+            <DataGridTextColumn Header="Station levels"   Binding="{Binding StnLevels}" SortMemberPath="StnLevelsRaw" Width="*"/>
+          </DataGrid.Columns>
+
+          <!-- The third level: what is asking for this item HERE. A need is a number until you
+               know what it is for, and "what is this for" is asked of one row at a time — so it
+               opens under the row rather than taking a column that would be empty on most of
+               them. -->
+          <DataGrid.RowDetailsTemplate>
+            <DataTemplate x:DataType="vm:StationNeedRowVm">
+              <Border Background="#0d0d14" BorderBrush="#1e1e2a" BorderThickness="0 1 0 1"
+                      Padding="24 6 8 8" IsVisible="{Binding HasDrivers}">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="ASKED FOR BY" FontSize="9" FontWeight="SemiBold"
+                             Foreground="#555566" LetterSpacing="1"/>
+                  <ItemsControl ItemsSource="{Binding Drivers}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:NeedDriverRowVm">
+                        <Grid ColumnDefinitions="240,110,*" Margin="0 1">
+                          <Panel Grid.Column="0">
+                            <Button Classes="link" Click="OnOpenNeedDriver" IsVisible="{Binding HasLink}"
+                                    ToolTip.Tip="Open this item">
+                              <TextBlock Text="{Binding Driver}" Classes="linktext" FontSize="10"/>
+                            </Button>
+                            <TextBlock Text="{Binding Driver}" IsVisible="{Binding !HasLink}"
+                                       FontSize="10" Foreground="#8a8a99" VerticalAlignment="Center"/>
+                          </Panel>
+                          <TextBlock Grid.Column="1" Text="{Binding Qty}" FontSize="10"
+                                     Foreground="#c8c8d8" HorizontalAlignment="Right" Margin="0 0 12 0"/>
+                          <TextBlock Grid.Column="2" Text="{Binding Kind}" FontSize="10"
+                                     Foreground="#666677"/>
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </DataGrid.RowDetailsTemplate>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
+
+    <!-- ════ Bottlenecks ═════════════════════════════════════════════════════════
+         What is stopping the list from moving, and what each remedy would actually
+         buy. Three different ceilings, reported apart because they are not
+         interchangeable: an account does nothing for a shortage of originals, and
+         neither helps if the material never arrived. -->
+    <TabItem Header="Bottlenecks">
+      <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
+          <TextBlock Text="Bottlenecks" FontSize="15" FontWeight="SemiBold"
+                     Foreground="#c8a84b" VerticalAlignment="Center"/>
+          <Button Content="Refresh" Command="{Binding RefreshBottlenecksCommand}"
+                  IsEnabled="{Binding !BottlenecksLoading}" FontSize="11" Padding="10 4"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="1" Text="{Binding BottleneckStatus}" FontSize="10" Foreground="#7a8896"
+                   TextWrapping="Wrap" Margin="0 0 0 8"/>
+
+
+        <!-- Three questions, three tabs. Slots and blueprints are different ceilings with
+             different remedies, and reading them as one list invited exactly the mistake the
+             Summary will exist to prevent: buying capacity for a shortage of prints. -->
+        <TabControl Grid.Row="2" Padding="0">
+
+          <TabItem Header="Summary" FontSize="12">
+            <!-- ⚠️ Not a grid. Everything here is already available as figures on the other four
+                 tabs; what is missing is the sentence that says which of them matters, and a
+                 table would hand the reader the same sorting problem in a fifth place. -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+              <StackPanel Margin="0 10 14 14" Spacing="14">
+
+                <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                           Text="What to do, in the order worth doing it. Ranked by how much work each one is holding up, across every tab. The supporting figures are on the tabs themselves."/>
+
+                <ItemsControl ItemsSource="{Binding Observations}">
+                  <!-- ⚠️ UniformGrid, not two bound halves. It fills left to right and then
+                       down, which keeps the ranked order readable across the pair; splitting
+                       the list into a left half and a right half would put the second-most
+                       important finding at the top of the right column, and the reader would
+                       have to know that to read it in order. -->
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <UniformGrid Columns="2"/>
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ObservationVm">
+                      <!-- ⚠️ A card, with the accent as a filled bar rather than a border side.
+                           A Border carries one brush for all four sides, so an accent rule and a
+                           card outline cannot be the same element — nesting a filled column
+                           inside the card is what lets the primary finding be marked without
+                           tinting its whole outline. -->
+                      <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                              CornerRadius="4" Margin="0 0 24 18">
+                        <Grid ColumnDefinitions="3,*">
+                          <Border Grid.Column="0" Background="{Binding RuleColor}"
+                                  CornerRadius="3 0 0 3"/>
+                          <StackPanel Grid.Column="1" Margin="14 12 14 12" Spacing="6">
+                          <TextBlock Text="{Binding Marker}" FontSize="10" FontWeight="SemiBold"
+                                     Foreground="{Binding MarkerColor}" LetterSpacing="1"/>
+                          <TextBlock Text="{Binding Headline}" FontSize="15" FontWeight="SemiBold"
+                                     Foreground="#c8c8d8" TextWrapping="Wrap"/>
+                          <TextBlock Text="{Binding Body}" FontSize="13" Foreground="#8a8a99"
+                                     TextWrapping="Wrap" LineHeight="19"/>
+
+                          <ItemsControl ItemsSource="{Binding Points}" IsVisible="{Binding HasPoints}"
+                                        Margin="0 4 0 0">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="x:String">
+                                <Grid ColumnDefinitions="14,*" Margin="0 0 0 4">
+                                  <TextBlock Grid.Column="0" Text="·" FontSize="14"
+                                             Foreground="#555566" VerticalAlignment="Top"/>
+                                  <TextBlock Grid.Column="1" Text="{Binding}" FontSize="13"
+                                             Foreground="#8a8a99" TextWrapping="Wrap" LineHeight="19"/>
+                                </Grid>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                          </StackPanel>
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock FontSize="11" Foreground="#555566" TextWrapping="Wrap"
+                           IsVisible="{Binding !Observations.Count}"
+                           Text="Nothing is holding the pipeline up: no pool has a queue worth the name, no blueprint has work waiting on it, nothing is short of material, and nothing is waiting on a delivery."/>
+              </StackPanel>
+            </ScrollViewer>
+          </TabItem>
+
+          <TabItem Header="Slots" FontSize="12">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+              <StackPanel Spacing="16" Margin="0 8 0 0">
+            <!-- ── Slots ──────────────────────────────────────────────────── -->
+            <StackPanel Spacing="6">
+              <TextBlock Text="SLOTS" FontSize="10" FontWeight="SemiBold"
+                         Foreground="#555566" LetterSpacing="1"/>
+              <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                         Text="Slots are bandwidth, not a shopping list. A queue is work that piled up while throughput sat under demand, so each remedy is measured by what it does to the time needed to catch up. Rates come from the last 90 days of job history, so they already carry the structures and skills in use."/>
+
+              <ItemsControl ItemsSource="{Binding SlotPressure}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:SlotPressureRowVm">
+                    <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                            CornerRadius="4" Padding="12 10" Margin="0 0 0 8">
+                      <StackPanel Spacing="8">
+
+                        <Grid ColumnDefinitions="170,*,Auto">
+                          <TextBlock Grid.Column="0" Text="{Binding Pool}" FontSize="13"
+                                     FontWeight="SemiBold" Foreground="#c8a84b"/>
+                          <TextBlock Grid.Column="1" Text="{Binding Headline}" FontSize="11"
+                                     Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                          <TextBlock Grid.Column="2" Text="{Binding Utilised}" FontSize="16"
+                                     Foreground="{Binding UtilisedColor}" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*,*,*,*,*">
+                          <StackPanel Grid.Column="0" Spacing="1">
+                            <TextBlock Text="Capacity" FontSize="9" Foreground="#555566"/>
+                            <TextBlock Text="{Binding Capacity}" FontSize="12" Foreground="#c8c8d8"/>
+                          </StackPanel>
+                          <StackPanel Grid.Column="1" Spacing="1">
+                            <TextBlock Text="In use" FontSize="9" Foreground="#555566"/>
+                            <TextBlock Text="{Binding InUse}" FontSize="12" Foreground="#c8c8d8"/>
+                          </StackPanel>
+                          <StackPanel Grid.Column="2" Spacing="1">
+                            <TextBlock Text="Free" FontSize="9" Foreground="#555566"/>
+                            <TextBlock Text="{Binding Free}" FontSize="12" Foreground="#c8c8d8"/>
+                          </StackPanel>
+                          <StackPanel Grid.Column="3" Spacing="1">
+                            <TextBlock Text="Waiting on a slot" FontSize="9" Foreground="#555566"/>
+                            <TextBlock Text="{Binding Waiting}" FontSize="12" Foreground="#c8a84b"/>
+                          </StackPanel>
+                          <StackPanel Grid.Column="4" Spacing="1">
+                            <TextBlock Text="Blocked" FontSize="9" Foreground="#555566"/>
+                            <TextBlock Text="{Binding Blocked}" FontSize="12" Foreground="#c85a5a"/>
+                          </StackPanel>
+                          <StackPanel Grid.Column="5" Spacing="1">
+                            <TextBlock Text="Days to catch up" FontSize="9" Foreground="#555566"/>
+                            <TextBlock Text="{Binding ClearDays}" FontSize="12" Foreground="#c8a84b"/>
+                            <!-- kept -->
+                          </StackPanel>
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Remedies}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="wl:SlotRemedy">
+                              <Grid ColumnDefinitions="320,110,230,*" Margin="0 2">
+                                <TextBlock Grid.Column="0" Text="{Binding Action}" FontSize="11"
+                                           Foreground="#c8c8d8" TextWrapping="Wrap" Margin="0 0 10 0"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Gain}" FontSize="11"
+                                           Foreground="#5599aa" HorizontalAlignment="Left"/>
+                                <TextBlock Grid.Column="2" Text="{Binding Effect}" FontSize="10"
+                                           Foreground="#8a8a99" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="3" Text="{Binding Detail}" FontSize="10"
+                                           Foreground="#666677" TextWrapping="Wrap"/>
+                              </Grid>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+              </StackPanel>
+            </ScrollViewer>
+          </TabItem>
+
+
+          <TabItem Header="Item Contention" FontSize="12">
+            <!-- Notes fixed at the top, the list takes the rest. -->
+            <Grid RowDefinitions="Auto,*" Margin="0 8 0 0">
+              <StackPanel Grid.Row="0" Spacing="6">
+                <TextBlock Text="MATERIALS" FontSize="10" FontWeight="SemiBold"
+                           Foreground="#555566" LetterSpacing="1"/>
+                <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                           Text="Materials the pipeline runs out of — the ones nothing owns, not the ones sitting at the wrong station, which is a hauling problem and belongs elsewhere. Ranked by the work each one is holding up. Hover a column heading for what it means. ⚠ Every rate here is a floor: nothing consumed what could not be made, so an item that has been blocking work was used at the rate the blockage allowed rather than the rate that was wanted."/>
+              </StackPanel>
+
+              <DataGrid Grid.Row="1" ItemsSource="{Binding ItemShortages}" IsReadOnly="True"
+                        AutoGenerateColumns="False" FontSize="11"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
+                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                <!-- ⚠️ A resource, not a style. The details presenter reads this brush straight
+                     from the stock template, so a style selector on it never wins and the row
+                     paints a grey that reads as a selection highlight. -->
+                <DataGrid.Resources>
+                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
+                </DataGrid.Resources>
+
+                <!-- The tasks the counts are made of, shown while the row's own glyph is open. -->
+                <DataGrid.RowDetailsTemplate>
+                  <DataTemplate x:DataType="vm:ItemShortageRowVm">
+                    <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
+                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="560">
+                      <ItemsControl ItemsSource="{Binding Tasks}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ShortageTaskRowVm">
+                            <Grid ColumnDefinitions="90,70,230,*" Margin="0 1">
+                              <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
+                                         Foreground="#6e6e80" VerticalAlignment="Top" Margin="0 3 0 0"/>
+                              <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
+                                         Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
+                              <TextBlock Grid.Column="2" Text="{Binding Title}" FontSize="10"
+                                         Margin="{Binding Indent}" Foreground="#c8c8d8"
+                                         TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                              <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10"
+                                         Foreground="#8a8a99" VerticalAlignment="Center"/>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Border>
+                  </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+                <DataGrid.Columns>
+                  <!-- Expander. Only drawn where there are tasks to show, so an empty cell reads
+                       as "nothing to open" rather than as a control that does nothing. -->
+                  <DataGridTemplateColumn Header="" Width="24" CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:ItemShortageRowVm">
+                        <Button Classes="expander" Click="OnShortageToggle"
+                                IsVisible="{Binding HasTasks}"
+                                Content="{Binding Glyph}" FontSize="20"
+                                Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
+                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Cursor="Hand"
+                                HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0 3 0 0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                ToolTip.Tip="Show the tasks behind these counts"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Width="230">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Material" Background="Transparent" ToolTip.Tip="The item that ran short. Click it to open the Item Browser."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:ItemShortageRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenShortageItem" IsVisible="{Binding HasLink}"
+                                  ToolTip.Tip="Open this item">
+                            <TextBlock Text="{Binding Item}" Classes="linktext"/>
+                          </Button>
+                          <TextBlock Text="{Binding Item}" IsVisible="{Binding !HasLink}"
+                                     VerticalAlignment="Top" Margin="0 3 0 0"/>
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn     Binding="{Binding Used}"    Width="75">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Used" Background="Transparent" ToolTip.Tip="Consumed per day over the last 90 days, summed across every blueprint that eats it. An item drawn on by four parents is short four times over."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn     Binding="{Binding Made}"    Width="75">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Made" Background="Transparent" ToolTip.Tip="Produced per day over the same window. A dash means nothing here makes it at all, so the only way to refill it is to buy it."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTemplateColumn Width="75">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Balance" Background="Transparent" ToolTip.Tip="Made per unit consumed. Under 1.00 the shelf is draining however full it looks, and no size of buffer survives that. Amber rather than red during a demand spike, since absorbing exactly that is what a buffer is for."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:ItemShortageRowVm">
+                        <TextBlock Text="{Binding Balance}" Foreground="{Binding BalanceColor}"
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn    Binding="{Binding Level}"   Width="70">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Level" Background="Transparent" ToolTip.Tip="What the inventory levels ask to keep on the shelf. Blank means no level is set for this at all, which is a finding in its own right."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn  Binding="{Binding OnHand}"  Width="80">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="On hand" Background="Transparent" ToolTip.Tip="Units the industry scope can actually reach. Stock outside the scope is not counted, because the plan cannot spend it."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTemplateColumn Width="80">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Need" Background="Transparent" ToolTip.Tip="What the work on the list wants: what is here plus what it fell short by. Red once that exceeds what exists, which can happen with the level fully met."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:ItemShortageRowVm">
+                        <TextBlock Text="{Binding Need}" Foreground="{Binding NeedColor}"
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn    Binding="{Binding Cover}"   Width="65">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Cover" Background="Transparent" ToolTip.Tip="The level measured in days at the current draw. A buffer is a length of time, not a quantity: 200 of something eaten twice a day is 100 days, and 200 of something eaten 200 times a day is one."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn    Binding="{Binding Surge}"   Width="60">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Surge" Background="Transparent" ToolTip.Tip="How much harder this is being drawn on now than across the whole window. Blank under 1.2x. This is what separates a build wave from a standing shortage."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn Binding="{Binding Blocking}" Width="75">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Blocking" Background="Transparent" ToolTip.Tip="Tasks this shortage is holding up: the ones directly short of it, plus the ones stopped for want of what those would have made, and so on up the chain. Tasks, not item types."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn  Binding="{Binding MakeRunning}" Width="70">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Running" Background="Transparent" ToolTip.Tip="Jobs making this item that are installed and running in game right now. Not a task, so nothing on the list asks for it."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn    Binding="{Binding MakeReady}"   Width="60">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Ready" Background="Transparent" ToolTip.Tip="Tasks to make this item that could be started today."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn  Binding="{Binding MakeWaiting}" Width="70">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Waiting" Background="Transparent" ToolTip.Tip="Tasks to make this item held up only by a busy slot."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTemplateColumn Width="60">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Stuck" Background="Transparent" ToolTip.Tip="Tasks to make this item that are blocked in their own right. Red when nothing is running or ready either, which is the shape that does not resolve on its own."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:ItemShortageRowVm">
+                        <TextBlock Text="{Binding MakeBlocked}" Foreground="{Binding MakeBlockedColor}"
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Width="110">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Verdict" Background="Transparent" ToolTip.Tip="What the row amounts to, in a couple of words."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:ItemShortageRowVm">
+                        <TextBlock Text="{Binding Verdict}" Foreground="{Binding VerdictColor}"
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <!-- Wraps, and the row grows to fit. A DataGridTextColumn cannot wrap at all, so the whole
+                       sentence sat on one clipped line and the half worth reading - what to do
+                       about the shortage - was the half off the right edge. -->
+                  <DataGridTemplateColumn Width="*" MinWidth="260"
+                                          CanUserSort="False">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Suggestion" Background="Transparent" ToolTip.Tip="What is happening and what would change it, using the figures on this row rather than telling you where to look."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:ItemShortageRowVm">
+                        <TextBlock Text="{Binding Advice}" TextWrapping="Wrap"
+                                   VerticalAlignment="Top" Margin="0 3 4 3"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </TabItem>
+          <TabItem Header="BPO / Formula" FontSize="12">
+            <!-- A grid, not a stack in a scroller: the notes above it are three fixed lines and
+                 everything left over belongs to the list. -->
+            <Grid RowDefinitions="Auto,*" Margin="0 8 0 0">
+            <StackPanel Grid.Row="0" Spacing="6">
+              <TextBlock Text="BLUEPRINTS" FontSize="10" FontWeight="SemiBold"
+                         Foreground="#555566" LetterSpacing="1"/>
+              <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                         Text="A blueprint bottleneck is having to WAIT for an original to free up — not running one a lot. Ranking on use ranks the fix above the problem: a formula run flat out across eight originals has never blocked anything, and buying the eighth is what settled it. Listed from 5% all-busy up, or 15% for single-BPO items, where the measure degenerates into plain use. Hover a column heading for what it means."/>
+            </StackPanel>
+
+              <DataGrid Grid.Row="1" ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
+                        AutoGenerateColumns="False" FontSize="11"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
+                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                <DataGrid.Resources>
+                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
+                </DataGrid.Resources>
+
+                <!-- The tasks the counts are made of, same shape as Item Contention. -->
+                <DataGrid.RowDetailsTemplate>
+                  <DataTemplate x:DataType="vm:PrintPressureRowVm">
+                    <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
+                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="560">
+                      <ItemsControl ItemsSource="{Binding Tasks}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ShortageTaskRowVm">
+                            <Grid ColumnDefinitions="90,70,230,*" Margin="0 1">
+                              <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
+                                         Foreground="#6e6e80" VerticalAlignment="Top" Margin="0 3 0 0"/>
+                              <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
+                                         Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
+                              <TextBlock Grid.Column="2" Text="{Binding Title}" FontSize="10"
+                                         Margin="{Binding Indent}" Foreground="#c8c8d8"
+                                         TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                              <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10"
+                                         Foreground="#8a8a99" VerticalAlignment="Center"/>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Border>
+                  </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="" Width="24" MinWidth="24"
+                                          CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:PrintPressureRowVm">
+                        <Button Classes="expander" Click="OnPrintToggle"
+                                IsVisible="{Binding HasTasks}"
+                                Content="{Binding Glyph}" FontSize="20"
+                                Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
+                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Cursor="Hand"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                ToolTip.Tip="Show the tasks behind these counts"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Width="220">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Product" Background="Transparent" ToolTip.Tip="What this blueprint or formula makes. Click it to open the Item Browser."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:PrintPressureRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenPrintProduct" IsVisible="{Binding HasLink}"
+                                  ToolTip.Tip="Open this item">
+                            <TextBlock Text="{Binding Product}" Classes="linktext"/>
+                          </Button>
+                          <TextBlock Text="{Binding Product}" IsVisible="{Binding !HasLink}"
+                                     VerticalAlignment="Top" Margin="0 3 0 0"/>
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn     Binding="{Binding Cycle}"    Width="70">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Cycle" Background="Transparent" ToolTip.Tip="How long one run takes, averaged over the jobs actually run rather than from the blueprint."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn       Binding="{Binding Prints}"  Width="55">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="BPO" Background="Transparent" ToolTip.Tip="Originals OWNED. Copies are deliberately not counted: contention is about whether one of yours was free."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn Binding="{Binding Busy}"     Width="75">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Installed" Background="Transparent" ToolTip.Tip="How many of those originals are sitting inside a job at this moment."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn   Binding="{Binding Capacity}"    Width="85">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Ceiling" Background="Transparent" ToolTip.Tip="Units a day the originals on hand could turn out between them, running without a pause."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn      Binding="{Binding Demand}"      Width="85">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Made" Background="Transparent" ToolTip.Tip="Units a day actually produced over the last 90 days. It can never exceed the ceiling, which is why it cannot be used to measure demand."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn Binding="{Binding Used}" Width="60" Foreground="#666677">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Used" Background="Transparent" ToolTip.Tip="Share of each original's time spent inside a job. Context only: it does not identify bottlenecks, and ranking on it ranks heavy use above real constraints."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTemplateColumn Width="75">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="All busy" Background="Transparent" ToolTip.Tip="Share of the last 90 days when EVERY original was occupied at once, counting research and copying as well as building. This is the figure that says whether wanting another job meant waiting."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:PrintPressureRowVm">
+                        <TextBlock Text="{Binding Cover}" Foreground="{Binding CoverColor}"
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Binding="{Binding Rank}" Width="70" Foreground="#666677">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Rank" Background="Transparent" ToolTip.Tip="Where this sits among all your own blueprints. Nothing here uses a fixed cut-off, so the flag is drawn against your own spread."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn Binding="{Binding Recent}" Width="55" Foreground="#666677">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="30d" Background="Transparent" ToolTip.Tip="The same all-busy figure over the last 30 days, so a busy month is not hidden inside a quiet quarter."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTemplateColumn Width="70">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Trend" Background="Transparent" ToolTip.Tip="Whether the recent squeeze is rising, easing or steady against the full window."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:PrintPressureRowVm">
+                        <TextBlock Text="{Binding Trend}" Foreground="{Binding TrendColor}"
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Binding="{Binding WithOneMore}" Width="85">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="+1 print" Background="Transparent" ToolTip.Tip="What the ceiling becomes with one more original. The answer to whether buying one is worth it."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn  Binding="{Binding Wanted}"  Width="65">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Queued" Background="Transparent" ToolTip.Tip="Jobs for this product on the worklist right now. Current demand, which history cannot supply."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn Binding="{Binding Blocked}" Width="95">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Blocked now" Background="Transparent" ToolTip.Tip="Jobs held up by the blueprint ALONE. If the product is also short of material, more prints would change nothing, so this counts zero."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn Binding="{Binding Blocking}" Width="75">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Blocking" Background="Transparent" ToolTip.Tip="Tasks waiting on what this makes: directly, and behind those up the chain. A blueprint can be entirely uncontended and still have a queue piled up behind its output."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTemplateColumn Width="80">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Verdict" Background="Transparent" ToolTip.Tip="What the row amounts to, in a word."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:PrintPressureRowVm">
+                        <TextBlock Text="{Binding Verdict}" Foreground="{Binding VerdictColor}"
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <!-- Wraps, and the row grows to fit; see the Item Contention grid. -->
+                  <DataGridTemplateColumn Width="*" MinWidth="260"
+                                          CanUserSort="False">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Suggestion" Background="Transparent" ToolTip.Tip="What is happening and what would change it."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:PrintPressureRowVm">
+                        <TextBlock Text="{Binding Advice}" TextWrapping="Wrap"
+                                   VerticalAlignment="Top" Margin="0 3 4 3"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </TabItem>
+
+
+          <TabItem Header="Hauling" FontSize="12">
+            <Grid RowDefinitions="Auto,*" Margin="0 8 0 0">
+              <StackPanel Grid.Row="0" Spacing="6">
+                <TextBlock Text="TRIPS" FontSize="10" FontWeight="SemiBold"
+                           Foreground="#555566" LetterSpacing="1"/>
+                <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                           Text="Jobs stopped for want of material that is already owned and sitting somewhere else — the other half of Item Contention, where the fix is a trip rather than a purchase. Every row is a job that could run the moment its material arrives. Hover a column heading for what it means."/>
+
+                <!-- ⚠️ Above the grid, not in it. One row per stopped job is right for "what is
+                     stuck" and cannot say "these four are one errand" — the same trip appears
+                     four times with nothing marking them as the same delivery. -->
+                <Border IsVisible="{Binding HasSharedTrips}" Margin="0 4 0 0" Padding="10 7"
+                        Background="#0f0f16" BorderBrush="#2c2c3a" BorderThickness="1"
+                        CornerRadius="3" HorizontalAlignment="Left">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="ONE TRIP, SEVERAL JOBS" FontSize="9" FontWeight="SemiBold"
+                               Foreground="#c8a84b" LetterSpacing="1"/>
+                    <ItemsControl ItemsSource="{Binding SharedTrips}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                          <TextBlock Text="{Binding}" FontSize="10" Foreground="#8a8a99"
+                                     TextWrapping="Wrap" Margin="0 1"/>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+
+              <DataGrid Grid.Row="1" ItemsSource="{Binding HaulPressures}" IsReadOnly="True"
+                        AutoGenerateColumns="False" FontSize="11"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
+                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                <DataGrid.Resources>
+                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
+                </DataGrid.Resources>
+
+                <DataGrid.RowDetailsTemplate>
+                  <DataTemplate x:DataType="vm:HaulPressureRowVm">
+                    <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
+                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="900">
+                      <ItemsControl ItemsSource="{Binding Tasks}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ShortageTaskRowVm">
+                            <Grid ColumnDefinitions="70,70,240,*" Margin="0 1">
+                              <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
+                                         Foreground="#6e6e80" VerticalAlignment="Center"/>
+                              <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
+                                         Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
+                              <TextBlock Grid.Column="2" Text="{Binding Title}" FontSize="10"
+                                         Margin="{Binding Indent}" Foreground="#c8c8d8"
+                                         TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                              <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10" TextWrapping="Wrap"
+                                         Foreground="#8a8a99" VerticalAlignment="Center"/>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Border>
+                  </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Width="24" MinWidth="24"
+                                          CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:HaulPressureRowVm">
+                        <Button Classes="expander" Click="OnHaulToggle"
+                                IsVisible="{Binding HasTasks}"
+                                Content="{Binding Glyph}" FontSize="20"
+                                Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
+                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Cursor="Hand"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                ToolTip.Tip="Show the tasks behind these counts"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+
+                  <DataGridTemplateColumn Width="250">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Job" Background="Transparent"
+                                 ToolTip.Tip="The stopped job. It is short of nothing but material already owned, so it runs as soon as that material reaches it."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:HaulPressureRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenHaulItem" IsVisible="{Binding HasItemLink}"
+                                  ToolTip.Tip="Open what this job makes">
+                            <TextBlock Text="{Binding Task}" Classes="linktext"/>
+                          </Button>
+                          <TextBlock Text="{Binding Task}" IsVisible="{Binding !HasItemLink}"
+                                     VerticalAlignment="Center"/>
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+
+                  <DataGridTemplateColumn Width="230">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Waiting at" Background="Transparent"
+                                 ToolTip.Tip="Where the job would run, and so where the material has to arrive."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:HaulPressureRowVm">
+                        <Panel>
+                          <Button Classes="link" Click="OnOpenHaulStation" IsVisible="{Binding HasStationLink}"
+                                  ToolTip.Tip="Open this station">
+                            <TextBlock Text="{Binding Station}" Classes="linktext"/>
+                          </Button>
+                          <TextBlock Text="{Binding Station}" IsVisible="{Binding !HasStationLink}"
+                                     VerticalAlignment="Center"/>
+                        </Panel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+
+                  <DataGridTextColumn Binding="{Binding Blocking}" Width="80">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Blocking" Background="Transparent"
+                                 ToolTip.Tip="Jobs stopped behind this one: those short of what it would have made, and those behind them up the chain. What starts moving again once this job can run."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Binding="{Binding Items}" Width="65">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Items" Background="Transparent"
+                                 ToolTip.Tip="Distinct item types this job is waiting on."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Binding="{Binding Volume}" Width="90">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Volume" Background="Transparent"
+                                 ToolTip.Tip="Cubic metres this job is short of, so the trip can be sized before it is planned."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Binding="{Binding Sources}" Width="80">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Stops" Background="Transparent"
+                                 ToolTip.Tip="Stops a hauler would have to make to cover what is short, largest source first. NOT the number of hangars holding the item: Tritanium sits in thirteen of them and one covers the job."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Binding="{Binding Hauls}" Width="70">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="Hauls" Background="Transparent"
+                                 ToolTip.Tip="Hauls already on the worklist bringing any of this job's missing material to it. Blank is the finding: the material exists, the job is stopped, and nothing is moving it."/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+
+                  <DataGridTemplateColumn Width="120">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Verdict" Background="Transparent"
+                                 ToolTip.Tip="What the row amounts to, in a word."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:HaulPressureRowVm">
+                        <TextBlock Text="{Binding Verdict}" Foreground="{Binding VerdictColor}"
+                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+
+                  <DataGridTemplateColumn Width="*" MinWidth="260" CanUserSort="False">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="Suggestion" Background="Transparent"
+                                 ToolTip.Tip="What is happening and what would change it."/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:HaulPressureRowVm">
+                        <TextBlock Text="{Binding Advice}" TextWrapping="Wrap"
+                                   VerticalAlignment="Top" Margin="0 3 4 3"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </TabItem>
+        </TabControl>
+      </Grid>
+    </TabItem>
+    <!-- ════ Final Products ═════════════════════════════
+         What all the work above is for. Every other tab is about what to do next; this one is
+         the record of what that work produced — each job whose output is something the operation
+         sells, with what it cost and what it was worth on the day it landed. -->
+    <TabItem Header="Final Products">
+      <Grid Margin="10" RowDefinitions="Auto,*,8,260"
+            DataContext="{Binding FinalProductsVm}" x:DataType="vm:WorklistFinalProductsViewModel">
+
+        <!-- Filters -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*"
+              Margin="0 0 0 8">
+          <TextBlock Grid.Column="0" Text="Completed" VerticalAlignment="Center"
+                     FontSize="11" Foreground="#555566" Margin="0 0 8 0" />
+          <TextBox Grid.Column="1" Text="{Binding From}" Watermark="from yyyy-MM-dd"
+                   FontSize="11" MinWidth="120" Background="#1a1a28" Foreground="#c8c8d8"
+                   BorderBrush="#2a2a3a" />
+          <TextBox Grid.Column="2" Text="{Binding Thru}" Watermark="thru yyyy-MM-dd"
+                   FontSize="11" MinWidth="120" Margin="6 0 0 0" Background="#1a1a28"
+                   Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+
+          <!-- What the output is worth. A shop selling at a fixed margin over cost never sees the
+               market price, so valuing its work by one describes somebody else's business. -->
+          <TextBlock Grid.Column="3" Text="Value at" VerticalAlignment="Center"
+                     FontSize="11" Foreground="#555566" Margin="16 0 8 0" />
+          <ComboBox Grid.Column="4" ItemsSource="{Binding Valuations}"
+                    SelectedItem="{Binding Valuation}"
+                    FontSize="11" MinWidth="120" Background="#1a1a28" Foreground="#c8c8d8"
+                    BorderBrush="#2a2a3a" />
+
+          <!-- ⚠️ Wide enough for the DIGITS: a NumericUpDown spends most of its width on the two
+               spinner buttons. Hidden rather than disabled when the market is being quoted — a
+               greyed box invites a click that does nothing. -->
+          <NumericUpDown Grid.Column="5" Value="{Binding OverBuildPercent}"
+                         IsVisible="{Binding IsOverBuild}"
+                         Minimum="0" Maximum="1000" Increment="1" FormatString="0"
+                         Width="120" FontSize="11" Margin="6 0 0 0"
+                         Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+
+          <TextBlock Grid.Column="6" Text="Chart by" VerticalAlignment="Center"
+                     FontSize="11" Foreground="#555566" Margin="16 0 8 0" />
+          <ComboBox Grid.Column="7" ItemsSource="{Binding Grains}" SelectedItem="{Binding Grain}"
+                    FontSize="11" MinWidth="100" Background="#1a1a28" Foreground="#c8c8d8"
+                    BorderBrush="#2a2a3a" />
+
+          <Button Grid.Column="8" Command="{Binding RefreshCommand}" Content="Refresh"
+                  FontSize="11" Padding="12 4" Margin="16 0 0 0"
+                  Background="#1a1a28" Foreground="#888899" BorderBrush="#2a2a3a" />
+
+          <TextBlock Grid.Column="9" Text="{Binding StatusText}" FontSize="11"
+                     Foreground="#666677" VerticalAlignment="Center"
+                     HorizontalAlignment="Right" Margin="16 0 0 0" />
+        </Grid>
+
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Jobs}"
+                  AutoGenerateColumns="False" IsReadOnly="True"
+                  CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                  Background="Transparent" HeadersVisibility="Column">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Item"   Binding="{Binding Item}"   Width="*" />
+            <DataGridTextColumn Header="Why"    Binding="{Binding Source}" Width="120" />
+            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" />
+            <!-- Sorted on the number: 9 does not outrank 50. -->
+            <DataGridTextColumn Header="Units"  Binding="{Binding UnitsText}"
+                                SortMemberPath="Units" Width="90" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Started" Binding="{Binding StartedText}" Width="100" />
+            <!-- ⚠️ Sorted on the tick count, not the text: the column shows a date, and two jobs
+                 finishing on one day are not interchangeable. -->
+            <DataGridTextColumn Header="Completed" Binding="{Binding CompletedText}"
+                                SortMemberPath="CompletedSort" Width="110" />
+            <DataGridTextColumn Header="Build Cost" Binding="{Binding BuildText}"
+                                SortMemberPath="BuildCost" Width="120" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Market Value" Binding="{Binding MarketText}"
+                                SortMemberPath="MarketValue" Width="120" CellStyleClasses="num" />
+            <DataGridTemplateColumn Header="Potential Profit" Width="130"
+                                    SortMemberPath="PotentialProfit" CellStyleClasses="num">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:FinalProductJobVm">
+                  <TextBlock Text="{Binding ProfitText}" Foreground="{Binding ProfitColor}"
+                             VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Potential %" Binding="{Binding ProfitPct}"
+                                SortMemberPath="ProfitPctRaw" Width="90" CellStyleClasses="num" />
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- The grid's own figures, summed into the chosen bucket. Side by side because the
+             question is whether profit follows value or diverges from it. -->
+        <Grid Grid.Row="3" ColumnDefinitions="*,10,*">
+          <Border Grid.Column="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="10 8">
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Top" Text="Market value" FontSize="12"
+                         FontWeight="SemiBold" Foreground="#5599aa" Margin="0 0 0 6" />
+              <lvc:CartesianChart Series="{Binding MarketSeries}"
+                                  XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
+                                  TooltipPosition="Top" EasingFunction="{x:Null}"
+                                  Background="Transparent" />
+            </DockPanel>
+          </Border>
+
+          <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="10 8">
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Top" Text="Potential profit" FontSize="12"
+                         FontWeight="SemiBold" Foreground="#4a8a5a" Margin="0 0 0 6" />
+              <lvc:CartesianChart Series="{Binding ProfitSeries}"
+                                  XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
+                                  TooltipPosition="Top" EasingFunction="{x:Null}"
+                                  Background="Transparent" />
+            </DockPanel>
+          </Border>
+        </Grid>
       </Grid>
     </TabItem>
 
@@ -864,6 +2047,21 @@
                                  Background="Transparent" BorderThickness="0" Foreground="#c8c8d8"
                                  HorizontalAlignment="Stretch" VerticalAlignment="Center"
                                  ToolTip.Tip="Fill back up to this share of the group target"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <!-- FINAL — what the operation sells or flies, as opposed to a group held so the
+                 next thing can be built. Work that unblocks a final product outranks work that
+                 only refills a buffer, and nothing in the data can tell them apart: the answer
+                 is per operation, hulls here and rigs or modules elsewhere. -->
+            <DataGridTemplateColumn Header="Final" Width="60" SortMemberPath="IsFinal"
+                                    IsReadOnly="False">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:InvRuleRow">
+                  <CheckBox IsChecked="{Binding IsFinal, Mode=TwoWay}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            ToolTip.Tip="This group is sold or flown, not an input. Work that unblocks it is ranked above work that only refills a buffer."/>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>

@@ -135,6 +135,24 @@
             </Grid>
           </Button>
 
+          <!-- Scheduler. Drawn rather than set as a glyph, to sit beside the beacon in the same
+               register — and because the clock faces in the font are emoji, which ignore
+               Foreground. -->
+          <Button x:Name="SchedulerButton"
+                  Background="Transparent" BorderThickness="0"
+                  Padding="6 4" VerticalAlignment="Center"
+                  ToolTip.Tip="Scheduler"
+                  Click="OnSchedulerClick">
+            <Canvas Width="18" Height="18">
+              <Ellipse Canvas.Left="1" Canvas.Top="1" Width="16" Height="16"
+                       Stroke="#888" StrokeThickness="1.4" />
+              <!-- Hands at ten past ten: the angle a clock is drawn at when it stands in for the
+                   idea of one. -->
+              <Path Data="M 9,9 L 9,4.4"     Stroke="#888" StrokeThickness="1.4" StrokeLineCap="Round" />
+              <Path Data="M 9,9 L 12.4,10.6" Stroke="#888" StrokeThickness="1.4" StrokeLineCap="Round" />
+            </Canvas>
+          </Button>
+
           <Button x:Name="GearButton" Content="⚙" FontSize="18"
                   Background="Transparent" BorderThickness="0"
                   Foreground="#888" Padding="8 4" VerticalAlignment="Center"
@@ -359,6 +377,9 @@
               <DataTemplate DataType="vm:AlarmsViewModel">
                 <views:AlarmsView />
               </DataTemplate>
+              <DataTemplate DataType="vm:SchedulerViewModel">
+                <views:SchedulerView />
+              </DataTemplate>
               <DataTemplate DataType="vm:JumpPlannerViewModel">
                 <views:JumpPlannerView />
               </DataTemplate>
@@ -370,6 +391,9 @@
               </DataTemplate>
               <DataTemplate DataType="vm:SalePostingViewModel">
                 <views:SalePostingView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:StoresViewModel">
+                <views:StoresView />
               </DataTemplate>
               <DataTemplate DataType="vm:TradeOpportunitiesViewModel">
                 <views:TradeOpportunitiesView />

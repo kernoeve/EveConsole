@@ -213,6 +213,15 @@ public class AppDbContext : DbContext
     public DbSet<SalePostingItem>    SalePostingItems    => Set<SalePostingItem>();
     public DbSet<SalePostingPost>    SalePostingPosts    => Set<SalePostingPost>();
 
+    // ── Stores (EVE mail order desk) ────────────────────────────────────────
+    public DbSet<Store>       Stores       => Set<Store>();
+    public DbSet<SlackWebhook>  SlackWebhooks  => Set<SlackWebhook>();
+    public DbSet<ScheduledTask> ScheduledTasks => Set<ScheduledTask>();
+    public DbSet<StoreSender> StoreSenders => Set<StoreSender>();
+    public DbSet<StoreMail>   StoreMails   => Set<StoreMail>();
+    public DbSet<OrderLabel>  OrderLabels  => Set<OrderLabel>();
+    public DbSet<SaleLabel>   SaleLabels   => Set<SaleLabel>();
+
     // ── Indy Parks ──────────────────────────────────────────────────────────
     public DbSet<IndyPark>               IndyParks               => Set<IndyPark>();
     public DbSet<IndyStructure>          IndyStructures          => Set<IndyStructure>();
@@ -995,6 +1004,34 @@ public class AppDbContext : DbContext
         mb.Entity<TrackedOrder>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("TrackedOrders"); });
+
+        mb.Entity<Store>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("Stores"); });
+
+        mb.Entity<SlackWebhook>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("SlackWebhooks"); });
+
+        mb.Entity<ScheduledTask>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("ScheduledTasks"); });
+
+        mb.Entity<StoreSender>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("StoreSenders"); });
+
+        mb.Entity<StoreMail>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("StoreMails"); });
+
+        mb.Entity<OrderLabel>(e => {
+            e.HasKey(x => new { x.OrderId, x.Label });
+            e.ToTable("OrderLabels"); });
+
+        mb.Entity<SaleLabel>(e => {
+            e.HasKey(x => new { x.Kind, x.SaleId, x.Label });
+            e.ToTable("SaleLabels"); });
 
         mb.Entity<AppErrorEntry>(e => {
             e.HasKey(x => x.Id);

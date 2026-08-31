@@ -84,6 +84,24 @@ public class WorklistInvRule
     /// and a rule that could only buy would tell you to purchase things you manufacture.
     /// </summary>
     public string Action { get; set; } = "Buy";
+
+    /// <summary>
+    /// This group is something the operation sells or flies, not an input held so the next thing
+    /// can be built.
+    ///
+    /// <para>⚠️ A count of blocked work cannot tell a customer from a cupboard. Nanotransistors
+    /// blocks eleven tasks and ten of them are component buffers refilling themselves — real
+    /// work, whose only customer is the shelf it came from. An isotropic blocking a Neurolink
+    /// cell blocks every standard capital hull. Both score eleven; only one is worth a slot
+    /// today.</para>
+    ///
+    /// <para>On the RULE rather than on the inventory level, because the level is a stocking
+    /// target and this is a statement about what the pipeline is for. It is also per group,
+    /// which is the grain people actually think in: "Titans" is final, "Capital Parts" is not.
+    /// Off by default, and hand-set — nothing in the blueprint tree can derive it, and the
+    /// answer differs between operations.</para>
+    /// </summary>
+    public bool IsFinalProduct { get; set; }
 }
 
 /// <summary>

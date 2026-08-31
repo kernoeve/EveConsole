@@ -40,6 +40,7 @@ public class MainWindowViewModel : ReactiveObject
     public StructureBrowserViewModel      StructureBrowserVm     { get; }
     public UniverseViewModel              UniverseVm             { get; }
     public AlarmsViewModel                AlarmsVm               { get; }
+    public SchedulerViewModel             SchedulerVm            { get; }
     public JumpPlannerViewModel           JumpPlannerVm          { get; }
     public AlarmActionRunner              AlarmActions           { get; }
     public WalletViewModel                WalletVm               { get; }
@@ -61,6 +62,7 @@ public class MainWindowViewModel : ReactiveObject
     public MarketLevelViewModel           MarketLevelVm          { get; }
     public InvLevelViewModel              InvLevelVm             { get; }
     public SalePostingViewModel           SalePostingVm          { get; }
+    public StoresViewModel                StoresVm               { get; }
     public CorpActivityViewModel          CorpActivityVm         { get; }
     public KillmailBrowserViewModel       KillmailBrowserVm      { get; }
     public EveMailViewModel               EveMailVm              { get; }
@@ -353,7 +355,8 @@ public class MainWindowViewModel : ReactiveObject
             SelectedTab = existing;
             // Returning to an already-open tab has to refresh too, or an alarm that fired while
             // the tab sat in the background shows nothing until something else triggers a load.
-            if (toolId == "alarms") _ = AlarmsVm.LoadAsync();
+            if (toolId == "alarms")    _ = AlarmsVm.LoadAsync();
+            if (toolId == "scheduler") _ = SchedulerVm.LoadAsync();
             return;
         }
 
@@ -370,12 +373,14 @@ public class MainWindowViewModel : ReactiveObject
             "structure_browser" => ("Structure Browser", StructureBrowserVm, true),
             "universe"        => ("Universe",        UniverseVm,        true),
             "alarms"          => ("Alarms",          AlarmsVm,          true),
+            "scheduler"       => ("Scheduler",       SchedulerVm,       true),
             "jump_planner"    => ("Jump Planner",    JumpPlannerVm,     true),
             "trade"           => ("Trade",           TradeOpportunitiesVm,     true),
             "industry_opps"   => ("Industry Opps",   IndustryOpportunitiesVm,  true),
             "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
             "inv_levels"      => ("Inv. Levels",     InvLevelVm,               true),
             "sale_posting"    => ("Sale Posting",    SalePostingVm,            true),
+            "stores"          => ("Stores",          StoresVm,                 true),
             "net_worth"  => ("Net Worth",       NetWorthVm,               true),
             "income_expense" => ("Income & Expense", IncomeExpenseVm,     true),
             "wallet"         => ("Wallet",          WalletVm,          true),
@@ -411,7 +416,8 @@ public class MainWindowViewModel : ReactiveObject
 
         // Loaded on open rather than at construction — nothing else needs the alarm list, and
         // a fresh read also picks up anything the agent created since the tab was last shown.
-        if (toolId == "alarms") _ = AlarmsVm.LoadAsync();
+        if (toolId == "alarms")    _ = AlarmsVm.LoadAsync();
+        if (toolId == "scheduler") _ = SchedulerVm.LoadAsync();
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
         if (navItem is not null) navItem.IsOpen = true;
@@ -467,6 +473,8 @@ public class MainWindowViewModel : ReactiveObject
         MarketLevelService              marketLevelService,
         InvLevelService                 invLevelService,
         SalePostingService              salePostingService,
+        StoreMailService                storeMailService,
+        OrderLabelService               orderLabels,
         BatchAddService                 batchAddService,
         CorpActivityService             corpActivityService,
         CharacterSummaryService         characterSummaryService,
@@ -475,6 +483,7 @@ public class MainWindowViewModel : ReactiveObject
         EveConsole.Services.Worklist.WorklistMarketAltService worklistMarketAltService,
         EveConsole.Services.Worklist.WorklistCorpAltService worklistCorpAltService,
         EveConsole.Services.Worklist.IndustryAssignmentService industryAssignmentService,
+        EveConsole.Services.Worklist.IndustryBlueprintService  industryBlueprintService,
         EveConsole.Services.Worklist.WorklistSettings worklistSettings,
         IndyFacilityCheckService        indyFacilityCheck,
         IndyStructureLinkService        indyStructureLink,
@@ -496,6 +505,7 @@ public class MainWindowViewModel : ReactiveObject
         AppPreferencesService           appPrefs,
         DatabaseBackupService           dbBackup,
         CorpTop10ExcludeService         corpTop10Exclude,
+        CorpReportTitles                 corpReportTitles,
         MarketHistoryService            historyService,
         ContractsService                contractsService,
         SlackService                    slackService,
@@ -524,7 +534,9 @@ public class MainWindowViewModel : ReactiveObject
         AlarmActionRunner               alarmActions,
         JumpPlannerService              jumpPlanner,
         LpStoreService                  lpStoreService,
-        LpValueService                  lpValueService)
+        LpValueService                  lpValueService,
+        SchedulerService                schedulerService,
+        ScheduledBlockRenderer          blockRenderer)
     {
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
@@ -559,7 +571,8 @@ public class MainWindowViewModel : ReactiveObject
             batchAddService, prodCalcService, fittingsService,
             CharacterVm.Characters, CharacterVm.Corporations);
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
-        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, slackService, exportFormat);
+        StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger);
+        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
@@ -581,6 +594,7 @@ public class MainWindowViewModel : ReactiveObject
         };
         OverviewVm.NavigateToStandingBuyOrders = () => OpenTool("standing_buy_orders");
         OverviewVm.NavigateToIndustryJobs      = () => OpenTool("industry");
+        OverviewVm.NavigateToOrderTracker      = () => OpenTool("order_tracker");
         OverviewVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");
@@ -593,7 +607,7 @@ public class MainWindowViewModel : ReactiveObject
 
         PriceHistorySettingsVm = new PriceHistorySettingsViewModel(dbFactory.CreateDbContext());
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
-        CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude);
+        CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude, corpReportTitles);
         ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService, dbFactory, appPrefs);
         IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger,
                                                         indyStructureLink, indyBulkAdd, pollingService);
@@ -601,7 +615,7 @@ public class MainWindowViewModel : ReactiveObject
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
         MarketViewerVm         = new MarketViewerViewModel(dbFactory, errorLogger);
-        SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService);
+        SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService, orderLabels);
         SaleListingBuildVm     = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.BuildCost);
         SaleListingMarketVm    = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.MarketValue);
         OverviewVm.SaleListingBuild  = SaleListingBuildVm;   // let the Overview embed them as sections
@@ -609,14 +623,19 @@ public class MainWindowViewModel : ReactiveObject
         OverviewVm.IncomeExpense     = IncomeExpenseVm;
         SaleListingBuildVm.OpenSalesTracker  = () => OpenTool("sales_tracker");
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
-        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, errorLogger);
+        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
         WorklistVm             = new WorklistViewModel(worklistService,
                                      new WorklistMarketAltsViewModel(worklistMarketAltService, corpActivityService, dbFactory),
                                      new WorklistInvRulesViewModel(dbFactory, corpActivityService, worklistMarketAltService),
                                      new WorklistCorpAltsViewModel(dbFactory, worklistCorpAltService),
                                      new WorklistIndustryViewModel(dbFactory, industryAssignmentService, worklistSettings, errorLogger, corpActivityService, worklistMarketAltService),
-                                     new WorklistStationLevelsViewModel(dbFactory, corpActivityService, worklistSettings));
+                                     new WorklistStationLevelsViewModel(dbFactory, corpActivityService, worklistSettings),
+                                     new WorklistFinalProductsViewModel(dbFactory, appPrefs, errorLogger),
+                                     new EveConsole.Services.Worklist.BottleneckService(dbFactory, industryAssignmentService,
+                                                           industryBlueprintService, worklistSettings),
+                                     new EveConsole.Services.Worklist.ItemContentionService(dbFactory, worklistSettings),
+                                     new EveConsole.Services.Worklist.HaulPressureService(dbFactory, worklistSettings));
 
         // ⚠️ After construction, not with the other Overview wiring above — WorklistVm does not
         // exist until this line, so assigning it earlier set null and left every worklist section
@@ -647,6 +666,8 @@ public class MainWindowViewModel : ReactiveObject
             universeMapService, mapStatsService,
             new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds);
+        SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService,
+                                                        corpActivityService, salePostingService, errorLogger);
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
 
         // One wiring for every killmail row in the app — browser, corp activity, system
@@ -826,6 +847,7 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("order_tracker", "Order Tracker"),
                 new NavItem("sales_tracker", "Sales Tracker"),
                 new NavItem("sale_posting",  "Sale Posting"),
+                new NavItem("stores",        "Stores"),
             ]),
             new("Finance",
             [

@@ -36,7 +36,7 @@
     <!-- ── Toolbar ──────────────────────────────────────────────────── -->
     <Border Grid.Row="0" Background="#12121a" Padding="12 8"
             BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
-      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*">
 
         <Button Grid.Column="0"
                 Command="{Binding AddPostingCommand}"
@@ -52,16 +52,23 @@
                 BorderBrush="#2a3a44" BorderThickness="1"
                 Padding="12 4" FontSize="11" Margin="8 0 0 0" />
 
-        <TextBlock Grid.Column="2" Text="Profit based on"
+        <Button Grid.Column="2"
+                Click="OnImportPosting"
+                Content="Import Posting"
+                Background="#1a1a28" Foreground="#5599aa"
+                BorderBrush="#2a3a44" BorderThickness="1"
+                Padding="12 4" FontSize="11" Margin="8 0 0 0" />
+
+        <TextBlock Grid.Column="3" Text="Profit based on"
                    FontSize="11" Foreground="#888899"
                    VerticalAlignment="Center" Margin="16 0 6 0" />
-        <ComboBox Grid.Column="3"
+        <ComboBox Grid.Column="4"
                   ItemsSource="{Binding ProfitBasisOptions}"
                   SelectedItem="{Binding SelectedProfitBasis}"
                   MinWidth="90" FontSize="11"
                   Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
 
-        <TextBlock Grid.Column="4"
+        <TextBlock Grid.Column="5"
                    Text="{Binding StatusText}"
                    FontSize="11" Foreground="#666677"
                    VerticalAlignment="Center" Margin="16 0 0 0" />
@@ -169,6 +176,13 @@
                           Background="#2a1010" Foreground="#aa4444"
                           BorderBrush="#3a2020" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
+                  <!-- Export sits on the row, not the toolbar: it exports THIS posting, and a
+                       toolbar button would have to explain which one it meant. Click rather than
+                       a command because it opens a file picker, which needs the window. -->
+                  <Button Click="OnExportPosting" Content="Export"
+                          Background="#1a1a28" Foreground="#5599aa"
+                          BorderBrush="#2a3a44" BorderThickness="1"
+                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
                   <!-- ScopeDisplay split so the location name can link while the scope word stays
                        plain. Falls back to the joined string on an "Everywhere" posting, which
                        has no location and nothing to open. -->
@@ -248,6 +262,19 @@
                        IsVisible="{Binding IsItem}"
                        Watermark="—"
                        Text="{Binding NamePrefix, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- COLOUR — six-digit hex, EVE mail only. Blank falls back to the section's colour, or
+             to whatever the by-state rule says if the posting has one. -->
+        <DataGridTemplateColumn Header="COLOUR" Width="90" MinWidth="70">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBox x:CompileBindings="False" Classes="cell"
+                       IsVisible="{Binding IsItem}"
+                       Watermark="#rrggbb"
+                       Text="{Binding ColorHex, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

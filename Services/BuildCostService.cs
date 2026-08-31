@@ -10,7 +10,7 @@ namespace EveConsole.Services;
 public class BuildCostService
 {
     // Blueprint ME assumptions live in IndustryMe (shared with the Production Calculator):
-    // ME10 default, T2 ME3, BPC-only/faction ME0, titans & Keepstars ME9, reactions ME0.
+    // ME10 default, T2 ME3, BPC-only/faction ME0, titans/Keepstar/Fortizar ME9, reactions ME0.
 
     // Upwell role bonuses: -3% job gross cost, -1% material requirements (Engineering Complexes).
     private const double UpwellRoleBonus     = 0.97;
@@ -38,30 +38,12 @@ public class BuildCostService
     private const double MfgSkillFactor    = 0.68; // Industry V (0.80) × Advanced Industry V (0.85)
     private const double RxnSkillFactor    = 0.85; // reactions: Advanced Industry V only; no TE research
 
-    private static string RigCategoryFromName(string n)
-    {
-        if (n.Contains("Advanced Small Ship"))     return "adv_small_ships";
-        if (n.Contains("Basic Small Ship"))        return "small_ships";
-        if (n.Contains("Advanced Medium Ship"))    return "adv_medium_ships";
-        if (n.Contains("Basic Medium Ship"))       return "medium_ships";
-        if (n.Contains("Advanced Large Ship"))     return "adv_large_ships";
-        if (n.Contains("Basic Large Ship"))        return "large_ships";
-        if (n.Contains("Capital Ship"))            return "capital_ships";
-        if (n.Contains("Drone and Fighter"))       return "drones_fighters";
-        if (n.Contains("Equipment"))               return "modules_equipment";
-        if (n.Contains("Ammunition"))              return "ammo_charges";
-        if (n.Contains("Basic Capital Component")) return "capital_components";
-        if (n.Contains("Advanced Component"))      return "adv_components";
-        if (n.Contains("Structure"))               return "structure_ammo";
-        // Tatara L-Set: one generic rig applies to ALL reaction types — use wildcard key.
-        // Athanor M-Set: separate rigs per reaction subcategory — use specific keys.
-        if (n.Contains("L-Set Reactor"))           return "biochemical_reactions";  // wildcard
-        if (n.Contains("Biochemical Reactor"))     return "react_bio_gas";
-        if (n.Contains("Composite Reactor"))       return "react_composite";
-        if (n.Contains("Hybrid Reactor"))          return "react_composite";
-        if (n.Contains("Reactor"))                 return "biochemical_reactions";  // fallback wildcard
-        return "";
-    }
+    /// <summary>
+    /// ⚠️ One copy, in IndyRigMatching. This was a third private transcription of the same
+    /// rules, and the three had already drifted: the XL rigs were missing from every one of
+    /// them, so a Sotiyo costed a titan with no rig bonus at all.
+    /// </summary>
+    private static string RigCategoryFromName(string n) => IndyRigMatching.RigCategoryFromName(n);
 
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IHttpClientFactory   _httpFactory;
@@ -298,12 +280,11 @@ public class BuildCostService
         double RigBonus(IndyStructure? s, string itemCategoryKey, Dictionary<int, double> bonusAttr)
         {
             if (s is null) return 0;
-            bool isReactionCat = itemCategoryKey.StartsWith("react_");
             return rigs.Where(r =>
                 {
                     if (r.StructureId != s.Id || r.RigTypeId == 0) return false;
                     var rigCat = rigCategoryKeys.GetValueOrDefault(r.RigTypeId, "");
-                    return rigCat == itemCategoryKey || (isReactionCat && rigCat == "biochemical_reactions");
+                    return IndyRigMatching.RigApplies(rigCat, itemCategoryKey);
                 })
                 .Sum(r => bonusAttr.TryGetValue(r.RigTypeId, out var b) ? b * SecMult(s, r.RigTypeId) : 0.0);
         }
@@ -395,10 +376,14 @@ public class BuildCostService
             .Select(t => new { t.TypeId, t.MetaGroupId })
             .ToListAsync(ct);
         var t2TypeIds      = metaGroupTypes.Where(t => t.MetaGroupId == 2).Select(t => t.TypeId).ToHashSet();
-        // Titans (group 30) and the Keepstar get ME9; other items follow the standard rule.
+        // Titans (30), supercarriers (659), the Keepstar and the Fortizar get ME9; other items
+        // follow the standard rule.
         var titanKeepstarIds = (await db.SdeTypes.AsNoTracking()
             .Where(t => productTypeIds.Contains(t.TypeId)
-                     && (t.GroupId == IndustryMe.TitanGroupId || t.TypeId == IndustryMe.KeepstarTypeId))
+                     && (t.GroupId == IndustryMe.TitanGroupId
+                      || t.GroupId == IndustryMe.SuperGroupId
+                      || t.TypeId  == IndustryMe.KeepstarTypeId
+                      || t.TypeId  == IndustryMe.FortizarTypeId))
             .Select(t => t.TypeId).ToListAsync(ct)).ToHashSet();
 
         // BPO-sourced blueprints: the blueprint type is buyable on the market (has a market group)
@@ -428,6 +413,17 @@ public class BuildCostService
             .Select(r => r.ProductTypeId).ToHashSet();
         bool BlueprintIsBpoSourced(int bpTypeId) =>
             marketBlueprints.Contains(bpTypeId) || inventedFromMarket.Contains(bpTypeId);
+
+        // ⚠️ Titans, supercarriers, the Keepstar and the Fortizar are costed as BPC purchases
+        // even though a BPO exists for each of them. Those BPOs are priced in the hundreds of
+        // billions, so treating one as owned and free — which is what "has a BPO, so no blueprint
+        // cost" amounts to — was pricing a titan below what anyone can actually build one for.
+        //
+        // ⚠️ Faction hulls are excluded: they are already loot BPCs at ME0, and a Molok or a
+        // Revenant costed as an ME9 researched copy would be as wrong in the other direction.
+        var boughtBpcIds = productTypeIds
+            .Where(id => titanKeepstarIds.Contains(id) && !bpcOnlyProductIds.Contains(id))
+            .ToHashSet();
 
         // Load all blueprint materials (manufacturing + reaction).
         var allMaterials = await db.SdeBlueprintMaterials.AsNoTracking()
@@ -497,8 +493,19 @@ public class BuildCostService
                    or "Jump Freighter" or "Industrial Command Ship")                        => "capital_ships",
                 // ── Other categories ────────────────────────────────────────────────
                 (7, _)          => "modules_equipment",
-                // Structure Modules — service modules and all structure rigs — are built at
-                // engineering complexes like equipment.
+
+                // ⚠️ A structure RIG takes the structure rig, not the equipment one, and this
+                // is the material side of it. Every rig group in category 66 is named
+                // "... Rig <size> - ..."; no module, weapon or service-module group contains
+                // " Rig ". See IndyRigMatching.ItemCategoryKey for the measurement.
+                //
+                // ⚠️ THIS MAPPING EXISTS THREE TIMES — here, in ProductionCalculatorService
+                // and in IndyRigMatching — and they have to agree. Fixing one and not the
+                // others is how a structure rig came to be costed against an equipment rig it
+                // could never match.
+                (66, var n) when n.Contains(" Rig ")                                    => "structure_ammo",
+
+                // The rest of category 66: service modules, weapons, fitting modules.
                 (66, _)         => "modules_equipment",
                 // T3 subsystems — Loki/Tengu/Legion/Proteus. Previously unmapped, so every
                 // subsystem threw "cannot be assigned to a structure" and lost its chain cost.
@@ -651,7 +658,14 @@ public class BuildCostService
             string catKey       = ItemCategoryKey(typeId, isReaction);
             var    structure    = StructureFor(catKey, typeId);
             // Default ME assumption: ME10, except T2 (ME3), BPC-only/faction (ME0), titans &
-            // Keepstars (ME9), reactions (ME0). Shared with the Production Calculator via IndustryMe.
+            // Keepstars & Fortizars (ME9), reactions (ME0). Shared with the Production Calculator
+            // via IndustryMe.
+            // A BPO exists, but nobody uses it — add the copy's price further down. See
+            // boughtBpcIds. ⚠️ Deliberately NOT folded into bpcItem: that flag also decides
+            // whether an item is costable at all, and routing a titan through the BPC-only path
+            // made "no contract price" mean "cannot be built, buy it at market" — which flipped
+            // every titan to bought and moved the stored figure by far more than a blueprint.
+            bool   boughtBpc    = boughtBpcIds.Contains(typeId);
             bool   bpcItem      = !isReaction && !BlueprintIsBpoSourced(bpTypeId);
             int    defaultMe    = IndustryMe.DefaultMe(isReaction, bpcItem,
                                       t2TypeIds.Contains(typeId), titanKeepstarIds.Contains(typeId));
@@ -717,6 +731,14 @@ public class BuildCostService
             {
                 // BPO-sourced (or reaction): researched-BPO ME assumption, no BPC cost.
                 (buildRawRun, buildSubJobRun) = RunAt(meFactor);
+
+                // …except the few nobody owns the original of. Add the copy's price at this
+                // item's ME and change nothing else: the item stays costable, stays built, and
+                // moves by exactly the price of one blueprint copy.
+                if (boughtBpc && bpcPerRun.TryGetValue(bpTypeId, out var opts) && opts.Count > 0)
+                    bpcRun = opts.OrderBy(o => Math.Abs(o.Me - defaultMe))
+                                 .ThenBy(o => o.PerRun)
+                                 .First().PerRun;
             }
 
             // Capture the recipe for the full-chain recompute (quantities rounded per whole job).
@@ -787,6 +809,11 @@ public class BuildCostService
             var calc = new ProductionCalculatorService(
                 scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>());
             var planContext = await calc.LoadContextAsync(defaultPark.Id, ct);
+
+            // ⚠️ This is where the titan fix actually lands. The stored cost comes from the
+            // calculator, not from the pass above, so telling the pass to include a BPC and not
+            // telling the calculator would have changed nothing anyone can see.
+            planContext.AlwaysBpcTypes = boughtBpcIds;
 
             // ── Batch size ────────────────────────────────────────────────────
             // Costing one run at a time charges every unit for a whole run's worth of rounding,

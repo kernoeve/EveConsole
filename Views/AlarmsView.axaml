@@ -36,6 +36,7 @@
     <!-- ── Toolbar ──────────────────────────────────────────────────────── -->
     <Border Grid.Row="0" Background="#12121a" Padding="12 8"
             BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+      <StackPanel Spacing="5">
       <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
         <Button Grid.Column="0" Classes="tool" Command="{Binding NewCommand}" Content="New Alarm" />
         <Button Grid.Column="1" Classes="tool" Command="{Binding RefreshCommand}"
@@ -45,6 +46,9 @@
         <TextBlock Grid.Column="4" Text="{Binding Service.StatusText}" FontSize="10.5"
                    Foreground="#4a4a5a" VerticalAlignment="Center" Margin="12 0 0 0" />
       </Grid>
+        <TextBlock Text="Early development — this tool is still taking shape, and its behaviour, layout and stored settings are all subject to change."
+                   FontSize="10.5" Foreground="#c8a84b" TextWrapping="Wrap" Margin="1 0 0 0" />
+      </StackPanel>
     </Border>
 
     <Rectangle Grid.Row="1" Fill="#1e1e2a" />

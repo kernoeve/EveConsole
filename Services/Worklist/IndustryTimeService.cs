@@ -45,6 +45,9 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
     private const int SkillIndustry         = 3380;
     private const int SkillAdvancedIndustry = 3388;
 
+    /// <summary>-4% reaction time per level, and the only skill that shortens a reaction.</summary>
+    private const int SkillReactions        = 45746;
+
     /// <summary>
     /// Science cuts copying time by 5% a level — and copying only. Invention takes Advanced
     /// Industry and nothing else.
@@ -137,6 +140,12 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         {
             if (a.AttributeId != AttrStructMfgTime && a.AttributeId != AttrStructRxnTime) continue;
             if (!structNames.TryGetValue(a.TypeId, out var key)) continue;
+            // ⚠️ One attribute each, and no second one. Attribute 2749 (-20 on a Tatara, and on
+            // the Fortizars, Azbels, Sotiyos and Keepstars too) looks like a second time bonus and
+            // is not: on a Tatara its -20 happens to equal the Reactions skill at V, which is what
+            // actually supplies that 20%. Measured on real jobs, role x rig lands exactly on the
+            // one attribute here — Raitaru unrigged 0.85 = 2602, Azbel + L-Set Cap Ship Mfg I
+            // 0.464 = 0.8 x 0.58, Sotiyo + XL-Set 0.406 = 0.7 x 0.58. Do not fold 2749 in.
             if (a.AttributeId == AttrStructMfgTime) structMfg[key] = a.Value;
             else                                    structRxn[key] = a.Value;
         }
@@ -191,10 +200,18 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         // Reaction formulas cannot be researched, so any TE on one is noise, not a bonus.
         var teFactor = isReaction ? 1.0 : 1.0 - Math.Clamp(timeEfficiency, 0, 20) / 100.0;
 
+        // ⚠️ A reaction is shortened by the REACTIONS skill and by nothing else. Neither
+        // industry skill touches one: measured across 600+ real reaction jobs, the per-run time is
+        // identical at Advanced Industry 0 and V and at Industry 1, 3 and 5, while Reactions IV
+        // and V give 0.84 and 0.80 of the structure-and-rig figure exactly. One character's jobs
+        // straddle the moment they finished the level and show both.
         var advIndustry = Math.Clamp(skills.GetValueOrDefault(SkillAdvancedIndustry), 0, 5);
         var industry    = Math.Clamp(skills.GetValueOrDefault(SkillIndustry), 0, 5);
-        var skillFactor = (1.0 - 0.03 * advIndustry)
-                        * (isReaction ? 1.0 : 1.0 - 0.04 * industry);
+        var reactions   = Math.Clamp(skills.GetValueOrDefault(SkillReactions), 0, 5);
+
+        var skillFactor = isReaction
+            ? 1.0 - 0.04 * reactions
+            : (1.0 - 0.03 * advIndustry) * (1.0 - 0.04 * industry);
 
         var roleFactor = 1.0;
         if (structure is not null)

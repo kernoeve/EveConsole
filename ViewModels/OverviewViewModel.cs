@@ -338,6 +338,12 @@ public class OverviewViewModel : ReactiveObject
     public bool HasStandingBuyOrders { get => _hasStandingBuyOrders; private set => this.RaiseAndSetIfChanged(ref _hasStandingBuyOrders, value); }
     public bool NoStandingBuyOrders  => !HasStandingBuyOrders;
 
+    // Orders — every outstanding order, across all stores and the hand-entered ones.
+    public ObservableCollection<OrderSummaryRowVm> Orders { get; } = [];
+    private bool _hasOrders;
+    public bool HasOrders { get => _hasOrders; private set => this.RaiseAndSetIfChanged(ref _hasOrders, value); }
+    public bool NoOrders  => !HasOrders;
+
     // ── Loading state ─────────────────────────────────────────────────────────
     private bool _isLoading;
     public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
@@ -354,6 +360,7 @@ public class OverviewViewModel : ReactiveObject
     public Action?          NavigateToStandingProjects              { get; set; }
     public Action?          NavigateToStandingBuyOrders             { get; set; }
     public Action?          NavigateToIndustryJobs                  { get; set; }
+    public Action?          NavigateToOrderTracker                  { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
     public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
     public Action?          OpenAlertSettingsRequested              { get; set; }  // Settings ▸ Alerts
@@ -490,6 +497,11 @@ public class OverviewViewModel : ReactiveObject
             // worklist's first refresh is still running and PoolRows is empty — and the sections
             // stayed blank after it arrived. Rebuilding on CollectionChanged is deterministic and
             // does not depend on how a filtered view reacts to a source that fills later.
+            //
+            // ⚠️ This makes PoolRows' notification count the cost of a refresh, which is why it
+            // is a BulkObservableCollection and is replaced in one Reset. Filled item by item it
+            // ran this handler once per row, and each run refilled four bound collections the
+            // same way — ten seconds of frozen UI on every worklist refresh.
             value.PoolRows.CollectionChanged += (_, _) => RebuildWorklistSections();
             value.Needs.CollectionChanged    += (_, _) => this.RaisePropertyChanged(nameof(HasWorklistNeeds));
 
@@ -500,10 +512,10 @@ public class OverviewViewModel : ReactiveObject
         }
     }
 
-    public ObservableCollection<WorklistRowVm> WorklistAll  { get; } = [];
-    public ObservableCollection<WorklistRowVm> WorklistBuy  { get; } = [];
-    public ObservableCollection<WorklistRowVm> WorklistHaul { get; } = [];
-    public ObservableCollection<WorklistRowVm> WorklistJobs { get; } = [];
+    public BulkObservableCollection<WorklistRowVm> WorklistAll  { get; } = [];
+    public BulkObservableCollection<WorklistRowVm> WorklistBuy  { get; } = [];
+    public BulkObservableCollection<WorklistRowVm> WorklistHaul { get; } = [];
+    public BulkObservableCollection<WorklistRowVm> WorklistJobs { get; } = [];
 
     /// <summary>
     /// The All section and Station Needs, grouped the way the tool groups them — by task kind and
@@ -575,16 +587,13 @@ public class OverviewViewModel : ReactiveObject
     {
         if (_worklist is null) return;
 
-        Fill(WorklistAll,  _worklist.PoolRows);
-        Fill(WorklistBuy,  _worklist.PoolRows.Where(r => r.IsBuy));
-        Fill(WorklistHaul, _worklist.PoolRows.Where(r => r.IsHaul));
-        Fill(WorklistJobs, _worklist.PoolRows.Where(r => r.IsJob));
-
-        static void Fill(ObservableCollection<WorklistRowVm> target, IEnumerable<WorklistRowVm> rows)
-        {
-            target.Clear();
-            foreach (var r in rows) target.Add(r);
-        }
+        // ⚠️ One notification each. These are bound to Overview panels, so an item-by-item fill
+        // lays each panel out once per row — and this method is itself driven by PoolRows
+        // changing, so the two together were quadratic.
+        WorklistAll .ResetTo(_worklist.PoolRows);
+        WorklistBuy .ResetTo(_worklist.PoolRows.Where(r => r.IsBuy));
+        WorklistHaul.ResetTo(_worklist.PoolRows.Where(r => r.IsHaul));
+        WorklistJobs.ResetTo(_worklist.PoolRows.Where(r => r.IsJob));
     }
     private bool _loadPending;
 
@@ -660,7 +669,7 @@ public class OverviewViewModel : ReactiveObject
             // Timing still runs — it costs a subtraction — but reporting is behind the switch,
             // because a section over the threshold is a lead for someone investigating, not a
             // fault worth a row in the log of every session. See PerfDiagnostics.
-            if (PerfDiagnostics.Enabled && took >= SlowSectionMs)
+            if (PerfDiagnostics.OverviewSections && took >= SlowSectionMs)
                 _errorLogger.Log(nameof(OverviewViewModel), "Slow Overview section",
                     $"\"{sectionName}\" took {took:N0} ms (wall clock, background queries included).");
 
@@ -721,6 +730,19 @@ public class OverviewViewModel : ReactiveObject
             // Aggregate in SQL with date filter — avoids loading all rows and the
             // DateTimeOffset LINQ translation bug. UnitPrice stored as TEXT so CAST
             // to REAL for arithmetic; result arrives as double, converted to decimal.
+            //
+            // ⚠️ Every transaction, with nothing filtered out. This panel and the income pie
+            // both print a figure called "Market Sales", and two different numbers under one
+            // name is a defect however well each is justified on its own. The pie reads the
+            // wallet journal, which records what the wallet received and knows nothing about
+            // any marking done elsewhere in the app; this reads the transaction log, which is
+            // the same events from the other side. Left alone they agree to the ISK — measured
+            // per owner across 7, 30, 90 and 180 day windows.
+            //
+            // Sales the Sales Tracker has marked "not for profit" used to be subtracted here.
+            // That is a profit question and this is not a profit figure: it is a summary of
+            // what happened in the period. The mark still does its job everywhere profit is
+            // actually reckoned — the Sales Tracker's own totals and the Sale Posting tool.
             decimal mktSellTotal = 0m, mktBuyTotal = 0m;
             int     mktSellCnt   = 0,  mktBuyCnt   = 0;
             foreach (var (ot, oid) in activityOwners)
@@ -734,10 +756,6 @@ public class OverviewViewModel : ReactiveObject
                         COALESCE(SUM(CASE WHEN "IsBuy" = 1 THEN 1 ELSE 0 END), 0)                                          AS "BuyCount"
                     FROM "EsiWalletTransactions"
                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
-                      -- Sales marked "not for profit" in the Sales Tracker are left out of
-                      -- every figure that reckons trading performance, including this one.
-                      AND NOT EXISTS (SELECT 1 FROM "SaleExclusions" x
-                                      WHERE x."Kind" = 'Market' AND x."SaleId" = "TransactionId")
                     """
                 ).FirstOrDefaultAsync());
 
@@ -867,6 +885,9 @@ public class OverviewViewModel : ReactiveObject
 
             Step("Standing buy orders");
             await LoadStandingBuyOrdersAsync();
+
+            Step("Orders");
+            await LoadOrdersAsync();
 
             // ── Wallet journal — pie chart categorisation ──────────────────────
             Step("Loading journal data");
@@ -1189,6 +1210,62 @@ public class OverviewViewModel : ReactiveObject
     }
 
     // ── Standing buy orders ───────────────────────────────────────────────────
+    /// <summary>
+    /// Outstanding orders, across every store and the ones entered by hand.
+    ///
+    /// <para>Active only, meaning Status "pending" — the same definition the Order Tracker's
+    /// default filter and the Stores tab both use, so the three cannot disagree about what is
+    /// still open.</para>
+    /// </summary>
+    private async Task LoadOrdersAsync()
+    {
+        bool enabled = _dbFactory is not null
+                    && _layout.Sections.Any(s => s.Key == "Orders" && s.Enabled);
+        if (!enabled)
+        {
+            Orders.Clear();
+            HasOrders = false;
+            this.RaisePropertyChanged(nameof(NoOrders));
+            return;
+        }
+
+        try
+        {
+            // ⚠️ Off() like every other section. This is two queries against a table that grows
+            // with every order ever placed; run inline they land on the UI thread and show up as
+            // a hitch on every overview refresh.
+            var rows = await Off(async () =>
+            {
+                await using var db = await _dbFactory!.CreateDbContextAsync();
+
+                // ⚠️ Only Status is pushed into SQL. CreatedAt is a DateTimeOffset, which EF
+                // cannot translate against SQLite, so the ordering below happens in memory.
+                var open = await db.TrackedOrders.AsNoTracking()
+                    .Where(o => o.Status == "pending")
+                    .ToListAsync();
+
+                var typeIds = open.Select(o => o.TypeId).Distinct().ToList();
+                var names = await db.SdeTypes.AsNoTracking()
+                    .Where(t => typeIds.Contains(t.TypeId))
+                    .ToDictionaryAsync(t => t.TypeId, t => t.Name);
+
+                // Newest first. Ordered on the tick count rather than the displayed date, which
+                // is day-resolution only and would leave same-day orders in whatever sequence
+                // the query happened to return them.
+                return open
+                    .Select(o => new OrderSummaryRowVm(o, names.GetValueOrDefault(o.TypeId, "")))
+                    .OrderByDescending(v => v.CreatedSort)
+                    .ToList();
+            });
+
+            Orders.Clear();
+            foreach (var vm in rows) Orders.Add(vm);
+            HasOrders = Orders.Count > 0;
+            this.RaisePropertyChanged(nameof(NoOrders));
+        }
+        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadOrders", ex); }
+    }
+
     private async Task LoadStandingBuyOrdersAsync()
     {
         bool enabled = _standingBuyOrders is not null

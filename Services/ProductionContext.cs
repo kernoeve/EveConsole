@@ -66,6 +66,17 @@ public sealed class ProductionContext
     public required Dictionary<int, double>         AdjPrices       { get; init; }
     public required Dictionary<int, decimal>        BuildCostLookup { get; init; }
 
+    /// <summary>
+    /// Items to cost as BPC purchases even though a BPO exists for them.
+    ///
+    /// <para>Empty by default, and left empty by the Production Calculator's own screen — there,
+    /// including the blueprint is the user's checkbox to tick. The background build-cost pass
+    /// fills it with titans, the Keepstar and the Fortizar, whose BPOs cost more than anyone
+    /// building one would ever spend, so a stored cost that assumes a free BPO is a stored cost
+    /// nobody can build against.</para>
+    /// </summary>
+    public HashSet<int> AlwaysBpcTypes { get; set; } = [];
+
     /// <summary>Type id → its SDE group. Named rather than anonymous so it can cross a method.</summary>
     public readonly record struct TypeGroup(int TypeId, int GroupId);
 

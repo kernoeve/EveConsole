@@ -47,11 +47,18 @@ public class SlackAuthService
     private const string AuthEndpoint  = "https://slack.com/oauth/v2/authorize";
     private const string TokenEndpoint = "https://slack.com/api/oauth.v2.access";
 
-    /// <summary>User scopes requested. chat:write posts as the user; the read scopes list
-    /// conversations for the channel pickers (im/mpim are for planned notification work).</summary>
+    /// <summary>
+    /// User scopes requested. chat:write posts as the user; the read scopes list conversations
+    /// for the channel pickers (im/mpim are for planned notification work).
+    ///
+    /// <para>⚠️ files:write is what uploads an image, and a token issued before it was asked for
+    /// does not gain it — Slack grants scopes at authorisation. Adding one here means every
+    /// existing connection has to be reconnected before the feature that needs it will work.</para>
+    /// </summary>
     public static readonly string[] UserScopes =
     [
         "chat:write",
+        "files:write",
         "channels:read",
         "groups:read",
         "im:read",

@@ -254,6 +254,18 @@ public sealed class StandingProjectRowVm
     public long   DbId              { get; }
     public string TypeDisplay       { get; }
     public string DescriptionText   { get; }
+
+    /// <summary>
+    /// The whole row in one line, for the Overview panel.
+    ///
+    /// <para>⚠️ Panel only. The Corp Activity grid has Type, Description and Location as
+    /// their own sortable columns and must keep them; the panel shows one column and was
+    /// built when every project was a delivery, so it printed a bare item name and left the
+    /// reader unable to tell a delivery from a destroy-NPC row.</para>
+    ///
+    /// <para>Shaped by StandingProjectReport, which a scheduled post prints from too.</para>
+    /// </summary>
+    public string SummaryText { get; }
     public string LocationText      { get; }
     public string ProjectStatusText { get; }
     public string ProjectStatusColor { get; }
@@ -302,23 +314,44 @@ public sealed class StandingProjectRowVm
         TypeDisplay     = row.TypeDisplay;
         DescriptionText = row.TargetDisplay;
         LocationText    = row.DestDisplay;
+
+        SummaryText = StandingProjectReport.Summary(row);
         LocationId      = row.StationId ?? 0;
         LocationIsNpc   = row.StationIsNpc;
 
         // Less than 10% of the target left — flag the near-complete (often stuck) projects in orange.
         IsLowRemaining = row.RemainingPercentValue >= 0 && row.RemainingPercentValue < 10.0;
 
+        // ⚠️ Every status this can be given, or the default swallows it. The zero-systems case
+        // was split into three — the ADM read failed, the scope expands to nothing, or every
+        // system is healthy — and the two new ones fell through to "project not active" here,
+        // in red, which is the one thing none of them means.
         string statusColor = row.MatchStatus switch
         {
-            "matched"    => "#6aaa88",
-            "no_systems" => "#888899",
-            _            => "#cc4444",
+            "matched"     => "#6aaa88",
+            "all_healthy" => "#888899",
+            "no_systems"  => "#888899",
+            "no_adm"      => "#e0902e",
+            "no_office"   => "#e0902e",
+            _             => "#cc4444",
         };
         ProjectStatusText = row.MatchStatus switch
         {
-            "matched"    => row.MatchedName,
-            "no_systems" => "no systems below the minimum ADM",
-            _            => "project not active",
+            "matched"     => row.MatchedName,
+            "all_healthy" => "no systems below the minimum ADM",
+            "no_systems"  => "scope expands to no systems",
+            "no_adm"      => row.StatusNote.Length > 0
+                                 ? $"sovereignty data unavailable — {row.StatusNote}"
+                                 : "sovereignty data unavailable",
+
+            // ⚠️ Not "not active". A delivery destination is named as an office, and the
+            // office-to-station lookup comes from corp assets; while that is missing the row
+            // can be neither matched nor ruled out. Calling it inactive was a claim about the
+            // project made out of a gap in our own data.
+            "no_office"   => row.StatusNote.Length > 0
+                                 ? $"office location unavailable — {row.StatusNote}"
+                                 : "office location unavailable — asset data still loading",
+            _             => "project not active",
         };
         ProjectStatusColor = IsLowRemaining ? "#e0902e" : statusColor;
 
@@ -329,9 +362,12 @@ public sealed class StandingProjectRowVm
             ? 1
             : row.MatchStatus switch
             {
-                "matched"    => 3,   // green
-                "no_systems" => 2,   // grey
-                _            => 0,   // red — project not active
+                "matched"     => 3,   // green
+                "all_healthy" => 2,   // grey — the rule selects nothing today, and should not
+                "no_systems"  => 2,   // grey
+                "no_adm"      => 1,   // orange — a fault, above healthy but below a real gap
+                "no_office"   => 1,   // orange — our data is missing, not their project
+                _             => 0,   // red — project not active
             };
 
         RemainingText        = row.RemainingText;
@@ -406,6 +442,10 @@ public sealed class MonthSummaryLineVm
     /// where a percentage would be meaningless rather than merely large.</summary>
     public string Percent { get; init; } = "";
     public bool   IsHeader { get; init; }
+
+    /// <summary>A summing line. Carried so the export can rule it off from the rows it adds up
+    /// — the report decides which lines those are, and this is only the trip through the grid.</summary>
+    public bool   IsTotal  { get; init; }
     /// <summary>Set only where the sign carries meaning — net position, efficiency.</summary>
     public string ValueColor { get; init; } = "#ccccdd";
 
@@ -666,6 +706,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
     private readonly CorpActivityService     _service;
     private readonly CorpTop10ExcludeService _excludeSvc;
+    private readonly CorpReportTitles         _titles;
     private CancellationTokenSource          _top10Cts = new();
     private int                              _refreshTick;
 
@@ -1162,11 +1203,13 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public CorpActivityViewModel(CorpActivityService service,
                                  ObservableCollection<Corporation> corps,
                                  CorpTop10ExcludeService? excludeSvc = null,
+                                 CorpReportTitles? titles = null,
                                  SlackService? slack = null,
                                  ExportFormatSettings? exportFormat = null)
     {
         _service      = service;
         _excludeSvc   = excludeSvc!;
+        _titles       = titles!;
         _slack        = slack;
         _exportFormat = exportFormat;
         Corps         = corps;
@@ -1529,8 +1572,12 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
     public bool IsSlackTop10Configured => _slack?.IsConfigured(SlackService.AreaCorpTop10) == true;
 
+    /// <summary>Where a post would land, for the button's tooltip. A webhook carries its own
+    /// destination and exposes no channel name, so it says so rather than showing nothing.</summary>
     public string SlackTop10ChannelText =>
-        _slack?.ChannelName(SlackService.AreaCorpTop10) is { Length: > 0 } n ? $"#{n}" : "";
+        _slack?.UsesWebhook(SlackService.AreaCorpTop10) == true
+            ? "via webhook"
+            : _slack?.ChannelName(SlackService.AreaCorpTop10) is { Length: > 0 } n ? $"#{n}" : "";
 
     private string _slackStatus = "";
     public string SlackStatus { get => _slackStatus; private set => this.RaiseAndSetIfChanged(ref _slackStatus, value); }
@@ -1538,7 +1585,9 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public bool IsSlackMonthlyConfigured => _slack?.IsConfigured(SlackService.AreaCorpMonthly) == true;
 
     public string SlackMonthlyChannelText =>
-        _slack?.ChannelName(SlackService.AreaCorpMonthly) is { Length: > 0 } n ? $"#{n}" : "";
+        _slack?.UsesWebhook(SlackService.AreaCorpMonthly) == true
+            ? "via webhook"
+            : _slack?.ChannelName(SlackService.AreaCorpMonthly) is { Length: > 0 } m ? $"#{m}" : "";
 
     public void RefreshSlackState()
     {
@@ -1560,7 +1609,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     {
         if (_slack is null) return;
         var channel = _slack.ChannelId(SlackService.AreaCorpTop10);
-        if (string.IsNullOrEmpty(channel)) { SlackStatus = "No Slack channel configured."; return; }
+        var viaHook = _slack.UsesWebhook(SlackService.AreaCorpTop10);
+        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = "No Slack channel or webhook configured."; return; }
 
         // Guard against accidental double-posting.
         if (_slack.LastPostAt(SlackService.AreaCorpTop10) is { } last
@@ -1579,7 +1629,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         // its bold markers literally instead of rendering them.
         var plain = SelectedExportFormat == "Plain Text";
         var body  = BuildTop10Export(includeIsk);
-        var res   = await _slack.PostMessageAsync(channel, plain ? $"```\n{body}\n```" : body);
+        var res   = await _slack.PostAreaAsync(SlackService.AreaCorpTop10, plain ? $"```\n{body}\n```" : body);
         if (res.Ok) await _slack.SetLastPostAsync(SlackService.AreaCorpTop10, DateTimeOffset.UtcNow);
         SlackStatus = res.Ok
             ? $"Posted to {SlackTop10ChannelText} — {DateTimeOffset.Now:t}"
@@ -1597,7 +1647,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     {
         if (_slack is null) return;
         var channel = _slack.ChannelId(SlackService.AreaCorpMonthly);
-        if (string.IsNullOrEmpty(channel)) { SlackStatus = "No Slack channel configured."; return; }
+        var viaHook = _slack.UsesWebhook(SlackService.AreaCorpMonthly);
+        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = "No Slack channel or webhook configured."; return; }
 
         if (_slack.LastPostAt(SlackService.AreaCorpMonthly) is { } last
             && DateTimeOffset.UtcNow - last < SlackRepostWindow
@@ -1612,7 +1663,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         SlackStatus = "Posting to Slack…";
         var plain = SelectedExportFormat == "Plain Text";
         var body  = BuildMonthlySummaryExport();
-        var res   = await _slack.PostMessageAsync(channel, plain ? $"```\n{body}\n```" : body);
+        var res   = await _slack.PostAreaAsync(SlackService.AreaCorpMonthly, plain ? $"```\n{body}\n```" : body);
         if (res.Ok) await _slack.SetLastPostAsync(SlackService.AreaCorpMonthly, DateTimeOffset.UtcNow);
         SlackStatus = res.Ok
             ? $"Posted to {SlackMonthlyChannelText} — {DateTimeOffset.Now:t}"
@@ -1642,102 +1693,31 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         finally { IsSummaryLoading = false; }
     }
 
+    /// <summary>
+    /// Maps the report's lines into grid rows.
+    ///
+    /// <para>⚠️ What the summary SAYS lives in MonthlySummaryReport, not here. A scheduled
+    /// post has no screen to read this from, and a second copy of these lines that drifted
+    /// from the grid would be the thing everybody asked about.</para>
+    /// </summary>
     private void BuildSummaryLines(CorpActivityService.MonthSummary s)
     {
         SummaryLines.Clear();
-
-        var c = s.Current;
-        var p = s.Previous;
-
-        void Header(string t) => SummaryLines.Add(new MonthSummaryLineVm { Label = t, IsHeader = true });
-
-        // ISK line: value, signed absolute change, and the same change as a percentage.
-        void Isk(string label, decimal cur, decimal prev, string? color = null) =>
+        foreach (var l in MonthlySummaryReport.Build(s, _titles))
             SummaryLines.Add(new MonthSummaryLineVm
             {
-                Label = label,
-                Value = FormatIskStatic(cur),
-                Change = SignedIsk(cur - prev),
-                Percent = Pct(cur, prev),
-                ValueColor = color ?? "#ccccdd",
+                Label      = l.Label,
+                Value      = l.Value,
+                Change     = l.Change,
+                Percent    = l.Percent,
+                IsHeader   = l.IsHeader,
+                IsTotal    = l.IsTotal,
+                ValueColor = l.ValueColor,
             });
-
-        void Count(string label, long cur, long prev, string? color = null) =>
-            SummaryLines.Add(new MonthSummaryLineVm
-            {
-                Label = label,
-                Value = cur.ToString("N0"),
-                Change = SignedCount(cur - prev),
-                Percent = Pct(cur, prev),
-                ValueColor = color ?? "#ccccdd",
-            });
-
-        var w  = c.Wallet;
-        var pw = p.Wallet;
-
-        Header("Income");
-        // No "Mining tax" line: EVE has no corp mining-tax wallet entry, and this corp has
-        // never had one. Mining is billed manually and lands in Donations, which cannot be
-        // separated from other donations.
-        Isk("Ratting tax",  w?.RattingTax     ?? 0m, pw?.RattingTax     ?? 0m);
-        Isk("Industry tax", w?.IndustryTax    ?? 0m, pw?.IndustryTax    ?? 0m);
-        Isk("Donations",    w?.Donations      ?? 0m, pw?.Donations      ?? 0m);
-        Isk("Contracts",    w?.ContractIncome ?? 0m, pw?.ContractIncome ?? 0m);
-        Isk("Market",       w?.MarketIncome   ?? 0m, pw?.MarketIncome   ?? 0m);
-        Isk("Other",        w?.OtherIncome    ?? 0m, pw?.OtherIncome    ?? 0m);
-        Isk("Total income", c.TotalIncome,           p.TotalIncome);
-
-        Header("Expenses");
-        Isk("Market",          w?.MarketExpense   ?? 0m, pw?.MarketExpense   ?? 0m);
-        Isk("Contracts",       w?.ContractExpense ?? 0m, pw?.ContractExpense ?? 0m);
-        Isk("Project payouts", w?.ProjectPayouts  ?? 0m, pw?.ProjectPayouts  ?? 0m);
-        Isk("Withdrawals",     w?.AccountWithdraw ?? 0m, pw?.AccountWithdraw ?? 0m);
-        Isk("Other",           w?.OtherExpense    ?? 0m, pw?.OtherExpense    ?? 0m);
-        Isk("Total expenses",  c.TotalExpense,           p.TotalExpense);
-
-        Header("Net");
-        Isk("Net position", c.Net, p.Net, c.Net >= 0 ? "#70ad47" : "#cc6666");
-
-        Header("Combat");
-        Count("Kills",  c.Kills,  p.Kills);
-        Count("Losses", c.Losses, p.Losses);
-        Isk("ISK destroyed", c.IskDestroyed, p.IskDestroyed);
-        Isk("ISK lost",      c.IskLost,      p.IskLost);
-        SummaryLines.Add(new MonthSummaryLineVm
-        {
-            Label   = "ISK efficiency",
-            Value   = c.IskEfficiency is { } e ? $"{e:F1}%" : "—",
-            Change  = c.IskEfficiency is { } e1 && p.IskEfficiency is { } e0
-                      ? $"{(e1 - e0 > 0 ? "+" : "")}{e1 - e0:F1} pts" : "",
-            ValueColor = c.IskEfficiency is { } e2 ? (e2 >= 50 ? "#70ad47" : "#cc6666") : "#ccccdd",
-        });
-
-        Header("Mining");
-        Count("Units mined", c.UnitsMined,  p.UnitsMined);
-        Isk("Mined value",   c.MiningValue, p.MiningValue);
-
-        Header("Corp Projects");
-        Count("Created",         c.ProjectsCreated,        p.ProjectsCreated);
-        Isk("Created value",     c.ProjectsCreatedValue,   p.ProjectsCreatedValue);
-        Count("Completed",       c.ProjectsCompleted,      p.ProjectsCompleted);
-        Isk("Completed value",   c.ProjectsCompletedValue, p.ProjectsCompletedValue);
-
-        Header("Members");
-        Count("Active players", c.PlayersActive, p.PlayersActive);
     }
 
     /// <summary>Month-over-month movement as a percentage. Blank when the previous month
     /// was zero — a percentage change from nothing is undefined, not infinite.</summary>
-    private static string Pct(decimal current, decimal previous)
-    {
-        if (previous == 0m) return "";
-        var change = (double)((current - previous) / Math.Abs(previous)) * 100.0;
-        if (Math.Abs(change) < 0.05) return "0.0%";
-        return $"{(change > 0 ? "+" : "")}{change:F1}%";
-    }
-
-    private static string Pct(long current, long previous) => Pct((decimal)current, previous);
-
     // ── Column layout for exported text ───────────────────────────────────────
     //
     // Columns are space-padded and the data rows are wrapped in the target platform's
@@ -1781,12 +1761,6 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         return sb.ToString();
     }
 
-    private static string SignedIsk(decimal delta) =>
-        delta == 0m ? "—" : $"{(delta > 0 ? "+" : "-")}{FormatIskStatic(Math.Abs(delta))}";
-
-    private static string SignedCount(long delta) =>
-        delta == 0 ? "—" : $"{(delta > 0 ? "+" : "-")}{Math.Abs(delta):N0}";
-
     /// <summary>
     /// The summary as text for Slack / Discord / forums, in the currently selected format.
     /// Walks the same lines the grid shows, so the two cannot disagree.
@@ -1797,71 +1771,15 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     /// </summary>
     public string BuildMonthlySummaryExport() => BuildMonthlySummaryExport(SelectedExportFormat);
 
-    public string BuildMonthlySummaryExport(string formatName)
-    {
-        var fmt   = OutputFormat.ByName(formatName);
-        var plain = fmt.Name == "Plain Text";
-
-        var month  = SelectedSummaryMonth?.Name ?? "?";
-        var year   = SelectedSummaryYear;
-        var corp   = SelectedCorp?.Name;
-        var header = string.IsNullOrWhiteSpace(corp)
-            ? $"Monthly Summary — {month} {year}"
-            : $"{corp} — Monthly Summary — {month} {year}";
-        const string subtitle = "Change columns compare against the previous month.";
-
-        var sb = new System.Text.StringBuilder();
-        sb.AppendLine(plain ? header : fmt.Bold(header));
-        sb.AppendLine(new string('=', Math.Max(header.Length, 32)));
-        sb.AppendLine(plain ? subtitle : fmt.Bold(subtitle));
-
-        // Widths measured across every value row, so all sections share one column grid.
-        var cells  = SummaryLines
-            .Where(l => l.IsValue)
-            .Select(l => new[] { l.Label, l.Value, l.Change, l.Percent })
-            .ToList();
-        var widths = ColumnWidths(cells, 4);
-        var (open, close) = CodeFence(fmt.Name);
-
-        var inFence = false;
-        void CloseFence()
-        {
-            if (!inFence) return;
-            if (close.Length > 0) sb.AppendLine(close);
-            inFence = false;
-        }
-
-        foreach (var line in SummaryLines)
-        {
-            if (line.IsHeader)
-            {
-                CloseFence();
-                sb.AppendLine();
-                sb.AppendLine(plain ? line.Label : fmt.Bold(line.Label));
-                // Slack draws a fenced block as an outlined box, so a rule above it is
-                // just noise. Every other format keeps the rule — the box either is not
-                // drawn or is not distinct enough to replace it.
-                if (fmt.Name != "Slack")
-                    sb.AppendLine(new string('-', Math.Max(line.Label.Length, 16)));
-                continue;
-            }
-
-            if (!inFence)
-            {
-                if (open.Length > 0) sb.AppendLine(open);
-                inFence = true;
-            }
-            sb.AppendLine(PaddedRow([line.Label, line.Value, line.Change, line.Percent], widths));
-        }
-        CloseFence();
-
-        var body = sb.ToString().TrimEnd();
-
-        // Plain Text's Finalize is a markup stripper that also collapses runs of spaces,
-        // which would flatten the column padding this block depends on. Nothing here emits
-        // markup in the first place, so there is nothing to strip.
-        return plain ? body : fmt.Finalize(body);
-    }
+    public string BuildMonthlySummaryExport(string formatName) =>
+        MonthlySummaryReport.Export(
+            [.. SummaryLines.Select(l => new MonthlySummaryReport.SummaryLine(
+                l.Label, l.Value, l.Change, l.Percent, l.IsHeader, l.ValueColor, l.IsTotal))],
+            MonthlySummaryReport.Header(SelectedCorp?.Name,
+                                       SelectedSummaryMonth?.Name ?? "?",
+                                       SelectedSummaryYear,
+                                       _titles.HeaderPrefix),
+            formatName);
 
     // includeIsk true → "rank  name\tamount"; false → "rank  name\t%" (name + share only).
     public string BuildTop10Export() => BuildTop10Export(includeIsk: true);
@@ -1913,11 +1831,17 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         sb.AppendLine(new string('=', Math.Max(header.Length, 32)));
         sb.AppendLine();
 
-        AppendList("Ratting Tax",           TopRatters);
-        AppendList("Mining — Reprocessed Value", TopMiners);
-        AppendList("Kills",                 TopKillers, alwaysAmount: true);
-        AppendList("Project Contributors",  TopContributors);
-        AppendList("Industry Tax",          TopIndustry);
+        // ⚠️ The headings the settings tab defines, not five literals. A list renamed there
+        // has to be renamed everywhere it appears, or the export and the scheduled post
+        // would call the same table two different things.
+        //
+        // No month suffix here: this export already opens with the corp and the month, and
+        // it is copied as one block rather than split into separate Slack boxes.
+        AppendList(_titles.Top10Title("ratting"),  TopRatters);
+        AppendList(_titles.Top10Title("mining"),   TopMiners);
+        AppendList(_titles.Top10Title("kills"),    TopKillers, alwaysAmount: true);
+        AppendList(_titles.Top10Title("projects"), TopContributors);
+        AppendList(_titles.Top10Title("industry"), TopIndustry);
 
         var body = sb.ToString().TrimEnd();
         // See BuildMonthlySummaryExport: Plain Text's Finalize also collapses runs of
@@ -2296,64 +2220,27 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         BuildMonthlyCharts(rows);
     }
 
+    /// <summary>
+    /// Binds the two monthly trend charts.
+    ///
+    /// <para>⚠️ What they PLOT lives in CorpTrendChartReport, not here. A scheduled post draws
+    /// the same series to a PNG, and a chart that disagreed with the screen it is named after
+    /// would be worse than no chart at all.</para>
+    ///
+    /// <para>Both charts share one X axis: they are the same twelve months, and two axis objects
+    /// would be two things to keep saying the same thing.</para>
+    /// </summary>
     private void BuildMonthlyCharts(List<MonthlyActivityRow> rows)
     {
-        if (rows.Count == 0)
-        {
-            MonthlyIskSeries = []; MonthlyCountSeries = [];
-            MonthlyXAxes = []; MonthlyIskYAxes = []; MonthlyCountAndMineYAxes = [];
-            return;
-        }
+        var isk      = CorpTrendChartReport.IskTrends(rows);
+        var activity = CorpTrendChartReport.ActivityTrends(rows);
 
-        // Oldest-first for charts
-        var ordered = rows.OrderBy(r => r.Month).ToList();
-        var labels  = ordered.Select(r => r.Month).ToArray();
+        MonthlyIskSeries = isk?.Series ?? [];
+        MonthlyXAxes     = isk?.XAxes  ?? [];
+        MonthlyIskYAxes  = isk?.YAxes  ?? [];
 
-        static LineSeries<double> Line(string name, IEnumerable<double> vals, SKColor color, int scaleY = 0) =>
-            new LineSeries<double>
-            {
-                Name = name, Values = vals.ToArray(),
-                Stroke = new SolidColorPaint(color, 2), Fill = null, GeometrySize = 0,
-                EasingFunction = null, ScalesYAt = scaleY,
-            };
-
-        MonthlyIskSeries =
-        [
-            Line("Income",       ordered.Select(r => (double)(r.TotalIncome  / 1_000_000_000m)), new SKColor(106, 170, 136)),
-            Line("Expenses",     ordered.Select(r => (double)(r.TotalExpense / 1_000_000_000m)), new SKColor(204, 100, 100)),
-            Line("Ratting Tax",  ordered.Select(r => (double)(r.RattingTax   / 1_000_000_000m)), new SKColor(200, 168,  75)),
-            Line("Industry Tax", ordered.Select(r => (double)(r.IndustryTax  / 1_000_000_000m)), new SKColor( 91, 155, 213)),
-            Line("Proj Payouts", ordered.Select(r => (double)(r.ProjectPayouts / 1_000_000_000m)), new SKColor(155, 120, 200)),
-        ];
-
-        MonthlyCountSeries =
-        [
-            Line("Kills",        ordered.Select(r => (double)r.Kills),       new SKColor(106, 170, 136), 0),
-            Line("Losses",       ordered.Select(r => (double)r.Losses),      new SKColor(204, 100, 100), 0),
-            Line("Units Mined",  ordered.Select(r => (double)r.UnitsMined),  new SKColor(200, 168,  75), 1),
-        ];
-
-        static Axis XAx(string[] labs) => new Axis
-        {
-            Labels = labs, LabelsRotation = -45, TextSize = 9,
-            SeparatorsPaint = new SolidColorPaint(new SKColor(30, 30, 42)),
-            LabelsPaint     = new SolidColorPaint(new SKColor(85, 85, 102)),
-        };
-        static Axis YAx(string unit) => new Axis
-        {
-            TextSize = 9, MinLimit = 0,
-            LabelsPaint     = new SolidColorPaint(new SKColor(85, 85, 102)),
-            SeparatorsPaint = new SolidColorPaint(new SKColor(30, 30, 42)),
-            Labeler = v => $"{v:F1}{unit}",
-        };
-
-        MonthlyXAxes = [XAx(labels)];
-        MonthlyIskYAxes = [YAx("B")];
-        MonthlyCountAndMineYAxes =
-        [
-            new Axis { TextSize = 9, MinLimit = 0, LabelsPaint = new SolidColorPaint(new SKColor(85, 85, 102)), SeparatorsPaint = new SolidColorPaint(new SKColor(30, 30, 42)) },
-            new Axis { TextSize = 9, MinLimit = 0, Position = LiveChartsCore.Measure.AxisPosition.End, LabelsPaint = new SolidColorPaint(new SKColor(85, 85, 102)), SeparatorsPaint = new SolidColorPaint(SKColors.Transparent), Labeler = v => v >= 1_000_000 ? $"{v/1_000_000:F0}M" : $"{v:N0}" },
-        ];
+        MonthlyCountSeries       = activity?.Series ?? [];
+        MonthlyCountAndMineYAxes = activity?.YAxes  ?? [];
     }
 
     private async Task LoadProjectsAsync(long corpId, CancellationToken ct)

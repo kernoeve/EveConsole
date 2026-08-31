@@ -2,6 +2,8 @@ using System.Reactive.Linq;
 using System.Text;
 using EveConsole.Services;
 using Avalonia;
+using System;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -64,13 +66,27 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         base.OnClosing(e);
     }
 
+    /// <summary>
+    /// Puts the window back where it was.
+    ///
+    /// <para>⚠️ Kept in config.json, not the database. It is per-installation UI state rather
+    /// than the user's data, the file is readable before the database is even opened, and when a
+    /// window does end up somewhere unreachable a text file is something a person can fix.</para>
+    ///
+    /// <para>An installation that last ran under the old arrangement is read out of the database
+    /// once and written to the file from then on, so nobody's window jumps for the upgrade.</para>
+    /// </summary>
     private void RestoreWindowState()
     {
         if (DataContext is not MainWindowViewModel vm) return;
         var prefs = vm.AppPrefs;
 
-        var w = prefs.GetLong("window.width",  0);
-        var h = prefs.GetLong("window.height", 0);
+        var saved = Services.AppConfig.GetMainWindow();
+
+        var w        = saved?.Width  ?? prefs.GetLong("window.width",  0);
+        var h        = saved?.Height ?? prefs.GetLong("window.height", 0);
+        var stateStr = saved?.State  ?? prefs.Get("window.state");
+
         if (w > 200 && h > 100)
         {
             Width  = w;
@@ -79,34 +95,123 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         // Restore position first so the window lands on the right monitor.
         // long.MinValue is used as sentinel for "never saved".
-        var x = prefs.GetLong("window.x", long.MinValue);
-        var y = prefs.GetLong("window.y", long.MinValue);
+        var x = saved?.X ?? prefs.GetLong("window.x", long.MinValue);
+        var y = saved?.Y ?? prefs.GetLong("window.y", long.MinValue);
+
         if (x != long.MinValue && y != long.MinValue)
-            Position = new Avalonia.PixelPoint((int)x, (int)y);
+            PlaceOnScreen(new Avalonia.PixelPoint((int)x, (int)y));
 
         // Maximize after position is set so it maximizes on the correct monitor.
-        var stateStr = prefs.Get("window.state");
         if (stateStr == "Maximized")
             WindowState = WindowState.Maximized;
     }
 
+    /// <summary>
+    /// Remembers where the window was.
+    ///
+    /// <para>Written straight to config.json rather than queued through the preference table: this
+    /// runs while the window is closing, and a write that has to reach the database may not finish
+    /// before the process does.</para>
+    /// </summary>
+    /// <summary>
+    /// Puts the window at a remembered point, moved and shrunk until it fits a real screen.
+    ///
+    /// <para>⚠️ The WHOLE window has to land on the display, not just its top-left corner.
+    /// Testing the corner alone lets a window that was dragged three-quarters off the edge come
+    /// back exactly that way — and since every dialog in the app centres on its owner, the SDE and
+    /// update prompts then open centred on a window that is mostly not there, which is the failure
+    /// this was meant to prevent.</para>
+    ///
+    /// <para>⚠️ WorkingArea is in physical pixels; Width and Height are logical. They differ by
+    /// the display's scaling, and on a 150% monitor treating one as the other misplaces the window
+    /// by a third of its size.</para>
+    ///
+    /// <para>⚠️ A maximised window's corner is never on its own screen, so the screen has to be
+    /// chosen by overlap rather than by containment. See the note below.</para>
+    /// </summary>
+    private void PlaceOnScreen(Avalonia.PixelPoint point)
+    {
+        var all = Screens?.All;
+        if (all is null || all.Count == 0) return;   // no screens to reason about; let the OS place it
+
+        // Width/Height are NaN until a window has been measured, which it has not been at this
+        // point on a first run; Bounds carries the size actually in effect.
+        var logicalW = double.IsNaN(Width)  ? Bounds.Width  : Width;
+        var logicalH = double.IsNaN(Height) ? Bounds.Height : Height;
+
+        // The screen that would hold most of the window, not the one under its top-left corner.
+        //
+        // ⚠️ A maximised window's corner is never on its own screen: Windows grows a maximised
+        // frame past the working area by the resize border on all four sides, so the remembered
+        // point sits a few pixels above and left of the monitor — outside its Bounds. Asking
+        // which screen contains that point therefore answered "none" for every maximised window,
+        // and the fallback put it on the primary. That is why a window maximised on a second
+        // monitor came back maximised on the main one while an ordinary window returned correctly.
+        //
+        // Each screen is measured at its own scaling, because the same window is a different
+        // number of physical pixels on a 100% monitor than on a 150% one.
+        var target = all
+            .Select(sc => (Screen: sc, Overlap: OverlapWith(sc, point, logicalW, logicalH)))
+            .Where(t => t.Overlap > 0)
+            .OrderByDescending(t => t.Overlap)
+            .Select(t => t.Screen)
+            .FirstOrDefault()
+            ?? Screens?.Primary        // saved against a monitor that is no longer attached
+            ?? all[0];
+
+        var area  = target.WorkingArea;
+        var scale = target.Scaling <= 0 ? 1.0 : target.Scaling;
+
+        // Bigger than the screen it is going to: shrink it, or there is no position that fits and
+        // the clamp below would have nothing to choose between.
+        if (logicalW * scale > area.Width)  Width  = logicalW = area.Width  / scale;
+        if (logicalH * scale > area.Height) Height = logicalH = area.Height / scale;
+
+        var w = (int)(logicalW * scale);
+        var h = (int)(logicalH * scale);
+
+        // Math.Max on the upper bound: a screen smaller than the window after rounding would give
+        // Clamp a max below its min, which throws.
+        var maxX = Math.Max(area.X, area.X + area.Width  - w);
+        var maxY = Math.Max(area.Y, area.Y + area.Height - h);
+
+        Position = new Avalonia.PixelPoint(
+            Math.Clamp(point.X, area.X, maxX),
+            Math.Clamp(point.Y, area.Y, maxY));
+    }
+
+    /// <summary>
+    /// How many physical pixels of a window of this logical size, placed at this point, would land
+    /// on the given screen. Zero if none of it would.
+    /// </summary>
+    private static long OverlapWith(Avalonia.Platform.Screen screen,
+                                    Avalonia.PixelPoint point, double logicalW, double logicalH)
+    {
+        var scale = screen.Scaling <= 0 ? 1.0 : screen.Scaling;
+
+        var rect = new Avalonia.PixelRect(
+            point.X, point.Y,
+            (int)(logicalW * scale), (int)(logicalH * scale));
+
+        // Bounds, not WorkingArea: a window over the taskbar is still on that monitor, and a
+        // maximised frame overhangs the working area by design.
+        var shared = screen.Bounds.Intersect(rect);
+        return (long)shared.Width * shared.Height;
+    }
+
     private void SaveWindowState()
     {
-        if (DataContext is not MainWindowViewModel vm) return;
-        var prefs = vm.AppPrefs;
+        // ⚠️ Size only while Normal. Maximised, Width and Height report the whole screen, and
+        // storing that as the restore size means un-maximising gives a window the size of the
+        // monitor. Zero tells AppConfig to keep what it had.
+        var normal = WindowState == WindowState.Normal;
 
-        _ = prefs.SetAsync("window.state", WindowState.ToString());
-
-        if (WindowState == WindowState.Normal)
-        {
-            _ = prefs.SetLongAsync("window.width",  (long)Width);
-            _ = prefs.SetLongAsync("window.height", (long)Height);
-        }
-
-        // Always save position so the monitor is remembered even when maximized.
-        // When maximized, Position gives the top-left corner of the monitor.
-        _ = prefs.SetLongAsync("window.x", Position.X);
-        _ = prefs.SetLongAsync("window.y", Position.Y);
+        // Position is saved even when maximised, because it is what names the monitor.
+        Services.AppConfig.SetMainWindow(
+            Position.X, Position.Y,
+            normal ? (int)Width  : 0,
+            normal ? (int)Height : 0,
+            WindowState.ToString());
 
         // Mirror the center of the current screen to config.json so the splash can
         // find the right monitor before DI starts. Using screen center rather than
@@ -390,6 +495,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void OnAlarmsClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm) vm.OpenTool("alarms");
+    }
+
+    private void OnSchedulerClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) vm.OpenTool("scheduler");
     }
 
     private async void OnGearClick(object? sender, RoutedEventArgs e)

@@ -14,8 +14,13 @@ namespace EveConsole.Services.Worklist;
 public sealed record InvRuleShortfall(long Target, long Have, long Wanted, long Shortfall, double Percent)
 {
     /// <summary>True when stock has fallen far enough for the rule to fire.</summary>
+    /// <param name="claimed">Units of this item a customer order will take before the shelf sees
+    /// any of it. ⚠️ Without this the same hull answers two claims: the order is judged covered
+    /// because the stock exists, and the shelf is judged full because the same stock exists,
+    /// so nothing is ever queued to replace what the order is about to carry away.</param>
     public static InvRuleShortfall? For(WorklistInvRule rule, InvLevelGroup group,
-                                        InvLevelItem item, InvAvailability? avail)
+                                        InvLevelItem item, InvAvailability? avail,
+                                        long claimed = 0)
     {
         var target = (long)item.TargetQuantity * Math.Max(1, group.Multiplier);
         if (target <= 0) return null;
@@ -24,7 +29,10 @@ public sealed record InvRuleShortfall(long Target, long Have, long Wanted, long 
         // counted here — the group's include flags describe what the Inventory Levels tool
         // displays, and whether an order is already placed is a separate question the Buy
         // generator answers for itself.
-        var have = (avail?.Assets ?? 0) + (avail?.IndustryJobs ?? 0);
+        //
+        // What an order has claimed comes off first: it is spoken for, and a threshold judged
+        // on stock that is already promised declines to top up a shelf that is about to empty.
+        var have = Math.Max(0, (avail?.Assets ?? 0) + (avail?.IndustryJobs ?? 0) - claimed);
         if (have >= target * (rule.ThresholdPercent / 100.0)) return null;
 
         var wanted = (long)Math.Ceiling(target * (rule.FillTargetPercent / 100.0));

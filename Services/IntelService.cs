@@ -445,12 +445,29 @@ public sealed class IntelService(
                     AND r2."Id" > "IntelReports"."Id")))
         """;
 
-    /// <summary>Drains the write-ahead log into the database. TRUNCATE rather than PASSIVE so
-    /// the file is actually reclaimed; failure is ignored because a checkpoint blocked by a
-    /// concurrent reader is normal and the next one will get it.</summary>
+    /// <summary>
+    /// Drains what it can of the write-ahead log into the database.
+    ///
+    /// <para><b>⚠️ PASSIVE, never TRUNCATE.</b> This ran TRUNCATE, on the reasoning that only
+    /// TRUNCATE reclaims the file. It does — but it takes the writer lock and then waits for
+    /// every reader to release its snapshot, and the connection carries busy_timeout = 30000, so
+    /// a checkpoint that meets a reader sits on the write lock for thirty seconds before giving
+    /// up. Every other writer in the app queues behind it and times out too. Measured: all 138
+    /// abandoned writes in the error log had one of these in the preceding minute, arriving in
+    /// bursts of seventeen at a time, each blaming another victim because the checkpoint had
+    /// already finished by the time they failed.</para>
+    ///
+    /// <para>PASSIVE copies what it can and yields the instant it meets a reader, which is all
+    /// this needs: the point is keeping the log SMALL during a long backfill, not shrinking the
+    /// file. <see cref="WalCheckpointService"/> reached the same conclusion from the other
+    /// direction and its notes are the longer version of this one — including the part about the
+    /// intel backfill's checkpoints, which is this code.</para>
+    ///
+    /// <para>Failure is still ignored: a checkpoint that copies nothing is not a problem.</para>
+    /// </summary>
     private static async Task CheckpointAsync(AppDbContext db, CancellationToken ct)
     {
-        try { await db.Database.ExecuteSqlRawAsync("PRAGMA wal_checkpoint(TRUNCATE)", ct); }
+        try { await db.Database.ExecuteSqlRawAsync("PRAGMA wal_checkpoint(PASSIVE)", ct); }
         catch { }
     }
 

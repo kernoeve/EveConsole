@@ -1,0 +1,420 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EveConsole.ViewModels"
+             xmlns:controls="using:EveConsole.Controls"
+             x:Class="EveConsole.Views.StoresView"
+             x:DataType="vm:StoresViewModel">
+
+  <UserControl.Styles>
+    <!-- The size every other grid in the app uses. ⚠️ Set on the cell text, not by putting
+         FontSize on the DataGrid: the theme gives the cell's TextBlock its own size, which wins
+         over anything inherited from an ancestor, so the FontSize on the grids here was doing
+         nothing and they were drawing at the theme default while every other grid drew at 11. -->
+    <Style Selector="DataGridCell TextBlock">
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+
+    <!-- Headers match at the size the rest of the app uses. Size only: the colours here belong
+         to the card the grid sits on, not to the tool-window palette the other views set. -->
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="FontSize" Value="10" />
+    </Style>
+
+    <!-- Amber only once the price list actually splits. A size line that is always coloured is a
+         warning nobody reads by the third time they see it. -->
+    <Style Selector="TextBlock.warn">
+      <Setter Property="Foreground" Value="#c8a84b" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- Toolbar -->
+    <Border Grid.Row="0" Background="#0d0d12" Padding="10 6"
+            BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*">
+        <Button Grid.Column="0" Command="{Binding AddStoreCommand}" Content="+ Add Store"
+                Background="#1a1a28" Foreground="#c8a84b"
+                BorderBrush="#3a3020" BorderThickness="1" Padding="12 4" FontSize="11" />
+        <Button Grid.Column="1" Command="{Binding DeleteStoreCommand}" Content="Delete"
+                Background="#2a1010" Foreground="#aa4444"
+                BorderBrush="#3a2020" BorderThickness="1" Padding="12 4" FontSize="11" Margin="8 0 0 0" />
+        <Button Grid.Column="2" Command="{Binding CheckMailCommand}" Content="Check Mail Now"
+                Background="#1a1a28" Foreground="#5599aa"
+                BorderBrush="#2a3a44" BorderThickness="1" Padding="12 4" FontSize="11" Margin="8 0 0 0" />
+        <Button Grid.Column="3" Command="{Binding RefreshCommand}" Content="Refresh"
+                Background="#1a1a28" Foreground="#5599aa"
+                BorderBrush="#2a3a44" BorderThickness="1" Padding="12 4" FontSize="11" Margin="8 0 0 0" />
+        <TextBlock Grid.Column="4" Text="{Binding Status}" FontSize="11" Foreground="#666677"
+                   VerticalAlignment="Center" Margin="16 0 0 0" TextWrapping="NoWrap" />
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" ColumnDefinitions="220,*">
+
+      <!-- Store list -->
+      <Border Grid.Column="0" Background="#0d0d12" BorderThickness="0 0 1 0" BorderBrush="#1e1e2a">
+        <ListBox ItemsSource="{Binding Stores}" SelectedItem="{Binding SelectedStore}"
+                 Background="Transparent" BorderThickness="0">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:StoreRowVm">
+              <StackPanel Spacing="1" Margin="0 2">
+                <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" Foreground="#c8c8d8" />
+                <TextBlock Text="{Binding CharacterName}" FontSize="10" Foreground="#666677" />
+                <TextBlock Text="{Binding StateText}" FontSize="10" Foreground="#5599aa" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Border>
+
+      <!-- Three tabs rather than one long scroll: what a store IS gets configured once and then
+           left alone, while how it is DOING is looked at repeatedly. Putting the numbers and the
+           message log behind the same scrollbar as the settings meant scrolling past the setup
+           every time to see whether anyone had written in. -->
+      <TabControl Grid.Column="1" IsVisible="{Binding HasSelection}" Padding="0">
+
+        <TabItem Header="Overview" FontSize="12">
+          <!-- A grid, not a stack in a scroller: the counts are four lines and fixed, and
+               everything left over is split between the two logs. A log sized to a guess wastes
+               half the window on a tall screen and shows six rows on a short one.
+
+               Orders above messages, and both starred rather than one of them auto-sized: what
+               the shop still owes people is the reason to open this tab, and a mail log that
+               took the whole window pushed it off the bottom. -->
+          <Grid Margin="14" RowDefinitions="Auto,14,*,14,*">
+          <!-- Stats -->
+          <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="14 12">
+            <Grid ColumnDefinitions="*,*,*,*">
+              <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock Text="Inquiries" FontSize="10" Foreground="#666677" />
+                <TextBlock Text="{Binding StatInquiries}" FontSize="18" Foreground="#c8a84b" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Spacing="2">
+                <TextBlock Text="Active items" FontSize="10" Foreground="#666677" />
+                <TextBlock Text="{Binding StatActive}" FontSize="18" Foreground="#5599aa" />
+              </StackPanel>
+              <StackPanel Grid.Column="2" Spacing="2">
+                <TextBlock Text="Completed" FontSize="10" Foreground="#666677" />
+                <TextBlock Text="{Binding StatCompleted}" FontSize="18" Foreground="#4a8a5a" />
+              </StackPanel>
+              <StackPanel Grid.Column="3" Spacing="2">
+                <TextBlock Text="Cancelled" FontSize="10" Foreground="#666677" />
+                <TextBlock Text="{Binding StatCancelled}" FontSize="18" Foreground="#aa4444" />
+              </StackPanel>
+            </Grid>
+          </Border>
+          <!-- Active orders -->
+          <Border Grid.Row="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="14 12">
+            <DockPanel LastChildFill="True">
+              <TextBlock DockPanel.Dock="Top" Text="Active orders" FontSize="13"
+                         FontWeight="SemiBold" Foreground="#c8a84b" Margin="0 0 0 8" />
+              <DataGrid ItemsSource="{Binding Orders}" AutoGenerateColumns="False" IsReadOnly="True"
+                        Background="Transparent" HeadersVisibility="Column" FontSize="11">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Created on" Binding="{Binding Created}" Width="100" />
+                  <DataGridTextColumn Header="Order"      Binding="{Binding Ref}"     Width="80" />
+                  <DataGridTextColumn Header="Item"       Binding="{Binding Item}"    Width="*" />
+                  <!-- Sorted on the number, shown with separators: 9 sorts below 50, which it
+                       would not if the column sorted the text it displays. -->
+                  <DataGridTextColumn Header="Units"      Binding="{Binding UnitsText}"
+                                      SortMemberPath="Units" Width="80" CellStyleClasses="num" />
+                  <DataGridTextColumn Header="Buyer"      Binding="{Binding Buyer}"   Width="160" />
+                  <DataGridTextColumn Header="Est date"   Binding="{Binding EstDate}" Width="90" />
+                  <!-- The column that moves while an order is open. Status is here because it was
+                       asked for and stays correct if the list ever shows more than active orders,
+                       but on this tab it reads "Pending" on every row by construction. -->
+                  <DataGridTextColumn Header="Source"     Binding="{Binding Source}"  Width="100" />
+                  <DataGridTextColumn Header="Status"     Binding="{Binding Status}"  Width="90" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </DockPanel>
+          </Border>
+          <!-- Messages -->
+          <Border Grid.Row="4" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="14 12">
+            <DockPanel LastChildFill="True">
+              <TextBlock DockPanel.Dock="Top" Text="Messages" FontSize="13" FontWeight="SemiBold"
+                         Foreground="#c8a84b" Margin="0 0 0 8" />
+              <DataGrid ItemsSource="{Binding Mails}" AutoGenerateColumns="False" IsReadOnly="True"
+                        Background="Transparent" HeadersVisibility="Column" FontSize="11">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="When"      Binding="{Binding When}"      Width="130" />
+                  <DataGridTextColumn Header="Direction" Binding="{Binding Direction}" Width="80" />
+                  <DataGridTextColumn Header="Who"       Binding="{Binding Party}"     Width="150" />
+                  <DataGridTextColumn Header="Command"   Binding="{Binding Command}"   Width="80" />
+                  <DataGridTextColumn Header="Subject"   Binding="{Binding Subject}"   Width="*" />
+                  <DataGridTextColumn Header="Order"     Binding="{Binding OrderRef}"  Width="80" />
+                  <DataGridTextColumn Header="Outcome"   Binding="{Binding Outcome}"   Width="80" />
+                  <!-- Wrapped, not truncated: the note is where a rejection explains itself, and
+                       an ellipsis in the one column that says why is the column doing nothing. -->
+                  <DataGridTemplateColumn Header="Note" Width="320">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StoreMailRowVm">
+                        <TextBlock Text="{Binding Detail}" TextWrapping="Wrap"
+                                   FontSize="11" Margin="4 2" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </DockPanel>
+          </Border>
+          </Grid>
+        </TabItem>
+
+        <TabItem Header="Config" FontSize="12">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="14" Spacing="14">
+          <!-- Settings -->
+          <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="14 12">
+            <StackPanel Spacing="10">
+              <TextBlock Text="Store" FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
+
+              <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" >
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Name" FontSize="11"
+                           Foreground="#888899" VerticalAlignment="Center" Margin="0 0 0 6" />
+                <!-- LostFocus, not the default per-keystroke: every change writes to the
+                     database, and a store name typed at speed would be a dozen writes. -->
+                <TextBox Grid.Row="0" Grid.Column="1"
+                         Text="{Binding StoreName, UpdateSourceTrigger=LostFocus}"
+                         FontSize="11" Background="#1a1a28" Foreground="#c8c8d8"
+                         BorderBrush="#2a2a3a" Margin="0 0 0 6" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Character" FontSize="11"
+                           Foreground="#888899" VerticalAlignment="Center" Margin="0 0 0 6" />
+                <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding CharacterOptions}"
+                          SelectedItem="{Binding StoreCharacter}" FontSize="11" MinWidth="220"
+                          HorizontalAlignment="Left"
+                          Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a"
+                          Margin="0 0 0 6" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Price list" FontSize="11"
+                           Foreground="#888899" VerticalAlignment="Center" Margin="0 0 0 6" />
+                <StackPanel Grid.Row="2" Grid.Column="1" Spacing="3" Margin="0 0 0 6">
+                  <ComboBox ItemsSource="{Binding PostingOptions}"
+                            SelectedItem="{Binding StorePosting}" FontSize="11" MinWidth="220"
+                            HorizontalAlignment="Left"
+                            Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+
+                  <!-- Measured through the same pagination the send uses, so what this says and
+                       what a buyer receives cannot disagree. Amber once it splits; the byte count
+                       is there either way, because knowing the headroom is what lets a posting be
+                       trimmed back under the limit rather than guessed at. -->
+                  <TextBlock Text="{Binding PostingSizeText}" FontSize="10" TextWrapping="Wrap"
+                             MaxWidth="420" HorizontalAlignment="Left" Foreground="#555566"
+                             Classes.warn="{Binding PostingSplits}"
+                             IsVisible="{Binding PostingSizeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Serve" FontSize="11"
+                           Foreground="#888899" VerticalAlignment="Center" Margin="0 0 0 6" />
+                <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding PolicyOptions}"
+                          SelectedItem="{Binding SenderPolicy}" FontSize="11" MinWidth="120"
+                          HorizontalAlignment="Left"
+                          Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a"
+                          Margin="0 0 0 6" />
+
+                <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding StoreEnabled}"
+                          Content="Open — read and answer mail" FontSize="11" Foreground="#c8c8d8" />
+              </Grid>
+
+              <!-- An order filled from the shelf has no job behind it, so nothing else would ever
+                   give it a date. Blank reads as "no idea" when the truth is "as soon as someone
+                   writes the contract". -->
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <CheckBox IsChecked="{Binding AutoEstimate}"
+                          Content="Give in-stock orders an expected date" FontSize="11"
+                          Foreground="#c8c8d8" VerticalAlignment="Center" />
+                <!-- ⚠️ Wide enough for the DIGITS. A NumericUpDown spends most of its width on
+                     the two spinner buttons, so 88 left the text box narrower than one character
+                     and the value could not be read at all. -->
+                <NumericUpDown Value="{Binding AutoEstimateDays}" Minimum="0" Maximum="60"
+                               Increment="1" FormatString="0" Width="130" FontSize="11"
+                               IsEnabled="{Binding AutoEstimate}"
+                               Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+                <TextBlock Text="day(s) from the order" FontSize="11" Foreground="#888899"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+
+              <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                         Text="Buyers put the command in the mail SUBJECT: PRICES, ORDER, STATUS, CANCEL or HELP. An ORDER body is one item per line — dragging the item in is easiest. STATUS on its own lists every open order; CANCEL needs the reference from the confirmation mail." />
+
+              <Rectangle Height="1" Fill="#1e1e2a" Margin="0 4" />
+
+              <!-- Put on every order this store takes, so a shop can be a programme: tag the
+                   orders once here rather than remembering to tag each one later. -->
+              <TextBlock Text="ORDER LABELS  (on every order this store takes)" FontSize="10"
+                         FontWeight="SemiBold" Foreground="#555566" LetterSpacing="1" />
+              <controls:LabelsBox LabelsText="{Binding StoreOrderLabels, Mode=TwoWay}"
+                                  KnownLabels="{Binding KnownLabels}" />
+              <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                         Text="Labels appear on the Order Tracker and can be filtered there. Anything typed here is offered in its label pickers, so a programme can be set up before its first order arrives." />
+
+              <Rectangle Height="1" Fill="#1e1e2a" Margin="0 4" />
+
+              <!-- On every mail the shop sends: answers, rejections and unprompted order updates
+                   alike. EVE's own markup works here — <b>, <i>, <u>, <br>, font tags and dragged
+                   links — because this is the owner's text, not a buyer's. -->
+              <TextBlock Text="MESSAGE HEADER  (on every mail this store sends)" FontSize="10"
+                         FontWeight="SemiBold" Foreground="#555566" LetterSpacing="1" />
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0" Text="{Binding MessageHeader, UpdateSourceTrigger=LostFocus}"
+                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="110"
+                         Watermark="e.g. Thanks for shopping with us." FontSize="11"
+                         ToolTip.Tip="EVE markup works here: &lt;b&gt;, &lt;i&gt;, &lt;u&gt;, dragged links, and [color=#rrggbb]text[/color]. The colour beside this box tints the whole block; the tag colours part of it."
+                         Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+                <controls:ColorField Grid.Column="1" Width="160" Margin="8 0 0 0"
+                                     VerticalAlignment="Top"
+                                     Value="{Binding MessageHeaderColor, Mode=TwoWay}" />
+              </Grid>
+
+              <TextBlock Text="MESSAGE FOOTER" FontSize="10"
+                         FontWeight="SemiBold" Foreground="#555566" LetterSpacing="1" Margin="0 6 0 0" />
+              <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                         Text="Both accept EVE markup — bold, italic, underline, dragged links — and [color=#rrggbb]text[/color] for part of a line. The picker beside each box tints the whole block." />
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0" Text="{Binding MessageFooter, UpdateSourceTrigger=LostFocus}"
+                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="110"
+                         Watermark="e.g. Contracts are issued from UALX-3." FontSize="11"
+                         Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+                <controls:ColorField Grid.Column="1" Width="160" Margin="8 0 0 0"
+                                     VerticalAlignment="Top"
+                                     Value="{Binding MessageFooterColor, Mode=TwoWay}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+          <!-- Allow list -->
+          <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                  CornerRadius="4" Padding="14 12">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Who may order" FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
+              <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                         Text="Used when Serve is set to List. A sender matches by their own name, their corporation, or their alliance. Names are resolved against ids the app has already seen." />
+
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <ComboBox Grid.Column="0" ItemsSource="{Binding SenderKinds}"
+                          SelectedItem="{Binding SenderKind}" FontSize="11" MinWidth="110"
+                          Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+                <!-- ⚠️ AsyncPopulator, not ItemsSource: the name cache holds 267,000 characters
+                     and 39,000 corporations, and handing the box that list would have it lay out
+                     every one. FilterMode must be None — the populator has already narrowed the
+                     list, and letting the box filter again would drop matches it never got. -->
+                <AutoCompleteBox Grid.Column="1"
+                                 AsyncPopulator="{Binding SenderPopulator}"
+                                 SelectedItem="{Binding SenderMatch}"
+                                 Text="{Binding SenderName}"
+                                 ValueMemberBinding="{Binding Name}"
+                                 FilterMode="None" MinimumPrefixLength="2"
+                                 Watermark="Type two letters of the name…"
+                                 FontSize="11" Background="#1a1a28" Foreground="#c8c8d8"
+                                 BorderBrush="#2a2a3a" Margin="8 0" />
+                <Button Grid.Column="2" Command="{Binding AddSenderCommand}" Content="Add"
+                        Background="#0d1a12" Foreground="#4a8a5a"
+                        BorderBrush="#1e3a28" BorderThickness="1" Padding="12 4" FontSize="11" />
+              </Grid>
+
+              <DataGrid ItemsSource="{Binding Senders}" SelectedItem="{Binding SelectedSender}"
+                        AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="160"
+                        Background="Transparent" HeadersVisibility="Column" FontSize="11">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Kind" Binding="{Binding Kind}" Width="110" />
+                  <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                  <DataGridTemplateColumn Header="" Width="70">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StoreSenderRowVm">
+                        <Button Click="OnRemoveSender" Content="Remove"
+                                Background="#2a1010" Foreground="#aa4444"
+                                BorderBrush="#3a2020" BorderThickness="1"
+                                Padding="6 1" FontSize="10" Cursor="Hand" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </StackPanel>
+          </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+        <TabItem Header="Info" FontSize="12">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="14" Spacing="14">
+
+              <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                      CornerRadius="4" Padding="14 12">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="About this store" FontSize="13" FontWeight="SemiBold"
+                             Foreground="#c8a84b" />
+                  <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                             Text="What INFO sends back: who runs the store, what it stocks, delivery terms, whatever a buyer should know before ordering. Leave it empty and the command is not offered — the usage message will not mention INFO, and anyone who mails it anyway gets the usage instead." />
+
+                  <!-- ⚠️ No checkbox, unlike the usage message. The text is the switch: a store
+                       with something to say has written it. A flag as well would be a second way
+                       to say the same thing, and a way for the two to disagree. -->
+                  <TextBlock Text="INFORMATION" FontSize="10" FontWeight="SemiBold"
+                             Foreground="#555566" LetterSpacing="1" Margin="0 4 0 0" />
+                  <TextBox Text="{Binding StoreInfo, UpdateSourceTrigger=LostFocus}"
+                           AcceptsReturn="True" TextWrapping="Wrap"
+                           MinHeight="320" MaxHeight="560" FontSize="11"
+                           FontFamily="Consolas,Menlo,monospace"
+                           Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a"
+                           VerticalContentAlignment="Top" />
+
+                  <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                             Text="Write it as text — newlines become line breaks when it is sent. The same EVE mail markup the usage message takes: &lt;b&gt; &lt;i&gt; &lt;u&gt;, &lt;font size=&quot;12&quot;&gt; and &lt;font color=&quot;#ffc8a84b&quot;&gt; — colours are ARGB, so the alpha pair is not optional. Whitespace on its own does not count as filled in." />
+                </StackPanel>
+              </Border>
+
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+        <TabItem Header="Usage" FontSize="12">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="14" Spacing="14">
+
+              <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                      CornerRadius="4" Padding="14 12">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Usage message" FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
+                  <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                             Text="What HELP sends, and what goes back with anything this store could not understand. The default explains ordering in general; a store with its own rules — one hull per buyer, a fixed price, a programme with conditions — is better off saying so in its own words than sending instructions that do not apply." />
+
+                  <CheckBox IsChecked="{Binding UseCustomUsage}" FontSize="11"
+                            Content="Use a custom usage message for this store" />
+
+                  <!-- Pre-filled with the default, markup and all, so writing one starts from
+                       something that already works rather than an empty box. -->
+                  <TextBlock Text="MESSAGE" FontSize="10" FontWeight="SemiBold"
+                             Foreground="#555566" LetterSpacing="1" Margin="0 4 0 0" />
+                  <TextBox Text="{Binding CustomUsage, UpdateSourceTrigger=LostFocus}"
+                           IsEnabled="{Binding UseCustomUsage}"
+                           AcceptsReturn="True" TextWrapping="Wrap"
+                           MinHeight="320" MaxHeight="560" FontSize="11"
+                           FontFamily="Consolas,Menlo,monospace"
+                           Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a"
+                           VerticalContentAlignment="Top" />
+
+                  <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                             Text="Write it as text — newlines become line breaks when it is sent. EVE mail markup: &lt;b&gt; &lt;i&gt; &lt;u&gt;, &lt;font size=&quot;12&quot;&gt; and &lt;font color=&quot;#ffc8a84b&quot;&gt; — colours are ARGB, so the alpha pair is not optional. Item and character links are &lt;a href=&quot;showinfo:TYPEID&quot;&gt; and &lt;a href=&quot;showinfo:1373//CHARACTERID&quot;&gt;. Spaces are kept as written; HTML entities are not decoded and will be drawn as typed." />
+
+                  <Button Content="Reset to the default message" Click="OnResetUsage"
+                          IsEnabled="{Binding UseCustomUsage}" FontSize="11" Padding="12 4"
+                          HorizontalAlignment="Left"
+                          Background="#1a1a28" Foreground="#888899" BorderBrush="#2a2a3a" />
+                </StackPanel>
+              </Border>
+
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+      </TabControl>
+    </Grid>
+  </Grid>
+</UserControl>
