@@ -147,6 +147,27 @@ public class BuildCostService
     // EVE material consumption for a whole job: per-run adjusted quantity (base × ME/rig/role
     // modifiers) rounded to 2 dp, × run count, ceilinged ONCE, floored at one per run. Must match
     // ProductionCalculatorService.JobMaterialTotal so the two calculators agree.
+    /// <summary>
+    /// Forgets stored figures for types that cannot be costed, so nothing downstream keeps
+    /// reading them.
+    ///
+    /// <para>The build cost goes because the gap fill derives a market price from it. The
+    /// gap-filled price goes with it — once the cost is gone the gap fill has nothing to
+    /// correct that row with, so leaving it would freeze the last bad value in place forever.
+    /// A row backed by real market orders is left alone: that is a real price, whatever the
+    /// recipe looks like.</para>
+    /// </summary>
+    private static async Task PurgeUncostableAsync(
+        AppDbContext db, IReadOnlyCollection<int> typeIds, CancellationToken ct)
+    {
+        var ids = typeIds.ToList();
+
+        await db.BuildCosts.Where(b => ids.Contains(b.TypeId)).ExecuteDeleteAsync(ct);
+        await db.MarketItemPrices
+                .Where(p => ids.Contains(p.TypeId) && !p.FromMarketData)
+                .ExecuteDeleteAsync(ct);
+    }
+
     private static int JobMaterialTotal(int baseQty, double factor, int runs)
     {
         double perRun = Math.Round(baseQty * factor, 2);
@@ -923,9 +944,37 @@ public class BuildCostService
             // at a figure already recomputed in this same pass. Leftovers only arise where a
             // blueprint yields more than one unit per run, and those outputs always sit strictly
             // below their consumers in the material graph, so such an order exists.
-            var builtTypes = productMap.Keys
-                .Where(t => !boughtTypes.Contains(t) && recMaterials.ContainsKey(t))
+            // ⚠️ A blueprint that lists its own product among its materials is not a build
+            // recipe, and costing one is circular by construction: cost(X) reads price(X), then
+            // the gap fill in MarketPricingService writes price(X) = cost(X) × markup. Every
+            // recalculation multiplies by the markup — nothing bounds it.
+            //
+            // Catalyst Silo and Moon Harvesting Array are both like this in the SDE (each needs
+            // one of itself), and they grew to 7.2e28 and 2.2e28 ISK. Past decimal's ceiling of
+            // 7.9e28 the conversion throws, and four worklist generators died with "Value was
+            // either too large or too small for a Decimal" — every haul, purchase, job and
+            // invention row gone.
+            //
+            // The topological pass below already handles cycles by costing them last and falling
+            // back on the previous figure. That is right for a real cycle, where the previous
+            // figure came from real materials; it cannot help here, because the previous figure
+            // IS this item's own inflated price.
+            var selfMaking = productMap.Keys
+                .Where(t => recMaterials.TryGetValue(t, out var mats) && mats.Any(m => m.Mat == t))
                 .ToHashSet();
+
+            var builtTypes = productMap.Keys
+                .Where(t => !boughtTypes.Contains(t)
+                         && !selfMaking.Contains(t)
+                         && recMaterials.ContainsKey(t))
+                .ToHashSet();
+
+            // ⚠️ Whatever was stored for one of these before is poison and has to go, not merely
+            // stop being updated. The gap fill reads BuildCosts, so a row left behind keeps
+            // feeding the same runaway price back in, and a price row derived from it is never
+            // revisited once its source stops being costed.
+            if (selfMaking.Count > 0)
+                await PurgeUncostableAsync(db, selfMaking, ct);
 
             var consumers = new Dictionary<int, List<int>>();
             var remaining = builtTypes.ToDictionary(t => t, _ => 0);
