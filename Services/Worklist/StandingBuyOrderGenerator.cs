@@ -19,6 +19,10 @@ public class StandingBuyOrderGenerator(
     WorklistSettings                     settings,
     IDbContextFactory<AppDbContext>      dbFactory) : IWorklistGenerator
 {
+    /// <summary>The one verb that is about an order not existing yet. Named because the routing
+    /// above has to tell it apart from the verbs that change an order already placed.</summary>
+    private const string PlaceOrderVerb = "Place order";
+
     public string Id          => "standing_buy";
     public string DisplayName => "Standing Buy Orders";
 
@@ -27,6 +31,23 @@ public class StandingBuyOrderGenerator(
         var rows     = await standing.BuildGridRowsAsync(ct);
         var altMap  = await marketAlts.GetByLocationAsync(ct);
         var asOf     = await MarketDataAsOfAsync(ct);
+
+        // Names for the characters holding these orders. Only personal orders: a corp order is
+        // not one character's to change, and OwnerId is already zero where several owners back
+        // one declaration.
+        var ownerIds = rows.Where(r => r.OwnerId > 0 && r.OwnerType != "corporation")
+                           .Select(r => r.OwnerId)
+                           .Distinct()
+                           .ToList();
+
+        var ownerNames = new Dictionary<long, string>();
+        if (ownerIds.Count > 0)
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            ownerNames = await db.Characters.AsNoTracking()
+                .Where(c => ownerIds.Contains(c.Id))
+                .ToDictionaryAsync(c => c.Id, c => c.Name, ct);
+        }
 
         var items = new List<WorklistItem>();
 
@@ -39,9 +60,27 @@ public class StandingBuyOrderGenerator(
 
             altMap.TryGetValue(r.LocationId, out var alt);
 
-            // No alt is a real blocker rather than a detail: the point of the list is knowing
-            // which character to log in, and an item that cannot say is unfinished work.
-            var blocked = alt is null;
+            // ── Who has to log in ─────────────────────────────────────────────
+            //
+            // ⚠️ An order that already exists is changed by the character who placed it, not
+            // by whoever is assigned to that station. Naming the station's alt sent "raise the
+            // bid on Compressed Kylixium IV-Grade" to a character with no such order — the
+            // order was another alt's, and the named one cannot touch its price.
+            //
+            // Only for the verbs that act on an existing order. "Place order" is the opposite
+            // case: nothing has been placed, so the station's alt is exactly who should.
+            //
+            // Corp orders keep the alt too. OwnerId is zero for them here, and the tool already
+            // treats a corp order as actionable by anyone holding the role — see
+            // OutbidOrderService.Task, which reaches the same conclusion from the other side.
+            var placedBy  = verb == PlaceOrderVerb ? 0 : r.OwnerId;
+            var ownerName = placedBy > 0 ? ownerNames.GetValueOrDefault(placedBy, "") : "";
+            var named     = ownerName.Length > 0;
+
+            // No character at all is a real blocker rather than a detail: the point of the list
+            // is knowing which character to log in, and an item that cannot say is unfinished
+            // work.
+            var blocked = !named && alt is null;
 
             items.Add(new WorklistItem
             {
@@ -55,8 +94,8 @@ public class StandingBuyOrderGenerator(
                 Detail        = detail,
                 Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
                 BlockedBy     = blocked ? "No character assigned to this location" : "",
-                CharacterId   = alt?.CharacterId   ?? 0,
-                CharacterName = alt?.CharacterName ?? "",
+                CharacterId   = named ? placedBy  : alt?.CharacterId   ?? 0,
+                CharacterName = named ? ownerName : alt?.CharacterName ?? "",
                 LocationId    = r.LocationId,
                 LocationName  = r.LocationName,
                 TypeId        = r.TypeId,
@@ -94,7 +133,7 @@ public class StandingBuyOrderGenerator(
             var caveat = r.IsLocationTracked
                 ? ""
                 : " Competing bids unknown — this location is not a configured market source.";
-            return ("Place order", $"No order found at {r.LocationName}.{caveat}", WorklistPriority.Missing);
+            return (PlaceOrderVerb, $"No order found at {r.LocationName}.{caveat}", WorklistPriority.Missing);
         }
 
         if (r.IsLow && settings.RaiseLow)
