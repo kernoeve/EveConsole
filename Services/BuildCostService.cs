@@ -144,15 +144,32 @@ public class BuildCostService
         await db.SaveChangesAsync(ct);
     }
 
-    // EVE material consumption for a whole job: per-run adjusted quantity (base × ME/rig/role
-    // modifiers) rounded to 2 dp, × run count, ceilinged ONCE, floored at one per run. Must match
-    // ProductionCalculatorService.JobMaterialTotal so the two calculators agree.
-    private static int JobMaterialTotal(int baseQty, double factor, int runs)
+    /// <summary>
+    /// Forgets stored figures for types that cannot be costed, so nothing downstream keeps
+    /// reading them.
+    ///
+    /// <para>The build cost goes because the gap fill derives a market price from it. The
+    /// price goes with it — once the cost is gone the gap fill has nothing to correct that row
+    /// with, so leaving it would freeze the last bad value in place forever.</para>
+    ///
+    /// <para>⚠️ Including rows flagged as market-backed. That flag does not actually distinguish
+    /// them: Moon Harvesting Array carried 2.5e28 ISK under FromMarketData = 1, and no real order
+    /// can hold that — EVE's entire economy is orders of magnitude smaller. Deleting a price is
+    /// safe anyway; the next market refresh puts a real one back.</para>
+    /// </summary>
+    private static async Task PurgeUncostableAsync(
+        AppDbContext db, IReadOnlyCollection<int> typeIds, CancellationToken ct)
     {
-        double perRun = Math.Round(baseQty * factor, 2);
-        double total  = Math.Round(perRun * runs, 4);
-        return Math.Max(runs, (int)Math.Ceiling(total));
+        var ids = typeIds.ToList();
+
+        await db.BuildCosts.Where(b => ids.Contains(b.TypeId)).ExecuteDeleteAsync(ct);
+        await db.MarketItemPrices.Where(p => ids.Contains(p.TypeId)).ExecuteDeleteAsync(ct);
     }
+
+    // What a whole job eats of one material. See IndustryMe.JobMaterialTotal — the same
+    // definition the plan uses, so a build cost and the plan it prices cannot disagree.
+    private static int JobMaterialTotal(int baseQty, double factor, int runs) =>
+        IndustryMe.JobMaterialTotal(baseQty, factor, runs);
 
     // ── Core calculation ──────────────────────────────────────────────────────
 
@@ -169,6 +186,36 @@ public class BuildCostService
             StatusText = "Build costs: no default park set — mark a park as default in Indy Parks";
             return;
         }
+
+        // —— Recipes that consume their own product ————
+        //
+        // ⚠️ A blueprint that lists its own product among its materials is not a build recipe,
+        // and costing one is circular by construction: cost(X) reads price(X), and the gap fill
+        // in MarketPricingService then writes price(X) = cost(X) × markup. Every recalculation
+        // multiplies by the markup and nothing bounds it.
+        //
+        // Catalyst Silo and Moon Harvesting Array are both like this in the SDE — each needs
+        // one of itself — and they reached 7.2e28 and 2.2e28 ISK. decimal stops at 7.9e28, so
+        // reading one back threw and four worklist generators died together: every haul,
+        // purchase, job and invention row gone.
+        //
+        // ⚠️ This runs FIRST, before anything reads BuildCosts. TotalCost is a decimal, so a
+        // poisoned row throws as it is materialised — purging it later in the pass is never
+        // reached, which is exactly how the first attempt at this failed. Detection is from the
+        // SDE alone and touches no stored figure.
+        var selfMaking = (await db.SdeBlueprintMaterials.AsNoTracking()
+                .Where(m => m.Activity == "manufacturing")
+                .Join(db.SdeBlueprintProducts.AsNoTracking().Where(bp => bp.Activity == "manufacturing"),
+                      m => m.TypeId, bp => bp.TypeId,
+                      (m, bp) => new { bp.ProductTypeId, m.MaterialTypeId })
+                .Where(x => x.ProductTypeId == x.MaterialTypeId)
+                .Select(x => x.ProductTypeId)
+                .Distinct()
+                .ToListAsync(ct))
+            .ToHashSet();
+
+        if (selfMaking.Count > 0)
+            await PurgeUncostableAsync(db, selfMaking, ct);
 
         // Load structures and their rigs.
         var structures = await db.IndyStructures.AsNoTracking()
@@ -923,8 +970,15 @@ public class BuildCostService
             // at a figure already recomputed in this same pass. Leftovers only arise where a
             // blueprint yields more than one unit per run, and those outputs always sit strictly
             // below their consumers in the material graph, so such an order exists.
+            // Recipes that make themselves are not costed at all — see the note at the top of
+            // this method. The topological pass below handles a genuine cycle by costing it last
+            // and falling back on the previous figure, which is right when that figure came from
+            // real materials; it cannot help here, because the previous figure IS this item's own
+            // inflated price.
             var builtTypes = productMap.Keys
-                .Where(t => !boughtTypes.Contains(t) && recMaterials.ContainsKey(t))
+                .Where(t => !boughtTypes.Contains(t)
+                         && !selfMaking.Contains(t)
+                         && recMaterials.ContainsKey(t))
                 .ToHashSet();
 
             var consumers = new Dictionary<int, List<int>>();
