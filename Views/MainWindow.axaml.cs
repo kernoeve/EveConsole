@@ -2,6 +2,7 @@ using System.Reactive.Linq;
 using System.Text;
 using EveConsole.Services;
 using Avalonia;
+using System;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -96,22 +97,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         // long.MinValue is used as sentinel for "never saved".
         var x = saved?.X ?? prefs.GetLong("window.x", long.MinValue);
         var y = saved?.Y ?? prefs.GetLong("window.y", long.MinValue);
+
         if (x != long.MinValue && y != long.MinValue)
-        {
-            var point = new Avalonia.PixelPoint((int)x, (int)y);
-
-            // ⚠️ Only if that point is still on a monitor. A position saved against a screen
-            // that has since been unplugged — a laptop undocked, a second monitor moved
-            // — restores the window somewhere nobody can reach, and every dialog it owns
-            // opens centred on it and vanishes too. The splash has always checked this; the
-            // main window never did.
-            //
-            // Left unset the window is placed by the OS, which is the right answer: it knows
-            // what screens exist right now and this code does not have to guess.
-            var onScreen = Screens?.All?.Any(sc => sc.Bounds.Contains(point)) ?? false;
-
-            if (onScreen) Position = point;
-        }
+            PlaceOnScreen(new Avalonia.PixelPoint((int)x, (int)y));
 
         // Maximize after position is set so it maximizes on the correct monitor.
         if (stateStr == "Maximized")
@@ -125,6 +113,55 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     /// runs while the window is closing, and a write that has to reach the database may not finish
     /// before the process does.</para>
     /// </summary>
+    /// <summary>
+    /// Puts the window at a remembered point, moved and shrunk until it fits a real screen.
+    ///
+    /// <para>⚠️ The WHOLE window has to land on the display, not just its top-left corner.
+    /// Testing the corner alone lets a window that was dragged three-quarters off the edge come
+    /// back exactly that way — and since every dialog in the app centres on its owner, the SDE and
+    /// update prompts then open centred on a window that is mostly not there, which is the failure
+    /// this was meant to prevent.</para>
+    ///
+    /// <para>⚠️ WorkingArea is in physical pixels; Width and Height are logical. They differ by
+    /// the display's scaling, and on a 150% monitor treating one as the other misplaces the window
+    /// by a third of its size.</para>
+    /// </summary>
+    private void PlaceOnScreen(Avalonia.PixelPoint point)
+    {
+        var all = Screens?.All;
+        if (all is null || all.Count == 0) return;   // no screens to reason about; let the OS place it
+
+        // The screen it was on, else wherever the user actually is now.
+        var target = all.FirstOrDefault(sc => sc.Bounds.Contains(point))
+                     ?? Screens?.Primary
+                     ?? all[0];
+
+        var area  = target.WorkingArea;
+        var scale = target.Scaling <= 0 ? 1.0 : target.Scaling;
+
+        // Width/Height are NaN until a window has been measured, which it has not been at this
+        // point on a first run; Bounds carries the size actually in effect.
+        var logicalW = double.IsNaN(Width)  ? Bounds.Width  : Width;
+        var logicalH = double.IsNaN(Height) ? Bounds.Height : Height;
+
+        // Bigger than the screen it is going to: shrink it, or there is no position that fits and
+        // the clamp below would have nothing to choose between.
+        if (logicalW * scale > area.Width)  Width  = logicalW = area.Width  / scale;
+        if (logicalH * scale > area.Height) Height = logicalH = area.Height / scale;
+
+        var w = (int)(logicalW * scale);
+        var h = (int)(logicalH * scale);
+
+        // Math.Max on the upper bound: a screen smaller than the window after rounding would give
+        // Clamp a max below its min, which throws.
+        var maxX = Math.Max(area.X, area.X + area.Width  - w);
+        var maxY = Math.Max(area.Y, area.Y + area.Height - h);
+
+        Position = new Avalonia.PixelPoint(
+            Math.Clamp(point.X, area.X, maxX),
+            Math.Clamp(point.Y, area.Y, maxY));
+    }
+
     private void SaveWindowState()
     {
         // ⚠️ Size only while Normal. Maximised, Width and Height report the whole screen, and
