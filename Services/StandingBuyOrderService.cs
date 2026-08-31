@@ -35,7 +35,18 @@ public sealed record StandingBuyOrderRow(
     /// <summary>Who holds the order, when exactly one owner does. ⚠️ Zero where several back the
     /// same declaration — the cell then reads "3 owners", which names nobody to open.</summary>
     long   OwnerId = 0,
-    string OwnerType = "");
+    string OwnerType = "",
+
+    /// <summary>
+    /// The character who actually placed the order, when one character placed all of them.
+    ///
+    /// <para>⚠️ Not the same question as <see cref="OwnerId"/>. A corp order is HELD by the
+    /// corporation — that is whose wallet the escrow sits in — but it was PLACED by one of
+    /// our characters, and changing a price is done by whoever placed it. The owner names the
+    /// wallet; this names the person who has to log in.</para>
+    /// </summary>
+    long   PlacedById = 0,
+    string PlacedByName = "");
 
 /// <summary>
 /// Standing buy orders: the user declares a buy order they intend to keep up at a
@@ -146,6 +157,14 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
             .Select(g => g.FirstOrDefault(o => o.OwnerType == "corporation") ?? g.First())
             .ToList();
 
+        // The character row is dropped above, and with it the one thing the corp row cannot say:
+        // who placed the order. Kept here by id before it goes, because a task that says "raise
+        // this bid" is asking a specific person to log in, and the corporation cannot.
+        var placedBy = live
+            .Where(o => o.OwnerType != "corporation")
+            .GroupBy(o => o.OrderId)
+            .ToDictionary(g => g.Key, g => g.First().OwnerId);
+
         var byKey = deduped
             .GroupBy(o => (o.TypeId, o.LocationId))
             .ToDictionary(g => g.Key, g => g.ToList());
@@ -248,6 +267,17 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
                 .Distinct()
                 .ToList();
 
+            // Only when one character placed every order behind this declaration. Two placers
+            // means no single person can answer the row, and naming either of them would send
+            // somebody to a market window that has nothing of theirs in it.
+            var placers = matches
+                .Select(m => placedBy.GetValueOrDefault(m.OrderId))
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList();
+
+            var placedByHere = placers.Count == 1 ? placers[0] : 0;
+
             var owner = distinctOwners.Count == 1
                 ? OwnerName(distinctOwners[0].OwnerId, distinctOwners[0].OwnerType)
                   + (matches.Count > 1 ? $" ({matches.Count} orders)" : "")
@@ -313,7 +343,9 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
                 OutbidBy             : rivalBid is { } r2 && bestPrice < r2 ? r2 - bestPrice : null,
                 // Only when one owner backs the declaration; several make the cell a count.
                 OwnerId              : distinctOwners.Count == 1 ? distinctOwners[0].OwnerId   : 0,
-                OwnerType            : distinctOwners.Count == 1 ? distinctOwners[0].OwnerType : ""));
+                OwnerType            : distinctOwners.Count == 1 ? distinctOwners[0].OwnerType : "",
+                PlacedById           : placedByHere,
+                PlacedByName         : placedByHere > 0 ? charNames.GetValueOrDefault(placedByHere, "") : ""));
         }
 
         return rows;

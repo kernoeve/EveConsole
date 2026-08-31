@@ -144,9 +144,6 @@ public class BuildCostService
         await db.SaveChangesAsync(ct);
     }
 
-    // EVE material consumption for a whole job: per-run adjusted quantity (base × ME/rig/role
-    // modifiers) rounded to 2 dp, × run count, ceilinged ONCE, floored at one per run. Must match
-    // ProductionCalculatorService.JobMaterialTotal so the two calculators agree.
     /// <summary>
     /// Forgets stored figures for types that cannot be costed, so nothing downstream keeps
     /// reading them.
@@ -169,12 +166,10 @@ public class BuildCostService
         await db.MarketItemPrices.Where(p => ids.Contains(p.TypeId)).ExecuteDeleteAsync(ct);
     }
 
-    private static int JobMaterialTotal(int baseQty, double factor, int runs)
-    {
-        double perRun = Math.Round(baseQty * factor, 2);
-        double total  = Math.Round(perRun * runs, 4);
-        return Math.Max(runs, (int)Math.Ceiling(total));
-    }
+    // What a whole job eats of one material. See IndustryMe.JobMaterialTotal — the same
+    // definition the plan uses, so a build cost and the plan it prices cannot disagree.
+    private static int JobMaterialTotal(int baseQty, double factor, int runs) =>
+        IndustryMe.JobMaterialTotal(baseQty, factor, runs);
 
     // ── Core calculation ──────────────────────────────────────────────────────
 
