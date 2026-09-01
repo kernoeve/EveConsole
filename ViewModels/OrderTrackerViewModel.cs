@@ -254,6 +254,7 @@ public record OrderStatusFilter(string Label, string? Value) { public override s
 public class OrderTrackerViewModel : ReactiveObject
 {
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
+    private readonly EntityBrowserService            _entities;
     private readonly AppErrorLogger                  _errorLogger;
 
     private readonly List<TrackedOrderRowVm> _all = new();
@@ -315,10 +316,12 @@ public class OrderTrackerViewModel : ReactiveObject
 
     public OrderTrackerViewModel(IDbContextFactory<AppDbContext> dbFactory,
                                  OrderLabelService labels,
+                                 EntityBrowserService entities,
                                  AppErrorLogger errorLogger)
     {
         _dbFactory     = dbFactory;
         _labels        = labels;
+        _entities      = entities;
         _errorLogger   = errorLogger;
         _statusFilter  = StatusFilters[0];   // Active (pending)
 
@@ -681,17 +684,44 @@ public class OrderTrackerViewModel : ReactiveObject
     }
 
     // Type search for the add/edit dialog.
+    /// <summary>
+    /// Item types whose name contains what was typed, best match first.
+    ///
+    /// <para>⚠️ Ranked in SQL, not after the fact. Taking the alphabetically first N and then
+    /// sorting those is not the same thing: "Nanite Repair Paste" is nowhere near the front of
+    /// the alphabet among everything containing "paste", so a limit applied before ranking can
+    /// drop the one row the user was reaching for.</para>
+    /// </summary>
     public async Task<List<TypeResultVm>> SearchTypesAsync(string text)
     {
-        if (string.IsNullOrWhiteSpace(text) || text.Length < 2) return [];
+        var trimmed = (text ?? "").Trim();
+        if (trimmed.Length < 2) return [];
+
         await using var db = await _dbFactory.CreateDbContextAsync();
-        var pattern = $"%{text}%";
+
+        var exact  = trimmed;
+        var prefix = $"{trimmed}%";
+        var any    = $"%{trimmed}%";
+
         var results = await db.SdeTypes.AsNoTracking()
-            .Where(t => EF.Functions.Like(t.Name, pattern) && t.Published)
-            .OrderBy(t => t.Name).Take(50)
+            .Where(t => EF.Functions.Like(t.Name, any) && t.Published)
+            // LIKE is case-insensitive for ASCII in SQLite, which is what a name search wants.
+            .OrderByDescending(t => EF.Functions.Like(t.Name, exact))
+            .ThenByDescending(t => EF.Functions.Like(t.Name, prefix))
+            .ThenBy(t => t.Name.Length)   // the shorter name is the commoner item
+            .ThenBy(t => t.Name)
+            .Take(TypeSearchLimit)
             .Select(t => new { t.TypeId, t.Name }).ToListAsync();
+
         return results.Select(r => new TypeResultVm(r.TypeId, r.Name)).ToList();
     }
+
+    /// <summary>
+    /// ⚠️ Deep enough that a short common word still reaches the item wanted. At the old fifty
+    /// an entry like "Ammo" was buried under every longer name sharing the word, and there was no
+    /// way to type past it — the list simply did not go that far.
+    /// </summary>
+    private const int TypeSearchLimit = 200;
 
     /// <summary>
     /// Buyer candidates: characters and corporations, from what the app already knows.
@@ -702,39 +732,47 @@ public class OrderTrackerViewModel : ReactiveObject
     /// behind a text box. A name the search cannot reach is still typeable; it simply saves
     /// without an id and does not link.</para>
     /// </summary>
+    /// <summary>
+    /// Who the order is for: any character or corporation in the game, not only the ones this
+    /// install has already met.
+    ///
+    /// <para>⚠️ Searching our own records and the resolved-name cache was the whole bug. Those
+    /// hold entities the app has had some other reason to look up, so a real pilot who had never
+    /// appeared in a killmail, contract or chat log simply was not found — and anyone can be a
+    /// buyer. EntityBrowserService.SearchWithEsiAsync asks ESI when the cache falls short and
+    /// writes what it finds back, so the second search for a name is local.</para>
+    ///
+    /// <para>Both kinds, merged: a buyer is as often a corporation as a character, and which one
+    /// it is is not something the typist should have to declare first.</para>
+    /// </summary>
     public async Task<List<BuyerResultVm>> SearchBuyersAsync(string text)
     {
-        if (string.IsNullOrWhiteSpace(text) || text.Length < 3) return [];
+        var trimmed = (text ?? "").Trim();
+        if (trimmed.Length < 3) return [];
 
-        await using var db = await _dbFactory.CreateDbContextAsync();
-        var pattern = $"%{text}%";
+        var chars = await _entities.SearchWithEsiAsync(EntityKind.Pilot,      trimmed);
+        var corps = await _entities.SearchWithEsiAsync(EntityKind.PlayerCorp, trimmed);
 
-        var chars = await db.Characters.AsNoTracking()
-            .Where(c => EF.Functions.Like(c.Name, pattern))
-            .OrderBy(c => c.Name).Take(20)
-            .Select(c => new BuyerResultVm(c.Id, c.Name, "Character", "character"))
-            .ToListAsync();
-
-        var corps = await db.Corporations.AsNoTracking()
-            .Where(c => EF.Functions.Like(c.Name, pattern))
-            .OrderBy(c => c.Name).Take(20)
-            .Select(c => new BuyerResultVm(c.Id, c.Name, "Corporation", "corporation"))
-            .ToListAsync();
-
-        // The shared name cache covers everyone else the app has ever resolved — buyers from past
-        // sales, killmail participants, contract acceptors.
-        var cached = await db.UniverseNames.AsNoTracking()
-            .Where(u => EF.Functions.Like(u.Name, pattern)
-                     && (u.Category == "character" || u.Category == "corporation"))
-            .OrderBy(u => u.Name).Take(40)
-            .Select(u => new BuyerResultVm(u.EntityId, u.Name,
-                        u.Category == "corporation" ? "Corporation" : "Character", u.Category))
-            .ToListAsync();
-
-        return chars.Concat(corps).Concat(cached)
-            .GroupBy(b => b.Id).Select(g => g.First())   // our own records win over the cache
-            .OrderBy(b => b.Name)
+        return chars.Select(m => new BuyerResultVm(m.Id, m.Name, "Character",   "character"))
+            .Concat(corps.Select(m => new BuyerResultVm(m.Id, m.Name, "Corporation", "corporation")))
+            .GroupBy(b => b.Id).Select(g => g.First())
+            // ⚠️ Re-ranked across both lists. Each arrives sorted within itself, so simply
+            // concatenating them puts every character ahead of a corporation that matches better.
+            .OrderBy(b => NameRank(b.Name, trimmed))
+            .ThenBy(b => b.Name.Length)
+            .ThenBy(b => b.Name)
             .Take(50)
             .ToList();
     }
+
+    /// <summary>
+    /// How well a name answers what was typed: 0 exact, 1 starts with it, 2 merely contains it.
+    ///
+    /// <para>⚠️ Alphabetical alone buries the obvious answer. Type a name in full and a pure
+    /// A-Z sort over everything containing it can still put a dozen longer names first.</para>
+    /// </summary>
+    private static int NameRank(string name, string text) =>
+        string.Equals(name, text, StringComparison.OrdinalIgnoreCase) ? 0
+        : name.StartsWith(text, StringComparison.OrdinalIgnoreCase)   ? 1
+        : 2;
 }
