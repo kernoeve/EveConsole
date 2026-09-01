@@ -33,6 +33,22 @@
                        FontSize="18" FontWeight="SemiBold"
                        Foreground="#c8a84b" />
           </StackPanel>
+
+          <!-- Which build this is, and whether it is the current one. -->
+          <TextBlock Text="{Binding UpdateVm.CurrentVersionText}"
+                     FontSize="11" Foreground="#666677"
+                     VerticalAlignment="Bottom" Margin="0 0 0 4"
+                     ToolTip.Tip="The version you are running." />
+
+          <Button x:Name="ReleaseLinkButton"
+                  IsVisible="{Binding UpdateVm.HasUpdateBadge}"
+                  Content="{Binding UpdateVm.UpdateBadgeText}"
+                  Background="Transparent" BorderThickness="0" Padding="6 1"
+                  FontSize="11" Foreground="#5588aa"
+                  VerticalAlignment="Bottom" Margin="0 0 0 3"
+                  Cursor="Hand"
+                  ToolTip.Tip="Open the release page on GitHub"
+                  Click="OnReleaseLinkClick" />
         </StackPanel>
 
         <!-- Eve Time clock -->

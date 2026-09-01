@@ -553,6 +553,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void OnServerStatusClick(object? sender, Avalonia.Input.PointerPressedEventArgs e)
         => OpenInBrowser(EveConsole.Services.UiLinkSettings.ServerStatusUrl);
 
+    /// <summary>Opens the release page for whichever version the badge is talking about.</summary>
+    private void OnReleaseLinkClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) OpenInBrowser(vm.UpdateVm.ReleaseUrl);
+    }
+
     /// <summary>Hands the URL to the OS default browser. Guarded because a user-supplied
     /// EVE-time URL can be anything, and a malformed one must not take the app down.</summary>
     private static void OpenInBrowser(string url)

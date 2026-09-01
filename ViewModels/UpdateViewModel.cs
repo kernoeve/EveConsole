@@ -56,12 +56,56 @@ public class UpdateViewModel : ReactiveObject
 
     public string CurrentVersionText { get; }
 
+    /// <summary>
+    /// The release page to open from the title bar: the specific tag when an update is waiting,
+    /// the releases index otherwise.
+    ///
+    /// <para>⚠️ Built from LatestVersionText, which already carries its leading "v" — the
+    /// tag is "v0.9.13", so adding another would 404.</para>
+    /// </summary>
+    public string ReleaseUrl => UpdateAvailable && LatestVersionText.StartsWith('v')
+        ? $"{RepoUrl}/releases/tag/{LatestVersionText}"
+        : $"{RepoUrl}/releases";
+
+    /// <summary>
+    /// What the title bar says next to the version: whether this build is current.
+    ///
+    /// <para>A dev build is not "up to date" and is not out of date either — it was never
+    /// published, so there is nothing to compare it against. Saying so is more honest than
+    /// either verdict.</para>
+    /// </summary>
+    public string UpdateBadgeText =>
+        UpdateAvailable                        ? $"{LatestVersionText} available"
+      : LatestVersionText.StartsWith("n/a")    ? "dev build"
+      : StatusText == "Up to date."            ? "up to date"
+      : "";
+
+    public bool HasUpdateBadge => UpdateBadgeText.Length > 0;
+
     private string _latestVersionText = "—";
-    public string LatestVersionText { get => _latestVersionText; private set => this.RaiseAndSetIfChanged(ref _latestVersionText, value); }
+    public string LatestVersionText
+    {
+        get => _latestVersionText;
+        private set { this.RaiseAndSetIfChanged(ref _latestVersionText, value); RaiseBadge(); }
+    }
+
+    // ⚠️ Every derived property has to be raised by hand. They read three sources, and a
+    // badge that never updates is worse than no badge — it would go on claiming "up to date"
+    // after a check found otherwise.
+    private void RaiseBadge()
+    {
+        this.RaisePropertyChanged(nameof(ReleaseUrl));
+        this.RaisePropertyChanged(nameof(UpdateBadgeText));
+        this.RaisePropertyChanged(nameof(HasUpdateBadge));
+    }
 
     // True when a newer release exists (drives the Settings "Update Now" button).
     private bool _updateAvailable;
-    public bool UpdateAvailable { get => _updateAvailable; private set => this.RaiseAndSetIfChanged(ref _updateAvailable, value); }
+    public bool UpdateAvailable
+    {
+        get => _updateAvailable;
+        private set { this.RaiseAndSetIfChanged(ref _updateAvailable, value); RaiseBadge(); }
+    }
 
     // True only when we should surface the startup prompt (update available AND not already declined).
     private bool _shouldPrompt;
@@ -71,7 +115,11 @@ public class UpdateViewModel : ReactiveObject
     public bool IsBusy { get => _isBusy; private set => this.RaiseAndSetIfChanged(ref _isBusy, value); }
 
     private string _statusText = "";
-    public string StatusText { get => _statusText; private set => this.RaiseAndSetIfChanged(ref _statusText, value); }
+    public string StatusText
+    {
+        get => _statusText;
+        private set { this.RaiseAndSetIfChanged(ref _statusText, value); RaiseBadge(); }
+    }
 
     public ReactiveCommand<Unit, Unit> CheckNowCommand      { get; }
     public ReactiveCommand<Unit, Unit> InstallUpdateCommand { get; }
