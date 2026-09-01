@@ -561,12 +561,17 @@ public class WorklistIndustryViewModel : ReactiveObject
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
+            // ⚠️ Every box on this grid must be listed here. ExecuteUpdate writes exactly the
+            // properties named and nothing else, so a new column added to the row above and left
+            // out below saves silently and reverts on the next load — which is what the Skill
+            // queue box did on the day it was added.
             await db.WorklistIndyChars
                 .Where(x => x.Id == row.Id)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(x => x.Manufacturing, row.Config.Manufacturing)
                     .SetProperty(x => x.Reactions,     row.Config.Reactions)
-                    .SetProperty(x => x.Science,       row.Config.Science));
+                    .SetProperty(x => x.Science,       row.Config.Science)
+                    .SetProperty(x => x.SkillQueue,    row.Config.SkillQueue));
 
             if (IndustryChanged is not null) await IndustryChanged();
         }
