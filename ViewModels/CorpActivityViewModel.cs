@@ -1012,30 +1012,33 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     }
 
     /// <summary>
-    /// ⚠️ Fire-and-forget, and deliberately not awaited from a property setter. A setter that
-    /// blocks on a query freezes the dropdown mid-selection. Failures go to the log rather than
-    /// unobserved.
+    /// Reloads one detail grid after a filter changes.
+    ///
+    /// <para>⚠️ Started on the UI thread and NOT wrapped in Task.Run. The awaits inside resume
+    /// on the captured context, which is what puts ResetTo back on the UI thread; running the
+    /// whole thing on the pool mutates a bound collection from a background thread, and Avalonia
+    /// throws. That threw silently into an empty catch, so choosing a type simply did
+    /// nothing — no rows, no error, no clue.</para>
+    ///
+    /// <para>Not awaited, because a property setter that blocks on a query freezes the dropdown
+    /// mid-selection. Failures land on the status line instead of being swallowed.</para>
     /// </summary>
-    private void ReloadIncomeDetail()
-    {
-        if (_isLoading || SelectedCorp is null) return;
-        var corpId = SelectedCorp.Id;
-        _ = Task.Run(async () =>
-        {
-            try { await LoadIncomeDetailAsync(corpId); }
-            catch { }   // no logger on this view model; a failed reload leaves the previous rows
-        });
-    }
+    private void ReloadIncomeDetail() => ReloadDetail(LoadIncomeDetailAsync);
+    private void ReloadExpenseDetail() => ReloadDetail(LoadExpenseDetailAsync);
 
-    private void ReloadExpenseDetail()
+    private void ReloadDetail(Func<long, CancellationToken, Task> load)
     {
         if (_isLoading || SelectedCorp is null) return;
         var corpId = SelectedCorp.Id;
-        _ = Task.Run(async () =>
+
+        _ = LoadAsync();
+        return;
+
+        async Task LoadAsync()
         {
-            try { await LoadExpenseDetailAsync(corpId); }
-            catch { }   // as above
-        });
+            try { await load(corpId, default); }
+            catch (Exception ex) { Status = $"Filter failed: {ex.Message}"; }
+        }
     }
 
     private ChartPeriodOption _selectedIncomePeriod = null!;

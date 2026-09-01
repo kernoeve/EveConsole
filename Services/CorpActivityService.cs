@@ -1613,6 +1613,8 @@ public class CorpActivityService
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
               AND CAST("Amount" AS REAL) > 0
+              AND NOT ("RefType" = 'corporation_account_withdrawal'
+                       AND "FirstPartyId" = "SecondPartyId")
               AND ({type} IS NULL OR "RefType" = {type})
             ORDER BY "Date" DESC
             """).ToListAsync(ct);
@@ -1700,7 +1702,8 @@ public class CorpActivityService
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
               AND CAST("Amount" AS REAL) < 0
-              AND "RefType" != 'corporation_account_withdrawal'
+              AND NOT ("RefType" = 'corporation_account_withdrawal'
+                       AND "FirstPartyId" = "SecondPartyId")
               AND ({type} IS NULL OR "RefType" = {type})
             ORDER BY "Date" DESC
             """).ToListAsync(ct);
