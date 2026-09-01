@@ -576,8 +576,11 @@
 
         <!-- ── Jobs (Tree) ────────────────────────────────────────────────── -->
         <TabItem Header="Jobs">
-          <ScrollViewer Padding="8 8 8 8">
-            <TreeView ItemsSource="{Binding JobTreeRoots}" Margin="0 0 0 16">
+          <!-- ⚠️ No ScrollViewer around this. A TreeView scrolls itself, and nesting it in
+               another scroller gives it unbounded height to measure against, so the extent
+               stops short and the last job sits under the status bar with nothing left to
+               scroll. -->
+            <TreeView ItemsSource="{Binding JobTreeRoots}" Padding="8 8 8 24">
               <TreeView.ItemTemplate>
                 <TreeDataTemplate x:DataType="vm:JobTreeNode" ItemsSource="{Binding Children}">
                   <Border Background="#161620" BorderBrush="#252530" BorderThickness="1"
@@ -701,7 +704,7 @@
                 </TreeDataTemplate>
               </TreeView.ItemTemplate>
             </TreeView>
-          </ScrollViewer>
+
         </TabItem>
 
       </TabControl>
