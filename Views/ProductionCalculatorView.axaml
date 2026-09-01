@@ -185,8 +185,8 @@
                 <TextBlock Grid.Row="4" Grid.Column="1" Foreground="#c8a84b" FontWeight="SemiBold" FontSize="13"
                            Text="{Binding Plan.NetCost, StringFormat='{}{0:N0} ISK'}"/>
 
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Raw Material Volume:" Foreground="#888" FontSize="12"/>
-                <TextBlock Grid.Row="5" Grid.Column="1" Foreground="#ccc" FontSize="12"
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Raw Material Volume:" Foreground="#888" FontSize="12" Margin="0 8 0 0"/>
+                <TextBlock Grid.Row="5" Grid.Column="1" Foreground="#ccc" FontSize="12" Margin="0 8 0 0"
                            ToolTip.Tip="Packed volume of the shopping list. Intermediates are excluded — they are built on site rather than hauled in."
                            Text="{Binding Plan.TotalRawMaterialVolume, StringFormat='{}{0:N0} m³'}"/>
               </Grid>
