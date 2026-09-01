@@ -554,6 +554,7 @@ public class EsiClient
                 Data       = firstPage.Data ?? [],
                 StatusCode = firstPage.StatusCode,
                 TotalPages = firstPage.TotalPages,
+                Expires    = firstPage.Expires,
                 Error      = firstPage.Error,
             };
         }
@@ -575,6 +576,7 @@ public class EsiClient
             Data       = allItems,
             StatusCode = firstPage.StatusCode,
             TotalPages = firstPage.TotalPages,
+            Expires    = firstPage.Expires,
             Complete   = complete,
         };
     }
@@ -653,6 +655,7 @@ public class EsiClient
                 RateLimitLimit     = firstPage.RateLimitLimit,
                 ErrorLimitRemain   = firstPage.ErrorLimitRemain,
                 ErrorLimitReset    = firstPage.ErrorLimitReset,
+                Expires            = firstPage.Expires,
                 RetryAfterSeconds  = firstPage.RetryAfterSeconds,
                 Error              = firstPage.Error,
             };
@@ -681,6 +684,7 @@ public class EsiClient
             RateLimitLimit     = firstPage.RateLimitLimit,
             ErrorLimitRemain   = firstPage.ErrorLimitRemain,
             ErrorLimitReset    = firstPage.ErrorLimitReset,
+            Expires            = firstPage.Expires,
         };
     }
 
@@ -742,6 +746,10 @@ public class EsiClient
                 ErrorLimitRemain   = esiErrorRemain,
                 ErrorLimitReset    = esiErrorReset,
                 RetryAfterSeconds  = TryGetInt("Retry-After"),
+                // ⚠️ Off Content, not the response headers: Expires is a content header
+                // and response.Headers does not carry it. Missing here, every corporation
+                // endpoint lost its cache expiry and fell back to a fixed interval.
+                Expires            = response.Content.Headers.Expires,
                 Error              = error,
             };
         }
@@ -769,6 +777,7 @@ public class EsiClient
                 RateLimitLimit     = firstPage.RateLimitLimit,
                 ErrorLimitRemain   = firstPage.ErrorLimitRemain,
                 ErrorLimitReset    = firstPage.ErrorLimitReset,
+                Expires            = firstPage.Expires,
                 RetryAfterSeconds  = firstPage.RetryAfterSeconds,
                 Error              = firstPage.Error,
             };
@@ -797,6 +806,7 @@ public class EsiClient
             RateLimitLimit     = firstPage.RateLimitLimit,
             ErrorLimitRemain   = firstPage.ErrorLimitRemain,
             ErrorLimitReset    = firstPage.ErrorLimitReset,
+            Expires            = firstPage.Expires,
         };
     }
 
