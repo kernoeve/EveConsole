@@ -53,7 +53,15 @@ public sealed record PlayerAmountRow(long CharacterId, decimal Amount);
 public sealed record RankedPlayerRow(int Rank, long CharacterId, decimal Amount, double Percent = 0);
 public sealed record DailyAmountRow(string Day, decimal Amount);
 public sealed record TaxPayerRow(int Rank, long EntityId, string Name, decimal Amount);
-public sealed record WalletDetailRow(DateTimeOffset Date, string RefType, decimal Amount, long PartyId, string PartyName, string Reason = "");
+/// <summary>
+/// One ungrouped wallet line.
+///
+/// <para>⚠️ Reason has no default on purpose. It used to be "" so a caller could leave it
+/// off, and four of the five projections did exactly that — the query read the column and the
+/// record threw it away, with nothing to compile against. Every field is required; a new one
+/// should break the call sites rather than quietly answer with a blank.</para>
+/// </summary>
+public sealed record WalletDetailRow(DateTimeOffset Date, string RefType, decimal Amount, long PartyId, string PartyName, string Reason);
 
 public sealed record KillMonthRow(string Month, int Kills, int Losses);
 public sealed record KillDayRow(string Day, int Kills, int Losses);
@@ -1621,7 +1629,7 @@ public class CorpActivityService
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
         var names = await ResolveNamesAsync(ids, ct);
         return rows.Select(r => new WalletDetailRow(r.Date, r.RefType, (decimal)r.Amount, r.PartyId,
-            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "")).ToList();
+            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "", r.Reason)).ToList();
     }
 
     public async Task<List<WalletDetailRow>> GetRattingJournalAsync(
@@ -1642,7 +1650,7 @@ public class CorpActivityService
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
         var names = await ResolveNamesAsync(ids, ct);
         return rows.Select(r => new WalletDetailRow(r.Date, r.RefType, (decimal)r.Amount, r.PartyId,
-            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "")).ToList();
+            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "", r.Reason)).ToList();
     }
 
     public async Task<List<WalletDetailRow>> GetIndustryJournalAsync(
@@ -1663,7 +1671,7 @@ public class CorpActivityService
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
         var names = await ResolveNamesAsync(ids, ct);
         return rows.Select(r => new WalletDetailRow(r.Date, r.RefType, (decimal)r.Amount, r.PartyId,
-            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "")).ToList();
+            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "", r.Reason)).ToList();
     }
 
     public async Task<List<WalletDetailRow>> GetDonationJournalAsync(
@@ -1710,7 +1718,7 @@ public class CorpActivityService
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
         var names = await ResolveNamesAsync(ids, ct);
         return rows.Select(r => new WalletDetailRow(r.Date, r.RefType, (decimal)r.Amount, r.PartyId,
-            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "")).ToList();
+            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "", r.Reason)).ToList();
     }
 
     public async Task<List<Activity24hKillRow>> GetKillsForPeriodAsync(
