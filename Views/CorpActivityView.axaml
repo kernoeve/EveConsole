@@ -622,6 +622,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
+                  <DataGridTextColumn Header="REASON" Binding="{Binding ReasonText}" Width="*" />
                 </DataGrid.Columns>
               </DataGrid>
               </Grid>
@@ -752,6 +753,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
+                  <DataGridTextColumn Header="REASON" Binding="{Binding ReasonText}" Width="*" />
                 </DataGrid.Columns>
               </DataGrid>
               </Grid>
@@ -878,6 +880,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
+                  <DataGridTextColumn Header="REASON" Binding="{Binding ReasonText}" Width="*" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
@@ -1003,6 +1006,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
+                  <DataGridTextColumn Header="REASON" Binding="{Binding ReasonText}" Width="*" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>

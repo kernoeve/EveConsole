@@ -1608,7 +1608,7 @@ public class CorpActivityService
         var type     = string.IsNullOrWhiteSpace(refType) ? null : refType;
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
             SELECT "Date", "RefType", CAST("Amount" AS REAL) AS "Amount",
-                   COALESCE("FirstPartyId", 0) AS "PartyId", '' AS "Reason"
+                   COALESCE("FirstPartyId", 0) AS "PartyId", COALESCE("Reason", '') AS "Reason"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
@@ -1631,7 +1631,7 @@ public class CorpActivityService
         var sinceStr  = SqlCutoff(since);
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
             SELECT "Date", "RefType", CAST("Amount" AS REAL) AS "Amount",
-                   COALESCE("SecondPartyId", 0) AS "PartyId", '' AS "Reason"
+                   COALESCE("SecondPartyId", 0) AS "PartyId", COALESCE("Reason", '') AS "Reason"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {sinceStr}
@@ -1652,7 +1652,7 @@ public class CorpActivityService
         var sinceStr  = SqlCutoff(since);
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
             SELECT "Date", "RefType", CAST("Amount" AS REAL) AS "Amount",
-                   COALESCE("FirstPartyId", 0) AS "PartyId", '' AS "Reason"
+                   COALESCE("FirstPartyId", 0) AS "PartyId", COALESCE("Reason", '') AS "Reason"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {sinceStr}
@@ -1697,7 +1697,7 @@ public class CorpActivityService
         var type     = string.IsNullOrWhiteSpace(refType) ? null : refType;
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
             SELECT "Date", "RefType", ABS(CAST("Amount" AS REAL)) AS "Amount",
-                   COALESCE("SecondPartyId", 0) AS "PartyId", '' AS "Reason"
+                   COALESCE("SecondPartyId", 0) AS "PartyId", COALESCE("Reason", '') AS "Reason"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
