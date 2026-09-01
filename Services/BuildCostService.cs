@@ -168,7 +168,7 @@ public class BuildCostService
 
     // What a whole job eats of one material. See IndustryMe.JobMaterialTotal — the same
     // definition the plan uses, so a build cost and the plan it prices cannot disagree.
-    private static int JobMaterialTotal(int baseQty, double factor, int runs) =>
+    private static long JobMaterialTotal(int baseQty, double factor, long runs) =>
         IndustryMe.JobMaterialTotal(baseQty, factor, runs);
 
     // ── Core calculation ──────────────────────────────────────────────────────

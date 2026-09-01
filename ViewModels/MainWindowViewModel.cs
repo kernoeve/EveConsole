@@ -623,7 +623,12 @@ public class MainWindowViewModel : ReactiveObject
         OverviewVm.IncomeExpense     = IncomeExpenseVm;
         SaleListingBuildVm.OpenSalesTracker  = () => OpenTool("sales_tracker");
         SaleListingMarketVm.OpenSalesTracker = () => OpenTool("sales_tracker");
-        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, errorLogger);
+        // Built here rather than further down: the order tracker's buyer picker needs it, and a
+        // service constructed after its first consumer is a null nobody notices until the box is
+        // typed into.
+        var entityBrowser      = new EntityBrowserService(dbFactory, esi);
+
+        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, entityBrowser, errorLogger);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
         WorklistVm             = new WorklistViewModel(worklistService,
                                      new WorklistMarketAltsViewModel(worklistMarketAltService, corpActivityService, dbFactory),
@@ -653,7 +658,6 @@ public class MainWindowViewModel : ReactiveObject
         };
 
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
-        var entityBrowser      = new EntityBrowserService(dbFactory, esi);
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);
         NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);

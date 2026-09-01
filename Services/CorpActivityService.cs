@@ -53,7 +53,15 @@ public sealed record PlayerAmountRow(long CharacterId, decimal Amount);
 public sealed record RankedPlayerRow(int Rank, long CharacterId, decimal Amount, double Percent = 0);
 public sealed record DailyAmountRow(string Day, decimal Amount);
 public sealed record TaxPayerRow(int Rank, long EntityId, string Name, decimal Amount);
-public sealed record WalletDetailRow(DateTimeOffset Date, string RefType, decimal Amount, long PartyId, string PartyName, string Reason = "");
+/// <summary>
+/// One ungrouped wallet line.
+///
+/// <para>⚠️ Reason has no default on purpose. It used to be "" so a caller could leave it
+/// off, and four of the five projections did exactly that — the query read the column and the
+/// record threw it away, with nothing to compile against. Every field is required; a new one
+/// should break the call sites rather than quietly answer with a blank.</para>
+/// </summary>
+public sealed record WalletDetailRow(DateTimeOffset Date, string RefType, decimal Amount, long PartyId, string PartyName, string Reason);
 
 public sealed record KillMonthRow(string Month, int Kills, int Losses);
 public sealed record KillDayRow(string Day, int Kills, int Losses);
@@ -71,11 +79,17 @@ public sealed record MonthlyActivityRow(
     int     Losses,
     int     PlayersActive);
 
-public sealed record SdeTypeResult(int TypeId, string Name);
-public sealed record SdeStationResult(long StationId, string Name);
-public sealed record SdeSystemResult(int SystemId, string Name);
-public sealed record SdeRegionResult(int RegionId, string Name);
-public sealed record SdeConstellationResult(int ConstellationId, string Name);
+// ⚠️ These override ToString to the bare name. They are handed straight to AutoCompleteBox,
+// which has no ItemTemplate on these pickers and so renders whatever ToString gives it — and,
+// worse, writes that same string into the text box when an item is picked. A record generates
+// a ToString like "SdeSystemResult { SystemId = 30004384, Name = 4DTQ-K }", which is exactly
+// what the Indy Parks system dropdown was showing. EntityMatch carries the same override for
+// the same reason.
+public sealed record SdeTypeResult(int TypeId, string Name) { public override string ToString() => Name; }
+public sealed record SdeStationResult(long StationId, string Name) { public override string ToString() => Name; }
+public sealed record SdeSystemResult(int SystemId, string Name) { public override string ToString() => Name; }
+public sealed record SdeRegionResult(int RegionId, string Name) { public override string ToString() => Name; }
+public sealed record SdeConstellationResult(int ConstellationId, string Name) { public override string ToString() => Name; }
 
 public sealed record StandingProjectGridRow(
     long   DbId,
@@ -329,7 +343,6 @@ public class CorpActivityService
               AND "FirstPartyId" >= 90000000
             GROUP BY "FirstPartyId"
             ORDER BY SUM(CAST("Amount" AS REAL)) DESC
-            LIMIT 200
             """).ToListAsync(ct);
         var names = await ResolveNamesAsync(rows.Select(r => r.EntityId), ct);
         return rows.Select((r, i) => new TaxPayerRow(
@@ -377,7 +390,6 @@ public class CorpActivityService
               AND "SecondPartyId" != {corpId}
             GROUP BY "SecondPartyId"
             ORDER BY SUM(CAST("Amount" AS REAL)) DESC
-            LIMIT 200
             """).ToListAsync(ct);
         var names = await ResolveNamesAsync(rows.Select(r => r.EntityId), ct);
         return rows.Select((r, i) => new TaxPayerRow(
@@ -405,7 +417,6 @@ public class CorpActivityService
               AND "FirstPartyId" != {corpId}
             GROUP BY "FirstPartyId"
             ORDER BY SUM(CAST("Amount" AS REAL)) DESC
-            LIMIT 200
             """).ToListAsync(ct);
         var names = await ResolveNamesAsync(rows.Select(r => r.EntityId), ct);
         return rows.Select((r, i) => new TaxPayerRow(
@@ -1591,25 +1602,40 @@ public class CorpActivityService
 
     // ── Wallet journal detail (ungrouped rows) ────────────────────────────────
 
+    /// <summary>
+    /// Every income line in the period, optionally narrowed by reference type.
+    ///
+    /// <para>⚠️ No row limit. It used to stop at five hundred, which on a corp taking two
+    /// hundred thousand bounty lines a quarter meant the grid showed the newest fraction of a
+    /// percent and sorted only within that — a total that could never be reconciled against
+    /// the summary above it.</para>
+    ///
+    /// <para>⚠️ The type filter belongs in the query, not in the grid. Narrowing afterwards
+    /// still builds a row object for every line first, which is the expensive part; pushing it
+    /// down is what makes an unlimited result usable.</para>
+    /// </summary>
     public async Task<List<WalletDetailRow>> GetIncomeJournalAsync(
-        long corpId, int days, CancellationToken ct = default)
+        long corpId, int days, string? refType = null, CancellationToken ct = default)
     {
         using var db = _dbFactory.CreateDbContext();
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
+        var type     = string.IsNullOrWhiteSpace(refType) ? null : refType;
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
             SELECT "Date", "RefType", CAST("Amount" AS REAL) AS "Amount",
-                   COALESCE("FirstPartyId", 0) AS "PartyId", '' AS "Reason"
+                   COALESCE("FirstPartyId", 0) AS "PartyId", COALESCE("Reason", '') AS "Reason"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
               AND CAST("Amount" AS REAL) > 0
+              AND NOT ("RefType" = 'corporation_account_withdrawal'
+                       AND "FirstPartyId" = "SecondPartyId")
+              AND ({type} IS NULL OR "RefType" = {type})
             ORDER BY "Date" DESC
-            LIMIT 500
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
         var names = await ResolveNamesAsync(ids, ct);
         return rows.Select(r => new WalletDetailRow(r.Date, r.RefType, (decimal)r.Amount, r.PartyId,
-            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "")).ToList();
+            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "", r.Reason)).ToList();
     }
 
     public async Task<List<WalletDetailRow>> GetRattingJournalAsync(
@@ -1619,19 +1645,18 @@ public class CorpActivityService
         var sinceStr  = SqlCutoff(since);
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
             SELECT "Date", "RefType", CAST("Amount" AS REAL) AS "Amount",
-                   COALESCE("SecondPartyId", 0) AS "PartyId", '' AS "Reason"
+                   COALESCE("SecondPartyId", 0) AS "PartyId", COALESCE("Reason", '') AS "Reason"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {sinceStr}
               AND "RefType" IN ('bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts')
               AND CAST("Amount" AS REAL) > 0
             ORDER BY "Date" DESC
-            LIMIT 500
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
         var names = await ResolveNamesAsync(ids, ct);
         return rows.Select(r => new WalletDetailRow(r.Date, r.RefType, (decimal)r.Amount, r.PartyId,
-            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "")).ToList();
+            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "", r.Reason)).ToList();
     }
 
     public async Task<List<WalletDetailRow>> GetIndustryJournalAsync(
@@ -1641,19 +1666,18 @@ public class CorpActivityService
         var sinceStr  = SqlCutoff(since);
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
             SELECT "Date", "RefType", CAST("Amount" AS REAL) AS "Amount",
-                   COALESCE("FirstPartyId", 0) AS "PartyId", '' AS "Reason"
+                   COALESCE("FirstPartyId", 0) AS "PartyId", COALESCE("Reason", '') AS "Reason"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {sinceStr}
               AND "RefType" IN ('industry_job_tax','manufacturing_tax','reprocessing_tax')
               AND CAST("Amount" AS REAL) > 0
             ORDER BY "Date" DESC
-            LIMIT 500
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
         var names = await ResolveNamesAsync(ids, ct);
         return rows.Select(r => new WalletDetailRow(r.Date, r.RefType, (decimal)r.Amount, r.PartyId,
-            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "")).ToList();
+            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "", r.Reason)).ToList();
     }
 
     public async Task<List<WalletDetailRow>> GetDonationJournalAsync(
@@ -1671,7 +1695,6 @@ public class CorpActivityService
               AND "RefType" = 'player_donation'
               AND CAST("Amount" AS REAL) > 0
             ORDER BY "Date" DESC
-            LIMIT 500
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
         var names = await ResolveNamesAsync(ids, ct);
@@ -1679,26 +1702,29 @@ public class CorpActivityService
             r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "", r.Reason)).ToList();
     }
 
+    /// <summary>Every expense line in the period. See GetIncomeJournalAsync — same rules.</summary>
     public async Task<List<WalletDetailRow>> GetExpenseJournalAsync(
-        long corpId, int days, CancellationToken ct = default)
+        long corpId, int days, string? refType = null, CancellationToken ct = default)
     {
         using var db = _dbFactory.CreateDbContext();
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
+        var type     = string.IsNullOrWhiteSpace(refType) ? null : refType;
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
             SELECT "Date", "RefType", ABS(CAST("Amount" AS REAL)) AS "Amount",
-                   COALESCE("SecondPartyId", 0) AS "PartyId", '' AS "Reason"
+                   COALESCE("SecondPartyId", 0) AS "PartyId", COALESCE("Reason", '') AS "Reason"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
               AND CAST("Amount" AS REAL) < 0
-              AND "RefType" != 'corporation_account_withdrawal'
+              AND NOT ("RefType" = 'corporation_account_withdrawal'
+                       AND "FirstPartyId" = "SecondPartyId")
+              AND ({type} IS NULL OR "RefType" = {type})
             ORDER BY "Date" DESC
-            LIMIT 500
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
         var names = await ResolveNamesAsync(ids, ct);
         return rows.Select(r => new WalletDetailRow(r.Date, r.RefType, (decimal)r.Amount, r.PartyId,
-            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "")).ToList();
+            r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "", r.Reason)).ToList();
     }
 
     public async Task<List<Activity24hKillRow>> GetKillsForPeriodAsync(
@@ -1714,7 +1740,6 @@ public class CorpActivityService
                 AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
             WHERE d."KillMailTime" >= {cutoff}
             ORDER BY d."KillMailTime" DESC
-            LIMIT 500
             """).ToListAsync(ct);
 
         if (rows.Count == 0) return [];
@@ -1814,7 +1839,6 @@ public class CorpActivityService
                  OR d."KillMailId" IN ( SELECT a."KillMailId" FROM "KillMailAttackers" a
                                         WHERE a."CharacterId" IN ({idList}) ) )
             ORDER BY d."KillMailTime" DESC
-            LIMIT 500
             """).ToListAsync(ct);
 #pragma warning restore EF1002
         if (rows.Count == 0) return [];

@@ -1934,13 +1934,19 @@ public class App : Application
                     "Science"               INTEGER NOT NULL DEFAULT 0,
                     "IncludeCorpAssets"     INTEGER NOT NULL DEFAULT 1,
                     "IncludePersonalAssets" INTEGER NOT NULL DEFAULT 1,
-                    "Note"                  TEXT    NOT NULL DEFAULT ''
+                    "Note"                  TEXT    NOT NULL DEFAULT '',
+                    "SkillQueue"            INTEGER NOT NULL DEFAULT 1
                 )
                 """);
             db.Database.ExecuteSqlRaw("""
                 CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistIndyChars_CharacterId"
                 ON "WorklistIndyChars" ("CharacterId")
                 """);
+
+            // ⚠️ Default 1, so every row that already exists keeps being checked. Adding this
+            // column with no default would silence every character's skill queue on upgrade,
+            // which is the opposite of what clearing a box is for.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistIndyChars" ADD COLUMN "SkillQueue" INTEGER NOT NULL DEFAULT 1"""); } catch { }
 
             // Added after the rules table shipped on this branch, so it needs its own ALTER —
             // CREATE TABLE IF NOT EXISTS will not add a column to a table that already exists.

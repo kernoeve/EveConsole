@@ -170,7 +170,7 @@
               </Border>
 
               <TextBlock Text="Cost Summary" FontWeight="SemiBold" Foreground="#c8a84b" FontSize="13"/>
-              <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+              <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Raw Materials:"  Foreground="#888" FontSize="12"/>
                 <TextBlock Grid.Row="0" Grid.Column="1" Foreground="#ccc" FontSize="12"
                            Text="{Binding Plan.TotalRawMaterialCost, StringFormat='{}{0:N0} ISK'}"/>
@@ -184,6 +184,11 @@
                 <TextBlock Grid.Row="4" Grid.Column="0" Text="Net Cost:" Foreground="#c8a84b" FontWeight="SemiBold" FontSize="13"/>
                 <TextBlock Grid.Row="4" Grid.Column="1" Foreground="#c8a84b" FontWeight="SemiBold" FontSize="13"
                            Text="{Binding Plan.NetCost, StringFormat='{}{0:N0} ISK'}"/>
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Raw Material Volume:" Foreground="#888" FontSize="12" Margin="0 8 0 0"/>
+                <TextBlock Grid.Row="5" Grid.Column="1" Foreground="#ccc" FontSize="12" Margin="0 8 0 0"
+                           ToolTip.Tip="Packed volume of the shopping list. Intermediates are excluded — they are built on site rather than hauled in."
+                           Text="{Binding Plan.TotalRawMaterialVolume, StringFormat='{}{0:N0} m³'}"/>
               </Grid>
 
               <TextBlock Text="Final Products" FontWeight="SemiBold" Foreground="#c8a84b" FontSize="13" Margin="0 8 0 0"/>
@@ -571,8 +576,11 @@
 
         <!-- ── Jobs (Tree) ────────────────────────────────────────────────── -->
         <TabItem Header="Jobs">
-          <ScrollViewer Padding="8 8 8 8">
-            <TreeView ItemsSource="{Binding JobTreeRoots}" Margin="0 0 0 16">
+          <!-- ⚠️ No ScrollViewer around this. A TreeView scrolls itself, and nesting it in
+               another scroller gives it unbounded height to measure against, so the extent
+               stops short and the last job sits under the status bar with nothing left to
+               scroll. -->
+            <TreeView ItemsSource="{Binding JobTreeRoots}" Padding="8 8 8 24">
               <TreeView.ItemTemplate>
                 <TreeDataTemplate x:DataType="vm:JobTreeNode" ItemsSource="{Binding Children}">
                   <Border Background="#161620" BorderBrush="#252530" BorderThickness="1"
@@ -595,6 +603,10 @@
                             <TextBlock Text="{Binding Job.Runs,            StringFormat='Runs: {0}'}"         FontSize="11" Foreground="#888"/>
                             <TextBlock Text="{Binding Job.QuantityProduced, StringFormat='Out: {0:N0}'}"      FontSize="11" Foreground="#888"/>
                             <TextBlock Text="{Binding Job.Leftover,         StringFormat='Leftover: {0:N0}'}" FontSize="11" Foreground="#4caf50"/>
+                            <TextBlock Text="{Binding Job.InputVolume,  StringFormat='In: {0:N0} m³'}"  FontSize="11" Foreground="#7a8fa6"
+                                       ToolTip.Tip="Packed volume this job consumes — what has to reach the facility."/>
+                            <TextBlock Text="{Binding Job.OutputVolume, StringFormat='Out: {0:N0} m³'}" FontSize="11" Foreground="#7a8fa6"
+                                       ToolTip.Tip="Packed volume this job produces — what leaves it."/>
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Spacing="10">
                             <TextBlock Text="{Binding Job.MaterialCost, StringFormat='Mat: {0:N0} ISK'}" FontSize="11" Foreground="#aaa"/>
@@ -649,21 +661,21 @@
                           <TextBlock Text="{Binding Job.ModifierDisplay}"
                                      FontSize="10" Foreground="#888" Margin="0 0 0 4"
                                      FontStyle="Italic"/>
-                          <Grid ColumnDefinitions="*,70,60,70,70,90,60,*">
+                          <Grid ColumnDefinitions="*,110,110,140,140,170,70,*">
                             <TextBlock Grid.Column="0" Text="Material"   FontSize="10" Foreground="#555566"/>
-                            <TextBlock Grid.Column="1" Text="Base/Run"   FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
-                            <TextBlock Grid.Column="2" Text="Eff/Run"    FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
-                            <TextBlock Grid.Column="3" Text="Total"      FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="1" Text="Base/Run"   FontSize="10" Foreground="#555566" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                            <TextBlock Grid.Column="2" Text="Eff/Run"    FontSize="10" Foreground="#555566" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                            <TextBlock Grid.Column="3" Text="Total"      FontSize="10" Foreground="#555566" HorizontalAlignment="Right" Margin="0 0 8 0"/>
                             <TextBlock Grid.Column="4" Text="Missing"    FontSize="10" Foreground="#555566" HorizontalAlignment="Right"
                                        ToolTip.Tip="Shortfall against stock at this job's linked facility. Em dash means the park structure has no facility linked."/>
-                            <TextBlock Grid.Column="5" Text="Cost"       FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="5" Text="Cost"       FontSize="10" Foreground="#555566" HorizontalAlignment="Right" Margin="0 0 8 0"/>
                             <TextBlock Grid.Column="6" Text="Source"     FontSize="10" Foreground="#555566" HorizontalAlignment="Right"/>
                             <TextBlock Grid.Column="7" Text="Formula (SDE base → result)" FontSize="10" Foreground="#555566" Margin="8 0 0 0"/>
                           </Grid>
                           <ItemsControl ItemsSource="{Binding Job.Materials}">
                             <ItemsControl.ItemTemplate>
                               <DataTemplate>
-                                <Grid ColumnDefinitions="*,70,60,70,70,90,60,*" Margin="0 1">
+                                <Grid ColumnDefinitions="*,110,110,140,140,170,70,*" Margin="0 1">
                                   <Button Grid.Column="0" Content="{Binding TypeName}"
                                           Command="{Binding $parent[UserControl].DataContext.OpenInItemBrowserCommand}"
                                           CommandParameter="{Binding MaterialTypeId}"
@@ -671,14 +683,14 @@
                                           FontSize="11" Foreground="#c8a84b" Cursor="Hand"
                                           HorizontalContentAlignment="Left"
                                           ToolTip.Tip="Open in Item Browser"/>
-                                  <TextBlock Grid.Column="1" Text="{Binding BaseQtyPerRun, StringFormat=N0}" FontSize="11" Foreground="#888" HorizontalAlignment="Right"/>
-                                  <TextBlock Grid.Column="2" Text="{Binding EffQtyPerRun,  StringFormat=N0}" FontSize="11" Foreground="#ccc"  HorizontalAlignment="Right"/>
-                                  <TextBlock Grid.Column="3" Text="{Binding TotalQty,      StringFormat=N0}" FontSize="11" Foreground="#ccc"  HorizontalAlignment="Right"/>
+                                  <TextBlock Grid.Column="1" Text="{Binding BaseQtyPerRun, StringFormat=N0}" FontSize="11" Foreground="#888" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                                  <TextBlock Grid.Column="2" Text="{Binding EffQtyPerRun,  StringFormat=N0}" FontSize="11" Foreground="#ccc"  HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                                  <TextBlock Grid.Column="3" Text="{Binding TotalQty,      StringFormat=N0}" FontSize="11" Foreground="#ccc"  HorizontalAlignment="Right" Margin="0 0 8 0"/>
                                   <!-- Orange only when something is genuinely short; a zero or an
                                        unknown em dash stays quiet. -->
                                   <TextBlock Grid.Column="4" Text="{Binding MissingDisplay}" FontSize="11"
-                                             Foreground="{Binding MissingColor}" HorizontalAlignment="Right"/>
-                                  <TextBlock Grid.Column="5" Text="{Binding TotalCost,     StringFormat=N0}" FontSize="11" Foreground="#c8a84b" HorizontalAlignment="Right"/>
+                                             Foreground="{Binding MissingColor}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                                  <TextBlock Grid.Column="5" Text="{Binding TotalCost,     StringFormat=N0}" FontSize="11" Foreground="#c8a84b" HorizontalAlignment="Right" Margin="0 0 8 0"/>
                                   <TextBlock Grid.Column="6" Text="{Binding Source}"       FontSize="11" Foreground="#555566" HorizontalAlignment="Right"/>
                                   <TextBlock Grid.Column="7" Text="{Binding FormulaDisplay}" FontSize="10" Foreground="#444" Margin="8 0 0 0" VerticalAlignment="Center"/>
                                 </Grid>
@@ -692,7 +704,7 @@
                 </TreeDataTemplate>
               </TreeView.ItemTemplate>
             </TreeView>
-          </ScrollViewer>
+
         </TabItem>
 
       </TabControl>

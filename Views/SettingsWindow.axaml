@@ -790,6 +790,17 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
 
+                  <DataGridTemplateColumn Header="Skill queue" Width="90" SortMemberPath="SkillQueue"
+                                          IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:IndyCharRow">
+                        <CheckBox IsChecked="{Binding SkillQueue, Mode=TwoWay}" FontSize="11" MinHeight="0"
+                                  HorizontalAlignment="Center"
+                                  ToolTip.Tip="Character skill queue should be kept running. Clear it for an alt whose queue is deliberately empty, and neither the Overview alerts nor the worklist will report it." />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+
                   <DataGridTextColumn Header="Free / total" Binding="{Binding Slots}" FontSize="11" Width="*"
                                       IsReadOnly="True" />
                 </DataGrid.Columns>

@@ -38,6 +38,7 @@ public sealed class IndyCharRow : ReactiveObject
         _manufacturing = config.Manufacturing;
         _reactions     = config.Reactions;
         _science       = config.Science;
+        _skillQueue    = config.SkillQueue;
 
         _loaded = true;
     }
@@ -63,6 +64,13 @@ public sealed class IndyCharRow : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _science, value); Persist(); }
     }
 
+    private bool _skillQueue;
+    public bool SkillQueue
+    {
+        get => _skillQueue;
+        set { this.RaiseAndSetIfChanged(ref _skillQueue, value); Persist(); }
+    }
+
     /// <summary>Sorted on, and it still reads as a sentence when every box is clear.</summary>
     public string Activities
     {
@@ -83,6 +91,7 @@ public sealed class IndyCharRow : ReactiveObject
         Config.Manufacturing = _manufacturing;
         Config.Reactions     = _reactions;
         Config.Science       = _science;
+        Config.SkillQueue    = _skillQueue;
 
         this.RaisePropertyChanged(nameof(Activities));
         _ = _save(this);
@@ -552,12 +561,17 @@ public class WorklistIndustryViewModel : ReactiveObject
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
+            // ⚠️ Every box on this grid must be listed here. ExecuteUpdate writes exactly the
+            // properties named and nothing else, so a new column added to the row above and left
+            // out below saves silently and reverts on the next load — which is what the Skill
+            // queue box did on the day it was added.
             await db.WorklistIndyChars
                 .Where(x => x.Id == row.Id)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(x => x.Manufacturing, row.Config.Manufacturing)
                     .SetProperty(x => x.Reactions,     row.Config.Reactions)
-                    .SetProperty(x => x.Science,       row.Config.Science));
+                    .SetProperty(x => x.Science,       row.Config.Science)
+                    .SetProperty(x => x.SkillQueue,    row.Config.SkillQueue));
 
             if (IndustryChanged is not null) await IndustryChanged();
         }

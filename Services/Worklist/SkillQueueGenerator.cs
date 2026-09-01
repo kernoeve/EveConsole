@@ -19,6 +19,11 @@ namespace EveConsole.Services.Worklist;
 /// <para>Every authorised character is checked, not only the ones set up to run industry. Training
 /// is not an industry activity, and the alt whose queue lapsed unnoticed is usually the one nobody
 /// has a job for.</para>
+///
+/// <para>The exception is a character whose Skill queue box is cleared on the Industry tab. Some
+/// alts are not meant to be training — there is nothing left they need — and a permanently
+/// empty queue reporting itself every refresh is noise that teaches the reader to skip the
+/// section.</para>
 /// </summary>
 public class SkillQueueGenerator(IDbContextFactory<AppDbContext> dbFactory) : IWorklistGenerator
 {
@@ -35,9 +40,24 @@ public class SkillQueueGenerator(IDbContextFactory<AppDbContext> dbFactory) : IW
         if (!alerts.SkillQueueEmpty && !alerts.SkillQueuePaused && !alerts.SkillQueueEmptyInDays)
             return [];
 
-        var characters = await db.Characters.AsNoTracking()
+        // Characters whose queue is deliberately not kept running — a hauler, a cyno alt, a
+        // market alt with nothing left worth training. Cleared on the Industry tab.
+        //
+        // ⚠️ Only rows that exist AND say false are silenced. A character with no row here is
+        // "not configured", not "silence me", and must still be checked; reading the flag as a
+        // plain lookup with a false default would mute every character who has never been given
+        // an industry setting.
+        var muted = (await db.WorklistIndyChars.AsNoTracking()
+                .Where(c => !c.SkillQueue)
+                .Select(c => c.CharacterId)
+                .ToListAsync(ct))
+            .ToHashSet();
+
+        var characters = (await db.Characters.AsNoTracking()
             .Select(c => new { c.Id, c.Name })
-            .ToListAsync(ct);
+            .ToListAsync(ct))
+            .Where(c => !muted.Contains(c.Id))
+            .ToList();
         if (characters.Count == 0) return [];
 
         var charIds = characters.Select(c => c.Id).ToList();

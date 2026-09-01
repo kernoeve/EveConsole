@@ -565,10 +565,13 @@ public class ApiActivityViewModel : ReactiveObject
         {
             recordMap.TryGetValue(ep.Key, out var rec);
             DateTimeOffset? lastCalled = rec?.LastCalledAt;
-            int intervalSec = _timerSettings.GetInterval(ep.Key, ep.DefaultSeconds);
-            DateTimeOffset? nextCall = lastCalled.HasValue
-                ? lastCalled.Value.AddSeconds(intervalSec)
-                : null;
+
+            // ⚠️ Asked, not re-derived. This used to be last-called plus the interval, which
+            // ignores the expiry the server sent — so a copy lapsing in twenty-nine minutes
+            // was shown as an hour away, and a manual poll looked like it had pushed the next
+            // call back when it had not.
+            DateTimeOffset? nextCall =
+                _polling.NextDueAt(ep.Key, ep.DefaultSeconds, lastCalled, rec?.ExpiresAt);
             return new ScheduleRowVm
             {
                 DisplayName  = ep.DisplayName,

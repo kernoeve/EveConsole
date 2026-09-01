@@ -65,7 +65,7 @@
            the search cannot reach is still recordable — and every order made while this was free
            text keeps its name and shows it here on edit. -->
       <StackPanel Spacing="5">
-        <TextBlock Classes="lbl" Text="SENT TO (BUYER)" />
+        <TextBlock Classes="lbl" Text="BUYER" />
         <TextBlock x:Name="SelectedBuyerText" Text="(none selected)" Foreground="#c8a84b" FontSize="12" />
         <TextBox x:Name="BuyerBox" Watermark="Start typing a character or corporation…"
                  CornerRadius="3" CaretBrush="#c8a84b" Padding="8 5" TextChanged="OnBuyerSearchChanged" />

@@ -480,10 +480,23 @@ public sealed class TaxPayerRowVm
     }
 }
 
+/// <summary>
+/// One entry in a detail grid's type filter. RefType is null for "All types".
+/// </summary>
+public sealed record RefTypeChoice(string? RefType, string Label)
+{
+    public override string ToString() => Label;
+}
+
 public sealed class WalletDetailRowVm
 {
-    public string DateText   { get; }
-    public string TimeText   { get; }
+    /// <summary>
+    /// ⚠️ The sort key, and why the column binds text but sorts on this. Date and time used to
+    /// be two columns of formatted text; sorting on the time string ordered 23:59 above 00:01
+    /// regardless of the day, so the grid could not be put in chronological order at all.
+    /// </summary>
+    public DateTimeOffset When { get; }
+    public string WhenText   { get; }
     public string TypeName   { get; }
     public string Name       { get; }
     public string AmountText { get; }
@@ -501,8 +514,8 @@ public sealed class WalletDetailRowVm
     public WalletDetailRowVm(WalletDetailRow r)
     {
         PartyId    = r.PartyId;
-        DateText   = r.Date.UtcDateTime.ToString("yyyy-MM-dd");
-        TimeText   = r.Date.UtcDateTime.ToString("HH:mm");
+        When       = r.Date;
+        WhenText   = r.Date.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
         TypeName   = CorpActivityViewModel.FormatRefType(r.RefType);
         Name       = r.PartyName;
         AmountRaw  = r.Amount;
@@ -829,8 +842,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         set => this.RaiseAndSetIfChanged(ref _selectedRattingPeriod, value);
     }
 
-    public ObservableCollection<TaxPayerRowVm>      RattingTaxRows   { get; } = [];
-    public ObservableCollection<WalletDetailRowVm>  RattingDetailRows { get; } = [];
+    public BulkObservableCollection<TaxPayerRowVm>      RattingTaxRows   { get; } = [];
+    public BulkObservableCollection<WalletDetailRowVm>  RattingDetailRows { get; } = [];
 
     private ISeries[] _rattingDailySeries = [];
     public ISeries[] RattingDailySeries { get => _rattingDailySeries; private set => this.RaiseAndSetIfChanged(ref _rattingDailySeries, value); }
@@ -847,8 +860,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         set => this.RaiseAndSetIfChanged(ref _selectedDonationPeriod, value);
     }
 
-    public ObservableCollection<TaxPayerRowVm>      DonationRows       { get; } = [];
-    public ObservableCollection<WalletDetailRowVm>  DonationDetailRows  { get; } = [];
+    public BulkObservableCollection<TaxPayerRowVm>      DonationRows       { get; } = [];
+    public BulkObservableCollection<WalletDetailRowVm>  DonationDetailRows  { get; } = [];
 
     private ISeries[] _donationDailySeries = [];
     public ISeries[] DonationDailySeries { get => _donationDailySeries; private set => this.RaiseAndSetIfChanged(ref _donationDailySeries, value); }
@@ -865,8 +878,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         set => this.RaiseAndSetIfChanged(ref _selectedIndustryPeriod, value);
     }
 
-    public ObservableCollection<TaxPayerRowVm>      IndustryTaxRows    { get; } = [];
-    public ObservableCollection<WalletDetailRowVm>  IndustryDetailRows  { get; } = [];
+    public BulkObservableCollection<TaxPayerRowVm>      IndustryTaxRows    { get; } = [];
+    public BulkObservableCollection<WalletDetailRowVm>  IndustryDetailRows  { get; } = [];
 
     private ISeries[] _industryDailySeries = [];
     public ISeries[] IndustryDailySeries { get => _industryDailySeries; private set => this.RaiseAndSetIfChanged(ref _industryDailySeries, value); }
@@ -877,7 +890,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
     // ── Killmail section ──────────────────────────────────────────────────────
     public ObservableCollection<CorpKillCharRowVm>     KillCharRows   { get; } = [];
-    public ObservableCollection<Activity24hKillRowVm>  KillDetailRows { get; } = [];
+    public BulkObservableCollection<Activity24hKillRowVm>  KillDetailRows { get; } = [];
 
     private ChartPeriodOption _selectedKillGridPeriod = null!;
     public ChartPeriodOption SelectedKillGridPeriod
@@ -942,8 +955,91 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     // ── Income / Expense by type ─────────────────────────────────────────────
     public ObservableCollection<WalletTypeRowVm>    IncomeTypeRows    { get; } = [];
     public ObservableCollection<WalletTypeRowVm>    ExpenseTypeRows   { get; } = [];
-    public ObservableCollection<WalletDetailRowVm>  ExpenseDetailRows { get; } = [];
-    public ObservableCollection<WalletDetailRowVm>  IncomeDetailRows  { get; } = [];
+    public BulkObservableCollection<WalletDetailRowVm>  ExpenseDetailRows { get; } = [];
+    public BulkObservableCollection<WalletDetailRowVm>  IncomeDetailRows  { get; } = [];
+
+    // ── Detail filters ───────────────────────────────────────────────────────
+    //
+    // The type list is built from the rows actually present rather than from a fixed list of
+    // ESI's ref types: thirty-seven exist, a given corp uses a handful, and offering the other
+    // thirty as choices that return nothing is worse than not offering them.
+    //
+    // ⚠️ "All types" is a row in the list, not a null the user has to discover. A filter with
+    // no way back to unfiltered is a trap.
+    public BulkObservableCollection<RefTypeChoice> IncomeTypeChoices  { get; } = [];
+    public BulkObservableCollection<RefTypeChoice> ExpenseTypeChoices { get; } = [];
+
+    private RefTypeChoice? _selectedIncomeType;
+    public RefTypeChoice? SelectedIncomeType
+    {
+        get => _selectedIncomeType;
+        set { this.RaiseAndSetIfChanged(ref _selectedIncomeType, value); ReloadIncomeDetail(); }
+    }
+
+    private RefTypeChoice? _selectedExpenseType;
+    public RefTypeChoice? SelectedExpenseType
+    {
+        get => _selectedExpenseType;
+        set { this.RaiseAndSetIfChanged(ref _selectedExpenseType, value); ReloadExpenseDetail(); }
+    }
+
+    private string _incomeNameFilter = "";
+    public string IncomeNameFilter
+    {
+        get => _incomeNameFilter;
+        set { this.RaiseAndSetIfChanged(ref _incomeNameFilter, value); ReloadIncomeDetail(); }
+    }
+
+    private string _expenseNameFilter = "";
+    public string ExpenseNameFilter
+    {
+        get => _expenseNameFilter;
+        set { this.RaiseAndSetIfChanged(ref _expenseNameFilter, value); ReloadExpenseDetail(); }
+    }
+
+    private int _incomeDetailCount;
+    public int IncomeDetailCount
+    {
+        get => _incomeDetailCount;
+        private set => this.RaiseAndSetIfChanged(ref _incomeDetailCount, value);
+    }
+
+    private int _expenseDetailCount;
+    public int ExpenseDetailCount
+    {
+        get => _expenseDetailCount;
+        private set => this.RaiseAndSetIfChanged(ref _expenseDetailCount, value);
+    }
+
+    /// <summary>
+    /// Reloads one detail grid after a filter changes.
+    ///
+    /// <para>⚠️ Started on the UI thread and NOT wrapped in Task.Run. The awaits inside resume
+    /// on the captured context, which is what puts ResetTo back on the UI thread; running the
+    /// whole thing on the pool mutates a bound collection from a background thread, and Avalonia
+    /// throws. That threw silently into an empty catch, so choosing a type simply did
+    /// nothing — no rows, no error, no clue.</para>
+    ///
+    /// <para>Not awaited, because a property setter that blocks on a query freezes the dropdown
+    /// mid-selection. Failures land on the status line instead of being swallowed.</para>
+    /// </summary>
+    private void ReloadIncomeDetail() => ReloadDetail(LoadIncomeDetailAsync);
+    private void ReloadExpenseDetail() => ReloadDetail(LoadExpenseDetailAsync);
+
+    private void ReloadDetail(Func<long, CancellationToken, Task> load)
+    {
+        if (_isLoading || SelectedCorp is null) return;
+        var corpId = SelectedCorp.Id;
+
+        _ = LoadAsync();
+        return;
+
+        async Task LoadAsync()
+        {
+            try { await load(corpId, default); }
+            catch (Exception ex) { Status = $"Filter failed: {ex.Message}"; }
+        }
+    }
 
     private ChartPeriodOption _selectedIncomePeriod = null!;
     public ChartPeriodOption SelectedIncomePeriod
@@ -977,7 +1073,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public ObservableCollection<Activity24hPlayerRowVm> Activity24hRatters  { get; } = [];
     public ObservableCollection<Activity24hPlayerRowVm> Activity24hIndustry { get; } = [];
     public ObservableCollection<Activity24hPlayerRowVm> Activity24hMiners   { get; } = [];
-    public ObservableCollection<Activity24hKillRowVm>   Activity24hKills    { get; } = [];
+    public BulkObservableCollection<Activity24hKillRowVm>   Activity24hKills    { get; } = [];
 
     private string _activity24hPlayerCountText = "—";
     public string Activity24hPlayerCountText
@@ -1941,8 +2037,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             BuildTaxChart(chartRows, new SKColor(110, 190, 100));
 
         var detailRows = await _service.GetRattingJournalAsync(corpId, since, ct);
-        RattingDetailRows.Clear();
-        foreach (var r in detailRows) RattingDetailRows.Add(new WalletDetailRowVm(r));
+        RattingDetailRows.ResetTo(detailRows.Select(r => new WalletDetailRowVm(r)));
     }
 
     private async Task LoadDonationTabAsync(long corpId, CancellationToken ct = default)
@@ -1957,8 +2052,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             BuildTaxChart(chartRows, new SKColor(100, 160, 210));
 
         var detailRows = await _service.GetDonationJournalAsync(corpId, since, ct);
-        DonationDetailRows.Clear();
-        foreach (var r in detailRows) DonationDetailRows.Add(new WalletDetailRowVm(r));
+        DonationDetailRows.ResetTo(detailRows.Select(r => new WalletDetailRowVm(r)));
     }
 
     private async Task LoadIndustryTabAsync(long corpId, CancellationToken ct = default)
@@ -1973,8 +2067,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             BuildTaxChart(chartRows, new SKColor(200, 140, 60));
 
         var detailRows = await _service.GetIndustryJournalAsync(corpId, since, ct);
-        IndustryDetailRows.Clear();
-        foreach (var r in detailRows) IndustryDetailRows.Add(new WalletDetailRowVm(r));
+        IndustryDetailRows.ResetTo(detailRows.Select(r => new WalletDetailRowVm(r)));
     }
 
     private async Task LoadIncomeByTypeAsync(long corpId, CancellationToken ct = default)
@@ -1982,15 +2075,14 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         var rows = await _service.GetIncomeByTypeAsync(corpId, SelectedIncomePeriod.Days, ct);
         IncomeTypeRows.Clear();
         foreach (var r in rows) IncomeTypeRows.Add(new WalletTypeRowVm(r));
+        SyncTypeChoices(IncomeTypeChoices, rows, ref _selectedIncomeType, nameof(SelectedIncomeType));
         BuildTypeBarChart(rows, new SKColor(106, 170, 136),
             out var series, out var xAxes, out var yAxes);
         IncomeSeries = series;
         IncomeXAxes  = xAxes;
         IncomeYAxes  = yAxes;
 
-        var detailRows = await _service.GetIncomeJournalAsync(corpId, SelectedIncomePeriod.Days, ct);
-        IncomeDetailRows.Clear();
-        foreach (var r in detailRows) IncomeDetailRows.Add(new WalletDetailRowVm(r));
+        await LoadIncomeDetailAsync(corpId, ct);
     }
 
     private async Task LoadExpenseByTypeAsync(long corpId, CancellationToken ct = default)
@@ -1998,15 +2090,85 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         var rows = await _service.GetExpenseByTypeAsync(corpId, SelectedExpensePeriod.Days, ct);
         ExpenseTypeRows.Clear();
         foreach (var r in rows) ExpenseTypeRows.Add(new WalletTypeRowVm(r));
+        SyncTypeChoices(ExpenseTypeChoices, rows, ref _selectedExpenseType, nameof(SelectedExpenseType));
         BuildTypeBarChart(rows, new SKColor(204, 119, 102),
             out var series, out var xAxes, out var yAxes);
         ExpenseSeries = series;
         ExpenseXAxes  = xAxes;
         ExpenseYAxes  = yAxes;
 
-        var detail = await _service.GetExpenseJournalAsync(corpId, SelectedExpensePeriod.Days, ct);
-        ExpenseDetailRows.Clear();
-        foreach (var r in detail) ExpenseDetailRows.Add(new WalletDetailRowVm(r));
+        await LoadExpenseDetailAsync(corpId, ct);
+    }
+
+    // ── Income / expense detail, filtered ────────────────────────────────────
+    //
+    // ⚠️ Built off the UI thread and pushed in one reset. The old Clear() plus an Add() per row
+    // raised a change notification for every line, which the grid answered by laying out again.
+    // Tolerable at the five hundred rows the query used to cap at; at the two hundred thousand a
+    // real corp quarter holds it is the worklist freeze all over again.
+    private async Task LoadIncomeDetailAsync(long corpId, CancellationToken ct = default)
+    {
+        var rows = await _service.GetIncomeJournalAsync(
+            corpId, SelectedIncomePeriod.Days, SelectedIncomeType?.RefType, ct);
+
+        var vms = await Task.Run(() => Filter(rows, IncomeNameFilter), ct);
+        IncomeDetailRows.ResetTo(vms);
+        IncomeDetailCount = vms.Count;
+    }
+
+    private async Task LoadExpenseDetailAsync(long corpId, CancellationToken ct = default)
+    {
+        var rows = await _service.GetExpenseJournalAsync(
+            corpId, SelectedExpensePeriod.Days, SelectedExpenseType?.RefType, ct);
+
+        var vms = await Task.Run(() => Filter(rows, ExpenseNameFilter), ct);
+        ExpenseDetailRows.ResetTo(vms);
+        ExpenseDetailCount = vms.Count;
+    }
+
+    /// <summary>
+    /// ⚠️ The name filter stays in memory while the type filter went into the query. The name
+    /// is not a column — it is resolved from a party id after the rows are read — so there
+    /// is nothing in SQL to match on. The type filter is what keeps the set small enough for that
+    /// to be cheap.
+    /// </summary>
+    private static List<WalletDetailRowVm> Filter(List<WalletDetailRow> rows, string? name)
+    {
+        var vms = rows.Select(r => new WalletDetailRowVm(r));
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var needle = name.Trim();
+            vms = vms.Where(v => v.Name.Contains(needle, StringComparison.OrdinalIgnoreCase));
+        }
+        return vms.ToList();
+    }
+
+    /// <summary>
+    /// Rebuilds a type dropdown from the types actually present, keeping the current choice where
+    /// it still exists.
+    ///
+    /// <para>⚠️ Assigned through the backing field, not the property. The setter reloads the
+    /// grid, and doing that from inside the load that is already running would queue a second
+    /// pass for the same data on every refresh.</para>
+    /// </summary>
+    private void SyncTypeChoices(BulkObservableCollection<RefTypeChoice> choices,
+                                 List<WalletTypeRow> rows,
+                                 ref RefTypeChoice? selected, string propertyName)
+    {
+        var all   = new RefTypeChoice(null, "All types");
+        var built = new List<RefTypeChoice> { all };
+        built.AddRange(rows.Select(r => new RefTypeChoice(r.RefType, FormatRefType(r.RefType)))
+                           .DistinctBy(c => c.RefType)
+                           .OrderBy(c => c.Label));
+
+        choices.ResetTo(built);
+
+        var current = selected;   // ref cannot be captured by the lambda below
+        var keep = current is null ? all
+                 : built.FirstOrDefault(c => c.RefType == current.RefType) ?? all;
+
+        selected = keep;
+        this.RaisePropertyChanged(propertyName);
     }
 
     private static void BuildTypeBarChart(List<WalletTypeRow> rows, SKColor color,
