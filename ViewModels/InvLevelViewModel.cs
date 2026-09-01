@@ -762,7 +762,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         if (pick == null) return;
 
         StatusText = "Calculating materials…";
-        Dictionary<int, (int Qty, string Name)> mats;
+        Dictionary<int, (long Qty, string Name)> mats;
         try
         {
             if (pick.WholeChain)
@@ -787,7 +787,11 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         var targetGroup = GetContextGroup();
         if (targetGroup == null) { StatusText = "No group selected."; return; }
 
-        var itemsWithQty  = mats.ToDictionary(kv => kv.Key, kv => kv.Value.Qty);
+        // ⚠️ Chain quantities are long; an inventory level is an int column in the rules
+        // table. Clamped rather than cast, so an absurd plan produces a capped level instead
+        // of a negative one.
+        var itemsWithQty  = mats.ToDictionary(kv => kv.Key,
+                                              kv => (int)Math.Clamp(kv.Value.Qty, 0, int.MaxValue));
         var nameOverrides = mats.ToDictionary(kv => kv.Key, kv => kv.Value.Name);
         await AddItemsToGroupAsync(targetGroup, itemsWithQty, pick.ProductName, nameOverrides);
     }

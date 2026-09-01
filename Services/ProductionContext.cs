@@ -28,6 +28,9 @@ public sealed class ProductionContext
 
     // ── Type names, groups, categories ───────────────────────────────────────
     public required Dictionary<int, string> TypeNames        { get; init; }
+
+    /// <summary>Packaged volume per unit, m ³, for working out what a shopping list ships as.</summary>
+    public required Dictionary<int, double> TypeVolumes      { get; init; }
     public required Dictionary<int, TypeGroup> TypeGroupMap  { get; init; }
     public required Dictionary<int, GroupCat> GroupCatMap    { get; init; }
     public required HashSet<int>            T2TypeIds        { get; init; }

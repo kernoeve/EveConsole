@@ -46,9 +46,9 @@ public static class IndustryMe
     /// a job eats. This was two identical private copies — one here, one in BuildCostService
     /// — each carrying a comment telling the reader to keep it in step with the other.</para>
     /// </summary>
-    public static int JobMaterialTotal(int baseQty, double factor, int runs)
+    public static long JobMaterialTotal(int baseQty, double factor, long runs)
     {
         double total = Math.Round(baseQty * (double)runs * factor, 2);
-        return Math.Max(runs, (int)Math.Ceiling(total));
+        return Math.Max(runs, (long)Math.Ceiling(total));
     }
 }

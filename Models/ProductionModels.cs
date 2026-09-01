@@ -4,7 +4,13 @@ public class ProductionQueueEntry
 {
     public int    TypeId   { get; set; }
     public string TypeName { get; set; } = "";
-    public int    Quantity { get; set; } = 1;
+    /// <summary>
+    /// ⚠️ Units are long everywhere in a plan. A Palatine Keepstar wants 1.35 billion Pyerite
+    /// and rather more Tritanium; at int the totals rolled over and the grid showed
+    /// -2,147,483,639 units at a cost of -8.2 quadrillion ISK. Anything counting units of an item
+    /// has to reach the trillions.
+    /// </summary>
+    public long   Quantity { get; set; } = 1;
     public int    MeLevel  { get; set; } = 10;
 }
 
@@ -14,11 +20,11 @@ public class PlanJob
     public string  OutputTypeName  { get; set; } = "";
     public bool    IsReaction      { get; set; }
     public int     MeLevel         { get; set; }
-    public int     QuantityNeeded  { get; set; }
-    public int     QuantityPerRun  { get; set; }
-    public int     Runs            { get; set; }
-    public int     QuantityProduced => Runs * QuantityPerRun;
-    public int     Leftover         => QuantityProduced - QuantityNeeded;
+    public long    QuantityNeeded  { get; set; }
+    public int     QuantityPerRun  { get; set; }   // portion size from the SDE; single digits
+    public long    Runs            { get; set; }
+    public long    QuantityProduced => Runs * QuantityPerRun;
+    public long    Leftover         => QuantityProduced - QuantityNeeded;
     public string  StructureName   { get; set; } = "";
     public string  SystemName      { get; set; } = "";
 
@@ -69,9 +75,9 @@ public class PlanJobMaterial
 {
     public int     MaterialTypeId { get; set; }
     public string  TypeName       { get; set; } = "";
-    public int     BaseQtyPerRun  { get; set; }
-    public int     EffQtyPerRun   { get; set; }
-    public int     TotalQty       { get; set; }
+    public int     BaseQtyPerRun  { get; set; }   // straight from the SDE recipe
+    public long    EffQtyPerRun   { get; set; }
+    public long    TotalQty       { get; set; }
     public bool    IsBought       { get; set; }
     public decimal UnitPrice      { get; set; }
     public decimal TotalCost      => IsBought ? TotalQty * UnitPrice : 0;
@@ -89,9 +95,9 @@ public class PlanJobMaterial
     public bool AvailabilityKnown { get; set; }
 
     /// <summary>Units of this material already at the job's station.</summary>
-    public int  Available         { get; set; }
+    public long Available         { get; set; }
 
-    public int  Missing => AvailabilityKnown ? Math.Max(0, TotalQty - Available) : 0;
+    public long Missing => AvailabilityKnown ? Math.Max(0L, TotalQty - Available) : 0;
 
     /// <summary>Em dash when unknown — a blank cell reads as "none missing", which is
     /// the opposite of what an unlinked structure means.</summary>
@@ -120,7 +126,7 @@ public class PlanRawMaterial : System.ComponentModel.INotifyPropertyChanged
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
 
-    public int     Quantity  { get; set; }
+    public long    Quantity  { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal TotalCost { get; set; }
 
@@ -131,8 +137,8 @@ public class PlanRawMaterial : System.ComponentModel.INotifyPropertyChanged
     // up. In asset mode it is compared against everything owned, anywhere.
 
     private bool _availabilityKnown;
-    private int  _available;
-    private int  _missing;
+    private long _available;
+    private long _missing;
 
     public bool AvailabilityKnown
     {
@@ -144,13 +150,13 @@ public class PlanRawMaterial : System.ComponentModel.INotifyPropertyChanged
         }
     }
 
-    public int Available
+    public long Available
     {
         get => _available;
         set { _available = value; Raise(nameof(Available)); }
     }
 
-    public int Missing
+    public long Missing
     {
         get => _missing;
         set { _missing = value; Raise(nameof(Missing)); Raise(nameof(MissingDisplay)); Raise(nameof(MissingColor)); }
@@ -168,9 +174,9 @@ public class PlanIntermediate
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
 
-    public int     QuantityNeeded   { get; set; }
-    public int     QuantityProduced { get; set; }
-    public int     Leftover         { get; set; }
+    public long    QuantityNeeded   { get; set; }
+    public long    QuantityProduced { get; set; }
+    public long    Leftover         { get; set; }
     public decimal MarketUnitPrice  { get; set; }
     public decimal LeftoverValue    { get; set; }
 }
@@ -183,8 +189,8 @@ public class PlanFinalProduct
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
 
-    public int     QuantityRequested { get; set; }
-    public int     QuantityProduced  { get; set; }
+    public long    QuantityRequested { get; set; }
+    public long    QuantityProduced  { get; set; }
     public int     MeLevel           { get; set; }
     public decimal TotalMaterialCost { get; set; }
     public decimal TotalJobCost      { get; set; }
@@ -204,7 +210,7 @@ public class PlanLeftoverItem
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
 
-    public int     Quantity  { get; set; }
+    public long    Quantity  { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal TotalValue { get; set; }
     public string  Source    { get; set; } = "";
@@ -226,6 +232,10 @@ public class ProductionPlan
     public List<string> Warnings { get; set; } = [];
 
     public decimal TotalRawMaterialCost { get; set; }
+
+    /// <summary>Packed volume of everything on the shopping list, m ³. Intermediates are
+    /// excluded — they are built on site, not hauled in.</summary>
+    public double  TotalRawMaterialVolume { get; set; }
     public decimal TotalJobCost         { get; set; }
     public decimal TotalLeftoverValue   { get; set; }
     public decimal NetCost              { get; set; }
