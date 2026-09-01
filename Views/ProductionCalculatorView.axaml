@@ -600,6 +600,10 @@
                             <TextBlock Text="{Binding Job.Runs,            StringFormat='Runs: {0}'}"         FontSize="11" Foreground="#888"/>
                             <TextBlock Text="{Binding Job.QuantityProduced, StringFormat='Out: {0:N0}'}"      FontSize="11" Foreground="#888"/>
                             <TextBlock Text="{Binding Job.Leftover,         StringFormat='Leftover: {0:N0}'}" FontSize="11" Foreground="#4caf50"/>
+                            <TextBlock Text="{Binding Job.InputVolume,  StringFormat='In: {0:N0} m³'}"  FontSize="11" Foreground="#7a8fa6"
+                                       ToolTip.Tip="Packed volume this job consumes — what has to reach the facility."/>
+                            <TextBlock Text="{Binding Job.OutputVolume, StringFormat='Out: {0:N0} m³'}" FontSize="11" Foreground="#7a8fa6"
+                                       ToolTip.Tip="Packed volume this job produces — what leaves it."/>
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Spacing="10">
                             <TextBlock Text="{Binding Job.MaterialCost, StringFormat='Mat: {0:N0} ISK'}" FontSize="11" Foreground="#aaa"/>

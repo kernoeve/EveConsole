@@ -928,6 +928,17 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         }
         leftovers = [.. leftovers.OrderByDescending(l => l.TotalValue)];
 
+        // What each job takes in and puts out, by volume. Every job's own materials, not the
+        // subtree below it: a job that consumes components built elsewhere in the plan still has
+        // to have those components delivered to it, and that is what the number is for.
+        foreach (var j in jobPool.Values)
+        {
+            j.InputVolume  = j.Materials.Sum(
+                m => m.TotalQty * ctx.TypeVolumes.GetValueOrDefault(m.MaterialTypeId, 0.0));
+            j.OutputVolume = j.QuantityProduced
+                           * ctx.TypeVolumes.GetValueOrDefault(j.OutputTypeId, 0.0);
+        }
+
         // ── Totals ─────────────────────────────────────────────────────────
         decimal totalRawMat   = rawMaterials.Sum(r => r.TotalCost);
 

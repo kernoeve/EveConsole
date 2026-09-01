@@ -25,6 +25,12 @@ public class PlanJob
     public long    Runs            { get; set; }
     public long    QuantityProduced => Runs * QuantityPerRun;
     public long    Leftover         => QuantityProduced - QuantityNeeded;
+
+    /// <summary>Packed volume of everything this job consumes, m ³.</summary>
+    public double  InputVolume      { get; set; }
+
+    /// <summary>Packed volume of what it produces, m ³.</summary>
+    public double  OutputVolume     { get; set; }
     public string  StructureName   { get; set; } = "";
     public string  SystemName      { get; set; } = "";
 
