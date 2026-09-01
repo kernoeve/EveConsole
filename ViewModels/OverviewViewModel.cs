@@ -1373,6 +1373,16 @@ public class OverviewViewModel : ReactiveObject
 
         if (checkEmpty || checkPaused || checkDays)
         {
+            // ⚠️ Same rule as the worklist's skill-queue tasks, and it has to stay the same:
+            // two places disagreeing about whether a queue is a problem is worse than either
+            // alone. Only an existing row saying false silences a character; no row means the
+            // character has never been configured, not that it should be ignored.
+            var muted = (await Off(() => _db.WorklistIndyChars.AsNoTracking()
+                    .Where(c => !c.SkillQueue)
+                    .Select(c => c.CharacterId)
+                    .ToListAsync()))
+                .ToHashSet();
+
             // Every character's queue in one query, grouped here. It was one query per
             // character, run sequentially, each with its own hop back to the UI thread — at 18
             // authenticated characters that was 18 round trips for what the database can answer
@@ -1386,6 +1396,7 @@ public class OverviewViewModel : ReactiveObject
 
             foreach (var ch in characters)
             {
+                if (muted.Contains(ch.Id)) continue;
                 if (!queuesByChar.TryGetValue(ch.Id, out var queue)) queue = [];
 
                 var skillsNavCommand = NavigateToCharacterSkills is not null

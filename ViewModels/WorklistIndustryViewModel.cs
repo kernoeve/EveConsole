@@ -38,6 +38,7 @@ public sealed class IndyCharRow : ReactiveObject
         _manufacturing = config.Manufacturing;
         _reactions     = config.Reactions;
         _science       = config.Science;
+        _skillQueue    = config.SkillQueue;
 
         _loaded = true;
     }
@@ -63,6 +64,13 @@ public sealed class IndyCharRow : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _science, value); Persist(); }
     }
 
+    private bool _skillQueue;
+    public bool SkillQueue
+    {
+        get => _skillQueue;
+        set { this.RaiseAndSetIfChanged(ref _skillQueue, value); Persist(); }
+    }
+
     /// <summary>Sorted on, and it still reads as a sentence when every box is clear.</summary>
     public string Activities
     {
@@ -83,6 +91,7 @@ public sealed class IndyCharRow : ReactiveObject
         Config.Manufacturing = _manufacturing;
         Config.Reactions     = _reactions;
         Config.Science       = _science;
+        Config.SkillQueue    = _skillQueue;
 
         this.RaisePropertyChanged(nameof(Activities));
         _ = _save(this);
