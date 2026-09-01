@@ -28,6 +28,11 @@ public class UpdateViewModel : ReactiveObject
         _errorLogger = errorLogger;
         _mgr         = new UpdateManager(new GithubSource(RepoUrl, null, false));
 
+        // ⚠️ Asked once, here. Whether this is an installed build is knowable at startup,
+        // and reading it from the update check's side effect meant the badge stayed blank
+        // whenever the check had not run yet — or was switched off entirely.
+        IsInstalledBuild = _mgr.IsInstalled;
+
         var ver = Assembly.GetExecutingAssembly().GetName().Version;
         CurrentVersionText = ver is not null ? $"v{ver.Major}.{ver.Minor}.{ver.Build}" : "unknown";
         _autoCheck = _prefs.Get(AutoCheckKey) != "0";   // default on
@@ -56,6 +61,9 @@ public class UpdateViewModel : ReactiveObject
 
     public string CurrentVersionText { get; }
 
+    /// <summary>False for a build run from source, which no release corresponds to.</summary>
+    public bool IsInstalledBuild { get; }
+
     /// <summary>
     /// The release page to open from the title bar: the specific tag when an update is waiting,
     /// the releases index otherwise.
@@ -75,9 +83,9 @@ public class UpdateViewModel : ReactiveObject
     /// either verdict.</para>
     /// </summary>
     public string UpdateBadgeText =>
-        UpdateAvailable                        ? $"{LatestVersionText} available"
-      : LatestVersionText.StartsWith("n/a")    ? "dev build"
-      : StatusText == "Up to date."            ? "up to date"
+        !IsInstalledBuild             ? "dev build"
+      : UpdateAvailable               ? $"{LatestVersionText} available"
+      : StatusText == "Up to date."  ? "up to date"
       : "";
 
     public bool HasUpdateBadge => UpdateBadgeText.Length > 0;
