@@ -2,16 +2,22 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>EveConsole</RootNamespace>
     <AssemblyName>EveConsole</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
+    <Version>0.9.13</Version>
+  </PropertyGroup>
+
+  <!-- Windows-only packaging. An .ico and a Win32 manifest mean nothing on Linux, and the
+       SDK refuses the manifest outside a Windows build. Conditioned rather than deleted:
+       the Windows release still wants both. -->
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <ApplicationIcon>Assets\ec.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>0.9.13</Version>
   </PropertyGroup>
 
   <ItemGroup>
