@@ -329,7 +329,6 @@ public class CorpActivityService
               AND "FirstPartyId" >= 90000000
             GROUP BY "FirstPartyId"
             ORDER BY SUM(CAST("Amount" AS REAL)) DESC
-            LIMIT 200
             """).ToListAsync(ct);
         var names = await ResolveNamesAsync(rows.Select(r => r.EntityId), ct);
         return rows.Select((r, i) => new TaxPayerRow(
@@ -377,7 +376,6 @@ public class CorpActivityService
               AND "SecondPartyId" != {corpId}
             GROUP BY "SecondPartyId"
             ORDER BY SUM(CAST("Amount" AS REAL)) DESC
-            LIMIT 200
             """).ToListAsync(ct);
         var names = await ResolveNamesAsync(rows.Select(r => r.EntityId), ct);
         return rows.Select((r, i) => new TaxPayerRow(
@@ -405,7 +403,6 @@ public class CorpActivityService
               AND "FirstPartyId" != {corpId}
             GROUP BY "FirstPartyId"
             ORDER BY SUM(CAST("Amount" AS REAL)) DESC
-            LIMIT 200
             """).ToListAsync(ct);
         var names = await ResolveNamesAsync(rows.Select(r => r.EntityId), ct);
         return rows.Select((r, i) => new TaxPayerRow(
@@ -1591,11 +1588,24 @@ public class CorpActivityService
 
     // ── Wallet journal detail (ungrouped rows) ────────────────────────────────
 
+    /// <summary>
+    /// Every income line in the period, optionally narrowed by reference type.
+    ///
+    /// <para>⚠️ No row limit. It used to stop at five hundred, which on a corp taking two
+    /// hundred thousand bounty lines a quarter meant the grid showed the newest fraction of a
+    /// percent and sorted only within that — a total that could never be reconciled against
+    /// the summary above it.</para>
+    ///
+    /// <para>⚠️ The type filter belongs in the query, not in the grid. Narrowing afterwards
+    /// still builds a row object for every line first, which is the expensive part; pushing it
+    /// down is what makes an unlimited result usable.</para>
+    /// </summary>
     public async Task<List<WalletDetailRow>> GetIncomeJournalAsync(
-        long corpId, int days, CancellationToken ct = default)
+        long corpId, int days, string? refType = null, CancellationToken ct = default)
     {
         using var db = _dbFactory.CreateDbContext();
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
+        var type     = string.IsNullOrWhiteSpace(refType) ? null : refType;
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
             SELECT "Date", "RefType", CAST("Amount" AS REAL) AS "Amount",
                    COALESCE("FirstPartyId", 0) AS "PartyId", '' AS "Reason"
@@ -1603,8 +1613,8 @@ public class CorpActivityService
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
               AND CAST("Amount" AS REAL) > 0
+              AND ({type} IS NULL OR "RefType" = {type})
             ORDER BY "Date" DESC
-            LIMIT 500
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
         var names = await ResolveNamesAsync(ids, ct);
@@ -1626,7 +1636,6 @@ public class CorpActivityService
               AND "RefType" IN ('bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts')
               AND CAST("Amount" AS REAL) > 0
             ORDER BY "Date" DESC
-            LIMIT 500
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
         var names = await ResolveNamesAsync(ids, ct);
@@ -1648,7 +1657,6 @@ public class CorpActivityService
               AND "RefType" IN ('industry_job_tax','manufacturing_tax','reprocessing_tax')
               AND CAST("Amount" AS REAL) > 0
             ORDER BY "Date" DESC
-            LIMIT 500
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
         var names = await ResolveNamesAsync(ids, ct);
@@ -1671,7 +1679,6 @@ public class CorpActivityService
               AND "RefType" = 'player_donation'
               AND CAST("Amount" AS REAL) > 0
             ORDER BY "Date" DESC
-            LIMIT 500
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
         var names = await ResolveNamesAsync(ids, ct);
@@ -1679,11 +1686,13 @@ public class CorpActivityService
             r.PartyId != 0 && names.TryGetValue(r.PartyId, out var n) ? n : "", r.Reason)).ToList();
     }
 
+    /// <summary>Every expense line in the period. See GetIncomeJournalAsync — same rules.</summary>
     public async Task<List<WalletDetailRow>> GetExpenseJournalAsync(
-        long corpId, int days, CancellationToken ct = default)
+        long corpId, int days, string? refType = null, CancellationToken ct = default)
     {
         using var db = _dbFactory.CreateDbContext();
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
+        var type     = string.IsNullOrWhiteSpace(refType) ? null : refType;
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
             SELECT "Date", "RefType", ABS(CAST("Amount" AS REAL)) AS "Amount",
                    COALESCE("SecondPartyId", 0) AS "PartyId", '' AS "Reason"
@@ -1692,8 +1701,8 @@ public class CorpActivityService
               AND "Date" >= {cutoff}
               AND CAST("Amount" AS REAL) < 0
               AND "RefType" != 'corporation_account_withdrawal'
+              AND ({type} IS NULL OR "RefType" = {type})
             ORDER BY "Date" DESC
-            LIMIT 500
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
         var names = await ResolveNamesAsync(ids, ct);
@@ -1714,7 +1723,6 @@ public class CorpActivityService
                 AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
             WHERE d."KillMailTime" >= {cutoff}
             ORDER BY d."KillMailTime" DESC
-            LIMIT 500
             """).ToListAsync(ct);
 
         if (rows.Count == 0) return [];
@@ -1814,7 +1822,6 @@ public class CorpActivityService
                  OR d."KillMailId" IN ( SELECT a."KillMailId" FROM "KillMailAttackers" a
                                         WHERE a."CharacterId" IN ({idList}) ) )
             ORDER BY d."KillMailTime" DESC
-            LIMIT 500
             """).ToListAsync(ct);
 #pragma warning restore EF1002
         if (rows.Count == 0) return [];

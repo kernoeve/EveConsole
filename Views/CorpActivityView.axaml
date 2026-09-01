@@ -569,7 +569,24 @@
             </TabItem>
 
             <TabItem Header="DETAIL">
-              <DataGrid ItemsSource="{Binding IncomeDetailRows}"
+             <Grid RowDefinitions="Auto,*">
+              <Border Grid.Row="0" Background="#12121a" Padding="6 4" Margin="0 0 0 2">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                  <TextBlock Text="TYPE" FontSize="10" FontWeight="SemiBold" Foreground="#555566"
+                             VerticalAlignment="Center" />
+                  <ComboBox ItemsSource="{Binding IncomeTypeChoices}"
+                            SelectedItem="{Binding SelectedIncomeType}"
+                            MinWidth="200" FontSize="11" />
+                  <TextBlock Text="NAME" FontSize="10" FontWeight="SemiBold" Foreground="#555566"
+                             VerticalAlignment="Center" Margin="8 0 0 0" />
+                  <TextBox Text="{Binding IncomeNameFilter}" Watermark="contains…"
+                           MinWidth="180" FontSize="11" />
+                  <TextBlock Text="{Binding IncomeDetailCount, StringFormat='{}{0:N0} rows'}"
+                             FontSize="10" Foreground="#666677" VerticalAlignment="Center"
+                             Margin="8 0 0 0" />
+                </StackPanel>
+              </Border>
+              <DataGrid Grid.Row="1" ItemsSource="{Binding IncomeDetailRows}"
                         AutoGenerateColumns="False" IsReadOnly="True"
                         Background="#0d0d12" RowBackground="#0d0d12"
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
@@ -583,8 +600,11 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="DATE"   Binding="{Binding DateText}"   Width="90"  />
-                  <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
+                  <!-- Binds the text, sorts the instant: two string columns could not be put in
+                       chronological order, because the time sorted 23:59 above 00:01
+                       whatever the day. -->
+                  <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
+                                      SortMemberPath="When" Width="150" />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
                   <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
                     <DataGridTemplateColumn.CellTemplate>
@@ -604,6 +624,7 @@
                   <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
                 </DataGrid.Columns>
               </DataGrid>
+              </Grid>
             </TabItem>
           </TabControl>
 
@@ -678,7 +699,24 @@
             </TabItem>
 
             <TabItem Header="DETAIL">
-              <DataGrid ItemsSource="{Binding ExpenseDetailRows}"
+             <Grid RowDefinitions="Auto,*">
+              <Border Grid.Row="0" Background="#12121a" Padding="6 4" Margin="0 0 0 2">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                  <TextBlock Text="TYPE" FontSize="10" FontWeight="SemiBold" Foreground="#555566"
+                             VerticalAlignment="Center" />
+                  <ComboBox ItemsSource="{Binding ExpenseTypeChoices}"
+                            SelectedItem="{Binding SelectedExpenseType}"
+                            MinWidth="200" FontSize="11" />
+                  <TextBlock Text="NAME" FontSize="10" FontWeight="SemiBold" Foreground="#555566"
+                             VerticalAlignment="Center" Margin="8 0 0 0" />
+                  <TextBox Text="{Binding ExpenseNameFilter}" Watermark="contains…"
+                           MinWidth="180" FontSize="11" />
+                  <TextBlock Text="{Binding ExpenseDetailCount, StringFormat='{}{0:N0} rows'}"
+                             FontSize="10" Foreground="#666677" VerticalAlignment="Center"
+                             Margin="8 0 0 0" />
+                </StackPanel>
+              </Border>
+              <DataGrid Grid.Row="1" ItemsSource="{Binding ExpenseDetailRows}"
                         AutoGenerateColumns="False" IsReadOnly="True"
                         Background="#0d0d12" RowBackground="#0d0d12"
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1a1a26"
@@ -692,8 +730,11 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="DATE"   Binding="{Binding DateText}"   Width="90"  />
-                  <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
+                  <!-- Binds the text, sorts the instant: two string columns could not be put in
+                       chronological order, because the time sorted 23:59 above 00:01
+                       whatever the day. -->
+                  <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
+                                      SortMemberPath="When" Width="150" />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
                   <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
                     <DataGridTemplateColumn.CellTemplate>
@@ -713,6 +754,7 @@
                   <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
                 </DataGrid.Columns>
               </DataGrid>
+              </Grid>
             </TabItem>
           </TabControl>
 
@@ -814,8 +856,11 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="DATE"   Binding="{Binding DateText}"   Width="90"  />
-                  <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
+                  <!-- Binds the text, sorts the instant: two string columns could not be put in
+                       chronological order, because the time sorted 23:59 above 00:01
+                       whatever the day. -->
+                  <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
+                                      SortMemberPath="When" Width="150" />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
                   <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
                     <DataGridTemplateColumn.CellTemplate>
@@ -936,8 +981,11 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="DATE"   Binding="{Binding DateText}"   Width="90"  />
-                  <DataGridTextColumn Header="TIME"   Binding="{Binding TimeText}"   Width="60"  />
+                  <!-- Binds the text, sorts the instant: two string columns could not be put in
+                       chronological order, because the time sorted 23:59 above 00:01
+                       whatever the day. -->
+                  <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
+                                      SortMemberPath="When" Width="150" />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
                   <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
                     <DataGridTemplateColumn.CellTemplate>
@@ -1058,8 +1106,11 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="DATE"    Binding="{Binding DateText}"   Width="90"  />
-                  <DataGridTextColumn Header="TIME"    Binding="{Binding TimeText}"   Width="60"  />
+                  <!-- Binds the text, sorts the instant: two string columns could not be put in
+                       chronological order, because the time sorted 23:59 above 00:01
+                       whatever the day. -->
+                  <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
+                                      SortMemberPath="When" Width="150" />
                   <DataGridTextColumn Header="TYPE"    Binding="{Binding TypeName}"   Width="120" />
                   <DataGridTemplateColumn Header="DONOR" SortMemberPath="Name" Width="160">
                     <DataGridTemplateColumn.CellTemplate>
