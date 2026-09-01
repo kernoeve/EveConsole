@@ -92,13 +92,36 @@ public class EsiPollingService : ReactiveObject
     private bool IsDue(string callKey, string endpointKey, int defaultInterval, DateTimeOffset now)
     {
         if (!_lastCallTimes.TryGetValue(callKey, out var lastCalled)) return true;
-        if (now - lastCalled < MinimumSpacing) return false;
 
-        if (_expiresAt.TryGetValue(callKey, out var expires))
-            return now >= expires + ExpiryGrace;
+        DateTimeOffset? expires = _expiresAt.TryGetValue(callKey, out var e) ? e : null;
+        var due = NextDueAt(endpointKey, defaultInterval, lastCalled, expires);
+        return due is null || now >= due.Value;
+    }
 
-        return (now - lastCalled).TotalSeconds
-               >= _timerSettings.GetInterval(endpointKey, defaultInterval);
+    /// <summary>
+    /// When an endpoint next becomes due, by the rule described above.
+    ///
+    /// <para>⚠️ Public because the schedule display needs the same answer, and used to work it
+    /// out for itself as last-called plus the interval. That showed an hour's wait against a copy
+    /// the server said would lapse in twenty-nine minutes, and made a manual poll look like it
+    /// had pushed the next one an hour out when it had done nothing of the kind. One rule, asked
+    /// twice, rather than two rules that agree only while nobody edits either.</para>
+    ///
+    /// <para>Null means never called, which is due now.</para>
+    /// </summary>
+    public DateTimeOffset? NextDueAt(string endpointKey, int defaultInterval,
+                                     DateTimeOffset? lastCalled, DateTimeOffset? expiresAt)
+    {
+        if (lastCalled is not { } last) return null;
+
+        var due = expiresAt.HasValue
+            ? expiresAt.Value + ExpiryGrace
+            : last.AddSeconds(_timerSettings.GetInterval(endpointKey, defaultInterval));
+
+        // The hot-loop guard applies to the answer, not only to the interval branch: an expiry
+        // already in the past would otherwise read as due on every cycle.
+        var floor = last + MinimumSpacing;
+        return due < floor ? floor : due;
     }
     private readonly ConcurrentDictionary<string, GroupState>     _rateLimits     = new();
     private readonly ConcurrentDictionary<string, string>         _endpointGroups = new(); // endpoint→group
