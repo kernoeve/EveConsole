@@ -1194,10 +1194,11 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
-        static int Clamp(long v) => (int)Math.Min(v, int.MaxValue);
-
-        int StockAt(long stationId, int typeId) =>
-            byStation.TryGetValue((stationId, typeId), out var q) ? Clamp(q) : 0;
+        // ⚠️ No clamp. There was a Clamp(long) => int here, needed only while these fields
+        // were int; once they became long it was the one thing still pinning them, which is
+        // why Missing read exactly 2,147,483,647 against a demand of 868 billion Tritanium.
+        long StockAt(long stationId, int typeId) =>
+            byStation.TryGetValue((stationId, typeId), out var q) ? q : 0;
 
         // ── Job rows ─────────────────────────────────────────────────────────
         foreach (var job in plan.AllJobs)
@@ -1213,7 +1214,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             foreach (var raw in plan.RawMaterials)
             {
                 raw.AvailabilityKnown = true;
-                raw.Available = everywhere.TryGetValue(raw.TypeId, out var q) ? Clamp(q) : 0;
+                raw.Available = everywhere.TryGetValue(raw.TypeId, out var q) ? q : 0;
                 raw.Missing   = Math.Max(0, raw.Quantity - raw.Available);
             }
             return;
@@ -1250,8 +1251,8 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             // its share of the demand cannot be checked against anything, so a total that
             // silently omitted it would read as more complete than it is.
             raw.AvailabilityKnown = !unlinked.Contains(raw.TypeId);
-            raw.Available = raw.AvailabilityKnown ? Clamp(onHand.GetValueOrDefault(raw.TypeId))    : 0;
-            raw.Missing   = raw.AvailabilityKnown ? Clamp(shortfall.GetValueOrDefault(raw.TypeId)) : 0;
+            raw.Available = raw.AvailabilityKnown ? onHand.GetValueOrDefault(raw.TypeId)    : 0;
+            raw.Missing   = raw.AvailabilityKnown ? shortfall.GetValueOrDefault(raw.TypeId) : 0;
         }
     }
 }
