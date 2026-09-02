@@ -89,6 +89,36 @@ public class App : Application
             await work;
         }
 
+        // ── Does the database open at all? ─────────────────────────────────────
+        //
+        // ⚠️ Here, for the same reason the shrink is here: nothing has opened the file yet, so
+        // it can still be moved aside and replaced. After ConfigureServices the container has
+        // handed out singletons holding connections, and a restore would be swapping a file out
+        // from under them.
+        //
+        // ⚠️ A dialog rather than a line on the splash. This is the one startup fault where the
+        // remedy usually sits in the same folder as the problem, and the app that would offer it
+        // is the app that will not start. Small red text behind a stalled splash tells the user
+        // their data is gone; this tells them where it went and what can be done about it.
+        if (!DatabaseIntegrityService.IsUsable(AppConfig.GetDbPath(), out var dbError))
+        {
+            splash?.Hide();
+
+            var recovery = new DatabaseRecoveryDialog(AppConfig.GetDbPath(), dbError ?? "unknown");
+            await recovery.ShowDialog(splash ?? new Avalonia.Controls.Window { Width = 0, Height = 0 });
+
+            if (recovery.Choice == DatabaseRecoveryChoice.Quit)
+            {
+                if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime quitting)
+                    quitting.Shutdown();
+                else
+                    Environment.Exit(0);
+                return;
+            }
+
+            splash?.Show();
+        }
+
         // Build the DI container (fast — no I/O)
         var services = new ServiceCollection();
         ConfigureServices(services);
@@ -102,6 +132,15 @@ public class App : Application
 
         // Wire up global exception handlers so truly unhandled failures are persisted
         var errorLogger = Services.GetRequiredService<AppErrorLogger>();
+
+        // Dates any damage that appears while running, rather than leaving the next launch to
+        // find it with no idea when it started. Fifteen minutes is frequent enough to place it
+        // against whatever else the log holds, and the check itself is a single small read.
+        DatabaseIntegrityService.StartMonitoring(
+            AppConfig.GetDbPath,
+            message => errorLogger.Log(nameof(DatabaseIntegrityService), "integrity", message),
+            TimeSpan.FromMinutes(15),
+            CancellationToken.None);
 
         // Installed here, before any view model exists: ObserveOn captures the scheduler when a
         // subscription is created, so anything wired earlier would never be measured.

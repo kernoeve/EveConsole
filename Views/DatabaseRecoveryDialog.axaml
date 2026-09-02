@@ -1,0 +1,53 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveConsole.Views.DatabaseRecoveryDialog"
+        Title="EVE Console — database problem"
+        Width="620" SizeToContent="Height"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        Background="#0d0d14">
+
+  <Border Padding="20" >
+    <StackPanel Spacing="14">
+
+      <TextBlock Text="The database could not be opened"
+                 FontSize="17" FontWeight="SemiBold" Foreground="#e0902e" />
+
+      <TextBlock x:Name="ExplainText" TextWrapping="Wrap"
+                 FontSize="12" Foreground="#c8c8d8" />
+
+      <Border Background="#12121a" CornerRadius="3" Padding="10">
+        <StackPanel Spacing="4">
+          <TextBlock Text="REPORTED" FontSize="10" FontWeight="SemiBold" Foreground="#555566" />
+          <TextBlock x:Name="ErrorText" TextWrapping="Wrap" FontSize="11" Foreground="#aaaab8"
+                     FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" />
+        </StackPanel>
+      </Border>
+
+      <!-- Backups, when there are any. -->
+      <StackPanel x:Name="BackupPanel" Spacing="6">
+        <TextBlock Text="Restore from a backup" FontSize="13" FontWeight="SemiBold"
+                   Foreground="#c8a84b" />
+        <TextBlock Text="The most recent is selected. Anything recorded since it was taken will need to be polled again."
+                   FontSize="11" Foreground="#666677" TextWrapping="Wrap" />
+        <ComboBox x:Name="BackupList" MinWidth="360" FontSize="12" HorizontalAlignment="Stretch" />
+      </StackPanel>
+
+      <TextBlock x:Name="NoBackupText" IsVisible="False" TextWrapping="Wrap"
+                 FontSize="12" Foreground="#cc7766"
+                 Text="No backups were found beside the database, so there is nothing to restore from. Starting fresh will build an empty database and leave the damaged one in place." />
+
+      <Border Background="#12121a" CornerRadius="3" Padding="10">
+        <TextBlock x:Name="QuarantineText" TextWrapping="Wrap" FontSize="11" Foreground="#888899" />
+      </Border>
+
+      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+        <Button x:Name="QuitButton"    Content="Quit"           Click="OnQuit"    Padding="14 6" />
+        <Button x:Name="FreshButton"   Content="Start fresh"    Click="OnFresh"   Padding="14 6" />
+        <Button x:Name="RestoreButton" Content="Restore backup" Click="OnRestore" Padding="14 6"
+                Background="#2a4a2a" Foreground="#dfeadf" />
+      </StackPanel>
+
+    </StackPanel>
+  </Border>
+</Window>
