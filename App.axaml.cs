@@ -102,10 +102,28 @@ public class App : Application
         // their data is gone; this tells them where it went and what can be done about it.
         if (!DatabaseIntegrityService.IsUsable(AppConfig.GetDbPath(), out var dbError))
         {
-            splash?.Hide();
-
             var recovery = new DatabaseRecoveryDialog(AppConfig.GetDbPath(), dbError ?? "unknown");
-            await recovery.ShowDialog(splash ?? new Avalonia.Controls.Window { Width = 0, Height = 0 });
+
+            // ⚠️ The splash stays up and owns the dialog. Hiding it first is what broke this on
+            // its first real run: a modal dialog must have a *visible* owner, so hiding the splash
+            // and then handing it to ShowDialog threw "Cannot show window with non-visible owner"
+            // — the recovery path failing in place of the fault it exists to recover from. The
+            // zero-size fallback owner that used to sit here was the same mistake twice over: a
+            // window that is never shown fails the identical check.
+            if (splash is not null)
+            {
+                splash.ReportProgress(0, "Waiting — the database could not be opened");
+                await recovery.ShowDialog(splash);
+            }
+            else
+            {
+                // No splash means no desktop lifetime, which should not arise here. An ownerless
+                // window is then the only correct form: it needs no visible window to hang from.
+                var closed = new TaskCompletionSource();
+                recovery.Closed += (_, _) => closed.TrySetResult();
+                recovery.Show();
+                await closed.Task;
+            }
 
             if (recovery.Choice == DatabaseRecoveryChoice.Quit)
             {
@@ -115,8 +133,6 @@ public class App : Application
                     Environment.Exit(0);
                 return;
             }
-
-            splash?.Show();
         }
 
         // Build the DI container (fast — no I/O)

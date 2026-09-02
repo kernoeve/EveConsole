@@ -3,7 +3,7 @@
         x:Class="EveConsole.Views.DatabaseRecoveryDialog"
         Title="EVE Console — database problem"
         Width="620" SizeToContent="Height"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="CenterOwner"
         CanResize="False"
         Background="#0d0d14">
 
