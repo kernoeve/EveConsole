@@ -50,8 +50,9 @@ public sealed class AlarmSoundService
     public static string UnavailableReason =>
         IsAvailable ? ""
         : OperatingSystem.IsLinux()
-            ? $"Audio unavailable: libvlc could not be loaded. Install VLC (apt install vlc, "
-              + $"or libvlc-dev) and restart. [{InitError}]"
+            ? $"Audio unavailable: libvlc could not be loaded. Install VLC and its plugins "
+              + $"(the \"vlc\" package on Arch and Fedora; \"vlc\" or \"libvlc-dev\" on Debian and "
+              + $"Ubuntu), then restart. [{InitError}]"
             : $"Audio unavailable: {InitError}";
 
     /// <summary>
