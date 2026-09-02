@@ -12,13 +12,33 @@
     <Version>0.9.13</Version>
   </PropertyGroup>
 
-  <!-- Windows-only packaging. An .ico and a Win32 manifest mean nothing on Linux, and the
-       SDK refuses the manifest outside a Windows build. Conditioned rather than deleted:
-       the Windows release still wants both. -->
-  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+  <!--
+    ⚠️ Are we BUILDING FOR Windows? Not the same question as $(OS), which describes the
+    machine running MSBuild. Cross-compiling a Linux artifact from a Windows box leaves
+    $(OS) == Windows_NT, so conditioning on it put 198 MB of libvlc/win-x64 and win-x86
+    binaries into the linux-x64 output — and would have dropped them from a Linux artifact
+    built on Linux, so the two hosts disagreed about what they produced.
+
+    The RuntimeIdentifier is the target. Empty means an ordinary local build, which follows
+    the host.
+  -->
+  <PropertyGroup>
+    <IsWindowsTarget Condition="'$(RuntimeIdentifier)' == ''">$([MSBuild]::IsOsPlatform('Windows'))</IsWindowsTarget>
+    <IsWindowsTarget Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier.StartsWith('win'))</IsWindowsTarget>
+  </PropertyGroup>
+
+  <!-- An .ico and a Win32 manifest mean nothing on Linux, and the SDK refuses the manifest
+       outside a Windows build. Conditioned rather than deleted: the Windows release wants both. -->
+  <PropertyGroup Condition="'$(IsWindowsTarget)' == 'true'">
     <ApplicationIcon>Assets\ec.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
+
+  <!-- LibVLC's Windows binaries, and only for a Windows target. On Linux LibVLCSharp loads the
+       system libvlc, so these are 198 MB of nothing. -->
+  <ItemGroup Condition="'$(IsWindowsTarget)' == 'true'">
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- Avalonia UI -->
@@ -57,14 +77,19 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
 
-    <!-- Cross-platform audio playback for TTS (add VideoLAN.LibVLC.Linux for Linux builds) -->
+    <!-- Audio playback for alarms and TTS.
+         ⚠️ There is no VideoLAN.LibVLC.Linux on nuget — a comment here used to say to add
+         one for Linux builds, and it has never existed. VideoLAN ships native packages for
+         Windows, Android, iOS and macOS only; on Linux LibVLCSharp loads the system libvlc, so
+         the distro package is the dependency (apt: libvlc-dev, or vlc). -->
     <PackageReference Include="LibVLCSharp" Version="3.9.1" />
-    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
 
     <!-- Cross-platform microphone recording (includes win-x64, linux-x64, osx runtimes) -->
     <PackageReference Include="PortAudioSharp2" Version="1.0.6" />
 
-    <!-- Local Whisper STT (add Whisper.net.Runtime.Linux for Linux builds) -->
+    <!-- Local Whisper STT.
+         ⚠️ Whisper.net.Runtime.Linux does not exist either, and is not needed: the main
+         runtime package already carries linux-x64, linux-arm and linux-arm64 natives. -->
     <PackageReference Include="Whisper.net" Version="1.9.1" />
     <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
 
@@ -103,6 +128,19 @@
     <MakeDir Directories="$(ProjectDir)Resources\" />
     <Exec Command="powershell -NonInteractive -Command &quot;Invoke-WebRequest -Uri 'https://github.com/rhasspy/piper/releases/latest/download/piper_windows_amd64.zip' -OutFile '$(ProjectDir)Resources\piper_win_tmp.zip'&quot;" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
     <Exec Command="powershell -NonInteractive -Command &quot;if (Test-Path '$(ProjectDir)Resources\piper_win_tmp.zip') { Expand-Archive -Path '$(ProjectDir)Resources\piper_win_tmp.zip' -DestinationPath '$(ProjectDir)Resources\' -Force; Remove-Item '$(ProjectDir)Resources\piper_win_tmp.zip' }&quot;" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
+    <Message Text="[EveConsole] Piper binary download complete." Importance="high" />
+  </Target>
+
+  <!-- ⚠️ The same binary, fetched the same way, for the other platform. Piper is a native
+       executable rather than a nuget package, so each platform needs its own download; without
+       this a Linux build has TTS code and nothing to run. ContinueOnError matches the Windows
+       target: a failed download costs speech, not the build. -->
+  <Target Name="DownloadPiperBinaryLinux" BeforeTargets="Build" Condition="$([MSBuild]::IsOsPlatform('Linux')) And !Exists('$(ProjectDir)Resources/piper/piper')">
+    <Message Text="[EveConsole] Downloading Piper TTS binary for Linux x64..." Importance="high" />
+    <MakeDir Directories="$(ProjectDir)Resources/" />
+    <Exec Command="curl -fsSL -o '$(ProjectDir)Resources/piper_linux_tmp.tar.gz' https://github.com/rhasspy/piper/releases/latest/download/piper_linux_x86_64.tar.gz" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
+    <Exec Command="tar -xzf '$(ProjectDir)Resources/piper_linux_tmp.tar.gz' -C '$(ProjectDir)Resources/' &amp;&amp; rm -f '$(ProjectDir)Resources/piper_linux_tmp.tar.gz'" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
+    <Exec Command="chmod +x '$(ProjectDir)Resources/piper/piper'" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
     <Message Text="[EveConsole] Piper binary download complete." Importance="high" />
   </Target>
 
