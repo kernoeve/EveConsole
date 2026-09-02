@@ -38,6 +38,13 @@ public sealed class AlarmSoundService
     public static string? InitError { get; }
 
     /// <summary>
+    /// What went wrong the last time a sound was asked for, or null if the last attempt was
+    /// fine. Distinct from <see cref="InitError"/>: LibVLC starting says nothing about whether
+    /// a given file can actually be produced and played.
+    /// </summary>
+    public static string? LastError { get; private set; }
+
+    /// <summary>
     /// What to tell the user when there is no audio, in terms they can act on.
     ///
     /// <para>⚠️ The failure used to be swallowed whole — the exception discarded and
@@ -144,10 +151,14 @@ public sealed class AlarmSoundService
     /// </summary>
     private static string? ResolvePath(string key)
     {
-        if (string.IsNullOrWhiteSpace(key)) return null;
+        if (string.IsNullOrWhiteSpace(key)) { LastError = "No sound selected."; return null; }
 
         if (key.Contains(Path.DirectorySeparatorChar) || key.Contains(Path.AltDirectorySeparatorChar))
-            return File.Exists(key) ? key : null;
+        {
+            if (File.Exists(key)) return key;
+            LastError = $"Custom sound file not found: {key}";
+            return null;
+        }
 
         var cached = Path.Combine(CacheDir, key + ".wav");
         if (File.Exists(cached)) return cached;
@@ -155,7 +166,7 @@ public sealed class AlarmSoundService
         try
         {
             var uri = new Uri($"avares://EveConsole/Assets/Sounds/{key}.wav");
-            if (!AssetLoader.Exists(uri)) return null;
+            if (!AssetLoader.Exists(uri)) { LastError = $"Bundled sound missing: {key}.wav"; return null; }
 
             Directory.CreateDirectory(CacheDir);
             using var src = AssetLoader.Open(uri);
@@ -168,16 +179,28 @@ public sealed class AlarmSoundService
 
             return cached;
         }
-        catch { return null; }
+        catch (Exception ex)
+        {
+            LastError = $"Could not unpack {key}.wav into {CacheDir}: {ex.Message}";
+            return null;
+        }
     }
 
     /// <summary>Plays a sound. Returns once playback finishes, or immediately if it cannot start.</summary>
+    /// <summary>
+    /// ⚠️ Every way this can fail used to be silent. There are three of them and they mean
+    /// different things: LibVLC never started, the sound file could not be produced, or VLC
+    /// tried and failed. "No audio" was the same symptom for all three, and none of them said
+    /// anything, so there was nothing to act on.
+    /// </summary>
     public async Task PlayAsync(string key, int volume = 100, CancellationToken ct = default)
     {
-        if (_vlc is null) return;
+        if (_vlc is null) { LastError = UnavailableReason; return; }
 
         var path = ResolvePath(key);
-        if (path is null) return;
+        if (path is null) return;          // ResolvePath has already said why
+
+        LastError = null;
 
         try
         {
@@ -194,8 +217,21 @@ public sealed class AlarmSoundService
             using var reg = ct.Register(() => tcs.TrySetCanceled(ct));
 
             void OnEnd(object? s, EventArgs e) => tcs.TrySetResult(true);
+
+            // ⚠️ EncounteredError was wired to the same handler as EndReached, so a failure
+            // completed exactly like a successful play — the one event VLC raises to say it
+            // could not do the job was being read as "done". Usually a missing plugin or no
+            // reachable audio output.
+            void OnError(object? s, EventArgs e)
+            {
+                LastError = $"VLC could not play {Path.GetFileName(path)}. On Linux this is "
+                          + "usually a missing plugin package or no audio output "
+                          + "(check that other applications play sound).";
+                tcs.TrySetResult(false);
+            }
+
             player.EndReached       += OnEnd;
-            player.EncounteredError += OnEnd;
+            player.EncounteredError += OnError;
 
             try
             {
@@ -206,12 +242,17 @@ public sealed class AlarmSoundService
             finally
             {
                 player.EndReached       -= OnEnd;
-                player.EncounteredError -= OnEnd;
+                player.EncounteredError -= OnError;
                 lock (_playerLock) { if (_player == player) _player = null; }
                 player.Dispose();
             }
         }
-        catch { /* a chime that will not play must never take down the alarm that raised it */ }
+        catch (Exception ex)
+        {
+            // A chime that will not play must never take down the alarm that raised it — but it
+            // can say what happened on the way past.
+            LastError = $"Playback failed: {ex.Message}";
+        }
     }
 
     public void Stop()

@@ -144,8 +144,11 @@ public sealed class AlarmActionVm : ReactiveObject
     private readonly AlarmSoundService _sounds;
 
     /// <summary>Shown above the alarm list when this machine cannot play a sound at all.</summary>
-    public bool   AudioUnavailable   => !AlarmSoundService.IsAvailable;
-    public string AudioUnavailableText => AlarmSoundService.UnavailableReason;
+    public bool   AudioUnavailable     => !AlarmSoundService.IsAvailable
+                                        || AlarmSoundService.LastError is not null;
+    public string AudioUnavailableText => AlarmSoundService.IsAvailable
+                                        ? AlarmSoundService.LastError ?? ""
+                                        : AlarmSoundService.UnavailableReason;
 
     public AlarmActionVm(
         AlarmSoundService                 sounds,
