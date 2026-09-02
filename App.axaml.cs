@@ -1062,12 +1062,18 @@ public class App : Application
                     "Me"          INTEGER NOT NULL,
                     "BestPerRun"  TEXT,
                     "Avg30PerRun" TEXT,
+                    "LastPerRun"  TEXT,
+                    "LastSeenAt"  TEXT,
                     "ActiveCount" INTEGER NOT NULL DEFAULT 0,
                     "SampleDays"  INTEGER NOT NULL DEFAULT 0,
                     "UpdatedAt"   TEXT    NOT NULL DEFAULT '',
                     PRIMARY KEY ("TypeId","Me")
                 )
                 """);
+            // Fallback price for a BPC nobody has listed lately. Both nullable, and the table is
+            // rebuilt on the next contract pass, so an existing database needs no backfill.
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "ContractBpcPrices" ADD COLUMN "LastPerRun" TEXT"""); } catch { }
+            try { db.Database.ExecuteSqlRaw("""ALTER TABLE "ContractBpcPrices" ADD COLUMN "LastSeenAt" TEXT"""); } catch { }
             db.Database.ExecuteSqlRaw("""
                 CREATE TABLE IF NOT EXISTS "PriceOverrides" (
                     "TypeId"        INTEGER NOT NULL,

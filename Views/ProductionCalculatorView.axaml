@@ -169,6 +169,28 @@
                 </StackPanel>
               </Border>
 
+              <!-- Blueprint copies priced from a contract that has already ended, or never seen
+                   on contract at all. The plan is complete and these figures are in the totals;
+                   the point is to say which of them will not have moved with the market. -->
+              <Border IsVisible="{Binding HasPricingWarnings}"
+                      Background="#231a0d" BorderBrush="#e0902e" BorderThickness="1"
+                      CornerRadius="4" Padding="10 8">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="{Binding PricingWarningHeader}"
+                             Foreground="#e0902e" FontSize="12" FontWeight="SemiBold"/>
+                  <TextBlock Text="Blueprint copies trade only by contract, so a quiet month leaves no current price. The most recent one on record is used; where there is none the blueprint counts as 0 ISK and the build cost is understated by that much."
+                             Foreground="#a89070" FontSize="11" TextWrapping="Wrap"/>
+                  <ItemsControl ItemsSource="{Binding Plan.PricingWarnings}" Margin="0 2 0 0">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding}" Foreground="#c8b090" FontSize="11"
+                                   TextWrapping="Wrap" Margin="0 1"/>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
               <TextBlock Text="Cost Summary" FontWeight="SemiBold" Foreground="#c8a84b" FontSize="13"/>
               <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Raw Materials:"  Foreground="#888" FontSize="12"/>
