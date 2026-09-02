@@ -143,6 +143,10 @@ public sealed class AlarmActionVm : ReactiveObject
 {
     private readonly AlarmSoundService _sounds;
 
+    /// <summary>Shown above the alarm list when this machine cannot play a sound at all.</summary>
+    public bool   AudioUnavailable   => !AlarmSoundService.IsAvailable;
+    public string AudioUnavailableText => AlarmSoundService.UnavailableReason;
+
     public AlarmActionVm(
         AlarmSoundService                 sounds,
         ObservableCollection<AlarmSound>  catalog,

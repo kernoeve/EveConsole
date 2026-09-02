@@ -158,7 +158,7 @@
             </Grid>
             <Border Height="1" Background="#1e1e2a" Margin="0 2" />
             <SelectableTextBlock Text="{Binding Body}" FontSize="12" Foreground="#aab8c8"
-                                 FontFamily="Consolas, Menlo, monospace" TextWrapping="Wrap" />
+                                 FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" TextWrapping="Wrap" />
           </StackPanel>
         </ScrollViewer>
         <TextBlock Text="Select a notification to view its details."

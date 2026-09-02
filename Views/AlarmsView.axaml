@@ -326,6 +326,10 @@
           <StackPanel Orientation="Horizontal" Spacing="10">
             <Button Classes="tool" Content="Save" Command="{Binding SaveCommand}" />
             <Button Classes="tool" Content="Test Sounds" Command="{Binding TestFireCommand}" />
+            <TextBlock Text="{Binding AudioUnavailableText}"
+                       IsVisible="{Binding AudioUnavailable}"
+                       Foreground="#e0902e" FontSize="11" TextWrapping="Wrap"
+                       VerticalAlignment="Center" Margin="12 0 0 0" />
             <Button Content="Delete" Command="{Binding DeleteCommand}"
                     Background="#1a1a28" Foreground="#aa5555" BorderBrush="#442a2a"
                     BorderThickness="1" Padding="12 4" FontSize="11" />

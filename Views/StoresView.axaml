@@ -361,7 +361,7 @@
                   <TextBox Text="{Binding StoreInfo, UpdateSourceTrigger=LostFocus}"
                            AcceptsReturn="True" TextWrapping="Wrap"
                            MinHeight="320" MaxHeight="560" FontSize="11"
-                           FontFamily="Consolas,Menlo,monospace"
+                           FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace"
                            Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a"
                            VerticalContentAlignment="Top" />
 
@@ -396,7 +396,7 @@
                            IsEnabled="{Binding UseCustomUsage}"
                            AcceptsReturn="True" TextWrapping="Wrap"
                            MinHeight="320" MaxHeight="560" FontSize="11"
-                           FontFamily="Consolas,Menlo,monospace"
+                           FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace"
                            Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a"
                            VerticalContentAlignment="Top" />
 

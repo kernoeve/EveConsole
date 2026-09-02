@@ -25,10 +25,34 @@ public sealed class AlarmSoundService
             Core.Initialize();
             _vlc = new LibVLC(enableDebugLogs: false);
         }
-        catch { _vlc = null; }
+        catch (Exception ex)
+        {
+            _vlc = null;
+            InitError = ex.Message;
+        }
     }
 
     public static bool IsAvailable => _vlc is not null;
+
+    /// <summary>Why LibVLC would not start, or null when it did.</summary>
+    public static string? InitError { get; }
+
+    /// <summary>
+    /// What to tell the user when there is no audio, in terms they can act on.
+    ///
+    /// <para>⚠️ The failure used to be swallowed whole — the exception discarded and
+    /// IsAvailable read by nobody — so a machine with no audio stack simply never made a
+    /// sound and never said why. On Windows the native binaries come from a nuget package and
+    /// this effectively cannot happen; on Linux LibVLCSharp loads the system libvlc, so the
+    /// usual cause is that VLC is not installed. Naming the fix is the difference between a
+    /// missing package and a broken app.</para>
+    /// </summary>
+    public static string UnavailableReason =>
+        IsAvailable ? ""
+        : OperatingSystem.IsLinux()
+            ? $"Audio unavailable: libvlc could not be loaded. Install VLC (apt install vlc, "
+              + $"or libvlc-dev) and restart. [{InitError}]"
+            : $"Audio unavailable: {InitError}";
 
     /// <summary>
     /// The sounds shipped with the app, in picker order: the quiet ones first, then the ones

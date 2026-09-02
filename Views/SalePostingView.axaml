@@ -521,7 +521,7 @@
                               ToolTip.Tip="Copy the raw formatted text (with markup) to the clipboard" />
                     </Grid>
                     <SelectableTextBlock v:InlineRenderer.Segments="{Binding Segments}" Foreground="#d8d8d8"
-                                         FontFamily="Cascadia Mono,Consolas,monospace" FontSize="12"
+                                         FontFamily="Cascadia Mono, Consolas, DejaVu Sans Mono, Liberation Mono, monospace" FontSize="12"
                                          TextWrapping="Wrap" />
                   </StackPanel>
                 </Border>
