@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using EveConsole.Services;
 
 namespace EveConsole.Views;
@@ -30,8 +29,6 @@ public partial class DatabaseRecoveryDialog : Window
     private readonly List<BackupOption> _backups;
 
     public DatabaseRecoveryChoice Choice { get; private set; } = DatabaseRecoveryChoice.Quit;
-
-    public DatabaseRecoveryDialog() : this("", "unknown") { }
 
     public DatabaseRecoveryDialog(string dbPath, string error)
     {
@@ -63,8 +60,6 @@ public partial class DatabaseRecoveryDialog : Window
             RestoreButton.IsEnabled = false;
         }
     }
-
-    private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
     private void OnQuit(object? sender, RoutedEventArgs e)
     {
