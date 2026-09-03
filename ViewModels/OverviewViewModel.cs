@@ -974,10 +974,10 @@ public class OverviewViewModel : ReactiveObject
             // formatted on each refresh.
 #pragma warning disable EF1002
             var rows = await db.EsiNotifications.FromSqlRaw(
-                    "SELECT MIN(CharacterId) AS CharacterId, NotificationId, Type, SenderId, SenderType, " +
-                    "Timestamp, MIN(IsRead) AS IsRead, Text FROM EsiNotifications " +
-                    "WHERE Timestamp >= {0} " +
-                    "GROUP BY NotificationId ORDER BY Timestamp DESC LIMIT 1000", cutoff)
+                    "SELECT MIN(\"CharacterId\") AS \"CharacterId\", \"NotificationId\", \"Type\", \"SenderId\", \"SenderType\", " +
+                    "\"Timestamp\", MIN(\"IsRead\") AS \"IsRead\", \"Text\" FROM \"EsiNotifications\" " +
+                    "WHERE \"Timestamp\" >= {0} " +
+                    "GROUP BY \"NotificationId\" ORDER BY \"Timestamp\" DESC LIMIT 1000", cutoff)
                 .AsNoTracking().ToListAsync();
 
             // Nothing new? Then neither the formatting below nor the collection rebuild that
@@ -990,7 +990,7 @@ public class OverviewViewModel : ReactiveObject
             var recipients = ids.Count == 0
                 ? new List<(long NotificationId, long CharacterId)>()
                 : (await db.EsiNotifications.FromSqlRaw(
-                        $"SELECT * FROM EsiNotifications WHERE NotificationId IN ({string.Join(",", ids)})")
+                        $"SELECT * FROM \"EsiNotifications\" WHERE \"NotificationId\" IN ({string.Join(",", ids)})")
                     .AsNoTracking().Select(n => new { n.NotificationId, n.CharacterId }).ToListAsync())
                   .Select(x => (x.NotificationId, x.CharacterId)).ToList();
 #pragma warning restore EF1002

@@ -149,22 +149,22 @@ public class MarketViewerViewModel : ReactiveObject
 
     // Region derivation: order → system → region, else order → structure → system → region.
     private const string OrdersFrom =
-        "FROM MarketRawOrders o " +
-        "LEFT JOIN SdeSolarSystems ssSys ON ssSys.SolarSystemId = o.SystemId " +
-        "LEFT JOIN EsiStructureNames sn   ON sn.StructureId     = o.LocationId " +
-        "LEFT JOIN SdeSolarSystems ssStr  ON ssStr.SolarSystemId = sn.SolarSystemId";
-    private const string RegionExpr = "COALESCE(ssSys.RegionId, ssStr.RegionId)";
+        "FROM \"MarketRawOrders\" o " +
+        "LEFT JOIN \"SdeSolarSystems\" ssSys ON ssSys.\"SolarSystemId\" = o.\"SystemId\" " +
+        "LEFT JOIN \"EsiStructureNames\" sn   ON sn.\"StructureId\"     = o.\"LocationId\" " +
+        "LEFT JOIN \"SdeSolarSystems\" ssStr  ON ssStr.\"SolarSystemId\" = sn.\"SolarSystemId\"";
+    private const string RegionExpr = "COALESCE(ssSys.\"RegionId\", ssStr.\"RegionId\")";
     // Exclude NPC market orders: NPC seeded/buy orders use a 365-day duration, while player
     // orders cap at 90 days (no order falls between 91 and 364), so this keeps players only.
-    private const string PlayerOrders = "o.Duration <= 90";
+    private const string PlayerOrders = "o.\"Duration\" <= 90";
 
     // Maps every market group to its top-level ancestor (TopId/TopName).
     private const string MgTopCte =
-        "WITH RECURSIVE mg_top(MarketGroupId, TopId, TopName) AS (" +
-        "SELECT MarketGroupId, MarketGroupId, Name FROM SdeMarketGroups WHERE ParentGroupId IS NULL " +
+        "WITH RECURSIVE mg_top(\"MarketGroupId\", \"TopId\", \"TopName\") AS (" +
+        "SELECT \"MarketGroupId\", \"MarketGroupId\", \"Name\" FROM \"SdeMarketGroups\" WHERE \"ParentGroupId\" IS NULL " +
         "UNION ALL " +
-        "SELECT g.MarketGroupId, t.TopId, t.TopName FROM SdeMarketGroups g " +
-        "JOIN mg_top t ON g.ParentGroupId = t.MarketGroupId) ";
+        "SELECT g.\"MarketGroupId\", t.\"TopId\", t.\"TopName\" FROM \"SdeMarketGroups\" g " +
+        "JOIN mg_top t ON g.\"ParentGroupId\" = t.\"MarketGroupId\") ";
 
     // Palette for pie slices (last entry — grey — is reserved for the "Other" bucket).
     private static readonly SKColor[] PiePalette =
@@ -326,8 +326,8 @@ public class MarketViewerViewModel : ReactiveObject
 
             // Regions we have data for (orders and/or any history).
             var ids = await db.Database.SqlQueryRaw<int>(
-                $"SELECT DISTINCT {RegionExpr} AS Value {OrdersFrom} WHERE {RegionExpr} IS NOT NULL " +
-                "UNION SELECT DISTINCT RegionId AS Value FROM MarketTypeHistories").ToListAsync();
+                $"SELECT DISTINCT {RegionExpr} AS \"Value\" {OrdersFrom} WHERE {RegionExpr} IS NOT NULL " +
+                "UNION SELECT DISTINCT \"RegionId\" AS \"Value\" FROM \"MarketTypeHistories\"").ToListAsync();
             var names = await db.SdeRegions.AsNoTracking()
                 .Where(r => ids.Contains(r.RegionId))
                 .ToDictionaryAsync(r => r.RegionId, r => r.Name);
@@ -381,13 +381,13 @@ public class MarketViewerViewModel : ReactiveObject
 
             // Sales KPIs — driven by the selected period.
             var saleConds = new List<string>();
-            if (region is int r2)      saleConds.Add($"RegionId = {r2}");
-            if (cutoff is not null)     saleConds.Add($"Date >= '{cutoff}'");
+            if (region is int r2)      saleConds.Add($"\"RegionId\" = {r2}");
+            if (cutoff is not null)     saleConds.Add($"\"Date\" >= '{cutoff}'");
             var saleWhere = saleConds.Count > 0 ? "WHERE " + string.Join(" AND ", saleConds) + " " : "";
             var s = (await db.Database.SqlQueryRaw<KpiSalesAgg>(
-                "SELECT COALESCE(SUM(Volume), 0) AS Units, COALESCE(SUM(Volume * Average), 0) AS Isk, " +
+                "SELECT COALESCE(SUM(\"Volume\"), 0) AS \"Units\", COALESCE(SUM(\"Volume\" * \"Average\"), 0) AS Isk, " +
                 "COUNT(DISTINCT CASE WHEN Volume > 0 THEN TypeId END) AS Types " +
-                "FROM MarketTypeHistories " + saleWhere).ToListAsync()).FirstOrDefault() ?? new KpiSalesAgg();
+                "FROM \"MarketTypeHistories\" " + saleWhere).ToListAsync()).FirstOrDefault() ?? new KpiSalesAgg();
 
             KpiSellCount  = o.SellCount.ToString("N0");
             KpiSellIsk    = MarketFmt.Isk(o.SellIsk);
@@ -402,8 +402,8 @@ public class MarketViewerViewModel : ReactiveObject
             // Sell/Buy orders by type — from the public order book (same source as the KPI order
             // ISK, so the slices sum to it); current open orders, selected region.
             var byType = await db.Database.SqlQueryRaw<TypeIskAgg>(
-                "SELECT o.TypeId AS TypeId, o.IsBuyOrder AS IsBuyOrder, SUM(o.Price * o.VolumeRemain) AS Isk " +
-                OrdersFrom + " " + orderWhere + " GROUP BY o.TypeId, o.IsBuyOrder").ToListAsync();
+                "SELECT o.\"TypeId\" AS \"TypeId\", o.\"IsBuyOrder\" AS \"IsBuyOrder\", SUM(o.\"Price\" * o.\"VolumeRemain\") AS Isk " +
+                OrdersFrom + " " + orderWhere + " GROUP BY o.\"TypeId\", o.\"IsBuyOrder\"").ToListAsync();
 
             var sellByType = byType.Where(x => x.IsBuyOrder == 0).Select(x => (x.TypeId, x.Isk)).ToList();
             var buyByType  = byType.Where(x => x.IsBuyOrder == 1).Select(x => (x.TypeId, x.Isk)).ToList();
@@ -429,23 +429,23 @@ public class MarketViewerViewModel : ReactiveObject
             // Sales by top-level market group — selected region and period.
             var groups = await db.Database.SqlQueryRaw<GroupSalesFlat>(
                 MgTopCte +
-                "SELECT mt.TopName AS Name, SUM(h.Volume * h.Average) AS Isk " +
-                "FROM MarketTypeHistories h " +
-                "JOIN SdeTypes ty ON ty.TypeId = h.TypeId " +
-                "JOIN mg_top mt ON mt.MarketGroupId = ty.MarketGroupId " +
+                "SELECT mt.\"TopName\" AS \"Name\", SUM(h.\"Volume\" * h.\"Average\") AS Isk " +
+                "FROM \"MarketTypeHistories\" h " +
+                "JOIN \"SdeTypes\" ty ON ty.\"TypeId\" = h.\"TypeId\" " +
+                "JOIN mg_top mt ON mt.\"MarketGroupId\" = ty.\"MarketGroupId\" " +
                 (region is int r4 || cutoff is not null
                     ? "WHERE " + string.Join(" AND ",
-                        new[] { region is int r5 ? $"h.RegionId = {r5}" : null, cutoff is not null ? $"h.Date >= '{cutoff}'" : null }
+                        new[] { region is int r5 ? $"h.\"RegionId\" = {r5}" : null, cutoff is not null ? $"h.\"Date\" >= '{cutoff}'" : null }
                         .Where(x => x is not null)) + " "
                     : "") +
-                "GROUP BY mt.TopId").ToListAsync();
+                "GROUP BY mt.\"TopId\"").ToListAsync();
             SalesGroupSeries = BuildPie(groups.Select(g => (g.Name, g.Isk)));
             HasSalesGroup    = SalesGroupSeries.Length > 0;
 
             // Daily sales ISK across the period.
             var days = await db.Database.SqlQueryRaw<DayIsk>(
-                "SELECT Date AS Date, SUM(Volume * Average) AS Isk FROM MarketTypeHistories " +
-                saleWhere + "GROUP BY Date ORDER BY Date").ToListAsync();
+                "SELECT \"Date\" AS \"Date\", SUM(\"Volume\" * \"Average\") AS Isk FROM \"MarketTypeHistories\" " +
+                saleWhere + "GROUP BY \"Date\" ORDER BY \"Date\"").ToListAsync();
             var points = days
                 .Select(d => new DateTimePoint(DateTime.ParseExact(d.Date, "yyyy-MM-dd", null), d.Isk))
                 .ToArray();
@@ -550,30 +550,30 @@ public class MarketViewerViewModel : ReactiveObject
 #pragma warning disable EF1002 // region is an inlined int from a fixed, DB-derived set — no injection risk
             var orders = await db.Database.SqlQueryRaw<GroupOrderAgg>(
                 MgTopCte +
-                "SELECT mt.TopId AS GroupId, mt.TopName AS GroupName, " +
+                "SELECT mt.\"TopId\" AS \"GroupId\", mt.\"TopName\" AS GroupName, " +
                 "SUM(CASE WHEN o.IsBuyOrder = 0 THEN o.VolumeRemain ELSE 0 END)           AS SellUnits, " +
                 "SUM(CASE WHEN o.IsBuyOrder = 0 THEN o.Price * o.VolumeRemain ELSE 0 END) AS SellIsk, " +
                 "SUM(CASE WHEN o.IsBuyOrder = 1 THEN o.VolumeRemain ELSE 0 END)           AS BuyUnits, " +
                 "SUM(CASE WHEN o.IsBuyOrder = 1 THEN o.Price * o.VolumeRemain ELSE 0 END) AS BuyIsk " +
                 OrdersFrom + " " +
-                "JOIN SdeTypes ty ON ty.TypeId = o.TypeId " +
-                "JOIN mg_top mt ON mt.MarketGroupId = ty.MarketGroupId " +
-                orderWhere + " GROUP BY mt.TopId").ToListAsync();
+                "JOIN \"SdeTypes\" ty ON ty.\"TypeId\" = o.\"TypeId\" " +
+                "JOIN mg_top mt ON mt.\"MarketGroupId\" = ty.\"MarketGroupId\" " +
+                orderWhere + " GROUP BY mt.\"TopId\"").ToListAsync();
 #pragma warning restore EF1002
 
             var cutoff = Cutoff();
             var conds = new List<string>();
-            if (region is int r2) conds.Add($"h.RegionId = {r2}");
-            if (cutoff is not null) conds.Add($"h.Date >= '{cutoff}'");
+            if (region is int r2) conds.Add($"h.\"RegionId\" = {r2}");
+            if (cutoff is not null) conds.Add($"h.\"Date\" >= '{cutoff}'");
             var salesWhere = conds.Count > 0 ? "WHERE " + string.Join(" AND ", conds) : "";
             var sales = await db.Database.SqlQueryRaw<GroupSalesAgg>(
                 MgTopCte +
-                "SELECT mt.TopId AS GroupId, mt.TopName AS GroupName, " +
+                "SELECT mt.\"TopId\" AS \"GroupId\", mt.\"TopName\" AS GroupName, " +
                 "SUM(h.Volume) AS Units, SUM(h.Volume * h.Average) AS Isk " +
-                "FROM MarketTypeHistories h " +
-                "JOIN SdeTypes ty ON ty.TypeId = h.TypeId " +
-                "JOIN mg_top mt ON mt.MarketGroupId = ty.MarketGroupId " +
-                salesWhere + " GROUP BY mt.TopId").ToListAsync();
+                "FROM \"MarketTypeHistories\" h " +
+                "JOIN \"SdeTypes\" ty ON ty.\"TypeId\" = h.\"TypeId\" " +
+                "JOIN mg_top mt ON mt.\"MarketGroupId\" = ty.\"MarketGroupId\" " +
+                salesWhere + " GROUP BY mt.\"TopId\"").ToListAsync();
 
             var names = new Dictionary<int, string>();
             foreach (var o in orders) names[o.GroupId] = o.GroupName;
@@ -632,12 +632,12 @@ public class MarketViewerViewModel : ReactiveObject
 
             var cutoff = Cutoff();
             var conds = new List<string>();
-            if (region is int r2) conds.Add($"RegionId = {r2}");
-            if (cutoff is not null) conds.Add($"Date >= '{cutoff}'");
+            if (region is int r2) conds.Add($"\"RegionId\" = {r2}");
+            if (cutoff is not null) conds.Add($"\"Date\" >= '{cutoff}'");
             var salesWhere = conds.Count > 0 ? "WHERE " + string.Join(" AND ", conds) : "";
             var sales = await db.Database.SqlQueryRaw<TypeSalesAgg>(
-                $"SELECT TypeId AS TypeId, SUM(Volume) AS Units, SUM(Volume * Average) AS Isk " +
-                $"FROM MarketTypeHistories {salesWhere} GROUP BY TypeId").ToListAsync();
+                $"SELECT \"TypeId\" AS \"TypeId\", SUM(\"Volume\") AS \"Units\", SUM(\"Volume\" * \"Average\") AS Isk " +
+                $"FROM \"MarketTypeHistories\" {salesWhere} GROUP BY \"TypeId\"").ToListAsync();
 
             var typeIds = orders.Select(o => o.TypeId).Concat(sales.Select(s => s.TypeId)).Distinct().ToList();
             var typeNames = await db.SdeTypes.AsNoTracking().Where(t => typeIds.Contains(t.TypeId))
@@ -682,9 +682,9 @@ public class MarketViewerViewModel : ReactiveObject
             var where = "WHERE " + string.Join(" AND ", conds);
 
             var rows = await db.Database.SqlQueryRaw<TypeUnitIskAgg>(
-                "SELECT o.TypeId AS TypeId, SUM(o.VolumeRemain) AS Units, " +
+                "SELECT o.\"TypeId\" AS \"TypeId\", SUM(o.\"VolumeRemain\") AS \"Units\", " +
                 "SUM(o.Price * o.VolumeRemain) AS Isk " +
-                OrdersFrom + " " + where + " GROUP BY o.TypeId").ToListAsync();
+                OrdersFrom + " " + where + " GROUP BY o.\"TypeId\"").ToListAsync();
 
             var typeIds   = rows.Select(x => x.TypeId).ToList();
             var typeNames = await db.SdeTypes.AsNoTracking().Where(t => typeIds.Contains(t.TypeId))

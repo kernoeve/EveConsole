@@ -379,7 +379,7 @@ public class IndustryBrowserViewModel : ReactiveObject
             foreach (var id in ids.Distinct())
             {
                 using var chk = new SqliteCommand(
-                    "SELECT 1 FROM UniverseNames WHERE EntityId=@id LIMIT 1", conn);
+                    "SELECT 1 FROM \"UniverseNames\" WHERE \"EntityId\"=@id LIMIT 1", conn);
                 chk.Parameters.AddWithValue("@id", id);
                 if (chk.ExecuteScalar() is null) toResolve.Add(id);
             }

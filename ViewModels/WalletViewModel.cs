@@ -313,8 +313,8 @@ public class WalletViewModel : ReactiveObject
 
     public IReadOnlyList<GridSortOption> JournalSortOptions { get; } =
     [
-        new("Date: newest first",   "Date DESC"),
-        new("Date: oldest first",   "Date ASC"),
+        new("Date: newest first",   "\"Date\" DESC"),
+        new("Date: oldest first",   "\"Date\" ASC"),
         new("Amount: high → low",   "CAST(Amount AS REAL) DESC"),
         new("Amount: low → high",   "CAST(Amount AS REAL) ASC"),
         new("Balance: high → low",  "CAST(Balance AS REAL) DESC"),
@@ -328,12 +328,12 @@ public class WalletViewModel : ReactiveObject
 
     public IReadOnlyList<GridSortOption> TxnSortOptions { get; } =
     [
-        new("Date: newest first",     "Date DESC"),
-        new("Date: oldest first",     "Date ASC"),
+        new("Date: newest first",     "\"Date\" DESC"),
+        new("Date: oldest first",     "\"Date\" ASC"),
         new("Total: high → low",      "(Quantity * CAST(UnitPrice AS REAL)) DESC"),
         new("Total: low → high",      "(Quantity * CAST(UnitPrice AS REAL)) ASC"),
         new("Unit price: high → low", "CAST(UnitPrice AS REAL) DESC"),
-        new("Quantity: high → low",   "Quantity DESC"),
+        new("Quantity: high → low",   "\"Quantity\" DESC"),
     ];
     private GridSortOption _selectedTxnSort;
     public GridSortOption SelectedTxnSort
@@ -640,7 +640,7 @@ public class WalletViewModel : ReactiveObject
 
             var (where, ps) = await BuildJournalWhereAsync(db, owner, cutoff);
             var pars = ps.ToArray();
-            string baseSql = $"SELECT * FROM EsiWalletJournal WHERE {where}";
+            string baseSql = $"SELECT * FROM \"EsiWalletJournal\" WHERE {where}";
 
 #pragma warning disable EF1002
             JournalPager.TotalCount = await db.EsiWalletJournal.FromSqlRaw(baseSql, pars).AsNoTracking().CountAsync();
@@ -674,8 +674,8 @@ public class WalletViewModel : ReactiveObject
 
         if (owner?.OwnerId != null)
         {
-            int ti = ps.Count; ps.Add(owner.OwnerType!);       parts.Add($"OwnerType = {{{ti}}}");
-            int oi = ps.Count; ps.Add(owner.OwnerId.Value);    parts.Add($"OwnerId = {{{oi}}}");
+            int ti = ps.Count; ps.Add(owner.OwnerType!);       parts.Add($"\"OwnerType\" = {{{ti}}}");
+            int oi = ps.Count; ps.Add(owner.OwnerId.Value);    parts.Add($"\"OwnerId\" = {{{oi}}}");
         }
         else
         {
@@ -686,7 +686,7 @@ public class WalletViewModel : ReactiveObject
             parts.Add(conds.Count > 0 ? "(" + string.Join(" OR ", conds) + ")" : "1=0");
         }
 
-        int ci = ps.Count; ps.Add(cutoff); parts.Add($"Date >= {{{ci}}}");
+        int ci = ps.Count; ps.Add(cutoff); parts.Add($"\"Date\" >= {{{ci}}}");
 
         var typeF = _journalTypeFilter.Trim();
         if (typeF.Length > 0)
@@ -700,8 +700,8 @@ public class WalletViewModel : ReactiveObject
         {
             int i = ps.Count; ps.Add("%" + ownerF + "%");
             int j = ps.Count; ps.Add("%" + ownerF + "%");
-            parts.Add($"OwnerId IN (SELECT Id FROM Characters WHERE Name LIKE {{{i}}} "
-                    + $"UNION SELECT Id FROM Corporations WHERE Name LIKE {{{j}}})");
+            parts.Add($"\"OwnerId\" IN (SELECT \"Id\" FROM \"Characters\" WHERE \"Name\" LIKE {{{i}}} "
+                    + $"UNION SELECT \"Id\" FROM \"Corporations\" WHERE \"Name\" LIKE {{{j}}})");
         }
 
         var divF = _journalDivFilter.Trim();
@@ -709,14 +709,14 @@ public class WalletViewModel : ReactiveObject
         {
             int i = ps.Count; ps.Add("%" + divF + "%");
             int j = ps.Count; ps.Add("%" + divF + "%");
-            parts.Add($"(Division IN (SELECT Division FROM EsiCorpDivisions WHERE DivisionType='wallet' AND Name LIKE {{{i}}}) "
-                    + $"OR CAST(Division AS TEXT) LIKE {{{j}}})");
+            parts.Add($"(\"Division\" IN (SELECT \"Division\" FROM \"EsiCorpDivisions\" WHERE \"DivisionType\"='wallet' AND \"Name\" LIKE {{{i}}}) "
+                    + $"OR CAST(\"Division\" AS TEXT) LIKE {{{j}}})");
         }
 
         if (_journalFromDate is DateTime fd)
-        { int i = ps.Count; ps.Add(UtcMidnight(fd)); parts.Add($"Date >= {{{i}}}"); }
+        { int i = ps.Count; ps.Add(UtcMidnight(fd)); parts.Add($"\"Date\" >= {{{i}}}"); }
         if (_journalThruDate is DateTime td)
-        { int i = ps.Count; ps.Add(UtcMidnight(td.AddDays(1))); parts.Add($"Date < {{{i}}}"); }
+        { int i = ps.Count; ps.Add(UtcMidnight(td.AddDays(1))); parts.Add($"\"Date\" < {{{i}}}"); }
 
         return (string.Join(" AND ", parts), ps);
     }
@@ -771,7 +771,7 @@ public class WalletViewModel : ReactiveObject
             int oi = ps.Count; ps.Add(owner.OwnerId.Value);
             int ti = ps.Count; ps.Add(owner.OwnerType!);
             int ci = ps.Count; ps.Add(cutoff);
-            return ($"SELECT * FROM EsiWalletTransactions WHERE OwnerId = {{{oi}}} AND OwnerType = {{{ti}}} AND Date >= {{{ci}}}", ps);
+            return ($"SELECT * FROM \"EsiWalletTransactions\" WHERE \"OwnerId\" = {{{oi}}} AND \"OwnerType\" = {{{ti}}} AND \"Date\" >= {{{ci}}}", ps);
         }
 
         var (charIds, corpIds) = await GetAllOwnerIdsAsync(db);
@@ -785,9 +785,9 @@ public class WalletViewModel : ReactiveObject
         string sql =
             "SELECT \"TransactionId\",\"OwnerId\",\"OwnerType\",\"Division\",\"Date\",\"ClientId\"," +
             "\"LocationId\",\"Quantity\",\"TypeId\",\"UnitPrice\",\"IsBuy\",\"IsPersonal\",\"JournalRefId\" " +
-            "FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY TransactionId " +
-            "ORDER BY CASE WHEN OwnerType='corporation' THEN 0 ELSE 1 END) AS rn " +
-            $"FROM EsiWalletTransactions WHERE {ownerCond} AND Date >= {{{cix}}}) WHERE rn = 1";
+            "FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY \"TransactionId\" " +
+            "ORDER BY CASE WHEN \"OwnerType\"='corporation' THEN 0 ELSE 1 END) AS rn " +
+            $"FROM \"EsiWalletTransactions\" WHERE {ownerCond} AND \"Date\" >= {{{cix}}}) WHERE rn = 1";
         return (sql, ps);
     }
 
@@ -799,19 +799,19 @@ public class WalletViewModel : ReactiveObject
         if (itemF.Length > 0)
         {
             int i = ps.Count; ps.Add("%" + itemF + "%");
-            parts.Add($"x.TypeId IN (SELECT TypeId FROM SdeTypes WHERE Name LIKE {{{i}}})");
+            parts.Add($"x.\"TypeId\" IN (SELECT \"TypeId\" FROM \"SdeTypes\" WHERE \"Name\" LIKE {{{i}}})");
         }
 
-        if (_txnDirectionFilter == "Buy")  parts.Add("x.IsBuy = 1");
-        else if (_txnDirectionFilter == "Sell") parts.Add("x.IsBuy = 0");
+        if (_txnDirectionFilter == "Buy")  parts.Add("x.\"IsBuy\" = 1");
+        else if (_txnDirectionFilter == "Sell") parts.Add("x.\"IsBuy\" = 0");
 
         var locF = _txnLocationFilter.Trim();
         if (locF.Length > 0)
         {
             int i = ps.Count; ps.Add("%" + locF + "%");
             int j = ps.Count; ps.Add("%" + locF + "%");
-            parts.Add($"x.LocationId IN (SELECT StationId FROM SdeStations WHERE Name LIKE {{{i}}} "
-                    + $"UNION SELECT StructureId FROM EsiStructureNames WHERE Name LIKE {{{j}}})");
+            parts.Add($"x.\"LocationId\" IN (SELECT \"StationId\" FROM \"SdeStations\" WHERE \"Name\" LIKE {{{i}}} "
+                    + $"UNION SELECT \"StructureId\" FROM \"EsiStructureNames\" WHERE \"Name\" LIKE {{{j}}})");
         }
 
         var ownerF = _txnOwnerFilter.Trim();
@@ -819,8 +819,8 @@ public class WalletViewModel : ReactiveObject
         {
             int i = ps.Count; ps.Add("%" + ownerF + "%");
             int j = ps.Count; ps.Add("%" + ownerF + "%");
-            parts.Add($"x.OwnerId IN (SELECT Id FROM Characters WHERE Name LIKE {{{i}}} "
-                    + $"UNION SELECT Id FROM Corporations WHERE Name LIKE {{{j}}})");
+            parts.Add($"x.\"OwnerId\" IN (SELECT \"Id\" FROM \"Characters\" WHERE \"Name\" LIKE {{{i}}} "
+                    + $"UNION SELECT \"Id\" FROM \"Corporations\" WHERE \"Name\" LIKE {{{j}}})");
         }
 
         var divF = _txnDivFilter.Trim();
@@ -828,8 +828,8 @@ public class WalletViewModel : ReactiveObject
         {
             int i = ps.Count; ps.Add("%" + divF + "%");
             int j = ps.Count; ps.Add("%" + divF + "%");
-            parts.Add($"(x.Division IN (SELECT Division FROM EsiCorpDivisions WHERE DivisionType='wallet' AND Name LIKE {{{i}}}) "
-                    + $"OR CAST(x.Division AS TEXT) LIKE {{{j}}})");
+            parts.Add($"(x.\"Division\" IN (SELECT \"Division\" FROM \"EsiCorpDivisions\" WHERE \"DivisionType\"='wallet' AND \"Name\" LIKE {{{i}}}) "
+                    + $"OR CAST(x.\"Division\" AS TEXT) LIKE {{{j}}})");
         }
 
         return parts.Count > 0 ? string.Join(" AND ", parts) : "1=1";

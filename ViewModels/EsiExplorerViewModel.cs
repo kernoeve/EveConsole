@@ -57,8 +57,8 @@ public class EsiExplorerViewModel : ReactiveObject
 
     public List<TableEntry> AllTables { get; } = [
         new("Wallet Balances",     "EsiWalletBalances"),
-        new("Wallet Journal",      "EsiWalletJournal",      "Date DESC"),
-        new("Wallet Transactions", "EsiWalletTransactions", "Date DESC"),
+        new("Wallet Journal",      "EsiWalletJournal",      "\"Date\" DESC"),
+        new("Wallet Transactions", "EsiWalletTransactions", "\"Date\" DESC"),
         new("Skills",              "EsiSkills"),
         new("Skill Queue",         "EsiSkillQueue",         "QueuePosition"),
         new("Attributes",          "EsiCharacterAttributes"),
@@ -69,14 +69,14 @@ public class EsiExplorerViewModel : ReactiveObject
         new("Implants",            "EsiImplants"),
         new("Assets",              "EsiAssets"),
         new("Blueprints",          "EsiBlueprints"),
-        new("Industry Jobs",       "EsiIndustryJobs",       "StartDate DESC"),
-        new("Market Orders",       "EsiMarketOrders",       "Issued DESC"),
-        new("Contracts",           "EsiContracts",          "DateIssued DESC"),
+        new("Industry Jobs",       "EsiIndustryJobs",       "\"StartDate\" DESC"),
+        new("Market Orders",       "EsiMarketOrders",       "\"Issued\" DESC"),
+        new("Contracts",           "EsiContracts",          "\"DateIssued\" DESC"),
         new("Contacts",            "EsiContacts"),
         new("Kill Mails",          "EsiKillMailRefs"),
         new("Standings",           "EsiStandings"),
-        new("Mining",              "EsiMining",             "Date DESC"),
-        new("Notifications",       "EsiNotifications",      "Timestamp DESC"),
+        new("Mining",              "EsiMining",             "\"Date\" DESC"),
+        new("Notifications",       "EsiNotifications",      "\"Timestamp\" DESC"),
         new("Planetary Colonies",  "EsiPlanetaryColonies"),
         new("Agent Research",      "EsiAgentResearch"),
         new("Loyalty Points",      "EsiLoyaltyPoints"),
@@ -93,7 +93,7 @@ public class EsiExplorerViewModel : ReactiveObject
         new("Corp Structures",     "EsiCorpStructures"),
         new("Corp Starbases",      "EsiCorpStarbases"),
         new("Corp Facilities",     "EsiCorpFacilities"),
-        new("API Call Records",    "EsiCallRecords",        "LastCalledAt DESC"),
+        new("API Call Records",    "EsiCallRecords",        "\"LastCalledAt\" DESC"),
     ];
 
     // ── Reactive state ───────────────────────────────────────────────────────

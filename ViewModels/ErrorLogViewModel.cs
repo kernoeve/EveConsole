@@ -82,15 +82,15 @@ public class ErrorLogViewModel : ReactiveObject
             var parts = new List<string>();
             var ps    = new List<object>();
             if (TryDate(_dateFrom, out var from))
-            { int i = ps.Count; ps.Add(from); parts.Add($"OccurredAt >= {{{i}}}"); }
+            { int i = ps.Count; ps.Add(from); parts.Add($"\"OccurredAt\" >= {{{i}}}"); }
             if (TryDate(_dateThru, out var thru))
-            { int i = ps.Count; ps.Add(thru); parts.Add($"OccurredAt < {{{i}}}"); }
+            { int i = ps.Count; ps.Add(thru); parts.Add($"\"OccurredAt\" < {{{i}}}"); }
             var where = parts.Count > 0 ? "WHERE " + string.Join(" AND ", parts) : "";
 
             await using var db = await _dbFactory.CreateDbContextAsync();
 #pragma warning disable EF1002
             var list = await db.AppErrors.FromSqlRaw(
-                    $"SELECT * FROM AppErrorLog {where} ORDER BY OccurredAt DESC LIMIT 5000", ps.ToArray())
+                    $"SELECT * FROM \"AppErrorLog\" {where} ORDER BY \"OccurredAt\" DESC LIMIT 5000", ps.ToArray())
                 .AsNoTracking().ToListAsync();
 #pragma warning restore EF1002
 
