@@ -103,6 +103,16 @@ foreach (var extra in inPostgres.Except(inSqlite).Order())
 }
 
 if (failures == 0) Console.WriteLine("  no drift.");
+
+// ── 3. Against a real server, when one is offered ───────────────────────────
+//
+// ⚠️ Taken from the environment rather than an argument: a connection string carries a
+// password, and an argument would land in shell history and CI logs.
+if (Environment.GetEnvironmentVariable("EVECONSOLE_PG") is { Length: > 0 } live)
+    failures += await EveConsole.Tools.PgSchemaCheck.Live.RunAsync(live);
+else
+    Console.WriteLine("\nNo EVECONSOLE_PG set, so nothing was executed against a server.");
+
 return failures == 0 ? 0 : 1;
 
 static int Count(string haystack, string needle)

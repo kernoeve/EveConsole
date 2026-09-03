@@ -128,6 +128,13 @@ public static class PostgresSchema
     /// <para>The <c>WHERE NOT EXISTS</c> forms are left exactly as they are: they are already
     /// portable, and they mean "seed only an empty table", which is not the same thing as
     /// per-row conflict handling and must not be rewritten into it.</para>
+    ///
+    /// <para>⚠️ <c>NULL::bigint</c>, not a bare <c>NULL</c>. In an <c>INSERT … SELECT … UNION
+    /// ALL</c> PostgreSQL settles the union's column types before it ever looks at the target,
+    /// and an untyped NULL settles as <c>text</c> — so the insert fails with "column
+    /// StationFilter is of type bigint but expression is of type text". SQLite is dynamically
+    /// typed and never had an opinion. This was caught by applying the file to a real server;
+    /// no amount of reading it would have shown it.</para>
     /// </summary>
     private static readonly string[] Seeds =
     [
@@ -140,10 +147,10 @@ public static class PostgresSchema
         """
         INSERT INTO "MarketPricingConfigs"
             ("Method", "LocationName", "LocationId", "PriceType", "IsEnabled", "SortOrder", "LastStatus", "StationFilter", "UsePercentileFilter", "PercentilePercent")
-        SELECT 'Region', 'The Forge', 10000002, 'Midpoint', true, 0, '', NULL, true, 1.0
+        SELECT 'Region', 'The Forge', 10000002, 'Midpoint', true, 0, '', NULL::bigint, true, 1.0
         WHERE NOT EXISTS (SELECT 1 FROM "MarketPricingConfigs")
         UNION ALL
-        SELECT 'Region', 'Domain',    10000043, 'Midpoint', true, 1, '', NULL, true, 1.0
+        SELECT 'Region', 'Domain',    10000043, 'Midpoint', true, 1, '', NULL::bigint, true, 1.0
         WHERE NOT EXISTS (SELECT 1 FROM "MarketPricingConfigs")
         """,
         """
