@@ -19,10 +19,10 @@ internal static class SalesQuery
     // Market sales: one row per sell transaction. Location = station/structure; buyer = the client.
     private const string MarketSql =
         """
-        SELECT t."TransactionId" AS SaleId, t."OwnerId" AS OwnerId, t."OwnerType" AS OwnerType,
-               t."Date" AS DateStr, t."TypeId" AS TypeId, t."Quantity" AS Quantity,
-               CAST(t."UnitPrice" AS REAL) AS UnitPrice, t."ClientId" AS BuyerId,
-               t."LocationId" AS LocationId,
+        SELECT t."TransactionId" AS "SaleId", t."OwnerId" AS "OwnerId", t."OwnerType" AS "OwnerType",
+               t."Date" AS DateStr, t."TypeId" AS "TypeId", t."Quantity" AS "Quantity",
+               CAST(t."UnitPrice" AS REAL) AS "UnitPrice", t."ClientId" AS "BuyerId",
+               t."LocationId" AS "LocationId",
                -- Which tool the location link opens. An NPC station is an entity; a player
                -- structure has a browser of its own. Decided by which table actually named it
                -- rather than by the id, because the ranges are not a reliable tell.
@@ -40,9 +40,9 @@ internal static class SalesQuery
     // accepted purchase is excluded). Buyer = the acceptor; location = the items' location.
     private const string ContractSql =
         """
-        SELECT c."ContractId" AS SaleId, c."OwnerId" AS OwnerId, c."OwnerType" AS OwnerType,
-               c."DateCompleted" AS DateStr, CAST(c."Price" AS REAL) AS Price, COALESCE(c."AcceptorId", 0) AS BuyerId,
-               c."StartLocationId" AS LocationId, COALESCE(c."Title", '') AS Title,
+        SELECT c."ContractId" AS "SaleId", c."OwnerId" AS "OwnerId", c."OwnerType" AS "OwnerType",
+               c."DateCompleted" AS DateStr, CAST(c."Price" AS REAL) AS "Price", COALESCE(c."AcceptorId", 0) AS "BuyerId",
+               c."StartLocationId" AS "LocationId", COALESCE(c."Title", '') AS "Title",
                (SELECT COUNT(*) FROM "SdeStations" WHERE "StationId" = c."StartLocationId") AS IsStation,
                COALESCE((SELECT "Name" FROM "SdeStations"       WHERE "StationId"   = c."StartLocationId"),
                         (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = c."StartLocationId")) AS Location
@@ -54,7 +54,7 @@ internal static class SalesQuery
 
     private const string ContractItemSql =
         """
-        SELECT ci."ContractId" AS ContractId, ci."TypeId" AS TypeId, ci."Quantity" AS Quantity
+        SELECT ci."ContractId" AS "ContractId", ci."TypeId" AS "TypeId", ci."Quantity" AS "Quantity"
         FROM "EsiContractItems" ci
         JOIN "EsiContracts" c ON c."ContractId" = ci."ContractId"
         WHERE ci."IsIncluded" = 1

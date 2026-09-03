@@ -453,26 +453,26 @@ public class MarketSettingsViewModel : ReactiveObject
             await using var fdb = _dbFactory.CreateDbContext();
             await fdb.Database.ExecuteSqlInterpolatedAsync(
                 $"""
-                INSERT INTO MarketDefaultSettings
-                    (Id, AssetValueConfigId, AssetValuePriceType,
-                     ManufacturingConfigId, ManufacturingPriceType, MissingPriceMarkupPct,
-                     FilterLowballBuyOrders, LowballBuyOrderThresholdPct,
-                     PurchaseWhenCheaper, PurchaseThresholdPct)
+                INSERT INTO "MarketDefaultSettings"
+                    ("Id", "AssetValueConfigId", "AssetValuePriceType",
+                     "ManufacturingConfigId", "ManufacturingPriceType", "MissingPriceMarkupPct",
+                     "FilterLowballBuyOrders", "LowballBuyOrderThresholdPct",
+                     "PurchaseWhenCheaper", "PurchaseThresholdPct")
                 VALUES
                     (1, {assetConfigId}, {assetType},
                      {mfgConfigId}, {mfgType}, {markup},
                      {filterLowball}, {lowballPct},
                      {buyCheaper}, {buyThreshold})
-                ON CONFLICT(Id) DO UPDATE SET
-                    AssetValueConfigId          = excluded.AssetValueConfigId,
-                    AssetValuePriceType         = excluded.AssetValuePriceType,
-                    ManufacturingConfigId        = excluded.ManufacturingConfigId,
-                    ManufacturingPriceType       = excluded.ManufacturingPriceType,
-                    MissingPriceMarkupPct        = excluded.MissingPriceMarkupPct,
-                    FilterLowballBuyOrders       = excluded.FilterLowballBuyOrders,
-                    LowballBuyOrderThresholdPct  = excluded.LowballBuyOrderThresholdPct,
-                    PurchaseWhenCheaper          = excluded.PurchaseWhenCheaper,
-                    PurchaseThresholdPct         = excluded.PurchaseThresholdPct
+                ON CONFLICT("Id") DO UPDATE SET
+                    "AssetValueConfigId"          = excluded."AssetValueConfigId",
+                    "AssetValuePriceType"         = excluded."AssetValuePriceType",
+                    "ManufacturingConfigId"        = excluded."ManufacturingConfigId",
+                    "ManufacturingPriceType"       = excluded."ManufacturingPriceType",
+                    "MissingPriceMarkupPct"        = excluded."MissingPriceMarkupPct",
+                    "FilterLowballBuyOrders"       = excluded."FilterLowballBuyOrders",
+                    "LowballBuyOrderThresholdPct"  = excluded."LowballBuyOrderThresholdPct",
+                    "PurchaseWhenCheaper"          = excluded."PurchaseWhenCheaper",
+                    "PurchaseThresholdPct"         = excluded."PurchaseThresholdPct"
                 """);
 
             DefaultsStatus = "Saved.";

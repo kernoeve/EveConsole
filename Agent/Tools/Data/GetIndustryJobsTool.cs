@@ -59,33 +59,33 @@ public sealed class GetIndustryJobsTool : IAgentTool
 
         const string sql = """
             SELECT
-                j.JobId,
-                j.ActivityId,
-                j.Runs,
-                j.Status,
-                j.EndDate,
-                j.Cost,
-                COALESCE(c.Name,  corp.Name,  CAST(j.OwnerId   AS TEXT)) AS owner,
-                COALESCE(inst.Name, CAST(j.InstallerId AS TEXT))          AS installer,
-                COALESCE(bp_st.Name,  un_bp.Name,  CAST(j.BlueprintTypeId AS TEXT))  AS blueprint,
-                COALESCE(prod_st.Name, un_p.Name,  CAST(j.ProductTypeId   AS TEXT))  AS product,
-                COALESCE(NULLIF(sn_f.Name,''), ss_f.Name, CAST(j.FacilityId AS TEXT)) AS facility
-            FROM  EsiIndustryJobs  j
-            LEFT JOIN Characters   c    ON c.Id    = j.OwnerId AND j.OwnerType = 'character'
-            LEFT JOIN Corporations corp ON corp.Id = j.OwnerId AND j.OwnerType = 'corporation'
-            LEFT JOIN Characters   inst ON inst.Id = j.InstallerId
-            LEFT JOIN SdeTypes     bp_st   ON bp_st.TypeId   = j.BlueprintTypeId
-            LEFT JOIN SdeTypes     prod_st ON prod_st.TypeId = j.ProductTypeId
-            LEFT JOIN UniverseNames un_bp  ON un_bp.EntityId  = j.BlueprintTypeId
-            LEFT JOIN UniverseNames un_p   ON un_p.EntityId   = j.ProductTypeId
-            LEFT JOIN SdeStations       ss_f ON ss_f.StationId   = j.FacilityId
-            LEFT JOIN EsiStructureNames sn_f ON sn_f.StructureId = j.FacilityId
-            WHERE  (@status IS NULL OR j.Status = @status)
-              AND  (@inProgress = 0 OR j.Status IN ('active', 'ready'))
-              AND  (@owner IS NULL OR c.Name LIKE @owner OR corp.Name LIKE @owner)
+                j."JobId",
+                j."ActivityId",
+                j."Runs",
+                j."Status",
+                j."EndDate",
+                j."Cost",
+                COALESCE(c."Name",  corp."Name",  CAST(j."OwnerId"   AS TEXT)) AS owner,
+                COALESCE(inst."Name", CAST(j."InstallerId" AS TEXT))          AS installer,
+                COALESCE(bp_st."Name",  un_bp."Name",  CAST(j."BlueprintTypeId" AS TEXT))  AS blueprint,
+                COALESCE(prod_st."Name", un_p."Name",  CAST(j."ProductTypeId"   AS TEXT))  AS product,
+                COALESCE(NULLIF(sn_f."Name",''), ss_f."Name", CAST(j."FacilityId" AS TEXT)) AS facility
+            FROM  "EsiIndustryJobs"  j
+            LEFT JOIN "Characters"   c    ON c."Id"    = j."OwnerId" AND j."OwnerType" = 'character'
+            LEFT JOIN "Corporations" corp ON corp."Id" = j."OwnerId" AND j."OwnerType" = 'corporation'
+            LEFT JOIN "Characters"   inst ON inst."Id" = j."InstallerId"
+            LEFT JOIN "SdeTypes"     bp_st   ON bp_st."TypeId"   = j."BlueprintTypeId"
+            LEFT JOIN "SdeTypes"     prod_st ON prod_st."TypeId" = j."ProductTypeId"
+            LEFT JOIN "UniverseNames" un_bp  ON un_bp."EntityId"  = j."BlueprintTypeId"
+            LEFT JOIN "UniverseNames" un_p   ON un_p."EntityId"   = j."ProductTypeId"
+            LEFT JOIN "SdeStations"       ss_f ON ss_f."StationId"   = j."FacilityId"
+            LEFT JOIN "EsiStructureNames" sn_f ON sn_f."StructureId" = j."FacilityId"
+            WHERE  (@status IS NULL OR j."Status" = @status)
+              AND  (@inProgress = 0 OR j."Status" IN ('active', 'ready'))
+              AND  (@owner IS NULL OR c."Name" LIKE @owner OR corp."Name" LIKE @owner)
             ORDER BY
-                CASE j.Status WHEN 'ready' THEN 0 WHEN 'active' THEN 1 WHEN 'paused' THEN 2 ELSE 3 END,
-                j.EndDate
+                CASE j."Status" WHEN 'ready' THEN 0 WHEN 'active' THEN 1 WHEN 'paused' THEN 2 ELSE 3 END,
+                j."EndDate"
             LIMIT @limit
             """;
 

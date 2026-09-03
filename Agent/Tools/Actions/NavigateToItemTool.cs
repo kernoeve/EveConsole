@@ -35,10 +35,10 @@ public sealed class NavigateToItemTool : IAgentTool
         if (string.IsNullOrWhiteSpace(query)) return "No item name provided.";
 
         const string sql = """
-            SELECT st.TypeId, st.Name
-            FROM   SdeTypes st
-            WHERE  st.Name LIKE @name AND st.Published = 1
-            ORDER  BY LENGTH(st.Name), st.Name
+            SELECT st."TypeId", st."Name"
+            FROM   "SdeTypes" st
+            WHERE  st."Name" LIKE @name AND st."Published" = 1
+            ORDER  BY LENGTH(st."Name"), st."Name"
             LIMIT  5
             """;
 

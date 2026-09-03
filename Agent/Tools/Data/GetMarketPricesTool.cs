@@ -43,16 +43,16 @@ public sealed class GetMarketPricesTool : IAgentTool
         if (names.Count == 0) return "No item names provided.";
 
         const string sql = """
-            SELECT st.Name,
-                   pc.LocationName AS source,
-                   mip.BuyPrice,
-                   mip.SellPrice,
-                   mip.Midpoint
-            FROM   SdeTypes          st
-            JOIN   MarketItemPrices  mip ON mip.TypeId   = st.TypeId
-            JOIN   MarketPricingConfigs pc ON pc.Id = mip.ConfigId AND pc.IsEnabled = 1
-            WHERE  st.Name LIKE @name
-            ORDER  BY pc.SortOrder
+            SELECT st."Name",
+                   pc."LocationName" AS source,
+                   mip."BuyPrice",
+                   mip."SellPrice",
+                   mip."Midpoint"
+            FROM   "SdeTypes"          st
+            JOIN   "MarketItemPrices"  mip ON mip."TypeId"   = st."TypeId"
+            JOIN   "MarketPricingConfigs" pc ON pc."Id" = mip."ConfigId" AND pc."IsEnabled" = 1
+            WHERE  st."Name" LIKE @name
+            ORDER  BY pc."SortOrder"
             LIMIT  5
             """;
 

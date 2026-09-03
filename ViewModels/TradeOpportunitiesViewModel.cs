@@ -548,14 +548,14 @@ public class TradeOpportunitiesViewModel : ReactiveObject
     // ── SQL ───────────────────────────────────────────────────────────────────
 
     private const string StationsSql = """
-        SELECT o.LocationId,
-               COALESCE(s."Name", sn."Name", 'Unknown (' || o.LocationId || ')') AS StationName
+        SELECT o."LocationId",
+               COALESCE(s."Name", sn."Name", 'Unknown (' || o."LocationId" || ')') AS "StationName"
         FROM (
             SELECT DISTINCT "LocationId" FROM "MarketRawOrders"
         ) o
-        LEFT JOIN "SdeStations"       s  ON s."StationId"   = CAST(o.LocationId AS INTEGER)
-        LEFT JOIN "EsiStructureNames" sn ON sn."StructureId" = o.LocationId
-        ORDER BY StationName
+        LEFT JOIN "SdeStations"       s  ON s."StationId"   = CAST(o."LocationId" AS INTEGER)
+        LEFT JOIN "EsiStructureNames" sn ON sn."StructureId" = o."LocationId"
+        ORDER BY "StationName"
         """;
 
     private const string CandidateSql = """
@@ -574,13 +574,13 @@ public class TradeOpportunitiesViewModel : ReactiveObject
                    MAX(d."Price")        AS BestBuy,
                    SUM(d."VolumeRemain") AS AvailBuy
             FROM "MarketRawOrders" d
-            JOIN src s ON s.TypeId = d."TypeId"
+            JOIN src s ON s."TypeId" = d."TypeId"
                        AND d."Price" > s.BestSell
             WHERE d."LocationId" = @destId AND d."IsBuyOrder" = 1
             GROUP BY d."TypeId"
         )
         SELECT
-            s.TypeId,
+            s."TypeId",
             t."Name",
             CAST(s.BestSell AS REAL)                                 AS BestSell,
             CAST(d.BestBuy  AS REAL)                                 AS BestBuy,
@@ -589,8 +589,8 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             CAST((d.BestBuy - s.BestSell) / t."Volume" AS REAL)     AS ProfitPerM3,
             MIN(s.AvailSell, d.AvailBuy)                             AS MaxQty
         FROM src s
-        JOIN dst d ON d.TypeId = s.TypeId
-        JOIN "SdeTypes" t ON t."TypeId" = s.TypeId
+        JOIN dst d ON d."TypeId" = s."TypeId"
+        JOIN "SdeTypes" t ON t."TypeId" = s."TypeId"
         WHERE t."Volume" > 0
         /*EXCLUSION*/
         ORDER BY ProfitPerM3 DESC
@@ -613,7 +613,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             GROUP BY "TypeId"
         )
         SELECT
-            s.TypeId,
+            s."TypeId",
             t."Name",
             CAST(s.BestSell  AS REAL)                                AS BestSell,
             CAST(d.DestSell  AS REAL)                                AS DestSell,
@@ -622,8 +622,8 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             CAST((d.DestSell - s.BestSell) / t."Volume" AS REAL)    AS ProfitPerM3,
             s.AvailSell                                              AS MaxQty
         FROM src s
-        JOIN dst d ON d.TypeId = s.TypeId
-        JOIN "SdeTypes" t ON t."TypeId" = s.TypeId
+        JOIN dst d ON d."TypeId" = s."TypeId"
+        JOIN "SdeTypes" t ON t."TypeId" = s."TypeId"
         WHERE d.DestSell > s.BestSell
           AND t."Volume" > 0
         /*EXCLUSION*/

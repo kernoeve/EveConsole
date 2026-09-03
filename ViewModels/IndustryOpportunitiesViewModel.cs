@@ -622,10 +622,10 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         SELECT
             bc."TypeId",
             bc."TypeName",
-            CAST(bc."TotalCost"    AS REAL)   AS BuildCost,
-            CAST(mip."SellPrice"   AS REAL)   AS SellPrice,
-            CAST(mip."BuyPrice"    AS REAL)   AS BuyPrice,
-            CAST(bc."BuildSeconds" AS REAL)   AS BuildSeconds
+            CAST(bc."TotalCost"    AS REAL)   AS "BuildCost",
+            CAST(mip."SellPrice"   AS REAL)   AS "SellPrice",
+            CAST(mip."BuyPrice"    AS REAL)   AS "BuyPrice",
+            CAST(bc."BuildSeconds" AS REAL)   AS "BuildSeconds"
         FROM "BuildCosts" bc
         JOIN "MarketItemPrices" mip
               ON mip."TypeId" = bc."TypeId" AND mip."ConfigId" = @configId

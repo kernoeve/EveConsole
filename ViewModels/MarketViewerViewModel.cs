@@ -619,14 +619,14 @@ public class MarketViewerViewModel : ReactiveObject
 #pragma warning disable EF1002 // region is an inlined int from a fixed, DB-derived set — no injection risk
             var orders = await db.Database.SqlQueryRaw<TypeOrderAgg>(
                 $"""
-                 SELECT o.TypeId AS TypeId,
-                        SUM(CASE WHEN o.IsBuyOrder = 0 THEN o.VolumeRemain ELSE 0 END)           AS SellUnits,
-                        SUM(CASE WHEN o.IsBuyOrder = 0 THEN o.Price * o.VolumeRemain ELSE 0 END) AS SellIsk,
-                        SUM(CASE WHEN o.IsBuyOrder = 1 THEN o.VolumeRemain ELSE 0 END)           AS BuyUnits,
-                        SUM(CASE WHEN o.IsBuyOrder = 1 THEN o.Price * o.VolumeRemain ELSE 0 END) AS BuyIsk
+                 SELECT o."TypeId" AS "TypeId",
+                        SUM(CASE WHEN o."IsBuyOrder" = 0 THEN o."VolumeRemain" ELSE 0 END)           AS SellUnits,
+                        SUM(CASE WHEN o."IsBuyOrder" = 0 THEN o."Price" * o."VolumeRemain" ELSE 0 END) AS SellIsk,
+                        SUM(CASE WHEN o."IsBuyOrder" = 1 THEN o."VolumeRemain" ELSE 0 END)           AS BuyUnits,
+                        SUM(CASE WHEN o."IsBuyOrder" = 1 THEN o."Price" * o."VolumeRemain" ELSE 0 END) AS BuyIsk
                  {OrdersFrom}
                  {orderWhere}
-                 GROUP BY o.TypeId
+                 GROUP BY o."TypeId"
                  """).ToListAsync();
 #pragma warning restore EF1002
 

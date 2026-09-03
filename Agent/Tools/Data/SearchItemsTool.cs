@@ -33,12 +33,12 @@ public sealed class SearchItemsTool : IAgentTool
         if (string.IsNullOrWhiteSpace(query)) return "No search query provided.";
 
         const string sql = """
-            SELECT st.TypeId, st.Name, sg.Name as GroupName, sc.Name as CategoryName
-            FROM SdeTypes     st
-            JOIN SdeGroups    sg ON sg.GroupId    = st.GroupId
-            JOIN SdeCategories sc ON sc.CategoryId = sg.CategoryId
-            WHERE st.Name LIKE @q AND st.Published = 1
-            ORDER BY LENGTH(st.Name), st.Name
+            SELECT st."TypeId", st."Name", sg."Name" as GroupName, sc."Name" as CategoryName
+            FROM "SdeTypes"     st
+            JOIN "SdeGroups"    sg ON sg."GroupId"    = st."GroupId"
+            JOIN "SdeCategories" sc ON sc."CategoryId" = sg."CategoryId"
+            WHERE st."Name" LIKE @q AND st."Published" = 1
+            ORDER BY LENGTH(st."Name"), st."Name"
             LIMIT @limit
             """;
 

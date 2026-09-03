@@ -35,30 +35,30 @@ public sealed class GetAssetsTool : IAgentTool
 
         const string sql = """
             SELECT
-                st.Name                                                     AS item,
-                SUM(a.Quantity)                                             AS quantity,
-                COALESCE(sn.Name, ss.Name, CAST(a.RootLocationId AS TEXT)) AS location,
-                COALESCE(c.Name, corp.Name, CAST(a.OwnerId AS TEXT))       AS owner,
+                st."Name"                                                     AS item,
+                SUM(a."Quantity")                                             AS quantity,
+                COALESCE(sn."Name", ss."Name", CAST(a."RootLocationId" AS TEXT)) AS location,
+                COALESCE(c."Name", corp."Name", CAST(a."OwnerId" AS TEXT))       AS owner,
                 COALESCE(
-                    ROUND(mip.Midpoint * SUM(a.Quantity), 2),
+                    ROUND(mip."Midpoint" * SUM(a."Quantity"), 2),
                     0
                 )                                                           AS estimated_value
-            FROM EsiAssets a
-            JOIN SdeTypes  st   ON st.TypeId   = a.TypeId
-            LEFT JOIN Characters    c    ON c.Id    = a.OwnerId  AND a.OwnerType = 'character'
-            LEFT JOIN Corporations  corp ON corp.Id = a.OwnerId  AND a.OwnerType = 'corp'
-            LEFT JOIN SdeStations        ss ON ss.StationId     = a.RootLocationId
-            LEFT JOIN EsiStructureNames  sn ON sn.StructureId   = a.RootLocationId
+            FROM "EsiAssets" a
+            JOIN "SdeTypes"  st   ON st."TypeId"   = a."TypeId"
+            LEFT JOIN "Characters"    c    ON c."Id"    = a."OwnerId"  AND a."OwnerType" = 'character'
+            LEFT JOIN "Corporations"  corp ON corp."Id" = a."OwnerId"  AND a."OwnerType" = 'corp'
+            LEFT JOIN "SdeStations"        ss ON ss."StationId"     = a."RootLocationId"
+            LEFT JOIN "EsiStructureNames"  sn ON sn."StructureId"   = a."RootLocationId"
             LEFT JOIN (
-                SELECT mip2.TypeId, mip2.Midpoint
-                FROM   MarketItemPrices     mip2
-                JOIN   MarketPricingConfigs mpc  ON mpc.Id = mip2.ConfigId AND mpc.IsEnabled = 1
-                ORDER  BY mpc.SortOrder
-            ) mip ON mip.TypeId = a.TypeId
-            WHERE  (@char IS NULL OR c.Name LIKE @char OR corp.Name LIKE @char)
-              AND  (@item IS NULL OR st.Name LIKE @item)
-              AND  (@loc  IS NULL OR sn.Name LIKE @loc OR ss.Name LIKE @loc)
-            GROUP BY a.TypeId, a.RootLocationId, a.OwnerId, a.OwnerType
+                SELECT mip2."TypeId", mip2."Midpoint"
+                FROM   "MarketItemPrices"     mip2
+                JOIN   "MarketPricingConfigs" mpc  ON mpc."Id" = mip2."ConfigId" AND mpc."IsEnabled" = 1
+                ORDER  BY mpc."SortOrder"
+            ) mip ON mip."TypeId" = a."TypeId"
+            WHERE  (@char IS NULL OR c."Name" LIKE @char OR corp."Name" LIKE @char)
+              AND  (@item IS NULL OR st."Name" LIKE @item)
+              AND  (@loc  IS NULL OR sn."Name" LIKE @loc OR ss."Name" LIKE @loc)
+            GROUP BY a."TypeId", a."RootLocationId", a."OwnerId", a."OwnerType"
             ORDER BY estimated_value DESC, quantity DESC
             LIMIT @limit
             """;

@@ -29,18 +29,18 @@ public sealed class GetCharacterInfoTool : IAgentTool
         var nameFilter = input.TryGetProperty("character_name", out var n) ? n.GetString() : null;
 
         const string sql = """
-            SELECT c.Name,
-                   c.TotalSp,
-                   c.UnallocatedSp,
-                   c.SecurityStatus,
-                   corp.Name  AS CorpName,
-                   corp.Ticker,
-                   wb.Balance
-            FROM   Characters c
-            LEFT JOIN Corporations corp ON corp.Id = c.CorporationId
-            LEFT JOIN EsiWalletBalances wb ON wb.OwnerId = c.Id AND wb.OwnerType = 'character' AND wb.Division = 0
-            WHERE  (@name IS NULL OR c.Name LIKE @name)
-            ORDER  BY c.Name
+            SELECT c."Name",
+                   c."TotalSp",
+                   c."UnallocatedSp",
+                   c."SecurityStatus",
+                   corp."Name"  AS CorpName,
+                   corp."Ticker",
+                   wb."Balance"
+            FROM   "Characters" c
+            LEFT JOIN "Corporations" corp ON corp."Id" = c."CorporationId"
+            LEFT JOIN "EsiWalletBalances" wb ON wb."OwnerId" = c."Id" AND wb."OwnerType" = 'character' AND wb."Division" = 0
+            WHERE  (@name IS NULL OR c."Name" LIKE @name)
+            ORDER  BY c."Name"
             """;
 
         var rows = new List<object>();
@@ -70,19 +70,19 @@ public sealed class GetCharacterInfoTool : IAgentTool
         if (nameFilter is not null && rows.Count == 1)
         {
             const string queueSql = """
-                SELECT sq.QueuePosition,
-                       COALESCE(st.Name, 'Unknown Skill') AS SkillName,
-                       sq.FinishedLevel   AS TargetLevel,
-                       COALESCE(sk.ActiveSkillLevel, 0) AS CurrentLevel,
-                       sq.StartDate,
-                       sq.FinishDate
-                FROM   EsiSkillQueue sq
-                JOIN   Characters c ON c.Id = sq.CharacterId
-                LEFT   JOIN SdeTypes st ON st.TypeId  = sq.SkillId
-                LEFT   JOIN EsiSkills sk ON sk.CharacterId = sq.CharacterId
-                                        AND sk.SkillId     = sq.SkillId
-                WHERE  c.Name LIKE @name
-                ORDER  BY sq.QueuePosition
+                SELECT sq."QueuePosition",
+                       COALESCE(st."Name", 'Unknown Skill') AS SkillName,
+                       sq."FinishedLevel"   AS TargetLevel,
+                       COALESCE(sk."ActiveSkillLevel", 0) AS CurrentLevel,
+                       sq."StartDate",
+                       sq."FinishDate"
+                FROM   "EsiSkillQueue" sq
+                JOIN   "Characters" c ON c."Id" = sq."CharacterId"
+                LEFT   JOIN "SdeTypes" st ON st."TypeId"  = sq."SkillId"
+                LEFT   JOIN "EsiSkills" sk ON sk."CharacterId" = sq."CharacterId"
+                                        AND sk."SkillId"     = sq."SkillId"
+                WHERE  c."Name" LIKE @name
+                ORDER  BY sq."QueuePosition"
                 LIMIT  50
                 """;
 

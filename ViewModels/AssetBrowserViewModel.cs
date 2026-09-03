@@ -304,16 +304,16 @@ public class AssetBrowserViewModel : ReactiveObject
         WITH
         ContainerHops AS (
             SELECT
-                a.ItemId, a.OwnerId, a.OwnerType,
-                p1.TypeId AS CP1TypeId,
-                p2.TypeId AS CP2TypeId,
-                p3.TypeId AS CP3TypeId,
+                a."ItemId", a."OwnerId", a."OwnerType",
+                p1."TypeId" AS CP1TypeId,
+                p2."TypeId" AS CP2TypeId,
+                p3."TypeId" AS CP3TypeId,
                 CASE
-                    WHEN a.LocationType != 'item'          THEN 0
-                    WHEN a.LocationId = a.RootLocationId   THEN 0
-                    WHEN p1.LocationId = a.RootLocationId  THEN 1
-                    WHEN p2.LocationId = a.RootLocationId  THEN 2
-                    WHEN p3.LocationId = a.RootLocationId  THEN 3
+                    WHEN a."LocationType" != 'item'          THEN 0
+                    WHEN a."LocationId" = a."RootLocationId"   THEN 0
+                    WHEN p1."LocationId" = a."RootLocationId"  THEN 1
+                    WHEN p2."LocationId" = a."RootLocationId"  THEN 2
+                    WHEN p3."LocationId" = a."RootLocationId"  THEN 3
                     ELSE 0
                 END AS ContainerDepth,
                 -- Which hop's flag names the corp hangar division.
@@ -325,96 +325,96 @@ public class AssetBrowserViewModel : ReactiveObject
                 -- depth, which is why the path used to jump straight from Office to the
                 -- container and lose the division between them.
                 CASE
-                    WHEN a.LocationType != 'item'          THEN NULL
-                    WHEN a.LocationId = a.RootLocationId   THEN NULL
-                    WHEN p1.LocationId = a.RootLocationId  THEN a.LocationFlag
-                    WHEN p2.LocationId = a.RootLocationId  THEN p1.LocationFlag
-                    WHEN p3.LocationId = a.RootLocationId  THEN p2.LocationFlag
+                    WHEN a."LocationType" != 'item'          THEN NULL
+                    WHEN a."LocationId" = a."RootLocationId"   THEN NULL
+                    WHEN p1."LocationId" = a."RootLocationId"  THEN a."LocationFlag"
+                    WHEN p2."LocationId" = a."RootLocationId"  THEN p1."LocationFlag"
+                    WHEN p3."LocationId" = a."RootLocationId"  THEN p2."LocationFlag"
                     ELSE NULL
                 END AS DivFlag
-            FROM EsiAssets a
-            LEFT JOIN EsiAssets p1 ON p1.ItemId = a.LocationId  AND p1.OwnerId = a.OwnerId AND p1.OwnerType = a.OwnerType
-                                   AND a.LocationType = 'item' AND a.LocationId != a.RootLocationId
-            LEFT JOIN EsiAssets p2 ON p2.ItemId = p1.LocationId AND p2.OwnerId = a.OwnerId AND p2.OwnerType = a.OwnerType
-                                   AND p1.LocationId != a.RootLocationId
-            LEFT JOIN EsiAssets p3 ON p3.ItemId = p2.LocationId AND p3.OwnerId = a.OwnerId AND p3.OwnerType = a.OwnerType
-                                   AND p2.LocationId != a.RootLocationId
+            FROM "EsiAssets" a
+            LEFT JOIN "EsiAssets" p1 ON p1."ItemId" = a."LocationId"  AND p1."OwnerId" = a."OwnerId" AND p1."OwnerType" = a."OwnerType"
+                                   AND a."LocationType" = 'item' AND a."LocationId" != a."RootLocationId"
+            LEFT JOIN "EsiAssets" p2 ON p2."ItemId" = p1."LocationId" AND p2."OwnerId" = a."OwnerId" AND p2."OwnerType" = a."OwnerType"
+                                   AND p1."LocationId" != a."RootLocationId"
+            LEFT JOIN "EsiAssets" p3 ON p3."ItemId" = p2."LocationId" AND p3."OwnerId" = a."OwnerId" AND p3."OwnerType" = a."OwnerType"
+                                   AND p2."LocationId" != a."RootLocationId"
         ),
         -- Second pass only because SQLite cannot reference a computed alias from the same SELECT,
         -- and resolving the division name needs DivFlag to already exist.
         ContainerJoins AS (
             SELECT
-                h.ItemId, h.OwnerId, h.OwnerType,
+                h."ItemId", h."OwnerId", h."OwnerType",
                 h.CP1TypeId, h.CP2TypeId, h.CP3TypeId, h.ContainerDepth,
                 -- 'CorpSAG_' is one character, so divisions 1-7 match and CorporationGoalDeliveries
                 -- (which also sits under the office, but is not a hangar) does not. Falls back to
                 -- the number when the corp has not named the division, or when we hold no
                 -- divisions for that corp at all -- "Division 6" still beats showing nothing.
                 CASE WHEN h.DivFlag LIKE 'CorpSAG_'
-                     THEN COALESCE(NULLIF(cd.Name, ''), 'Division ' || SUBSTR(h.DivFlag, 8))
+                     THEN COALESCE(NULLIF(cd."Name", ''), 'Division ' || SUBSTR(h.DivFlag, 8))
                      ELSE NULL
                 END AS DivName
             FROM ContainerHops h
-            LEFT JOIN EsiCorpDivisions cd ON h.OwnerType     = 'corporation'
-                                         AND cd.CorporationId = h.OwnerId
-                                         AND cd.DivisionType  = 'hangar'
+            LEFT JOIN "EsiCorpDivisions" cd ON h."OwnerType"     = 'corporation'
+                                         AND cd."CorporationId" = h."OwnerId"
+                                         AND cd."DivisionType"  = 'hangar'
                                          AND h.DivFlag LIKE 'CorpSAG_'
-                                         AND cd.Division = CAST(SUBSTR(h.DivFlag, 8) AS INTEGER)
+                                         AND cd."Division" = CAST(SUBSTR(h.DivFlag, 8) AS INTEGER)
         ),
         JobFacilities AS (
             SELECT
-                j.JobId,
-                j.OwnerId,
-                j.OwnerType,
-                j.FacilityId,
-                j.BlueprintTypeId,
-                j.ProductTypeId,
-                j.ActivityId,
-                j.Runs,
-                CASE WHEN bl.Runs IS NULL OR bl.Runs < 0 THEN 0 ELSE 1 END AS BPIsCopy,
+                j."JobId",
+                j."OwnerId",
+                j."OwnerType",
+                j."FacilityId",
+                j."BlueprintTypeId",
+                j."ProductTypeId",
+                j."ActivityId",
+                j."Runs",
+                CASE WHEN bl."Runs" IS NULL OR bl."Runs" < 0 THEN 0 ELSE 1 END AS BPIsCopy,
                 CASE
-                    WHEN j.ActivityId IN (1, 9, 11) THEN
-                        COALESCE((SELECT p2q.Quantity FROM SdeBlueprintProducts p2q
-                                  WHERE p2q.TypeId = j.BlueprintTypeId
-                                    AND p2q.Activity = CASE j.ActivityId
+                    WHEN j."ActivityId" IN (1, 9, 11) THEN
+                        COALESCE((SELECT p2q."Quantity" FROM "SdeBlueprintProducts" p2q
+                                  WHERE p2q."TypeId" = j."BlueprintTypeId"
+                                    AND p2q."Activity" = CASE j."ActivityId"
                                         WHEN 1  THEN 'manufacturing'
                                         WHEN 9  THEN 'reaction'
                                         WHEN 11 THEN 'reaction'
                                     END
-                                    AND (j.ProductTypeId IS NULL OR p2q.ProductTypeId = j.ProductTypeId)
-                                  LIMIT 1), 1) * j.Runs
-                    WHEN j.ActivityId IN (5, 8) THEN j.Runs
+                                    AND (j."ProductTypeId" IS NULL OR p2q."ProductTypeId" = j."ProductTypeId")
+                                  LIMIT 1), 1) * j."Runs"
+                    WHEN j."ActivityId" IN (5, 8) THEN j."Runs"
                     ELSE NULL
                 END AS ItemsProduced,
-                COALESCE(NULLIF(sn_f.Name,''), st_f.Name, CAST(j.FacilityId AS TEXT)) AS FacilityName,
-                COALESCE(ss_st_f.Name, ss_sn_f.Name, '')  AS FacilitySolarSystem,
-                COALESCE(r_st_f.Name,  r_sn_f.Name,  '')  AS FacilityRegion,
-                CAST(ROUND(COALESCE(ss_st_f.Security, ss_sn_f.Security, 0.0), 1) AS TEXT) AS FacilitySecurity
-            FROM EsiIndustryJobs j
-            LEFT JOIN EsiBlueprints     bl     ON bl.ItemId      = j.BlueprintId  AND bl.OwnerId = j.OwnerId AND bl.OwnerType = j.OwnerType
-            LEFT JOIN SdeStations       st_f   ON st_f.StationId = j.FacilityId
-            LEFT JOIN EsiStructureNames sn_f   ON sn_f.StructureId = j.FacilityId
-            LEFT JOIN SdeSolarSystems   ss_st_f ON ss_st_f.SolarSystemId = st_f.SolarSystemId
-            LEFT JOIN SdeSolarSystems   ss_sn_f ON ss_sn_f.SolarSystemId = sn_f.SolarSystemId
-            LEFT JOIN SdeRegions        r_st_f ON r_st_f.RegionId = COALESCE(st_f.RegionId, ss_st_f.RegionId)
-            LEFT JOIN SdeRegions        r_sn_f ON r_sn_f.RegionId = ss_sn_f.RegionId
-            WHERE j.Status IN ('active', 'paused', 'ready')
+                COALESCE(NULLIF(sn_f."Name",''), st_f."Name", CAST(j."FacilityId" AS TEXT)) AS FacilityName,
+                COALESCE(ss_st_f."Name", ss_sn_f."Name", '')  AS FacilitySolarSystem,
+                COALESCE(r_st_f."Name",  r_sn_f."Name",  '')  AS FacilityRegion,
+                CAST(ROUND(COALESCE(ss_st_f."Security", ss_sn_f."Security", 0.0), 1) AS TEXT) AS FacilitySecurity
+            FROM "EsiIndustryJobs" j
+            LEFT JOIN "EsiBlueprints"     bl     ON bl."ItemId"      = j."BlueprintId"  AND bl."OwnerId" = j."OwnerId" AND bl."OwnerType" = j."OwnerType"
+            LEFT JOIN "SdeStations"       st_f   ON st_f."StationId" = j."FacilityId"
+            LEFT JOIN "EsiStructureNames" sn_f   ON sn_f."StructureId" = j."FacilityId"
+            LEFT JOIN "SdeSolarSystems"   ss_st_f ON ss_st_f."SolarSystemId" = st_f."SolarSystemId"
+            LEFT JOIN "SdeSolarSystems"   ss_sn_f ON ss_sn_f."SolarSystemId" = sn_f."SolarSystemId"
+            LEFT JOIN "SdeRegions"        r_st_f ON r_st_f."RegionId" = COALESCE(st_f."RegionId", ss_st_f."RegionId")
+            LEFT JOIN "SdeRegions"        r_sn_f ON r_sn_f."RegionId" = ss_sn_f."RegionId"
+            WHERE j."Status" IN ('active', 'paused', 'ready')
         ),
         Base AS (
             SELECT
-                a.ItemId          AS "Item Id",
-                a.TypeId          AS "Type Id",
-                COALESCE(t.Name,  CAST(a.TypeId  AS TEXT))           AS "Type Name",
-                COALESCE(g.Name,  '')                                 AS "Group",
-                COALESCE(cat.Name,'')                                 AS "Category",
-                a.Quantity        AS "Quantity",
-                a.OwnerType       AS "Owner Type",
-                COALESCE(ch.Name, co.Name, CAST(a.OwnerId AS TEXT))  AS "Owner Name",
-                a.LocationId      AS "Location Id",
-                CASE a.RootLocationType
-                    WHEN 'station'      THEN COALESCE(st.Name,            '<Unknown Station>')
-                    WHEN 'solar_system' THEN COALESCE(ss.Name,            '<Unknown System>')
-                    WHEN 'other'        THEN COALESCE(NULLIF(sn.Name,''), '<Unknown Structure>')
+                a."ItemId"          AS "Item Id",
+                a."TypeId"          AS "Type Id",
+                COALESCE(t."Name",  CAST(a."TypeId"  AS TEXT))           AS "Type Name",
+                COALESCE(g."Name",  '')                                 AS "Group",
+                COALESCE(cat."Name",'')                                 AS "Category",
+                a."Quantity"        AS "Quantity",
+                a."OwnerType"       AS "Owner Type",
+                COALESCE(ch."Name", co."Name", CAST(a."OwnerId" AS TEXT))  AS "Owner Name",
+                a."LocationId"      AS "Location Id",
+                CASE a."RootLocationType"
+                    WHEN 'station'      THEN COALESCE(st."Name",            '<Unknown Station>')
+                    WHEN 'solar_system' THEN COALESCE(ss."Name",            '<Unknown System>')
+                    WHEN 'other'        THEN COALESCE(NULLIF(sn."Name",''), '<Unknown Structure>')
                     ELSE                     '<Unresolved - Please Refresh>'
                 END AS "Location Name",
                 -- The division slots in immediately after the outermost name, which is the office
@@ -422,136 +422,136 @@ public class AssetBrowserViewModel : ReactiveObject
                 -- so the COALESCE is what makes the segment vanish rather than erase the path.
                 CASE cj.ContainerDepth
                     WHEN 0 THEN NULL
-                    WHEN 1 THEN COALESCE(ct1.Name, CAST(cj.CP1TypeId AS TEXT))
+                    WHEN 1 THEN COALESCE(ct1."Name", CAST(cj.CP1TypeId AS TEXT))
                               || COALESCE(' > ' || cj.DivName, '')
-                    WHEN 2 THEN COALESCE(ct2.Name, CAST(cj.CP2TypeId AS TEXT))
+                    WHEN 2 THEN COALESCE(ct2."Name", CAST(cj.CP2TypeId AS TEXT))
                               || COALESCE(' > ' || cj.DivName, '')
-                              || ' > ' || COALESCE(ct1.Name, CAST(cj.CP1TypeId AS TEXT))
-                    WHEN 3 THEN COALESCE(ct3.Name, CAST(cj.CP3TypeId AS TEXT))
+                              || ' > ' || COALESCE(ct1."Name", CAST(cj.CP1TypeId AS TEXT))
+                    WHEN 3 THEN COALESCE(ct3."Name", CAST(cj.CP3TypeId AS TEXT))
                               || COALESCE(' > ' || cj.DivName, '')
-                              || ' > ' || COALESCE(ct2.Name, CAST(cj.CP2TypeId AS TEXT))
-                              || ' > ' || COALESCE(ct1.Name, CAST(cj.CP1TypeId AS TEXT))
+                              || ' > ' || COALESCE(ct2."Name", CAST(cj.CP2TypeId AS TEXT))
+                              || ' > ' || COALESCE(ct1."Name", CAST(cj.CP1TypeId AS TEXT))
                     ELSE NULL
                 END AS "Container",
-                a.LocationFlag    AS "Flag",
-                CASE a.RootLocationType
-                    WHEN 'station'      THEN ss_sta.Name
-                    WHEN 'solar_system' THEN ss.Name
-                    WHEN 'other'        THEN ss_s.Name
+                a."LocationFlag"    AS "Flag",
+                CASE a."RootLocationType"
+                    WHEN 'station'      THEN ss_sta."Name"
+                    WHEN 'solar_system' THEN ss."Name"
+                    WHEN 'other'        THEN ss_s."Name"
                     ELSE NULL
                 END AS "Solar System",
-                COALESCE(r_st.Name, r_ss.Name, r_s.Name)             AS "Region Name",
-                ROUND(COALESCE(ss_sta.Security, ss.Security, ss_s.Security), 1) AS "Security",
+                COALESCE(r_st."Name", r_ss."Name", r_s."Name")             AS "Region Name",
+                ROUND(COALESCE(ss_sta."Security", ss."Security", ss_s."Security"), 1) AS "Security",
                 -- Hidden: what the names above open. Carried in Base so the three aggregate views
                 -- inherit them rather than each re-deriving the joins.
-                COALESCE(ss_sta.SolarSystemId, ss.SolarSystemId, ss_s.SolarSystemId, 0) AS "Solar System Id",
-                COALESCE(r_st.RegionId, r_ss.RegionId, r_s.RegionId, 0)                 AS "Region Id",
+                COALESCE(ss_sta."SolarSystemId", ss."SolarSystemId", ss_s."SolarSystemId", 0) AS "Solar System Id",
+                COALESCE(r_st."RegionId", r_ss."RegionId", r_s."RegionId", 0)                 AS "Region Id",
                 -- NPC station to the entity browser, player structure to its own tool.
                 -- RootLocationType already tells the two apart.
-                CASE WHEN a.RootLocationType = 'station' THEN 1 ELSE 0 END              AS "Is Station",
-                a.LocationType    AS "Location Type",
-                t.Volume          AS "Volume",
-                t.Volume * CAST(a.Quantity AS REAL)                   AS "Total Volume",
+                CASE WHEN a."RootLocationType" = 'station' THEN 1 ELSE 0 END              AS "Is Station",
+                a."LocationType"    AS "Location Type",
+                t."Volume"          AS "Volume",
+                t."Volume" * CAST(a."Quantity" AS REAL)                   AS "Total Volume",
                 -- BPC: 0. BPO: NPC base price. Regular item: market price with build-cost fallback.
                 CASE
-                    WHEN a.IsBlueprintCopy = 1 THEN 0.0
-                    WHEN a.IsBlueprintCopy = 0 THEN COALESCE(t.BasePrice, 0.0)
+                    WHEN a."IsBlueprintCopy" = 1 THEN 0.0
+                    WHEN a."IsBlueprintCopy" = 0 THEN COALESCE(t."BasePrice", 0.0)
                     ELSE COALESCE(
                         NULLIF(
-                            CASE WHEN mds.AssetValueConfigId IS NOT NULL AND p.TypeId IS NOT NULL THEN
-                                CASE mds.AssetValuePriceType
-                                    WHEN 'Buy'  THEN p.BuyPrice
-                                    WHEN 'Sell' THEN p.SellPrice
-                                    ELSE             p.Midpoint
+                            CASE WHEN mds."AssetValueConfigId" IS NOT NULL AND p."TypeId" IS NOT NULL THEN
+                                CASE mds."AssetValuePriceType"
+                                    WHEN 'Buy'  THEN p."BuyPrice"
+                                    WHEN 'Sell' THEN p."SellPrice"
+                                    ELSE             p."Midpoint"
                                 END
                             ELSE NULL END,
                         0.0),
-                        CASE WHEN bc.TotalCost > 0
-                             THEN bc.TotalCost * (1.0 + COALESCE(mds.MissingPriceMarkupPct, 15.0) / 100.0)
+                        CASE WHEN bc."TotalCost" > 0
+                             THEN bc."TotalCost" * (1.0 + COALESCE(mds."MissingPriceMarkupPct", 15.0) / 100.0)
                              ELSE NULL END
                     )
                 END AS "Value Per Unit",
                 CASE
-                    WHEN a.IsBlueprintCopy = 1 THEN 0.0
-                    WHEN a.IsBlueprintCopy = 0 THEN CAST(a.Quantity AS REAL) * COALESCE(t.BasePrice, 0.0)
-                    ELSE CAST(a.Quantity AS REAL) * COALESCE(
+                    WHEN a."IsBlueprintCopy" = 1 THEN 0.0
+                    WHEN a."IsBlueprintCopy" = 0 THEN CAST(a."Quantity" AS REAL) * COALESCE(t."BasePrice", 0.0)
+                    ELSE CAST(a."Quantity" AS REAL) * COALESCE(
                         NULLIF(
-                            CASE WHEN mds.AssetValueConfigId IS NOT NULL AND p.TypeId IS NOT NULL THEN
-                                CASE mds.AssetValuePriceType
-                                    WHEN 'Buy'  THEN p.BuyPrice
-                                    WHEN 'Sell' THEN p.SellPrice
-                                    ELSE             p.Midpoint
+                            CASE WHEN mds."AssetValueConfigId" IS NOT NULL AND p."TypeId" IS NOT NULL THEN
+                                CASE mds."AssetValuePriceType"
+                                    WHEN 'Buy'  THEN p."BuyPrice"
+                                    WHEN 'Sell' THEN p."SellPrice"
+                                    ELSE             p."Midpoint"
                                 END
                             ELSE NULL END,
                         0.0),
-                        CASE WHEN bc.TotalCost > 0
-                             THEN bc.TotalCost * (1.0 + COALESCE(mds.MissingPriceMarkupPct, 15.0) / 100.0)
+                        CASE WHEN bc."TotalCost" > 0
+                             THEN bc."TotalCost" * (1.0 + COALESCE(mds."MissingPriceMarkupPct", 15.0) / 100.0)
                              ELSE 0.0 END
                     )
                 END AS "Value",
                 -- ISK/m³ at individual row level = price per unit ÷ volume per unit
                 CASE
-                    WHEN a.IsBlueprintCopy = 1 THEN NULL
-                    WHEN a.IsBlueprintCopy = 0 AND t.BasePrice > 0 AND t.Volume > 0 THEN t.BasePrice / t.Volume
-                    WHEN t.Volume > 0 THEN
+                    WHEN a."IsBlueprintCopy" = 1 THEN NULL
+                    WHEN a."IsBlueprintCopy" = 0 AND t."BasePrice" > 0 AND t."Volume" > 0 THEN t."BasePrice" / t."Volume"
+                    WHEN t."Volume" > 0 THEN
                         COALESCE(
                             NULLIF(
-                                CASE WHEN mds.AssetValueConfigId IS NOT NULL AND p.TypeId IS NOT NULL THEN
-                                    CASE mds.AssetValuePriceType
-                                        WHEN 'Buy'  THEN p.BuyPrice  / t.Volume
-                                        WHEN 'Sell' THEN p.SellPrice / t.Volume
-                                        ELSE             p.Midpoint  / t.Volume
+                                CASE WHEN mds."AssetValueConfigId" IS NOT NULL AND p."TypeId" IS NOT NULL THEN
+                                    CASE mds."AssetValuePriceType"
+                                        WHEN 'Buy'  THEN p."BuyPrice"  / t."Volume"
+                                        WHEN 'Sell' THEN p."SellPrice" / t."Volume"
+                                        ELSE             p."Midpoint"  / t."Volume"
                                     END
                                 ELSE NULL END,
                             0.0),
-                            CASE WHEN bc.TotalCost > 0
-                                 THEN bc.TotalCost * (1.0 + COALESCE(mds.MissingPriceMarkupPct, 15.0) / 100.0) / t.Volume
+                            CASE WHEN bc."TotalCost" > 0
+                                 THEN bc."TotalCost" * (1.0 + COALESCE(mds."MissingPriceMarkupPct", 15.0) / 100.0) / t."Volume"
                                  ELSE NULL END
                         )
                     ELSE NULL
                 END AS "ISK/m³",
-                bc.TotalCost      AS "Build Cost",
-                a.IsSingleton     AS "Is Singleton",
-                a.IsBlueprintCopy AS "Is Blueprint Copy",
-                a.OwnerId         AS "Owner Id",
-                a.RootLocationId  AS "Root Location Id"
-            FROM EsiAssets a
-            LEFT JOIN ContainerJoins  cj     ON cj.ItemId         = a.ItemId         AND cj.OwnerId          = a.OwnerId AND cj.OwnerType = a.OwnerType
-            LEFT JOIN Characters      ch     ON a.OwnerId         = ch.Id            AND a.OwnerType         = 'character'
-            LEFT JOIN Corporations    co     ON a.OwnerId         = co.Id            AND a.OwnerType         = 'corporation'
-            LEFT JOIN SdeTypes        t      ON a.TypeId          = t.TypeId
-            LEFT JOIN SdeGroups       g      ON g.GroupId         = t.GroupId
-            LEFT JOIN SdeCategories   cat    ON cat.CategoryId    = g.CategoryId
-            LEFT JOIN SdeStations     st     ON a.RootLocationId  = st.StationId     AND a.RootLocationType  = 'station'
-            LEFT JOIN SdeSolarSystems ss_sta ON ss_sta.SolarSystemId = st.SolarSystemId
-            LEFT JOIN SdeSolarSystems ss     ON a.RootLocationId  = ss.SolarSystemId AND a.RootLocationType  = 'solar_system'
-            LEFT JOIN EsiStructureNames sn   ON sn.StructureId    = a.RootLocationId AND a.RootLocationType  = 'other'
-            LEFT JOIN SdeSolarSystems ss_s   ON ss_s.SolarSystemId = sn.SolarSystemId
-            LEFT JOIN SdeRegions      r_st   ON r_st.RegionId     = st.RegionId
-            LEFT JOIN SdeRegions      r_ss   ON r_ss.RegionId     = ss.RegionId
-            LEFT JOIN SdeRegions      r_s    ON r_s.RegionId      = ss_s.RegionId
-            LEFT JOIN SdeTypes        ct1    ON ct1.TypeId        = cj.CP1TypeId
-            LEFT JOIN SdeTypes        ct2    ON ct2.TypeId        = cj.CP2TypeId
-            LEFT JOIN SdeTypes        ct3    ON ct3.TypeId        = cj.CP3TypeId
-            LEFT JOIN (SELECT AssetValueConfigId, AssetValuePriceType, MissingPriceMarkupPct
-                       FROM MarketDefaultSettings WHERE Id = 1) mds ON 1=1
-            LEFT JOIN MarketItemPrices p ON p.ConfigId = mds.AssetValueConfigId AND p.TypeId = a.TypeId
-            LEFT JOIN BuildCosts bc ON bc.TypeId = a.TypeId
-            WHERE a.TypeId != 60  -- Exclude Asset Safety Wraps (not real items)
+                bc."TotalCost"      AS "Build Cost",
+                a."IsSingleton"     AS "Is Singleton",
+                a."IsBlueprintCopy" AS "Is Blueprint Copy",
+                a."OwnerId"         AS "Owner Id",
+                a."RootLocationId"  AS "Root Location Id"
+            FROM "EsiAssets" a
+            LEFT JOIN ContainerJoins  cj     ON cj."ItemId"         = a."ItemId"         AND cj."OwnerId"          = a."OwnerId" AND cj."OwnerType" = a."OwnerType"
+            LEFT JOIN "Characters"      ch     ON a."OwnerId"         = ch."Id"            AND a."OwnerType"         = 'character'
+            LEFT JOIN "Corporations"    co     ON a."OwnerId"         = co."Id"            AND a."OwnerType"         = 'corporation'
+            LEFT JOIN "SdeTypes"        t      ON a."TypeId"          = t."TypeId"
+            LEFT JOIN "SdeGroups"       g      ON g."GroupId"         = t."GroupId"
+            LEFT JOIN "SdeCategories"   cat    ON cat."CategoryId"    = g."CategoryId"
+            LEFT JOIN "SdeStations"     st     ON a."RootLocationId"  = st."StationId"     AND a."RootLocationType"  = 'station'
+            LEFT JOIN "SdeSolarSystems" ss_sta ON ss_sta."SolarSystemId" = st."SolarSystemId"
+            LEFT JOIN "SdeSolarSystems" ss     ON a."RootLocationId"  = ss."SolarSystemId" AND a."RootLocationType"  = 'solar_system'
+            LEFT JOIN "EsiStructureNames" sn   ON sn."StructureId"    = a."RootLocationId" AND a."RootLocationType"  = 'other'
+            LEFT JOIN "SdeSolarSystems" ss_s   ON ss_s."SolarSystemId" = sn."SolarSystemId"
+            LEFT JOIN "SdeRegions"      r_st   ON r_st."RegionId"     = st."RegionId"
+            LEFT JOIN "SdeRegions"      r_ss   ON r_ss."RegionId"     = ss."RegionId"
+            LEFT JOIN "SdeRegions"      r_s    ON r_s."RegionId"      = ss_s."RegionId"
+            LEFT JOIN "SdeTypes"        ct1    ON ct1."TypeId"        = cj.CP1TypeId
+            LEFT JOIN "SdeTypes"        ct2    ON ct2."TypeId"        = cj.CP2TypeId
+            LEFT JOIN "SdeTypes"        ct3    ON ct3."TypeId"        = cj.CP3TypeId
+            LEFT JOIN (SELECT "AssetValueConfigId", "AssetValuePriceType", "MissingPriceMarkupPct"
+                       FROM "MarketDefaultSettings" WHERE "Id" = 1) mds ON 1=1
+            LEFT JOIN "MarketItemPrices" p ON p."ConfigId" = mds."AssetValueConfigId" AND p."TypeId" = a."TypeId"
+            LEFT JOIN "BuildCosts" bc ON bc."TypeId" = a."TypeId"
+            WHERE a."TypeId" != 60  -- Exclude Asset Safety Wraps (not real items)
 
             UNION ALL
 
             -- ── Blueprint currently in an active/paused/ready industry job ────────
             SELECT
-                CAST(-(jf.JobId * 2)     AS INTEGER)                              AS "Item Id",
-                jf.BlueprintTypeId                                                 AS "Type Id",
-                COALESCE(bt.Name, CAST(jf.BlueprintTypeId AS TEXT))               AS "Type Name",
-                COALESCE(bg.Name,   '')                                            AS "Group",
-                COALESCE(bcat.Name, '')                                            AS "Category",
+                CAST(-(jf."JobId" * 2)     AS INTEGER)                              AS "Item Id",
+                jf."BlueprintTypeId"                                                 AS "Type Id",
+                COALESCE(bt."Name", CAST(jf."BlueprintTypeId" AS TEXT))               AS "Type Name",
+                COALESCE(bg."Name",   '')                                            AS "Group",
+                COALESCE(bcat."Name", '')                                            AS "Category",
                 1                                                                  AS "Quantity",
-                jf.OwnerType                                                       AS "Owner Type",
-                COALESCE(ch.Name, co.Name, CAST(jf.OwnerId AS TEXT))              AS "Owner Name",
-                jf.FacilityId                                                      AS "Location Id",
+                jf."OwnerType"                                                       AS "Owner Type",
+                COALESCE(ch."Name", co."Name", CAST(jf."OwnerId" AS TEXT))              AS "Owner Name",
+                jf."FacilityId"                                                      AS "Location Id",
                 jf.FacilityName                                                    AS "Location Name",
                 NULL                                                               AS "Container",
                 'Industry Job'                                                     AS "Flag",
@@ -568,36 +568,36 @@ public class AssetBrowserViewModel : ReactiveObject
                 0                                                                  AS "Region Id",
                 0                                                                  AS "Is Station",
                 'item'                                                             AS "Location Type",
-                bt.Volume                                                          AS "Volume",
-                bt.Volume                                                          AS "Total Volume",
-                CASE WHEN jf.BPIsCopy = 1 THEN 0.0 ELSE COALESCE(bt.BasePrice, 0.0) END AS "Value Per Unit",
-                CASE WHEN jf.BPIsCopy = 1 THEN 0.0 ELSE COALESCE(bt.BasePrice, 0.0) END AS "Value",
+                bt."Volume"                                                          AS "Volume",
+                bt."Volume"                                                          AS "Total Volume",
+                CASE WHEN jf.BPIsCopy = 1 THEN 0.0 ELSE COALESCE(bt."BasePrice", 0.0) END AS "Value Per Unit",
+                CASE WHEN jf.BPIsCopy = 1 THEN 0.0 ELSE COALESCE(bt."BasePrice", 0.0) END AS "Value",
                 NULL                                                               AS "ISK/m³",
                 NULL                                                               AS "Build Cost",
                 0                                                                  AS "Is Singleton",
                 jf.BPIsCopy                                                        AS "Is Blueprint Copy",
-                jf.OwnerId                                                         AS "Owner Id",
-                jf.FacilityId                                                      AS "Root Location Id"
+                jf."OwnerId"                                                         AS "Owner Id",
+                jf."FacilityId"                                                      AS "Root Location Id"
             FROM JobFacilities jf
-            LEFT JOIN Characters    ch   ON ch.Id   = jf.OwnerId AND jf.OwnerType = 'character'
-            LEFT JOIN Corporations  co   ON co.Id   = jf.OwnerId AND jf.OwnerType = 'corporation'
-            LEFT JOIN SdeTypes      bt   ON bt.TypeId  = jf.BlueprintTypeId
-            LEFT JOIN SdeGroups     bg   ON bg.GroupId = bt.GroupId
-            LEFT JOIN SdeCategories bcat ON bcat.CategoryId = bg.CategoryId
+            LEFT JOIN "Characters"    ch   ON ch."Id"   = jf."OwnerId" AND jf."OwnerType" = 'character'
+            LEFT JOIN "Corporations"  co   ON co."Id"   = jf."OwnerId" AND jf."OwnerType" = 'corporation'
+            LEFT JOIN "SdeTypes"      bt   ON bt."TypeId"  = jf."BlueprintTypeId"
+            LEFT JOIN "SdeGroups"     bg   ON bg."GroupId" = bt."GroupId"
+            LEFT JOIN "SdeCategories" bcat ON bcat."CategoryId" = bg."CategoryId"
 
             UNION ALL
 
             -- ── Product being produced by active/paused/ready industry job ─────────
             SELECT
-                CAST(-(jf.JobId * 2 + 1) AS INTEGER)                              AS "Item Id",
-                jf.ProductTypeId                                                   AS "Type Id",
-                COALESCE(pt.Name, CAST(jf.ProductTypeId AS TEXT))                 AS "Type Name",
-                COALESCE(pg.Name,   '')                                            AS "Group",
-                COALESCE(pcat.Name, '')                                            AS "Category",
+                CAST(-(jf."JobId" * 2 + 1) AS INTEGER)                              AS "Item Id",
+                jf."ProductTypeId"                                                   AS "Type Id",
+                COALESCE(pt."Name", CAST(jf."ProductTypeId" AS TEXT))                 AS "Type Name",
+                COALESCE(pg."Name",   '')                                            AS "Group",
+                COALESCE(pcat."Name", '')                                            AS "Category",
                 jf.ItemsProduced                                                   AS "Quantity",
-                jf.OwnerType                                                       AS "Owner Type",
-                COALESCE(ch.Name, co.Name, CAST(jf.OwnerId AS TEXT))              AS "Owner Name",
-                jf.FacilityId                                                      AS "Location Id",
+                jf."OwnerType"                                                       AS "Owner Type",
+                COALESCE(ch."Name", co."Name", CAST(jf."OwnerId" AS TEXT))              AS "Owner Name",
+                jf."FacilityId"                                                      AS "Location Id",
                 jf.FacilityName                                                    AS "Location Name",
                 NULL                                                               AS "Container",
                 'Industry Job'                                                     AS "Flag",
@@ -614,61 +614,61 @@ public class AssetBrowserViewModel : ReactiveObject
                 0                                                                  AS "Region Id",
                 0                                                                  AS "Is Station",
                 'item'                                                             AS "Location Type",
-                pt.Volume                                                          AS "Volume",
-                pt.Volume * CAST(jf.ItemsProduced AS REAL)                        AS "Total Volume",
+                pt."Volume"                                                          AS "Volume",
+                pt."Volume" * CAST(jf.ItemsProduced AS REAL)                        AS "Total Volume",
                 CASE
-                    WHEN jf.ActivityId IN (5, 8) THEN 0.0          -- BPCs (Copying / Invention)
+                    WHEN jf."ActivityId" IN (5, 8) THEN 0.0          -- BPCs (Copying / Invention)
                     ELSE COALESCE(
                         NULLIF(
-                            CASE WHEN mds.AssetValueConfigId IS NOT NULL AND p.TypeId IS NOT NULL THEN
-                                CASE mds.AssetValuePriceType
-                                    WHEN 'Buy'  THEN p.BuyPrice
-                                    WHEN 'Sell' THEN p.SellPrice
-                                    ELSE             p.Midpoint
+                            CASE WHEN mds."AssetValueConfigId" IS NOT NULL AND p."TypeId" IS NOT NULL THEN
+                                CASE mds."AssetValuePriceType"
+                                    WHEN 'Buy'  THEN p."BuyPrice"
+                                    WHEN 'Sell' THEN p."SellPrice"
+                                    ELSE             p."Midpoint"
                                 END
                             ELSE NULL END,
                         0.0),
-                        CASE WHEN bc.TotalCost > 0
-                             THEN bc.TotalCost * (1.0 + COALESCE(mds.MissingPriceMarkupPct, 15.0) / 100.0)
+                        CASE WHEN bc."TotalCost" > 0
+                             THEN bc."TotalCost" * (1.0 + COALESCE(mds."MissingPriceMarkupPct", 15.0) / 100.0)
                              ELSE NULL END
                     )
                 END                                                                AS "Value Per Unit",
                 CASE
-                    WHEN jf.ActivityId IN (5, 8) THEN 0.0
+                    WHEN jf."ActivityId" IN (5, 8) THEN 0.0
                     ELSE CAST(jf.ItemsProduced AS REAL) * COALESCE(
                         NULLIF(
-                            CASE WHEN mds.AssetValueConfigId IS NOT NULL AND p.TypeId IS NOT NULL THEN
-                                CASE mds.AssetValuePriceType
-                                    WHEN 'Buy'  THEN p.BuyPrice
-                                    WHEN 'Sell' THEN p.SellPrice
-                                    ELSE             p.Midpoint
+                            CASE WHEN mds."AssetValueConfigId" IS NOT NULL AND p."TypeId" IS NOT NULL THEN
+                                CASE mds."AssetValuePriceType"
+                                    WHEN 'Buy'  THEN p."BuyPrice"
+                                    WHEN 'Sell' THEN p."SellPrice"
+                                    ELSE             p."Midpoint"
                                 END
                             ELSE NULL END,
                         0.0),
-                        CASE WHEN bc.TotalCost > 0
-                             THEN bc.TotalCost * (1.0 + COALESCE(mds.MissingPriceMarkupPct, 15.0) / 100.0)
+                        CASE WHEN bc."TotalCost" > 0
+                             THEN bc."TotalCost" * (1.0 + COALESCE(mds."MissingPriceMarkupPct", 15.0) / 100.0)
                              ELSE 0.0 END
                     )
                 END                                                                AS "Value",
                 NULL                                                               AS "ISK/m³",
-                bc.TotalCost                                                       AS "Build Cost",
+                bc."TotalCost"                                                       AS "Build Cost",
                 0                                                                  AS "Is Singleton",
-                CASE WHEN jf.ActivityId IN (5, 8) THEN 1 ELSE NULL END            AS "Is Blueprint Copy",
-                jf.OwnerId                                                         AS "Owner Id",
-                jf.FacilityId                                                      AS "Root Location Id"
+                CASE WHEN jf."ActivityId" IN (5, 8) THEN 1 ELSE NULL END            AS "Is Blueprint Copy",
+                jf."OwnerId"                                                         AS "Owner Id",
+                jf."FacilityId"                                                      AS "Root Location Id"
             FROM JobFacilities jf
-            LEFT JOIN Characters    ch   ON ch.Id   = jf.OwnerId AND jf.OwnerType = 'character'
-            LEFT JOIN Corporations  co   ON co.Id   = jf.OwnerId AND jf.OwnerType = 'corporation'
-            LEFT JOIN SdeTypes      pt   ON pt.TypeId   = jf.ProductTypeId
-            LEFT JOIN SdeGroups     pg   ON pg.GroupId  = pt.GroupId
-            LEFT JOIN SdeCategories pcat ON pcat.CategoryId = pg.CategoryId
-            LEFT JOIN (SELECT AssetValueConfigId, AssetValuePriceType, MissingPriceMarkupPct
-                       FROM MarketDefaultSettings WHERE Id = 1) mds ON 1=1
-            LEFT JOIN MarketItemPrices p ON p.ConfigId = mds.AssetValueConfigId
-                                        AND p.TypeId   = jf.ProductTypeId
-            LEFT JOIN BuildCosts bc ON bc.TypeId = jf.ProductTypeId
-            WHERE jf.ProductTypeId IS NOT NULL
-              AND jf.ActivityId    NOT IN (3, 4)   -- ME/TE Research returns the same blueprint; no new item
+            LEFT JOIN "Characters"    ch   ON ch."Id"   = jf."OwnerId" AND jf."OwnerType" = 'character'
+            LEFT JOIN "Corporations"  co   ON co."Id"   = jf."OwnerId" AND jf."OwnerType" = 'corporation'
+            LEFT JOIN "SdeTypes"      pt   ON pt."TypeId"   = jf."ProductTypeId"
+            LEFT JOIN "SdeGroups"     pg   ON pg."GroupId"  = pt."GroupId"
+            LEFT JOIN "SdeCategories" pcat ON pcat."CategoryId" = pg."CategoryId"
+            LEFT JOIN (SELECT "AssetValueConfigId", "AssetValuePriceType", "MissingPriceMarkupPct"
+                       FROM "MarketDefaultSettings" WHERE "Id" = 1) mds ON 1=1
+            LEFT JOIN "MarketItemPrices" p ON p."ConfigId" = mds."AssetValueConfigId"
+                                        AND p."TypeId"   = jf."ProductTypeId"
+            LEFT JOIN "BuildCosts" bc ON bc."TypeId" = jf."ProductTypeId"
+            WHERE jf."ProductTypeId" IS NOT NULL
+              AND jf."ActivityId"    NOT IN (3, 4)   -- ME/TE Research returns the same blueprint; no new item
               AND jf.ItemsProduced IS NOT NULL
         )
         """;
