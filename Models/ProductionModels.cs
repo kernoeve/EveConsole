@@ -237,6 +237,16 @@ public class ProductionPlan
     /// </summary>
     public List<string> Warnings { get; set; } = [];
 
+    /// <summary>
+    /// Prices the plan had to reach back for, or could not find at all — at present, blueprint
+    /// copies. The figures are in the totals either way; this says which of them are soft.
+    ///
+    /// <para>⚠️ Separate from <see cref="Warnings"/> on purpose. That list means one specific
+    /// thing, and the header above it says so, so a second kind of warning posted into it would
+    /// be announced to the user as something it is not.</para>
+    /// </summary>
+    public List<string> PricingWarnings { get; set; } = [];
+
     public decimal TotalRawMaterialCost { get; set; }
 
     /// <summary>Packed volume of everything on the shopping list, m ³. Intermediates are

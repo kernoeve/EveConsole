@@ -196,11 +196,20 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
         // Per-run BPC contract prices grouped by blueprint type → [(ME, per-run price)]. A BPC-only
         // item consumes one run of a purchased BPC; value it per run at the item's ME.
-        var bpcPerRun = (await db.ContractBpcPrices.AsNoTracking().ToListAsync(ct))
+        var bpcRows = await db.ContractBpcPrices.AsNoTracking().ToListAsync(ct);
+
+        var bpcPerRun = bpcRows
             .Select(c => new { c.TypeId, c.Me, Price = ContractPricing.EffectivePerRun(c) })
             .Where(x => x.Price is > 0m)
             .GroupBy(x => x.TypeId)
             .ToDictionary(g => g.Key, g => g.Select(x => (Me: x.Me, PerRun: x.Price!.Value)).ToList());
+
+        // Stale only when EVERY ME on record is stale. One researched copy still on contract is a
+        // live price for the blueprint, and BpcPerRunAt will fall back to it across ME levels.
+        var staleBpc = bpcRows
+            .GroupBy(c => c.TypeId)
+            .Where(g => g.All(ContractPricing.IsStale))
+            .ToDictionary(g => g.Key, g => g.Max(c => c.LastSeenAt));
 
         // Items the build-cost calc found cheaper to BUY than build — buy them here too (raw material,
         // no job) so the two calcs agree.
@@ -254,6 +263,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             MarkupFactor       = markupFactor,
             UnitCosts          = unitCosts,
             BpcPerRun          = bpcPerRun,
+            StaleBpcTypes      = staleBpc,
             BoughtSet          = boughtSet,
             Overrides          = overrides,
             AdjPrices          = adjPrices,
@@ -548,6 +558,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // Tracks items whose category could not be determined or is not assigned in this park.
         var unmappedItems = new SortedSet<string>();
 
+        // Blueprint copies the plan could not price, or could only price from an ended contract.
+        // Sorted and de-duplicated the same way, since one BPC can be reached many times.
+        var bpcPriceNotes = new SortedSet<string>();
+
         // Items currently being expanded — the ancestor chain, not a visited set. See the guard
         // inside ExpandItem for why the distinction matters.
         var expanding = new HashSet<int>();
@@ -739,7 +753,21 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 {
                     // Overlay the BPC's PER-RUN price (at this item's ME) into the price table so both
                     // the raw-material total and the job-material line value it identically.
-                    unitCosts[bpProd.TypeId] = BpcPerRunAt(bpProd.TypeId, meLevel);
+                    var bpcPerRunPrice = BpcPerRunAt(bpProd.TypeId, meLevel);
+                    unitCosts[bpProd.TypeId] = bpcPerRunPrice;
+
+                    // ⚠️ Zero is the right fallback — the rest of the plan is worth having,
+                    // so an unpriced blueprint must not abort it — but zero for a titan BPC is
+                    // most of the build missing, and the total would otherwise read as authorita-
+                    // tive. Say which figure is soft rather than leaving the user to notice.
+                    var bpcName = typeNames.GetValueOrDefault(bpProd.TypeId, $"Type {bpProd.TypeId}");
+                    if (bpcPerRunPrice <= 0m)
+                        bpcPriceNotes.Add($"{bpcName} — never seen on contract; counted as 0 ISK");
+                    else if (ctx.StaleBpcTypes.TryGetValue(bpProd.TypeId, out var lastSeen))
+                        bpcPriceNotes.Add(
+                            $"{bpcName} — {bpcPerRunPrice:N0} ISK per run, from a contract that ended "
+                            + (lastSeen is { } ls ? $"{ls.UtcDateTime:yyyy-MM-dd}" : "some time ago")
+                            + "; none listed since");
                     job.Materials.Add(new PlanJobMaterial
                     {
                         MaterialTypeId = bpProd.TypeId,
@@ -954,6 +982,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             AllJobs              = jobPool.Values.OrderByDescending(j => j.IsFinalProduct).ThenBy(j => j.OutputTypeName).ToList(),
             RootTypeIds          = requests.Where(r => jobPool.ContainsKey(r.TypeId)).Select(r => r.TypeId).ToList(),
             Warnings             = planWarnings,
+            PricingWarnings      = bpcPriceNotes.ToList(),
             RawMaterials         = rawMaterials,
             Intermediates        = intermediates,
             FinalProducts        = finalProducts,

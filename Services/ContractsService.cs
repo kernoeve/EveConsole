@@ -537,7 +537,8 @@ public class ContractsService : ReactiveObject
 
         // Current best = lowest price among contracts active now; 30-day average = mean over the
         // last 30 days of each day's lowest price among contracts whose active window overlapped it.
-        (decimal? Best, int ActiveCount, decimal? Avg30, int SampleDays) Summarize(
+        (decimal? Best, int ActiveCount, decimal? Avg30, int SampleDays,
+         decimal? Last, DateTime? LastEnd) Summarize(
             List<(decimal PerUnit, DateTime Start, DateTime End, bool ActiveNow)> list)
         {
             decimal? best = null; int activeCount = 0;
@@ -555,14 +556,28 @@ public class ContractsService : ReactiveObject
                         dayBest = e.PerUnit;
                 if (dayBest is not null) { daySum += dayBest.Value; sampleDays++; }
             }
-            return (best, activeCount, sampleDays > 0 ? daySum / sampleDays : null, sampleDays);
+            // The most recent observation at whatever age, for callers that would rather have an
+            // old price than none. A tie on the end date takes the cheaper, matching the
+            // lowest-wins rule above, so a fallback is comparable with what it replaces instead
+            // of being whichever contract happened to be enumerated last.
+            decimal? last = null; DateTime? lastEnd = null;
+            foreach (var e in list)
+                if (lastEnd is null || e.End > lastEnd || (e.End == lastEnd && e.PerUnit < last))
+                { lastEnd = e.End; last = e.PerUnit; }
+
+            return (best, activeCount, sampleDays > 0 ? daySum / sampleDays : null, sampleDays,
+                    last, lastEnd);
         }
         static decimal? Round2(decimal? v) => v is { } x ? Math.Round(x, 2, MidpointRounding.AwayFromZero) : null;
 
         var results = new List<ContractPrice>(byType.Count);
         foreach (var (typeId, list) in byType)
         {
-            var (best, activeCount, avg30, sampleDays) = Summarize(list);
+            // Deliberately no fallback here. These are ordinary items, which trade on the market
+            // as well as on contract, so an absent contract price is covered by a market price
+            // rather than being a hole; carrying old asks forward would quietly widen the
+            // contract channel's influence over prices it was never asked to set.
+            var (best, activeCount, avg30, sampleDays, _, _) = Summarize(list);
             if (best is null && avg30 is null) continue;
             results.Add(new ContractPrice
             {
@@ -574,11 +589,17 @@ public class ContractsService : ReactiveObject
         var bpcResults = new List<ContractBpcPrice>(byBpc.Count);
         foreach (var ((typeId, me), list) in byBpc)
         {
-            var (best, activeCount, avg30, sampleDays) = Summarize(list);
-            if (best is null && avg30 is null) continue;
+            // ⚠️ Kept even when nothing is current, unlike the item rows above. A blueprint copy
+            // has no market price to fall back on, so dropping the row does not mean "priced
+            // elsewhere", it means "free" — and this table is rebuilt from scratch every run,
+            // so a row dropped once is gone for good.
+            var (best, activeCount, avg30, sampleDays, last, lastEnd) = Summarize(list);
+            if (best is null && avg30 is null && last is null) continue;
             bpcResults.Add(new ContractBpcPrice
             {
                 TypeId = typeId, Me = me, BestPerRun = Round2(best), Avg30PerRun = Round2(avg30),
+                LastPerRun = Round2(last),
+                LastSeenAt = lastEnd is { } le ? new DateTimeOffset(le, TimeSpan.Zero) : null,
                 ActiveCount = activeCount, SampleDays = sampleDays, UpdatedAt = now,
             });
         }
@@ -590,7 +611,10 @@ public class ContractsService : ReactiveObject
         if (bpcResults.Count > 0) db.ContractBpcPrices.AddRange(bpcResults);
         await db.SaveChangesAsync(ct);
 
-        StatusText = $"Contracts: priced {results.Count:N0} types, {bpcResults.Count:N0} BPCs — {DateTimeOffset.Now:t}";
+        var staleBpcs = bpcResults.Count(b => b.BestPerRun is null && b.Avg30PerRun is null);
+        StatusText = $"Contracts: priced {results.Count:N0} types, {bpcResults.Count:N0} BPCs"
+                   + (staleBpcs > 0 ? $" ({staleBpcs:N0} from older contracts)" : "")
+                   + $" — {DateTimeOffset.Now:t}";
 
         if (AfterPricing is not null && !ct.IsCancellationRequested)
         {

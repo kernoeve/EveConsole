@@ -64,6 +64,13 @@ public sealed class ProductionContext
     public required double                          MarkupFactor    { get; init; }
     public required Dictionary<int, decimal>        UnitCosts       { get; init; }
     public required Dictionary<int, List<(int Me, decimal PerRun)>> BpcPerRun { get; init; }
+
+    /// <summary>
+    /// Blueprints whose only price comes from a contract that has already ended, and when that
+    /// was. The plan is still costed with it — a month-old price beats none — but it is
+    /// worth saying, because the figure will not move again until somebody lists one.
+    /// </summary>
+    public required Dictionary<int, DateTimeOffset?> StaleBpcTypes { get; init; }
     public required HashSet<int>                    BoughtSet       { get; init; }
     public required Dictionary<int, PriceOverride>  Overrides       { get; init; }
     public required Dictionary<int, double>         AdjPrices       { get; init; }

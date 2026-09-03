@@ -295,6 +295,20 @@ public class ContractBpcPrice
     public int      Me          { get; set; }   // material efficiency (key part 2)
     public decimal? BestPerRun  { get; set; }
     public decimal? Avg30PerRun { get; set; }
+
+    /// <summary>
+    /// The most recent per-run price seen at any age, and when the contract behind it ended.
+    ///
+    /// <para>⚠️ A blueprint copy is not a market item: the only price one ever has is what
+    /// somebody last asked for it on contract, and a month with nothing listed is ordinary for a
+    /// titan BPC rather than evidence it is worthless. Without this the row vanished entirely
+    /// once its last contract aged out of the 30-day window, and every cost resting on it became
+    /// zero — which is how the Komodo quietly lost 345B per run, most of what the hull costs
+    /// to build.</para>
+    /// </summary>
+    public decimal?        LastPerRun { get; set; }
+    public DateTimeOffset? LastSeenAt { get; set; }
+
     public int      ActiveCount { get; set; }
     public int      SampleDays  { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
