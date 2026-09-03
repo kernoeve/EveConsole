@@ -69,7 +69,7 @@
                      FontSize="10" Foreground="#555566"
                      VerticalAlignment="Center" />
           <TextBlock Text="{Binding EveTimeText}"
-                     FontSize="14" FontWeight="SemiBold" FontFamily="Consolas,Courier New,monospace"
+                     FontSize="14" FontWeight="SemiBold" FontFamily="Consolas, Courier New, DejaVu Sans Mono, Liberation Mono, monospace"
                      Foreground="#7799bb"
                      VerticalAlignment="Center"
                      Cursor="Hand"

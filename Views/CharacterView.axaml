@@ -481,7 +481,7 @@
                           CornerRadius="3" Padding="8 6" Margin="0 0 0 6">
                     <ToolTip.Tip>
                       <TextBlock Text="{Binding TooltipText}" FontSize="11" MaxWidth="440"
-                                 FontFamily="Consolas, Menlo, monospace" TextWrapping="Wrap" />
+                                 FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" TextWrapping="Wrap" />
                     </ToolTip.Tip>
                     <Grid ColumnDefinitions="Auto,*,Auto">
                       <!-- Icon: portrait / structure-type / logo, or a fallback glyph -->

@@ -1056,7 +1056,7 @@
                 <TextBlock Text="Currently reading:" FontSize="11" Foreground="#888" Margin="0 4 0 0" />
                 <SelectableTextBlock Text="{Binding GameLogVm.ResolvedPaths}" FontSize="11"
                                      Foreground="#999" TextWrapping="Wrap"
-                                     FontFamily="Consolas, Menlo, monospace" />
+                                     FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" />
               </StackPanel>
             </StackPanel>
           </Border>
@@ -1188,7 +1188,7 @@
                 <TextBlock Text="Currently reading:" FontSize="11" Foreground="#888" Margin="0 4 0 0" />
                 <SelectableTextBlock Text="{Binding ChatLogVm.ResolvedPaths}" FontSize="11"
                                      Foreground="#999" TextWrapping="Wrap"
-                                     FontFamily="Consolas, Menlo, monospace" />
+                                     FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" />
               </StackPanel>
             </StackPanel>
           </Border>
@@ -1361,7 +1361,7 @@
             <StackPanel Margin="14" Spacing="8">
               <TextBlock Text="Coverage" FontSize="14" FontWeight="SemiBold" Foreground="#d0d0dc" />
               <TextBlock Text="{Binding Coverage}" FontSize="11" Foreground="#9a9aaa"
-                         FontFamily="Consolas,Menlo,monospace" TextWrapping="NoWrap" />
+                         FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" TextWrapping="NoWrap" />
             </StackPanel>
           </Border>
 
@@ -2127,7 +2127,7 @@
               <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
                          Text="2.  Go to OAuth &amp; Permissions and add these under User Token Scopes (not Bot Token Scopes):" />
               <SelectableTextBlock Text="chat:write     channels:read     groups:read     im:read     mpim:read"
-                                   FontFamily="Consolas, Menlo, monospace" FontSize="12" Foreground="#6aaa88"
+                                   FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" FontSize="12" Foreground="#6aaa88"
                                    Margin="16 0 0 0" />
               <TextBlock TextWrapping="Wrap" Foreground="#888899" FontSize="12"
                          Text="3.  Click Install to Workspace and approve, then copy the User OAuth Token (it starts with xoxp-)." />
