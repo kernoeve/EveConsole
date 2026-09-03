@@ -36,10 +36,38 @@ public static class AppConfig
     /// Which engine to open. SQLite unless the user has explicitly pointed the app at a server,
     /// so every existing installation keeps opening the file it always has.
     /// </summary>
-    public static DbBackend GetDbBackend() =>
-        string.Equals(Load().DbBackend, "postgres", StringComparison.OrdinalIgnoreCase)
+    public static DbBackend GetDbBackend()
+    {
+        // A connection string in the environment is itself the instruction: nobody sets one and
+        // means to go on using the file.
+        if (EnvConnection is not null) return DbBackend.Postgres;
+
+        return string.Equals(Load().DbBackend, "postgres", StringComparison.OrdinalIgnoreCase)
             ? DbBackend.Postgres
             : DbBackend.Sqlite;
+    }
+
+    /// <summary>
+    /// A connection string supplied by the environment, which overrides config.json entirely.
+    ///
+    /// <para>Two reasons it exists. It lets a developer point a build at a test server without
+    /// editing the config the running copy is using — re-pointing that file would send the
+    /// real app somewhere else mid-session. And a poller running in a container has no config
+    /// file to edit and no user to edit it; the environment is how such a thing is configured.
+    /// The standalone poller is a planned split, so this is the shape it will need.</para>
+    ///
+    /// <para>⚠️ Env wins over file, never merges. A half-applied override — the server from
+    /// one place and the credentials from another — is the kind of configuration that appears
+    /// to work and connects somewhere nobody intended.</para>
+    /// </summary>
+    private static string? EnvConnection
+    {
+        get
+        {
+            var v = Environment.GetEnvironmentVariable("EVECONSOLE_DB_CONNECTION");
+            return string.IsNullOrWhiteSpace(v) ? null : v;
+        }
+    }
 
     /// <summary>
     /// The Postgres connection string, or null when none has been configured.
@@ -51,6 +79,7 @@ public static class AppConfig
     /// </summary>
     public static string? GetPostgresConnection()
     {
+        if (EnvConnection is { } fromEnv) return fromEnv;
         var v = Load().PostgresConnection;
         return string.IsNullOrWhiteSpace(v) ? null : v;
     }
