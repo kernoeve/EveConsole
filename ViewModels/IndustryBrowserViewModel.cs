@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Data.Common;
+using EveConsole.Data;
+using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -244,22 +246,22 @@ public class IndustryBrowserViewModel : ReactiveObject
 
         var where = conds.Count > 0 ? "WHERE " + string.Join(" AND ", conds) : "";
 
-        using var conn = new SqliteConnection(_connectionString);
+        using var conn = AppDb.Connect();
         conn.Open();
-        using var cmd = new SqliteCommand(BuildSql(where), conn);
+        using var cmd = conn.Command(BuildSql(where));
 
         if (!string.IsNullOrEmpty(activity) && activity != "All Activities")
-            cmd.Parameters.AddWithValue("@activity", activity);
+            cmd.AddWithValue("@activity", activity);
         if (!string.IsNullOrEmpty(status) && status != "All Statuses")
-            cmd.Parameters.AddWithValue("@status", status);
+            cmd.AddWithValue("@status", status);
         if (!string.IsNullOrEmpty(search))
-            cmd.Parameters.AddWithValue("@search", $"%{search}%");
+            cmd.AddWithValue("@search", $"%{search}%");
         if (startedFrom.HasValue)
-            cmd.Parameters.AddWithValue("@startedFrom", startedFrom.Value.UtcDateTime.ToString("O"));
+            cmd.AddWithValue("@startedFrom", startedFrom.Value.UtcDateTime.ToString("O"));
         if (startedThru.HasValue)
-            cmd.Parameters.AddWithValue("@startedThru", startedThru.Value.UtcDateTime.AddDays(1).ToString("O"));
+            cmd.AddWithValue("@startedThru", startedThru.Value.UtcDateTime.AddDays(1).ToString("O"));
         if (!string.IsNullOrEmpty(owner) && owner != "All Owners")
-            cmd.Parameters.AddWithValue("@owner", owner);
+            cmd.AddWithValue("@owner", owner);
 
         ct.ThrowIfCancellationRequested();
 
@@ -357,15 +359,15 @@ public class IndustryBrowserViewModel : ReactiveObject
 
     private void EnsureSchema()
     {
-        using var conn = new SqliteConnection(_connectionString);
+        using var conn = AppDb.Connect();
         conn.Open();
-        using var cmd = new SqliteCommand("""
+        using var cmd = conn.Command("""
             CREATE TABLE IF NOT EXISTS "UniverseNames" (
                 "EntityId" INTEGER PRIMARY KEY,
                 "Name"     TEXT    NOT NULL DEFAULT '',
                 "Category" TEXT    NOT NULL DEFAULT ''
             )
-            """, conn);
+            """);
         cmd.ExecuteNonQuery();
     }
 
@@ -373,14 +375,14 @@ public class IndustryBrowserViewModel : ReactiveObject
     {
         var toResolve = new List<long>();
 
-        using (var conn = new SqliteConnection(_connectionString))
+        using (var conn = AppDb.Connect())
         {
             conn.Open();
             foreach (var id in ids.Distinct())
             {
-                using var chk = new SqliteCommand(
-                    "SELECT 1 FROM \"UniverseNames\" WHERE \"EntityId\"=@id LIMIT 1", conn);
-                chk.Parameters.AddWithValue("@id", id);
+                using var chk = conn.Command(
+                    "SELECT 1 FROM \"UniverseNames\" WHERE \"EntityId\"=@id LIMIT 1");
+                chk.AddWithValue("@id", id);
                 if (chk.ExecuteScalar() is null) toResolve.Add(id);
             }
         }
@@ -405,18 +407,18 @@ public class IndustryBrowserViewModel : ReactiveObject
                 var entries = JsonSerializer.Deserialize<List<UniverseNameEntry>>(raw);
                 if (entries is null || entries.Count == 0) continue;
 
-                using var conn = new SqliteConnection(_connectionString);
+                using var conn = AppDb.Connect();
                 conn.Open();
                 using var tx = conn.BeginTransaction();
                 foreach (var e in entries)
                 {
-                    using var ins = new SqliteCommand("""
+                    using var ins = conn.Command("""
                         INSERT OR REPLACE INTO UniverseNames (EntityId, Name, Category)
                         VALUES (@id, @name, @cat)
-                        """, conn, tx);
-                    ins.Parameters.AddWithValue("@id",   e.Id);
-                    ins.Parameters.AddWithValue("@name", e.Name);
-                    ins.Parameters.AddWithValue("@cat",  e.Category);
+                        """, tx);
+                    ins.AddWithValue("@id",   e.Id);
+                    ins.AddWithValue("@name", e.Name);
+                    ins.AddWithValue("@cat",  e.Category);
                     ins.ExecuteNonQuery();
                     anyStored = true;
                 }
@@ -438,15 +440,15 @@ public class IndustryBrowserViewModel : ReactiveObject
 
     private List<string> LoadOwnerOptions()
     {
-        using var conn = new SqliteConnection(_connectionString);
+        using var conn = AppDb.Connect();
         conn.Open();
-        using var cmd = new SqliteCommand("""
+        using var cmd = conn.Command("""
             SELECT DISTINCT COALESCE(ch."Name", co."Name", CAST(j."OwnerId" AS TEXT)) AS Owner
             FROM "EsiIndustryJobs" j
             LEFT JOIN "Characters"   ch ON ch."Id" = j."OwnerId" AND j."OwnerType" = 'character'
             LEFT JOIN "Corporations" co ON co."Id"  = j."OwnerId" AND j."OwnerType" = 'corporation'
             ORDER BY Owner
-            """, conn);
+            """);
 
         var list = new List<string> { "All Owners" };
         using var r = cmd.ExecuteReader();

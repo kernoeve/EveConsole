@@ -1,6 +1,8 @@
+using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
+using EveConsole.Data;
 
 namespace EveConsole.Alarms.Conditions;
 
@@ -129,7 +131,7 @@ public sealed class MarketContractCondition : IAlarmCondition
         var market   = ReadString(config, "market");
         var bundled  = ReadBool(config, "bundled_contracts");
 
-        await using var conn = new SqliteConnection(ctx.ConnectionString);
+        await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
 
         // An unresolvable name matches nothing rather than everything — same rule as the intel
@@ -138,7 +140,7 @@ public sealed class MarketContractCondition : IAlarmCondition
         await using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = """SELECT "TypeId" FROM "SdeTypes" WHERE upper("Name") = upper($n) LIMIT 1""";
-            cmd.Parameters.AddWithValue("$n", item.Trim());
+            cmd.AddWithValue("$n", item.Trim());
             var found = await cmd.ExecuteScalarAsync(ct);
             if (found is null or DBNull) return [];
             typeId = Convert.ToInt32(found);
@@ -156,7 +158,7 @@ public sealed class MarketContractCondition : IAlarmCondition
     }
 
     private static async Task AddMarketOffersAsync(
-        SqliteConnection conn, int typeId, string item, double maxPrice, int minQty,
+        DbConnection conn, int typeId, string item, double maxPrice, int minQty,
         string? market, List<AlarmMatch> matches, CancellationToken ct)
     {
         await using var cmd = conn.CreateCommand();
@@ -172,11 +174,11 @@ public sealed class MarketContractCondition : IAlarmCondition
             ORDER BY o."Price"
             LIMIT {MaxOffers}
             """;
-        cmd.Parameters.AddWithValue("$type", typeId);
-        cmd.Parameters.AddWithValue("$price", maxPrice);
-        cmd.Parameters.AddWithValue("$qty", minQty);
+        cmd.AddWithValue("$type", typeId);
+        cmd.AddWithValue("$price", maxPrice);
+        cmd.AddWithValue("$qty", minQty);
         if (!string.IsNullOrWhiteSpace(market))
-            cmd.Parameters.AddWithValue("$market", "%" + market.Trim() + "%");
+            cmd.AddWithValue("$market", "%" + market.Trim() + "%");
 
         await using var r = await cmd.ExecuteReaderAsync(ct);
         while (await r.ReadAsync(ct))
@@ -206,7 +208,7 @@ public sealed class MarketContractCondition : IAlarmCondition
     }
 
     private static async Task AddContractOffersAsync(
-        SqliteConnection conn, int typeId, string item, double maxPrice, int minQty,
+        DbConnection conn, int typeId, string item, double maxPrice, int minQty,
         bool bundled, List<AlarmMatch> matches, CancellationToken ct)
     {
         // Price is stored as text, so it is cast before any comparison or division — string
@@ -230,9 +232,9 @@ public sealed class MarketContractCondition : IAlarmCondition
             ORDER BY CAST(c."Price" AS REAL) / i."Quantity"
             LIMIT {MaxOffers}
             """;
-        cmd.Parameters.AddWithValue("$type", typeId);
-        cmd.Parameters.AddWithValue("$price", maxPrice);
-        cmd.Parameters.AddWithValue("$qty", minQty);
+        cmd.AddWithValue("$type", typeId);
+        cmd.AddWithValue("$price", maxPrice);
+        cmd.AddWithValue("$qty", minQty);
 
         await using var r = await cmd.ExecuteReaderAsync(ct);
         while (await r.ReadAsync(ct))

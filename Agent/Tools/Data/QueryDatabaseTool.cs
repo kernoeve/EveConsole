@@ -1,4 +1,5 @@
 using System.Text;
+using EveConsole.Data;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 
@@ -186,7 +187,7 @@ public sealed class QueryDatabaseTool : IAgentTool
 
         try
         {
-            await using var conn = new SqliteConnection(_connString);
+            await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = sql;

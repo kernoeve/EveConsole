@@ -4,6 +4,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
+using EveConsole.Data;
 
 namespace EveConsole.ViewModels;
 
@@ -169,7 +170,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
     private async Task LoadExcludedGroupsAsync()
     {
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """SELECT "ExcludedMarketGroupIds" FROM "IndustryOpportunitiesSettings" WHERE "Id" = 1""";
@@ -198,11 +199,11 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     private async Task SaveExcludedGroupsAsync()
     {
         var csv = string.Join(",", ExcludedMarketGroups.Select(g => g.MarketGroupId));
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """UPDATE "IndustryOpportunitiesSettings" SET "ExcludedMarketGroupIds" = @ids WHERE "Id" = 1""";
-        cmd.Parameters.AddWithValue("@ids", csv);
+        cmd.AddWithValue("@ids", csv);
         await cmd.ExecuteNonQueryAsync();
     }
 
@@ -262,7 +263,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
     private async Task LoadMarketConfigsAsync()
     {
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
         using var cmd = conn.CreateCommand();
@@ -411,7 +412,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
               """
             : "";
 
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
         using var cmd = conn.CreateCommand();
@@ -419,7 +420,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             .Replace("/*EXCLUSION*/", exclusionClause)
             .Replace("/*FACTION*/", factionClause)
             .Replace("/*BPO*/", bpoClause);
-        cmd.Parameters.AddWithValue("@configId", configId);
+        cmd.AddWithValue("@configId", configId);
 
         var list = new List<Candidate>();
         using var reader = await cmd.ExecuteReaderAsync();
@@ -445,7 +446,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         var withSell = new HashSet<int>();
         var withBuy  = new HashSet<int>();
 
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
@@ -453,7 +454,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             FROM "MarketRawOrders"
             WHERE "ConfigId" = @configId
             """;
-        cmd.Parameters.AddWithValue("@configId", configId);
+        cmd.AddWithValue("@configId", configId);
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
@@ -542,11 +543,11 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
     private async Task<string> GetRegionNameAsync(int regionId)
     {
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """SELECT "Name" FROM "SdeRegions" WHERE "RegionId" = @id""";
-        cmd.Parameters.AddWithValue("@id", regionId);
+        cmd.AddWithValue("@id", regionId);
         return (await cmd.ExecuteScalarAsync()) as string ?? $"Region {regionId}";
     }
 
@@ -556,13 +557,13 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         // ESI Region configs store the region id directly in LocationId.
         if (cfg.Method == MarketMethod.EsiRegion) return (int)cfg.LocationId;
 
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
         using var cmd = conn.CreateCommand();
 
         // Maybe LocationId is already a region id (Fuzzwork region configs).
         cmd.CommandText = """SELECT "RegionId" FROM "SdeRegions" WHERE "RegionId" = @loc""";
-        cmd.Parameters.AddWithValue("@loc", cfg.LocationId);
+        cmd.AddWithValue("@loc", cfg.LocationId);
         var region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 
@@ -576,7 +577,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             WHERE s."StationId" = @sid AND s."SolarSystemId" != 0
             """;
         cmd.Parameters.Clear();
-        cmd.Parameters.AddWithValue("@sid", (int)Math.Min(cfg.LocationId, int.MaxValue));
+        cmd.AddWithValue("@sid", (int)Math.Min(cfg.LocationId, int.MaxValue));
         region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 
@@ -588,7 +589,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             WHERE sn."StructureId" = @lid AND sn."SolarSystemId" != 0
             """;
         cmd.Parameters.Clear();
-        cmd.Parameters.AddWithValue("@lid", cfg.LocationId);
+        cmd.AddWithValue("@lid", cfg.LocationId);
         region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 
@@ -601,7 +602,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             LIMIT 1
             """;
         cmd.Parameters.Clear();
-        cmd.Parameters.AddWithValue("@lid", cfg.LocationId);
+        cmd.AddWithValue("@lid", cfg.LocationId);
         region = ToRegionId(await cmd.ExecuteScalarAsync());
         return region;
     }

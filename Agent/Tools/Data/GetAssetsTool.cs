@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EveConsole.Data;
 using Microsoft.Data.Sqlite;
 
 namespace EveConsole.Agent.Tools.Data;
@@ -64,14 +65,14 @@ public sealed class GetAssetsTool : IAgentTool
             """;
 
         var rows = new List<object>();
-        await using var conn = new SqliteConnection(_connString);
+        await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@char",  charFilter is null ? (object)DBNull.Value : $"%{charFilter}%");
-        cmd.Parameters.AddWithValue("@item",  itemFilter is null ? (object)DBNull.Value : $"%{itemFilter}%");
-        cmd.Parameters.AddWithValue("@loc",   locFilter  is null ? (object)DBNull.Value : $"%{locFilter}%");
-        cmd.Parameters.AddWithValue("@limit", limit);
+        cmd.AddWithValue("@char",  charFilter is null ? (object)DBNull.Value : $"%{charFilter}%");
+        cmd.AddWithValue("@item",  itemFilter is null ? (object)DBNull.Value : $"%{itemFilter}%");
+        cmd.AddWithValue("@loc",   locFilter  is null ? (object)DBNull.Value : $"%{locFilter}%");
+        cmd.AddWithValue("@limit", limit);
 
         await using var rdr = await cmd.ExecuteReaderAsync(ct);
         while (await rdr.ReadAsync(ct))

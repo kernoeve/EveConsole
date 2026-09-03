@@ -1,7 +1,9 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Data.Common;
+using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
+using EveConsole.Data;
 
 namespace EveConsole.ViewModels;
 
@@ -206,7 +208,7 @@ public class EsiExplorerViewModel : ReactiveObject
 
         try
         {
-            await using var conn = new SqliteConnection(_connectionString);
+            await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
 
             int total;
@@ -234,7 +236,7 @@ public class EsiExplorerViewModel : ReactiveObject
 
         try
         {
-            await using var conn = new SqliteConnection(_connectionString);
+            await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
 
             int total;
@@ -251,7 +253,7 @@ public class EsiExplorerViewModel : ReactiveObject
         catch (Exception ex) { StatusText = $"Error: {ex.Message}"; }
     }
 
-    private async Task AppendPageAsync(SqliteConnection conn, TableEntry entry, int total, CancellationToken ct)
+    private async Task AppendPageAsync(DbConnection conn, TableEntry entry, int total, CancellationToken ct)
     {
         var where = BuildWhere();
         var order = _sortColumn is not null
@@ -307,13 +309,13 @@ public class EsiExplorerViewModel : ReactiveObject
         return $"WHERE {string.Join(" AND ", clauses)}";
     }
 
-    private void AddFilterParams(SqliteCommand cmd)
+    private void AddFilterParams(DbCommand cmd)
     {
         for (int i = 0; i < _activeFilters.Count; i++)
         {
             var f   = _activeFilters[i];
             var val = f.Op.UseLike ? $"%{f.Value}%" : f.Value;
-            cmd.Parameters.AddWithValue($"@fv{i}", val);
+            cmd.AddWithValue($"@fv{i}", val);
         }
     }
 }

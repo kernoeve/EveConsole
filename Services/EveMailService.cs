@@ -54,7 +54,7 @@ public class EveMailService(
         {
         if (_tablesEnsured) return;
         var connStr = db.Database.GetConnectionString() ?? "(null)";
-        using var conn = new SqliteConnection(connStr);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
         string[] ddl =

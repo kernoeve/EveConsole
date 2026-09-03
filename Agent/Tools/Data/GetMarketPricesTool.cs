@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EveConsole.Data;
 using Microsoft.Data.Sqlite;
 
 namespace EveConsole.Agent.Tools.Data;
@@ -57,14 +58,14 @@ public sealed class GetMarketPricesTool : IAgentTool
             """;
 
         var results = new List<object>();
-        await using var conn = new SqliteConnection(_connString);
+        await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
 
         foreach (var name in names)
         {
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = sql;
-            cmd.Parameters.AddWithValue("@name", name);
+            cmd.AddWithValue("@name", name);
             await using var rdr = await cmd.ExecuteReaderAsync(ct);
             if (await rdr.ReadAsync(ct))
             {

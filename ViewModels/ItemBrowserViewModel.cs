@@ -1303,7 +1303,7 @@ public class ItemBrowserViewModel : ReactiveObject
     {
         var rows = new List<DerivedRow>();
         var connStr = _db.Database.GetDbConnection().ConnectionString;
-        using var conn = new SqliteConnection(connStr);
+        using var conn = AppDb.Connect();
         conn.Open();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
@@ -1312,7 +1312,7 @@ public class ItemBrowserViewModel : ReactiveObject
             WHERE "TypeId" = @typeId
             ORDER BY "Date"
             """;
-        cmd.Parameters.AddWithValue("@typeId", typeId);
+        cmd.AddWithValue("@typeId", typeId);
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {

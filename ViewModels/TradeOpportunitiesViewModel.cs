@@ -3,6 +3,7 @@ using System.Reactive;
 using EveConsole.Services;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
+using EveConsole.Data;
 
 namespace EveConsole.ViewModels;
 
@@ -148,7 +149,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task LoadExcludedGroupsAsync()
     {
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """SELECT "ExcludedMarketGroupIds" FROM "TradeOpportunitiesSettings" WHERE "Id" = 1""";
@@ -177,11 +178,11 @@ public class TradeOpportunitiesViewModel : ReactiveObject
     private async Task SaveExcludedGroupsAsync()
     {
         var csv = string.Join(",", ExcludedMarketGroups.Select(g => g.MarketGroupId));
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """UPDATE "TradeOpportunitiesSettings" SET "ExcludedMarketGroupIds" = @ids WHERE "Id" = 1""";
-        cmd.Parameters.AddWithValue("@ids", csv);
+        cmd.AddWithValue("@ids", csv);
         await cmd.ExecuteNonQueryAsync();
     }
 
@@ -252,7 +253,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task LoadStationsAsync()
     {
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
         using var cmd = conn.CreateCommand();
@@ -390,14 +391,14 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             ? $"""AND (t."MarketGroupId" IS NULL OR t."MarketGroupId" NOT IN ({string.Join(",", excludedGroupIds)})) """
             : "";
 
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
         using var cmd = conn.CreateCommand();
         cmd.CommandText = (SelectedMode.Kind == TradeMode.UndercutSellOrder
             ? UndercutSql : CandidateSql).Replace("/*EXCLUSION*/", exclusionClause);
-        cmd.Parameters.AddWithValue("@sourceId", sourceId);
-        cmd.Parameters.AddWithValue("@destId",   destId);
+        cmd.AddWithValue("@sourceId", sourceId);
+        cmd.AddWithValue("@destId",   destId);
 
         var list = new List<Candidate>();
         using var reader = await cmd.ExecuteReaderAsync();
@@ -480,7 +481,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task<int?> GetRegionIdAsync(long locationId)
     {
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
         using var cmd = conn.CreateCommand();
@@ -495,7 +496,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = s."SolarSystemId"
             WHERE s."StationId" = @id AND s."SolarSystemId" != 0
             """;
-        cmd.Parameters.AddWithValue("@id", (int)Math.Min(locationId, int.MaxValue));
+        cmd.AddWithValue("@id", (int)Math.Min(locationId, int.MaxValue));
         var region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 
@@ -507,7 +508,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             WHERE sn."StructureId" = @sid AND sn."SolarSystemId" != 0
             """;
         cmd.Parameters.Clear();
-        cmd.Parameters.AddWithValue("@sid", locationId);
+        cmd.AddWithValue("@sid", locationId);
         region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 
@@ -520,7 +521,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             LIMIT 1
             """;
         cmd.Parameters.Clear();
-        cmd.Parameters.AddWithValue("@lid", locationId);
+        cmd.AddWithValue("@lid", locationId);
         region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 

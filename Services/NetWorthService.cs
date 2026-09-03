@@ -76,8 +76,8 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
     {
         using var cmd = conn.CreateCommand();
         cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@ownerId",   ownerId);
-        cmd.Parameters.AddWithValue("@ownerType", ownerType);
+        cmd.AddWithValue("@ownerId",   ownerId);
+        cmd.AddWithValue("@ownerType", ownerType);
         var result = await cmd.ExecuteScalarAsync(ct);
         return result is DBNull or null ? 0.0 : Convert.ToDouble(result);
     }

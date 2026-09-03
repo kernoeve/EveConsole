@@ -44,7 +44,7 @@ public sealed class SystemGraph
 
             var built = new Dictionary<int, List<int>>();
 
-            await using var conn = new SqliteConnection(connString);
+            await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = LinkSql;

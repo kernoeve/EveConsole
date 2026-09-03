@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
+using EveConsole.Data;
 
 namespace EveConsole.Alarms.Conditions;
 
@@ -98,7 +99,7 @@ public sealed class SqlCondition : IAlarmCondition
         var labelColumn = ReadString(config, "label_column");
         var absent      = IsAbsentMode(config);
 
-        await using var conn = new SqliteConnection(ctx.ConnectionString);
+        await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = sql;

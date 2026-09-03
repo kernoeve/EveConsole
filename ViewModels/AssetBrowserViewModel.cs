@@ -1,7 +1,9 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Data.Common;
+using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
+using EveConsole.Data;
 
 namespace EveConsole.ViewModels;
 
@@ -155,7 +157,7 @@ public class AssetBrowserViewModel : ReactiveObject
 
         try
         {
-            await using var conn = new SqliteConnection(_connectionString);
+            await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
             await AppendPageAsync(conn, await CountAsync(conn, ct), ct);
         }
@@ -185,7 +187,7 @@ public class AssetBrowserViewModel : ReactiveObject
 
         try
         {
-            await using var conn = new SqliteConnection(_connectionString);
+            await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
             await AppendPageAsync(conn, await CountAsync(conn, ct), ct);
             await LoadAggregationAsync(conn, ct);
@@ -197,7 +199,7 @@ public class AssetBrowserViewModel : ReactiveObject
         }
     }
 
-    private async Task LoadAggregationAsync(SqliteConnection conn, CancellationToken ct)
+    private async Task LoadAggregationAsync(DbConnection conn, CancellationToken ct)
     {
         var where = BuildWhere();
         await LoadAggTabAsync(conn, QueryPrefix + LocationAggSql(where), LocationRows,
@@ -209,7 +211,7 @@ public class AssetBrowserViewModel : ReactiveObject
     }
 
     private async Task LoadAggTabAsync(
-        SqliteConnection conn, string sql,
+        DbConnection conn, string sql,
         ObservableCollection<GridRow> collection,
         Action<List<string>> setColumns,
         CancellationToken ct)
@@ -237,7 +239,7 @@ public class AssetBrowserViewModel : ReactiveObject
         });
     }
 
-    private async Task<int> CountAsync(SqliteConnection conn, CancellationToken ct)
+    private async Task<int> CountAsync(DbConnection conn, CancellationToken ct)
     {
         using var cmd = conn.CreateCommand();
         cmd.CommandText = $"{QueryPrefix} SELECT COUNT(*) FROM Base {BuildWhere()}";
@@ -245,7 +247,7 @@ public class AssetBrowserViewModel : ReactiveObject
         return Convert.ToInt32(await cmd.ExecuteScalarAsync(ct) ?? 0);
     }
 
-    private async Task AppendPageAsync(SqliteConnection conn, int total, CancellationToken ct)
+    private async Task AppendPageAsync(DbConnection conn, int total, CancellationToken ct)
     {
         var where = BuildWhere();
         var order = _sortColumn is not null
@@ -725,13 +727,13 @@ public class AssetBrowserViewModel : ReactiveObject
         return $"WHERE {string.Join(" AND ", clauses)}";
     }
 
-    private void AddFilterParams(SqliteCommand cmd)
+    private void AddFilterParams(DbCommand cmd)
     {
         for (int i = 0; i < _activeFilters.Count; i++)
         {
             var f   = _activeFilters[i];
             var val = f.Op.UseLike ? $"%{f.Value}%" : f.Value;
-            cmd.Parameters.AddWithValue($"@fv{i}", val);
+            cmd.AddWithValue($"@fv{i}", val);
         }
     }
 

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
+using EveConsole.Data;
 
 namespace EveConsole.Agent.Tools.Actions;
 
@@ -43,11 +44,11 @@ public sealed class NavigateToItemTool : IAgentTool
             """;
 
         var matches = new List<(int TypeId, string Name)>();
-        await using var conn = new SqliteConnection(_connString);
+        await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@name", $"%{query}%");
+        cmd.AddWithValue("@name", $"%{query}%");
         await using var rdr = await cmd.ExecuteReaderAsync(ct);
         while (await rdr.ReadAsync(ct))
             matches.Add((rdr.GetInt32(0), rdr.GetString(1)));

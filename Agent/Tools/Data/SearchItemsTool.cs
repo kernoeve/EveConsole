@@ -1,4 +1,5 @@
 using System.Text;
+using EveConsole.Data;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 
@@ -43,12 +44,12 @@ public sealed class SearchItemsTool : IAgentTool
             """;
 
         var rows = new List<object>();
-        await using var conn = new SqliteConnection(_connString);
+        await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@q",     $"%{query}%");
-        cmd.Parameters.AddWithValue("@limit", limit);
+        cmd.AddWithValue("@q",     $"%{query}%");
+        cmd.AddWithValue("@limit", limit);
         await using var rdr = await cmd.ExecuteReaderAsync(ct);
         while (await rdr.ReadAsync(ct))
             rows.Add(new { type_id = rdr.GetInt32(0), name = rdr.GetString(1), group = rdr.GetString(2), category = rdr.GetString(3) });

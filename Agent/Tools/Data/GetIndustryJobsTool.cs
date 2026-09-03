@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EveConsole.Data;
 using Microsoft.Data.Sqlite;
 
 namespace EveConsole.Agent.Tools.Data;
@@ -90,14 +91,14 @@ public sealed class GetIndustryJobsTool : IAgentTool
             """;
 
         var rows = new List<object>();
-        await using var conn = new SqliteConnection(_connString);
+        await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@status",     status is null ? (object)DBNull.Value : status);
-        cmd.Parameters.AddWithValue("@inProgress", inProgress ? 1 : 0);
-        cmd.Parameters.AddWithValue("@owner",      ownerFilter is null ? (object)DBNull.Value : $"%{ownerFilter}%");
-        cmd.Parameters.AddWithValue("@limit",      limit);
+        cmd.AddWithValue("@status",     status is null ? (object)DBNull.Value : status);
+        cmd.AddWithValue("@inProgress", inProgress ? 1 : 0);
+        cmd.AddWithValue("@owner",      ownerFilter is null ? (object)DBNull.Value : $"%{ownerFilter}%");
+        cmd.AddWithValue("@limit",      limit);
 
         await using var rdr = await cmd.ExecuteReaderAsync(ct);
         while (await rdr.ReadAsync(ct))

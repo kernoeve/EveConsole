@@ -270,10 +270,10 @@ public class NetWorthViewModel : ReactiveObject
 
         using var cmd = conn.CreateCommand();
         cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@fromDate", fromDate);
-        cmd.Parameters.AddWithValue("@toDate",   toDate);
+        cmd.AddWithValue("@fromDate", fromDate);
+        cmd.AddWithValue("@toDate",   toDate);
         if (!owner.IsPersonal)
-            cmd.Parameters.AddWithValue("@corpId", owner.CorpId!.Value);
+            cmd.AddWithValue("@corpId", owner.CorpId!.Value);
 
         using var reader = await cmd.ExecuteReaderAsync();
         var rows = new List<DayRow>();
