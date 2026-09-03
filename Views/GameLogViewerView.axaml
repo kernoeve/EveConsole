@@ -75,7 +75,7 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       IsVisible="{Binding Selected, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
           <SelectableTextBlock Text="{Binding Selected.Detail}" Margin="12 8" FontSize="12"
-                               Foreground="#a0c8a0" FontFamily="Consolas, Menlo, monospace"
+                               Foreground="#a0c8a0" FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace"
                                TextWrapping="Wrap" />
         </ScrollViewer>
         <TextBlock Text="Select an entry to view its full detail."

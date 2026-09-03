@@ -10,6 +10,11 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    # The Linux job needs the same number, and must not compute it again: the tag it derives
+    # from already exists by then, so a second run of the same arithmetic returns the NEXT
+    # patch and the two halves of one release would disagree about what they are.
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -83,7 +88,16 @@ jobs:
             '- **Installer (recommended):** download `EveConsole-win-Setup.exe` and run it. It installs EVE Console and keeps it updated automatically.',
             '- **Portable:** download `EveConsole-win-Portable.zip`, extract it anywhere, and run `EveConsole.exe`.',
             '',
-            'No .NET install is required — the runtime is bundled.',
+            '### Linux',
+            '',
+            '- **AppImage:** download the `.AppImage`, `chmod +x` it, and run it. It keeps itself updated.',
+            '- **Tarball:** download `EveConsole-linux-x64.tar.gz`, extract it anywhere, and run `./EveConsole`.',
+            '',
+            'Alarm sounds and speech need VLC on the system — the `vlc` package on most',
+            'distributions (Debian and Ubuntu also accept `libvlc-dev`). It is the one piece the',
+            'build cannot carry itself; everything else works without it.',
+            '',
+            'No .NET install is required on either platform — the runtime is bundled.',
             '',
             '### First launch (Windows SmartScreen)',
             'EVE Console is not code-signed yet, so Windows may show a "Windows protected your PC" warning the first time you run it. This is expected for a new indie app.',
@@ -100,3 +114,78 @@ jobs:
           }
           Set-Content -Path release_notes.md -Value $notes -Encoding utf8
           gh release edit $tag --notes-file release_notes.md
+
+  # ══ Linux ═════════════════════════════════════════════════════════════════
+  #
+  # ⚠️ A separate job on a Linux runner, not a second publish from the Windows one.
+  # Velopack's packer is platform-specific: `vpk pack` produces an AppImage only when it runs
+  # on Linux, and there is no cross-target equivalent.
+  #
+  # ⚠️ Runs after the Windows job rather than beside it. That job creates the release and the
+  # tag; this one adds to what already exists. In parallel they would race to create it.
+  # A failure here therefore costs the Linux artifacts, not the Windows release.
+  linux:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      # libvlc is the one dependency the app cannot carry itself — LibVLCSharp loads the
+      # system copy. Needed on the runner so the build's own checks can see it; users install
+      # it through their own package manager.
+      - name: Install native dependencies
+        run: sudo apt-get update && sudo apt-get install -y libvlc-dev
+
+      - name: Install Velopack CLI
+        run: dotnet tool install -g vpk --version 1.2.0
+
+      - name: Publish (self-contained linux-x64)
+        run: >
+          dotnet publish EveConsole.csproj
+          -c Release
+          -r linux-x64
+          --self-contained true
+          -p:Version=${{ needs.build.outputs.version }}
+          -o publish-linux
+
+      # The plain tarball: extract anywhere and run. No install step, no update mechanism —
+      # the option for anyone who would rather not have either.
+      - name: Build tarball
+        run: |
+          chmod +x publish-linux/EveConsole
+          tar -czf EveConsole-linux-x64.tar.gz -C publish-linux .
+
+      - name: Attach tarball to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload v${{ needs.build.outputs.version }} EveConsole-linux-x64.tar.gz --clobber
+
+      # Velopack again, for the AppImage and the Linux update feed. It keeps its own
+      # releases.linux.json alongside the Windows one, so the two do not overwrite each other.
+      - name: Download previous release
+        continue-on-error: true
+        run: vpk download github --repoUrl https://github.com/${{ github.repository }} --token ${{ github.token }}
+
+      - name: Pack Velopack release
+        run: >
+          vpk pack
+          --packId EveConsole
+          --packTitle "EVE Console"
+          --packVersion ${{ needs.build.outputs.version }}
+          --packDir publish-linux
+          --mainExe EveConsole
+
+      - name: Upload to the existing GitHub release
+        run: >
+          vpk upload github
+          --repoUrl https://github.com/${{ github.repository }}
+          --token ${{ github.token }}
+          --releaseName "EVE Console v${{ needs.build.outputs.version }}"
+          --tag v${{ needs.build.outputs.version }}

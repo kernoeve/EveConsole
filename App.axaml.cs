@@ -89,6 +89,52 @@ public class App : Application
             await work;
         }
 
+        // ── Does the database open at all? ─────────────────────────────────────
+        //
+        // ⚠️ Here, for the same reason the shrink is here: nothing has opened the file yet, so
+        // it can still be moved aside and replaced. After ConfigureServices the container has
+        // handed out singletons holding connections, and a restore would be swapping a file out
+        // from under them.
+        //
+        // ⚠️ A dialog rather than a line on the splash. This is the one startup fault where the
+        // remedy usually sits in the same folder as the problem, and the app that would offer it
+        // is the app that will not start. Small red text behind a stalled splash tells the user
+        // their data is gone; this tells them where it went and what can be done about it.
+        if (!DatabaseIntegrityService.IsUsable(AppConfig.GetDbPath(), out var dbError))
+        {
+            var recovery = new DatabaseRecoveryDialog(AppConfig.GetDbPath(), dbError ?? "unknown");
+
+            // ⚠️ The splash stays up and owns the dialog. Hiding it first is what broke this on
+            // its first real run: a modal dialog must have a *visible* owner, so hiding the splash
+            // and then handing it to ShowDialog threw "Cannot show window with non-visible owner"
+            // — the recovery path failing in place of the fault it exists to recover from. The
+            // zero-size fallback owner that used to sit here was the same mistake twice over: a
+            // window that is never shown fails the identical check.
+            if (splash is not null)
+            {
+                splash.ReportProgress(0, "Waiting — the database could not be opened");
+                await recovery.ShowDialog(splash);
+            }
+            else
+            {
+                // No splash means no desktop lifetime, which should not arise here. An ownerless
+                // window is then the only correct form: it needs no visible window to hang from.
+                var closed = new TaskCompletionSource();
+                recovery.Closed += (_, _) => closed.TrySetResult();
+                recovery.Show();
+                await closed.Task;
+            }
+
+            if (recovery.Choice == DatabaseRecoveryChoice.Quit)
+            {
+                if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime quitting)
+                    quitting.Shutdown();
+                else
+                    Environment.Exit(0);
+                return;
+            }
+        }
+
         // Build the DI container (fast — no I/O)
         var services = new ServiceCollection();
         ConfigureServices(services);
@@ -102,6 +148,15 @@ public class App : Application
 
         // Wire up global exception handlers so truly unhandled failures are persisted
         var errorLogger = Services.GetRequiredService<AppErrorLogger>();
+
+        // Dates any damage that appears while running, rather than leaving the next launch to
+        // find it with no idea when it started. Fifteen minutes is frequent enough to place it
+        // against whatever else the log holds, and the check itself is a single small read.
+        DatabaseIntegrityService.StartMonitoring(
+            AppConfig.GetDbPath,
+            message => errorLogger.Log(nameof(DatabaseIntegrityService), "integrity", message),
+            TimeSpan.FromMinutes(15),
+            CancellationToken.None);
 
         // Installed here, before any view model exists: ObserveOn captures the scheduler when a
         // subscription is created, so anything wired earlier would never be measured.
