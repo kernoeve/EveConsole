@@ -2924,17 +2924,34 @@ public class App : Application
 
     private static void ConfigureServices(IServiceCollection services)
     {
-        // Database — path can be overridden via config.json (see AppConfig)
-        var dbPath = AppConfig.GetDbPath();
-        Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
-        // ⚠️ The provider is resolved here only for the error logger the contention interceptor
-        // reports through. It is a singleton whose own dependency is IServiceScopeFactory, so
-        // nothing is constructed early and there is no cycle back into this factory.
-        services.AddDbContextFactory<AppDbContext>((sp, options) =>
-            options.UseSqlite($"Data Source={dbPath}")
-                   .AddInterceptors(
-                       new DisableForeignKeysInterceptor(),
-                       new WriteContentionInterceptor(sp.GetRequiredService<AppErrorLogger>())));
+        // Database — SQLite by default; a server when the user has pointed the app at one.
+        if (DbEngine.IsPostgres)
+        {
+            var conn = AppConfig.GetPostgresConnection()
+                ?? throw new InvalidOperationException(
+                    "The database is set to PostgreSQL but no connection string is configured. "
+                    + "Fix or remove \"postgresConnection\" in config.json.");
+
+            // ⚠️ Neither interceptor comes along, and that is the point of the separate branch
+            // rather than a shared one. Both exist for SQLite alone: one overrides the foreign-key
+            // pragma EF re-issues on every connection open, the other reports SQLITE_BUSY write
+            // contention. Postgres has neither problem, and PRAGMA is not SQL it will parse.
+            services.AddDbContextFactory<AppDbContext>((_, options) => options.UseNpgsql(conn));
+        }
+        else
+        {
+            var dbPath = AppConfig.GetDbPath();
+            Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
+            // ⚠️ The provider is resolved here only for the error logger the contention
+            // interceptor reports through. It is a singleton whose own dependency is
+            // IServiceScopeFactory, so nothing is constructed early and there is no cycle back
+            // into this factory.
+            services.AddDbContextFactory<AppDbContext>((sp, options) =>
+                options.UseSqlite($"Data Source={dbPath}")
+                       .AddInterceptors(
+                           new DisableForeignKeysInterceptor(),
+                           new WriteContentionInterceptor(sp.GetRequiredService<AppErrorLogger>())));
+        }
 
         // Named HTTP client for the ESI API (used by singleton EsiClient)
         services.AddHttpClient("esi", client =>

@@ -37,6 +37,7 @@
   <!-- LibVLC's Windows binaries, and only for a Windows target. On Linux LibVLCSharp loads the
        system libvlc, so these are 198 MB of nothing. -->
   <ItemGroup Condition="'$(IsWindowsTarget)' == 'true'">
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
   </ItemGroup>
 
@@ -73,7 +74,7 @@
     <PackageReference Include="YamlDotNet" Version="15.1.2" />
 
     <!-- Dependency Injection -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
 
@@ -101,9 +102,9 @@
        repo root and globs **/*.cs, so without these removals the tools would be compiled into
        the shipped application — a second Main, and code no user should ever receive. -->
   <ItemGroup>
-    <Compile          Remove="tools/**" />
+    <Compile Remove="tools/**" />
     <EmbeddedResource Remove="tools/**" />
-    <None             Remove="tools/**" />
+    <None Remove="tools/**" />
   </ItemGroup>
 
   <ItemGroup>

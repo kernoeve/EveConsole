@@ -31,6 +31,29 @@ public static class AppConfig
     // ── Read ─────────────────────────────────────────────────────────────────
 
     public static string GetDbPath()       => Load().DbPath ?? DefaultDbPath;
+
+    /// <summary>
+    /// Which engine to open. SQLite unless the user has explicitly pointed the app at a server,
+    /// so every existing installation keeps opening the file it always has.
+    /// </summary>
+    public static DbBackend GetDbBackend() =>
+        string.Equals(Load().DbBackend, "postgres", StringComparison.OrdinalIgnoreCase)
+            ? DbBackend.Postgres
+            : DbBackend.Sqlite;
+
+    /// <summary>
+    /// The Postgres connection string, or null when none has been configured.
+    ///
+    /// <para>⚠️ Held in plain text, in the same config.json as the window position. A
+    /// connection string normally carries a password, so this file now deserves the care of a
+    /// credentials file: it is not encrypted, and anything running as this user can read it.
+    /// Worth saying out loud in the UI that asks for it.</para>
+    /// </summary>
+    public static string? GetPostgresConnection()
+    {
+        var v = Load().PostgresConnection;
+        return string.IsNullOrWhiteSpace(v) ? null : v;
+    }
     public static (int X, int Y)? GetWindowPosition()
     {
         var c = Load();
@@ -44,6 +67,22 @@ public static class AppConfig
     {
         var c = Load();
         c.DbPath = path;
+        Save(c);
+    }
+
+    /// <summary>
+    /// Points the app at an engine. Takes effect on the next start, because the context factory
+    /// is built from it once.
+    ///
+    /// <para>⚠️ The Postgres connection string is kept when switching back to SQLite rather
+    /// than cleared. Somebody trying the file database again should not have to retype a server
+    /// address and password to go back.</para>
+    /// </summary>
+    public static void SetDbBackend(DbBackend backend, string? postgresConnection = null)
+    {
+        var c = Load();
+        c.DbBackend = backend == DbBackend.Postgres ? "postgres" : "sqlite";
+        if (!string.IsNullOrWhiteSpace(postgresConnection)) c.PostgresConnection = postgresConnection;
         Save(c);
     }
 
@@ -214,6 +253,11 @@ public static class AppConfig
     private sealed class ConfigData
     {
         [JsonPropertyName("dbPath")]  public string? DbPath  { get; set; }
+
+        // Which engine, and how to reach it when that engine is a server. Absent on every
+        // database written before Postgres support, which reads back as SQLite.
+        [JsonPropertyName("dbBackend")]          public string? DbBackend          { get; set; }
+        [JsonPropertyName("postgresConnection")] public string? PostgresConnection { get; set; }
         [JsonPropertyName("windowX")] public int?    WindowX { get; set; }
         [JsonPropertyName("windowY")] public int?    WindowY { get; set; }
 

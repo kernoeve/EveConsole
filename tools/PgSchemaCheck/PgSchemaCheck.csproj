@@ -8,9 +8,8 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>EveConsole.Tools.FreshInstallCheck</RootNamespace>
-    <AssemblyName>FreshInstallCheck</AssemblyName>
-    <!-- Kept from when the app was net9.0-windows; harmless now and cheap insurance. -->
+    <RootNamespace>EveConsole.Tools.PgSchemaCheck</RootNamespace>
+    <AssemblyName>PgSchemaCheck</AssemblyName>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
   </PropertyGroup>
 
