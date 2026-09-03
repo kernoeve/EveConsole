@@ -37,7 +37,7 @@ public sealed class NavigateToItemTool : IAgentTool
         const string sql = """
             SELECT st."TypeId", st."Name"
             FROM   "SdeTypes" st
-            WHERE  st."Name" LIKE @name AND st."Published" = 1
+            WHERE  st."Name" LIKE @name AND st."Published" = TRUE
             ORDER  BY LENGTH(st."Name"), st."Name"
             LIMIT  5
             """;

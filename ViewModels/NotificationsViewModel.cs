@@ -305,14 +305,14 @@ public class NotificationsViewModel : ReactiveObject
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
             var (baseWhere, ps) = BuildFilter();
-            string where = baseWhere + (_showUnreadOnly ? " AND IsRead = 0" : "");
+            string where = baseWhere + (_showUnreadOnly ? " AND \"IsRead\" = FALSE" : "");
 
             // The same notification is delivered to multiple characters; the grid shows one row per
             // NotificationId, so counts and paging are over DISTINCT NotificationId.
 #pragma warning disable EF1002
             // Unread count = distinct notifications with any unread recipient (ignores the toggle).
             UnreadCount = await db.EsiNotifications
-                .FromSqlRaw($"SELECT * FROM \"EsiNotifications\" WHERE {baseWhere} AND \"IsRead\" = 0", ps)
+                .FromSqlRaw($"SELECT * FROM \"EsiNotifications\" WHERE {baseWhere} AND \"IsRead\" = FALSE", ps)
                 .AsNoTracking().Select(n => n.NotificationId).Distinct().CountAsync();
 
             Pager.TotalCount = await db.EsiNotifications

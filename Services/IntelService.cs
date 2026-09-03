@@ -431,8 +431,8 @@ public sealed class IntelService(
 
     private const string SupersedeSql = """
         UPDATE "IntelReports"
-        SET "Obsolete" = 1, "ObsoleteSetOn" = {0}
-        WHERE "Obsolete" = 0
+        SET "Obsolete" = TRUE, "ObsoleteSetOn" = {0}
+        WHERE "Obsolete" = FALSE
           AND EXISTS (
             SELECT 1
             FROM "IntelReportCharacters" c1

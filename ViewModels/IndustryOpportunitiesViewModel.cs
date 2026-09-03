@@ -269,7 +269,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         cmd.CommandText = """
             SELECT "Id", "LocationName", "Method", "LocationId"
             FROM "MarketPricingConfigs"
-            WHERE "IsEnabled" = 1
+            WHERE "IsEnabled" = TRUE
             ORDER BY "SortOrder"
             """;
 
@@ -398,7 +398,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 JOIN "SdeTypes" bpt ON bpt."TypeId" = bp."TypeId"
                 WHERE bp."ProductTypeId" = bc."TypeId"
                   AND bp."Activity" IN ('manufacturing','reaction')
-                  AND bpt."Published" = 1
+                  AND bpt."Published" = TRUE
                   AND (
                     bpt."MarketGroupId" IS NOT NULL
                     OR EXISTS (

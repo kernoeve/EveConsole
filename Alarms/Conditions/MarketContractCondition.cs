@@ -166,7 +166,7 @@ public sealed class MarketContractCondition : IAlarmCondition
             FROM "MarketRawOrders" o
             JOIN "MarketPricingConfigs" cfg ON cfg."Id" = o."ConfigId"
             LEFT JOIN "SdeSolarSystems" s ON s."SolarSystemId" = o."SystemId"
-            WHERE o."TypeId" = $type AND o."IsBuyOrder" = 0
+            WHERE o."TypeId" = $type AND o."IsBuyOrder" = FALSE
               AND o."Price" <= $price AND o."VolumeRemain" >= $qty
               {(string.IsNullOrWhiteSpace(market) ? "" : """AND upper(cfg."LocationName") LIKE upper($market)""")}
             ORDER BY o."Price"
@@ -219,13 +219,13 @@ public sealed class MarketContractCondition : IAlarmCondition
             JOIN "EsiContractItems" i ON i."ContractId" = c."ContractId"
             WHERE c."OwnerType" = 'public' AND c."Type" = 'item_exchange'
               AND c."Status" = 'outstanding'
-              AND i."TypeId" = $type AND i."IsIncluded" = 1
+              AND i."TypeId" = $type AND i."IsIncluded" = TRUE
               AND i."Quantity" >= $qty
               AND CAST(c."Price" AS REAL) > 0
               AND CAST(c."Price" AS REAL) / i."Quantity" <= $price
               {(bundled ? "" : """
                 AND (SELECT COUNT(DISTINCT x."TypeId") FROM "EsiContractItems" x
-                     WHERE x."ContractId" = c."ContractId" AND x."IsIncluded" = 1) = 1
+                     WHERE x."ContractId" = c."ContractId" AND x."IsIncluded" = TRUE) = 1
                 """)}
             ORDER BY CAST(c."Price" AS REAL) / i."Quantity"
             LIMIT {MaxOffers}

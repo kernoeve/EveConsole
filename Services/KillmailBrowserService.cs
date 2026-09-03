@@ -137,12 +137,12 @@ public class KillmailBrowserService(
             // Ids resolved above (our own tracked characters, or an ESI search result) —
             // not raw user text, safe to inline as a literal int list like killIdsStr below.
             var idsStr = string.Join(",", characterIds);
-            conditions.Add($"""(d."VictimCharId" IN ({idsStr}) OR EXISTS (SELECT 1 FROM "KillMailAttackers" a WHERE a."KillMailId" = d."KillMailId" AND a."FinalBlow" = 1 AND a."CharacterId" IN ({idsStr})))""");
+            conditions.Add($"""(d."VictimCharId" IN ({idsStr}) OR EXISTS (SELECT 1 FROM "KillMailAttackers" a WHERE a."KillMailId" = d."KillMailId" AND a."FinalBlow" = TRUE AND a."CharacterId" IN ({idsStr})))""");
         }
         if (corporationIds is { Count: > 0 })
         {
             var idsStr = string.Join(",", corporationIds);
-            conditions.Add($"""(d."VictimCorpId" IN ({idsStr}) OR EXISTS (SELECT 1 FROM "KillMailAttackers" a WHERE a."KillMailId" = d."KillMailId" AND a."FinalBlow" = 1 AND a."CorporationId" IN ({idsStr})))""");
+            conditions.Add($"""(d."VictimCorpId" IN ({idsStr}) OR EXISTS (SELECT 1 FROM "KillMailAttackers" a WHERE a."KillMailId" = d."KillMailId" AND a."FinalBlow" = TRUE AND a."CorporationId" IN ({idsStr})))""");
         }
 
         // Entity viewer path. The id is already known, so no name resolution is needed —
@@ -193,7 +193,7 @@ public class KillmailBrowserService(
         var fbAttackers = await db.Database.SqlQueryRaw<FbRaw>($"""
             SELECT a."KillMailId", a."CharacterId", a."CorporationId", a."AllianceId"
             FROM "KillMailAttackers" a
-            WHERE a."FinalBlow" = 1 AND a."KillMailId" IN ({killIdsStr})
+            WHERE a."FinalBlow" = TRUE AND a."KillMailId" IN ({killIdsStr})
             """).ToListAsync(ct);
 #pragma warning restore EF1002
 

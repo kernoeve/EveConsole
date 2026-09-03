@@ -52,7 +52,7 @@ public sealed class GetAssetsTool : IAgentTool
             LEFT JOIN (
                 SELECT mip2."TypeId", mip2."Midpoint"
                 FROM   "MarketItemPrices"     mip2
-                JOIN   "MarketPricingConfigs" mpc  ON mpc."Id" = mip2."ConfigId" AND mpc."IsEnabled" = 1
+                JOIN   "MarketPricingConfigs" mpc  ON mpc."Id" = mip2."ConfigId" AND mpc."IsEnabled" = TRUE
                 ORDER  BY mpc."SortOrder"
             ) mip ON mip."TypeId" = a."TypeId"
             WHERE  (@char IS NULL OR c."Name" LIKE @char OR corp."Name" LIKE @char)

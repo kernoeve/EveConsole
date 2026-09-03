@@ -659,8 +659,8 @@ public class MarketPricingService
                 {fetched},
                 0
             FROM "SdeTypes" t
-            LEFT JOIN "BuildCosts" bc ON bc."TypeId" = t."TypeId" AND bc."Bought" = 0
-            WHERE t."Published" = 1
+            LEFT JOIN "BuildCosts" bc ON bc."TypeId" = t."TypeId" AND bc."Bought" = FALSE
+            WHERE t."Published" = TRUE
               AND NOT EXISTS (
                   SELECT 1 FROM "MarketItemPrices" p
                   WHERE p."ConfigId" = {configId} AND p."TypeId" = t."TypeId"
@@ -676,7 +676,7 @@ public class MarketPricingService
             WITH costs AS (
                 SELECT "TypeId", CAST("TotalCost" AS REAL) * {markup} AS EffSell
                 FROM "BuildCosts"
-                WHERE "Bought" = 0
+                WHERE "Bought" = FALSE
             )
             UPDATE "MarketItemPrices"
             SET "SellPrice" = COALESCE((SELECT c.EffSell FROM costs c WHERE c."TypeId" = "MarketItemPrices"."TypeId"), 0.0),
@@ -705,7 +705,7 @@ public class MarketPricingService
             WITH costs AS (
                 SELECT "TypeId", CAST("TotalCost" AS REAL) * {markup} AS EffSell
                 FROM "BuildCosts"
-                WHERE "Bought" = 0
+                WHERE "Bought" = FALSE
             )
             UPDATE "MarketItemPrices"
             SET "SellPrice" = c.EffSell,
@@ -715,7 +715,7 @@ public class MarketPricingService
             FROM costs c
             WHERE "MarketItemPrices"."ConfigId"      = {configId}
               AND "MarketItemPrices"."TypeId"         = c."TypeId"
-              AND "MarketItemPrices"."FromMarketData" = 0
+              AND "MarketItemPrices"."FromMarketData" = FALSE
               AND "MarketItemPrices"."SellPrice"     != c.EffSell
             """, ct);
 

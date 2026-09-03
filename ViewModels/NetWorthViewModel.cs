@@ -435,7 +435,7 @@ public class NetWorthViewModel : ReactiveObject
           AND NOT (
               n."OwnerType" = 'corporation'
               AND n."OwnerId" IN (
-                  SELECT CAST("Id" AS INTEGER) FROM "Corporations" WHERE "IsPersonal" = 0
+                  SELECT CAST("Id" AS INTEGER) FROM "Corporations" WHERE "IsPersonal" = FALSE
               )
           )
         GROUP BY n."Date"

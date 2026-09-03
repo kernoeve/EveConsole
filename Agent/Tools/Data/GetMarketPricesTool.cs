@@ -50,7 +50,7 @@ public sealed class GetMarketPricesTool : IAgentTool
                    mip."Midpoint"
             FROM   "SdeTypes"          st
             JOIN   "MarketItemPrices"  mip ON mip."TypeId"   = st."TypeId"
-            JOIN   "MarketPricingConfigs" pc ON pc."Id" = mip."ConfigId" AND pc."IsEnabled" = 1
+            JOIN   "MarketPricingConfigs" pc ON pc."Id" = mip."ConfigId" AND pc."IsEnabled" = TRUE
             WHERE  st."Name" LIKE @name
             ORDER  BY pc."SortOrder"
             LIMIT  5

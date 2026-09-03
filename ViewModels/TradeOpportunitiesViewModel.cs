@@ -564,7 +564,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
                    MIN("Price")        AS BestSell,
                    SUM("VolumeRemain") AS AvailSell
             FROM "MarketRawOrders"
-            WHERE "LocationId" = @sourceId AND "IsBuyOrder" = 0
+            WHERE "LocationId" = @sourceId AND "IsBuyOrder" = FALSE
             GROUP BY "TypeId"
         ),
         dst AS (
@@ -576,7 +576,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             FROM "MarketRawOrders" d
             JOIN src s ON s."TypeId" = d."TypeId"
                        AND d."Price" > s.BestSell
-            WHERE d."LocationId" = @destId AND d."IsBuyOrder" = 1
+            WHERE d."LocationId" = @destId AND d."IsBuyOrder" = TRUE
             GROUP BY d."TypeId"
         )
         SELECT
@@ -602,14 +602,14 @@ public class TradeOpportunitiesViewModel : ReactiveObject
                    MIN("Price")        AS BestSell,
                    SUM("VolumeRemain") AS AvailSell
             FROM "MarketRawOrders"
-            WHERE "LocationId" = @sourceId AND "IsBuyOrder" = 0
+            WHERE "LocationId" = @sourceId AND "IsBuyOrder" = FALSE
             GROUP BY "TypeId"
         ),
         dst AS (
             SELECT "TypeId",
                    MIN("Price") AS DestSell
             FROM "MarketRawOrders"
-            WHERE "LocationId" = @destId AND "IsBuyOrder" = 0
+            WHERE "LocationId" = @destId AND "IsBuyOrder" = FALSE
             GROUP BY "TypeId"
         )
         SELECT

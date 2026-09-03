@@ -1521,7 +1521,7 @@ public class CorpActivityService
         var fbRows = await db.Database.SqlQuery<Fb24hRaw>($"""
             SELECT a."KillMailId", a."CharacterId", a."CorporationId", a."AllianceId"
             FROM "KillMailAttackers" a
-            WHERE a."FinalBlow" = 1
+            WHERE a."FinalBlow" = TRUE
               AND a."KillMailId" IN (
                 SELECT d."KillMailId"
                 FROM "KillMailDetails" d
@@ -1747,7 +1747,7 @@ public class CorpActivityService
         var fbRows = await db.Database.SqlQuery<Fb24hRaw>($"""
             SELECT a."KillMailId", a."CharacterId", a."CorporationId", a."AllianceId"
             FROM "KillMailAttackers" a
-            WHERE a."FinalBlow" = 1
+            WHERE a."FinalBlow" = TRUE
               AND a."KillMailId" IN (
                 SELECT d2."KillMailId"
                 FROM "KillMailDetails" d2
@@ -1849,7 +1849,7 @@ public class CorpActivityService
         var fbRows = await db.Database.SqlQueryRaw<Fb24hRaw>($"""
             SELECT a."KillMailId", a."CharacterId", a."CorporationId", a."AllianceId"
             FROM "KillMailAttackers" a
-            WHERE a."FinalBlow" = 1 AND a."KillMailId" IN ({killIdList})
+            WHERE a."FinalBlow" = TRUE AND a."KillMailId" IN ({killIdList})
             """).ToListAsync(ct);
 #pragma warning restore EF1002
         var fbMap = fbRows.GroupBy(f => f.KillMailId).ToDictionary(g => g.Key, g => g.First());

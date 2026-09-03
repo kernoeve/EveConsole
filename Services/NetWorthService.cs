@@ -89,8 +89,8 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
     private const string AssetValueSql = """
         SELECT COALESCE(SUM(
             CAST(a."Quantity" AS REAL) * CASE
-                WHEN a."IsBlueprintCopy" = 1 THEN 0.0
-                WHEN a."IsBlueprintCopy" = 0 THEN COALESCE(t."BasePrice", 0.0)
+                WHEN a."IsBlueprintCopy" = TRUE THEN 0.0
+                WHEN a."IsBlueprintCopy" = FALSE THEN COALESCE(t."BasePrice", 0.0)
                 ELSE COALESCE(
                     NULLIF(
                         CASE WHEN mds."AssetValueConfigId" IS NOT NULL AND p."TypeId" IS NOT NULL THEN
@@ -192,8 +192,8 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
         SELECT COALESCE(SUM(CAST("VolumeRemain" AS REAL) * CAST("Price" AS REAL)), 0.0)
         FROM "EsiMarketOrders"
         WHERE "OwnerId"    = @ownerId AND "OwnerType" = @ownerType
-          AND "IsBuyOrder" = 0
-          AND "IsHistory"  = 0
+          AND "IsBuyOrder" = FALSE
+          AND "IsHistory"  = FALSE
         """;
 
     // Buy order escrow = ISK currently locked up in active buy orders.
@@ -201,8 +201,8 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
         SELECT COALESCE(SUM(CAST("Escrow" AS REAL)), 0.0)
         FROM "EsiMarketOrders"
         WHERE "OwnerId"    = @ownerId AND "OwnerType" = @ownerType
-          AND "IsBuyOrder" = 1
-          AND "IsHistory"  = 0
+          AND "IsBuyOrder" = TRUE
+          AND "IsHistory"  = FALSE
         """;
 
     // Courier contracts issued by this owner that are outstanding or in progress.
@@ -214,7 +214,7 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
           AND "Type"     = 'courier'
           AND "Status"   IN ('outstanding', 'in_progress')
           AND (
-              (@ownerType = 'character'   AND "IssuerId"            = @ownerId AND "ForCorporation" = 0)
+              (@ownerType = 'character'   AND "IssuerId"            = @ownerId AND "ForCorporation" = FALSE)
            OR (@ownerType = 'corporation' AND "IssuerCorporationId" = @ownerId)
           )
         """;
@@ -228,7 +228,7 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
           AND "Type"     IN ('item_exchange', 'auction')
           AND "Status"   = 'outstanding'
           AND (
-              (@ownerType = 'character'   AND "IssuerId"            = @ownerId AND "ForCorporation" = 0)
+              (@ownerType = 'character'   AND "IssuerId"            = @ownerId AND "ForCorporation" = FALSE)
            OR (@ownerType = 'corporation' AND "IssuerCorporationId" = @ownerId)
           )
         """;

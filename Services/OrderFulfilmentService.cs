@@ -405,7 +405,7 @@ public class OrderFulfilmentService(
               AND c."AssigneeId" = {0}
               AND c."DateIssued" > {1}
               AND ({{string.Join(" OR ", tests)}})
-              AND i."TypeId" = {2} AND i."IsIncluded" = 1 AND i."Quantity" >= {3}
+              AND i."TypeId" = {2} AND i."IsIncluded" = TRUE AND i."Quantity" >= {3}
             GROUP BY c."ContractId"
             ORDER BY c."ContractId"
             """;

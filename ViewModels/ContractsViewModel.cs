@@ -87,7 +87,7 @@ public class ContractItemRowVm
     {
         Kind      = it.IsIncluded ? "Offered" : "Requested";
         KindColor = it.IsIncluded ? "#5cb85c" : "#d9877a";
-        TypeName  = typeNames.TryGetValue(it.TypeId, out var n) ? n : $"Type {it.TypeId}";
+        TypeName  = typeNames.TryGetValue(it.TypeId, out var n) ? n : $"\"Type\" {it.TypeId}";
         TypeId    = it.TypeId;
         Quantity  = it.Quantity.ToString("N0");
 
@@ -340,7 +340,7 @@ public class ContractRowVm
         SearchText = string.Join(" ",
             new[] { c.Title ?? "" }.Concat(items.Select(Name))).ToLowerInvariant();
 
-        string Name(ContractItem i) => typeNames.TryGetValue(i.TypeId, out var n) ? n : $"Type {i.TypeId}";
+        string Name(ContractItem i) => typeNames.TryGetValue(i.TypeId, out var n) ? n : $"\"Type\" {i.TypeId}";
     }
 }
 
@@ -864,7 +864,7 @@ public class PublicContractsViewModel : ReactiveObject
     // Matches the Contents column: the title if any, else the first item's type name (included
     // items first, then by record). The subquery is a PK-indexed seek per row, so it's cheap.
     private const string ContentsSortExpr =
-        "COALESCE(NULLIF(TRIM(c.Title), ''), " +
+        "COALESCE(NULLIF(TRIM(c.\"Title\"), ''), " +
         "(SELECT t.\"Name\" FROM \"EsiContractItems\" i JOIN \"SdeTypes\" t ON t.\"TypeId\" = i.\"TypeId\" " +
         "WHERE i.\"ContractId\" = c.\"ContractId\" ORDER BY i.\"IsIncluded\" DESC, i.\"RecordId\" LIMIT 1), '')";
 
@@ -872,12 +872,12 @@ public class PublicContractsViewModel : ReactiveObject
     // only reorder the current page, which is the confusing behaviour we're replacing.
     public IReadOnlyList<ContractSortOption> SortOptions { get; } =
     [
-        new("Price: low → high",  "CAST(c.Price AS REAL) ASC, c.ContractId DESC"),
-        new("Price: high → low",  "CAST(c.Price AS REAL) DESC, c.ContractId DESC"),
+        new("Price: low → high",  "CAST(c.\"Price\" AS REAL) ASC, c.\"ContractId\" DESC"),
+        new("Price: high → low",  "CAST(c.\"Price\" AS REAL) DESC, c.\"ContractId\" DESC"),
         new("Newest first",       "c.\"DateIssued\" DESC"),
         new("Oldest first",       "c.\"DateIssued\" ASC"),
-        new("Reward: high → low", "CAST(c.Reward AS REAL) DESC, c.ContractId DESC"),
-        new("Volume: high → low", "CAST(c.Volume AS REAL) DESC, c.ContractId DESC"),
+        new("Reward: high → low", "CAST(c.\"Reward\" AS REAL) DESC, c.\"ContractId\" DESC"),
+        new("Volume: high → low", "CAST(c.\"Volume\" AS REAL) DESC, c.\"ContractId\" DESC"),
         new("Contents (A → Z)",   ContentsSortExpr + " ASC, c.ContractId DESC"),
     ];
 

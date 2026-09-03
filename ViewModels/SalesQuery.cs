@@ -30,10 +30,10 @@ internal static class SalesQuery
                COALESCE((SELECT "Name" FROM "SdeStations"       WHERE "StationId"   = t."LocationId"),
                         (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = t."LocationId")) AS Location
         FROM "EsiWalletTransactions" t
-        WHERE t."IsBuy" = 0
+        WHERE t."IsBuy" = FALSE
           -- A corp trade a character executes is stored under both the character (is_personal=0)
           -- and the corporation. Keep the corp row; drop the character's duplicate.
-          AND (t."OwnerType" = 'corporation' OR t."IsPersonal" = 1)
+          AND (t."OwnerType" = 'corporation' OR t."IsPersonal" = TRUE)
         """;
 
     // Contract sales: item-exchange contracts finished for ISK, issued BY the tracked owner (so an
@@ -48,7 +48,7 @@ internal static class SalesQuery
                         (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = c."StartLocationId")) AS Location
         FROM "EsiContracts" c
         WHERE c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS REAL) > 0
-          AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = 0)
+          AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = FALSE)
              OR (c."OwnerType" = 'corporation' AND c."IssuerCorporationId" = c."OwnerId") )
         """;
 
@@ -57,9 +57,9 @@ internal static class SalesQuery
         SELECT ci."ContractId" AS "ContractId", ci."TypeId" AS "TypeId", ci."Quantity" AS "Quantity"
         FROM "EsiContractItems" ci
         JOIN "EsiContracts" c ON c."ContractId" = ci."ContractId"
-        WHERE ci."IsIncluded" = 1
+        WHERE ci."IsIncluded" = TRUE
           AND c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS REAL) > 0
-          AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = 0)
+          AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = FALSE)
              OR (c."OwnerType" = 'corporation' AND c."IssuerCorporationId" = c."OwnerId") )
         """;
 
@@ -136,7 +136,7 @@ internal static class SalesQuery
         string OwnerName(long id, string type) => type == "corporation"
             ? (corpNames.TryGetValue(id, out var cn) ? cn : $"Corp {id}")
             : (charNames.TryGetValue(id, out var pn) ? pn : $"Char {id}");
-        string TypeName(int id) => typeNames.TryGetValue(id, out var n) ? n : $"Type {id}";
+        string TypeName(int id) => typeNames.TryGetValue(id, out var n) ? n : $"\"Type\" {id}";
 
         // Buyer names — external players. Resolve from local caches, fall back to ESI once and
         // persist to the shared UniverseNames cache so later loads stay offline.

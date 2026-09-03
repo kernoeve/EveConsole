@@ -208,9 +208,9 @@ public sealed class EntityNameBackfillService(
                 SELECT "VictimCharId"     AS "Value" FROM "KillMailDetails" WHERE "VictimCharId"     > 0
                 UNION SELECT "VictimCorpId"          FROM "KillMailDetails" WHERE "VictimCorpId"     > 0
                 UNION SELECT "VictimAllianceId"      FROM "KillMailDetails" WHERE "VictimAllianceId" > 0
-                UNION SELECT "CharacterId"           FROM "KillMailAttackers" WHERE "FinalBlow" = 1 AND "CharacterId"   > 0
-                UNION SELECT "CorporationId"         FROM "KillMailAttackers" WHERE "FinalBlow" = 1 AND "CorporationId" > 0
-                UNION SELECT "AllianceId"            FROM "KillMailAttackers" WHERE "FinalBlow" = 1 AND "AllianceId"    > 0
+                UNION SELECT "CharacterId"           FROM "KillMailAttackers" WHERE "FinalBlow" = TRUE AND "CharacterId"   > 0
+                UNION SELECT "CorporationId"         FROM "KillMailAttackers" WHERE "FinalBlow" = TRUE AND "CorporationId" > 0
+                UNION SELECT "AllianceId"            FROM "KillMailAttackers" WHERE "FinalBlow" = TRUE AND "AllianceId"    > 0
             ) e
             LEFT JOIN "UniverseNames" u ON u."EntityId" = e."Value"
             WHERE u."EntityId" IS NULL AND e."Value" < 1000000000000

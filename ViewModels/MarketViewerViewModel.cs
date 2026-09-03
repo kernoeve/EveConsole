@@ -257,7 +257,7 @@ public class MarketViewerViewModel : ReactiveObject
 
     public IReadOnlyList<MarketPeriodOption> Periods { get; } =
     [
-        new("All Time",      null),
+        new("All \"Time\"",      null),
         new("Last 365 Days", 365),
         new("Last 90 Days",  90),
         new("Last 30 Days",  30),
@@ -371,12 +371,12 @@ public class MarketViewerViewModel : ReactiveObject
             // every new install has until the first market poll lands.
             var o = (await db.Database.SqlQueryRaw<KpiOrderAgg>(
                 "SELECT " +
-                "COALESCE(SUM(CASE WHEN o.IsBuyOrder = 0 THEN 1 ELSE 0 END), 0)                        AS SellCount, " +
-                "COALESCE(SUM(CASE WHEN o.IsBuyOrder = 0 THEN o.Price * o.VolumeRemain ELSE 0 END), 0) AS SellIsk, " +
-                "COUNT(DISTINCT CASE WHEN o.IsBuyOrder = 0 THEN o.TypeId END)                          AS SellTypes, " +
-                "COALESCE(SUM(CASE WHEN o.IsBuyOrder = 1 THEN 1 ELSE 0 END), 0)                        AS BuyCount, " +
-                "COALESCE(SUM(CASE WHEN o.IsBuyOrder = 1 THEN o.Price * o.VolumeRemain ELSE 0 END), 0) AS BuyIsk, " +
-                "COUNT(DISTINCT CASE WHEN o.IsBuyOrder = 1 THEN o.TypeId END)                          AS BuyTypes " +
+                "COALESCE(SUM(CASE WHEN o.\"IsBuyOrder\" = FALSE THEN 1 ELSE 0 END), 0)                        AS SellCount, " +
+                "COALESCE(SUM(CASE WHEN o.\"IsBuyOrder\" = FALSE THEN o.\"Price\" * o.\"VolumeRemain\" ELSE 0 END), 0) AS SellIsk, " +
+                "COUNT(DISTINCT CASE WHEN o.\"IsBuyOrder\" = FALSE THEN o.\"TypeId\" END)                          AS SellTypes, " +
+                "COALESCE(SUM(CASE WHEN o.\"IsBuyOrder\" = TRUE THEN 1 ELSE 0 END), 0)                        AS BuyCount, " +
+                "COALESCE(SUM(CASE WHEN o.\"IsBuyOrder\" = TRUE THEN o.\"Price\" * o.\"VolumeRemain\" ELSE 0 END), 0) AS BuyIsk, " +
+                "COUNT(DISTINCT CASE WHEN o.\"IsBuyOrder\" = TRUE THEN o.\"TypeId\" END)                          AS BuyTypes " +
                 OrdersFrom + " " + orderWhere).ToListAsync()).FirstOrDefault() ?? new KpiOrderAgg();
 
             // Sales KPIs — driven by the selected period.
@@ -386,7 +386,7 @@ public class MarketViewerViewModel : ReactiveObject
             var saleWhere = saleConds.Count > 0 ? "WHERE " + string.Join(" AND ", saleConds) + " " : "";
             var s = (await db.Database.SqlQueryRaw<KpiSalesAgg>(
                 "SELECT COALESCE(SUM(\"Volume\"), 0) AS \"Units\", COALESCE(SUM(\"Volume\" * \"Average\"), 0) AS Isk, " +
-                "COUNT(DISTINCT CASE WHEN Volume > 0 THEN TypeId END) AS Types " +
+                "COUNT(DISTINCT CASE WHEN \"Volume\" > 0 THEN \"TypeId\" END) AS Types " +
                 "FROM \"MarketTypeHistories\" " + saleWhere).ToListAsync()).FirstOrDefault() ?? new KpiSalesAgg();
 
             KpiSellCount  = o.SellCount.ToString("N0");
@@ -414,7 +414,7 @@ public class MarketViewerViewModel : ReactiveObject
                 .Select(x => x.TypeId).Distinct().ToList();
             var typeNames = await db.SdeTypes.AsNoTracking().Where(t => needIds.Contains(t.TypeId))
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name);
-            string TName(int id) => typeNames.TryGetValue(id, out var n) ? n : $"Type {id}";
+            string TName(int id) => typeNames.TryGetValue(id, out var n) ? n : $"\"Type\" {id}";
 
             var sellPie    = BuildTypePie(sellByType.Select(x => (TName(x.TypeId), x.Isk, x.TypeId)));
             SellCorpSeries = sellPie.Series;
@@ -438,7 +438,7 @@ public class MarketViewerViewModel : ReactiveObject
                         new[] { region is int r5 ? $"h.\"RegionId\" = {r5}" : null, cutoff is not null ? $"h.\"Date\" >= '{cutoff}'" : null }
                         .Where(x => x is not null)) + " "
                     : "") +
-                "GROUP BY mt.\"TopId\"").ToListAsync();
+                "GROUP BY mt.\"TopId\", mt.\"TopName\"").ToListAsync();
             SalesGroupSeries = BuildPie(groups.Select(g => (g.Name, g.Isk)));
             HasSalesGroup    = SalesGroupSeries.Length > 0;
 
@@ -551,14 +551,14 @@ public class MarketViewerViewModel : ReactiveObject
             var orders = await db.Database.SqlQueryRaw<GroupOrderAgg>(
                 MgTopCte +
                 "SELECT mt.\"TopId\" AS \"GroupId\", mt.\"TopName\" AS GroupName, " +
-                "SUM(CASE WHEN o.IsBuyOrder = 0 THEN o.VolumeRemain ELSE 0 END)           AS SellUnits, " +
-                "SUM(CASE WHEN o.IsBuyOrder = 0 THEN o.Price * o.VolumeRemain ELSE 0 END) AS SellIsk, " +
-                "SUM(CASE WHEN o.IsBuyOrder = 1 THEN o.VolumeRemain ELSE 0 END)           AS BuyUnits, " +
-                "SUM(CASE WHEN o.IsBuyOrder = 1 THEN o.Price * o.VolumeRemain ELSE 0 END) AS BuyIsk " +
+                "SUM(CASE WHEN o.\"IsBuyOrder\" = FALSE THEN o.\"VolumeRemain\" ELSE 0 END)           AS SellUnits, " +
+                "SUM(CASE WHEN o.\"IsBuyOrder\" = FALSE THEN o.\"Price\" * o.\"VolumeRemain\" ELSE 0 END) AS SellIsk, " +
+                "SUM(CASE WHEN o.\"IsBuyOrder\" = TRUE THEN o.\"VolumeRemain\" ELSE 0 END)           AS BuyUnits, " +
+                "SUM(CASE WHEN o.\"IsBuyOrder\" = TRUE THEN o.\"Price\" * o.\"VolumeRemain\" ELSE 0 END) AS BuyIsk " +
                 OrdersFrom + " " +
                 "JOIN \"SdeTypes\" ty ON ty.\"TypeId\" = o.\"TypeId\" " +
                 "JOIN mg_top mt ON mt.\"MarketGroupId\" = ty.\"MarketGroupId\" " +
-                orderWhere + " GROUP BY mt.\"TopId\"").ToListAsync();
+                orderWhere + " GROUP BY mt.\"TopId\", mt.\"TopName\"").ToListAsync();
 #pragma warning restore EF1002
 
             var cutoff = Cutoff();
@@ -569,11 +569,11 @@ public class MarketViewerViewModel : ReactiveObject
             var sales = await db.Database.SqlQueryRaw<GroupSalesAgg>(
                 MgTopCte +
                 "SELECT mt.\"TopId\" AS \"GroupId\", mt.\"TopName\" AS GroupName, " +
-                "SUM(h.Volume) AS Units, SUM(h.Volume * h.Average) AS Isk " +
+                "SUM(h.\"Volume\") AS \"Units\", SUM(h.\"Volume\" * h.\"Average\") AS Isk " +
                 "FROM \"MarketTypeHistories\" h " +
                 "JOIN \"SdeTypes\" ty ON ty.\"TypeId\" = h.\"TypeId\" " +
                 "JOIN mg_top mt ON mt.\"MarketGroupId\" = ty.\"MarketGroupId\" " +
-                salesWhere + " GROUP BY mt.\"TopId\"").ToListAsync();
+                salesWhere + " GROUP BY mt.\"TopId\", mt.\"TopName\"").ToListAsync();
 
             var names = new Dictionary<int, string>();
             foreach (var o in orders) names[o.GroupId] = o.GroupName;
@@ -620,10 +620,10 @@ public class MarketViewerViewModel : ReactiveObject
             var orders = await db.Database.SqlQueryRaw<TypeOrderAgg>(
                 $"""
                  SELECT o."TypeId" AS "TypeId",
-                        SUM(CASE WHEN o."IsBuyOrder" = 0 THEN o."VolumeRemain" ELSE 0 END)           AS SellUnits,
-                        SUM(CASE WHEN o."IsBuyOrder" = 0 THEN o."Price" * o."VolumeRemain" ELSE 0 END) AS SellIsk,
-                        SUM(CASE WHEN o."IsBuyOrder" = 1 THEN o."VolumeRemain" ELSE 0 END)           AS BuyUnits,
-                        SUM(CASE WHEN o."IsBuyOrder" = 1 THEN o."Price" * o."VolumeRemain" ELSE 0 END) AS BuyIsk
+                        SUM(CASE WHEN o."IsBuyOrder" = FALSE THEN o."VolumeRemain" ELSE 0 END)           AS SellUnits,
+                        SUM(CASE WHEN o."IsBuyOrder" = FALSE THEN o."Price" * o."VolumeRemain" ELSE 0 END) AS SellIsk,
+                        SUM(CASE WHEN o."IsBuyOrder" = TRUE THEN o."VolumeRemain" ELSE 0 END)           AS BuyUnits,
+                        SUM(CASE WHEN o."IsBuyOrder" = TRUE THEN o."Price" * o."VolumeRemain" ELSE 0 END) AS BuyIsk
                  {OrdersFrom}
                  {orderWhere}
                  GROUP BY o."TypeId"
@@ -649,7 +649,7 @@ public class MarketViewerViewModel : ReactiveObject
             {
                 oByT.TryGetValue(tid, out var o); sByT.TryGetValue(tid, out var s);
                 return new MarketTypeSummaryVm(
-                    typeNames.TryGetValue(tid, out var n) ? n : $"Type {tid}",
+                    typeNames.TryGetValue(tid, out var n) ? n : $"\"Type\" {tid}",
                     o?.SellUnits ?? 0, o?.SellIsk ?? 0, o?.BuyUnits ?? 0, o?.BuyIsk ?? 0,
                     s?.Units ?? 0, s?.Isk ?? 0) { TypeId = tid };
             }).OrderByDescending(t => t.SalesIskRaw).ToList();
@@ -683,7 +683,7 @@ public class MarketViewerViewModel : ReactiveObject
 
             var rows = await db.Database.SqlQueryRaw<TypeUnitIskAgg>(
                 "SELECT o.\"TypeId\" AS \"TypeId\", SUM(o.\"VolumeRemain\") AS \"Units\", " +
-                "SUM(o.Price * o.VolumeRemain) AS Isk " +
+                "SUM(o.\"Price\" * o.\"VolumeRemain\") AS Isk " +
                 OrdersFrom + " " + where + " GROUP BY o.\"TypeId\"").ToListAsync();
 
             var typeIds   = rows.Select(x => x.TypeId).ToList();
@@ -692,7 +692,7 @@ public class MarketViewerViewModel : ReactiveObject
 
             var vms = rows
                 .Select(x => new MarketOrderByTypeVm(
-                    typeNames.TryGetValue(x.TypeId, out var n) ? n : $"Type {x.TypeId}", x.Units, x.Isk)
+                    typeNames.TryGetValue(x.TypeId, out var n) ? n : $"\"Type\" {x.TypeId}", x.Units, x.Isk)
                     { TypeId = x.TypeId })
                 .OrderByDescending(v => v.IskRaw).ToList();
 

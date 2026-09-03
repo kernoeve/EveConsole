@@ -152,7 +152,7 @@ public class WalletTransactionRowVm
         IReadOnlyDictionary<(long, int), string> divisionNames)
     {
         DateText     = t.Date.ToLocalTime().ToString("MMM d, HH:mm");
-        TypeName     = typeNames.TryGetValue(t.TypeId, out var n) ? n : $"Type {t.TypeId}";
+        TypeName     = typeNames.TryGetValue(t.TypeId, out var n) ? n : $"\"Type\" {t.TypeId}";
         QuantityRaw  = t.Quantity;
         Quantity     = t.Quantity.ToString("N0");
         UnitPriceRaw = t.UnitPrice;
@@ -315,9 +315,9 @@ public class WalletViewModel : ReactiveObject
     [
         new("Date: newest first",   "\"Date\" DESC"),
         new("Date: oldest first",   "\"Date\" ASC"),
-        new("Amount: high → low",   "CAST(Amount AS REAL) DESC"),
-        new("Amount: low → high",   "CAST(Amount AS REAL) ASC"),
-        new("Balance: high → low",  "CAST(Balance AS REAL) DESC"),
+        new("Amount: high → low",   "CAST(\"Amount\" AS REAL) DESC"),
+        new("Amount: low → high",   "CAST(\"Amount\" AS REAL) ASC"),
+        new("Balance: high → low",  "CAST(\"Balance\" AS REAL) DESC"),
     ];
     private GridSortOption _selectedJournalSort;
     public GridSortOption SelectedJournalSort
@@ -330,9 +330,9 @@ public class WalletViewModel : ReactiveObject
     [
         new("Date: newest first",     "\"Date\" DESC"),
         new("Date: oldest first",     "\"Date\" ASC"),
-        new("Total: high → low",      "(Quantity * CAST(UnitPrice AS REAL)) DESC"),
-        new("Total: low → high",      "(Quantity * CAST(UnitPrice AS REAL)) ASC"),
-        new("Unit price: high → low", "CAST(UnitPrice AS REAL) DESC"),
+        new("Total: high → low",      "(\"Quantity\" * CAST(\"UnitPrice\" AS REAL)) DESC"),
+        new("Total: low → high",      "(\"Quantity\" * CAST(\"UnitPrice\" AS REAL)) ASC"),
+        new("Unit price: high → low", "CAST(\"UnitPrice\" AS REAL) DESC"),
         new("Quantity: high → low",   "\"Quantity\" DESC"),
     ];
     private GridSortOption _selectedTxnSort;
@@ -465,7 +465,7 @@ public class WalletViewModel : ReactiveObject
 
         Periods =
         [
-            new("Last 24 Hours",  24),
+            new("Last 24 \"Hours\"",  24),
             new("Last 7 Days",    168),
             new("Last 30 Days",   720),
             new("Last 90 Days",   2160),
@@ -692,7 +692,7 @@ public class WalletViewModel : ReactiveObject
         if (typeF.Length > 0)
         {
             int i = ps.Count; ps.Add("%" + typeF.Replace(' ', '_') + "%");
-            parts.Add($"RefType LIKE {{{i}}}");
+            parts.Add($"\"RefType\" LIKE {{{i}}}");
         }
 
         var ownerF = _journalOwnerFilter.Trim();
@@ -802,8 +802,8 @@ public class WalletViewModel : ReactiveObject
             parts.Add($"x.\"TypeId\" IN (SELECT \"TypeId\" FROM \"SdeTypes\" WHERE \"Name\" LIKE {{{i}}})");
         }
 
-        if (_txnDirectionFilter == "Buy")  parts.Add("x.\"IsBuy\" = 1");
-        else if (_txnDirectionFilter == "Sell") parts.Add("x.\"IsBuy\" = 0");
+        if (_txnDirectionFilter == "Buy")  parts.Add("x.\"IsBuy\" = TRUE");
+        else if (_txnDirectionFilter == "Sell") parts.Add("x.\"IsBuy\" = FALSE");
 
         var locF = _txnLocationFilter.Trim();
         if (locF.Length > 0)
@@ -995,8 +995,8 @@ public class WalletViewModel : ReactiveObject
         if (mktBuy      > 0) expSlices.Add(Slice("Market Purchases",   mktBuy,       new SKColor(200,  90,  90)));
         if (contractExp > 0) expSlices.Add(Slice("Contract Purchases", contractExp,  new SKColor(200, 120, 160)));
         if (brokerFee   > 0) expSlices.Add(Slice("Broker Fees",        brokerFee,    new SKColor(220, 150,  60)));
-        if (txnTax      > 0) expSlices.Add(Slice("Transaction Tax",    txnTax,       new SKColor(180, 180,  60)));
-        if (indyTax     > 0) expSlices.Add(Slice("Industry Tax",       indyTax,      new SKColor(100, 170, 200)));
+        if (txnTax      > 0) expSlices.Add(Slice("Transaction \"Tax\"",    txnTax,       new SKColor(180, 180,  60)));
+        if (indyTax     > 0) expSlices.Add(Slice("Industry \"Tax\"",       indyTax,      new SKColor(100, 170, 200)));
         if (otherExpense > 0) expSlices.Add(Slice("Other Expenses",    otherExpense, new SKColor(160, 100, 120)));
 
         IncomeSeries   = incSlices.Count > 0 ? incSlices : [];
@@ -1028,7 +1028,7 @@ public class WalletViewModel : ReactiveObject
             if (!balances.ContainsKey(i) && !divNames.ContainsKey(i)) continue;
             divNames.TryGetValue(i, out var rawName);
             var name = string.IsNullOrWhiteSpace(rawName)
-                ? (i == 1 ? "Master Wallet" : $"Division {i}")
+                ? (i == 1 ? "Master Wallet" : $"\"Division\" {i}")
                 : rawName;
             var balance = balances.TryGetValue(i, out var b) ? b : 0m;
             DivisionRows.Add(new WalletDivisionRowVm(i, name, balance));

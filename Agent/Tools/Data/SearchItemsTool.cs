@@ -37,7 +37,7 @@ public sealed class SearchItemsTool : IAgentTool
             FROM "SdeTypes"     st
             JOIN "SdeGroups"    sg ON sg."GroupId"    = st."GroupId"
             JOIN "SdeCategories" sc ON sc."CategoryId" = sg."CategoryId"
-            WHERE st."Name" LIKE @q AND st."Published" = 1
+            WHERE st."Name" LIKE @q AND st."Published" = TRUE
             ORDER BY LENGTH(st."Name"), st."Name"
             LIMIT @limit
             """;

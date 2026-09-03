@@ -164,7 +164,7 @@ public sealed class IntelCondition : IAlarmCondition
                 WHERE "ReportedAt" >= $cutoff
                   AND "SystemId" IN ({idList})
                   AND "PlayerCount" >= $minimum
-                  {(skipNv ? """AND "NoVisual" = 0""" : "")}
+                  {(skipNv ? """AND "NoVisual" = FALSE""" : "")}
                 ORDER BY "Id" DESC
                 LIMIT {MaxReports}
                 """;

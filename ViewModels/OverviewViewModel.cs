@@ -750,10 +750,10 @@ public class OverviewViewModel : ReactiveObject
                 var s = await Off(() => _db.Database.SqlQuery<TxnSummary>(
                     $"""
                     SELECT
-                        COALESCE(SUM(CASE WHEN "IsBuy" = 0 THEN "Quantity" * CAST("UnitPrice" AS REAL) ELSE 0.0 END), 0.0) AS "SellTotal",
-                        COALESCE(SUM(CASE WHEN "IsBuy" = 0 THEN 1 ELSE 0 END), 0)                                          AS "SellCount",
-                        COALESCE(SUM(CASE WHEN "IsBuy" = 1 THEN "Quantity" * CAST("UnitPrice" AS REAL) ELSE 0.0 END), 0.0) AS "BuyTotal",
-                        COALESCE(SUM(CASE WHEN "IsBuy" = 1 THEN 1 ELSE 0 END), 0)                                          AS "BuyCount"
+                        COALESCE(SUM(CASE WHEN "IsBuy" = FALSE THEN "Quantity" * CAST("UnitPrice" AS REAL) ELSE 0.0 END), 0.0) AS "SellTotal",
+                        COALESCE(SUM(CASE WHEN "IsBuy" = FALSE THEN 1 ELSE 0 END), 0)                                          AS "SellCount",
+                        COALESCE(SUM(CASE WHEN "IsBuy" = TRUE THEN "Quantity" * CAST("UnitPrice" AS REAL) ELSE 0.0 END), 0.0) AS "BuyTotal",
+                        COALESCE(SUM(CASE WHEN "IsBuy" = TRUE THEN 1 ELSE 0 END), 0)                                          AS "BuyCount"
                     FROM "EsiWalletTransactions"
                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                     """
@@ -1616,7 +1616,7 @@ public class OverviewViewModel : ReactiveObject
                 DismissCommand = ReactiveCommand.CreateFromTask(async () =>
                 {
                     await _db.Database.ExecuteSqlInterpolatedAsync($"""
-                        UPDATE "AlarmAlerts" SET "Dismissed" = 1, "DismissedAt" = {DateTimeOffset.UtcNow}
+                        UPDATE "AlarmAlerts" SET "Dismissed" = TRUE, "DismissedAt" = {DateTimeOffset.UtcNow}
                         WHERE "Id" = {alertId}
                         """);
                     var toRemove = Alerts.FirstOrDefault(a => ReferenceEquals(a, row));
