@@ -835,6 +835,8 @@ public class App : Application
                 // When the server said its copy goes stale. Polling shortly after that beats polling
                 // on a clock of our own, which drifts against it and can miss by nearly a full cache.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCallRecords" ADD COLUMN "ExpiresAt" TEXT"""); } catch { }
+                // Revalidation: the ETag from the last response, sent back as If-None-Match.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCallRecords" ADD COLUMN "ETag" TEXT"""); } catch { }
 
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "ApiTimerSettings" (

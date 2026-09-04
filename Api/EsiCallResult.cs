@@ -15,6 +15,15 @@ public class EsiCallResult<T>
     /// <summary>When the server's copy goes stale, from the Expires header. Null when it sent
     /// none, in which case the caller falls back to its own interval.</summary>
     public DateTimeOffset? Expires  { get; init; }
+
+    /// <summary>
+    /// The ETag the server sent, to be handed back as If-None-Match next time.
+    ///
+    /// <para>This is how a long Expires is meant to be used. ESI answers a repeat request that
+    /// carries a matching ETag with 304 and no body, and a 304 costs nothing against the error
+    /// limit — so revalidating is cheaper than polling on a timer, not merely politer.</para>
+    /// </summary>
+    public string? ETag                { get; init; }
     public string? Error              { get; init; }
     // For paged fetches: false when one or more pages after the first failed, so the returned
     // Data is incomplete. Callers that reconcile "rows no longer returned" must not act on a
