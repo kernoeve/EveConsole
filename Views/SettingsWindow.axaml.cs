@@ -74,6 +74,18 @@ public partial class SettingsWindow : Window
     private void OnShrinkDatabaseClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = _dbVm?.ShrinkDatabaseAsync();
 
+    private void OnTestPostgresClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = _dbVm?.TestPostgresAsync();
+
+    private void OnSaveDbChoiceClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _dbVm?.SaveDatabaseChoice();
+
+    private void OnCopyToPostgresClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = _dbVm?.CopyToPostgresAsync();
+
+    private void OnCancelCopyClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _dbVm?.CancelCopy();
+
     // One handler per retention section; each drives its own RetentionSectionVm.
     private DataRetentionSettingsViewModel? Retention => (DataContext as SettingsViewModel)?.RetentionVm;
 

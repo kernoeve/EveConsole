@@ -21,7 +21,30 @@ public static class AppConfig
     // models, etc.) share the single app data directory rather than hard-coding the folder name.
     public static string AppDataDir => Path.Combine(LocalAppData, AppFolder);
 
-    private static string ConfigPath => Path.Combine(AppDataDir, "config.json");
+    /// <summary>
+    /// A config.json sitting beside the executable, which takes precedence over the one in app
+    /// data when it exists.
+    ///
+    /// <para>It lets two builds on one machine point at different databases: a development copy
+    /// aimed at a server, and an ordinary install still on its SQLite file, without either
+    /// disturbing the other's settings.</para>
+    ///
+    /// <para>⚠️ Only the CONFIG moves. Everything else that lives in app data — the agent's
+    /// settings, voice models, sound cache — stays there, because those are the user's and
+    /// not the installation's. A portable config is about which database this executable opens,
+    /// not about making the whole app relocatable.</para>
+    ///
+    /// <para>⚠️ Presence is what selects it, so an installation directory that is not writable
+    /// simply never has one. Nothing creates this file automatically; a person puts it there.</para>
+    /// </summary>
+    public static string PortableConfigPath =>
+        Path.Combine(AppContext.BaseDirectory, "config.json");
+
+    /// <summary>True when settings are being read from beside the executable.</summary>
+    public static bool UsingPortableConfig => File.Exists(PortableConfigPath);
+
+    private static string ConfigPath =>
+        UsingPortableConfig ? PortableConfigPath : Path.Combine(AppDataDir, "config.json");
 
     private static readonly JsonSerializerOptions JsonOpts =
         new() { WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
@@ -275,8 +298,13 @@ public static class AppConfig
 
     private static void Save(ConfigData data)
     {
-        Directory.CreateDirectory(AppDataDir);
-        File.WriteAllText(ConfigPath, JsonSerializer.Serialize(data, JsonOpts));
+        // The directory of whichever file is in use — writing to app data while reading from
+        // beside the executable would silently discard every change the user made.
+        var path = ConfigPath;
+        var dir  = Path.GetDirectoryName(path);
+        if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
+
+        File.WriteAllText(path, JsonSerializer.Serialize(data, JsonOpts));
     }
 
     private sealed class ConfigData

@@ -22,13 +22,26 @@ namespace EveConsole.Data;
 /// </summary>
 public static class PostgresSchema
 {
-    public static void Apply(AppDbContext db, IProgress<(double Pct, string Status)>? progress = null)
+    /// <param name="includeSeeds">
+    /// ⚠️ False when the database is about to receive a copy of an existing one. The seeds
+    /// write fixed primary keys — MarketPricingConfigs 1 and 2, AlertSettings 1 — and the
+    /// copy then carries the same keys across, so seeding first turns the migration into a
+    /// duplicate-key failure partway through. The rows arrive with the data instead, and the
+    /// next ordinary start seeds anything genuinely absent, every seed being written to no-op
+    /// when its table is already populated.
+    /// </param>
+    public static void Apply(
+        AppDbContext db,
+        IProgress<(double Pct, string Status)>? progress = null,
+        bool includeSeeds = true)
     {
         progress?.Report((30, "Preparing database…"));
         foreach (var sql in Tables)  db.Database.ExecuteSqlRaw(sql);
 
         progress?.Report((55, "Building indexes…"));
         foreach (var sql in Indexes) db.Database.ExecuteSqlRaw(sql);
+
+        if (!includeSeeds) return;
 
         progress?.Report((75, "Writing defaults…"));
         foreach (var sql in Seeds)   db.Database.ExecuteSqlRaw(sql);

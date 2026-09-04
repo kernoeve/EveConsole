@@ -1,7 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using ReactiveUI;
+using EveConsole.Data;
 using EveConsole.Services;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace EveConsole.ViewModels;
 
@@ -12,16 +15,126 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
     // ── Database type ─────────────────────────────────────────────────────────
 
-    public ObservableCollection<string> DbTypes { get; } = ["SQLite"];
+    public const string SqliteName   = "SQLite";
+    public const string PostgresName = "PostgreSQL";
 
-    private string _selectedDbType = "SQLite";
+    public ObservableCollection<string> DbTypes { get; } = [SqliteName, PostgresName];
+
+    private string _selectedDbType = DbEngine.IsPostgres ? PostgresName : SqliteName;
     public string SelectedDbType
     {
         get => _selectedDbType;
-        set => this.RaiseAndSetIfChanged(ref _selectedDbType, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedDbType, value);
+            this.RaisePropertyChanged(nameof(IsSqlite));
+            this.RaisePropertyChanged(nameof(IsPostgres));
+            this.RaisePropertyChanged(nameof(EngineChanged));
+            TestResultText = "";
+            CanOfferCopy   = false;
+        }
     }
 
-    public bool IsSqlite => SelectedDbType == "SQLite";
+    public bool IsSqlite   => SelectedDbType == SqliteName;
+    public bool IsPostgres => SelectedDbType == PostgresName;
+
+    /// <summary>True when the selection no longer matches what the app actually opened, which is
+    /// the only time a restart is worth offering.</summary>
+    public bool EngineChanged =>
+        IsPostgres != DbEngine.IsPostgres;
+
+    // ⚠️ Whether the app is reading its settings from beside the executable, shown because the
+    // alternative is a user editing the file in app data and wondering why nothing changes.
+    public string ConfigSourceText =>
+        AppConfig.UsingPortableConfig
+            ? $"Settings are being read from {AppConfig.PortableConfigPath} (beside the program), "
+              + "not from app data."
+            : "Settings are stored in app data. Place a config.json beside the program to give "
+              + "this installation its own.";
+
+    // ── PostgreSQL connection ─────────────────────────────────────────────────
+
+    public PostgresSettings Pg { get; } =
+        PostgresSettings.FromConnectionString(AppConfig.GetPostgresConnection());
+
+    public string PgHost
+    {
+        get => Pg.Host;
+        set { Pg.Host = value; this.RaisePropertyChanged(); ResetTest(); }
+    }
+    public string PgPort
+    {
+        get => Pg.Port.ToString();
+        set { if (int.TryParse(value, out var n) && n is > 0 and < 65536) Pg.Port = n;
+              this.RaisePropertyChanged(); ResetTest(); }
+    }
+    public string PgDatabase
+    {
+        get => Pg.Database;
+        set { Pg.Database = value; this.RaisePropertyChanged(); ResetTest(); }
+    }
+    public string PgUsername
+    {
+        get => Pg.Username;
+        set { Pg.Username = value; this.RaisePropertyChanged(); ResetTest(); }
+    }
+    public string PgPassword
+    {
+        get => Pg.Password;
+        set { Pg.Password = value; this.RaisePropertyChanged(); ResetTest(); }
+    }
+
+    private void ResetTest()
+    {
+        TestResultText = "";
+        CanOfferCopy   = false;
+        TestSucceeded  = false;
+    }
+
+    private string _testResultText = "";
+    public string TestResultText
+    {
+        get => _testResultText;
+        private set { this.RaiseAndSetIfChanged(ref _testResultText, value);
+                      this.RaisePropertyChanged(nameof(HasTestResult)); }
+    }
+    public bool HasTestResult => TestResultText.Length > 0;
+
+    private bool _testSucceeded;
+    public bool TestSucceeded
+    {
+        get => _testSucceeded;
+        private set => this.RaiseAndSetIfChanged(ref _testSucceeded, value);
+    }
+
+    private bool _canOfferCopy;
+    /// <summary>
+    /// Set only when the server answered AND its database is empty. Copying into a database that
+    /// already holds rows is not offered at all: the copy appends, so it would interleave two
+    /// sets of data rather than replace one, and there is no honest way to present that.
+    /// </summary>
+    public bool CanOfferCopy
+    {
+        get => _canOfferCopy;
+        private set => this.RaiseAndSetIfChanged(ref _canOfferCopy, value);
+    }
+
+    private string _copyStatusText = "";
+    public string CopyStatusText
+    {
+        get => _copyStatusText;
+        private set => this.RaiseAndSetIfChanged(ref _copyStatusText, value);
+    }
+
+    private bool _isCopying;
+    public bool IsCopying
+    {
+        get => _isCopying;
+        private set { this.RaiseAndSetIfChanged(ref _isCopying, value);
+                      this.RaisePropertyChanged(nameof(CanTest)); }
+    }
+
+    public bool CanTest => !IsCopying;
 
     // ── SQLite info ───────────────────────────────────────────────────────────
 
@@ -126,6 +239,174 @@ public class DatabaseSettingsViewModel : ReactiveObject
         RefreshDbInfo();
         RefreshLastBackupText();
     }
+
+    // ── PostgreSQL: test, save, copy ──────────────────────────────────────────
+
+    /// <summary>
+    /// Opens the connection and reports what it found, in the terms that decide what happens
+    /// next: can it connect, may this user create tables, and is the database empty.
+    ///
+    /// <para>⚠️ The privilege check matters as much as the connection. Since PostgreSQL 15 a
+    /// non-owner gets no CREATE on the public schema by default, so an administrator can create
+    /// a database, grant "all privileges" on it, and the app still cannot make a single table.
+    /// Finding that out here, by name, is the difference between a clear message and a failure
+    /// on first launch that looks like a bug in the app.</para>
+    /// </summary>
+    public async Task TestPostgresAsync()
+    {
+        TestResultText = "Connecting…";
+        TestSucceeded  = false;
+        CanOfferCopy   = false;
+
+        if (string.IsNullOrWhiteSpace(Pg.Host) || string.IsNullOrWhiteSpace(Pg.Database)
+            || string.IsNullOrWhiteSpace(Pg.Username))
+        {
+            TestResultText = "Host, database and username are all required.";
+            return;
+        }
+
+        try
+        {
+            await using var conn = new NpgsqlConnection(Pg.ToConnectionString());
+            await conn.OpenAsync();
+
+            async Task<string> Scalar(string sql)
+            {
+                await using var cmd = new NpgsqlCommand(sql, conn);
+                return (await cmd.ExecuteScalarAsync())?.ToString() ?? "";
+            }
+
+            var version  = await Scalar("SHOW server_version");
+            var canCreate = await Scalar(
+                "SELECT has_schema_privilege(current_user, 'public', 'CREATE')");
+            var tables = long.TryParse(await Scalar(
+                "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'"),
+                out var t) ? t : 0;
+
+            if (!string.Equals(canCreate, "True", StringComparison.OrdinalIgnoreCase))
+            {
+                TestResultText =
+                    $"Connected to PostgreSQL {version}, but {Pg.Username} cannot create tables in "
+                    + "schema public. The simplest fix is to make this user the database's owner: "
+                    + $"ALTER DATABASE \"{Pg.Database}\" OWNER TO \"{Pg.Username}\";";
+                return;
+            }
+
+            TestSucceeded = true;
+
+            if (tables == 0)
+            {
+                CanOfferCopy   = DbEngine.IsSqlite && File.Exists(AppConfig.GetDbPath());
+                TestResultText = CanOfferCopy
+                    ? $"Connected to PostgreSQL {version}. The database is empty, so the data "
+                      + "already here can be copied into it."
+                    : $"Connected to PostgreSQL {version}. The database is empty and will be "
+                      + "built on the next start.";
+            }
+            else
+            {
+                TestResultText =
+                    $"Connected to PostgreSQL {version}. The database already holds {tables:N0} "
+                    + "table(s), so it will be used as it is — nothing will be copied into it.";
+            }
+        }
+        catch (Exception ex)
+        {
+            TestResultText = $"Could not connect: {ex.Message}";
+        }
+    }
+
+    /// <summary>Stores the engine and connection, to take effect on the next start.</summary>
+    public void SaveDatabaseChoice()
+    {
+        if (IsPostgres) AppConfig.SetDbBackend(DbBackend.Postgres, Pg.ToConnectionString());
+        else            AppConfig.SetDbBackend(DbBackend.Sqlite);
+
+        this.RaisePropertyChanged(nameof(EngineChanged));
+        StatusText = IsPostgres
+            ? "Set to PostgreSQL. Restart EVE Console to use it."
+            : "Set to SQLite. Restart EVE Console to use it.";
+    }
+
+    private CancellationTokenSource? _copyCts;
+
+    /// <summary>
+    /// Copies everything from the SQLite file into the empty server database.
+    ///
+    /// <para>⚠️ The engine is NOT switched by this. Copying and switching are separate acts on
+    /// purpose: a copy that half-finished and then re-pointed the app would leave the user on a
+    /// partial database with no obvious way back, whereas a failed copy against an untouched
+    /// SQLite file costs only the time.</para>
+    /// </summary>
+    public async Task CopyToPostgresAsync()
+    {
+        if (IsCopying || !CanOfferCopy) return;
+
+        if (ShowConfirmDialog is not null)
+        {
+            var ok = await ShowConfirmDialog(
+                "Copy data to PostgreSQL",
+                $"Copy everything from {AppConfig.GetDbPath()} into {Pg.Database} on {Pg.Host}?\n\n"
+                + "The SQLite database is only read and is not changed. A large database takes a "
+                + "while, and the app should not be used until it finishes.");
+            if (!ok) return;
+        }
+
+        IsCopying     = true;
+        _copyCts      = new CancellationTokenSource();
+        CopyStatusText = "Preparing the destination…";
+
+        var sqlitePath = AppConfig.GetDbPath();
+        var pgConn     = Pg.ToConnectionString();
+
+        try
+        {
+            var rows = await Task.Run(async () =>
+            {
+                AppDbContext OpenSqlite() => new(new DbContextOptionsBuilder<AppDbContext>()
+                    .UseSqlite(SqliteMaintenance.ConnectionString(sqlitePath)).Options);
+                AppDbContext OpenPg() => new(new DbContextOptionsBuilder<AppDbContext>()
+                    .UseNpgsql(pgConn).Options);
+
+                // ⚠️ Built through the app's own bootstrap, not by the copy. Anything else
+                // would be a third definition of the schema, free to drift from the two that
+                // already have to be kept in step.
+                using (var dst = OpenPg())
+                {
+                    await dst.Database.EnsureCreatedAsync(_copyCts.Token);
+                    PostgresSchema.Apply(dst, includeSeeds: false);
+                }
+
+                var progress = new Progress<CopyProgress>(p =>
+                    CopyStatusText =
+                        $"{p.Table} — {p.RowsInTable:N0} row(s); "
+                        + $"table {p.TableIndex} of {p.TableCount}, {p.RowsTotal:N0} copied");
+
+                return await DatabaseCopyService.CopyAsync(
+                    OpenSqlite, OpenPg, pgConn, progress, _copyCts.Token);
+            });
+
+            CopyStatusText = $"Copied {rows:N0} row(s). Save the setting and restart to use it.";
+            CanOfferCopy   = false;
+        }
+        catch (OperationCanceledException)
+        {
+            CopyStatusText = "Copy cancelled. The server database now holds a partial copy; "
+                           + "empty it before trying again.";
+        }
+        catch (Exception ex)
+        {
+            CopyStatusText = $"Copy failed: {ex.Message}";
+        }
+        finally
+        {
+            IsCopying = false;
+            _copyCts?.Dispose();
+            _copyCts = null;
+        }
+    }
+
+    public void CancelCopy() => _copyCts?.Cancel();
 
     // ── Commands ──────────────────────────────────────────────────────────────
 
