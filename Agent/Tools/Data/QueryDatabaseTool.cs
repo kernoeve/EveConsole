@@ -15,8 +15,9 @@ public sealed class QueryDatabaseTool : IAgentTool
 
     public string Name        => "query_database";
     public string Description =>
-        """
-        Execute a read-only SQL SELECT query against the EVE Console local SQLite database.
+        $$"""
+        Execute a read-only SQL SELECT query against the EVE Console database, which is
+        {{AgentSqlDialect.Name}}. Write SQL for that engine.
         Returns up to 200 rows as a JSON array. Use this to answer any question about
         character data, skills, assets, industry jobs, market orders, wallet history, etc.
 
@@ -127,28 +128,14 @@ public sealed class QueryDatabaseTool : IAgentTool
         KEY JOIN PATTERNS:
         - Skill/item name from TypeId: JOIN SdeTypes ON SdeTypes.TypeId = <table>.SkillId|TypeId → Name
         - Character's main wallet: WHERE OwnerType='character' AND Division=0
-        - Active market orders: WHERE IsHistory=0
+        - Active market orders: WHERE {{AgentSqlDialect.IsFalse("\"IsHistory\"")}}
         - Solar system name from LocationId (approximate for known stations): JOIN SdeStations ON SdeStations.StationId = LocationId, then JOIN SdeSolarSystems ON SdeSolarSystems.SolarSystemId = SdeStations.SolarSystemId
 
         Always use LIMIT to cap large result sets.
 
-        DATES — READ THIS BEFORE WRITING ANY DATE COMPARISON
-        There are two different text formats in this database and comparing across them
-        returns wrong rows silently rather than failing:
+        {{AgentSqlDialect.Syntax}}
 
-          Log-style, written by the log importers:   2026-08-05T02:05:55Z   ('T', trailing Z)
-            GameLogEvents.OccurredAt, ChatMessages.OccurredAt, IntelReports.ReportedAt
-          EF-style, everything else:                 2026-08-05 01:26:22+00:00   (space, offset)
-            CharacterStatuses.*, EsiContracts.*, EsiIndustryJobs.*, AlarmEvents.FiredAt, …
-
-        SQLite compares these as plain strings, and 'T' sorts above a space. So
-            WHERE "OccurredAt" >= datetime('now','-10 minutes')     -- on a log-style column
-        is true for EVERY row sharing today's date whatever its time. Measured: with a
-        one-second window that returns 3 rows instead of 0.
-
-        Match the column's own shape:
-          log-style:  WHERE "OccurredAt" >= strftime('%Y-%m-%dT%H:%M:%SZ','now','-10 minutes')
-          EF-style:   WHERE "LastLogin"  >= datetime('now','-10 minutes')
+        {{AgentSqlDialect.Dates}}
         """;
 
     public object InputSchema => new
