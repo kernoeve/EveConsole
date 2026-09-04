@@ -144,7 +144,7 @@ public class IncomeExpenseViewModel : ReactiveObject
             {
                 var rt = await db.Database.SqlQuery<RefRow>(
                     $"""
-                    SELECT "RefType", COALESCE(SUM(CAST("Amount" AS REAL)), 0.0) AS "Total"
+                    SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "Total"
                     FROM "EsiWalletJournal"
                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                     GROUP BY "RefType"
@@ -155,8 +155,8 @@ public class IncomeExpenseViewModel : ReactiveObject
                 var dl = await db.Database.SqlQuery<DailyRow>(
                     $"""
                     SELECT substr(CAST("Date" AS TEXT), 1, 10) AS "Day",
-                           COALESCE(SUM(CASE WHEN CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0.0) AS "Income",
-                           COALESCE(SUM(CASE WHEN CAST("Amount" AS REAL) < 0 THEN -CAST("Amount" AS REAL) ELSE 0 END), 0.0) AS "Expense"
+                           COALESCE(SUM(CASE WHEN CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0.0) AS "Income",
+                           COALESCE(SUM(CASE WHEN CAST("Amount" AS DOUBLE PRECISION) < 0 THEN -CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0.0) AS "Expense"
                     FROM "EsiWalletJournal"
                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                     GROUP BY substr(CAST("Date" AS TEXT), 1, 10)

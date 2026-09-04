@@ -93,7 +93,7 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
     // BPCs = 0; BPOs = SDE base price; everything else = configured market price.
     private const string AssetValueSql = """
         SELECT COALESCE(SUM(
-            CAST(a."Quantity" AS REAL) * CASE
+            CAST(a."Quantity" AS DOUBLE PRECISION) * CASE
                 WHEN a."IsBlueprintCopy" = TRUE THEN 0.0
                 WHEN a."IsBlueprintCopy" = FALSE THEN COALESCE(t."BasePrice", 0.0)
                 ELSE COALESCE(
@@ -137,15 +137,15 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
                 -- must not add any output value here (would double-count).
                 WHEN j."ActivityId" IN (3, 4) THEN 0.0
                 WHEN j."ActivityId" IN (5, 8) THEN
-                    CAST(j."Runs" AS REAL) * COALESCE(
+                    CAST(j."Runs" AS DOUBLE PRECISION) * COALESCE(
                         CASE
-                            WHEN cp."BestPrice" IS NULL THEN CAST(cp."Avg30Best" AS REAL)
-                            WHEN cp."Avg30Best" IS NULL THEN CAST(cp."BestPrice" AS REAL)
-                            WHEN CAST(cp."BestPrice" AS REAL) > 1.5 * CAST(cp."Avg30Best" AS REAL)
-                                 THEN CAST(cp."Avg30Best" AS REAL)
-                            ELSE CAST(cp."BestPrice" AS REAL)
+                            WHEN cp."BestPrice" IS NULL THEN CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                            WHEN cp."Avg30Best" IS NULL THEN CAST(cp."BestPrice" AS DOUBLE PRECISION)
+                            WHEN CAST(cp."BestPrice" AS DOUBLE PRECISION) > 1.5 * CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                                 THEN CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                            ELSE CAST(cp."BestPrice" AS DOUBLE PRECISION)
                         END, 0.0)
-                ELSE CAST(COALESCE(bp."Quantity", 1) * j."Runs" AS REAL) *
+                ELSE CAST(COALESCE(bp."Quantity", 1) * j."Runs" AS DOUBLE PRECISION) *
                      COALESCE(
                          NULLIF(
                              CASE WHEN p."TypeId" IS NOT NULL THEN
@@ -187,14 +187,14 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
     // Sum of all wallet divisions.
     // Characters have one row (Division=0); corps have up to 7 (Divisions 1-7).
     private const string WalletBalanceSql = """
-        SELECT COALESCE(SUM(CAST("Balance" AS REAL)), 0.0)
+        SELECT COALESCE(SUM(CAST("Balance" AS DOUBLE PRECISION)), 0.0)
         FROM "EsiWalletBalances"
         WHERE "OwnerId" = @ownerId AND "OwnerType" = @ownerType
         """;
 
     // Active sell order value = remaining quantity × listed price.
     private const string SellOrderValueSql = """
-        SELECT COALESCE(SUM(CAST("VolumeRemain" AS REAL) * CAST("Price" AS REAL)), 0.0)
+        SELECT COALESCE(SUM(CAST("VolumeRemain" AS DOUBLE PRECISION) * CAST("Price" AS DOUBLE PRECISION)), 0.0)
         FROM "EsiMarketOrders"
         WHERE "OwnerId"    = @ownerId AND "OwnerType" = @ownerType
           AND "IsBuyOrder" = FALSE
@@ -203,7 +203,7 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
 
     // Buy order escrow = ISK currently locked up in active buy orders.
     private const string BuyOrderEscrowSql = """
-        SELECT COALESCE(SUM(CAST("Escrow" AS REAL)), 0.0)
+        SELECT COALESCE(SUM(CAST("Escrow" AS DOUBLE PRECISION)), 0.0)
         FROM "EsiMarketOrders"
         WHERE "OwnerId"    = @ownerId AND "OwnerType" = @ownerType
           AND "IsBuyOrder" = TRUE
@@ -213,7 +213,7 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
     // Courier contracts issued by this owner that are outstanding or in progress.
     // Collateral is the amount the courier must pay if they fail to deliver.
     private const string ContractCollateralSql = """
-        SELECT COALESCE(SUM(CAST("Collateral" AS REAL)), 0.0)
+        SELECT COALESCE(SUM(CAST("Collateral" AS DOUBLE PRECISION)), 0.0)
         FROM "EsiContracts"
         WHERE "OwnerId"  = @ownerId AND "OwnerType" = @ownerType
           AND "Type"     = 'courier'
@@ -227,7 +227,7 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
     // Item-exchange and auction contracts issued by this owner that are still outstanding.
     // Price = ISK the buyer pays (value of items on offer).
     private const string ContractValueSql = """
-        SELECT COALESCE(SUM(CAST("Price" AS REAL)), 0.0)
+        SELECT COALESCE(SUM(CAST("Price" AS DOUBLE PRECISION)), 0.0)
         FROM "EsiContracts"
         WHERE "OwnerId"  = @ownerId AND "OwnerType" = @ownerType
           AND "Type"     IN ('item_exchange', 'auction')

@@ -872,12 +872,12 @@ public class PublicContractsViewModel : ReactiveObject
     // only reorder the current page, which is the confusing behaviour we're replacing.
     public IReadOnlyList<ContractSortOption> SortOptions { get; } =
     [
-        new("Price: low → high",  "CAST(c.\"Price\" AS REAL) ASC, c.\"ContractId\" DESC"),
-        new("Price: high → low",  "CAST(c.\"Price\" AS REAL) DESC, c.\"ContractId\" DESC"),
+        new("Price: low → high",  "CAST(c.\"Price\" AS DOUBLE PRECISION) ASC, c.\"ContractId\" DESC"),
+        new("Price: high → low",  "CAST(c.\"Price\" AS DOUBLE PRECISION) DESC, c.\"ContractId\" DESC"),
         new("Newest first",       "c.\"DateIssued\" DESC"),
         new("Oldest first",       "c.\"DateIssued\" ASC"),
-        new("Reward: high → low", "CAST(c.\"Reward\" AS REAL) DESC, c.\"ContractId\" DESC"),
-        new("Volume: high → low", "CAST(c.\"Volume\" AS REAL) DESC, c.\"ContractId\" DESC"),
+        new("Reward: high → low", "CAST(c.\"Reward\" AS DOUBLE PRECISION) DESC, c.\"ContractId\" DESC"),
+        new("Volume: high → low", "CAST(c.\"Volume\" AS DOUBLE PRECISION) DESC, c.\"ContractId\" DESC"),
         new("Contents (A → Z)",   ContentsSortExpr + " ASC, c.ContractId DESC"),
     ];
 

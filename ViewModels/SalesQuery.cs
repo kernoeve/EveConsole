@@ -30,7 +30,7 @@ internal static class SalesQuery
         """
         SELECT t."TransactionId" AS "SaleId", t."OwnerId" AS "OwnerId", t."OwnerType" AS "OwnerType",
                CAST(t."Date" AS TEXT) AS DateStr, t."TypeId" AS "TypeId", t."Quantity" AS "Quantity",
-               CAST(t."UnitPrice" AS REAL) AS "UnitPrice", t."ClientId" AS "BuyerId",
+               CAST(t."UnitPrice" AS DOUBLE PRECISION) AS "UnitPrice", t."ClientId" AS "BuyerId",
                t."LocationId" AS "LocationId",
                -- Which tool the location link opens. An NPC station is an entity; a player
                -- structure has a browser of its own. Decided by which table actually named it
@@ -50,13 +50,13 @@ internal static class SalesQuery
     private const string ContractSql =
         """
         SELECT c."ContractId" AS "SaleId", c."OwnerId" AS "OwnerId", c."OwnerType" AS "OwnerType",
-               CAST(c."DateCompleted" AS TEXT) AS DateStr, CAST(c."Price" AS REAL) AS "Price", COALESCE(c."AcceptorId", 0) AS "BuyerId",
+               CAST(c."DateCompleted" AS TEXT) AS DateStr, CAST(c."Price" AS DOUBLE PRECISION) AS "Price", COALESCE(c."AcceptorId", 0) AS "BuyerId",
                c."StartLocationId" AS "LocationId", COALESCE(c."Title", '') AS "Title",
                (SELECT COUNT(*) FROM "SdeStations" WHERE "StationId" = c."StartLocationId") AS IsStation,
                COALESCE((SELECT "Name" FROM "SdeStations"       WHERE "StationId"   = c."StartLocationId"),
                         (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = c."StartLocationId")) AS Location
         FROM "EsiContracts" c
-        WHERE c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS REAL) > 0
+        WHERE c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS DOUBLE PRECISION) > 0
           AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = FALSE)
              OR (c."OwnerType" = 'corporation' AND c."IssuerCorporationId" = c."OwnerId") )
         """;
@@ -67,7 +67,7 @@ internal static class SalesQuery
         FROM "EsiContractItems" ci
         JOIN "EsiContracts" c ON c."ContractId" = ci."ContractId"
         WHERE ci."IsIncluded" = TRUE
-          AND c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS REAL) > 0
+          AND c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS DOUBLE PRECISION) > 0
           AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = FALSE)
              OR (c."OwnerType" = 'corporation' AND c."IssuerCorporationId" = c."OwnerId") )
         """;

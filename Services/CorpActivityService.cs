@@ -151,35 +151,35 @@ public class CorpActivityService
                 substr(CAST("Date" AS TEXT), 1, 7) AS "Month",
                 -- Income
                 COALESCE(SUM(CASE WHEN "RefType" IN ('bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts')
-                                   AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "RattingTax",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "RattingTax",
                 COALESCE(SUM(CASE WHEN "RefType" = 'mining_tax'
-                                   AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "MiningTax",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "MiningTax",
                 COALESCE(SUM(CASE WHEN "RefType" IN ('player_donation','corporate_reward_payout')
-                                   AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "Donations",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "Donations",
                 COALESCE(SUM(CASE WHEN "RefType" IN ('industry_job_tax','manufacturing_tax','reprocessing_tax')
-                                   AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "IndustryTax",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "IndustryTax",
                 COALESCE(SUM(CASE WHEN "RefType" IN ('contract_price','contract_price_payment_corp')
-                                   AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "ContractIncome",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "ContractIncome",
                 COALESCE(SUM(CASE WHEN "RefType" = 'market_transaction'
-                                   AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "MarketIncome",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "MarketIncome",
                 COALESCE(SUM(CASE WHEN "RefType" NOT IN (
                                        'bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts',
                                        'mining_tax','player_donation','corporate_reward_payout',
                                        'industry_job_tax','manufacturing_tax','reprocessing_tax',
                                        'contract_price','contract_price_payment_corp',
                                        'market_transaction','corporation_account_withdrawal')
-                                   AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "OtherIncome",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "OtherIncome",
                 -- Expenses (returned as positive values)
                 COALESCE(SUM(CASE WHEN "RefType" IN ('market_transaction','market_escrow')
-                                   AND CAST("Amount" AS REAL) < 0 THEN ABS(CAST("Amount" AS REAL)) ELSE 0 END), 0) AS "MarketExpense",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) < 0 THEN ABS(CAST("Amount" AS DOUBLE PRECISION)) ELSE 0 END), 0) AS "MarketExpense",
                 COALESCE(SUM(CASE WHEN "RefType" = 'contract_price_payment_corp'
-                                   AND CAST("Amount" AS REAL) < 0 THEN ABS(CAST("Amount" AS REAL)) ELSE 0 END), 0) AS "ContractExpense",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) < 0 THEN ABS(CAST("Amount" AS DOUBLE PRECISION)) ELSE 0 END), 0) AS "ContractExpense",
                 COALESCE(SUM(CASE WHEN "RefType" = 'corporation_account_withdrawal'
-                                   AND CAST("Amount" AS REAL) < 0
+                                   AND CAST("Amount" AS DOUBLE PRECISION) < 0
                                    AND "SecondPartyId" != "FirstPartyId"
-                              THEN ABS(CAST("Amount" AS REAL)) ELSE 0 END), 0) AS "AccountWithdraw",
+                              THEN ABS(CAST("Amount" AS DOUBLE PRECISION)) ELSE 0 END), 0) AS "AccountWithdraw",
                 COALESCE(SUM(CASE WHEN "RefType" = 'project_payouts'
-                                   AND CAST("Amount" AS REAL) < 0 THEN ABS(CAST("Amount" AS REAL)) ELSE 0 END), 0) AS "ProjectPayouts",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) < 0 THEN ABS(CAST("Amount" AS DOUBLE PRECISION)) ELSE 0 END), 0) AS "ProjectPayouts",
                 COALESCE(SUM(CASE WHEN "RefType" NOT IN (
                                        'bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts',
                                        'mining_tax','player_donation','corporate_reward_payout',
@@ -187,7 +187,7 @@ public class CorpActivityService
                                        'contract_price','contract_price_payment_corp',
                                        'market_transaction','market_escrow',
                                        'corporation_account_withdrawal','project_payouts')
-                                   AND CAST("Amount" AS REAL) < 0 THEN ABS(CAST("Amount" AS REAL)) ELSE 0 END), 0) AS "OtherExpense"
+                                   AND CAST("Amount" AS DOUBLE PRECISION) < 0 THEN ABS(CAST("Amount" AS DOUBLE PRECISION)) ELSE 0 END), 0) AS "OtherExpense"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
@@ -213,28 +213,28 @@ public class CorpActivityService
             SELECT
                 substr(CAST("Date" AS TEXT), 1, 10) AS "Day",
                 COALESCE(SUM(CASE WHEN "RefType" IN ('bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts')
-                                   AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "RattingTax",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "RattingTax",
                 COALESCE(SUM(CASE WHEN "RefType" = 'mining_tax'
-                                   AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "MiningTax",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "MiningTax",
                 COALESCE(SUM(CASE WHEN "RefType" IN ('player_donation','corporate_reward_payout')
-                                   AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "Donations",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "Donations",
                 COALESCE(SUM(CASE WHEN "RefType" IN ('industry_job_tax','manufacturing_tax','reprocessing_tax')
-                                   AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "IndustryTax",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "IndustryTax",
                 COALESCE(SUM(CASE WHEN "RefType" IN ('contract_price','contract_price_payment_corp')
-                                   AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "ContractIncome",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "ContractIncome",
                 COALESCE(SUM(CASE WHEN "RefType" = 'market_transaction'
-                                   AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "MarketIncome",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "MarketIncome",
                 COALESCE(SUM(CASE WHEN "RefType" NOT IN (
                                        'bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts',
                                        'mining_tax','player_donation','corporate_reward_payout',
                                        'industry_job_tax','manufacturing_tax','reprocessing_tax',
                                        'contract_price','contract_price_payment_corp',
                                        'market_transaction','corporation_account_withdrawal')
-                                   AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "OtherIncome"
+                                   AND CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "OtherIncome"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
             GROUP BY "Day"
             ORDER BY "Day" ASC
             """).ToListAsync(ct);
@@ -255,15 +255,15 @@ public class CorpActivityService
             SELECT
                 substr(CAST("Date" AS TEXT), 1, 10) AS "Day",
                 COALESCE(SUM(CASE WHEN "RefType" IN ('market_transaction','market_escrow')
-                                   AND CAST("Amount" AS REAL) < 0 THEN ABS(CAST("Amount" AS REAL)) ELSE 0 END), 0) AS "MarketExpense",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) < 0 THEN ABS(CAST("Amount" AS DOUBLE PRECISION)) ELSE 0 END), 0) AS "MarketExpense",
                 COALESCE(SUM(CASE WHEN "RefType" = 'contract_price_payment_corp'
-                                   AND CAST("Amount" AS REAL) < 0 THEN ABS(CAST("Amount" AS REAL)) ELSE 0 END), 0) AS "ContractExpense",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) < 0 THEN ABS(CAST("Amount" AS DOUBLE PRECISION)) ELSE 0 END), 0) AS "ContractExpense",
                 COALESCE(SUM(CASE WHEN "RefType" = 'corporation_account_withdrawal'
-                                   AND CAST("Amount" AS REAL) < 0
+                                   AND CAST("Amount" AS DOUBLE PRECISION) < 0
                                    AND "SecondPartyId" != "FirstPartyId"
-                              THEN ABS(CAST("Amount" AS REAL)) ELSE 0 END), 0) AS "AccountWithdraw",
+                              THEN ABS(CAST("Amount" AS DOUBLE PRECISION)) ELSE 0 END), 0) AS "AccountWithdraw",
                 COALESCE(SUM(CASE WHEN "RefType" = 'project_payouts'
-                                   AND CAST("Amount" AS REAL) < 0 THEN ABS(CAST("Amount" AS REAL)) ELSE 0 END), 0) AS "ProjectPayouts",
+                                   AND CAST("Amount" AS DOUBLE PRECISION) < 0 THEN ABS(CAST("Amount" AS DOUBLE PRECISION)) ELSE 0 END), 0) AS "ProjectPayouts",
                 COALESCE(SUM(CASE WHEN "RefType" NOT IN (
                                        'bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts',
                                        'mining_tax','player_donation','corporate_reward_payout',
@@ -271,11 +271,11 @@ public class CorpActivityService
                                        'contract_price','contract_price_payment_corp',
                                        'market_transaction','market_escrow',
                                        'corporation_account_withdrawal','project_payouts')
-                                   AND CAST("Amount" AS REAL) < 0 THEN ABS(CAST("Amount" AS REAL)) ELSE 0 END), 0) AS "OtherExpense"
+                                   AND CAST("Amount" AS DOUBLE PRECISION) < 0 THEN ABS(CAST("Amount" AS DOUBLE PRECISION)) ELSE 0 END), 0) AS "OtherExpense"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
-              AND CAST("Amount" AS REAL) < 0
+              AND CAST("Amount" AS DOUBLE PRECISION) < 0
             GROUP BY "Day"
             ORDER BY "Day" ASC
             """).ToListAsync(ct);
@@ -293,11 +293,11 @@ public class CorpActivityService
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
         var rows     = await db.Database.SqlQuery<DailyAmountRaw>($"""
             SELECT substr(CAST("Date" AS TEXT), 1, 10) AS "Day",
-                   COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
+                   COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "RefType" IN ('bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts')
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
               AND "Date" >= {cutoff}
             GROUP BY "Day"
             ORDER BY "Day" ASC
@@ -312,11 +312,11 @@ public class CorpActivityService
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
         var rows     = await db.Database.SqlQuery<DailyAmountRaw>($"""
             SELECT substr(CAST("Date" AS TEXT), 1, 10) AS "Day",
-                   COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
+                   COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "RefType" IN ('industry_job_tax','manufacturing_tax','reprocessing_tax')
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
               AND "Date" >= {cutoff}
             GROUP BY "Day"
             ORDER BY "Day" ASC
@@ -332,17 +332,17 @@ public class CorpActivityService
         var untilStr  = SqlCutoff(until);
         var rows      = await db.Database.SqlQuery<TaxPayerRaw>($"""
             SELECT "FirstPartyId" AS "EntityId",
-                   COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
+                   COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "RefType" = 'player_donation'
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
               AND "Date" >= {sinceStr}
               AND "Date" <= {untilStr}
               AND "FirstPartyId" IS NOT NULL
               AND "FirstPartyId" >= 90000000
             GROUP BY "FirstPartyId"
-            ORDER BY SUM(CAST("Amount" AS REAL)) DESC
+            ORDER BY SUM(CAST("Amount" AS DOUBLE PRECISION)) DESC
             """).ToListAsync(ct);
         var names = await ResolveNamesAsync(rows.Select(r => r.EntityId), ct);
         return rows.Select((r, i) => new TaxPayerRow(
@@ -358,11 +358,11 @@ public class CorpActivityService
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
         var rows     = await db.Database.SqlQuery<DailyAmountRaw>($"""
             SELECT substr(CAST("Date" AS TEXT), 1, 10) AS "Day",
-                   COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
+                   COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "RefType" = 'player_donation'
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
               AND "Date" >= {cutoff}
             GROUP BY "Day"
             ORDER BY "Day" ASC
@@ -378,18 +378,18 @@ public class CorpActivityService
         var untilStr  = SqlCutoff(until);
         var rows      = await db.Database.SqlQuery<TaxPayerRaw>($"""
             SELECT "SecondPartyId" AS "EntityId",
-                   COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
+                   COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "RefType" IN ('bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts')
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
               AND "Date" >= {sinceStr}
               AND "Date" <= {untilStr}
               AND "SecondPartyId" IS NOT NULL
               AND "SecondPartyId" >= 90000000
               AND "SecondPartyId" != {corpId}
             GROUP BY "SecondPartyId"
-            ORDER BY SUM(CAST("Amount" AS REAL)) DESC
+            ORDER BY SUM(CAST("Amount" AS DOUBLE PRECISION)) DESC
             """).ToListAsync(ct);
         var names = await ResolveNamesAsync(rows.Select(r => r.EntityId), ct);
         return rows.Select((r, i) => new TaxPayerRow(
@@ -406,17 +406,17 @@ public class CorpActivityService
         var untilStr  = SqlCutoff(until);
         var rows      = await db.Database.SqlQuery<TaxPayerRaw>($"""
             SELECT "FirstPartyId" AS "EntityId",
-                   COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
+                   COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "RefType" IN ('industry_job_tax','manufacturing_tax','reprocessing_tax')
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
               AND "Date" >= {sinceStr}
               AND "Date" <= {untilStr}
               AND "FirstPartyId" IS NOT NULL
               AND "FirstPartyId" != {corpId}
             GROUP BY "FirstPartyId"
-            ORDER BY SUM(CAST("Amount" AS REAL)) DESC
+            ORDER BY SUM(CAST("Amount" AS DOUBLE PRECISION)) DESC
             """).ToListAsync(ct);
         var names = await ResolveNamesAsync(rows.Select(r => r.EntityId), ct);
         return rows.Select((r, i) => new TaxPayerRow(
@@ -434,16 +434,16 @@ public class CorpActivityService
         var untilStr  = SqlCutoff(until ?? DateTimeOffset.MaxValue);
         var rows      = await db.Database.SqlQuery<PlayerRaw>($"""
             SELECT "SecondPartyId" AS "CharacterId",
-                   COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
+                   COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "RefType" IN ('bounty_prizes','bounty_prize')
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
               AND "Date" >= {sinceStr}
               AND "Date" < {untilStr}
               AND "SecondPartyId" IS NOT NULL
             GROUP BY "SecondPartyId"
-            ORDER BY SUM(CAST("Amount" AS REAL)) DESC
+            ORDER BY SUM(CAST("Amount" AS DOUBLE PRECISION)) DESC
             """).ToListAsync(ct);
         return ApplyTop10WithTies(rows, excludeIds);
     }
@@ -457,16 +457,16 @@ public class CorpActivityService
         var untilStr  = SqlCutoff(until ?? DateTimeOffset.MaxValue);
         var rows      = await db.Database.SqlQuery<PlayerRaw>($"""
             SELECT "FirstPartyId" AS "CharacterId",
-                   COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
+                   COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "RefType" = {refType}
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
               AND "Date" >= {sinceStr}
               AND "Date" < {untilStr}
               AND "FirstPartyId" IS NOT NULL
             GROUP BY "FirstPartyId"
-            ORDER BY SUM(CAST("Amount" AS REAL)) DESC
+            ORDER BY SUM(CAST("Amount" AS DOUBLE PRECISION)) DESC
             """).ToListAsync(ct);
         return ApplyTop10WithTies(rows, excludeIds);
     }
@@ -480,17 +480,17 @@ public class CorpActivityService
         var untilStr  = SqlCutoff(until ?? DateTimeOffset.MaxValue);
         var rows      = await db.Database.SqlQuery<PlayerRaw>($"""
             SELECT "FirstPartyId" AS "CharacterId",
-                   COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
+                   COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "RefType" IN ('industry_job_tax','manufacturing_tax','reprocessing_tax')
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
               AND "Date" >= {sinceStr}
               AND "Date" < {untilStr}
               AND "FirstPartyId" IS NOT NULL
               AND "FirstPartyId" != {corpId}
             GROUP BY "FirstPartyId"
-            ORDER BY SUM(CAST("Amount" AS REAL)) DESC
+            ORDER BY SUM(CAST("Amount" AS DOUBLE PRECISION)) DESC
             """).ToListAsync(ct);
         return ApplyTop10WithTies(rows, excludeIds);
     }
@@ -523,8 +523,8 @@ public class CorpActivityService
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddMonths(-months));
         var rows     = await db.Database.SqlQuery<KillMonthRaw>($"""
             SELECT substr(CAST(d."KillMailTime" AS TEXT), 1, 7) AS "Month",
-                   COUNT(DISTINCT CASE WHEN d."VictimCorpId" != {corpId} THEN d."KillMailId" END) AS "Kills",
-                   COUNT(DISTINCT CASE WHEN d."VictimCorpId" =  {corpId} THEN d."KillMailId" END) AS "Losses"
+                   CAST(COUNT(DISTINCT CASE WHEN d."VictimCorpId" != {corpId} THEN d."KillMailId" END) AS INTEGER) AS "Kills",
+                   CAST(COUNT(DISTINCT CASE WHEN d."VictimCorpId" =  {corpId} THEN d."KillMailId" END) AS INTEGER) AS "Losses"
             FROM "KillMailDetails" d
             JOIN "EsiKillMailRefs" r ON r."KillMailId" = d."KillMailId"
                 AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
@@ -542,8 +542,8 @@ public class CorpActivityService
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
         var rows     = await db.Database.SqlQuery<KillDayRaw>($"""
             SELECT substr(CAST(d."KillMailTime" AS TEXT), 1, 10) AS "Day",
-                   COUNT(DISTINCT CASE WHEN d."VictimCorpId" != {corpId} THEN d."KillMailId" END) AS "Kills",
-                   COUNT(DISTINCT CASE WHEN d."VictimCorpId" =  {corpId} THEN d."KillMailId" END) AS "Losses"
+                   CAST(COUNT(DISTINCT CASE WHEN d."VictimCorpId" != {corpId} THEN d."KillMailId" END) AS INTEGER) AS "Kills",
+                   CAST(COUNT(DISTINCT CASE WHEN d."VictimCorpId" =  {corpId} THEN d."KillMailId" END) AS INTEGER) AS "Losses"
             FROM "KillMailDetails" d
             JOIN "EsiKillMailRefs" r ON r."KillMailId" = d."KillMailId"
                 AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
@@ -561,7 +561,7 @@ public class CorpActivityService
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
 
         var killRows = await db.Database.SqlQuery<CharCountRaw>($"""
-            SELECT a."CharacterId", COUNT(DISTINCT d."KillMailId") AS "Count"
+            SELECT a."CharacterId", CAST(COUNT(DISTINCT d."KillMailId") AS INTEGER) AS "Count"
             FROM "KillMailDetails" d
             JOIN "EsiKillMailRefs" r ON r."KillMailId" = d."KillMailId"
                 AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
@@ -572,7 +572,7 @@ public class CorpActivityService
             """).ToListAsync(ct);
 
         var lossRows = await db.Database.SqlQuery<CharCountRaw>($"""
-            SELECT d."VictimCharId" AS "CharacterId", COUNT(*) AS "Count"
+            SELECT d."VictimCharId" AS "CharacterId", CAST(COUNT(*) AS INTEGER) AS "Count"
             FROM "KillMailDetails" d
             JOIN "EsiKillMailRefs" r ON r."KillMailId" = d."KillMailId"
                 AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
@@ -602,7 +602,7 @@ public class CorpActivityService
 
         var miningRows = await db.Database.SqlQuery<MonthCountRaw>($"""
             SELECT substr(CAST("LastUpdated" AS TEXT), 1, 7) AS "Month",
-                   SUM("Quantity") AS "Count"
+                   CAST(SUM("Quantity") AS BIGINT) AS "Count"
             FROM "EsiCorpMiningLedger"
             WHERE "CorporationId" = {corpId} AND "LastUpdated" >= {cutoff}
             GROUP BY "Month"
@@ -842,7 +842,7 @@ public class CorpActivityService
                 l."CharacterId",
                 l."TypeId",
                 COALESCE(t."Name", CAST(l."TypeId" AS TEXT)) AS "TypeName",
-                SUM(l."Quantity") AS "Quantity"
+                CAST(SUM(l."Quantity") AS BIGINT) AS "Quantity"
             FROM "EsiCorpMiningLedger" l
             LEFT JOIN "SdeTypes" t ON t."TypeId" = l."TypeId"
             WHERE l."CorporationId" = {corpId}
@@ -1175,20 +1175,20 @@ public class CorpActivityService
 
         var created = await db.Database.SqlQuery<MonthProjectRaw>($"""
             SELECT substr(CAST("Created" AS TEXT), 1, 7) AS "Month",
-                   COUNT(*) AS "Count",
+                   CAST(COUNT(*) AS INTEGER) AS "Count",
                    COALESCE(SUM("RewardInitial"), 0) AS "Value"
             FROM "EsiCorpProjects"
-            WHERE "CorporationId" = {corpId} AND "Created" IS NOT NULL AND "Created" != ''
+            WHERE "CorporationId" = {corpId} AND "Created" IS NOT NULL
             GROUP BY "Month"
             """).ToListAsync(ct);
 
         var completed = await db.Database.SqlQuery<MonthProjectRaw>($"""
             SELECT substr(CAST("LastModified" AS TEXT), 1, 7) AS "Month",
-                   COUNT(*) AS "Count",
+                   CAST(COUNT(*) AS INTEGER) AS "Count",
                    COALESCE(SUM("RewardInitial" - "RewardRemaining"), 0) AS "Value"
             FROM "EsiCorpProjects"
             WHERE "CorporationId" = {corpId} AND "State" = 'Completed'
-              AND "LastModified" IS NOT NULL AND "LastModified" != ''
+              AND "LastModified" IS NOT NULL
             GROUP BY "Month"
             """).ToListAsync(ct);
 
@@ -1295,16 +1295,16 @@ public class CorpActivityService
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
         var rows     = await db.Database.SqlQuery<WalletTypeRaw>($"""
             SELECT "RefType",
-                   COUNT(*) AS "Count",
-                   COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
+                   CAST(COUNT(*) AS INTEGER) AS "Count",
+                   COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
               AND NOT ("RefType" = 'corporation_account_withdrawal'
                        AND "FirstPartyId" = "SecondPartyId")
             GROUP BY "RefType"
-            ORDER BY SUM(CAST("Amount" AS REAL)) DESC
+            ORDER BY SUM(CAST("Amount" AS DOUBLE PRECISION)) DESC
             """).ToListAsync(ct);
         return rows.Select(r => new WalletTypeRow(r.RefType, r.Count, (decimal)r.Amount)).ToList();
     }
@@ -1316,16 +1316,16 @@ public class CorpActivityService
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
         var rows     = await db.Database.SqlQuery<WalletTypeRaw>($"""
             SELECT "RefType",
-                   COUNT(*) AS "Count",
-                   COALESCE(ABS(SUM(CAST("Amount" AS REAL))), 0) AS "Amount"
+                   CAST(COUNT(*) AS INTEGER) AS "Count",
+                   COALESCE(ABS(SUM(CAST("Amount" AS DOUBLE PRECISION))), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
-              AND CAST("Amount" AS REAL) < 0
+              AND CAST("Amount" AS DOUBLE PRECISION) < 0
               AND NOT ("RefType" = 'corporation_account_withdrawal'
                        AND "FirstPartyId" = "SecondPartyId")
             GROUP BY "RefType"
-            ORDER BY ABS(SUM(CAST("Amount" AS REAL))) DESC
+            ORDER BY ABS(SUM(CAST("Amount" AS DOUBLE PRECISION))) DESC
             """).ToListAsync(ct);
         return rows.Select(r => new WalletTypeRow(r.RefType, r.Count, (decimal)r.Amount)).ToList();
     }
@@ -1360,10 +1360,10 @@ public class CorpActivityService
 
         var walletRaw = await db.Database.SqlQuery<WalletSummaryRaw>($"""
             SELECT
-                COALESCE(SUM(CASE WHEN CAST("Amount" AS REAL) > 0 AND "RefType" != 'corporation_account_withdrawal'
-                                  THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "TotalIncome",
-                COALESCE(ABS(SUM(CASE WHEN CAST("Amount" AS REAL) < 0 AND "RefType" != 'corporation_account_withdrawal'
-                                      THEN CAST("Amount" AS REAL) ELSE 0 END)), 0) AS "TotalExpense"
+                COALESCE(SUM(CASE WHEN CAST("Amount" AS DOUBLE PRECISION) > 0 AND "RefType" != 'corporation_account_withdrawal'
+                                  THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0) AS "TotalIncome",
+                COALESCE(ABS(SUM(CASE WHEN CAST("Amount" AS DOUBLE PRECISION) < 0 AND "RefType" != 'corporation_account_withdrawal'
+                                      THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END)), 0) AS "TotalExpense"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
@@ -1431,15 +1431,15 @@ public class CorpActivityService
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddHours(-24));
         var rows     = await db.Database.SqlQuery<PlayerRaw>($"""
             SELECT "SecondPartyId" AS "CharacterId",
-                   COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
+                   COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "RefType" IN ('bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts')
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
               AND "Date" >= {cutoff}
               AND "SecondPartyId" IS NOT NULL
             GROUP BY "SecondPartyId"
-            ORDER BY SUM(CAST("Amount" AS REAL)) DESC
+            ORDER BY SUM(CAST("Amount" AS DOUBLE PRECISION)) DESC
             LIMIT 10
             """).ToListAsync(ct);
         var filtered = rows.Where(r => !excludeIds.Contains(r.CharacterId)).ToList();
@@ -1456,16 +1456,16 @@ public class CorpActivityService
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddHours(-24));
         var rows     = await db.Database.SqlQuery<PlayerRaw>($"""
             SELECT "FirstPartyId" AS "CharacterId",
-                   COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
+                   COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "RefType" IN ('industry_job_tax','manufacturing_tax','reprocessing_tax')
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
               AND "Date" >= {cutoff}
               AND "FirstPartyId" IS NOT NULL
               AND "FirstPartyId" != {corpId}
             GROUP BY "FirstPartyId"
-            ORDER BY SUM(CAST("Amount" AS REAL)) DESC
+            ORDER BY SUM(CAST("Amount" AS DOUBLE PRECISION)) DESC
             LIMIT 10
             """).ToListAsync(ct);
         var filtered = rows.Where(r => !excludeIds.Contains(r.CharacterId)).ToList();
@@ -1621,12 +1621,12 @@ public class CorpActivityService
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
         var type     = string.IsNullOrWhiteSpace(refType) ? null : refType;
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
-            SELECT "Date", "RefType", CAST("Amount" AS REAL) AS "Amount",
+            SELECT "Date", "RefType", CAST("Amount" AS DOUBLE PRECISION) AS "Amount",
                    COALESCE("FirstPartyId", 0) AS "PartyId", COALESCE("Reason", '') AS "Reason"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
               AND NOT ("RefType" = 'corporation_account_withdrawal'
                        AND "FirstPartyId" = "SecondPartyId")
               AND ({type} IS NULL OR "RefType" = {type})
@@ -1644,13 +1644,13 @@ public class CorpActivityService
         using var db  = _dbFactory.CreateDbContext();
         var sinceStr  = SqlCutoff(since);
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
-            SELECT "Date", "RefType", CAST("Amount" AS REAL) AS "Amount",
+            SELECT "Date", "RefType", CAST("Amount" AS DOUBLE PRECISION) AS "Amount",
                    COALESCE("SecondPartyId", 0) AS "PartyId", COALESCE("Reason", '') AS "Reason"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {sinceStr}
               AND "RefType" IN ('bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts')
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
             ORDER BY "Date" DESC
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
@@ -1665,13 +1665,13 @@ public class CorpActivityService
         using var db  = _dbFactory.CreateDbContext();
         var sinceStr  = SqlCutoff(since);
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
-            SELECT "Date", "RefType", CAST("Amount" AS REAL) AS "Amount",
+            SELECT "Date", "RefType", CAST("Amount" AS DOUBLE PRECISION) AS "Amount",
                    COALESCE("FirstPartyId", 0) AS "PartyId", COALESCE("Reason", '') AS "Reason"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {sinceStr}
               AND "RefType" IN ('industry_job_tax','manufacturing_tax','reprocessing_tax')
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
             ORDER BY "Date" DESC
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
@@ -1686,14 +1686,14 @@ public class CorpActivityService
         using var db  = _dbFactory.CreateDbContext();
         var sinceStr  = SqlCutoff(since);
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
-            SELECT "Date", "RefType", CAST("Amount" AS REAL) AS "Amount",
+            SELECT "Date", "RefType", CAST("Amount" AS DOUBLE PRECISION) AS "Amount",
                    COALESCE("FirstPartyId", 0) AS "PartyId",
                    COALESCE("Reason", '') AS "Reason"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {sinceStr}
               AND "RefType" = 'player_donation'
-              AND CAST("Amount" AS REAL) > 0
+              AND CAST("Amount" AS DOUBLE PRECISION) > 0
             ORDER BY "Date" DESC
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
@@ -1710,12 +1710,12 @@ public class CorpActivityService
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
         var type     = string.IsNullOrWhiteSpace(refType) ? null : refType;
         var rows = await db.Database.SqlQuery<WalletDetailRaw>($"""
-            SELECT "Date", "RefType", ABS(CAST("Amount" AS REAL)) AS "Amount",
+            SELECT "Date", "RefType", ABS(CAST("Amount" AS DOUBLE PRECISION)) AS "Amount",
                    COALESCE("SecondPartyId", 0) AS "PartyId", COALESCE("Reason", '') AS "Reason"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "Date" >= {cutoff}
-              AND CAST("Amount" AS REAL) < 0
+              AND CAST("Amount" AS DOUBLE PRECISION) < 0
               AND NOT ("RefType" = 'corporation_account_withdrawal'
                        AND "FirstPartyId" = "SecondPartyId")
               AND ({type} IS NULL OR "RefType" = {type})

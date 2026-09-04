@@ -56,14 +56,14 @@ public class TypePriceHistoryService(IDbContextFactory<AppDbContext> dbFactory, 
                     ("TypeId", "Date", "MarketValue", "BuildCost", "ContractPrice", "ComputedAt")
                 SELECT ids."TypeId", @today,
                        NULLIF({marketCol}, 0),
-                       NULLIF(CAST(bc."TotalCost" AS REAL), 0),
+                       NULLIF(CAST(bc."TotalCost" AS DOUBLE PRECISION), 0),
                        CASE
                            WHEN cp."TypeId"    IS NULL THEN NULL
-                           WHEN cp."BestPrice" IS NULL THEN CAST(cp."Avg30Best" AS REAL)
-                           WHEN cp."Avg30Best" IS NULL THEN CAST(cp."BestPrice" AS REAL)
-                           WHEN CAST(cp."BestPrice" AS REAL) > 1.5 * CAST(cp."Avg30Best" AS REAL)
-                                THEN CAST(cp."Avg30Best" AS REAL)
-                           ELSE CAST(cp."BestPrice" AS REAL)
+                           WHEN cp."BestPrice" IS NULL THEN CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                           WHEN cp."Avg30Best" IS NULL THEN CAST(cp."BestPrice" AS DOUBLE PRECISION)
+                           WHEN CAST(cp."BestPrice" AS DOUBLE PRECISION) > 1.5 * CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                                THEN CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                           ELSE CAST(cp."BestPrice" AS DOUBLE PRECISION)
                        END,
                        @now
                 FROM (

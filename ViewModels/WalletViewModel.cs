@@ -315,9 +315,9 @@ public class WalletViewModel : ReactiveObject
     [
         new("Date: newest first",   "\"Date\" DESC"),
         new("Date: oldest first",   "\"Date\" ASC"),
-        new("Amount: high → low",   "CAST(\"Amount\" AS REAL) DESC"),
-        new("Amount: low → high",   "CAST(\"Amount\" AS REAL) ASC"),
-        new("Balance: high → low",  "CAST(\"Balance\" AS REAL) DESC"),
+        new("Amount: high → low",   "CAST(\"Amount\" AS DOUBLE PRECISION) DESC"),
+        new("Amount: low → high",   "CAST(\"Amount\" AS DOUBLE PRECISION) ASC"),
+        new("Balance: high → low",  "CAST(\"Balance\" AS DOUBLE PRECISION) DESC"),
     ];
     private GridSortOption _selectedJournalSort;
     public GridSortOption SelectedJournalSort
@@ -330,9 +330,9 @@ public class WalletViewModel : ReactiveObject
     [
         new("Date: newest first",     "\"Date\" DESC"),
         new("Date: oldest first",     "\"Date\" ASC"),
-        new("Total: high → low",      "(\"Quantity\" * CAST(\"UnitPrice\" AS REAL)) DESC"),
-        new("Total: low → high",      "(\"Quantity\" * CAST(\"UnitPrice\" AS REAL)) ASC"),
-        new("Unit price: high → low", "CAST(\"UnitPrice\" AS REAL) DESC"),
+        new("Total: high → low",      "(\"Quantity\" * CAST(\"UnitPrice\" AS DOUBLE PRECISION)) DESC"),
+        new("Total: low → high",      "(\"Quantity\" * CAST(\"UnitPrice\" AS DOUBLE PRECISION)) ASC"),
+        new("Unit price: high → low", "CAST(\"UnitPrice\" AS DOUBLE PRECISION) DESC"),
         new("Quantity: high → low",   "\"Quantity\" DESC"),
     ];
     private GridSortOption _selectedTxnSort;
@@ -591,7 +591,7 @@ public class WalletViewModel : ReactiveObject
             var ot  = owner.OwnerType!;
             result = await db.Database.SqlQuery<BalanceSummary>(
                 $"""
-                 SELECT COALESCE(SUM(CAST("Balance" AS REAL)), 0.0) AS "Total"
+                 SELECT COALESCE(SUM(CAST("Balance" AS DOUBLE PRECISION)), 0.0) AS "Total"
                  FROM "EsiWalletBalances"
                  WHERE "OwnerId" = {oid} AND "OwnerType" = {ot}
                  """).SingleOrDefaultAsync();
@@ -604,7 +604,7 @@ public class WalletViewModel : ReactiveObject
             {
                 var r = await db.Database.SqlQuery<BalanceSummary>(
                     $"""
-                     SELECT COALESCE(SUM(CAST("Balance" AS REAL)), 0.0) AS "Total"
+                     SELECT COALESCE(SUM(CAST("Balance" AS DOUBLE PRECISION)), 0.0) AS "Total"
                      FROM "EsiWalletBalances"
                      WHERE "OwnerId" = {id} AND "OwnerType" = 'character'
                      """).SingleOrDefaultAsync();
@@ -614,7 +614,7 @@ public class WalletViewModel : ReactiveObject
             {
                 var r = await db.Database.SqlQuery<BalanceSummary>(
                     $"""
-                     SELECT COALESCE(SUM(CAST("Balance" AS REAL)), 0.0) AS "Total"
+                     SELECT COALESCE(SUM(CAST("Balance" AS DOUBLE PRECISION)), 0.0) AS "Total"
                      FROM "EsiWalletBalances"
                      WHERE "OwnerId" = {id} AND "OwnerType" = 'corporation'
                      """).SingleOrDefaultAsync();
@@ -876,7 +876,7 @@ public class WalletViewModel : ReactiveObject
             var ot  = owner.OwnerType!;
             var rows = await db.Database.SqlQuery<JournalGroup>(
                 $"""
-                 SELECT "RefType", COALESCE(SUM(CAST("Amount" AS REAL)), 0.0) AS "TotalAmount"
+                 SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "TotalAmount"
                  FROM "EsiWalletJournal"
                  WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                  GROUP BY "RefType"
@@ -896,7 +896,7 @@ public class WalletViewModel : ReactiveObject
                 var oid = c.Id; var ot = c.Type;
                 var rows = await db.Database.SqlQuery<JournalGroup>(
                     $"""
-                     SELECT "RefType", COALESCE(SUM(CAST("Amount" AS REAL)), 0.0) AS "TotalAmount"
+                     SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "TotalAmount"
                      FROM "EsiWalletJournal"
                      WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                      GROUP BY "RefType"
@@ -908,7 +908,7 @@ public class WalletViewModel : ReactiveObject
                 var oid = c.Id; var ot = c.Type;
                 var rows = await db.Database.SqlQuery<JournalGroup>(
                     $"""
-                     SELECT "RefType", COALESCE(SUM(CAST("Amount" AS REAL)), 0.0) AS "TotalAmount"
+                     SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "TotalAmount"
                      FROM "EsiWalletJournal"
                      WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                      GROUP BY "RefType"

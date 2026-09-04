@@ -584,11 +584,11 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         SELECT
             s."TypeId",
             t."Name",
-            CAST(s.BestSell AS REAL)                                 AS BestSell,
-            CAST(d.BestBuy  AS REAL)                                 AS BestBuy,
-            CAST(d.BestBuy - s.BestSell AS REAL)                     AS ProfitPerUnit,
-            CAST(t."Volume" AS REAL)                                 AS M3PerUnit,
-            CAST((d.BestBuy - s.BestSell) / t."Volume" AS REAL)     AS ProfitPerM3,
+            CAST(s.BestSell AS DOUBLE PRECISION)                                 AS BestSell,
+            CAST(d.BestBuy  AS DOUBLE PRECISION)                                 AS BestBuy,
+            CAST(d.BestBuy - s.BestSell AS DOUBLE PRECISION)                     AS ProfitPerUnit,
+            CAST(t."Volume" AS DOUBLE PRECISION)                                 AS M3PerUnit,
+            CAST((d.BestBuy - s.BestSell) / t."Volume" AS DOUBLE PRECISION)     AS ProfitPerM3,
             {{AppDb.LeastFn}}(s.AvailSell, d.AvailBuy)                             AS MaxQty
         FROM src s
         JOIN dst d ON d."TypeId" = s."TypeId"
@@ -617,11 +617,11 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         SELECT
             s."TypeId",
             t."Name",
-            CAST(s.BestSell  AS REAL)                                AS BestSell,
-            CAST(d.DestSell  AS REAL)                                AS DestSell,
-            CAST(d.DestSell - s.BestSell AS REAL)                    AS ProfitPerUnit,
-            CAST(t."Volume"  AS REAL)                                AS M3PerUnit,
-            CAST((d.DestSell - s.BestSell) / t."Volume" AS REAL)    AS ProfitPerM3,
+            CAST(s.BestSell  AS DOUBLE PRECISION)                                AS BestSell,
+            CAST(d.DestSell  AS DOUBLE PRECISION)                                AS DestSell,
+            CAST(d.DestSell - s.BestSell AS DOUBLE PRECISION)                    AS ProfitPerUnit,
+            CAST(t."Volume"  AS DOUBLE PRECISION)                                AS M3PerUnit,
+            CAST((d.DestSell - s.BestSell) / t."Volume" AS DOUBLE PRECISION)    AS ProfitPerM3,
             s.AvailSell                                              AS MaxQty
         FROM src s
         JOIN dst d ON d."TypeId" = s."TypeId"

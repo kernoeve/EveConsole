@@ -459,7 +459,7 @@ public class AssetBrowserViewModel : ReactiveObject
                 CASE WHEN a."RootLocationType" = 'station' THEN 1 ELSE 0 END              AS "Is Station",
                 a."LocationType"    AS "Location Type",
                 t."Volume"          AS "Volume",
-                t."Volume" * CAST(a."Quantity" AS REAL)                   AS "Total Volume",
+                t."Volume" * CAST(a."Quantity" AS DOUBLE PRECISION)                   AS "Total Volume",
                 -- BPC: 0. BPO: NPC base price. Regular item: market price with build-cost fallback.
                 CASE
                     WHEN a."IsBlueprintCopy" = TRUE THEN 0.0
@@ -481,8 +481,8 @@ public class AssetBrowserViewModel : ReactiveObject
                 END AS "Value Per Unit",
                 CASE
                     WHEN a."IsBlueprintCopy" = TRUE THEN 0.0
-                    WHEN a."IsBlueprintCopy" = FALSE THEN CAST(a."Quantity" AS REAL) * COALESCE(t."BasePrice", 0.0)
-                    ELSE CAST(a."Quantity" AS REAL) * COALESCE(
+                    WHEN a."IsBlueprintCopy" = FALSE THEN CAST(a."Quantity" AS DOUBLE PRECISION) * COALESCE(t."BasePrice", 0.0)
+                    ELSE CAST(a."Quantity" AS DOUBLE PRECISION) * COALESCE(
                         NULLIF(
                             CASE WHEN mds."AssetValueConfigId" IS NOT NULL AND p."TypeId" IS NOT NULL THEN
                                 CASE mds."AssetValuePriceType"
@@ -628,7 +628,7 @@ public class AssetBrowserViewModel : ReactiveObject
                 0                                                                  AS "Is Station",
                 'item'                                                             AS "Location Type",
                 pt."Volume"                                                          AS "Volume",
-                pt."Volume" * CAST(jf.ItemsProduced AS REAL)                        AS "Total Volume",
+                pt."Volume" * CAST(jf.ItemsProduced AS DOUBLE PRECISION)                        AS "Total Volume",
                 CASE
                     WHEN jf."ActivityId" IN (5, 8) THEN 0.0          -- BPCs (Copying / Invention)
                     ELSE COALESCE(
@@ -648,7 +648,7 @@ public class AssetBrowserViewModel : ReactiveObject
                 END                                                                AS "Value Per Unit",
                 CASE
                     WHEN jf."ActivityId" IN (5, 8) THEN 0.0
-                    ELSE CAST(jf.ItemsProduced AS REAL) * COALESCE(
+                    ELSE CAST(jf.ItemsProduced AS DOUBLE PRECISION) * COALESCE(
                         NULLIF(
                             CASE WHEN mds."AssetValueConfigId" IS NOT NULL AND p."TypeId" IS NOT NULL THEN
                                 CASE mds."AssetValuePriceType"

@@ -266,7 +266,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             if (names.Count == 0) return local;
 
             var category = CategoryOf(kind);
-            var now      = DateTimeOffset.UtcNow.ToString("O");
+            var now      = DateTimeOffset.UtcNow;
             foreach (var n in names)
             {
                 // INSERT OR IGNORE: another lookup may have cached the same id already,
@@ -481,7 +481,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         foreach (var chunk in missing.Chunk(1000))
         {
             var names = await esi.GetNamesAsync(chunk.ToList(), ct);
-            var now   = DateTimeOffset.UtcNow.ToString("O");
+            var now   = DateTimeOffset.UtcNow;
             foreach (var n in names)
             {
                 map[n.Id] = n.Name;
@@ -846,7 +846,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 """,
                 [AppDb.Param("@id", id), AppDb.Param("@name", name),
                  AppDb.Param("@cat", category),
-                 AppDb.Param("@at", DateTimeOffset.UtcNow.ToString("O"))], ct);
+                 AppDb.Param("@at", DateTimeOffset.UtcNow)], ct);
         }
         catch { /* a missing name row is cosmetic — never fail the viewer over it */ }
     }

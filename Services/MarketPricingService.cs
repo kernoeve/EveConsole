@@ -653,9 +653,9 @@ public class MarketPricingService
             $"""
             INSERT INTO "MarketItemPrices" ("ConfigId", "TypeId", "BuyPrice", "SellPrice", "Midpoint", "FetchedAt", "FromMarketData")
             SELECT {configId}, t."TypeId",
-                COALESCE(CAST(bc."TotalCost" AS REAL) * {markup}, 0.0),
-                COALESCE(CAST(bc."TotalCost" AS REAL) * {markup}, 0.0),
-                COALESCE(CAST(bc."TotalCost" AS REAL) * {markup}, 0.0),
+                COALESCE(CAST(bc."TotalCost" AS DOUBLE PRECISION) * {markup}, 0.0),
+                COALESCE(CAST(bc."TotalCost" AS DOUBLE PRECISION) * {markup}, 0.0),
+                COALESCE(CAST(bc."TotalCost" AS DOUBLE PRECISION) * {markup}, 0.0),
                 {fetched},
                 -- ⚠️ FALSE, not 0. FromMarketData is a real boolean on PostgreSQL and an
                 -- integer only on SQLite, which accepts either spelling; this is the one both
@@ -677,7 +677,7 @@ public class MarketPricingService
         await db.Database.ExecuteSqlInterpolatedAsync(
             $"""
             WITH costs AS (
-                SELECT "TypeId", CAST("TotalCost" AS REAL) * {markup} AS EffSell
+                SELECT "TypeId", CAST("TotalCost" AS DOUBLE PRECISION) * {markup} AS EffSell
                 FROM "BuildCosts"
                 WHERE "Bought" = FALSE
             )
@@ -706,7 +706,7 @@ public class MarketPricingService
         await db.Database.ExecuteSqlInterpolatedAsync(
             $"""
             WITH costs AS (
-                SELECT "TypeId", CAST("TotalCost" AS REAL) * {markup} AS EffSell
+                SELECT "TypeId", CAST("TotalCost" AS DOUBLE PRECISION) * {markup} AS EffSell
                 FROM "BuildCosts"
                 WHERE "Bought" = FALSE
             )

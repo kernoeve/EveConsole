@@ -603,16 +603,16 @@ public class IndustryBrowserViewModel : ReactiveObject
                                                 ON cs."StructureId"      = j."FacilityId"
         )
         SELECT Base.*,
-            CAST(bc."TotalCost" AS REAL) * Base."Items Produced"                          AS "Build Cost",
+            CAST(bc."TotalCost" AS DOUBLE PRECISION) * Base."Items Produced"                          AS "Build Cost",
             -- Copying (5) / invention (8) output blueprint COPIES, valued from contracts (the
             -- ContractPrices effective price); everything else uses the market price of the product.
             CASE WHEN Base."Activity Id" IN (5, 8) THEN
                 (CASE
-                    WHEN cp."BestPrice" IS NULL THEN CAST(cp."Avg30Best" AS REAL)
-                    WHEN cp."Avg30Best" IS NULL THEN CAST(cp."BestPrice" AS REAL)
-                    WHEN CAST(cp."BestPrice" AS REAL) > 1.5 * CAST(cp."Avg30Best" AS REAL)
-                         THEN CAST(cp."Avg30Best" AS REAL)
-                    ELSE CAST(cp."BestPrice" AS REAL)
+                    WHEN cp."BestPrice" IS NULL THEN CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                    WHEN cp."Avg30Best" IS NULL THEN CAST(cp."BestPrice" AS DOUBLE PRECISION)
+                    WHEN CAST(cp."BestPrice" AS DOUBLE PRECISION) > 1.5 * CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                         THEN CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                    ELSE CAST(cp."BestPrice" AS DOUBLE PRECISION)
                  END) * Base."Items Produced"
             ELSE
                 (CASE COALESCE(mds."AssetValuePriceType", 'Midpoint')

@@ -215,7 +215,7 @@ public sealed class MarketContractCondition : IAlarmCondition
         // ordering on a number would put 9 above 10.
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = $"""
-            SELECT c."ContractId", CAST(c."Price" AS REAL) AS total, i."Quantity",
+            SELECT c."ContractId", CAST(c."Price" AS DOUBLE PRECISION) AS total, i."Quantity",
                    c."DateExpired", c."Title", c."RegionId"
             FROM "EsiContracts" c
             JOIN "EsiContractItems" i ON i."ContractId" = c."ContractId"
@@ -223,13 +223,13 @@ public sealed class MarketContractCondition : IAlarmCondition
               AND c."Status" = 'outstanding'
               AND i."TypeId" = $type AND i."IsIncluded" = TRUE
               AND i."Quantity" >= $qty
-              AND CAST(c."Price" AS REAL) > 0
-              AND CAST(c."Price" AS REAL) / i."Quantity" <= $price
+              AND CAST(c."Price" AS DOUBLE PRECISION) > 0
+              AND CAST(c."Price" AS DOUBLE PRECISION) / i."Quantity" <= $price
               {(bundled ? "" : """
                 AND (SELECT COUNT(DISTINCT x."TypeId") FROM "EsiContractItems" x
                      WHERE x."ContractId" = c."ContractId" AND x."IsIncluded" = TRUE) = 1
                 """)}
-            ORDER BY CAST(c."Price" AS REAL) / i."Quantity"
+            ORDER BY CAST(c."Price" AS DOUBLE PRECISION) / i."Quantity"
             LIMIT {MaxOffers}
             """;
         cmd.AddWithValue("$type", typeId);

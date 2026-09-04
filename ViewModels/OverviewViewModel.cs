@@ -750,9 +750,9 @@ public class OverviewViewModel : ReactiveObject
                 var s = await Off(() => _db.Database.SqlQuery<TxnSummary>(
                     $"""
                     SELECT
-                        COALESCE(SUM(CASE WHEN "IsBuy" = FALSE THEN "Quantity" * CAST("UnitPrice" AS REAL) ELSE 0.0 END), 0.0) AS "SellTotal",
+                        COALESCE(SUM(CASE WHEN "IsBuy" = FALSE THEN "Quantity" * CAST("UnitPrice" AS DOUBLE PRECISION) ELSE 0.0 END), 0.0) AS "SellTotal",
                         COALESCE(SUM(CASE WHEN "IsBuy" = FALSE THEN 1 ELSE 0 END), 0)                                          AS "SellCount",
-                        COALESCE(SUM(CASE WHEN "IsBuy" = TRUE THEN "Quantity" * CAST("UnitPrice" AS REAL) ELSE 0.0 END), 0.0) AS "BuyTotal",
+                        COALESCE(SUM(CASE WHEN "IsBuy" = TRUE THEN "Quantity" * CAST("UnitPrice" AS DOUBLE PRECISION) ELSE 0.0 END), 0.0) AS "BuyTotal",
                         COALESCE(SUM(CASE WHEN "IsBuy" = TRUE THEN 1 ELSE 0 END), 0)                                          AS "BuyCount"
                     FROM "EsiWalletTransactions"
                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
@@ -898,7 +898,7 @@ public class OverviewViewModel : ReactiveObject
             {
                 var rows = await Off(() => _db.Database.SqlQuery<JournalGroup>(
                     $"""
-                    SELECT "RefType", COALESCE(SUM(CAST("Amount" AS REAL)), 0.0) AS "TotalAmount"
+                    SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "TotalAmount"
                     FROM "EsiWalletJournal"
                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                     GROUP BY "RefType"
