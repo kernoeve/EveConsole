@@ -427,7 +427,9 @@ public sealed class IntelService(
     /// second and a pilot really does get called in two systems within one.
     /// </summary>
     private static Task SupersedeAllAsync(AppDbContext db, CancellationToken ct) =>
-        db.Database.ExecuteSqlRawAsync(SupersedeSql, [DateTimeOffset.UtcNow.ToString("O")], ct);
+        // ⚠️ The value, not a rendering of it. ObsoleteSetOn is a timestamptz on a server,
+        // and text does not implicitly convert into one.
+        db.Database.ExecuteSqlRawAsync(SupersedeSql, [DateTimeOffset.UtcNow], ct);
 
     private const string SupersedeSql = """
         UPDATE "IntelReports"

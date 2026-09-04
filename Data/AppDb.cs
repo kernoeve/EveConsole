@@ -25,6 +25,28 @@ namespace EveConsole.Data;
 public static class AppDb
 {
     /// <summary>A closed connection of the right type. The caller opens it, as before.</summary>
+    /// <summary>
+    /// The engine's name for the physical address of a row.
+    ///
+    /// <para>⚠️ Safe ONLY within a single statement, which is all the callers want: they
+    /// delete or sample an arbitrary N rows and need a handle on each. SQLite's rowid is stable
+    /// and can be stored; PostgreSQL's ctid is not — it moves when the row is updated and
+    /// when the table is vacuumed — so nothing may keep one or compare it across
+    /// statements.</para>
+    /// </summary>
+    public static string RowId => DbEngine.IsPostgres ? "ctid" : "rowid";
+
+    /// <summary>
+    /// "True only if true in every row of the group", for a boolean column.
+    ///
+    /// <para>⚠️ MIN does this on SQLite, where a boolean is an integer and MIN over 0 and 1
+    /// says exactly that. PostgreSQL has a real boolean type and no min(boolean) at all; bool_and
+    /// is its name for the same thing, and it returns a boolean, which is what an entity property
+    /// expects to read back.</para>
+    /// </summary>
+    public static string AllTrue(string column) =>
+        DbEngine.IsPostgres ? $"bool_and({column})" : $"MIN({column})";
+
     public static DbConnection Connect() =>
         DbEngine.IsPostgres
             ? new NpgsqlConnection(PostgresConnectionString(AppConfig.GetPostgresConnection() ?? ""))

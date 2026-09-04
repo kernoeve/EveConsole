@@ -978,13 +978,15 @@ public class OverviewViewModel : ReactiveObject
             // PostgreSQL it is a real boolean and min(boolean) does not exist. bool_and is the
             // same statement in that engine's terms, and returns a boolean, which is what the
             // entity's property expects to read back.
-            var anyUnread = DbEngine.IsPostgres ? "bool_and(\"IsRead\")" : "MIN(\"IsRead\")";
+            var anyUnread = AppDb.AllTrue("\"IsRead\"");
 
             var rows = await db.EsiNotifications.FromSqlRaw(
                     "SELECT MIN(\"CharacterId\") AS \"CharacterId\", \"NotificationId\", \"Type\", \"SenderId\", \"SenderType\", " +
                     "\"Timestamp\", " + anyUnread + " AS \"IsRead\", \"Text\" FROM \"EsiNotifications\" " +
                     "WHERE \"Timestamp\" >= {0} " +
-                    "GROUP BY \"NotificationId\" ORDER BY \"Timestamp\" DESC LIMIT 1000", cutoff)
+                    "GROUP BY \"NotificationId\", \"Type\", \"SenderId\", \"SenderType\", " +
+                    "\"Timestamp\", \"Text\" " +
+                    "ORDER BY \"Timestamp\" DESC LIMIT 1000", cutoff)
                 .AsNoTracking().ToListAsync();
 
             // Nothing new? Then neither the formatting below nor the collection rebuild that

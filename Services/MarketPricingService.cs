@@ -446,16 +446,16 @@ public class MarketPricingService
         // and holds the write lock for the duration. The insert beside it was already careful; the
         // delete in front of it undid the benefit.
         //
-        // Raw SQL with a rowid subquery rather than Take(): LIMIT inside ExecuteDelete is not
-        // something to find out about at runtime, and this is exactly what SQLite wants anyway.
+        // Raw SQL with a row-address subquery rather than Take(): LIMIT inside ExecuteDelete is
+        // not something to find out about at runtime.
         // ConfigId leads IX_MarketRawOrders_TypeId, so each pass is an index scan, not a table one.
         const int deleteBatch = 20_000;
         while (true)
         {
             var removed = await db.Database.ExecuteSqlRawAsync(
-                """
-                DELETE FROM "MarketRawOrders" WHERE rowid IN (
-                    SELECT rowid FROM "MarketRawOrders" WHERE "ConfigId" = {0} LIMIT {1})
+                $$"""
+                DELETE FROM "MarketRawOrders" WHERE {{AppDb.RowId}} IN (
+                    SELECT {{AppDb.RowId}} FROM "MarketRawOrders" WHERE "ConfigId" = {0} LIMIT {1})
                 """,
                 [configId, deleteBatch], ct);
 
@@ -558,9 +558,9 @@ public class MarketPricingService
         while (true)
         {
             var removed = await db.Database.ExecuteSqlRawAsync(
-                """
-                DELETE FROM "MarketItemPrices" WHERE rowid IN (
-                    SELECT rowid FROM "MarketItemPrices" WHERE "ConfigId" = {0} LIMIT {1})
+                $$"""
+                DELETE FROM "MarketItemPrices" WHERE {{AppDb.RowId}} IN (
+                    SELECT {{AppDb.RowId}} FROM "MarketItemPrices" WHERE "ConfigId" = {0} LIMIT {1})
                 """,
                 [configId, deleteBatch], ct);
 
@@ -657,7 +657,10 @@ public class MarketPricingService
                 COALESCE(CAST(bc."TotalCost" AS REAL) * {markup}, 0.0),
                 COALESCE(CAST(bc."TotalCost" AS REAL) * {markup}, 0.0),
                 {fetched},
-                0
+                -- ⚠️ FALSE, not 0. FromMarketData is a real boolean on PostgreSQL and an
+                -- integer only on SQLite, which accepts either spelling; this is the one both
+                -- understand. These rows are build-cost estimates, never market-backed.
+                FALSE
             FROM "SdeTypes" t
             LEFT JOIN "BuildCosts" bc ON bc."TypeId" = t."TypeId" AND bc."Bought" = FALSE
             WHERE t."Published" = TRUE

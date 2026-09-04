@@ -681,8 +681,12 @@ public class WalletViewModel : ReactiveObject
         {
             var (charIds, corpIds) = await GetAllOwnerIdsAsync(db);
             var conds = new List<string>();
-            if (charIds.Count > 0) conds.Add($"(OwnerType='character' AND OwnerId IN ({string.Join(",", charIds)}))");
-            if (corpIds.Count > 0) conds.Add($"(OwnerType='corporation' AND OwnerId IN ({string.Join(",", corpIds)}))");
+            // ⚠️ Quoted. An unquoted identifier is folded to lower case by PostgreSQL, and
+            // the column is OwnerType, so the query failed with 'column "ownertype" does not
+            // exist' — the lower-case spelling in the error being the tell. SQLite is
+            // case-insensitive about it, which is why these two survived the quoting pass.
+            if (charIds.Count > 0) conds.Add($"(\"OwnerType\"='character' AND \"OwnerId\" IN ({string.Join(",", charIds)}))");
+            if (corpIds.Count > 0) conds.Add($"(\"OwnerType\"='corporation' AND \"OwnerId\" IN ({string.Join(",", corpIds)}))");
             parts.Add(conds.Count > 0 ? "(" + string.Join(" OR ", conds) + ")" : "1=0");
         }
 

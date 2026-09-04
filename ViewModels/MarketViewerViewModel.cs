@@ -405,8 +405,12 @@ public class MarketViewerViewModel : ReactiveObject
                 "SELECT o.\"TypeId\" AS \"TypeId\", o.\"IsBuyOrder\" AS \"IsBuyOrder\", SUM(o.\"Price\" * o.\"VolumeRemain\") AS Isk " +
                 OrdersFrom + " " + orderWhere + " GROUP BY o.\"TypeId\", o.\"IsBuyOrder\"").ToListAsync();
 
-            var sellByType = byType.Where(x => x.IsBuyOrder == 0).Select(x => (x.TypeId, x.Isk)).ToList();
-            var buyByType  = byType.Where(x => x.IsBuyOrder == 1).Select(x => (x.TypeId, x.Isk)).ToList();
+            // ⚠️ Read as a bool, which is what the column is. It was a long, because on
+            // SQLite a boolean IS an integer and 0/1 read back happily; PostgreSQL hands over a
+            // real boolean and refuses: "Reading as System.Int64 is not supported for fields
+            // having DataTypeName boolean".
+            var sellByType = byType.Where(x => !x.IsBuyOrder).Select(x => (x.TypeId, x.Isk)).ToList();
+            var buyByType  = byType.Where(x =>  x.IsBuyOrder).Select(x => (x.TypeId, x.Isk)).ToList();
 
             // Only the top slices ever show a name; the rest collapse into "Other".
             var needIds = sellByType.OrderByDescending(x => x.Isk).Take(10)
@@ -724,7 +728,7 @@ public class MarketViewerViewModel : ReactiveObject
     }
     private sealed class TypeIskAgg
     {
-        public int TypeId { get; set; } public long IsBuyOrder { get; set; } public double Isk { get; set; }
+        public int TypeId { get; set; } public bool IsBuyOrder { get; set; } public double Isk { get; set; }
     }
     private sealed class GroupSalesFlat
     {

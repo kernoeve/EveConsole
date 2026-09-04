@@ -324,10 +324,21 @@ public class NotificationsViewModel : ReactiveObject
             // recipients); IsRead is MIN so the group reads as unread if any recipient is unread.
             var rows = Pager.TotalCount == 0
                 ? new List<CharacterNotification>()
+            // ⚠️ Every selected column is either aggregated or grouped. SQLite allows a
+            // bare column beside a GROUP BY and picks it from an arbitrary row in the group;
+            // PostgreSQL rejects it outright unless the grouping key is the table's primary key,
+            // and NotificationId is not — a notification has one row per recipient.
+            //
+            // Adding them to the key rather than wrapping them in an aggregate is not a
+            // workaround: they are genuinely identical across a notification's rows, because it
+            // is one notification delivered to several characters. Only CharacterId and IsRead
+            // actually vary, and those two are the ones that stay aggregated.
                 : await db.EsiNotifications.FromSqlRaw(
                         "SELECT MIN(\"CharacterId\") AS \"CharacterId\", \"NotificationId\", \"Type\", \"SenderId\", " +
-                        "\"SenderType\", \"Timestamp\", MIN(\"IsRead\") AS \"IsRead\", \"Text\" FROM \"EsiNotifications\" " +
-                        $"WHERE {where} GROUP BY \"NotificationId\" " +
+                        "\"SenderType\", \"Timestamp\", " + AppDb.AllTrue("\"IsRead\"") + " AS \"IsRead\", \"Text\" FROM \"EsiNotifications\" " +
+                        $"WHERE {where} " +
+                        "GROUP BY \"NotificationId\", \"Type\", \"SenderId\", \"SenderType\", " +
+                        "\"Timestamp\", \"Text\" " +
                         $"ORDER BY {_selectedSort.Sql} LIMIT {GridPager.PageSize} OFFSET {Pager.Offset}", ps)
                     .AsNoTracking().ToListAsync();
 
