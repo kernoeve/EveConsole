@@ -176,10 +176,10 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         };
 
         return await db.Database.SqlQueryRaw<EntityMatch>(sql,
-            new SqliteParameter("@cat",    CategoryOf(kind)),
-            new SqliteParameter("@q",      $"%{q}%"),
-            new SqliteParameter("@prefix", $"{q}%"),
-            new SqliteParameter("@lim",    MaxMatches)).ToListAsync(ct);
+            AppDb.Param("@cat",    CategoryOf(kind)),
+            AppDb.Param("@q",      $"%{q}%"),
+            AppDb.Param("@prefix", $"{q}%"),
+            AppDb.Param("@lim",    MaxMatches)).ToListAsync(ct);
     }
 
     /// <summary>
@@ -217,8 +217,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         };
 
         return (await db.Database.SqlQueryRaw<int>(sql,
-            new SqliteParameter("@cat", CategoryOf(kind)),
-            new SqliteParameter("@q",   $"%{q}%")).ToListAsync(ct)).FirstOrDefault();
+            AppDb.Param("@cat", CategoryOf(kind)),
+            AppDb.Param("@q",   $"%{q}%")).ToListAsync(ct)).FirstOrDefault();
     }
 
     /// <summary>
@@ -275,8 +275,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     INSERT INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
                     VALUES (@id, @name, @cat, @at) ON CONFLICT DO NOTHING
                     """,
-                    [new SqliteParameter("@id", n.Id), new SqliteParameter("@name", n.Name),
-                     new SqliteParameter("@cat", category), new SqliteParameter("@at", now)], ct);
+                    [AppDb.Param("@id", n.Id), AppDb.Param("@name", n.Name),
+                     AppDb.Param("@cat", category), AppDb.Param("@at", now)], ct);
             }
 
             return local
@@ -489,8 +489,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     INSERT INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
                     VALUES (@id, @name, @cat, @at) ON CONFLICT DO NOTHING
                     """,
-                    [new SqliteParameter("@id", n.Id), new SqliteParameter("@name", n.Name),
-                     new SqliteParameter("@cat", category), new SqliteParameter("@at", now)], ct);
+                    [AppDb.Param("@id", n.Id), AppDb.Param("@name", n.Name),
+                     AppDb.Param("@cat", category), AppDb.Param("@at", now)], ct);
             }
         }
         return map;
@@ -540,7 +540,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             LEFT JOIN "SdeStations"      s ON s."StationId"  = a."LocationId"
             WHERE a."CorporationId" = @id
             ORDER BY a."Level" DESC, a."Name"
-            """, new SqliteParameter("@id", corpId)).ToListAsync(ct);
+            """, AppDb.Param("@id", corpId)).ToListAsync(ct);
     }
 
     /// <summary>Stations an NPC corporation owns.</summary>
@@ -557,7 +557,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             LEFT JOIN "SdeRegions"      r  ON r."RegionId"       = s."RegionId"
             WHERE s."CorporationId" = @id
             ORDER BY r."Name", ss."Name", s."Name"
-            """, new SqliteParameter("@id", corpId)).ToListAsync(ct);
+            """, AppDb.Param("@id", corpId)).ToListAsync(ct);
     }
 
     /// <summary>
@@ -579,7 +579,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             LEFT JOIN "SdeNpcCorporations" n ON n."CorporationId" = a."CorporationId"
             WHERE a."LocationId" = @id
             ORDER BY a."Level" DESC, a."Name"
-            """, new SqliteParameter("@id", stationId)).ToListAsync(ct);
+            """, AppDb.Param("@id", stationId)).ToListAsync(ct);
     }
 
     /// <summary>
@@ -610,7 +610,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             WHERE s."CorporationId" = @id
             GROUP BY o."IsBuyOrder", o."TypeId"
             ORDER BY "Item"
-            """, new SqliteParameter("@id", corpId)).ToListAsync(ct);
+            """, AppDb.Param("@id", corpId)).ToListAsync(ct);
     }
 
     /// <summary>
@@ -629,7 +629,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     WHERE s."CorporationId" = @id
                       AND EXISTS (SELECT 1 FROM "MarketRawOrders" o
                                   WHERE o."LocationId" = s."StationId")) AS "Covered"
-            """, new SqliteParameter("@id", corpId)).ToListAsync(ct)).FirstOrDefault();
+            """, AppDb.Param("@id", corpId)).ToListAsync(ct)).FirstOrDefault();
         return (r?.Covered ?? 0, r?.Total ?? 0);
     }
 
@@ -649,7 +649,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var n = (await db.Database.SqlQueryRaw<int>(
             """SELECT COUNT(*) AS "Value" FROM "SdeNpcCorporations" WHERE "CorporationId" = @id""",
-            new SqliteParameter("@id", corpId)).ToListAsync(ct)).FirstOrDefault();
+            AppDb.Param("@id", corpId)).ToListAsync(ct)).FirstOrDefault();
         return n > 0;
     }
 
@@ -668,7 +668,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             LEFT JOIN "SdeTypes" t ON t."TypeId" = o."TypeId"
             WHERE o."CorporationId" = @id
             ORDER BY o."LpCost"
-            """, new SqliteParameter("@id", corpId)).ToListAsync(ct);
+            """, AppDb.Param("@id", corpId)).ToListAsync(ct);
         if (offers.Count == 0) return [];
 
         var required = (await db.Database.SqlQueryRaw<LpReqRaw>("""
@@ -676,7 +676,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             FROM "EsiLpStoreOfferItems" i
             LEFT JOIN "SdeTypes" t ON t."TypeId" = i."TypeId"
             WHERE i."CorporationId" = @id
-            """, new SqliteParameter("@id", corpId)).ToListAsync(ct))
+            """, AppDb.Param("@id", corpId)).ToListAsync(ct))
             .GroupBy(r => r.OfferId)
             .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(x => $"{x.Quantity:N0} × {x.Item}")));
 
@@ -705,7 +705,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             FROM "SdeNpcCorporations" n
             WHERE n."FactionId" = @id
             ORDER BY n."Name"
-            """, new SqliteParameter("@id", factionId)).ToListAsync(ct);
+            """, AppDb.Param("@id", factionId)).ToListAsync(ct);
     }
 
     /// <summary>
@@ -739,7 +739,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
               AND (fw."OwnerFactionId" = @id OR fw."OccupierFactionId" = @id)
             ORDER BY CASE WHEN fw."ContestedState" IN ('contested','captured') THEN 0 ELSE 1 END,
                      r."Name", ss."Name"
-            """, new SqliteParameter("@id", factionId)).ToListAsync(ct);
+            """, AppDb.Param("@id", factionId)).ToListAsync(ct);
     }
 
     private record LpOfferRaw(int OfferId, string Item, int TypeId, int Quantity, int LpCost, long IskCost);
@@ -751,7 +751,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         return (await db.Database.SqlQueryRaw<string>(
             """SELECT "Name" AS "Value" FROM "SdeRaces" WHERE "RaceId" = @id""",
-            new SqliteParameter("@id", raceId)).ToListAsync(ct)).FirstOrDefault();
+            AppDb.Param("@id", raceId)).ToListAsync(ct)).FirstOrDefault();
     }
 
     /// <summary>
@@ -781,7 +781,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var cached = (await db.Database.SqlQueryRaw<string>(
             """SELECT "Name" AS "Value" FROM "UniverseNames" WHERE "EntityId" = @id""",
-            new SqliteParameter("@id", id)).ToListAsync(ct)).FirstOrDefault();
+            AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
         if (!string.IsNullOrEmpty(cached)) return cached;
 
         if (esi is null) return null;
@@ -844,9 +844,9 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 INSERT INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
                 VALUES (@id, @name, @cat, @at) ON CONFLICT DO NOTHING
                 """,
-                [new SqliteParameter("@id", id), new SqliteParameter("@name", name),
-                 new SqliteParameter("@cat", category),
-                 new SqliteParameter("@at", DateTimeOffset.UtcNow.ToString("O"))], ct);
+                [AppDb.Param("@id", id), AppDb.Param("@name", name),
+                 AppDb.Param("@cat", category),
+                 AppDb.Param("@at", DateTimeOffset.UtcNow.ToString("O"))], ct);
         }
         catch { /* a missing name row is cosmetic — never fail the viewer over it */ }
     }
@@ -873,7 +873,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                                      WHERE a."CharacterId" = @id OR k."VictimCharId" = @id), '') AS "LastSeen"
                     FROM (SELECT 1) x
                     LEFT JOIN "UniverseNames" u ON u."EntityId" = @id
-                    """, new SqliteParameter("@id", id)).ToListAsync(ct)).FirstOrDefault();
+                    """, AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
                 if (r is null) return null;
 
                 return new EntityDetail(id, r.Name,
@@ -909,7 +909,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                       """;
 
                 var r = (await db.Database.SqlQueryRaw<GroupDetailRaw>(sql,
-                    new SqliteParameter("@id", id)).ToListAsync(ct)).FirstOrDefault();
+                    AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
                 if (r is null) return null;
 
                 return new EntityDetail(id, r.Name,
@@ -941,7 +941,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     LEFT JOIN "SdeStations"        s  ON s."StationId"     = a."LocationId"
                     LEFT JOIN "SdeFactions"        f  ON f."FactionId"     = n."FactionId"
                     WHERE a."AgentId" = @id
-                    """, new SqliteParameter("@id", id)).ToListAsync(ct)).FirstOrDefault();
+                    """, AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
                 if (r is null) return null;
 
                 return new EntityDetail(id, r.Name, $"Level {r.Level} {r.Division} agent", "",
@@ -969,7 +969,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     FROM "SdeNpcCorporations" n
                     LEFT JOIN "SdeFactions" f ON f."FactionId" = n."FactionId"
                     WHERE n."CorporationId" = @id
-                    """, new SqliteParameter("@id", id)).ToListAsync(ct)).FirstOrDefault();
+                    """, AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
                 if (r is null) return null;
 
                 return new EntityDetail(id, r.Name, $"NPC corporation{(r.Faction.Length > 0 ? " · " + r.Faction : "")}", "",
@@ -997,7 +997,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     LEFT JOIN "SdeNpcCorporations" mc ON mc."CorporationId" = f."MilitiaCorporationId"
                     LEFT JOIN "SdeSolarSystems"    ss ON ss."SolarSystemId" = f."SolarSystemId"
                     WHERE f."FactionId" = @id
-                    """, new SqliteParameter("@id", id)).ToListAsync(ct)).FirstOrDefault();
+                    """, AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
                 if (r is null) return null;
 
                 return new EntityDetail(id, r.Name, "Faction", r.Description,
@@ -1034,7 +1034,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     LEFT JOIN "SdeFactions"        f  ON f."FactionId"        = n."FactionId"
                     LEFT JOIN "SdeTypes"           ty ON ty."TypeId"          = s."StationTypeId"
                     WHERE s."StationId" = @id
-                    """, new SqliteParameter("@id", id)).ToListAsync(ct)).FirstOrDefault();
+                    """, AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
                 if (r is null) return null;
 
                 // A station has no portrait, but its hull does — and the render is how you
@@ -1105,8 +1105,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             """;
 
         return await db.Database.SqlQueryRaw<EntityKillRow>(sql,
-            new SqliteParameter("@id",  id),
-            new SqliteParameter("@lim", MaxDetailRows)).ToListAsync(ct);
+            AppDb.Param("@id",  id),
+            AppDb.Param("@lim", MaxDetailRows)).ToListAsync(ct);
     }
 
     // ── Intel ────────────────────────────────────────────────────────────────
@@ -1131,8 +1131,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             ORDER BY r."ReportedAt" DESC
             LIMIT @lim
             """,
-            new SqliteParameter("@id",  characterId),
-            new SqliteParameter("@lim", MaxDetailRows)).ToListAsync(ct);
+            AppDb.Param("@id",  characterId),
+            AppDb.Param("@lim", MaxDetailRows)).ToListAsync(ct);
     }
 
     // Raw row shapes — property names match the SELECT aliases.

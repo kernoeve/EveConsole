@@ -34,11 +34,17 @@ public class TypePriceHistoryService(IDbContextFactory<AppDbContext> dbFactory, 
             var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
             var now   = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffffzzz", CultureInfo.InvariantCulture);
 
-            // One INSERT OR REPLACE upserts the whole current-day slice. Prices of 0 (and absent
+            // ⚠️ ON CONFLICT rather than INSERT OR REPLACE, which is SQLite's alone. Both
+            // engines have understood this form since SQLite 3.24, and it says what the older
+            // spelling only implied: a replace DELETES the row and inserts a new one, so any
+            // column not listed silently reverts to its default. Here every column is listed, so
+            // the two agree — but the upsert states that rather than relying on it.
+            //
+            // One statement upserts the whole current-day slice. Prices of 0 (and absent
             // rows) become NULL. The contract expression mirrors ContractPricing.EffectivePrice:
             // best price unless it is >50% above the 30-day average, in which case the average.
             var sql = $"""
-                INSERT OR REPLACE INTO "TypePriceSnapshots"
+                INSERT INTO "TypePriceSnapshots"
                     ("TypeId", "Date", "MarketValue", "BuildCost", "ContractPrice", "ComputedAt")
                 SELECT ids."TypeId", @today,
                        NULLIF({marketCol}, 0),
@@ -60,13 +66,18 @@ public class TypePriceHistoryService(IDbContextFactory<AppDbContext> dbFactory, 
                 LEFT JOIN "MarketItemPrices" mp ON mp."ConfigId" = @cfg AND mp."TypeId" = ids."TypeId"
                 LEFT JOIN "BuildCosts"       bc ON bc."TypeId"   = ids."TypeId"
                 LEFT JOIN "ContractPrices"   cp ON cp."TypeId"   = ids."TypeId"
+                ON CONFLICT ("TypeId", "Date") DO UPDATE SET
+                    "MarketValue"   = excluded."MarketValue",
+                    "BuildCost"     = excluded."BuildCost",
+                    "ContractPrice" = excluded."ContractPrice",
+                    "ComputedAt"    = excluded."ComputedAt"
                 """;
 
             await db.Database.ExecuteSqlRawAsync(sql,
             [
-                new SqliteParameter("@today", today),
-                new SqliteParameter("@now",   now),
-                new SqliteParameter("@cfg",   (object?)configId ?? DBNull.Value),
+                AppDb.Param("@today", today),
+                AppDb.Param("@now",   now),
+                AppDb.Param("@cfg",   (object?)configId ?? DBNull.Value),
             ], ct);
         }
         catch (OperationCanceledException) { throw; }

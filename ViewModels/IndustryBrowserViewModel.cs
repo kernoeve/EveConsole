@@ -413,8 +413,11 @@ public class IndustryBrowserViewModel : ReactiveObject
                 foreach (var e in entries)
                 {
                     using var ins = conn.Command("""
-                        INSERT OR REPLACE INTO UniverseNames (EntityId, Name, Category)
+                        INSERT INTO "UniverseNames" ("EntityId", "Name", "Category")
                         VALUES (@id, @name, @cat)
+                        ON CONFLICT ("EntityId") DO UPDATE SET
+                            "Name"     = excluded."Name",
+                            "Category" = excluded."Category"
                         """, tx);
                     ins.AddWithValue("@id",   e.Id);
                     ins.AddWithValue("@name", e.Name);

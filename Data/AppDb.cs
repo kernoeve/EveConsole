@@ -1,4 +1,5 @@
 using System.Data.Common;
+using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
 using EveConsole.Services;
 using Microsoft.Data.Sqlite;
@@ -52,6 +53,23 @@ public static class AppDb
         await db.ExecuteSqlRawAsync("PRAGMA cache_size=20000",   ct);
         await db.ExecuteSqlRawAsync("PRAGMA temp_store=MEMORY",  ct);
     }
+
+    /// <summary>
+    /// A parameter of the type the configured provider wants.
+    ///
+    /// <para>⚠️ A <c>SqliteParameter</c> handed to EF is passed straight through to the
+    /// command, so on a server Npgsql is given an object it cannot use. Unlike a wrong
+    /// connection string this does not announce itself as a configuration problem: the query
+    /// simply fails on a screen nobody was looking at.</para>
+    ///
+    /// <para>Both providers take the same <c>@name</c> placeholders, so only the object changes.
+    /// Dates still reach PostgresParameterInterceptor, these being EF commands, so UTC
+    /// normalisation is handled there rather than repeated here.</para>
+    /// </summary>
+    public static DbParameter Param(string name, object? value) =>
+        DbEngine.IsPostgres
+            ? new NpgsqlParameter(name, value ?? DBNull.Value)
+            : new SqliteParameter(name, value ?? DBNull.Value);
 
     /// <summary>The connection string for whichever engine is configured.</summary>
     public static string ConnectionString =>

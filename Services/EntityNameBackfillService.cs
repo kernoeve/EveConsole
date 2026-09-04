@@ -157,14 +157,33 @@ public sealed class EntityNameBackfillService(
     private static async Task<List<(string Table, string Column)>> DiscoverIdColumnsAsync(
         AppDbContext db, CancellationToken ct)
     {
-        var likes = string.Join(" OR ", IdColumnPatterns.Select((_, i) => $"p.name LIKE @p{i}"));
-        var sql = $"""
-            SELECT m.name || '.' || p.name AS "Value"
-            FROM sqlite_master m
-            JOIN pragma_table_info(m.name) p
-            WHERE m.type = 'table' AND ({likes})
-            ORDER BY m.name, p.name
-            """;
+        // ⚠️ The one place the two engines cannot share a statement. Asking a database what
+        // columns it has is the least standard thing in SQL: SQLite answers through sqlite_master
+        // and the pragma_table_info table-valued function, PostgreSQL through information_schema,
+        // and neither knows the other's spelling. The rest of the query — the LIKE patterns,
+        // the parameter numbering, the "table.column" shape it returns — is identical, so only
+        // the source of the rows differs.
+        //
+        // LIKE is case-sensitive in PostgreSQL and not in SQLite. It makes no difference here
+        // because the patterns are the column names as actually spelled, but it is the sort of
+        // difference that would go unnoticed until a column was named in another case.
+        var likes = string.Join(" OR ", IdColumnPatterns.Select((_, i) => $"c.column_name LIKE @p{i}"));
+        var sql = DbEngine.IsPostgres
+            ? $"""
+                SELECT c.table_name || '.' || c.column_name AS "Value"
+                FROM information_schema.columns c
+                JOIN information_schema.tables t
+                     ON t.table_schema = c.table_schema AND t.table_name = c.table_name
+                WHERE c.table_schema = 'public' AND t.table_type = 'BASE TABLE' AND ({likes})
+                ORDER BY c.table_name, c.column_name
+                """
+            : $"""
+                SELECT m.name || '.' || p.name AS "Value"
+                FROM sqlite_master m
+                JOIN pragma_table_info(m.name) p
+                WHERE m.type = 'table' AND ({likes.Replace("c.column_name", "p.name")})
+                ORDER BY m.name, p.name
+                """;
 
 #pragma warning disable EF1002 // only the LIKE patterns vary, and they are parameterized above
         var pairs = await db.Database
