@@ -554,12 +554,13 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         FROM (
             SELECT DISTINCT "LocationId" FROM "MarketRawOrders"
         ) o
-        LEFT JOIN "SdeStations"       s  ON s."StationId"   = CAST(o."LocationId" AS INTEGER)
+        LEFT JOIN "SdeStations"       s  ON s."StationId"   = CAST(o."LocationId" AS BIGINT)
         LEFT JOIN "EsiStructureNames" sn ON sn."StructureId" = o."LocationId"
         ORDER BY "StationName"
         """;
 
-    private const string CandidateSql = """
+    // ⚠️ A property, not a const: it interpolates the engine-correct scalar-min function.
+    private static string CandidateSql => $$"""
         WITH src AS (
             SELECT "TypeId",
                    MIN("Price")        AS BestSell,
@@ -588,7 +589,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             CAST(d.BestBuy - s.BestSell AS REAL)                     AS ProfitPerUnit,
             CAST(t."Volume" AS REAL)                                 AS M3PerUnit,
             CAST((d.BestBuy - s.BestSell) / t."Volume" AS REAL)     AS ProfitPerM3,
-            MIN(s.AvailSell, d.AvailBuy)                             AS MaxQty
+            {{AppDb.LeastFn}}(s.AvailSell, d.AvailBuy)                             AS MaxQty
         FROM src s
         JOIN dst d ON d."TypeId" = s."TypeId"
         JOIN "SdeTypes" t ON t."TypeId" = s."TypeId"

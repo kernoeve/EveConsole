@@ -1,3 +1,4 @@
+using System.Data.Common;
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.Data.Sqlite;
@@ -14,7 +15,12 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
         try
         {
             await using var db   = await dbFactory.CreateDbContextAsync(ct);
-            var conn = (SqliteConnection)db.Database.GetDbConnection();
+            // ⚠️ Not cast to a provider type. On a server this connection is an
+            // NpgsqlConnection, and the cast threw before a single query ran — "Unable to
+            // cast object of type Npgsql.NpgsqlConnection to type
+            // Microsoft.Data.Sqlite.SqliteConnection". Nothing below actually needed the derived
+            // type: CreateCommand and AddWithValue are both on DbConnection/DbCommand.
+            var conn = db.Database.GetDbConnection();
             if (conn.State != System.Data.ConnectionState.Open)
                 await conn.OpenAsync(ct);
 
@@ -72,10 +78,9 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
     // ── Scalar query helper ───────────────────────────────────────────────────
 
     private static async Task<double> ScalarAsync(
-        SqliteConnection conn, string sql, long ownerId, string ownerType, CancellationToken ct)
+        DbConnection conn, string sql, long ownerId, string ownerType, CancellationToken ct)
     {
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
+        using var cmd = conn.Command(sql);
         cmd.AddWithValue("@ownerId",   ownerId);
         cmd.AddWithValue("@ownerType", ownerType);
         var result = await cmd.ExecuteScalarAsync(ct);

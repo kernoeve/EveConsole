@@ -262,14 +262,15 @@ public class NetWorthViewModel : ReactiveObject
         var (fromDate, toDate) = GetDateRange();
 
         await using var db   = await _dbFactory.CreateDbContextAsync();
-        var conn = (SqliteConnection)db.Database.GetDbConnection();
+        // ⚠️ See NetWorthService: the connection is an NpgsqlConnection on a server, and
+        // nothing here needs the derived type.
+        var conn = db.Database.GetDbConnection();
         if (conn.State != System.Data.ConnectionState.Open)
             await conn.OpenAsync();
 
         var sql = owner.IsPersonal ? PersonalSql : CorpSql;
 
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
+        using var cmd = conn.Command(sql);
         cmd.AddWithValue("@fromDate", fromDate);
         cmd.AddWithValue("@toDate",   toDate);
         if (!owner.IsPersonal)
@@ -435,7 +436,7 @@ public class NetWorthViewModel : ReactiveObject
           AND NOT (
               n."OwnerType" = 'corporation'
               AND n."OwnerId" IN (
-                  SELECT CAST("Id" AS INTEGER) FROM "Corporations" WHERE "IsPersonal" = FALSE
+                  SELECT CAST("Id" AS BIGINT) FROM "Corporations" WHERE "IsPersonal" = FALSE
               )
           )
         GROUP BY n."Date"
