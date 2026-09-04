@@ -41,7 +41,7 @@ public sealed class GetAssetsTool : IAgentTool
                 COALESCE(sn."Name", ss."Name", CAST(a."RootLocationId" AS TEXT)) AS location,
                 COALESCE(c."Name", corp."Name", CAST(a."OwnerId" AS TEXT))       AS owner,
                 COALESCE(
-                    ROUND(mip."Midpoint" * SUM(a."Quantity"), 2),
+                    ROUND(CAST(mip."Midpoint" * SUM(a."Quantity") AS NUMERIC), 2),
                     0
                 )                                                           AS estimated_value
             FROM "EsiAssets" a

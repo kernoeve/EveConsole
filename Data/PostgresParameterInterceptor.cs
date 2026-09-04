@@ -31,6 +31,12 @@ public sealed class PostgresParameterInterceptor : DbCommandInterceptor
 {
     private static void Normalise(DbCommand command)
     {
+        // ⚠️ Not only the parameters. LIKE is case-insensitive on SQLite and this
+        // application was written expecting that, so it is rewritten to ILIKE here — which
+        // catches EF's own generated LIKE from Contains as well as the hand-written SQL.
+        // See AppDb.CaseInsensitiveLike.
+        command.CommandText = AppDb.CaseInsensitiveLike(command.CommandText);
+
         foreach (DbParameter p in command.Parameters)
         {
             switch (p.Value)

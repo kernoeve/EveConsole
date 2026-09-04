@@ -780,8 +780,8 @@ public class WalletViewModel : ReactiveObject
 
         var (charIds, corpIds) = await GetAllOwnerIdsAsync(db);
         var conds = new List<string>();
-        if (charIds.Count > 0) conds.Add($"(OwnerType='character' AND OwnerId IN ({string.Join(",", charIds)}))");
-        if (corpIds.Count > 0) conds.Add($"(OwnerType='corporation' AND OwnerId IN ({string.Join(",", corpIds)}))");
+        if (charIds.Count > 0) conds.Add($"(\"OwnerType\"='character' AND \"OwnerId\" IN ({string.Join(",", charIds)}))");
+        if (corpIds.Count > 0) conds.Add($"(\"OwnerType\"='corporation' AND \"OwnerId\" IN ({string.Join(",", corpIds)}))");
         string ownerCond = conds.Count > 0 ? "(" + string.Join(" OR ", conds) + ")" : "1=0";
         int cix = ps.Count; ps.Add(cutoff);
 

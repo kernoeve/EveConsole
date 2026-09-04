@@ -36,6 +36,79 @@ public static class AppDb
     /// </summary>
     public static string RowId => DbEngine.IsPostgres ? "ctid" : "rowid";
 
+    /// <summary>The scalar "smaller of these two" function — not the aggregate.</summary>
+    ///
+    /// <remarks>⚠️ SQLite overloads MIN: one argument is the aggregate, two or more is the
+    /// scalar. PostgreSQL keeps them apart, reserving MIN for the aggregate and calling the scalar
+    /// LEAST, so a two-argument MIN there reports "function min(integer, integer) does not
+    /// exist".</remarks>
+    public static string LeastFn    => DbEngine.IsPostgres ? "LEAST"    : "MIN";
+
+    /// <summary>The scalar "larger of these two" function — not the aggregate.</summary>
+    public static string GreatestFn => DbEngine.IsPostgres ? "GREATEST" : "MAX";
+
+    /// <summary>
+    /// Makes LIKE mean on PostgreSQL what it has always meant on SQLite.
+    ///
+    /// <para>⚠️ This application was written against SQLite, whose LIKE ignores case for
+    /// ASCII. PostgreSQL's LIKE does not, and ILIKE is its case-insensitive form. Every LIKE here
+    /// is a person searching for a name — an item, a character, a system — so the
+    /// SQLite behaviour is the intended one, and the PostgreSQL behaviour is a regression that
+    /// reports NO ERROR: the search simply stops finding things, which is how it was noticed.</para>
+    ///
+    /// <para>Done centrally rather than at each of the 47 call sites for two reasons. Most of
+    /// them are <c>const</c> strings, which cannot call a method at all. And EF generates LIKE
+    /// itself from <c>Contains</c>, so a call-site sweep would fix the hand-written half and
+    /// leave the generated half behaving differently — the worst of both.</para>
+    ///
+    /// <para>The scan skips single-quoted literals, so a search term containing the word is left
+    /// alone, and it will not touch an identifier such as <c>"Like"</c> or a LIKE that is already
+    /// an ILIKE, which makes it safe to apply twice.</para>
+    /// </summary>
+    public static string CaseInsensitiveLike(string sql)
+    {
+        if (!DbEngine.IsPostgres || sql.Length == 0) return sql;
+        if (sql.IndexOf("LIKE", StringComparison.OrdinalIgnoreCase) < 0) return sql;
+
+        var sb = new System.Text.StringBuilder(sql.Length + 16);
+        var inLiteral = false;
+
+        for (var i = 0; i < sql.Length; i++)
+        {
+            var c = sql[i];
+
+            if (inLiteral)
+            {
+                sb.Append(c);
+                // A doubled quote inside a literal closes and reopens it, which this treats as
+                // two transitions and lands in the same place.
+                if (c == '\'') inLiteral = false;
+                continue;
+            }
+
+            if (c == '\'') { inLiteral = true; sb.Append(c); continue; }
+
+            if ((c is 'L' or 'l')
+                && i + 4 <= sql.Length
+                && string.Compare(sql, i, "LIKE", 0, 4, StringComparison.OrdinalIgnoreCase) == 0
+                && (i == 0 || !IsWordChar(sql[i - 1]))
+                && (i + 4 == sql.Length || !IsWordChar(sql[i + 4])))
+            {
+                sb.Append("ILIKE");
+                i += 3;
+                continue;
+            }
+
+            sb.Append(c);
+        }
+
+        return sb.ToString();
+
+        // The quote counts as a word character so a quoted identifier is never rewritten, and
+        // the I of an existing ILIKE stops it matching a second time.
+        static bool IsWordChar(char c) => char.IsLetterOrDigit(c) || c == '_' || c == '"';
+    }
+
     /// <summary>
     /// "True only if true in every row of the group", for a boolean column.
     ///
@@ -141,7 +214,7 @@ public static class DbCommandExtensions
     public static DbCommand Command(this DbConnection conn, string sql, DbTransaction? tx = null)
     {
         var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
+        cmd.CommandText = AppDb.CaseInsensitiveLike(sql);
         if (tx is not null) cmd.Transaction = tx;
         return cmd;
     }

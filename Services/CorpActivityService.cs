@@ -1921,13 +1921,18 @@ public class CorpActivityService
         public double Amount  { get; set; }
     }
 
-    // EF Core SQLite stores DateTimeOffset with a space separator ("2026-06-28 12:00:00+00:00"),
-    // but ToString("O") produces a T separator ("2026-06-28T12:00:00...+00:00").
-    // SQLite lexicographic comparison treats space (32) < T (84), so entries on the same
-    // calendar day as the cutoff but after the cutoff time are incorrectly excluded.
-    // Use the EF Core stored format to make the comparison work correctly.
-    private static string SqlCutoff(DateTimeOffset dt)
-        => dt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+    // ⚠️ The value itself, not a rendering of it. Every date comparison in this file
+    // — 47 of them — goes through here, so this one line decides whether they work.
+    //
+    // It used to return EF Core's SQLite on-disk spelling ("2026-06-28 12:00:00"), because there
+    // the column is TEXT and the comparison is a string compare: ToString("O") would have used a
+    // T separator, and since space (32) sorts below T (84), entries later on the cutoff day were
+    // silently dropped. That reasoning was right for SQLite and is exactly what breaks on a
+    // server, where the column is a timestamptz and text will not compare against one at all.
+    //
+    // Handing over the DateTimeOffset gets that same on-disk spelling from the provider on
+    // SQLite and a typed comparison on PostgreSQL, so neither engine is being imitated.
+    private static DateTimeOffset SqlCutoff(DateTimeOffset dt) => dt.ToUniversalTime();
 
     private sealed class WalletDetailRaw
     {

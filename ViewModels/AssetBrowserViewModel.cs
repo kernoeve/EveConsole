@@ -391,7 +391,7 @@ public class AssetBrowserViewModel : ReactiveObject
                 COALESCE(NULLIF(sn_f."Name",''), st_f."Name", CAST(j."FacilityId" AS TEXT)) AS FacilityName,
                 COALESCE(ss_st_f."Name", ss_sn_f."Name", '')  AS FacilitySolarSystem,
                 COALESCE(r_st_f."Name",  r_sn_f."Name",  '')  AS FacilityRegion,
-                CAST(ROUND(COALESCE(ss_st_f."Security", ss_sn_f."Security", 0.0), 1) AS TEXT) AS FacilitySecurity
+                CAST(ROUND(CAST(COALESCE(ss_st_f."Security", ss_sn_f."Security", 0.0) AS NUMERIC), 1) AS TEXT) AS FacilitySecurity
             FROM "EsiIndustryJobs" j
             LEFT JOIN "EsiBlueprints"     bl     ON bl."ItemId"      = j."BlueprintId"  AND bl."OwnerId" = j."OwnerId" AND bl."OwnerType" = j."OwnerType"
             LEFT JOIN "SdeStations"       st_f   ON st_f."StationId" = j."FacilityId"
@@ -443,7 +443,7 @@ public class AssetBrowserViewModel : ReactiveObject
                     ELSE NULL
                 END AS "Solar System",
                 COALESCE(r_st."Name", r_ss."Name", r_s."Name")             AS "Region Name",
-                ROUND(COALESCE(ss_sta."Security", ss."Security", ss_s."Security"), 1) AS "Security",
+                ROUND(CAST(COALESCE(ss_sta."Security", ss."Security", ss_s."Security") AS NUMERIC), 1) AS "Security",
                 -- Hidden: what the names above open. Carried in Base so the three aggregate views
                 -- inherit them rather than each re-deriving the joins.
                 COALESCE(ss_sta."SolarSystemId", ss."SolarSystemId", ss_s."SolarSystemId", 0) AS "Solar System Id",
@@ -562,7 +562,7 @@ public class AssetBrowserViewModel : ReactiveObject
                 -- ⚠️ ROUNDed to match the asset branch above. The aggregate views GROUP BY Security, so an
                 -- unrounded -0.29999 and a rounded -0.3 became two rows for one system, identical
                 -- on screen and each holding part of the total.
-                ROUND(jf.FacilitySecurity, 1)                                      AS "Security",
+                ROUND(CAST(jf.FacilitySecurity AS NUMERIC), 1)                                      AS "Security",
                 -- Hidden ids, matching the asset branch so the UNION lines up. A job facility is
                 -- named but never resolved to ids here, so these are zero: such a row still shows
                 -- its system and region, they simply are not links.
@@ -608,7 +608,7 @@ public class AssetBrowserViewModel : ReactiveObject
                 -- ⚠️ ROUNDed to match the asset branch above. The aggregate views GROUP BY Security, so an
                 -- unrounded -0.29999 and a rounded -0.3 became two rows for one system, identical
                 -- on screen and each holding part of the total.
-                ROUND(jf.FacilitySecurity, 1)                                      AS "Security",
+                ROUND(CAST(jf.FacilitySecurity AS NUMERIC), 1)                                      AS "Security",
                 -- Hidden ids, matching the asset branch so the UNION lines up. A job facility is
                 -- named but never resolved to ids here, so these are zero: such a row still shows
                 -- its system and region, they simply are not links.

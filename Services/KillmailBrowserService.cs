@@ -120,10 +120,13 @@ public class KillmailBrowserService(
         string P(object value) { args.Add(value); return $"@p{args.Count - 1}"; }
 
         var conditions = new List<string>();
+        // ⚠️ Passed as values. KillMailTime is a timestamptz on a server, and a string
+        // shaped like a date is still a string to it: "operator does not exist: timestamp with
+        // time zone >= text". The whole grid failed on that, filter or no filter.
         if (fromDate is { } fd)
-            conditions.Add($"""d."KillMailTime" >= {P(fd.ToString("yyyy-MM-dd") + " 00:00:00+00:00")}""");
+            conditions.Add($"""d."KillMailTime" >= {P(new DateTimeOffset(fd.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero))}""");
         if (thruDate is { } td)
-            conditions.Add($"""d."KillMailTime" <= {P(td.ToString("yyyy-MM-dd") + " 23:59:59+00:00")}""");
+            conditions.Add($"""d."KillMailTime" <= {P(new DateTimeOffset(td.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero))}""");
         if (!string.IsNullOrWhiteSpace(shipFilter))
             conditions.Add($"""st."Name" LIKE {P($"%{shipFilter.Trim()}%")}""");
         if (!string.IsNullOrWhiteSpace(systemFilter))

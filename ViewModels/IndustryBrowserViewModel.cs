@@ -381,7 +381,7 @@ public class IndustryBrowserViewModel : ReactiveObject
             foreach (var id in ids.Distinct())
             {
                 using var chk = conn.Command(
-                    "SELECT 1 FROM UniverseNames WHERE EntityId=@id LIMIT 1");
+                    "SELECT 1 FROM \"UniverseNames\" WHERE \"EntityId\"=@id LIMIT 1");
                 chk.AddWithValue("@id", id);
                 if (chk.ExecuteScalar() is null) toResolve.Add(id);
             }
@@ -549,7 +549,7 @@ public class IndustryBrowserViewModel : ReactiveObject
                 END                                                                           AS "Items Produced",
                 COALESCE(NULLIF(sn."Name", ''), st."Name", CAST(j."FacilityId" AS TEXT))          AS "Facility",
                 COALESCE(ss_st."Name", ss_sn."Name")                                             AS "Solar System",
-                ROUND(COALESCE(ss_st."Security", ss_sn."Security", 0.0), 1)                     AS "Security",
+                ROUND(CAST(COALESCE(ss_st."Security", ss_sn."Security", 0.0) AS NUMERIC), 1)                     AS "Security",
                 COALESCE(r_st."Name",  r_sn."Name")                                              AS "Region",
                 COALESCE(ch_inst."Name", un_inst."Name", CAST(j."InstallerId" AS TEXT))            AS "Installer",
                 COALESCE(ch_own."Name", co."Name", CAST(j."OwnerId" AS TEXT))                      AS "Owner",

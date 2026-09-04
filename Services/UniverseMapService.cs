@@ -147,20 +147,20 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     // values, rather than strings interpolated at the call site. Same SQL, but the values go
     // through parameters, which is what keeps EF1002 quiet and the injection surface at zero.
 
-    private const string RegionLinksSql = $$"""
+    private static string RegionLinksSql => $$"""
         SELECT DISTINCT
-               MIN(a."RegionId", b."RegionId") AS "FromId",
-               MAX(a."RegionId", b."RegionId") AS "ToId"
+               {{AppDb.LeastFn}}(a."RegionId", b."RegionId") AS "FromId",
+               {{AppDb.GreatestFn}}(a."RegionId", b."RegionId") AS "ToId"
         FROM ({{LinkSql}}) l
         JOIN "SdeSolarSystems" a ON a."SolarSystemId" = l."FromId"
         JOIN "SdeSolarSystems" b ON b."SolarSystemId" = l."ToId"
         WHERE a."RegionId" <> b."RegionId"
         """;
 
-    private const string RegionSystemLinksSql = $$"""
+    private static string RegionSystemLinksSql => $$"""
         SELECT DISTINCT
-               MIN(l."FromId", l."ToId") AS "FromId",
-               MAX(l."FromId", l."ToId") AS "ToId"
+               {{AppDb.LeastFn}}(l."FromId", l."ToId") AS "FromId",
+               {{AppDb.GreatestFn}}(l."FromId", l."ToId") AS "ToId"
         FROM ({{LinkSql}}) l
         JOIN "SdeSolarSystems" a ON a."SolarSystemId" = l."FromId"
         JOIN "SdeSolarSystems" b ON b."SolarSystemId" = l."ToId"
@@ -817,7 +817,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
 
         // KillMailTime is a DateTimeOffset, which SQLite cannot compare in a LINQ Where — EF
         // throws "could not be translated". The stored format is sortable, so compare as text.
-        var cutoff = DateTimeOffset.UtcNow.AddDays(-days).ToString("yyyy-MM-dd HH:mm:ss+00:00");
+        var cutoff = DateTimeOffset.UtcNow.AddDays(-days);
 
         // Built into a variable rather than interpolated at the call: SqlQueryRaw warns (EF1002)
         // on an interpolated argument. The only interpolated part is a compile-time constant.
