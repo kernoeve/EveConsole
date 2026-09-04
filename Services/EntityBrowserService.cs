@@ -952,7 +952,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                         new("Station",      r.Station, EntityKind.Station, r.StationId),
                         new("Division",     r.Division),
                         new("Agent type",   r.AgentType),
-                        new("Locator",      r.IsLocator > 0 ? "Yes" : "No"),
+                        new("Locator",      r.IsLocator ? "Yes" : "No"),
                     ], url);
             }
 
@@ -1091,7 +1091,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 FROM "KillMailDetails" k
                 WHERE k."{victimCol}" = @id)
             SELECT i."KillMailId",
-                   substr(i."KillMailTime", 1, 16)        AS "When",
+                   substr(CAST(i."KillMailTime" AS TEXT), 1, 16)        AS "When",
                    COALESCE(ss."Name", '')                AS "System",
                    COALESCE(t."Name", '')                 AS "Ship",
                    COALESCE(u."Name", '')                 AS "Counterparty",
@@ -1138,7 +1138,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     // Raw row shapes — property names match the SELECT aliases.
     private record PilotDetailRaw(string Name, int Kills, int Losses, int IsOurs, double SecStatus, string LastSeen);
     private record GroupDetailRaw(string Name, int Members, int Kills, int Losses, int IsOurs);
-    private record AgentDetailRaw(string Name, int Level, int IsLocator, string AgentType,
+    private record AgentDetailRaw(string Name, int Level, bool IsLocator, string AgentType,
                                   string Division, string Corporation, string Station, string Faction,
                                   long CorporationId, long FactionId, long StationId);
     private record NpcCorpDetailRaw(string Name, string Faction, int Stations, int Agents,

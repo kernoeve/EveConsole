@@ -838,7 +838,7 @@ public class CorpActivityService
 
         var ledgerRows = await db.Database.SqlQuery<MiningLedgerRaw>($"""
             SELECT
-                substr(l."LastUpdated", 1, 10) AS "Date",
+                substr(CAST(l."LastUpdated" AS TEXT), 1, 10) AS "Date",
                 l."CharacterId",
                 l."TypeId",
                 COALESCE(t."Name", CAST(l."TypeId" AS TEXT)) AS "TypeName",
@@ -847,8 +847,8 @@ public class CorpActivityService
             LEFT JOIN "SdeTypes" t ON t."TypeId" = l."TypeId"
             WHERE l."CorporationId" = {corpId}
               AND l."LastUpdated" >= {sinceStr}
-            GROUP BY substr(l."LastUpdated", 1, 10), l."CharacterId", l."TypeId"
-            ORDER BY substr(l."LastUpdated", 1, 10) DESC, SUM(l."Quantity") DESC
+            GROUP BY substr(CAST(l."LastUpdated" AS TEXT), 1, 10), l."CharacterId", l."TypeId"
+            ORDER BY substr(CAST(l."LastUpdated" AS TEXT), 1, 10) DESC, SUM(l."Quantity") DESC
             """).ToListAsync(ct);
 
         var names = await ResolveNamesAsync(ledgerRows.Select(r => r.CharacterId).Distinct(), ct);
@@ -871,8 +871,8 @@ public class CorpActivityService
         using var db = _dbFactory.CreateDbContext();
         var months = await db.Database.SqlQuery<MonthRaw>($"""
             SELECT DISTINCT
-                CAST(substr("LastUpdated", 1, 4) AS INTEGER) AS "Year",
-                CAST(substr("LastUpdated", 6, 2) AS INTEGER) AS "Month"
+                CAST(substr(CAST("LastUpdated" AS TEXT), 1, 4) AS INTEGER) AS "Year",
+                CAST(substr(CAST("LastUpdated" AS TEXT), 6, 2) AS INTEGER) AS "Month"
             FROM "EsiCorpMiningLedger"
             WHERE "CorporationId" = {corpId}
             ORDER BY "Year" DESC, "Month" DESC

@@ -1176,7 +1176,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         """;
 
     private const string RecentKillsSql = """
-        SELECT k."KillMailId", k."KillMailTime",
+        SELECT k."KillMailId", CAST(k."KillMailTime" AS TEXT) AS "KillMailTime",
                t."Name" AS "ShipName", u."Name" AS "VictimName"
         FROM "KillMailDetails" k
         LEFT JOIN "SdeTypes"      t ON t."TypeId"   = k."VictimShipTypeId"

@@ -580,13 +580,13 @@ public class SystemViewService(
     }
 
     private const string DailyKillSql = """
-        SELECT substr(k."KillMailTime", 1, 10) AS "Day",
+        SELECT substr(CAST(k."KillMailTime" AS TEXT), 1, 10) AS "Day",
                SUM(CASE WHEN COALESCE(ty."GroupId", 0) = 29 THEN 0 ELSE 1 END) AS "Ships",
                SUM(CASE WHEN COALESCE(ty."GroupId", 0) = 29 THEN 1 ELSE 0 END) AS "Pods"
         FROM "KillMailDetails" k
         LEFT JOIN "SdeTypes" ty ON ty."TypeId" = k."VictimShipTypeId"
         WHERE k."SolarSystemId" = {0}
-        GROUP BY substr(k."KillMailTime", 1, 10)
+        GROUP BY substr(CAST(k."KillMailTime" AS TEXT), 1, 10)
         """;
 
     public sealed record AdmPoint(DateOnly Day, double Adm);
