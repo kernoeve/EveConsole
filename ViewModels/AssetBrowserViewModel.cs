@@ -21,18 +21,18 @@ public class AssetBrowserViewModel : ReactiveObject
 
     public static readonly List<string> FilterableColumns =
     [
-        "Owner \"Type\"", "Owner \"Name\"", "\"Type\" \"Name\"", "Group", "Category",
-        "Quantity", "\"Value\" Per Unit", "Value", "Build \"Cost\"", "Volume", "\"Total\" \"Volume\"", "ISK/m³",
-        "Location \"Name\"", "Container", "Flag", "Solar System", "Region \"Name\"", "Security", "Location \"Type\"",
-        "Is \"Singleton\"", "Is Blueprint Copy",
-        "Owner \"Id\"", "Item \"Id\"", "\"Type\" \"Id\"", "Location \"Id\"",
+        "Owner Type", "Owner Name", "Type Name", "Group", "Category",
+        "Quantity", "Value Per Unit", "Value", "Build Cost", "Volume", "Total Volume", "ISK/m³",
+        "Location Name", "Container", "Flag", "Solar System", "Region Name", "Security", "Location Type",
+        "Is Singleton", "Is Blueprint Copy",
+        "Owner Id", "Item Id", "Type Id", "Location Id",
     ];
 
     public static readonly HashSet<string> HiddenColumns =
     [
-        "Owner \"Id\"", "Root Location \"Id\"",
+        "Owner Id", "Root Location Id",
         // Carried so the names above them can be links; never a column of their own.
-        "Solar System \"Id\"", "Region \"Id\"", "Is Station",
+        "Solar System Id", "Region Id", "Is Station",
     ];
 
     public string? SortColumn    => _sortColumn;
@@ -351,7 +351,7 @@ public class AssetBrowserViewModel : ReactiveObject
                 -- 'CorpSAG_' is one character, so divisions 1-7 match and CorporationGoalDeliveries
                 -- (which also sits under the office, but is not a hangar) does not. Falls back to
                 -- the number when the corp has not named the division, or when we hold no
-                -- divisions for that corp at all -- "\"Division\" 6" still beats showing nothing.
+                -- divisions for that corp at all -- "Division 6" still beats showing nothing.
                 CASE WHEN h.DivFlag LIKE 'CorpSAG_'
                      THEN COALESCE(NULLIF(cd."Name", ''), 'Division ' || SUBSTR(h.DivFlag, 8))
                      ELSE NULL
@@ -404,21 +404,21 @@ public class AssetBrowserViewModel : ReactiveObject
         ),
         Base AS (
             SELECT
-                a."ItemId"          AS "Item \"Id\"",
-                a."TypeId"          AS "\"Type\" \"Id\"",
-                COALESCE(t."Name",  CAST(a."TypeId"  AS TEXT))           AS "\"Type\" \"Name\"",
+                a."ItemId"          AS "Item Id",
+                a."TypeId"          AS "Type Id",
+                COALESCE(t."Name",  CAST(a."TypeId"  AS TEXT))           AS "Type Name",
                 COALESCE(g."Name",  '')                                 AS "Group",
                 COALESCE(cat."Name",'')                                 AS "Category",
                 a."Quantity"        AS "Quantity",
-                a."OwnerType"       AS "Owner \"Type\"",
-                COALESCE(ch."Name", co."Name", CAST(a."OwnerId" AS TEXT))  AS "Owner \"Name\"",
-                a."LocationId"      AS "Location \"Id\"",
+                a."OwnerType"       AS "Owner Type",
+                COALESCE(ch."Name", co."Name", CAST(a."OwnerId" AS TEXT))  AS "Owner Name",
+                a."LocationId"      AS "Location Id",
                 CASE a."RootLocationType"
                     WHEN 'station'      THEN COALESCE(st."Name",            '<Unknown Station>')
                     WHEN 'solar_system' THEN COALESCE(ss."Name",            '<Unknown System>')
                     WHEN 'other'        THEN COALESCE(NULLIF(sn."Name",''), '<Unknown Structure>')
                     ELSE                     '<Unresolved - Please Refresh>'
-                END AS "Location \"Name\"",
+                END AS "Location Name",
                 -- The division slots in immediately after the outermost name, which is the office
                 -- whenever there is a division at all. Concatenating NULL yields NULL in SQLite,
                 -- so the COALESCE is what makes the segment vanish rather than erase the path.
@@ -442,18 +442,18 @@ public class AssetBrowserViewModel : ReactiveObject
                     WHEN 'other'        THEN ss_s."Name"
                     ELSE NULL
                 END AS "Solar System",
-                COALESCE(r_st."Name", r_ss."Name", r_s."Name")             AS "Region \"Name\"",
+                COALESCE(r_st."Name", r_ss."Name", r_s."Name")             AS "Region Name",
                 ROUND(COALESCE(ss_sta."Security", ss."Security", ss_s."Security"), 1) AS "Security",
                 -- Hidden: what the names above open. Carried in Base so the three aggregate views
                 -- inherit them rather than each re-deriving the joins.
-                COALESCE(ss_sta."SolarSystemId", ss."SolarSystemId", ss_s."SolarSystemId", 0) AS "Solar System \"Id\"",
-                COALESCE(r_st."RegionId", r_ss."RegionId", r_s."RegionId", 0)                 AS "Region \"Id\"",
+                COALESCE(ss_sta."SolarSystemId", ss."SolarSystemId", ss_s."SolarSystemId", 0) AS "Solar System Id",
+                COALESCE(r_st."RegionId", r_ss."RegionId", r_s."RegionId", 0)                 AS "Region Id",
                 -- NPC station to the entity browser, player structure to its own tool.
                 -- RootLocationType already tells the two apart.
                 CASE WHEN a."RootLocationType" = 'station' THEN 1 ELSE 0 END              AS "Is Station",
-                a."LocationType"    AS "Location \"Type\"",
+                a."LocationType"    AS "Location Type",
                 t."Volume"          AS "Volume",
-                t."Volume" * CAST(a."Quantity" AS REAL)                   AS "\"Total\" \"Volume\"",
+                t."Volume" * CAST(a."Quantity" AS REAL)                   AS "Total Volume",
                 -- BPC: 0. BPO: NPC base price. Regular item: market price with build-cost fallback.
                 CASE
                     WHEN a."IsBlueprintCopy" = TRUE THEN 0.0
@@ -472,7 +472,7 @@ public class AssetBrowserViewModel : ReactiveObject
                              THEN bc."TotalCost" * (1.0 + COALESCE(mds."MissingPriceMarkupPct", 15.0) / 100.0)
                              ELSE NULL END
                     )
-                END AS "\"Value\" Per Unit",
+                END AS "Value Per Unit",
                 CASE
                     WHEN a."IsBlueprintCopy" = TRUE THEN 0.0
                     WHEN a."IsBlueprintCopy" = FALSE THEN CAST(a."Quantity" AS REAL) * COALESCE(t."BasePrice", 0.0)
@@ -512,11 +512,11 @@ public class AssetBrowserViewModel : ReactiveObject
                         )
                     ELSE NULL
                 END AS "ISK/m³",
-                bc."TotalCost"      AS "Build \"Cost\"",
-                a."IsSingleton"     AS "Is \"Singleton\"",
+                bc."TotalCost"      AS "Build Cost",
+                a."IsSingleton"     AS "Is Singleton",
                 a."IsBlueprintCopy" AS "Is Blueprint Copy",
-                a."OwnerId"         AS "Owner \"Id\"",
-                a."RootLocationId"  AS "Root Location \"Id\""
+                a."OwnerId"         AS "Owner Id",
+                a."RootLocationId"  AS "Root Location Id"
             FROM "EsiAssets" a
             LEFT JOIN ContainerJoins  cj     ON cj."ItemId"         = a."ItemId"         AND cj."OwnerId"          = a."OwnerId" AND cj."OwnerType" = a."OwnerType"
             LEFT JOIN "Characters"      ch     ON a."OwnerId"         = ch."Id"            AND a."OwnerType"         = 'character'
@@ -545,20 +545,20 @@ public class AssetBrowserViewModel : ReactiveObject
 
             -- ── Blueprint currently in an active/paused/ready industry job ────────
             SELECT
-                CAST(-(jf."JobId" * 2)     AS INTEGER)                              AS "Item \"Id\"",
-                jf."BlueprintTypeId"                                                 AS "\"Type\" \"Id\"",
-                COALESCE(bt."Name", CAST(jf."BlueprintTypeId" AS TEXT))               AS "\"Type\" \"Name\"",
+                CAST(-(jf."JobId" * 2)     AS INTEGER)                              AS "Item Id",
+                jf."BlueprintTypeId"                                                 AS "Type Id",
+                COALESCE(bt."Name", CAST(jf."BlueprintTypeId" AS TEXT))               AS "Type Name",
                 COALESCE(bg."Name",   '')                                            AS "Group",
                 COALESCE(bcat."Name", '')                                            AS "Category",
                 1                                                                  AS "Quantity",
-                jf."OwnerType"                                                       AS "Owner \"Type\"",
-                COALESCE(ch."Name", co."Name", CAST(jf."OwnerId" AS TEXT))              AS "Owner \"Name\"",
-                jf."FacilityId"                                                      AS "Location \"Id\"",
-                jf.FacilityName                                                    AS "Location \"Name\"",
+                jf."OwnerType"                                                       AS "Owner Type",
+                COALESCE(ch."Name", co."Name", CAST(jf."OwnerId" AS TEXT))              AS "Owner Name",
+                jf."FacilityId"                                                      AS "Location Id",
+                jf.FacilityName                                                    AS "Location Name",
                 NULL                                                               AS "Container",
                 'Industry Job'                                                     AS "Flag",
                 jf.FacilitySolarSystem                                             AS "Solar System",
-                jf.FacilityRegion                                                  AS "Region \"Name\"",
+                jf.FacilityRegion                                                  AS "Region Name",
                 -- ⚠️ ROUNDed to match the asset branch above. The aggregate views GROUP BY Security, so an
                 -- unrounded -0.29999 and a rounded -0.3 became two rows for one system, identical
                 -- on screen and each holding part of the total.
@@ -566,20 +566,20 @@ public class AssetBrowserViewModel : ReactiveObject
                 -- Hidden ids, matching the asset branch so the UNION lines up. A job facility is
                 -- named but never resolved to ids here, so these are zero: such a row still shows
                 -- its system and region, they simply are not links.
-                0                                                                  AS "Solar System \"Id\"",
-                0                                                                  AS "Region \"Id\"",
+                0                                                                  AS "Solar System Id",
+                0                                                                  AS "Region Id",
                 0                                                                  AS "Is Station",
-                'item'                                                             AS "Location \"Type\"",
+                'item'                                                             AS "Location Type",
                 bt."Volume"                                                          AS "Volume",
-                bt."Volume"                                                          AS "\"Total\" \"Volume\"",
-                CASE WHEN jf.BPIsCopy = 1 THEN 0.0 ELSE COALESCE(bt."BasePrice", 0.0) END AS "\"Value\" Per Unit",
+                bt."Volume"                                                          AS "Total Volume",
+                CASE WHEN jf.BPIsCopy = 1 THEN 0.0 ELSE COALESCE(bt."BasePrice", 0.0) END AS "Value Per Unit",
                 CASE WHEN jf.BPIsCopy = 1 THEN 0.0 ELSE COALESCE(bt."BasePrice", 0.0) END AS "Value",
                 NULL                                                               AS "ISK/m³",
-                NULL                                                               AS "Build \"Cost\"",
-                0                                                                  AS "Is \"Singleton\"",
+                NULL                                                               AS "Build Cost",
+                0                                                                  AS "Is Singleton",
                 jf.BPIsCopy                                                        AS "Is Blueprint Copy",
-                jf."OwnerId"                                                         AS "Owner \"Id\"",
-                jf."FacilityId"                                                      AS "Root Location \"Id\""
+                jf."OwnerId"                                                         AS "Owner Id",
+                jf."FacilityId"                                                      AS "Root Location Id"
             FROM JobFacilities jf
             LEFT JOIN "Characters"    ch   ON ch."Id"   = jf."OwnerId" AND jf."OwnerType" = 'character'
             LEFT JOIN "Corporations"  co   ON co."Id"   = jf."OwnerId" AND jf."OwnerType" = 'corporation'
@@ -591,20 +591,20 @@ public class AssetBrowserViewModel : ReactiveObject
 
             -- ── Product being produced by active/paused/ready industry job ─────────
             SELECT
-                CAST(-(jf."JobId" * 2 + 1) AS INTEGER)                              AS "Item \"Id\"",
-                jf."ProductTypeId"                                                   AS "\"Type\" \"Id\"",
-                COALESCE(pt."Name", CAST(jf."ProductTypeId" AS TEXT))                 AS "\"Type\" \"Name\"",
+                CAST(-(jf."JobId" * 2 + 1) AS INTEGER)                              AS "Item Id",
+                jf."ProductTypeId"                                                   AS "Type Id",
+                COALESCE(pt."Name", CAST(jf."ProductTypeId" AS TEXT))                 AS "Type Name",
                 COALESCE(pg."Name",   '')                                            AS "Group",
                 COALESCE(pcat."Name", '')                                            AS "Category",
                 jf.ItemsProduced                                                   AS "Quantity",
-                jf."OwnerType"                                                       AS "Owner \"Type\"",
-                COALESCE(ch."Name", co."Name", CAST(jf."OwnerId" AS TEXT))              AS "Owner \"Name\"",
-                jf."FacilityId"                                                      AS "Location \"Id\"",
-                jf.FacilityName                                                    AS "Location \"Name\"",
+                jf."OwnerType"                                                       AS "Owner Type",
+                COALESCE(ch."Name", co."Name", CAST(jf."OwnerId" AS TEXT))              AS "Owner Name",
+                jf."FacilityId"                                                      AS "Location Id",
+                jf.FacilityName                                                    AS "Location Name",
                 NULL                                                               AS "Container",
                 'Industry Job'                                                     AS "Flag",
                 jf.FacilitySolarSystem                                             AS "Solar System",
-                jf.FacilityRegion                                                  AS "Region \"Name\"",
+                jf.FacilityRegion                                                  AS "Region Name",
                 -- ⚠️ ROUNDed to match the asset branch above. The aggregate views GROUP BY Security, so an
                 -- unrounded -0.29999 and a rounded -0.3 became two rows for one system, identical
                 -- on screen and each holding part of the total.
@@ -612,12 +612,12 @@ public class AssetBrowserViewModel : ReactiveObject
                 -- Hidden ids, matching the asset branch so the UNION lines up. A job facility is
                 -- named but never resolved to ids here, so these are zero: such a row still shows
                 -- its system and region, they simply are not links.
-                0                                                                  AS "Solar System \"Id\"",
-                0                                                                  AS "Region \"Id\"",
+                0                                                                  AS "Solar System Id",
+                0                                                                  AS "Region Id",
                 0                                                                  AS "Is Station",
-                'item'                                                             AS "Location \"Type\"",
+                'item'                                                             AS "Location Type",
                 pt."Volume"                                                          AS "Volume",
-                pt."Volume" * CAST(jf.ItemsProduced AS REAL)                        AS "\"Total\" \"Volume\"",
+                pt."Volume" * CAST(jf.ItemsProduced AS REAL)                        AS "Total Volume",
                 CASE
                     WHEN jf."ActivityId" IN (5, 8) THEN 0.0          -- BPCs (Copying / Invention)
                     ELSE COALESCE(
@@ -634,7 +634,7 @@ public class AssetBrowserViewModel : ReactiveObject
                              THEN bc."TotalCost" * (1.0 + COALESCE(mds."MissingPriceMarkupPct", 15.0) / 100.0)
                              ELSE NULL END
                     )
-                END                                                                AS "\"Value\" Per Unit",
+                END                                                                AS "Value Per Unit",
                 CASE
                     WHEN jf."ActivityId" IN (5, 8) THEN 0.0
                     ELSE CAST(jf.ItemsProduced AS REAL) * COALESCE(
@@ -653,11 +653,11 @@ public class AssetBrowserViewModel : ReactiveObject
                     )
                 END                                                                AS "Value",
                 NULL                                                               AS "ISK/m³",
-                bc."TotalCost"                                                       AS "Build \"Cost\"",
-                0                                                                  AS "Is \"Singleton\"",
+                bc."TotalCost"                                                       AS "Build Cost",
+                0                                                                  AS "Is Singleton",
                 CASE WHEN jf."ActivityId" IN (5, 8) THEN 1 ELSE NULL END            AS "Is Blueprint Copy",
-                jf."OwnerId"                                                         AS "Owner \"Id\"",
-                jf."FacilityId"                                                      AS "Root Location \"Id\""
+                jf."OwnerId"                                                         AS "Owner Id",
+                jf."FacilityId"                                                      AS "Root Location Id"
             FROM JobFacilities jf
             LEFT JOIN "Characters"    ch   ON ch."Id"   = jf."OwnerId" AND jf."OwnerType" = 'character'
             LEFT JOIN "Corporations"  co   ON co."Id"   = jf."OwnerId" AND jf."OwnerType" = 'corporation'
@@ -679,44 +679,44 @@ public class AssetBrowserViewModel : ReactiveObject
     // The {0} token is replaced by the WHERE clause from BuildWhere() at query time.
     private static string LocationAggSql(string where) => $"""
         SELECT
-            "Root Location \"Id\"" AS "Location \"Id\"", "Location \"Name\"", "Solar System", "Region \"Name\"", "Security",
-            "Solar System \"Id\"", "Region \"Id\"", "Is Station",
+            "Root Location Id" AS "Location Id", "Location Name", "Solar System", "Region Name", "Security",
+            "Solar System Id", "Region Id", "Is Station",
             SUM("Quantity") AS "Item Count",
-            SUM("\"Total\" \"Volume\"") AS "\"Total\" \"Volume\"",
-            SUM("Value") AS "\"Total\" \"Value\"",
-            CASE WHEN SUM("\"Total\" \"Volume\"") > 0 THEN SUM("Value") / SUM("\"Total\" \"Volume\"") ELSE NULL END AS "ISK/m³"
+            SUM("Total Volume") AS "Total Volume",
+            SUM("Value") AS "Total Value",
+            CASE WHEN SUM("Total Volume") > 0 THEN SUM("Value") / SUM("Total Volume") ELSE NULL END AS "ISK/m³"
         FROM Base {where}
-        GROUP BY "Root Location \"Id\"", "Location \"Name\"", "Solar System", "Region \"Name\"", "Security",
-                 "Solar System \"Id\"", "Region \"Id\"", "Is Station"
+        GROUP BY "Root Location Id", "Location Name", "Solar System", "Region Name", "Security",
+                 "Solar System Id", "Region Id", "Is Station"
         ORDER BY SUM("Value") DESC NULLS LAST
         """;
 
     private static string SystemAggSql(string where) => $"""
         SELECT
-            "Solar System", "Region \"Name\"", "Security",
-            "Solar System \"Id\"", "Region \"Id\"",
+            "Solar System", "Region Name", "Security",
+            "Solar System Id", "Region Id",
             SUM("Quantity") AS "Item Count",
-            SUM("\"Total\" \"Volume\"") AS "\"Total\" \"Volume\"",
-            SUM("Value") AS "\"Total\" \"Value\"",
-            CASE WHEN SUM("\"Total\" \"Volume\"") > 0 THEN SUM("Value") / SUM("\"Total\" \"Volume\"") ELSE NULL END AS "ISK/m³"
+            SUM("Total Volume") AS "Total Volume",
+            SUM("Value") AS "Total Value",
+            CASE WHEN SUM("Total Volume") > 0 THEN SUM("Value") / SUM("Total Volume") ELSE NULL END AS "ISK/m³"
         FROM Base {where}
-        GROUP BY "Solar System", "Region \"Name\"", "Security", "Solar System \"Id\"", "Region \"Id\""
+        GROUP BY "Solar System", "Region Name", "Security", "Solar System Id", "Region Id"
         ORDER BY SUM("Value") DESC NULLS LAST
         """;
 
     private static string RegionAggSql(string where) => $"""
         SELECT
-            "Region \"Name\"",
+            "Region Name",
             -- ⚠️ MAX, not MIN. A row whose region resolved to no id contributes 0, and MIN would
             -- let that one row blank the link for a region every other row identified.
-            MAX("Region \"Id\"") AS "Region \"Id\"",
+            MAX("Region Id") AS "Region Id",
             MIN("Security") AS "Security",
             SUM("Quantity") AS "Item Count",
-            SUM("\"Total\" \"Volume\"") AS "\"Total\" \"Volume\"",
-            SUM("Value") AS "\"Total\" \"Value\"",
-            CASE WHEN SUM("\"Total\" \"Volume\"") > 0 THEN SUM("Value") / SUM("\"Total\" \"Volume\"") ELSE NULL END AS "ISK/m³"
+            SUM("Total Volume") AS "Total Volume",
+            SUM("Value") AS "Total Value",
+            CASE WHEN SUM("Total Volume") > 0 THEN SUM("Value") / SUM("Total Volume") ELSE NULL END AS "ISK/m³"
         FROM Base {where}
-        GROUP BY "Region \"Name\""
+        GROUP BY "Region Name"
         ORDER BY SUM("Value") DESC NULLS LAST
         """;
 
@@ -744,8 +744,8 @@ public class AssetBrowserViewModel : ReactiveObject
             return column switch
             {
                 "Security"                                    => d.ToString("F1"),
-                "Volume" or "\"Total\" \"Volume\""                   => d.ToString("N2"),
-                "Value" or "\"Value\" Per Unit" or "\"Total\" \"Value\"" or "Build \"Cost\"" => d.ToString("N2"),
+                "Volume" or "Total Volume"                   => d.ToString("N2"),
+                "Value" or "Value Per Unit" or "Total Value" or "Build Cost" => d.ToString("N2"),
                 "ISK/m³"                                     => d.ToString("N2"),
                 _                                            => d.ToString("N2"),
             };

@@ -1494,8 +1494,8 @@ public class OverviewViewModel : ReactiveObject
                     DismissCommand = ReactiveCommand.CreateFromTask(async () =>
                     {
                         await _db.Database.ExecuteSqlInterpolatedAsync($"""
-                            INSERT OR IGNORE INTO "DismissedAlerts" ("CharacterId","NotificationId")
-                            VALUES ({charId},{notifId})
+                            INSERT INTO "DismissedAlerts" ("CharacterId","NotificationId")
+                            VALUES ({charId},{notifId}) ON CONFLICT DO NOTHING
                             """);
                         var toRemove = Alerts.FirstOrDefault(a => ReferenceEquals(a, row));
                         if (toRemove is not null)

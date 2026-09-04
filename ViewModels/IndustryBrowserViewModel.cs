@@ -52,8 +52,8 @@ public class IndustryBrowserViewModel : ReactiveObject
 
     public static readonly string[] DisplayColumns =
     [
-        "Status", "\"Time\" Remaining", "Activity", "Product", "Runs", "Successful \"Runs\"",
-        "Items Produced", "Build \"Cost\"", "Market \"Value\"", "Facility", "Note", "Installer", "Owner",
+        "Status", "Time Remaining", "Activity", "Product", "Runs", "Successful Runs",
+        "Items Produced", "Build Cost", "Market Value", "Facility", "Note", "Installer", "Owner",
         "Created", "Completed",
     ];
 
@@ -62,23 +62,23 @@ public class IndustryBrowserViewModel : ReactiveObject
     public const string ColNote = "Note";
 
     // Hidden detail-panel accessors
-    public const string ColBlueprintTypeId  = "Blueprint \"Type\" \"Id\"";
-    public const string ColProductTypeId    = "Product \"Type\" \"Id\"";
-    public const string ColFacilityTypeId   = "Facility \"Type\" \"Id\"";
+    public const string ColBlueprintTypeId  = "Blueprint Type Id";
+    public const string ColProductTypeId    = "Product Type Id";
+    public const string ColFacilityTypeId   = "Facility Type Id";
     public const string ColME               = "ME";
     public const string ColTE               = "TE";
     public const string ColCompletedBy      = "Completed By";
-    public const string ColActivityId       = "\"Activity\" \"Id\"";
+    public const string ColActivityId       = "Activity Id";
 
     // What each name on a row opens. Hidden like the ids above — the grid never shows these,
     // they exist so the visible text can be a link.
-    public const string ColOwnerId          = "Owner \"Id\"";
-    public const string ColOwnerType        = "Owner \"Type\"";
-    public const string ColInstallerId      = "Installer \"Id\"";
-    public const string ColFacilityId       = "Facility \"Id\"";
+    public const string ColOwnerId          = "Owner Id";
+    public const string ColOwnerType        = "Owner Type";
+    public const string ColInstallerId      = "Installer Id";
+    public const string ColFacilityId       = "Facility Id";
     public const string ColFacilityIsStation = "Facility Is Station";
-    public const string ColSolarSystemId    = "Solar System \"Id\"";
-    public const string ColRegionId         = "Region \"Id\"";
+    public const string ColSolarSystemId    = "Solar System Id";
+    public const string ColRegionId         = "Region Id";
 
     // ── Filter options ────────────────────────────────────────────────────────
 
@@ -197,7 +197,7 @@ public class IndustryBrowserViewModel : ReactiveObject
         {
             var byJobId = new Dictionary<int, GridRow>();
             foreach (var r in rows)
-                if (int.TryParse(r["Job \"Id\""].Replace(",", ""), out var id))
+                if (int.TryParse(r["Job Id"].Replace(",", ""), out var id))
                     byJobId[id] = r;
 
             if (byJobId.Count == 0) return;
@@ -236,11 +236,11 @@ public class IndustryBrowserViewModel : ReactiveObject
         if (!string.IsNullOrEmpty(status) && status != "All Statuses")
             conds.Add("\"Status\" = @status");
         if (!string.IsNullOrEmpty(search))
-            conds.Add("(\"Blueprint\" LIKE @search OR \"Product\" LIKE @search)");
+            conds.Add("(Blueprint LIKE @search OR Product LIKE @search)");
         if (startedFrom.HasValue)
-            conds.Add("\"Start Date\" >= @startedFrom");
+            conds.Add("Start Date >= @startedFrom");
         if (startedThru.HasValue)
-            conds.Add("\"Start Date\" < @startedThru");
+            conds.Add("Start Date < @startedThru");
         if (!string.IsNullOrEmpty(owner) && owner != "All Owners")
             conds.Add("\"Owner\" = @owner");
 
@@ -283,17 +283,17 @@ public class IndustryBrowserViewModel : ReactiveObject
 
             // Compute time remaining in C# for initial render; SelectableCell recomputes live
             var jobStatus = dict.GetValueOrDefault("Status", "");
-            dict["\"Time\" Remaining"] = "";
-            if (dict.TryGetValue("End \"Date\" Raw", out var endRaw)
+            dict["Time Remaining"] = "";
+            if (dict.TryGetValue("End Date Raw", out var endRaw)
                 && DateTimeOffset.TryParse(endRaw, null,
                     System.Globalization.DateTimeStyles.RoundtripKind, out var endDate))
             {
                 var rem = endDate.ToUniversalTime() - DateTimeOffset.UtcNow;
                 var sl  = jobStatus.ToLowerInvariant();
                 if (sl is "active" or "paused")
-                    dict["\"Time\" Remaining"] = rem > TimeSpan.Zero ? FormatDuration(rem) : "Ready";
+                    dict["Time Remaining"] = rem > TimeSpan.Zero ? FormatDuration(rem) : "Ready";
                 else if (sl == "ready")
-                    dict["\"Time\" Remaining"] = "Ready";
+                    dict["Time Remaining"] = "Ready";
             }
 
             // Collect IDs that SdeTypes/Characters couldn't resolve — feed ESI /universe/names/
@@ -317,7 +317,7 @@ public class IndustryBrowserViewModel : ReactiveObject
     {
         IOrderedEnumerable<GridRow> sorted;
 
-        if (column == "\"Time\" Remaining")
+        if (column == "Time Remaining")
         {
             sorted = descending
                 ? rows.OrderByDescending(TimeRemainingKey)
@@ -343,7 +343,7 @@ public class IndustryBrowserViewModel : ReactiveObject
         var status = row["Status"].ToLowerInvariant();
         if (status is "delivered" or "cancelled" or "reverted") return long.MaxValue;
         if (status == "ready") return 0L;
-        var raw = row["End \"Date\" Raw"];
+        var raw = row["End Date Raw"];
         if (string.IsNullOrEmpty(raw)) return long.MaxValue - 1;
         if (!DateTimeOffset.TryParse(raw, null,
                 System.Globalization.DateTimeStyles.RoundtripKind, out var end))
@@ -381,7 +381,7 @@ public class IndustryBrowserViewModel : ReactiveObject
             foreach (var id in ids.Distinct())
             {
                 using var chk = conn.Command(
-                    "SELECT 1 FROM \"UniverseNames\" WHERE \"EntityId\"=@id LIMIT 1");
+                    "SELECT 1 FROM UniverseNames WHERE EntityId=@id LIMIT 1");
                 chk.AddWithValue("@id", id);
                 if (chk.ExecuteScalar() is null) toResolve.Add(id);
             }
@@ -466,7 +466,7 @@ public class IndustryBrowserViewModel : ReactiveObject
             return col switch
             {
                 "Security"                     => d.ToString("F1"),
-                "Build \"Cost\"" or "Market \"Value\"" => d.ToString("N0"),
+                "Build Cost" or "Market Value" => d.ToString("N0"),
                 _                              => d.ToString("N2"),
             };
 
@@ -483,7 +483,7 @@ public class IndustryBrowserViewModel : ReactiveObject
                     System.Globalization.CultureInfo.InvariantCulture, out var cost))
                 return cost.ToString("N2");
 
-            if ((col is "Start \"Date\"" or "End \"Date\"" or "Completed \"Date\"" or "Created" or "Completed")
+            if ((col is "Start Date" or "End Date" or "Completed Date" or "Created" or "Completed")
                 && DateTimeOffset.TryParse(s, null,
                     System.Globalization.DateTimeStyles.RoundtripKind, out var dt))
                 return dt.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
@@ -510,7 +510,7 @@ public class IndustryBrowserViewModel : ReactiveObject
     private static string BuildSql(string where) => $"""
         WITH Base AS (
             SELECT
-                j."JobId"                                                                       AS "Job \"Id\"",
+                j."JobId"                                                                       AS "Job Id",
                 CASE j."ActivityId"
                     WHEN 1  THEN 'Manufacturing'
                     WHEN 3  THEN 'TE Research'
@@ -525,8 +525,8 @@ public class IndustryBrowserViewModel : ReactiveObject
                 COALESCE(bp."Name", CAST(j."BlueprintTypeId" AS TEXT))                           AS "Blueprint",
                 COALESCE(prod."Name", un_prod."Name", CAST(j."ProductTypeId" AS TEXT), '')         AS "Product",
                 j."Runs"                                                                        AS "Runs",
-                j."LicensedRuns"                                                                AS "Max \"Runs\"",
-                j."SuccessfulRuns"                                                              AS "Successful \"Runs\"",
+                j."LicensedRuns"                                                                AS "Max Runs",
+                j."SuccessfulRuns"                                                              AS "Successful Runs",
                 -- Items produced = qty per run × runs (from SDE blueprint products)
                 CASE
                     WHEN j."ActivityId" IN (1, 9, 11) THEN
@@ -552,32 +552,32 @@ public class IndustryBrowserViewModel : ReactiveObject
                 COALESCE(ch_own."Name", co."Name", CAST(j."OwnerId" AS TEXT))                      AS "Owner",
                 j."Cost"                                                                        AS "Cost",
                 j."Status"                                                                      AS "Status",
-                j."StartDate"                                                                   AS "Start \"Date\"",
-                j."EndDate"                                                                     AS "End \"Date\"",
-                j."EndDate"                                                                     AS "End \"Date\" Raw",
-                j."CompletedDate"                                                               AS "Completed \"Date\"",
+                j."StartDate"                                                                   AS "Start Date",
+                j."EndDate"                                                                     AS "End Date",
+                j."EndDate"                                                                     AS "End Date Raw",
+                j."CompletedDate"                                                               AS "Completed Date",
                 j."StartDate"                                                                   AS "Created",
                 -- Actual completion if delivered, otherwise the projected end date (active jobs)
                 COALESCE(j."CompletedDate", j."EndDate")                                           AS "Completed",
                 -- Hidden: detail panel only
-                j."BlueprintTypeId"                                                             AS "Blueprint \"Type\" \"Id\"",
-                COALESCE(j."ProductTypeId", 0)                                                 AS "Product \"Type\" \"Id\"",
-                COALESCE(st."StationTypeId", cs."TypeId")                                        AS "Facility \"Type\" \"Id\"",
+                j."BlueprintTypeId"                                                             AS "Blueprint Type Id",
+                COALESCE(j."ProductTypeId", 0)                                                 AS "Product Type Id",
+                COALESCE(st."StationTypeId", cs."TypeId")                                        AS "Facility Type Id",
                 COALESCE(bl."MaterialEfficiency", 0)                                           AS "ME",
                 COALESCE(bl."TimeEfficiency", 0)                                               AS "TE",
                 COALESCE(ch_comp."Name", '')                                                   AS "Completed By",
-                j."ActivityId"                                                                  AS "\"Activity\" \"Id\"",
+                j."ActivityId"                                                                  AS "Activity Id",
                 j."Probability"                                                                 AS "Probability",
-                j."OwnerId"                                                                     AS "Owner \"Id\"",
-                j."OwnerType"                                                                   AS "Owner \"Type\"",
+                j."OwnerId"                                                                     AS "Owner Id",
+                j."OwnerType"                                                                   AS "Owner Type",
                 -- Hidden: what the names in the grid and the detail panel open.
-                j."InstallerId"                                                                 AS "Installer \"Id\"",
-                j."FacilityId"                                                                  AS "Facility \"Id\"",
+                j."InstallerId"                                                                 AS "Installer Id",
+                j."FacilityId"                                                                  AS "Facility Id",
                 -- Only an NPC station is named by SdeStations, which is also what decides whether
                 -- the facility link opens the entity browser or the Structure Browser.
                 CASE WHEN st."StationId" IS NULL THEN 0 ELSE 1 END                              AS "Facility Is Station",
-                COALESCE(ss_st."SolarSystemId", ss_sn."SolarSystemId", 0)                         AS "Solar System \"Id\"",
-                COALESCE(r_st."RegionId", r_sn."RegionId", 0)                                     AS "Region \"Id\""
+                COALESCE(ss_st."SolarSystemId", ss_sn."SolarSystemId", 0)                         AS "Solar System Id",
+                COALESCE(r_st."RegionId", r_sn."RegionId", 0)                                     AS "Region Id"
             FROM "EsiIndustryJobs" j
             LEFT JOIN "Characters"       ch_inst  ON ch_inst."Id"        = j."InstallerId"
             LEFT JOIN "UniverseNames"    un_inst  ON un_inst."EntityId"   = j."InstallerId"
@@ -600,10 +600,10 @@ public class IndustryBrowserViewModel : ReactiveObject
                                                 ON cs."StructureId"      = j."FacilityId"
         )
         SELECT Base.*,
-            CAST(bc."TotalCost" AS REAL) * Base."Items Produced"                          AS "Build \"Cost\"",
+            CAST(bc."TotalCost" AS REAL) * Base."Items Produced"                          AS "Build Cost",
             -- Copying (5) / invention (8) output blueprint COPIES, valued from contracts (the
             -- ContractPrices effective price); everything else uses the market price of the product.
-            CASE WHEN Base."\"Activity\" \"Id\"" IN (5, 8) THEN
+            CASE WHEN Base."Activity Id" IN (5, 8) THEN
                 (CASE
                     WHEN cp."BestPrice" IS NULL THEN CAST(cp."Avg30Best" AS REAL)
                     WHEN cp."Avg30Best" IS NULL THEN CAST(cp."BestPrice" AS REAL)
@@ -617,19 +617,19 @@ public class IndustryBrowserViewModel : ReactiveObject
                     WHEN 'Sell' THEN mp."SellPrice"
                     ELSE             mp."Midpoint"
                  END) * Base."Items Produced"
-            END                                                                            AS "Market \"Value\""
+            END                                                                            AS "Market Value"
         FROM Base
-        LEFT JOIN "BuildCosts"            bc  ON bc."TypeId" = Base."Product \"Type\" \"Id\""
-        LEFT JOIN "ContractPrices"        cp  ON cp."TypeId" = Base."Product \"Type\" \"Id\""
+        LEFT JOIN "BuildCosts"            bc  ON bc."TypeId" = Base."Product Type Id"
+        LEFT JOIN "ContractPrices"        cp  ON cp."TypeId" = Base."Product Type Id"
         LEFT JOIN "MarketDefaultSettings" mds ON mds."Id" = 1
         LEFT JOIN "MarketItemPrices"      mp  ON mds."AssetValueConfigId" IS NOT NULL
                                              AND mp."ConfigId" = mds."AssetValueConfigId"
-                                             AND mp."TypeId"   = Base."Product \"Type\" \"Id\""
+                                             AND mp."TypeId"   = Base."Product Type Id"
         {where}
         ORDER BY
             CASE WHEN "Status" IN ('active', 'paused') THEN 0
                  WHEN "Status" = 'ready'               THEN 1
                  ELSE 2 END,
-            "End \"Date\"" ASC
+            "End Date" ASC
         """;
 }

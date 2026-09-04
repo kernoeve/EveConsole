@@ -2956,7 +2956,7 @@ public class App : Application
             // pragma EF re-issues on every connection open, the other reports SQLITE_BUSY write
             // contention. Postgres has neither problem, and PRAGMA is not SQL it will parse.
             services.AddDbContextFactory<AppDbContext>((_, options) =>
-                options.UseNpgsql(conn)
+                options.UseNpgsql(AppDb.PostgresConnectionString(conn))
                        .AddInterceptors(new PostgresParameterInterceptor()));
         }
         else

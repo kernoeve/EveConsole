@@ -272,8 +272,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 // INSERT OR IGNORE: another lookup may have cached the same id already,
                 // and the name is not worth overwriting a fresher one for.
                 await db.Database.ExecuteSqlRawAsync("""
-                    INSERT OR IGNORE INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
-                    VALUES (@id, @name, @cat, @at)
+                    INSERT INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
+                    VALUES (@id, @name, @cat, @at) ON CONFLICT DO NOTHING
                     """,
                     [new SqliteParameter("@id", n.Id), new SqliteParameter("@name", n.Name),
                      new SqliteParameter("@cat", category), new SqliteParameter("@at", now)], ct);
@@ -486,8 +486,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             {
                 map[n.Id] = n.Name;
                 await db.Database.ExecuteSqlRawAsync("""
-                    INSERT OR IGNORE INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
-                    VALUES (@id, @name, @cat, @at)
+                    INSERT INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
+                    VALUES (@id, @name, @cat, @at) ON CONFLICT DO NOTHING
                     """,
                     [new SqliteParameter("@id", n.Id), new SqliteParameter("@name", n.Name),
                      new SqliteParameter("@cat", category), new SqliteParameter("@at", now)], ct);
@@ -841,8 +841,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         {
             await using var db = await dbFactory.CreateDbContextAsync(ct);
             await db.Database.ExecuteSqlRawAsync("""
-                INSERT OR IGNORE INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
-                VALUES (@id, @name, @cat, @at)
+                INSERT INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
+                VALUES (@id, @name, @cat, @at) ON CONFLICT DO NOTHING
                 """,
                 [new SqliteParameter("@id", id), new SqliteParameter("@name", name),
                  new SqliteParameter("@cat", category),

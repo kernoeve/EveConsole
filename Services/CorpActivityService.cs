@@ -148,7 +148,7 @@ public class CorpActivityService
         var cutoff    = SqlCutoff(DateTimeOffset.UtcNow.AddMonths(-months));
         var rows      = await db.Database.SqlQuery<WalletMonthRaw>($"""
             SELECT
-                strftime('%Y-%m', "Date") AS "Month",
+                substr(CAST("Date" AS TEXT), 1, 7) AS "Month",
                 -- Income
                 COALESCE(SUM(CASE WHEN "RefType" IN ('bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts')
                                    AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "RattingTax",
@@ -211,7 +211,7 @@ public class CorpActivityService
         var cutoff    = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
         var rows      = await db.Database.SqlQuery<WalletDayRaw>($"""
             SELECT
-                strftime('%Y-%m-%d', "Date") AS "Day",
+                substr(CAST("Date" AS TEXT), 1, 10) AS "Day",
                 COALESCE(SUM(CASE WHEN "RefType" IN ('bounty_prizes','bounty_prize','ess_escrow_transfer','daily_goal_payouts')
                                    AND CAST("Amount" AS REAL) > 0 THEN CAST("Amount" AS REAL) ELSE 0 END), 0) AS "RattingTax",
                 COALESCE(SUM(CASE WHEN "RefType" = 'mining_tax'
@@ -253,7 +253,7 @@ public class CorpActivityService
         var cutoff    = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
         var rows      = await db.Database.SqlQuery<WalletExpenseDayRaw>($"""
             SELECT
-                strftime('%Y-%m-%d', "Date") AS "Day",
+                substr(CAST("Date" AS TEXT), 1, 10) AS "Day",
                 COALESCE(SUM(CASE WHEN "RefType" IN ('market_transaction','market_escrow')
                                    AND CAST("Amount" AS REAL) < 0 THEN ABS(CAST("Amount" AS REAL)) ELSE 0 END), 0) AS "MarketExpense",
                 COALESCE(SUM(CASE WHEN "RefType" = 'contract_price_payment_corp'
@@ -292,7 +292,7 @@ public class CorpActivityService
         using var db = _dbFactory.CreateDbContext();
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
         var rows     = await db.Database.SqlQuery<DailyAmountRaw>($"""
-            SELECT strftime('%Y-%m-%d', "Date") AS "Day",
+            SELECT substr(CAST("Date" AS TEXT), 1, 10) AS "Day",
                    COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
@@ -311,7 +311,7 @@ public class CorpActivityService
         using var db = _dbFactory.CreateDbContext();
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
         var rows     = await db.Database.SqlQuery<DailyAmountRaw>($"""
-            SELECT strftime('%Y-%m-%d', "Date") AS "Day",
+            SELECT substr(CAST("Date" AS TEXT), 1, 10) AS "Day",
                    COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
@@ -357,7 +357,7 @@ public class CorpActivityService
         using var db = _dbFactory.CreateDbContext();
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
         var rows     = await db.Database.SqlQuery<DailyAmountRaw>($"""
-            SELECT strftime('%Y-%m-%d', "Date") AS "Day",
+            SELECT substr(CAST("Date" AS TEXT), 1, 10) AS "Day",
                    COALESCE(SUM(CAST("Amount" AS REAL)), 0) AS "Amount"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
@@ -522,7 +522,7 @@ public class CorpActivityService
         using var db = _dbFactory.CreateDbContext();
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddMonths(-months));
         var rows     = await db.Database.SqlQuery<KillMonthRaw>($"""
-            SELECT strftime('%Y-%m', d."KillMailTime") AS "Month",
+            SELECT substr(CAST(d."KillMailTime" AS TEXT), 1, 7) AS "Month",
                    COUNT(DISTINCT CASE WHEN d."VictimCorpId" != {corpId} THEN d."KillMailId" END) AS "Kills",
                    COUNT(DISTINCT CASE WHEN d."VictimCorpId" =  {corpId} THEN d."KillMailId" END) AS "Losses"
             FROM "KillMailDetails" d
@@ -541,7 +541,7 @@ public class CorpActivityService
         using var db = _dbFactory.CreateDbContext();
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
         var rows     = await db.Database.SqlQuery<KillDayRaw>($"""
-            SELECT strftime('%Y-%m-%d', d."KillMailTime") AS "Day",
+            SELECT substr(CAST(d."KillMailTime" AS TEXT), 1, 10) AS "Day",
                    COUNT(DISTINCT CASE WHEN d."VictimCorpId" != {corpId} THEN d."KillMailId" END) AS "Kills",
                    COUNT(DISTINCT CASE WHEN d."VictimCorpId" =  {corpId} THEN d."KillMailId" END) AS "Losses"
             FROM "KillMailDetails" d
@@ -601,7 +601,7 @@ public class CorpActivityService
         var cutoff   = SqlCutoff(DateTimeOffset.UtcNow.AddMonths(-months));
 
         var miningRows = await db.Database.SqlQuery<MonthCountRaw>($"""
-            SELECT strftime('%Y-%m', "LastUpdated") AS "Month",
+            SELECT substr(CAST("LastUpdated" AS TEXT), 1, 7) AS "Month",
                    SUM("Quantity") AS "Count"
             FROM "EsiCorpMiningLedger"
             WHERE "CorporationId" = {corpId} AND "LastUpdated" >= {cutoff}
@@ -629,21 +629,21 @@ public class CorpActivityService
               -- Any wallet movement with the character as a counterparty: ratting bounties,
               -- industry and reprocessing tax, donations (which is how mining is billed),
               -- contract payments, project payouts, medals — rather than a fixed RefType list.
-              SELECT strftime('%Y-%m', "Date") AS "Month", "FirstPartyId" AS "CharId"
+              SELECT substr(CAST("Date" AS TEXT), 1, 7) AS "Month", "FirstPartyId" AS "CharId"
               FROM "EsiWalletJournal"
               WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
                 AND "Date" >= {cutoff} AND "FirstPartyId" IS NOT NULL AND "FirstPartyId" != {corpId}
               UNION
-              SELECT strftime('%Y-%m', "Date") AS "Month", "SecondPartyId" AS "CharId"
+              SELECT substr(CAST("Date" AS TEXT), 1, 7) AS "Month", "SecondPartyId" AS "CharId"
               FROM "EsiWalletJournal"
               WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
                 AND "Date" >= {cutoff} AND "SecondPartyId" IS NOT NULL AND "SecondPartyId" != {corpId}
               UNION
-              SELECT strftime('%Y-%m', "LastUpdated") AS "Month", "CharacterId" AS "CharId"
+              SELECT substr(CAST("LastUpdated" AS TEXT), 1, 7) AS "Month", "CharacterId" AS "CharId"
               FROM "EsiCorpMiningLedger"
               WHERE "CorporationId" = {corpId} AND "LastUpdated" >= {cutoff}
               UNION
-              SELECT strftime('%Y-%m', d."KillMailTime") AS "Month", a."CharacterId" AS "CharId"
+              SELECT substr(CAST(d."KillMailTime" AS TEXT), 1, 7) AS "Month", a."CharacterId" AS "CharId"
               FROM "KillMailDetails" d
               JOIN "EsiKillMailRefs" r ON r."KillMailId" = d."KillMailId"
                   AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
@@ -651,7 +651,7 @@ public class CorpActivityService
               WHERE a."CorporationId" = {corpId} AND a."CharacterId" IS NOT NULL
                 AND d."KillMailTime" >= {cutoff}
               UNION
-              SELECT strftime('%Y-%m', d."KillMailTime") AS "Month", d."VictimCharId" AS "CharId"
+              SELECT substr(CAST(d."KillMailTime" AS TEXT), 1, 7) AS "Month", d."VictimCharId" AS "CharId"
               FROM "KillMailDetails" d
               JOIN "EsiKillMailRefs" r ON r."KillMailId" = d."KillMailId"
                   AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
@@ -659,35 +659,35 @@ public class CorpActivityService
                 AND d."KillMailTime" >= {cutoff}
               UNION
               -- Installed a corp industry job
-              SELECT strftime('%Y-%m', "StartDate") AS "Month", "InstallerId" AS "CharId"
+              SELECT substr(CAST("StartDate" AS TEXT), 1, 7) AS "Month", "InstallerId" AS "CharId"
               FROM "EsiIndustryJobs"
               WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
                 AND "StartDate" >= {cutoff} AND "InstallerId" != 0
               UNION
               -- Issued or accepted a corp contract
-              SELECT strftime('%Y-%m', "DateIssued") AS "Month", "IssuerId" AS "CharId"
+              SELECT substr(CAST("DateIssued" AS TEXT), 1, 7) AS "Month", "IssuerId" AS "CharId"
               FROM "EsiContracts"
               WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
                 AND "DateIssued" >= {cutoff} AND "IssuerId" != 0
               UNION
-              SELECT strftime('%Y-%m', "DateAccepted") AS "Month", "AcceptorId" AS "CharId"
+              SELECT substr(CAST("DateAccepted" AS TEXT), 1, 7) AS "Month", "AcceptorId" AS "CharId"
               FROM "EsiContracts"
               WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
                 AND "DateAccepted" >= {cutoff} AND "AcceptorId" IS NOT NULL AND "AcceptorId" != 0
               UNION
               -- Created a corp project
-              SELECT strftime('%Y-%m', "Created") AS "Month", "CreatorId" AS "CharId"
+              SELECT substr(CAST("Created" AS TEXT), 1, 7) AS "Month", "CreatorId" AS "CharId"
               FROM "EsiCorpProjects"
               WHERE "CorporationId" = {corpId} AND "Created" >= {cutoff} AND "CreatorId" IS NOT NULL
               UNION
               -- Created a corp medal
-              SELECT strftime('%Y-%m', "CreatedAt") AS "Month", "CreatorId" AS "CharId"
+              SELECT substr(CAST("CreatedAt" AS TEXT), 1, 7) AS "Month", "CreatorId" AS "CharId"
               FROM "EsiCorpMedals"
               WHERE "CorporationId" = {corpId} AND "CreatedAt" >= {cutoff} AND "CreatorId" IS NOT NULL
               UNION
               -- Logged in. Accumulated by watching member tracking change between polls, so
               -- it only covers months since that polling began — see CorpMemberSession.
-              SELECT strftime('%Y-%m', "LogonDate") AS "Month", "CharacterId" AS "CharId"
+              SELECT substr(CAST("LogonDate" AS TEXT), 1, 7) AS "Month", "CharacterId" AS "CharId"
               FROM "EsiCorpMemberSessions"
               WHERE "CorporationId" = {corpId} AND "LogonDate" >= {cutoff}
             )
@@ -1174,7 +1174,7 @@ public class CorpActivityService
         using var db = _dbFactory.CreateDbContext();
 
         var created = await db.Database.SqlQuery<MonthProjectRaw>($"""
-            SELECT strftime('%Y-%m', "Created") AS "Month",
+            SELECT substr(CAST("Created" AS TEXT), 1, 7) AS "Month",
                    COUNT(*) AS "Count",
                    COALESCE(SUM("RewardInitial"), 0) AS "Value"
             FROM "EsiCorpProjects"
@@ -1183,7 +1183,7 @@ public class CorpActivityService
             """).ToListAsync(ct);
 
         var completed = await db.Database.SqlQuery<MonthProjectRaw>($"""
-            SELECT strftime('%Y-%m', "LastModified") AS "Month",
+            SELECT substr(CAST("LastModified" AS TEXT), 1, 7) AS "Month",
                    COUNT(*) AS "Count",
                    COALESCE(SUM("RewardInitial" - "RewardRemaining"), 0) AS "Value"
             FROM "EsiCorpProjects"

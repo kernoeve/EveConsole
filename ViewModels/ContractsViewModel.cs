@@ -557,8 +557,8 @@ public class ContractNameResolver
                 foreach (var f in fresh.GroupBy(x => x.EntityId).Select(g => g.First()))
                     await db.Database.ExecuteSqlInterpolatedAsync(
                         $"""
-                         INSERT OR IGNORE INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
-                         VALUES ({f.EntityId}, {f.Name}, {f.Category}, {DateTimeOffset.UtcNow:o})
+                         INSERT INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
+                         VALUES ({f.EntityId}, {f.Name}, {f.Category}, {DateTimeOffset.UtcNow:o}) ON CONFLICT DO NOTHING
                          """);
             }
             catch (Exception ex) { _errorLogger.Log("ContractNameResolver", "PersistMoons", ex); }

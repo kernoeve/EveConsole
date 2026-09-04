@@ -26,7 +26,7 @@ public static class AppDb
     /// <summary>A closed connection of the right type. The caller opens it, as before.</summary>
     public static DbConnection Connect() =>
         DbEngine.IsPostgres
-            ? new NpgsqlConnection(AppConfig.GetPostgresConnection())
+            ? new NpgsqlConnection(PostgresConnectionString(AppConfig.GetPostgresConnection() ?? ""))
             : new SqliteConnection(SqliteMaintenance.ConnectionString(AppConfig.GetDbPath()));
 
     /// <summary>
@@ -56,8 +56,40 @@ public static class AppDb
     /// <summary>The connection string for whichever engine is configured.</summary>
     public static string ConnectionString =>
         DbEngine.IsPostgres
-            ? AppConfig.GetPostgresConnection() ?? ""
+            ? PostgresConnectionString(AppConfig.GetPostgresConnection() ?? "")
             : SqliteMaintenance.ConnectionString(AppConfig.GetDbPath());
+
+    /// <summary>
+    /// The user's connection string, plus the session settings this app's SQL depends on.
+    ///
+    /// <para>SQLite stores a DateTimeOffset as text and every row in these databases carries
+    /// <c>+00:00</c>, so the first characters of it are a UTC date. PostgreSQL stores an instant
+    /// and renders it on demand, in the session's time zone and DateStyle. Left at the server's
+    /// defaults the same query groups by the server's idea of a month, or formats the date as
+    /// <c>09/04/2026</c> — a substring of which is a different answer that still looks like a
+    /// date.</para>
+    ///
+    /// <para>⚠️ In the connection string rather than an interceptor, because
+    /// <see cref="Connect"/> hands out a plain ADO connection EF never sees. An interceptor would
+    /// have pinned the session for EF's queries and quietly left the rest on the server's
+    /// defaults — the worst shape for a bug of this kind, with most of the app agreeing and a
+    /// few screens not.</para>
+    ///
+    /// <para>A connection string that already sets Options is left alone: somebody who went to
+    /// that trouble meant it.</para>
+    /// </summary>
+    public static string PostgresConnectionString(string configured)
+    {
+        if (string.IsNullOrWhiteSpace(configured)) return configured;
+        try
+        {
+            var b = new NpgsqlConnectionStringBuilder(configured);
+            if (string.IsNullOrWhiteSpace(b.Options))
+                b.Options = "-c timezone=UTC -c datestyle=ISO,MDY";
+            return b.ConnectionString;
+        }
+        catch { return configured; }
+    }
 }
 
 public static class DbCommandExtensions

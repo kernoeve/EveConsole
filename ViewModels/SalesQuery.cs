@@ -239,7 +239,7 @@ internal static class SalesQuery
                 // once — a plain Add + SaveChanges then races on the unique EntityId. This makes the
                 // shared-cache write idempotent and race-safe.
                 await db.Database.ExecuteSqlAsync(
-                    $"INSERT OR IGNORE INTO \"UniverseNames\" (\"EntityId\", \"Name\", \"Category\") VALUES ({kv.Key}, {kv.Value}, '')");
+                    $"INSERT INTO \"UniverseNames\" (\"EntityId\", \"Name\", \"Category\") VALUES ({kv.Key}, {kv.Value}, '') ON CONFLICT DO NOTHING");
             }
         }
         catch (Exception ex) { errorLogger.Log("SalesQuery", "ResolveBuyers", ex); }
